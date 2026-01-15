@@ -52,6 +52,26 @@ export type {
 } from './types.js';
 
 // ============================================================================
+// Stores
+// ============================================================================
+
+export {
+	type Theme,
+	type ResolvedTheme,
+	type ThemeState,
+	setTheme,
+	toggleTheme,
+	cycleTheme,
+	getTheme,
+	getResolvedTheme,
+	getReducedMotion,
+	getThemeState,
+	isDark,
+	isLight,
+	createThemeState
+} from './stores/index.js';
+
+// ============================================================================
 // Inspira Components
 // ============================================================================
 
