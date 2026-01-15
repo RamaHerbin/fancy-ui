@@ -71,12 +71,12 @@
 
 ### 2.1 Establish Component Template
 
-- [ ] **Create component folder template**
+- [x] **Create component folder template**
   - **Where**: `src/lib/fancy-ui/_template/`
   - **What**: Create skeleton files: `Component.svelte`, `types.ts`, `index.ts`, `README.md`
   - **Why**: Ensures consistent structure for all 100+ component ports
 
-- [ ] **Document component template usage**
+- [x] **Document component template usage**
   - **Where**: `src/lib/fancy-ui/_template/README.md`
   - **What**: Step-by-step guide for using template when porting
   - **Why**: Reduces friction and errors when contributors port components
