@@ -1,1 +1,58 @@
-// place files you want to import through the `$lib` alias in this folder.
+/**
+ * Inspira Svelte - Main Library Entry Point
+ *
+ * This file provides centralized exports for the library.
+ * Import from '$lib' for convenient access to all exports.
+ *
+ * @example
+ * ```svelte
+ * <script>
+ *   import { cn, RainbowButton } from '$lib';
+ * </script>
+ * ```
+ */
+
+// ============================================================================
+// Utilities
+// ============================================================================
+
+export { cn } from './utils.js';
+
+// ============================================================================
+// Utility Types (from utils.ts)
+// ============================================================================
+
+export type {
+	WithoutChild,
+	WithoutChildren,
+	WithoutChildrenOrChild,
+	WithElementRef
+} from './utils.js';
+
+// ============================================================================
+// Shared Component Types
+// ============================================================================
+
+export type {
+	// Base props
+	BaseComponentProps,
+	AnimatedComponentProps,
+	InteractiveComponentProps,
+	PolymorphicButtonProps,
+	// Event handlers
+	MouseEventHandler,
+	KeyboardEventHandler,
+	FocusEventHandler,
+	// Utility types
+	ComponentProps,
+	// Registry types
+	ComponentStatus,
+	ComponentCategory,
+	ComponentMeta
+} from './types.js';
+
+// ============================================================================
+// Inspira Components
+// ============================================================================
+
+export * from './inspira/index.js';
