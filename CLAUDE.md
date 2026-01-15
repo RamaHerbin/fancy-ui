@@ -40,6 +40,7 @@ This is a reimplementation project, not a line-by-line translation.
 - Preserve public API parity when reasonable (props, slots, events).
 - Prefer shadcn-svelte primitives from `$lib/components/ui`.
 - Prefer theme tokens (`bg-background`, `text-foreground`, `bg-primary`) over hardcoded colors.
+- Do NOT include `Co-Authored-By` lines in git commits.
 
 ## Svelte 5 conventions
 - Use `$state()` for reactive state (replaces `let` + reactivity)
