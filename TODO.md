@@ -24,22 +24,22 @@
 
 > **Dependencies**: 1.1
 
-- [ ] **Add Card component**
+- [x] **Add Card component**
   - **Where**: `src/lib/components/ui/card/`
   - **What**: Run `npx shadcn-svelte add card`
   - **Why**: Essential for demo page layouts and many FancyUI compositions
 
-- [ ] **Add Badge component**
+- [x] **Add Badge component**
   - **Where**: `src/lib/components/ui/badge/`
   - **What**: Run `npx shadcn-svelte add badge`
   - **Why**: Useful for status indicators in demo pages
 
-- [ ] **Add Separator component**
+- [x] **Add Separator component**
   - **Where**: `src/lib/components/ui/separator/`
   - **What**: Run `npx shadcn-svelte add separator`
   - **Why**: Common layout primitive for section dividers
 
-- [ ] **Add Tabs component**
+- [x] **Add Tabs component**
   - **Where**: `src/lib/components/ui/tabs/`
   - **What**: Run `npx shadcn-svelte add tabs`
   - **Why**: Required for showing code examples alongside demos
