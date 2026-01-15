@@ -10,12 +10,12 @@
 
 ### 1.1 Centralize Library Exports
 
-- [ ] **Update `src/lib/index.ts` to export utilities and types**
+- [x] **Update `src/lib/index.ts` to export utilities and types**
   - **Where**: `src/lib/index.ts`
   - **What**: Re-export `cn`, utility types, and fancy-ui components
   - **Why**: Enables clean imports like `import { cn, RainbowButton } from '$lib'`
 
-- [ ] **Create shared component types file**
+- [x] **Create shared component types file**
   - **Where**: `src/lib/types.ts`
   - **What**: Define `BaseComponentProps`, `AnimatedComponentProps`, common event types
   - **Why**: Ensures type consistency across all ported components
