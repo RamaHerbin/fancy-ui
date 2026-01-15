@@ -48,17 +48,17 @@
 
 > **Dependencies**: None
 
-- [ ] **Add CSS custom properties for animations**
+- [x] **Add CSS custom properties for animations**
   - **Where**: `src/routes/layout.css`
   - **What**: Define `--animation-fast`, `--animation-normal`, `--animation-slow` tokens
   - **Why**: Centralizes animation timing for consistency across components
 
-- [ ] **Add gradient color tokens**
+- [x] **Add gradient color tokens**
   - **Where**: `src/routes/layout.css`
   - **What**: Define `--gradient-start`, `--gradient-end`, rainbow color variables
   - **Why**: Many FancyUI components use gradient effects
 
-- [ ] **Create theme context store**
+- [x] **Create theme context store**
   - **Where**: `src/lib/stores/theme.ts`
   - **What**: Svelte store for theme state (dark/light), reduced-motion preference
   - **Why**: Enables runtime theme switching and respects user preferences
