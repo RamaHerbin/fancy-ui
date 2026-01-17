@@ -312,6 +312,166 @@
 
 ---
 
+## Phase 8: Component Porting
+
+> **Dependencies**: Phase 1, Phase 2, Phase 3.1
+>
+> This is the main work: porting 119 Vue components from `vendor/inspira/ui/` to Svelte.
+
+### 8.1 Buttons (6 components)
+
+- [x] **rainbow-button** - Animated rainbow gradient border button
+- [ ] **gradient-button** - Button with gradient background
+- [ ] **shimmer-button** - Button with shimmer effect
+- [ ] **ripple-button** - Button with ripple click effect
+- [ ] **interactive-hover-button** - Button with hover interactions
+- [ ] **neon-border** - Button/container with neon glow border
+
+### 8.2 Cards & Containers (12 components)
+
+- [ ] **card-3d** - 3D perspective card on hover
+- [ ] **card-spotlight** - Card with mouse-following spotlight
+- [ ] **glare-card** - Card with glare effect
+- [ ] **flip-card** - Card that flips on hover
+- [ ] **bento-grid** - Bento-style grid layout
+- [ ] **compare** - Before/after image comparison slider
+- [ ] **container-scroll** - Scroll-animated container
+- [ ] **container-text-flip** - Text flip container
+- [ ] **focus** - Focus-style card container
+- [ ] **text-reveal-card** - Card with text reveal on hover
+- [ ] **liquid-glass** - Glassmorphism card effect
+- [ ] **book** - 3D book component
+
+### 8.3 Text & Typography (18 components)
+
+- [ ] **colourful-text** - Multi-colored text
+- [ ] **flip-words** - Animated word flipper
+- [ ] **hyper-text** - Hypertext scramble effect
+- [ ] **letter-pullup** - Letters animate up on scroll
+- [ ] **morphing-text** - Text morphing animation
+- [ ] **radiant-text** - Glowing radiant text
+- [ ] **sparkles-text** - Text with sparkle effects
+- [ ] **spinning-text** - Circular spinning text
+- [ ] **text-3d** - 3D extruded text
+- [ ] **text-generate-effect** - Typewriter text generation
+- [ ] **text-glitch** - Glitchy text effect
+- [ ] **text-highlight** - Animated text highlight
+- [ ] **text-hover-effect** - Text with hover animations
+- [ ] **text-reveal** - Text reveal on scroll
+- [ ] **text-scroll-reveal** - Scroll-triggered text reveal
+- [ ] **line-shadow-text** - Text with line shadow
+- [ ] **video-text** - Video masked text
+- [ ] **blur-reveal** - Blur-to-reveal text
+
+### 8.4 Backgrounds (18 components)
+
+- [ ] **aurora-background** - Aurora borealis effect
+- [ ] **bg-black-hole** - Black hole animation
+- [ ] **bg-bubbles** - Floating bubbles
+- [ ] **bg-falling-stars** - Falling stars animation
+- [ ] **bg-neural** - Neural network visualization
+- [ ] **bg-particle-whirlpool** - Particle whirlpool
+- [ ] **bg-silk** - Silk fabric animation
+- [ ] **bg-stars** - Starfield background
+- [ ] **bg-stractium** - Abstract stratum effect
+- [ ] **flickering-grid** - Flickering dot grid
+- [ ] **particles-bg** - Particle system background
+- [ ] **pattern-background** - Pattern/texture backgrounds
+- [ ] **snowfall-bg** - Snowfall animation
+- [ ] **wavy-background** - Wavy animated background
+- [ ] **warp-background** - Warp speed effect
+- [ ] **liquid-background** - Liquid/fluid background
+- [ ] **cosmic-portal** - Cosmic portal effect
+- [ ] **vortex** - Vortex swirl animation
+
+### 8.5 Effects & Animations (20 components)
+
+- [ ] **animated-beam** - SVG animated beam lines
+- [ ] **border-beam** - Animated border beam
+- [ ] **glow-border** - Glowing border effect
+- [ ] **glowing-effect** - General glow effect
+- [ ] **meteors** - Meteor shower effect
+- [ ] **sparkles** - Sparkle particle effect
+- [ ] **confetti** - Confetti celebration
+- [ ] **ripple** - Ripple wave effect
+- [ ] **tracing-beam** - Scroll-tracing beam
+- [ ] **lamp-effect** - Lamp lighting effect
+- [ ] **lens** - Magnifying lens effect
+- [ ] **box-reveal** - Box reveal animation
+- [ ] **light-speed** - Light speed effect
+- [ ] **orbit** - Orbiting elements
+- [ ] **scratch-to-reveal** - Scratch card reveal
+- [ ] **svg-mask** - SVG masking effects
+- [ ] **animate-grid** - Animated grid
+- [ ] **infinite-grid** - Infinite scrolling grid
+- [ ] **interactive-grid-pattern** - Interactive grid
+- [ ] **shader-toy** - Shader effects
+
+### 8.6 Navigation & Layout (8 components)
+
+- [ ] **dock** - macOS-style dock
+- [ ] **morphing-tabs** - Morphing tab navigation
+- [ ] **timeline** - Vertical timeline
+- [ ] **scroll-island** - Scroll-aware floating island
+- [ ] **marquee** - Infinite scrolling marquee
+- [ ] **logo-cloud** - Logo carousel/cloud
+- [ ] **logo-origami** - Origami-style logo reveal
+- [ ] **halo-search** - Spotlight search UI
+
+### 8.7 Data Display (12 components)
+
+- [ ] **animated-circular-progressbar** - Circular progress
+- [ ] **animated-list** - Animated list items
+- [ ] **animated-testimonials** - Testimonial carousel
+- [ ] **testimonial-slider** - Testimonial slider
+- [ ] **file-tree** - File tree component
+- [ ] **icon-cloud** - 3D icon cloud
+- [ ] **number-ticker** - Animated number counter
+- [ ] **balance-slider** - Balance/comparison slider
+- [ ] **expandable-gallery** - Expandable image gallery
+- [ ] **bending-gallery** - Bending gallery effect
+- [ ] **photo-gallery** - Photo gallery grid
+- [ ] **spring-calendar** - Spring-animated calendar
+
+### 8.8 3D & WebGL (8 components)
+
+- [ ] **globe** - 3D globe visualization
+- [ ] **github-globe** - GitHub-style contribution globe
+- [ ] **world-map** - Interactive world map
+- [ ] **spline** - Spline 3D integration
+- [ ] **particle-image** - Particle-based image
+- [ ] **tetris** - Tetris game component
+- [ ] **carousel-3d** - 3D carousel
+- [ ] **apple-card-carousel** - Apple-style 3D carousel
+
+### 8.9 Cursors & Interactions (6 components)
+
+- [ ] **animated-tooltip** - Animated tooltip
+- [ ] **direction-aware-hover** - Direction-aware hover effect
+- [ ] **fluid-cursor** - Fluid cursor effect
+- [ ] **smooth-cursor** - Smooth cursor follower
+- [ ] **sleek-line-cursor** - Line cursor effect
+- [ ] **tailed-cursor** - Cursor with tail
+- [ ] **image-trail-cursor** - Image trail on cursor move
+
+### 8.10 Media & Mockups (5 components)
+
+- [ ] **iphone-mockup** - iPhone device mockup
+- [ ] **safari-mockup** - Safari browser mockup
+- [ ] **images-slider** - Image slider/carousel
+- [ ] **link-preview** - Link preview card
+- [ ] **liquid-logo** - Liquid morphing logo
+
+### 8.11 Forms & Inputs (4 components)
+
+- [ ] **input** - Styled input component
+- [ ] **vanishing-input** - Input with vanishing placeholder
+- [ ] **color-picker** - Color picker component
+- [ ] **file-upload** - File upload component
+- [ ] **multi-step-loader** - Multi-step loading indicator
+
+---
+
 ## Dependency Graph
 
 ```
@@ -345,8 +505,10 @@ Phase 3.2 ─────────────────────► Pha
 | **P1** | 3.1, 3.2 | Enables visual validation |
 | **P2** | 1.3, 2.3 | Supports complex components |
 | **P2** | 5.1 | Code quality gates |
+| **P2** | 8.1-8.5 | Core component porting |
 | **P3** | 3.3, 4.1, 4.2 | Polish and distribution |
 | **P3** | 5.2, 5.3 | Testing infrastructure |
+| **P3** | 8.6-8.11 | Advanced component porting |
 | **P4** | 6.1, 6.2 | Documentation |
 | **P4** | 7.1, 7.2 | Automation |
 
@@ -356,9 +518,18 @@ Phase 3.2 ─────────────────────► Pha
 
 Complete these 4 tasks first to unblock component porting:
 
-1. [ ] **Phase 1.1** - Centralize exports (~30 min)
-2. [ ] **Phase 1.2** - Add Card, Badge, Tabs (~15 min)
-3. [ ] **Phase 2.1** - Component template (~45 min)
-4. [ ] **Phase 3.1** - Demo layout with theme toggle (~1 hr)
+1. [x] **Phase 1.1** - Centralize exports
+2. [x] **Phase 1.2** - Add Card, Badge, Tabs
+3. [x] **Phase 2.1** - Component template
+4. [ ] **Phase 3.1** - Demo layout with theme toggle
 
-After these tasks, the project is ready for scaling to 100+ components.
+After these tasks, the project is ready for **Phase 8: Component Porting** (119 components).
+
+### Porting Priority Order
+
+1. **Buttons** (8.1) - Simple, high-impact, validates workflow
+2. **Effects** (8.5) - Core visual effects used by other components
+3. **Text** (8.3) - Common text animations
+4. **Cards** (8.2) - Container components
+5. **Backgrounds** (8.4) - Decorative backgrounds
+6. **Rest** (8.6-8.11) - Based on demand
