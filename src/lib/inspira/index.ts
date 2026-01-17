@@ -1,4 +1,31 @@
 // Inspira Svelte - Component Library
 // Re-exports all ported InspiraUI components
 
-export * from './rainbow-button';
+// =============================================================================
+// Components
+// =============================================================================
+
+export * from './rainbow-button/index.js';
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+export {
+	// Data
+	registry,
+	categories,
+	categoryLabels,
+	categoryDescriptions,
+	// Helpers
+	getAllComponents,
+	getComponent,
+	getComponentsByStatus,
+	getComponentsByCategory,
+	getComponentsGroupedByCategory,
+	getComponentsGroupedByStatus,
+	searchComponents,
+	getStats,
+	hasComponent,
+	getComponentCategory
+} from './registry.js';
