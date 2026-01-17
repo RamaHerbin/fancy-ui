@@ -97,17 +97,17 @@
 
 > **Dependencies**: 2.1
 
-- [ ] **Create animation utilities**
+- [x] **Create animation utilities**
   - **Where**: `src/lib/utils/animation.ts`
   - **What**: Helpers for spring configs, easing functions, duration calculations
   - **Why**: Many InspiraUI components share animation patterns
 
-- [ ] **Create geometry utilities**
+- [x] **Create geometry utilities**
   - **Where**: `src/lib/utils/geometry.ts`
   - **What**: Helpers for mouse position, angle calculation, distance
   - **Why**: Required for hover effects, spotlights, direction-aware components
 
-- [ ] **Create color utilities**
+- [x] **Create color utilities**
   - **Where**: `src/lib/utils/color.ts`
   - **What**: OKLCH manipulation, gradient generation, color interpolation
   - **Why**: Supports dynamic color effects in beam, glow, and gradient components
