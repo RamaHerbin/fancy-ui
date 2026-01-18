@@ -1,9 +1,9 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import AnimatedFavicon from '$lib/components/AnimatedFavicon.svelte';
 
 	let { children } = $props();
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<AnimatedFavicon />
 {@render children()}
