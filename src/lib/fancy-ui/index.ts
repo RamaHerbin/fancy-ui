@@ -7,6 +7,7 @@
 
 export * from './border-beam/index.js';
 export * from './rainbow-button/index.js';
+export * from './ripple-button/index.js';
 
 // =============================================================================
 // Registry
