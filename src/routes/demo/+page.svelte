@@ -13,6 +13,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'FluidCursor',
+			href: '/demo/fluid-cursor',
+			description: 'WebGL fluid simulation that follows cursor movement',
+			status: 'done' as const
+		},
+		{
 			name: 'RainbowButton',
 			href: '/demo/rainbow-button',
 			description: 'Animated button with a rainbow gradient border effect',
