@@ -19,7 +19,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js';
 	import { scale } from 'svelte/transition';
-	import { spring } from 'svelte/motion';
 
 	let { items, class: className }: AnimatedTooltipProps = $props();
 
@@ -31,13 +30,15 @@
 	let translation = $derived((mouseX / 100) * 50);
 
 	function handleMouseEnter(event: MouseEvent, itemId: number | string) {
-		hoveredIndex = itemId;
+		// Reset mouseX first to prevent offset from previous item
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
 		const halfWidth = rect.width / 2;
 		mouseX = event.clientX - rect.left - halfWidth;
+		hoveredIndex = itemId;
 	}
 
 	function handleMouseMove(event: MouseEvent) {
+		if (hoveredIndex === null) return;
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
 		const halfWidth = rect.width / 2;
 		mouseX = event.clientX - rect.left - halfWidth;
@@ -45,6 +46,7 @@
 
 	function handleMouseLeave() {
 		hoveredIndex = null;
+		mouseX = 0;
 	}
 </script>
 
@@ -61,7 +63,7 @@
 			<!-- Tooltip -->
 			{#if hoveredIndex === item.id}
 				<div
-					class="absolute -top-16 left-1/2 z-50 flex -translate-x-1/2 flex-col items-center justify-center whitespace-nowrap rounded-md bg-black px-4 py-2 text-xs shadow-xl"
+					class="pointer-events-none absolute -top-16 left-1/2 z-50 flex flex-col items-center justify-center whitespace-nowrap rounded-md bg-black px-4 py-2 text-xs shadow-xl"
 					style="transform: translateX(calc(-50% + {translation}px)) rotate({rotation}deg);"
 					transition:scale={{
 						duration: 200,
