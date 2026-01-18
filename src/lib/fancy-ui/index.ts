@@ -5,6 +5,7 @@
 // Components
 // =============================================================================
 
+export * from './animated-tooltip/index.js';
 export * from './border-beam/index.js';
 export * from './rainbow-button/index.js';
 export * from './ripple-button/index.js';
