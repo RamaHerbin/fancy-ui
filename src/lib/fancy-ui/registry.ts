@@ -74,6 +74,14 @@ export const registry: Record<string, ComponentMeta> = {
 	// Done - Fully implemented and tested
 	// =========================================================================
 
+	'animated-tooltip': {
+		name: 'AnimatedTooltip',
+		slug: 'animated-tooltip',
+		description: 'Avatar row with animated tooltips that follow mouse movement',
+		category: 'feedback',
+		status: 'done'
+	},
+
 	'border-beam': {
 		name: 'BorderBeam',
 		slug: 'border-beam',
