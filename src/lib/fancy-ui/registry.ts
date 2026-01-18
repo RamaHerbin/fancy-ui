@@ -74,6 +74,14 @@ export const registry: Record<string, ComponentMeta> = {
 	// Done - Fully implemented and tested
 	// =========================================================================
 
+	'border-beam': {
+		name: 'BorderBeam',
+		slug: 'border-beam',
+		description: 'Animated beam effect that travels around borders',
+		category: 'effects',
+		status: 'done'
+	},
+
 	'rainbow-button': {
 		name: 'RainbowButton',
 		slug: 'rainbow-button',
