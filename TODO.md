@@ -387,7 +387,7 @@
 ### 8.5 Effects & Animations (20 components)
 
 - [ ] **animated-beam** - SVG animated beam lines
-- [ ] **border-beam** - Animated border beam
+- [x] **border-beam** - Animated border beam
 - [ ] **glow-border** - Glowing border effect
 - [ ] **glowing-effect** - General glow effect
 - [ ] **meteors** - Meteor shower effect
