@@ -88,6 +88,14 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Animated button with a rainbow gradient border effect',
 		category: 'buttons',
 		status: 'done'
+	},
+
+	'ripple-button': {
+		name: 'RippleButton',
+		slug: 'ripple-button',
+		description: 'Button with ripple click effect',
+		category: 'buttons',
+		status: 'done'
 	}
 
 	// =========================================================================
