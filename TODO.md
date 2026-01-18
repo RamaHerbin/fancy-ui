@@ -527,6 +527,25 @@ After these tasks, the project is ready for **Phase 8: Component Porting** (119 
 
 ### Porting Priority Order
 
+#### Priority 0: Portfolio Components (actively used)
+
+These components are used in the portfolio project and should be ported first:
+
+| Component | Category | Status |
+|-----------|----------|--------|
+| rainbow-button | Buttons | Done |
+| animated-tooltip | Cursors & Interactions | Pending |
+| blur-reveal | Text | Pending |
+| bg-falling-stars | Backgrounds | Pending |
+| fluid-cursor | Cursors & Interactions | Pending |
+| image-trail-cursor | Cursors & Interactions | Pending |
+| interactive-grid-pattern | Effects | Pending |
+| marquee | Navigation & Layout | Pending |
+| timeline | Navigation & Layout | Pending |
+| animated-logo-cloud | Data Display | Pending |
+
+#### General Priority Order
+
 1. **Buttons** (8.1) - Simple, high-impact, validates workflow
 2. **Effects** (8.5) - Core visual effects used by other components
 3. **Text** (8.3) - Common text animations
