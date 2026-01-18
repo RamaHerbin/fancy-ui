@@ -1,6 +1,12 @@
 <script lang="ts">
 	const components = [
 		{
+			name: 'BorderBeam',
+			href: '/demo/border-beam',
+			description: 'Animated beam effect that travels around borders',
+			status: 'done' as const
+		},
+		{
 			name: 'RainbowButton',
 			href: '/demo/rainbow-button',
 			description: 'Animated button with a rainbow gradient border effect',
