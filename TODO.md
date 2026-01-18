@@ -534,7 +534,7 @@ These components are used in the portfolio project and should be ported first:
 | Component | Category | Status |
 |-----------|----------|--------|
 | rainbow-button | Buttons | Done |
-| animated-tooltip | Cursors & Interactions | Pending |
+| animated-tooltip | Cursors & Interactions | Done |
 | blur-reveal | Text | Pending |
 | bg-falling-stars | Backgrounds | Pending |
 | fluid-cursor | Cursors & Interactions | Pending |

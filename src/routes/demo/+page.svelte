@@ -1,6 +1,12 @@
 <script lang="ts">
 	const components = [
 		{
+			name: 'AnimatedTooltip',
+			href: '/demo/animated-tooltip',
+			description: 'Avatar row with animated tooltips that follow mouse movement',
+			status: 'done' as const
+		},
+		{
 			name: 'BorderBeam',
 			href: '/demo/border-beam',
 			description: 'Animated beam effect that travels around borders',
