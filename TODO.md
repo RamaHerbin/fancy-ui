@@ -323,7 +323,7 @@
 - [x] **rainbow-button** - Animated rainbow gradient border button
 - [ ] **gradient-button** - Button with gradient background
 - [ ] **shimmer-button** - Button with shimmer effect
-- [ ] **ripple-button** - Button with ripple click effect
+- [x] **ripple-button** - Button with ripple click effect
 - [ ] **interactive-hover-button** - Button with hover interactions
 - [ ] **neon-border** - Button/container with neon glow border
 
