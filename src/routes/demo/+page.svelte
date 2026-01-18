@@ -19,6 +19,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'Marquee',
+			href: '/demo/marquee',
+			description: 'Infinite scrolling component for text, images, or cards',
+			status: 'done' as const
+		},
+		{
 			name: 'RainbowButton',
 			href: '/demo/rainbow-button',
 			description: 'Animated button with a rainbow gradient border effect',
