@@ -11,6 +11,12 @@
 			href: '/demo/rainbow-button',
 			description: 'Animated button with a rainbow gradient border effect',
 			status: 'done' as const
+		},
+		{
+			name: 'RippleButton',
+			href: '/demo/ripple-button',
+			description: 'Button with ripple click effect',
+			status: 'done' as const
 		}
 	];
 </script>
