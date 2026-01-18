@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .p1 { animation: float1 3s ease-in-out infinite; }
+    .p2 { animation: float2 3s ease-in-out infinite; }
+    .p3 { animation: float3 3s ease-in-out infinite; }
+    .p4 { animation: float4 3s ease-in-out infinite; }
+    .p5 { animation: float5 3s ease-in-out infinite; }
+
+    @keyframes float1 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(2px, -3px); }
+    }
+    @keyframes float2 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-3px, 2px); }
+    }
+    @keyframes float3 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(3px, 3px); }
+    }
+    @keyframes float4 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-2px, -2px); }
+    }
+    @keyframes float5 {
+      0%, 100% { transform: translate(0, 0); opacity: 0.8; }
+      50% { transform: translate(1px, 2px); opacity: 1; }
+    }
+  </style>
+
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f472b6"/>
+      <stop offset="100%" stop-color="#fb923c"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+
+  <circle class="p1" cx="8" cy="10" r="4" fill="url(#g1)"/>
+  <circle class="p2" cx="22" cy="8" r="3" fill="url(#g2)"/>
+  <circle class="p3" cx="16" cy="18" r="5" fill="url(#g3)"/>
+  <circle class="p4" cx="24" cy="22" r="3.5" fill="url(#g1)"/>
+  <circle class="p5" cx="10" cy="24" r="2.5" fill="url(#g2)"/>
+</svg>
