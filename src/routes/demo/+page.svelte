@@ -13,6 +13,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'Dock',
+			href: '/demo/dock',
+			description: 'macOS-style dock with icon magnification on hover',
+			status: 'done' as const
+		},
+		{
 			name: 'FluidCursor',
 			href: '/demo/fluid-cursor',
 			description: 'WebGL fluid simulation that follows cursor movement',
