@@ -25,6 +25,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'GlowBorder',
+			href: '/demo/glow-border',
+			description: 'Animated glowing border effect with gradient support',
+			status: 'done' as const
+		},
+		{
 			name: 'Marquee',
 			href: '/demo/marquee',
 			description: 'Infinite scrolling component for text, images, or cards',
