@@ -74,6 +74,14 @@ export const registry: Record<string, ComponentMeta> = {
 	// Done - Fully implemented and tested
 	// =========================================================================
 
+	'animated-beam': {
+		name: 'AnimatedBeam',
+		slug: 'animated-beam',
+		description: 'Animated SVG beams connecting elements with smooth gradients',
+		category: 'effects',
+		status: 'done'
+	},
+
 	'animated-tooltip': {
 		name: 'AnimatedTooltip',
 		slug: 'animated-tooltip',
