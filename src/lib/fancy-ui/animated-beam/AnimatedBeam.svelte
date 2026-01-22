@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { cn } from '$lib/utils';
 	import type { AnimatedBeamProps } from './types';
 
@@ -37,25 +37,21 @@
 	});
 
 	// Derived values for animation
-	let x1 = $derived(() => {
-		const direction = reverse ? !isRightToLeft : isRightToLeft;
-		return direction ? '90%; -10%;' : '10%; 110%;';
-	});
+	let x1 = $derived(
+		(reverse ? !isRightToLeft : isRightToLeft) ? '90%; -10%;' : '10%; 110%;'
+	);
 
-	let x2 = $derived(() => {
-		const direction = reverse ? !isRightToLeft : isRightToLeft;
-		return direction ? '100%; 0%;' : '0%; 100%;';
-	});
+	let x2 = $derived(
+		(reverse ? !isRightToLeft : isRightToLeft) ? '100%; 0%;' : '0%; 100%;'
+	);
 
-	let y1 = $derived(() => {
-		const direction = reverse ? !isBottomToTop : isBottomToTop;
-		return direction ? '90%; -10%;' : '10%; 110%;';
-	});
+	let y1 = $derived(
+		(reverse ? !isBottomToTop : isBottomToTop) ? '90%; -10%;' : '10%; 110%;'
+	);
 
-	let y2 = $derived(() => {
-		const direction = reverse ? !isBottomToTop : isBottomToTop;
-		return direction ? '100%; 0%;' : '0%; 100%;';
-	});
+	let y2 = $derived(
+		(reverse ? !isBottomToTop : isBottomToTop) ? '100%; 0%;' : '0%; 100%;'
+	);
 
 	let resizeObserver: ResizeObserver | undefined = undefined;
 
@@ -105,10 +101,6 @@
 		};
 	});
 
-	// Cleanup on destroy
-	onDestroy(() => {
-		resizeObserver?.disconnect();
-	});
 </script>
 
 <svg
@@ -142,7 +134,7 @@
 			{#if !isVertical}
 				<animate
 					attributeName="x1"
-					values={x1()}
+					values={x1}
 					dur="{duration}s"
 					keyTimes="0; 1"
 					keySplines="0.16 1 0.3 1"
@@ -151,7 +143,7 @@
 				/>
 				<animate
 					attributeName="x2"
-					values={x2()}
+					values={x2}
 					dur="{duration}s"
 					keyTimes="0; 1"
 					keySplines="0.16 1 0.3 1"
@@ -161,7 +153,7 @@
 			{:else}
 				<animate
 					attributeName="y1"
-					values={y1()}
+					values={y1}
 					dur="{duration}s"
 					keyTimes="0; 1"
 					keySplines="0.16 1 0.3 1"
@@ -170,7 +162,7 @@
 				/>
 				<animate
 					attributeName="y2"
-					values={y2()}
+					values={y2}
 					dur="{duration}s"
 					keyTimes="0; 1"
 					keySplines="0.16 1 0.3 1"
