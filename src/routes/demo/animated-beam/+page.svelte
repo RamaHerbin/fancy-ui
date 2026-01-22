@@ -205,7 +205,7 @@
 					<tr>
 						<td class="p-3 font-mono text-sm">duration</td>
 						<td class="p-3 font-mono text-sm">number</td>
-						<td class="p-3">random 4-7s</td>
+						<td class="p-3">Random (4-7s)</td>
 						<td class="p-3">Animation duration in seconds</td>
 					</tr>
 					<tr>

@@ -1,6 +1,12 @@
 <script lang="ts">
 	const components = [
 		{
+			name: 'AnimatedBeam',
+			href: '/demo/animated-beam',
+			description: 'Animated SVG beams connecting elements with gradient effects',
+			status: 'done' as const
+		},
+		{
 			name: 'AnimatedTooltip',
 			href: '/demo/animated-tooltip',
 			description: 'Avatar row with animated tooltips that follow mouse movement',
