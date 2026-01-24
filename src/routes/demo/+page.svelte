@@ -13,6 +13,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'BgStars',
+			href: '/demo/bg-stars',
+			description: 'Animated starfield background with parallax mouse tracking',
+			status: 'done' as const
+		},
+		{
 			name: 'BorderBeam',
 			href: '/demo/border-beam',
 			description: 'Animated beam effect that travels around borders',
