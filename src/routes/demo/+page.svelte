@@ -25,6 +25,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'Compare',
+			href: '/demo/compare',
+			description: 'Before/after image comparison slider with hover and drag modes',
+			status: 'done' as const
+		},
+		{
 			name: 'Dock',
 			href: '/demo/dock',
 			description: 'macOS-style dock with icon magnification on hover',
