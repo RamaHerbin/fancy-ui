@@ -39,7 +39,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Drag Mode</h2>
 		<p class="mb-4 text-sm text-muted-foreground">
-			Click and drag to control the slider position. Set{' '}
+			Click and drag to control the slider position. Set
 			<code class="rounded bg-muted px-1.5 py-0.5">slideMode="drag"</code>.
 		</p>
 		<div class="flex justify-center rounded-lg border bg-card p-6">
@@ -78,7 +78,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Custom Initial Position</h2>
 		<p class="mb-4 text-sm text-muted-foreground">
-			Set the starting position with{' '}
+			Set the starting position with
 			<code class="rounded bg-muted px-1.5 py-0.5">initialSliderPercentage</code>.
 		</p>
 		<div class="flex justify-center rounded-lg border bg-card p-6">
@@ -97,7 +97,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Without Handlebar</h2>
 		<p class="mb-4 text-sm text-muted-foreground">
-			Hide the drag handle with{' '}
+			Hide the drag handle with
 			<code class="rounded bg-muted px-1.5 py-0.5">showHandlebar={'{'}false{'}'}</code>.
 		</p>
 		<div class="flex justify-center rounded-lg border bg-card p-6">
