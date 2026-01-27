@@ -150,7 +150,7 @@
 		}
 	}
 
-	function handleMouseDown(_e: MouseEvent): void {
+	function handleMouseDown(): void {
 		handleStart();
 	}
 
@@ -158,7 +158,7 @@
 		handleMove(e.clientX);
 	}
 
-	function handleTouchStart(_e: TouchEvent): void {
+	function handleTouchStart(): void {
 		if (!autoplay) handleStart();
 	}
 
