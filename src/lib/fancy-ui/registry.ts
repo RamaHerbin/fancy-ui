@@ -98,6 +98,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: 'done'
 	},
 
+	compare: {
+		name: 'Compare',
+		slug: 'compare',
+		description: 'Before/after image comparison slider with hover and drag modes',
+		category: 'media',
+		status: 'done'
+	},
+
 	'rainbow-button': {
 		name: 'RainbowButton',
 		slug: 'rainbow-button',
