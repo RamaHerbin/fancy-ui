@@ -1,5 +1,8 @@
 node_modules
 
+# Vendor (Vue reference sources, local only)
+vendor/
+
 # Output
 .output
 .vercel
