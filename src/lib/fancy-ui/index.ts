@@ -10,6 +10,7 @@ export * from './animated-tooltip/index.js';
 export * from './bg-stars/index.js';
 export * from './border-beam/index.js';
 export * from './compare/index.js';
+export * from './direction-aware-hover/index.js';
 export * from './rainbow-button/index.js';
 export * from './ripple-button/index.js';
 
