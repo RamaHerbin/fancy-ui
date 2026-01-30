@@ -137,7 +137,7 @@
 		)
 	);
 
-	let overlayClass = $derived(() => {
+	let overlayClass = $derived.by(() => {
 		const baseClasses = 'absolute inset-0 z-10 transition-all duration-300';
 		const backgroundClasses = 'bg-black/40 dark:bg-black/60';
 
