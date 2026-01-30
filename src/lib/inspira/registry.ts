@@ -106,6 +106,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: 'done'
 	},
 
+	'direction-aware-hover': {
+		name: 'DirectionAwareHover',
+		slug: 'direction-aware-hover',
+		description: 'Image card with overlay that slides in from the mouse entry direction',
+		category: 'cards',
+		status: 'done'
+	},
+
 	'rainbow-button': {
 		name: 'RainbowButton',
 		slug: 'rainbow-button',
