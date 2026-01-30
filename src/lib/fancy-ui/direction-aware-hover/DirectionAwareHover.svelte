@@ -198,7 +198,7 @@
 >
 	<div class="relative size-full overflow-hidden">
 		{#if direction !== null}
-			<div class={overlayClass()} transition:fade={{ duration: 300 }}></div>
+			<div class={overlayClass} transition:fade={{ duration: 300 }}></div>
 		{/if}
 
 		<div class={imageContainerClass}>
