@@ -31,6 +31,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'DirectionAwareHover',
+			href: '/demo/direction-aware-hover',
+			description: 'Image card with overlay that slides in from the mouse entry direction',
+			status: 'done' as const
+		},
+		{
 			name: 'Dock',
 			href: '/demo/dock',
 			description: 'macOS-style dock with icon magnification on hover',
