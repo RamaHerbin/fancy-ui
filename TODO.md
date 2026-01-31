@@ -411,7 +411,7 @@
 
 - [ ] **dock** - macOS-style dock
 - [ ] **morphing-tabs** - Morphing tab navigation
-- [ ] **timeline** - Vertical timeline
+- [x] **timeline** - Vertical timeline
 - [ ] **scroll-island** - Scroll-aware floating island
 - [ ] **marquee** - Infinite scrolling marquee
 - [ ] **logo-cloud** - Logo carousel/cloud
@@ -541,7 +541,7 @@ These components are used in the portfolio project and should be ported first:
 | image-trail-cursor | Cursors & Interactions | Pending |
 | interactive-grid-pattern | Effects | Pending |
 | marquee | Navigation & Layout | Pending |
-| timeline | Navigation & Layout | Pending |
+| timeline | Navigation & Layout | Done |
 | animated-logo-cloud | Data Display | Pending |
 
 #### General Priority Order
