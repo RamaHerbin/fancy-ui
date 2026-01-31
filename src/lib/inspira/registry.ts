@@ -90,6 +90,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: 'done'
 	},
 
+	'blur-reveal': {
+		name: 'BlurReveal',
+		slug: 'blur-reveal',
+		description: 'Scroll-triggered blur-to-clear reveal animation with staggered children',
+		category: 'text',
+		status: 'done'
+	},
+
 	'border-beam': {
 		name: 'BorderBeam',
 		slug: 'border-beam',

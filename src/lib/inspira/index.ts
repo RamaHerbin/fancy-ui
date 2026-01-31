@@ -7,6 +7,7 @@
 
 export * from './animated-beam/index.js';
 export * from './animated-tooltip/index.js';
+export * from './blur-reveal/index.js';
 export * from './bg-stars/index.js';
 export * from './border-beam/index.js';
 export * from './compare/index.js';
