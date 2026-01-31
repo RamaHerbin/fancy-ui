@@ -71,6 +71,12 @@
 			href: '/demo/ripple-button',
 			description: 'Button with ripple click effect',
 			status: 'done' as const
+		},
+		{
+			name: 'Timeline',
+			href: '/demo/timeline',
+			description: 'Vertical timeline with scroll-driven progress line and sticky labels',
+			status: 'done' as const
 		}
 	];
 </script>

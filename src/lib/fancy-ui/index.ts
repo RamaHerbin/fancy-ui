@@ -13,6 +13,7 @@ export * from './compare/index.js';
 export * from './direction-aware-hover/index.js';
 export * from './rainbow-button/index.js';
 export * from './ripple-button/index.js';
+export * from './timeline/index.js';
 
 // =============================================================================
 // Registry
