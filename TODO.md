@@ -334,7 +334,7 @@
 - [ ] **glare-card** - Card with glare effect
 - [ ] **flip-card** - Card that flips on hover
 - [ ] **bento-grid** - Bento-style grid layout
-- [ ] **compare** - Before/after image comparison slider
+- [x] **compare** - Before/after image comparison slider
 - [ ] **container-scroll** - Scroll-animated container
 - [ ] **container-text-flip** - Text flip container
 - [ ] **focus** - Focus-style card container
@@ -361,7 +361,7 @@
 - [ ] **text-scroll-reveal** - Scroll-triggered text reveal
 - [ ] **line-shadow-text** - Text with line shadow
 - [ ] **video-text** - Video masked text
-- [ ] **blur-reveal** - Blur-to-reveal text
+- [x] **blur-reveal** - Blur-to-reveal text
 
 ### 8.4 Backgrounds (18 components)
 
@@ -372,7 +372,7 @@
 - [ ] **bg-neural** - Neural network visualization
 - [ ] **bg-particle-whirlpool** - Particle whirlpool
 - [ ] **bg-silk** - Silk fabric animation
-- [ ] **bg-stars** - Starfield background
+- [x] **bg-stars** - Starfield background
 - [ ] **bg-stractium** - Abstract stratum effect
 - [ ] **flickering-grid** - Flickering dot grid
 - [ ] **particles-bg** - Particle system background
@@ -386,9 +386,9 @@
 
 ### 8.5 Effects & Animations (20 components)
 
-- [ ] **animated-beam** - SVG animated beam lines
+- [x] **animated-beam** - SVG animated beam lines
 - [x] **border-beam** - Animated border beam
-- [ ] **glow-border** - Glowing border effect
+- [x] **glow-border** - Glowing border effect
 - [ ] **glowing-effect** - General glow effect
 - [ ] **meteors** - Meteor shower effect
 - [ ] **sparkles** - Sparkle particle effect
@@ -409,11 +409,11 @@
 
 ### 8.6 Navigation & Layout (8 components)
 
-- [ ] **dock** - macOS-style dock
+- [x] **dock** - macOS-style dock
 - [ ] **morphing-tabs** - Morphing tab navigation
 - [x] **timeline** - Vertical timeline
 - [ ] **scroll-island** - Scroll-aware floating island
-- [ ] **marquee** - Infinite scrolling marquee
+- [x] **marquee** - Infinite scrolling marquee
 - [ ] **logo-cloud** - Logo carousel/cloud
 - [ ] **logo-origami** - Origami-style logo reveal
 - [ ] **halo-search** - Spotlight search UI
@@ -446,9 +446,9 @@
 
 ### 8.9 Cursors & Interactions (6 components)
 
-- [ ] **animated-tooltip** - Animated tooltip
-- [ ] **direction-aware-hover** - Direction-aware hover effect
-- [ ] **fluid-cursor** - Fluid cursor effect
+- [x] **animated-tooltip** - Animated tooltip
+- [x] **direction-aware-hover** - Direction-aware hover effect
+- [x] **fluid-cursor** - Fluid cursor effect
 - [ ] **smooth-cursor** - Smooth cursor follower
 - [ ] **sleek-line-cursor** - Line cursor effect
 - [ ] **tailed-cursor** - Cursor with tail
@@ -535,12 +535,12 @@ These components are used in the portfolio project and should be ported first:
 |-----------|----------|--------|
 | rainbow-button | Buttons | Done |
 | animated-tooltip | Cursors & Interactions | Done |
-| blur-reveal | Text | Pending |
+| fluid-cursor | Cursors & Interactions | Done |
+| marquee | Navigation & Layout | Done |
+| blur-reveal | Text | Done |
 | bg-falling-stars | Backgrounds | Pending |
-| fluid-cursor | Cursors & Interactions | Pending |
 | image-trail-cursor | Cursors & Interactions | Pending |
 | interactive-grid-pattern | Effects | Pending |
-| marquee | Navigation & Layout | Pending |
 | timeline | Navigation & Layout | Done |
 | animated-logo-cloud | Data Display | Pending |
 
