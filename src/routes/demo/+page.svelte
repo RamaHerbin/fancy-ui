@@ -13,6 +13,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'BlurReveal',
+			href: '/demo/blur-reveal',
+			description: 'Scroll-triggered blur-to-clear reveal animation with staggered children',
+			status: 'done' as const
+		},
+		{
 			name: 'BgStars',
 			href: '/demo/bg-stars',
 			description: 'Animated starfield background with parallax mouse tracking',
