@@ -128,6 +128,14 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Button with ripple click effect',
 		category: 'buttons',
 		status: 'done'
+	},
+
+	timeline: {
+		name: 'Timeline',
+		slug: 'timeline',
+		description: 'Vertical timeline with scroll-driven progress line and sticky labels',
+		category: 'navigation',
+		status: 'done'
 	}
 
 	// =========================================================================
