@@ -102,7 +102,7 @@
 	{/if}
 
 	<div bind:this={timelineRef} class="relative z-0 mx-auto max-w-7xl pb-20">
-		{#each items as item, index (item.id + index)}
+		{#each items as item, index (`${item.id}-${index}`)}
 			<div class="flex justify-start pt-10 md:gap-10 md:pt-40">
 				<!-- Sticky label -->
 				<div
