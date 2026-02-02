@@ -130,6 +130,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: 'done'
 	},
 
+	'logo-cloud': {
+		name: 'LogoCloud',
+		slug: 'logo-cloud',
+		description: 'Logo display with animated marquee, static grid, and icon variants',
+		category: 'data-display',
+		status: 'done'
+	},
+
 	'direction-aware-hover': {
 		name: 'DirectionAwareHover',
 		slug: 'direction-aware-hover',

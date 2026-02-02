@@ -67,6 +67,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'LogoCloud',
+			href: '/demo/logo-cloud',
+			description: 'Logo display with animated marquee, static grid, and icon variants',
+			status: 'done' as const
+		},
+		{
 			name: 'GlowBorder',
 			href: '/demo/glow-border',
 			description: 'Animated glowing border effect with gradient support',
