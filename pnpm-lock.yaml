@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      gsap:
+        specifier: ^3.14.2
+        version: 3.14.2
     devDependencies:
       '@internationalized/date':
         specifier: ^3.10.1
@@ -618,6 +622,9 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  gsap@3.14.2:
+    resolution: {integrity: sha512-P8/mMxVLU7o4+55+1TCnQrPmgjPKnwkzkXOK1asnR9Jg2lna4tEY5qBJjMmAaOBDDZWtlRjBXjLa0w53G/uBLA==}
 
   inline-style-parser@0.2.7:
     resolution: {integrity: sha512-Nb2ctOyNR8DqQoR0OwRG95uNWIC0C1lCgf5Naz5H6Ji72KZ8OcFZLz2P5sNgwlyoJ8Yif11oMuYs5pBQa86csA==}
@@ -1312,6 +1319,8 @@ snapshots:
     optional: true
 
   graceful-fs@4.2.11: {}
+
+  gsap@3.14.2: {}
 
   inline-style-parser@0.2.7: {}
 
