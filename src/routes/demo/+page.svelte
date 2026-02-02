@@ -67,6 +67,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'InteractiveGridPattern',
+			href: '/demo/interactive-grid-pattern',
+			description: 'SVG grid of squares that highlight on hover with smooth fade transitions',
+			status: 'done' as const
+		},
+		{
 			name: 'LogoCloud',
 			href: '/demo/logo-cloud',
 			description: 'Logo display with animated marquee, static grid, and icon variants',

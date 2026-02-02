@@ -13,6 +13,7 @@ export * from './bg-stars/index.js';
 export * from './border-beam/index.js';
 export * from './compare/index.js';
 export * from './image-trail-cursor/index.js';
+export * from './interactive-grid-pattern/index.js';
 export * from './logo-cloud/index.js';
 export * from './direction-aware-hover/index.js';
 export * from './rainbow-button/index.js';
