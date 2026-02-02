@@ -61,6 +61,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'ImageTrailCursor',
+			href: '/demo/image-trail-cursor',
+			description: 'Cursor-following image trail with 8 animation variants',
+			status: 'done' as const
+		},
+		{
 			name: 'GlowBorder',
 			href: '/demo/glow-border',
 			description: 'Animated glowing border effect with gradient support',

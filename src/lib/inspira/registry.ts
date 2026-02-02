@@ -122,6 +122,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: 'done'
 	},
 
+	'image-trail-cursor': {
+		name: 'ImageTrailCursor',
+		slug: 'image-trail-cursor',
+		description: 'Cursor-following image trail with 8 animation variants',
+		category: 'effects',
+		status: 'done'
+	},
+
 	'direction-aware-hover': {
 		name: 'DirectionAwareHover',
 		slug: 'direction-aware-hover',
