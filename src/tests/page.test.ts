@@ -1,6 +1,6 @@
 import { render, screen, cleanup } from '@testing-library/svelte';
 import { afterEach, describe, it, expect } from 'vitest';
-import Page from './+page.svelte';
+import Page from '../routes/+page.svelte';
 
 describe('+page.svelte', () => {
 	afterEach(cleanup);
