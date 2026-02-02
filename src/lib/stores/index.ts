@@ -18,4 +18,4 @@ export {
 	isDark,
 	isLight,
 	createThemeState
-} from './theme.js';
+} from './theme.svelte.js';
