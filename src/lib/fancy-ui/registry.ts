@@ -130,6 +130,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: 'done'
 	},
 
+	'interactive-grid-pattern': {
+		name: 'InteractiveGridPattern',
+		slug: 'interactive-grid-pattern',
+		description: 'SVG grid of squares that highlight on hover with smooth fade transitions',
+		category: 'effects',
+		status: 'done'
+	},
+
 	'logo-cloud': {
 		name: 'LogoCloud',
 		slug: 'logo-cloud',
