@@ -19,6 +19,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'BgFallingStars',
+			href: '/demo/bg-falling-stars',
+			description: 'Canvas-based 3D starfield with perspective projection, motion trails, and glow',
+			status: 'done' as const
+		},
+		{
 			name: 'BgStars',
 			href: '/demo/bg-stars',
 			description: 'Animated starfield background with parallax mouse tracking',

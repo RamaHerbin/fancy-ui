@@ -368,7 +368,7 @@
 - [ ] **aurora-background** - Aurora borealis effect
 - [ ] **bg-black-hole** - Black hole animation
 - [ ] **bg-bubbles** - Floating bubbles
-- [ ] **bg-falling-stars** - Falling stars animation
+- [x] **bg-falling-stars** - Falling stars animation
 - [ ] **bg-neural** - Neural network visualization
 - [ ] **bg-particle-whirlpool** - Particle whirlpool
 - [ ] **bg-silk** - Silk fabric animation
@@ -538,7 +538,7 @@ These components are used in the portfolio project and should be ported first:
 | fluid-cursor | Cursors & Interactions | Done |
 | marquee | Navigation & Layout | Done |
 | blur-reveal | Text | Done |
-| bg-falling-stars | Backgrounds | Pending |
+| bg-falling-stars | Backgrounds | Done |
 | image-trail-cursor | Cursors & Interactions | Pending |
 | interactive-grid-pattern | Effects | Pending |
 | timeline | Navigation & Layout | Done |
