@@ -452,7 +452,7 @@
 - [ ] **smooth-cursor** - Smooth cursor follower
 - [ ] **sleek-line-cursor** - Line cursor effect
 - [ ] **tailed-cursor** - Cursor with tail
-- [ ] **image-trail-cursor** - Image trail on cursor move
+- [x] **image-trail-cursor** - Image trail on cursor move
 
 ### 8.10 Media & Mockups (5 components)
 
@@ -538,8 +538,8 @@ These components are used in the portfolio project and should be ported first:
 | fluid-cursor | Cursors & Interactions | Done |
 | marquee | Navigation & Layout | Done |
 | blur-reveal | Text | Done |
-| bg-falling-stars | Backgrounds | Pending |
-| image-trail-cursor | Cursors & Interactions | Pending |
+| bg-falling-stars | Backgrounds | Done |
+| image-trail-cursor | Cursors & Interactions | Done |
 | interactive-grid-pattern | Effects | Pending |
 | timeline | Navigation & Layout | Done |
 | animated-logo-cloud | Data Display | Pending |
