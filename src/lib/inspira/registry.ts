@@ -82,6 +82,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: 'done'
 	},
 
+	'bg-falling-stars': {
+		name: 'FallingStarsBg',
+		slug: 'bg-falling-stars',
+		description: 'Canvas-based 3D starfield with perspective projection, motion trails, and glow',
+		category: 'backgrounds',
+		status: 'done'
+	},
+
 	'animated-tooltip': {
 		name: 'AnimatedTooltip',
 		slug: 'animated-tooltip',

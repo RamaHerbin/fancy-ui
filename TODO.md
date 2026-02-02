@@ -368,7 +368,7 @@
 - [ ] **aurora-background** - Aurora borealis effect
 - [ ] **bg-black-hole** - Black hole animation
 - [ ] **bg-bubbles** - Floating bubbles
-- [ ] **bg-falling-stars** - Falling stars animation
+- [x] **bg-falling-stars** - Falling stars animation
 - [ ] **bg-neural** - Neural network visualization
 - [ ] **bg-particle-whirlpool** - Particle whirlpool
 - [ ] **bg-silk** - Silk fabric animation
