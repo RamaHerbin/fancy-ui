@@ -97,6 +97,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'ShimmerButton',
+			href: '/demo/shimmer-button',
+			description: 'Button with a rotating conic-gradient shimmer border effect',
+			status: 'done' as const
+		},
+		{
 			name: 'Timeline',
 			href: '/demo/timeline',
 			description: 'Vertical timeline with scroll-driven progress line and sticky labels',
