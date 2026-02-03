@@ -18,6 +18,7 @@ export * from './logo-cloud/index.js';
 export * from './direction-aware-hover/index.js';
 export * from './rainbow-button/index.js';
 export * from './ripple-button/index.js';
+export * from './shimmer-button/index.js';
 export * from './timeline/index.js';
 
 // =============================================================================

@@ -170,6 +170,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: 'done'
 	},
 
+	'shimmer-button': {
+		name: 'ShimmerButton',
+		slug: 'shimmer-button',
+		description: 'Button with a rotating conic-gradient shimmer border effect',
+		category: 'buttons',
+		status: 'done'
+	},
+
 	timeline: {
 		name: 'Timeline',
 		slug: 'timeline',
