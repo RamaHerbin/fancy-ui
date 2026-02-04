@@ -41,6 +41,7 @@ This is a reimplementation project, not a line-by-line translation.
 - Prefer shadcn-svelte primitives from `$lib/components/ui`.
 - Prefer theme tokens (`bg-background`, `text-foreground`, `bg-primary`) over hardcoded colors.
 - Do NOT include `Co-Authored-By` lines in git commits.
+- Do NOT reference vendor source paths in component READMEs (no `## Source` section pointing to `vendor/…`).
 
 ## Svelte 5 conventions
 - Use `$state()` for reactive state (replaces `let` + reactivity)
