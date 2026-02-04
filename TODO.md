@@ -324,7 +324,7 @@
 - [x] **gradient-button** - Button with gradient background
 - [x] **shimmer-button** - Button with shimmer effect
 - [x] **ripple-button** - Button with ripple click effect
-- [ ] **interactive-hover-button** - Button with hover interactions
+- [x] **interactive-hover-button** - Button with hover interactions
 - [ ] **neon-border** - Button/container with neon glow border
 
 ### 8.2 Cards & Containers (12 components)
