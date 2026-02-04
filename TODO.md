@@ -321,8 +321,8 @@
 ### 8.1 Buttons (6 components)
 
 - [x] **rainbow-button** - Animated rainbow gradient border button
-- [ ] **gradient-button** - Button with gradient background
-- [ ] **shimmer-button** - Button with shimmer effect
+- [x] **gradient-button** - Button with gradient background
+- [x] **shimmer-button** - Button with shimmer effect
 - [x] **ripple-button** - Button with ripple click effect
 - [ ] **interactive-hover-button** - Button with hover interactions
 - [ ] **neon-border** - Button/container with neon glow border
@@ -404,7 +404,7 @@
 - [ ] **svg-mask** - SVG masking effects
 - [ ] **animate-grid** - Animated grid
 - [ ] **infinite-grid** - Infinite scrolling grid
-- [ ] **interactive-grid-pattern** - Interactive grid
+- [x] **interactive-grid-pattern** - Interactive grid
 - [ ] **shader-toy** - Shader effects
 
 ### 8.6 Navigation & Layout (8 components)
@@ -414,7 +414,7 @@
 - [x] **timeline** - Vertical timeline
 - [ ] **scroll-island** - Scroll-aware floating island
 - [x] **marquee** - Infinite scrolling marquee
-- [ ] **logo-cloud** - Logo carousel/cloud
+- [x] **logo-cloud** - Logo carousel/cloud
 - [ ] **logo-origami** - Origami-style logo reveal
 - [ ] **halo-search** - Spotlight search UI
 
@@ -540,9 +540,9 @@ These components are used in the portfolio project and should be ported first:
 | blur-reveal | Text | Done |
 | bg-falling-stars | Backgrounds | Done |
 | image-trail-cursor | Cursors & Interactions | Done |
-| interactive-grid-pattern | Effects | Pending |
+| interactive-grid-pattern | Effects | Done |
 | timeline | Navigation & Layout | Done |
-| animated-logo-cloud | Data Display | Pending |
+| animated-logo-cloud | Data Display | Done |
 
 #### General Priority Order
 
