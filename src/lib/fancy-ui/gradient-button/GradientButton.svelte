@@ -65,12 +65,14 @@
 	.gradient-button {
 		padding: var(--gb-border-width);
 		border-radius: var(--gb-border-radius);
+		isolation: isolate;
 	}
 
 	.gradient-border {
 		content: '';
 		position: absolute;
 		inset: -200%;
+		z-index: -1;
 		background: conic-gradient(var(--gb-colors));
 		animation: rotate-gradient var(--gb-duration) linear infinite;
 		filter: blur(var(--gb-blur));
@@ -79,7 +81,6 @@
 	.gradient-content {
 		border-radius: var(--gb-border-radius);
 		background-color: var(--gb-bg-color);
-		z-index: 0;
 	}
 
 	@keyframes rotate-gradient {
