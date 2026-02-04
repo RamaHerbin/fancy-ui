@@ -73,6 +73,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'InteractiveHoverButton',
+			href: '/demo/interactive-hover-button',
+			description: 'Button with hover animation: text slides out, arrow slides in, dot fills background',
+			status: 'done' as const
+		},
+		{
 			name: 'LogoCloud',
 			href: '/demo/logo-cloud',
 			description: 'Logo display with animated marquee, static grid, and icon variants',
