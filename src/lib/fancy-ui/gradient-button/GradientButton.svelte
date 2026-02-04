@@ -46,7 +46,7 @@
 
 <button
 	class={cn(
-		'gradient-button relative flex min-w-28 min-h-10 items-center justify-center overflow-hidden',
+		'gradient-button relative flex cursor-pointer min-w-28 min-h-10 items-center justify-center overflow-hidden',
 		className
 	)}
 	style={styleVars}
