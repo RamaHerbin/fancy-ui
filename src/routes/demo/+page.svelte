@@ -85,6 +85,12 @@
 			status: 'done' as const
 		},
 		{
+			name: 'GradientButton',
+			href: '/demo/gradient-button',
+			description: 'Button with a rotating conic-gradient rainbow border effect',
+			status: 'done' as const
+		},
+		{
 			name: 'Marquee',
 			href: '/demo/marquee',
 			description: 'Infinite scrolling component for text, images, or cards',
