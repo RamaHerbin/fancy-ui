@@ -240,6 +240,38 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Infinite scrolling component for text, images, or cards',
 		category: 'layout',
 		status: 'done'
+	},
+
+	meteors: {
+		name: 'Meteors',
+		slug: 'meteors',
+		description: 'Animated meteor shower effect with randomized positions and delays',
+		category: 'effects',
+		status: 'done'
+	},
+
+	'flickering-grid': {
+		name: 'FlickeringGrid',
+		slug: 'flickering-grid',
+		description: 'Canvas-based grid of squares with flickering opacity',
+		category: 'backgrounds',
+		status: 'done'
+	},
+
+	'neon-border': {
+		name: 'NeonBorder',
+		slug: 'neon-border',
+		description: 'Dual-color neon glow border effect with optional rotation animation',
+		category: 'effects',
+		status: 'done'
+	},
+
+	'colourful-text': {
+		name: 'ColourfulText',
+		slug: 'colourful-text',
+		description: 'Per-character color animation with shuffling colors',
+		category: 'text',
+		status: 'done'
 	}
 };
 

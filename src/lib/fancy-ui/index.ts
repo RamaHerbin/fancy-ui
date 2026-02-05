@@ -20,6 +20,10 @@ export * from './rainbow-button/index.js';
 export * from './ripple-button/index.js';
 export * from './shimmer-button/index.js';
 export * from './timeline/index.js';
+export * from './meteors/index.js';
+export * from './flickering-grid/index.js';
+export * from './neon-border/index.js';
+export * from './colourful-text/index.js';
 
 // =============================================================================
 // Registry
