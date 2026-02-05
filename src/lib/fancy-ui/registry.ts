@@ -184,15 +184,63 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Vertical timeline with scroll-driven progress line and sticky labels',
 		category: 'navigation',
 		status: 'done'
+	},
+
+	'bg-stars': {
+		name: 'StarsBackground',
+		slug: 'bg-stars',
+		description: 'Animated starfield background with parallax mouse tracking',
+		category: 'backgrounds',
+		status: 'done'
+	},
+
+	dock: {
+		name: 'Dock',
+		slug: 'dock',
+		description: 'macOS-style dock with icon magnification on hover',
+		category: 'navigation',
+		status: 'done'
+	},
+
+	'fluid-cursor': {
+		name: 'FluidCursor',
+		slug: 'fluid-cursor',
+		description: 'WebGL fluid simulation that follows cursor movement',
+		category: 'effects',
+		status: 'done'
+	},
+
+	'glow-border': {
+		name: 'GlowBorder',
+		slug: 'glow-border',
+		description: 'Animated glowing border effect with gradient support',
+		category: 'effects',
+		status: 'done'
+	},
+
+	'gradient-button': {
+		name: 'GradientButton',
+		slug: 'gradient-button',
+		description: 'Button with a rotating conic-gradient rainbow border effect',
+		category: 'buttons',
+		status: 'done'
+	},
+
+	'interactive-hover-button': {
+		name: 'InteractiveHoverButton',
+		slug: 'interactive-hover-button',
+		description: 'Button with interactive hover effect revealing alternate content',
+		category: 'buttons',
+		status: 'done'
+	},
+
+	marquee: {
+		name: 'Marquee',
+		slug: 'marquee',
+		description: 'Infinite scrolling component for text, images, or cards',
+		category: 'layout',
+		status: 'done'
 	}
-
-	// =========================================================================
-	// In Progress - Currently being ported
-	// =========================================================================
-
-	// =========================================================================
-	// Planned - Identified for porting
-	// =========================================================================
 };
 
 // =============================================================================
