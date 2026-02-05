@@ -7,7 +7,7 @@
 <button
 	onclick={() => themeState.toggleTheme()}
 	aria-label={themeState.isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-	class="fixed top-4 right-4 z-50 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+	class="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
 >
 	{#if themeState.isDark}
 		<svg

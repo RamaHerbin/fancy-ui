@@ -9,10 +9,6 @@
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl py-12 px-4">
-	<div class="mb-8">
-		<a href="/demo" class="text-sm text-muted-foreground hover:text-foreground">&larr; Back to components</a>
-	</div>
-
 	<h1 class="text-3xl font-bold mb-2">RainbowButton</h1>
 	<p class="text-muted-foreground mb-8">
 		An animated button with a rainbow gradient border that continuously animates around the button.
