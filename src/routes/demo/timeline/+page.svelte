@@ -14,10 +14,6 @@
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl px-4 py-12">
-	<div class="mb-8">
-		<a href="/demo" class="text-sm text-muted-foreground hover:text-foreground">&larr; Back to components</a>
-	</div>
-
 	<h1 class="mb-2 text-3xl font-bold">Timeline</h1>
 	<p class="mb-8 text-muted-foreground">
 		Vertical timeline with scroll-driven progress line and sticky labels.

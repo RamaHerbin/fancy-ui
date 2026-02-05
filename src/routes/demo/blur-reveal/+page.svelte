@@ -7,10 +7,6 @@
 </svelte:head>
 
 <div class="container mx-auto max-w-4xl px-4 py-12">
-	<div class="mb-8">
-		<a href="/demo" class="text-sm text-muted-foreground hover:text-foreground">&larr; Back to components</a>
-	</div>
-
 	<h1 class="mb-2 text-3xl font-bold">BlurReveal</h1>
 	<p class="mb-8 text-muted-foreground">
 		Scroll-triggered reveal animation that transitions children from blurred to clear with staggered delays.
