@@ -28,15 +28,15 @@
 
 	// Filter components when searching
 	let isSearching = $derived(searchQuery.trim().length > 0);
-	let searchResults = $derived(
-		isSearching
-			? allComponents.filter(
-					(c) =>
-						c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						c.description.toLowerCase().includes(searchQuery.toLowerCase())
-				)
-			: []
-	);
+	let searchResults = $derived.by(() => {
+		if (!isSearching) return [];
+		const query = searchQuery.toLowerCase();
+		return allComponents.filter(
+			(c) =>
+				c.name.toLowerCase().includes(query) ||
+				c.description.toLowerCase().includes(query)
+		);
+	});
 
 	function closeSidebar() {
 		sidebarOpen = false;
@@ -44,6 +44,11 @@
 
 	function clearSearch() {
 		searchQuery = '';
+	}
+
+	function selectResult() {
+		closeSidebar();
+		clearSearch();
 	}
 </script>
 
@@ -128,7 +133,7 @@
 						<li>
 							<a
 								href="/demo/{comp.slug}"
-								onclick={() => { closeSidebar(); clearSearch(); }}
+								onclick={selectResult}
 								class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive
 									? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
 									: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
