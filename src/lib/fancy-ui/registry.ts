@@ -272,6 +272,54 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Per-character color animation with shuffling colors',
 		category: 'text',
 		status: 'done'
+	},
+
+	'flip-words': {
+		name: 'FlipWords',
+		slug: 'flip-words',
+		description: 'Cycling word animation with per-letter fade-in and blur effects',
+		category: 'text',
+		status: 'done'
+	},
+
+	'hyper-text': {
+		name: 'HyperText',
+		slug: 'hyper-text',
+		description: 'Character scramble effect that activates on hover',
+		category: 'text',
+		status: 'done'
+	},
+
+	'letter-pullup': {
+		name: 'LetterPullup',
+		slug: 'letter-pullup',
+		description: 'Staggered letter pull-up animation with wave entrance effect',
+		category: 'text',
+		status: 'done'
+	},
+
+	'number-ticker': {
+		name: 'NumberTicker',
+		slug: 'number-ticker',
+		description: 'Animated number counter with easing, triggered on viewport entry',
+		category: 'text',
+		status: 'done'
+	},
+
+	'sparkles-text': {
+		name: 'SparklesText',
+		slug: 'sparkles-text',
+		description: 'Text with animated SVG sparkle stars overlay',
+		category: 'text',
+		status: 'done'
+	},
+
+	'box-reveal': {
+		name: 'BoxReveal',
+		slug: 'box-reveal',
+		description: 'Content reveal with sliding colored box animation',
+		category: 'text',
+		status: 'done'
 	}
 };
 
