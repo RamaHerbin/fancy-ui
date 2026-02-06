@@ -5,14 +5,17 @@
 		categories,
 		categoryLabels,
 		getComponentsGroupedByCategory,
-		getComponent
+		getComponent,
+		getAllComponents
 	} from '$lib/fancy-ui/registry.js';
 
 	let { children } = $props();
 
 	let sidebarOpen = $state(false);
+	let searchQuery = $state('');
 
 	const grouped = getComponentsGroupedByCategory();
+	const allComponents = getAllComponents();
 
 	// Derive current component slug from URL
 	let currentSlug = $derived.by(() => {
@@ -23,8 +26,29 @@
 
 	let currentComponent = $derived(currentSlug ? getComponent(currentSlug) : null);
 
+	// Filter components when searching
+	let isSearching = $derived(searchQuery.trim().length > 0);
+	let searchResults = $derived.by(() => {
+		if (!isSearching) return [];
+		const query = searchQuery.toLowerCase();
+		return allComponents.filter(
+			(c) =>
+				c.name.toLowerCase().includes(query) ||
+				c.description.toLowerCase().includes(query)
+		);
+	});
+
 	function closeSidebar() {
 		sidebarOpen = false;
+	}
+
+	function clearSearch() {
+		searchQuery = '';
+	}
+
+	function selectResult() {
+		closeSidebar();
+		clearSearch();
 	}
 </script>
 
@@ -50,36 +74,109 @@
 		</a>
 	</div>
 
+	<!-- Search -->
+	<div class="px-3 pt-3">
+		<div class="relative">
+			<svg
+				class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sidebar-foreground/40"
+				xmlns="http://www.w3.org/2000/svg"
+				width="14"
+				height="14"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<circle cx="11" cy="11" r="8" />
+				<path d="m21 21-4.3-4.3" />
+			</svg>
+			<input
+				type="text"
+				placeholder="Search components..."
+				bind:value={searchQuery}
+				class="h-8 w-full rounded-md border border-sidebar-border bg-sidebar pl-8 pr-8 text-sm text-sidebar-foreground placeholder:text-sidebar-foreground/40 focus:border-sidebar-ring focus:outline-none"
+			/>
+			{#if searchQuery}
+				<button
+					onclick={clearSearch}
+					class="absolute right-2 top-1/2 -translate-y-1/2 text-sidebar-foreground/40 hover:text-sidebar-foreground"
+					aria-label="Clear search"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M18 6 6 18" />
+						<path d="m6 6 12 12" />
+					</svg>
+				</button>
+			{/if}
+		</div>
+	</div>
+
 	<!-- Sidebar nav -->
 	<nav class="flex-1 overflow-y-auto px-3 py-4">
-		{#each categories as category}
-			{@const items = grouped[category]}
-			{#if items.length > 0}
-				<div class="mb-4">
-					<h3
-						class="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50"
-					>
-						{categoryLabels[category]}
-					</h3>
-					<ul>
-						{#each items as comp}
-							{@const isActive = currentSlug === comp.slug}
-							<li>
-								<a
-									href="/demo/{comp.slug}"
-									onclick={closeSidebar}
-									class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive
-										? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
-										: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
-								>
-									{comp.name}
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</div>
+		{#if isSearching}
+			{#if searchResults.length > 0}
+				<ul>
+					{#each searchResults as comp}
+						{@const isActive = currentSlug === comp.slug}
+						<li>
+							<a
+								href="/demo/{comp.slug}"
+								onclick={selectResult}
+								class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive
+									? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+									: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
+							>
+								{comp.name}
+								<span class="block text-xs text-sidebar-foreground/40">{comp.category}</span>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<p class="px-2 text-sm text-sidebar-foreground/50">No results</p>
 			{/if}
-		{/each}
+		{:else}
+			{#each categories as category}
+				{@const items = grouped[category]}
+				{#if items.length > 0}
+					<div class="mb-4">
+						<h3
+							class="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50"
+						>
+							{categoryLabels[category]}
+						</h3>
+						<ul>
+							{#each items as comp}
+								{@const isActive = currentSlug === comp.slug}
+								<li>
+									<a
+										href="/demo/{comp.slug}"
+										onclick={closeSidebar}
+										class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive
+											? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+											: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
+									>
+										{comp.name}
+									</a>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/if}
+			{/each}
+		{/if}
 	</nav>
 </aside>
 
