@@ -24,6 +24,12 @@ export * from './meteors/index.js';
 export * from './flickering-grid/index.js';
 export * from './neon-border/index.js';
 export * from './colourful-text/index.js';
+export * from './flip-words/index.js';
+export * from './hyper-text/index.js';
+export * from './letter-pullup/index.js';
+export * from './number-ticker/index.js';
+export * from './sparkles-text/index.js';
+export * from './box-reveal/index.js';
 
 // =============================================================================
 // Registry
