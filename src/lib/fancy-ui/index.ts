@@ -30,6 +30,9 @@ export * from './letter-pullup/index.js';
 export * from './number-ticker/index.js';
 export * from './sparkles-text/index.js';
 export * from './box-reveal/index.js';
+export * from './card-3d/index.js';
+export * from './card-spotlight/index.js';
+export * from './bento-grid/index.js';
 
 // =============================================================================
 // Registry
