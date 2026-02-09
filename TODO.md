@@ -325,15 +325,15 @@
 - [x] **shimmer-button** - Button with shimmer effect
 - [x] **ripple-button** - Button with ripple click effect
 - [x] **interactive-hover-button** - Button with hover interactions
-- [ ] **neon-border** - Button/container with neon glow border
+- [x] **neon-border** - Button/container with neon glow border
 
 ### 8.2 Cards & Containers (12 components)
 
-- [ ] **card-3d** - 3D perspective card on hover
-- [ ] **card-spotlight** - Card with mouse-following spotlight
+- [x] **card-3d** - 3D perspective card on hover
+- [x] **card-spotlight** - Card with mouse-following spotlight
 - [ ] **glare-card** - Card with glare effect
 - [ ] **flip-card** - Card that flips on hover
-- [ ] **bento-grid** - Bento-style grid layout
+- [x] **bento-grid** - Bento-style grid layout
 - [x] **compare** - Before/after image comparison slider
 - [ ] **container-scroll** - Scroll-animated container
 - [ ] **container-text-flip** - Text flip container

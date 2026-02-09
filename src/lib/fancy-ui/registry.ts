@@ -320,6 +320,30 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Content reveal with sliding colored box animation',
 		category: 'text',
 		status: 'done'
+	},
+
+	'card-3d': {
+		name: 'Card3D',
+		slug: 'card-3d',
+		description: 'Interactive 3D perspective card with depth effects on child elements',
+		category: 'cards',
+		status: 'done'
+	},
+
+	'card-spotlight': {
+		name: 'CardSpotlight',
+		slug: 'card-spotlight',
+		description: 'Card with mouse-following radial gradient spotlight overlay',
+		category: 'cards',
+		status: 'done'
+	},
+
+	'bento-grid': {
+		name: 'BentoGrid',
+		slug: 'bento-grid',
+		description: 'Bento-style grid layout with slot-based and props-based card variants',
+		category: 'cards',
+		status: 'done'
 	}
 };
 
