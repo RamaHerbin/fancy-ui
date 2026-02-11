@@ -33,6 +33,7 @@ export * from './box-reveal/index.js';
 export * from './card-3d/index.js';
 export * from './card-spotlight/index.js';
 export * from './bento-grid/index.js';
+export * from './smooth-cursor/index.js';
 
 // =============================================================================
 // Registry
