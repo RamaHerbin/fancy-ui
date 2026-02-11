@@ -344,6 +344,14 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Bento-style grid layout with slot-based and props-based card variants',
 		category: 'cards',
 		status: 'done'
+	},
+
+	'smooth-cursor': {
+		name: 'SmoothCursor',
+		slug: 'smooth-cursor',
+		description: 'Physics-based smooth cursor with spring animations and rotation effects',
+		category: 'effects',
+		status: 'done'
 	}
 };
 
