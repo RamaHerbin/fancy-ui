@@ -188,11 +188,14 @@
 
 		motionQuery.addEventListener('change', onMotionChange);
 
+		document.body.style.cursor = 'none';
+
 		document.addEventListener('mousemove', onMouseMove);
 		document.documentElement.addEventListener('mouseleave', onMouseLeave);
 		document.documentElement.addEventListener('mouseenter', onMouseEnter);
 
 		return () => {
+			document.body.style.cursor = '';
 			motionQuery.removeEventListener('change', onMotionChange);
 			document.removeEventListener('mousemove', onMouseMove);
 			document.documentElement.removeEventListener('mouseleave', onMouseLeave);
