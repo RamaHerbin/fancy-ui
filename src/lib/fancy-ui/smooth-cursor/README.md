@@ -9,6 +9,8 @@ A customizable, physics-based smooth cursor animation component. The cursor foll
 - Rotation based on movement direction
 - Custom cursor support via Svelte snippets
 - Auto-hides when mouse leaves the viewport
+- Respects `prefers-reduced-motion`: disables spring physics and snaps directly to pointer
+- Hides the native browser cursor automatically
 - Performance optimized with `requestAnimationFrame` and `will-change`
 
 ## Implementation Notes
