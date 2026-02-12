@@ -8,8 +8,6 @@
 		stiffness?: number;
 		/** Controls the virtual mass of the animated object (default: 1) */
 		mass?: number;
-		/** Threshold at which animation is considered complete (default: 0.001) */
-		restDelta?: number;
 	}
 
 	export interface SmoothCursorProps {
@@ -35,12 +33,12 @@
 	const config = $derived({
 		damping: springConfig.damping ?? 45,
 		stiffness: springConfig.stiffness ?? 400,
-		mass: springConfig.mass ?? 1,
-		restDelta: springConfig.restDelta ?? 0.001
+		mass: springConfig.mass ?? 1
 	});
 
 	let cursorEl: HTMLDivElement;
 	let visible = $state(false);
+	let reducedMotion = $state(false);
 
 	// Spring state
 	let posX = 0;
@@ -58,22 +56,52 @@
 	let rafId: number | null = null;
 	let lastTime = 0;
 
+	function startAnimation() {
+		if (rafId === null) {
+			lastTime = 0;
+			rafId = requestAnimationFrame(animate);
+		}
+	}
+
+	function stopAnimation() {
+		if (rafId !== null) {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+	}
+
+	function snapToTarget() {
+		posX = targetX;
+		posY = targetY;
+		velX = 0;
+		velY = 0;
+		if (cursorEl) {
+			cursorEl.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+		}
+	}
+
 	function onMouseMove(e: MouseEvent) {
 		targetX = e.clientX;
 		targetY = e.clientY;
 
 		if (!visible) {
-			// Snap to initial position on first move
 			posX = targetX;
 			posY = targetY;
 			prevX = targetX;
 			prevY = targetY;
 			visible = true;
 		}
+
+		if (reducedMotion) {
+			snapToTarget();
+		} else {
+			startAnimation();
+		}
 	}
 
 	function onMouseLeave() {
 		visible = false;
+		stopAnimation();
 	}
 
 	function onMouseEnter(e: MouseEvent) {
@@ -84,9 +112,20 @@
 		prevX = targetX;
 		prevY = targetY;
 		visible = true;
+
+		if (!reducedMotion) {
+			startAnimation();
+		} else {
+			snapToTarget();
+		}
 	}
 
 	function animate(time: number) {
+		if (!visible) {
+			rafId = null;
+			return;
+		}
+
 		rafId = requestAnimationFrame(animate);
 
 		if (lastTime === 0) {
@@ -94,7 +133,6 @@
 			return;
 		}
 
-		// Use a fixed timestep for consistent physics regardless of frame rate
 		const dt = Math.min((time - lastTime) / 1000, 0.064);
 		lastTime = time;
 
@@ -120,9 +158,7 @@
 
 		if (distance > 0.1) {
 			const targetRotation = Math.atan2(dy, dx) * (180 / Math.PI) + 135;
-			// Smooth rotation to avoid jumps
 			let diff = targetRotation - rotation;
-			// Normalize to [-180, 180]
 			while (diff > 180) diff -= 360;
 			while (diff < -180) diff += 360;
 			rotation += diff * 0.3;
@@ -131,27 +167,37 @@
 		prevX = posX;
 		prevY = posY;
 
-		// Apply transform
 		if (cursorEl) {
 			cursorEl.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotation}deg)`;
 		}
 	}
 
 	onMount(() => {
-		document.addEventListener('mousemove', onMouseMove);
-		document.addEventListener('mouseleave', onMouseLeave);
-		document.addEventListener('mouseenter', onMouseEnter);
+		const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+		reducedMotion = motionQuery.matches;
 
-		rafId = requestAnimationFrame(animate);
+		function onMotionChange(e: MediaQueryListEvent) {
+			reducedMotion = e.matches;
+			if (reducedMotion) {
+				stopAnimation();
+				snapToTarget();
+			} else if (visible) {
+				startAnimation();
+			}
+		}
+
+		motionQuery.addEventListener('change', onMotionChange);
+
+		document.addEventListener('mousemove', onMouseMove);
+		document.documentElement.addEventListener('mouseleave', onMouseLeave);
+		document.documentElement.addEventListener('mouseenter', onMouseEnter);
 
 		return () => {
+			motionQuery.removeEventListener('change', onMotionChange);
 			document.removeEventListener('mousemove', onMouseMove);
-			document.removeEventListener('mouseleave', onMouseLeave);
-			document.removeEventListener('mouseenter', onMouseEnter);
-
-			if (rafId !== null) {
-				cancelAnimationFrame(rafId);
-			}
+			document.documentElement.removeEventListener('mouseleave', onMouseLeave);
+			document.documentElement.removeEventListener('mouseenter', onMouseEnter);
+			stopAnimation();
 		};
 	});
 </script>
