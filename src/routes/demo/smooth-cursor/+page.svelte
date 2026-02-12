@@ -53,7 +53,7 @@
 				class="overflow-x-auto rounded bg-muted p-4 text-sm"><code>{'<'}SmoothCursor{'>'}
   {'{'}#snippet cursor(){'}'}
     {'<'}div class="h-4 w-4 rounded-full bg-primary" /{'>'}
-  {'{'}{'/'} snippet{'}'}
+  {'{'}/snippet{'}'}
 {'<'}/SmoothCursor{'>'}</code></pre>
 		</div>
 	</section>
@@ -119,19 +119,13 @@
 						<td class="px-4 py-3 font-mono text-xs">400</td>
 						<td class="px-4 py-3">Controls the spring stiffness</td>
 					</tr>
-					<tr class="border-b">
+					<tr>
 						<td class="px-4 py-3 font-mono text-xs">mass</td>
 						<td class="px-4 py-3 font-mono text-xs">number</td>
 						<td class="px-4 py-3 font-mono text-xs">1</td>
 						<td class="px-4 py-3">Virtual mass of the animated object</td>
 					</tr>
-					<tr>
-						<td class="px-4 py-3 font-mono text-xs">restDelta</td>
-						<td class="px-4 py-3 font-mono text-xs">number</td>
-						<td class="px-4 py-3 font-mono text-xs">0.001</td>
-						<td class="px-4 py-3">Threshold for animation completion</td>
-					</tr>
-				</tbody>
+					</tbody>
 			</table>
 		</div>
 	</section>
