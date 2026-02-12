@@ -134,11 +134,12 @@
 		<h2 class="mb-4 text-xl font-semibold">Notes</h2>
 		<div class="rounded-lg border bg-card p-6">
 			<ul class="list-inside list-disc space-y-2 text-sm text-muted-foreground">
+				<li>The native browser cursor is automatically hidden while the component is mounted</li>
 				<li>The cursor auto-hides when the mouse leaves the viewport</li>
 				<li>Rotation follows the direction of movement with smoothing</li>
 				<li>
-					Consider adding <code class="rounded bg-muted px-1">cursor: none</code> to your page to
-					hide the default browser cursor
+					Respects <code class="rounded bg-muted px-1">prefers-reduced-motion</code>: when enabled,
+					the cursor snaps directly to the pointer without spring animation or rotation
 				</li>
 				<li>The component uses <code class="rounded bg-muted px-1">will-change: transform</code> for GPU acceleration</li>
 				<li>Fixed positioning at z-index 9999 ensures cursor is always on top</li>
