@@ -344,6 +344,70 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Bento-style grid layout with slot-based and props-based card variants',
 		category: 'cards',
 		status: 'done'
+	},
+
+	'flip-card': {
+		name: 'FlipCard',
+		slug: 'flip-card',
+		description: 'Card that flips to reveal back content on hover using CSS 3D transforms',
+		category: 'cards',
+		status: 'done'
+	},
+
+	book: {
+		name: 'Book',
+		slug: 'book',
+		description: '3D book component with cover, spine, and back face that opens on hover',
+		category: 'cards',
+		status: 'done'
+	},
+
+	'glare-card': {
+		name: 'GlareCard',
+		slug: 'glare-card',
+		description: 'Holographic trading card effect with mouse-tracking glare and rainbow foil',
+		category: 'cards',
+		status: 'done'
+	},
+
+	'text-reveal-card': {
+		name: 'TextRevealCard',
+		slug: 'text-reveal-card',
+		description: 'Card that reveals text on horizontal mouse drag with animated star particles',
+		category: 'cards',
+		status: 'done'
+	},
+
+	'container-scroll': {
+		name: 'ContainerScroll',
+		slug: 'container-scroll',
+		description: 'Scroll-driven animation that rotates and scales a card from tilted to flat',
+		category: 'layout',
+		status: 'done'
+	},
+
+	'container-text-flip': {
+		name: 'ContainerTextFlip',
+		slug: 'container-text-flip',
+		description: 'Text container that cycles through words with per-character blur animation',
+		category: 'text',
+		status: 'done'
+	},
+
+	focus: {
+		name: 'Focus',
+		slug: 'focus',
+		description: 'Text component that cycles focus through words with blur and corner frame',
+		category: 'text',
+		status: 'done'
+	},
+
+	'liquid-glass': {
+		name: 'LiquidGlass',
+		slug: 'liquid-glass',
+		description: 'Glass-like visual effect using SVG filters for chromatic displacement',
+		category: 'effects',
+		status: 'done'
 	}
 };
 
