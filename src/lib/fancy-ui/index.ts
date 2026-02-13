@@ -33,6 +33,14 @@ export * from './box-reveal/index.js';
 export * from './card-3d/index.js';
 export * from './card-spotlight/index.js';
 export * from './bento-grid/index.js';
+export * from './flip-card/index.js';
+export * from './book/index.js';
+export * from './glare-card/index.js';
+export * from './text-reveal-card/index.js';
+export * from './container-scroll/index.js';
+export * from './container-text-flip/index.js';
+export * from './focus/index.js';
+export * from './liquid-glass/index.js';
 export * from './smooth-cursor/index.js';
 
 // =============================================================================
