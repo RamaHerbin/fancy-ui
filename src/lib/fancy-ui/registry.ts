@@ -408,6 +408,14 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Glass-like visual effect using SVG filters for chromatic displacement',
 		category: 'effects',
 		status: 'done'
+	},
+
+	'smooth-cursor': {
+		name: 'SmoothCursor',
+		slug: 'smooth-cursor',
+		description: 'Physics-based smooth cursor with spring animations and rotation effects',
+		category: 'effects',
+		status: 'done'
 	}
 };
 
