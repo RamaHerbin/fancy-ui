@@ -416,6 +416,46 @@ export const registry: Record<string, ComponentMeta> = {
 		description: 'Physics-based smooth cursor with spring animations and rotation effects',
 		category: 'effects',
 		status: 'done'
+	},
+
+	'glowing-effect': {
+		name: 'GlowingEffect',
+		slug: 'glowing-effect',
+		description: 'Mouse-proximity based glowing border effect with animated conic gradient',
+		category: 'effects',
+		status: 'done'
+	},
+
+	sparkles: {
+		name: 'Sparkles',
+		slug: 'sparkles',
+		description: 'Canvas-based floating particle sparkle effect with configurable density and colors',
+		category: 'backgrounds',
+		status: 'done'
+	},
+
+	confetti: {
+		name: 'Confetti',
+		slug: 'confetti',
+		description: 'Confetti celebration effect powered by canvas-confetti with button trigger support',
+		category: 'effects',
+		status: 'done'
+	},
+
+	ripple: {
+		name: 'Ripple',
+		slug: 'ripple',
+		description: 'Concentric pulsing circles with ripple wave animation',
+		category: 'effects',
+		status: 'done'
+	},
+
+	'tracing-beam': {
+		name: 'TracingBeam',
+		slug: 'tracing-beam',
+		description: 'Vertical SVG beam that highlights scroll progress alongside content',
+		category: 'effects',
+		status: 'done'
 	}
 };
 

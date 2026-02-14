@@ -389,12 +389,12 @@
 - [x] **animated-beam** - SVG animated beam lines
 - [x] **border-beam** - Animated border beam
 - [x] **glow-border** - Glowing border effect
-- [ ] **glowing-effect** - General glow effect
+- [x] **glowing-effect** - General glow effect
 - [x] **meteors** - Meteor shower effect
-- [ ] **sparkles** - Sparkle particle effect
-- [ ] **confetti** - Confetti celebration
-- [ ] **ripple** - Ripple wave effect
-- [ ] **tracing-beam** - Scroll-tracing beam
+- [x] **sparkles** - Sparkle particle effect
+- [x] **confetti** - Confetti celebration
+- [x] **ripple** - Ripple wave effect
+- [x] **tracing-beam** - Scroll-tracing beam
 - [ ] **lamp-effect** - Lamp lighting effect
 - [ ] **lens** - Magnifying lens effect
 - [x] **box-reveal** - Box reveal animation
