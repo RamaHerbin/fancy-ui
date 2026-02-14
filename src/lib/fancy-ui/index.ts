@@ -42,6 +42,11 @@ export * from './container-text-flip/index.js';
 export * from './focus/index.js';
 export * from './liquid-glass/index.js';
 export * from './smooth-cursor/index.js';
+export * from './sparkles/index.js';
+export * from './glowing-effect/index.js';
+export * from './confetti/index.js';
+export * from './ripple/index.js';
+export * from './tracing-beam/index.js';
 
 // =============================================================================
 // Registry
