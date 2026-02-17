@@ -1,32 +1,15 @@
-<script lang="ts">
-	import ContactForm from '$lib/portfolio/ContactForm.svelte';
-</script>
-
 <footer id="contact" class="border-t border-border/40 py-16 px-6">
 	<div class="max-w-4xl mx-auto">
 		<div class="flex flex-col items-center justify-center text-center space-y-8">
 			<div class="space-y-4">
-				<div class="flex flex-col items-center space-y-4">
-					<h2
-						class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
-					>
-						Let's Connect
-					</h2>
-				</div>
+				<h2
+					class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground"
+				>
+					Let's Connect
+				</h2>
 				<p class="text-lg text-muted-foreground max-w-2xl">
-					Ready to collaborate on your next project or just want to say hello?
+					Ready to collaborate on your next project or just want to say hi?
 				</p>
-			</div>
-
-			<div class="w-full max-w-lg">
-				<ContactForm />
-			</div>
-
-			<!-- Divider -->
-			<div class="flex items-center w-full max-w-md">
-				<div class="flex-1 border-t border-border/40"></div>
-				<span class="px-4 text-sm text-muted-foreground">or reach out directly</span>
-				<div class="flex-1 border-t border-border/40"></div>
 			</div>
 
 			<!-- Contact Links -->

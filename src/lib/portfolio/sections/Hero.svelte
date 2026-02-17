@@ -39,6 +39,8 @@
 	<!-- Interactive Grid Pattern Background -->
 	{#if showInteractiveElements}
 		<InteractiveGridPattern
+			width={80}
+			height={80}
 			class="[mask-image:radial-gradient(500px_circle_at_center,white,transparent)] inset-0 h-full opacity-30"
 		/>
 	{/if}
@@ -49,8 +51,8 @@
 			Rama Herbin
 		</h1>
 
-		<BlurReveal delay={0.2} duration={0.75} class="space-y-6">
-			<h2 class="text-xl sm:text-2xl lg:text-3xl font-medium text-muted-foreground">
+		<BlurReveal delay={0.2} duration={0.75} class="space-y-8">
+			<h2 class="text-xl sm:text-2xl lg:text-3xl font-medium text-neutral-400">
 				Front-End & UI Engineer
 			</h2>
 
