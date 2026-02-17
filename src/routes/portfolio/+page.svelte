@@ -5,7 +5,6 @@
 	import Projects from '$lib/portfolio/sections/Projects.svelte';
 	import Testimonials from '$lib/portfolio/sections/Testimonials.svelte';
 	import Passions from '$lib/portfolio/sections/Passions.svelte';
-	import Creative from '$lib/portfolio/sections/Creative.svelte';
 	import Contact from '$lib/portfolio/sections/Contact.svelte';
 	import Footer from '$lib/portfolio/sections/Footer.svelte';
 </script>
@@ -31,7 +30,6 @@
 	<Projects />
 	<Testimonials />
 	<Passions />
-	<Creative />
 	<Contact />
 	<Footer />
 </div>
