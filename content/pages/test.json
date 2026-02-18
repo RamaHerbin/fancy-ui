@@ -1,0 +1,321 @@
+{
+  "version": 1,
+  "meta": {
+    "title": "Test Page - Builder",
+    "slug": "test",
+    "description": "A test page to validate the builder renderer",
+    "status": "draft",
+    "createdAt": "2026-02-18T00:00:00Z",
+    "updatedAt": "2026-02-18T00:00:00Z"
+  },
+  "body": [
+    {
+      "id": "sec-hero",
+      "type": "_section",
+      "props": {
+        "padding": "py-24 px-4",
+        "maxWidth": "max-w-5xl",
+        "background": "bg-background"
+      },
+      "children": [
+        {
+          "id": "hero-title",
+          "type": "_text",
+          "props": {
+            "content": "Welcome to the Site Builder",
+            "tag": "h1",
+            "class": "text-5xl font-bold text-center mb-4"
+          }
+        },
+        {
+          "id": "hero-subtitle",
+          "type": "_text",
+          "props": {
+            "content": "This page is rendered from a JSON document using the BlockRenderer.",
+            "tag": "p",
+            "class": "text-xl text-muted-foreground text-center mb-8"
+          }
+        },
+        {
+          "id": "hero-sparkles",
+          "type": "sparkles-text",
+          "props": {
+            "text": "FancyUI Builder",
+            "sparklesCount": 12,
+            "class": "text-4xl font-bold text-center"
+          }
+        }
+      ]
+    },
+    {
+      "id": "spacer-1",
+      "type": "_spacer",
+      "props": {
+        "size": "h-8"
+      }
+    },
+    {
+      "id": "sec-features",
+      "type": "_section",
+      "props": {
+        "padding": "py-16 px-4",
+        "maxWidth": "max-w-6xl",
+        "background": ""
+      },
+      "children": [
+        {
+          "id": "features-title",
+          "type": "_text",
+          "props": {
+            "content": "Features",
+            "tag": "h2",
+            "class": "text-3xl font-bold text-center mb-12"
+          }
+        },
+        {
+          "id": "features-grid",
+          "type": "_grid",
+          "props": {
+            "columns": "3",
+            "gap": "gap-6"
+          },
+          "children": [
+            {
+              "id": "card-1",
+              "type": "card-spotlight",
+              "props": {
+                "class": "h-48"
+              },
+              "children": [
+                {
+                  "id": "card-1-text",
+                  "type": "_text",
+                  "props": {
+                    "content": "Recursive Rendering",
+                    "tag": "h3",
+                    "class": "text-lg font-semibold text-white"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "card-2",
+              "type": "card-spotlight",
+              "props": {
+                "class": "h-48"
+              },
+              "children": [
+                {
+                  "id": "card-2-text",
+                  "type": "_text",
+                  "props": {
+                    "content": "JSON-driven pages",
+                    "tag": "h3",
+                    "class": "text-lg font-semibold text-white"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "card-3",
+              "type": "card-spotlight",
+              "props": {
+                "class": "h-48"
+              },
+              "children": [
+                {
+                  "id": "card-3-text",
+                  "type": "_text",
+                  "props": {
+                    "content": "50+ Components",
+                    "tag": "h3",
+                    "class": "text-lg font-semibold text-white"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec-effects",
+      "type": "_section",
+      "props": {
+        "padding": "py-16 px-4",
+        "maxWidth": "max-w-5xl"
+      },
+      "children": [
+        {
+          "id": "effects-title",
+          "type": "_text",
+          "props": {
+            "content": "Effects Showcase",
+            "tag": "h2",
+            "class": "text-3xl font-bold text-center mb-12"
+          }
+        },
+        {
+          "id": "effects-flex",
+          "type": "_flex",
+          "props": {
+            "direction": "row",
+            "justify": "center",
+            "align": "center",
+            "gap": "gap-8",
+            "wrap": true
+          },
+          "children": [
+            {
+              "id": "neon-demo",
+              "type": "neon-border",
+              "props": {
+                "color1": "#0496ff",
+                "color2": "#ff0a54",
+                "animationType": "full",
+                "class": "p-8 rounded-xl"
+              },
+              "children": [
+                {
+                  "id": "neon-text",
+                  "type": "_text",
+                  "props": {
+                    "content": "Neon Border",
+                    "tag": "p",
+                    "class": "text-lg font-semibold"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "glow-demo",
+              "type": "glow-border",
+              "props": {
+                "borderRadius": 12,
+                "class": "p-8"
+              },
+              "children": [
+                {
+                  "id": "glow-text",
+                  "type": "_text",
+                  "props": {
+                    "content": "Glow Border",
+                    "tag": "p",
+                    "class": "text-lg font-semibold"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec-text",
+      "type": "_section",
+      "props": {
+        "padding": "py-16 px-4",
+        "maxWidth": "max-w-5xl"
+      },
+      "children": [
+        {
+          "id": "text-title",
+          "type": "_text",
+          "props": {
+            "content": "Text Components",
+            "tag": "h2",
+            "class": "text-3xl font-bold text-center mb-12"
+          }
+        },
+        {
+          "id": "text-flex",
+          "type": "_flex",
+          "props": {
+            "direction": "column",
+            "align": "center",
+            "gap": "gap-8"
+          },
+          "children": [
+            {
+              "id": "colourful-demo",
+              "type": "colourful-text",
+              "props": {
+                "text": "Colourful Animation"
+              }
+            },
+            {
+              "id": "number-demo",
+              "type": "number-ticker",
+              "props": {
+                "value": 2026,
+                "class": "text-5xl font-bold"
+              }
+            },
+            {
+              "id": "letter-demo",
+              "type": "letter-pullup",
+              "props": {
+                "words": "Letter Pullup Effect",
+                "class": "text-2xl font-bold"
+              }
+            },
+            {
+              "id": "flip-demo",
+              "type": "flip-words",
+              "props": {
+                "words": ["Beautiful", "Modern", "Fast", "Accessible"],
+                "duration": 2500,
+                "class": "text-3xl font-bold"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sec-buttons",
+      "type": "_section",
+      "props": {
+        "padding": "py-16 px-4",
+        "maxWidth": "max-w-5xl"
+      },
+      "children": [
+        {
+          "id": "buttons-title",
+          "type": "_text",
+          "props": {
+            "content": "Button Components",
+            "tag": "h2",
+            "class": "text-3xl font-bold text-center mb-12"
+          }
+        },
+        {
+          "id": "buttons-flex",
+          "type": "_flex",
+          "props": {
+            "direction": "row",
+            "justify": "center",
+            "gap": "gap-6",
+            "wrap": true
+          },
+          "children": [
+            {
+              "id": "shimmer-demo",
+              "type": "shimmer-button",
+              "props": {
+                "text": "Shimmer Button"
+              }
+            },
+            {
+              "id": "rainbow-demo",
+              "type": "rainbow-button",
+              "props": {
+                "text": "Rainbow Button"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
