@@ -216,6 +216,8 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 		propSchemas: {
 			src: { type: 'image', label: 'Image URL', default: '' },
 			alt: { type: 'string', label: 'Alt Text', default: '' },
+			width: { type: 'number', label: 'Width', min: 0, step: 1, description: 'Intrinsic width for CLS optimization' },
+			height: { type: 'number', label: 'Height', min: 0, step: 1, description: 'Intrinsic height for CLS optimization' },
 			class: { type: 'string', label: 'CSS Classes', default: '' },
 			objectFit: {
 				type: 'select',

@@ -30,6 +30,10 @@ export const load: PageServerLoad = async ({ params }) => {
 			error(500, `Unsupported page version: ${page.version}`);
 		}
 
+		if (!page.meta || !page.meta.title || !page.meta.slug || !Array.isArray(page.body)) {
+			error(500, 'Malformed page document: missing required fields');
+		}
+
 		return { page };
 	} catch (err: unknown) {
 		if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {

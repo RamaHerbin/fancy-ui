@@ -4,11 +4,13 @@
 	interface Props {
 		src?: string;
 		alt?: string;
+		width?: number;
+		height?: number;
 		objectFit?: string;
 		class?: string;
 	}
 
-	let { src = '', alt = '', objectFit = 'cover', class: className = '' }: Props = $props();
+	let { src = '', alt = '', width, height, objectFit = 'cover', class: className = '' }: Props = $props();
 
 	const fitMap: Record<string, string> = {
 		cover: 'object-cover',
@@ -21,7 +23,7 @@
 </script>
 
 {#if src}
-	<img {src} {alt} class={cn(fitClass, className)} />
+	<img {src} {alt} {width} {height} class={cn(fitClass, className)} />
 {:else}
 	<div
 		class={cn(
