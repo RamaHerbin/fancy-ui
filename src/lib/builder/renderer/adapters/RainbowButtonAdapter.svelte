@@ -10,11 +10,12 @@
 		text?: string;
 		speed?: number;
 		class?: string;
+		[key: string]: unknown;
 	}
 
-	let { text = 'Click me', speed, class: className }: Props = $props();
+	let { text = 'Click me', speed, class: className, ...restProps }: Props = $props();
 </script>
 
-<RainbowButton {speed} class={className}>
+<RainbowButton {speed} class={className} {...restProps}>
 	<span>{text}</span>
 </RainbowButton>
