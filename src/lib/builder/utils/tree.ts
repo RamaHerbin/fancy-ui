@@ -60,13 +60,23 @@ export function insertNode(
 	return true;
 }
 
-/** Move a node from one position to another */
+/** Check if `ancestorId` is an ancestor of `nodeId` in the tree */
+function isDescendant(nodes: BlockNode[], ancestorId: string, nodeId: string): boolean {
+	const ancestor = findNode(nodes, ancestorId);
+	if (!ancestor?.children) return false;
+	return !!findNode(ancestor.children, nodeId);
+}
+
+/** Move a node from one position to another. Prevents circular references. */
 export function moveNode(
 	nodes: BlockNode[],
 	nodeId: string,
 	newParentId: string | null,
 	newIndex: number
 ): boolean {
+	if (newParentId !== null && (newParentId === nodeId || isDescendant(nodes, nodeId, newParentId))) {
+		return false;
+	}
 	const removed = removeNode(nodes, nodeId);
 	if (!removed) return false;
 	return insertNode(nodes, newParentId, newIndex, removed);
@@ -77,7 +87,7 @@ export function cloneNode(node: BlockNode, newIdFn: () => string): BlockNode {
 	return {
 		...node,
 		id: newIdFn(),
-		props: { ...node.props },
+		props: structuredClone(node.props),
 		children: node.children?.map((child) => cloneNode(child, newIdFn))
 	};
 }
