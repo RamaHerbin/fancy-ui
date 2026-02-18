@@ -1,0 +1,43 @@
+<!--
+  BlockRenderer - Recursive component renderer.
+
+  Resolves a BlockNode's type to a Svelte component via the component map,
+  passes its props, and recursively renders children.
+-->
+<script lang="ts">
+	import type { BlockNode } from '../types/page.js';
+	import { resolveComponent } from './component-map.js';
+	import { getBuilderComponent } from '../registry/builder-registry.js';
+	import BlockRendererSelf from './BlockRenderer.svelte';
+
+	interface Props {
+		node: BlockNode;
+	}
+
+	let { node }: Props = $props();
+
+	let Component = $derived(resolveComponent(node.type));
+	let meta = $derived(getBuilderComponent(node.type));
+	let hasChildren = $derived(
+		meta?.acceptsChildren && node.children && node.children.length > 0
+	);
+</script>
+
+{#if Component}
+	{#if hasChildren}
+		{@const childNodes = node.children!}
+		<Component {...node.props}>
+			{#snippet children()}
+				{#each childNodes as child (child.id)}
+					<BlockRendererSelf node={child} />
+				{/each}
+			{/snippet}
+		</Component>
+	{:else}
+		<Component {...node.props} />
+	{/if}
+{:else}
+	<div class="rounded border border-dashed border-destructive/50 p-4 text-sm text-destructive">
+		Unknown component: <code>{node.type}</code>
+	</div>
+{/if}
