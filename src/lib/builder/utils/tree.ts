@@ -40,7 +40,7 @@ export function removeNode(nodes: BlockNode[], id: string): BlockNode | undefine
 	return result.parent.splice(result.index, 1)[0];
 }
 
-/** Insert a node at a specific position in the tree */
+/** Insert a node at a specific position in the tree. Index is clamped to valid range. */
 export function insertNode(
 	nodes: BlockNode[],
 	parentId: string | null,
@@ -48,7 +48,8 @@ export function insertNode(
 	node: BlockNode
 ): boolean {
 	if (parentId === null) {
-		nodes.splice(index, 0, node);
+		const clamped = Math.max(0, Math.min(index, nodes.length));
+		nodes.splice(clamped, 0, node);
 		return true;
 	}
 
@@ -56,7 +57,8 @@ export function insertNode(
 	if (!parent) return false;
 
 	if (!parent.children) parent.children = [];
-	parent.children.splice(index, 0, node);
+	const clamped = Math.max(0, Math.min(index, parent.children.length));
+	parent.children.splice(clamped, 0, node);
 	return true;
 }
 

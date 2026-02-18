@@ -14,6 +14,7 @@
 		shimmerDuration?: string;
 		background?: string;
 		class?: string;
+		[key: string]: unknown;
 	}
 
 	let {
@@ -23,11 +24,12 @@
 		borderRadius,
 		shimmerDuration,
 		background,
-		class: className
+		class: className,
+		...restProps
 	}: Props = $props();
 </script>
 
-<ShimmerButton {shimmerColor} {shimmerSize} {borderRadius} {shimmerDuration} {background} class={className}>
+<ShimmerButton {shimmerColor} {shimmerSize} {borderRadius} {shimmerDuration} {background} class={className} {...restProps}>
 	<span class="relative z-10 whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white lg:text-lg dark:from-white dark:to-slate-900/10">
 		{text}
 	</span>
