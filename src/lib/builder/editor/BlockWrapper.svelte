@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { getEditorState } from '../stores/editor.svelte.js';
-	import { ArrowUp, ArrowDown, X } from '@lucide/svelte';
+	import { DRAG_THRESHOLD } from '../utils/drag.js';
+	import { ArrowUp, ArrowDown, X, GripVertical } from '@lucide/svelte';
 
 	interface Props {
 		blockId: string;
@@ -14,7 +15,24 @@
 	let isSelected = $derived(editor.selectedBlockId === blockId);
 	let isHovered = $state(false);
 
+	// Drag state
+	let startX = 0;
+	let startY = 0;
+	let dragging = false;
+
+	// Drop target indicators
+	let isBeingDragged = $derived(
+		editor.isDragging &&
+			editor.dragSource?.type === 'block' &&
+			editor.dragSource.blockId === blockId
+	);
+	let dropPosition = $derived.by(() => {
+		if (!editor.dropTarget || editor.dropTarget.blockId !== blockId) return null;
+		return editor.dropTarget.position;
+	});
+
 	function handleClick(e: MouseEvent) {
+		if (dragging) return;
 		e.stopPropagation();
 		editor.selectBlock(blockId);
 	}
@@ -33,22 +51,74 @@
 		e.stopPropagation();
 		editor.removeBlock(blockId);
 	}
+
+	function onDragHandlePointerDown(e: PointerEvent) {
+		if (e.button !== 0) return;
+		e.stopPropagation();
+		startX = e.clientX;
+		startY = e.clientY;
+		dragging = false;
+		document.addEventListener('pointermove', onPointerMove);
+		document.addEventListener('pointerup', onPointerUp);
+	}
+
+	function onPointerMove(e: PointerEvent) {
+		const dx = e.clientX - startX;
+		const dy = e.clientY - startY;
+
+		if (!dragging && Math.sqrt(dx * dx + dy * dy) >= DRAG_THRESHOLD) {
+			dragging = true;
+			editor.startBlockDrag(blockId);
+		}
+
+		if (dragging) {
+			editor.updatePointer(e.clientX, e.clientY);
+		}
+	}
+
+	function onPointerUp() {
+		document.removeEventListener('pointermove', onPointerMove);
+		document.removeEventListener('pointerup', onPointerUp);
+
+		if (dragging) {
+			editor.executeDrop();
+			editor.endDrag();
+		}
+
+		dragging = false;
+	}
 </script>
 
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="relative transition-all {isSelected
+	class="relative transition-all duration-75 {isSelected
 		? 'ring-2 ring-primary rounded-sm'
 		: isHovered
 			? 'ring-1 ring-dashed ring-muted-foreground/30 rounded-sm'
-			: ''}"
-	data-block-id={blockId}
+			: ''} {isBeingDragged ? 'opacity-40' : ''} {dropPosition === 'inside'
+		? 'ring-2 ring-primary/50 ring-inset bg-primary/5 rounded-sm'
+		: ''}"
+	data-drop-id={blockId}
 	onclick={handleClick}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}
 >
+	{#if dropPosition === 'before'}
+		<div class="pointer-events-none absolute -top-px left-0 right-0 z-40 h-0.5 bg-primary"></div>
+	{/if}
+
 	{#if isSelected}
 		<div class="absolute -top-7 right-0 z-50 flex gap-0.5 rounded-t-md bg-primary px-1 py-0.5">
+			<button
+				type="button"
+				class="cursor-grab rounded p-0.5 text-primary-foreground hover:bg-primary-foreground/20"
+				title="Drag to reorder"
+				style="touch-action: none;"
+				onpointerdown={onDragHandlePointerDown}
+			>
+				<GripVertical class="h-3.5 w-3.5" />
+			</button>
 			<button
 				type="button"
 				class="rounded p-0.5 text-primary-foreground hover:bg-primary-foreground/20"
@@ -77,4 +147,8 @@
 	{/if}
 
 	{@render children()}
+
+	{#if dropPosition === 'after'}
+		<div class="pointer-events-none absolute -bottom-px left-0 right-0 z-40 h-0.5 bg-primary"></div>
+	{/if}
 </div>

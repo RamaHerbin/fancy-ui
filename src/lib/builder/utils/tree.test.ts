@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { BlockNode } from '../types/page.js';
 import {
 	findNode,
+	findParentId,
 	findParent,
 	removeNode,
 	insertNode,
@@ -34,6 +35,24 @@ describe('findNode', () => {
 
 	it('returns undefined for missing id', () => {
 		expect(findNode(makeTree(), 'zzz')).toBeUndefined();
+	});
+});
+
+describe('findParentId', () => {
+	it('returns null for root-level node', () => {
+		expect(findParentId(makeTree(), 'b')).toBeNull();
+	});
+
+	it('returns parent ID for direct child', () => {
+		expect(findParentId(makeTree(), 'a1')).toBe('a');
+	});
+
+	it('returns parent ID for deeply nested node', () => {
+		expect(findParentId(makeTree(), 'a2x')).toBe('a2');
+	});
+
+	it('returns null for missing id', () => {
+		expect(findParentId(makeTree(), 'zzz')).toBeNull();
 	});
 });
 
