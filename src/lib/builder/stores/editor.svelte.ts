@@ -154,7 +154,17 @@ export class EditorState {
 		const result = findParent(this.page.body, blockId);
 		if (!result) return null;
 
-		const index = position === 'before' ? result.index : result.index + 1;
+		let index = position === 'before' ? result.index : result.index + 1;
+
+		// Adjust for same-parent moves: removeNode shifts indices down when
+		// the dragged block sits before the computed destination.
+		if (this.dragSource?.type === 'block') {
+			const srcResult = findParent(this.page.body, this.dragSource.blockId);
+			if (srcResult && srcResult.parent === result.parent && srcResult.index < index) {
+				index -= 1;
+			}
+		}
+
 		return { parentId, index };
 	}
 
