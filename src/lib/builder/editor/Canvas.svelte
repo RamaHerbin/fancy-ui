@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { getEditorState } from '../stores/editor.svelte.js';
 	import { getBuilderComponent } from '../registry/index.js';
 	import { calculateDropPosition, isValidDrop } from '../utils/drag.js';
@@ -8,20 +9,51 @@
 
 	const editor = getEditorState();
 
-	let canvasEl: HTMLDivElement;
+	const DEVICE_WIDTHS: Record<string, number> = {
+		tablet: 768,
+		mobile: 375
+	};
 
-	let viewportClass = $derived.by(() => {
-		switch (editor.viewport) {
-			case 'tablet':
-				return 'max-w-[768px] mx-auto';
-			case 'mobile':
-				return 'max-w-[375px] mx-auto';
-			default:
-				return 'max-w-full';
+	const DEVICE_LABELS: Record<string, string> = {
+		tablet: '768 × 1024',
+		mobile: '375 × 812'
+	};
+
+	let canvasEl: HTMLDivElement;
+	let containerWidth = $state(0);
+
+	let viewportWidth = $derived.by(() => {
+		return DEVICE_WIDTHS[editor.viewport] ?? 0;
+	});
+
+	let zoomLevel = $derived.by(() => {
+		if (!viewportWidth || containerWidth <= 0) return 1;
+		const padding = 32; // p-4 on each side
+		const available = Math.max(containerWidth - padding, 0);
+		return Math.min(available / viewportWidth, 1);
+	});
+
+	let viewportStyle = $derived.by(() => {
+		if (!viewportWidth) {
+			return 'contain: layout style';
 		}
+		return `width: ${viewportWidth}px; zoom: ${zoomLevel}; contain: layout style`;
+	});
+
+	let viewportLabel = $derived(DEVICE_LABELS[editor.viewport] ?? null);
+
+	onMount(() => {
+		const observer = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				containerWidth = entry.contentBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+			}
+		});
+		observer.observe(canvasEl);
+		return () => observer.disconnect();
 	});
 
 	function handleCanvasClick() {
+		if (editor.mode === 'interact') return;
 		editor.deselectBlock();
 	}
 
@@ -112,7 +144,13 @@
 	bind:this={canvasEl}
 	onclick={handleCanvasClick}
 >
-	<div class="{viewportClass} min-h-full bg-background shadow-sm transition-all duration-200" style="contain: layout style">
+	{#if viewportLabel}
+		<div class="mb-2 text-center text-xs text-muted-foreground">{viewportLabel}</div>
+	{/if}
+	<div
+		class="min-h-full bg-background shadow-sm transition-all duration-200 {viewportWidth ? 'mx-auto' : ''}"
+		style={viewportStyle}
+	>
 		{#if editor.page.body.length > 0}
 			{#each editor.page.body as node (node.id)}
 				<CanvasBlockRenderer {node} />

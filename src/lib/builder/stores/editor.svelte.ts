@@ -11,6 +11,7 @@ import { getBuilderComponent, getDefaultProps } from '../registry/index.js';
 import { findNode, findParentId, findParent, removeNode, moveNode, createBlockId } from '../utils/index.js';
 
 export type Viewport = 'desktop' | 'tablet' | 'mobile';
+export type EditorMode = 'edit' | 'interact';
 
 export type DragSource =
 	| { type: 'block'; blockId: string }
@@ -27,6 +28,8 @@ export class EditorState {
 	page: PageDocument = $state() as PageDocument;
 	selectedBlockId: string | null = $state(null);
 	viewport: Viewport = $state('desktop');
+	mode: EditorMode = $state('edit');
+	inlineEditBlockId: string | null = $state(null);
 
 	// Drag-and-drop state
 	dragSource: DragSource | null = $state(null);
@@ -56,6 +59,27 @@ export class EditorState {
 
 	deselectBlock() {
 		this.selectedBlockId = null;
+		this.stopInlineEdit();
+	}
+
+	toggleMode() {
+		this.mode = this.mode === 'edit' ? 'interact' : 'edit';
+		if (this.mode === 'interact') {
+			this.selectedBlockId = null;
+			this.stopInlineEdit();
+		}
+	}
+
+	startInlineEdit(id: string) {
+		if (this.mode !== 'edit') return;
+		const node = findNode(this.page.body, id);
+		if (!node || node.type !== '_text') return;
+		this.selectedBlockId = id;
+		this.inlineEditBlockId = id;
+	}
+
+	stopInlineEdit() {
+		this.inlineEditBlockId = null;
 	}
 
 	updateBlockProp(blockId: string, key: string, value: unknown) {
