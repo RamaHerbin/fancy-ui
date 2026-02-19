@@ -30,7 +30,13 @@
 		const els = document.elementsFromPoint(e.clientX, e.clientY);
 		for (const el of els) {
 			const dropId = (el as HTMLElement).dataset?.dropId;
-			if (!dropId) continue;
+			if (dropId === undefined) continue;
+
+			// Sentinel: empty string means "append at end of root"
+			if (dropId === '') {
+				editor.setDropTarget({ blockId: null, position: 'inside' });
+				return;
+			}
 
 			// Validate drop
 			const draggedBlockId =
@@ -69,12 +75,32 @@
 			editor.endDrag();
 		}
 
+		function onCancel() {
+			editor.endDrag();
+		}
+
+		function onBlur() {
+			editor.endDrag();
+		}
+
+		function onVisibilityChange() {
+			if (document.visibilityState === 'hidden') {
+				editor.endDrag();
+			}
+		}
+
 		document.addEventListener('pointermove', onMove);
 		document.addEventListener('pointerup', onUp);
+		document.addEventListener('pointercancel', onCancel);
+		window.addEventListener('blur', onBlur);
+		document.addEventListener('visibilitychange', onVisibilityChange);
 
 		return () => {
 			document.removeEventListener('pointermove', onMove);
 			document.removeEventListener('pointerup', onUp);
+			document.removeEventListener('pointercancel', onCancel);
+			window.removeEventListener('blur', onBlur);
+			document.removeEventListener('visibilitychange', onVisibilityChange);
 		};
 	});
 </script>

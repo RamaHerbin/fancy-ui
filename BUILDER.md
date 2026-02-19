@@ -309,7 +309,7 @@ UX refinements and completeness.
 - **Complete registry** — expand from 15 to ~35 builder-compatible components
 - **SEO/Meta editor** — edit title, description, OG tags in the property panel
 - **Tests** — unit tests for renderer, storage, editor store
-  - Tree utils: ✅ done (25 tests)
+  - Tree utils: ✅ done (29 tests)
   - BlockRenderer / PageRenderer: pending (render with mock data, unknown component fallback, prop sanitization)
   - Storage + editor store: pending (write alongside Phase 5)
 
