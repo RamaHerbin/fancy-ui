@@ -227,18 +227,27 @@ Modified:
 
 ---
 
-### Phase 4: Live Preview
+### Phase 4: Live Preview ✅
 
-**Status: TODO**
+**Status: DONE**
 
 Wire reactive updates between editor state and the canvas.
 
 #### Deliverables
 
-- **Reactive canvas**: modifying props in the property panel instantly updates the preview
+- **Reactive canvas**: modifying props in the property panel instantly updates the preview (already worked via Svelte 5 runes since Phase 2)
 - **Edit/Interact toggle**: `pointer-events: none` on components in edit mode, `pointer-events: auto` in interact mode
-- **Responsive preview**: CSS zoom for mobile/tablet/desktop breakpoints
-- **Inline text editing**: double-click a `_text` block to edit content directly
+- **Responsive preview**: CSS `zoom` for mobile/tablet/desktop breakpoints with `ResizeObserver` + viewport dimension label
+- **Inline text editing**: double-click a `_text` block to edit content directly via `contenteditable`
+
+#### Files Modified
+
+- `src/lib/builder/stores/editor.svelte.ts` — added `mode`, `inlineEditBlockId`, `toggleMode()`, `startInlineEdit()`, `stopInlineEdit()`
+- `src/lib/builder/editor/TopBar.svelte` — added Edit/Interact toggle button (MousePointer/Hand icons)
+- `src/lib/builder/editor/BlockWrapper.svelte` — pointer-events-none in edit mode, hide selection UI in interact mode, dblclick for inline editing
+- `src/lib/builder/editor/Canvas.svelte` — ResizeObserver + CSS zoom for responsive preview, viewport label, disabled deselect in interact mode
+- `src/lib/builder/editor/CanvasBlockRenderer.svelte` — conditional InlineTextEditor rendering for `_text` blocks
+- `src/lib/builder/editor/InlineTextEditor.svelte` — **new**, contenteditable component matching `_text` block styling
 
 ---
 
