@@ -132,9 +132,9 @@ content/
 
 ---
 
-### Phase 2: Editor UI
+### Phase 2: Editor UI ✅
 
-**Status: TODO**
+**Status: DONE**
 
 Visual editor with 3 panels: palette, canvas, property panel.
 
@@ -184,25 +184,46 @@ src/routes/builder/
 
 ---
 
-### Phase 3: Drag-and-Drop
+### Phase 3: Drag-and-Drop ✅
 
-**Status: TODO**
+**Status: DONE**
 
-Integration of `svelte-dnd-action` for visual block reordering.
+Custom pointer-based drag-and-drop (zero dependencies, mobile-ready).
 
 #### Deliverables
 
 - **Palette → Canvas**: drag a component from the palette to create a new BlockNode with default props
-- **Canvas → Canvas**: reorder/reparent blocks via nested `use:dndzone`
-- **Layer tree reorder**: drag blocks in the layer tree
-- **Drop zone validation**: enforce `allowedChildTypes` / `allowedParentTypes`
-- **Visual indicators**: dashed borders for drop zones, placeholders during drag
+- **Canvas → Canvas**: reorder/reparent blocks via pointer events + `elementFromPoint` hit-testing
+- **Layer tree reorder**: drag blocks in the layer tree (with auto-expand on hover)
+- **Drop zone validation**: prevents self-drop, circular reference (ancestor → descendant)
+- **Visual indicators**: blue line for before/after, blue tint for inside, opacity on dragged block
+- **Drag overlay**: floating card with component icon/name following the pointer
 
-#### Dependency
+#### Approach
 
-| Package | Size | Usage |
-|---------|------|-------|
-| `svelte-dnd-action` | ~8KB gz | Drag-and-drop |
+Pointer-based (not HTML5 DnD or external library):
+- `pointerdown` + movement threshold to distinguish click from drag
+- Global `pointermove` / `pointerup` listeners during drag
+- `document.elementsFromPoint()` to find `[data-drop-id]` targets
+- `calculateDropPosition()` for spatial hit zones (25/50/25% for containers, 50/50 for leaves)
+
+#### Files
+
+```
+New:
+  src/lib/builder/utils/drag.ts                 — calculateDropPosition, isValidDrop, DRAG_THRESHOLD
+  src/lib/builder/editor/DragOverlay.svelte     — floating drag preview
+
+Modified:
+  src/lib/builder/stores/editor.svelte.ts       — DragSource/DropTarget types, drag state + methods
+  src/lib/builder/editor/PaletteItem.svelte     — pointer-based drag start
+  src/lib/builder/editor/BlockWrapper.svelte     — drag source (grip handle) + drop target
+  src/lib/builder/editor/Canvas.svelte           — global drag coordination + root drop zone
+  src/lib/builder/editor/LayerTreeNode.svelte    — tree drag + drop
+  src/lib/builder/editor/EditorLayout.svelte     — body cursor/user-select during drag
+  src/lib/builder/utils/tree.ts                  — findParentId utility
+  src/lib/builder/utils/index.ts                 — barrel exports
+```
 
 ---
 
@@ -287,7 +308,10 @@ UX refinements and completeness.
 - **Version history UI** — git log viewer showing page change history
 - **Complete registry** — expand from 15 to ~35 builder-compatible components
 - **SEO/Meta editor** — edit title, description, OG tags in the property panel
-- **Tests** — unit tests for tree utils, renderer, storage
+- **Tests** — unit tests for renderer, storage, editor store
+  - Tree utils: ✅ done (25 tests)
+  - BlockRenderer / PageRenderer: pending (render with mock data, unknown component fallback, prop sanitization)
+  - Storage + editor store: pending (write alongside Phase 5)
 
 ---
 
@@ -377,6 +401,5 @@ content/
 |---------|------|-------|--------|
 | `nanoid` | ~130B | 1 | ✅ Installed |
 | `@types/node` | dev | 1 | ✅ Installed |
-| `svelte-dnd-action` | ~8KB gz | 3 | Pending |
 | `arctic` | ~15KB | 5 | Pending |
 | `idb` | ~1.2KB | 5 | Pending (optional) |

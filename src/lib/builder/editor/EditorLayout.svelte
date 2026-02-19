@@ -4,6 +4,21 @@
 	import Canvas from './Canvas.svelte';
 	import TopBar from './TopBar.svelte';
 	import PropertyPanel from './PropertyPanel.svelte';
+	import { getEditorState } from '../stores/editor.svelte.js';
+
+	const editor = getEditorState();
+
+	// Global body class management during drag
+	$effect(() => {
+		if (editor.isDragging) {
+			document.body.classList.add('cursor-grabbing', '[&_*]:!cursor-grabbing');
+			document.body.style.userSelect = 'none';
+		}
+		return () => {
+			document.body.classList.remove('cursor-grabbing', '[&_*]:!cursor-grabbing');
+			document.body.style.userSelect = '';
+		};
+	});
 </script>
 
 <div class="grid h-screen grid-cols-[240px_1fr_320px]">
