@@ -8,9 +8,18 @@
 import { setContext, getContext } from 'svelte';
 import type { PageDocument, BlockNode, BuilderComponentMeta } from '../types/index.js';
 import { getBuilderComponent, getDefaultProps } from '../registry/index.js';
-import { findNode, findParent, removeNode, createBlockId } from '../utils/index.js';
+import { findNode, findParentId, findParent, removeNode, moveNode, createBlockId } from '../utils/index.js';
 
 export type Viewport = 'desktop' | 'tablet' | 'mobile';
+
+export type DragSource =
+	| { type: 'block'; blockId: string }
+	| { type: 'palette'; slug: string };
+
+export interface DropTarget {
+	blockId: string | null;
+	position: 'before' | 'after' | 'inside';
+}
 
 const EDITOR_CTX_KEY = Symbol('editor-state');
 
@@ -18,6 +27,14 @@ export class EditorState {
 	page: PageDocument = $state() as PageDocument;
 	selectedBlockId: string | null = $state(null);
 	viewport: Viewport = $state('desktop');
+
+	// Drag-and-drop state
+	dragSource: DragSource | null = $state(null);
+	dropTarget: DropTarget | null = $state(null);
+	pointerX: number = $state(0);
+	pointerY: number = $state(0);
+
+	isDragging = $derived(this.dragSource !== null);
 
 	selectedBlock: BlockNode | undefined = $derived.by(() => {
 		if (!this.selectedBlockId) return undefined;
@@ -99,6 +116,73 @@ export class EditorState {
 	updatePageMeta(key: string, value: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(this.page.meta as any)[key] = value;
+	}
+
+	// --- Drag-and-drop methods ---
+
+	startPaletteDrag(slug: string) {
+		this.dragSource = { type: 'palette', slug };
+	}
+
+	startBlockDrag(blockId: string) {
+		this.dragSource = { type: 'block', blockId };
+	}
+
+	setDropTarget(target: DropTarget | null) {
+		this.dropTarget = target;
+	}
+
+	updatePointer(x: number, y: number) {
+		this.pointerX = x;
+		this.pointerY = y;
+	}
+
+	private calculateInsertPosition(): { parentId: string | null; index: number } | null {
+		if (!this.dropTarget) return null;
+
+		const { blockId, position } = this.dropTarget;
+
+		if (blockId === null) {
+			return { parentId: null, index: this.page.body.length };
+		}
+
+		if (position === 'inside') {
+			return { parentId: blockId, index: 0 };
+		}
+
+		const parentId = findParentId(this.page.body, blockId);
+		const result = findParent(this.page.body, blockId);
+		if (!result) return null;
+
+		const index = position === 'before' ? result.index : result.index + 1;
+		return { parentId, index };
+	}
+
+	executeDrop(): boolean {
+		if (!this.dragSource || !this.dropTarget) return false;
+
+		const pos = this.calculateInsertPosition();
+		if (!pos) return false;
+
+		if (this.dragSource.type === 'palette') {
+			this.addBlock(this.dragSource.slug, pos.parentId, pos.index);
+			return true;
+		}
+
+		if (this.dragSource.type === 'block') {
+			const success = moveNode(this.page.body, this.dragSource.blockId, pos.parentId, pos.index);
+			if (success) {
+				this.selectedBlockId = this.dragSource.blockId;
+			}
+			return success;
+		}
+
+		return false;
+	}
+
+	endDrag() {
+		this.dragSource = null;
+		this.dropTarget = null;
 	}
 }
 
