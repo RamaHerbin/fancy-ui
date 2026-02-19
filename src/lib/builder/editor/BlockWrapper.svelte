@@ -14,6 +14,8 @@
 	const editor = getEditorState();
 	let isSelected = $derived(editor.selectedBlockId === blockId);
 	let isHovered = $state(false);
+	let isEditMode = $derived(editor.mode === 'edit');
+	let isInlineEditing = $derived(editor.inlineEditBlockId === blockId);
 
 	// Drag state
 	let startX = 0;
@@ -32,9 +34,15 @@
 	});
 
 	function handleClick(e: MouseEvent) {
-		if (dragging) return;
+		if (dragging || !isEditMode) return;
 		e.stopPropagation();
 		editor.selectBlock(blockId);
+	}
+
+	function handleDblClick(e: MouseEvent) {
+		if (!isEditMode) return;
+		e.stopPropagation();
+		editor.startInlineEdit(blockId);
 	}
 
 	function handleMoveUp(e: MouseEvent) {
@@ -89,18 +97,19 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
-	class="relative transition-all duration-75 {isSelected
+	class="relative transition-all duration-75 {isEditMode && isSelected
 		? 'ring-2 ring-primary rounded-sm'
-		: isHovered
+		: isEditMode && isHovered
 			? 'ring-1 ring-dashed ring-muted-foreground/30 rounded-sm'
 			: ''} {isBeingDragged ? 'opacity-40' : ''} {dropPosition === 'inside'
 		? 'ring-2 ring-primary/50 ring-inset bg-primary/5 rounded-sm'
 		: ''}"
 	data-drop-id={blockId}
 	onclick={handleClick}
+	ondblclick={handleDblClick}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}
 >
@@ -108,7 +117,7 @@
 		<div class="pointer-events-none absolute -top-px left-0 right-0 z-40 h-0.5 bg-primary"></div>
 	{/if}
 
-	{#if isSelected}
+	{#if isEditMode && isSelected && !isInlineEditing}
 		<div class="absolute -top-7 right-0 z-50 flex gap-0.5 rounded-t-md bg-primary px-1 py-0.5">
 			<button
 				type="button"
@@ -146,7 +155,13 @@
 		</div>
 	{/if}
 
-	{@render children()}
+	{#if isEditMode && !isInlineEditing}
+		<div class="pointer-events-none">
+			{@render children()}
+		</div>
+	{:else}
+		{@render children()}
+	{/if}
 
 	{#if dropPosition === 'after'}
 		<div class="pointer-events-none absolute -bottom-px left-0 right-0 z-40 h-0.5 bg-primary"></div>

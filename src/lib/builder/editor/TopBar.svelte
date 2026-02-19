@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getEditorState, type Viewport } from '../stores/editor.svelte.js';
-	import { Monitor, Tablet, Smartphone, ArrowLeft, Save } from '@lucide/svelte';
+	import { Monitor, Tablet, Smartphone, ArrowLeft, Save, MousePointer, Hand } from '@lucide/svelte';
 
 	const editor = getEditorState();
 
@@ -48,6 +48,25 @@
 				<Icon class="h-4 w-4" />
 			</button>
 		{/each}
+
+		<div class="mx-2 h-5 w-px bg-border"></div>
+
+		<!-- Edit/Interact mode toggle -->
+		<button
+			type="button"
+			class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium transition-colors {editor.mode === 'interact'
+				? 'bg-accent text-accent-foreground'
+				: 'text-muted-foreground hover:text-foreground'}"
+			title={editor.mode === 'edit' ? 'Switch to Interact mode' : 'Switch to Edit mode'}
+			onclick={() => editor.toggleMode()}
+		>
+			{#if editor.mode === 'edit'}
+				<MousePointer class="h-4 w-4" />
+			{:else}
+				<Hand class="h-4 w-4" />
+			{/if}
+			<span class="text-xs">{editor.mode === 'edit' ? 'Edit' : 'Interact'}</span>
+		</button>
 
 		<div class="mx-2 h-5 w-px bg-border"></div>
 
