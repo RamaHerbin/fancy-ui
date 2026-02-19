@@ -23,7 +23,7 @@
 	const editor = getEditorState();
 	let el = $state<HTMLElement | null>(null);
 
-	const isHeading = $derived(tag.startsWith('h'));
+	const isHeading = $derived(safeTag.startsWith('h'));
 	const editableClass = $derived(
 		cn(className, 'outline-none ring-2 ring-primary/50 rounded-sm cursor-text')
 	);
@@ -66,17 +66,40 @@
 	function handlePaste(e: ClipboardEvent) {
 		e.preventDefault();
 		const text = e.clipboardData?.getData('text/plain') ?? '';
-		document.execCommand('insertText', false, text);
+		if (!el || !text) return;
+
+		const selection = window.getSelection();
+		if (!selection) return;
+
+		let range: Range;
+		if (selection.rangeCount > 0 && el.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+			range = selection.getRangeAt(0);
+		} else {
+			range = document.createRange();
+			range.selectNodeContents(el);
+			range.collapse(false);
+		}
+
+		range.deleteContents();
+		const textNode = document.createTextNode(text);
+		range.insertNode(textNode);
+		range.setStartAfter(textNode);
+		range.collapse(true);
+		selection.removeAllRanges();
+		selection.addRange(range);
 	}
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_missing_content -->
 <svelte:element
 	this={safeTag}
 	bind:this={el}
 	class={editableClass}
 	contenteditable="plaintext-only"
+	role="textbox"
+	tabindex="0"
+	aria-label="Inline text editor"
+	aria-multiline={isHeading ? 'false' : 'true'}
 	onkeydown={handleKeydown}
 	onblur={handleBlur}
 	onpaste={handlePaste}

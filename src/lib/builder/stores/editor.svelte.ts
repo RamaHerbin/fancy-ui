@@ -67,6 +67,7 @@ export class EditorState {
 		if (this.mode === 'interact') {
 			this.selectedBlockId = null;
 			this.stopInlineEdit();
+			this.endDrag();
 		}
 	}
 
