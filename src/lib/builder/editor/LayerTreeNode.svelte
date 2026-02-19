@@ -3,7 +3,7 @@
 	import { getBuilderComponent } from '../registry/index.js';
 	import { getEditorState } from '../stores/editor.svelte.js';
 	import { getIcon } from './IconMap.js';
-	import { DRAG_THRESHOLD, calculateDropPosition, isValidDrop } from '../utils/drag.js';
+	import { DRAG_THRESHOLD } from '../utils/drag.js';
 	import LayerTreeNodeSelf from './LayerTreeNode.svelte';
 
 	interface Props {
