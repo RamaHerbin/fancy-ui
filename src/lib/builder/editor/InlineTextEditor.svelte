@@ -17,6 +17,9 @@
 
 	let { blockId, content = '', tag = 'p', class: className = '' }: Props = $props();
 
+	const ALLOWED_TAGS = ['h1', 'h2', 'h3', 'h4', 'p', 'span'];
+	const safeTag = $derived(ALLOWED_TAGS.includes(tag) ? tag : 'p');
+
 	const editor = getEditorState();
 	let el = $state<HTMLElement | null>(null);
 
@@ -59,56 +62,22 @@
 	function handleBlur() {
 		commit();
 	}
+
+	function handlePaste(e: ClipboardEvent) {
+		e.preventDefault();
+		const text = e.clipboardData?.getData('text/plain') ?? '';
+		document.execCommand('insertText', false, text);
+	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_missing_content -->
-{#if tag === 'h1'}
-	<h1
-		bind:this={el}
-		class={editableClass}
-		contenteditable="true"
-		onkeydown={handleKeydown}
-		onblur={handleBlur}
-	></h1>
-{:else if tag === 'h2'}
-	<h2
-		bind:this={el}
-		class={editableClass}
-		contenteditable="true"
-		onkeydown={handleKeydown}
-		onblur={handleBlur}
-	></h2>
-{:else if tag === 'h3'}
-	<h3
-		bind:this={el}
-		class={editableClass}
-		contenteditable="true"
-		onkeydown={handleKeydown}
-		onblur={handleBlur}
-	></h3>
-{:else if tag === 'h4'}
-	<h4
-		bind:this={el}
-		class={editableClass}
-		contenteditable="true"
-		onkeydown={handleKeydown}
-		onblur={handleBlur}
-	></h4>
-{:else if tag === 'span'}
-	<span
-		bind:this={el}
-		class={editableClass}
-		contenteditable="true"
-		onkeydown={handleKeydown}
-		onblur={handleBlur}
-	></span>
-{:else}
-	<p
-		bind:this={el}
-		class={editableClass}
-		contenteditable="true"
-		onkeydown={handleKeydown}
-		onblur={handleBlur}
-	></p>
-{/if}
+<svelte:element
+	this={safeTag}
+	bind:this={el}
+	class={editableClass}
+	contenteditable="plaintext-only"
+	onkeydown={handleKeydown}
+	onblur={handleBlur}
+	onpaste={handlePaste}
+/>
