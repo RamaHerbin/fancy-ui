@@ -1,6 +1,7 @@
 export { createBlockId } from './id.js';
 export {
 	findNode,
+	findParentId,
 	findParent,
 	removeNode,
 	insertNode,
@@ -9,3 +10,4 @@ export {
 	countNodes,
 	flattenTree
 } from './tree.js';
+export { DRAG_THRESHOLD, calculateDropPosition, isValidDrop } from './drag.js';

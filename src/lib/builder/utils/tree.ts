@@ -16,6 +16,20 @@ export function findNode(nodes: BlockNode[], id: string): BlockNode | undefined 
 	return undefined;
 }
 
+/** Find the parent node's ID for a given node. Returns null if at root level. */
+export function findParentId(nodes: BlockNode[], id: string): string | null {
+	for (const node of nodes) {
+		if (node.children) {
+			for (const child of node.children) {
+				if (child.id === id) return node.id;
+			}
+			const found = findParentId(node.children, id);
+			if (found) return found;
+		}
+	}
+	return null;
+}
+
 /** Find the parent of a node by the node's ID */
 export function findParent(
 	nodes: BlockNode[],
