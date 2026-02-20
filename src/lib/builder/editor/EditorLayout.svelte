@@ -10,6 +10,29 @@
 
 	const editor = getEditorState();
 
+	function handleKeydown(e: KeyboardEvent) {
+		// Skip when focused in input, textarea, or contenteditable
+		const target = e.target as HTMLElement;
+		if (
+			target.tagName === 'INPUT' ||
+			target.tagName === 'TEXTAREA' ||
+			target.contentEditable === 'true'
+		) {
+			return;
+		}
+
+		const mod = e.metaKey || e.ctrlKey;
+		if (!mod) return;
+
+		if (e.key === 'z' && !e.shiftKey) {
+			e.preventDefault();
+			editor.undo();
+		} else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+			e.preventDefault();
+			editor.redo();
+		}
+	}
+
 	// Global body class management during drag
 	$effect(() => {
 		if (editor.isDragging) {
@@ -22,6 +45,8 @@
 		};
 	});
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <div class="grid h-screen grid-cols-[240px_1fr_320px]">
 	<!-- Left panel: Palette + Layer Tree -->

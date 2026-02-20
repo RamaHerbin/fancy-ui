@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getEditorState, type Viewport } from '../stores/editor.svelte.js';
 	import { deleteDraft } from '../storage/indexeddb.js';
-	import { Monitor, Tablet, Smartphone, ArrowLeft, Save, MousePointer, Hand, Loader2, Check } from '@lucide/svelte';
+	import { Monitor, Tablet, Smartphone, ArrowLeft, Save, MousePointer, Hand, Loader2, Check, Undo2, Redo2 } from '@lucide/svelte';
 
 	const editor = getEditorState();
 
@@ -88,6 +88,28 @@
 				<Icon class="h-4 w-4" />
 			</button>
 		{/each}
+
+		<div class="mx-2 h-5 w-px bg-border"></div>
+
+		<!-- Undo / Redo -->
+		<button
+			type="button"
+			class="rounded-md p-1.5 transition-colors text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
+			title="Undo (Ctrl+Z)"
+			disabled={!editor.canUndo}
+			onclick={() => editor.undo()}
+		>
+			<Undo2 class="h-4 w-4" />
+		</button>
+		<button
+			type="button"
+			class="rounded-md p-1.5 transition-colors text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:pointer-events-none"
+			title="Redo (Ctrl+Shift+Z)"
+			disabled={!editor.canRedo}
+			onclick={() => editor.redo()}
+		>
+			<Redo2 class="h-4 w-4" />
+		</button>
 
 		<div class="mx-2 h-5 w-px bg-border"></div>
 
