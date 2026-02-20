@@ -9,6 +9,7 @@ import { setContext, getContext } from 'svelte';
 import type { PageDocument, BlockNode, BuilderComponentMeta } from '../types/index.js';
 import { getBuilderComponent, getDefaultProps } from '../registry/index.js';
 import { findNode, findParentId, findParent, removeNode, moveNode, createBlockId } from '../utils/index.js';
+import { HistoryManager } from './history.svelte.js';
 
 export type Viewport = 'desktop' | 'tablet' | 'mobile';
 export type EditorMode = 'edit' | 'interact';
@@ -36,6 +37,11 @@ export class EditorState {
 	dropTarget: DropTarget | null = $state(null);
 	pointerX: number = $state(0);
 	pointerY: number = $state(0);
+
+	// Undo/redo history
+	private history = new HistoryManager();
+	canUndo: boolean = $derived(this.history.canUndo);
+	canRedo: boolean = $derived(this.history.canRedo);
 
 	isDragging = $derived(this.dragSource !== null);
 
@@ -86,12 +92,15 @@ export class EditorState {
 	updateBlockProp(blockId: string, key: string, value: unknown) {
 		const node = findNode(this.page.body, blockId);
 		if (!node) return;
+		this.history.push(this.page, this.selectedBlockId, { type: 'prop', blockId, key });
 		node.props[key] = value;
 	}
 
 	addBlock(type: string, parentId?: string | null, index?: number) {
 		const meta = getBuilderComponent(type);
 		if (!meta) return;
+
+		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
 
 		const newNode: BlockNode = {
 			id: createBlockId(),
@@ -118,6 +127,7 @@ export class EditorState {
 	}
 
 	removeBlock(id: string) {
+		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
 		if (this.selectedBlockId === id) {
 			this.selectedBlockId = null;
 		}
@@ -127,6 +137,7 @@ export class EditorState {
 	moveBlockUp(id: string) {
 		const result = findParent(this.page.body, id);
 		if (!result || result.index === 0) return;
+		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
 		const [node] = result.parent.splice(result.index, 1);
 		result.parent.splice(result.index - 1, 0, node);
 	}
@@ -134,11 +145,13 @@ export class EditorState {
 	moveBlockDown(id: string) {
 		const result = findParent(this.page.body, id);
 		if (!result || result.index >= result.parent.length - 1) return;
+		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
 		const [node] = result.parent.splice(result.index, 1);
 		result.parent.splice(result.index + 1, 0, node);
 	}
 
 	updatePageMeta(key: string, value: unknown) {
+		this.history.push(this.page, this.selectedBlockId, { type: 'meta', key });
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(this.page.meta as any)[key] = value;
 	}
@@ -200,11 +213,13 @@ export class EditorState {
 		if (!pos) return false;
 
 		if (this.dragSource.type === 'palette') {
+			// addBlock calls history.push() internally
 			this.addBlock(this.dragSource.slug, pos.parentId, pos.index);
 			return true;
 		}
 
 		if (this.dragSource.type === 'block') {
+			this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
 			const success = moveNode(this.page.body, this.dragSource.blockId, pos.parentId, pos.index);
 			if (success) {
 				this.selectedBlockId = this.dragSource.blockId;
@@ -218,6 +233,22 @@ export class EditorState {
 	endDrag() {
 		this.dragSource = null;
 		this.dropTarget = null;
+	}
+
+	// --- Undo/Redo ---
+
+	undo() {
+		const snapshot = this.history.undo(this.page, this.selectedBlockId);
+		if (!snapshot) return;
+		this.page = snapshot.page;
+		this.selectedBlockId = snapshot.selectedBlockId;
+	}
+
+	redo() {
+		const snapshot = this.history.redo(this.page, this.selectedBlockId);
+		if (!snapshot) return;
+		this.page = snapshot.page;
+		this.selectedBlockId = snapshot.selectedBlockId;
 	}
 }
 
