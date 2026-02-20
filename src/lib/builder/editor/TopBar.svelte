@@ -33,9 +33,9 @@
 				throw new Error(data.message || `Save failed (${res.status})`);
 			}
 
-			// Sync updatedAt from server response
+			// Sync updatedAt from server response (bypass history — not undoable)
 			if (data.updatedAt) {
-				editor.updatePageMeta('updatedAt', data.updatedAt);
+				editor.page.meta.updatedAt = data.updatedAt;
 			}
 
 			// Clear draft from IndexedDB after successful save

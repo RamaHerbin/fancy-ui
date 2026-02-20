@@ -27,7 +27,7 @@
 		if (e.key === 'z' && !e.shiftKey) {
 			e.preventDefault();
 			editor.undo();
-		} else if ((e.key === 'z' && e.shiftKey) || e.key === 'y') {
+		} else if ((e.key === 'z' && e.shiftKey) || (e.key === 'y' && !e.shiftKey)) {
 			e.preventDefault();
 			editor.redo();
 		}
