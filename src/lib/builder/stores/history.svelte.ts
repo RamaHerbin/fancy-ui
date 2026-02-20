@@ -42,11 +42,11 @@ function sameTarget(a: HistoryOperation, b: HistoryOperation): boolean {
 }
 
 export class HistoryManager {
-	private undoStack: Snapshot[] = [];
-	private redoStack: Snapshot[] = [];
+	private undoStack: Snapshot[] = $state([]);
+	private redoStack: Snapshot[] = $state([]);
 
 	// Pending coalesced snapshot (not yet committed)
-	private pending: { snapshot: Snapshot; operation: HistoryOperation } | null = null;
+	private pending: { snapshot: Snapshot; operation: HistoryOperation } | null = $state(null);
 	private timer: ReturnType<typeof setTimeout> | null = null;
 
 	canUndo: boolean = $derived(this.undoStack.length > 0 || this.pending !== null);
@@ -57,6 +57,9 @@ export class HistoryManager {
 	 * Call this with the current page state before modifying it.
 	 */
 	push(page: PageDocument, selectedBlockId: string | null, operation: HistoryOperation) {
+		// Any new action clears the redo stack
+		this.redoStack.length = 0;
+
 		if (operation.type === 'structure') {
 			this.commitPending();
 			this.commitSnapshot(cloneSnapshot(page, selectedBlockId));
@@ -77,9 +80,6 @@ export class HistoryManager {
 			};
 			this.startTimer();
 		}
-
-		// Any new action clears the redo stack
-		this.redoStack.length = 0;
 	}
 
 	undo(currentPage: PageDocument, currentSelectedBlockId: string | null): Snapshot | null {
