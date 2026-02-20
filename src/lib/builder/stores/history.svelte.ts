@@ -25,7 +25,7 @@ interface Snapshot {
 
 function cloneSnapshot(page: PageDocument, selectedBlockId: string | null): Snapshot {
 	return {
-		page: structuredClone(page),
+		page: $state.snapshot(page) as PageDocument,
 		selectedBlockId
 	};
 }
