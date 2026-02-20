@@ -124,6 +124,10 @@ export class HistoryManager {
 		}, COALESCE_DELAY);
 	}
 
+	destroy() {
+		this.clearTimer();
+	}
+
 	private clearTimer() {
 		if (this.timer !== null) {
 			clearTimeout(this.timer);
