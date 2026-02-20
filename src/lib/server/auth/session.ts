@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { dev } from '$app/environment';
 import type { Cookies } from '@sveltejs/kit';
 import { createHmac, timingSafeEqual } from 'crypto';
 
@@ -44,7 +45,7 @@ export function createSessionCookie(cookies: Cookies, username: string): void {
 	cookies.set(COOKIE_NAME, value, {
 		path: '/',
 		httpOnly: true,
-		secure: true,
+		secure: !dev,
 		sameSite: 'lax',
 		maxAge: MAX_AGE
 	});
