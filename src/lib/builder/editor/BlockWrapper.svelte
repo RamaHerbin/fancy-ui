@@ -156,7 +156,7 @@
 	{/if}
 
 	{#if isEditMode && !isInlineEditing}
-		<div class="pointer-events-none">
+		<div class="pointer-events-none [&_[data-drop-id]]:pointer-events-auto">
 			{@render children()}
 		</div>
 	{:else}
