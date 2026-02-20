@@ -4,6 +4,8 @@
 	import Canvas from './Canvas.svelte';
 	import TopBar from './TopBar.svelte';
 	import PropertyPanel from './PropertyPanel.svelte';
+	import AutoSave from './AutoSave.svelte';
+	import DraftRecoveryBanner from './DraftRecoveryBanner.svelte';
 	import { getEditorState } from '../stores/editor.svelte.js';
 
 	const editor = getEditorState();
@@ -47,9 +49,12 @@
 
 	<!-- Center: TopBar + Canvas -->
 	<div class="flex flex-col overflow-hidden">
+		<DraftRecoveryBanner />
 		<TopBar />
 		<Canvas />
 	</div>
+
+	<AutoSave />
 
 	<!-- Right panel: Properties -->
 	<div class="overflow-y-auto border-l border-border bg-background">
