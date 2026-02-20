@@ -1,18 +1,22 @@
 import { json, error } from '@sveltejs/kit';
-import { getStorage } from '$lib/builder/storage/index.js';
+import { getStorage, isValidSlug } from '$lib/builder/storage/index.js';
 import type { PageDocument } from '$lib/builder/types/page.js';
 import type { RequestHandler } from './$types.js';
 
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
 export const POST: RequestHandler = async ({ request }) => {
-	const body = await request.json();
+	let body: Record<string, unknown>;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, 'Invalid JSON body');
+	}
+
 	const { title, slug, description, body: pageBody } = body;
 
 	if (!title || typeof title !== 'string') {
 		error(400, 'Title is required');
 	}
-	if (!slug || typeof slug !== 'string' || !SLUG_RE.test(slug)) {
+	if (!slug || typeof slug !== 'string' || !isValidSlug(slug)) {
 		error(400, 'Valid slug is required (lowercase alphanumeric with hyphens)');
 	}
 
@@ -23,13 +27,13 @@ export const POST: RequestHandler = async ({ request }) => {
 		await storage.get(slug);
 		error(409, `Page "${slug}" already exists`);
 	} catch (err: unknown) {
-		// ENOENT means it doesn't exist — good, we can create it
 		if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
 			// Expected — page does not exist yet
 		} else if (err && typeof err === 'object' && 'status' in err && err.status === 409) {
 			throw err;
 		} else {
-			// For other errors (e.g. malformed), ignore and create fresh
+			// File exists but is corrupted/malformed — don't overwrite
+			error(500, 'Failed to verify whether page already exists');
 		}
 	}
 
@@ -39,12 +43,12 @@ export const POST: RequestHandler = async ({ request }) => {
 		meta: {
 			title,
 			slug,
-			description: description || undefined,
+			description: typeof description === 'string' ? description : undefined,
 			status: 'draft',
 			createdAt: now,
 			updatedAt: now
 		},
-		body: pageBody ?? []
+		body: Array.isArray(pageBody) ? pageBody : []
 	};
 
 	await storage.save(page);

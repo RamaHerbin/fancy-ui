@@ -4,7 +4,7 @@
 
 	const editor = getEditorState();
 
-	let lastSavedJson = $state('');
+	let lastSavedJson = $state(JSON.stringify(editor.page));
 	let showIndicator = $state(false);
 
 	$effect(() => {

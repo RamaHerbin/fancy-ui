@@ -1,8 +1,12 @@
 import { error } from '@sveltejs/kit';
-import { getStorage } from '$lib/builder/storage/index.js';
+import { getStorage, isValidSlug } from '$lib/builder/storage/index.js';
 import type { PageServerLoad } from './$types.js';
 
 export const load: PageServerLoad = async ({ params }) => {
+	if (!isValidSlug(params.slug)) {
+		error(400, 'Invalid page slug');
+	}
+
 	const storage = getStorage();
 
 	try {

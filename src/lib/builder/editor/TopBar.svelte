@@ -27,9 +27,15 @@
 				body: JSON.stringify(editor.page)
 			});
 
+			const data = await res.json().catch(() => ({ message: 'Save failed' }));
+
 			if (!res.ok) {
-				const data = await res.json().catch(() => ({ message: 'Save failed' }));
 				throw new Error(data.message || `Save failed (${res.status})`);
+			}
+
+			// Sync updatedAt from server response
+			if (data.updatedAt) {
+				editor.updatePageMeta('updatedAt', data.updatedAt);
 			}
 
 			// Clear draft from IndexedDB after successful save
