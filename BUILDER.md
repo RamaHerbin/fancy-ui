@@ -251,9 +251,9 @@ Wire reactive updates between editor state and the canvas.
 
 ---
 
-### Phase 5: Storage + Auth
+### Phase 5: Storage + Auth ✅
 
-**Status: TODO**
+**Status: DONE**
 
 Persist pages and protect the editor.
 
@@ -261,43 +261,78 @@ Persist pages and protect the editor.
 
 - **PageStorage interface** (`src/lib/builder/storage/types.ts`)
   - `list()`, `get(slug)`, `save(page)`, `delete(slug)`, `publish(slug)`
-- **Local filesystem implementation** (`storage/local.ts`)
-  - API routes: `POST /api/builder/pages`, `GET/PUT/DELETE /api/builder/pages/[slug]`
-  - Publish: `POST /api/builder/publish` (git add + commit + push)
-- **IndexedDB drafts** (`storage/draft-store.ts`)
-  - Auto-save every 5s to IndexedDB (client-side)
-  - Recover unsaved changes on reload
-- **Dashboard** (`/builder` page)
-  - List all pages with status, last modified, actions
-  - Create new page, duplicate, delete
-- **GitHub OAuth** authentication
-  - Login flow via `arctic` library
+  - Shared validators: `isValidSlug()`, `isValidPageDocument()`
+- **Filesystem implementation** (`storage/filesystem.server.ts`)
+  - Auto-creates `content/pages/` dir, sets `updatedAt` on save
+  - API routes: `POST /api/builder/pages`, `GET/PUT/DELETE /api/builder/pages/[slug]`, `POST /api/builder/publish`
+  - Input validation: slug format, JSON body parsing, PageDocument schema
+- **IndexedDB auto-save** (`storage/indexeddb.ts`)
+  - 5-second debounced draft save to IndexedDB (client-side, raw API — no `idb` dependency)
+  - `AutoSave.svelte` — mounted in editor, "Draft saved" indicator
+  - `DraftRecoveryBanner.svelte` — restore/discard banner on reload if draft is newer
+  - Draft cleared after successful server save
+- **Dashboard CRUD** (`/builder` page)
+  - Create new page (`/builder/new`) with auto-slug
+  - Duplicate and delete buttons per page card
+- **GitHub OAuth** authentication via `arctic`
+  - Login/callback/logout routes (`/auth/login`, `/auth/callback`, `/auth/logout`)
   - `hooks.server.ts` middleware protecting `/builder/**` and `/api/builder/**`
-  - Session in httpOnly cookie
-  - Whitelist of authorized GitHub usernames
+  - HMAC-signed httpOnly session cookie (stateless, survives restarts)
+  - Whitelist of authorized GitHub usernames (`GITHUB_ALLOWED_USERS`)
+  - Dev bypass: auth skipped when env vars not configured
+- **TopBar save** — `fetch PUT` with loading/success/error states, `updatedAt` sync from server response
 
-#### Dependencies
+#### Dependencies Added
 
 | Package | Size | Usage |
 |---------|------|-------|
 | `arctic` | ~15KB | GitHub OAuth |
-| `idb` (optional) | ~1.2KB | Typed IndexedDB wrapper |
 
 #### Files
 
 ```
-src/lib/builder/storage/
-├── types.ts                              # PageStorage interface
-├── local.ts                              # Filesystem implementation
-├── github.ts                             # GitHub API implementation (later)
-└── draft-store.ts                        # IndexedDB auto-save
+New:
+  src/lib/builder/storage/
+  ├── types.ts                            # PageStorage interface + validators
+  ├── filesystem.server.ts                # Filesystem implementation
+  ├── indexeddb.ts                        # IndexedDB draft save/get/delete
+  └── index.ts
 
-src/routes/api/builder/
-├── pages/+server.ts                      # GET (list), POST (create)
-├── pages/[slug]/+server.ts               # GET, PUT, DELETE
-└── publish/+server.ts                    # POST (git commit + push)
+  src/lib/builder/editor/
+  ├── AutoSave.svelte                     # 5s debounced IndexedDB auto-save
+  └── DraftRecoveryBanner.svelte          # Draft recovery banner
 
-src/hooks.server.ts                       # Auth middleware
+  src/lib/server/auth/
+  ├── github.ts                           # Arctic GitHub client + allowlist
+  ├── session.ts                          # HMAC-signed session cookies
+  └── index.ts
+
+  src/routes/api/builder/
+  ├── pages/+server.ts                    # POST (create)
+  ├── pages/[slug]/+server.ts             # GET, PUT, DELETE
+  └── publish/+server.ts                  # POST (set status to published)
+
+  src/routes/auth/
+  ├── login/+server.ts                    # GitHub OAuth redirect
+  ├── callback/+server.ts                 # OAuth callback + whitelist check
+  └── logout/+server.ts                   # Clear session cookie
+
+  src/routes/builder/
+  ├── +layout.server.ts                   # Pass user to layout
+  └── new/+page.svelte                    # Create page form
+
+  src/hooks.server.ts                     # Auth middleware (dev bypass)
+  .env.example                            # OAuth + session env vars template
+
+Modified:
+  src/app.d.ts                            # App.Locals.user
+  src/routes/builder/+layout.svelte       # Username + logout header
+  src/routes/builder/+page.svelte         # Delete/duplicate buttons
+  src/routes/builder/+page.server.ts      # Uses storage.list()
+  src/routes/builder/[slug]/+page.server.ts # Uses storage.get()
+  src/routes/pages/[slug]/+page.server.ts # Uses storage.get()
+  src/lib/builder/editor/TopBar.svelte    # fetch PUT save + draft cleanup
+  src/lib/builder/editor/EditorLayout.svelte # Mounts AutoSave + DraftRecoveryBanner
 ```
 
 ---
@@ -373,21 +408,24 @@ src/lib/builder/
 │   └── editor.svelte.ts
 ├── storage/
 │   ├── types.ts
-│   ├── local.ts
-│   ├── github.ts
-│   └── draft-store.ts
+│   ├── filesystem.server.ts
+│   ├── indexeddb.ts
+│   └── index.ts
 └── utils/
     ├── id.ts
     ├── tree.ts
-    ├── validation.ts
-    ├── shortcuts.ts
+    ├── drag.ts
     └── index.ts
 
 src/routes/builder/
 ├── +layout.svelte
+├── +layout.server.ts
 ├── +page.svelte
-├── [slug]/+page.svelte
-└── preview/+page.svelte
+├── +page.server.ts
+├── new/+page.svelte
+└── [slug]/
+    ├── +page.svelte
+    └── +page.server.ts
 
 src/routes/pages/[slug]/
 ├── +page.server.ts
@@ -397,6 +435,18 @@ src/routes/api/builder/
 ├── pages/+server.ts
 ├── pages/[slug]/+server.ts
 └── publish/+server.ts
+
+src/routes/auth/
+├── login/+server.ts
+├── callback/+server.ts
+└── logout/+server.ts
+
+src/lib/server/auth/
+├── github.ts
+├── session.ts
+└── index.ts
+
+src/hooks.server.ts
 
 content/
 ├── pages/*.json
@@ -410,5 +460,4 @@ content/
 |---------|------|-------|--------|
 | `nanoid` | ~130B | 1 | ✅ Installed |
 | `@types/node` | dev | 1 | ✅ Installed |
-| `arctic` | ~15KB | 5 | Pending |
-| `idb` | ~1.2KB | 5 | Pending (optional) |
+| `arctic` | ~15KB | 5 | ✅ Installed |
