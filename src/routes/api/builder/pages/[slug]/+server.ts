@@ -1,8 +1,15 @@
 import { json, error } from '@sveltejs/kit';
-import { getStorage } from '$lib/builder/storage/index.js';
+import { getStorage, isValidSlug, isValidPageDocument } from '$lib/builder/storage/index.js';
 import type { RequestHandler } from './$types.js';
 
+function validateSlug(slug: string) {
+	if (!isValidSlug(slug)) {
+		error(400, 'Invalid page slug');
+	}
+}
+
 export const GET: RequestHandler = async ({ params }) => {
+	validateSlug(params.slug);
 	const storage = getStorage();
 
 	try {
@@ -17,23 +24,28 @@ export const GET: RequestHandler = async ({ params }) => {
 };
 
 export const PUT: RequestHandler = async ({ params, request }) => {
+	validateSlug(params.slug);
 	const storage = getStorage();
-	const page = await request.json();
+
+	let page: unknown;
+	try {
+		page = await request.json();
+	} catch {
+		error(400, 'Invalid JSON body');
+	}
+
+	if (!isValidPageDocument(page)) {
+		error(400, 'Invalid page document: must include version, meta (title, slug), and body array');
+	}
 
 	// Ensure slug in URL matches slug in body
-	if (page.meta?.slug && page.meta.slug !== params.slug) {
+	if (page.meta.slug !== params.slug) {
 		error(400, 'Slug in URL does not match slug in body');
 	}
 
-	// Ensure the slug is set
-	if (!page.meta) {
-		error(400, 'Page meta is required');
-	}
-	page.meta.slug = params.slug;
-
 	try {
 		await storage.save(page);
-		return json({ ok: true });
+		return json({ ok: true, updatedAt: page.meta.updatedAt });
 	} catch (err: unknown) {
 		if (err instanceof Error) {
 			error(400, err.message);
@@ -43,6 +55,7 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 };
 
 export const DELETE: RequestHandler = async ({ params }) => {
+	validateSlug(params.slug);
 	const storage = getStorage();
 
 	try {
