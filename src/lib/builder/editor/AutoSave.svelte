@@ -6,6 +6,7 @@
 
 	let lastSavedJson = $state(JSON.stringify(editor.page));
 	let showIndicator = $state(false);
+	let indicatorTimer: ReturnType<typeof setTimeout> | null = null;
 
 	$effect(() => {
 		// Track editor.page deeply by serializing
@@ -19,7 +20,8 @@
 				await saveDraft(editor.page.meta.slug, editor.page);
 				lastSavedJson = json;
 				showIndicator = true;
-				setTimeout(() => { showIndicator = false; }, 1500);
+				if (indicatorTimer) clearTimeout(indicatorTimer);
+				indicatorTimer = setTimeout(() => { showIndicator = false; }, 1500);
 			} catch {
 				// Silently ignore IndexedDB errors
 			}
