@@ -4,43 +4,62 @@
 
 	let { data } = $props();
 
+	let errorMessage: string = $state('');
+
 	async function deletePage(slug: string, title: string) {
 		if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
 
-		const res = await fetch(`/api/builder/pages/${slug}`, { method: 'DELETE' });
-		if (res.ok) {
+		errorMessage = '';
+		try {
+			const res = await fetch(`/api/builder/pages/${slug}`, { method: 'DELETE' });
+			if (!res.ok) {
+				const body = await res.json().catch(() => ({ message: 'Delete failed' }));
+				throw new Error(body.message || `Delete failed (${res.status})`);
+			}
 			await invalidateAll();
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Delete failed';
 		}
 	}
 
 	async function duplicatePage(slug: string) {
-		// Fetch the original page
-		const res = await fetch(`/api/builder/pages/${slug}`);
-		if (!res.ok) return;
-		const original = await res.json();
+		errorMessage = '';
+		try {
+			// Fetch the original page
+			const res = await fetch(`/api/builder/pages/${slug}`);
+			if (!res.ok) {
+				const body = await res.json().catch(() => ({ message: 'Failed to fetch page' }));
+				throw new Error(body.message || `Failed to fetch page (${res.status})`);
+			}
+			const original = await res.json();
 
-		// Generate a new slug
-		let newSlug = `${slug}-copy`;
-		let attempt = 1;
-		while (data.pages.some((p) => p.slug === newSlug)) {
-			attempt++;
-			newSlug = `${slug}-copy-${attempt}`;
-		}
+			// Generate a new slug
+			let newSlug = `${slug}-copy`;
+			let attempt = 1;
+			while (data.pages.some((p) => p.slug === newSlug)) {
+				attempt++;
+				newSlug = `${slug}-copy-${attempt}`;
+			}
 
-		// Create the duplicate
-		const createRes = await fetch('/api/builder/pages', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				title: `${original.meta.title} (Copy)`,
-				slug: newSlug,
-				description: original.meta.description,
-				body: original.body
-			})
-		});
+			// Create the duplicate
+			const createRes = await fetch('/api/builder/pages', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					title: `${original.meta.title} (Copy)`,
+					slug: newSlug,
+					description: original.meta.description,
+					body: original.body
+				})
+			});
 
-		if (createRes.ok) {
+			if (!createRes.ok) {
+				const body = await createRes.json().catch(() => ({ message: 'Duplicate failed' }));
+				throw new Error(body.message || `Duplicate failed (${createRes.status})`);
+			}
 			await invalidateAll();
+		} catch (err) {
+			errorMessage = err instanceof Error ? err.message : 'Duplicate failed';
 		}
 	}
 </script>
@@ -64,6 +83,19 @@
 				New Page
 			</a>
 		</div>
+
+		{#if errorMessage}
+			<div class="mb-4 flex items-center justify-between rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+				<span>{errorMessage}</span>
+				<button
+					type="button"
+					class="ml-4 text-destructive hover:text-destructive/80"
+					onclick={() => (errorMessage = '')}
+				>
+					Dismiss
+				</button>
+			</div>
+		{/if}
 
 		{#if data.pages.length > 0}
 			<div class="grid gap-4">
