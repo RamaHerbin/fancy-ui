@@ -339,13 +339,42 @@ Modified:
 
 ### Phase 6: Polish
 
-**Status: TODO**
+**Status: IN PROGRESS**
 
 UX refinements and completeness.
 
-#### Deliverables
+#### Phase 6A: Undo/Redo ✅
 
-- **Undo/Redo** — command stack in editor store, Cmd+Z / Cmd+Shift+Z
+Snapshot-based undo/redo with coalescing for high-frequency prop/meta updates.
+
+- **HistoryManager** (`stores/history.svelte.ts`) — max 50 entries, in-memory
+  - Structural mutations (add/remove/move/drop) commit immediately
+  - Prop and meta mutations coalesce within 500ms on the same target (blockId+key)
+  - Uses `$state.snapshot()` for deep cloning Svelte 5 reactive state
+- **Editor integration** — every mutation calls `history.push()` before mutating, `undo()`/`redo()` restore page + selection
+- **Keyboard shortcuts** — Cmd/Ctrl+Z (undo), Cmd/Ctrl+Shift+Z or Ctrl+Y (redo), skipped in input/textarea/contenteditable
+- **TopBar buttons** — Undo2/Redo2 icons, disabled when stack is empty
+- **Tests** — 22 unit tests (HistoryManager), 12 integration tests (EditorState undo/redo), 4 block selection tests
+
+##### Files
+
+```
+New:
+  src/lib/builder/stores/history.svelte.ts          # HistoryManager class
+  src/lib/builder/stores/history.test.ts            # 22 unit tests
+  src/lib/builder/stores/editor-undo.test.ts        # 12 integration tests
+  src/lib/builder/editor/block-selection.test.ts    # 4 nested selection tests
+  src/lib/builder/editor/BlockSelectionTestHarness.svelte  # Test harness
+
+Modified:
+  src/lib/builder/stores/editor.svelte.ts           # History integration + undo/redo methods
+  src/lib/builder/editor/EditorLayout.svelte        # Keyboard shortcuts
+  src/lib/builder/editor/TopBar.svelte              # Undo/redo buttons
+  src/lib/builder/editor/BlockWrapper.svelte        # pointer-events-auto for nested selection
+```
+
+#### Phase 6B+ (TODO)
+
 - **Copy/Paste** — Cmd+C / Cmd+V on selected blocks
 - **Keyboard shortcuts** — Cmd+S (save), Delete/Backspace (remove block), arrow keys (navigate tree)
 - **Page templates** — starter templates in `content/_templates/` (blank, landing, portfolio)
@@ -354,8 +383,10 @@ UX refinements and completeness.
 - **SEO/Meta editor** — edit title, description, OG tags in the property panel
 - **Tests** — unit tests for renderer, storage, editor store
   - Tree utils: ✅ done (29 tests)
-  - BlockRenderer / PageRenderer: pending (render with mock data, unknown component fallback, prop sanitization)
-  - Storage + editor store: pending (write alongside Phase 5)
+  - History: ✅ done (22 unit + 12 integration tests)
+  - Block selection: ✅ done (4 tests)
+  - BlockRenderer / PageRenderer: pending
+  - Storage + editor store: pending
 
 ---
 
@@ -403,9 +434,12 @@ src/lib/builder/
 │   ├── BlockWrapper.svelte
 │   ├── PropertyPanel.svelte
 │   ├── LayerTree.svelte
+│   ├── AutoSave.svelte
+│   ├── DraftRecoveryBanner.svelte
 │   └── props/ (5 editors)
 ├── stores/
-│   └── editor.svelte.ts
+│   ├── editor.svelte.ts
+│   └── history.svelte.ts
 ├── storage/
 │   ├── types.ts
 │   ├── filesystem.server.ts

@@ -41,7 +41,8 @@ function verify(cookie: string): string | null {
 }
 
 export function createSessionCookie(cookies: Cookies, username: string): void {
-	const value = sign(username);
+	const payload = `${username}.${Math.floor(Date.now() / 1000)}`;
+	const value = sign(payload);
 	cookies.set(COOKIE_NAME, value, {
 		path: '/',
 		httpOnly: true,
@@ -55,8 +56,21 @@ export function verifySessionCookie(cookies: Cookies): { username: string } | nu
 	const cookie = cookies.get(COOKIE_NAME);
 	if (!cookie) return null;
 
-	const username = verify(cookie);
-	if (!username) return null;
+	const payload = verify(cookie);
+	if (!payload) return null;
+
+	// Payload format: "username.timestamp"
+	const dotIndex = payload.lastIndexOf('.');
+	if (dotIndex === -1) return null;
+
+	const username = payload.slice(0, dotIndex);
+	const timestamp = parseInt(payload.slice(dotIndex + 1), 10);
+
+	if (!username || isNaN(timestamp)) return null;
+
+	// Server-side expiration check
+	const age = Math.floor(Date.now() / 1000) - timestamp;
+	if (age > MAX_AGE) return null;
 
 	return { username };
 }
