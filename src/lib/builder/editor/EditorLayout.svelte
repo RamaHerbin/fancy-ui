@@ -48,9 +48,9 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="grid flex-1 min-h-0 grid-cols-[240px_1fr_320px]">
+<div class="grid flex-1 min-h-0 grid-cols-[240px_1fr_320px] grid-rows-[1fr]">
 	<!-- Left panel: Palette + Layer Tree -->
-	<div class="flex flex-col border-r border-border bg-background">
+	<div class="flex flex-col overflow-hidden border-r border-border bg-background">
 		<div class="shrink-0 border-b border-border px-2 py-2">
 			<h2 class="px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 				Components
