@@ -68,7 +68,7 @@
 	<title>Site Builder</title>
 </svelte:head>
 
-<div class="min-h-screen bg-background">
+<div class="min-h-0 flex-1 overflow-y-auto bg-background">
 	<div class="mx-auto max-w-4xl px-4 py-12">
 		<div class="mb-8 flex items-center justify-between">
 			<div>

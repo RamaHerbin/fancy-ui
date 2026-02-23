@@ -59,7 +59,7 @@
 	<title>New Page - Site Builder</title>
 </svelte:head>
 
-<div class="min-h-screen bg-background">
+<div class="min-h-0 flex-1 overflow-y-auto bg-background">
 	<div class="mx-auto max-w-lg px-4 py-12">
 		<a
 			href="/builder"
