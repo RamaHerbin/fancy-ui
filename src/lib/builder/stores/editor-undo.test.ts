@@ -299,4 +299,280 @@ describe('EditorState undo/redo integration', () => {
 			expect(bodyIds(editor)).toEqual(['a', 'b']);
 		});
 	});
+
+	describe('copy and paste', () => {
+		it('copies selected block and pastes after it with fresh ID', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a'), makeBlock('b')] })
+			);
+
+			editor.selectBlock('a');
+			editor.copyBlock();
+			expect(editor.clipboard).not.toBeNull();
+			expect(editor.clipboard!.id).not.toBe('a');
+
+			editor.pasteBlock();
+			expect(editor.page.body).toHaveLength(3);
+			// Pasted block should be after 'a', before 'b'
+			expect(editor.page.body[0].id).toBe('a');
+			expect(editor.page.body[2].id).toBe('b');
+			// Pasted block has new ID, same content
+			const pasted = editor.page.body[1];
+			expect(pasted.id).not.toBe('a');
+			expect(pasted.props.content).toBe('a');
+			// Selection moves to pasted
+			expect(editor.selectedBlockId).toBe(pasted.id);
+		});
+
+		it('paste twice generates different IDs each time', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a')] })
+			);
+
+			editor.selectBlock('a');
+			editor.copyBlock();
+
+			editor.pasteBlock();
+			const firstPastedId = editor.selectedBlockId;
+
+			editor.pasteBlock();
+			const secondPastedId = editor.selectedBlockId;
+
+			expect(firstPastedId).not.toBe(secondPastedId);
+			expect(editor.page.body).toHaveLength(3);
+		});
+
+		it('paste with no selection appends to root', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a')] })
+			);
+
+			editor.selectBlock('a');
+			editor.copyBlock();
+			editor.deselectBlock();
+
+			editor.pasteBlock();
+			expect(editor.page.body).toHaveLength(2);
+			expect(editor.page.body[1].props.content).toBe('a');
+		});
+
+		it('paste is undoable', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a')] })
+			);
+
+			editor.selectBlock('a');
+			editor.copyBlock();
+			editor.pasteBlock();
+			expect(editor.page.body).toHaveLength(2);
+
+			editor.undo();
+			expect(editor.page.body).toHaveLength(1);
+			expect(editor.page.body[0].id).toBe('a');
+		});
+
+		it('does nothing if clipboard is empty', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a')] })
+			);
+
+			editor.pasteBlock();
+			expect(editor.page.body).toHaveLength(1);
+		});
+
+		it('does nothing if no block selected on copy', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a')] })
+			);
+
+			editor.copyBlock();
+			expect(editor.clipboard).toBeNull();
+		});
+	});
+
+	describe('cut', () => {
+		it('removes block and populates clipboard', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a'), makeBlock('b')] })
+			);
+
+			editor.selectBlock('a');
+			editor.cutBlock();
+
+			expect(bodyIds(editor)).toEqual(['b']);
+			expect(editor.clipboard).not.toBeNull();
+			expect(editor.clipboard!.props.content).toBe('a');
+		});
+
+		it('cut then paste restores block elsewhere', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a'), makeBlock('b'), makeBlock('c')] })
+			);
+
+			editor.selectBlock('a');
+			editor.cutBlock();
+			expect(bodyIds(editor)).toEqual(['b', 'c']);
+
+			editor.selectBlock('c');
+			editor.pasteBlock();
+
+			expect(editor.page.body).toHaveLength(3);
+			// Pasted after 'c'
+			const pasted = editor.page.body[2];
+			expect(pasted.props.content).toBe('a');
+		});
+
+		it('undo after cut restores the removed block', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a'), makeBlock('b')] })
+			);
+
+			editor.selectBlock('a');
+			editor.cutBlock();
+			expect(bodyIds(editor)).toEqual(['b']);
+
+			editor.undo();
+			expect(bodyIds(editor)).toEqual(['a', 'b']);
+			// Clipboard stays populated after undo
+			expect(editor.clipboard).not.toBeNull();
+		});
+	});
+
+	describe('duplicate', () => {
+		it('creates a copy after the selected block', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a'), makeBlock('b')] })
+			);
+
+			editor.selectBlock('a');
+			editor.duplicateBlock();
+
+			expect(editor.page.body).toHaveLength(3);
+			expect(editor.page.body[0].id).toBe('a');
+			expect(editor.page.body[2].id).toBe('b');
+			// Duplicate has same content but different ID
+			const dup = editor.page.body[1];
+			expect(dup.id).not.toBe('a');
+			expect(dup.props.content).toBe('a');
+			// Selection moves to duplicate
+			expect(editor.selectedBlockId).toBe(dup.id);
+		});
+
+		it('duplicate is undoable in one step', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a')] })
+			);
+
+			editor.selectBlock('a');
+			editor.duplicateBlock();
+			expect(editor.page.body).toHaveLength(2);
+
+			editor.undo();
+			expect(editor.page.body).toHaveLength(1);
+			expect(editor.page.body[0].id).toBe('a');
+			expect(editor.selectedBlockId).toBe('a');
+		});
+
+		it('does nothing with no selection', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a')] })
+			);
+
+			editor.duplicateBlock();
+			expect(editor.page.body).toHaveLength(1);
+		});
+	});
+
+	describe('arrow navigation', () => {
+		it('selectNext cycles through blocks in tree order', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a'), makeBlock('b'), makeBlock('c')] })
+			);
+
+			// No selection → selects first
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBe('a');
+
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBe('b');
+
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBe('c');
+
+			// Wraps around
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBe('a');
+		});
+
+		it('selectPrev cycles in reverse', () => {
+			const editor = new EditorState(
+				makePage({ body: [makeBlock('a'), makeBlock('b'), makeBlock('c')] })
+			);
+
+			// No selection → selects last
+			editor.selectPrev();
+			expect(editor.selectedBlockId).toBe('c');
+
+			editor.selectPrev();
+			expect(editor.selectedBlockId).toBe('b');
+
+			editor.selectPrev();
+			expect(editor.selectedBlockId).toBe('a');
+
+			// Wraps around
+			editor.selectPrev();
+			expect(editor.selectedBlockId).toBe('c');
+		});
+
+		it('handles nested children in tree order', () => {
+			const parentBlock: BlockNode = {
+				id: 'parent',
+				type: '_container',
+				props: {},
+				children: [makeBlock('child1'), makeBlock('child2')]
+			};
+			const editor = new EditorState(
+				makePage({ body: [parentBlock, makeBlock('sibling')] })
+			);
+
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBe('parent');
+
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBe('child1');
+
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBe('child2');
+
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBe('sibling');
+		});
+
+		it('does nothing with empty body', () => {
+			const editor = new EditorState(makePage());
+
+			editor.selectNext();
+			expect(editor.selectedBlockId).toBeNull();
+
+			editor.selectPrev();
+			expect(editor.selectedBlockId).toBeNull();
+		});
+	});
+
+	describe('requestSave', () => {
+		it('calls onSave callback when set', () => {
+			const editor = new EditorState(makePage());
+			const saveFn = vi.fn();
+			editor.onSave = saveFn;
+
+			editor.requestSave();
+			expect(saveFn).toHaveBeenCalledOnce();
+		});
+
+		it('does nothing when onSave is not set', () => {
+			const editor = new EditorState(makePage());
+			// Should not throw
+			editor.requestSave();
+		});
+	});
 });
