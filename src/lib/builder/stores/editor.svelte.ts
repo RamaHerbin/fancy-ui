@@ -8,7 +8,7 @@
 import { setContext, getContext } from 'svelte';
 import type { PageDocument, BlockNode, BuilderComponentMeta } from '../types/index.js';
 import { getBuilderComponent, getDefaultProps } from '../registry/index.js';
-import { findNode, findParentId, findParent, removeNode, moveNode, createBlockId } from '../utils/index.js';
+import { findNode, findParentId, findParent, removeNode, moveNode, insertNode, cloneNode, flattenTree, createBlockId } from '../utils/index.js';
 import { HistoryManager } from './history.svelte.js';
 
 export type Viewport = 'desktop' | 'tablet' | 'mobile';
@@ -42,6 +42,12 @@ export class EditorState {
 	private history = new HistoryManager();
 	canUndo: boolean = $derived(this.history.canUndo);
 	canRedo: boolean = $derived(this.history.canRedo);
+
+	// Clipboard (in-memory, session-scoped)
+	clipboard: BlockNode | null = $state(null);
+
+	// Save callback — wired by TopBar
+	onSave: (() => void) | null = null;
 
 	isDragging = $derived(this.dragSource !== null);
 
@@ -249,6 +255,87 @@ export class EditorState {
 		if (!snapshot) return;
 		this.page = snapshot.page;
 		this.selectedBlockId = snapshot.selectedBlockId;
+	}
+
+	// --- Save ---
+
+	requestSave() {
+		this.onSave?.();
+	}
+
+	// --- Navigation ---
+
+	selectNext() {
+		const flat = flattenTree(this.page.body);
+		if (flat.length === 0) return;
+		if (!this.selectedBlockId) {
+			this.selectedBlockId = flat[0].id;
+			return;
+		}
+		const idx = flat.findIndex((n) => n.id === this.selectedBlockId);
+		const next = (idx + 1) % flat.length;
+		this.selectedBlockId = flat[next].id;
+	}
+
+	selectPrev() {
+		const flat = flattenTree(this.page.body);
+		if (flat.length === 0) return;
+		if (!this.selectedBlockId) {
+			this.selectedBlockId = flat[flat.length - 1].id;
+			return;
+		}
+		const idx = flat.findIndex((n) => n.id === this.selectedBlockId);
+		const prev = (idx - 1 + flat.length) % flat.length;
+		this.selectedBlockId = flat[prev].id;
+	}
+
+	// --- Clipboard ---
+
+	copyBlock() {
+		if (!this.selectedBlock) return;
+		const snapshot = $state.snapshot(this.selectedBlock);
+		this.clipboard = cloneNode(snapshot, createBlockId);
+	}
+
+	cutBlock() {
+		if (!this.selectedBlockId) return;
+		this.copyBlock();
+		this.removeBlock(this.selectedBlockId!);
+	}
+
+	pasteBlock() {
+		if (!this.clipboard) return;
+		const clone = cloneNode($state.snapshot(this.clipboard), createBlockId);
+
+		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
+
+		if (this.selectedBlockId) {
+			const parentId = findParentId(this.page.body, this.selectedBlockId);
+			const result = findParent(this.page.body, this.selectedBlockId);
+			if (result) {
+				insertNode(this.page.body, parentId, result.index + 1, clone);
+			}
+		} else {
+			this.page.body.push(clone);
+		}
+
+		this.selectedBlockId = clone.id;
+	}
+
+	duplicateBlock() {
+		if (!this.selectedBlockId || !this.selectedBlock) return;
+		const snapshot = $state.snapshot(this.selectedBlock);
+		const clone = cloneNode(snapshot, createBlockId);
+
+		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
+
+		const parentId = findParentId(this.page.body, this.selectedBlockId);
+		const result = findParent(this.page.body, this.selectedBlockId);
+		if (result) {
+			insertNode(this.page.body, parentId, result.index + 1, clone);
+		}
+
+		this.selectedBlockId = clone.id;
 	}
 }
 

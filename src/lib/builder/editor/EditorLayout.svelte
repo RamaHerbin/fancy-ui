@@ -22,14 +22,70 @@
 		}
 
 		const mod = e.metaKey || e.ctrlKey;
-		if (!mod) return;
 
-		if (e.key === 'z' && !e.shiftKey) {
-			e.preventDefault();
-			editor.undo();
-		} else if ((e.key === 'z' && e.shiftKey) || (e.key === 'y' && !e.shiftKey)) {
-			e.preventDefault();
-			editor.redo();
+		if (mod) {
+			switch (e.key.toLowerCase()) {
+				case 'z':
+					e.preventDefault();
+					if (e.shiftKey) {
+						editor.redo();
+					} else {
+						editor.undo();
+					}
+					return;
+				case 'y':
+					if (!e.shiftKey) {
+						e.preventDefault();
+						editor.redo();
+					}
+					return;
+				case 's':
+					e.preventDefault();
+					editor.requestSave();
+					return;
+				case 'c':
+					e.preventDefault();
+					editor.copyBlock();
+					return;
+				case 'x':
+					e.preventDefault();
+					editor.cutBlock();
+					return;
+				case 'v':
+					e.preventDefault();
+					editor.pasteBlock();
+					return;
+				case 'd':
+					e.preventDefault();
+					editor.duplicateBlock();
+					return;
+			}
+			return;
+		}
+
+		// Non-modifier shortcuts (edit mode only)
+		if (editor.mode !== 'edit') return;
+
+		switch (e.key) {
+			case 'Delete':
+			case 'Backspace':
+				if (editor.selectedBlockId) {
+					e.preventDefault();
+					editor.removeBlock(editor.selectedBlockId);
+				}
+				return;
+			case 'ArrowUp':
+				e.preventDefault();
+				editor.selectPrev();
+				return;
+			case 'ArrowDown':
+				e.preventDefault();
+				editor.selectNext();
+				return;
+			case 'Escape':
+				e.preventDefault();
+				editor.deselectBlock();
+				return;
 		}
 	}
 

@@ -1,9 +1,18 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { getEditorState, type Viewport } from '../stores/editor.svelte.js';
 	import { deleteDraft } from '../storage/indexeddb.js';
 	import { Monitor, Tablet, Smartphone, ArrowLeft, Save, MousePointer, Hand, Loader2, Check, Undo2, Redo2 } from '@lucide/svelte';
 
 	const editor = getEditorState();
+
+	// Wire Cmd+S → handleSave
+	onMount(() => {
+		editor.onSave = handleSave;
+		return () => {
+			editor.onSave = null;
+		};
+	});
 
 	const viewportOptions: { icon: typeof Monitor; value: Viewport; label: string }[] = [
 		{ icon: Monitor, value: 'desktop', label: 'Desktop' },
