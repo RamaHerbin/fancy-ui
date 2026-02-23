@@ -14,17 +14,17 @@
 	}
 </script>
 
-<div class="flex h-full flex-col">
+<div class="flex min-h-0 flex-1 flex-col">
 	{#if editor.selectedBlock && editor.selectedMeta}
 		{@const block = editor.selectedBlock}
 		{@const meta = editor.selectedMeta}
 
-		<div class="border-b border-border px-4 py-3">
+		<div class="shrink-0 border-b border-border px-4 py-3">
 			<h3 class="text-sm font-semibold">{meta.name}</h3>
 			<p class="text-xs text-muted-foreground">{meta.slug}</p>
 		</div>
 
-		<div class="flex-1 space-y-4 overflow-y-auto p-4">
+		<div class="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
 			{#each Object.entries(meta.propSchemas) as [key, schema]}
 				<div>
 					<!-- svelte-ignore a11y_label_has_associated_control -->
@@ -82,7 +82,7 @@
 			{/each}
 		</div>
 
-		<div class="border-t border-border p-4">
+		<div class="shrink-0 border-t border-border p-4">
 			<button
 				type="button"
 				class="w-full rounded-md bg-destructive px-3 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90"
