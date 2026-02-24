@@ -69,8 +69,8 @@
 		switch (e.key) {
 			case 'Delete':
 			case 'Backspace':
+				e.preventDefault();
 				if (editor.selectedBlockId) {
-					e.preventDefault();
 					editor.removeBlock(editor.selectedBlockId);
 				}
 				return;
