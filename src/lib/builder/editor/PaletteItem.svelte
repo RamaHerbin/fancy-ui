@@ -65,6 +65,7 @@
 	type="button"
 	class="flex w-full cursor-grab items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors select-none hover:bg-accent hover:text-accent-foreground"
 	style="touch-action: none;"
+	data-testid="palette-item-{meta.slug}"
 	onclick={handleClick}
 	onpointerdown={onPointerDown}
 	title={meta.description}

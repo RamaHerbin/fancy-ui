@@ -1,9 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 const BUILDER_URL = '/builder/test';
+// process.platform matches the test runner OS — fine for local + CI where
+// runner and browser always share the same platform (no remote browsers).
 const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-/** Wait for the editor to be fully loaded and hydrated */
+/** Wait for the editor to be fully loaded and hydrated.
+ *  15s timeout covers slow CI cold-starts; locally the tree appears in <2s.
+ *  networkidle is required because Svelte 5 SSR renders the DOM before
+ *  hydration wires up event handlers — without it, the first click is a no-op. */
 async function waitForEditor(page: import('@playwright/test').Page) {
 	await page.locator('[role="treeitem"]').first().waitFor({ timeout: 15000 });
 	await page.waitForLoadState('networkidle');
