@@ -141,6 +141,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class="relative flex-1 overflow-y-auto bg-muted/30 p-4"
+	data-testid="canvas"
 	bind:this={canvasEl}
 	onclick={handleCanvasClick}
 >
