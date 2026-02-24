@@ -299,23 +299,23 @@ export class EditorState {
 
 	cutBlock() {
 		if (!this.selectedBlockId) return;
+		const blockId = this.selectedBlockId;
 		this.copyBlock();
-		this.removeBlock(this.selectedBlockId!);
+		this.removeBlock(blockId);
 	}
 
 	pasteBlock() {
 		if (!this.clipboard) return;
 		const clone = cloneNode($state.snapshot(this.clipboard), createBlockId);
 
-		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
-
 		if (this.selectedBlockId) {
 			const parentId = findParentId(this.page.body, this.selectedBlockId);
 			const result = findParent(this.page.body, this.selectedBlockId);
-			if (result) {
-				insertNode(this.page.body, parentId, result.index + 1, clone);
-			}
+			if (!result) return;
+			this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
+			insertNode(this.page.body, parentId, result.index + 1, clone);
 		} else {
+			this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
 			this.page.body.push(clone);
 		}
 
@@ -327,13 +327,12 @@ export class EditorState {
 		const snapshot = $state.snapshot(this.selectedBlock);
 		const clone = cloneNode(snapshot, createBlockId);
 
-		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
-
 		const parentId = findParentId(this.page.body, this.selectedBlockId);
 		const result = findParent(this.page.body, this.selectedBlockId);
-		if (result) {
-			insertNode(this.page.body, parentId, result.index + 1, clone);
-		}
+		if (!result) return;
+
+		this.history.push(this.page, this.selectedBlockId, { type: 'structure' });
+		insertNode(this.page.body, parentId, result.index + 1, clone);
 
 		this.selectedBlockId = clone.id;
 	}
