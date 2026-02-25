@@ -13,9 +13,15 @@ function validateSlug(slug: string) {
 	}
 }
 
-export const GET: RequestHandler = async ({ params, locals }) => {
+function getStorage(locals: App.Locals, cookies: import('@sveltejs/kit').Cookies) {
+	return getBuilderStorage(
+		locals.user?.provider === 'supabase' ? { cookies } : { githubToken: locals.githubToken }
+	);
+}
+
+export const GET: RequestHandler = async ({ params, locals, cookies }) => {
 	validateSlug(params.slug);
-	const storage = getBuilderStorage(locals.githubToken);
+	const storage = getStorage(locals, cookies);
 
 	try {
 		const page = await storage.get(params.slug);
@@ -28,9 +34,9 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 	}
 };
 
-export const PUT: RequestHandler = async ({ params, request, locals }) => {
+export const PUT: RequestHandler = async ({ params, request, locals, cookies }) => {
 	validateSlug(params.slug);
-	const storage = getBuilderStorage(locals.githubToken);
+	const storage = getStorage(locals, cookies);
 
 	let page: unknown;
 	try {
@@ -62,9 +68,9 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params, locals }) => {
+export const DELETE: RequestHandler = async ({ params, locals, cookies }) => {
 	validateSlug(params.slug);
-	const storage = getBuilderStorage(locals.githubToken);
+	const storage = getStorage(locals, cookies);
 
 	try {
 		await storage.delete(params.slug);

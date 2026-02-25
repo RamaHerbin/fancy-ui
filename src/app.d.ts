@@ -4,7 +4,12 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			user?: { username: string };
+			user?: {
+				username: string;
+				provider: 'supabase' | 'github' | 'dev';
+				id?: string;
+				email?: string;
+			};
 			githubToken?: string;
 		}
 		// interface PageData {}

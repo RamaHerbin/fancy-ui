@@ -2,6 +2,7 @@ import { redirect, error } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import { verifySessionCookie, getTokenFromCookie } from '$lib/server/auth/index.js';
+import { isSupabaseConfigured, createSupabaseServerClient } from '$lib/server/supabase.server.js';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -10,30 +11,59 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const isBuilderApi = pathname.startsWith('/api/builder');
 
 	if (isBuilderRoute || isBuilderApi) {
-		// Skip auth in dev when GitHub OAuth is not configured
-		const authConfigured = env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET && env.AUTH_SECRET;
+		let authenticated = false;
 
-		if (!authConfigured && dev) {
-			event.locals.user = { username: 'dev' };
-			// In dev without OAuth, githubToken stays undefined → factory falls back to FilesystemStorage
-		} else if (!authConfigured && !dev) {
-			// Production without OAuth configured — block access
-			if (isBuilderApi) {
-				error(403, 'Builder is not configured — set GitHub OAuth env vars');
+		// 1. Try Supabase auth first
+		if (isSupabaseConfigured()) {
+			const supabase = createSupabaseServerClient(event.cookies);
+			const {
+				data: { user }
+			} = await supabase.auth.getUser();
+
+			if (user) {
+				event.locals.user = {
+					username: user.user_metadata?.full_name || user.email || 'user',
+					provider: 'supabase',
+					id: user.id,
+					email: user.email
+				};
+				authenticated = true;
 			}
-			error(403, 'Builder is not configured — set GitHub OAuth env vars');
-		} else {
-			const session = verifySessionCookie(event.cookies);
+		}
 
-			if (!session) {
-				if (isBuilderApi) {
-					error(401, 'Unauthorized');
+		// 2. Try GitHub auth
+		if (!authenticated) {
+			const githubConfigured =
+				env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET && env.AUTH_SECRET;
+
+			if (githubConfigured) {
+				const session = verifySessionCookie(event.cookies);
+				if (session) {
+					event.locals.user = { username: session.username, provider: 'github' };
+					event.locals.githubToken = getTokenFromCookie(event.cookies) ?? undefined;
+					authenticated = true;
 				}
-				redirect(302, '/auth/login');
 			}
+		}
 
-			event.locals.user = session;
-			event.locals.githubToken = getTokenFromCookie(event.cookies) ?? undefined;
+		// 3. Dev mode bypass (no auth configured or no session)
+		if (!authenticated && dev) {
+			const anyAuthConfigured =
+				isSupabaseConfigured() ||
+				(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET && env.AUTH_SECRET);
+
+			if (!anyAuthConfigured) {
+				event.locals.user = { username: 'dev', provider: 'dev' };
+				authenticated = true;
+			}
+		}
+
+		// 4. Not authenticated — reject
+		if (!authenticated) {
+			if (isBuilderApi) {
+				error(401, 'Unauthorized');
+			}
+			redirect(302, '/auth/login');
 		}
 	}
 

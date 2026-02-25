@@ -3,7 +3,7 @@ import { getBuilderStorage, isValidSlug, StorageError } from '$lib/builder/stora
 import type { PageDocument } from '$lib/builder/types/page.js';
 import type { RequestHandler } from './$types.js';
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+export const POST: RequestHandler = async ({ request, locals, cookies }) => {
 	let body: Record<string, unknown>;
 	try {
 		body = await request.json();
@@ -20,7 +20,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		error(400, 'Valid slug is required (lowercase alphanumeric with hyphens)');
 	}
 
-	const storage = getBuilderStorage(locals.githubToken);
+	const storage = getBuilderStorage(
+		locals.user?.provider === 'supabase' ? { cookies } : { githubToken: locals.githubToken }
+	);
 
 	// Check if page already exists
 	try {
