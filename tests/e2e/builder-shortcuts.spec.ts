@@ -64,8 +64,8 @@ test.describe('Builder — Keyboard shortcuts', () => {
 	test('Cmd+D duplicates the selected block', async ({ page }) => {
 		const initialCount = await page.locator('[role="treeitem"]').count();
 
-		// Select the first root block (the spacer)
-		await page.locator('[role="treeitem"]').first().click();
+		// Select a leaf block (spacer) so the count changes by exactly 1
+		await page.locator('[role="treeitem"][data-drop-id="spacer-1"]').click();
 		await expect(selectedItem(page)).toHaveCount(1);
 
 		await page.keyboard.press(`${modifier}+d`);
@@ -77,8 +77,8 @@ test.describe('Builder — Keyboard shortcuts', () => {
 	test('Cmd+Z undoes the duplication', async ({ page }) => {
 		const initialCount = await page.locator('[role="treeitem"]').count();
 
-		// Select and duplicate
-		await page.locator('[role="treeitem"]').first().click();
+		// Select a leaf block and duplicate
+		await page.locator('[role="treeitem"][data-drop-id="spacer-1"]').click();
 		await page.keyboard.press(`${modifier}+d`);
 		await expect(page.locator('[role="treeitem"]')).toHaveCount(initialCount + 1);
 
@@ -90,8 +90,8 @@ test.describe('Builder — Keyboard shortcuts', () => {
 	test('Backspace deletes the selected block', async ({ page }) => {
 		const initialCount = await page.locator('[role="treeitem"]').count();
 
-		// Select the first root block
-		await page.locator('[role="treeitem"]').first().click();
+		// Select a leaf block (spacer)
+		await page.locator('[role="treeitem"][data-drop-id="spacer-1"]').click();
 
 		await page.keyboard.press('Backspace');
 
@@ -105,8 +105,8 @@ test.describe('Builder — Keyboard shortcuts', () => {
 	test('Cmd+C / Cmd+V copies and pastes a block', async ({ page }) => {
 		const initialCount = await page.locator('[role="treeitem"]').count();
 
-		// Select the first block
-		await page.locator('[role="treeitem"]').first().click();
+		// Select a leaf block (spacer)
+		await page.locator('[role="treeitem"][data-drop-id="spacer-1"]').click();
 
 		// Copy
 		await page.keyboard.press(`${modifier}+c`);
@@ -125,8 +125,8 @@ test.describe('Builder — Keyboard shortcuts', () => {
 	test('Cmd+X cuts (removes) the selected block', async ({ page }) => {
 		const initialCount = await page.locator('[role="treeitem"]').count();
 
-		// Select the first block
-		await page.locator('[role="treeitem"]').first().click();
+		// Select a leaf block (spacer)
+		await page.locator('[role="treeitem"][data-drop-id="spacer-1"]').click();
 		await expect(selectedItem(page)).toHaveCount(1);
 		const cutId = await selectedItem(page).getAttribute('data-drop-id');
 
