@@ -312,45 +312,46 @@
 
 ---
 
-## Phase 8: Component Porting
+## Phase 8: Component Porting — 48/119 done (40%)
 
 > **Dependencies**: Phase 1, Phase 2, Phase 3.1
 >
-> This is the main work: porting 119 Vue components from `vendor/inspira/ui/` to Svelte.
+> Categories below match `src/lib/fancy-ui/registry.ts`.
 
-### 8.1 Buttons (6 components)
+### 8.1 Buttons — 5/5 ✅
 
-- [x] **rainbow-button** - Animated rainbow gradient border button
 - [x] **gradient-button** - Button with gradient background
-- [x] **shimmer-button** - Button with shimmer effect
-- [x] **ripple-button** - Button with ripple click effect
 - [x] **interactive-hover-button** - Button with hover interactions
-- [x] **neon-border** - Button/container with neon glow border
+- [x] **rainbow-button** - Animated rainbow gradient border button
+- [x] **ripple-button** - Button with ripple click effect
+- [x] **shimmer-button** - Button with shimmer effect
 
-### 8.2 Cards & Containers (12 components)
+### 8.2 Cards — 8/8 ✅
 
+- [x] **bento-grid** - Bento-style grid layout
+- [x] **book** - 3D book component
 - [x] **card-3d** - 3D perspective card on hover
 - [x] **card-spotlight** - Card with mouse-following spotlight
-- [x] **glare-card** - Card with glare effect
+- [x] **direction-aware-hover** - Direction-aware hover effect
 - [x] **flip-card** - Card that flips on hover
-- [x] **bento-grid** - Bento-style grid layout
-- [x] **compare** - Before/after image comparison slider
-- [x] **container-scroll** - Scroll-animated container
-- [x] **container-text-flip** - Text flip container
-- [x] **focus** - Focus-style card container
+- [x] **glare-card** - Card with glare effect
 - [x] **text-reveal-card** - Card with text reveal on hover
-- [x] **liquid-glass** - Glassmorphism card effect
-- [x] **book** - 3D book component
 
-### 8.3 Text & Typography (18 components)
+### 8.3 Text & Typography — 10/22 (45%)
 
+- [x] **blur-reveal** - Blur-to-reveal text
+- [x] **box-reveal** - Box reveal animation
 - [x] **colourful-text** - Multi-colored text
+- [x] **container-text-flip** - Text flip container
 - [x] **flip-words** - Animated word flipper
+- [x] **focus** - Focus-style text component
 - [x] **hyper-text** - Hypertext scramble effect
 - [x] **letter-pullup** - Letters animate up on scroll
+- [x] **number-ticker** - Animated number counter
+- [x] **sparkles-text** - Text with sparkle effects
+- [ ] **line-shadow-text** - Text with line shadow
 - [ ] **morphing-text** - Text morphing animation
 - [ ] **radiant-text** - Glowing radiant text
-- [x] **sparkles-text** - Text with sparkle effects
 - [ ] **spinning-text** - Circular spinning text
 - [ ] **text-3d** - 3D extruded text
 - [ ] **text-generate-effect** - Typewriter text generation
@@ -359,116 +360,117 @@
 - [ ] **text-hover-effect** - Text with hover animations
 - [ ] **text-reveal** - Text reveal on scroll
 - [ ] **text-scroll-reveal** - Scroll-triggered text reveal
-- [ ] **line-shadow-text** - Text with line shadow
 - [ ] **video-text** - Video masked text
-- [x] **blur-reveal** - Blur-to-reveal text
 
-### 8.4 Backgrounds (18 components)
+### 8.4 Backgrounds — 4/19 (21%)
 
+- [x] **bg-falling-stars** - Falling stars animation
+- [x] **bg-stars** - Starfield background
+- [x] **flickering-grid** - Flickering dot grid
+- [x] **sparkles** - Sparkle particle effect
 - [ ] **aurora-background** - Aurora borealis effect
 - [ ] **bg-black-hole** - Black hole animation
 - [ ] **bg-bubbles** - Floating bubbles
-- [x] **bg-falling-stars** - Falling stars animation
 - [ ] **bg-neural** - Neural network visualization
 - [ ] **bg-particle-whirlpool** - Particle whirlpool
 - [ ] **bg-silk** - Silk fabric animation
-- [x] **bg-stars** - Starfield background
 - [ ] **bg-stractium** - Abstract stratum effect
-- [x] **flickering-grid** - Flickering dot grid
+- [ ] **cosmic-portal** - Cosmic portal effect
+- [ ] **liquid-background** - Liquid/fluid background
 - [ ] **particles-bg** - Particle system background
 - [ ] **pattern-background** - Pattern/texture backgrounds
 - [ ] **snowfall-bg** - Snowfall animation
-- [ ] **wavy-background** - Wavy animated background
-- [ ] **warp-background** - Warp speed effect
-- [ ] **liquid-background** - Liquid/fluid background
-- [ ] **cosmic-portal** - Cosmic portal effect
 - [ ] **vortex** - Vortex swirl animation
+- [ ] **warp-background** - Warp speed effect
+- [ ] **wavy-background** - Wavy animated background
 
-### 8.5 Effects & Animations (20 components)
+### 8.5 Effects — 14/26 (54%)
 
 - [x] **animated-beam** - SVG animated beam lines
 - [x] **border-beam** - Animated border beam
+- [x] **confetti** - Confetti celebration
+- [x] **fluid-cursor** - Fluid cursor effect
 - [x] **glow-border** - Glowing border effect
 - [x] **glowing-effect** - General glow effect
+- [x] **image-trail-cursor** - Image trail on cursor move
+- [x] **interactive-grid-pattern** - Interactive grid
+- [x] **liquid-glass** - Glassmorphism effect
 - [x] **meteors** - Meteor shower effect
-- [x] **sparkles** - Sparkle particle effect
-- [x] **confetti** - Confetti celebration
+- [x] **neon-border** - Neon glow border effect
 - [x] **ripple** - Ripple wave effect
+- [x] **smooth-cursor** - Smooth cursor follower
 - [x] **tracing-beam** - Scroll-tracing beam
-- [ ] **lamp-effect** - Lamp lighting effect
-- [ ] **lens** - Magnifying lens effect
-- [x] **box-reveal** - Box reveal animation
-- [ ] **light-speed** - Light speed effect
-- [ ] **orbit** - Orbiting elements
-- [ ] **scratch-to-reveal** - Scratch card reveal
-- [ ] **svg-mask** - SVG masking effects
 - [ ] **animate-grid** - Animated grid
 - [ ] **infinite-grid** - Infinite scrolling grid
-- [x] **interactive-grid-pattern** - Interactive grid
+- [ ] **lamp-effect** - Lamp lighting effect
+- [ ] **lens** - Magnifying lens effect
+- [ ] **light-speed** - Light speed effect
+- [ ] **orbit** - Orbiting elements
+- [ ] **particle-image** - Particle-based image
+- [ ] **scratch-to-reveal** - Scratch card reveal
 - [ ] **shader-toy** - Shader effects
+- [ ] **sleek-line-cursor** - Line cursor effect
+- [ ] **svg-mask** - SVG masking effects
+- [ ] **tailed-cursor** - Cursor with tail
 
-### 8.6 Navigation & Layout (8 components)
+### 8.6 Layout — 2/2 ✅
+
+- [x] **container-scroll** - Scroll-animated container
+- [x] **marquee** - Infinite scrolling marquee
+
+### 8.7 Navigation — 2/5 (40%)
 
 - [x] **dock** - macOS-style dock
-- [ ] **morphing-tabs** - Morphing tab navigation
 - [x] **timeline** - Vertical timeline
-- [ ] **scroll-island** - Scroll-aware floating island
-- [x] **marquee** - Infinite scrolling marquee
-- [x] **logo-cloud** - Logo carousel/cloud
-- [ ] **logo-origami** - Origami-style logo reveal
 - [ ] **halo-search** - Spotlight search UI
+- [ ] **morphing-tabs** - Morphing tab navigation
+- [ ] **scroll-island** - Scroll-aware floating island
 
-### 8.7 Data Display (12 components)
+### 8.8 Data Display — 1/15 (7%)
 
+- [x] **logo-cloud** - Logo carousel/cloud
 - [ ] **animated-circular-progressbar** - Circular progress
 - [ ] **animated-list** - Animated list items
 - [ ] **animated-testimonials** - Testimonial carousel
-- [ ] **testimonial-slider** - Testimonial slider
-- [ ] **file-tree** - File tree component
-- [ ] **icon-cloud** - 3D icon cloud
-- [x] **number-ticker** - Animated number counter
+- [ ] **apple-card-carousel** - Apple-style 3D carousel
 - [ ] **balance-slider** - Balance/comparison slider
-- [ ] **expandable-gallery** - Expandable image gallery
-- [ ] **bending-gallery** - Bending gallery effect
-- [ ] **photo-gallery** - Photo gallery grid
-- [ ] **spring-calendar** - Spring-animated calendar
-
-### 8.8 3D & WebGL (8 components)
-
+- [ ] **carousel-3d** - 3D carousel
+- [ ] **file-tree** - File tree component
 - [ ] **globe** - 3D globe visualization
 - [ ] **github-globe** - GitHub-style contribution globe
+- [ ] **icon-cloud** - 3D icon cloud
+- [ ] **logo-origami** - Origami-style logo reveal
+- [ ] **spring-calendar** - Spring-animated calendar
+- [ ] **testimonial-slider** - Testimonial slider
 - [ ] **world-map** - Interactive world map
-- [ ] **spline** - Spline 3D integration
-- [ ] **particle-image** - Particle-based image
-- [ ] **tetris** - Tetris game component
-- [ ] **carousel-3d** - 3D carousel
-- [ ] **apple-card-carousel** - Apple-style 3D carousel
 
-### 8.9 Cursors & Interactions (6 components)
+### 8.9 Feedback — 1/3 (33%)
 
 - [x] **animated-tooltip** - Animated tooltip
-- [x] **direction-aware-hover** - Direction-aware hover effect
-- [x] **fluid-cursor** - Fluid cursor effect
-- [x] **smooth-cursor** - Smooth cursor follower
-- [ ] **sleek-line-cursor** - Line cursor effect
-- [ ] **tailed-cursor** - Cursor with tail
-- [x] **image-trail-cursor** - Image trail on cursor move
+- [ ] **multi-step-loader** - Multi-step loading indicator
+- [ ] **vanishing-input** - Input with vanishing placeholder
 
-### 8.10 Media & Mockups (5 components)
+### 8.10 Media — 1/9 (11%)
 
-- [ ] **iphone-mockup** - iPhone device mockup
-- [ ] **safari-mockup** - Safari browser mockup
+- [x] **compare** - Before/after image comparison slider
+- [ ] **bending-gallery** - Bending gallery effect
+- [ ] **expandable-gallery** - Expandable image gallery
 - [ ] **images-slider** - Image slider/carousel
+- [ ] **iphone-mockup** - iPhone device mockup
 - [ ] **link-preview** - Link preview card
 - [ ] **liquid-logo** - Liquid morphing logo
+- [ ] **photo-gallery** - Photo gallery grid
+- [ ] **safari-mockup** - Safari browser mockup
 
-### 8.11 Forms & Inputs (4 components)
+### 8.11 Uncategorized — 0/5
 
-- [ ] **input** - Styled input component
-- [ ] **vanishing-input** - Input with vanishing placeholder
+> Not yet assigned to a registry category.
+
 - [ ] **color-picker** - Color picker component
 - [ ] **file-upload** - File upload component
-- [ ] **multi-step-loader** - Multi-step loading indicator
+- [ ] **input** - Styled input component
+- [ ] **spline** - Spline 3D integration
+- [ ] **tetris** - Tetris game component
 
 ---
 
@@ -505,10 +507,10 @@ Phase 3.2 ─────────────────────► Pha
 | **P1** | 3.1, 3.2 | Enables visual validation |
 | **P2** | 1.3, 2.3 | Supports complex components |
 | **P2** | 5.1 | Code quality gates |
-| **P2** | 8.1-8.5 | Core component porting |
+| **P2** | 8.3-8.5 | Core component porting (text, backgrounds, effects) |
 | **P3** | 3.3, 4.1, 4.2 | Polish and distribution |
 | **P3** | 5.2, 5.3 | Testing infrastructure |
-| **P3** | 8.6-8.11 | Advanced component porting |
+| **P3** | 8.7-8.11 | Advanced component porting |
 | **P4** | 6.1, 6.2 | Documentation |
 | **P4** | 7.1, 7.2 | Automation |
 
@@ -527,28 +529,28 @@ After these tasks, the project is ready for **Phase 8: Component Porting** (119 
 
 ### Porting Priority Order
 
-#### Priority 0: Portfolio Components (actively used)
+#### Priority 0: Portfolio Components (actively used) ✅
 
-These components are used in the portfolio project and should be ported first:
+All portfolio components are done:
 
 | Component | Category | Status |
 |-----------|----------|--------|
 | rainbow-button | Buttons | Done |
-| animated-tooltip | Cursors & Interactions | Done |
-| fluid-cursor | Cursors & Interactions | Done |
-| marquee | Navigation & Layout | Done |
+| animated-tooltip | Feedback | Done |
+| fluid-cursor | Effects | Done |
+| marquee | Layout | Done |
 | blur-reveal | Text | Done |
 | bg-falling-stars | Backgrounds | Done |
-| image-trail-cursor | Cursors & Interactions | Done |
+| image-trail-cursor | Effects | Done |
 | interactive-grid-pattern | Effects | Done |
-| timeline | Navigation & Layout | Done |
-| animated-logo-cloud | Data Display | Done |
+| timeline | Navigation | Done |
+| logo-cloud | Data Display | Done |
 
 #### General Priority Order
 
-1. **Buttons** (8.1) - Simple, high-impact, validates workflow
-2. **Effects** (8.5) - Core visual effects used by other components
-3. **Text** (8.3) - Common text animations
-4. **Cards** (8.2) - Container components
-5. **Backgrounds** (8.4) - Decorative backgrounds
-6. **Rest** (8.6-8.11) - Based on demand
+1. **Text** (8.3) - 12 remaining, common text animations
+2. **Backgrounds** (8.4) - 15 remaining, decorative backgrounds
+3. **Effects** (8.5) - 12 remaining, core visual effects
+4. **Data Display** (8.8) - 14 remaining, biggest gap
+5. **Media** (8.10) - 8 remaining, mockups & galleries
+6. **Rest** (8.7, 8.9, 8.11) - Based on demand
