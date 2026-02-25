@@ -5,6 +5,7 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			user?: { username: string };
+			githubToken?: string;
 		}
 		// interface PageData {}
 		// interface PageState {}

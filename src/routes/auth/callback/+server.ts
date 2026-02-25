@@ -1,5 +1,10 @@
 import { error, redirect } from '@sveltejs/kit';
-import { getGitHub, getAllowedUsers, createSessionCookie } from '$lib/server/auth/index.js';
+import {
+	getGitHub,
+	getAllowedUsers,
+	createSessionCookie,
+	createTokenCookie
+} from '$lib/server/auth/index.js';
 import type { RequestHandler } from './$types.js';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
@@ -37,5 +42,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	}
 
 	createSessionCookie(cookies, username);
+	createTokenCookie(cookies, accessToken);
 	redirect(302, '/builder');
 };
