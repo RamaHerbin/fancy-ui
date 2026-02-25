@@ -1,7 +1,7 @@
 import { redirect, error } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
-import { verifySessionCookie } from '$lib/server/auth/index.js';
+import { verifySessionCookie, getTokenFromCookie } from '$lib/server/auth/index.js';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -15,6 +15,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 		if (!authConfigured && dev) {
 			event.locals.user = { username: 'dev' };
+			// In dev without OAuth, githubToken stays undefined → factory falls back to FilesystemStorage
+		} else if (!authConfigured && !dev) {
+			// Production without OAuth configured — block access
+			if (isBuilderApi) {
+				error(403, 'Builder is not configured — set GitHub OAuth env vars');
+			}
+			error(403, 'Builder is not configured — set GitHub OAuth env vars');
 		} else {
 			const session = verifySessionCookie(event.cookies);
 
@@ -26,6 +33,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			}
 
 			event.locals.user = session;
+			event.locals.githubToken = getTokenFromCookie(event.cookies) ?? undefined;
 		}
 	}
 

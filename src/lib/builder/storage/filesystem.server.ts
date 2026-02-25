@@ -2,6 +2,7 @@ import { readdir, readFile, writeFile, unlink, mkdir } from 'fs/promises';
 import { join, resolve } from 'path';
 import type { PageDocument } from '../types/page.js';
 import type { PageStorage, PageListItem } from './types.js';
+import { StorageError } from './errors.js';
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -61,7 +62,15 @@ export class FilesystemStorage implements PageStorage {
 	async get(slug: string): Promise<PageDocument> {
 		validateSlug(slug);
 
-		const raw = await readFile(this.filePath(slug), 'utf-8');
+		let raw: string;
+		try {
+			raw = await readFile(this.filePath(slug), 'utf-8');
+		} catch (err: unknown) {
+			if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
+				throw StorageError.notFound(slug);
+			}
+			throw err;
+		}
 		const page: PageDocument = JSON.parse(raw);
 
 		if (page.version !== 1) {
@@ -85,7 +94,14 @@ export class FilesystemStorage implements PageStorage {
 
 	async delete(slug: string): Promise<void> {
 		validateSlug(slug);
-		await unlink(this.filePath(slug));
+		try {
+			await unlink(this.filePath(slug));
+		} catch (err: unknown) {
+			if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
+				throw StorageError.notFound(slug);
+			}
+			throw err;
+		}
 	}
 
 	async publish(slug: string): Promise<void> {

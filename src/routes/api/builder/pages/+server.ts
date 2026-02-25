@@ -1,9 +1,9 @@
 import { json, error } from '@sveltejs/kit';
-import { getStorage, isValidSlug } from '$lib/builder/storage/index.js';
+import { getBuilderStorage, isValidSlug, StorageError } from '$lib/builder/storage/index.js';
 import type { PageDocument } from '$lib/builder/types/page.js';
 import type { RequestHandler } from './$types.js';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
 	let body: Record<string, unknown>;
 	try {
 		body = await request.json();
@@ -20,14 +20,14 @@ export const POST: RequestHandler = async ({ request }) => {
 		error(400, 'Valid slug is required (lowercase alphanumeric with hyphens)');
 	}
 
-	const storage = getStorage();
+	const storage = getBuilderStorage(locals.githubToken);
 
 	// Check if page already exists
 	try {
 		await storage.get(slug);
 		error(409, `Page "${slug}" already exists`);
 	} catch (err: unknown) {
-		if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
+		if (err instanceof StorageError && err.code === 'NOT_FOUND') {
 			// Expected — page does not exist yet
 		} else if (err && typeof err === 'object' && 'status' in err && err.status === 409) {
 			throw err;
