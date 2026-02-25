@@ -1,13 +1,18 @@
-import { redirect } from '@sveltejs/kit';
+import { redirect, error } from '@sveltejs/kit';
 import { generateState } from 'arctic';
 import { getGitHub } from '$lib/server/auth/index.js';
 import type { RequestHandler } from './$types.js';
 
 export const GET: RequestHandler = async ({ cookies, url }) => {
-	const github = getGitHub();
-	const state = generateState();
+	let github;
+	try {
+		github = getGitHub();
+	} catch {
+		error(500, 'GitHub OAuth is not configured');
+	}
 
-	const authorizationUrl = github.createAuthorizationURL(state, ['read:user']);
+	const state = generateState();
+	const authorizationUrl = github.createAuthorizationURL(state, ['read:user', 'public_repo']);
 
 	cookies.set('github_oauth_state', state, {
 		path: '/',

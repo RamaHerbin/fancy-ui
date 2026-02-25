@@ -78,3 +78,28 @@ export function verifySessionCookie(cookies: Cookies): { username: string } | nu
 export function clearSessionCookie(cookies: Cookies): void {
 	cookies.delete(COOKIE_NAME, { path: '/' });
 }
+
+// --- GitHub token cookie (stores the OAuth access token for GitHub API calls) ---
+
+const TOKEN_COOKIE_NAME = 'builder_github_token';
+
+export function createTokenCookie(cookies: Cookies, token: string): void {
+	const value = sign(token);
+	cookies.set(TOKEN_COOKIE_NAME, value, {
+		path: '/',
+		httpOnly: true,
+		secure: !dev,
+		sameSite: 'lax',
+		maxAge: MAX_AGE
+	});
+}
+
+export function getTokenFromCookie(cookies: Cookies): string | null {
+	const cookie = cookies.get(TOKEN_COOKIE_NAME);
+	if (!cookie) return null;
+	return verify(cookie);
+}
+
+export function clearTokenCookie(cookies: Cookies): void {
+	cookies.delete(TOKEN_COOKIE_NAME, { path: '/' });
+}
