@@ -1,5 +1,10 @@
 import { json, error } from '@sveltejs/kit';
-import { getStorage, isValidSlug, isValidPageDocument } from '$lib/builder/storage/index.js';
+import {
+	getBuilderStorage,
+	isValidSlug,
+	isValidPageDocument,
+	StorageError
+} from '$lib/builder/storage/index.js';
 import type { RequestHandler } from './$types.js';
 
 function validateSlug(slug: string) {
@@ -8,24 +13,24 @@ function validateSlug(slug: string) {
 	}
 }
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, locals }) => {
 	validateSlug(params.slug);
-	const storage = getStorage();
+	const storage = getBuilderStorage(locals.githubToken);
 
 	try {
 		const page = await storage.get(params.slug);
 		return json(page);
 	} catch (err: unknown) {
-		if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
-			error(404, `Page not found: ${params.slug}`);
+		if (err instanceof StorageError) {
+			error(err.statusCode, err.message);
 		}
 		throw err;
 	}
 };
 
-export const PUT: RequestHandler = async ({ params, request }) => {
+export const PUT: RequestHandler = async ({ params, request, locals }) => {
 	validateSlug(params.slug);
-	const storage = getStorage();
+	const storage = getBuilderStorage(locals.githubToken);
 
 	let page: unknown;
 	try {
@@ -47,6 +52,9 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 		await storage.save(page);
 		return json({ ok: true, updatedAt: page.meta.updatedAt });
 	} catch (err: unknown) {
+		if (err instanceof StorageError) {
+			error(err.statusCode, err.message);
+		}
 		if (err instanceof Error) {
 			error(400, err.message);
 		}
@@ -54,16 +62,16 @@ export const PUT: RequestHandler = async ({ params, request }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params }) => {
+export const DELETE: RequestHandler = async ({ params, locals }) => {
 	validateSlug(params.slug);
-	const storage = getStorage();
+	const storage = getBuilderStorage(locals.githubToken);
 
 	try {
 		await storage.delete(params.slug);
 		return json({ ok: true });
 	} catch (err: unknown) {
-		if (err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT') {
-			error(404, `Page not found: ${params.slug}`);
+		if (err instanceof StorageError) {
+			error(err.statusCode, err.message);
 		}
 		throw err;
 	}
