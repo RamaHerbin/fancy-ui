@@ -1,5 +1,6 @@
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
+import { error } from '@sveltejs/kit';
 import type { PageStorage } from './types.js';
 import { GitHubStorage } from './github.server.js';
 import { FilesystemStorage } from './filesystem.server.js';
@@ -22,7 +23,7 @@ export function getBuilderStorage(token?: string): PageStorage {
 		const repo = env.GITHUB_REPO_NAME;
 
 		if (!owner || !repo) {
-			throw new Error('GITHUB_REPO_OWNER and GITHUB_REPO_NAME must be set');
+			error(500, 'Builder storage misconfigured: GITHUB_REPO_OWNER and GITHUB_REPO_NAME must be set');
 		}
 
 		return new GitHubStorage({
@@ -38,7 +39,5 @@ export function getBuilderStorage(token?: string): PageStorage {
 		return new FilesystemStorage();
 	}
 
-	throw new Error(
-		'No storage backend available. Set GITHUB_TOKEN or configure GitHub OAuth.'
-	);
+	error(500, 'No storage backend available. Set GITHUB_TOKEN or configure GitHub OAuth.');
 }
