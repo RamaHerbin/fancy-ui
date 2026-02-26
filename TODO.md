@@ -354,12 +354,13 @@
 - [ ] **radiant-text** - Glowing radiant text
 - [ ] **spinning-text** - Circular spinning text
 - [ ] **text-3d** - 3D extruded text
-- [ ] **text-generate-effect** - Typewriter text generation
+- [x] **text-generate-effect** - Typewriter text generation
 - [ ] **text-glitch** - Glitchy text effect
 - [ ] **text-highlight** - Animated text highlight
 - [ ] **text-hover-effect** - Text with hover animations
 - [ ] **text-reveal** - Text reveal on scroll
 - [ ] **text-scroll-reveal** - Scroll-triggered text reveal
+- [x] **line-shadow-text** - Text with line shadow
 - [ ] **video-text** - Video masked text
 
 ### 8.4 Backgrounds — 4/19 (21%)

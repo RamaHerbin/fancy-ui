@@ -460,6 +460,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 	},
 
+	"line-shadow-text": {
+		name: "LineShadowText",
+		slug: "line-shadow-text",
+		description: "Text with animated diagonal line shadow pattern that scrolls continuously",
+		category: "text",
+		status: "done",
+	},
+
 	"tracing-beam": {
 		name: "TracingBeam",
 		slug: "tracing-beam",
