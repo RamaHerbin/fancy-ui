@@ -452,6 +452,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 	},
 
+	"text-generate-effect": {
+		name: "TextGenerateEffect",
+		slug: "text-generate-effect",
+		description: "Typewriter-style text reveal that fades in words one by one with optional blur",
+		category: "text",
+		status: "done",
+	},
+
 	"tracing-beam": {
 		name: "TracingBeam",
 		slug: "tracing-beam",
