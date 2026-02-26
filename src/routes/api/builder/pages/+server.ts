@@ -52,7 +52,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		body: Array.isArray(pageBody) ? pageBody : []
 	};
 
-	await storage.save(page);
+	try {
+		await storage.save(page);
+	} catch (err: unknown) {
+		if (err instanceof StorageError) {
+			error(err.statusCode, err.message);
+		}
+		throw err;
+	}
 
 	return json({ slug: page.meta.slug }, { status: 201 });
 };
