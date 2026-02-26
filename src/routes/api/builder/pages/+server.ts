@@ -29,10 +29,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 	} catch (err: unknown) {
 		if (err instanceof StorageError && err.code === 'NOT_FOUND') {
 			// Expected — page does not exist yet
-		} else if (err && typeof err === 'object' && 'status' in err && err.status === 409) {
-			throw err;
+		} else if (err instanceof StorageError) {
+			error(err.statusCode, err.message);
+		} else if (err && typeof err === 'object' && 'status' in err) {
+			throw err; // Re-throw SvelteKit HttpError (e.g. 409)
 		} else {
-			// File exists but is corrupted/malformed — don't overwrite
 			error(500, 'Failed to verify whether page already exists');
 		}
 	}
@@ -51,7 +52,14 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		body: Array.isArray(pageBody) ? pageBody : []
 	};
 
-	await storage.save(page);
+	try {
+		await storage.save(page);
+	} catch (err: unknown) {
+		if (err instanceof StorageError) {
+			error(err.statusCode, err.message);
+		}
+		throw err;
+	}
 
 	return json({ slug: page.meta.slug }, { status: 201 });
 };
