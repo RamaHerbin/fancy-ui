@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 	}
 
 	const state = generateState();
-	const authorizationUrl = github.createAuthorizationURL(state, ['read:user', 'public_repo']);
+	const authorizationUrl = github.createAuthorizationURL(state, ['read:user', 'repo']);
 
 	cookies.set('github_oauth_state', state, {
 		path: '/',
