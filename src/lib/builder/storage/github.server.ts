@@ -45,7 +45,7 @@ export class GitHubStorage implements PageStorage {
 		this.owner = config.owner;
 		this.repo = config.repo;
 		this.branch = config.branch ?? 'main';
-		this.contentPath = config.contentPath ?? 'content/pages';
+		this.contentPath = (config.contentPath ?? 'content/pages').replace(/^\/+|\/+$/g, '');
 	}
 
 	private get baseUrl(): string {
@@ -194,24 +194,28 @@ export class GitHubStorage implements PageStorage {
 			throw err;
 		}
 
+		const fileEntries = entries.filter(
+			(entry) => entry.type === 'file' && entry.name.endsWith('.json')
+		);
+
 		const pages: PageListItem[] = [];
 
-		for (const entry of entries) {
-			if (entry.type !== 'file' || !entry.name.endsWith('.json')) continue;
-
-			try {
-				const file = await this.request<GitHubFileResponse>(entry.path);
-				const doc: PageDocument = JSON.parse(this.decodeContent(file.content));
-				pages.push({
-					slug: doc.meta.slug,
-					title: doc.meta.title,
-					status: doc.meta.status,
-					updatedAt: doc.meta.updatedAt
-				});
-			} catch {
-				// Skip invalid files
-			}
-		}
+		await Promise.all(
+			fileEntries.map(async (entry) => {
+				try {
+					const file = await this.request<GitHubFileResponse>(entry.path);
+					const doc: PageDocument = JSON.parse(this.decodeContent(file.content));
+					pages.push({
+						slug: doc.meta.slug,
+						title: doc.meta.title,
+						status: doc.meta.status,
+						updatedAt: doc.meta.updatedAt
+					});
+				} catch {
+					// Skip invalid files
+				}
+			})
+		);
 
 		pages.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 		return pages;
@@ -268,13 +272,24 @@ export class GitHubStorage implements PageStorage {
 	}
 
 	async publish(slug: string): Promise<void> {
-		const page = await this.get(slug);
+		validateSlug(slug);
+
+		// Fetch once to get both content and SHA, avoiding race conditions
+		const { content, sha } = await this.getFile(slug);
+		const page: PageDocument = JSON.parse(content);
+
+		if (page.version !== 1) {
+			throw new Error(`Unsupported page version: ${page.version}`);
+		}
+		if (!page.meta || !page.meta.title || !page.meta.slug || !Array.isArray(page.body)) {
+			throw new Error('Malformed page document: missing required fields');
+		}
+
 		page.meta.status = 'published';
 		page.meta.updatedAt = new Date().toISOString();
 		const json = JSON.stringify(page, null, 2);
 		const path = this.filePath(slug);
 
-		const { sha } = await this.getFile(slug);
 		await this.putFile(path, json, `Publish page: ${slug}`, sha);
 	}
 }
