@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AnimatedBeam } from '$lib/fancy-ui/animated-beam';
+	import { AnimatedBeam } from "$lib/fancy-ui/animated-beam";
 
 	let containerRef: HTMLElement;
 	let div1Ref: HTMLElement;
@@ -15,18 +15,18 @@
 	<title>AnimatedBeam - FancyUI</title>
 </svelte:head>
 
-<div class="container mx-auto py-12 px-4">
-	<h1 class="text-3xl font-bold mb-2">AnimatedBeam</h1>
+<div class="container mx-auto px-4 py-12">
+	<h1 class="mb-2 text-3xl font-bold">AnimatedBeam</h1>
 	<p class="text-muted-foreground mb-8">
 		Animated SVG beams that connect elements with smooth gradients and customizable curves.
 	</p>
 
 	<!-- Basic Example -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Basic Usage</h2>
+		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
 		<div
 			bind:this={containerRef}
-			class="relative flex h-[500px] w-full items-center justify-center overflow-hidden rounded-lg border bg-background p-10 md:shadow-xl"
+			class="bg-background relative flex h-[500px] w-full items-center justify-center overflow-hidden rounded-lg border p-10 md:shadow-xl"
 		>
 			<div
 				class="flex size-full max-h-[200px] max-w-lg flex-col items-stretch justify-between gap-10"
@@ -36,13 +36,13 @@
 						bind:this={div1Ref}
 						class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-blue-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
 					>
-						<span class="text-white font-bold text-sm">1</span>
+						<span class="text-sm font-bold text-white">1</span>
 					</div>
 					<div
 						bind:this={div5Ref}
 						class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-green-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
 					>
-						<span class="text-white font-bold text-sm">5</span>
+						<span class="text-sm font-bold text-white">5</span>
 					</div>
 				</div>
 				<div class="flex flex-row items-center justify-between">
@@ -50,19 +50,19 @@
 						bind:this={div2Ref}
 						class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-purple-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
 					>
-						<span class="text-white font-bold text-sm">2</span>
+						<span class="text-sm font-bold text-white">2</span>
 					</div>
 					<div
 						bind:this={div4Ref}
 						class="z-10 flex size-16 items-center justify-center rounded-full border-2 bg-orange-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
 					>
-						<span class="text-white font-bold text-lg">HUB</span>
+						<span class="text-lg font-bold text-white">HUB</span>
 					</div>
 					<div
 						bind:this={div6Ref}
 						class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-pink-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
 					>
-						<span class="text-white font-bold text-sm">6</span>
+						<span class="text-sm font-bold text-white">6</span>
 					</div>
 				</div>
 				<div class="flex flex-row items-center justify-between">
@@ -70,13 +70,13 @@
 						bind:this={div3Ref}
 						class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-red-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
 					>
-						<span class="text-white font-bold text-sm">3</span>
+						<span class="text-sm font-bold text-white">3</span>
 					</div>
 					<div
 						bind:this={div7Ref}
 						class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-teal-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
 					>
-						<span class="text-white font-bold text-sm">7</span>
+						<span class="text-sm font-bold text-white">7</span>
 					</div>
 				</div>
 			</div>
@@ -130,15 +130,15 @@
 
 	<!-- Props Documentation -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Props</h2>
-		<div class="border rounded-lg overflow-hidden">
+		<h2 class="mb-4 text-xl font-semibold">Props</h2>
+		<div class="overflow-hidden rounded-lg border">
 			<table class="w-full">
 				<thead class="bg-muted">
 					<tr>
-						<th class="text-left p-3 font-semibold">Prop</th>
-						<th class="text-left p-3 font-semibold">Type</th>
-						<th class="text-left p-3 font-semibold">Default</th>
-						<th class="text-left p-3 font-semibold">Description</th>
+						<th class="p-3 text-left font-semibold">Prop</th>
+						<th class="p-3 text-left font-semibold">Type</th>
+						<th class="p-3 text-left font-semibold">Default</th>
+						<th class="p-3 text-left font-semibold">Description</th>
 					</tr>
 				</thead>
 				<tbody class="divide-y">
@@ -245,26 +245,26 @@
 
 	<!-- Usage Notes -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Usage Notes</h2>
-		<div class="border rounded-lg p-6 bg-card space-y-4">
+		<h2 class="mb-4 text-xl font-semibold">Usage Notes</h2>
+		<div class="bg-card space-y-4 rounded-lg border p-6">
 			<div>
-				<h3 class="font-semibold mb-2">Element References</h3>
+				<h3 class="mb-2 font-semibold">Element References</h3>
 				<p class="text-muted-foreground">
 					The component requires element references using Svelte's <code
-						class="bg-muted px-1 rounded">bind:this</code
+						class="bg-muted rounded px-1">bind:this</code
 					>
 					directive. Make sure all references are bound before rendering the AnimatedBeam.
 				</p>
 			</div>
 			<div>
-				<h3 class="font-semibold mb-2">Curvature</h3>
+				<h3 class="mb-2 font-semibold">Curvature</h3>
 				<p class="text-muted-foreground">
 					Use positive values for upward curves and negative values for downward curves. The value
 					represents the vertical offset of the curve's control point.
 				</p>
 			</div>
 			<div>
-				<h3 class="font-semibold mb-2">Responsive Behavior</h3>
+				<h3 class="mb-2 font-semibold">Responsive Behavior</h3>
 				<p class="text-muted-foreground">
 					The component automatically updates the beam paths when the container is resized using
 					ResizeObserver.

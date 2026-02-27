@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Footer from '$lib/portfolio/sections/Footer.svelte';
+	import Footer from "$lib/portfolio/sections/Footer.svelte";
 </script>
 
 <svelte:head>
@@ -12,39 +12,33 @@
 
 <div class="min-h-screen">
 	<!-- Hero -->
-	<section class="pt-32 pb-16 px-6">
-		<div class="max-w-4xl mx-auto">
+	<section class="px-6 pt-32 pb-16">
+		<div class="mx-auto max-w-4xl">
 			<a
 				href="/portfolio#projects"
-				class="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors mb-8"
+				class="text-muted-foreground hover:text-foreground mb-8 inline-flex items-center transition-colors"
 			>
-				<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M15 19l-7-7 7-7"
+				<svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"
 					></path>
 				</svg>
 				Back to Portfolio
 			</a>
 
-			<div class="space-y-4 mb-12">
-				<h1
-					class="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground"
-				>
+			<div class="mb-12 space-y-4">
+				<h1 class="text-foreground text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
 					Fleur de Papier
 				</h1>
-				<p class="text-xl text-muted-foreground">
+				<p class="text-muted-foreground text-xl">
 					Cultural Mediation &bull; Interactive Experiences &bull; Creative Development
 				</p>
 			</div>
 
 			<div class="prose prose-lg dark:prose-invert max-w-none">
-				<p class="text-lg text-muted-foreground leading-relaxed">
+				<p class="text-muted-foreground text-lg leading-relaxed">
 					At Fleur de Papier, a cultural mediation agency, I developed creative web applications
-					that bridge art, technology, and public engagement. Working closely with art directors
-					and cultural institutions, I crafted interactive digital experiences that make culture
+					that bridge art, technology, and public engagement. Working closely with art directors and
+					cultural institutions, I crafted interactive digital experiences that make culture
 					accessible and engaging.
 				</p>
 			</div>
@@ -52,21 +46,19 @@
 	</section>
 
 	<!-- Featured Projects -->
-	<section class="py-16 px-6">
-		<div class="max-w-6xl mx-auto">
-			<h2 class="text-2xl font-bold text-foreground mb-8">Featured Projects</h2>
+	<section class="px-6 py-16">
+		<div class="mx-auto max-w-6xl">
+			<h2 class="text-foreground mb-8 text-2xl font-bold">Featured Projects</h2>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
 				<!-- Project Card 1 -->
 				<div
-					class="group border border-border/20 rounded-xl p-6 hover:border-border/40 transition-all duration-300"
+					class="group border-border/20 hover:border-border/40 rounded-xl border p-6 transition-all duration-300"
 				>
 					<div class="space-y-4">
-						<div
-							class="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center"
-						>
+						<div class="bg-foreground/10 flex h-12 w-12 items-center justify-center rounded-lg">
 							<svg
-								class="w-6 h-6 text-foreground"
+								class="text-foreground h-6 w-6"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -79,9 +71,7 @@
 								></path>
 							</svg>
 						</div>
-						<h3 class="text-lg font-semibold text-foreground mb-2">
-							Interactive Cultural Exhibit
-						</h3>
+						<h3 class="text-foreground mb-2 text-lg font-semibold">Interactive Cultural Exhibit</h3>
 						<p class="text-muted-foreground text-sm">
 							Digital interactive experience for museum visitors, combining touch interfaces with
 							historical content.
@@ -91,14 +81,12 @@
 
 				<!-- Project Card 2 -->
 				<div
-					class="group border border-border/20 rounded-xl p-6 hover:border-border/40 transition-all duration-300"
+					class="group border-border/20 hover:border-border/40 rounded-xl border p-6 transition-all duration-300"
 				>
 					<div class="space-y-4">
-						<div
-							class="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center"
-						>
+						<div class="bg-foreground/10 flex h-12 w-12 items-center justify-center rounded-lg">
 							<svg
-								class="w-6 h-6 text-foreground"
+								class="text-foreground h-6 w-6"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -111,9 +99,7 @@
 								></path>
 							</svg>
 						</div>
-						<h3 class="text-lg font-semibold text-foreground mb-2">
-							Museum Digital Experience
-						</h3>
+						<h3 class="text-foreground mb-2 text-lg font-semibold">Museum Digital Experience</h3>
 						<p class="text-muted-foreground text-sm">Case study in preparation</p>
 					</div>
 				</div>
@@ -122,16 +108,14 @@
 	</section>
 
 	<!-- Skills & Technologies -->
-	<section class="py-16 px-6 bg-muted/20">
-		<div class="max-w-4xl mx-auto">
-			<h2 class="text-2xl font-bold text-foreground mb-8 text-center">
-				Technologies & Approach
-			</h2>
+	<section class="bg-muted/20 px-6 py-16">
+		<div class="mx-auto max-w-4xl">
+			<h2 class="text-foreground mb-8 text-center text-2xl font-bold">Technologies & Approach</h2>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
 				<div>
-					<h3 class="text-lg font-semibold text-foreground mb-4">Technical Stack</h3>
-					<ul class="space-y-2 text-muted-foreground">
+					<h3 class="text-foreground mb-4 text-lg font-semibold">Technical Stack</h3>
+					<ul class="text-muted-foreground space-y-2">
 						<li>&#8226; VueJS for interactive interfaces</li>
 						<li>&#8226; JavaScript ES6+ for modern functionality</li>
 						<li>&#8226; CSS3 animations and transitions</li>
@@ -141,8 +125,8 @@
 				</div>
 
 				<div>
-					<h3 class="text-lg font-semibold text-foreground mb-4">Creative Focus</h3>
-					<ul class="space-y-2 text-muted-foreground">
+					<h3 class="text-foreground mb-4 text-lg font-semibold">Creative Focus</h3>
+					<ul class="text-muted-foreground space-y-2">
 						<li>&#8226; User-centered cultural experiences</li>
 						<li>&#8226; Interactive storytelling</li>
 						<li>&#8226; Cross-generational accessibility</li>

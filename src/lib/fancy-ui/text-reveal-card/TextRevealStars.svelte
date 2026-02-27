@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from "$lib/utils";
 
 	interface Props {
 		starsCount?: number;
 		class?: string;
 	}
 
-	let { starsCount = 130, class: className = '' }: Props = $props();
+	let { starsCount = 130, class: className = "" }: Props = $props();
 
 	interface StarData {
 		top: string;
@@ -26,21 +26,23 @@
 	}
 
 	// Generate star data reactively based on starsCount
-	let stars: StarData[] = $derived(Array.from({ length: starsCount }, () => ({
-		top: `calc(${random() * 100}% + ${randomMove()}px)`,
-		left: `calc(${random() * 100}% + ${randomMove()}px)`,
-		targetTop: `calc(${random() * 100}% + ${randomMove()}px)`,
-		targetLeft: `calc(${random() * 100}% + ${randomMove()}px)`,
-		opacity: random(),
-		duration: random() * 10 + 20
-	})));
+	let stars: StarData[] = $derived(
+		Array.from({ length: starsCount }, () => ({
+			top: `calc(${random() * 100}% + ${randomMove()}px)`,
+			left: `calc(${random() * 100}% + ${randomMove()}px)`,
+			targetTop: `calc(${random() * 100}% + ${randomMove()}px)`,
+			targetLeft: `calc(${random() * 100}% + ${randomMove()}px)`,
+			opacity: random(),
+			duration: random() * 10 + 20,
+		}))
+	);
 </script>
 
 <div class="absolute inset-0">
 	{#each stars as star}
 		<span
 			class={cn(
-				'inline-block absolute w-0.5 h-0.5 bg-white rounded-full z-[1] star-animate',
+				"star-animate absolute z-[1] inline-block h-0.5 w-0.5 rounded-full bg-white",
 				className
 			)}
 			style="top:{star.top};left:{star.left};--target-top:{star.targetTop};--target-left:{star.targetLeft};--star-opacity:{star.opacity};animation-duration:{star.duration}s;"

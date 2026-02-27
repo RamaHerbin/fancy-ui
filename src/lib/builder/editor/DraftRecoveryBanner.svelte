@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { getEditorState } from '../stores/editor.svelte.js';
-	import { getDraft, deleteDraft, type DraftEntry } from '../storage/indexeddb.js';
-	import { onMount } from 'svelte';
+	import { getEditorState } from "../stores/editor.svelte.js";
+	import { getDraft, deleteDraft, type DraftEntry } from "../storage/indexeddb.js";
+	import { onMount } from "svelte";
 
 	const editor = getEditorState();
 
@@ -41,9 +41,11 @@
 </script>
 
 {#if visible}
-	<div class="flex items-center gap-3 border-b border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-sm">
+	<div
+		class="flex items-center gap-3 border-b border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-sm"
+	>
 		<span class="flex-1 text-yellow-700 dark:text-yellow-400">
-			Unsaved draft found from {draft ? new Date(draft.savedAt).toLocaleString() : 'unknown time'}.
+			Unsaved draft found from {draft ? new Date(draft.savedAt).toLocaleString() : "unknown time"}.
 		</span>
 		<button
 			type="button"
@@ -54,7 +56,7 @@
 		</button>
 		<button
 			type="button"
-			class="rounded-md px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+			class="text-muted-foreground hover:text-foreground rounded-md px-3 py-1 text-xs font-medium"
 			onclick={discard}
 		>
 			Discard

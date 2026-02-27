@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { onMount } from 'svelte';
-	import type { Snippet } from 'svelte';
+	import { cn } from "$lib/utils";
+	import { onMount } from "svelte";
+	import type { Snippet } from "svelte";
 
 	interface Props {
 		class?: string;
 		children?: Snippet;
 	}
 
-	let { class: className = '', children }: Props = $props();
+	let { class: className = "", children }: Props = $props();
 
 	let tracingBeamRef: HTMLDivElement;
 	let contentRef: HTMLDivElement;
@@ -31,16 +31,20 @@
 	);
 
 	let circleHasShadow = $derived(scrollYProgress <= 0);
-	let circleBg = $derived(scrollYProgress > 0 ? 'bg-white' : 'bg-emerald-500');
-	let circleBorder = $derived(scrollYProgress > 0 ? 'border-neutral-300' : 'border-emerald-600');
+	let circleBg = $derived(scrollYProgress > 0 ? "bg-white" : "bg-emerald-500");
+	let circleBorder = $derived(scrollYProgress > 0 ? "border-neutral-300" : "border-emerald-600");
 
-	let svgPath = $derived(
-		`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`
-	);
+	let svgPath = $derived(`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`);
 
 	let rafId: number;
 
-	function mapRange(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
+	function mapRange(
+		value: number,
+		inMin: number,
+		inMax: number,
+		outMin: number,
+		outMax: number
+	): number {
 		return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
 	}
 
@@ -87,8 +91,8 @@
 	}
 
 	onMount(() => {
-		window.addEventListener('scroll', updateScrollProgress, { passive: true });
-		window.addEventListener('resize', updateScrollProgress, { passive: true });
+		window.addEventListener("scroll", updateScrollProgress, { passive: true });
+		window.addEventListener("resize", updateScrollProgress, { passive: true });
 		updateScrollProgress();
 
 		const resizeObserver = new ResizeObserver(updateSVGHeight);
@@ -97,20 +101,20 @@
 
 		return () => {
 			cancelAnimationFrame(rafId);
-			window.removeEventListener('scroll', updateScrollProgress);
-			window.removeEventListener('resize', updateScrollProgress);
+			window.removeEventListener("scroll", updateScrollProgress);
+			window.removeEventListener("resize", updateScrollProgress);
 			resizeObserver.disconnect();
 		};
 	});
 </script>
 
-<div bind:this={tracingBeamRef} class={cn('relative mx-auto h-full w-full max-w-4xl', className)}>
-	<div class="absolute -left-4 top-3 md:-left-12">
+<div bind:this={tracingBeamRef} class={cn("relative mx-auto h-full w-full max-w-4xl", className)}>
+	<div class="absolute top-3 -left-4 md:-left-12">
 		<div
-			class="ml-[27px] flex size-4 items-center justify-center rounded-full border shadow-sm border-neutral-200"
-			style:box-shadow={circleHasShadow ? 'rgba(0, 0, 0, 0.24) 0px 3px 8px' : 'none'}
+			class="ml-[27px] flex size-4 items-center justify-center rounded-full border border-neutral-200 shadow-sm"
+			style:box-shadow={circleHasShadow ? "rgba(0, 0, 0, 0.24) 0px 3px 8px" : "none"}
 		>
-			<div class={cn('size-2 rounded-full border', circleBg, circleBorder)}></div>
+			<div class={cn("size-2 rounded-full border", circleBg, circleBorder)}></div>
 		</div>
 		<svg
 			viewBox="0 0 20 {svgHeight}"

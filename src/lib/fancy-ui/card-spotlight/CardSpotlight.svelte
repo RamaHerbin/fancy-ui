@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from "$lib/utils";
 
 	interface Props {
 		class?: string;
@@ -7,16 +7,16 @@
 		gradientSize?: number;
 		gradientColor?: string;
 		gradientOpacity?: number;
-		children?: import('svelte').Snippet;
+		children?: import("svelte").Snippet;
 	}
 
 	let {
-		class: className = '',
-		slotClass = '',
+		class: className = "",
+		slotClass = "",
 		gradientSize = 200,
-		gradientColor = '#262626',
+		gradientColor = "#262626",
 		gradientOpacity = 0.8,
-		children
+		children,
 	}: Props = $props();
 
 	let mouseX = $state(-gradientSize * 10);
@@ -41,13 +41,13 @@
 
 <div
 	class={cn(
-		'group relative flex size-full overflow-hidden rounded-xl border bg-neutral-100 text-black dark:bg-neutral-900 dark:text-white',
+		"group relative flex size-full overflow-hidden rounded-xl border bg-neutral-100 text-black dark:bg-neutral-900 dark:text-white",
 		className
 	)}
 	onmousemove={handleMouseMove}
 	onmouseleave={handleMouseLeave}
 >
-	<div class={cn('relative z-10', slotClass)}>
+	<div class={cn("relative z-10", slotClass)}>
 		{#if children}
 			{@render children()}
 		{/if}

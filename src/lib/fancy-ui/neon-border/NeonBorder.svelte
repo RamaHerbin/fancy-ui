@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	/**
 	 * NeonBorder - Dual-color neon glow border effect
@@ -13,7 +13,7 @@
 		/** Second neon color */
 		color2?: string;
 		/** Animation type: none (static), half (50% coverage), full (100% coverage) */
-		animationType?: 'none' | 'half' | 'full';
+		animationType?: "none" | "half" | "full";
 		/** Animation duration in seconds */
 		duration?: number;
 		/** Additional CSS classes */
@@ -24,24 +24,24 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let {
-		color1 = '#0496ff',
-		color2 = '#ff0a54',
-		animationType = 'half',
+		color1 = "#0496ff",
+		color2 = "#ff0a54",
+		animationType = "half",
 		duration = 6,
 		class: className,
-		children
+		children,
 	}: NeonBorderProps = $props();
 
-	function getWidth(type: 'none' | 'half' | 'full'): number {
+	function getWidth(type: "none" | "half" | "full"): number {
 		switch (type) {
-			case 'none':
+			case "none":
 				return 12;
-			case 'half':
+			case "half":
 				return 50;
-			case 'full':
+			case "full":
 				return 100;
 		}
 	}
@@ -50,22 +50,18 @@
 		`--neon-duration: ${duration}s; --neon-color1: ${color1}; --neon-color2: ${color2}; --neon-width: ${getWidth(animationType)}%`
 	);
 
-	const animated = $derived(animationType !== 'none');
+	const animated = $derived(animationType !== "none");
 </script>
 
 <div
 	class={cn(
-		'neon-border-container relative inline-block h-10 w-full max-w-sm overflow-hidden rounded-lg p-px z-10',
+		"neon-border-container relative z-10 inline-block h-10 w-full max-w-sm overflow-hidden rounded-lg p-px",
 		className
 	)}
 	style={styleVars}
 >
-	<div
-		class={cn('neon-layer-one rounded-lg', animated && 'neon-animated')}
-	></div>
-	<div
-		class={cn('neon-layer-two rounded-lg', animated && 'neon-animated')}
-	></div>
+	<div class={cn("neon-layer-one rounded-lg", animated && "neon-animated")}></div>
+	<div class={cn("neon-layer-two rounded-lg", animated && "neon-animated")}></div>
 	{@render children?.()}
 </div>
 
@@ -81,7 +77,7 @@
 	}
 
 	.neon-layer-one::before {
-		content: '';
+		content: "";
 		position: absolute;
 		overflow: hidden;
 		top: 0;
@@ -108,7 +104,7 @@
 	}
 
 	.neon-layer-two::before {
-		content: '';
+		content: "";
 		position: absolute;
 		bottom: 0;
 		right: 0;

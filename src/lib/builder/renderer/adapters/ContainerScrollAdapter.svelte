@@ -4,7 +4,7 @@
   In the builder, we use simple string props instead.
 -->
 <script lang="ts">
-	import { ContainerScroll } from '$lib/fancy-ui/container-scroll/index.js';
+	import { ContainerScroll } from "$lib/fancy-ui/container-scroll/index.js";
 
 	interface Props {
 		titleText?: string;
@@ -15,19 +15,19 @@
 	}
 
 	let {
-		titleText = 'Scroll Animation',
-		subtitleText = 'Powered by FancyUI',
-		imageSrc = '',
-		imageAlt = 'Preview',
-		class: className = ''
+		titleText = "Scroll Animation",
+		subtitleText = "Powered by FancyUI",
+		imageSrc = "",
+		imageAlt = "Preview",
+		class: className = "",
 	}: Props = $props();
 </script>
 
 {#snippet titleContent()}
 	<div>
-		<h2 class="text-4xl font-semibold text-foreground">{titleText}</h2>
+		<h2 class="text-foreground text-4xl font-semibold">{titleText}</h2>
 		{#if subtitleText}
-			<p class="mt-2 text-muted-foreground">{subtitleText}</p>
+			<p class="text-muted-foreground mt-2">{subtitleText}</p>
 		{/if}
 	</div>
 {/snippet}
@@ -36,8 +36,10 @@
 	{#if imageSrc}
 		<img src={imageSrc} alt={imageAlt} class="mx-auto h-full w-full rounded-2xl object-cover" />
 	{:else}
-		<div class="flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
-			<p class="text-lg text-muted-foreground">Card Content</p>
+		<div
+			class="from-primary/20 to-primary/5 flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br"
+		>
+			<p class="text-muted-foreground text-lg">Card Content</p>
 		</div>
 	{/if}
 {/snippet}

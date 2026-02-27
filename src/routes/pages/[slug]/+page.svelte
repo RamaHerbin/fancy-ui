@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PageRenderer } from '$lib/builder/renderer/index.js';
+	import { PageRenderer } from "$lib/builder/renderer/index.js";
 
 	let { data } = $props();
 </script>

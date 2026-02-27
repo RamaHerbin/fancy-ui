@@ -15,12 +15,12 @@ export type Theme = "light" | "dark" | "system";
 export type ResolvedTheme = "light" | "dark";
 
 export interface ThemeState {
-  /** Current theme setting */
-  theme: Theme;
-  /** Resolved theme (actual light/dark based on system preference if theme is 'system') */
-  resolvedTheme: ResolvedTheme;
-  /** Whether user prefers reduced motion */
-  reducedMotion: boolean;
+	/** Current theme setting */
+	theme: Theme;
+	/** Resolved theme (actual light/dark based on system preference if theme is 'system') */
+	resolvedTheme: ResolvedTheme;
+	/** Whether user prefers reduced motion */
+	reducedMotion: boolean;
 }
 
 // =============================================================================
@@ -36,7 +36,7 @@ let reducedMotion = $state(false);
 
 /** Derived resolved theme */
 const resolvedTheme = $derived<ResolvedTheme>(
-  theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme,
+	theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme
 );
 
 // =============================================================================
@@ -44,35 +44,35 @@ const resolvedTheme = $derived<ResolvedTheme>(
 // =============================================================================
 
 function initialize() {
-  if (!browser) return;
+	if (!browser) return;
 
-  // Load saved theme preference
-  const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-  if (saved && ["light", "dark", "system"].includes(saved)) {
-    theme = saved;
-  }
+	// Load saved theme preference
+	const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
+	if (saved && ["light", "dark", "system"].includes(saved)) {
+		theme = saved;
+	}
 
-  // Check system dark mode preference
-  const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-  systemPrefersDark = darkModeQuery.matches;
+	// Check system dark mode preference
+	const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+	systemPrefersDark = darkModeQuery.matches;
 
-  // Listen for system theme changes
-  darkModeQuery.addEventListener("change", (e) => {
-    systemPrefersDark = e.matches;
-    applyTheme();
-  });
+	// Listen for system theme changes
+	darkModeQuery.addEventListener("change", (e) => {
+		systemPrefersDark = e.matches;
+		applyTheme();
+	});
 
-  // Check reduced motion preference
-  const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-  reducedMotion = motionQuery.matches;
+	// Check reduced motion preference
+	const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+	reducedMotion = motionQuery.matches;
 
-  // Listen for motion preference changes
-  motionQuery.addEventListener("change", (e) => {
-    reducedMotion = e.matches;
-  });
+	// Listen for motion preference changes
+	motionQuery.addEventListener("change", (e) => {
+		reducedMotion = e.matches;
+	});
 
-  // Apply initial theme
-  applyTheme();
+	// Apply initial theme
+	applyTheme();
 }
 
 // =============================================================================
@@ -80,26 +80,22 @@ function initialize() {
 // =============================================================================
 
 function applyTheme() {
-  if (!browser) return;
+	if (!browser) return;
 
-  const root = document.documentElement;
-  const resolved =
-    theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
+	const root = document.documentElement;
+	const resolved = theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
 
-  if (resolved === "dark") {
-    root.classList.add("dark");
-  } else {
-    root.classList.remove("dark");
-  }
+	if (resolved === "dark") {
+		root.classList.add("dark");
+	} else {
+		root.classList.remove("dark");
+	}
 
-  // Update meta theme-color for mobile browsers
-  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-  if (metaThemeColor) {
-    metaThemeColor.setAttribute(
-      "content",
-      resolved === "dark" ? "#0a0a0a" : "#ffffff",
-    );
-  }
+	// Update meta theme-color for mobile browsers
+	const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+	if (metaThemeColor) {
+		metaThemeColor.setAttribute("content", resolved === "dark" ? "#0a0a0a" : "#ffffff");
+	}
 }
 
 // =============================================================================
@@ -110,11 +106,11 @@ function applyTheme() {
  * Set the theme
  */
 export function setTheme(newTheme: Theme) {
-  theme = newTheme;
-  if (browser) {
-    localStorage.setItem(STORAGE_KEY, newTheme);
-    applyTheme();
-  }
+	theme = newTheme;
+	if (browser) {
+		localStorage.setItem(STORAGE_KEY, newTheme);
+		applyTheme();
+	}
 }
 
 /**
@@ -122,64 +118,64 @@ export function setTheme(newTheme: Theme) {
  * If currently on 'system', switches to the opposite of the resolved theme
  */
 export function toggleTheme() {
-  const newTheme = resolvedTheme === "dark" ? "light" : "dark";
-  setTheme(newTheme);
+	const newTheme = resolvedTheme === "dark" ? "light" : "dark";
+	setTheme(newTheme);
 }
 
 /**
  * Cycle through themes: light → dark → system → light
  */
 export function cycleTheme() {
-  const order: Theme[] = ["light", "dark", "system"];
-  const currentIndex = order.indexOf(theme);
-  const nextIndex = (currentIndex + 1) % order.length;
-  setTheme(order[nextIndex]);
+	const order: Theme[] = ["light", "dark", "system"];
+	const currentIndex = order.indexOf(theme);
+	const nextIndex = (currentIndex + 1) % order.length;
+	setTheme(order[nextIndex]);
 }
 
 /**
  * Get current theme state
  */
 export function getThemeState(): ThemeState {
-  return {
-    theme,
-    resolvedTheme,
-    reducedMotion,
-  };
+	return {
+		theme,
+		resolvedTheme,
+		reducedMotion,
+	};
 }
 
 /**
  * Get the current theme setting
  */
 export function getTheme(): Theme {
-  return theme;
+	return theme;
 }
 
 /**
  * Get the resolved theme (actual light/dark)
  */
 export function getResolvedTheme(): ResolvedTheme {
-  return resolvedTheme;
+	return resolvedTheme;
 }
 
 /**
  * Check if reduced motion is preferred
  */
 export function getReducedMotion(): boolean {
-  return reducedMotion;
+	return reducedMotion;
 }
 
 /**
  * Check if dark mode is active
  */
 export function isDark(): boolean {
-  return resolvedTheme === "dark";
+	return resolvedTheme === "dark";
 }
 
 /**
  * Check if light mode is active
  */
 export function isLight(): boolean {
-  return resolvedTheme === "light";
+	return resolvedTheme === "light";
 }
 
 // =============================================================================
@@ -200,34 +196,34 @@ export function isLight(): boolean {
  * ```
  */
 export function createThemeState() {
-  // Initialize on first use (client-side only)
-  if (browser && theme === "system" && !localStorage.getItem(STORAGE_KEY)) {
-    initialize();
-  }
+	// Initialize on first use (client-side only)
+	if (browser && theme === "system" && !localStorage.getItem(STORAGE_KEY)) {
+		initialize();
+	}
 
-  return {
-    get theme() {
-      return theme;
-    },
-    get resolvedTheme() {
-      return resolvedTheme;
-    },
-    get reducedMotion() {
-      return reducedMotion;
-    },
-    get isDark() {
-      return resolvedTheme === "dark";
-    },
-    get isLight() {
-      return resolvedTheme === "light";
-    },
-    setTheme,
-    toggleTheme,
-    cycleTheme,
-  };
+	return {
+		get theme() {
+			return theme;
+		},
+		get resolvedTheme() {
+			return resolvedTheme;
+		},
+		get reducedMotion() {
+			return reducedMotion;
+		},
+		get isDark() {
+			return resolvedTheme === "dark";
+		},
+		get isLight() {
+			return resolvedTheme === "light";
+		},
+		setTheme,
+		toggleTheme,
+		cycleTheme,
+	};
 }
 
 // Initialize when module loads (client-side)
 if (browser) {
-  initialize();
+	initialize();
 }

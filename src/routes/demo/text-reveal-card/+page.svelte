@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { TextRevealCard } from '$lib/fancy-ui/text-reveal-card';
+	import { TextRevealCard } from "$lib/fancy-ui/text-reveal-card";
 </script>
 
 <svelte:head>
 	<title>TextRevealCard - FancyUI</title>
 </svelte:head>
 
-<div class="container mx-auto py-12 px-4">
-	<h1 class="text-3xl font-bold mb-2">TextRevealCard</h1>
+<div class="container mx-auto px-4 py-12">
+	<h1 class="mb-2 text-3xl font-bold">TextRevealCard</h1>
 	<p class="text-muted-foreground mb-8">
 		A card that reveals text as the user moves their mouse horizontally, with animated star
 		particles.
@@ -15,23 +15,19 @@
 
 	<!-- Basic Example -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Basic Usage</h2>
-		<div class="flex justify-center border rounded-lg p-6 bg-card">
+		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
+		<div class="bg-card flex justify-center rounded-lg border p-6">
 			<TextRevealCard>
 				<p class="mb-4 text-lg font-bold text-white">Move your mouse to reveal</p>
 				{#snippet text()}
 					<p
-						class="bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-300 text-[2rem] md:text-[3rem] font-bold py-6"
+						class="bg-gradient-to-b from-white to-neutral-300 bg-clip-text py-6 text-[2rem] font-bold text-transparent md:text-[3rem]"
 					>
 						I know the secret
 					</p>
 				{/snippet}
 				{#snippet revealText()}
-					<p
-						class="text-[2rem] md:text-[3rem] font-bold text-white/10 py-6"
-					>
-						Hover me to see
-					</p>
+					<p class="py-6 text-[2rem] font-bold text-white/10 md:text-[3rem]">Hover me to see</p>
 				{/snippet}
 			</TextRevealCard>
 		</div>
@@ -39,23 +35,19 @@
 
 	<!-- Custom Stars -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Fewer Stars</h2>
-		<div class="flex justify-center border rounded-lg p-6 bg-card">
+		<h2 class="mb-4 text-xl font-semibold">Fewer Stars</h2>
+		<div class="bg-card flex justify-center rounded-lg border p-6">
 			<TextRevealCard starsCount={40}>
 				<p class="mb-4 text-sm text-neutral-400">Fewer stars, same effect</p>
 				{#snippet text()}
 					<p
-						class="bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-300 text-[2rem] md:text-[3rem] font-bold py-6"
+						class="bg-gradient-to-b from-white to-neutral-300 bg-clip-text py-6 text-[2rem] font-bold text-transparent md:text-[3rem]"
 					>
 						Less is more
 					</p>
 				{/snippet}
 				{#snippet revealText()}
-					<p
-						class="text-[2rem] md:text-[3rem] font-bold text-white/10 py-6"
-					>
-						Minimalist
-					</p>
+					<p class="py-6 text-[2rem] font-bold text-white/10 md:text-[3rem]">Minimalist</p>
 				{/snippet}
 			</TextRevealCard>
 		</div>

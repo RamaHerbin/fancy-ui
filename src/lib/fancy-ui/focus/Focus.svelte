@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { onMount, tick } from 'svelte';
+	import { cn } from "$lib/utils";
+	import { onMount, tick } from "svelte";
 
 	interface Props {
 		sentence?: string;
@@ -13,16 +13,16 @@
 	}
 
 	let {
-		sentence = 'Fancy Focus',
+		sentence = "Fancy Focus",
 		manualMode = false,
 		blurAmount = 5,
-		borderColor = 'green',
+		borderColor = "green",
 		animationDuration = 0.5,
 		pauseBetweenAnimations = 1,
-		class: className = ''
+		class: className = "",
 	}: Props = $props();
 
-	let words = $derived(sentence.split(' '));
+	let words = $derived(sentence.split(" "));
 	let containerRef: HTMLDivElement;
 	let wordElements: HTMLSpanElement[] = $state([]);
 	let currentIndex = $state(0);
@@ -37,7 +37,7 @@
 			x: wordRect.left - parentRect.left,
 			y: wordRect.top - parentRect.top,
 			width: wordRect.width,
-			height: wordRect.height
+			height: wordRect.height,
 		};
 	}
 
@@ -72,7 +72,7 @@
 	});
 </script>
 
-<div bind:this={containerRef} class={cn('focus-container', className)}>
+<div bind:this={containerRef} class={cn("focus-container", className)}>
 	{#each words as word, index}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<span
@@ -80,7 +80,9 @@
 			class="focus-word"
 			class:manual={manualMode}
 			class:active={index === currentIndex && !manualMode}
-			style="filter: {index === currentIndex ? 'blur(0px)' : `blur(${blurAmount}px)`}; transition: filter {animationDuration}s ease; --border-color: {borderColor};"
+			style="filter: {index === currentIndex
+				? 'blur(0px)'
+				: `blur(${blurAmount}px)`}; transition: filter {animationDuration}s ease; --border-color: {borderColor};"
 			onmouseenter={() => handleMouseEnter(index)}
 			onmouseleave={handleMouseLeave}
 		>
@@ -90,7 +92,10 @@
 
 	<div
 		class="focus-frame"
-		style="transform: translate({focusRect.x}px, {focusRect.y}px); width: {focusRect.width}px; height: {focusRect.height}px; opacity: {currentIndex >= 0 ? 1 : 0}; transition: all {animationDuration}s ease; --border-color: {borderColor};"
+		style="transform: translate({focusRect.x}px, {focusRect.y}px); width: {focusRect.width}px; height: {focusRect.height}px; opacity: {currentIndex >=
+		0
+			? 1
+			: 0}; transition: all {animationDuration}s ease; --border-color: {borderColor};"
 	>
 		<span class="corner top-left"></span>
 		<span class="corner top-right"></span>

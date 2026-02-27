@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { InteractiveHoverButton } from '$lib/fancy-ui/interactive-hover-button';
+	import { InteractiveHoverButton } from "$lib/fancy-ui/interactive-hover-button";
 </script>
 
 <svelte:head>
 	<title>InteractiveHoverButton - FancyUI</title>
 </svelte:head>
 
-<div class="container mx-auto py-12 px-4">
-	<h1 class="text-3xl font-bold mb-2">InteractiveHoverButton</h1>
+<div class="container mx-auto px-4 py-12">
+	<h1 class="mb-2 text-3xl font-bold">InteractiveHoverButton</h1>
 	<p class="text-muted-foreground mb-8">
 		Button with hover animation: text slides out while an arrow slides in, and a dot scales up to
 		fill the background.
@@ -15,16 +15,16 @@
 
 	<!-- Basic Example -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Basic Usage</h2>
-		<div class="border rounded-lg p-6 bg-card flex items-center justify-center">
+		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
+		<div class="bg-card flex items-center justify-center rounded-lg border p-6">
 			<InteractiveHoverButton />
 		</div>
 	</section>
 
 	<!-- Custom Text -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Custom Text</h2>
-		<div class="border rounded-lg p-6 bg-card flex items-center justify-center gap-4">
+		<h2 class="mb-4 text-xl font-semibold">Custom Text</h2>
+		<div class="bg-card flex items-center justify-center gap-4 rounded-lg border p-6">
 			<InteractiveHoverButton text="Get Started" />
 			<InteractiveHoverButton text="Learn More" />
 			<InteractiveHoverButton text="Subscribe" />
@@ -33,8 +33,8 @@
 
 	<!-- Custom Styling -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Custom Styling</h2>
-		<div class="border rounded-lg p-6 bg-card flex items-center justify-center gap-4">
+		<h2 class="mb-4 text-xl font-semibold">Custom Styling</h2>
+		<div class="bg-card flex items-center justify-center gap-4 rounded-lg border p-6">
 			<InteractiveHoverButton
 				text="Danger"
 				class="border-red-500/30 [&_div>.size-2]:bg-red-500 [&>div:last-child]:text-white"

@@ -55,20 +55,20 @@ export * from "./tracing-beam/index.js";
 // =============================================================================
 
 export {
-  // Data
-  registry,
-  categories,
-  categoryLabels,
-  categoryDescriptions,
-  // Helpers
-  getAllComponents,
-  getComponent,
-  getComponentsByStatus,
-  getComponentsByCategory,
-  getComponentsGroupedByCategory,
-  getComponentsGroupedByStatus,
-  searchComponents,
-  getStats,
-  hasComponent,
-  getComponentCategory,
+	// Data
+	registry,
+	categories,
+	categoryLabels,
+	categoryDescriptions,
+	// Helpers
+	getAllComponents,
+	getComponent,
+	getComponentsByStatus,
+	getComponentsByCategory,
+	getComponentsGroupedByCategory,
+	getComponentsGroupedByStatus,
+	searchComponents,
+	getStats,
+	hasComponent,
+	getComponentCategory,
 } from "./registry.js";

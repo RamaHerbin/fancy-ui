@@ -1,12 +1,12 @@
 <script lang="ts">
-	import ComponentPalette from './ComponentPalette.svelte';
-	import LayerTree from './LayerTree.svelte';
-	import Canvas from './Canvas.svelte';
-	import TopBar from './TopBar.svelte';
-	import PropertyPanel from './PropertyPanel.svelte';
-	import AutoSave from './AutoSave.svelte';
-	import DraftRecoveryBanner from './DraftRecoveryBanner.svelte';
-	import { getEditorState } from '../stores/editor.svelte.js';
+	import ComponentPalette from "./ComponentPalette.svelte";
+	import LayerTree from "./LayerTree.svelte";
+	import Canvas from "./Canvas.svelte";
+	import TopBar from "./TopBar.svelte";
+	import PropertyPanel from "./PropertyPanel.svelte";
+	import AutoSave from "./AutoSave.svelte";
+	import DraftRecoveryBanner from "./DraftRecoveryBanner.svelte";
+	import { getEditorState } from "../stores/editor.svelte.js";
 
 	const editor = getEditorState();
 
@@ -14,9 +14,9 @@
 		// Skip when focused in input, textarea, or contenteditable
 		const target = e.target as HTMLElement;
 		if (
-			target.tagName === 'INPUT' ||
-			target.tagName === 'TEXTAREA' ||
-			target.contentEditable === 'true'
+			target.tagName === "INPUT" ||
+			target.tagName === "TEXTAREA" ||
+			target.contentEditable === "true"
 		) {
 			return;
 		}
@@ -25,7 +25,7 @@
 
 		if (mod) {
 			switch (e.key.toLowerCase()) {
-				case 'z':
+				case "z":
 					e.preventDefault();
 					if (e.shiftKey) {
 						editor.redo();
@@ -33,29 +33,29 @@
 						editor.undo();
 					}
 					return;
-				case 'y':
+				case "y":
 					if (!e.shiftKey) {
 						e.preventDefault();
 						editor.redo();
 					}
 					return;
-				case 's':
+				case "s":
 					e.preventDefault();
 					editor.requestSave();
 					return;
-				case 'c':
+				case "c":
 					e.preventDefault();
 					editor.copyBlock();
 					return;
-				case 'x':
+				case "x":
 					e.preventDefault();
 					editor.cutBlock();
 					return;
-				case 'v':
+				case "v":
 					e.preventDefault();
 					editor.pasteBlock();
 					return;
-				case 'd':
+				case "d":
 					e.preventDefault();
 					editor.duplicateBlock();
 					return;
@@ -64,25 +64,25 @@
 		}
 
 		// Non-modifier shortcuts (edit mode only)
-		if (editor.mode !== 'edit') return;
+		if (editor.mode !== "edit") return;
 
 		switch (e.key) {
-			case 'Delete':
-			case 'Backspace':
+			case "Delete":
+			case "Backspace":
 				e.preventDefault();
 				if (editor.selectedBlockId) {
 					editor.removeBlock(editor.selectedBlockId);
 				}
 				return;
-			case 'ArrowUp':
+			case "ArrowUp":
 				e.preventDefault();
 				editor.selectPrev();
 				return;
-			case 'ArrowDown':
+			case "ArrowDown":
 				e.preventDefault();
 				editor.selectNext();
 				return;
-			case 'Escape':
+			case "Escape":
 				e.preventDefault();
 				editor.deselectBlock();
 				return;
@@ -92,23 +92,23 @@
 	// Global body class management during drag
 	$effect(() => {
 		if (editor.isDragging) {
-			document.body.classList.add('cursor-grabbing', '[&_*]:!cursor-grabbing');
-			document.body.style.userSelect = 'none';
+			document.body.classList.add("cursor-grabbing", "[&_*]:!cursor-grabbing");
+			document.body.style.userSelect = "none";
 		}
 		return () => {
-			document.body.classList.remove('cursor-grabbing', '[&_*]:!cursor-grabbing');
-			document.body.style.userSelect = '';
+			document.body.classList.remove("cursor-grabbing", "[&_*]:!cursor-grabbing");
+			document.body.style.userSelect = "";
 		};
 	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="grid flex-1 min-h-0 grid-cols-[240px_1fr_320px] grid-rows-[1fr]">
+<div class="grid min-h-0 flex-1 grid-cols-[240px_1fr_320px] grid-rows-[1fr]">
 	<!-- Left panel: Palette + Layer Tree -->
-	<div class="flex flex-col overflow-hidden border-r border-border bg-background">
-		<div class="shrink-0 border-b border-border px-2 py-2">
-			<h2 class="px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+	<div class="border-border bg-background flex flex-col overflow-hidden border-r">
+		<div class="border-border shrink-0 border-b px-2 py-2">
+			<h2 class="text-muted-foreground px-2 text-xs font-semibold tracking-wider uppercase">
 				Components
 			</h2>
 		</div>
@@ -116,10 +116,10 @@
 			<ComponentPalette />
 		</div>
 
-		<div class="h-px bg-border"></div>
+		<div class="bg-border h-px"></div>
 
-		<div class="shrink-0 border-t border-border px-2 py-2">
-			<h2 class="px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+		<div class="border-border shrink-0 border-t px-2 py-2">
+			<h2 class="text-muted-foreground px-2 text-xs font-semibold tracking-wider uppercase">
 				Layers
 			</h2>
 		</div>
@@ -138,9 +138,9 @@
 	<AutoSave />
 
 	<!-- Right panel: Properties -->
-	<div class="flex flex-col overflow-hidden border-l border-border bg-background">
-		<div class="shrink-0 border-b border-border px-4 py-2">
-			<h2 class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+	<div class="border-border bg-background flex flex-col overflow-hidden border-l">
+		<div class="border-border shrink-0 border-b px-4 py-2">
+			<h2 class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
 				Properties
 			</h2>
 		</div>

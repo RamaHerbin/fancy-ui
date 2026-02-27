@@ -1,57 +1,49 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { cn } from '$lib/utils';
-	import type { AnimatedBeamProps } from './types';
+	import { onMount } from "svelte";
+	import { cn } from "$lib/utils";
+	import type { AnimatedBeamProps } from "./types";
 
 	let {
-		class: className = '',
+		class: className = "",
 		containerRef,
 		fromRef,
 		toRef,
 		curvature = 0,
 		reverse = false,
-		pathColor = 'gray',
+		pathColor = "gray",
 		pathWidth = 2,
 		pathOpacity = 0.2,
-		gradientStartColor = '#FFAA40',
-		gradientStopColor = '#9C40FF',
+		gradientStartColor = "#FFAA40",
+		gradientStopColor = "#9C40FF",
 		delay = 0,
 		duration = Math.random() * 3 + 4,
 		startXOffset = 0,
 		startYOffset = 0,
 		endXOffset = 0,
-		endYOffset = 0
+		endYOffset = 0,
 	}: AnimatedBeamProps = $props();
 
 	// Generate unique ID for gradient
-	const id = 'beam-' + Math.random().toString(36).substring(2, 10);
+	const id = "beam-" + Math.random().toString(36).substring(2, 10);
 
 	// Reactive state
 	let isVertical = $state(false);
 	let isRightToLeft = $state(false);
 	let isBottomToTop = $state(false);
-	let pathD = $state('');
+	let pathD = $state("");
 	let svgDimensions = $state<{ width: number; height: number }>({
 		width: 0,
-		height: 0
+		height: 0,
 	});
 
 	// Derived values for animation
-	let x1 = $derived(
-		(reverse ? !isRightToLeft : isRightToLeft) ? '90%; -10%;' : '10%; 110%;'
-	);
+	let x1 = $derived((reverse ? !isRightToLeft : isRightToLeft) ? "90%; -10%;" : "10%; 110%;");
 
-	let x2 = $derived(
-		(reverse ? !isRightToLeft : isRightToLeft) ? '100%; 0%;' : '0%; 100%;'
-	);
+	let x2 = $derived((reverse ? !isRightToLeft : isRightToLeft) ? "100%; 0%;" : "0%; 100%;");
 
-	let y1 = $derived(
-		(reverse ? !isBottomToTop : isBottomToTop) ? '90%; -10%;' : '10%; 110%;'
-	);
+	let y1 = $derived((reverse ? !isBottomToTop : isBottomToTop) ? "90%; -10%;" : "10%; 110%;");
 
-	let y2 = $derived(
-		(reverse ? !isBottomToTop : isBottomToTop) ? '100%; 0%;' : '0%; 100%;'
-	);
+	let y2 = $derived((reverse ? !isBottomToTop : isBottomToTop) ? "100%; 0%;" : "0%; 100%;");
 
 	let resizeObserver: ResizeObserver | undefined = undefined;
 
@@ -100,7 +92,6 @@
 			resizeObserver?.disconnect();
 		};
 	});
-
 </script>
 
 <svg
@@ -108,7 +99,7 @@
 	width={svgDimensions.width}
 	height={svgDimensions.height}
 	xmlns="http://www.w3.org/2000/svg"
-	class={cn('pointer-events-none absolute left-0 top-0 transform-gpu stroke-2', className)}
+	class={cn("pointer-events-none absolute top-0 left-0 transform-gpu stroke-2", className)}
 	viewBox="0 0 {svgDimensions.width} {svgDimensions.height}"
 >
 	<path

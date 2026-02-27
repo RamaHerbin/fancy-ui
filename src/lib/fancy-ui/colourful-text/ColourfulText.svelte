@@ -21,26 +21,26 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
 	let {
 		text,
 		colors = [
-			'rgb(131, 179, 32)',
-			'rgb(47, 195, 106)',
-			'rgb(42, 169, 210)',
-			'rgb(4, 112, 202)',
-			'rgb(107, 10, 255)',
-			'rgb(183, 0, 218)',
-			'rgb(218, 0, 171)',
-			'rgb(230, 64, 92)',
-			'rgb(232, 98, 63)',
-			'rgb(249, 129, 47)'
+			"rgb(131, 179, 32)",
+			"rgb(47, 195, 106)",
+			"rgb(42, 169, 210)",
+			"rgb(4, 112, 202)",
+			"rgb(107, 10, 255)",
+			"rgb(183, 0, 218)",
+			"rgb(218, 0, 171)",
+			"rgb(230, 64, 92)",
+			"rgb(232, 98, 63)",
+			"rgb(249, 129, 47)",
 		],
-		startColor = 'rgb(255, 255, 255)',
+		startColor = "rgb(255, 255, 255)",
 		duration = 0.5,
-		class: className
+		class: className,
 	}: ColourfulTextProps = $props();
 
 	let currentColors = $state<string[]>([]);
@@ -54,7 +54,7 @@
 
 	onMount(() => {
 		const intervalId = setInterval(() => {
-			if (document.visibilityState === 'visible') {
+			if (document.visibilityState === "visible") {
 				shuffleColors();
 			}
 		}, 5000);
@@ -62,14 +62,17 @@
 		return () => clearInterval(intervalId);
 	});
 
-	const chars = $derived(text.split(''));
+	const chars = $derived(text.split(""));
 </script>
 
-<span class={cn('colourful-text inline-flex', className)}>
+<span class={cn("colourful-text inline-flex", className)}>
 	{#each chars as char, i (i)}
 		<span
 			class="colourful-char inline-block"
-			style="color:{currentColors[i % currentColors.length] ?? startColor};transition:color {duration}s ease {i * 0.05}s,opacity {duration}s ease {i * 0.05}s,transform {duration}s ease {i * 0.05}s,filter {duration}s ease {i * 0.05}s"
-		>{char === ' ' ? '\u00A0' : char}</span>
+			style="color:{currentColors[i % currentColors.length] ??
+				startColor};transition:color {duration}s ease {i * 0.05}s,opacity {duration}s ease {i *
+				0.05}s,transform {duration}s ease {i * 0.05}s,filter {duration}s ease {i * 0.05}s"
+			>{char === " " ? "\u00A0" : char}</span
+		>
 	{/each}
 </span>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from "$lib/utils";
 
 	interface Props {
 		src?: string;
@@ -10,16 +10,23 @@
 		class?: string;
 	}
 
-	let { src = '', alt = '', width, height, objectFit = 'cover', class: className = '' }: Props = $props();
+	let {
+		src = "",
+		alt = "",
+		width,
+		height,
+		objectFit = "cover",
+		class: className = "",
+	}: Props = $props();
 
 	const fitMap: Record<string, string> = {
-		cover: 'object-cover',
-		contain: 'object-contain',
-		fill: 'object-fill',
-		none: 'object-none'
+		cover: "object-cover",
+		contain: "object-contain",
+		fill: "object-fill",
+		none: "object-none",
 	};
 
-	let fitClass = $derived(fitMap[objectFit] ?? 'object-cover');
+	let fitClass = $derived(fitMap[objectFit] ?? "object-cover");
 </script>
 
 {#if src}
@@ -27,7 +34,7 @@
 {:else}
 	<div
 		class={cn(
-			'flex items-center justify-center bg-muted text-muted-foreground text-sm h-48',
+			"bg-muted text-muted-foreground flex h-48 items-center justify-center text-sm",
 			className
 		)}
 	>

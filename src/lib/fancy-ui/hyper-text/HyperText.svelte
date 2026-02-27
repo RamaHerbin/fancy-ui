@@ -19,19 +19,14 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
-	let {
-		text,
-		duration = 800,
-		animateOnLoad = false,
-		class: className
-	}: HyperTextProps = $props();
+	let { text, duration = 800, animateOnLoad = false, class: className }: HyperTextProps = $props();
 
-	const ALPHABETS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	const ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	let displayChars = $derived(text.split(''));
+	let displayChars = $derived(text.split(""));
 	let displayText = $state<string[]>([]);
 	let intervalId: ReturnType<typeof setInterval> | null = null;
 	let iterations = 0;
@@ -53,12 +48,12 @@
 		intervalId = setInterval(() => {
 			if (iterations < text.length) {
 				displayText = displayText.map((l, i) =>
-					l === ' ' ? l : i <= iterations ? text[i] : getRandomLetter()
+					l === " " ? l : i <= iterations ? text[i] : getRandomLetter()
 				);
 				iterations += 0.1;
 			} else {
 				stopAnimation();
-				displayText = text.split('');
+				displayText = text.split("");
 			}
 		}, intervalMs);
 	}
@@ -84,14 +79,14 @@
 </script>
 
 <div
-	class={cn('hyper-text flex scale-100 cursor-default overflow-hidden py-2', className)}
+	class={cn("hyper-text flex scale-100 cursor-default overflow-hidden py-2", className)}
 	onmouseenter={triggerAnimation}
 	role="presentation"
 >
 	<div class="flex">
 		{#each displayText as letter, i (i)}
 			<span
-				class={cn('hyper-text-char inline-block font-mono', letter === ' ' ? 'w-3' : '')}
+				class={cn("hyper-text-char inline-block font-mono", letter === " " ? "w-3" : "")}
 				style="animation:hyperFadeIn 0.3s ease forwards;animation-delay:{i *
 					(duration / (text.length * 10))}ms;opacity:0"
 			>

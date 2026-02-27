@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BlurReveal } from '$lib/fancy-ui/blur-reveal/index.js';
+	import { BlurReveal } from "$lib/fancy-ui/blur-reveal/index.js";
 </script>
 
 <svelte:head>
@@ -15,15 +15,10 @@
 	<nav class="border-b border-white/10 px-6 py-4">
 		<a
 			href="/portfolio"
-			class="inline-flex items-center gap-2 text-white/70 hover:text-white/90 transition"
+			class="inline-flex items-center gap-2 text-white/70 transition hover:text-white/90"
 		>
 			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M15 19l-7-7 7-7"
-				/>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 			</svg>
 			Back to portfolio
 		</a>
@@ -43,9 +38,7 @@
 				<h2 class="text-lg font-medium text-white/90">Optimization Strategies</h2>
 				<ul class="list-disc space-y-2 pl-6 text-sm text-white/60">
 					<li>Lazy loading and code splitting for animations and interactive elements.</li>
-					<li>
-						Optimized vector graphics and compressed assets for minimal bandwidth usage.
-					</li>
+					<li>Optimized vector graphics and compressed assets for minimal bandwidth usage.</li>
 					<li>Server-side rendering and intelligent caching strategies.</li>
 					<li>Efficient CSS with Tailwind's purge system to reduce bundle size.</li>
 					<li>Modern image formats (WebP, AVIF) with fallbacks for compatibility.</li>

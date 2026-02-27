@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { CardContainer, CardBody, CardItem } from '$lib/fancy-ui/card-3d';
+	import { CardContainer, CardBody, CardItem } from "$lib/fancy-ui/card-3d";
 </script>
 
 <svelte:head>
 	<title>Card 3D - FancyUI</title>
 </svelte:head>
 
-<div class="container mx-auto py-12 px-4">
-	<h1 class="text-3xl font-bold mb-2">Card 3D</h1>
+<div class="container mx-auto px-4 py-12">
+	<h1 class="mb-2 text-3xl font-bold">Card 3D</h1>
 	<p class="text-muted-foreground mb-8">
 		Interactive 3D perspective card that follows mouse movement with depth effects on child
 		elements.
@@ -15,11 +15,11 @@
 
 	<!-- Basic Example -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">Basic Usage</h2>
-		<div class="flex justify-center border rounded-lg p-6 bg-card">
+		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
+		<div class="bg-card flex justify-center rounded-lg border p-6">
 			<CardContainer class="inter-var">
 				<CardBody
-					class="relative group/card h-auto w-auto rounded-xl border border-black/[0.1] bg-gray-50 p-6 dark:border-white/[0.2] dark:bg-black dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1] sm:w-[30rem]"
+					class="group/card relative h-auto w-auto rounded-xl border border-black/[0.1] bg-gray-50 p-6 sm:w-[30rem] dark:border-white/[0.2] dark:bg-black dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1]"
 				>
 					<CardItem translateZ={50} class="text-xl font-bold text-neutral-600 dark:text-white">
 						Make things float in 3D
@@ -62,25 +62,22 @@
 
 	<!-- Elevated Items -->
 	<section class="mb-12">
-		<h2 class="text-xl font-semibold mb-4">High Depth Values</h2>
-		<div class="flex justify-center border rounded-lg p-6 bg-card">
+		<h2 class="mb-4 text-xl font-semibold">High Depth Values</h2>
+		<div class="bg-card flex justify-center rounded-lg border p-6">
 			<CardContainer>
 				<CardBody
-					class="relative h-auto w-auto rounded-xl border border-black/[0.1] bg-gray-50 p-6 dark:border-white/[0.2] dark:bg-black sm:w-[20rem]"
+					class="relative h-auto w-auto rounded-xl border border-black/[0.1] bg-gray-50 p-6 sm:w-[20rem] dark:border-white/[0.2] dark:bg-black"
 				>
 					<CardItem translateZ={100} class="text-lg font-bold text-neutral-600 dark:text-white">
 						I float higher
 					</CardItem>
-					<CardItem
-						translateZ={40}
-						class="mt-2 text-sm text-neutral-500 dark:text-neutral-300"
-					>
+					<CardItem translateZ={40} class="mt-2 text-sm text-neutral-500 dark:text-neutral-300">
 						translateZ = 40
 					</CardItem>
 					<CardItem
 						translateZ={150}
 						rotateZ={5}
-						class="mt-4 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-8 text-center text-white font-semibold"
+						class="mt-4 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-8 text-center font-semibold text-white"
 					>
 						translateZ = 150, rotateZ = 5
 					</CardItem>
