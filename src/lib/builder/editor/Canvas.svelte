@@ -6,6 +6,7 @@
 	import { findNode } from "../utils/tree.js";
 	import CanvasBlockRenderer from "./CanvasBlockRenderer.svelte";
 	import DragOverlay from "./DragOverlay.svelte";
+	import SiteProvider from "../renderer/SiteProvider.svelte";
 
 	const editor = getEditorState();
 
@@ -154,35 +155,37 @@
 			: ''}"
 		style={viewportStyle}
 	>
-		{#if editor.page.body.length > 0}
-			{#each editor.page.body as node (node.id)}
-				<CanvasBlockRenderer {node} />
-			{/each}
+		<SiteProvider config={editor.siteConfig}>
+			{#if editor.page.body.length > 0}
+				{#each editor.page.body as node (node.id)}
+					<CanvasBlockRenderer {node} />
+				{/each}
 
-			{#if editor.isDragging}
+				{#if editor.isDragging}
+					<div
+						class="border-primary/30 text-muted-foreground flex h-12 items-center justify-center border-2 border-dashed text-xs transition-colors {editor
+							.dropTarget?.blockId === null
+							? 'border-primary bg-primary/5'
+							: ''}"
+						data-drop-id=""
+					>
+						Drop here to add at end
+					</div>
+				{/if}
+			{:else}
 				<div
-					class="border-primary/30 text-muted-foreground flex h-12 items-center justify-center border-2 border-dashed text-xs transition-colors {editor
-						.dropTarget?.blockId === null
-						? 'border-primary bg-primary/5'
+					class="flex min-h-[400px] items-center justify-center {editor.isDragging
+						? 'border-primary/40 bg-primary/5 rounded-lg border-2 border-dashed'
 						: ''}"
-					data-drop-id=""
 				>
-					Drop here to add at end
+					<p class="text-muted-foreground">
+						{editor.isDragging
+							? "Drop component here"
+							: "Click a component in the palette to add it here"}
+					</p>
 				</div>
 			{/if}
-		{:else}
-			<div
-				class="flex min-h-[400px] items-center justify-center {editor.isDragging
-					? 'border-primary/40 bg-primary/5 rounded-lg border-2 border-dashed'
-					: ''}"
-			>
-				<p class="text-muted-foreground">
-					{editor.isDragging
-						? "Drop component here"
-						: "Click a component in the palette to add it here"}
-				</p>
-			</div>
-		{/if}
+		</SiteProvider>
 	</div>
 
 	<DragOverlay />

@@ -13,6 +13,7 @@
 	const config = getSiteConfig();
 	let navItems = $derived(config?.navigation ?? []);
 	let title = $derived(config?.title ?? "");
+	let description = $derived(config?.description ?? "");
 
 	function resolveHref(item: NavItem): string {
 		switch (item.target.type) {
@@ -39,21 +40,28 @@
 		className
 	)}
 >
-	<div class="mx-auto flex h-14 max-w-6xl items-center px-4">
-		{#if title}
-			<a href="/" class="mr-6 text-lg font-bold">{title}</a>
-		{/if}
-		<div class="flex items-center gap-6">
-			{#each navItems as item (item.id)}
-				<a
-					href={resolveHref(item)}
-					target={isExternal(item) ? "_blank" : undefined}
-					rel={isExternal(item) ? "noopener noreferrer" : undefined}
-					class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
-				>
-					{item.label}
-				</a>
-			{/each}
+	<div class="container mx-auto px-4 py-4">
+		<div class="flex items-center justify-between">
+			<div>
+				{#if title}
+					<h1 class="text-xl font-semibold">{title}</h1>
+				{/if}
+				{#if description}
+					<p class="text-muted-foreground text-sm">{description}</p>
+				{/if}
+			</div>
+			<nav class="hidden items-center space-x-6 md:flex">
+				{#each navItems as item (item.id)}
+					<a
+						href={resolveHref(item)}
+						target={isExternal(item) ? "_blank" : undefined}
+						rel={isExternal(item) ? "noopener noreferrer" : undefined}
+						class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
+					>
+						{item.label}
+					</a>
+				{/each}
+			</nav>
 		</div>
 	</div>
 </nav>
