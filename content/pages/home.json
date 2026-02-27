@@ -10,6 +10,14 @@
 	},
 	"body": [
 		{
+			"id": "maths-bg",
+			"type": "_maths-background",
+			"props": {
+				"density": 20,
+				"class": ""
+			}
+		},
+		{
 			"id": "nav",
 			"type": "_nav",
 			"props": {

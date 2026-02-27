@@ -32,6 +32,7 @@ import NavPrimitive from "./primitives/Nav.svelte";
 import FooterPrimitive from "./primitives/FooterBlock.svelte";
 import TabsPrimitive from "./primitives/TabsPrimitive.svelte";
 import TabItemPrimitive from "./primitives/TabItemPrimitive.svelte";
+import MathsBackgroundPrimitive from "./primitives/MathsBackground.svelte";
 
 // FancyUI components (direct — these accept props only, no snippet wiring needed)
 import { BorderBeam } from "$lib/fancy-ui/border-beam/index.js";
@@ -98,6 +99,7 @@ export const componentMap: Record<string, AnyComponent> = {
 	_footer: FooterPrimitive,
 	_tabs: TabsPrimitive,
 	"_tab-item": TabItemPrimitive,
+	"_maths-background": MathsBackgroundPrimitive,
 
 	// FancyUI components
 	"border-beam": BorderBeam as AnyComponent,
