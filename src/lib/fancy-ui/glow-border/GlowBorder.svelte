@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from "$lib/utils";
 
 	interface Props {
 		class?: string;
@@ -10,14 +10,14 @@
 	}
 
 	let {
-		class: className = '',
+		class: className = "",
 		borderRadius = 10,
-		color = '#FFF',
+		color = "#FFF",
 		borderWidth = 2,
-		duration = 10
+		duration = 10,
 	}: Props = $props();
 
-	let colorString = $derived(Array.isArray(color) ? color.join(',') : color);
+	let colorString = $derived(Array.isArray(color) ? color.join(",") : color);
 
 	let styles = $derived(`
 		--glow-border-radius: ${borderRadius}px;
@@ -36,7 +36,7 @@
 
 <div
 	class={cn(
-		'pointer-events-none absolute inset-0 size-full rounded-[inherit] will-change-[background-position] animate-glow',
+		"animate-glow pointer-events-none absolute inset-0 size-full rounded-[inherit] will-change-[background-position]",
 		className
 	)}
 	style={styles}

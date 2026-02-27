@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getEditorState } from '../stores/editor.svelte.js';
-	import { saveDraft } from '../storage/indexeddb.js';
+	import { getEditorState } from "../stores/editor.svelte.js";
+	import { saveDraft } from "../storage/indexeddb.js";
 
 	const editor = getEditorState();
 
@@ -21,7 +21,9 @@
 				lastSavedJson = json;
 				showIndicator = true;
 				if (indicatorTimer) clearTimeout(indicatorTimer);
-				indicatorTimer = setTimeout(() => { showIndicator = false; }, 1500);
+				indicatorTimer = setTimeout(() => {
+					showIndicator = false;
+				}, 1500);
 			} catch {
 				// Silently ignore IndexedDB errors
 			}
@@ -32,7 +34,9 @@
 </script>
 
 {#if showIndicator}
-	<div class="fixed bottom-4 right-4 z-50 rounded-md bg-muted px-3 py-1.5 text-xs text-muted-foreground shadow-sm">
+	<div
+		class="bg-muted text-muted-foreground fixed right-4 bottom-4 z-50 rounded-md px-3 py-1.5 text-xs shadow-sm"
+	>
 		Draft saved
 	</div>
 {/if}

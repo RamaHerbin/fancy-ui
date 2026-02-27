@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { onMount, setContext } from 'svelte';
-	import type { Snippet } from 'svelte';
-	import confettiModule from 'canvas-confetti';
+	import { onMount, setContext } from "svelte";
+	import type { Snippet } from "svelte";
+	import confettiModule from "canvas-confetti";
 	import type {
 		GlobalOptions as ConfettiGlobalOptions,
 		Options as ConfettiOptions,
-		CreateTypes as ConfettiInstance
-	} from 'canvas-confetti';
+		CreateTypes as ConfettiInstance,
+	} from "canvas-confetti";
 
 	interface Props {
 		options?: ConfettiOptions;
@@ -20,8 +20,8 @@
 		options = {},
 		globalOptions = {},
 		manualstart = false,
-		class: className = '',
-		children
+		class: className = "",
+		children,
 	}: Props = $props();
 
 	let canvasRef: HTMLCanvasElement;
@@ -31,12 +31,12 @@
 		instance?.({ ...options, ...opts });
 	}
 
-	setContext('ConfettiContext', { fire });
+	setContext("ConfettiContext", { fire });
 
 	onMount(() => {
 		instance = confettiModule.create(canvasRef, {
 			...globalOptions,
-			resize: true
+			resize: true,
 		});
 
 		if (!manualstart) {

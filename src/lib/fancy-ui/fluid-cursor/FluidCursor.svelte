@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
 	interface ColorRGB {
 		r: number;
@@ -41,7 +41,7 @@
 		colorUpdateSpeed = 10,
 		backColor = { r: 0.5, g: 0, b: 0 },
 		transparent = true,
-		class: className = ''
+		class: className = "",
 	}: Props = $props();
 
 	let canvasRef: HTMLCanvasElement;
@@ -74,7 +74,7 @@
 				deltaY: 0,
 				down: false,
 				moved: false,
-				color: { r: 0, g: 0, b: 0 }
+				color: { r: 0, g: 0, b: 0 },
 			};
 		}
 
@@ -95,7 +95,7 @@
 			COLOR_UPDATE_SPEED: colorUpdateSpeed,
 			PAUSED: false,
 			BACK_COLOR: backColor,
-			TRANSPARENT: transparent
+			TRANSPARENT: transparent,
 		};
 
 		// Get WebGL context
@@ -118,34 +118,34 @@
 				depth: false,
 				stencil: false,
 				antialias: false,
-				preserveDrawingBuffer: false
+				preserveDrawingBuffer: false,
 			};
 
-			let gl = canvas.getContext('webgl2', params) as WebGL2RenderingContext | null;
+			let gl = canvas.getContext("webgl2", params) as WebGL2RenderingContext | null;
 
 			if (!gl) {
-				gl = (canvas.getContext('webgl', params) ||
-					canvas.getContext('experimental-webgl', params)) as WebGL2RenderingContext | null;
+				gl = (canvas.getContext("webgl", params) ||
+					canvas.getContext("experimental-webgl", params)) as WebGL2RenderingContext | null;
 			}
 
 			if (!gl) {
-				console.error('Unable to initialize WebGL.');
+				console.error("Unable to initialize WebGL.");
 				return { gl: null, ext: null };
 			}
 
-			const isWebGL2 = 'drawBuffers' in gl;
+			const isWebGL2 = "drawBuffers" in gl;
 
 			let supportLinearFiltering = false;
 			let halfFloat = null;
 
 			if (isWebGL2) {
-				(gl as WebGL2RenderingContext).getExtension('EXT_color_buffer_float');
+				(gl as WebGL2RenderingContext).getExtension("EXT_color_buffer_float");
 				supportLinearFiltering = !!(gl as WebGL2RenderingContext).getExtension(
-					'OES_texture_float_linear'
+					"OES_texture_float_linear"
 				);
 			} else {
-				halfFloat = gl.getExtension('OES_texture_half_float');
-				supportLinearFiltering = !!gl.getExtension('OES_texture_half_float_linear');
+				halfFloat = gl.getExtension("OES_texture_half_float");
+				supportLinearFiltering = !!gl.getExtension("OES_texture_half_float_linear");
 			}
 
 			gl.clearColor(0, 0, 0, 1);
@@ -190,8 +190,8 @@
 					formatRG,
 					formatR,
 					halfFloatTexType,
-					supportLinearFiltering
-				}
+					supportLinearFiltering,
+				},
 			};
 		}
 
@@ -202,7 +202,7 @@
 			type: number
 		): { internalFormat: number; format: number } | null {
 			if (!supportRenderTextureFormat(gl, internalFormat, format, type)) {
-				if ('drawBuffers' in gl) {
+				if ("drawBuffers" in gl) {
 					const gl2 = gl as WebGL2RenderingContext;
 					switch (internalFormat) {
 						case gl2.R16F:
@@ -255,7 +255,7 @@
 
 		function addKeywords(source: string, keywords: string[] | null) {
 			if (!keywords) return source;
-			let keywordsString = '';
+			let keywordsString = "";
 			for (const keyword of keywords) {
 				keywordsString += `#define ${keyword}\n`;
 			}
@@ -512,7 +512,7 @@
 				gl_FragColor = result / decay;
 			}
 		`,
-			ext.supportLinearFiltering ? null : ['MANUAL_FILTERING']
+			ext.supportLinearFiltering ? null : ["MANUAL_FILTERING"]
 		);
 
 		const divergenceShader = compileShader(
@@ -685,11 +685,7 @@
 			);
 			const elemBuffer = gl.createBuffer()!;
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elemBuffer);
-			gl.bufferData(
-				gl.ELEMENT_ARRAY_BUFFER,
-				new Uint16Array([0, 1, 2, 0, 2, 3]),
-				gl.STATIC_DRAW
-			);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW);
 			gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 			gl.enableVertexAttribArray(0);
 
@@ -766,7 +762,7 @@
 					gl.activeTexture(gl.TEXTURE0 + id);
 					gl.bindTexture(gl.TEXTURE_2D, texture);
 					return id;
-				}
+				},
 			};
 		}
 
@@ -791,7 +787,7 @@
 					const tmp = this.read;
 					this.read = this.write;
 					this.write = tmp;
-				}
+				},
 			};
 		}
 
@@ -912,7 +908,7 @@
 
 		function updateKeywords() {
 			const displayKeywords: string[] = [];
-			if (config.SHADING) displayKeywords.push('SHADING');
+			if (config.SHADING) displayKeywords.push("SHADING");
 			displayMaterial.setKeywords(displayKeywords);
 		}
 
@@ -1006,11 +1002,7 @@
 			// Vorticity
 			vorticityProgram.bind();
 			if (vorticityProgram.uniforms.texelSize) {
-				gl.uniform2f(
-					vorticityProgram.uniforms.texelSize,
-					velocity.texelSizeX,
-					velocity.texelSizeY
-				);
+				gl.uniform2f(vorticityProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
 			}
 			if (vorticityProgram.uniforms.uVelocity) {
 				gl.uniform1i(vorticityProgram.uniforms.uVelocity, velocity.read.attach(0));
@@ -1055,11 +1047,7 @@
 			// Pressure
 			pressureProgram.bind();
 			if (pressureProgram.uniforms.texelSize) {
-				gl.uniform2f(
-					pressureProgram.uniforms.texelSize,
-					velocity.texelSizeX,
-					velocity.texelSizeY
-				);
+				gl.uniform2f(pressureProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
 			}
 			if (pressureProgram.uniforms.uDivergence) {
 				gl.uniform1i(pressureProgram.uniforms.uDivergence, divergenceFBO.attach(0));
@@ -1093,11 +1081,7 @@
 			// Advection - velocity
 			advectionProgram.bind();
 			if (advectionProgram.uniforms.texelSize) {
-				gl.uniform2f(
-					advectionProgram.uniforms.texelSize,
-					velocity.texelSizeX,
-					velocity.texelSizeY
-				);
+				gl.uniform2f(advectionProgram.uniforms.texelSize, velocity.texelSizeX, velocity.texelSizeY);
 			}
 			if (!ext.supportLinearFiltering && advectionProgram.uniforms.dyeTexelSize) {
 				gl.uniform2f(
@@ -1322,7 +1306,7 @@
 			const color = generateColor();
 			updateFrame();
 			updatePointerMoveData(pointer, posX, posY, color);
-			document.body.removeEventListener('mousemove', handleFirstMouseMove);
+			document.body.removeEventListener("mousemove", handleFirstMouseMove);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
@@ -1342,7 +1326,7 @@
 				updateFrame();
 				updatePointerDownData(pointer, touches[i].identifier, posX, posY);
 			}
-			document.body.removeEventListener('touchstart', handleFirstTouchStart);
+			document.body.removeEventListener("touchstart", handleFirstTouchStart);
 		}
 
 		function handleTouchStart(e: TouchEvent) {
@@ -1366,12 +1350,12 @@
 		}
 
 		// Add event listeners
-		window.addEventListener('mousedown', handleMouseDown);
-		document.body.addEventListener('mousemove', handleFirstMouseMove);
-		window.addEventListener('mousemove', handleMouseMove);
-		document.body.addEventListener('touchstart', handleFirstTouchStart);
-		window.addEventListener('touchstart', handleTouchStart, false);
-		window.addEventListener('touchmove', handleTouchMove, false);
+		window.addEventListener("mousedown", handleMouseDown);
+		document.body.addEventListener("mousemove", handleFirstMouseMove);
+		window.addEventListener("mousemove", handleMouseMove);
+		document.body.addEventListener("touchstart", handleFirstTouchStart);
+		window.addEventListener("touchstart", handleTouchStart, false);
+		window.addEventListener("touchmove", handleTouchMove, false);
 
 		// Start animation
 		updateFrame();
@@ -1379,16 +1363,16 @@
 		// Cleanup
 		return () => {
 			cancelAnimationFrame(animationFrameId);
-			window.removeEventListener('mousedown', handleMouseDown);
-			document.body.removeEventListener('mousemove', handleFirstMouseMove);
-			window.removeEventListener('mousemove', handleMouseMove);
-			document.body.removeEventListener('touchstart', handleFirstTouchStart);
-			window.removeEventListener('touchstart', handleTouchStart);
-			window.removeEventListener('touchmove', handleTouchMove);
+			window.removeEventListener("mousedown", handleMouseDown);
+			document.body.removeEventListener("mousemove", handleFirstMouseMove);
+			window.removeEventListener("mousemove", handleMouseMove);
+			document.body.removeEventListener("touchstart", handleFirstTouchStart);
+			window.removeEventListener("touchstart", handleTouchStart);
+			window.removeEventListener("touchmove", handleTouchMove);
 		};
 	});
 </script>
 
-<div class={cn('pointer-events-none fixed left-0 top-0 z-50 size-full', className)}>
+<div class={cn("pointer-events-none fixed top-0 left-0 z-50 size-full", className)}>
 	<canvas bind:this={canvasRef} id="fluid" class="block h-screen w-screen"></canvas>
 </div>

@@ -1,22 +1,22 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { getEditorState } from '../stores/editor.svelte.js';
-	import { getBuilderComponent } from '../registry/index.js';
-	import { calculateDropPosition, isValidDrop } from '../utils/drag.js';
-	import { findNode } from '../utils/tree.js';
-	import CanvasBlockRenderer from './CanvasBlockRenderer.svelte';
-	import DragOverlay from './DragOverlay.svelte';
+	import { onMount } from "svelte";
+	import { getEditorState } from "../stores/editor.svelte.js";
+	import { getBuilderComponent } from "../registry/index.js";
+	import { calculateDropPosition, isValidDrop } from "../utils/drag.js";
+	import { findNode } from "../utils/tree.js";
+	import CanvasBlockRenderer from "./CanvasBlockRenderer.svelte";
+	import DragOverlay from "./DragOverlay.svelte";
 
 	const editor = getEditorState();
 
 	const DEVICE_WIDTHS: Record<string, number> = {
 		tablet: 768,
-		mobile: 375
+		mobile: 375,
 	};
 
 	const DEVICE_LABELS: Record<string, string> = {
-		tablet: '768 × 1024',
-		mobile: '375 × 812'
+		tablet: "768 × 1024",
+		mobile: "375 × 812",
 	};
 
 	let canvasEl: HTMLDivElement;
@@ -35,7 +35,7 @@
 
 	let viewportStyle = $derived.by(() => {
 		if (!viewportWidth) {
-			return 'contain: layout style';
+			return "contain: layout style";
 		}
 		return `width: ${viewportWidth}px; zoom: ${zoomLevel}; contain: layout style`;
 	});
@@ -53,7 +53,7 @@
 	});
 
 	function handleCanvasClick() {
-		if (editor.mode === 'interact') return;
+		if (editor.mode === "interact") return;
 		editor.deselectBlock();
 	}
 
@@ -65,19 +65,19 @@
 			if (dropId === undefined) continue;
 
 			// Sentinel: empty string means "append at end of root"
-			if (dropId === '') {
-				editor.setDropTarget({ blockId: null, position: 'inside' });
+			if (dropId === "") {
+				editor.setDropTarget({ blockId: null, position: "inside" });
 				return;
 			}
 
 			// Validate drop
 			const draggedBlockId =
-				editor.dragSource?.type === 'block' ? editor.dragSource.blockId : undefined;
+				editor.dragSource?.type === "block" ? editor.dragSource.blockId : undefined;
 			if (!isValidDrop(draggedBlockId, dropId, editor.page.body)) continue;
 
 			// Calculate position
 			const rect = el.getBoundingClientRect();
-			const meta = getBuilderComponent(findNode(editor.page.body, dropId)?.type ?? '');
+			const meta = getBuilderComponent(findNode(editor.page.body, dropId)?.type ?? "");
 			const isContainer = meta?.acceptsChildren ?? false;
 			const position = calculateDropPosition(e.clientY, rect, isContainer);
 
@@ -87,7 +87,7 @@
 
 		// No drop target found — check if hovering over the canvas area
 		if (canvasEl && canvasEl.contains(document.elementFromPoint(e.clientX, e.clientY))) {
-			editor.setDropTarget({ blockId: null, position: 'inside' });
+			editor.setDropTarget({ blockId: null, position: "inside" });
 		} else {
 			editor.setDropTarget(null);
 		}
@@ -116,23 +116,23 @@
 		}
 
 		function onVisibilityChange() {
-			if (document.visibilityState === 'hidden') {
+			if (document.visibilityState === "hidden") {
 				editor.endDrag();
 			}
 		}
 
-		document.addEventListener('pointermove', onMove);
-		document.addEventListener('pointerup', onUp);
-		document.addEventListener('pointercancel', onCancel);
-		window.addEventListener('blur', onBlur);
-		document.addEventListener('visibilitychange', onVisibilityChange);
+		document.addEventListener("pointermove", onMove);
+		document.addEventListener("pointerup", onUp);
+		document.addEventListener("pointercancel", onCancel);
+		window.addEventListener("blur", onBlur);
+		document.addEventListener("visibilitychange", onVisibilityChange);
 
 		return () => {
-			document.removeEventListener('pointermove', onMove);
-			document.removeEventListener('pointerup', onUp);
-			document.removeEventListener('pointercancel', onCancel);
-			window.removeEventListener('blur', onBlur);
-			document.removeEventListener('visibilitychange', onVisibilityChange);
+			document.removeEventListener("pointermove", onMove);
+			document.removeEventListener("pointerup", onUp);
+			document.removeEventListener("pointercancel", onCancel);
+			window.removeEventListener("blur", onBlur);
+			document.removeEventListener("visibilitychange", onVisibilityChange);
 		};
 	});
 </script>
@@ -140,16 +140,18 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="relative flex-1 overflow-y-auto bg-muted/30 p-4"
+	class="bg-muted/30 relative flex-1 overflow-y-auto p-4"
 	data-testid="canvas"
 	bind:this={canvasEl}
 	onclick={handleCanvasClick}
 >
 	{#if viewportLabel}
-		<div class="mb-2 text-center text-xs text-muted-foreground">{viewportLabel}</div>
+		<div class="text-muted-foreground mb-2 text-center text-xs">{viewportLabel}</div>
 	{/if}
 	<div
-		class="min-h-full bg-background shadow-sm transition-all duration-200 {viewportWidth ? 'mx-auto' : ''}"
+		class="bg-background min-h-full shadow-sm transition-all duration-200 {viewportWidth
+			? 'mx-auto'
+			: ''}"
 		style={viewportStyle}
 	>
 		{#if editor.page.body.length > 0}
@@ -159,7 +161,10 @@
 
 			{#if editor.isDragging}
 				<div
-					class="flex h-12 items-center justify-center border-2 border-dashed border-primary/30 text-xs text-muted-foreground transition-colors {editor.dropTarget?.blockId === null ? 'border-primary bg-primary/5' : ''}"
+					class="border-primary/30 text-muted-foreground flex h-12 items-center justify-center border-2 border-dashed text-xs transition-colors {editor
+						.dropTarget?.blockId === null
+						? 'border-primary bg-primary/5'
+						: ''}"
 					data-drop-id=""
 				>
 					Drop here to add at end
@@ -168,13 +173,13 @@
 		{:else}
 			<div
 				class="flex min-h-[400px] items-center justify-center {editor.isDragging
-					? 'border-2 border-dashed border-primary/40 bg-primary/5 rounded-lg'
+					? 'border-primary/40 bg-primary/5 rounded-lg border-2 border-dashed'
 					: ''}"
 			>
 				<p class="text-muted-foreground">
 					{editor.isDragging
-						? 'Drop component here'
-						: 'Click a component in the palette to add it here'}
+						? "Drop component here"
+						: "Click a component in the palette to add it here"}
 				</p>
 			</div>
 		{/if}

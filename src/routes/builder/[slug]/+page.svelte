@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { createEditorState } from '$lib/builder/stores/editor.svelte.js';
-	import EditorLayout from '$lib/builder/editor/EditorLayout.svelte';
+	import { createEditorState } from "$lib/builder/stores/editor.svelte.js";
+	import EditorLayout from "$lib/builder/editor/EditorLayout.svelte";
 
 	let { data } = $props();
 

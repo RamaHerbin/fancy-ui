@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import type { Snippet } from 'svelte';
+	import { cn } from "$lib/utils";
+	import type { Snippet } from "svelte";
 
 	interface Props {
 		class?: string;
 		children?: Snippet;
 	}
 
-	let { class: className = '', children }: Props = $props();
+	let { class: className = "", children }: Props = $props();
 
 	let isPointerInside = $state(false);
 	let refElement: HTMLDivElement;
@@ -27,15 +27,15 @@
 		if (rect) {
 			const position = {
 				x: event.clientX - rect.left,
-				y: event.clientY - rect.top
+				y: event.clientY - rect.top,
 			};
 			const percentage = {
 				x: (100 / rect.width) * position.x,
-				y: (100 / rect.height) * position.y
+				y: (100 / rect.height) * position.y,
 			};
 			const delta = {
 				x: percentage.x - 50,
-				y: percentage.y - 50
+				y: percentage.y - 50,
 			};
 			background.x = 50 + percentage.x / 4 - 12.5;
 			background.y = 50 + percentage.y / 3 - 16.67;
@@ -51,7 +51,7 @@
 		if (timeoutId) clearTimeout(timeoutId);
 		timeoutId = setTimeout(() => {
 			if (isPointerInside && refElement) {
-				refElement.style.setProperty('--duration', '0s');
+				refElement.style.setProperty("--duration", "0s");
 			}
 		}, 300);
 	}
@@ -60,7 +60,7 @@
 		isPointerInside = false;
 		if (timeoutId) clearTimeout(timeoutId);
 		if (refElement) {
-			refElement.style.removeProperty('--duration');
+			refElement.style.removeProperty("--duration");
 			rotate = { x: 0, y: 0 };
 		}
 	}
@@ -68,29 +68,29 @@
 
 <div
 	bind:this={refElement}
-	class="glare-container relative isolate w-[320px] transition-transform will-change-transform [aspect-ratio:17/21] [contain:layout_style] [perspective:600px] duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)]"
+	class="glare-container relative isolate [aspect-ratio:17/21] w-[320px] transition-transform delay-[var(--delay)] duration-[var(--duration)] ease-[var(--easing)] will-change-transform [contain:layout_style] [perspective:600px]"
 	style={cssVars}
 	onpointermove={handlePointerMove}
 	onpointerenter={handlePointerEnter}
 	onpointerleave={handlePointerLeave}
 >
 	<div
-		class="grid h-full origin-center overflow-hidden rounded-lg border border-slate-800 transition-transform will-change-transform [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6] duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)]"
+		class="grid h-full origin-center [transform:rotateY(var(--r-x))_rotateX(var(--r-y))] overflow-hidden rounded-lg border border-slate-800 transition-transform delay-[var(--delay)] duration-[var(--duration)] ease-[var(--easing)] will-change-transform hover:filter-none hover:[--duration:200ms] hover:[--easing:linear] hover:[--opacity:0.6]"
 	>
 		<div
 			class="grid size-full mix-blend-soft-light [clip-path:inset(0_0_0_0_round_var(--radius))] [grid-area:1/1]"
 		>
-			<div class={cn('size-full bg-slate-950', className)}>
+			<div class={cn("size-full bg-slate-950", className)}>
 				{#if children}
 					{@render children()}
 				{/if}
 			</div>
 		</div>
 		<div
-			class="will-change-background grid size-full opacity-[var(--opacity)] mix-blend-soft-light transition-opacity [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(255,255,255,0.8)_10%,_rgba(255,255,255,0.65)_20%,_rgba(255,255,255,0)_90%)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] duration-[var(--duration)] ease-[var(--easing)] delay-[var(--delay)]"
+			class="will-change-background grid size-full opacity-[var(--opacity)] mix-blend-soft-light transition-opacity delay-[var(--delay)] duration-[var(--duration)] ease-[var(--easing)] [background:radial-gradient(farthest-corner_circle_at_var(--m-x)_var(--m-y),_rgba(255,255,255,0.8)_10%,_rgba(255,255,255,0.65)_20%,_rgba(255,255,255,0)_90%)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1]"
 		></div>
 		<div
-			class="glare-foil relative grid size-full opacity-[var(--opacity)] mix-blend-color-dodge transition-opacity will-change-[background] [background-blend-mode:hue_hue_hue_overlay] [background:var(--pattern),_var(--rainbow),_var(--diagonal),_var(--shade)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] after:bg-[inherit] after:mix-blend-exclusion after:content-[''] after:[background-blend-mode:soft-light,_hue,_hard-light] after:[background-position:center,_0%_var(--bg-y),_calc(var(--bg-x)*_-1)_calc(var(--bg-y)*_-1),_var(--bg-x)_var(--bg-y)] after:[background-size:var(--foil-size),_200%_400%,_800%,_200%] after:[grid-area:1/1]"
+			class="glare-foil relative grid size-full opacity-[var(--opacity)] [background-blend-mode:hue_hue_hue_overlay] mix-blend-color-dodge transition-opacity will-change-[background] [background:var(--pattern),_var(--rainbow),_var(--diagonal),_var(--shade)] [clip-path:inset(0_0_1px_0_round_var(--radius))] [grid-area:1/1] after:bg-[inherit] after:[background-size:var(--foil-size),_200%_400%,_800%,_200%] after:[background-position:center,_0%_var(--bg-y),_calc(var(--bg-x)*_-1)_calc(var(--bg-y)*_-1),_var(--bg-x)_var(--bg-y)] after:[background-blend-mode:soft-light,_hue,_hard-light] after:mix-blend-exclusion after:content-[''] after:[grid-area:1/1]"
 		></div>
 	</div>
 </div>

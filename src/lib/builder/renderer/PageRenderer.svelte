@@ -5,15 +5,15 @@
   using BlockRenderer recursively.
 -->
 <script lang="ts">
-	import type { PageDocument } from '../types/page.js';
-	import BlockRenderer from './BlockRenderer.svelte';
+	import type { PageDocument } from "../types/page.js";
+	import BlockRenderer from "./BlockRenderer.svelte";
 
 	interface Props {
 		page: PageDocument;
 		class?: string;
 	}
 
-	let { page, class: className = '' }: Props = $props();
+	let { page, class: className = "" }: Props = $props();
 </script>
 
 <div class={className}>

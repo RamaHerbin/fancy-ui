@@ -1,23 +1,23 @@
-<section id="projects" class="py-20 px-6">
-	<div class="max-w-6xl mx-auto">
-		<div class="text-center mb-16">
-			<h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-4">
+<section id="projects" class="px-6 py-20">
+	<div class="mx-auto max-w-6xl">
+		<div class="mb-16 text-center">
+			<h2 class="text-foreground mb-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
 				Selected Work
 			</h2>
-			<p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+			<p class="text-muted-foreground mx-auto max-w-2xl text-lg">
 				A showcase of creative applications, personal projects, and professional experiences
 			</p>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+		<div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
 			<!-- Current Work (Ansys) -->
 			<div
-				class="group relative overflow-hidden rounded-xl border border-border/20 bg-card p-6 hover:border-border/40 transition-all duration-300"
+				class="group border-border/20 bg-card hover:border-border/40 relative overflow-hidden rounded-xl border p-6 transition-all duration-300"
 			>
 				<div class="space-y-4">
-					<div class="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center">
+					<div class="bg-foreground/10 flex h-12 w-12 items-center justify-center rounded-lg">
 						<svg
-							class="w-6 h-6 text-foreground"
+							class="text-foreground h-6 w-6"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -31,8 +31,8 @@
 						</svg>
 					</div>
 					<div>
-						<h3 class="text-xl font-semibold text-foreground mb-2">Current Work</h3>
-						<p class="text-sm text-muted-foreground mb-3">Ansys Digital Safety Manager</p>
+						<h3 class="text-foreground mb-2 text-xl font-semibold">Current Work</h3>
+						<p class="text-muted-foreground mb-3 text-sm">Ansys Digital Safety Manager</p>
 						<p class="text-muted-foreground text-sm leading-relaxed">
 							Building enterprise-scale safety applications with Angular, focusing on UI/UX for
 							safety engineers.
@@ -40,22 +40,16 @@
 						</p>
 					</div>
 					<div class="flex flex-wrap gap-2">
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded">Angular</span
-						>
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded"
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs">Angular</span>
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs"
 							>TypeScript</span
 						>
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded"
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs"
 							>Enterprise</span
 						>
 					</div>
-					<div class="flex items-center space-x-2 text-xs text-muted-foreground">
-						<svg
-							class="w-4 h-4"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+					<div class="text-muted-foreground flex items-center space-x-2 text-xs">
+						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -71,14 +65,14 @@
 			<!-- Fleur de Papier -->
 			<a
 				href="/portfolio/projects/fleur-de-papier"
-				class="group relative overflow-hidden rounded-xl border border-border/20 bg-card p-6 hover:border-border/40 hover:bg-card/80 transition-all duration-300 cursor-pointer"
+				class="group border-border/20 bg-card hover:border-border/40 hover:bg-card/80 relative cursor-pointer overflow-hidden rounded-xl border p-6 transition-all duration-300"
 			>
 				<div class="space-y-4">
 					<div
-						class="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center group-hover:bg-foreground/20 transition-colors"
+						class="bg-foreground/10 group-hover:bg-foreground/20 flex h-12 w-12 items-center justify-center rounded-lg transition-colors"
 					>
 						<svg
-							class="w-6 h-6 text-foreground"
+							class="text-foreground h-6 w-6"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -92,32 +86,26 @@
 						</svg>
 					</div>
 					<div>
-						<h3
-							class="text-xl font-semibold text-foreground mb-2 group-hover:text-foreground/90"
-						>
+						<h3 class="text-foreground group-hover:text-foreground/90 mb-2 text-xl font-semibold">
 							Cultural Applications
 						</h3>
-						<p class="text-sm text-muted-foreground mb-3">Fleur de Papier Agency</p>
+						<p class="text-muted-foreground mb-3 text-sm">Fleur de Papier Agency</p>
 						<p class="text-muted-foreground text-sm leading-relaxed">
 							Creative web applications for cultural mediation. Interactive experiences bridging
 							art, technology, and public engagement.
 						</p>
 					</div>
 					<div class="flex flex-wrap gap-2">
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded">React</span>
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded"
-							>Creative</span
-						>
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded"
-							>Cultural</span
-						>
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs">React</span>
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs">Creative</span>
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs">Cultural</span>
 					</div>
 					<div
-						class="flex items-center space-x-2 text-xs text-muted-foreground group-hover:text-foreground/80"
+						class="text-muted-foreground group-hover:text-foreground/80 flex items-center space-x-2 text-xs"
 					>
 						<span>View Projects</span>
 						<svg
-							class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+							class="h-4 w-4 transition-transform group-hover:translate-x-1"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -136,14 +124,14 @@
 			<!-- Personal Projects -->
 			<a
 				href="/portfolio/projects/personal"
-				class="group relative overflow-hidden rounded-xl border border-border/20 bg-card p-6 hover:border-border/40 hover:bg-card/80 transition-all duration-300 cursor-pointer"
+				class="group border-border/20 bg-card hover:border-border/40 hover:bg-card/80 relative cursor-pointer overflow-hidden rounded-xl border p-6 transition-all duration-300"
 			>
 				<div class="space-y-4">
 					<div
-						class="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center group-hover:bg-foreground/20 transition-colors"
+						class="bg-foreground/10 group-hover:bg-foreground/20 flex h-12 w-12 items-center justify-center rounded-lg transition-colors"
 					>
 						<svg
-							class="w-6 h-6 text-foreground"
+							class="text-foreground h-6 w-6"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -157,28 +145,26 @@
 						</svg>
 					</div>
 					<div>
-						<h3
-							class="text-xl font-semibold text-foreground mb-2 group-hover:text-foreground/90"
-						>
+						<h3 class="text-foreground group-hover:text-foreground/90 mb-2 text-xl font-semibold">
 							Personal Projects
 						</h3>
-						<p class="text-sm text-muted-foreground mb-3">Side Projects & Experiments</p>
+						<p class="text-muted-foreground mb-3 text-sm">Side Projects & Experiments</p>
 						<p class="text-muted-foreground text-sm leading-relaxed">
 							Portfolio iterations, blog platform, and creative experiments. Exploring new
 							technologies and design patterns.
 						</p>
 					</div>
 					<div class="flex flex-wrap gap-2">
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded">Vue</span>
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded">Nuxt</span>
-						<span class="px-2 py-1 text-xs bg-foreground/10 text-foreground rounded">Blog</span>
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs">Vue</span>
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs">Nuxt</span>
+						<span class="bg-foreground/10 text-foreground rounded px-2 py-1 text-xs">Blog</span>
 					</div>
 					<div
-						class="flex items-center space-x-2 text-xs text-muted-foreground group-hover:text-foreground/80"
+						class="text-muted-foreground group-hover:text-foreground/80 flex items-center space-x-2 text-xs"
 					>
 						<span>Explore Projects</span>
 						<svg
-							class="w-4 h-4 group-hover:translate-x-1 transition-transform"
+							class="h-4 w-4 transition-transform group-hover:translate-x-1"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -196,7 +182,7 @@
 		</div>
 
 		<div class="mt-12 text-center">
-			<p class="text-sm text-muted-foreground max-w-2xl mx-auto">
+			<p class="text-muted-foreground mx-auto max-w-2xl text-sm">
 				Some projects are presented through video demonstrations due to confidentiality agreements
 				and client privacy requirements.
 			</p>

@@ -14,7 +14,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let { count = 20, class: className }: MeteorsProps = $props();
 
@@ -22,7 +22,7 @@
 		Array.from({ length: count }, () => ({
 			left: `${Math.floor(Math.random() * 800 - 400)}px`,
 			animationDelay: `${(Math.random() * 0.6 + 0.2).toFixed(2)}s`,
-			animationDuration: `${Math.floor(Math.random() * 8 + 2)}s`
+			animationDuration: `${Math.floor(Math.random() * 8 + 2)}s`,
 		}))
 	);
 </script>
@@ -30,7 +30,7 @@
 {#each meteors as meteor, i (i)}
 	<span
 		class={cn(
-			'meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full bg-slate-500 opacity-0 shadow-[0_0_0_1px_#ffffff10]',
+			"meteor pointer-events-none absolute top-0 h-0.5 w-0.5 rounded-full bg-slate-500 opacity-0 shadow-[0_0_0_1px_#ffffff10]",
 			"before:absolute before:top-1/2 before:h-px before:w-[50px] before:-translate-y-1/2 before:bg-gradient-to-r before:from-slate-500 before:to-transparent before:content-['']",
 			className
 		)}

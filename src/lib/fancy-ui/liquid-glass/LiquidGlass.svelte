@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { onMount } from 'svelte';
-	import type { Snippet } from 'svelte';
+	import { cn } from "$lib/utils";
+	import { onMount } from "svelte";
+	import type { Snippet } from "svelte";
 
 	interface Props {
 		radius?: number;
@@ -9,8 +9,8 @@
 		lightness?: number;
 		displace?: number;
 		blend?: string;
-		xChannel?: 'R' | 'G' | 'B';
-		yChannel?: 'R' | 'G' | 'B';
+		xChannel?: "R" | "G" | "B";
+		yChannel?: "R" | "G" | "B";
 		alpha?: number;
 		blur?: number;
 		rOffset?: number;
@@ -28,9 +28,9 @@
 		border: borderProp = 0.07,
 		lightness = 50,
 		displace,
-		blend = 'difference',
-		xChannel = 'R',
-		yChannel = 'B',
+		blend = "difference",
+		xChannel = "R",
+		yChannel = "B",
 		alpha = 0.93,
 		blur = 11,
 		rOffset = 0,
@@ -38,14 +38,14 @@
 		bOffset = 20,
 		scale = -180,
 		frost = 0.05,
-		class: className = '',
-		containerClass = '',
-		children
+		class: className = "",
+		containerClass = "",
+		children,
 	}: Props = $props();
 
 	let liquidGlassRoot: HTMLDivElement;
 	let dimensions = $state({ width: 0, height: 0 });
-	let filterId = $state('');
+	let filterId = $state("");
 
 	let displacementImage = $derived.by(() => {
 		const brd = Math.min(dimensions.width, dimensions.height) * (borderProp * 0.5);
@@ -92,10 +92,10 @@
 
 <div
 	bind:this={liquidGlassRoot}
-	class={cn('liquid-glass-effect', containerClass)}
+	class={cn("liquid-glass-effect", containerClass)}
 	style={backdropStyle}
 >
-	<div class={cn('liquid-glass-slot', className)}>
+	<div class={cn("liquid-glass-slot", className)}>
 		{#if children}
 			{@render children()}
 		{/if}
@@ -105,14 +105,7 @@
 		<svg class="liquid-glass-filter" xmlns="http://www.w3.org/2000/svg">
 			<defs>
 				<filter id="displacementFilter-{filterId}" color-interpolation-filters="sRGB">
-					<feImage
-						x="0"
-						y="0"
-						width="100%"
-						height="100%"
-						href={displacementDataUri}
-						result="map"
-					/>
+					<feImage x="0" y="0" width="100%" height="100%" href={displacementDataUri} result="map" />
 					<feDisplacementMap
 						in="SourceGraphic"
 						in2="map"
@@ -172,10 +165,7 @@
 		display: block;
 		opacity: 1;
 		border-radius: inherit;
-		background: light-dark(
-			hsl(0 0% 100% / var(--frost, 0)),
-			hsl(0 0% 0% / var(--frost, 0))
-		);
+		background: light-dark(hsl(0 0% 100% / var(--frost, 0)), hsl(0 0% 0% / var(--frost, 0)));
 		box-shadow:
 			0 0 2px 1px
 				light-dark(

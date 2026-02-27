@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils";
+	import { onMount } from "svelte";
 
 	interface Props {
 		words?: string[];
@@ -11,16 +11,16 @@
 	}
 
 	let {
-		words = ['better', 'modern', 'beautiful', 'awesome'],
+		words = ["better", "modern", "beautiful", "awesome"],
 		interval = 3000,
 		animationDuration = 700,
-		class: className = '',
-		textClass = ''
+		class: className = "",
+		textClass = "",
 	}: Props = $props();
 
 	let currentWordIndex = $state(0);
-	let currentWord = $derived(words[currentWordIndex] ?? '');
-	let letters = $derived(currentWord.split(''));
+	let currentWord = $derived(words[currentWordIndex] ?? "");
+	let letters = $derived(currentWord.split(""));
 
 	onMount(() => {
 		const id = setInterval(() => {
@@ -33,22 +33,23 @@
 
 <p
 	class={cn(
-		'relative inline-block rounded-lg pt-2 pb-3 px-4 text-center text-4xl font-bold text-black md:text-7xl dark:text-white',
-		'[background:linear-gradient(to_bottom,#f3f4f6,#e5e7eb)]',
-		'shadow-[inset_0_-1px_#d1d5db,inset_0_0_0_1px_#d1d5db,_0_4px_8px_#d1d5db]',
-		'dark:[background:linear-gradient(to_bottom,#374151,#1f2937)]',
-		'dark:shadow-[inset_0_-1px_#10171e,inset_0_0_0_1px_hsla(205,89%,46%,.24),_0_4px_8px_#00000052]',
+		"relative inline-block rounded-lg px-4 pt-2 pb-3 text-center text-4xl font-bold text-black md:text-7xl dark:text-white",
+		"[background:linear-gradient(to_bottom,#f3f4f6,#e5e7eb)]",
+		"shadow-[inset_0_-1px_#d1d5db,inset_0_0_0_1px_#d1d5db,_0_4px_8px_#d1d5db]",
+		"dark:[background:linear-gradient(to_bottom,#374151,#1f2937)]",
+		"dark:shadow-[inset_0_-1px_#10171e,inset_0_0_0_1px_hsla(205,89%,46%,.24),_0_4px_8px_#00000052]",
 		className
 	)}
 >
-	<span class={cn('inline-block', textClass)}>
+	<span class={cn("inline-block", textClass)}>
 		<span class="inline-block">
 			{#key currentWord}
 				{#each letters as letter, index}
 					<span
 						class="text-flip-letter inline-block"
 						style="animation-delay: {index * 0.02}s; animation-duration: {animationDuration}ms;"
-					>{letter === ' ' ? '\u00A0' : letter}</span>
+						>{letter === " " ? "\u00A0" : letter}</span
+					>
 				{/each}
 			{/key}
 		</span>

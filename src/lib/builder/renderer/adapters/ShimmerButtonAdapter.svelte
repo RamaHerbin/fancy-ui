@@ -4,7 +4,7 @@
   The builder uses a `text` prop instead.
 -->
 <script lang="ts">
-	import { ShimmerButton } from '$lib/fancy-ui/shimmer-button/index.js';
+	import { ShimmerButton } from "$lib/fancy-ui/shimmer-button/index.js";
 
 	interface Props {
 		text?: string;
@@ -18,7 +18,7 @@
 	}
 
 	let {
-		text = 'Click me',
+		text = "Click me",
 		shimmerColor,
 		shimmerSize,
 		borderRadius,
@@ -29,8 +29,18 @@
 	}: Props = $props();
 </script>
 
-<ShimmerButton {shimmerColor} {shimmerSize} {borderRadius} {shimmerDuration} {background} class={className} {...restProps}>
-	<span class="relative z-10 whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white lg:text-lg dark:from-white dark:to-slate-900/10">
+<ShimmerButton
+	{shimmerColor}
+	{shimmerSize}
+	{borderRadius}
+	{shimmerDuration}
+	{background}
+	class={className}
+	{...restProps}
+>
+	<span
+		class="relative z-10 text-center text-sm leading-none font-medium tracking-tight whitespace-pre-wrap text-white lg:text-lg dark:from-white dark:to-slate-900/10"
+	>
 		{text}
 	</span>
 </ShimmerButton>

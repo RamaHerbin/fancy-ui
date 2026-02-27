@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { validateContactForm, hasValidationErrors, sanitizeFormData } from './validation.js';
-	import type { ContactFormData, FieldErrors } from './types.js';
+	import { cn } from "$lib/utils.js";
+	import { validateContactForm, hasValidationErrors, sanitizeFormData } from "./validation.js";
+	import type { ContactFormData, FieldErrors } from "./types.js";
 
-	let formState = $state<ContactFormData>({ name: '', email: '', message: '' });
+	let formState = $state<ContactFormData>({ name: "", email: "", message: "" });
 	let fieldErrors = $state<FieldErrors>({});
 	let isSubmitting = $state(false);
 	let success = $state(false);
-	let globalError = $state('');
+	let globalError = $state("");
 
 	// Textarea gradient mouse tracking
 	let textareaContainerRef: HTMLDivElement | undefined = $state();
@@ -16,7 +16,7 @@
 	const textareaRadius = 100;
 
 	let textareaBg = $derived(
-		`radial-gradient(${textareaVisible ? textareaRadius + 'px' : '0px'} circle at ${textareaMouse.x}px ${textareaMouse.y}px, var(--color-blue-500, #3b82f6), transparent 80%)`
+		`radial-gradient(${textareaVisible ? textareaRadius + "px" : "0px"} circle at ${textareaMouse.x}px ${textareaMouse.y}px, var(--color-blue-500, #3b82f6), transparent 80%)`
 	);
 
 	function handleTextareaMouseMove(e: MouseEvent) {
@@ -30,7 +30,7 @@
 	}
 
 	function dismissError() {
-		globalError = '';
+		globalError = "";
 	}
 
 	function handleSubmit(e: Event) {
@@ -53,7 +53,7 @@
 			isSubmitting = false;
 		}, 500);
 		success = true;
-		formState = { name: '', email: '', message: '' };
+		formState = { name: "", email: "", message: "" };
 
 		setTimeout(() => {
 			success = false;
@@ -61,16 +61,16 @@
 	}
 </script>
 
-<div class="w-full max-w-md mx-auto">
+<div class="mx-auto w-full max-w-md">
 	<!-- Global Success/Error Messages -->
 	{#if success}
 		<div class="mb-6">
 			<div
-				class="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
+				class="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
 			>
 				<div class="flex items-center">
 					<svg
-						class="w-5 h-5 text-green-600 dark:text-green-400 mr-3"
+						class="mr-3 h-5 w-5 text-green-600 dark:text-green-400"
 						fill="currentColor"
 						viewBox="0 0 20 20"
 					>
@@ -86,10 +86,10 @@
 				</div>
 				<button
 					onclick={dismissSuccess}
-					class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+					class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
 					aria-label="Dismiss success message"
 				>
-					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+					<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
 						<path
 							fill-rule="evenodd"
 							d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -104,11 +104,11 @@
 	{#if globalError}
 		<div class="mb-6">
 			<div
-				class="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+				class="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
 			>
 				<div class="flex items-center">
 					<svg
-						class="w-5 h-5 text-red-600 dark:text-red-400 mr-3"
+						class="mr-3 h-5 w-5 text-red-600 dark:text-red-400"
 						fill="currentColor"
 						viewBox="0 0 20 20"
 					>
@@ -122,10 +122,10 @@
 				</div>
 				<button
 					onclick={dismissError}
-					class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+					class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200"
 					aria-label="Dismiss error message"
 				>
-					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+					<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
 						<path
 							fill-rule="evenodd"
 							d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -141,7 +141,7 @@
 	<form onsubmit={handleSubmit} class="space-y-6">
 		<!-- Name Field -->
 		<div>
-			<label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+			<label for="name" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
 				Name *
 			</label>
 			<input
@@ -151,8 +151,8 @@
 				placeholder="Your full name"
 				disabled={isSubmitting}
 				class={cn(
-					'flex w-full border-none bg-gray-50 dark:bg-zinc-800 text-black dark:text-white shadow-input rounded-md px-3 py-2 text-sm placeholder:text-neutral-400 dark:placeholder-text-neutral-600 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-neutral-400 dark:focus-visible:ring-neutral-600 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-[0px_0px_1px_1px_var(--neutral-700)] transition duration-400',
-					fieldErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''
+					"shadow-input dark:placeholder-text-neutral-600 flex w-full rounded-md border-none bg-gray-50 px-3 py-2 text-sm text-black transition duration-400 placeholder:text-neutral-400 focus-visible:ring-[2px] focus-visible:ring-neutral-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-800 dark:text-white dark:shadow-[0px_0px_1px_1px_var(--neutral-700)] dark:focus-visible:ring-neutral-600",
+					fieldErrors.name ? "border-red-500 focus-visible:ring-red-500" : ""
 				)}
 				aria-describedby="name-error"
 				required
@@ -166,7 +166,7 @@
 
 		<!-- Email Field -->
 		<div>
-			<label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+			<label for="email" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
 				Email *
 			</label>
 			<input
@@ -176,8 +176,8 @@
 				placeholder="your.email@example.com"
 				disabled={isSubmitting}
 				class={cn(
-					'flex w-full border-none bg-gray-50 dark:bg-zinc-800 text-black dark:text-white shadow-input rounded-md px-3 py-2 text-sm placeholder:text-neutral-400 dark:placeholder-text-neutral-600 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-neutral-400 dark:focus-visible:ring-neutral-600 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-[0px_0px_1px_1px_var(--neutral-700)] transition duration-400',
-					fieldErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''
+					"shadow-input dark:placeholder-text-neutral-600 flex w-full rounded-md border-none bg-gray-50 px-3 py-2 text-sm text-black transition duration-400 placeholder:text-neutral-400 focus-visible:ring-[2px] focus-visible:ring-neutral-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-800 dark:text-white dark:shadow-[0px_0px_1px_1px_var(--neutral-700)] dark:focus-visible:ring-neutral-600",
+					fieldErrors.email ? "border-red-500 focus-visible:ring-red-500" : ""
 				)}
 				aria-describedby="email-error"
 				required
@@ -191,10 +191,7 @@
 
 		<!-- Message Field -->
 		<div>
-			<label
-				for="message"
-				class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-			>
+			<label for="message" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
 				Message *
 			</label>
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -213,8 +210,8 @@
 					placeholder="Tell me about your project or just say hello..."
 					disabled={isSubmitting}
 					class={cn(
-						'flex w-full border-none bg-gray-50 dark:bg-zinc-800 text-black dark:text-white shadow-input rounded-md px-3 py-2 text-sm placeholder:text-neutral-400 dark:placeholder-text-neutral-600 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-neutral-400 dark:focus-visible:ring-neutral-600 disabled:cursor-not-allowed disabled:opacity-50 dark:shadow-[0px_0px_1px_1px_var(--neutral-700)] group-hover/input:shadow-none transition duration-400 resize-none',
-						fieldErrors.message ? 'border-red-500 focus-visible:ring-red-500' : ''
+						"shadow-input dark:placeholder-text-neutral-600 flex w-full resize-none rounded-md border-none bg-gray-50 px-3 py-2 text-sm text-black transition duration-400 group-hover/input:shadow-none placeholder:text-neutral-400 focus-visible:ring-[2px] focus-visible:ring-neutral-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-800 dark:text-white dark:shadow-[0px_0px_1px_1px_var(--neutral-700)] dark:focus-visible:ring-neutral-600",
+						fieldErrors.message ? "border-red-500 focus-visible:ring-red-500" : ""
 					)}
 					aria-describedby="message-error"
 					required
@@ -231,12 +228,12 @@
 		<button
 			type="submit"
 			disabled={isSubmitting}
-			class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-			aria-label={isSubmitting ? 'Sending message...' : 'Send message'}
+			class="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors duration-200 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:bg-blue-400 dark:focus:ring-offset-gray-900"
+			aria-label={isSubmitting ? "Sending message..." : "Send message"}
 		>
 			{#if isSubmitting}
 				<svg
-					class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+					class="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
@@ -250,7 +247,7 @@
 					></path>
 				</svg>
 			{/if}
-			{isSubmitting ? 'Sending...' : 'Send Message'}
+			{isSubmitting ? "Sending..." : "Send Message"}
 		</button>
 	</form>
 </div>

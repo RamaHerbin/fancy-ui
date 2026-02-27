@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { BlockNode } from '../types/page.js';
-	import { getBuilderComponent } from '../registry/index.js';
-	import { getEditorState } from '../stores/editor.svelte.js';
-	import { getIcon } from './IconMap.js';
-	import { DRAG_THRESHOLD } from '../utils/drag.js';
-	import LayerTreeNodeSelf from './LayerTreeNode.svelte';
+	import type { BlockNode } from "../types/page.js";
+	import { getBuilderComponent } from "../registry/index.js";
+	import { getEditorState } from "../stores/editor.svelte.js";
+	import { getIcon } from "./IconMap.js";
+	import { DRAG_THRESHOLD } from "../utils/drag.js";
+	import LayerTreeNodeSelf from "./LayerTreeNode.svelte";
 
 	interface Props {
 		node: BlockNode;
@@ -28,7 +28,7 @@
 	// Drop indicators
 	let isBeingDragged = $derived(
 		editor.isDragging &&
-			editor.dragSource?.type === 'block' &&
+			editor.dragSource?.type === "block" &&
 			editor.dragSource.blockId === node.id
 	);
 	let dropPosition = $derived.by(() => {
@@ -40,7 +40,7 @@
 	let hoverTimer: ReturnType<typeof setTimeout> | null = null;
 
 	$effect(() => {
-		if (dropPosition === 'inside' && !expanded && meta?.acceptsChildren) {
+		if (dropPosition === "inside" && !expanded && meta?.acceptsChildren) {
 			hoverTimer = setTimeout(() => {
 				expanded = true;
 			}, 500);
@@ -51,9 +51,9 @@
 	});
 
 	let label = $derived.by(() => {
-		if (node.type === '_text') {
-			const content = (node.props.content as string) ?? '';
-			return content.length > 30 ? content.slice(0, 30) + '...' : content || 'Empty text';
+		if (node.type === "_text") {
+			const content = (node.props.content as string) ?? "";
+			return content.length > 30 ? content.slice(0, 30) + "..." : content || "Empty text";
 		}
 		return meta?.name ?? node.type;
 	});
@@ -73,8 +73,8 @@
 		startX = e.clientX;
 		startY = e.clientY;
 		dragging = false;
-		document.addEventListener('pointermove', onPointerMove);
-		document.addEventListener('pointerup', onPointerUp);
+		document.addEventListener("pointermove", onPointerMove);
+		document.addEventListener("pointerup", onPointerUp);
 	}
 
 	function onPointerMove(e: PointerEvent) {
@@ -92,8 +92,8 @@
 	}
 
 	function onPointerUp() {
-		document.removeEventListener('pointermove', onPointerMove);
-		document.removeEventListener('pointerup', onPointerUp);
+		document.removeEventListener("pointermove", onPointerMove);
+		document.removeEventListener("pointerup", onPointerUp);
 
 		if (dragging) {
 			editor.executeDrop();
@@ -120,14 +120,14 @@
 		onclick={handleClick}
 		onpointerdown={onPointerDown}
 		onkeydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') {
+			if (e.key === "Enter" || e.key === " ") {
 				e.preventDefault();
 				handleClick();
 			}
 		}}
 	>
-		{#if dropPosition === 'before'}
-			<div class="pointer-events-none absolute -top-px left-2 right-0 z-10 h-0.5 bg-primary"></div>
+		{#if dropPosition === "before"}
+			<div class="bg-primary pointer-events-none absolute -top-px right-0 left-2 z-10 h-0.5"></div>
 		{/if}
 
 		{#if hasChildren}
@@ -136,7 +136,7 @@
 				class="flex h-4 w-4 shrink-0 items-center justify-center"
 				onclick={toggleExpand}
 				onkeydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
+					if (e.key === "Enter" || e.key === " ") {
 						e.preventDefault();
 						e.stopPropagation();
 						expanded = !expanded;
@@ -158,13 +158,15 @@
 		{/if}
 
 		{#if Icon}
-			<Icon class="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+			<Icon class="text-muted-foreground h-3.5 w-3.5 shrink-0" />
 		{/if}
 
 		<span class="truncate">{label}</span>
 
-		{#if dropPosition === 'after'}
-			<div class="pointer-events-none absolute -bottom-px left-2 right-0 z-10 h-0.5 bg-primary"></div>
+		{#if dropPosition === "after"}
+			<div
+				class="bg-primary pointer-events-none absolute right-0 -bottom-px left-2 z-10 h-0.5"
+			></div>
 		{/if}
 	</div>
 

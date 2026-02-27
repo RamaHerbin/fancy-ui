@@ -19,16 +19,16 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
-	import type { Snippet } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
+	import type { Snippet } from "svelte";
 
 	let {
-		color = '#5046e6',
+		color = "#5046e6",
 		duration = 0.5,
 		delay = 0.25,
 		class: className,
-		children
+		children,
 	}: BoxRevealProps & { children: Snippet } = $props();
 
 	let containerRef: HTMLDivElement;
@@ -51,7 +51,7 @@
 	});
 </script>
 
-<div bind:this={containerRef} class={cn('box-reveal relative overflow-hidden', className)}>
+<div bind:this={containerRef} class={cn("box-reveal relative overflow-hidden", className)}>
 	<!-- Content (fades up) -->
 	<div
 		class="box-reveal-content"

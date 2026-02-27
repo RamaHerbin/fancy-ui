@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
-	import type { Snippet } from 'svelte';
-	import confetti from 'canvas-confetti';
-	import type { Options as ConfettiOptions } from 'canvas-confetti';
+	import { getContext } from "svelte";
+	import type { Snippet } from "svelte";
+	import confetti from "canvas-confetti";
+	import type { Options as ConfettiOptions } from "canvas-confetti";
 
 	interface Props {
 		options?: ConfettiOptions;
@@ -12,7 +12,7 @@
 	let { options = {}, children }: Props = $props();
 
 	const confettiContext = getContext<{ fire: (opts?: ConfettiOptions) => void } | undefined>(
-		'ConfettiContext'
+		"ConfettiContext"
 	);
 
 	function handleClick(event: MouseEvent) {
@@ -23,7 +23,7 @@
 
 		const origin = {
 			x: x / window.innerWidth,
-			y: y / window.innerHeight
+			y: y / window.innerHeight,
 		};
 
 		if (confettiContext) {

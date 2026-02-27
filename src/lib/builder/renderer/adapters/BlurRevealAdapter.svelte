@@ -4,7 +4,7 @@
   The builder uses a `text` prop instead.
 -->
 <script lang="ts">
-	import { BlurReveal } from '$lib/fancy-ui/blur-reveal/index.js';
+	import { BlurReveal } from "$lib/fancy-ui/blur-reveal/index.js";
 
 	interface Props {
 		text?: string;
@@ -17,7 +17,7 @@
 	}
 
 	let {
-		text = 'Blur Reveal Text',
+		text = "Blur Reveal Text",
 		duration,
 		delay,
 		blur: blurAmount,

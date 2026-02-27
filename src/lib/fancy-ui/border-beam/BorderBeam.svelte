@@ -26,7 +26,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let {
 		class: className,
@@ -34,9 +34,9 @@
 		duration = 15,
 		borderWidth = 1.5,
 		anchor = 90,
-		colorFrom = '#ffaa40',
-		colorTo = '#9c40ff',
-		delay = 0
+		colorFrom = "#ffaa40",
+		colorTo = "#9c40ff",
+		delay = 0,
 	}: BorderBeamProps = $props();
 
 	const style = $derived(
@@ -47,22 +47,22 @@
 			`--border-beam-border-width: ${borderWidth}`,
 			`--border-beam-color-from: ${colorFrom}`,
 			`--border-beam-color-to: ${colorTo}`,
-			`--border-beam-delay: ${delay}s`
-		].join(';')
+			`--border-beam-delay: ${delay}s`,
+		].join(";")
 	);
 </script>
 
 <div
 	class={cn(
-		'border-beam',
-		'pointer-events-none absolute inset-0 rounded-[inherit]',
-		'[border:calc(var(--border-beam-border-width)*1px)_solid_transparent]',
-		'![mask-clip:padding-box,border-box] ![mask-composite:intersect] [mask:linear-gradient(transparent,transparent),linear-gradient(white,white)]',
-		'after:absolute after:aspect-square after:w-[calc(var(--border-beam-size)*1px)]',
-		'after:[animation-delay:var(--border-beam-delay)]',
-		'after:[background:linear-gradient(to_left,var(--border-beam-color-from),var(--border-beam-color-to),transparent)]',
-		'after:[offset-anchor:calc(var(--border-beam-anchor)*1%)_50%]',
-		'after:[offset-path:rect(0_auto_auto_0_round_calc(var(--border-beam-size)*1px))]',
+		"border-beam",
+		"pointer-events-none absolute inset-0 rounded-[inherit]",
+		"[border:calc(var(--border-beam-border-width)*1px)_solid_transparent]",
+		"![mask-composite:intersect] ![mask-clip:padding-box,border-box] [mask:linear-gradient(transparent,transparent),linear-gradient(white,white)]",
+		"after:absolute after:aspect-square after:w-[calc(var(--border-beam-size)*1px)]",
+		"after:[animation-delay:var(--border-beam-delay)]",
+		"after:[background:linear-gradient(to_left,var(--border-beam-color-from),var(--border-beam-color-to),transparent)]",
+		"after:[offset-anchor:calc(var(--border-beam-anchor)*1%)_50%]",
+		"after:[offset-path:rect(0_auto_auto_0_round_calc(var(--border-beam-size)*1px))]",
 		className
 	)}
 	{style}
@@ -70,7 +70,7 @@
 
 <style>
 	.border-beam::after {
-		content: '';
+		content: "";
 		animation: border-beam-animation var(--border-beam-duration) infinite linear;
 	}
 

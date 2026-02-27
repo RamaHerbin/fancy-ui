@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface SpringConfig {
 		/** Controls how quickly the animation settles (default: 45) */
@@ -21,19 +21,15 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { cn } from '$lib/utils.js';
+	import { onMount } from "svelte";
+	import { cn } from "$lib/utils.js";
 
-	let {
-		cursor,
-		springConfig = {},
-		class: className = ''
-	}: SmoothCursorProps = $props();
+	let { cursor, springConfig = {}, class: className = "" }: SmoothCursorProps = $props();
 
 	const config = $derived({
 		damping: springConfig.damping ?? 45,
 		stiffness: springConfig.stiffness ?? 400,
-		mass: springConfig.mass ?? 1
+		mass: springConfig.mass ?? 1,
 	});
 
 	let cursorEl: HTMLDivElement;
@@ -173,7 +169,7 @@
 	}
 
 	onMount(() => {
-		const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+		const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 		reducedMotion = motionQuery.matches;
 
 		function onMotionChange(e: MediaQueryListEvent) {
@@ -186,20 +182,20 @@
 			}
 		}
 
-		motionQuery.addEventListener('change', onMotionChange);
+		motionQuery.addEventListener("change", onMotionChange);
 
-		document.body.style.cursor = 'none';
+		document.body.style.cursor = "none";
 
-		document.addEventListener('mousemove', onMouseMove);
-		document.documentElement.addEventListener('mouseleave', onMouseLeave);
-		document.documentElement.addEventListener('mouseenter', onMouseEnter);
+		document.addEventListener("mousemove", onMouseMove);
+		document.documentElement.addEventListener("mouseleave", onMouseLeave);
+		document.documentElement.addEventListener("mouseenter", onMouseEnter);
 
 		return () => {
-			document.body.style.cursor = '';
-			motionQuery.removeEventListener('change', onMotionChange);
-			document.removeEventListener('mousemove', onMouseMove);
-			document.documentElement.removeEventListener('mouseleave', onMouseLeave);
-			document.documentElement.removeEventListener('mouseenter', onMouseEnter);
+			document.body.style.cursor = "";
+			motionQuery.removeEventListener("change", onMotionChange);
+			document.removeEventListener("mousemove", onMouseMove);
+			document.documentElement.removeEventListener("mouseleave", onMouseLeave);
+			document.documentElement.removeEventListener("mouseenter", onMouseEnter);
 			stopAnimation();
 		};
 	});
@@ -208,8 +204,8 @@
 <div
 	bind:this={cursorEl}
 	class={cn(
-		'pointer-events-none fixed top-0 left-0 z-[9999]',
-		visible ? 'opacity-100' : 'opacity-0',
+		"pointer-events-none fixed top-0 left-0 z-[9999]",
+		visible ? "opacity-100" : "opacity-0",
 		className
 	)}
 	style="will-change: transform; translate: -50% -50%;"
@@ -218,12 +214,7 @@
 		{@render cursor()}
 	{:else}
 		<!-- Default cursor: arrow SVG -->
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="32"
-			height="32"
-			viewBox="0 0 32 32"
-		>
+		<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
 			<path
 				fill="currentColor"
 				d="M9.391 2.32C8.42 1.56 7 2.253 7 3.486V28.41c0 1.538 1.966 2.18 2.874.938l6.225-8.523a2 2 0 0 1 1.615-.82h9.69c1.512 0 2.17-1.912.978-2.844z"

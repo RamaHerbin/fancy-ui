@@ -10,7 +10,7 @@
 		/** Target number to animate to */
 		value?: number;
 		/** Animation direction: "up" counts 0→value, "down" counts value→0 */
-		direction?: 'up' | 'down';
+		direction?: "up" | "down";
 		/** Animation duration in ms */
 		duration?: number;
 		/** Delay before animation starts (ms) */
@@ -23,20 +23,20 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
 	let {
 		value = 0,
-		direction = 'up',
+		direction = "up",
 		duration = 1000,
 		delay = 0,
 		decimalPlaces = 0,
-		class: className
+		class: className,
 	}: NumberTickerProps = $props();
 
 	let spanRef: HTMLSpanElement;
-	let initialValue = $derived(direction === 'down' ? value : 0);
+	let initialValue = $derived(direction === "down" ? value : 0);
 	let displayValue = $state(0);
 	let hasAnimated = false;
 	let animationFrameId: number | null = null;
@@ -77,9 +77,9 @@
 	}
 
 	let formattedValue = $derived(
-		new Intl.NumberFormat('en-US', {
+		new Intl.NumberFormat("en-US", {
 			minimumFractionDigits: decimalPlaces,
-			maximumFractionDigits: decimalPlaces
+			maximumFractionDigits: decimalPlaces,
 		}).format(Number(displayValue.toFixed(decimalPlaces)))
 	);
 
@@ -88,7 +88,7 @@
 			(entries) => {
 				if (entries[0]?.isIntersecting && !hasAnimated) {
 					hasAnimated = true;
-					const target = direction === 'down' ? 0 : value;
+					const target = direction === "down" ? 0 : value;
 					animate(target);
 					observer.disconnect();
 				}
@@ -105,7 +105,7 @@
 	});
 
 	// Re-animate when value prop changes after initial animation
-	let animTarget = $derived(direction === 'down' ? 0 : value);
+	let animTarget = $derived(direction === "down" ? 0 : value);
 	$effect(() => {
 		// Access derived to track changes
 		const target = animTarget;
@@ -118,7 +118,7 @@
 <span
 	bind:this={spanRef}
 	class={cn(
-		'number-ticker inline-block tabular-nums text-black dark:text-white tracking-wider',
+		"number-ticker inline-block tracking-wider text-black tabular-nums dark:text-white",
 		className
 	)}
 >

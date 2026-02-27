@@ -20,10 +20,10 @@
  * Rename to [ComponentName]Config
  */
 export interface ComponentConfig {
-  /** Enable feature X */
-  enabled?: boolean;
-  /** Configuration value */
-  value?: number;
+	/** Enable feature X */
+	enabled?: boolean;
+	/** Configuration value */
+	value?: number;
 }
 
 // =============================================================================
@@ -36,12 +36,12 @@ export interface ComponentConfig {
  * Rename to [ComponentName]Item
  */
 export interface ComponentItem {
-  /** Unique identifier */
-  id: string;
-  /** Display label */
-  label: string;
-  /** Optional icon name */
-  icon?: string;
+	/** Unique identifier */
+	id: string;
+	/** Display label */
+	label: string;
+	/** Optional icon name */
+	icon?: string;
 }
 
 // =============================================================================
@@ -54,10 +54,10 @@ export interface ComponentItem {
  * Rename to [ComponentName]State
  */
 export interface ComponentState {
-  /** Current index */
-  currentIndex: number;
-  /** Whether component is active */
-  isActive: boolean;
+	/** Current index */
+	currentIndex: number;
+	/** Whether component is active */
+	isActive: boolean;
 }
 
 // =============================================================================
@@ -70,8 +70,8 @@ export interface ComponentState {
  * Rename to [ComponentName]ChangeEvent or similar
  */
 export interface ComponentChangeEvent {
-  /** Previous value */
-  previousValue: unknown;
-  /** New value */
-  newValue: unknown;
+	/** Previous value */
+	previousValue: unknown;
+	/** New value */
+	newValue: unknown;
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { BuilderComponentMeta } from '../types/registry.js';
-	import { getIcon } from './IconMap.js';
-	import { getEditorState } from '../stores/editor.svelte.js';
-	import { DRAG_THRESHOLD } from '../utils/drag.js';
+	import type { BuilderComponentMeta } from "../types/registry.js";
+	import { getIcon } from "./IconMap.js";
+	import { getEditorState } from "../stores/editor.svelte.js";
+	import { DRAG_THRESHOLD } from "../utils/drag.js";
 
 	interface Props {
 		meta: BuilderComponentMeta;
@@ -32,9 +32,7 @@
 
 	function handleClick() {
 		const parentId =
-			editor.selectedBlock && editor.selectedMeta?.acceptsChildren
-				? editor.selectedBlockId
-				: null;
+			editor.selectedBlock && editor.selectedMeta?.acceptsChildren ? editor.selectedBlockId : null;
 		editor.addBlock(meta.slug, parentId);
 	}
 
@@ -43,8 +41,8 @@
 		startX = e.clientX;
 		startY = e.clientY;
 		dragging = false;
-		document.addEventListener('pointermove', onPointerMove);
-		document.addEventListener('pointerup', onPointerUp);
+		document.addEventListener("pointermove", onPointerMove);
+		document.addEventListener("pointerup", onPointerUp);
 	}
 
 	function onPointerMove(e: PointerEvent) {
@@ -63,8 +61,8 @@
 	}
 
 	function onPointerUp() {
-		document.removeEventListener('pointermove', onPointerMove);
-		document.removeEventListener('pointerup', onPointerUp);
+		document.removeEventListener("pointermove", onPointerMove);
+		document.removeEventListener("pointerup", onPointerUp);
 
 		if (dragging) {
 			editor.executeDrop();
@@ -78,7 +76,7 @@
 <button
 	bind:this={buttonEl}
 	type="button"
-	class="flex w-full cursor-grab items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors select-none hover:bg-accent hover:text-accent-foreground"
+	class="hover:bg-accent hover:text-accent-foreground flex w-full cursor-grab items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors select-none"
 	style="touch-action: none;"
 	data-testid="palette-item-{meta.slug}"
 	onclick={handleClick}
@@ -87,6 +85,6 @@
 	onmouseleave={handleMouseLeave}
 	title={meta.description}
 >
-	<Icon class="h-4 w-4 shrink-0 text-muted-foreground" />
+	<Icon class="text-muted-foreground h-4 w-4 shrink-0" />
 	<span class="truncate">{meta.name}</span>
 </button>

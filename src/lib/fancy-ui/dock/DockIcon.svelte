@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
-	import { DOCK_CONTEXT_KEY, type DockContext } from './types';
+	import { getContext } from "svelte";
+	import { DOCK_CONTEXT_KEY, type DockContext } from "./types";
 
 	interface Props {
 		class?: string;
-		children?: import('svelte').Snippet;
+		children?: import("svelte").Snippet;
 	}
 
-	let { class: className = '', children }: Props = $props();
+	let { class: className = "", children }: Props = $props();
 
 	const context = getContext<DockContext>(DOCK_CONTEXT_KEY);
 
@@ -18,7 +18,7 @@
 
 		const bounds = iconRef.getBoundingClientRect();
 
-		if (context.orientation === 'vertical') {
+		if (context.orientation === "vertical") {
 			return context.mouseY.current - bounds.y - bounds.height / 2;
 		}
 

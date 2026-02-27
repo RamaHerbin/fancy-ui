@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface BlurRevealProps {
 		/** Animation duration in seconds */
@@ -18,16 +18,16 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
 	let {
 		duration = 1,
 		delay = 0.2,
-		blur = '20px',
+		blur = "20px",
 		yOffset = 20,
 		class: className,
-		children
+		children,
 	}: BlurRevealProps = $props();
 
 	let containerRef: HTMLDivElement;
