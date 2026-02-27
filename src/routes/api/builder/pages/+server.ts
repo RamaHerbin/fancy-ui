@@ -3,6 +3,19 @@ import { getBuilderStorage, isValidSlug, StorageError } from "$lib/builder/stora
 import type { PageDocument } from "$lib/builder/types/page.js";
 import type { RequestHandler } from "./$types.js";
 
+export const GET: RequestHandler = async ({ locals }) => {
+	const storage = getBuilderStorage(locals.githubToken);
+	try {
+		const pages = await storage.list();
+		return json(pages);
+	} catch (err: unknown) {
+		if (err instanceof StorageError) {
+			error(err.statusCode, err.message);
+		}
+		throw err;
+	}
+};
+
 export const POST: RequestHandler = async ({ request, locals }) => {
 	let body: Record<string, unknown>;
 	try {

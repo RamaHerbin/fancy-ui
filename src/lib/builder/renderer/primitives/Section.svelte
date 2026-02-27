@@ -6,6 +6,7 @@
 		padding?: string;
 		maxWidth?: string;
 		background?: string;
+		anchorId?: string;
 		class?: string;
 		children?: Snippet;
 	}
@@ -14,12 +15,13 @@
 		padding = "py-16 px-4",
 		maxWidth = "max-w-6xl",
 		background = "",
+		anchorId = "",
 		class: className = "",
 		children,
 	}: Props = $props();
 </script>
 
-<section class={cn(padding, background, className)}>
+<section id={anchorId || undefined} class={cn(padding, background, className)}>
 	<div class={cn("mx-auto", maxWidth)}>
 		{#if children}
 			{@render children()}

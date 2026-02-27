@@ -38,6 +38,7 @@
 	const categoryLabels: Record<PaletteCategory, string> = {
 		layout: "Layout",
 		text: "Text",
+		content: "Content",
 		cards: "Cards",
 		effects: "Effects",
 		backgrounds: "Backgrounds",
@@ -51,6 +52,7 @@
 	const categoryOrder: PaletteCategory[] = [
 		"layout",
 		"text",
+		"content",
 		"cards",
 		"effects",
 		"buttons",

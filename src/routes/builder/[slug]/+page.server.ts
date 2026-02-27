@@ -10,8 +10,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const storage = getBuilderStorage(locals.githubToken);
 
 	try {
-		const page = await storage.get(params.slug);
-		return { page };
+		const [page, siteConfig, allPages] = await Promise.all([
+			storage.get(params.slug),
+			storage.getSiteConfig(),
+			storage.list(),
+		]);
+		return { page, siteConfig, allPages };
 	} catch (err: unknown) {
 		if (err instanceof StorageError) {
 			error(err.statusCode, err.message);

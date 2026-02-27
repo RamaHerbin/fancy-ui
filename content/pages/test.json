@@ -1,12 +1,12 @@
 {
   "version": 1,
   "meta": {
-    "title": "Mon 1er site en ligne",
+    "title": "Test Page - Builder",
     "slug": "test",
     "description": "A test page to validate the builder renderer",
     "status": "draft",
     "createdAt": "2026-02-18T00:00:00Z",
-    "updatedAt": "2026-02-27T00:01:28.430Z"
+    "updatedAt": "2026-02-27T01:16:45.715Z"
   },
   "body": [
     {
@@ -63,6 +63,15 @@
         "background": ""
       },
       "children": [
+        {
+          "id": "NS-XRciSBcSf",
+          "type": "card-3d",
+          "props": {
+            "title": "3D Card",
+            "description": "Hover to see the 3D effect",
+            "class": ""
+          }
+        },
         {
           "id": "features-title",
           "type": "_text",
