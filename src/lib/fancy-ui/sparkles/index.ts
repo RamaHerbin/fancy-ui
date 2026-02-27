@@ -1,1 +1,1 @@
-export { default as Sparkles } from './Sparkles.svelte';
+export { default as Sparkles } from "./Sparkles.svelte";

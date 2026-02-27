@@ -14,7 +14,7 @@
 // Main Component Export
 // =============================================================================
 
-import ComponentName, { type ComponentNameProps } from './Component.svelte';
+import ComponentName, { type ComponentNameProps } from "./Component.svelte";
 
 export { ComponentName, type ComponentNameProps };
 

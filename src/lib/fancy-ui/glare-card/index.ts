@@ -1,1 +1,1 @@
-export { default as GlareCard } from './GlareCard.svelte';
+export { default as GlareCard } from "./GlareCard.svelte";
