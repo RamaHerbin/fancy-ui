@@ -1,26 +1,20 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from "$lib/utils";
 
 	interface Props {
 		class?: string;
-		header?: import('svelte').Snippet;
-		icon?: import('svelte').Snippet;
-		title?: import('svelte').Snippet;
-		description?: import('svelte').Snippet;
+		header?: import("svelte").Snippet;
+		icon?: import("svelte").Snippet;
+		title?: import("svelte").Snippet;
+		description?: import("svelte").Snippet;
 	}
 
-	let {
-		class: className = '',
-		header,
-		icon,
-		title,
-		description
-	}: Props = $props();
+	let { class: className = "", header, icon, title, description }: Props = $props();
 </script>
 
 <div
 	class={cn(
-		'row-span-1 rounded-xl group/bento hover:shadow-xl transition duration-200 shadow-input dark:shadow-none p-4 dark:bg-black dark:border-white/[0.2] bg-white border border-transparent justify-between flex flex-col space-y-4',
+		"group/bento shadow-input row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-transparent bg-white p-4 transition duration-200 hover:shadow-xl dark:border-white/[0.2] dark:bg-black dark:shadow-none",
 		className
 	)}
 >

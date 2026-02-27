@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
-	import { cn } from '$lib/utils';
+	import { getContext } from "svelte";
+	import { cn } from "$lib/utils";
 
 	interface Props {
 		as?: string;
@@ -11,24 +11,24 @@
 		rotateX?: number | string;
 		rotateY?: number | string;
 		rotateZ?: number | string;
-		children?: import('svelte').Snippet;
+		children?: import("svelte").Snippet;
 	}
 
 	let {
-		as = 'div',
-		class: className = '',
+		as = "div",
+		class: className = "",
 		translateX = 0,
 		translateY = 0,
 		translateZ = 0,
 		rotateX = 0,
 		rotateY = 0,
 		rotateZ = 0,
-		children
+		children,
 	}: Props = $props();
 
 	let ref: HTMLElement;
 
-	const getMouseEntered = getContext<() => boolean>('card3d:mouseEntered');
+	const getMouseEntered = getContext<() => boolean>("card3d:mouseEntered");
 
 	let transform = $derived(
 		getMouseEntered()
@@ -40,7 +40,7 @@
 <svelte:element
 	this={as}
 	bind:this={ref}
-	class={cn('w-fit transition duration-500 ease-in-out', className)}
+	class={cn("w-fit transition duration-500 ease-in-out", className)}
 	style="transform: {transform}"
 >
 	{#if children}

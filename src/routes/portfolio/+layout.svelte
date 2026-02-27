@@ -1,5 +1,5 @@
 <script lang="ts">
-	import NavAnchor from '$lib/portfolio/NavAnchor.svelte';
+	import NavAnchor from "$lib/portfolio/NavAnchor.svelte";
 
 	let { children } = $props();
 </script>

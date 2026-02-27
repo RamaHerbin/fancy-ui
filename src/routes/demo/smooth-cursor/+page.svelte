@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SmoothCursor } from '$lib/fancy-ui/smooth-cursor';
+	import { SmoothCursor } from "$lib/fancy-ui/smooth-cursor";
 </script>
 
 <svelte:head>
@@ -8,59 +8,62 @@
 
 <SmoothCursor />
 
-<div class="container relative z-10 mx-auto px-4 py-12">
+<div class="relative z-10 container mx-auto px-4 py-12">
 	<h1 class="mb-2 text-3xl font-bold">SmoothCursor</h1>
-	<p class="mb-8 text-muted-foreground">
+	<p class="text-muted-foreground mb-8">
 		A physics-based smooth cursor that follows your mouse with spring animations and rotation
 		effects. Move your mouse around to see the effect.
 	</p>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
-		<div class="rounded-lg border bg-card p-6">
-			<p class="mb-4 text-sm text-muted-foreground">
+		<div class="bg-card rounded-lg border p-6">
+			<p class="text-muted-foreground mb-4 text-sm">
 				The SmoothCursor component renders a custom cursor that follows the mouse with spring
 				physics. Simply add the component to your page.
 			</p>
-			<pre
-				class="overflow-x-auto rounded bg-muted p-4 text-sm"><code>{'<'}script{'>'}
-  import {'{'} SmoothCursor {'}'} from '$lib/fancy-ui/smooth-cursor';
-{'<'}/script{'>'}
+			<pre class="bg-muted overflow-x-auto rounded p-4 text-sm"><code
+					>{"<"}script{">"}
+  import {"{"} SmoothCursor {"}"} from '$lib/fancy-ui/smooth-cursor';
+{"<"}/script{">"}
 
-{'<'}SmoothCursor /{'>'}</code></pre>
+{"<"}SmoothCursor /{">"}</code
+				></pre>
 		</div>
 	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Custom Spring Config</h2>
-		<div class="rounded-lg border bg-card p-6">
-			<p class="mb-4 text-sm text-muted-foreground">
+		<div class="bg-card rounded-lg border p-6">
+			<p class="text-muted-foreground mb-4 text-sm">
 				Customize the spring physics to achieve different cursor behaviors.
 			</p>
-			<pre
-				class="overflow-x-auto rounded bg-muted p-4 text-sm"><code>{'<'}SmoothCursor
-  springConfig={'{'}{'{'} damping: 20, stiffness: 200, mass: 0.5 {'}'}{'}'} /{'>'}</code></pre>
+			<pre class="bg-muted overflow-x-auto rounded p-4 text-sm"><code
+					>{"<"}SmoothCursor
+  springConfig={"{"}{"{"} damping: 20, stiffness: 200, mass: 0.5 {"}"}{"}"} /{">"}</code
+				></pre>
 		</div>
 	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Custom Cursor</h2>
-		<div class="rounded-lg border bg-card p-6">
-			<p class="mb-4 text-sm text-muted-foreground">
+		<div class="bg-card rounded-lg border p-6">
+			<p class="text-muted-foreground mb-4 text-sm">
 				Replace the default arrow with a custom cursor using Svelte snippets.
 			</p>
-			<pre
-				class="overflow-x-auto rounded bg-muted p-4 text-sm"><code>{'<'}SmoothCursor{'>'}
-  {'{'}#snippet cursor(){'}'}
-    {'<'}div class="h-4 w-4 rounded-full bg-primary" /{'>'}
-  {'{'}/snippet{'}'}
-{'<'}/SmoothCursor{'>'}</code></pre>
+			<pre class="bg-muted overflow-x-auto rounded p-4 text-sm"><code
+					>{"<"}SmoothCursor{">"}
+  {"{"}#snippet cursor(){"}"}
+    {"<"}div class="h-4 w-4 rounded-full bg-primary" /{">"}
+  {"{"}/snippet{"}"}
+{"<"}/SmoothCursor{">"}</code
+				></pre>
 		</div>
 	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Props</h2>
-		<div class="overflow-x-auto rounded-lg border bg-card">
+		<div class="bg-card overflow-x-auto rounded-lg border">
 			<table class="w-full text-sm">
 				<thead>
 					<tr class="border-b">
@@ -80,7 +83,7 @@
 					<tr class="border-b">
 						<td class="px-4 py-3 font-mono text-xs">springConfig</td>
 						<td class="px-4 py-3 font-mono text-xs">SpringConfig</td>
-						<td class="px-4 py-3 font-mono text-xs">{'{}'}</td>
+						<td class="px-4 py-3 font-mono text-xs">{"{}"}</td>
 						<td class="px-4 py-3">Spring physics configuration</td>
 					</tr>
 					<tr>
@@ -96,7 +99,7 @@
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">SpringConfig</h2>
-		<div class="overflow-x-auto rounded-lg border bg-card">
+		<div class="bg-card overflow-x-auto rounded-lg border">
 			<table class="w-full text-sm">
 				<thead>
 					<tr class="border-b">
@@ -125,23 +128,26 @@
 						<td class="px-4 py-3 font-mono text-xs">1</td>
 						<td class="px-4 py-3">Virtual mass of the animated object</td>
 					</tr>
-					</tbody>
+				</tbody>
 			</table>
 		</div>
 	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Notes</h2>
-		<div class="rounded-lg border bg-card p-6">
-			<ul class="list-inside list-disc space-y-2 text-sm text-muted-foreground">
+		<div class="bg-card rounded-lg border p-6">
+			<ul class="text-muted-foreground list-inside list-disc space-y-2 text-sm">
 				<li>The native browser cursor is automatically hidden while the component is mounted</li>
 				<li>The cursor auto-hides when the mouse leaves the viewport</li>
 				<li>Rotation follows the direction of movement with smoothing</li>
 				<li>
-					Respects <code class="rounded bg-muted px-1">prefers-reduced-motion</code>: when enabled,
+					Respects <code class="bg-muted rounded px-1">prefers-reduced-motion</code>: when enabled,
 					the cursor snaps directly to the pointer without spring animation or rotation
 				</li>
-				<li>The component uses <code class="rounded bg-muted px-1">will-change: transform</code> for GPU acceleration</li>
+				<li>
+					The component uses <code class="bg-muted rounded px-1">will-change: transform</code> for GPU
+					acceleration
+				</li>
 				<li>Fixed positioning at z-index 9999 ensures cursor is always on top</li>
 			</ul>
 		</div>

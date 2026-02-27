@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface TooltipItem {
 		id: number | string;
@@ -17,8 +17,8 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { scale } from 'svelte/transition';
+	import { cn } from "$lib/utils.js";
+	import { scale } from "svelte/transition";
 
 	let { items, class: className }: AnimatedTooltipProps = $props();
 
@@ -50,7 +50,7 @@
 	}
 </script>
 
-<div class={cn('flex flex-row items-center', className)}>
+<div class={cn("flex flex-row items-center", className)}>
 	{#each items as item (item.id)}
 		<div
 			class="group relative -mr-4"
@@ -63,16 +63,16 @@
 			<!-- Tooltip -->
 			{#if hoveredIndex === item.id}
 				<div
-					class="pointer-events-none absolute -top-16 left-1/2 z-50 flex flex-col items-center justify-center whitespace-nowrap rounded-md bg-black px-4 py-2 text-xs shadow-xl"
+					class="pointer-events-none absolute -top-16 left-1/2 z-50 flex flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs whitespace-nowrap shadow-xl"
 					style="transform: translateX(calc(-50% + {translation}px)) rotate({rotation}deg);"
 					transition:scale={{
 						duration: 200,
-						start: 0.6
+						start: 0.6,
 					}}
 				>
 					<!-- Gradient lines -->
 					<div
-						class="absolute -bottom-px right-1/2 z-30 me-1 h-px w-2/5 translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-500 to-transparent"
+						class="absolute right-1/2 -bottom-px z-30 me-1 h-px w-2/5 translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-500 to-transparent"
 					></div>
 					<div
 						class="absolute -bottom-px left-1/2 z-30 ms-1 h-px w-2/5 -translate-x-1/2 bg-gradient-to-r from-transparent via-sky-500 to-transparent"

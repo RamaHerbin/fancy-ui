@@ -1,47 +1,47 @@
 <script lang="ts">
-	import { ImageTrailCursor } from '$lib/fancy-ui/image-trail-cursor';
-	import type { VariantType } from '$lib/fancy-ui/image-trail-cursor';
+	import { ImageTrailCursor } from "$lib/fancy-ui/image-trail-cursor";
+	import type { VariantType } from "$lib/fancy-ui/image-trail-cursor";
 
 	const images = [
-		'https://picsum.photos/seed/trail1/400/440',
-		'https://picsum.photos/seed/trail2/400/440',
-		'https://picsum.photos/seed/trail3/400/440',
-		'https://picsum.photos/seed/trail4/400/440',
-		'https://picsum.photos/seed/trail5/400/440',
-		'https://picsum.photos/seed/trail6/400/440',
-		'https://picsum.photos/seed/trail7/400/440',
-		'https://picsum.photos/seed/trail8/400/440',
-		'https://picsum.photos/seed/trail9/400/440',
-		'https://picsum.photos/seed/trail10/400/440'
+		"https://picsum.photos/seed/trail1/400/440",
+		"https://picsum.photos/seed/trail2/400/440",
+		"https://picsum.photos/seed/trail3/400/440",
+		"https://picsum.photos/seed/trail4/400/440",
+		"https://picsum.photos/seed/trail5/400/440",
+		"https://picsum.photos/seed/trail6/400/440",
+		"https://picsum.photos/seed/trail7/400/440",
+		"https://picsum.photos/seed/trail8/400/440",
+		"https://picsum.photos/seed/trail9/400/440",
+		"https://picsum.photos/seed/trail10/400/440",
 	];
 
 	const variants: { type: VariantType; label: string; description: string }[] = [
-		{ type: 'type1', label: 'Type 1', description: 'Fade & scale' },
-		{ type: 'type2', label: 'Type 2', description: 'Brightness burst' },
-		{ type: 'type3', label: 'Type 3', description: 'Float-up exit' },
-		{ type: 'type4', label: 'Type 4', description: 'Momentum drift' },
-		{ type: 'type5', label: 'Type 5', description: 'Rotation fling' },
-		{ type: 'type6', label: 'Type 6', description: 'Speed-reactive' },
-		{ type: 'type7', label: 'Type 7', description: 'Stacking trail' },
-		{ type: 'type8', label: 'Type 8', description: '3D perspective' }
+		{ type: "type1", label: "Type 1", description: "Fade & scale" },
+		{ type: "type2", label: "Type 2", description: "Brightness burst" },
+		{ type: "type3", label: "Type 3", description: "Float-up exit" },
+		{ type: "type4", label: "Type 4", description: "Momentum drift" },
+		{ type: "type5", label: "Type 5", description: "Rotation fling" },
+		{ type: "type6", label: "Type 6", description: "Speed-reactive" },
+		{ type: "type7", label: "Type 7", description: "Stacking trail" },
+		{ type: "type8", label: "Type 8", description: "3D perspective" },
 	];
 
-	let selectedVariant: VariantType = $state('type1');
+	let selectedVariant: VariantType = $state("type1");
 </script>
 
 <svelte:head>
 	<title>ImageTrailCursor - FancyUI</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl py-12 px-4">
-	<h1 class="text-3xl font-bold mb-2">ImageTrailCursor</h1>
+<div class="container mx-auto max-w-4xl px-4 py-12">
+	<h1 class="mb-2 text-3xl font-bold">ImageTrailCursor</h1>
 	<p class="text-muted-foreground mb-8">
 		Cursor-following image trail with 8 animation variants. Move your cursor inside the area below.
 	</p>
 
 	<!-- Variant Selector -->
 	<section class="mb-6">
-		<h2 class="text-xl font-semibold mb-4">Variant</h2>
+		<h2 class="mb-4 text-xl font-semibold">Variant</h2>
 		<div class="flex flex-wrap gap-2">
 			{#each variants as v}
 				<button
@@ -59,7 +59,7 @@
 
 	<!-- Interactive Area -->
 	<section class="mb-12">
-		<div class="relative rounded-lg border bg-card overflow-hidden h-[500px] cursor-crosshair">
+		<div class="bg-card relative h-[500px] cursor-crosshair overflow-hidden rounded-lg border">
 			<ImageTrailCursor {images} variant={selectedVariant} />
 			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
 				<p class="text-muted-foreground/50 text-lg select-none">Move your cursor here</p>

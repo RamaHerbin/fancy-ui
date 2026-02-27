@@ -10,8 +10,8 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils";
+	import { onMount } from "svelte";
 
 	interface Star {
 		x: number;
@@ -20,11 +20,7 @@
 		speed: number;
 	}
 
-	let {
-		color = '#FFF',
-		count = 200,
-		class: className = ''
-	}: FallingStarsBgProps = $props();
+	let { color = "#FFF", count = 200, class: className = "" }: FallingStarsBgProps = $props();
 
 	let canvas: HTMLCanvasElement;
 	let perspective = 0;
@@ -34,18 +30,18 @@
 	let rafId = 0;
 
 	function hexToRgb(hex: string) {
-		let h = (hex || '#000').replace(/^#/, '');
+		let h = (hex || "#000").replace(/^#/, "");
 		if (h.length === 3) {
 			h = h
-				.split('')
+				.split("")
 				.map((c) => c + c)
-				.join('');
+				.join("");
 		}
 		const bigint = parseInt(h, 16) || 0;
 		return {
 			r: (bigint >> 16) & 255,
 			g: (bigint >> 8) & 255,
-			b: bigint & 255
+			b: bigint & 255,
 		};
 	}
 
@@ -63,7 +59,7 @@
 		canvas.style.width = `${width}px`;
 		canvas.style.height = `${height}px`;
 
-		ctx = canvas.getContext('2d');
+		ctx = canvas.getContext("2d");
 		if (ctx) {
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 		}
@@ -113,7 +109,7 @@
 
 	function loop() {
 		if (!canvas) return;
-		if (!ctx) ctx = canvas.getContext('2d');
+		if (!ctx) ctx = canvas.getContext("2d");
 		if (!ctx) return;
 
 		const width = canvas.clientWidth;
@@ -148,7 +144,7 @@
 				x: (Math.random() - 0.5) * 2 * cssWidth,
 				y: (Math.random() - 0.5) * 2 * cssHeight,
 				z: Math.random() * (cssWidth || 1),
-				speed: Math.random() * 5 + 2
+				speed: Math.random() * 5 + 2,
 			});
 		}
 
@@ -164,4 +160,4 @@
 	});
 </script>
 
-<canvas bind:this={canvas} class={cn('absolute inset-0 h-full w-full', className)}></canvas>
+<canvas bind:this={canvas} class={cn("absolute inset-0 h-full w-full", className)}></canvas>

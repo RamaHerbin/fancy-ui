@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { getAllBuilderComponents } from '../registry/index.js';
-	import type { BuilderComponentMeta, PaletteCategory } from '../types/registry.js';
-	import PaletteItem from './PaletteItem.svelte';
-	import PalettePreview from './PalettePreview.svelte';
+	import { getAllBuilderComponents } from "../registry/index.js";
+	import type { BuilderComponentMeta, PaletteCategory } from "../types/registry.js";
+	import PaletteItem from "./PaletteItem.svelte";
+	import PalettePreview from "./PalettePreview.svelte";
 
-	let search = $state('');
+	let search = $state("");
 	let previewMeta = $state<BuilderComponentMeta | null>(null);
 	let previewRect = $state<DOMRect | null>(null);
 	let previewTimer: ReturnType<typeof setTimeout> | undefined;
@@ -36,29 +36,29 @@
 	);
 
 	const categoryLabels: Record<PaletteCategory, string> = {
-		layout: 'Layout',
-		text: 'Text',
-		cards: 'Cards',
-		effects: 'Effects',
-		backgrounds: 'Backgrounds',
-		buttons: 'Buttons',
-		media: 'Media',
-		navigation: 'Navigation',
-		feedback: 'Feedback',
-		'data-display': 'Data Display'
+		layout: "Layout",
+		text: "Text",
+		cards: "Cards",
+		effects: "Effects",
+		backgrounds: "Backgrounds",
+		buttons: "Buttons",
+		media: "Media",
+		navigation: "Navigation",
+		feedback: "Feedback",
+		"data-display": "Data Display",
 	};
 
 	const categoryOrder: PaletteCategory[] = [
-		'layout',
-		'text',
-		'cards',
-		'effects',
-		'buttons',
-		'media',
-		'backgrounds',
-		'navigation',
-		'feedback',
-		'data-display'
+		"layout",
+		"text",
+		"cards",
+		"effects",
+		"buttons",
+		"media",
+		"backgrounds",
+		"navigation",
+		"feedback",
+		"data-display",
 	];
 
 	let grouped = $derived.by(() => {
@@ -78,7 +78,7 @@
 		<input
 			type="text"
 			placeholder="Search components..."
-			class="h-8 w-full rounded-md border border-border bg-input px-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+			class="border-border bg-input text-foreground placeholder:text-muted-foreground focus:ring-ring h-8 w-full rounded-md border px-2.5 text-sm focus:ring-2 focus:outline-none"
 			bind:value={search}
 		/>
 	</div>
@@ -87,7 +87,7 @@
 		{#each grouped as [category, items]}
 			<details class="group" open>
 				<summary
-					class="flex cursor-pointer items-center gap-1 px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground select-none hover:text-foreground"
+					class="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 px-2 py-1.5 text-xs font-semibold tracking-wider uppercase select-none"
 				>
 					<svg
 						class="h-3 w-3 shrink-0 transition-transform group-open:rotate-90"
@@ -109,7 +109,7 @@
 		{/each}
 
 		{#if grouped.size === 0}
-			<p class="px-2 py-4 text-center text-xs text-muted-foreground">No components found</p>
+			<p class="text-muted-foreground px-2 py-4 text-center text-xs">No components found</p>
 		{/if}
 	</div>
 </div>

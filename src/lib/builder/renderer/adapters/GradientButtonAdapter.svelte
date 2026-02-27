@@ -4,7 +4,7 @@
   The builder uses a `text` prop instead.
 -->
 <script lang="ts">
-	import { GradientButton } from '$lib/fancy-ui/gradient-button/index.js';
+	import { GradientButton } from "$lib/fancy-ui/gradient-button/index.js";
 
 	interface Props {
 		text?: string;
@@ -18,7 +18,7 @@
 	}
 
 	let {
-		text = 'Gradient Button',
+		text = "Gradient Button",
 		duration,
 		borderWidth,
 		borderRadius,
@@ -29,7 +29,15 @@
 	}: Props = $props();
 </script>
 
-<GradientButton {duration} {borderWidth} {borderRadius} {blur} {bgColor} class={className} {...restProps}>
+<GradientButton
+	{duration}
+	{borderWidth}
+	{borderRadius}
+	{blur}
+	{bgColor}
+	class={className}
+	{...restProps}
+>
 	<span class="relative z-10 text-sm font-medium text-white">
 		{text}
 	</span>

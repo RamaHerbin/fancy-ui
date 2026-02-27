@@ -3,13 +3,13 @@
   Used in the editor canvas for selection/interaction.
 -->
 <script lang="ts">
-	import type { BlockNode } from '../types/page.js';
-	import { resolveComponent } from '../renderer/component-map.js';
-	import { getBuilderComponent } from '../registry/builder-registry.js';
-	import { getEditorState } from '../stores/editor.svelte.js';
-	import BlockWrapper from './BlockWrapper.svelte';
-	import InlineTextEditor from './InlineTextEditor.svelte';
-	import CanvasBlockRendererSelf from './CanvasBlockRenderer.svelte';
+	import type { BlockNode } from "../types/page.js";
+	import { resolveComponent } from "../renderer/component-map.js";
+	import { getBuilderComponent } from "../registry/builder-registry.js";
+	import { getEditorState } from "../stores/editor.svelte.js";
+	import BlockWrapper from "./BlockWrapper.svelte";
+	import InlineTextEditor from "./InlineTextEditor.svelte";
+	import CanvasBlockRendererSelf from "./CanvasBlockRenderer.svelte";
 
 	interface Props {
 		node: BlockNode;
@@ -21,12 +21,8 @@
 
 	let Component = $derived(resolveComponent(node.type));
 	let meta = $derived(getBuilderComponent(node.type));
-	let hasChildren = $derived(
-		meta?.acceptsChildren && node.children && node.children.length > 0
-	);
-	let isInlineEditing = $derived(
-		node.type === '_text' && editor.inlineEditBlockId === node.id
-	);
+	let hasChildren = $derived(meta?.acceptsChildren && node.children && node.children.length > 0);
+	let isInlineEditing = $derived(node.type === "_text" && editor.inlineEditBlockId === node.id);
 </script>
 
 <BlockWrapper blockId={node.id}>
@@ -51,9 +47,7 @@
 			<Component {...node.props} />
 		{/if}
 	{:else}
-		<div
-			class="rounded border border-dashed border-destructive/50 p-4 text-sm text-destructive"
-		>
+		<div class="border-destructive/50 text-destructive rounded border border-dashed p-4 text-sm">
 			Unknown component: <code>{node.type}</code>
 		</div>
 	{/if}

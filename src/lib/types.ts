@@ -11,44 +11,44 @@ import type { HTMLAttributes } from "svelte/elements";
  * Base props shared by all FancyUI components
  */
 export interface BaseComponentProps {
-  /** Additional CSS classes to apply */
-  class?: string;
-  /** Component content (Svelte 5 snippet) */
-  children?: Snippet;
+	/** Additional CSS classes to apply */
+	class?: string;
+	/** Component content (Svelte 5 snippet) */
+	children?: Snippet;
 }
 
 /**
  * Props for components with animation capabilities
  */
 export interface AnimatedComponentProps extends BaseComponentProps {
-  /** Animation duration in seconds */
-  duration?: number;
-  /** Animation delay in seconds */
-  delay?: number;
-  /** Whether animation is paused */
-  paused?: boolean;
+	/** Animation duration in seconds */
+	duration?: number;
+	/** Animation delay in seconds */
+	delay?: number;
+	/** Whether animation is paused */
+	paused?: boolean;
 }
 
 /**
  * Props for components that track mouse/pointer position
  */
 export interface InteractiveComponentProps extends BaseComponentProps {
-  /** Whether interaction is disabled */
-  disabled?: boolean;
+	/** Whether interaction is disabled */
+	disabled?: boolean;
 }
 
 /**
  * Props for polymorphic components (button/anchor)
  */
 export interface PolymorphicButtonProps extends BaseComponentProps {
-  /** Render as anchor element when href is provided */
-  href?: string;
-  /** Button type attribute */
-  type?: "button" | "submit" | "reset";
-  /** Whether the element is disabled */
-  disabled?: boolean;
-  /** Element reference */
-  ref?: HTMLButtonElement | HTMLAnchorElement | null;
+	/** Render as anchor element when href is provided */
+	href?: string;
+	/** Button type attribute */
+	type?: "button" | "submit" | "reset";
+	/** Whether the element is disabled */
+	disabled?: boolean;
+	/** Element reference */
+	ref?: HTMLButtonElement | HTMLAnchorElement | null;
 }
 
 /**
@@ -72,31 +72,31 @@ export type ComponentStatus = "done" | "in-progress" | "planned";
  * Component category for organization
  */
 export type ComponentCategory =
-  | "buttons"
-  | "cards"
-  | "backgrounds"
-  | "text"
-  | "layout"
-  | "feedback"
-  | "data-display"
-  | "navigation"
-  | "media"
-  | "effects";
+	| "buttons"
+	| "cards"
+	| "backgrounds"
+	| "text"
+	| "layout"
+	| "feedback"
+	| "data-display"
+	| "navigation"
+	| "media"
+	| "effects";
 
 /**
  * Component metadata for registry
  */
 export interface ComponentMeta {
-  /** Component display name */
-  name: string;
-  /** URL-friendly slug */
-  slug: string;
-  /** Short description */
-  description: string;
-  /** Component category */
-  category: ComponentCategory;
-  /** Porting status */
-  status: ComponentStatus;
-  /** Dependencies on other fancy-ui components */
-  dependencies?: string[];
+	/** Component display name */
+	name: string;
+	/** URL-friendly slug */
+	slug: string;
+	/** Short description */
+	description: string;
+	/** Component category */
+	category: ComponentCategory;
+	/** Porting status */
+	status: ComponentStatus;
+	/** Dependencies on other fancy-ui components */
+	dependencies?: string[];
 }

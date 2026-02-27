@@ -1,6 +1,6 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	type BaseProps = {
 		/** Button label text */
@@ -11,15 +11,14 @@
 		children?: Snippet;
 	};
 
-	export type InteractiveHoverButtonProps = BaseProps &
-		Omit<HTMLButtonAttributes, keyof BaseProps>;
+	export type InteractiveHoverButtonProps = BaseProps & Omit<HTMLButtonAttributes, keyof BaseProps>;
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let {
-		text = 'Button',
+		text = "Button",
 		class: className,
 		children,
 		...restProps
@@ -28,14 +27,14 @@
 
 <button
 	class={cn(
-		'group relative w-auto cursor-pointer overflow-hidden rounded-full border bg-background p-2 px-6 text-center font-semibold',
+		"group bg-background relative w-auto cursor-pointer overflow-hidden rounded-full border p-2 px-6 text-center font-semibold",
 		className
 	)}
 	{...restProps}
 >
 	<div class="flex items-center gap-2">
 		<div
-			class="size-2 rounded-lg bg-primary transition-all duration-300 group-hover:scale-[100.8]"
+			class="bg-primary size-2 rounded-lg transition-all duration-300 group-hover:scale-[100.8]"
 		></div>
 		<span
 			class="inline-block transition-all duration-300 group-hover:translate-x-12 group-hover:opacity-0"
@@ -49,7 +48,7 @@
 	</div>
 
 	<div
-		class="absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 text-primary-foreground opacity-0 transition-all duration-300 group-hover:-translate-x-5 group-hover:opacity-100"
+		class="text-primary-foreground absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:-translate-x-5 group-hover:opacity-100"
 	>
 		<span>
 			{#if children}

@@ -15,7 +15,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let { class: className, title, logos = [] }: AnimatedLogoCloudProps = $props();
 </script>
@@ -23,15 +23,12 @@
 <div class="w-full py-12">
 	<div class="mx-auto w-full px-4 md:px-8">
 		{#if title}
-			<div class="text-center font-medium text-muted-foreground">
+			<div class="text-muted-foreground text-center font-medium">
 				{title}
 			</div>
 		{/if}
 		<div
-			class={cn(
-				'logo-cloud-mask group relative mt-6 flex gap-6 overflow-hidden p-2',
-				className
-			)}
+			class={cn("logo-cloud-mask group relative mt-6 flex gap-6 overflow-hidden p-2", className)}
 		>
 			{#each { length: 5 } as _}
 				<div class="logo-cloud-scroll flex shrink-0 flex-row justify-around gap-6">

@@ -26,25 +26,25 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
 	let {
 		squareSize = 4,
 		gridGap = 6,
 		flickerChance = 0.3,
-		color = '#000000',
+		color = "#000000",
 		maxOpacity = 0.3,
 		width,
 		height,
-		class: className
+		class: className,
 	}: FlickeringGridProps = $props();
 
 	let containerEl: HTMLDivElement;
 	let canvasEl: HTMLCanvasElement;
 
 	function hexToRgba(hex: string): string {
-		const clean = hex.replace(/^#/, '');
+		const clean = hex.replace(/^#/, "");
 		const bigint = Number.parseInt(clean, 16);
 		const r = (bigint >> 16) & 255;
 		const g = (bigint >> 8) & 255;
@@ -53,7 +53,7 @@
 	}
 
 	onMount(() => {
-		const ctx = canvasEl.getContext('2d');
+		const ctx = canvasEl.getContext("2d");
 		if (!ctx) return;
 
 		let isInView = false;
@@ -149,6 +149,6 @@
 	});
 </script>
 
-<div bind:this={containerEl} class={cn('h-full w-full', className)}>
+<div bind:this={containerEl} class={cn("h-full w-full", className)}>
 	<canvas bind:this={canvasEl} class="pointer-events-none"></canvas>
 </div>

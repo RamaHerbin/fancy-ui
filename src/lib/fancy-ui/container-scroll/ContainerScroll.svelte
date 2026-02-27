@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { onMount } from 'svelte';
-	import type { Snippet } from 'svelte';
+	import { cn } from "$lib/utils";
+	import { onMount } from "svelte";
+	import type { Snippet } from "svelte";
 
 	interface Props {
 		class?: string;
@@ -9,7 +9,7 @@
 		cardContent?: Snippet;
 	}
 
-	let { class: className = '', titleContent, cardContent }: Props = $props();
+	let { class: className = "", titleContent, cardContent }: Props = $props();
 
 	let containerRef: HTMLDivElement;
 	let isMobile = $state(false);
@@ -17,7 +17,9 @@
 
 	let scaleDimensions = $derived(isMobile ? [0.7, 0.9] : [1.05, 1]);
 	let rotate = $derived(20 * (1 - scrollYProgress));
-	let scale = $derived(scaleDimensions[0] + (scaleDimensions[1] - scaleDimensions[0]) * scrollYProgress);
+	let scale = $derived(
+		scaleDimensions[0] + (scaleDimensions[1] - scaleDimensions[0]) * scrollYProgress
+	);
 	let translateY = $derived(-100 * scrollYProgress);
 
 	function updateIsMobile() {
@@ -36,14 +38,14 @@
 		updateIsMobile();
 		updateScroll();
 
-		window.addEventListener('resize', updateIsMobile);
-		window.addEventListener('scroll', updateScroll, { passive: true });
-		window.addEventListener('resize', updateScroll, { passive: true });
+		window.addEventListener("resize", updateIsMobile);
+		window.addEventListener("scroll", updateScroll, { passive: true });
+		window.addEventListener("resize", updateScroll, { passive: true });
 
 		return () => {
-			window.removeEventListener('resize', updateIsMobile);
-			window.removeEventListener('scroll', updateScroll);
-			window.removeEventListener('resize', updateScroll);
+			window.removeEventListener("resize", updateIsMobile);
+			window.removeEventListener("scroll", updateScroll);
+			window.removeEventListener("resize", updateScroll);
 		};
 	});
 </script>
@@ -51,16 +53,13 @@
 <div
 	bind:this={containerRef}
 	class={cn(
-		'relative flex h-[60rem] items-center justify-center p-2 md:h-[80rem] md:p-20',
+		"relative flex h-[60rem] items-center justify-center p-2 md:h-[80rem] md:p-20",
 		className
 	)}
 >
 	<div class="relative w-full py-10 md:py-40" style="perspective: 1000px">
 		<!-- Title -->
-		<div
-			style="transform: translateY({translateY}px)"
-			class="mx-auto max-w-5xl text-center"
-		>
+		<div style="transform: translateY({translateY}px)" class="mx-auto max-w-5xl text-center">
 			{#if titleContent}
 				{@render titleContent()}
 			{/if}

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { getEditorState } from '../stores/editor.svelte.js';
-	import LayerTreeNode from './LayerTreeNode.svelte';
+	import { getEditorState } from "../stores/editor.svelte.js";
+	import LayerTreeNode from "./LayerTreeNode.svelte";
 
 	const editor = getEditorState();
 </script>
@@ -11,7 +11,7 @@
 			<LayerTreeNode {node} />
 		{/each}
 	{:else}
-		<p class="px-2 py-4 text-center text-xs text-muted-foreground">
+		<p class="text-muted-foreground px-2 py-4 text-center text-xs">
 			No blocks yet. Add one from the palette above.
 		</p>
 	{/if}

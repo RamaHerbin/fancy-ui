@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount } from "svelte";
 
 	const FRAME_COUNT = 12;
 	const FRAME_DURATION = 100; // ms
 
 	// Base particle positions
 	const particles = [
-		{ cx: 8, cy: 10, r: 4, gradient: 'g1' },
-		{ cx: 22, cy: 8, r: 3, gradient: 'g2' },
-		{ cx: 16, cy: 18, r: 5, gradient: 'g3' },
-		{ cx: 24, cy: 22, r: 3.5, gradient: 'g1' },
-		{ cx: 10, cy: 24, r: 2.5, gradient: 'g2' }
+		{ cx: 8, cy: 10, r: 4, gradient: "g1" },
+		{ cx: 22, cy: 8, r: 3, gradient: "g2" },
+		{ cx: 16, cy: 18, r: 5, gradient: "g3" },
+		{ cx: 24, cy: 22, r: 3.5, gradient: "g1" },
+		{ cx: 10, cy: 24, r: 2.5, gradient: "g2" },
 	];
 
 	// Animation offsets for each particle (dx, dy amplitude)
@@ -19,7 +19,7 @@
 		{ dx: -3, dy: 2 },
 		{ dx: 3, dy: 3 },
 		{ dx: -2, dy: -2 },
-		{ dx: 1, dy: 2 }
+		{ dx: 1, dy: 2 },
 	];
 
 	function generateFrame(frameIndex: number): string {
@@ -32,7 +32,7 @@
 				const cy = p.cy + Math.sin(t + i * 0.7) * offset.dy;
 				return `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${p.r}" fill="url(#${p.gradient})"/>`;
 			})
-			.join('\n    ');
+			.join("\n    ");
 
 		return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
@@ -59,18 +59,16 @@
 
 	onMount(() => {
 		// Pre-generate all frames
-		const frames = Array.from({ length: FRAME_COUNT }, (_, i) =>
-			svgToDataUrl(generateFrame(i))
-		);
+		const frames = Array.from({ length: FRAME_COUNT }, (_, i) => svgToDataUrl(generateFrame(i)));
 
 		let currentFrame = 0;
 		let linkElement: HTMLLinkElement | null = document.querySelector('link[rel="icon"]');
 
 		// Create link element if it doesn't exist
 		if (!linkElement) {
-			linkElement = document.createElement('link');
-			linkElement.rel = 'icon';
-			linkElement.type = 'image/svg+xml';
+			linkElement = document.createElement("link");
+			linkElement.rel = "icon";
+			linkElement.type = "image/svg+xml";
 			document.head.appendChild(linkElement);
 		}
 

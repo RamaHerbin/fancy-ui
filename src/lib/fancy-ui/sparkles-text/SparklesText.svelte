@@ -28,14 +28,14 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
 	let {
 		text,
 		sparklesCount = 10,
-		colors = { first: '#9E7AFF', second: '#FE8BBB' },
-		class: className
+		colors = { first: "#9E7AFF", second: "#FE8BBB" },
+		class: className,
 	}: SparklesTextProps = $props();
 
 	let sparkles = $state<Sparkle[]>([]);
@@ -72,7 +72,7 @@
 	});
 </script>
 
-<div class={cn('sparkles-text text-6xl font-bold', className)}>
+<div class={cn("sparkles-text text-6xl font-bold", className)}>
 	<span class="relative inline-block">
 		{#each sparkles as sparkle (sparkle.id)}
 			<svg

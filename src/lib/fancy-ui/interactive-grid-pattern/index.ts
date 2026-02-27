@@ -1,5 +1,5 @@
 import InteractiveGridPattern, {
-  type InteractiveGridPatternProps,
+	type InteractiveGridPatternProps,
 } from "./InteractiveGridPattern.svelte";
 
 export { InteractiveGridPattern, type InteractiveGridPatternProps };

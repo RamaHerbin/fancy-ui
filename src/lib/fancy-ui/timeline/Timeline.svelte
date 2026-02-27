@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	export interface TimelineItem {
 		id: string;
@@ -21,16 +21,10 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
-	let {
-		items = [],
-		title,
-		description,
-		class: className,
-		content
-	}: TimelineProps = $props();
+	let { items = [], title, description, class: className, content }: TimelineProps = $props();
 
 	let timelineRef: HTMLDivElement;
 	let timelineHeight = $state(0);
@@ -75,26 +69,26 @@
 		});
 
 		resizeObserver.observe(timelineRef);
-		window.addEventListener('scroll', updateProgress, { passive: true });
+		window.addEventListener("scroll", updateProgress, { passive: true });
 		updateProgress();
 
 		return () => {
 			resizeObserver.disconnect();
-			window.removeEventListener('scroll', updateProgress);
+			window.removeEventListener("scroll", updateProgress);
 		};
 	});
 </script>
 
-<div class={cn('w-full font-sans md:px-10', className)}>
+<div class={cn("w-full font-sans md:px-10", className)}>
 	{#if title || description}
 		<div class="mx-auto max-w-7xl px-4 py-20 md:px-8 lg:px-10">
 			{#if title}
-				<h2 class="mb-4 max-w-4xl text-lg text-foreground md:text-4xl">
+				<h2 class="text-foreground mb-4 max-w-4xl text-lg md:text-4xl">
 					{title}
 				</h2>
 			{/if}
 			{#if description}
-				<p class="max-w-sm text-sm text-muted-foreground md:text-base">
+				<p class="text-muted-foreground max-w-sm text-sm md:text-base">
 					{description}
 				</p>
 			{/if}
@@ -109,7 +103,7 @@
 					class="sticky top-40 z-40 flex max-w-xs flex-col items-center self-start md:w-full md:flex-row lg:max-w-sm"
 				>
 					<div
-						class="absolute left-3 flex size-10 items-center justify-center rounded-full bg-background md:left-3"
+						class="bg-background absolute left-3 flex size-10 items-center justify-center rounded-full md:left-3"
 					>
 						<div
 							class="size-4 rounded-full border border-neutral-300 bg-neutral-200 p-2 dark:border-neutral-700 dark:bg-neutral-800"
@@ -123,7 +117,7 @@
 				</div>
 
 				<!-- Item content -->
-				<div class="w-full pl-20 pr-4 md:pl-4">
+				<div class="w-full pr-4 pl-20 md:pl-4">
 					{#if content}
 						{@render content(item)}
 					{/if}
@@ -134,7 +128,7 @@
 		<!-- Background line -->
 		<div
 			style:height="{timelineHeight}px"
-			class="absolute left-8 top-0 w-[2px] overflow-hidden bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-0% via-neutral-200 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] md:left-8 dark:via-neutral-700"
+			class="absolute top-0 left-8 w-[2px] overflow-hidden bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-0% via-neutral-200 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] md:left-8 dark:via-neutral-700"
 		>
 			<!-- Animated progress line -->
 			<div

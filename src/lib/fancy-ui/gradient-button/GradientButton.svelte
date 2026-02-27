@@ -1,6 +1,6 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	type BaseProps = {
 		/** Gradient colors for the conic-gradient border */
@@ -25,28 +25,37 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let {
 		class: className,
-		colors = ['#FF0000', '#FFA500', '#FFFF00', '#008000', '#0000FF', '#4B0082', '#EE82EE', '#FF0000'],
+		colors = [
+			"#FF0000",
+			"#FFA500",
+			"#FFFF00",
+			"#008000",
+			"#0000FF",
+			"#4B0082",
+			"#EE82EE",
+			"#FF0000",
+		],
 		duration = 2500,
 		borderWidth = 2,
 		borderRadius = 8,
 		blur = 4,
-		bgColor = '#000',
+		bgColor = "#000",
 		children,
 		...restProps
 	}: GradientButtonProps = $props();
 
 	const styleVars = $derived(
-		`--gb-colors: ${colors.join(', ')}; --gb-duration: ${duration}ms; --gb-border-width: ${borderWidth}px; --gb-border-radius: ${borderRadius}px; --gb-blur: ${blur}px; --gb-bg-color: ${bgColor}`
+		`--gb-colors: ${colors.join(", ")}; --gb-duration: ${duration}ms; --gb-border-width: ${borderWidth}px; --gb-border-radius: ${borderRadius}px; --gb-blur: ${blur}px; --gb-bg-color: ${bgColor}`
 	);
 </script>
 
 <button
 	class={cn(
-		'gradient-button relative flex cursor-pointer min-w-28 min-h-10 items-center justify-center overflow-hidden',
+		"gradient-button relative flex min-h-10 min-w-28 cursor-pointer items-center justify-center overflow-hidden",
 		className
 	)}
 	style={styleVars}
@@ -69,7 +78,7 @@
 	}
 
 	.gradient-border {
-		content: '';
+		content: "";
 		position: absolute;
 		inset: -200%;
 		z-index: -1;

@@ -1,6 +1,6 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	type BaseProps = {
 		/** Shimmer highlight color */
@@ -23,15 +23,15 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let {
 		class: className,
-		shimmerColor = '#ffffff',
-		shimmerSize = '0.05em',
-		borderRadius = '100px',
-		shimmerDuration = '3s',
-		background = 'rgba(0, 0, 0, 1)',
+		shimmerColor = "#ffffff",
+		shimmerSize = "0.05em",
+		borderRadius = "100px",
+		shimmerDuration = "3s",
+		background = "rgba(0, 0, 0, 1)",
 		children,
 		...restProps
 	}: ShimmerButtonProps = $props();
@@ -43,18 +43,20 @@
 
 <button
 	class={cn(
-		'shimmer-button group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden whitespace-nowrap border border-white/10 px-6 py-3 text-white [background:var(--bg)] [border-radius:var(--radius)] dark:text-black',
-		'transform-gpu transition-transform duration-300 ease-in-out active:translate-y-px',
+		"shimmer-button group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] border border-white/10 px-6 py-3 whitespace-nowrap text-white [background:var(--bg)] dark:text-black",
+		"transform-gpu transition-transform duration-300 ease-in-out active:translate-y-px",
 		className
 	)}
 	style={styleVars}
 	{...restProps}
 >
 	<!-- Shimmer layer -->
-	<div class="-z-30 absolute inset-0 overflow-visible blur-[2px] [container-type:size]">
-		<div class="shimmer-slide absolute inset-0 h-[100cqh] [aspect-ratio:1] [border-radius:0] [mask:none]">
+	<div class="[container-type:size] absolute inset-0 -z-30 overflow-visible blur-[2px]">
+		<div
+			class="shimmer-slide absolute inset-0 [aspect-ratio:1] h-[100cqh] [border-radius:0] [mask:none]"
+		>
 			<div
-				class="spin-around absolute -inset-full w-auto rotate-0 [background:conic-gradient(from_calc(270deg-(var(--spread)*0.5)),transparent_0,var(--shimmer-color)_var(--spread),transparent_var(--spread))] [translate:0_0]"
+				class="spin-around absolute -inset-full w-auto [translate:0_0] rotate-0 [background:conic-gradient(from_calc(270deg-(var(--spread)*0.5)),transparent_0,var(--shimmer-color)_var(--spread),transparent_var(--spread))]"
 			></div>
 		</div>
 	</div>
@@ -65,16 +67,18 @@
 	<!-- Inner shadow overlay -->
 	<div
 		class={cn(
-			'insert-0 absolute size-full',
-			'rounded-2xl px-4 py-1.5 text-sm font-medium shadow-[inset_0_-8px_10px_#ffffff1f]',
-			'transform-gpu transition-all duration-300 ease-in-out',
-			'group-hover:shadow-[inset_0_-6px_10px_#ffffff3f]',
-			'group-active:shadow-[inset_0_-10px_10px_#ffffff3f]'
+			"insert-0 absolute size-full",
+			"rounded-2xl px-4 py-1.5 text-sm font-medium shadow-[inset_0_-8px_10px_#ffffff1f]",
+			"transform-gpu transition-all duration-300 ease-in-out",
+			"group-hover:shadow-[inset_0_-6px_10px_#ffffff3f]",
+			"group-active:shadow-[inset_0_-10px_10px_#ffffff3f]"
 		)}
 	></div>
 
 	<!-- Background fill -->
-	<div class="absolute -z-20 [background:var(--bg)] [border-radius:var(--radius)] [inset:var(--cut)]"></div>
+	<div
+		class="absolute [inset:var(--cut)] -z-20 [border-radius:var(--radius)] [background:var(--bg)]"
+	></div>
 </button>
 
 <style>

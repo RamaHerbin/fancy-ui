@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { PageDocument } from '../types/index.js';
-	import { createEditorState } from '../stores/editor.svelte.js';
-	import CanvasBlockRenderer from './CanvasBlockRenderer.svelte';
+	import type { PageDocument } from "../types/index.js";
+	import { createEditorState } from "../stores/editor.svelte.js";
+	import CanvasBlockRenderer from "./CanvasBlockRenderer.svelte";
 
 	interface Props {
 		page: PageDocument;

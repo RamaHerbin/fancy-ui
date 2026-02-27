@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import TextRevealStars from './TextRevealStars.svelte';
-	import type { Snippet } from 'svelte';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils";
+	import TextRevealStars from "./TextRevealStars.svelte";
+	import type { Snippet } from "svelte";
+	import { onMount } from "svelte";
 
 	interface Props {
 		class?: string;
@@ -14,12 +14,12 @@
 	}
 
 	let {
-		class: className = '',
+		class: className = "",
 		starsCount = 130,
-		starsClass = '',
+		starsClass = "",
 		children,
 		text,
-		revealText
+		revealText,
 	}: Props = $props();
 
 	let cardRef: HTMLDivElement;
@@ -63,7 +63,7 @@
 <div
 	bind:this={cardRef}
 	class={cn(
-		'relative w-full max-w-[40rem] overflow-hidden rounded-lg border border-white/[0.08] bg-[#1d1c20] p-4 md:p-8 sm:p-6',
+		"relative w-full max-w-[40rem] overflow-hidden rounded-lg border border-white/[0.08] bg-[#1d1c20] p-4 sm:p-6 md:p-8",
 		className
 	)}
 	role="presentation"
@@ -81,7 +81,8 @@
 	<div class="relative flex h-40 items-center overflow-hidden">
 		<!-- Reveal layer -->
 		<div
-			style="width: 100%; opacity: {widthPercentage > 0 ? 1 : 0}; clip-path: inset(0 {100 - widthPercentage}% 0 0); transition: {isMouseOver ? 'none' : 'all 0.4s ease-out'};"
+			style="width: 100%; opacity: {widthPercentage > 0 ? 1 : 0}; clip-path: inset(0 {100 -
+				widthPercentage}% 0 0); transition: {isMouseOver ? 'none' : 'all 0.4s ease-out'};"
 			class="absolute z-20 bg-[#1d1c20] will-change-transform"
 		>
 			{#if text}
@@ -91,7 +92,10 @@
 
 		<!-- Reveal line -->
 		<div
-			style="left: {widthPercentage}%; transform: rotate({rotateDeg}deg); opacity: {widthPercentage > 0 ? 1 : 0}; transition: {isMouseOver ? 'none' : 'all 0.4s ease-out'};"
+			style="left: {widthPercentage}%; transform: rotate({rotateDeg}deg); opacity: {widthPercentage >
+			0
+				? 1
+				: 0}; transition: {isMouseOver ? 'none' : 'all 0.4s ease-out'};"
 			class="absolute z-50 h-40 w-[8px] bg-gradient-to-b from-transparent via-neutral-800 to-transparent will-change-transform"
 		></div>
 

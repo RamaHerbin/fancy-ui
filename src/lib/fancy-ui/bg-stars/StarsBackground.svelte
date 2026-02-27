@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils";
+	import { onMount } from "svelte";
 
 	interface Props {
 		/**
@@ -30,7 +30,7 @@
 		/**
 		 * Child content to render over the stars
 		 */
-		children?: import('svelte').Snippet;
+		children?: import("svelte").Snippet;
 	}
 
 	let {
@@ -38,15 +38,15 @@
 		speed = 50,
 		stiffness = 50,
 		damping = 20,
-		starColor = '#fff',
+		starColor = "#fff",
 		class: className,
-		children
+		children,
 	}: Props = $props();
 
 	// Star box-shadows (generated on mount)
-	let boxShadow1 = $state('');
-	let boxShadow2 = $state('');
-	let boxShadow3 = $state('');
+	let boxShadow1 = $state("");
+	let boxShadow2 = $state("");
+	let boxShadow3 = $state("");
 
 	// Spring animation state
 	let springX = $state(0);
@@ -64,7 +64,7 @@
 			const y = Math.floor(Math.random() * 4000) - 2000;
 			shadows.push(`${x}px ${y}px ${color}`);
 		}
-		return shadows.join(', ');
+		return shadows.join(", ");
 	}
 
 	function handleMouseMove(e: MouseEvent) {
@@ -113,15 +113,12 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
 	class={cn(
-		'relative size-full overflow-hidden bg-[radial-gradient(ellipse_at_bottom,_#262626_0%,_#000_100%)]',
+		"relative size-full overflow-hidden bg-[radial-gradient(ellipse_at_bottom,_#262626_0%,_#000_100%)]",
 		className
 	)}
 	onmousemove={handleMouseMove}
 >
-	<div
-		class="stars-parallax"
-		style:transform="translate({springX}px, {springY}px)"
-	>
+	<div class="stars-parallax" style:transform="translate({springX}px, {springY}px)">
 		<!-- Star Layer 1 (smallest, fastest) -->
 		<div class="star-layer" style:--duration={layer1Duration}>
 			<div

@@ -17,8 +17,8 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils.js";
+	import { onMount } from "svelte";
 
 	let { words, duration = 3000, class: className }: FlipWordsProps = $props();
 
@@ -26,11 +26,11 @@
 	let isVisible = $state(true);
 	let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-	let currentWord = $derived(words[currentIndex] ?? '');
+	let currentWord = $derived(words[currentIndex] ?? "");
 	let splitWords = $derived(
-		currentWord.split(' ').map((word) => ({
+		currentWord.split(" ").map((word) => ({
 			word,
-			letters: word.split('')
+			letters: word.split(""),
 		}))
 	);
 
@@ -65,7 +65,7 @@
 	{#if isVisible}
 		<div
 			class={cn(
-				'flip-words-enter relative z-10 inline-block text-left text-neutral-900 dark:text-neutral-100',
+				"flip-words-enter relative z-10 inline-block text-left text-neutral-900 dark:text-neutral-100",
 				className
 			)}
 		>
@@ -79,8 +79,8 @@
 							class="inline-block opacity-0"
 							style="animation:flipFadeInLetter 0.2s ease forwards;animation-delay:{wordIndex *
 								0.3 +
-								letterIndex * 0.05}s"
-						>{letter}</span>
+								letterIndex * 0.05}s">{letter}</span
+						>
 					{/each}
 					<span class="inline-block">&nbsp;</span>
 				</span>

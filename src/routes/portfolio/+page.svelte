@@ -1,12 +1,12 @@
 <script lang="ts">
-	import Hero from '$lib/portfolio/sections/Hero.svelte';
-	import Trusted from '$lib/portfolio/sections/Trusted.svelte';
-	import About from '$lib/portfolio/sections/About.svelte';
-	import Projects from '$lib/portfolio/sections/Projects.svelte';
-	import Testimonials from '$lib/portfolio/sections/Testimonials.svelte';
-	import Passions from '$lib/portfolio/sections/Passions.svelte';
-	import Contact from '$lib/portfolio/sections/Contact.svelte';
-	import Footer from '$lib/portfolio/sections/Footer.svelte';
+	import Hero from "$lib/portfolio/sections/Hero.svelte";
+	import Trusted from "$lib/portfolio/sections/Trusted.svelte";
+	import About from "$lib/portfolio/sections/About.svelte";
+	import Projects from "$lib/portfolio/sections/Projects.svelte";
+	import Testimonials from "$lib/portfolio/sections/Testimonials.svelte";
+	import Passions from "$lib/portfolio/sections/Passions.svelte";
+	import Contact from "$lib/portfolio/sections/Contact.svelte";
+	import Footer from "$lib/portfolio/sections/Footer.svelte";
 </script>
 
 <svelte:head>

@@ -4,7 +4,7 @@
   The builder uses `text` and `imageUrl` props instead.
 -->
 <script lang="ts">
-	import { DirectionAwareHover } from '$lib/fancy-ui/direction-aware-hover/index.js';
+	import { DirectionAwareHover } from "$lib/fancy-ui/direction-aware-hover/index.js";
 
 	interface Props {
 		text?: string;
@@ -14,8 +14,8 @@
 	}
 
 	let {
-		text = 'Hover me',
-		imageUrl = 'https://picsum.photos/400/400',
+		text = "Hover me",
+		imageUrl = "https://picsum.photos/400/400",
 		class: className,
 		...restProps
 	}: Props = $props();

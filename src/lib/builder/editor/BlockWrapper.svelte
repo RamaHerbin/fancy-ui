@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-	import { getEditorState } from '../stores/editor.svelte.js';
-	import { DRAG_THRESHOLD } from '../utils/drag.js';
-	import { ArrowUp, ArrowDown, X, GripVertical } from '@lucide/svelte';
+	import type { Snippet } from "svelte";
+	import { getEditorState } from "../stores/editor.svelte.js";
+	import { DRAG_THRESHOLD } from "../utils/drag.js";
+	import { ArrowUp, ArrowDown, X, GripVertical } from "@lucide/svelte";
 
 	interface Props {
 		blockId: string;
@@ -14,7 +14,7 @@
 	const editor = getEditorState();
 	let isSelected = $derived(editor.selectedBlockId === blockId);
 	let isHovered = $state(false);
-	let isEditMode = $derived(editor.mode === 'edit');
+	let isEditMode = $derived(editor.mode === "edit");
 	let isInlineEditing = $derived(editor.inlineEditBlockId === blockId);
 
 	// Drag state
@@ -25,7 +25,7 @@
 	// Drop target indicators
 	let isBeingDragged = $derived(
 		editor.isDragging &&
-			editor.dragSource?.type === 'block' &&
+			editor.dragSource?.type === "block" &&
 			editor.dragSource.blockId === blockId
 	);
 	let dropPosition = $derived.by(() => {
@@ -66,8 +66,8 @@
 		startX = e.clientX;
 		startY = e.clientY;
 		dragging = false;
-		document.addEventListener('pointermove', onPointerMove);
-		document.addEventListener('pointerup', onPointerUp);
+		document.addEventListener("pointermove", onPointerMove);
+		document.addEventListener("pointerup", onPointerUp);
 	}
 
 	function onPointerMove(e: PointerEvent) {
@@ -85,8 +85,8 @@
 	}
 
 	function onPointerUp() {
-		document.removeEventListener('pointermove', onPointerMove);
-		document.removeEventListener('pointerup', onPointerUp);
+		document.removeEventListener("pointermove", onPointerMove);
+		document.removeEventListener("pointerup", onPointerUp);
 
 		if (dragging) {
 			editor.executeDrop();
@@ -101,11 +101,11 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	class="relative transition-all duration-75 {isEditMode && isSelected
-		? 'ring-2 ring-primary rounded-sm'
+		? 'ring-primary rounded-sm ring-2'
 		: isEditMode && isHovered
-			? 'ring-1 ring-dashed ring-muted-foreground/30 rounded-sm'
+			? 'ring-dashed ring-muted-foreground/30 rounded-sm ring-1'
 			: ''} {isBeingDragged ? 'opacity-40' : ''} {dropPosition === 'inside'
-		? 'ring-2 ring-primary/50 ring-inset bg-primary/5 rounded-sm'
+		? 'ring-primary/50 bg-primary/5 rounded-sm ring-2 ring-inset'
 		: ''}"
 	data-drop-id={blockId}
 	onclick={handleClick}
@@ -113,15 +113,15 @@
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}
 >
-	{#if dropPosition === 'before'}
-		<div class="pointer-events-none absolute -top-px left-0 right-0 z-40 h-0.5 bg-primary"></div>
+	{#if dropPosition === "before"}
+		<div class="bg-primary pointer-events-none absolute -top-px right-0 left-0 z-40 h-0.5"></div>
 	{/if}
 
 	{#if isEditMode && isSelected && !isInlineEditing}
-		<div class="absolute -top-7 right-0 z-50 flex gap-0.5 rounded-t-md bg-primary px-1 py-0.5">
+		<div class="bg-primary absolute -top-7 right-0 z-50 flex gap-0.5 rounded-t-md px-1 py-0.5">
 			<button
 				type="button"
-				class="cursor-grab rounded p-0.5 text-primary-foreground hover:bg-primary-foreground/20"
+				class="text-primary-foreground hover:bg-primary-foreground/20 cursor-grab rounded p-0.5"
 				title="Drag to reorder"
 				style="touch-action: none;"
 				onpointerdown={onDragHandlePointerDown}
@@ -130,7 +130,7 @@
 			</button>
 			<button
 				type="button"
-				class="rounded p-0.5 text-primary-foreground hover:bg-primary-foreground/20"
+				class="text-primary-foreground hover:bg-primary-foreground/20 rounded p-0.5"
 				title="Move up"
 				onclick={handleMoveUp}
 			>
@@ -138,7 +138,7 @@
 			</button>
 			<button
 				type="button"
-				class="rounded p-0.5 text-primary-foreground hover:bg-primary-foreground/20"
+				class="text-primary-foreground hover:bg-primary-foreground/20 rounded p-0.5"
 				title="Move down"
 				onclick={handleMoveDown}
 			>
@@ -146,7 +146,7 @@
 			</button>
 			<button
 				type="button"
-				class="rounded p-0.5 text-primary-foreground hover:bg-destructive"
+				class="text-primary-foreground hover:bg-destructive rounded p-0.5"
 				title="Delete"
 				onclick={handleDelete}
 			>
@@ -163,7 +163,7 @@
 		{@render children()}
 	{/if}
 
-	{#if dropPosition === 'after'}
-		<div class="pointer-events-none absolute -bottom-px left-0 right-0 z-40 h-0.5 bg-primary"></div>
+	{#if dropPosition === "after"}
+		<div class="bg-primary pointer-events-none absolute right-0 -bottom-px left-0 z-40 h-0.5"></div>
 	{/if}
 </div>

@@ -14,14 +14,14 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let {
 		class: className,
 		squaresClassName,
 		width = 40,
 		height = 40,
-		squares = [24, 24] as [number, number]
+		squares = [24, 24] as [number, number],
 	}: InteractiveGridPatternProps = $props();
 
 	let hoveredSquare: number | null = $state(null);
@@ -44,7 +44,7 @@
 <svg
 	width={gridWidth}
 	height={gridHeight}
-	class={cn('absolute inset-0 h-full w-full border border-gray-400/30', className)}
+	class={cn("absolute inset-0 h-full w-full border border-gray-400/30", className)}
 >
 	{#each { length: totalSquares } as _, index}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -54,8 +54,8 @@
 			{width}
 			{height}
 			class={cn(
-				'interactive-grid-square stroke-gray-400/30 transition-all duration-100 ease-in-out',
-				hoveredSquare === index ? 'fill-gray-300/30' : 'fill-transparent',
+				"interactive-grid-square stroke-gray-400/30 transition-all duration-100 ease-in-out",
+				hoveredSquare === index ? "fill-gray-300/30" : "fill-transparent",
 				squaresClassName
 			)}
 			onmouseenter={() => (hoveredSquare = index)}
