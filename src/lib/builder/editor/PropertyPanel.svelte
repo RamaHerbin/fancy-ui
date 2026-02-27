@@ -1,16 +1,27 @@
 <script lang="ts">
 	import { getEditorState } from "../stores/editor.svelte.js";
+	import type { LinkValue } from "../types/registry.js";
 	import StringEditor from "./props/StringEditor.svelte";
 	import NumberEditor from "./props/NumberEditor.svelte";
 	import BooleanEditor from "./props/BooleanEditor.svelte";
 	import ColorEditor from "./props/ColorEditor.svelte";
 	import SelectEditor from "./props/SelectEditor.svelte";
+	import LinkEditor from "./props/LinkEditor.svelte";
+	import IconEditor from "./props/IconEditor.svelte";
 
 	const editor = getEditorState();
 
 	function handlePropChange(key: string, value: unknown) {
 		if (!editor.selectedBlockId) return;
 		editor.updateBlockProp(editor.selectedBlockId, key, value);
+	}
+
+	const defaultLink: LinkValue = { href: "#", target: "_self" };
+
+	function asLink(val: unknown, fallback: unknown): LinkValue {
+		const v = val ?? fallback ?? defaultLink;
+		if (v && typeof v === "object" && "href" in v) return v as LinkValue;
+		return defaultLink;
 	}
 </script>
 
@@ -77,6 +88,18 @@
 								}
 							}}
 						></textarea>
+					{:else if schema.type === "link"}
+						<LinkEditor
+							value={asLink(block.props[key], schema.default)}
+							{schema}
+							onchange={(v) => handlePropChange(key, v)}
+						/>
+					{:else if schema.type === "icon"}
+						<IconEditor
+							value={String(block.props[key] ?? schema.default ?? "")}
+							{schema}
+							onchange={(v) => handlePropChange(key, v)}
+						/>
 					{/if}
 				</div>
 			{/each}

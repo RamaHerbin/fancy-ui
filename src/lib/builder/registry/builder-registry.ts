@@ -22,6 +22,13 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 		acceptsChildren: true,
 		propSchemas: {
 			class: { type: "string", label: "CSS Classes", default: "" },
+			anchorId: {
+				type: "string",
+				label: "Anchor ID",
+				default: "",
+				description: "HTML id for anchor linking (e.g. bio, courses)",
+				placeholder: "section-id",
+			},
 			padding: {
 				type: "select",
 				label: "Padding",
@@ -202,6 +209,13 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Span", value: "span" },
 				],
 			},
+			anchorId: {
+				type: "string",
+				label: "Anchor ID",
+				default: "",
+				description: "HTML id for anchor linking",
+				placeholder: "heading-id",
+			},
 			class: { type: "string", label: "CSS Classes", default: "" },
 		},
 	},
@@ -266,6 +280,298 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "XXL", value: "h-32" },
 				],
 			},
+		},
+	},
+};
+
+// =============================================================================
+// Content & Navigation Primitives
+// =============================================================================
+
+const contentPrimitives: Record<string, BuilderComponentMeta> = {
+	_link: {
+		name: "Link / Button",
+		slug: "_link",
+		description: "Clickable link or button with optional icon",
+		icon: "ExternalLink",
+		paletteCategory: "navigation",
+		acceptsChildren: false,
+		propSchemas: {
+			text: { type: "string", label: "Text", default: "Click here" },
+			href: {
+				type: "link",
+				label: "Link",
+				default: { href: "#", target: "_self" },
+			},
+			variant: {
+				type: "select",
+				label: "Variant",
+				default: "link",
+				options: [
+					{ label: "Link", value: "link" },
+					{ label: "Button", value: "button" },
+					{ label: "Ghost", value: "ghost" },
+				],
+			},
+			icon: { type: "icon", label: "Icon", default: "" },
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_divider: {
+		name: "Divider",
+		slug: "_divider",
+		description: "Horizontal rule / separator",
+		icon: "Minus",
+		paletteCategory: "layout",
+		acceptsChildren: false,
+		propSchemas: {
+			style: {
+				type: "select",
+				label: "Style",
+				default: "solid",
+				options: [
+					{ label: "Solid", value: "solid" },
+					{ label: "Dashed", value: "dashed" },
+					{ label: "Dotted", value: "dotted" },
+				],
+			},
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_badge: {
+		name: "Badge",
+		slug: "_badge",
+		description: "Small status or label tag",
+		icon: "Tag",
+		paletteCategory: "content",
+		acceptsChildren: false,
+		propSchemas: {
+			text: { type: "string", label: "Text", default: "Badge" },
+			variant: {
+				type: "select",
+				label: "Variant",
+				default: "default",
+				options: [
+					{ label: "Default", value: "default" },
+					{ label: "Secondary", value: "secondary" },
+					{ label: "Outline", value: "outline" },
+					{ label: "Destructive", value: "destructive" },
+				],
+			},
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_list: {
+		name: "List",
+		slug: "_list",
+		description: "Ordered or unordered list from items",
+		icon: "List",
+		paletteCategory: "content",
+		acceptsChildren: false,
+		propSchemas: {
+			items: {
+				type: "json",
+				label: "Items",
+				default: ["Item 1", "Item 2", "Item 3"],
+				description: "JSON array of strings",
+			},
+			ordered: { type: "boolean", label: "Ordered", default: false },
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_card: {
+		name: "Card",
+		slug: "_card",
+		description: "Card container with border and shadow",
+		icon: "CreditCard",
+		paletteCategory: "content",
+		acceptsChildren: true,
+		propSchemas: {
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	"_card-header": {
+		name: "Card Header",
+		slug: "_card-header",
+		description: "Header area of a card",
+		icon: "CreditCard",
+		paletteCategory: "content",
+		acceptsChildren: true,
+		propSchemas: {
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	"_card-content": {
+		name: "Card Content",
+		slug: "_card-content",
+		description: "Main content area of a card",
+		icon: "CreditCard",
+		paletteCategory: "content",
+		acceptsChildren: true,
+		propSchemas: {
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	"_card-footer": {
+		name: "Card Footer",
+		slug: "_card-footer",
+		description: "Footer area of a card",
+		icon: "CreditCard",
+		paletteCategory: "content",
+		acceptsChildren: true,
+		propSchemas: {
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	"_rich-text": {
+		name: "Rich Text",
+		slug: "_rich-text",
+		description: "Markdown-rendered text block",
+		icon: "FileText",
+		paletteCategory: "text",
+		acceptsChildren: false,
+		propSchemas: {
+			content: {
+				type: "string",
+				label: "Content (Markdown)",
+				default: "**Hello** world. This is *rich text*.",
+				multiline: true,
+			},
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_icon: {
+		name: "Icon",
+		slug: "_icon",
+		description: "Lucide icon with configurable size and color",
+		icon: "Smile",
+		paletteCategory: "content",
+		acceptsChildren: false,
+		propSchemas: {
+			name: { type: "icon", label: "Icon", default: "Star" },
+			size: {
+				type: "number",
+				label: "Size",
+				default: 24,
+				min: 12,
+				max: 128,
+				step: 4,
+			},
+			color: { type: "color", label: "Color", default: "" },
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_document: {
+		name: "Document Card",
+		slug: "_document",
+		description: "Downloadable or embeddable document card",
+		icon: "FileDown",
+		paletteCategory: "content",
+		acceptsChildren: false,
+		propSchemas: {
+			src: {
+				type: "string",
+				label: "Document URL",
+				default: "",
+				placeholder: "https://example.com/file.pdf",
+			},
+			title: { type: "string", label: "Title", default: "Document" },
+			description: {
+				type: "string",
+				label: "Description",
+				default: "",
+			},
+			action: {
+				type: "select",
+				label: "Action",
+				default: "download",
+				options: [
+					{ label: "Download", value: "download" },
+					{ label: "Embed", value: "embed" },
+				],
+			},
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_nav: {
+		name: "Navigation Bar",
+		slug: "_nav",
+		description: "Site navigation bar (reads items from site config)",
+		icon: "Menu",
+		paletteCategory: "navigation",
+		acceptsChildren: false,
+		propSchemas: {
+			variant: {
+				type: "select",
+				label: "Variant",
+				default: "sticky",
+				options: [
+					{ label: "Sticky", value: "sticky" },
+					{ label: "Static", value: "static" },
+				],
+			},
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_footer: {
+		name: "Footer",
+		slug: "_footer",
+		description: "Site footer with copyright and links (reads from site config)",
+		icon: "PanelBottom",
+		paletteCategory: "navigation",
+		acceptsChildren: false,
+		propSchemas: {
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	_tabs: {
+		name: "Tabs",
+		slug: "_tabs",
+		description: "Tabbed content container",
+		icon: "PanelTop",
+		paletteCategory: "content",
+		acceptsChildren: true,
+		allowedChildTypes: ["_tab-item"],
+		propSchemas: {
+			defaultTab: {
+				type: "string",
+				label: "Default Tab",
+				default: "",
+				description: "Value of the initially active tab",
+			},
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
+	"_tab-item": {
+		name: "Tab Item",
+		slug: "_tab-item",
+		description: "Single tab panel within a Tabs block",
+		icon: "PanelTop",
+		paletteCategory: "content",
+		acceptsChildren: true,
+		propSchemas: {
+			label: { type: "string", label: "Tab Label", default: "Tab" },
+			value: {
+				type: "string",
+				label: "Tab Value",
+				default: "tab",
+				description: "Unique identifier for this tab",
+			},
+			class: { type: "string", label: "CSS Classes", default: "" },
 		},
 	},
 };
@@ -1119,6 +1425,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 
 export const builderRegistry: Record<string, BuilderComponentMeta> = {
 	...layoutPrimitives,
+	...contentPrimitives,
 	...fancyComponents,
 };
 

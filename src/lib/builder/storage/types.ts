@@ -1,4 +1,5 @@
 import type { PageDocument } from "../types/page.js";
+import type { SiteConfig } from "../types/site.js";
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -28,6 +29,12 @@ export interface PageStorage {
 
 	/** Set a page's status to published */
 	publish(slug: string): Promise<void>;
+
+	/** Get the site configuration (returns null if none exists) */
+	getSiteConfig(): Promise<SiteConfig | null>;
+
+	/** Save the site configuration */
+	saveSiteConfig(config: SiteConfig): Promise<void>;
 }
 
 /** Validate that an object looks like a valid PageDocument */

@@ -4,7 +4,10 @@
 
 	let { data } = $props();
 
-	const editor = createEditorState(data.page);
+	const editor = createEditorState(data.page, {
+		siteConfig: data.siteConfig,
+		allPages: data.allPages,
+	});
 </script>
 
 <svelte:head>

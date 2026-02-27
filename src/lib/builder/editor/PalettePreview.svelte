@@ -28,7 +28,7 @@
 	role="tooltip"
 >
 	<div
-		class="pointer-events-none relative flex h-48 items-center justify-center overflow-hidden bg-neutral-950"
+		class="pointer-events-none relative flex h-48 items-center justify-center overflow-hidden bg-neutral-100"
 	>
 		{#if Component}
 			{#key meta.slug}

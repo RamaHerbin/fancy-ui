@@ -10,6 +10,11 @@ export type {
 	SelectPropSchema,
 	JsonPropSchema,
 	ImagePropSchema,
+	LinkPropSchema,
+	LinkValue,
+	IconPropSchema,
 	PaletteCategory,
 	BuilderComponentMeta,
 } from "./registry.js";
+export type { NavItem, SiteConfig } from "./site.js";
+export { createDefaultSiteConfig, isValidSiteConfig } from "./site.js";
