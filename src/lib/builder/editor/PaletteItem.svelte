@@ -6,16 +6,29 @@
 
 	interface Props {
 		meta: BuilderComponentMeta;
+		onpreview?: (meta: BuilderComponentMeta, rect: DOMRect) => void;
+		onpreviewend?: () => void;
 	}
 
-	let { meta }: Props = $props();
+	let { meta, onpreview, onpreviewend }: Props = $props();
 
 	const editor = getEditorState();
 	let Icon = $derived(getIcon(meta.icon));
 
+	let buttonEl: HTMLButtonElement;
 	let startX = 0;
 	let startY = 0;
 	let dragging = false;
+
+	function handleMouseEnter() {
+		if (buttonEl && onpreview) {
+			onpreview(meta, buttonEl.getBoundingClientRect());
+		}
+	}
+
+	function handleMouseLeave() {
+		onpreviewend?.();
+	}
 
 	function handleClick() {
 		const parentId =
@@ -40,6 +53,7 @@
 
 		if (!dragging && Math.sqrt(dx * dx + dy * dy) >= DRAG_THRESHOLD) {
 			dragging = true;
+			onpreviewend?.();
 			editor.startPaletteDrag(meta.slug);
 		}
 
@@ -62,12 +76,15 @@
 </script>
 
 <button
+	bind:this={buttonEl}
 	type="button"
 	class="flex w-full cursor-grab items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors select-none hover:bg-accent hover:text-accent-foreground"
 	style="touch-action: none;"
 	data-testid="palette-item-{meta.slug}"
 	onclick={handleClick}
 	onpointerdown={onPointerDown}
+	onmouseenter={handleMouseEnter}
+	onmouseleave={handleMouseLeave}
 	title={meta.description}
 >
 	<Icon class="h-4 w-4 shrink-0 text-muted-foreground" />

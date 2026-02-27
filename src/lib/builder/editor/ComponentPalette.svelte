@@ -1,9 +1,27 @@
 <script lang="ts">
 	import { getAllBuilderComponents } from '../registry/index.js';
-	import type { PaletteCategory } from '../types/registry.js';
+	import type { BuilderComponentMeta, PaletteCategory } from '../types/registry.js';
 	import PaletteItem from './PaletteItem.svelte';
+	import PalettePreview from './PalettePreview.svelte';
 
 	let search = $state('');
+	let previewMeta = $state<BuilderComponentMeta | null>(null);
+	let previewRect = $state<DOMRect | null>(null);
+	let previewTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function handlePreview(meta: BuilderComponentMeta, rect: DOMRect) {
+		clearTimeout(previewTimer);
+		previewTimer = setTimeout(() => {
+			previewMeta = meta;
+			previewRect = rect;
+		}, 200);
+	}
+
+	function handlePreviewEnd() {
+		clearTimeout(previewTimer);
+		previewMeta = null;
+		previewRect = null;
+	}
 
 	const allComponents = getAllBuilderComponents();
 
@@ -84,7 +102,7 @@
 				</summary>
 				<div class="pb-1 pl-1">
 					{#each items as meta (meta.slug)}
-						<PaletteItem {meta} />
+						<PaletteItem {meta} onpreview={handlePreview} onpreviewend={handlePreviewEnd} />
 					{/each}
 				</div>
 			</details>
@@ -95,3 +113,7 @@
 		{/if}
 	</div>
 </div>
+
+{#if previewMeta && previewRect}
+	<PalettePreview meta={previewMeta} anchorRect={previewRect} />
+{/if}
