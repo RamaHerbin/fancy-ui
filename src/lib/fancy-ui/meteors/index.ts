@@ -1,3 +1,3 @@
-import Meteors, { type MeteorsProps } from './Meteors.svelte';
+import Meteors, { type MeteorsProps } from "./Meteors.svelte";
 
 export { Meteors, type MeteorsProps };

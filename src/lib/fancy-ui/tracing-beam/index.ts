@@ -1,1 +1,1 @@
-export { default as TracingBeam } from './TracingBeam.svelte';
+export { default as TracingBeam } from "./TracingBeam.svelte";

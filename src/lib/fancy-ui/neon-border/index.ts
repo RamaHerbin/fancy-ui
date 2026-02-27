@@ -1,3 +1,3 @@
-import NeonBorder, { type NeonBorderProps } from './NeonBorder.svelte';
+import NeonBorder, { type NeonBorderProps } from "./NeonBorder.svelte";
 
 export { NeonBorder, type NeonBorderProps };

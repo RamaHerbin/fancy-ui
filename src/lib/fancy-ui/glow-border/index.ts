@@ -1,1 +1,1 @@
-export { default as GlowBorder } from './GlowBorder.svelte';
+export { default as GlowBorder } from "./GlowBorder.svelte";

@@ -5,7 +5,11 @@
  * Used for generating demo pages, tracking progress, and documentation.
  */
 
-import type { ComponentCategory, ComponentMeta, ComponentStatus } from '$lib/types.js';
+import type {
+  ComponentCategory,
+  ComponentMeta,
+  ComponentStatus,
+} from "$lib/types.js";
 
 // =============================================================================
 // Category Definitions
@@ -15,48 +19,48 @@ import type { ComponentCategory, ComponentMeta, ComponentStatus } from '$lib/typ
  * Human-readable labels for component categories
  */
 export const categoryLabels: Record<ComponentCategory, string> = {
-	buttons: 'Buttons',
-	cards: 'Cards',
-	backgrounds: 'Backgrounds',
-	text: 'Text & Typography',
-	layout: 'Layout',
-	feedback: 'Feedback',
-	'data-display': 'Data Display',
-	navigation: 'Navigation',
-	media: 'Media',
-	effects: 'Effects'
+  buttons: "Buttons",
+  cards: "Cards",
+  backgrounds: "Backgrounds",
+  text: "Text & Typography",
+  layout: "Layout",
+  feedback: "Feedback",
+  "data-display": "Data Display",
+  navigation: "Navigation",
+  media: "Media",
+  effects: "Effects",
 };
 
 /**
  * Category descriptions for documentation
  */
 export const categoryDescriptions: Record<ComponentCategory, string> = {
-	buttons: 'Interactive button components with various styles and animations',
-	cards: 'Card layouts and containers for content presentation',
-	backgrounds: 'Animated and decorative background effects',
-	text: 'Text animations, typography effects, and content display',
-	layout: 'Layout primitives and structural components',
-	feedback: 'User feedback components like tooltips, toasts, and loaders',
-	'data-display': 'Components for displaying data, lists, and collections',
-	navigation: 'Navigation menus, tabs, and wayfinding components',
-	media: 'Image, video, and media display components',
-	effects: 'Visual effects, animations, and decorative elements'
+  buttons: "Interactive button components with various styles and animations",
+  cards: "Card layouts and containers for content presentation",
+  backgrounds: "Animated and decorative background effects",
+  text: "Text animations, typography effects, and content display",
+  layout: "Layout primitives and structural components",
+  feedback: "User feedback components like tooltips, toasts, and loaders",
+  "data-display": "Components for displaying data, lists, and collections",
+  navigation: "Navigation menus, tabs, and wayfinding components",
+  media: "Image, video, and media display components",
+  effects: "Visual effects, animations, and decorative elements",
 };
 
 /**
  * All available categories in display order
  */
 export const categories: ComponentCategory[] = [
-	'buttons',
-	'cards',
-	'text',
-	'backgrounds',
-	'effects',
-	'layout',
-	'navigation',
-	'data-display',
-	'feedback',
-	'media'
+  "buttons",
+  "cards",
+  "text",
+  "backgrounds",
+  "effects",
+  "layout",
+  "navigation",
+  "data-display",
+  "feedback",
+  "media",
 ];
 
 // =============================================================================
@@ -70,393 +74,420 @@ export const categories: ComponentCategory[] = [
  * Keep alphabetically sorted within each status group.
  */
 export const registry: Record<string, ComponentMeta> = {
-	// =========================================================================
-	// Done - Fully ported and tested
-	// =========================================================================
+  // =========================================================================
+  // Done - Fully ported and tested
+  // =========================================================================
 
-	'animated-beam': {
-		name: 'AnimatedBeam',
-		slug: 'animated-beam',
-		description: 'Animated SVG beams connecting elements with smooth gradients',
-		category: 'effects',
-		status: 'done'
-	},
+  "animated-beam": {
+    name: "AnimatedBeam",
+    slug: "animated-beam",
+    description: "Animated SVG beams connecting elements with smooth gradients",
+    category: "effects",
+    status: "done",
+  },
 
-	'bg-falling-stars': {
-		name: 'FallingStarsBg',
-		slug: 'bg-falling-stars',
-		description: 'Canvas-based 3D starfield with perspective projection, motion trails, and glow',
-		category: 'backgrounds',
-		status: 'done'
-	},
+  "bg-falling-stars": {
+    name: "FallingStarsBg",
+    slug: "bg-falling-stars",
+    description:
+      "Canvas-based 3D starfield with perspective projection, motion trails, and glow",
+    category: "backgrounds",
+    status: "done",
+  },
 
-	'animated-tooltip': {
-		name: 'AnimatedTooltip',
-		slug: 'animated-tooltip',
-		description: 'Avatar row with animated tooltips that follow mouse movement',
-		category: 'feedback',
-		status: 'done'
-	},
+  "animated-tooltip": {
+    name: "AnimatedTooltip",
+    slug: "animated-tooltip",
+    description: "Avatar row with animated tooltips that follow mouse movement",
+    category: "feedback",
+    status: "done",
+  },
 
-	'blur-reveal': {
-		name: 'BlurReveal',
-		slug: 'blur-reveal',
-		description: 'Scroll-triggered blur-to-clear reveal animation with staggered children',
-		category: 'text',
-		status: 'done'
-	},
+  "blur-reveal": {
+    name: "BlurReveal",
+    slug: "blur-reveal",
+    description:
+      "Scroll-triggered blur-to-clear reveal animation with staggered children",
+    category: "text",
+    status: "done",
+  },
 
-	'border-beam': {
-		name: 'BorderBeam',
-		slug: 'border-beam',
-		description: 'Animated beam effect that travels around borders',
-		category: 'effects',
-		status: 'done'
-	},
+  "border-beam": {
+    name: "BorderBeam",
+    slug: "border-beam",
+    description: "Animated beam effect that travels around borders",
+    category: "effects",
+    status: "done",
+  },
 
-	compare: {
-		name: 'Compare',
-		slug: 'compare',
-		description: 'Before/after image comparison slider with hover and drag modes',
-		category: 'media',
-		status: 'done'
-	},
+  compare: {
+    name: "Compare",
+    slug: "compare",
+    description:
+      "Before/after image comparison slider with hover and drag modes",
+    category: "media",
+    status: "done",
+  },
 
-	'image-trail-cursor': {
-		name: 'ImageTrailCursor',
-		slug: 'image-trail-cursor',
-		description: 'Cursor-following image trail with 8 animation variants',
-		category: 'effects',
-		status: 'done'
-	},
+  "image-trail-cursor": {
+    name: "ImageTrailCursor",
+    slug: "image-trail-cursor",
+    description: "Cursor-following image trail with 8 animation variants",
+    category: "effects",
+    status: "done",
+  },
 
-	'interactive-grid-pattern': {
-		name: 'InteractiveGridPattern',
-		slug: 'interactive-grid-pattern',
-		description: 'SVG grid of squares that highlight on hover with smooth fade transitions',
-		category: 'effects',
-		status: 'done'
-	},
+  "interactive-grid-pattern": {
+    name: "InteractiveGridPattern",
+    slug: "interactive-grid-pattern",
+    description:
+      "SVG grid of squares that highlight on hover with smooth fade transitions",
+    category: "effects",
+    status: "done",
+  },
 
-	'logo-cloud': {
-		name: 'LogoCloud',
-		slug: 'logo-cloud',
-		description: 'Logo display with animated marquee, static grid, and icon variants',
-		category: 'data-display',
-		status: 'done'
-	},
+  "logo-cloud": {
+    name: "LogoCloud",
+    slug: "logo-cloud",
+    description:
+      "Logo display with animated marquee, static grid, and icon variants",
+    category: "data-display",
+    status: "done",
+  },
 
-	'direction-aware-hover': {
-		name: 'DirectionAwareHover',
-		slug: 'direction-aware-hover',
-		description: 'Image card with overlay that slides in from the mouse entry direction',
-		category: 'cards',
-		status: 'done'
-	},
+  "direction-aware-hover": {
+    name: "DirectionAwareHover",
+    slug: "direction-aware-hover",
+    description:
+      "Image card with overlay that slides in from the mouse entry direction",
+    category: "cards",
+    status: "done",
+  },
 
-	'rainbow-button': {
-		name: 'RainbowButton',
-		slug: 'rainbow-button',
-		description: 'Animated button with a rainbow gradient border effect',
-		category: 'buttons',
-		status: 'done'
-	},
+  "rainbow-button": {
+    name: "RainbowButton",
+    slug: "rainbow-button",
+    description: "Animated button with a rainbow gradient border effect",
+    category: "buttons",
+    status: "done",
+  },
 
-	'ripple-button': {
-		name: 'RippleButton',
-		slug: 'ripple-button',
-		description: 'Button with ripple click effect',
-		category: 'buttons',
-		status: 'done'
-	},
+  "ripple-button": {
+    name: "RippleButton",
+    slug: "ripple-button",
+    description: "Button with ripple click effect",
+    category: "buttons",
+    status: "done",
+  },
 
-	'shimmer-button': {
-		name: 'ShimmerButton',
-		slug: 'shimmer-button',
-		description: 'Button with a rotating conic-gradient shimmer border effect',
-		category: 'buttons',
-		status: 'done'
-	},
+  "shimmer-button": {
+    name: "ShimmerButton",
+    slug: "shimmer-button",
+    description: "Button with a rotating conic-gradient shimmer border effect",
+    category: "buttons",
+    status: "done",
+  },
 
-	timeline: {
-		name: 'Timeline',
-		slug: 'timeline',
-		description: 'Vertical timeline with scroll-driven progress line and sticky labels',
-		category: 'navigation',
-		status: 'done'
-	},
+  timeline: {
+    name: "Timeline",
+    slug: "timeline",
+    description:
+      "Vertical timeline with scroll-driven progress line and sticky labels",
+    category: "navigation",
+    status: "done",
+  },
 
-	'bg-stars': {
-		name: 'StarsBackground',
-		slug: 'bg-stars',
-		description: 'Animated starfield background with parallax mouse tracking',
-		category: 'backgrounds',
-		status: 'done'
-	},
+  "bg-stars": {
+    name: "StarsBackground",
+    slug: "bg-stars",
+    description: "Animated starfield background with parallax mouse tracking",
+    category: "backgrounds",
+    status: "done",
+  },
 
-	dock: {
-		name: 'Dock',
-		slug: 'dock',
-		description: 'macOS-style dock with icon magnification on hover',
-		category: 'navigation',
-		status: 'done'
-	},
+  dock: {
+    name: "Dock",
+    slug: "dock",
+    description: "macOS-style dock with icon magnification on hover",
+    category: "navigation",
+    status: "done",
+  },
 
-	'fluid-cursor': {
-		name: 'FluidCursor',
-		slug: 'fluid-cursor',
-		description: 'WebGL fluid simulation that follows cursor movement',
-		category: 'effects',
-		status: 'done'
-	},
+  "fluid-cursor": {
+    name: "FluidCursor",
+    slug: "fluid-cursor",
+    description: "WebGL fluid simulation that follows cursor movement",
+    category: "effects",
+    status: "done",
+  },
 
-	'glow-border': {
-		name: 'GlowBorder',
-		slug: 'glow-border',
-		description: 'Animated glowing border effect with gradient support',
-		category: 'effects',
-		status: 'done'
-	},
+  "glow-border": {
+    name: "GlowBorder",
+    slug: "glow-border",
+    description: "Animated glowing border effect with gradient support",
+    category: "effects",
+    status: "done",
+  },
 
-	'gradient-button': {
-		name: 'GradientButton',
-		slug: 'gradient-button',
-		description: 'Button with a rotating conic-gradient rainbow border effect',
-		category: 'buttons',
-		status: 'done'
-	},
+  "gradient-button": {
+    name: "GradientButton",
+    slug: "gradient-button",
+    description: "Button with a rotating conic-gradient rainbow border effect",
+    category: "buttons",
+    status: "done",
+  },
 
-	'interactive-hover-button': {
-		name: 'InteractiveHoverButton',
-		slug: 'interactive-hover-button',
-		description: 'Button with interactive hover effect revealing alternate content',
-		category: 'buttons',
-		status: 'done'
-	},
+  "interactive-hover-button": {
+    name: "InteractiveHoverButton",
+    slug: "interactive-hover-button",
+    description:
+      "Button with interactive hover effect revealing alternate content",
+    category: "buttons",
+    status: "done",
+  },
 
-	marquee: {
-		name: 'Marquee',
-		slug: 'marquee',
-		description: 'Infinite scrolling component for text, images, or cards',
-		category: 'layout',
-		status: 'done'
-	},
+  marquee: {
+    name: "Marquee",
+    slug: "marquee",
+    description: "Infinite scrolling component for text, images, or cards",
+    category: "layout",
+    status: "done",
+  },
 
-	meteors: {
-		name: 'Meteors',
-		slug: 'meteors',
-		description: 'Animated meteor shower effect with randomized positions and delays',
-		category: 'effects',
-		status: 'done'
-	},
+  meteors: {
+    name: "Meteors",
+    slug: "meteors",
+    description:
+      "Animated meteor shower effect with randomized positions and delays",
+    category: "effects",
+    status: "done",
+  },
 
-	'flickering-grid': {
-		name: 'FlickeringGrid',
-		slug: 'flickering-grid',
-		description: 'Canvas-based grid of squares with flickering opacity',
-		category: 'backgrounds',
-		status: 'done'
-	},
+  "flickering-grid": {
+    name: "FlickeringGrid",
+    slug: "flickering-grid",
+    description: "Canvas-based grid of squares with flickering opacity",
+    category: "backgrounds",
+    status: "done",
+  },
 
-	'neon-border': {
-		name: 'NeonBorder',
-		slug: 'neon-border',
-		description: 'Dual-color neon glow border effect with optional rotation animation',
-		category: 'effects',
-		status: 'done'
-	},
+  "neon-border": {
+    name: "NeonBorder",
+    slug: "neon-border",
+    description:
+      "Dual-color neon glow border effect with optional rotation animation",
+    category: "effects",
+    status: "done",
+  },
 
-	'colourful-text': {
-		name: 'ColourfulText',
-		slug: 'colourful-text',
-		description: 'Per-character color animation with shuffling colors',
-		category: 'text',
-		status: 'done'
-	},
+  "colourful-text": {
+    name: "ColourfulText",
+    slug: "colourful-text",
+    description: "Per-character color animation with shuffling colors",
+    category: "text",
+    status: "done",
+  },
 
-	'flip-words': {
-		name: 'FlipWords',
-		slug: 'flip-words',
-		description: 'Cycling word animation with per-letter fade-in and blur effects',
-		category: 'text',
-		status: 'done'
-	},
+  "flip-words": {
+    name: "FlipWords",
+    slug: "flip-words",
+    description:
+      "Cycling word animation with per-letter fade-in and blur effects",
+    category: "text",
+    status: "done",
+  },
 
-	'hyper-text': {
-		name: 'HyperText',
-		slug: 'hyper-text',
-		description: 'Character scramble effect that activates on hover',
-		category: 'text',
-		status: 'done'
-	},
+  "hyper-text": {
+    name: "HyperText",
+    slug: "hyper-text",
+    description: "Character scramble effect that activates on hover",
+    category: "text",
+    status: "done",
+  },
 
-	'letter-pullup': {
-		name: 'LetterPullup',
-		slug: 'letter-pullup',
-		description: 'Staggered letter pull-up animation with wave entrance effect',
-		category: 'text',
-		status: 'done'
-	},
+  "letter-pullup": {
+    name: "LetterPullup",
+    slug: "letter-pullup",
+    description: "Staggered letter pull-up animation with wave entrance effect",
+    category: "text",
+    status: "done",
+  },
 
-	'number-ticker': {
-		name: 'NumberTicker',
-		slug: 'number-ticker',
-		description: 'Animated number counter with easing, triggered on viewport entry',
-		category: 'text',
-		status: 'done'
-	},
+  "number-ticker": {
+    name: "NumberTicker",
+    slug: "number-ticker",
+    description:
+      "Animated number counter with easing, triggered on viewport entry",
+    category: "text",
+    status: "done",
+  },
 
-	'sparkles-text': {
-		name: 'SparklesText',
-		slug: 'sparkles-text',
-		description: 'Text with animated SVG sparkle stars overlay',
-		category: 'text',
-		status: 'done'
-	},
+  "sparkles-text": {
+    name: "SparklesText",
+    slug: "sparkles-text",
+    description: "Text with animated SVG sparkle stars overlay",
+    category: "text",
+    status: "done",
+  },
 
-	'box-reveal': {
-		name: 'BoxReveal',
-		slug: 'box-reveal',
-		description: 'Content reveal with sliding colored box animation',
-		category: 'text',
-		status: 'done'
-	},
+  "box-reveal": {
+    name: "BoxReveal",
+    slug: "box-reveal",
+    description: "Content reveal with sliding colored box animation",
+    category: "text",
+    status: "done",
+  },
 
-	'card-3d': {
-		name: 'Card3D',
-		slug: 'card-3d',
-		description: 'Interactive 3D perspective card with depth effects on child elements',
-		category: 'cards',
-		status: 'done'
-	},
+  "card-3d": {
+    name: "Card3D",
+    slug: "card-3d",
+    description:
+      "Interactive 3D perspective card with depth effects on child elements",
+    category: "cards",
+    status: "done",
+  },
 
-	'card-spotlight': {
-		name: 'CardSpotlight',
-		slug: 'card-spotlight',
-		description: 'Card with mouse-following radial gradient spotlight overlay',
-		category: 'cards',
-		status: 'done'
-	},
+  "card-spotlight": {
+    name: "CardSpotlight",
+    slug: "card-spotlight",
+    description: "Card with mouse-following radial gradient spotlight overlay",
+    category: "cards",
+    status: "done",
+  },
 
-	'bento-grid': {
-		name: 'BentoGrid',
-		slug: 'bento-grid',
-		description: 'Bento-style grid layout with slot-based and props-based card variants',
-		category: 'cards',
-		status: 'done'
-	},
+  "bento-grid": {
+    name: "BentoGrid",
+    slug: "bento-grid",
+    description:
+      "Bento-style grid layout with slot-based and props-based card variants",
+    category: "cards",
+    status: "done",
+  },
 
-	'flip-card': {
-		name: 'FlipCard',
-		slug: 'flip-card',
-		description: 'Card that flips to reveal back content on hover using CSS 3D transforms',
-		category: 'cards',
-		status: 'done'
-	},
+  "flip-card": {
+    name: "FlipCard",
+    slug: "flip-card",
+    description:
+      "Card that flips to reveal back content on hover using CSS 3D transforms",
+    category: "cards",
+    status: "done",
+  },
 
-	book: {
-		name: 'Book',
-		slug: 'book',
-		description: '3D book component with cover, spine, and back face that opens on hover',
-		category: 'cards',
-		status: 'done'
-	},
+  book: {
+    name: "Book",
+    slug: "book",
+    description:
+      "3D book component with cover, spine, and back face that opens on hover",
+    category: "cards",
+    status: "done",
+  },
 
-	'glare-card': {
-		name: 'GlareCard',
-		slug: 'glare-card',
-		description: 'Holographic trading card effect with mouse-tracking glare and rainbow foil',
-		category: 'cards',
-		status: 'done'
-	},
+  "glare-card": {
+    name: "GlareCard",
+    slug: "glare-card",
+    description:
+      "Holographic trading card effect with mouse-tracking glare and rainbow foil",
+    category: "cards",
+    status: "done",
+  },
 
-	'text-reveal-card': {
-		name: 'TextRevealCard',
-		slug: 'text-reveal-card',
-		description: 'Card that reveals text on horizontal mouse drag with animated star particles',
-		category: 'cards',
-		status: 'done'
-	},
+  "text-reveal-card": {
+    name: "TextRevealCard",
+    slug: "text-reveal-card",
+    description:
+      "Card that reveals text on horizontal mouse drag with animated star particles",
+    category: "cards",
+    status: "done",
+  },
 
-	'container-scroll': {
-		name: 'ContainerScroll',
-		slug: 'container-scroll',
-		description: 'Scroll-driven animation that rotates and scales a card from tilted to flat',
-		category: 'layout',
-		status: 'done'
-	},
+  "container-scroll": {
+    name: "ContainerScroll",
+    slug: "container-scroll",
+    description:
+      "Scroll-driven animation that rotates and scales a card from tilted to flat",
+    category: "layout",
+    status: "done",
+  },
 
-	'container-text-flip': {
-		name: 'ContainerTextFlip',
-		slug: 'container-text-flip',
-		description: 'Text container that cycles through words with per-character blur animation',
-		category: 'text',
-		status: 'done'
-	},
+  "container-text-flip": {
+    name: "ContainerTextFlip",
+    slug: "container-text-flip",
+    description:
+      "Text container that cycles through words with per-character blur animation",
+    category: "text",
+    status: "done",
+  },
 
-	focus: {
-		name: 'Focus',
-		slug: 'focus',
-		description: 'Text component that cycles focus through words with blur and corner frame',
-		category: 'text',
-		status: 'done'
-	},
+  focus: {
+    name: "Focus",
+    slug: "focus",
+    description:
+      "Text component that cycles focus through words with blur and corner frame",
+    category: "text",
+    status: "done",
+  },
 
-	'liquid-glass': {
-		name: 'LiquidGlass',
-		slug: 'liquid-glass',
-		description: 'Glass-like visual effect using SVG filters for chromatic displacement',
-		category: 'effects',
-		status: 'done'
-	},
+  "liquid-glass": {
+    name: "LiquidGlass",
+    slug: "liquid-glass",
+    description:
+      "Glass-like visual effect using SVG filters for chromatic displacement",
+    category: "effects",
+    status: "done",
+  },
 
-	'smooth-cursor': {
-		name: 'SmoothCursor',
-		slug: 'smooth-cursor',
-		description: 'Physics-based smooth cursor with spring animations and rotation effects',
-		category: 'effects',
-		status: 'done'
-	},
+  "smooth-cursor": {
+    name: "SmoothCursor",
+    slug: "smooth-cursor",
+    description:
+      "Physics-based smooth cursor with spring animations and rotation effects",
+    category: "effects",
+    status: "done",
+  },
 
-	'glowing-effect': {
-		name: 'GlowingEffect',
-		slug: 'glowing-effect',
-		description: 'Mouse-proximity based glowing border effect with animated conic gradient',
-		category: 'effects',
-		status: 'done'
-	},
+  "glowing-effect": {
+    name: "GlowingEffect",
+    slug: "glowing-effect",
+    description:
+      "Mouse-proximity based glowing border effect with animated conic gradient",
+    category: "effects",
+    status: "done",
+  },
 
-	sparkles: {
-		name: 'Sparkles',
-		slug: 'sparkles',
-		description: 'Canvas-based floating particle sparkle effect with configurable density and colors',
-		category: 'backgrounds',
-		status: 'done'
-	},
+  sparkles: {
+    name: "Sparkles",
+    slug: "sparkles",
+    description:
+      "Canvas-based floating particle sparkle effect with configurable density and colors",
+    category: "backgrounds",
+    status: "done",
+  },
 
-	confetti: {
-		name: 'Confetti',
-		slug: 'confetti',
-		description: 'Confetti celebration effect powered by canvas-confetti with button trigger support',
-		category: 'effects',
-		status: 'done'
-	},
+  confetti: {
+    name: "Confetti",
+    slug: "confetti",
+    description:
+      "Confetti celebration effect powered by canvas-confetti with button trigger support",
+    category: "effects",
+    status: "done",
+  },
 
-	ripple: {
-		name: 'Ripple',
-		slug: 'ripple',
-		description: 'Concentric pulsing circles with ripple wave animation',
-		category: 'effects',
-		status: 'done'
-	},
+  ripple: {
+    name: "Ripple",
+    slug: "ripple",
+    description: "Concentric pulsing circles with ripple wave animation",
+    category: "effects",
+    status: "done",
+  },
 
-	'tracing-beam': {
-		name: 'TracingBeam',
-		slug: 'tracing-beam',
-		description: 'Vertical SVG beam that highlights scroll progress alongside content',
-		category: 'effects',
-		status: 'done'
-	}
+  "tracing-beam": {
+    name: "TracingBeam",
+    slug: "tracing-beam",
+    description:
+      "Vertical SVG beam that highlights scroll progress alongside content",
+    category: "effects",
+    status: "done",
+  },
 };
 
 // =============================================================================
@@ -467,105 +498,117 @@ export const registry: Record<string, ComponentMeta> = {
  * Get all components as an array
  */
 export function getAllComponents(): ComponentMeta[] {
-	return Object.values(registry);
+  return Object.values(registry);
 }
 
 /**
  * Get a component by slug
  */
 export function getComponent(slug: string): ComponentMeta | undefined {
-	return registry[slug];
+  return registry[slug];
 }
 
 /**
  * Get components filtered by status
  */
-export function getComponentsByStatus(status: ComponentStatus): ComponentMeta[] {
-	return Object.values(registry).filter((c) => c.status === status);
+export function getComponentsByStatus(
+  status: ComponentStatus,
+): ComponentMeta[] {
+  return Object.values(registry).filter((c) => c.status === status);
 }
 
 /**
  * Get components filtered by category
  */
-export function getComponentsByCategory(category: ComponentCategory): ComponentMeta[] {
-	return Object.values(registry).filter((c) => c.category === category);
+export function getComponentsByCategory(
+  category: ComponentCategory,
+): ComponentMeta[] {
+  return Object.values(registry).filter((c) => c.category === category);
 }
 
 /**
  * Get components grouped by category
  */
-export function getComponentsGroupedByCategory(): Record<ComponentCategory, ComponentMeta[]> {
-	const grouped = {} as Record<ComponentCategory, ComponentMeta[]>;
+export function getComponentsGroupedByCategory(): Record<
+  ComponentCategory,
+  ComponentMeta[]
+> {
+  const grouped = {} as Record<ComponentCategory, ComponentMeta[]>;
 
-	for (const category of categories) {
-		grouped[category] = [];
-	}
+  for (const category of categories) {
+    grouped[category] = [];
+  }
 
-	for (const component of Object.values(registry)) {
-		grouped[component.category].push(component);
-	}
+  for (const component of Object.values(registry)) {
+    grouped[component.category].push(component);
+  }
 
-	return grouped;
+  return grouped;
 }
 
 /**
  * Get components grouped by status
  */
-export function getComponentsGroupedByStatus(): Record<ComponentStatus, ComponentMeta[]> {
-	return {
-		done: getComponentsByStatus('done'),
-		'in-progress': getComponentsByStatus('in-progress'),
-		planned: getComponentsByStatus('planned')
-	};
+export function getComponentsGroupedByStatus(): Record<
+  ComponentStatus,
+  ComponentMeta[]
+> {
+  return {
+    done: getComponentsByStatus("done"),
+    "in-progress": getComponentsByStatus("in-progress"),
+    planned: getComponentsByStatus("planned"),
+  };
 }
 
 /**
  * Search components by name or description
  */
 export function searchComponents(query: string): ComponentMeta[] {
-	const lowerQuery = query.toLowerCase();
-	return Object.values(registry).filter(
-		(c) =>
-			c.name.toLowerCase().includes(lowerQuery) ||
-			c.description.toLowerCase().includes(lowerQuery) ||
-			c.slug.includes(lowerQuery)
-	);
+  const lowerQuery = query.toLowerCase();
+  return Object.values(registry).filter(
+    (c) =>
+      c.name.toLowerCase().includes(lowerQuery) ||
+      c.description.toLowerCase().includes(lowerQuery) ||
+      c.slug.includes(lowerQuery),
+  );
 }
 
 /**
  * Get porting statistics
  */
 export function getStats(): {
-	total: number;
-	done: number;
-	inProgress: number;
-	planned: number;
-	percentComplete: number;
+  total: number;
+  done: number;
+  inProgress: number;
+  planned: number;
+  percentComplete: number;
 } {
-	const all = Object.values(registry);
-	const done = all.filter((c) => c.status === 'done').length;
-	const inProgress = all.filter((c) => c.status === 'in-progress').length;
-	const planned = all.filter((c) => c.status === 'planned').length;
+  const all = Object.values(registry);
+  const done = all.filter((c) => c.status === "done").length;
+  const inProgress = all.filter((c) => c.status === "in-progress").length;
+  const planned = all.filter((c) => c.status === "planned").length;
 
-	return {
-		total: all.length,
-		done,
-		inProgress,
-		planned,
-		percentComplete: all.length > 0 ? Math.round((done / all.length) * 100) : 0
-	};
+  return {
+    total: all.length,
+    done,
+    inProgress,
+    planned,
+    percentComplete: all.length > 0 ? Math.round((done / all.length) * 100) : 0,
+  };
 }
 
 /**
  * Check if a component exists in the registry
  */
 export function hasComponent(slug: string): boolean {
-	return slug in registry;
+  return slug in registry;
 }
 
 /**
  * Get category for a component
  */
-export function getComponentCategory(slug: string): ComponentCategory | undefined {
-	return registry[slug]?.category;
+export function getComponentCategory(
+  slug: string,
+): ComponentCategory | undefined {
+  return registry[slug]?.category;
 }

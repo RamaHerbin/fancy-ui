@@ -1,3 +1,3 @@
-import SparklesText, { type SparklesTextProps } from './SparklesText.svelte';
+import SparklesText, { type SparklesTextProps } from "./SparklesText.svelte";
 
 export { SparklesText, type SparklesTextProps };

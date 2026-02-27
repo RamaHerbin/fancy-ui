@@ -1,3 +1,3 @@
-import BorderBeam, { type BorderBeamProps } from './BorderBeam.svelte';
+import BorderBeam, { type BorderBeamProps } from "./BorderBeam.svelte";
 
 export { BorderBeam, type BorderBeamProps };

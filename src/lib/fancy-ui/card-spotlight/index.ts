@@ -1,1 +1,1 @@
-export { default as CardSpotlight } from './CardSpotlight.svelte';
+export { default as CardSpotlight } from "./CardSpotlight.svelte";

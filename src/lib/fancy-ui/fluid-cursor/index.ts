@@ -1,1 +1,1 @@
-export { default as FluidCursor } from './FluidCursor.svelte';
+export { default as FluidCursor } from "./FluidCursor.svelte";
