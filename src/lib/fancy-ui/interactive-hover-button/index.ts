@@ -1,5 +1,5 @@
 import InteractiveHoverButton, {
-	type InteractiveHoverButtonProps
-} from './InteractiveHoverButton.svelte';
+  type InteractiveHoverButtonProps,
+} from "./InteractiveHoverButton.svelte";
 
 export { InteractiveHoverButton, type InteractiveHoverButtonProps };

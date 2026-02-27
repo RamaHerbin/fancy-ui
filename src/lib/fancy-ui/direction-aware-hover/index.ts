@@ -1,1 +1,1 @@
-export { default as DirectionAwareHover } from './DirectionAwareHover.svelte';
+export { default as DirectionAwareHover } from "./DirectionAwareHover.svelte";

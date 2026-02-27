@@ -1,3 +1,3 @@
-import FlipWords, { type FlipWordsProps } from './FlipWords.svelte';
+import FlipWords, { type FlipWordsProps } from "./FlipWords.svelte";
 
 export { FlipWords, type FlipWordsProps };

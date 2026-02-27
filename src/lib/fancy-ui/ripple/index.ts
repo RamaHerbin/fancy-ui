@@ -1,1 +1,1 @@
-export { default as Ripple } from './Ripple.svelte';
+export { default as Ripple } from "./Ripple.svelte";
