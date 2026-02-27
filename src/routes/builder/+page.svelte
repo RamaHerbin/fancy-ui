@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from "$app/navigation";
-	import { FilePen, Plus, Trash2, Copy } from "@lucide/svelte";
+	import { FilePen, Plus, Trash2, Copy, Settings } from "@lucide/svelte";
 
 	let { data } = $props();
 
@@ -75,13 +75,22 @@
 				<h1 class="text-3xl font-bold">Site Builder</h1>
 				<p class="text-muted-foreground mt-1">Manage and edit your pages</p>
 			</div>
-			<a
-				href="/builder/new"
-				class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium"
-			>
-				<Plus class="h-4 w-4" />
-				New Page
-			</a>
+			<div class="flex items-center gap-2">
+				<a
+					href="/builder/settings"
+					class="border-border hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium"
+				>
+					<Settings class="h-4 w-4" />
+					Site Settings
+				</a>
+				<a
+					href="/builder/new"
+					class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium"
+				>
+					<Plus class="h-4 w-4" />
+					New Page
+				</a>
+			</div>
 		</div>
 
 		{#if errorMessage}

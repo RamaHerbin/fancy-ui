@@ -7,6 +7,8 @@
 
 import { setContext, getContext } from "svelte";
 import type { PageDocument, BlockNode, BuilderComponentMeta } from "../types/index.js";
+import type { SiteConfig } from "../types/site.js";
+import type { PageListItem } from "../storage/types.js";
 import { getBuilderComponent, getDefaultProps } from "../registry/index.js";
 import {
 	findNode,
@@ -54,6 +56,10 @@ export class EditorState {
 	// Clipboard (in-memory, session-scoped)
 	clipboard: BlockNode | null = $state(null);
 
+	// Site-level awareness
+	siteConfig: SiteConfig | null = $state(null);
+	allPages: PageListItem[] = $state([]);
+
 	// Save callback — wired by TopBar
 	onSave: (() => void) | null = null;
 
@@ -69,8 +75,13 @@ export class EditorState {
 		return getBuilderComponent(this.selectedBlock.type);
 	});
 
-	constructor(page: PageDocument) {
+	constructor(
+		page: PageDocument,
+		options?: { siteConfig?: SiteConfig | null; allPages?: PageListItem[] }
+	) {
 		this.page = page;
+		if (options?.siteConfig !== undefined) this.siteConfig = options.siteConfig;
+		if (options?.allPages) this.allPages = options.allPages;
 	}
 
 	selectBlock(id: string) {
@@ -353,8 +364,11 @@ export class EditorState {
 	}
 }
 
-export function createEditorState(page: PageDocument): EditorState {
-	const state = new EditorState(page);
+export function createEditorState(
+	page: PageDocument,
+	options?: { siteConfig?: SiteConfig | null; allPages?: PageListItem[] }
+): EditorState {
+	const state = new EditorState(page, options);
 	setContext(EDITOR_CTX_KEY, state);
 	return state;
 }

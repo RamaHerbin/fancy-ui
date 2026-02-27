@@ -16,6 +16,23 @@ import TextPrimitive from "./primitives/Text.svelte";
 import ImagePrimitive from "./primitives/Image.svelte";
 import SpacerPrimitive from "./primitives/Spacer.svelte";
 
+// Content & navigation primitives
+import LinkPrimitive from "./primitives/Link.svelte";
+import DividerPrimitive from "./primitives/Divider.svelte";
+import BadgePrimitive from "./primitives/BadgePrimitive.svelte";
+import ListPrimitive from "./primitives/List.svelte";
+import CardPrimitive from "./primitives/CardPrimitive.svelte";
+import CardHeaderPrimitive from "./primitives/CardHeaderPrimitive.svelte";
+import CardContentPrimitive from "./primitives/CardContentPrimitive.svelte";
+import CardFooterPrimitive from "./primitives/CardFooterPrimitive.svelte";
+import RichTextPrimitive from "./primitives/RichText.svelte";
+import IconPrimitive from "./primitives/IconPrimitive.svelte";
+import DocumentPrimitive from "./primitives/Document.svelte";
+import NavPrimitive from "./primitives/Nav.svelte";
+import FooterPrimitive from "./primitives/FooterBlock.svelte";
+import TabsPrimitive from "./primitives/TabsPrimitive.svelte";
+import TabItemPrimitive from "./primitives/TabItemPrimitive.svelte";
+
 // FancyUI components (direct — these accept props only, no snippet wiring needed)
 import { BorderBeam } from "$lib/fancy-ui/border-beam/index.js";
 import { GlowBorder } from "$lib/fancy-ui/glow-border/index.js";
@@ -64,6 +81,23 @@ export const componentMap: Record<string, AnyComponent> = {
 	_text: TextPrimitive,
 	_image: ImagePrimitive,
 	_spacer: SpacerPrimitive,
+
+	// Content & navigation primitives
+	_link: LinkPrimitive,
+	_divider: DividerPrimitive,
+	_badge: BadgePrimitive,
+	_list: ListPrimitive,
+	_card: CardPrimitive,
+	"_card-header": CardHeaderPrimitive,
+	"_card-content": CardContentPrimitive,
+	"_card-footer": CardFooterPrimitive,
+	"_rich-text": RichTextPrimitive,
+	_icon: IconPrimitive,
+	_document: DocumentPrimitive,
+	_nav: NavPrimitive,
+	_footer: FooterPrimitive,
+	_tabs: TabsPrimitive,
+	"_tab-item": TabItemPrimitive,
 
 	// FancyUI components
 	"border-beam": BorderBeam as AnyComponent,

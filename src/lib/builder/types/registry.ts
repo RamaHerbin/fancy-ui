@@ -5,7 +5,16 @@
  * BuilderComponentMeta extends the base registry with builder-specific metadata.
  */
 
-export type PropType = "string" | "number" | "boolean" | "color" | "select" | "json" | "image";
+export type PropType =
+	| "string"
+	| "number"
+	| "boolean"
+	| "color"
+	| "select"
+	| "json"
+	| "image"
+	| "link"
+	| "icon";
 
 export interface PropSchemaBase {
 	/** Display label in the property panel */
@@ -61,6 +70,22 @@ export interface ImagePropSchema extends PropSchemaBase {
 	default?: string;
 }
 
+export interface LinkValue {
+	href: string;
+	target: "_self" | "_blank";
+	pageSlug?: string;
+}
+
+export interface LinkPropSchema extends PropSchemaBase {
+	type: "link";
+	default?: LinkValue;
+}
+
+export interface IconPropSchema extends PropSchemaBase {
+	type: "icon";
+	default?: string;
+}
+
 export type PropSchema =
 	| StringPropSchema
 	| NumberPropSchema
@@ -68,12 +93,15 @@ export type PropSchema =
 	| ColorPropSchema
 	| SelectPropSchema
 	| JsonPropSchema
-	| ImagePropSchema;
+	| ImagePropSchema
+	| LinkPropSchema
+	| IconPropSchema;
 
 /** Palette category for grouping in the editor sidebar */
 export type PaletteCategory =
 	| "layout"
 	| "text"
+	| "content"
 	| "cards"
 	| "effects"
 	| "backgrounds"

@@ -1,6 +1,8 @@
 import { readdir, readFile, writeFile, unlink, mkdir } from "fs/promises";
 import { join, resolve } from "path";
 import type { PageDocument } from "../types/page.js";
+import type { SiteConfig } from "../types/site.js";
+import { isValidSiteConfig } from "../types/site.js";
 import type { PageStorage, PageListItem } from "./types.js";
 import { StorageError } from "./errors.js";
 
@@ -108,6 +110,31 @@ export class FilesystemStorage implements PageStorage {
 		const page = await this.get(slug);
 		page.meta.status = "published";
 		await this.save(page);
+	}
+
+	private get siteConfigPath(): string {
+		return resolve(this.dir, "..", "site.json");
+	}
+
+	async getSiteConfig(): Promise<SiteConfig | null> {
+		try {
+			const raw = await readFile(this.siteConfigPath, "utf-8");
+			const doc = JSON.parse(raw);
+			if (!isValidSiteConfig(doc)) return null;
+			return doc;
+		} catch (err: unknown) {
+			if (err && typeof err === "object" && "code" in err && err.code === "ENOENT") {
+				return null;
+			}
+			throw err;
+		}
+	}
+
+	async saveSiteConfig(config: SiteConfig): Promise<void> {
+		await this.ensureDir();
+		config.updatedAt = new Date().toISOString();
+		const json = JSON.stringify(config, null, 2);
+		await writeFile(this.siteConfigPath, json, "utf-8");
 	}
 }
 

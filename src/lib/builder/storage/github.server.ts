@@ -1,4 +1,6 @@
 import type { PageDocument } from "../types/page.js";
+import type { SiteConfig } from "../types/site.js";
+import { isValidSiteConfig } from "../types/site.js";
 import type { PageStorage, PageListItem } from "./types.js";
 import { StorageError } from "./errors.js";
 
@@ -286,5 +288,45 @@ export class GitHubStorage implements PageStorage {
 		const path = this.filePath(slug);
 
 		await this.putFile(path, json, `Publish page: ${slug}`, sha);
+	}
+
+	private get siteConfigFilePath(): string {
+		// content/site.json — one level up from content/pages
+		const parent = this.contentPath.replace(/\/pages$/, "");
+		return `${parent}/site.json`;
+	}
+
+	async getSiteConfig(): Promise<SiteConfig | null> {
+		try {
+			const file = await this.request<GitHubFileResponse>(this.siteConfigFilePath);
+			const doc = JSON.parse(this.decodeContent(file.content));
+			if (!isValidSiteConfig(doc)) return null;
+			return doc;
+		} catch (err) {
+			if (err instanceof StorageError && err.code === "NOT_FOUND") {
+				return null;
+			}
+			throw err;
+		}
+	}
+
+	async saveSiteConfig(config: SiteConfig): Promise<void> {
+		config.updatedAt = new Date().toISOString();
+		const json = JSON.stringify(config, null, 2);
+		const path = this.siteConfigFilePath;
+
+		// Try to get existing file for SHA (update case)
+		let sha: string | undefined;
+		try {
+			const file = await this.request<GitHubFileResponse>(path);
+			sha = file.sha;
+		} catch (err) {
+			if (!(err instanceof StorageError && err.code === "NOT_FOUND")) {
+				throw err;
+			}
+		}
+
+		const message = sha ? "Update site config" : "Create site config";
+		await this.putFile(path, json, message, sha);
 	}
 }

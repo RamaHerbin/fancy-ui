@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ComponentPalette from "./ComponentPalette.svelte";
 	import LayerTree from "./LayerTree.svelte";
+	import PagesTab from "./PagesTab.svelte";
 	import Canvas from "./Canvas.svelte";
 	import TopBar from "./TopBar.svelte";
 	import PropertyPanel from "./PropertyPanel.svelte";
@@ -9,6 +10,9 @@
 	import { getEditorState } from "../stores/editor.svelte.js";
 
 	const editor = getEditorState();
+
+	type LeftTab = "components" | "layers" | "pages";
+	let activeTab = $state<LeftTab>("components");
 
 	function handleKeydown(e: KeyboardEvent) {
 		// Skip when focused in input, textarea, or contenteditable
@@ -105,26 +109,30 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <div class="grid min-h-0 flex-1 grid-cols-[240px_1fr_320px] grid-rows-[1fr]">
-	<!-- Left panel: Palette + Layer Tree -->
+	<!-- Left panel: Tabbed sidebar -->
 	<div class="border-border bg-background flex flex-col overflow-hidden border-r">
-		<div class="border-border shrink-0 border-b px-2 py-2">
-			<h2 class="text-muted-foreground px-2 text-xs font-semibold tracking-wider uppercase">
-				Components
-			</h2>
+		<div class="border-border flex shrink-0 border-b">
+			{#each [{ id: "components" as LeftTab, label: "Components" }, { id: "layers" as LeftTab, label: "Layers" }, { id: "pages" as LeftTab, label: "Pages" }] as tab (tab.id)}
+				<button
+					type="button"
+					class="flex-1 px-2 py-2 text-xs font-semibold tracking-wider uppercase transition-colors
+						{activeTab === tab.id
+						? 'text-foreground border-primary border-b-2'
+						: 'text-muted-foreground hover:text-foreground'}"
+					onclick={() => (activeTab = tab.id)}
+				>
+					{tab.label}
+				</button>
+			{/each}
 		</div>
-		<div class="flex-1 overflow-y-auto px-1 py-1">
-			<ComponentPalette />
-		</div>
-
-		<div class="bg-border h-px"></div>
-
-		<div class="border-border shrink-0 border-t px-2 py-2">
-			<h2 class="text-muted-foreground px-2 text-xs font-semibold tracking-wider uppercase">
-				Layers
-			</h2>
-		</div>
-		<div class="flex-1 overflow-y-auto">
-			<LayerTree />
+		<div class="min-h-0 flex-1 overflow-y-auto px-1 py-1">
+			{#if activeTab === "components"}
+				<ComponentPalette />
+			{:else if activeTab === "layers"}
+				<LayerTree />
+			{:else if activeTab === "pages"}
+				<PagesTab />
+			{/if}
 		</div>
 	</div>
 
