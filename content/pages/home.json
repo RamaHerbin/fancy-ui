@@ -27,137 +27,6 @@
 		},
 
 		{
-			"id": "sec-bio",
-			"type": "_section",
-			"props": {
-				"anchorId": "bio",
-				"padding": "py-16 px-4",
-				"maxWidth": "max-w-5xl",
-				"background": "bg-muted/30",
-				"class": ""
-			},
-			"children": [
-				{
-					"id": "bio-title",
-					"type": "_text",
-					"props": {
-						"content": "Biographie",
-						"tag": "h2",
-						"class": "text-3xl font-semibold text-center mb-12"
-					}
-				},
-				{
-					"id": "bio-card",
-					"type": "_card",
-					"props": { "class": "" },
-					"children": [
-						{
-							"id": "bio-card-content",
-							"type": "_card-content",
-							"props": { "class": "p-8" },
-							"children": [
-								{
-									"id": "bio-grid",
-									"type": "_grid",
-									"props": {
-										"columns": "3",
-										"gap": "gap-8",
-										"class": "items-start"
-									},
-									"children": [
-										{
-											"id": "bio-avatar",
-											"type": "_flex",
-											"props": {
-												"direction": "column",
-												"align": "center",
-												"justify": "center",
-												"class": "w-full h-80 bg-muted rounded-lg"
-											},
-											"children": [
-												{
-													"id": "bio-initials",
-													"type": "_text",
-													"props": {
-														"content": "TG",
-														"tag": "span",
-														"class": "text-2xl font-semibold text-muted-foreground"
-													}
-												}
-											]
-										},
-										{
-											"id": "bio-content",
-											"type": "_flex",
-											"props": {
-												"direction": "column",
-												"align": "stretch",
-												"gap": "gap-4",
-												"class": "md:col-span-2"
-											},
-											"children": [
-												{
-													"id": "bio-name",
-													"type": "_text",
-													"props": {
-														"content": "Thierry Gallouet",
-														"tag": "h3",
-														"class": "text-xl font-semibold"
-													}
-												},
-												{
-													"id": "bio-subtitle",
-													"type": "_text",
-													"props": {
-														"content": "Professeur de Mathématiques | Université",
-														"tag": "p",
-														"class": "text-muted-foreground"
-													}
-												},
-												{
-													"id": "bio-text",
-													"type": "_rich-text",
-													"props": {
-														"content": "Thierry Gallouet est Professeur de Mathématiques, spécialisé dans l'analyse numérique et les équations aux dérivées partielles. Il enseigne dans plusieurs cycles universitaires, de la Licence au Master, couvrant un large spectre de disciplines mathématiques.\n\nSes domaines d'expertise incluent l'analyse fonctionnelle, la théorie de la mesure, l'intégration, les probabilités, l'analyse de Fourier, et l'analyse numérique des équations aux dérivées partielles. Il a une expérience particulière dans le calcul scientifique et les schémas numériques.\n\nIl contribue activement à la revue IJFV (International Journal of Finite Volumes) et a participé au développement de programmes d'enseignement innovants, incluant des téléenseignements pour rendre les mathématiques accessibles à distance.",
-														"class": ""
-													}
-												},
-												{
-													"id": "bio-spec-title",
-													"type": "_text",
-													"props": {
-														"content": "Spécialisations",
-														"tag": "h4",
-														"class": "font-semibold pt-4"
-													}
-												},
-												{
-													"id": "bio-spec-list",
-													"type": "_list",
-													"props": {
-														"items": [
-															"Analyse numérique des EDP",
-															"Analyse fonctionnelle",
-															"Théorie de la mesure et probabilités",
-															"Calcul scientifique",
-															"Schémas pour Saint-Venant"
-														],
-														"ordered": false,
-														"class": "text-sm space-y-1"
-													}
-												}
-											]
-										}
-									]
-								}
-							]
-						}
-					]
-				}
-			]
-		},
-
-		{
 			"id": "sec-courses",
 			"type": "_section",
 			"props": {
@@ -210,7 +79,7 @@
 													"id": "course-1-title",
 													"type": "_text",
 													"props": {
-														"content": "Analyse et Algèbre",
+														"content": "Analyse",
 														"tag": "h3",
 														"class": "text-lg font-semibold"
 													}
@@ -242,7 +111,7 @@
 											"id": "course-1-desc",
 											"type": "_text",
 											"props": {
-												"content": "Limites, continuité, dérivées, intégration",
+												"content": "limites, continuité, dérivées, intégration",
 												"tag": "p",
 												"class": "text-sm"
 											}
@@ -260,7 +129,7 @@
 											"props": {
 												"text": "Télécharger PDF",
 												"href": {
-													"href": "http://www.i2m.univ-amu.fr/~gallouet/licence.d/analyse/analyse-l1.pdf",
+													"href": "https://hal.science/hal-04421072v1/document",
 													"target": "_blank"
 												},
 												"variant": "ghost",
@@ -329,7 +198,7 @@
 											"id": "course-2-desc",
 											"type": "_text",
 											"props": {
-												"content": "Cours avancés de mathématiques pour étudiants de Licence troisième année, incluant plusieurs disciplines mathématiques fondamentales.",
+												"content": "Cours de mathématiques pour étudiants de Licence troisième année",
 												"tag": "p",
 												"class": "text-sm"
 											}
@@ -392,7 +261,7 @@
 												{
 													"id": "course-3-badge",
 													"type": "_badge",
-													"props": { "text": "Master", "variant": "default", "class": "" }
+													"props": { "text": "Licence", "variant": "secondary", "class": "" }
 												}
 											]
 										},
@@ -400,7 +269,7 @@
 											"id": "course-3-code",
 											"type": "_text",
 											"props": {
-												"content": "L3 — Première année de Master",
+												"content": "L3 — Troisième année de Licence",
 												"tag": "p",
 												"class": "text-sm text-muted-foreground"
 											}
@@ -416,7 +285,7 @@
 											"id": "course-3-desc",
 											"type": "_text",
 											"props": {
-												"content": "Cours manuscrit université de Chambéry 92-93",
+												"content": "cours manuscrit université de Chambéry 92-93",
 												"tag": "p",
 												"class": "text-sm"
 											}
@@ -479,7 +348,7 @@
 												{
 													"id": "course-4-badge",
 													"type": "_badge",
-													"props": { "text": "Master", "variant": "default", "class": "" }
+													"props": { "text": "Licence et Master", "variant": "default", "class": "" }
 												}
 											]
 										},
@@ -487,7 +356,7 @@
 											"id": "course-4-code",
 											"type": "_text",
 											"props": {
-												"content": "L3 & M1 — Deuxième année de Master",
+												"content": "L3 & M1 — Troisième année de Licence et première année de Master",
 												"tag": "p",
 												"class": "text-sm text-muted-foreground"
 											}
@@ -503,7 +372,7 @@
 											"id": "course-4-desc",
 											"type": "_text",
 											"props": {
-												"content": "Cours avec plus de 300 exercices corrigés couvrant la mesure, l'intégration et les probabilités.",
+												"content": "MESURE, INTEGRATION, PROBABILITÉS Cours avec plus de 300 exercices corrigés",
 												"tag": "p",
 												"class": "text-sm"
 											}
@@ -521,7 +390,7 @@
 											"props": {
 												"text": "Télécharger PDF",
 												"href": {
-													"href": "http://www.i2m.univ-amu.fr/~gallouet/licence.d/mes-int-pro.pdf",
+													"href": "https://cel.hal.science/cel-00637007",
 													"target": "_blank"
 												},
 												"variant": "ghost",
@@ -574,7 +443,7 @@
 											"id": "course-5-code",
 											"type": "_text",
 											"props": {
-												"content": "M1 — Deuxième année de Master",
+												"content": "M1 — Première année de Master",
 												"tag": "p",
 												"class": "text-sm text-muted-foreground"
 											}
@@ -590,7 +459,7 @@
 											"id": "course-5-desc",
 											"type": "_text",
 											"props": {
-												"content": "Master de mathématiques, 1ère année, université d'Aix-Marseille. Notes de cours et travaux dirigés.",
+												"content": "Master de mathématiques, 1ère année, université d'Aix-Marseille, Notes de cours et travaux dirigés",
 												"tag": "p",
 												"class": "text-sm"
 											}
@@ -608,7 +477,7 @@
 											"props": {
 												"text": "Télécharger PDF",
 												"href": {
-													"href": "https://www.i2m.univ-amu.fr/perso/thierry.gallouet/maitrise.d/anfonc.d/notedecours.pdf",
+													"href": "https://cel.hal.science/hal-04026364v3",
 													"target": "_blank"
 												},
 												"variant": "ghost",
@@ -677,7 +546,7 @@
 											"id": "course-6-desc",
 											"type": "_text",
 											"props": {
-												"content": "Master de mathématiques, 2ème année, université d'Aix-Marseille. Notes de cours et travaux dirigés.",
+												"content": "Master de mathématiques, deuxième année, université d'Aix-Marseille",
 												"tag": "p",
 												"class": "text-sm"
 											}
@@ -695,7 +564,7 @@
 											"props": {
 												"text": "Télécharger PDF",
 												"href": {
-													"href": "http://www.i2m.univ-amu.fr/~gallouet/master2.d/M2edp.pdf",
+													"href": "https://hal.science/cel-01196782v9",
 													"target": "_blank"
 												},
 												"variant": "ghost",
@@ -764,7 +633,7 @@
 											"id": "course-7-desc",
 											"type": "_text",
 											"props": {
-												"content": "Master de mathématiques, université d'Aix-Marseille. Notes de cours et travaux dirigés.",
+												"content": "Master de mathématiques, 1ere année, université d'Aix-Marseille",
 												"tag": "p",
 												"class": "text-sm"
 											}
@@ -2394,14 +2263,6 @@
 					]
 				}
 			]
-		},
-
-		{
-			"id": "footer",
-			"type": "_footer",
-			"props": {
-				"class": ""
-			}
 		}
 	]
 }
