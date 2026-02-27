@@ -4,14 +4,15 @@
 
 	const editor = getEditorState();
 
-	let currentSlug = $derived(editor.page.meta.slug);
+	let currentSlug = $derived(editor?.page.meta.slug ?? "");
+	let pages = $derived(editor?.allPages ?? []);
 </script>
 
 <div class="flex flex-col gap-1 p-2">
-	{#if editor.allPages.length === 0}
+	{#if pages.length === 0}
 		<p class="text-muted-foreground px-2 py-4 text-center text-xs">No pages found</p>
 	{:else}
-		{#each editor.allPages as page (page.slug)}
+		{#each pages as page (page.slug)}
 			<a
 				href="/builder/{page.slug}"
 				class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors
