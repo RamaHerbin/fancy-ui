@@ -56,49 +56,49 @@ type AnyComponent = Component<any>;
  * Add new components here as they become builder-compatible.
  */
 export const componentMap: Record<string, AnyComponent> = {
-  // Layout primitives
-  _section: SectionPrimitive,
-  _container: ContainerPrimitive,
-  _grid: GridPrimitive,
-  _flex: FlexPrimitive,
-  _text: TextPrimitive,
-  _image: ImagePrimitive,
-  _spacer: SpacerPrimitive,
+	// Layout primitives
+	_section: SectionPrimitive,
+	_container: ContainerPrimitive,
+	_grid: GridPrimitive,
+	_flex: FlexPrimitive,
+	_text: TextPrimitive,
+	_image: ImagePrimitive,
+	_spacer: SpacerPrimitive,
 
-  // FancyUI components
-  "border-beam": BorderBeam as AnyComponent,
-  "glow-border": GlowBorder as AnyComponent,
-  meteors: Meteors as AnyComponent,
-  "shimmer-button": ShimmerButtonAdapter as AnyComponent,
-  "rainbow-button": RainbowButtonAdapter as AnyComponent,
-  marquee: Marquee as AnyComponent,
-  ripple: Ripple as AnyComponent,
-  "sparkles-text": SparklesText as AnyComponent,
-  "colourful-text": ColourfulText as AnyComponent,
-  "number-ticker": NumberTicker as AnyComponent,
-  "flip-words": FlipWords as AnyComponent,
-  "card-spotlight": CardSpotlight as AnyComponent,
-  "neon-border": NeonBorder as AnyComponent,
-  "letter-pullup": LetterPullup as AnyComponent,
-  "box-reveal": BoxReveal as AnyComponent,
-  "hyper-text": HyperText as AnyComponent,
-  focus: Focus as AnyComponent,
-  sparkles: Sparkles as AnyComponent,
-  confetti: Confetti as AnyComponent,
+	// FancyUI components
+	"border-beam": BorderBeam as AnyComponent,
+	"glow-border": GlowBorder as AnyComponent,
+	meteors: Meteors as AnyComponent,
+	"shimmer-button": ShimmerButtonAdapter as AnyComponent,
+	"rainbow-button": RainbowButtonAdapter as AnyComponent,
+	marquee: Marquee as AnyComponent,
+	ripple: Ripple as AnyComponent,
+	"sparkles-text": SparklesText as AnyComponent,
+	"colourful-text": ColourfulText as AnyComponent,
+	"number-ticker": NumberTicker as AnyComponent,
+	"flip-words": FlipWords as AnyComponent,
+	"card-spotlight": CardSpotlight as AnyComponent,
+	"neon-border": NeonBorder as AnyComponent,
+	"letter-pullup": LetterPullup as AnyComponent,
+	"box-reveal": BoxReveal as AnyComponent,
+	"hyper-text": HyperText as AnyComponent,
+	focus: Focus as AnyComponent,
+	sparkles: Sparkles as AnyComponent,
+	confetti: Confetti as AnyComponent,
 
-  // Adapters for multi-snippet components
-  "flip-card": FlipCardAdapter as AnyComponent,
-  "bento-grid-item": BentoGridItemAdapter as AnyComponent,
-  "container-scroll": ContainerScrollAdapter as AnyComponent,
-  "interactive-hover-button": InteractiveHoverButtonAdapter as AnyComponent,
-  "gradient-button": GradientButtonAdapter as AnyComponent,
-  "blur-reveal": BlurRevealAdapter as AnyComponent,
-  "direction-aware-hover": DirectionAwareHoverAdapter as AnyComponent,
-  "card-3d": Card3DAdapter as AnyComponent,
-  "bento-grid": BentoGridAdapter as AnyComponent,
+	// Adapters for multi-snippet components
+	"flip-card": FlipCardAdapter as AnyComponent,
+	"bento-grid-item": BentoGridItemAdapter as AnyComponent,
+	"container-scroll": ContainerScrollAdapter as AnyComponent,
+	"interactive-hover-button": InteractiveHoverButtonAdapter as AnyComponent,
+	"gradient-button": GradientButtonAdapter as AnyComponent,
+	"blur-reveal": BlurRevealAdapter as AnyComponent,
+	"direction-aware-hover": DirectionAwareHoverAdapter as AnyComponent,
+	"card-3d": Card3DAdapter as AnyComponent,
+	"bento-grid": BentoGridAdapter as AnyComponent,
 };
 
 /** Resolve a component slug to its Svelte constructor */
 export function resolveComponent(slug: string): AnyComponent | undefined {
-  return componentMap[slug];
+	return componentMap[slug];
 }

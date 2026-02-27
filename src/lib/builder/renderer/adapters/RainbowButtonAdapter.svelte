@@ -4,7 +4,7 @@
   The builder uses a `text` prop instead.
 -->
 <script lang="ts">
-	import { RainbowButton } from '$lib/fancy-ui/rainbow-button/index.js';
+	import { RainbowButton } from "$lib/fancy-ui/rainbow-button/index.js";
 
 	interface Props {
 		text?: string;
@@ -13,7 +13,7 @@
 		[key: string]: unknown;
 	}
 
-	let { text = 'Click me', speed, class: className, ...restProps }: Props = $props();
+	let { text = "Click me", speed, class: className, ...restProps }: Props = $props();
 </script>
 
 <RainbowButton {speed} class={className} {...restProps}>

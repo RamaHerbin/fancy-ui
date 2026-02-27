@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import { page } from "$app/stores";
+	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 	import {
 		categories,
 		categoryLabels,
 		getComponentsGroupedByCategory,
 		getComponent,
-		getAllComponents
-	} from '$lib/fancy-ui/registry.js';
+		getAllComponents,
+	} from "$lib/fancy-ui/registry.js";
 
 	let { children } = $props();
 
 	let sidebarOpen = $state(false);
-	let searchQuery = $state('');
+	let searchQuery = $state("");
 
 	const grouped = getComponentsGroupedByCategory();
 	const allComponents = getAllComponents();
@@ -32,9 +32,7 @@
 		if (!isSearching) return [];
 		const query = searchQuery.toLowerCase();
 		return allComponents.filter(
-			(c) =>
-				c.name.toLowerCase().includes(query) ||
-				c.description.toLowerCase().includes(query)
+			(c) => c.name.toLowerCase().includes(query) || c.description.toLowerCase().includes(query)
 		);
 	});
 
@@ -43,7 +41,7 @@
 	}
 
 	function clearSearch() {
-		searchQuery = '';
+		searchQuery = "";
 	}
 
 	function selectResult() {
@@ -63,12 +61,12 @@
 
 <!-- Sidebar -->
 <aside
-	class="fixed top-0 left-0 z-50 flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:translate-x-0 {sidebarOpen
+	class="border-sidebar-border bg-sidebar text-sidebar-foreground fixed top-0 left-0 z-50 flex h-full w-64 flex-col border-r transition-transform duration-300 lg:translate-x-0 {sidebarOpen
 		? 'translate-x-0'
 		: '-translate-x-full'}"
 >
 	<!-- Sidebar header -->
-	<div class="flex h-14 shrink-0 items-center border-b border-sidebar-border px-4">
+	<div class="border-sidebar-border flex h-14 shrink-0 items-center border-b px-4">
 		<a href="/demo" class="text-lg font-semibold tracking-tight" onclick={closeSidebar}>
 			FancyUI
 		</a>
@@ -78,7 +76,7 @@
 	<div class="px-3 pt-3">
 		<div class="relative">
 			<svg
-				class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sidebar-foreground/40"
+				class="text-sidebar-foreground/40 pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2"
 				xmlns="http://www.w3.org/2000/svg"
 				width="14"
 				height="14"
@@ -96,12 +94,12 @@
 				type="text"
 				placeholder="Search components..."
 				bind:value={searchQuery}
-				class="h-8 w-full rounded-md border border-sidebar-border bg-sidebar pl-8 pr-8 text-sm text-sidebar-foreground placeholder:text-sidebar-foreground/40 focus:border-sidebar-ring focus:outline-none"
+				class="border-sidebar-border bg-sidebar text-sidebar-foreground placeholder:text-sidebar-foreground/40 focus:border-sidebar-ring h-8 w-full rounded-md border pr-8 pl-8 text-sm focus:outline-none"
 			/>
 			{#if searchQuery}
 				<button
 					onclick={clearSearch}
-					class="absolute right-2 top-1/2 -translate-y-1/2 text-sidebar-foreground/40 hover:text-sidebar-foreground"
+					class="text-sidebar-foreground/40 hover:text-sidebar-foreground absolute top-1/2 right-2 -translate-y-1/2"
 					aria-label="Clear search"
 				>
 					<svg
@@ -135,17 +133,17 @@
 								href="/demo/{comp.slug}"
 								onclick={selectResult}
 								class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive
-									? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+									? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
 									: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
 							>
 								{comp.name}
-								<span class="block text-xs text-sidebar-foreground/40">{comp.category}</span>
+								<span class="text-sidebar-foreground/40 block text-xs">{comp.category}</span>
 							</a>
 						</li>
 					{/each}
 				</ul>
 			{:else}
-				<p class="px-2 text-sm text-sidebar-foreground/50">No results</p>
+				<p class="text-sidebar-foreground/50 px-2 text-sm">No results</p>
 			{/if}
 		{:else}
 			{#each categories as category}
@@ -153,7 +151,7 @@
 				{#if items.length > 0}
 					<div class="mb-4">
 						<h3
-							class="mb-1 px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50"
+							class="text-sidebar-foreground/50 mb-1 px-2 text-xs font-semibold tracking-wider uppercase"
 						>
 							{categoryLabels[category]}
 						</h3>
@@ -165,7 +163,7 @@
 										href="/demo/{comp.slug}"
 										onclick={closeSidebar}
 										class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive
-											? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
+											? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
 											: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
 									>
 										{comp.name}
@@ -184,11 +182,11 @@
 <div class="lg:pl-64">
 	<!-- Header -->
 	<header
-		class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+		class="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30 flex h-14 items-center gap-3 border-b px-4 backdrop-blur"
 	>
 		<!-- Mobile hamburger -->
 		<button
-			class="flex h-9 w-9 items-center justify-center rounded-md border border-border text-foreground lg:hidden"
+			class="border-border text-foreground flex h-9 w-9 items-center justify-center rounded-md border lg:hidden"
 			onclick={() => (sidebarOpen = !sidebarOpen)}
 			aria-label="Toggle sidebar"
 		>
@@ -216,7 +214,7 @@
 			</a>
 			{#if currentComponent}
 				<span class="text-muted-foreground/50">/</span>
-				<span class="font-medium text-foreground">{currentComponent.name}</span>
+				<span class="text-foreground font-medium">{currentComponent.name}</span>
 			{/if}
 		</nav>
 

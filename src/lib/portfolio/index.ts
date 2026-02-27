@@ -1,17 +1,8 @@
 // Types
-export type {
-  ContactFormData,
-  FieldErrors,
-  Testimonial,
-  Logo,
-} from "./types.js";
+export type { ContactFormData, FieldErrors, Testimonial, Logo } from "./types.js";
 
 // Validation
-export {
-  validateContactForm,
-  hasValidationErrors,
-  sanitizeFormData,
-} from "./validation.js";
+export { validateContactForm, hasValidationErrors, sanitizeFormData } from "./validation.js";
 
 // Components
 export { default as NavAnchor } from "./NavAnchor.svelte";

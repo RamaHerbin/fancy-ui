@@ -1,8 +1,8 @@
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	export interface RippleButtonProps extends Omit<HTMLButtonAttributes, 'class'> {
+	export interface RippleButtonProps extends Omit<HTMLButtonAttributes, "class"> {
 		/** Additional CSS classes */
 		class?: string;
 		/** Color of the ripple effect */
@@ -22,11 +22,11 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let {
 		class: className,
-		rippleColor = '#ADD8E6',
+		rippleColor = "#ADD8E6",
 		duration = 600,
 		children,
 		onclick,
@@ -39,7 +39,7 @@
 	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		createRipple(event);
 		// Call the original onclick handler if provided
-		if (onclick && typeof onclick === 'function') {
+		if (onclick && typeof onclick === "function") {
 			onclick(event);
 		}
 	}
@@ -65,8 +65,8 @@
 <button
 	bind:this={buttonRef}
 	class={cn(
-		'relative flex cursor-pointer items-center justify-center overflow-hidden',
-		'rounded-lg border-2 bg-background px-4 py-2 text-center text-primary',
+		"relative flex cursor-pointer items-center justify-center overflow-hidden",
+		"bg-background text-primary rounded-lg border-2 px-4 py-2 text-center",
 		className
 	)}
 	style="--ripple-duration: {duration}ms"

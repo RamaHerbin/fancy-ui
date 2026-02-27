@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
-	import { onMount } from 'svelte';
+	import { cn } from "$lib/utils";
+	import { onMount } from "svelte";
 
 	interface Props {
 		background?: string;
@@ -13,13 +13,13 @@
 	}
 
 	let {
-		background = '#0d47a1',
-		particleColor = '#ffffff',
+		background = "#0d47a1",
+		particleColor = "#ffffff",
 		minSize = 1,
 		maxSize = 3,
 		speed = 4,
 		particleDensity = 120,
-		class: className = ''
+		class: className = "",
 	}: Props = $props();
 
 	interface Particle {
@@ -45,7 +45,7 @@
 		const rect = containerRef.getBoundingClientRect();
 		canvasRef.width = rect.width * dpr;
 		canvasRef.height = rect.height * dpr;
-		ctx = canvasRef.getContext('2d');
+		ctx = canvasRef.getContext("2d");
 		if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 	}
 
@@ -62,7 +62,7 @@
 				vx: (Math.random() - 0.5) * baseSpeed * speedVariance * speed,
 				vy: ((Math.random() - 0.5) * baseSpeed - baseSpeed * 0.3) * speedVariance * speed,
 				phase: Math.random() * Math.PI * 2,
-				phaseSpeed: 0.015
+				phaseSpeed: 0.015,
 			});
 		}
 	}
@@ -89,7 +89,9 @@
 				0,
 				Math.PI * 2
 			);
-			ctx.fillStyle = `${particleColor}${Math.floor(opacity * 255).toString(16).padStart(2, '0')}`;
+			ctx.fillStyle = `${particleColor}${Math.floor(opacity * 255)
+				.toString(16)
+				.padStart(2, "0")}`;
 			ctx.fill();
 		}
 
@@ -97,7 +99,7 @@
 	}
 
 	onMount(() => {
-		ctx = canvasRef.getContext('2d');
+		ctx = canvasRef.getContext("2d");
 		resizeCanvas();
 		generateParticles();
 		rafId = requestAnimationFrame(updateAndDraw);
@@ -114,7 +116,7 @@
 
 <div
 	bind:this={containerRef}
-	class={cn('relative size-full overflow-hidden will-change-transform', className)}
+	class={cn("relative size-full overflow-hidden will-change-transform", className)}
 	style:background
 >
 	<canvas bind:this={canvasRef} class="absolute inset-0 size-full" aria-hidden="true"></canvas>

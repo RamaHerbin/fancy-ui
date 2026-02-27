@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	interface Props {
 		class?: string;
@@ -7,7 +7,7 @@
 		pauseOnHover?: boolean;
 		vertical?: boolean;
 		repeat?: number;
-		children?: import('svelte').Snippet;
+		children?: import("svelte").Snippet;
 	}
 
 	let {
@@ -16,23 +16,23 @@
 		pauseOnHover = false,
 		vertical = false,
 		repeat = 4,
-		children
+		children,
 	}: Props = $props();
 </script>
 
 <div
 	class={cn(
-		'group flex overflow-hidden p-2 [--duration:40s] [--gap:1rem] [gap:var(--gap)]',
-		vertical ? 'flex-col' : 'flex-row',
+		"group flex [gap:var(--gap)] overflow-hidden p-2 [--duration:40s] [--gap:1rem]",
+		vertical ? "flex-col" : "flex-row",
 		className
 	)}
 >
 	{#each Array(repeat) as _, index (index)}
 		<div
 			class={cn(
-				'flex shrink-0 justify-around [gap:var(--gap)]',
-				vertical ? 'animate-marquee-vertical flex-col' : 'animate-marquee flex-row',
-				pauseOnHover ? 'group-hover:[animation-play-state:paused]' : ''
+				"flex shrink-0 justify-around [gap:var(--gap)]",
+				vertical ? "animate-marquee-vertical flex-col" : "animate-marquee flex-row",
+				pauseOnHover ? "group-hover:[animation-play-state:paused]" : ""
 			)}
 			style="animation-direction: {reverse ? 'reverse' : 'normal'};"
 		>

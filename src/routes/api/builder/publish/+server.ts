@@ -1,34 +1,30 @@
 import { json, error } from "@sveltejs/kit";
-import {
-  getBuilderStorage,
-  isValidSlug,
-  StorageError,
-} from "$lib/builder/storage/index.js";
+import { getBuilderStorage, isValidSlug, StorageError } from "$lib/builder/storage/index.js";
 import type { RequestHandler } from "./$types.js";
 
 export const POST: RequestHandler = async ({ request, locals }) => {
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json();
-  } catch {
-    error(400, "Invalid JSON body");
-  }
+	let body: Record<string, unknown>;
+	try {
+		body = await request.json();
+	} catch {
+		error(400, "Invalid JSON body");
+	}
 
-  const { slug } = body;
+	const { slug } = body;
 
-  if (!slug || typeof slug !== "string" || !isValidSlug(slug)) {
-    error(400, "Valid slug is required");
-  }
+	if (!slug || typeof slug !== "string" || !isValidSlug(slug)) {
+		error(400, "Valid slug is required");
+	}
 
-  const storage = getBuilderStorage(locals.githubToken);
+	const storage = getBuilderStorage(locals.githubToken);
 
-  try {
-    await storage.publish(slug);
-    return json({ ok: true });
-  } catch (err: unknown) {
-    if (err instanceof StorageError) {
-      error(err.statusCode, err.message);
-    }
-    throw err;
-  }
+	try {
+		await storage.publish(slug);
+		return json({ ok: true });
+	} catch (err: unknown) {
+		if (err instanceof StorageError) {
+			error(err.statusCode, err.message);
+		}
+		throw err;
+	}
 };

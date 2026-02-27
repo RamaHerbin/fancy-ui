@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { createThemeState } from '$lib/stores';
+	import { createThemeState } from "$lib/stores";
 
 	const themeState = createThemeState();
 </script>
 
 <button
 	onclick={() => themeState.toggleTheme()}
-	aria-label={themeState.isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-	class="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+	aria-label={themeState.isDark ? "Switch to light mode" : "Switch to dark mode"}
+	class="border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring flex h-9 w-9 items-center justify-center rounded-full border shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
 >
 	{#if themeState.isDark}
 		<svg

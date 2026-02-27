@@ -11,8 +11,8 @@
   7. Delete this comment block when done
 -->
 <script lang="ts" module>
-	import type { Snippet } from 'svelte';
-	import type { HTMLAttributes } from 'svelte/elements';
+	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 
 	/**
 	 * Props for [ComponentName]
@@ -33,7 +33,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let {
 		class: className,
@@ -85,7 +85,7 @@
 <div
 	class={cn(
 		// Base styles
-		'relative',
+		"relative",
 		// TODO: Add component styles using Tailwind classes
 		// Prefer theme tokens: bg-background, text-foreground, border-border, etc.
 		className

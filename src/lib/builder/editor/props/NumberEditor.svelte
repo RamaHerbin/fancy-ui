@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { NumberPropSchema } from '../../types/registry.js';
+	import type { NumberPropSchema } from "../../types/registry.js";
 
 	interface Props {
 		value: number;
@@ -12,7 +12,7 @@
 
 <input
 	type="number"
-	class="h-9 w-full rounded-md border border-border bg-input px-3 text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none"
+	class="border-border bg-input text-foreground focus:ring-ring h-9 w-full rounded-md border px-3 text-sm focus:ring-2 focus:outline-none"
 	{value}
 	min={schema.min}
 	max={schema.max}

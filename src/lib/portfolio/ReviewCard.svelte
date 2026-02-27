@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	interface Props {
 		img: string;
@@ -18,16 +18,16 @@
 	target="_blank"
 	rel="noopener noreferrer"
 	class={cn(
-		'relative w-88 cursor-pointer overflow-hidden rounded-xl border p-4 transition-all duration-300 block',
-		'border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]',
-		'dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]',
+		"relative block w-88 cursor-pointer overflow-hidden rounded-xl border p-4 transition-all duration-300",
+		"border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
+		"dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
 		className
 	)}
 >
-	<figure class="w-full h-full">
+	<figure class="h-full w-full">
 		<div class="flex flex-row items-center gap-2">
 			<img
-				class="rounded-full w-8 h-8 object-cover"
+				class="h-8 w-8 rounded-full object-cover"
 				width="32"
 				height="32"
 				alt={`Profile picture of ${name}`}

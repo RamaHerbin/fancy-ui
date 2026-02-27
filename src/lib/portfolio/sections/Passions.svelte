@@ -1,21 +1,21 @@
-<section id="passions" class="py-20 px-6">
-	<div class="max-w-6xl mx-auto">
-		<div class="text-center mb-16">
-			<h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-4">
+<section id="passions" class="px-6 py-20">
+	<div class="mx-auto max-w-6xl">
+		<div class="mb-16 text-center">
+			<h2 class="text-foreground mb-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
 				Beyond Code
 			</h2>
-			<p class="text-lg text-muted-foreground max-w-2xl mx-auto">
+			<p class="text-muted-foreground mx-auto max-w-2xl text-lg">
 				When I'm not crafting interfaces, you'll find me capturing moments or creating melodies
 			</p>
 		</div>
 
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+		<div class="mb-16 grid grid-cols-1 gap-12 lg:grid-cols-2">
 			<!-- Photography -->
 			<div class="space-y-6">
 				<div class="flex items-center space-x-4">
-					<div class="w-12 h-12 rounded-full bg-foreground/10 flex items-center justify-center">
+					<div class="bg-foreground/10 flex h-12 w-12 items-center justify-center rounded-full">
 						<svg
-							class="w-6 h-6 text-foreground"
+							class="text-foreground h-6 w-6"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -34,29 +34,29 @@
 							></path>
 						</svg>
 					</div>
-					<h3 class="text-2xl font-bold text-foreground">Photography</h3>
+					<h3 class="text-foreground text-2xl font-bold">Photography</h3>
 				</div>
 
-				<p class="text-lg text-muted-foreground leading-relaxed">
+				<p class="text-muted-foreground text-lg leading-relaxed">
 					Street photography and travel documentation. I love capturing authentic moments and the
 					beauty in everyday scenes, from the bustling streets of Chicago to the quiet corners of
 					Lyon.
 				</p>
 
 				<div class="grid grid-cols-2 gap-4">
-					<div class="aspect-square rounded-lg overflow-hidden border border-border/20">
+					<div class="border-border/20 aspect-square overflow-hidden rounded-lg border">
 						<img
 							src="/portfolio/DSCF0404.jpg"
 							alt="Mountains in Savoie, France"
-							class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+							class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
 							loading="lazy"
 						/>
 					</div>
-					<div class="aspect-square rounded-lg overflow-hidden border border-border/20">
+					<div class="border-border/20 aspect-square overflow-hidden rounded-lg border">
 						<img
 							src="/portfolio/20160624.jpg"
 							alt="Sunset in Denmark"
-							class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+							class="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
 							loading="lazy"
 						/>
 					</div>
@@ -66,9 +66,9 @@
 			<!-- Music/Guitar -->
 			<div class="space-y-6">
 				<div class="flex items-center space-x-4">
-					<div class="w-12 h-12 rounded-full bg-foreground/10 flex items-center justify-center">
+					<div class="bg-foreground/10 flex h-12 w-12 items-center justify-center rounded-full">
 						<svg
-							class="w-6 h-6 text-foreground"
+							class="text-foreground h-6 w-6"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -81,54 +81,48 @@
 							></path>
 						</svg>
 					</div>
-					<h3 class="text-2xl font-bold text-foreground">Music & Guitar</h3>
+					<h3 class="text-foreground text-2xl font-bold">Music & Guitar</h3>
 				</div>
 
-				<p class="text-lg text-muted-foreground leading-relaxed">
+				<p class="text-muted-foreground text-lg leading-relaxed">
 					Self-taught guitarist with a passion for fingerstyle and acoustic arrangements. Music
 					helps me find balance and creativity outside of code, it's my motivation and inspiration.
 				</p>
 
 				<div class="flex flex-wrap gap-2">
-					<span class="px-3 py-1 text-sm bg-foreground/10 text-foreground rounded-full"
+					<span class="bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm"
 						>Fingerstyle</span
 					>
-					<span class="px-3 py-1 text-sm bg-foreground/10 text-foreground rounded-full"
+					<span class="bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm"
 						>Acoustic</span
 					>
-					<span class="px-3 py-1 text-sm bg-foreground/10 text-foreground rounded-full"
+					<span class="bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm"
 						>Classical</span
 					>
-					<span class="px-3 py-1 text-sm bg-foreground/10 text-foreground rounded-full"
-						>Jazz</span
-					>
+					<span class="bg-foreground/10 text-foreground rounded-full px-3 py-1 text-sm">Jazz</span>
 				</div>
 			</div>
 		</div>
 
 		<!-- Gear Section -->
-		<div class="border-t border-border/20 pt-16">
-			<div class="text-center mb-12">
-				<h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-4">
-					My Gear
-				</h3>
-				<p class="text-muted-foreground">
-					The tools that help me create, both in code and beyond
-				</p>
+		<div class="border-border/20 border-t pt-16">
+			<div class="mb-12 text-center">
+				<h3 class="text-foreground mb-4 text-2xl font-bold tracking-tight sm:text-3xl">My Gear</h3>
+				<p class="text-muted-foreground">The tools that help me create, both in code and beyond</p>
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
 				<!-- Development -->
 				<div class="space-y-4">
-					<h4 class="text-lg font-semibold text-foreground flex items-center">
-						<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<h4 class="text-foreground flex items-center text-lg font-semibold">
+						<svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
 							<line x1="8" y1="21" x2="16" y2="21"></line>
 							<line x1="12" y1="17" x2="12" y2="21"></line>
 						</svg>
 						Development
 					</h4>
-					<ul class="space-y-2 text-muted-foreground">
+					<ul class="text-muted-foreground space-y-2">
 						<li>&#8226; MacBook Pro M4 Pro</li>
 						<li>&#8226; VS Code + AI</li>
 						<li>&#8226; External 4K Monitor</li>
@@ -138,8 +132,8 @@
 
 				<!-- Photography -->
 				<div class="space-y-4">
-					<h4 class="text-lg font-semibold text-foreground flex items-center">
-						<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<h4 class="text-foreground flex items-center text-lg font-semibold">
+						<svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -155,7 +149,7 @@
 						</svg>
 						Photography
 					</h4>
-					<ul class="space-y-2 text-muted-foreground">
+					<ul class="text-muted-foreground space-y-2">
 						<li>&#8226; Fujifilm X-T4 Silver</li>
 						<li>&#8226; 35mm f/1.8 Prime</li>
 						<li>&#8226; 85mm f/1.8 Portrait</li>
@@ -165,8 +159,8 @@
 
 				<!-- Music -->
 				<div class="space-y-4">
-					<h4 class="text-lg font-semibold text-foreground flex items-center">
-						<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<h4 class="text-foreground flex items-center text-lg font-semibold">
+						<svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -176,7 +170,7 @@
 						</svg>
 						Music
 					</h4>
-					<ul class="space-y-2 text-muted-foreground">
+					<ul class="text-muted-foreground space-y-2">
 						<li>&#8226; Taylor 814ce Acoustic</li>
 						<li>&#8226; Shure SM7B Microphone</li>
 						<li>&#8226; Focusrite Scarlett 2i2</li>

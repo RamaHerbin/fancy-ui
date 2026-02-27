@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { cn } from '$lib/utils';
-	import StarField from './StarField.svelte';
+	import { onMount } from "svelte";
+	import { cn } from "$lib/utils";
+	import StarField from "./StarField.svelte";
 
 	interface Props {
 		firstImage?: string;
@@ -12,7 +12,7 @@
 		firstContentClass?: string;
 		secondContentClass?: string;
 		initialSliderPercentage?: number;
-		slideMode?: 'hover' | 'drag';
+		slideMode?: "hover" | "drag";
 		showHandlebar?: boolean;
 		autoplay?: boolean;
 		autoplayDuration?: number;
@@ -21,21 +21,21 @@
 		ondragend?: () => void;
 		onhoverenter?: () => void;
 		onhoverleave?: () => void;
-		firstContent?: import('svelte').Snippet;
-		secondContent?: import('svelte').Snippet;
-		handle?: import('svelte').Snippet;
+		firstContent?: import("svelte").Snippet;
+		secondContent?: import("svelte").Snippet;
+		handle?: import("svelte").Snippet;
 	}
 
 	let {
-		firstImage = '',
-		secondImage = '',
-		firstImageAlt = 'First image',
-		secondImageAlt = 'Second image',
-		class: className = '',
-		firstContentClass = '',
-		secondContentClass = '',
+		firstImage = "",
+		secondImage = "",
+		firstImageAlt = "First image",
+		secondImageAlt = "Second image",
+		class: className = "",
+		firstContentClass = "",
+		secondContentClass = "",
 		initialSliderPercentage = 50,
-		slideMode = 'hover',
+		slideMode = "hover",
 		showHandlebar = true,
 		autoplay = false,
 		autoplayDuration = 5000,
@@ -46,7 +46,7 @@
 		onhoverleave,
 		firstContent,
 		secondContent,
-		handle
+		handle,
 	}: Props = $props();
 
 	let sliderRef: HTMLDivElement;
@@ -98,11 +98,11 @@
 		isInteracting = false;
 		onhoverleave?.();
 
-		if (slideMode === 'hover') {
+		if (slideMode === "hover") {
 			sliderXPercent = initialSliderPercentage;
 			onpercentagechange?.(initialSliderPercentage);
 		}
-		if (slideMode === 'drag') {
+		if (slideMode === "drag") {
 			isDragging = false;
 		}
 
@@ -112,7 +112,7 @@
 	}
 
 	function handleStart(): void {
-		if (slideMode === 'drag') {
+		if (slideMode === "drag") {
 			isDragging = true;
 			isInteracting = true;
 			ondragstart?.();
@@ -121,7 +121,7 @@
 	}
 
 	function handleEnd(): void {
-		if (slideMode === 'drag') {
+		if (slideMode === "drag") {
 			isDragging = false;
 			isInteracting = false;
 			ondragend?.();
@@ -134,7 +134,7 @@
 	function handleMove(clientX: number): void {
 		if (!sliderRef) return;
 
-		if (slideMode === 'hover' || (slideMode === 'drag' && isDragging)) {
+		if (slideMode === "hover" || (slideMode === "drag" && isDragging)) {
 			isInteracting = true;
 			stopAutoplay();
 
@@ -194,9 +194,9 @@
 
 <div
 	bind:this={sliderRef}
-	class={cn('h-[400px] w-[400px] overflow-hidden', className)}
+	class={cn("h-[400px] w-[400px] overflow-hidden", className)}
 	style:position="relative"
-	style:cursor={slideMode === 'drag' ? 'grab' : 'col-resize'}
+	style:cursor={slideMode === "drag" ? "grab" : "col-resize"}
 	onmousemove={handleMouseMove}
 	onmouseleave={mouseLeaveHandler}
 	onmouseenter={mouseEnterHandler}
@@ -218,13 +218,13 @@
 	>
 		<!-- Decorative Effects -->
 		<div
-			class="absolute left-0 top-1/2 z-20 h-full w-36 -translate-y-1/2 bg-gradient-to-r from-indigo-400 via-transparent to-transparent opacity-50 [mask-image:radial-gradient(100px_at_left,white,transparent)]"
+			class="absolute top-1/2 left-0 z-20 h-full w-36 -translate-y-1/2 bg-gradient-to-r from-indigo-400 via-transparent to-transparent [mask-image:radial-gradient(100px_at_left,white,transparent)] opacity-50"
 		></div>
 		<div
-			class="absolute left-0 top-1/2 z-10 h-1/2 w-10 -translate-y-1/2 bg-gradient-to-r from-cyan-400 via-transparent to-transparent opacity-100 [mask-image:radial-gradient(50px_at_left,white,transparent)]"
+			class="absolute top-1/2 left-0 z-10 h-1/2 w-10 -translate-y-1/2 bg-gradient-to-r from-cyan-400 via-transparent to-transparent [mask-image:radial-gradient(50px_at_left,white,transparent)] opacity-100"
 		></div>
 		<div
-			class="absolute -right-10 top-1/2 h-3/4 w-10 -translate-y-1/2 [mask-image:radial-gradient(100px_at_left,white,transparent)]"
+			class="absolute top-1/2 -right-10 h-3/4 w-10 -translate-y-1/2 [mask-image:radial-gradient(100px_at_left,white,transparent)]"
 		>
 			<StarField starsCount={120} class="size-full" />
 		</div>
@@ -234,7 +234,7 @@
 			{@render handle()}
 		{:else if showHandlebar}
 			<div
-				class="pointer-events-auto absolute -right-2.5 top-1/2 z-30 flex size-5 -translate-y-1/2 cursor-grab items-center justify-center rounded-md bg-white shadow-[0px_-1px_0px_0px_#FFFFFF40]"
+				class="pointer-events-auto absolute top-1/2 -right-2.5 z-30 flex size-5 -translate-y-1/2 cursor-grab items-center justify-center rounded-md bg-white shadow-[0px_-1px_0px_0px_#FFFFFF40]"
 			>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -255,10 +255,13 @@
 	</div>
 
 	<!-- First Content -->
-	<div class="relative z-20 size-full overflow-hidden" style:pointer-events={isInteracting ? 'none' : 'auto'}>
+	<div
+		class="relative z-20 size-full overflow-hidden"
+		style:pointer-events={isInteracting ? "none" : "auto"}
+	>
 		<div
 			class={cn(
-				'absolute inset-0 z-20 h-full w-full flex-shrink-0 select-none overflow-hidden rounded-2xl',
+				"absolute inset-0 z-20 h-full w-full flex-shrink-0 overflow-hidden rounded-2xl select-none",
 				firstContentClass
 			)}
 			style:clip-path="inset(0 {100 - sliderXPercent}% 0 0)"
@@ -270,7 +273,7 @@
 					alt={firstImageAlt}
 					src={firstImage}
 					class={cn(
-						'absolute inset-0 z-20 h-full w-full flex-shrink-0 select-none rounded-2xl object-cover',
+						"absolute inset-0 z-20 h-full w-full flex-shrink-0 rounded-2xl object-cover select-none",
 						firstContentClass
 					)}
 					draggable="false"
@@ -282,10 +285,10 @@
 	<!-- Second Content -->
 	<div
 		class={cn(
-			'absolute left-0 top-0 z-[19] h-full w-full select-none rounded-2xl',
+			"absolute top-0 left-0 z-[19] h-full w-full rounded-2xl select-none",
 			secondContentClass
 		)}
-		style:pointer-events={isInteracting ? 'none' : 'auto'}
+		style:pointer-events={isInteracting ? "none" : "auto"}
 	>
 		{#if secondContent}
 			{@render secondContent()}
@@ -293,7 +296,7 @@
 			<img
 				alt={secondImageAlt}
 				src={secondImage}
-				class={cn('h-full w-full object-cover', secondContentClass)}
+				class={cn("h-full w-full object-cover", secondContentClass)}
 				draggable="false"
 			/>
 		{/if}

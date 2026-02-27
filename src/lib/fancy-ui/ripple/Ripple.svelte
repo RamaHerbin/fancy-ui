@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from "$lib/utils";
 
 	interface Props {
 		baseCircleSize?: number;
@@ -17,10 +17,10 @@
 		baseCircleOpacity = 0.24,
 		spaceBetweenCircle = 70,
 		circleOpacityDowngradeRatio = 0.03,
-		circleClass = '',
+		circleClass = "",
 		waveSpeed = 80,
 		numberOfCircles = 7,
-		class: className = ''
+		class: className = "",
 	}: Props = $props();
 
 	let circles = $derived(
@@ -28,15 +28,18 @@
 			size: baseCircleSize + i * spaceBetweenCircle,
 			opacity: baseCircleOpacity - i * circleOpacityDowngradeRatio,
 			delay: i * waveSpeed,
-			borderStyle: i === numberOfCircles - 1 ? 'dashed' : 'solid'
+			borderStyle: i === numberOfCircles - 1 ? "dashed" : "solid",
 		}))
 	);
 </script>
 
-<div class={cn('absolute inset-0', className)} aria-hidden="true">
+<div class={cn("absolute inset-0", className)} aria-hidden="true">
 	{#each circles as circle, i (i)}
 		<div
-			class={cn('absolute shadow-xl animate-ripple-circle rounded-full motion-reduce:animate-none', circleClass)}
+			class={cn(
+				"animate-ripple-circle absolute rounded-full shadow-xl motion-reduce:animate-none",
+				circleClass
+			)}
 			style="width: {circle.size}px; height: {circle.size}px; opacity: {circle.opacity}; animation-delay: {circle.delay}ms; border-style: {circle.borderStyle}; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1); border-width: 1px;"
 		></div>
 	{/each}

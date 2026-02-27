@@ -5,8 +5,8 @@
   passes its props, and recursively renders children.
 -->
 <script lang="ts" module>
-	import { resolveComponent } from './component-map.js';
-	import { getBuilderComponent } from '../registry/builder-registry.js';
+	import { resolveComponent } from "./component-map.js";
+	import { getBuilderComponent } from "../registry/builder-registry.js";
 
 	const componentCache = new Map<
 		string,
@@ -29,8 +29,8 @@
 </script>
 
 <script lang="ts">
-	import type { BlockNode } from '../types/page.js';
-	import BlockRendererSelf from './BlockRenderer.svelte';
+	import type { BlockNode } from "../types/page.js";
+	import BlockRendererSelf from "./BlockRenderer.svelte";
 
 	interface Props {
 		node: BlockNode;
@@ -41,9 +41,7 @@
 	let info = $derived(getComponentInfo(node.type));
 	let Component = $derived(info.component);
 	let meta = $derived(info.meta);
-	let hasChildren = $derived(
-		meta?.acceptsChildren && node.children && node.children.length > 0
-	);
+	let hasChildren = $derived(meta?.acceptsChildren && node.children && node.children.length > 0);
 
 	/** Only pass props that are declared in the component's propSchemas */
 	let safeProps = $derived.by(() => {
@@ -71,7 +69,7 @@
 		<Component {...safeProps} />
 	{/if}
 {:else}
-	<div class="rounded border border-dashed border-destructive/50 p-4 text-sm text-destructive">
+	<div class="border-destructive/50 text-destructive rounded border border-dashed p-4 text-sm">
 		Unknown component: <code>{node.type}</code>
 	</div>
 {/if}

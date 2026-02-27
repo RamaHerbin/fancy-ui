@@ -4,8 +4,8 @@
   The builder passes children blocks through.
 -->
 <script lang="ts">
-	import { BentoGrid } from '$lib/fancy-ui/bento-grid/index.js';
-	import type { Snippet } from 'svelte';
+	import { BentoGrid } from "$lib/fancy-ui/bento-grid/index.js";
+	import type { Snippet } from "svelte";
 
 	interface Props {
 		class?: string;

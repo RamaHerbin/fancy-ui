@@ -3,9 +3,9 @@
   Renders the actual component with default props inside a contained preview area.
 -->
 <script lang="ts">
-	import type { BuilderComponentMeta } from '../types/registry.js';
-	import { resolveComponent } from '../renderer/component-map.js';
-	import { getDefaultProps } from '../registry/index.js';
+	import type { BuilderComponentMeta } from "../types/registry.js";
+	import { resolveComponent } from "../renderer/component-map.js";
+	import { getDefaultProps } from "../registry/index.js";
 
 	interface Props {
 		meta: BuilderComponentMeta;
@@ -23,23 +23,23 @@
 </script>
 
 <div
-	class="fixed z-50 w-72 overflow-hidden rounded-lg border border-border bg-card shadow-lg"
+	class="border-border bg-card fixed z-50 w-72 overflow-hidden rounded-lg border shadow-lg"
 	style="top: {top}px; left: {left}px;"
 	role="tooltip"
 >
 	<div
-		class="relative flex h-48 items-center justify-center overflow-hidden bg-neutral-950 pointer-events-none"
+		class="pointer-events-none relative flex h-48 items-center justify-center overflow-hidden bg-neutral-950"
 	>
 		{#if Component}
 			{#key meta.slug}
 				<Component {...defaultProps} />
 			{/key}
 		{:else}
-			<p class="text-xs text-muted-foreground">Preview unavailable</p>
+			<p class="text-muted-foreground text-xs">Preview unavailable</p>
 		{/if}
 	</div>
-	<div class="border-t border-border px-3 py-2">
+	<div class="border-border border-t px-3 py-2">
 		<p class="text-sm font-medium">{meta.name}</p>
-		<p class="text-xs text-muted-foreground">{meta.description}</p>
+		<p class="text-muted-foreground text-xs">{meta.description}</p>
 	</div>
 </div>

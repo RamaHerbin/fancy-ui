@@ -4,25 +4,27 @@
   In the builder, we use `frontText` and `backText` string props instead.
 -->
 <script lang="ts">
-	import { FlipCard } from '$lib/fancy-ui/flip-card/index.js';
+	import { FlipCard } from "$lib/fancy-ui/flip-card/index.js";
 
 	interface Props {
-		rotate?: 'x' | 'y';
+		rotate?: "x" | "y";
 		frontText?: string;
 		backText?: string;
 		class?: string;
 	}
 
 	let {
-		rotate = 'y',
-		frontText = 'Front',
-		backText = 'Back',
-		class: className = ''
+		rotate = "y",
+		frontText = "Front",
+		backText = "Back",
+		class: className = "",
 	}: Props = $props();
 </script>
 
 {#snippet front()}
-	<div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 p-4">
+	<div
+		class="from-primary/20 to-primary/5 flex h-full w-full items-center justify-center bg-gradient-to-br p-4"
+	>
 		<p class="text-lg font-semibold">{frontText}</p>
 	</div>
 {/snippet}

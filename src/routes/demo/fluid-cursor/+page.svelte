@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FluidCursor } from '$lib/fancy-ui/fluid-cursor';
+	import { FluidCursor } from "$lib/fancy-ui/fluid-cursor";
 </script>
 
 <svelte:head>
@@ -8,30 +8,32 @@
 
 <FluidCursor />
 
-<div class="container relative z-10 mx-auto px-4 py-12">
+<div class="relative z-10 container mx-auto px-4 py-12">
 	<h1 class="mb-2 text-3xl font-bold">FluidCursor</h1>
-	<p class="mb-8 text-muted-foreground">
+	<p class="text-muted-foreground mb-8">
 		A WebGL fluid simulation that follows your cursor. Move your mouse around to see the effect.
 	</p>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Usage</h2>
-		<div class="rounded-lg border bg-card p-6">
-			<p class="mb-4 text-sm text-muted-foreground">
+		<div class="bg-card rounded-lg border p-6">
+			<p class="text-muted-foreground mb-4 text-sm">
 				The FluidCursor component renders a full-screen WebGL canvas that creates fluid effects
 				following mouse movement. It's typically used as a background effect.
 			</p>
-			<pre class="overflow-x-auto rounded bg-muted p-4 text-sm"><code>{'<'}script{'>'}
-  import {'{'} FluidCursor {'}'} from '$lib/fancy-ui/fluid-cursor';
-{'<'}/script{'>'}
+			<pre class="bg-muted overflow-x-auto rounded p-4 text-sm"><code
+					>{"<"}script{">"}
+  import {"{"} FluidCursor {"}"} from '$lib/fancy-ui/fluid-cursor';
+{"<"}/script{">"}
 
-{'<'}FluidCursor /{'>'}</code></pre>
+{"<"}FluidCursor /{">"}</code
+				></pre>
 		</div>
 	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Props</h2>
-		<div class="overflow-x-auto rounded-lg border bg-card">
+		<div class="bg-card overflow-x-auto rounded-lg border">
 			<table class="w-full text-sm">
 				<thead>
 					<tr class="border-b">
@@ -115,8 +117,8 @@
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Notes</h2>
-		<div class="rounded-lg border bg-card p-6">
-			<ul class="list-inside list-disc space-y-2 text-sm text-muted-foreground">
+		<div class="bg-card rounded-lg border p-6">
+			<ul class="text-muted-foreground list-inside list-disc space-y-2 text-sm">
 				<li>The component uses WebGL2 with fallback to WebGL1</li>
 				<li>Click to create a color splat effect</li>
 				<li>Move your mouse to create flowing fluid trails</li>

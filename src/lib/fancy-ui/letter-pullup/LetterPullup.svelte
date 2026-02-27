@@ -16,24 +16,24 @@
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
 	let { words, delay = 0.05, class: className }: LetterPullupProps = $props();
 
-	let letters = $derived(words.split(''));
+	let letters = $derived(words.split(""));
 </script>
 
 <div class="letter-pullup flex justify-center">
 	{#each letters as letter, index (index)}
 		<span
 			class={cn(
-				'letter-pullup-char inline-block text-center text-4xl font-bold tracking-[-0.02em] text-black dark:text-white drop-shadow-sm md:leading-[5rem]',
+				"letter-pullup-char inline-block text-center text-4xl font-bold tracking-[-0.02em] text-black drop-shadow-sm md:leading-[5rem] dark:text-white",
 				className
 			)}
 			style="animation:letterPullUp 0.5s ease forwards;animation-delay:{index *
 				delay}s;opacity:0;transform:translateY(100px)"
 		>
-			{#if letter === ' '}
+			{#if letter === " "}
 				&nbsp;
 			{:else}
 				{letter}

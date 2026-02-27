@@ -1,43 +1,43 @@
 <script lang="ts">
-	import { Marquee, ReviewCard } from '$lib/fancy-ui/marquee';
+	import { Marquee, ReviewCard } from "$lib/fancy-ui/marquee";
 
 	const reviews = [
 		{
-			name: 'Jack',
-			username: '@jack',
+			name: "Jack",
+			username: "@jack",
 			body: "I've never seen anything like this before. It's amazing. I love it.",
-			img: 'https://avatar.vercel.sh/jack'
+			img: "https://avatar.vercel.sh/jack",
 		},
 		{
-			name: 'Jill',
-			username: '@jill',
+			name: "Jill",
+			username: "@jill",
 			body: "I don't know what to say. I'm speechless. This is amazing.",
-			img: 'https://avatar.vercel.sh/jill'
+			img: "https://avatar.vercel.sh/jill",
 		},
 		{
-			name: 'John',
-			username: '@john',
+			name: "John",
+			username: "@john",
 			body: "I'm at a loss for words. This is amazing. I love it.",
-			img: 'https://avatar.vercel.sh/john'
+			img: "https://avatar.vercel.sh/john",
 		},
 		{
-			name: 'Jane',
-			username: '@jane',
+			name: "Jane",
+			username: "@jane",
 			body: "I'm at a loss for words. This is amazing. I love it.",
-			img: 'https://avatar.vercel.sh/jane'
+			img: "https://avatar.vercel.sh/jane",
 		},
 		{
-			name: 'Jenny',
-			username: '@jenny',
+			name: "Jenny",
+			username: "@jenny",
 			body: "I'm at a loss for words. This is amazing. I love it.",
-			img: 'https://avatar.vercel.sh/jenny'
+			img: "https://avatar.vercel.sh/jenny",
 		},
 		{
-			name: 'James',
-			username: '@james',
+			name: "James",
+			username: "@james",
 			body: "I'm at a loss for words. This is amazing. I love it.",
-			img: 'https://avatar.vercel.sh/james'
-		}
+			img: "https://avatar.vercel.sh/james",
+		},
 	];
 
 	const firstRow = reviews.slice(0, reviews.length / 2);
@@ -50,13 +50,15 @@
 
 <div class="container mx-auto px-4 py-12">
 	<h1 class="mb-2 text-3xl font-bold">Marquee</h1>
-	<p class="mb-8 text-muted-foreground">
+	<p class="text-muted-foreground mb-8">
 		An infinite scrolling component that can be used to display text, images, or cards.
 	</p>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
-		<div class="relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background">
+		<div
+			class="bg-background relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border"
+		>
 			<Marquee pauseOnHover class="[--duration:20s]">
 				{#each firstRow as review}
 					<ReviewCard {...review} />
@@ -67,14 +69,20 @@
 					<ReviewCard {...review} />
 				{/each}
 			</Marquee>
-			<div class="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-background"></div>
-			<div class="pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-background"></div>
+			<div
+				class="from-background pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r"
+			></div>
+			<div
+				class="from-background pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l"
+			></div>
 		</div>
 	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Vertical</h2>
-		<div class="relative flex h-[500px] w-full flex-row items-center justify-center overflow-hidden rounded-lg border bg-background">
+		<div
+			class="bg-background relative flex h-[500px] w-full flex-row items-center justify-center overflow-hidden rounded-lg border"
+		>
 			<Marquee vertical pauseOnHover class="[--duration:20s]">
 				{#each firstRow as review}
 					<ReviewCard {...review} />
@@ -90,14 +98,18 @@
 					<ReviewCard {...review} />
 				{/each}
 			</Marquee>
-			<div class="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-background"></div>
-			<div class="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background"></div>
+			<div
+				class="from-background pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b"
+			></div>
+			<div
+				class="from-background pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t"
+			></div>
 		</div>
 	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Props</h2>
-		<div class="overflow-x-auto rounded-lg border bg-card">
+		<div class="bg-card overflow-x-auto rounded-lg border">
 			<table class="w-full text-sm">
 				<thead>
 					<tr class="border-b">

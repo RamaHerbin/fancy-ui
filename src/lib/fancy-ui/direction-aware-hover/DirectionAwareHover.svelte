@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { cn } from '$lib/utils';
-	import { fade } from 'svelte/transition';
+	import { onMount } from "svelte";
+	import { cn } from "$lib/utils";
+	import { fade } from "svelte/transition";
 
-	type Direction = 'top' | 'bottom' | 'left' | 'right';
+	type Direction = "top" | "bottom" | "left" | "right";
 
 	interface Props {
 		imageUrl: string;
@@ -11,16 +11,16 @@
 		childrenClass?: string;
 		imageClass?: string;
 		class?: string;
-		children?: import('svelte').Snippet;
+		children?: import("svelte").Snippet;
 	}
 
 	let {
 		imageUrl,
-		imageAlt = 'image',
-		childrenClass: childrenClassProp = '',
-		imageClass: imageClassProp = '',
-		class: className = '',
-		children
+		imageAlt = "image",
+		childrenClass: childrenClassProp = "",
+		imageClass: imageClassProp = "",
+		class: className = "",
+		children,
 	}: Props = $props();
 
 	let divRef: HTMLDivElement;
@@ -30,11 +30,13 @@
 	let touchTimer: ReturnType<typeof setTimeout> | null = null;
 
 	function detectMobile() {
-		isMobile =
-			window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window;
+		isMobile = window.matchMedia("(max-width: 768px)").matches || "ontouchstart" in window;
 	}
 
-	function getDirection(ev: MouseEvent | { clientX: number; clientY: number }, obj: HTMLElement): number {
+	function getDirection(
+		ev: MouseEvent | { clientX: number; clientY: number },
+		obj: HTMLElement
+	): number {
 		const { width: w, height: h, left, top } = obj.getBoundingClientRect();
 		const x = ev.clientX - left - (w / 2) * (w > h ? h / w : 1);
 		const y = ev.clientY - top - (h / 2) * (h > w ? w / h : 1);
@@ -45,15 +47,15 @@
 	function mapDirection(d: number): Direction {
 		switch (d) {
 			case 0:
-				return 'top';
+				return "top";
 			case 1:
-				return 'right';
+				return "right";
 			case 2:
-				return 'bottom';
+				return "bottom";
 			case 3:
-				return 'left';
+				return "left";
 			default:
-				return 'left';
+				return "left";
 		}
 	}
 
@@ -104,82 +106,79 @@
 
 	let containerClass = $derived(
 		cn(
-			'group/card relative overflow-hidden rounded-lg bg-transparent transition-all duration-300',
-			'h-48 w-48',
-			'sm:h-64 sm:w-64',
-			'md:h-80 md:w-80',
-			'lg:h-96 lg:w-96',
-			'xl:h-[28rem] xl:w-[28rem]',
-			'touch-manipulation',
-			'active:scale-[0.98]',
-			'md:active:scale-100',
+			"group/card relative overflow-hidden rounded-lg bg-transparent transition-all duration-300",
+			"h-48 w-48",
+			"sm:h-64 sm:w-64",
+			"md:h-80 md:w-80",
+			"lg:h-96 lg:w-96",
+			"xl:h-[28rem] xl:w-[28rem]",
+			"touch-manipulation",
+			"active:scale-[0.98]",
+			"md:active:scale-100",
 			className
 		)
 	);
 
 	let imageClass = $derived(
 		cn(
-			'h-full w-full object-cover transition-transform duration-300',
-			'scale-125',
-			'sm:scale-[1.35]',
-			'md:scale-150',
+			"h-full w-full object-cover transition-transform duration-300",
+			"scale-125",
+			"sm:scale-[1.35]",
+			"md:scale-150",
 			imageClassProp
 		)
 	);
 
 	let childrenClass = $derived(
 		cn(
-			'absolute z-40 text-white transition-opacity duration-300',
-			'bottom-2 left-2 text-sm',
-			'sm:bottom-3 sm:left-3 sm:text-base',
-			'md:bottom-4 md:left-4 md:text-lg',
+			"absolute z-40 text-white transition-opacity duration-300",
+			"bottom-2 left-2 text-sm",
+			"sm:bottom-3 sm:left-3 sm:text-base",
+			"md:bottom-4 md:left-4 md:text-lg",
 			childrenClassProp
 		)
 	);
 
 	let overlayClass = $derived.by(() => {
-		const baseClasses = 'absolute inset-0 z-10 transition-all duration-300';
-		const backgroundClasses = 'bg-black/40 dark:bg-black/60';
+		const baseClasses = "absolute inset-0 z-10 transition-all duration-300";
+		const backgroundClasses = "bg-black/40 dark:bg-black/60";
 
-		let transformClasses = '';
+		let transformClasses = "";
 		switch (direction) {
-			case 'top':
-				transformClasses = '-translate-y-full group-hover/card:translate-y-0';
+			case "top":
+				transformClasses = "-translate-y-full group-hover/card:translate-y-0";
 				break;
-			case 'bottom':
-				transformClasses = 'translate-y-full group-hover/card:translate-y-0';
+			case "bottom":
+				transformClasses = "translate-y-full group-hover/card:translate-y-0";
 				break;
-			case 'left':
-				transformClasses = '-translate-x-full group-hover/card:translate-x-0';
+			case "left":
+				transformClasses = "-translate-x-full group-hover/card:translate-x-0";
 				break;
-			case 'right':
-				transformClasses = 'translate-x-full group-hover/card:translate-x-0';
+			case "right":
+				transformClasses = "translate-x-full group-hover/card:translate-x-0";
 				break;
 			default:
-				transformClasses = '';
+				transformClasses = "";
 		}
 
 		return cn(baseClasses, backgroundClasses, transformClasses);
 	});
 
 	let imageContainerClass = $derived(
-		cn(
-			'relative size-full bg-gray-50 transition-transform duration-300 dark:bg-black',
-			{
-				'translate-y-2 md:translate-y-5': direction === 'top',
-				'-translate-y-2 md:-translate-y-5': direction === 'bottom',
-				'translate-x-2 md:translate-x-5': direction === 'left',
-				'-translate-x-2 md:-translate-x-5': direction === 'right'
-			}
-		)
+		cn("relative size-full bg-gray-50 transition-transform duration-300 dark:bg-black", {
+			"translate-y-2 md:translate-y-5": direction === "top",
+			"-translate-y-2 md:-translate-y-5": direction === "bottom",
+			"translate-x-2 md:translate-x-5": direction === "left",
+			"-translate-x-2 md:-translate-x-5": direction === "right",
+		})
 	);
 
 	onMount(() => {
 		detectMobile();
-		window.addEventListener('resize', detectMobile);
+		window.addEventListener("resize", detectMobile);
 
 		return () => {
-			window.removeEventListener('resize', detectMobile);
+			window.removeEventListener("resize", detectMobile);
 			if (touchTimer) {
 				clearTimeout(touchTimer);
 			}

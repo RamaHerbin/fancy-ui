@@ -4,7 +4,7 @@
   The builder uses a `text` prop instead.
 -->
 <script lang="ts">
-	import { InteractiveHoverButton } from '$lib/fancy-ui/interactive-hover-button/index.js';
+	import { InteractiveHoverButton } from "$lib/fancy-ui/interactive-hover-button/index.js";
 
 	interface Props {
 		text?: string;
@@ -12,7 +12,7 @@
 		[key: string]: unknown;
 	}
 
-	let { text = 'Button', class: className, ...restProps }: Props = $props();
+	let { text = "Button", class: className, ...restProps }: Props = $props();
 </script>
 
 <InteractiveHoverButton {text} class={className} {...restProps} />
