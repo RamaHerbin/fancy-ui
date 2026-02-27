@@ -5,7 +5,7 @@
 A custom git-based visual site builder integrated into the FancyUI component library. It renders pages from JSON documents using the existing 50+ implemented Svelte 5 components, with a drag-and-drop editor for composing pages visually.
 
 **Audience:** Admin deployed (accessible in prod, with auth)
-**Storage:** Local filesystem first, GitHub API later
+**Storage:** Filesystem (dev) or GitHub API (production) — pluggable via `PageStorage` interface
 **Approach:** Custom builder (no existing CMS supports Svelte 5 snippets + FancyUI props)
 
 ---
@@ -373,20 +373,95 @@ Modified:
   src/lib/builder/editor/BlockWrapper.svelte        # pointer-events-auto for nested selection
 ```
 
-#### Phase 6B+ (TODO)
+#### Phase 6B: Keyboard Shortcuts & Copy/Paste ✅
 
-- **Copy/Paste** — Cmd+C / Cmd+V on selected blocks
-- **Keyboard shortcuts** — Cmd+S (save), Delete/Backspace (remove block), arrow keys (navigate tree)
+Full keyboard shortcut system with clipboard operations.
+
+- **Navigation** — Arrow Up/Down to traverse the layer tree, Escape to deselect
+- **Editing** — Delete/Backspace to remove selected block, Cmd+D to duplicate
+- **Clipboard** — Cmd+C (copy), Cmd+V (paste after selected), Cmd+X (cut)
+- **Save** — Cmd+S triggers server save with button state feedback (Saving → Saved → Save)
+- **Guard**: all shortcuts are disabled when focus is in an input/textarea/contenteditable
+- **E2E tests** — Playwright tests for shortcuts (`tests/e2e/builder-shortcuts.spec.ts`) and save (`tests/e2e/builder-save.spec.ts`)
+
+##### Files
+
+```
+Modified:
+  src/lib/builder/stores/editor.svelte.ts       # copy/cut/paste methods, clipboard state
+  src/lib/builder/editor/EditorLayout.svelte     # keydown handler for all shortcuts
+  src/lib/builder/editor/TopBar.svelte           # Cmd+S save, button state cycling
+
+New:
+  tests/e2e/builder-shortcuts.spec.ts            # E2E tests for keyboard shortcuts
+  tests/e2e/builder-save.spec.ts                 # E2E tests for save flow
+  tests/e2e/builder-dnd.spec.ts                  # E2E tests for drag-and-drop
+```
+
+#### Phase 6C: GitHubStorage Backend ✅
+
+Production storage backend using the GitHub Contents API, so pages are stored as JSON files in the repo.
+
+- **GitHubStorage** (`storage/github.server.ts`) — implements `PageStorage` via GitHub Contents API
+  - Base64 encode/decode for file content
+  - SHA-based optimistic concurrency (prevents overwriting concurrent edits)
+  - Parallel file fetching in `list()`, configurable `contentPath` and `branch`
+- **StorageError** (`storage/errors.ts`) — typed error codes: `NOT_FOUND`, `CONFLICT`, `AUTH`, `UNKNOWN`
+- **Factory** (`storage/factory.server.ts`) — `getBuilderStorage(token?)` selects backend:
+  1. `GITHUB_TOKEN` env var (PAT) → GitHubStorage
+  2. OAuth user token → GitHubStorage
+  3. Dev mode → FilesystemStorage
+  4. Otherwise → error with descriptive message
+- **Auth token cookie** — GitHub OAuth access token stored in HMAC-signed httpOnly cookie (`builder_github_token`), passed to factory via `locals.githubToken`
+- **OAuth scope** — `repo` (supports private repos)
+
+##### Files
+
+```
+New:
+  src/lib/builder/storage/errors.ts              # StorageError class (NOT_FOUND, CONFLICT, AUTH, UNKNOWN)
+  src/lib/builder/storage/factory.server.ts      # getBuilderStorage() factory
+  src/lib/builder/storage/github.server.ts       # GitHubStorage class
+
+Modified:
+  src/lib/builder/storage/index.ts               # Export new modules
+  src/lib/server/auth/session.ts                 # GitHub token cookie (create/get/clear)
+  src/routes/auth/callback/+server.ts            # Store token cookie on login
+  src/routes/auth/login/+server.ts               # OAuth scope: repo
+  src/hooks.server.ts                            # Extract githubToken from cookie → locals
+  src/app.d.ts                                   # Locals.githubToken
+  src/routes/builder/+page.server.ts             # Use getBuilderStorage()
+  src/routes/builder/[slug]/+page.server.ts      # Use getBuilderStorage()
+  src/routes/api/builder/pages/+server.ts        # Use getBuilderStorage() + StorageError handling
+  src/routes/api/builder/pages/[slug]/+server.ts # Use getBuilderStorage() + StorageError handling
+  src/routes/api/builder/publish/+server.ts      # Use getBuilderStorage() + StorageError handling
+  .env.example                                   # GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_BRANCH, GITHUB_CONTENT_PATH
+```
+
+##### Env Vars (Production)
+
+```bash
+# GitHub OAuth (required for auth)
+GITHUB_CLIENT_ID=xxx
+GITHUB_CLIENT_SECRET=xxx
+AUTH_SECRET=xxx            # HMAC key for signing session + token cookies
+
+# GitHub Storage (required for GitHubStorage backend)
+GITHUB_REPO_OWNER=xxx
+GITHUB_REPO_NAME=xxx
+GITHUB_BRANCH=main        # optional, defaults to main
+GITHUB_CONTENT_PATH=content/pages  # optional, defaults to content/pages
+
+# Optional: PAT override (bypasses OAuth token)
+GITHUB_TOKEN=ghp_xxx
+```
+
+#### Phase 6D+ (TODO)
+
 - **Page templates** — starter templates in `content/_templates/` (blank, landing, portfolio)
 - **Version history UI** — git log viewer showing page change history
 - **Complete registry** — expand from 15 to ~35 builder-compatible components
 - **SEO/Meta editor** — edit title, description, OG tags in the property panel
-- **Tests** — unit tests for renderer, storage, editor store
-  - Tree utils: ✅ done (29 tests)
-  - History: ✅ done (22 unit + 12 integration tests)
-  - Block selection: ✅ done (4 tests)
-  - BlockRenderer / PageRenderer: pending
-  - Storage + editor store: pending
 
 ---
 
@@ -403,6 +478,22 @@ Replace inline canvas rendering with an isolated iframe for pixel-perfect previe
 - **CSS isolation** — editor styles cannot leak into the preview
 - **Native responsive** — resize the iframe element for mobile/tablet/desktop
 - **Shareable preview URL** — link to preview a draft page
+
+---
+
+## Tests
+
+| Category | File | Count |
+|----------|------|-------|
+| Tree utils | `src/lib/builder/utils/tree.test.ts` | 29 |
+| History | `src/lib/builder/stores/history.test.ts` | 22 |
+| Editor undo/redo | `src/lib/builder/stores/editor-undo.test.ts` | 12 |
+| Block selection | `src/lib/builder/editor/block-selection.test.ts` | 4 |
+| E2E shortcuts | `tests/e2e/builder-shortcuts.spec.ts` | 7 |
+| E2E save | `tests/e2e/builder-save.spec.ts` | 2 |
+| E2E drag-and-drop | `tests/e2e/builder-dnd.spec.ts` | — |
+
+Pending: BlockRenderer, PageRenderer, storage unit tests.
 
 ---
 
@@ -423,8 +514,20 @@ src/lib/builder/
 │   ├── BlockRenderer.svelte
 │   ├── PageRenderer.svelte
 │   ├── index.ts
-│   ├── primitives/ (7 files)
-│   └── adapters/ (5 files)
+│   ├── primitives/
+│   │   ├── Section.svelte
+│   │   ├── Container.svelte
+│   │   ├── Grid.svelte
+│   │   ├── Flex.svelte
+│   │   ├── Text.svelte
+│   │   ├── Image.svelte
+│   │   └── Spacer.svelte
+│   └── adapters/
+│       ├── ShimmerButtonAdapter.svelte
+│       ├── RainbowButtonAdapter.svelte
+│       ├── FlipCardAdapter.svelte
+│       ├── BentoGridItemAdapter.svelte
+│       └── ContainerScrollAdapter.svelte
 ├── editor/
 │   ├── EditorLayout.svelte
 │   ├── TopBar.svelte
@@ -432,22 +535,40 @@ src/lib/builder/
 │   ├── PaletteItem.svelte
 │   ├── Canvas.svelte
 │   ├── BlockWrapper.svelte
+│   ├── CanvasBlockRenderer.svelte
 │   ├── PropertyPanel.svelte
 │   ├── LayerTree.svelte
+│   ├── LayerTreeNode.svelte
+│   ├── DragOverlay.svelte
+│   ├── InlineTextEditor.svelte
 │   ├── AutoSave.svelte
 │   ├── DraftRecoveryBanner.svelte
-│   └── props/ (5 editors)
+│   ├── IconMap.ts
+│   ├── BlockSelectionTestHarness.svelte
+│   ├── block-selection.test.ts
+│   └── props/
+│       ├── StringEditor.svelte
+│       ├── NumberEditor.svelte
+│       ├── BooleanEditor.svelte
+│       ├── ColorEditor.svelte
+│       └── SelectEditor.svelte
 ├── stores/
 │   ├── editor.svelte.ts
-│   └── history.svelte.ts
+│   ├── editor-undo.test.ts
+│   ├── history.svelte.ts
+│   └── history.test.ts
 ├── storage/
 │   ├── types.ts
+│   ├── errors.ts
+│   ├── factory.server.ts
 │   ├── filesystem.server.ts
+│   ├── github.server.ts
 │   ├── indexeddb.ts
 │   └── index.ts
 └── utils/
     ├── id.ts
     ├── tree.ts
+    ├── tree.test.ts
     ├── drag.ts
     └── index.ts
 
@@ -481,6 +602,11 @@ src/lib/server/auth/
 └── index.ts
 
 src/hooks.server.ts
+
+tests/e2e/
+├── builder-shortcuts.spec.ts
+├── builder-save.spec.ts
+└── builder-dnd.spec.ts
 
 content/
 ├── pages/*.json

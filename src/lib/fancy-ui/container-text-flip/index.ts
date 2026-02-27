@@ -1,1 +1,1 @@
-export { default as ContainerTextFlip } from './ContainerTextFlip.svelte';
+export { default as ContainerTextFlip } from "./ContainerTextFlip.svelte";

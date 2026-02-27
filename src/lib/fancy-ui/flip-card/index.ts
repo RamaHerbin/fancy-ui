@@ -1,1 +1,1 @@
-export { default as FlipCard } from './FlipCard.svelte';
+export { default as FlipCard } from "./FlipCard.svelte";
