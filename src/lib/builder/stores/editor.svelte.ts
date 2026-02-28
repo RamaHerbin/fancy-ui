@@ -84,6 +84,22 @@ export class EditorState {
 		if (options?.allPages) this.allPages = options.allPages;
 	}
 
+	/** Replace the current page and reset editor state */
+	loadPage(
+		page: PageDocument,
+		options?: { siteConfig?: SiteConfig | null; allPages?: PageListItem[] }
+	) {
+		this.page = page;
+		this.selectedBlockId = null;
+		this.inlineEditBlockId = null;
+		this.dragSource = null;
+		this.dropTarget = null;
+		this.clipboard = null;
+		this.history = new HistoryManager();
+		if (options?.siteConfig !== undefined) this.siteConfig = options.siteConfig;
+		if (options?.allPages) this.allPages = options.allPages;
+	}
+
 	selectBlock(id: string) {
 		this.selectedBlockId = id;
 	}
