@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-
 	interface Props {
 		density?: number;
 		class?: string;
@@ -59,29 +57,27 @@
 
 	type FloatingEl = { text: string; style: string };
 
-	let formulaEls = $state<FloatingEl[]>([]);
-	let symbolEls = $state<FloatingEl[]>([]);
-
-	onMount(() => {
-		formulaEls = mathFormulas.slice(0, density).map((text, index) => {
+	let formulaEls = $derived(
+		mathFormulas.slice(0, density).map((text, index) => {
 			const seed = index * 123.456;
 			const rotation = seededRandom(seed) * 30 - 15;
 			return {
 				text,
 				style: `left:${seededRandom(seed + 1) * 120 - 10}%;top:${seededRandom(seed + 2) * 120 - 10}%;font-size:${seededRandom(seed + 3) * 6 + 8}px;animation:mathsBgFloat ${40 + seededRandom(seed + 4)}s linear infinite;animation-delay:${seededRandom(seed + 5) * -60}s;--rotation:${rotation}deg;transform:rotate(${rotation}deg)`,
 			};
-		});
+		})
+	);
 
-		const symbolCount = density * 2;
-		symbolEls = Array.from({ length: symbolCount }).map((_, index) => {
+	let symbolEls = $derived(
+		Array.from({ length: density * 2 }).map((_, index) => {
 			const seed = (index + mathFormulas.length) * 789.012;
 			const rotation = seededRandom(seed) * 360;
 			return {
 				text: symbols[Math.floor(seededRandom(seed + 1) * symbols.length)],
 				style: `left:${seededRandom(seed + 2) * 120 - 10}%;top:${seededRandom(seed + 3) * 120 - 10}%;font-size:${seededRandom(seed + 4) * 15 + 15}px;animation:mathsBgFloat ${60 + seededRandom(seed + 5)}s linear infinite reverse;animation-delay:${seededRandom(seed + 6) * -80}s;--rotation:${rotation}deg`,
 			};
-		});
-	});
+		})
+	);
 </script>
 
 <div class="pointer-events-none absolute inset-0 z-0 overflow-hidden {className}">
