@@ -537,6 +537,27 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 		},
 	},
 
+	"_maths-background": {
+		name: "Maths Background",
+		slug: "_maths-background",
+		description: "Decorative background with floating mathematical formulas and symbols",
+		icon: "Pi",
+		paletteCategory: "backgrounds",
+		acceptsChildren: false,
+		propSchemas: {
+			density: {
+				type: "number",
+				label: "Formula density",
+				default: 20,
+				min: 5,
+				max: 30,
+				step: 1,
+				description: "Number of floating formulas",
+			},
+			class: { type: "string", label: "CSS Classes", default: "" },
+		},
+	},
+
 	_tabs: {
 		name: "Tabs",
 		slug: "_tabs",

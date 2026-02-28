@@ -21,7 +21,7 @@
 	}: Props = $props();
 </script>
 
-<section id={anchorId || undefined} class={cn(padding, background, className)}>
+<section id={anchorId || undefined} class={cn("relative z-10", padding, background, className)}>
 	<div class={cn("mx-auto", maxWidth)}>
 		{#if children}
 			{@render children()}
