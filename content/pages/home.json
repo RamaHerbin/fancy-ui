@@ -25,7 +25,6 @@
 				"class": ""
 			}
 		},
-
 		{
 			"id": "sec-courses",
 			"type": "_section",
@@ -58,12 +57,16 @@
 						{
 							"id": "course-1",
 							"type": "_card",
-							"props": { "class": "h-full" },
+							"props": {
+								"class": "h-full"
+							},
 							"children": [
 								{
 									"id": "course-1-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-1-header-row",
@@ -87,7 +90,11 @@
 												{
 													"id": "course-1-badge",
 													"type": "_badge",
-													"props": { "text": "Licence", "variant": "secondary", "class": "" }
+													"props": {
+														"text": "Licence",
+														"variant": "secondary",
+														"class": ""
+													}
 												}
 											]
 										},
@@ -105,7 +112,9 @@
 								{
 									"id": "course-1-content",
 									"type": "_card-content",
-									"props": { "class": "" },
+									"props": {
+										"class": "flex-1"
+									},
 									"children": [
 										{
 											"id": "course-1-desc",
@@ -121,7 +130,9 @@
 								{
 									"id": "course-1-footer",
 									"type": "_card-footer",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-1-link",
@@ -141,16 +152,19 @@
 								}
 							]
 						},
-
 						{
 							"id": "course-2",
 							"type": "_card",
-							"props": { "class": "h-full" },
+							"props": {
+								"class": "h-full"
+							},
 							"children": [
 								{
 									"id": "course-2-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-2-header-row",
@@ -174,7 +188,11 @@
 												{
 													"id": "course-2-badge",
 													"type": "_badge",
-													"props": { "text": "Licence", "variant": "secondary", "class": "" }
+													"props": {
+														"text": "Licence",
+														"variant": "secondary",
+														"class": ""
+													}
 												}
 											]
 										},
@@ -192,7 +210,9 @@
 								{
 									"id": "course-2-content",
 									"type": "_card-content",
-									"props": { "class": "" },
+									"props": {
+										"class": "flex-1"
+									},
 									"children": [
 										{
 											"id": "course-2-desc",
@@ -208,7 +228,9 @@
 								{
 									"id": "course-2-footer",
 									"type": "_card-footer",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-2-link",
@@ -228,16 +250,19 @@
 								}
 							]
 						},
-
 						{
 							"id": "course-3",
 							"type": "_card",
-							"props": { "class": "h-full" },
+							"props": {
+								"class": "h-full"
+							},
 							"children": [
 								{
 									"id": "course-3-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-3-header-row",
@@ -261,7 +286,11 @@
 												{
 													"id": "course-3-badge",
 													"type": "_badge",
-													"props": { "text": "Licence", "variant": "secondary", "class": "" }
+													"props": {
+														"text": "Licence",
+														"variant": "secondary",
+														"class": ""
+													}
 												}
 											]
 										},
@@ -279,7 +308,9 @@
 								{
 									"id": "course-3-content",
 									"type": "_card-content",
-									"props": { "class": "" },
+									"props": {
+										"class": "flex-1"
+									},
 									"children": [
 										{
 											"id": "course-3-desc",
@@ -295,7 +326,9 @@
 								{
 									"id": "course-3-footer",
 									"type": "_card-footer",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-3-link",
@@ -315,16 +348,19 @@
 								}
 							]
 						},
-
 						{
 							"id": "course-4",
 							"type": "_card",
-							"props": { "class": "h-full" },
+							"props": {
+								"class": "h-full"
+							},
 							"children": [
 								{
 									"id": "course-4-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-4-header-row",
@@ -348,7 +384,11 @@
 												{
 													"id": "course-4-badge",
 													"type": "_badge",
-													"props": { "text": "Licence et Master", "variant": "default", "class": "" }
+													"props": {
+														"text": "Licence et Master",
+														"variant": "default",
+														"class": ""
+													}
 												}
 											]
 										},
@@ -366,7 +406,9 @@
 								{
 									"id": "course-4-content",
 									"type": "_card-content",
-									"props": { "class": "" },
+									"props": {
+										"class": "flex-1"
+									},
 									"children": [
 										{
 											"id": "course-4-desc",
@@ -382,7 +424,9 @@
 								{
 									"id": "course-4-footer",
 									"type": "_card-footer",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-4-link",
@@ -402,16 +446,19 @@
 								}
 							]
 						},
-
 						{
 							"id": "course-5",
 							"type": "_card",
-							"props": { "class": "h-full" },
+							"props": {
+								"class": "h-full"
+							},
 							"children": [
 								{
 									"id": "course-5-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-5-header-row",
@@ -435,7 +482,11 @@
 												{
 													"id": "course-5-badge",
 													"type": "_badge",
-													"props": { "text": "Master", "variant": "default", "class": "" }
+													"props": {
+														"text": "Master",
+														"variant": "default",
+														"class": ""
+													}
 												}
 											]
 										},
@@ -453,7 +504,9 @@
 								{
 									"id": "course-5-content",
 									"type": "_card-content",
-									"props": { "class": "" },
+									"props": {
+										"class": "flex-1"
+									},
 									"children": [
 										{
 											"id": "course-5-desc",
@@ -469,7 +522,9 @@
 								{
 									"id": "course-5-footer",
 									"type": "_card-footer",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-5-link",
@@ -489,16 +544,19 @@
 								}
 							]
 						},
-
 						{
 							"id": "course-6",
 							"type": "_card",
-							"props": { "class": "h-full" },
+							"props": {
+								"class": "h-full"
+							},
 							"children": [
 								{
 									"id": "course-6-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-6-header-row",
@@ -522,7 +580,11 @@
 												{
 													"id": "course-6-badge",
 													"type": "_badge",
-													"props": { "text": "Master", "variant": "default", "class": "" }
+													"props": {
+														"text": "Master",
+														"variant": "default",
+														"class": ""
+													}
 												}
 											]
 										},
@@ -540,7 +602,9 @@
 								{
 									"id": "course-6-content",
 									"type": "_card-content",
-									"props": { "class": "" },
+									"props": {
+										"class": "flex-1"
+									},
 									"children": [
 										{
 											"id": "course-6-desc",
@@ -556,7 +620,9 @@
 								{
 									"id": "course-6-footer",
 									"type": "_card-footer",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-6-link",
@@ -576,16 +642,19 @@
 								}
 							]
 						},
-
 						{
 							"id": "course-7",
 							"type": "_card",
-							"props": { "class": "h-full" },
+							"props": {
+								"class": "h-full"
+							},
 							"children": [
 								{
 									"id": "course-7-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-7-header-row",
@@ -609,7 +678,11 @@
 												{
 													"id": "course-7-badge",
 													"type": "_badge",
-													"props": { "text": "Master", "variant": "default", "class": "" }
+													"props": {
+														"text": "Master",
+														"variant": "default",
+														"class": ""
+													}
 												}
 											]
 										},
@@ -627,7 +700,9 @@
 								{
 									"id": "course-7-content",
 									"type": "_card-content",
-									"props": { "class": "" },
+									"props": {
+										"class": "flex-1"
+									},
 									"children": [
 										{
 											"id": "course-7-desc",
@@ -643,7 +718,9 @@
 								{
 									"id": "course-7-footer",
 									"type": "_card-footer",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "course-7-link",
@@ -667,7 +744,6 @@
 				}
 			]
 		},
-
 		{
 			"id": "sec-books",
 			"type": "_section",
@@ -700,12 +776,18 @@
 				{
 					"id": "books-grid",
 					"type": "_grid",
-					"props": { "columns": "3", "gap": "gap-6", "class": "" },
+					"props": {
+						"columns": "3",
+						"gap": "gap-6",
+						"class": ""
+					},
 					"children": [
 						{
 							"id": "book-1",
 							"type": "_card",
-							"props": { "class": "h-full flex flex-col overflow-hidden pt-0" },
+							"props": {
+								"class": "h-full flex flex-col overflow-hidden pt-0"
+							},
 							"children": [
 								{
 									"id": "book-1-cover",
@@ -740,7 +822,9 @@
 								{
 									"id": "book-1-header",
 									"type": "_card-header",
-									"props": { "class": "pb-3" },
+									"props": {
+										"class": "pb-3"
+									},
 									"children": [
 										{
 											"id": "book-1-title-row",
@@ -785,7 +869,11 @@
 												{
 													"id": "book-1-users-icon",
 													"type": "_icon",
-													"props": { "name": "Users", "size": 16, "class": "" }
+													"props": {
+														"name": "Users",
+														"size": 16,
+														"class": ""
+													}
 												},
 												{
 													"id": "book-1-author-text",
@@ -811,7 +899,11 @@
 												{
 													"id": "book-1-cal-icon",
 													"type": "_icon",
-													"props": { "name": "Calendar", "size": 16, "class": "" }
+													"props": {
+														"name": "Calendar",
+														"size": 16,
+														"class": ""
+													}
 												},
 												{
 													"id": "book-1-year-text",
@@ -829,7 +921,9 @@
 								{
 									"id": "book-1-content",
 									"type": "_card-content",
-									"props": { "class": "flex-1 flex flex-col pt-0" },
+									"props": {
+										"class": "flex-1 flex flex-col pt-0"
+									},
 									"children": [
 										{
 											"id": "book-1-desc",
@@ -852,7 +946,12 @@
 										{
 											"id": "book-1-topics",
 											"type": "_flex",
-											"props": { "direction": "row", "wrap": true, "gap": "gap-2", "class": "" },
+											"props": {
+												"direction": "row",
+												"wrap": true,
+												"gap": "gap-2",
+												"class": ""
+											},
 											"children": [
 												{
 													"id": "book-1-t1",
@@ -896,11 +995,12 @@
 								}
 							]
 						},
-
 						{
 							"id": "book-2",
 							"type": "_card",
-							"props": { "class": "h-full flex flex-col overflow-hidden pt-0" },
+							"props": {
+								"class": "h-full flex flex-col overflow-hidden pt-0"
+							},
 							"children": [
 								{
 									"id": "book-2-cover",
@@ -935,7 +1035,9 @@
 								{
 									"id": "book-2-header",
 									"type": "_card-header",
-									"props": { "class": "pb-3" },
+									"props": {
+										"class": "pb-3"
+									},
 									"children": [
 										{
 											"id": "book-2-title-row",
@@ -980,12 +1082,18 @@
 												{
 													"id": "book-2-users-icon",
 													"type": "_icon",
-													"props": { "name": "Users", "size": 16 }
+													"props": {
+														"name": "Users",
+														"size": 16
+													}
 												},
 												{
 													"id": "book-2-author-text",
 													"type": "_text",
-													"props": { "content": "Thierry Gallouët, Raphaèle Herbin", "tag": "span" }
+													"props": {
+														"content": "Thierry Gallouët, Raphaèle Herbin",
+														"tag": "span"
+													}
 												}
 											]
 										},
@@ -1002,12 +1110,18 @@
 												{
 													"id": "book-2-cal-icon",
 													"type": "_icon",
-													"props": { "name": "Calendar", "size": 16 }
+													"props": {
+														"name": "Calendar",
+														"size": 16
+													}
 												},
 												{
 													"id": "book-2-year-text",
 													"type": "_text",
-													"props": { "content": "2018 — Master/Doctorat", "tag": "span" }
+													"props": {
+														"content": "2018 — Master/Doctorat",
+														"tag": "span"
+													}
 												}
 											]
 										}
@@ -1016,7 +1130,9 @@
 								{
 									"id": "book-2-content",
 									"type": "_card-content",
-									"props": { "class": "flex-1 flex flex-col pt-0" },
+									"props": {
+										"class": "flex-1 flex flex-col pt-0"
+									},
 									"children": [
 										{
 											"id": "book-2-desc",
@@ -1039,7 +1155,11 @@
 										{
 											"id": "book-2-topics",
 											"type": "_flex",
-											"props": { "direction": "row", "wrap": true, "gap": "gap-2" },
+											"props": {
+												"direction": "row",
+												"wrap": true,
+												"gap": "gap-2"
+											},
 											"children": [
 												{
 													"id": "book-2-t1",
@@ -1053,7 +1173,11 @@
 												{
 													"id": "book-2-t2",
 													"type": "_badge",
-													"props": { "text": "EDP", "variant": "outline", "class": "text-xs" }
+													"props": {
+														"text": "EDP",
+														"variant": "outline",
+														"class": "text-xs"
+													}
 												},
 												{
 													"id": "book-2-t3",
@@ -1079,11 +1203,12 @@
 								}
 							]
 						},
-
 						{
 							"id": "book-3",
 							"type": "_card",
-							"props": { "class": "h-full flex flex-col overflow-hidden pt-0" },
+							"props": {
+								"class": "h-full flex flex-col overflow-hidden pt-0"
+							},
 							"children": [
 								{
 									"id": "book-3-cover",
@@ -1118,7 +1243,9 @@
 								{
 									"id": "book-3-header",
 									"type": "_card-header",
-									"props": { "class": "pb-3" },
+									"props": {
+										"class": "pb-3"
+									},
 									"children": [
 										{
 											"id": "book-3-title-row",
@@ -1163,7 +1290,10 @@
 												{
 													"id": "book-3-users-icon",
 													"type": "_icon",
-													"props": { "name": "Users", "size": 16 }
+													"props": {
+														"name": "Users",
+														"size": 16
+													}
 												},
 												{
 													"id": "book-3-author-text",
@@ -1188,12 +1318,18 @@
 												{
 													"id": "book-3-cal-icon",
 													"type": "_icon",
-													"props": { "name": "Calendar", "size": 16 }
+													"props": {
+														"name": "Calendar",
+														"size": 16
+													}
 												},
 												{
 													"id": "book-3-year-text",
 													"type": "_text",
-													"props": { "content": "2020 — Master/Doctorat", "tag": "span" }
+													"props": {
+														"content": "2020 — Master/Doctorat",
+														"tag": "span"
+													}
 												}
 											]
 										}
@@ -1202,7 +1338,9 @@
 								{
 									"id": "book-3-content",
 									"type": "_card-content",
-									"props": { "class": "flex-1 flex flex-col pt-0" },
+									"props": {
+										"class": "flex-1 flex flex-col pt-0"
+									},
 									"children": [
 										{
 											"id": "book-3-desc",
@@ -1225,7 +1363,11 @@
 										{
 											"id": "book-3-topics",
 											"type": "_flex",
-											"props": { "direction": "row", "wrap": true, "gap": "gap-2" },
+											"props": {
+												"direction": "row",
+												"wrap": true,
+												"gap": "gap-2"
+											},
 											"children": [
 												{
 													"id": "book-3-t1",
@@ -1273,7 +1415,6 @@
 				}
 			]
 		},
-
 		{
 			"id": "sec-research",
 			"type": "_section",
@@ -1297,27 +1438,42 @@
 				{
 					"id": "research-tabs",
 					"type": "_tabs",
-					"props": { "defaultTab": "articles", "class": "w-full" },
+					"props": {
+						"defaultTab": "articles",
+						"class": "w-full"
+					},
 					"children": [
 						{
 							"id": "tab-articles",
 							"type": "_tab-item",
-							"props": { "label": "Articles célèbres", "value": "articles", "class": "" },
+							"props": {
+								"label": "Articles célèbres",
+								"value": "articles",
+								"class": ""
+							},
 							"children": [
 								{
 									"id": "articles-grid",
 									"type": "_grid",
-									"props": { "columns": "2", "gap": "gap-6", "class": "" },
+									"props": {
+										"columns": "2",
+										"gap": "gap-6",
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "article-1",
 											"type": "_card",
-											"props": { "class": "h-full" },
+											"props": {
+												"class": "h-full"
+											},
 											"children": [
 												{
 													"id": "article-1-header",
 													"type": "_card-header",
-													"props": { "class": "" },
+													"props": {
+														"class": ""
+													},
 													"children": [
 														{
 															"id": "article-1-title",
@@ -1351,7 +1507,9 @@
 												{
 													"id": "article-1-content",
 													"type": "_card-content",
-													"props": { "class": "" },
+													"props": {
+														"class": ""
+													},
 													"children": [
 														{
 															"id": "article-1-link",
@@ -1374,12 +1532,16 @@
 										{
 											"id": "article-2",
 											"type": "_card",
-											"props": { "class": "h-full" },
+											"props": {
+												"class": "h-full"
+											},
 											"children": [
 												{
 													"id": "article-2-header",
 													"type": "_card-header",
-													"props": { "class": "" },
+													"props": {
+														"class": ""
+													},
 													"children": [
 														{
 															"id": "article-2-title",
@@ -1413,7 +1575,9 @@
 												{
 													"id": "article-2-content",
 													"type": "_card-content",
-													"props": { "class": "" },
+													"props": {
+														"class": ""
+													},
 													"children": [
 														{
 															"id": "article-2-link",
@@ -1436,12 +1600,16 @@
 										{
 											"id": "article-3",
 											"type": "_card",
-											"props": { "class": "h-full" },
+											"props": {
+												"class": "h-full"
+											},
 											"children": [
 												{
 													"id": "article-3-header",
 													"type": "_card-header",
-													"props": { "class": "" },
+													"props": {
+														"class": ""
+													},
 													"children": [
 														{
 															"id": "article-3-title",
@@ -1475,7 +1643,9 @@
 												{
 													"id": "article-3-content",
 													"type": "_card-content",
-													"props": { "class": "" },
+													"props": {
+														"class": ""
+													},
 													"children": [
 														{
 															"id": "article-3-link",
@@ -1499,7 +1669,6 @@
 								}
 							]
 						},
-
 						{
 							"id": "tab-publications",
 							"type": "_tab-item",
@@ -1512,17 +1681,25 @@
 								{
 									"id": "pubs-list",
 									"type": "_flex",
-									"props": { "direction": "column", "gap": "gap-4", "class": "" },
+									"props": {
+										"direction": "column",
+										"gap": "gap-4",
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "pub-1",
 											"type": "_card",
-											"props": { "class": "" },
+											"props": {
+												"class": ""
+											},
 											"children": [
 												{
 													"id": "pub-1-content",
 													"type": "_card-content",
-													"props": { "class": "p-6" },
+													"props": {
+														"class": "p-6"
+													},
 													"children": [
 														{
 															"id": "pub-1-title",
@@ -1592,12 +1769,16 @@
 										{
 											"id": "pub-2",
 											"type": "_card",
-											"props": { "class": "" },
+											"props": {
+												"class": ""
+											},
 											"children": [
 												{
 													"id": "pub-2-content",
 													"type": "_card-content",
-													"props": { "class": "p-6" },
+													"props": {
+														"class": "p-6"
+													},
 													"children": [
 														{
 															"id": "pub-2-title",
@@ -1667,12 +1848,16 @@
 										{
 											"id": "pub-3",
 											"type": "_card",
-											"props": { "class": "" },
+											"props": {
+												"class": ""
+											},
 											"children": [
 												{
 													"id": "pub-3-content",
 													"type": "_card-content",
-													"props": { "class": "p-6" },
+													"props": {
+														"class": "p-6"
+													},
 													"children": [
 														{
 															"id": "pub-3-title",
@@ -1742,12 +1927,16 @@
 										{
 											"id": "pub-4",
 											"type": "_card",
-											"props": { "class": "" },
+											"props": {
+												"class": ""
+											},
 											"children": [
 												{
 													"id": "pub-4-content",
 													"type": "_card-content",
-													"props": { "class": "p-6" },
+													"props": {
+														"class": "p-6"
+													},
 													"children": [
 														{
 															"id": "pub-4-title",
@@ -1817,12 +2006,16 @@
 										{
 											"id": "pub-5",
 											"type": "_card",
-											"props": { "class": "" },
+											"props": {
+												"class": ""
+											},
 											"children": [
 												{
 													"id": "pub-5-content",
 													"type": "_card-content",
-													"props": { "class": "p-6" },
+													"props": {
+														"class": "p-6"
+													},
 													"children": [
 														{
 															"id": "pub-5-title",
@@ -1893,11 +2086,14 @@
 								}
 							]
 						},
-
 						{
 							"id": "tab-recent",
 							"type": "_tab-item",
-							"props": { "label": "Publications récentes", "value": "recent", "class": "" },
+							"props": {
+								"label": "Publications récentes",
+								"value": "recent",
+								"class": ""
+							},
 							"children": [
 								{
 									"id": "recent-placeholder",
@@ -1926,7 +2122,6 @@
 				}
 			]
 		},
-
 		{
 			"id": "sec-contact",
 			"type": "_section",
@@ -1959,17 +2154,25 @@
 				{
 					"id": "contact-grid",
 					"type": "_grid",
-					"props": { "columns": "2", "gap": "gap-8", "class": "" },
+					"props": {
+						"columns": "2",
+						"gap": "gap-8",
+						"class": ""
+					},
 					"children": [
 						{
 							"id": "contact-info-card",
 							"type": "_card",
-							"props": { "class": "" },
+							"props": {
+								"class": ""
+							},
 							"children": [
 								{
 									"id": "contact-info-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "contact-info-title",
@@ -1985,7 +2188,9 @@
 								{
 									"id": "contact-info-content",
 									"type": "_card-content",
-									"props": { "class": "space-y-4" },
+									"props": {
+										"class": "space-y-4"
+									},
 									"children": [
 										{
 											"id": "contact-email",
@@ -2000,12 +2205,20 @@
 												{
 													"id": "contact-email-icon",
 													"type": "_icon",
-													"props": { "name": "Mail", "size": 20, "class": "text-muted-foreground" }
+													"props": {
+														"name": "Mail",
+														"size": 20,
+														"class": "text-muted-foreground"
+													}
 												},
 												{
 													"id": "contact-email-info",
 													"type": "_flex",
-													"props": { "direction": "column", "class": "" },
+													"props": {
+														"direction": "column",
+														"class": "",
+														"align": "start"
+													},
 													"children": [
 														{
 															"id": "contact-email-label",
@@ -2042,12 +2255,20 @@
 												{
 													"id": "contact-phone-icon",
 													"type": "_icon",
-													"props": { "name": "Phone", "size": 20, "class": "text-muted-foreground" }
+													"props": {
+														"name": "Phone",
+														"size": 20,
+														"class": "text-muted-foreground"
+													}
 												},
 												{
 													"id": "contact-phone-info",
 													"type": "_flex",
-													"props": { "direction": "column", "class": "" },
+													"props": {
+														"direction": "column",
+														"class": "",
+														"align": "start"
+													},
 													"children": [
 														{
 															"id": "contact-phone-label",
@@ -2061,7 +2282,11 @@
 														{
 															"id": "contact-phone-value",
 															"type": "_text",
-															"props": { "content": "+33 4 91 11 35 00", "tag": "p", "class": "" }
+															"props": {
+																"content": "+33 4 91 11 35 00",
+																"tag": "p",
+																"class": ""
+															}
 														}
 													]
 												}
@@ -2089,7 +2314,11 @@
 												{
 													"id": "contact-office-info",
 													"type": "_flex",
-													"props": { "direction": "column", "class": "" },
+													"props": {
+														"direction": "column",
+														"class": "",
+														"align": "start"
+													},
 													"children": [
 														{
 															"id": "contact-office-label",
@@ -2135,7 +2364,11 @@
 												{
 													"id": "contact-address-info",
 													"type": "_flex",
-													"props": { "direction": "column", "class": "" },
+													"props": {
+														"direction": "column",
+														"class": "",
+														"align": "start"
+													},
 													"children": [
 														{
 															"id": "contact-address-label",
@@ -2196,16 +2429,19 @@
 								}
 							]
 						},
-
 						{
 							"id": "contact-links-card",
 							"type": "_card",
-							"props": { "class": "" },
+							"props": {
+								"class": ""
+							},
 							"children": [
 								{
 									"id": "contact-links-header",
 									"type": "_card-header",
-									"props": { "class": "" },
+									"props": {
+										"class": ""
+									},
 									"children": [
 										{
 											"id": "contact-links-title",
@@ -2221,14 +2457,19 @@
 								{
 									"id": "contact-links-content",
 									"type": "_card-content",
-									"props": { "class": "space-y-3" },
+									"props": {
+										"class": "space-y-3"
+									},
 									"children": [
 										{
 											"id": "link-i2m",
 											"type": "_link",
 											"props": {
 												"text": "Institut de Mathématiques de Marseille",
-												"href": { "href": "https://www.i2m.univ-amu.fr/", "target": "_blank" },
+												"href": {
+													"href": "https://www.i2m.univ-amu.fr/",
+													"target": "_blank"
+												},
 												"variant": "button",
 												"icon": "ExternalLink",
 												"class": "w-full justify-between"
@@ -2239,7 +2480,10 @@
 											"type": "_link",
 											"props": {
 												"text": "Université d'Aix-Marseille",
-												"href": { "href": "https://www.univ-amu.fr/", "target": "_blank" },
+												"href": {
+													"href": "https://www.univ-amu.fr/",
+													"target": "_blank"
+												},
 												"variant": "button",
 												"icon": "ExternalLink",
 												"class": "w-full justify-between"
@@ -2250,7 +2494,10 @@
 											"type": "_link",
 											"props": {
 												"text": "HAL - Archives ouvertes",
-												"href": { "href": "https://hal.archives-ouvertes.fr/", "target": "_blank" },
+												"href": {
+													"href": "https://hal.archives-ouvertes.fr/",
+													"target": "_blank"
+												},
 												"variant": "button",
 												"icon": "ExternalLink",
 												"class": "w-full justify-between"

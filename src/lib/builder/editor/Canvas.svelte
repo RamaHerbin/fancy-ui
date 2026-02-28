@@ -150,7 +150,7 @@
 		<div class="text-muted-foreground mb-2 text-center text-xs">{viewportLabel}</div>
 	{/if}
 	<div
-		class="bg-background min-h-full shadow-sm transition-all duration-200 {viewportWidth
+		class="bg-background relative min-h-full shadow-sm transition-all duration-200 {viewportWidth
 			? 'mx-auto'
 			: ''}"
 		style={viewportStyle}

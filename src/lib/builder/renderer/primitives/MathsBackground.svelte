@@ -84,11 +84,11 @@
 	});
 </script>
 
-<div class="pointer-events-none fixed inset-0 z-0 overflow-hidden {className}">
+<div class="pointer-events-none absolute inset-0 z-0 overflow-hidden {className}">
 	<!-- Floating formulas -->
 	{#each formulaEls as el}
 		<div
-			class="absolute select-none whitespace-nowrap font-mono text-xs text-foreground/20"
+			class="text-foreground/20 absolute font-mono text-xs whitespace-nowrap select-none"
 			style={el.style}
 		>
 			{el.text}
@@ -97,10 +97,7 @@
 
 	<!-- Scattered symbols -->
 	{#each symbolEls as el}
-		<div
-			class="absolute select-none font-serif text-foreground/15"
-			style={el.style}
-		>
+		<div class="text-foreground/15 absolute font-serif select-none" style={el.style}>
 			{el.text}
 		</div>
 	{/each}
@@ -109,18 +106,8 @@
 	<div class="absolute inset-0 opacity-[0.05]">
 		<svg width="100%" height="100%" class="absolute inset-0">
 			<defs>
-				<pattern
-					id="mathGrid"
-					width="80"
-					height="80"
-					patternUnits="userSpaceOnUse"
-				>
-					<path
-						d="M 80 0 L 0 0 0 80"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="0.5"
-					/>
+				<pattern id="mathGrid" width="80" height="80" patternUnits="userSpaceOnUse">
+					<path d="M 80 0 L 0 0 0 80" fill="none" stroke="currentColor" stroke-width="0.5" />
 					<circle cx="40" cy="40" r="1" fill="currentColor" opacity="0.3" />
 				</pattern>
 			</defs>
@@ -192,17 +179,17 @@
 	</div>
 
 	<!-- Static symbols -->
-	<div class="absolute top-20 left-20 select-none font-serif text-4xl text-foreground/10">∫</div>
-	<div class="absolute top-40 right-32 select-none font-mono text-3xl text-foreground/[0.08]">
+	<div class="text-foreground/10 absolute top-20 left-20 font-serif text-4xl select-none">∫</div>
+	<div class="text-foreground/[0.08] absolute top-40 right-32 font-mono text-3xl select-none">
 		∇²u = 0
 	</div>
-	<div class="absolute bottom-32 left-40 select-none font-serif text-2xl text-foreground/[0.12]">
+	<div class="text-foreground/[0.12] absolute bottom-32 left-40 font-serif text-2xl select-none">
 		π
 	</div>
-	<div class="absolute top-60 left-1/2 select-none font-mono text-lg text-foreground/[0.08]">
+	<div class="text-foreground/[0.08] absolute top-60 left-1/2 font-mono text-lg select-none">
 		∂u/∂t
 	</div>
-	<div class="absolute bottom-40 right-20 select-none font-serif text-xl text-foreground/10">∞</div>
+	<div class="text-foreground/10 absolute right-20 bottom-40 font-serif text-xl select-none">∞</div>
 </div>
 
 <style>
