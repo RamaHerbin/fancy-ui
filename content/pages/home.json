@@ -1,0 +1,2515 @@
+{
+	"version": 1,
+	"meta": {
+		"title": "Thierry Gallouet — Professeur de Mathématiques",
+		"slug": "home",
+		"description": "Site académique de Thierry Gallouet, Professeur de Mathématiques à l'Université d'Aix-Marseille",
+		"status": "published",
+		"createdAt": "2024-08-01T00:00:00Z",
+		"updatedAt": "2024-08-01T00:00:00Z"
+	},
+	"body": [
+		{
+			"id": "maths-bg",
+			"type": "_maths-background",
+			"props": {
+				"density": 20,
+				"class": ""
+			}
+		},
+		{
+			"id": "nav",
+			"type": "_nav",
+			"props": {
+				"variant": "sticky",
+				"class": ""
+			}
+		},
+		{
+			"id": "sec-courses",
+			"type": "_section",
+			"props": {
+				"anchorId": "courses",
+				"padding": "py-16 px-4",
+				"maxWidth": "max-w-6xl",
+				"background": "",
+				"class": ""
+			},
+			"children": [
+				{
+					"id": "courses-title",
+					"type": "_text",
+					"props": {
+						"content": "Enseignements",
+						"tag": "h2",
+						"class": "text-3xl font-semibold text-center mb-12"
+					}
+				},
+				{
+					"id": "courses-grid",
+					"type": "_grid",
+					"props": {
+						"columns": "2",
+						"gap": "gap-6",
+						"class": ""
+					},
+					"children": [
+						{
+							"id": "course-1",
+							"type": "_card",
+							"props": {
+								"class": "h-full"
+							},
+							"children": [
+								{
+									"id": "course-1-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-1-header-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"justify": "between",
+												"align": "start",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "course-1-title",
+													"type": "_text",
+													"props": {
+														"content": "Analyse",
+														"tag": "h3",
+														"class": "text-lg font-semibold"
+													}
+												},
+												{
+													"id": "course-1-badge",
+													"type": "_badge",
+													"props": {
+														"text": "Licence",
+														"variant": "secondary",
+														"class": ""
+													}
+												}
+											]
+										},
+										{
+											"id": "course-1-code",
+											"type": "_text",
+											"props": {
+												"content": "L1 — Première année, deuxième semestre",
+												"tag": "p",
+												"class": "text-sm text-muted-foreground"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-1-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1"
+									},
+									"children": [
+										{
+											"id": "course-1-desc",
+											"type": "_text",
+											"props": {
+												"content": "limites, continuité, dérivées, intégration",
+												"tag": "p",
+												"class": "text-sm"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-1-footer",
+									"type": "_card-footer",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-1-link",
+											"type": "_link",
+											"props": {
+												"text": "Télécharger PDF",
+												"href": {
+													"href": "https://hal.science/hal-04421072v1/document",
+													"target": "_blank"
+												},
+												"variant": "ghost",
+												"icon": "Download",
+												"class": ""
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "course-2",
+							"type": "_card",
+							"props": {
+								"class": "h-full"
+							},
+							"children": [
+								{
+									"id": "course-2-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-2-header-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"justify": "between",
+												"align": "start",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "course-2-title",
+													"type": "_text",
+													"props": {
+														"content": "EDP, cours manuscrit",
+														"tag": "h3",
+														"class": "text-lg font-semibold"
+													}
+												},
+												{
+													"id": "course-2-badge",
+													"type": "_badge",
+													"props": {
+														"text": "Licence",
+														"variant": "secondary",
+														"class": ""
+													}
+												}
+											]
+										},
+										{
+											"id": "course-2-code",
+											"type": "_text",
+											"props": {
+												"content": "L3 — Troisième année",
+												"tag": "p",
+												"class": "text-sm text-muted-foreground"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-2-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1"
+									},
+									"children": [
+										{
+											"id": "course-2-desc",
+											"type": "_text",
+											"props": {
+												"content": "Cours de mathématiques pour étudiants de Licence troisième année",
+												"tag": "p",
+												"class": "text-sm"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-2-footer",
+									"type": "_card-footer",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-2-link",
+											"type": "_link",
+											"props": {
+												"text": "Télécharger PDF",
+												"href": {
+													"href": "http://www.i2m.univ-amu.fr/~gallouet/cours.d/edp-ens.pdf",
+													"target": "_blank"
+												},
+												"variant": "ghost",
+												"icon": "Download",
+												"class": ""
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "course-3",
+							"type": "_card",
+							"props": {
+								"class": "h-full"
+							},
+							"children": [
+								{
+									"id": "course-3-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-3-header-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"justify": "between",
+												"align": "start",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "course-3-title",
+													"type": "_text",
+													"props": {
+														"content": "Calcul différentiel et optimisation",
+														"tag": "h3",
+														"class": "text-lg font-semibold"
+													}
+												},
+												{
+													"id": "course-3-badge",
+													"type": "_badge",
+													"props": {
+														"text": "Licence",
+														"variant": "secondary",
+														"class": ""
+													}
+												}
+											]
+										},
+										{
+											"id": "course-3-code",
+											"type": "_text",
+											"props": {
+												"content": "L3 — Troisième année de Licence",
+												"tag": "p",
+												"class": "text-sm text-muted-foreground"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-3-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1"
+									},
+									"children": [
+										{
+											"id": "course-3-desc",
+											"type": "_text",
+											"props": {
+												"content": "cours manuscrit université de Chambéry 92-93",
+												"tag": "p",
+												"class": "text-sm"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-3-footer",
+									"type": "_card-footer",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-3-link",
+											"type": "_link",
+											"props": {
+												"text": "Télécharger PDF",
+												"href": {
+													"href": "http://www.i2m.univ-amu.fr/~gallouet/licence.d/CDO.pdf",
+													"target": "_blank"
+												},
+												"variant": "ghost",
+												"icon": "Download",
+												"class": ""
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "course-4",
+							"type": "_card",
+							"props": {
+								"class": "h-full"
+							},
+							"children": [
+								{
+									"id": "course-4-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-4-header-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"justify": "between",
+												"align": "start",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "course-4-title",
+													"type": "_text",
+													"props": {
+														"content": "Mesure, intégration et probabilités",
+														"tag": "h3",
+														"class": "text-lg font-semibold"
+													}
+												},
+												{
+													"id": "course-4-badge",
+													"type": "_badge",
+													"props": {
+														"text": "Licence et Master",
+														"variant": "default",
+														"class": ""
+													}
+												}
+											]
+										},
+										{
+											"id": "course-4-code",
+											"type": "_text",
+											"props": {
+												"content": "L3 & M1 — Troisième année de Licence et première année de Master",
+												"tag": "p",
+												"class": "text-sm text-muted-foreground"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-4-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1"
+									},
+									"children": [
+										{
+											"id": "course-4-desc",
+											"type": "_text",
+											"props": {
+												"content": "MESURE, INTEGRATION, PROBABILITÉS Cours avec plus de 300 exercices corrigés",
+												"tag": "p",
+												"class": "text-sm"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-4-footer",
+									"type": "_card-footer",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-4-link",
+											"type": "_link",
+											"props": {
+												"text": "Télécharger PDF",
+												"href": {
+													"href": "https://cel.hal.science/cel-00637007",
+													"target": "_blank"
+												},
+												"variant": "ghost",
+												"icon": "Download",
+												"class": ""
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "course-5",
+							"type": "_card",
+							"props": {
+								"class": "h-full"
+							},
+							"children": [
+								{
+									"id": "course-5-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-5-header-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"justify": "between",
+												"align": "start",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "course-5-title",
+													"type": "_text",
+													"props": {
+														"content": "Analyse fonctionnelle",
+														"tag": "h3",
+														"class": "text-lg font-semibold"
+													}
+												},
+												{
+													"id": "course-5-badge",
+													"type": "_badge",
+													"props": {
+														"text": "Master",
+														"variant": "default",
+														"class": ""
+													}
+												}
+											]
+										},
+										{
+											"id": "course-5-code",
+											"type": "_text",
+											"props": {
+												"content": "M1 — Première année de Master",
+												"tag": "p",
+												"class": "text-sm text-muted-foreground"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-5-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1"
+									},
+									"children": [
+										{
+											"id": "course-5-desc",
+											"type": "_text",
+											"props": {
+												"content": "Master de mathématiques, 1ère année, université d'Aix-Marseille, Notes de cours et travaux dirigés",
+												"tag": "p",
+												"class": "text-sm"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-5-footer",
+									"type": "_card-footer",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-5-link",
+											"type": "_link",
+											"props": {
+												"text": "Télécharger PDF",
+												"href": {
+													"href": "https://cel.hal.science/hal-04026364v3",
+													"target": "_blank"
+												},
+												"variant": "ghost",
+												"icon": "Download",
+												"class": ""
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "course-6",
+							"type": "_card",
+							"props": {
+								"class": "h-full"
+							},
+							"children": [
+								{
+									"id": "course-6-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-6-header-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"justify": "between",
+												"align": "start",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "course-6-title",
+													"type": "_text",
+													"props": {
+														"content": "EDP",
+														"tag": "h3",
+														"class": "text-lg font-semibold"
+													}
+												},
+												{
+													"id": "course-6-badge",
+													"type": "_badge",
+													"props": {
+														"text": "Master",
+														"variant": "default",
+														"class": ""
+													}
+												}
+											]
+										},
+										{
+											"id": "course-6-code",
+											"type": "_text",
+											"props": {
+												"content": "M2 — Deuxième année de Master",
+												"tag": "p",
+												"class": "text-sm text-muted-foreground"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-6-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1"
+									},
+									"children": [
+										{
+											"id": "course-6-desc",
+											"type": "_text",
+											"props": {
+												"content": "Master de mathématiques, deuxième année, université d'Aix-Marseille",
+												"tag": "p",
+												"class": "text-sm"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-6-footer",
+									"type": "_card-footer",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-6-link",
+											"type": "_link",
+											"props": {
+												"text": "Télécharger PDF",
+												"href": {
+													"href": "https://hal.science/cel-01196782v9",
+													"target": "_blank"
+												},
+												"variant": "ghost",
+												"icon": "Download",
+												"class": ""
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "course-7",
+							"type": "_card",
+							"props": {
+								"class": "h-full"
+							},
+							"children": [
+								{
+									"id": "course-7-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-7-header-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"justify": "between",
+												"align": "start",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "course-7-title",
+													"type": "_text",
+													"props": {
+														"content": "Récupération assistée des hydrocarbures",
+														"tag": "h3",
+														"class": "text-lg font-semibold"
+													}
+												},
+												{
+													"id": "course-7-badge",
+													"type": "_badge",
+													"props": {
+														"text": "Master",
+														"variant": "default",
+														"class": ""
+													}
+												}
+											]
+										},
+										{
+											"id": "course-7-code",
+											"type": "_text",
+											"props": {
+												"content": "DESS — Deuxième année de Master",
+												"tag": "p",
+												"class": "text-sm text-muted-foreground"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-7-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1"
+									},
+									"children": [
+										{
+											"id": "course-7-desc",
+											"type": "_text",
+											"props": {
+												"content": "Master de mathématiques, 1ere année, université d'Aix-Marseille",
+												"tag": "p",
+												"class": "text-sm"
+											}
+										}
+									]
+								},
+								{
+									"id": "course-7-footer",
+									"type": "_card-footer",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "course-7-link",
+											"type": "_link",
+											"props": {
+												"text": "Télécharger PDF",
+												"href": {
+													"href": "http://www.i2m.univ-amu.fr/~gallouet/dess.d/cours.d/ifp/cours.pdf",
+													"target": "_blank"
+												},
+												"variant": "ghost",
+												"icon": "Download",
+												"class": ""
+											}
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "sec-books",
+			"type": "_section",
+			"props": {
+				"anchorId": "books",
+				"padding": "py-16 px-4",
+				"maxWidth": "max-w-6xl",
+				"background": "",
+				"class": ""
+			},
+			"children": [
+				{
+					"id": "books-title",
+					"type": "_text",
+					"props": {
+						"content": "Livres",
+						"tag": "h2",
+						"class": "text-3xl font-semibold text-center mb-4"
+					}
+				},
+				{
+					"id": "books-subtitle",
+					"type": "_text",
+					"props": {
+						"content": "Publications d'ouvrages de référence en mathématiques, couvrant la théorie de la mesure, les équations aux dérivées partielles et l'analyse numérique.",
+						"tag": "p",
+						"class": "text-muted-foreground max-w-2xl mx-auto text-center mb-12"
+					}
+				},
+				{
+					"id": "books-grid",
+					"type": "_grid",
+					"props": {
+						"columns": "3",
+						"gap": "gap-6",
+						"class": ""
+					},
+					"children": [
+						{
+							"id": "book-1",
+							"type": "_card",
+							"props": {
+								"class": "h-full flex flex-col overflow-hidden pt-0"
+							},
+							"children": [
+								{
+									"id": "book-1-cover",
+									"type": "_flex",
+									"props": {
+										"direction": "column",
+										"align": "center",
+										"justify": "center",
+										"class": "relative h-48 bg-muted overflow-hidden"
+									},
+									"children": [
+										{
+											"id": "book-1-img",
+											"type": "_image",
+											"props": {
+												"src": "/mesure-integrations.jpeg",
+												"alt": "Couverture de Mesure, intégration, probabilités",
+												"class": "w-full h-full object-cover"
+											}
+										},
+										{
+											"id": "book-1-type-badge",
+											"type": "_badge",
+											"props": {
+												"text": "Livre",
+												"variant": "default",
+												"class": "absolute top-2 right-2"
+											}
+										}
+									]
+								},
+								{
+									"id": "book-1-header",
+									"type": "_card-header",
+									"props": {
+										"class": "pb-3"
+									},
+									"children": [
+										{
+											"id": "book-1-title-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "start",
+												"gap": "gap-2",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "book-1-icon",
+													"type": "_icon",
+													"props": {
+														"name": "BookOpen",
+														"size": 24,
+														"class": "text-primary flex-shrink-0 mt-1"
+													}
+												},
+												{
+													"id": "book-1-title",
+													"type": "_text",
+													"props": {
+														"content": "Mesure, intégration, probabilités",
+														"tag": "h3",
+														"class": "text-lg font-semibold leading-tight"
+													}
+												}
+											]
+										},
+										{
+											"id": "book-1-authors",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-2",
+												"class": "text-sm text-muted-foreground"
+											},
+											"children": [
+												{
+													"id": "book-1-users-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Users",
+														"size": 16,
+														"class": ""
+													}
+												},
+												{
+													"id": "book-1-author-text",
+													"type": "_text",
+													"props": {
+														"content": "Thierry Gallouët, Raphaèle Herbin",
+														"tag": "span",
+														"class": ""
+													}
+												}
+											]
+										},
+										{
+											"id": "book-1-year",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-2",
+												"class": "text-sm text-muted-foreground"
+											},
+											"children": [
+												{
+													"id": "book-1-cal-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Calendar",
+														"size": 16,
+														"class": ""
+													}
+												},
+												{
+													"id": "book-1-year-text",
+													"type": "_text",
+													"props": {
+														"content": "2013 — Licence/Master",
+														"tag": "span",
+														"class": ""
+													}
+												}
+											]
+										}
+									]
+								},
+								{
+									"id": "book-1-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1 flex flex-col pt-0"
+									},
+									"children": [
+										{
+											"id": "book-1-desc",
+											"type": "_text",
+											"props": {
+												"content": "Un ouvrage complet couvrant la théorie de la mesure, l'intégration de Lebesgue et les bases des probabilités, enrichi de plus de 300 exercices corrigés pour un apprentissage progressif.",
+												"tag": "p",
+												"class": "text-sm mb-4 flex-1"
+											}
+										},
+										{
+											"id": "book-1-topics-title",
+											"type": "_text",
+											"props": {
+												"content": "Thèmes abordés:",
+												"tag": "h4",
+												"class": "font-medium text-sm mb-2"
+											}
+										},
+										{
+											"id": "book-1-topics",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"wrap": true,
+												"gap": "gap-2",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "book-1-t1",
+													"type": "_badge",
+													"props": {
+														"text": "Théorie de la mesure",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-1-t2",
+													"type": "_badge",
+													"props": {
+														"text": "Intégration de Lebesgue",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-1-t3",
+													"type": "_badge",
+													"props": {
+														"text": "Probabilités",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-1-t4",
+													"type": "_badge",
+													"props": {
+														"text": "Exercices corrigés",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "book-2",
+							"type": "_card",
+							"props": {
+								"class": "h-full flex flex-col overflow-hidden pt-0"
+							},
+							"children": [
+								{
+									"id": "book-2-cover",
+									"type": "_flex",
+									"props": {
+										"direction": "column",
+										"align": "center",
+										"justify": "center",
+										"class": "relative h-48 bg-muted overflow-hidden"
+									},
+									"children": [
+										{
+											"id": "book-2-img",
+											"type": "_image",
+											"props": {
+												"src": "/weak-solutions.jpeg",
+												"alt": "Couverture de Weak Solutions of PDE",
+												"class": "w-full h-full object-cover"
+											}
+										},
+										{
+											"id": "book-2-type-badge",
+											"type": "_badge",
+											"props": {
+												"text": "Recherche",
+												"variant": "default",
+												"class": "absolute top-2 right-2"
+											}
+										}
+									]
+								},
+								{
+									"id": "book-2-header",
+									"type": "_card-header",
+									"props": {
+										"class": "pb-3"
+									},
+									"children": [
+										{
+											"id": "book-2-title-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "start",
+												"gap": "gap-2",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "book-2-icon",
+													"type": "_icon",
+													"props": {
+														"name": "BookOpen",
+														"size": 24,
+														"class": "text-primary flex-shrink-0 mt-1"
+													}
+												},
+												{
+													"id": "book-2-title",
+													"type": "_text",
+													"props": {
+														"content": "Weak Solutions of Partial Differential Equations",
+														"tag": "h3",
+														"class": "text-lg font-semibold leading-tight"
+													}
+												}
+											]
+										},
+										{
+											"id": "book-2-authors",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-2",
+												"class": "text-sm text-muted-foreground"
+											},
+											"children": [
+												{
+													"id": "book-2-users-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Users",
+														"size": 16
+													}
+												},
+												{
+													"id": "book-2-author-text",
+													"type": "_text",
+													"props": {
+														"content": "Thierry Gallouët, Raphaèle Herbin",
+														"tag": "span"
+													}
+												}
+											]
+										},
+										{
+											"id": "book-2-year",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-2",
+												"class": "text-sm text-muted-foreground"
+											},
+											"children": [
+												{
+													"id": "book-2-cal-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Calendar",
+														"size": 16
+													}
+												},
+												{
+													"id": "book-2-year-text",
+													"type": "_text",
+													"props": {
+														"content": "2018 — Master/Doctorat",
+														"tag": "span"
+													}
+												}
+											]
+										}
+									]
+								},
+								{
+									"id": "book-2-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1 flex flex-col pt-0"
+									},
+									"children": [
+										{
+											"id": "book-2-desc",
+											"type": "_text",
+											"props": {
+												"content": "Ouvrage de recherche couvrant les solutions faibles des équations aux dérivées partielles, l'analyse fonctionnelle et les méthodes variationnelles.",
+												"tag": "p",
+												"class": "text-sm mb-4 flex-1"
+											}
+										},
+										{
+											"id": "book-2-topics-title",
+											"type": "_text",
+											"props": {
+												"content": "Thèmes abordés:",
+												"tag": "h4",
+												"class": "font-medium text-sm mb-2"
+											}
+										},
+										{
+											"id": "book-2-topics",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"wrap": true,
+												"gap": "gap-2"
+											},
+											"children": [
+												{
+													"id": "book-2-t1",
+													"type": "_badge",
+													"props": {
+														"text": "Solutions faibles",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-2-t2",
+													"type": "_badge",
+													"props": {
+														"text": "EDP",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-2-t3",
+													"type": "_badge",
+													"props": {
+														"text": "Analyse fonctionnelle",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-2-t4",
+													"type": "_badge",
+													"props": {
+														"text": "Méthodes variationnelles",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "book-3",
+							"type": "_card",
+							"props": {
+								"class": "h-full flex flex-col overflow-hidden pt-0"
+							},
+							"children": [
+								{
+									"id": "book-3-cover",
+									"type": "_flex",
+									"props": {
+										"direction": "column",
+										"align": "center",
+										"justify": "center",
+										"class": "relative h-48 bg-muted overflow-hidden"
+									},
+									"children": [
+										{
+											"id": "book-3-img",
+											"type": "_image",
+											"props": {
+												"src": "/gradient.jpeg",
+												"alt": "Couverture de The Gradient Discretisation Method",
+												"class": "w-full h-full object-cover"
+											}
+										},
+										{
+											"id": "book-3-type-badge",
+											"type": "_badge",
+											"props": {
+												"text": "Recherche",
+												"variant": "default",
+												"class": "absolute top-2 right-2"
+											}
+										}
+									]
+								},
+								{
+									"id": "book-3-header",
+									"type": "_card-header",
+									"props": {
+										"class": "pb-3"
+									},
+									"children": [
+										{
+											"id": "book-3-title-row",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "start",
+												"gap": "gap-2",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "book-3-icon",
+													"type": "_icon",
+													"props": {
+														"name": "BookOpen",
+														"size": 24,
+														"class": "text-primary flex-shrink-0 mt-1"
+													}
+												},
+												{
+													"id": "book-3-title",
+													"type": "_text",
+													"props": {
+														"content": "The Gradient Discretisation Method",
+														"tag": "h3",
+														"class": "text-lg font-semibold leading-tight"
+													}
+												}
+											]
+										},
+										{
+											"id": "book-3-authors",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-2",
+												"class": "text-sm text-muted-foreground"
+											},
+											"children": [
+												{
+													"id": "book-3-users-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Users",
+														"size": 16
+													}
+												},
+												{
+													"id": "book-3-author-text",
+													"type": "_text",
+													"props": {
+														"content": "Droniou, Eymard, Gallouët, Guichard, Herbin",
+														"tag": "span"
+													}
+												}
+											]
+										},
+										{
+											"id": "book-3-year",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-2",
+												"class": "text-sm text-muted-foreground"
+											},
+											"children": [
+												{
+													"id": "book-3-cal-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Calendar",
+														"size": 16
+													}
+												},
+												{
+													"id": "book-3-year-text",
+													"type": "_text",
+													"props": {
+														"content": "2020 — Master/Doctorat",
+														"tag": "span"
+													}
+												}
+											]
+										}
+									]
+								},
+								{
+									"id": "book-3-content",
+									"type": "_card-content",
+									"props": {
+										"class": "flex-1 flex flex-col pt-0"
+									},
+									"children": [
+										{
+											"id": "book-3-desc",
+											"type": "_text",
+											"props": {
+												"content": "Ouvrage de référence sur les méthodes de discrétisation du gradient pour l'analyse numérique et la convergence des schémas numériques.",
+												"tag": "p",
+												"class": "text-sm mb-4 flex-1"
+											}
+										},
+										{
+											"id": "book-3-topics-title",
+											"type": "_text",
+											"props": {
+												"content": "Thèmes abordés:",
+												"tag": "h4",
+												"class": "font-medium text-sm mb-2"
+											}
+										},
+										{
+											"id": "book-3-topics",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"wrap": true,
+												"gap": "gap-2"
+											},
+											"children": [
+												{
+													"id": "book-3-t1",
+													"type": "_badge",
+													"props": {
+														"text": "Méthodes numériques",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-3-t2",
+													"type": "_badge",
+													"props": {
+														"text": "Discrétisation",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-3-t3",
+													"type": "_badge",
+													"props": {
+														"text": "Analyse numérique",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												},
+												{
+													"id": "book-3-t4",
+													"type": "_badge",
+													"props": {
+														"text": "Convergence",
+														"variant": "outline",
+														"class": "text-xs"
+													}
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "sec-research",
+			"type": "_section",
+			"props": {
+				"anchorId": "research",
+				"padding": "py-16 px-4",
+				"maxWidth": "max-w-6xl",
+				"background": "bg-muted/30",
+				"class": ""
+			},
+			"children": [
+				{
+					"id": "research-title",
+					"type": "_text",
+					"props": {
+						"content": "Recherche",
+						"tag": "h2",
+						"class": "text-3xl font-semibold text-center mb-12"
+					}
+				},
+				{
+					"id": "research-tabs",
+					"type": "_tabs",
+					"props": {
+						"defaultTab": "articles",
+						"class": "w-full"
+					},
+					"children": [
+						{
+							"id": "tab-articles",
+							"type": "_tab-item",
+							"props": {
+								"label": "Articles célèbres",
+								"value": "articles",
+								"class": ""
+							},
+							"children": [
+								{
+									"id": "articles-grid",
+									"type": "_grid",
+									"props": {
+										"columns": "2",
+										"gap": "gap-6",
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "article-1",
+											"type": "_card",
+											"props": {
+												"class": "h-full"
+											},
+											"children": [
+												{
+													"id": "article-1-header",
+													"type": "_card-header",
+													"props": {
+														"class": ""
+													},
+													"children": [
+														{
+															"id": "article-1-title",
+															"type": "_text",
+															"props": {
+																"content": "Le problème de Dirichlet pour les équations elliptiques du second ordre à coefficients discontinus",
+																"tag": "h3",
+																"class": "text-lg font-semibold"
+															}
+														},
+														{
+															"id": "article-1-meta1",
+															"type": "_text",
+															"props": {
+																"content": "Annales de l'institut Fourier",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														},
+														{
+															"id": "article-1-meta2",
+															"type": "_text",
+															"props": {
+																"content": "Guido Stampacchia",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														}
+													]
+												},
+												{
+													"id": "article-1-content",
+													"type": "_card-content",
+													"props": {
+														"class": ""
+													},
+													"children": [
+														{
+															"id": "article-1-link",
+															"type": "_link",
+															"props": {
+																"text": "PDF",
+																"href": {
+																	"href": "https://www.i2m.univ-amu.fr/perso/thierry.gallouet/artbase.d/stampacchia.pdf",
+																	"target": "_blank"
+																},
+																"variant": "ghost",
+																"icon": "Download",
+																"class": "float-right"
+															}
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "article-2",
+											"type": "_card",
+											"props": {
+												"class": "h-full"
+											},
+											"children": [
+												{
+													"id": "article-2-header",
+													"type": "_card-header",
+													"props": {
+														"class": ""
+													},
+													"children": [
+														{
+															"id": "article-2-title",
+															"type": "_text",
+															"props": {
+																"content": "Sur le mouvement d'un liquide visqueux emplissant l'espace",
+																"tag": "h3",
+																"class": "text-lg font-semibold"
+															}
+														},
+														{
+															"id": "article-2-meta1",
+															"type": "_text",
+															"props": {
+																"content": "Collaboration internationale",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														},
+														{
+															"id": "article-2-meta2",
+															"type": "_text",
+															"props": {
+																"content": "Jean Leray",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														}
+													]
+												},
+												{
+													"id": "article-2-content",
+													"type": "_card-content",
+													"props": {
+														"class": ""
+													},
+													"children": [
+														{
+															"id": "article-2-link",
+															"type": "_link",
+															"props": {
+																"text": "PDF",
+																"href": {
+																	"href": "https://www.i2m.univ-amu.fr/perso/thierry.gallouet/artbase.d/leray-ns.pdf",
+																	"target": "_blank"
+																},
+																"variant": "ghost",
+																"icon": "Download",
+																"class": "float-right"
+															}
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "article-3",
+											"type": "_card",
+											"props": {
+												"class": "h-full"
+											},
+											"children": [
+												{
+													"id": "article-3-header",
+													"type": "_card-header",
+													"props": {
+														"class": ""
+													},
+													"children": [
+														{
+															"id": "article-3-title",
+															"type": "_text",
+															"props": {
+																"content": "Topologie et équations fonctionnelles",
+																"tag": "h3",
+																"class": "text-lg font-semibold"
+															}
+														},
+														{
+															"id": "article-3-meta1",
+															"type": "_text",
+															"props": {
+																"content": "Publication majeure",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														},
+														{
+															"id": "article-3-meta2",
+															"type": "_text",
+															"props": {
+																"content": "Jean Leray, Jules Schauder",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														}
+													]
+												},
+												{
+													"id": "article-3-content",
+													"type": "_card-content",
+													"props": {
+														"class": ""
+													},
+													"children": [
+														{
+															"id": "article-3-link",
+															"type": "_link",
+															"props": {
+																"text": "PDF",
+																"href": {
+																	"href": "https://www.i2m.univ-amu.fr/perso/thierry.gallouet/artbase.d/lerayschauder.pdf",
+																	"target": "_blank"
+																},
+																"variant": "ghost",
+																"icon": "Download",
+																"class": "float-right"
+															}
+														}
+													]
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "tab-publications",
+							"type": "_tab-item",
+							"props": {
+								"label": "Publications les + citées",
+								"value": "publicationsPlus",
+								"class": ""
+							},
+							"children": [
+								{
+									"id": "pubs-list",
+									"type": "_flex",
+									"props": {
+										"direction": "column",
+										"gap": "gap-4",
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "pub-1",
+											"type": "_card",
+											"props": {
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "pub-1-content",
+													"type": "_card-content",
+													"props": {
+														"class": "p-6"
+													},
+													"children": [
+														{
+															"id": "pub-1-title",
+															"type": "_text",
+															"props": {
+																"content": "Finite volume methods",
+																"tag": "h3",
+																"class": "font-semibold text-lg leading-tight mb-3"
+															}
+														},
+														{
+															"id": "pub-1-authors",
+															"type": "_text",
+															"props": {
+																"content": "Eymard, Robert; Gallouët, Thierry; Herbin, Raphaèle",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground mb-2"
+															}
+														},
+														{
+															"id": "pub-1-venue",
+															"type": "_text",
+															"props": {
+																"content": "Handb. Numer. Anal., VII North-Holland, Amsterdam, 2000, 713–1020",
+																"tag": "p",
+																"class": "text-sm mb-2"
+															}
+														},
+														{
+															"id": "pub-1-footer",
+															"type": "_flex",
+															"props": {
+																"direction": "row",
+																"justify": "between",
+																"align": "center",
+																"class": ""
+															},
+															"children": [
+																{
+																	"id": "pub-1-year",
+																	"type": "_text",
+																	"props": {
+																		"content": "2000",
+																		"tag": "p",
+																		"class": "text-sm font-medium"
+																	}
+																},
+																{
+																	"id": "pub-1-link",
+																	"type": "_link",
+																	"props": {
+																		"text": "Réf.",
+																		"href": {
+																			"href": "https://www.sciencedirect.com/science/chapter/handbook/abs/pii/S1570865900070058",
+																			"target": "_blank"
+																		},
+																		"variant": "link",
+																		"class": "text-xs"
+																	}
+																}
+															]
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "pub-2",
+											"type": "_card",
+											"props": {
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "pub-2-content",
+													"type": "_card-content",
+													"props": {
+														"class": "p-6"
+													},
+													"children": [
+														{
+															"id": "pub-2-title",
+															"type": "_text",
+															"props": {
+																"content": "An L1-theory of existence and uniqueness of solutions of nonlinear elliptic equations",
+																"tag": "h3",
+																"class": "font-semibold text-lg leading-tight mb-3"
+															}
+														},
+														{
+															"id": "pub-2-authors",
+															"type": "_text",
+															"props": {
+																"content": "Bénilan, Philippe; Boccardo, Lucio; Gallouët, Thierry; Gariepy, Ron; Pierre, Michel; Vázquez, Juan Luis",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground mb-2"
+															}
+														},
+														{
+															"id": "pub-2-venue",
+															"type": "_text",
+															"props": {
+																"content": "Ann. Scuola Norm. Sup. Pisa Cl. Sci. (4) 22 (1995), no. 2, 241–273",
+																"tag": "p",
+																"class": "text-sm mb-2"
+															}
+														},
+														{
+															"id": "pub-2-footer",
+															"type": "_flex",
+															"props": {
+																"direction": "row",
+																"justify": "between",
+																"align": "center",
+																"class": ""
+															},
+															"children": [
+																{
+																	"id": "pub-2-year",
+																	"type": "_text",
+																	"props": {
+																		"content": "1995",
+																		"tag": "p",
+																		"class": "text-sm font-medium"
+																	}
+																},
+																{
+																	"id": "pub-2-link",
+																	"type": "_link",
+																	"props": {
+																		"text": "Réf.",
+																		"href": {
+																			"href": "https://www.numdam.org/item/?id=ASNSP_1995_4_22_2_241_0",
+																			"target": "_blank"
+																		},
+																		"variant": "link",
+																		"class": "text-xs"
+																	}
+																}
+															]
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "pub-3",
+											"type": "_card",
+											"props": {
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "pub-3-content",
+													"type": "_card-content",
+													"props": {
+														"class": "p-6"
+													},
+													"children": [
+														{
+															"id": "pub-3-title",
+															"type": "_text",
+															"props": {
+																"content": "Nonlinear elliptic and parabolic equations involving measure data",
+																"tag": "h3",
+																"class": "font-semibold text-lg leading-tight mb-3"
+															}
+														},
+														{
+															"id": "pub-3-authors",
+															"type": "_text",
+															"props": {
+																"content": "Boccardo, Lucio; Gallouët, Thierry",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground mb-2"
+															}
+														},
+														{
+															"id": "pub-3-venue",
+															"type": "_text",
+															"props": {
+																"content": "J. Funct. Anal. 87 (1989), no. 1, 149–169",
+																"tag": "p",
+																"class": "text-sm mb-2"
+															}
+														},
+														{
+															"id": "pub-3-footer",
+															"type": "_flex",
+															"props": {
+																"direction": "row",
+																"justify": "between",
+																"align": "center",
+																"class": ""
+															},
+															"children": [
+																{
+																	"id": "pub-3-year",
+																	"type": "_text",
+																	"props": {
+																		"content": "1989",
+																		"tag": "p",
+																		"class": "text-sm font-medium"
+																	}
+																},
+																{
+																	"id": "pub-3-link",
+																	"type": "_link",
+																	"props": {
+																		"text": "Réf.",
+																		"href": {
+																			"href": "https://www.sciencedirect.com/science/article/pii/0022123689900050",
+																			"target": "_blank"
+																		},
+																		"variant": "link",
+																		"class": "text-xs"
+																	}
+																}
+															]
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "pub-4",
+											"type": "_card",
+											"props": {
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "pub-4-content",
+													"type": "_card-content",
+													"props": {
+														"class": "p-6"
+													},
+													"children": [
+														{
+															"id": "pub-4-title",
+															"type": "_text",
+															"props": {
+																"content": "Nonlinear elliptic equations with right-hand side measures",
+																"tag": "h3",
+																"class": "font-semibold text-lg leading-tight mb-3"
+															}
+														},
+														{
+															"id": "pub-4-authors",
+															"type": "_text",
+															"props": {
+																"content": "Boccardo, L.; Gallouët, T.",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground mb-2"
+															}
+														},
+														{
+															"id": "pub-4-venue",
+															"type": "_text",
+															"props": {
+																"content": "Comm. Partial Differential Equations 17 (1992), no. 3-4, 641–655",
+																"tag": "p",
+																"class": "text-sm mb-2"
+															}
+														},
+														{
+															"id": "pub-4-footer",
+															"type": "_flex",
+															"props": {
+																"direction": "row",
+																"justify": "between",
+																"align": "center",
+																"class": ""
+															},
+															"children": [
+																{
+																	"id": "pub-4-year",
+																	"type": "_text",
+																	"props": {
+																		"content": "1992",
+																		"tag": "p",
+																		"class": "text-sm font-medium"
+																	}
+																},
+																{
+																	"id": "pub-4-link",
+																	"type": "_link",
+																	"props": {
+																		"text": "Réf.",
+																		"href": {
+																			"href": "https://www.tandfonline.com/doi/abs/10.1080/03605309208820857",
+																			"target": "_blank"
+																		},
+																		"variant": "link",
+																		"class": "text-xs"
+																	}
+																}
+															]
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "pub-5",
+											"type": "_card",
+											"props": {
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "pub-5-content",
+													"type": "_card-content",
+													"props": {
+														"class": "p-6"
+													},
+													"children": [
+														{
+															"id": "pub-5-title",
+															"type": "_text",
+															"props": {
+																"content": "Nonlinear Schrödinger evolution equations",
+																"tag": "h3",
+																"class": "font-semibold text-lg leading-tight mb-3"
+															}
+														},
+														{
+															"id": "pub-5-authors",
+															"type": "_text",
+															"props": {
+																"content": "Brézis, H.; Gallouet, T.",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground mb-2"
+															}
+														},
+														{
+															"id": "pub-5-venue",
+															"type": "_text",
+															"props": {
+																"content": "Nonlinear Anal. 4 (1980), no. 4, 677–681",
+																"tag": "p",
+																"class": "text-sm mb-2"
+															}
+														},
+														{
+															"id": "pub-5-footer",
+															"type": "_flex",
+															"props": {
+																"direction": "row",
+																"justify": "between",
+																"align": "center",
+																"class": ""
+															},
+															"children": [
+																{
+																	"id": "pub-5-year",
+																	"type": "_text",
+																	"props": {
+																		"content": "1980",
+																		"tag": "p",
+																		"class": "text-sm font-medium"
+																	}
+																},
+																{
+																	"id": "pub-5-link",
+																	"type": "_link",
+																	"props": {
+																		"text": "Réf.",
+																		"href": {
+																			"href": "https://www.sciencedirect.com/science/article/abs/pii/0362546X80900681",
+																			"target": "_blank"
+																		},
+																		"variant": "link",
+																		"class": "text-xs"
+																	}
+																}
+															]
+														}
+													]
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "tab-recent",
+							"type": "_tab-item",
+							"props": {
+								"label": "Publications récentes",
+								"value": "recent",
+								"class": ""
+							},
+							"children": [
+								{
+									"id": "recent-placeholder",
+									"type": "_flex",
+									"props": {
+										"direction": "column",
+										"align": "center",
+										"justify": "center",
+										"class": "py-12"
+									},
+									"children": [
+										{
+											"id": "recent-text",
+											"type": "_text",
+											"props": {
+												"content": "Les publications récentes seront ajoutées prochainement.",
+												"tag": "p",
+												"class": "text-muted-foreground"
+											}
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "sec-contact",
+			"type": "_section",
+			"props": {
+				"anchorId": "contact",
+				"padding": "py-16 px-4",
+				"maxWidth": "max-w-5xl",
+				"background": "",
+				"class": ""
+			},
+			"children": [
+				{
+					"id": "contact-title",
+					"type": "_text",
+					"props": {
+						"content": "Contact",
+						"tag": "h2",
+						"class": "text-3xl font-semibold text-center mb-4"
+					}
+				},
+				{
+					"id": "contact-subtitle",
+					"type": "_text",
+					"props": {
+						"content": "N'hésitez pas à me contacter pour toute question concernant mes recherches ou collaborations.",
+						"tag": "p",
+						"class": "text-muted-foreground max-w-2xl mx-auto text-center mb-12"
+					}
+				},
+				{
+					"id": "contact-grid",
+					"type": "_grid",
+					"props": {
+						"columns": "2",
+						"gap": "gap-8",
+						"class": ""
+					},
+					"children": [
+						{
+							"id": "contact-info-card",
+							"type": "_card",
+							"props": {
+								"class": ""
+							},
+							"children": [
+								{
+									"id": "contact-info-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "contact-info-title",
+											"type": "_text",
+											"props": {
+												"content": "Informations de contact",
+												"tag": "h3",
+												"class": "text-lg font-semibold"
+											}
+										}
+									]
+								},
+								{
+									"id": "contact-info-content",
+									"type": "_card-content",
+									"props": {
+										"class": "space-y-4"
+									},
+									"children": [
+										{
+											"id": "contact-email",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-4",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "contact-email-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Mail",
+														"size": 20,
+														"class": "text-muted-foreground"
+													}
+												},
+												{
+													"id": "contact-email-info",
+													"type": "_flex",
+													"props": {
+														"direction": "column",
+														"class": "",
+														"align": "start"
+													},
+													"children": [
+														{
+															"id": "contact-email-label",
+															"type": "_text",
+															"props": {
+																"content": "Email",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														},
+														{
+															"id": "contact-email-value",
+															"type": "_text",
+															"props": {
+																"content": "thierry.gallouet@univ-amu.fr",
+																"tag": "p",
+																"class": ""
+															}
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "contact-phone",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-4",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "contact-phone-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Phone",
+														"size": 20,
+														"class": "text-muted-foreground"
+													}
+												},
+												{
+													"id": "contact-phone-info",
+													"type": "_flex",
+													"props": {
+														"direction": "column",
+														"class": "",
+														"align": "start"
+													},
+													"children": [
+														{
+															"id": "contact-phone-label",
+															"type": "_text",
+															"props": {
+																"content": "Téléphone",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														},
+														{
+															"id": "contact-phone-value",
+															"type": "_text",
+															"props": {
+																"content": "+33 4 91 11 35 00",
+																"tag": "p",
+																"class": ""
+															}
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "contact-office",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-4",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "contact-office-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Building",
+														"size": 20,
+														"class": "text-muted-foreground"
+													}
+												},
+												{
+													"id": "contact-office-info",
+													"type": "_flex",
+													"props": {
+														"direction": "column",
+														"class": "",
+														"align": "start"
+													},
+													"children": [
+														{
+															"id": "contact-office-label",
+															"type": "_text",
+															"props": {
+																"content": "Bureau",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														},
+														{
+															"id": "contact-office-value",
+															"type": "_text",
+															"props": {
+																"content": "Bureau 301, Bâtiment Sciences Naturelles",
+																"tag": "p",
+																"class": ""
+															}
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "contact-address",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "start",
+												"gap": "gap-4",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "contact-address-icon",
+													"type": "_icon",
+													"props": {
+														"name": "MapPin",
+														"size": 20,
+														"class": "text-muted-foreground mt-1"
+													}
+												},
+												{
+													"id": "contact-address-info",
+													"type": "_flex",
+													"props": {
+														"direction": "column",
+														"class": "",
+														"align": "start"
+													},
+													"children": [
+														{
+															"id": "contact-address-label",
+															"type": "_text",
+															"props": {
+																"content": "Adresse",
+																"tag": "p",
+																"class": "text-sm text-muted-foreground"
+															}
+														},
+														{
+															"id": "contact-address-value",
+															"type": "_rich-text",
+															"props": {
+																"content": "Aix-Marseille Université, Faculté des Sciences\n13013 Marseille, France",
+																"class": "leading-relaxed"
+															}
+														}
+													]
+												}
+											]
+										},
+										{
+											"id": "contact-linkedin",
+											"type": "_flex",
+											"props": {
+												"direction": "row",
+												"align": "center",
+												"gap": "gap-4",
+												"class": ""
+											},
+											"children": [
+												{
+													"id": "contact-linkedin-icon",
+													"type": "_icon",
+													"props": {
+														"name": "Linkedin",
+														"size": 20,
+														"class": "text-muted-foreground"
+													}
+												},
+												{
+													"id": "contact-linkedin-link",
+													"type": "_link",
+													"props": {
+														"text": "Profil LinkedIn",
+														"href": {
+															"href": "https://linkedin.com/in/thierry-gallouët-28b5b06",
+															"target": "_blank"
+														},
+														"variant": "link",
+														"class": ""
+													}
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "contact-links-card",
+							"type": "_card",
+							"props": {
+								"class": ""
+							},
+							"children": [
+								{
+									"id": "contact-links-header",
+									"type": "_card-header",
+									"props": {
+										"class": ""
+									},
+									"children": [
+										{
+											"id": "contact-links-title",
+											"type": "_text",
+											"props": {
+												"content": "Liens utiles",
+												"tag": "h3",
+												"class": "text-lg font-semibold"
+											}
+										}
+									]
+								},
+								{
+									"id": "contact-links-content",
+									"type": "_card-content",
+									"props": {
+										"class": "space-y-3"
+									},
+									"children": [
+										{
+											"id": "link-i2m",
+											"type": "_link",
+											"props": {
+												"text": "Institut de Mathématiques de Marseille",
+												"href": {
+													"href": "https://www.i2m.univ-amu.fr/",
+													"target": "_blank"
+												},
+												"variant": "button",
+												"icon": "ExternalLink",
+												"class": "w-full justify-between"
+											}
+										},
+										{
+											"id": "link-amu",
+											"type": "_link",
+											"props": {
+												"text": "Université d'Aix-Marseille",
+												"href": {
+													"href": "https://www.univ-amu.fr/",
+													"target": "_blank"
+												},
+												"variant": "button",
+												"icon": "ExternalLink",
+												"class": "w-full justify-between"
+											}
+										},
+										{
+											"id": "link-hal",
+											"type": "_link",
+											"props": {
+												"text": "HAL - Archives ouvertes",
+												"href": {
+													"href": "https://hal.archives-ouvertes.fr/",
+													"target": "_blank"
+												},
+												"variant": "button",
+												"icon": "ExternalLink",
+												"class": "w-full justify-between"
+											}
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
