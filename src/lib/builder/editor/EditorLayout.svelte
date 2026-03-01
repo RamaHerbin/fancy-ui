@@ -48,18 +48,22 @@
 					editor.requestSave();
 					return;
 				case "c":
+					if (e.shiftKey) return; // let browser handle Cmd+Shift+C (inspector)
 					e.preventDefault();
 					editor.copyBlock();
 					return;
 				case "x":
+					if (e.shiftKey) return;
 					e.preventDefault();
 					editor.cutBlock();
 					return;
 				case "v":
+					if (e.shiftKey) return;
 					e.preventDefault();
 					editor.pasteBlock();
 					return;
 				case "d":
+					if (e.shiftKey) return;
 					e.preventDefault();
 					editor.duplicateBlock();
 					return;
