@@ -14,7 +14,9 @@ export type PropType =
 	| "json"
 	| "image"
 	| "link"
-	| "icon";
+	| "icon"
+	| "spacing"
+	| "class";
 
 export interface PropSchemaBase {
 	/** Display label in the property panel */
@@ -25,6 +27,12 @@ export interface PropSchemaBase {
 	default?: unknown;
 	/** Optional description / tooltip */
 	description?: string;
+	/** Accordion group name (e.g. "Layout", "Style", "Content") */
+	group?: string;
+	/** Conditional visibility — show this prop only when another prop matches a value */
+	showWhen?: { prop: string; equals: unknown };
+	/** If true, routes to a collapsed "Advanced" group */
+	advanced?: boolean;
 }
 
 export interface StringPropSchema extends PropSchemaBase {
@@ -86,6 +94,20 @@ export interface IconPropSchema extends PropSchemaBase {
 	default?: string;
 }
 
+export interface SpacingPropSchema extends PropSchemaBase {
+	type: "spacing";
+	default?: string;
+	/** Which spacing layers to show (defaults to ["padding"]) */
+	properties?: Array<"padding" | "margin">;
+}
+
+export interface ClassPropSchema extends PropSchemaBase {
+	type: "class";
+	default?: string;
+	/** Restrict suggestion categories */
+	categories?: string[];
+}
+
 export type PropSchema =
 	| StringPropSchema
 	| NumberPropSchema
@@ -95,7 +117,9 @@ export type PropSchema =
 	| JsonPropSchema
 	| ImagePropSchema
 	| LinkPropSchema
-	| IconPropSchema;
+	| IconPropSchema
+	| SpacingPropSchema
+	| ClassPropSchema;
 
 /** Palette category for grouping in the editor sidebar */
 export type PaletteCategory =

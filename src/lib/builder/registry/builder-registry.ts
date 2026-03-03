@@ -21,24 +21,20 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "layout",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
 			anchorId: {
 				type: "string",
 				label: "Anchor ID",
 				default: "",
 				description: "HTML id for anchor linking (e.g. bio, courses)",
 				placeholder: "section-id",
+				group: "Content",
 			},
 			padding: {
-				type: "select",
+				type: "spacing",
 				label: "Padding",
 				default: "py-16 px-4",
-				options: [
-					{ label: "None", value: "" },
-					{ label: "Small", value: "py-8 px-4" },
-					{ label: "Medium", value: "py-16 px-4" },
-					{ label: "Large", value: "py-24 px-4" },
-				],
+				properties: ["padding"],
+				group: "Layout",
 			},
 			maxWidth: {
 				type: "select",
@@ -51,13 +47,16 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Large (6xl)", value: "max-w-6xl" },
 					{ label: "XL (7xl)", value: "max-w-7xl" },
 				],
+				group: "Layout",
 			},
 			background: {
 				type: "string",
 				label: "Background",
 				default: "",
 				description: "Tailwind bg class (e.g. bg-muted, bg-primary/10)",
+				group: "Style",
 			},
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -69,7 +68,6 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "layout",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
 			maxWidth: {
 				type: "select",
 				label: "Max Width",
@@ -80,7 +78,9 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Large (6xl)", value: "max-w-6xl" },
 					{ label: "XL (7xl)", value: "max-w-7xl" },
 				],
+				group: "Layout",
 			},
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -92,7 +92,6 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "layout",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
 			columns: {
 				type: "select",
 				label: "Columns",
@@ -103,6 +102,7 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "3 Columns", value: "3" },
 					{ label: "4 Columns", value: "4" },
 				],
+				group: "Layout",
 			},
 			gap: {
 				type: "select",
@@ -115,7 +115,9 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Large", value: "gap-6" },
 					{ label: "XL", value: "gap-8" },
 				],
+				group: "Layout",
 			},
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -127,7 +129,6 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "layout",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
 			direction: {
 				type: "select",
 				label: "Direction",
@@ -138,6 +139,7 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Row Reverse", value: "row-reverse" },
 					{ label: "Column Reverse", value: "column-reverse" },
 				],
+				group: "Layout",
 			},
 			align: {
 				type: "select",
@@ -149,6 +151,7 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "End", value: "end" },
 					{ label: "Stretch", value: "stretch" },
 				],
+				group: "Layout",
 			},
 			justify: {
 				type: "select",
@@ -161,6 +164,7 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Between", value: "between" },
 					{ label: "Around", value: "around" },
 				],
+				group: "Layout",
 			},
 			gap: {
 				type: "select",
@@ -173,12 +177,15 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Large", value: "gap-6" },
 					{ label: "XL", value: "gap-8" },
 				],
+				group: "Layout",
 			},
 			wrap: {
 				type: "boolean",
 				label: "Wrap",
 				default: false,
+				group: "Layout",
 			},
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -195,6 +202,7 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 				label: "Content",
 				default: "Enter text here...",
 				multiline: true,
+				group: "Content",
 			},
 			tag: {
 				type: "select",
@@ -208,6 +216,7 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Heading 4", value: "h4" },
 					{ label: "Span", value: "span" },
 				],
+				group: "Content",
 			},
 			anchorId: {
 				type: "string",
@@ -215,8 +224,9 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 				default: "",
 				description: "HTML id for anchor linking",
 				placeholder: "heading-id",
+				group: "Content",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -228,14 +238,15 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "media",
 		acceptsChildren: false,
 		propSchemas: {
-			src: { type: "image", label: "Image URL", default: "" },
-			alt: { type: "string", label: "Alt Text", default: "" },
+			src: { type: "image", label: "Image URL", default: "", group: "Content" },
+			alt: { type: "string", label: "Alt Text", default: "", group: "Content" },
 			width: {
 				type: "number",
 				label: "Width",
 				min: 0,
 				step: 1,
 				description: "Intrinsic width for CLS optimization",
+				group: "Layout",
 			},
 			height: {
 				type: "number",
@@ -243,8 +254,8 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				step: 1,
 				description: "Intrinsic height for CLS optimization",
+				group: "Layout",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
 			objectFit: {
 				type: "select",
 				label: "Object Fit",
@@ -255,7 +266,9 @@ const layoutPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Fill", value: "fill" },
 					{ label: "None", value: "none" },
 				],
+				group: "Layout",
 			},
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -297,11 +310,12 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "navigation",
 		acceptsChildren: false,
 		propSchemas: {
-			text: { type: "string", label: "Text", default: "Click here" },
+			text: { type: "string", label: "Text", default: "Click here", group: "Content" },
 			href: {
 				type: "link",
 				label: "Link",
 				default: { href: "#", target: "_self" },
+				group: "Content",
 			},
 			variant: {
 				type: "select",
@@ -312,9 +326,10 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Button", value: "button" },
 					{ label: "Ghost", value: "ghost" },
 				],
+				group: "Content",
 			},
-			icon: { type: "icon", label: "Icon", default: "" },
-			class: { type: "string", label: "CSS Classes", default: "" },
+			icon: { type: "icon", label: "Icon", default: "", group: "Content" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -336,7 +351,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Dotted", value: "dotted" },
 				],
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -360,7 +375,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Destructive", value: "destructive" },
 				],
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -379,7 +394,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 				description: "JSON array of strings",
 			},
 			ordered: { type: "boolean", label: "Ordered", default: false },
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -391,7 +406,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "content",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -403,7 +418,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "content",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -415,7 +430,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "content",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -427,7 +442,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "content",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -445,7 +460,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 				default: "**Hello** world. This is *rich text*.",
 				multiline: true,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -457,7 +472,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "content",
 		acceptsChildren: false,
 		propSchemas: {
-			name: { type: "icon", label: "Icon", default: "Star" },
+			name: { type: "icon", label: "Icon", default: "Star", group: "Content" },
 			size: {
 				type: "number",
 				label: "Size",
@@ -465,9 +480,10 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 				min: 12,
 				max: 128,
 				step: 4,
+				group: "Style",
 			},
-			color: { type: "color", label: "Color", default: "" },
-			class: { type: "string", label: "CSS Classes", default: "" },
+			color: { type: "color", label: "Color", default: "", group: "Style" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -500,7 +516,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Embed", value: "embed" },
 				],
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -521,7 +537,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 					{ label: "Static", value: "static" },
 				],
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -533,7 +549,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "navigation",
 		acceptsChildren: false,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -554,7 +570,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 				step: 1,
 				description: "Number of floating formulas",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -573,7 +589,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 				default: "",
 				description: "Value of the initially active tab",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -592,7 +608,7 @@ const contentPrimitives: Record<string, BuilderComponentMeta> = {
 				default: "tab",
 				description: "Unique identifier for this tab",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 };
@@ -617,6 +633,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 50,
 				max: 500,
 				step: 10,
+				group: "Style",
 			},
 			duration: {
 				type: "number",
@@ -625,6 +642,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 1,
 				max: 60,
 				step: 1,
+				group: "Animation",
 			},
 			borderWidth: {
 				type: "number",
@@ -633,6 +651,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0.5,
 				max: 5,
 				step: 0.5,
+				group: "Style",
 			},
 			anchor: {
 				type: "number",
@@ -641,9 +660,10 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 360,
 				step: 1,
+				group: "Style",
 			},
-			colorFrom: { type: "color", label: "Color From", default: "#ffaa40" },
-			colorTo: { type: "color", label: "Color To", default: "#9c40ff" },
+			colorFrom: { type: "color", label: "Color From", default: "#ffaa40", group: "Style" },
+			colorTo: { type: "color", label: "Color To", default: "#9c40ff", group: "Style" },
 			delay: {
 				type: "number",
 				label: "Delay (s)",
@@ -651,6 +671,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 10,
 				step: 0.5,
+				group: "Animation",
 			},
 		},
 	},
@@ -670,6 +691,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 50,
 				step: 1,
+				group: "Style",
 			},
 			borderWidth: {
 				type: "number",
@@ -678,6 +700,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 1,
 				max: 10,
 				step: 1,
+				group: "Style",
 			},
 			duration: {
 				type: "number",
@@ -686,9 +709,10 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 1,
 				max: 30,
 				step: 1,
+				group: "Animation",
 			},
-			color: { type: "color", label: "Color", default: "#FFFFFF" },
-			class: { type: "string", label: "CSS Classes", default: "" },
+			color: { type: "color", label: "Color", default: "#FFFFFF", group: "Style" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -708,7 +732,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 50,
 				step: 1,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -725,25 +749,29 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				label: "Button Text",
 				default: "Click me",
 				description: "Text displayed inside the button",
+				group: "Content",
 			},
 			shimmerColor: {
 				type: "color",
 				label: "Shimmer Color",
 				default: "#ffffff",
+				group: "Style",
 			},
-			shimmerSize: { type: "string", label: "Shimmer Size", default: "0.05em" },
+			shimmerSize: { type: "string", label: "Shimmer Size", default: "0.05em", group: "Style" },
 			borderRadius: {
 				type: "string",
 				label: "Border Radius",
 				default: "100px",
+				group: "Style",
 			},
-			shimmerDuration: { type: "string", label: "Duration", default: "3s" },
+			shimmerDuration: { type: "string", label: "Duration", default: "3s", group: "Animation" },
 			background: {
 				type: "string",
 				label: "Background",
 				default: "rgba(0, 0, 0, 1)",
+				group: "Style",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -769,7 +797,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 10,
 				step: 0.5,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -781,13 +809,14 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "layout",
 		acceptsChildren: true,
 		propSchemas: {
-			reverse: { type: "boolean", label: "Reverse", default: false },
+			reverse: { type: "boolean", label: "Reverse", default: false, group: "Behavior" },
 			pauseOnHover: {
 				type: "boolean",
 				label: "Pause on Hover",
 				default: false,
+				group: "Behavior",
 			},
-			vertical: { type: "boolean", label: "Vertical", default: false },
+			vertical: { type: "boolean", label: "Vertical", default: false, group: "Behavior" },
 			repeat: {
 				type: "number",
 				label: "Repeat",
@@ -795,8 +824,9 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 1,
 				max: 10,
 				step: 1,
+				group: "Behavior",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -832,7 +862,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 200,
 				step: 10,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -853,7 +883,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 30,
 				step: 1,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -874,7 +904,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 3,
 				step: 0.1,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -893,6 +923,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 999999,
 				step: 1,
+				group: "Content",
 			},
 			direction: {
 				type: "select",
@@ -902,6 +933,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 					{ label: "Up", value: "up" },
 					{ label: "Down", value: "down" },
 				],
+				group: "Content",
 			},
 			duration: {
 				type: "number",
@@ -910,6 +942,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 100,
 				max: 5000,
 				step: 100,
+				group: "Animation",
 			},
 			delay: {
 				type: "number",
@@ -918,6 +951,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 3000,
 				step: 100,
+				group: "Animation",
 			},
 			decimalPlaces: {
 				type: "number",
@@ -926,8 +960,9 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 4,
 				step: 1,
+				group: "Content",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -953,7 +988,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 10000,
 				step: 100,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -986,7 +1021,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 1,
 				step: 0.1,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -998,8 +1033,8 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "effects",
 		acceptsChildren: true,
 		propSchemas: {
-			color1: { type: "color", label: "Color 1", default: "#0496ff" },
-			color2: { type: "color", label: "Color 2", default: "#ff0a54" },
+			color1: { type: "color", label: "Color 1", default: "#0496ff", group: "Style" },
+			color2: { type: "color", label: "Color 2", default: "#ff0a54", group: "Style" },
 			animationType: {
 				type: "select",
 				label: "Animation",
@@ -1009,6 +1044,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 					{ label: "Half", value: "half" },
 					{ label: "Full", value: "full" },
 				],
+				group: "Animation",
 			},
 			duration: {
 				type: "number",
@@ -1017,8 +1053,9 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 1,
 				max: 20,
 				step: 1,
+				group: "Animation",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1039,7 +1076,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 0.3,
 				step: 0.01,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1068,7 +1105,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				max: 2,
 				step: 0.05,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1094,7 +1131,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				label: "Animate on Load",
 				default: true,
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1110,6 +1147,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				type: "string",
 				label: "Sentence",
 				default: "Inspira Focus Effect",
+				group: "Content",
 			},
 			blurAmount: {
 				type: "number",
@@ -1118,8 +1156,9 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 1,
 				max: 20,
 				step: 1,
+				group: "Style",
 			},
-			borderColor: { type: "string", label: "Border Color", default: "green" },
+			borderColor: { type: "string", label: "Border Color", default: "green", group: "Style" },
 			animationDuration: {
 				type: "number",
 				label: "Animation Duration (s)",
@@ -1127,6 +1166,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0.1,
 				max: 2,
 				step: 0.1,
+				group: "Animation",
 			},
 			pauseBetweenAnimations: {
 				type: "number",
@@ -1135,8 +1175,9 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0.1,
 				max: 5,
 				step: 0.1,
+				group: "Animation",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1148,11 +1189,12 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "backgrounds",
 		acceptsChildren: false,
 		propSchemas: {
-			background: { type: "color", label: "Background", default: "#0d47a1" },
+			background: { type: "color", label: "Background", default: "#0d47a1", group: "Style" },
 			particleColor: {
 				type: "color",
 				label: "Particle Color",
 				default: "#ffffff",
+				group: "Style",
 			},
 			minSize: {
 				type: "number",
@@ -1161,6 +1203,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0.1,
 				max: 5,
 				step: 0.1,
+				group: "Particles",
 			},
 			maxSize: {
 				type: "number",
@@ -1169,6 +1212,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 1,
 				max: 10,
 				step: 0.5,
+				group: "Particles",
 			},
 			speed: {
 				type: "number",
@@ -1177,6 +1221,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0.5,
 				max: 20,
 				step: 0.5,
+				group: "Particles",
 			},
 			particleDensity: {
 				type: "number",
@@ -1185,8 +1230,9 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 10,
 				max: 500,
 				step: 10,
+				group: "Particles",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1204,7 +1250,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				default: false,
 				description: "If true, confetti must be triggered manually",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1222,7 +1268,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				default: "Button",
 				description: "Text displayed inside the button",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1239,6 +1285,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				label: "Button Text",
 				default: "Gradient Button",
 				description: "Text displayed inside the button",
+				group: "Content",
 			},
 			duration: {
 				type: "number",
@@ -1247,6 +1294,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 500,
 				max: 10000,
 				step: 100,
+				group: "Animation",
 			},
 			borderWidth: {
 				type: "number",
@@ -1255,6 +1303,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 1,
 				max: 8,
 				step: 1,
+				group: "Style",
 			},
 			borderRadius: {
 				type: "number",
@@ -1263,6 +1312,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 50,
 				step: 1,
+				group: "Style",
 			},
 			blur: {
 				type: "number",
@@ -1271,9 +1321,10 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 20,
 				step: 1,
+				group: "Style",
 			},
-			bgColor: { type: "color", label: "Background Color", default: "#000000" },
-			class: { type: "string", label: "CSS Classes", default: "" },
+			bgColor: { type: "color", label: "Background Color", default: "#000000", group: "Style" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1290,6 +1341,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				label: "Text",
 				default: "Blur Reveal Text",
 				description: "Text content to reveal",
+				group: "Content",
 			},
 			duration: {
 				type: "number",
@@ -1298,6 +1350,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0.1,
 				max: 3,
 				step: 0.1,
+				group: "Animation",
 			},
 			delay: {
 				type: "number",
@@ -1306,8 +1359,9 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 2,
 				step: 0.1,
+				group: "Animation",
 			},
-			blur: { type: "string", label: "Blur Amount", default: "20px" },
+			blur: { type: "string", label: "Blur Amount", default: "20px", group: "Style" },
 			yOffset: {
 				type: "number",
 				label: "Y Offset",
@@ -1315,8 +1369,9 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				min: 0,
 				max: 100,
 				step: 5,
+				group: "Style",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1339,7 +1394,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				label: "Image URL",
 				default: "https://picsum.photos/400/400",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1362,7 +1417,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 			},
 			frontText: { type: "string", label: "Front Text", default: "Front" },
 			backText: { type: "string", label: "Back Text", default: "Back" },
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1374,7 +1429,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "cards",
 		acceptsChildren: true,
 		propSchemas: {
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1393,7 +1448,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				label: "Description",
 				default: "Description",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1411,7 +1466,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 				label: "Description",
 				default: "Hover to see the 3D effect",
 			},
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 
@@ -1435,7 +1490,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 			},
 			imageSrc: { type: "image", label: "Image", default: "" },
 			imageAlt: { type: "string", label: "Image Alt", default: "Preview" },
-			class: { type: "string", label: "CSS Classes", default: "" },
+			class: { type: "class", label: "CSS Classes", default: "", advanced: true },
 		},
 	},
 };
