@@ -65,7 +65,9 @@ export interface ColorPropSchema extends PropSchemaBase {
 export interface SelectPropSchema extends PropSchemaBase {
 	type: "select";
 	default?: string;
-	options: { label: string; value: string }[];
+	options: { label: string; value: string; icon?: string }[];
+	/** Render as icon toggle buttons instead of a dropdown */
+	display?: "dropdown" | "icon-buttons";
 }
 
 export interface JsonPropSchema extends PropSchemaBase {
