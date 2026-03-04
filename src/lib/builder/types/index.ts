@@ -13,6 +13,8 @@ export type {
 	LinkPropSchema,
 	LinkValue,
 	IconPropSchema,
+	SpacingPropSchema,
+	ClassPropSchema,
 	PaletteCategory,
 	BuilderComponentMeta,
 } from "./registry.js";
