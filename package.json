@@ -48,6 +48,7 @@
 	"dependencies": {
 		"arctic": "^3.7.0",
 		"canvas-confetti": "^1.9.4",
+		"gray-matter": "^4.0.3",
 		"gsap": "^3.14.2",
 		"marked": "^17.0.3",
 		"nanoid": "^5.1.6"
