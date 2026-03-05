@@ -137,12 +137,3 @@ export class FilesystemStorage implements PageStorage {
 		await writeFile(this.siteConfigPath, json, "utf-8");
 	}
 }
-
-let _instance: FilesystemStorage | undefined;
-
-export function getStorage(): PageStorage {
-	if (!_instance) {
-		_instance = new FilesystemStorage();
-	}
-	return _instance;
-}
