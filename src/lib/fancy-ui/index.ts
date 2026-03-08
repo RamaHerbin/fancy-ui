@@ -48,6 +48,7 @@ export * from "./sparkles/index.js";
 export * from "./glowing-effect/index.js";
 export * from "./confetti/index.js";
 export * from "./ripple/index.js";
+export * from "./text-generate-effect/index.js";
 export * from "./tracing-beam/index.js";
 
 // =============================================================================
