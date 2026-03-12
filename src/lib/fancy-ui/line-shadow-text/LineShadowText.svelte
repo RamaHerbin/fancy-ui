@@ -2,16 +2,20 @@
 	export interface LineShadowTextProps {
 		text: string;
 		shadowColor?: string;
-		as?: 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p' | 'div';
+		as?: "span" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "div";
 		class?: string;
 	}
 </script>
 
 <script lang="ts">
-	import { cn } from '$lib/utils.js';
+	import { cn } from "$lib/utils.js";
 
-	let { text, shadowColor = 'black', as = 'span', class: className }: LineShadowTextProps =
-		$props();
+	let {
+		text,
+		shadowColor = "black",
+		as = "span",
+		class: className,
+	}: LineShadowTextProps = $props();
 
 	let style = $derived(`--shadow-color: ${shadowColor}`);
 </script>
@@ -19,10 +23,10 @@
 <svelte:element
 	this={as}
 	class={cn(
-		'line-shadow-text relative z-0 inline-flex',
-		'after:absolute after:left-[0.04em] after:top-[0.04em] after:-z-10',
-		'after:bg-[linear-gradient(45deg,transparent_45%,var(--shadow-color)_45%,var(--shadow-color)_55%,transparent_0)]',
-		'after:bg-[length:0.06em_0.06em] after:bg-clip-text after:text-transparent',
+		"line-shadow-text relative z-0 inline-flex",
+		"after:absolute after:top-[0.04em] after:left-[0.04em] after:-z-10",
+		"after:bg-[linear-gradient(45deg,transparent_45%,var(--shadow-color)_45%,var(--shadow-color)_55%,transparent_0)]",
+		"after:bg-[length:0.06em_0.06em] after:bg-clip-text after:text-transparent",
 		"after:content-[attr(data-text)]",
 		className
 	)}
