@@ -9,9 +9,7 @@
 		Marquee,
 		NumberTicker,
 		LineShadowText,
-		GlowingEffect,
 		BoxReveal,
-		ShimmerButton,
 		Timeline,
 	} from "$lib/fancy-ui";
 	import type { TimelineItem } from "$lib/fancy-ui";
@@ -21,17 +19,6 @@
 	const DEMO_URL = "/demo";
 
 	const taglineWords = ["animated", "beautiful", "interactive", "composable", "performant"];
-
-	const showcaseComponents = [
-		{ name: "Sparkles", slug: "sparkles", category: "Backgrounds" },
-		{ name: "Meteors", slug: "meteors", category: "Backgrounds" },
-		{ name: "BorderBeam", slug: "border-beam", category: "Effects" },
-		{ name: "Marquee", slug: "marquee", category: "Effects" },
-		{ name: "NumberTicker", slug: "number-ticker", category: "Text" },
-		{ name: "LineShadowText", slug: "line-shadow-text", category: "Text" },
-		{ name: "SparklesText", slug: "sparkles-text", category: "Text" },
-		{ name: "FlipWords", slug: "flip-words", category: "Text" },
-	];
 
 	const roadmapItems: TimelineItem[] = [
 		{ id: "now", label: "Now" },
@@ -133,14 +120,14 @@
 			Open source · MIT License
 		</div>
 
-		<div class="text-7xl font-bold tracking-tight text-white sm:text-9xl">
+		<h1 class="text-7xl font-bold tracking-tight text-white sm:text-9xl">
 			<SparklesText
 				text="FancyUI"
 				sparklesCount={12}
 				colors={{ first: "#9E7AFF", second: "#FE8BBB" }}
 				class="text-7xl font-bold tracking-tight text-white sm:text-9xl"
 			/>
-		</div>
+		</h1>
 
 		<p class="max-w-xl text-xl text-white/60">
 			50+ <FlipWords
@@ -172,7 +159,7 @@
 
 	<!-- Scroll indicator -->
 	<div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-white/30">
-		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
 			<path d="M12 5v14M5 12l7 7 7-7"/>
 		</svg>
 	</div>
@@ -344,7 +331,7 @@
 			<BorderBeam duration={12} size={120} colorFrom="#9E7AFF" colorTo="#FE8BBB" borderWidth={1} />
 			<div class="p-6 font-mono text-sm">
 				<div class="mb-1 text-white/40"># 1. Clone and install</div>
-				<div class="mb-4 text-emerald-400">git clone https://github.com/ramaherbin/fancy-ui</div>
+				<div class="mb-4 text-emerald-400">git clone {GITHUB_URL}</div>
 				<div class="mb-1 text-white/40"># 2. Import any component</div>
 				<div class="mb-1">
 					<span class="text-purple-400">import</span>
@@ -386,22 +373,22 @@
 					</span>
 				</div>
 				<ul class="space-y-3">
-					{#each step.items as item}
+					{#each step.items as entry}
 						<li class="flex items-start gap-2.5 text-sm">
-							{#if item.done}
+							{#if entry.done}
 								<span class="mt-0.5 shrink-0 text-emerald-500">
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
 										<path d="M20 6 9 17l-5-5"/>
 									</svg>
 								</span>
-								<span class="text-foreground">{item.text}</span>
+								<span class="text-foreground">{entry.text}</span>
 							{:else}
 								<span class="mt-0.5 shrink-0 text-muted-foreground/40">
-									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 										<circle cx="12" cy="12" r="9"/>
 									</svg>
 								</span>
-								<span class="text-muted-foreground">{item.text}</span>
+								<span class="text-muted-foreground">{entry.text}</span>
 							{/if}
 						</li>
 					{/each}
