@@ -74,10 +74,11 @@
 <div
 	bind:this={containerRef}
 	class={cn("relative z-[100] h-full w-full overflow-visible rounded-lg bg-transparent", className)}
+	style="touch-action: none"
 >
 	{#each images as image, i (variant + i)}
 		<div
-			class="content__img absolute top-0 left-0 aspect-[1.1] w-[190px] overflow-hidden rounded-[15px] opacity-0 [will-change:transform,filter]"
+			class="content__img absolute top-0 left-0 aspect-[1.1] w-[120px] overflow-hidden rounded-[10px] opacity-0 [will-change:transform,filter] sm:w-[190px] sm:rounded-[15px]"
 		>
 			<div
 				class="content__img-inner absolute top-[-10px] left-[-10px] h-[calc(100%+20px)] w-[calc(100%+20px)] bg-cover bg-center"

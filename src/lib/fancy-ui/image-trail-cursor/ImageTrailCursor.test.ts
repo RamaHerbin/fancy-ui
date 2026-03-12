@@ -49,4 +49,21 @@ describe("ImageTrailCursor", () => {
 		const div = container.firstElementChild as HTMLElement;
 		expect(div?.className).toContain("relative");
 	});
+
+	it("sets touch-action: none on the container", () => {
+		const { container } = render(ImageTrailCursor);
+		const div = container.firstElementChild as HTMLElement;
+		expect(div?.getAttribute("style")).toContain("touch-action: none");
+	});
+
+	it("uses responsive image classes (mobile-first + sm breakpoint)", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { images: ["/a.jpg"] },
+		});
+		const img = container.querySelector(".content__img") as HTMLElement;
+		expect(img?.className).toContain("w-[120px]");
+		expect(img?.className).toContain("rounded-[10px]");
+		expect(img?.className).toContain("sm:w-[190px]");
+		expect(img?.className).toContain("sm:rounded-[15px]");
+	});
 });

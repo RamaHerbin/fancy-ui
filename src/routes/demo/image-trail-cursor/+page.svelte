@@ -62,7 +62,10 @@
 		<div class="bg-card relative h-[500px] cursor-crosshair overflow-hidden rounded-lg border">
 			<ImageTrailCursor {images} variant={selectedVariant} />
 			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-				<p class="text-muted-foreground/50 text-lg select-none">Move your cursor here</p>
+				<p class="text-muted-foreground/50 text-lg select-none">
+					<span class="hidden sm:inline">Move your cursor here</span>
+					<span class="sm:hidden">Drag your finger here</span>
+				</p>
 			</div>
 		</div>
 	</section>
