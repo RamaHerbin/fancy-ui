@@ -31,7 +31,7 @@ src/lib/fancy-ui/[component-name]/
 
 ### Step 1: Analyze the Vue Source
 
-1. Open the Vue component in `vendor/inspira/ui/[component]/`
+1. Open the Vue source component
 2. Identify:
    - **Props**: What configuration does it accept?
    - **Slots**: What content areas does it have?

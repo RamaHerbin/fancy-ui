@@ -38,7 +38,7 @@
 				{ done: true, text: "50+ animated components (Svelte 5 runes)" },
 				{ done: true, text: "Tailwind CSS v4 + shadcn-svelte" },
 				{ done: true, text: "Full TypeScript support" },
-				{ done: true, text: "Live demo at svelte-ui-omega.vercel.app" },
+				{ done: true, text: "Live demo at fancy-ui.rama.app" },
 				{ done: true, text: "Dark / light theme" },
 				{ done: true, text: "MIT license" },
 			],
@@ -51,7 +51,7 @@
 				{ text: "Proper package exports + TypeScript declarations" },
 				{ text: "CHANGELOG + semantic versioning" },
 				{ text: "CONTRIBUTING guide" },
-				{ text: "10+ new components from Inspira UI" },
+				{ text: "10+ new components" },
 			],
 		},
 		v03: {
@@ -72,7 +72,7 @@
 				{ text: "Stable public API" },
 				{ text: "Full Storybook / Chromatic visual testing" },
 				{ text: "Custom theming system (design tokens)" },
-				{ text: "100+ components parity with Inspira UI" },
+				{ text: "100+ components" },
 				{ text: "Figma component library" },
 			],
 		},
@@ -104,7 +104,7 @@
 
 <!-- ─── HERO ─────────────────────────────────────────────────────────────── -->
 <section
-	class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#030712]"
+	class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background"
 >
 	<!-- Particle background -->
 	<div class="absolute inset-0">

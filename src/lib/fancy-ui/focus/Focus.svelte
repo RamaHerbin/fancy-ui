@@ -13,7 +13,7 @@
 	}
 
 	let {
-		sentence = "Inspira Focus",
+		sentence = "Fancy Focus",
 		manualMode = false,
 		blurAmount = 5,
 		borderColor = "green",
