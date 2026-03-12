@@ -5,7 +5,7 @@ Beautiful animation and UI components for **Svelte 5**.
 ![Svelte 5](https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-31-8B5CF6)
+![Components](https://img.shields.io/badge/Components-52-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -114,8 +114,8 @@ Beautiful animation and UI components for **Svelte 5**.
 
 ```bash
 # Clone the repository
-git clone https://github.com/RamaHerbin/svelteUI.git
-cd svelteUI
+git clone https://github.com/RamaHerbin/fancy-ui.git
+cd fancy-ui
 
 # Install dependencies
 pnpm install
