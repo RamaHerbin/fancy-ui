@@ -115,10 +115,19 @@ abstract class BaseVariant implements ImageTrailVariant {
 	protected lastMousePos: { x: number; y: number };
 	protected cacheMousePos: { x: number; y: number };
 
+	protected isTouchDevice: boolean;
+	protected touchActive = false;
+	private positionHistory: { x: number; y: number; t: number }[] = [];
+	private static readonly HISTORY_MAX_AGE = 100; // ms
+	private static readonly HISTORY_MAX_LEN = 5;
+
 	private rafId: number | null = null;
+	private rafStarted = false;
 	private destroyed = false;
 	private handlePointerMove: ((ev: MouseEvent | TouchEvent) => void) | null = null;
 	private initRender: ((ev: MouseEvent | TouchEvent) => void) | null = null;
+	private handleTouchStart: ((ev: TouchEvent) => void) | null = null;
+	private handleTouchEnd: ((ev: TouchEvent) => void) | null = null;
 
 	constructor(container: HTMLDivElement) {
 		this.container = container;
@@ -131,28 +140,101 @@ abstract class BaseVariant implements ImageTrailVariant {
 		this.zIndexVal = 1;
 		this.activeImagesCount = 0;
 		this.isIdle = true;
-		this.threshold = 80;
+		this.isTouchDevice =
+			typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+		this.threshold = this.isTouchDevice ? 40 : 80;
 		this.mousePos = { x: 0, y: 0 };
 		this.lastMousePos = { x: 0, y: 0 };
 		this.cacheMousePos = { x: 0, y: 0 };
 
 		this.handlePointerMove = (ev: MouseEvent | TouchEvent) => {
+			if ("touches" in ev) ev.preventDefault();
 			const rect = this.container.getBoundingClientRect();
 			this.mousePos = getLocalPointerPos(ev, rect);
+			if (this.touchActive) {
+				this.pushPositionHistory(this.mousePos.x, this.mousePos.y);
+			}
 		};
 		container.addEventListener("mousemove", this.handlePointerMove);
-		container.addEventListener("touchmove", this.handlePointerMove);
+		container.addEventListener("touchmove", this.handlePointerMove, { passive: false });
 
 		this.initRender = (ev: MouseEvent | TouchEvent) => {
+			if ("touches" in ev) ev.preventDefault();
 			const rect = this.container.getBoundingClientRect();
 			this.mousePos = getLocalPointerPos(ev, rect);
 			this.cacheMousePos = { ...this.mousePos };
-			this.rafId = requestAnimationFrame(() => this.render());
+			this.startRafLoop();
 			container.removeEventListener("mousemove", this.initRender as EventListener);
 			container.removeEventListener("touchmove", this.initRender as EventListener);
 		};
 		container.addEventListener("mousemove", this.initRender as EventListener);
-		container.addEventListener("touchmove", this.initRender as EventListener);
+		container.addEventListener("touchmove", this.initRender as EventListener, { passive: false });
+
+		// Touch lifecycle handlers
+		this.handleTouchStart = (ev: TouchEvent) => {
+			ev.preventDefault();
+			this.touchActive = true;
+			const rect = this.container.getBoundingClientRect();
+			const pos = getLocalPointerPos(ev, rect);
+			this.mousePos = pos;
+			this.cacheMousePos = { ...pos };
+			this.lastMousePos = { ...pos };
+			this.positionHistory = [];
+			this.pushPositionHistory(pos.x, pos.y);
+			this.startRafLoop();
+		};
+		container.addEventListener("touchstart", this.handleTouchStart, { passive: false });
+
+		this.handleTouchEnd = () => {
+			this.touchActive = false;
+			this.lastMousePos = { ...this.mousePos };
+			this.cacheMousePos = { ...this.mousePos };
+			this.positionHistory = [];
+		};
+		container.addEventListener("touchend", this.handleTouchEnd);
+		container.addEventListener("touchcancel", this.handleTouchEnd);
+	}
+
+	private startRafLoop() {
+		if (this.rafStarted) return;
+		this.rafStarted = true;
+		// Remove initRender listeners since we're starting the loop
+		if (this.initRender) {
+			this.container.removeEventListener("mousemove", this.initRender as EventListener);
+			this.container.removeEventListener("touchmove", this.initRender as EventListener);
+		}
+		this.rafId = requestAnimationFrame(() => this.render());
+	}
+
+	private pushPositionHistory(x: number, y: number) {
+		const now = performance.now();
+		this.positionHistory.push({ x, y, t: now });
+		// Trim by age and length
+		const cutoff = now - BaseVariant.HISTORY_MAX_AGE;
+		while (
+			this.positionHistory.length > BaseVariant.HISTORY_MAX_LEN ||
+			(this.positionHistory.length > 1 && this.positionHistory[0].t < cutoff)
+		) {
+			this.positionHistory.shift();
+		}
+	}
+
+	protected getTouchVelocity(): { dx: number; dy: number } {
+		if (!this.touchActive || this.positionHistory.length < 2) {
+			// Mouse fallback: same as original behavior
+			return {
+				dx: this.mousePos.x - this.cacheMousePos.x,
+				dy: this.mousePos.y - this.cacheMousePos.y,
+			};
+		}
+		// Cumulative displacement over the buffer
+		let dx = 0;
+		let dy = 0;
+		for (let i = 1; i < this.positionHistory.length; i++) {
+			dx += this.positionHistory[i].x - this.positionHistory[i - 1].x;
+			dy += this.positionHistory[i].y - this.positionHistory[i - 1].y;
+		}
+		return { dx, dy };
 	}
 
 	protected render() {
@@ -205,6 +287,14 @@ abstract class BaseVariant implements ImageTrailVariant {
 			this.container.removeEventListener("mousemove", this.initRender as EventListener);
 			this.container.removeEventListener("touchmove", this.initRender as EventListener);
 		}
+		if (this.handleTouchStart) {
+			this.container.removeEventListener("touchstart", this.handleTouchStart);
+		}
+		if (this.handleTouchEnd) {
+			this.container.removeEventListener("touchend", this.handleTouchEnd);
+			this.container.removeEventListener("touchcancel", this.handleTouchEnd);
+		}
+		this.positionHistory = [];
 
 		for (const img of this.images) {
 			gsap.killTweensOf(img.DOM.el);
@@ -390,8 +480,9 @@ export class ImageTrailVariant4 extends BaseVariant {
 		const img = this.images[this.imgPosition];
 		gsap.killTweensOf(img.DOM.el);
 
-		let dx = this.mousePos.x - this.cacheMousePos.x;
-		let dy = this.mousePos.y - this.cacheMousePos.y;
+		const vel = this.getTouchVelocity();
+		let dx = vel.dx;
+		let dy = vel.dy;
 		const distance = Math.sqrt(dx * dx + dy * dy);
 		if (distance !== 0) {
 			dx /= distance;
@@ -470,8 +561,9 @@ export class ImageTrailVariant5 extends BaseVariant {
 	private lastAngle = 0;
 
 	protected showNextImage() {
-		let dx = this.mousePos.x - this.cacheMousePos.x;
-		let dy = this.mousePos.y - this.cacheMousePos.y;
+		const vel = this.getTouchVelocity();
+		let dx = vel.dx;
+		let dy = vel.dy;
 		let angle = Math.atan2(dy, dx) * (180 / Math.PI);
 		if (angle < 0) angle += 360;
 		if (angle > 90 && angle <= 270) angle += 180;
@@ -571,9 +663,8 @@ export class ImageTrailVariant6 extends BaseVariant {
 	}
 
 	protected showNextImage() {
-		const dx = this.mousePos.x - this.cacheMousePos.x;
-		const dy = this.mousePos.y - this.cacheMousePos.y;
-		const speed = Math.sqrt(dx * dx + dy * dy);
+		const vel = this.getTouchVelocity();
+		const speed = Math.sqrt(vel.dx * vel.dx + vel.dy * vel.dy);
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
