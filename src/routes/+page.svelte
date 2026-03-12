@@ -11,6 +11,7 @@
 		LineShadowText,
 		BoxReveal,
 		Timeline,
+		ImageTrailCursor,
 	} from "$lib/fancy-ui";
 	import type { TimelineItem } from "$lib/fancy-ui";
 	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
@@ -106,8 +107,9 @@
 <section
 	class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background"
 >
+
 	<!-- Particle background -->
-	<div class="absolute inset-0">
+	<div class="pointer-events-none absolute inset-0">
 		<Sparkles
 			background="transparent"
 			particleColor="#ffffff"
@@ -238,52 +240,6 @@
 			</div>
 		</a>
 
-		<!-- NumberTicker card -->
-		<a
-			href="/demo/number-ticker"
-			class="group border-border bg-card relative min-h-36 overflow-hidden rounded-xl border p-4"
-		>
-			<div class="flex h-full flex-col items-center justify-center">
-				<NumberTicker value={9842} duration={2000} class="text-4xl font-bold" />
-			</div>
-			<div class="absolute bottom-3 left-4">
-				<p class="text-muted-foreground text-xs">Text</p>
-				<p class="text-foreground text-sm font-semibold">NumberTicker</p>
-			</div>
-		</a>
-
-		<!-- Meteors card -->
-		<a
-			href="/demo/meteors"
-			class="group border-border relative min-h-36 overflow-hidden rounded-xl border bg-[#030712]"
-		>
-			<Meteors count={12} />
-			<div class="absolute inset-0 flex items-end p-4">
-				<div>
-					<p class="text-xs text-white/40">Backgrounds</p>
-					<p class="text-sm font-semibold text-white">Meteors</p>
-				</div>
-			</div>
-		</a>
-
-		<!-- LineShadowText card -->
-		<a
-			href="/demo/line-shadow-text"
-			class="group border-border bg-card relative min-h-36 overflow-hidden rounded-xl border p-4"
-		>
-			<div class="flex h-full flex-col items-center justify-center">
-				<LineShadowText
-					text="Fancy"
-					shadowColor="oklch(0.554 0.046 257.417)"
-					class="text-foreground text-4xl font-bold"
-				/>
-			</div>
-			<div class="absolute bottom-3 left-4">
-				<p class="text-muted-foreground text-xs">Text</p>
-				<p class="text-foreground text-sm font-semibold">LineShadowText</p>
-			</div>
-		</a>
-
 		<!-- Marquee card — full width -->
 		<a
 			href="/demo/marquee"
@@ -341,6 +297,33 @@
 			<div class="absolute bottom-3 left-4">
 				<p class="text-muted-foreground text-xs">Text</p>
 				<p class="text-foreground text-sm font-semibold">FlipWords</p>
+			</div>
+		</a>
+
+		<!-- ImageTrailCursor card -->
+		<a
+			href="/demo/image-trail-cursor"
+			class="group border-border relative col-span-2 min-h-48 overflow-hidden rounded-xl border bg-[#030712]"
+		>
+			<ImageTrailCursor
+				images={[
+					"https://picsum.photos/seed/fancy1/400/440",
+					"https://picsum.photos/seed/fancy2/400/440",
+					"https://picsum.photos/seed/fancy3/400/440",
+					"https://picsum.photos/seed/fancy4/400/440",
+					"https://picsum.photos/seed/fancy5/400/440",
+					"https://picsum.photos/seed/fancy6/400/440",
+				]}
+				variant="type1"
+			/>
+			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+				<p class="text-xs text-white/20">Move your cursor</p>
+			</div>
+			<div class="pointer-events-none absolute inset-0 flex items-end p-4">
+				<div>
+					<p class="text-xs text-white/40">Effects</p>
+					<p class="text-sm font-semibold text-white">ImageTrailCursor</p>
+				</div>
 			</div>
 		</a>
 	</div>
