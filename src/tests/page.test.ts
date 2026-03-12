@@ -9,11 +9,9 @@ describe("+page.svelte", () => {
 		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("FancyUI");
 	});
 
-	it("renders the description text", () => {
+	it("renders the tagline text", () => {
 		render(Page);
-		expect(
-			screen.getByText("Beautiful UI components ported from FancyUI to Svelte 5.")
-		).toBeInTheDocument();
+		expect(screen.getByText(/UI components for Svelte 5/i)).toBeInTheDocument();
 	});
 
 	it("renders a link to the demo page", () => {
