@@ -110,12 +110,10 @@ abstract class BaseVariant implements ImageTrailVariant {
 	protected zIndexVal: number;
 	protected activeImagesCount: number;
 	protected isIdle: boolean;
-	protected threshold: number;
 	protected mousePos: { x: number; y: number };
 	protected lastMousePos: { x: number; y: number };
 	protected cacheMousePos: { x: number; y: number };
 
-	protected isTouchDevice: boolean;
 	protected touchActive = false;
 	private positionHistory: { x: number; y: number; t: number }[] = [];
 	private static readonly HISTORY_MAX_AGE = 100; // ms
@@ -140,9 +138,6 @@ abstract class BaseVariant implements ImageTrailVariant {
 		this.zIndexVal = 1;
 		this.activeImagesCount = 0;
 		this.isIdle = true;
-		this.isTouchDevice =
-			typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-		this.threshold = this.isTouchDevice ? 40 : 80;
 		this.mousePos = { x: 0, y: 0 };
 		this.lastMousePos = { x: 0, y: 0 };
 		this.cacheMousePos = { x: 0, y: 0 };
@@ -235,6 +230,10 @@ abstract class BaseVariant implements ImageTrailVariant {
 			dy += this.positionHistory[i].y - this.positionHistory[i - 1].y;
 		}
 		return { dx, dy };
+	}
+
+	protected get threshold(): number {
+		return this.touchActive ? 40 : 80;
 	}
 
 	protected render() {
