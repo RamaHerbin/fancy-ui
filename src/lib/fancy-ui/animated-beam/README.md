@@ -1,7 +1,5 @@
 # AnimatedBeam
 
-Built from FancyUI's AnimatedBeam component.
-
 ## Overview
 Creates animated SVG beams that connect two elements with smooth gradients and customizable curves. Perfect for showing data flow, connections, or relationships between UI elements.
 
