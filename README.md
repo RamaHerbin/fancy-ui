@@ -9,13 +9,13 @@ Beautiful animation and UI components for **Svelte 5**.
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
-  <a href="https://svelte-ui-omega.vercel.app">
+  <a href="https://fancy-ui.rama.app">
     <img src=".github/demo-gallery.png" alt="fancy-ui demo gallery" width="800" />
   </a>
 </p>
 
 <p align="center">
-  <a href="https://svelte-ui-omega.vercel.app"><strong>Live Demo</strong></a>
+  <a href="https://fancy-ui.rama.app"><strong>Live Demo</strong></a>
 </p>
 
 ## Features
@@ -23,7 +23,7 @@ Beautiful animation and UI components for **Svelte 5**.
 - **Svelte 5 Runes** &mdash; Built with `$state`, `$derived`, `$effect`, and `$props`
 - **Tailwind CSS 4** &mdash; Utility-first styling with theme tokens
 - **TypeScript** &mdash; Fully typed props and events
-- **31 Components** &mdash; Buttons, text animations, backgrounds, effects, and more
+- **52 Components** &mdash; Buttons, text animations, backgrounds, effects, and more
 - **Dark Mode** &mdash; All components support light and dark themes
 - **Tested** &mdash; Component tests with Vitest and Testing Library
 
@@ -33,105 +33,105 @@ Beautiful animation and UI components for **Svelte 5**.
 
 | Component | Description | Demo |
 |-----------|-------------|------|
-| RainbowButton | Animated rainbow gradient border effect | [Demo](https://svelte-ui-omega.vercel.app/demo/rainbow-button) |
-| RippleButton | Ripple click effect | [Demo](https://svelte-ui-omega.vercel.app/demo/ripple-button) |
-| ShimmerButton | Rotating conic-gradient shimmer border | [Demo](https://svelte-ui-omega.vercel.app/demo/shimmer-button) |
-| GradientButton | Rotating conic-gradient rainbow border | [Demo](https://svelte-ui-omega.vercel.app/demo/gradient-button) |
-| InteractiveHoverButton | Hover effect revealing alternate content | [Demo](https://svelte-ui-omega.vercel.app/demo/interactive-hover-button) |
+| RainbowButton | Animated rainbow gradient border effect | [Demo](https://fancy-ui.rama.app/demo/rainbow-button) |
+| RippleButton | Ripple click effect | [Demo](https://fancy-ui.rama.app/demo/ripple-button) |
+| ShimmerButton | Rotating conic-gradient shimmer border | [Demo](https://fancy-ui.rama.app/demo/shimmer-button) |
+| GradientButton | Rotating conic-gradient rainbow border | [Demo](https://fancy-ui.rama.app/demo/gradient-button) |
+| InteractiveHoverButton | Hover effect revealing alternate content | [Demo](https://fancy-ui.rama.app/demo/interactive-hover-button) |
 
 ### Cards
 
 | Component | Description | Demo |
 |-----------|-------------|------|
-| DirectionAwareHover | Overlay slides in from mouse entry direction | [Demo](https://svelte-ui-omega.vercel.app/demo/direction-aware-hover) |
+| Card3D | 3D tilt card with mouse tracking | [Demo](https://fancy-ui.rama.app/demo/card-3d) |
+| CardSpotlight | Spotlight effect following mouse | [Demo](https://fancy-ui.rama.app/demo/card-spotlight) |
+| DirectionAwareHover | Overlay slides in from mouse entry direction | [Demo](https://fancy-ui.rama.app/demo/direction-aware-hover) |
+| FlipCard | Two-sided card with flip animation | [Demo](https://fancy-ui.rama.app/demo/flip-card) |
+| GlareCard | Glare reflection effect on hover | [Demo](https://fancy-ui.rama.app/demo/glare-card) |
+| TextRevealCard | Text reveal on hover | [Demo](https://fancy-ui.rama.app/demo/text-reveal-card) |
 
 ### Text & Typography
 
 | Component | Description | Demo |
 |-----------|-------------|------|
-| BlurReveal | Scroll-triggered blur-to-clear reveal | [Demo](https://svelte-ui-omega.vercel.app/demo/blur-reveal) |
-| ColourfulText | Per-character color animation | [Demo](https://svelte-ui-omega.vercel.app/demo/colourful-text) |
-| FlipWords | Cycling word animation with per-letter effects | [Demo](https://svelte-ui-omega.vercel.app/demo/flip-words) |
-| HyperText | Character scramble on hover | [Demo](https://svelte-ui-omega.vercel.app/demo/hyper-text) |
-| LetterPullup | Staggered letter pull-up animation | [Demo](https://svelte-ui-omega.vercel.app/demo/letter-pullup) |
-| NumberTicker | Animated number counter with easing | [Demo](https://svelte-ui-omega.vercel.app/demo/number-ticker) |
-| SparklesText | Animated SVG sparkle stars overlay | [Demo](https://svelte-ui-omega.vercel.app/demo/sparkles-text) |
-| BoxReveal | Sliding colored box reveal animation | [Demo](https://svelte-ui-omega.vercel.app/demo/box-reveal) |
+| BlurReveal | Scroll-triggered blur-to-clear reveal | [Demo](https://fancy-ui.rama.app/demo/blur-reveal) |
+| BoxReveal | Sliding colored box reveal animation | [Demo](https://fancy-ui.rama.app/demo/box-reveal) |
+| ColourfulText | Per-character color animation | [Demo](https://fancy-ui.rama.app/demo/colourful-text) |
+| ContainerTextFlip | Text flipping inside a container | [Demo](https://fancy-ui.rama.app/demo/container-text-flip) |
+| FlipWords | Cycling word animation with per-letter effects | [Demo](https://fancy-ui.rama.app/demo/flip-words) |
+| HyperText | Character scramble on hover | [Demo](https://fancy-ui.rama.app/demo/hyper-text) |
+| LetterPullup | Staggered letter pull-up animation | [Demo](https://fancy-ui.rama.app/demo/letter-pullup) |
+| LineShadowText | Text with animated line shadow | [Demo](https://fancy-ui.rama.app/demo/line-shadow-text) |
+| NumberTicker | Animated number counter with easing | [Demo](https://fancy-ui.rama.app/demo/number-ticker) |
+| SparklesText | Animated SVG sparkle stars overlay | [Demo](https://fancy-ui.rama.app/demo/sparkles-text) |
+| TextGenerateEffect | Word-by-word text generation effect | [Demo](https://fancy-ui.rama.app/demo/text-generate-effect) |
 
 ### Backgrounds
 
 | Component | Description | Demo |
 |-----------|-------------|------|
-| FallingStarsBg | Canvas 3D starfield with motion trails | [Demo](https://svelte-ui-omega.vercel.app/demo/bg-falling-stars) |
-| StarsBackground | Starfield with parallax mouse tracking | [Demo](https://svelte-ui-omega.vercel.app/demo/bg-stars) |
-| FlickeringGrid | Canvas grid with flickering opacity | [Demo](https://svelte-ui-omega.vercel.app/demo/flickering-grid) |
+| FallingStarsBg | Canvas 3D starfield with motion trails | [Demo](https://fancy-ui.rama.app/demo/bg-falling-stars) |
+| FlickeringGrid | Canvas grid with flickering opacity | [Demo](https://fancy-ui.rama.app/demo/flickering-grid) |
+| InteractiveGridPattern | SVG grid with hover highlights | [Demo](https://fancy-ui.rama.app/demo/interactive-grid-pattern) |
+| StarsBackground | Starfield with parallax mouse tracking | [Demo](https://fancy-ui.rama.app/demo/bg-stars) |
 
-### Effects
+### Effects & Animations
 
 | Component | Description | Demo |
 |-----------|-------------|------|
-| AnimatedBeam | SVG beams connecting elements | [Demo](https://svelte-ui-omega.vercel.app/demo/animated-beam) |
-| BorderBeam | Beam effect traveling around borders | [Demo](https://svelte-ui-omega.vercel.app/demo/border-beam) |
-| ImageTrailCursor | Cursor-following image trail (8 variants) | [Demo](https://svelte-ui-omega.vercel.app/demo/image-trail-cursor) |
-| InteractiveGridPattern | SVG grid with hover highlights | [Demo](https://svelte-ui-omega.vercel.app/demo/interactive-grid-pattern) |
-| FluidCursor | WebGL fluid simulation following cursor | [Demo](https://svelte-ui-omega.vercel.app/demo/fluid-cursor) |
-| GlowBorder | Animated glowing border with gradients | [Demo](https://svelte-ui-omega.vercel.app/demo/glow-border) |
-| Meteors | Animated meteor shower effect | [Demo](https://svelte-ui-omega.vercel.app/demo/meteors) |
-| NeonBorder | Dual-color neon glow border | [Demo](https://svelte-ui-omega.vercel.app/demo/neon-border) |
+| AnimatedBeam | SVG beams connecting elements | [Demo](https://fancy-ui.rama.app/demo/animated-beam) |
+| BorderBeam | Beam effect traveling around borders | [Demo](https://fancy-ui.rama.app/demo/border-beam) |
+| Confetti | Configurable confetti burst | [Demo](https://fancy-ui.rama.app/demo/confetti) |
+| FluidCursor | WebGL fluid simulation following cursor | [Demo](https://fancy-ui.rama.app/demo/fluid-cursor) |
+| GlowBorder | Animated glowing border with gradients | [Demo](https://fancy-ui.rama.app/demo/glow-border) |
+| GlowingEffect | Glowing highlight on hover | [Demo](https://fancy-ui.rama.app/demo/glowing-effect) |
+| ImageTrailCursor | Cursor-following image trail (8 variants) | [Demo](https://fancy-ui.rama.app/demo/image-trail-cursor) |
+| LiquidGlass | Liquid glass morphism effect | [Demo](https://fancy-ui.rama.app/demo/liquid-glass) |
+| Meteors | Animated meteor shower effect | [Demo](https://fancy-ui.rama.app/demo/meteors) |
+| NeonBorder | Dual-color neon glow border | [Demo](https://fancy-ui.rama.app/demo/neon-border) |
+| Ripple | Expanding ripple rings | [Demo](https://fancy-ui.rama.app/demo/ripple) |
+| SmoothCursor | Smooth lagging cursor follower | [Demo](https://fancy-ui.rama.app/demo/smooth-cursor) |
+| Sparkles | Particle sparkle canvas | [Demo](https://fancy-ui.rama.app/demo/sparkles) |
+| TracingBeam | Scroll-driven tracing beam | [Demo](https://fancy-ui.rama.app/demo/tracing-beam) |
 
 ### Layout
 
 | Component | Description | Demo |
 |-----------|-------------|------|
-| Marquee | Infinite scrolling for text, images, or cards | [Demo](https://svelte-ui-omega.vercel.app/demo/marquee) |
+| BentoGrid | Bento-style responsive grid layout | [Demo](https://fancy-ui.rama.app/demo/bento-grid) |
+| Book | 3D book flip animation | [Demo](https://fancy-ui.rama.app/demo/book) |
+| ContainerScroll | 3D scroll perspective container | [Demo](https://fancy-ui.rama.app/demo/container-scroll) |
+| Focus | Focus-expand card layout | [Demo](https://fancy-ui.rama.app/demo/focus) |
+| Marquee | Infinite scrolling for text, images, or cards | [Demo](https://fancy-ui.rama.app/demo/marquee) |
 
-### Navigation
-
-| Component | Description | Demo |
-|-----------|-------------|------|
-| Timeline | Vertical timeline with scroll-driven progress | [Demo](https://svelte-ui-omega.vercel.app/demo/timeline) |
-| Dock | macOS-style dock with icon magnification | [Demo](https://svelte-ui-omega.vercel.app/demo/dock) |
-
-### Data Display
+### Navigation & Display
 
 | Component | Description | Demo |
 |-----------|-------------|------|
-| LogoCloud | Marquee, grid, and icon logo layouts | [Demo](https://svelte-ui-omega.vercel.app/demo/logo-cloud) |
-
-### Feedback
-
-| Component | Description | Demo |
-|-----------|-------------|------|
-| AnimatedTooltip | Avatar row with mouse-following tooltips | [Demo](https://svelte-ui-omega.vercel.app/demo/animated-tooltip) |
-
-### Media
-
-| Component | Description | Demo |
-|-----------|-------------|------|
-| Compare | Before/after image comparison slider | [Demo](https://svelte-ui-omega.vercel.app/demo/compare) |
+| AnimatedTooltip | Avatar row with mouse-following tooltips | [Demo](https://fancy-ui.rama.app/demo/animated-tooltip) |
+| Compare | Before/after image comparison slider | [Demo](https://fancy-ui.rama.app/demo/compare) |
+| Dock | macOS-style dock with icon magnification | [Demo](https://fancy-ui.rama.app/demo/dock) |
+| LogoCloud | Marquee, grid, and icon logo layouts | [Demo](https://fancy-ui.rama.app/demo/logo-cloud) |
+| Timeline | Vertical timeline with scroll-driven progress | [Demo](https://fancy-ui.rama.app/demo/timeline) |
 
 ## Quick Start
 
+> **Status:** Pre-release. No npm package yet — components are available via copy-paste
+> or by cloning the repo. A registry-based install (`npx shadcn-svelte@latest add`) is
+> planned for v0.2.
+
+**Browse and copy a component:**
+1. Find the component you need in the [live demo](https://fancy-ui.rama.app)
+2. Copy the source from `src/lib/fancy-ui/[component-name]/`
+3. Paste into your project
+
+**Or clone the full demo locally:**
+
 ```bash
-# Clone the repository
 git clone https://github.com/RamaHerbin/fancy-ui.git
 cd fancy-ui
-
-# Install dependencies
 pnpm install
-
-# Start the dev server
 pnpm dev
-```
-
-Import a component:
-
-```svelte
-<script lang="ts">
-  import { RainbowButton } from '$lib/fancy-ui';
-</script>
-
-<RainbowButton>Click me</RainbowButton>
 ```
 
 ## Development
@@ -167,7 +167,7 @@ src/
 
 ## Contributing
 
-The library currently ships **31 components** with many more planned &mdash; contributions are welcome!
+Contributions are welcome! 52 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
 
 ### Adding a new component
 
@@ -176,8 +176,6 @@ The library currently ships **31 components** with many more planned &mdash; con
 3. Add a demo page at `src/routes/demo/[slug]/+page.svelte`
 4. Register it in `src/lib/fancy-ui/registry.ts`
 5. Export it from `src/lib/fancy-ui/index.ts`
-
-See [CLAUDE.md](./CLAUDE.md) for detailed conventions and Svelte 5 idioms.
 
 ## Tech Stack
 
@@ -193,7 +191,7 @@ See [CLAUDE.md](./CLAUDE.md) for detailed conventions and Svelte 5 idioms.
 
 ## Credits
 
-Some components are adapted from [Inspira UI](https://inspira-ui.com).
+Inspired by [Inspira UI](https://inspira-ui.com), [Aceternity UI](https://ui.aceternity.com) and [Magic UI](https://magicui.design).
 
 ## License
 
