@@ -39,11 +39,11 @@
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Dark Background</h2>
-		<div class="flex items-center justify-center rounded-lg border bg-black p-8">
+		<div class="bg-background flex items-center justify-center rounded-lg border p-8">
 			<LineShadowText
 				text="Light on Dark"
 				shadowColor="white"
-				class="text-6xl font-bold text-white"
+				class="text-foreground text-6xl font-bold"
 			/>
 		</div>
 	</section>

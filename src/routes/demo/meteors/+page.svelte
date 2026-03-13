@@ -17,9 +17,9 @@
 		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
 		<div class="bg-card rounded-lg border p-6">
 			<div
-				class="relative mx-auto flex h-64 w-full max-w-md items-center justify-center overflow-hidden rounded-xl border bg-slate-950 p-6"
+				class="bg-background relative mx-auto flex h-64 w-full max-w-md items-center justify-center overflow-hidden rounded-xl border p-6"
 			>
-				<p class="z-10 text-center text-white">Default (20 meteors)</p>
+				<p class="text-foreground z-10 text-center">Default (20 meteors)</p>
 				<Meteors />
 			</div>
 		</div>
@@ -35,15 +35,15 @@
 		</p>
 		<div class="bg-card flex flex-wrap justify-center gap-6 rounded-lg border p-6">
 			<div
-				class="relative flex h-48 w-56 items-center justify-center overflow-hidden rounded-xl border bg-slate-950 p-4"
+				class="bg-background relative flex h-48 w-56 items-center justify-center overflow-hidden rounded-xl border p-4"
 			>
-				<p class="z-10 text-center text-xs text-white">5 meteors</p>
+				<p class="text-foreground z-10 text-center text-xs">5 meteors</p>
 				<Meteors count={5} />
 			</div>
 			<div
-				class="relative flex h-48 w-56 items-center justify-center overflow-hidden rounded-xl border bg-slate-950 p-4"
+				class="bg-background relative flex h-48 w-56 items-center justify-center overflow-hidden rounded-xl border p-4"
 			>
-				<p class="z-10 text-center text-xs text-white">40 meteors</p>
+				<p class="text-foreground z-10 text-center text-xs">40 meteors</p>
 				<Meteors count={40} />
 			</div>
 		</div>
@@ -54,12 +54,12 @@
 		<h2 class="mb-4 text-xl font-semibold">Card with Meteors</h2>
 		<div class="bg-card rounded-lg border p-6">
 			<div
-				class="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-8 shadow-xl"
+				class="border-border bg-background relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border p-8 shadow-xl"
 			>
 				<Meteors count={15} />
 				<div class="relative z-10">
-					<h3 class="mb-2 text-lg font-bold text-white">Shooting Stars</h3>
-					<p class="text-sm text-slate-400">
+					<h3 class="text-foreground mb-2 text-lg font-bold">Shooting Stars</h3>
+					<p class="text-muted-foreground text-sm">
 						A beautiful meteor shower effect for dark-themed cards and hero sections.
 					</p>
 				</div>
