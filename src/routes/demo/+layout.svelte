@@ -219,7 +219,6 @@
 
 		<!-- Spacer -->
 		<div class="flex-1"></div>
-
 	</header>
 
 	<!-- Page content -->
