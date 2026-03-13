@@ -26,6 +26,18 @@ src/routes/pages/
 test-results/
 playwright-report/
 
+# Content (builder data, local only)
+content/pages/*.json
+content/site.json
+static/portfolio/
+
+# Internal docs
+docs/
+TODO.md
+
+# Editor
+.vscode/
+
 # OS
 .DS_Store
 Thumbs.db
