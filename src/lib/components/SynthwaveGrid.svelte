@@ -208,8 +208,5 @@
 	});
 </script>
 
-<canvas
-	bind:this={canvas}
-	class="absolute inset-0 h-full w-full {className}"
-	aria-hidden="true"
+<canvas bind:this={canvas} class="absolute inset-0 h-full w-full {className}" aria-hidden="true"
 ></canvas>
