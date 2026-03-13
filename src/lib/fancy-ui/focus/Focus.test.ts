@@ -22,7 +22,7 @@ describe("Focus", () => {
 	it("renders default sentence", () => {
 		const { container } = render(Focus);
 		const words = container.querySelectorAll(".focus-word");
-		expect(words.length).toBe(2); // "Inspira" "Focus"
+		expect(words.length).toBe(2); // "Fancy" "Focus"
 	});
 
 	it("renders focus frame with corners", () => {
