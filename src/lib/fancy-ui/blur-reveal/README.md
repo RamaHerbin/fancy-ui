@@ -35,7 +35,7 @@ A scroll-triggered reveal animation that transitions children from blurred and o
 
 ## Implementation Notes
 
-- Replaced `motion-v` (Motion for Vue) with IntersectionObserver + CSS transitions
-- reference design iterates VNodes from `slots.default()` to wrap each in a `Motion` component; Svelte version applies stagger via `:nth-child` CSS selectors on direct children
-- Default `delay` changed from `2` (Vue) to `0.2` — the Vue value was a multiplier used differently by motion-v
+- Replaced `motion-v` with IntersectionObserver + CSS transitions
+- The reference design iterates VNodes from `slots.default()` to wrap each in a `Motion` component; this Svelte version applies stagger via `:nth-child` CSS selectors on direct children
+- Default `delay` changed from `2` to `0.2` — the original value was a multiplier used differently by motion-v
 - Supports up to 10 staggered children via CSS; beyond that, extra children animate with the same delay as the 10th

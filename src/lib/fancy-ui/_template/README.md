@@ -1,6 +1,6 @@
 # Component Template
 
-This template provides the starting point for implementing FancyUI components to Svelte.
+This template provides the starting point for implementing FancyUI components in Svelte.
 
 ## Quick Start
 
@@ -24,7 +24,7 @@ src/lib/fancy-ui/[component-name]/
 ├── [ComponentName].svelte    # Main component
 ├── types.ts                  # Component-specific types (optional)
 ├── index.ts                  # Barrel exports
-└── README.md                 # Porting notes
+└── README.md                 # Implementation notes
 ```
 
 ## Implementation Workflow
@@ -224,7 +224,7 @@ Add to the components array in `src/routes/demo/+page.svelte`:
 
 Before marking a component as done:
 
-- [ ] All props from reference design are supported
+- [ ] All props from the reference design are supported
 - [ ] Slots/children render correctly
 - [ ] Events work as expected
 - [ ] Animations are smooth
@@ -233,7 +233,7 @@ Before marking a component as done:
 - [ ] Keyboard navigation works (if applicable)
 - [ ] `pnpm check` passes
 - [ ] Demo page shows all variants
-- [ ] README.md documents any differences from reference design
+- [ ] README.md documents any Svelte-specific differences
 
 ## Common Issues
 
