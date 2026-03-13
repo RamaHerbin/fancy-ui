@@ -86,7 +86,7 @@
 		<p class="text-muted-foreground mb-4 text-sm">
 			The tooltip stands out on dark backgrounds with its gradient accents.
 		</p>
-		<div class="bg-background flex justify-center rounded-lg border p-8">
+		<div class="flex justify-center rounded-lg border bg-zinc-950 p-8">
 			<AnimatedTooltip items={people} />
 		</div>
 	</section>

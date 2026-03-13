@@ -54,12 +54,12 @@
 		<h2 class="mb-4 text-xl font-semibold">Card with Meteors</h2>
 		<div class="bg-card rounded-lg border p-6">
 			<div
-				class="border-border bg-background relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border p-8 shadow-xl"
+				class="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-8 shadow-xl"
 			>
 				<Meteors count={15} />
 				<div class="relative z-10">
-					<h3 class="text-foreground mb-2 text-lg font-bold">Shooting Stars</h3>
-					<p class="text-muted-foreground text-sm">
+					<h3 class="mb-2 text-lg font-bold text-white">Shooting Stars</h3>
+					<p class="text-sm text-zinc-400">
 						A beautiful meteor shower effect for dark-themed cards and hero sections.
 					</p>
 				</div>
