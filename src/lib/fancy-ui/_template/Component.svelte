@@ -6,7 +6,7 @@
   2. Rename this file to [ComponentName].svelte (PascalCase)
   3. Replace all [ComponentName] placeholders with actual name
   4. Replace all [component-name] placeholders with kebab-case name
-  5. Update props interface based on reference design
+  5. Update props interface based on the reference design
   6. Implement the component logic
   7. Delete this comment block when done
 -->
