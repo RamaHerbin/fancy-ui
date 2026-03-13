@@ -1,8 +1,13 @@
 {
 	"name": "fancy-ui",
-	"private": true,
+	"private": false,
 	"version": "0.0.1",
 	"type": "module",
+	"license": "MIT",
+	"repository": { "type": "git", "url": "git+https://github.com/RamaHerbin/fancy-ui.git" },
+	"homepage": "https://fancy-ui.rama.app",
+	"bugs": { "url": "https://github.com/RamaHerbin/fancy-ui/issues" },
+	"keywords": ["svelte", "svelte5", "components", "animations", "ui", "tailwind"],
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",

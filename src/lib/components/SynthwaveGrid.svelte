@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount } from "svelte";
 
 	let canvas: HTMLCanvasElement;
 	let resizeObserver: ResizeObserver;
@@ -9,11 +9,11 @@
 		speed = 0.6,
 		verticalLines = 14,
 		horizontalLines = 12,
-		colorH = '#ff2d78',
-		colorV = '#bf5fff',
-		sunColor1 = '#ffdd00',
-		sunColor2 = '#ff2d78',
-		class: className = ''
+		colorH = "#ff2d78",
+		colorV = "#bf5fff",
+		sunColor1 = "#ffdd00",
+		sunColor2 = "#ff2d78",
+		class: className = "",
 	}: {
 		speed?: number;
 		verticalLines?: number;
@@ -26,7 +26,7 @@
 	} = $props();
 
 	onMount(() => {
-		const ctx = canvas.getContext('2d')!;
+		const ctx = canvas.getContext("2d")!;
 		let offset = 0;
 		let raf: number;
 
@@ -36,10 +36,14 @@
 		}
 
 		function hexToRgb(hex: string) {
-			const clean = hex.startsWith('#') ? hex : '#ff2d78';
-			const r = parseInt(clean.slice(1, 3), 16) || 0;
-			const g = parseInt(clean.slice(3, 5), 16) || 0;
-			const b = parseInt(clean.slice(5, 7), 16) || 0;
+			const normalized = /^#?[0-9a-fA-F]{6}$/.test(hex)
+				? hex.startsWith("#")
+					? hex
+					: `#${hex}`
+				: "#ff2d78";
+			const r = parseInt(normalized.slice(1, 3), 16);
+			const g = parseInt(normalized.slice(3, 5), 16);
+			const b = parseInt(normalized.slice(5, 7), 16);
 			return { r, g, b };
 		}
 
@@ -60,9 +64,9 @@
 
 			// ── Background gradient ──────────────────────────────────────────
 			const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-			bgGrad.addColorStop(0, '#0a0015');
-			bgGrad.addColorStop(0.45, '#12002a');
-			bgGrad.addColorStop(1, '#0a0015');
+			bgGrad.addColorStop(0, "#0a0015");
+			bgGrad.addColorStop(0.45, "#12002a");
+			bgGrad.addColorStop(1, "#0a0015");
 			ctx.fillStyle = bgGrad;
 			ctx.fillRect(0, 0, W, H);
 
@@ -101,7 +105,7 @@
 			// Sun glow
 			const glowGrad = ctx.createRadialGradient(vpX, sunY, sunR * 0.6, vpX, sunY, sunR * 2.2);
 			glowGrad.addColorStop(0, `${sunColor2}55`);
-			glowGrad.addColorStop(1, 'transparent');
+			glowGrad.addColorStop(1, "transparent");
 			ctx.save();
 			ctx.beginPath();
 			ctx.rect(0, 0, W, horizonY);
@@ -176,15 +180,15 @@
 
 			// ── Sky glow (above horizon) ─────────────────────────────────────
 			const skyGlow = ctx.createLinearGradient(0, 0, 0, horizonY);
-			skyGlow.addColorStop(0, 'transparent');
+			skyGlow.addColorStop(0, "transparent");
 			skyGlow.addColorStop(1, `${colorV}18`);
 			ctx.fillStyle = skyGlow;
 			ctx.fillRect(0, 0, W, horizonY);
 
 			// ── Vignette ─────────────────────────────────────────────────────
 			const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.9);
-			vig.addColorStop(0, 'transparent');
-			vig.addColorStop(1, 'rgba(0,0,0,0.65)');
+			vig.addColorStop(0, "transparent");
+			vig.addColorStop(1, "rgba(0,0,0,0.65)");
 			ctx.fillStyle = vig;
 			ctx.fillRect(0, 0, W, H);
 
