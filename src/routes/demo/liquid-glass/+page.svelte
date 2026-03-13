@@ -9,7 +9,7 @@
 
 <!-- Full viewport demo: scroll the page content behind the fixed glass -->
 <div
-	class="relative flex h-[calc(100vh-3.5rem)] w-full items-center justify-center overflow-hidden"
+	class="relative flex h-[calc(100dvh-3.5rem)] w-full items-center justify-center overflow-hidden"
 >
 	<!-- Animated dot grid background -->
 	<FlickeringGrid

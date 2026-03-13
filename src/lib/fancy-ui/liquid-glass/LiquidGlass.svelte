@@ -161,7 +161,6 @@
 
 <style>
 	.liquid-glass-effect {
-		position: relative;
 		display: block;
 		opacity: 1;
 		border-radius: inherit;
@@ -196,9 +195,8 @@
 
 	.liquid-glass-filter {
 		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
+		width: 0;
+		height: 0;
 		pointer-events: none;
 	}
 </style>
