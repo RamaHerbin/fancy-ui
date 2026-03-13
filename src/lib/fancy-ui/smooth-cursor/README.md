@@ -15,7 +15,7 @@ A customizable, physics-based smooth cursor animation component. The cursor foll
 
 ## Implementation Notes
 
-### Svelte 5 Implementation/React
+### Svelte 5 Implementation
 
 1. **Spring physics**: Implemented manually using `requestAnimationFrame` instead of Framer Motion's `useSpring`
 2. **Custom cursor**: Uses Svelte 5 snippets instead of JSX elements

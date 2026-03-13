@@ -551,7 +551,7 @@ export function searchComponents(query: string): ComponentMeta[] {
 }
 
 /**
- * Get implementing statistics
+ * Get implementation statistics
  */
 export function getStats(): {
 	total: number;

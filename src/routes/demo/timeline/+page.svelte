@@ -46,8 +46,8 @@
 				<div class="bg-card rounded-lg border p-4">
 					<h4 class="mb-2 font-semibold">Project kickoff</h4>
 					<p class="text-muted-foreground text-sm">
-						Started implementing FancyUI components from Vue to idiomatic Svelte 5. Established component
-						template, registry system, and demo infrastructure.
+						Started building FancyUI, a Svelte 5 component library. Established component template,
+						registry system, and demo infrastructure.
 					</p>
 				</div>
 			</div>
@@ -57,8 +57,8 @@
 				<div class="bg-card rounded-lg border p-4">
 					<h4 class="mb-2 font-semibold">Design exploration</h4>
 					<p class="text-muted-foreground text-sm">
-						Evaluated component libraries and identified FancyUI as the source for high-quality
-						animation components. Prototyped initial ports.
+						Evaluated animation techniques and UI patterns. Prototyped initial components and
+						established the visual direction.
 					</p>
 				</div>
 			</div>
