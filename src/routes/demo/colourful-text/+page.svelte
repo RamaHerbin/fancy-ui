@@ -16,8 +16,8 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
 		<div class="bg-card rounded-lg border p-6">
-			<div class="mx-auto flex items-center justify-center rounded-xl bg-slate-950 p-12">
-				<h2 class="text-4xl font-bold text-white">
+			<div class="bg-background mx-auto flex items-center justify-center rounded-xl p-12">
+				<h2 class="text-foreground text-4xl font-bold">
 					Make things <ColourfulText text="colourful" />
 				</h2>
 			</div>
@@ -31,8 +31,8 @@
 			Pass a custom <code class="bg-muted rounded px-1.5 py-0.5">colors</code> array.
 		</p>
 		<div class="bg-card rounded-lg border p-6">
-			<div class="mx-auto flex items-center justify-center rounded-xl bg-slate-950 p-12">
-				<h2 class="text-4xl font-bold text-white">
+			<div class="bg-background mx-auto flex items-center justify-center rounded-xl p-12">
+				<h2 class="text-foreground text-4xl font-bold">
 					<ColourfulText
 						text="Ocean Vibes"
 						colors={["#0ea5e9", "#06b6d4", "#14b8a6", "#3b82f6", "#6366f1"]}
@@ -46,17 +46,17 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Transition Speed</h2>
 		<div class="bg-card space-y-6 rounded-lg border p-6">
-			<div class="flex items-center justify-center rounded-xl bg-slate-950 p-8">
+			<div class="bg-background flex items-center justify-center rounded-xl p-8">
 				<div class="text-center">
-					<p class="mb-2 text-xs text-slate-500">Fast (0.2s)</p>
+					<p class="text-muted-foreground mb-2 text-xs">Fast (0.2s)</p>
 					<h2 class="text-3xl font-bold">
 						<ColourfulText text="Lightning" duration={0.2} />
 					</h2>
 				</div>
 			</div>
-			<div class="flex items-center justify-center rounded-xl bg-slate-950 p-8">
+			<div class="bg-background flex items-center justify-center rounded-xl p-8">
 				<div class="text-center">
-					<p class="mb-2 text-xs text-slate-500">Slow (1.5s)</p>
+					<p class="text-muted-foreground mb-2 text-xs">Slow (1.5s)</p>
 					<h2 class="text-3xl font-bold">
 						<ColourfulText text="Smooth Flow" duration={1.5} />
 					</h2>
@@ -69,7 +69,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Longer Text</h2>
 		<div class="bg-card rounded-lg border p-6">
-			<div class="mx-auto flex items-center justify-center rounded-xl bg-slate-950 p-12">
+			<div class="bg-background mx-auto flex items-center justify-center rounded-xl p-12">
 				<p class="text-center text-2xl font-semibold">
 					<ColourfulText text="Every character gets its own colour!" />
 				</p>

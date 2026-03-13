@@ -22,14 +22,7 @@
 
 <svelte:element
 	this={as}
-	class={cn(
-		"line-shadow-text relative z-0 inline-flex",
-		"after:absolute after:top-[0.04em] after:left-[0.04em] after:-z-10",
-		"after:bg-[linear-gradient(45deg,transparent_45%,var(--shadow-color)_45%,var(--shadow-color)_55%,transparent_0)]",
-		"after:bg-[length:0.06em_0.06em] after:bg-clip-text after:text-transparent",
-		"after:content-[attr(data-text)]",
-		className
-	)}
+	class={cn("line-shadow-text relative z-0 inline-block", className)}
 	{style}
 	data-text={text}
 >
@@ -49,6 +42,22 @@
 	}
 
 	.line-shadow-text::after {
+		content: attr(data-text);
+		position: absolute;
+		top: 0.04em;
+		left: 0.04em;
+		z-index: -10;
+		background-image: linear-gradient(
+			45deg,
+			transparent 45%,
+			var(--shadow-color) 45%,
+			var(--shadow-color) 55%,
+			transparent 0
+		);
+		background-size: 0.06em 0.06em;
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
 		animation: line-shadow 15s linear infinite;
 	}
 </style>
