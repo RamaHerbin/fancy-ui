@@ -52,7 +52,7 @@
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Dark Background</h2>
-		<div class="flex items-center justify-center rounded-lg border bg-black p-8">
+		<div class="flex items-center justify-center rounded-lg border bg-zinc-950 p-8">
 			<p class="text-6xl leading-none font-bold text-white">
 				Light on <LineShadowText text="Dark" shadowColor="white" />
 			</p>
