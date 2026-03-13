@@ -12,9 +12,13 @@
 		BoxReveal,
 		Timeline,
 		ImageTrailCursor,
+		BentoGrid,
+		BentoGridCard,
+		TextGenerateEffect,
 	} from "$lib/fancy-ui";
 	import type { TimelineItem } from "$lib/fancy-ui";
-	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+	import SynthwaveGrid from "$lib/components/SynthwaveGrid.svelte";
+	import { Wand2, MousePointer2, GalleryHorizontal } from "@lucide/svelte";
 
 	const GITHUB_URL = "https://github.com/ramaherbin/fancy-ui";
 	const DEMO_URL = "/demo";
@@ -98,10 +102,6 @@
 		content="50+ animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript."
 	/>
 </svelte:head>
-
-<div class="fixed top-4 right-4 z-50">
-	<ThemeToggle />
-</div>
 
 <!-- ─── HERO ─────────────────────────────────────────────────────────────── -->
 <section
@@ -198,135 +198,90 @@
 
 <!-- ─── COMPONENT SHOWCASE ────────────────────────────────────────────────── -->
 <section class="mx-auto max-w-6xl px-4 py-20">
-	<BoxReveal color="var(--primary)" duration={0.4}>
-		<h2 class="text-foreground mb-2 text-center text-3xl font-bold sm:text-4xl">
-			Everything you need
-		</h2>
-	</BoxReveal>
-	<BoxReveal color="var(--primary)" duration={0.4} delay={0.4}>
-		<p class="text-muted-foreground mb-12 text-center">
-			Live interactive previews — no screenshots
-		</p>
-	</BoxReveal>
+	<TextGenerateEffect
+		words="Everything you need"
+		class="text-foreground mb-2 text-center text-3xl font-bold sm:text-4xl"
+	/>
+	<TextGenerateEffect
+		words="Live interactive previews — no screenshots"
+		delay={0.4}
+		class="text-muted-foreground mb-12 text-center"
+	/>
 
-	<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-		<!-- Sparkles card -->
-		<a
+	<BentoGrid>
+		<!-- Sparkles -->
+		<BentoGridCard
+			name="Particle Backgrounds"
+			description="Atmospheric particle effects for hero sections and dark layouts."
 			href="/demo/sparkles"
-			class="group border-border relative col-span-2 row-span-2 min-h-48 overflow-hidden rounded-xl border bg-[#030712]"
+			cta="See demo"
+			class="col-span-3 md:col-span-1"
 		>
-			<Sparkles background="transparent" particleColor="#ffffff" particleDensity={60} />
-			<div class="absolute inset-0 flex items-end p-4">
-				<div>
-					<p class="text-xs text-white/40">Backgrounds</p>
-					<p class="font-semibold text-white">Sparkles</p>
+			{#snippet icon()}
+				<Wand2 class="size-6" />
+			{/snippet}
+			{#snippet background()}
+				<div class="absolute inset-0 bg-black">
+					<Sparkles background="transparent" particleColor="#ffffff" particleDensity={40} />
 				</div>
-			</div>
-		</a>
+			{/snippet}
+		</BentoGridCard>
 
-		<!-- BorderBeam card -->
-		<a
-			href="/demo/border-beam"
-			class="group border-border bg-card relative min-h-36 overflow-hidden rounded-xl border p-4"
+		<!-- ImageTrailCursor -->
+		<BentoGridCard
+			name="Cursor Magic"
+			description="Image trails that follow your cursor with 8 animation variants."
+			href="/demo/image-trail-cursor"
+			cta="See demo"
+			class="col-span-3 md:col-span-2"
 		>
-			<BorderBeam duration={6} size={80} colorFrom="#9E7AFF" colorTo="#FE8BBB" />
-			<div class="flex h-full flex-col items-center justify-center gap-1">
-				<div class="bg-muted h-2 w-16 rounded-full"></div>
-				<div class="bg-muted/60 h-2 w-10 rounded-full"></div>
-			</div>
-			<div class="absolute bottom-3 left-4">
-				<p class="text-muted-foreground text-xs">Effects</p>
-				<p class="text-foreground text-sm font-semibold">BorderBeam</p>
-			</div>
-		</a>
+			{#snippet icon()}
+				<MousePointer2 class="size-6" />
+			{/snippet}
+			{#snippet background()}
+				<div class="absolute inset-0 bg-black">
+					<div class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+						<p class="text-xs text-white/20">Hover here</p>
+					</div>
+					<ImageTrailCursor
+						images={[
+							"https://picsum.photos/seed/fancy1/400/440",
+							"https://picsum.photos/seed/fancy2/400/440",
+							"https://picsum.photos/seed/fancy3/400/440",
+							"https://picsum.photos/seed/fancy4/400/440",
+							"https://picsum.photos/seed/fancy5/400/440",
+							"https://picsum.photos/seed/fancy6/400/440",
+						]}
+						variant="type1"
+					/>
+				</div>
+			{/snippet}
+		</BentoGridCard>
 
-		<!-- Marquee card — full width -->
-		<a
+		<!-- Marquee -->
+		<BentoGridCard
+			name="Infinite Scroll"
+			description="Smooth marquee for any content — text, images, badges, cards."
 			href="/demo/marquee"
-			class="group border-border bg-card relative col-span-2 min-h-36 overflow-hidden rounded-xl border"
+			cta="See demo"
+			class="col-span-3"
 		>
-			<div class="flex h-full flex-col justify-center py-4">
-				<Marquee pauseOnHover repeat={3} class="[--duration:20s]">
+			{#snippet icon()}
+				<GalleryHorizontal class="size-6" />
+			{/snippet}
+			{#snippet background()}
+				<Marquee pauseOnHover repeat={4} class="absolute top-6 [--duration:25s]">
 					{#each techBadges as badge}
 						<span
-							class="border-border bg-muted text-muted-foreground mx-2 rounded-full border px-3 py-1 text-xs font-medium"
+							class="mx-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/60"
 						>
 							{badge}
 						</span>
 					{/each}
 				</Marquee>
-			</div>
-			<div class="absolute bottom-3 left-4">
-				<p class="text-muted-foreground text-xs">Effects</p>
-				<p class="text-foreground text-sm font-semibold">Marquee</p>
-			</div>
-		</a>
-
-		<!-- SparklesText card -->
-		<a
-			href="/demo/sparkles-text"
-			class="group border-border bg-card relative min-h-36 overflow-hidden rounded-xl border p-4"
-		>
-			<div class="flex h-full flex-col items-center justify-center">
-				<SparklesText
-					text="Magic"
-					sparklesCount={6}
-					colors={{ first: "#9E7AFF", second: "#FE8BBB" }}
-					class="text-foreground text-3xl font-bold"
-				/>
-			</div>
-			<div class="absolute bottom-3 left-4">
-				<p class="text-muted-foreground text-xs">Text</p>
-				<p class="text-foreground text-sm font-semibold">SparklesText</p>
-			</div>
-		</a>
-
-		<!-- FlipWords card -->
-		<a
-			href="/demo/flip-words"
-			class="group border-border bg-card relative min-h-36 overflow-hidden rounded-xl border p-4"
-		>
-			<div class="flex h-full flex-col items-center justify-center text-center">
-				<p class="text-muted-foreground text-sm">Build</p>
-				<FlipWords
-					words={["faster", "smarter", "better", "beautifully"]}
-					duration={2000}
-					class="text-foreground text-2xl font-bold"
-				/>
-			</div>
-			<div class="absolute bottom-3 left-4">
-				<p class="text-muted-foreground text-xs">Text</p>
-				<p class="text-foreground text-sm font-semibold">FlipWords</p>
-			</div>
-		</a>
-
-		<!-- ImageTrailCursor card -->
-		<a
-			href="/demo/image-trail-cursor"
-			class="group border-border relative col-span-2 min-h-48 overflow-hidden rounded-xl border bg-[#030712]"
-		>
-			<ImageTrailCursor
-				images={[
-					"https://picsum.photos/seed/fancy1/400/440",
-					"https://picsum.photos/seed/fancy2/400/440",
-					"https://picsum.photos/seed/fancy3/400/440",
-					"https://picsum.photos/seed/fancy4/400/440",
-					"https://picsum.photos/seed/fancy5/400/440",
-					"https://picsum.photos/seed/fancy6/400/440",
-				]}
-				variant="type1"
-			/>
-			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-				<p class="text-xs text-white/20">Move your cursor</p>
-			</div>
-			<div class="pointer-events-none absolute inset-0 flex items-end p-4">
-				<div>
-					<p class="text-xs text-white/40">Effects</p>
-					<p class="text-sm font-semibold text-white">ImageTrailCursor</p>
-				</div>
-			</div>
-		</a>
-	</div>
+			{/snippet}
+		</BentoGridCard>
+	</BentoGrid>
 
 	<div class="mt-8 text-center">
 		<a
@@ -433,8 +388,8 @@
 </section>
 
 <!-- ─── FINAL CTA ─────────────────────────────────────────────────────────── -->
-<section class="relative overflow-hidden bg-[#030712] px-4 py-24 text-center">
-	<Sparkles background="transparent" particleColor="#ffffff" particleDensity={40} speed={0.8} />
+<section class="relative overflow-hidden bg-black px-4 py-24 text-center">
+	<SynthwaveGrid speed={0.7} verticalLines={16} horizontalLines={14} />
 	<div class="relative z-10 flex flex-col items-center gap-6">
 		<h2 class="text-3xl font-bold text-white sm:text-5xl">Start building today</h2>
 		<p class="max-w-sm text-white/50">Free, open source, and ready for Svelte 5.</p>
