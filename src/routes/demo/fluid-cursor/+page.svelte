@@ -32,8 +32,10 @@
 	</section>
 
 	<section class="mb-12">
-		<div class="flex h-96 items-center justify-center rounded-lg border border-dashed border-white/10">
-			<p class="select-none text-sm text-white/20">Move your cursor here</p>
+		<div
+			class="flex h-96 items-center justify-center rounded-lg border border-dashed border-white/10"
+		>
+			<p class="text-sm text-white/20 select-none">Move your cursor here</p>
 		</div>
 	</section>
 
