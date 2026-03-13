@@ -18,7 +18,7 @@
 		<div class="bg-card rounded-lg border p-6">
 			<div class="mx-auto max-w-md space-y-4 rounded-xl p-12">
 				<BoxReveal>
-					<h2 class="text-4xl font-bold">Magic UI</h2>
+					<h2 class="text-4xl font-bold">Box Reveal</h2>
 				</BoxReveal>
 				<BoxReveal delay={0.4}>
 					<p class="text-muted-foreground text-lg">
