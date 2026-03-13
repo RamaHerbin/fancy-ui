@@ -29,11 +29,11 @@
 			<div class="flex items-center justify-center rounded-xl p-8">
 				<SparklesText text="Golden" colors={{ first: "#FFD700", second: "#FFA500" }} />
 			</div>
-			<div class="flex items-center justify-center rounded-xl bg-slate-950 p-8">
+			<div class="bg-background flex items-center justify-center rounded-xl p-8">
 				<SparklesText
 					text="Neon"
 					colors={{ first: "#00FF88", second: "#00BBFF" }}
-					class="text-white"
+					class="text-foreground"
 				/>
 			</div>
 		</div>

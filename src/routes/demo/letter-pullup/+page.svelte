@@ -36,7 +36,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Custom Styling</h2>
 		<div class="bg-card rounded-lg border p-6">
-			<div class="mx-auto flex items-center justify-center rounded-xl bg-slate-950 p-12">
+			<div class="bg-background mx-auto flex items-center justify-center rounded-xl p-12">
 				<LetterPullup words="Styled Text" class="text-5xl text-purple-400" />
 			</div>
 		</div>
