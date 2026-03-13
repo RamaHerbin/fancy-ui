@@ -105,9 +105,8 @@
 
 <!-- ─── HERO ─────────────────────────────────────────────────────────────── -->
 <section
-	class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background"
+	class="bg-background relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
 >
-
 	<!-- Particle background -->
 	<div class="pointer-events-none absolute inset-0">
 		<Sparkles
