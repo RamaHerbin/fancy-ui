@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { TextGenerateEffect } from "$lib/fancy-ui/text-generate-effect";
+	import ReplayButton from "$lib/components/ReplayButton.svelte";
 
 	let replayKey1 = $state(0);
 	let replayKey2 = $state(0);
@@ -21,29 +22,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey1++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey1++} />
 			{#key replayKey1}
 				<TextGenerateEffect
 					words="Svelte is a radical new approach to building user interfaces. It shifts work from the browser to a compile step that happens when you build your app."
@@ -55,29 +34,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Without Blur</h2>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey2++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey2++} />
 			{#key replayKey2}
 				<TextGenerateEffect
 					words="This text fades in without the blur effect, using a simple opacity transition."
@@ -90,29 +47,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Fast Reveal</h2>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey3++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey3++} />
 			{#key replayKey3}
 				<TextGenerateEffect
 					words="Quick reveal with a short duration and tight stagger between words."
@@ -126,29 +61,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Slow & Dramatic</h2>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey4++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey4++} />
 			{#key replayKey4}
 				<TextGenerateEffect
 					words="Each word appears slowly with a long pause between them for dramatic effect."
@@ -163,29 +76,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Delayed Start</h2>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey5++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey5++} />
 			{#key replayKey5}
 				<TextGenerateEffect
 					words="This text waits one second before starting to reveal."

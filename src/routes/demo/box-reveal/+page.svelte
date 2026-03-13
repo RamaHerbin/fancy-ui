@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { BoxReveal } from "$lib/fancy-ui/box-reveal";
+	import ReplayButton from "$lib/components/ReplayButton.svelte";
 
 	let replayKey1 = $state(0);
 	let replayKey2 = $state(0);
@@ -20,29 +21,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
 		<div class="bg-card relative rounded-lg border p-6">
-			<button
-				onclick={() => replayKey1++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey1++} />
 			{#key replayKey1}
 				<div class="mx-auto max-w-md space-y-4 rounded-xl p-12">
 					<BoxReveal>
@@ -70,29 +49,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Custom Colors</h2>
 		<div class="bg-card relative rounded-lg border p-6">
-			<button
-				onclick={() => replayKey2++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey2++} />
 			{#key replayKey2}
 				<div class="mx-auto max-w-md space-y-4 rounded-xl p-12">
 					<BoxReveal color="#ff6600">
@@ -113,29 +70,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Slow Animation (1s)</h2>
 		<div class="bg-card relative rounded-lg border p-6">
-			<button
-				onclick={() => replayKey3++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey3++} />
 			{#key replayKey3}
 				<div class="mx-auto max-w-md rounded-xl p-12">
 					<BoxReveal duration={1} delay={0.3}>

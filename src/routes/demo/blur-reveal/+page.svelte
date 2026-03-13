@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { BlurReveal } from "$lib/fancy-ui/blur-reveal";
+	import ReplayButton from "$lib/components/ReplayButton.svelte";
 
 	let replayKey1 = $state(0);
 	let replayKey2 = $state(0);
@@ -25,29 +26,7 @@
 			Each direct child element animates in sequence when scrolled into view.
 		</p>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey1++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey1++} />
 			{#key replayKey1}
 				<BlurReveal>
 					<h3 class="mb-4 text-2xl font-bold">Welcome to the future</h3>
@@ -67,29 +46,7 @@
 			Slower animation with a larger stagger between children.
 		</p>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey2++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey2++} />
 			{#key replayKey2}
 				<BlurReveal duration={1.5} delay={0.4}>
 					<h3 class="mb-4 text-2xl font-bold">Slow reveal</h3>
@@ -109,29 +66,7 @@
 			Increased blur and vertical offset for a more dramatic entrance.
 		</p>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey3++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey3++} />
 			{#key replayKey3}
 				<BlurReveal blur="40px" yOffset={40}>
 					<h3 class="mb-4 text-2xl font-bold">Bold entrance</h3>
@@ -151,29 +86,7 @@
 			Works with any elements, including a grid of cards.
 		</p>
 		<div class="bg-card relative rounded-lg border p-8">
-			<button
-				onclick={() => replayKey4++}
-				class="text-muted-foreground hover:text-foreground absolute top-3 right-3 flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors"
-				aria-label="Replay animation"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="12"
-					height="12"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					aria-hidden="true"
-					focusable="false"
-				>
-					<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-					<path d="M3 3v5h5" />
-				</svg>
-				Replay
-			</button>
+			<ReplayButton onclick={() => replayKey4++} />
 			{#key replayKey4}
 				<BlurReveal delay={0.15} class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 					<div class="bg-background rounded-lg border p-6">
