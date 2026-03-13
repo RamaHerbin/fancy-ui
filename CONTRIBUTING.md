@@ -46,7 +46,7 @@ pnpm test:e2e      # Playwright end-to-end tests
 pnpm check         # svelte-check type checking
 ```
 
-All three must pass before a PR can be merged.
+`pnpm test` and `pnpm test:e2e` must pass. `pnpm check` must pass for any files you touched — pre-existing errors in unrelated files are acceptable.
 
 ## PR process
 

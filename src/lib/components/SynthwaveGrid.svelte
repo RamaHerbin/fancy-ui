@@ -36,10 +36,14 @@
 		}
 
 		function hexToRgb(hex: string) {
-			const clean = hex.startsWith("#") ? hex : "#ff2d78";
-			const r = parseInt(clean.slice(1, 3), 16) || 0;
-			const g = parseInt(clean.slice(3, 5), 16) || 0;
-			const b = parseInt(clean.slice(5, 7), 16) || 0;
+			const normalized = /^#?[0-9a-fA-F]{6}$/.test(hex)
+				? hex.startsWith("#")
+					? hex
+					: `#${hex}`
+				: "#ff2d78";
+			const r = parseInt(normalized.slice(1, 3), 16);
+			const g = parseInt(normalized.slice(3, 5), 16);
+			const b = parseInt(normalized.slice(5, 7), 16);
 			return { r, g, b };
 		}
 
@@ -204,5 +208,8 @@
 	});
 </script>
 
-<canvas bind:this={canvas} class="absolute inset-0 h-full w-full {className}" aria-hidden="true"
+<canvas
+	bind:this={canvas}
+	class="absolute inset-0 h-full w-full {className}"
+	aria-hidden="true"
 ></canvas>
