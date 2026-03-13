@@ -6,7 +6,7 @@ A text component that cycles through words, focusing on one at a time with a dec
 
 | Prop                     | Type      | Default          | Description                    |
 | ------------------------ | --------- | ---------------- | ------------------------------ |
-| `sentence`               | `string`  | `"Inspira Focus"` | Sentence to split into words   |
+| `sentence`               | `string`  | `"Fancy Focus"` | Sentence to split into words   |
 | `manualMode`             | `boolean` | `false`          | Focus on hover instead of auto |
 | `blurAmount`             | `number`  | `5`              | Blur amount for unfocused words (px) |
 | `borderColor`            | `string`  | `"green"`        | Corner bracket border color    |

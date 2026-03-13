@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 	import {
 		categories,
 		categoryLabels,
@@ -221,8 +220,6 @@
 		<!-- Spacer -->
 		<div class="flex-1"></div>
 
-		<!-- Theme toggle -->
-		<ThemeToggle />
 	</header>
 
 	<!-- Page content -->

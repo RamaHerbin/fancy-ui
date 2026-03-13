@@ -1149,7 +1149,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 			sentence: {
 				type: "string",
 				label: "Sentence",
-				default: "Inspira Focus Effect",
+				default: "Fancy Focus Effect",
 				group: "Content",
 			},
 			blurAmount: {

@@ -32,6 +32,12 @@
 	</section>
 
 	<section class="mb-12">
+		<div class="flex h-96 items-center justify-center rounded-lg border border-dashed border-white/10">
+			<p class="select-none text-sm text-white/20">Move your cursor here</p>
+		</div>
+	</section>
+
+	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Props</h2>
 		<div class="bg-card overflow-x-auto rounded-lg border">
 			<table class="w-full text-sm">
