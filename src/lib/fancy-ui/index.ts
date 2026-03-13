@@ -6,6 +6,7 @@
 // =============================================================================
 
 export * from "./animated-beam/index.js";
+export * from "./fluid-cursor/index.js";
 export * from "./animated-tooltip/index.js";
 export * from "./blur-reveal/index.js";
 export * from "./bg-falling-stars/index.js";
