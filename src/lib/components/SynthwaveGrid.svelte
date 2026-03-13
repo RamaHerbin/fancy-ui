@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 
 	let canvas: HTMLCanvasElement;
-	let animationId: number;
 	let resizeObserver: ResizeObserver;
 
 	// Props
@@ -37,9 +36,10 @@
 		}
 
 		function hexToRgb(hex: string) {
-			const r = parseInt(hex.slice(1, 3), 16);
-			const g = parseInt(hex.slice(3, 5), 16);
-			const b = parseInt(hex.slice(5, 7), 16);
+			const clean = hex.startsWith('#') ? hex : '#ff2d78';
+			const r = parseInt(clean.slice(1, 3), 16) || 0;
+			const g = parseInt(clean.slice(3, 5), 16) || 0;
+			const b = parseInt(clean.slice(5, 7), 16) || 0;
 			return { r, g, b };
 		}
 
