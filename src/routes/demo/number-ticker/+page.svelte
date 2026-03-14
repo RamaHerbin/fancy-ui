@@ -1,5 +1,11 @@
 <script lang="ts">
 	import { NumberTicker } from "$lib/fancy-ui/number-ticker";
+	import ReplayButton from "$lib/components/ReplayButton.svelte";
+
+	let replayKey1 = $state(0);
+	let replayKey2 = $state(0);
+	let replayKey3 = $state(0);
+	let replayKey4 = $state(0);
 </script>
 
 <svelte:head>
@@ -15,50 +21,62 @@
 	<!-- Basic Usage -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
-		<div class="bg-card rounded-lg border p-6">
-			<div class="mx-auto flex items-center justify-center gap-16 rounded-xl p-12">
-				<div class="text-center">
-					<NumberTicker value={1234} class="text-6xl font-bold" />
-					<p class="text-muted-foreground mt-2 text-sm">Users</p>
+		<div class="bg-card relative rounded-lg border p-6">
+			<ReplayButton onclick={() => replayKey1++} />
+			{#key replayKey1}
+				<div class="mx-auto flex items-center justify-center gap-16 rounded-xl p-12">
+					<div class="text-center">
+						<NumberTicker value={1234} class="text-6xl font-bold" />
+						<p class="text-muted-foreground mt-2 text-sm">Users</p>
+					</div>
+					<div class="text-center">
+						<NumberTicker value={567} class="text-6xl font-bold" />
+						<p class="text-muted-foreground mt-2 text-sm">Projects</p>
+					</div>
 				</div>
-				<div class="text-center">
-					<NumberTicker value={567} class="text-6xl font-bold" />
-					<p class="text-muted-foreground mt-2 text-sm">Projects</p>
-				</div>
-			</div>
+			{/key}
 		</div>
 	</section>
 
 	<!-- Decimal Places -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">With Decimal Places</h2>
-		<div class="bg-card rounded-lg border p-6">
-			<div class="mx-auto flex items-center justify-center rounded-xl p-12">
-				<div class="text-center">
-					<span class="text-muted-foreground text-4xl font-bold">$</span>
-					<NumberTicker value={99.99} decimalPlaces={2} class="text-6xl font-bold" />
+		<div class="bg-card relative rounded-lg border p-6">
+			<ReplayButton onclick={() => replayKey2++} />
+			{#key replayKey2}
+				<div class="mx-auto flex items-center justify-center rounded-xl p-12">
+					<div class="text-center">
+						<span class="text-muted-foreground text-4xl font-bold">$</span>
+						<NumberTicker value={99.99} decimalPlaces={2} class="text-6xl font-bold" />
+					</div>
 				</div>
-			</div>
+			{/key}
 		</div>
 	</section>
 
 	<!-- Count Down -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Count Down</h2>
-		<div class="bg-card rounded-lg border p-6">
-			<div class="mx-auto flex items-center justify-center rounded-xl p-12">
-				<NumberTicker value={100} direction="down" class="text-6xl font-bold" />
-			</div>
+		<div class="bg-card relative rounded-lg border p-6">
+			<ReplayButton onclick={() => replayKey3++} />
+			{#key replayKey3}
+				<div class="mx-auto flex items-center justify-center rounded-xl p-12">
+					<NumberTicker value={100} direction="down" class="text-6xl font-bold" />
+				</div>
+			{/key}
 		</div>
 	</section>
 
 	<!-- With Delay -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">With Delay (500ms)</h2>
-		<div class="bg-card rounded-lg border p-6">
-			<div class="mx-auto flex items-center justify-center rounded-xl p-12">
-				<NumberTicker value={9999} delay={500} duration={2000} class="text-6xl font-bold" />
-			</div>
+		<div class="bg-card relative rounded-lg border p-6">
+			<ReplayButton onclick={() => replayKey4++} />
+			{#key replayKey4}
+				<div class="mx-auto flex items-center justify-center rounded-xl p-12">
+					<NumberTicker value={9999} delay={500} duration={2000} class="text-6xl font-bold" />
+				</div>
+			{/key}
 		</div>
 	</section>
 </div>
