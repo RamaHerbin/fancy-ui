@@ -5,9 +5,10 @@
 
 	let { data } = $props();
 
+	const initialConfig = data.config;
 	let config = $state<SiteConfig>({
-		...structuredClone(data.config),
-		footer: structuredClone(data.config.footer) ?? { text: "", links: [] },
+		...structuredClone(initialConfig),
+		footer: structuredClone(initialConfig.footer) ?? { text: "", links: [] },
 	});
 	let saving = $state(false);
 	let error = $state("");
@@ -257,7 +258,7 @@
 
 					<div>
 						<div class="mb-2 flex items-center justify-between">
-							<label class="text-muted-foreground text-xs font-medium">Footer Links</label>
+							<p class="text-muted-foreground text-xs font-medium">Footer Links</p>
 							<button
 								type="button"
 								class="border-border hover:bg-accent inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium"

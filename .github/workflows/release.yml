@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: changesets/action@v1
+        with:
+          # Creates/updates the "Version Packages" PR instead of pushing directly to main.
+          # This prevents Vercel from triggering a deploy on every changeset commit.
+          # When the "Version Packages" PR is merged, the tag and GitHub Release are created.
+          publish: pnpm changeset tag
+          commit: "chore: version packages"
+          title: "Version Packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
