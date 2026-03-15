@@ -16,8 +16,8 @@ describe("+page.svelte", () => {
 
 	it("renders a link to the demo page", () => {
 		render(Page);
-		const link = screen.getByRole("link", { name: /browse components/i });
-		expect(link).toBeInTheDocument();
-		expect(link).toHaveAttribute("href", "/demo");
+		const links = screen.getAllByRole("link", { name: /browse components/i });
+		expect(links.length).toBeGreaterThan(0);
+		links.forEach((link) => expect(link).toHaveAttribute("href", "/demo"));
 	});
 });
