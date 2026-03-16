@@ -82,6 +82,14 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 	},
 
+	"animated-testimonials": {
+		name: "AnimatedTestimonials",
+		slug: "animated-testimonials",
+		description: "Testimonial carousel with smooth slide animations and optional autoplay",
+		category: "data-display",
+		status: "done",
+	},
+
 	"bg-falling-stars": {
 		name: "FallingStarsBg",
 		slug: "bg-falling-stars",
