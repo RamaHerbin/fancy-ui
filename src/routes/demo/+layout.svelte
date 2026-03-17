@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+	import DemoCredits from "$lib/components/DemoCredits.svelte";
 	import {
 		categories,
 		categoryLabels,
@@ -227,5 +228,10 @@
 	<!-- Page content -->
 	<main>
 		{@render children()}
+		{#if currentComponent}
+			<div class="container mx-auto max-w-4xl px-4 pb-12">
+				<DemoCredits component={currentComponent} />
+			</div>
+		{/if}
 	</main>
 </div>
