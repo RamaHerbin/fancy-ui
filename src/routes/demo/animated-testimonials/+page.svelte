@@ -50,7 +50,7 @@
 <div class="container mx-auto px-4 py-12">
 	<div class="mb-10">
 		<h1 class="text-3xl font-bold tracking-tight">Animated Testimonials</h1>
-		<p class="mt-2 text-muted-foreground">
+		<p class="text-muted-foreground mt-2">
 			Testimonial carousel with smooth slide animations, navigation arrows, and optional autoplay.
 		</p>
 	</div>
@@ -58,7 +58,7 @@
 	<!-- Basic Usage -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
-		<div class="rounded-lg border bg-card flex items-center justify-center min-h-[400px]">
+		<div class="bg-card flex min-h-[400px] items-center justify-center rounded-lg border">
 			<AnimatedTestimonials {testimonials} />
 		</div>
 	</section>
@@ -66,10 +66,10 @@
 	<!-- With Autoplay -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">With Autoplay</h2>
-		<p class="mb-4 text-sm text-muted-foreground">
+		<p class="text-muted-foreground mb-4 text-sm">
 			Auto-advances every 3 seconds. Pauses on hover.
 		</p>
-		<div class="rounded-lg border bg-card flex items-center justify-center min-h-[400px]">
+		<div class="bg-card flex min-h-[400px] items-center justify-center rounded-lg border">
 			<AnimatedTestimonials testimonials={autoplayTestimonials} autoplay interval={3000} />
 		</div>
 	</section>
@@ -89,28 +89,28 @@
 				</thead>
 				<tbody class="divide-y">
 					<tr>
-						<td class="px-4 py-3 font-mono text-primary">testimonials</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">Testimonial[]</td>
-						<td class="px-4 py-3 text-muted-foreground">required</td>
-						<td class="px-4 py-3 text-muted-foreground">Array of testimonial objects</td>
+						<td class="text-primary px-4 py-3 font-mono">testimonials</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">Testimonial[]</td>
+						<td class="text-muted-foreground px-4 py-3">required</td>
+						<td class="text-muted-foreground px-4 py-3">Array of testimonial objects</td>
 					</tr>
 					<tr>
-						<td class="px-4 py-3 font-mono text-primary">autoplay</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">boolean</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">false</td>
-						<td class="px-4 py-3 text-muted-foreground">Auto-advance testimonials</td>
+						<td class="text-primary px-4 py-3 font-mono">autoplay</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">boolean</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">false</td>
+						<td class="text-muted-foreground px-4 py-3">Auto-advance testimonials</td>
 					</tr>
 					<tr>
-						<td class="px-4 py-3 font-mono text-primary">interval</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">number</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">5000</td>
-						<td class="px-4 py-3 text-muted-foreground">Autoplay interval in milliseconds</td>
+						<td class="text-primary px-4 py-3 font-mono">interval</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">number</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">5000</td>
+						<td class="text-muted-foreground px-4 py-3">Autoplay interval in milliseconds</td>
 					</tr>
 					<tr>
-						<td class="px-4 py-3 font-mono text-primary">class</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">string</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">undefined</td>
-						<td class="px-4 py-3 text-muted-foreground">Additional CSS classes</td>
+						<td class="text-primary px-4 py-3 font-mono">class</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">string</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">undefined</td>
+						<td class="text-muted-foreground px-4 py-3">Additional CSS classes</td>
 					</tr>
 				</tbody>
 			</table>
@@ -131,24 +131,24 @@
 				</thead>
 				<tbody class="divide-y">
 					<tr>
-						<td class="px-4 py-3 font-mono text-primary">quote</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">string</td>
-						<td class="px-4 py-3 text-muted-foreground">The testimonial text</td>
+						<td class="text-primary px-4 py-3 font-mono">quote</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">string</td>
+						<td class="text-muted-foreground px-4 py-3">The testimonial text</td>
 					</tr>
 					<tr>
-						<td class="px-4 py-3 font-mono text-primary">name</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">string</td>
-						<td class="px-4 py-3 text-muted-foreground">Author's full name</td>
+						<td class="text-primary px-4 py-3 font-mono">name</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">string</td>
+						<td class="text-muted-foreground px-4 py-3">Author's full name</td>
 					</tr>
 					<tr>
-						<td class="px-4 py-3 font-mono text-primary">designation</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">string</td>
-						<td class="px-4 py-3 text-muted-foreground">Author's title or role</td>
+						<td class="text-primary px-4 py-3 font-mono">designation</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">string</td>
+						<td class="text-muted-foreground px-4 py-3">Author's title or role</td>
 					</tr>
 					<tr>
-						<td class="px-4 py-3 font-mono text-primary">src</td>
-						<td class="px-4 py-3 font-mono text-muted-foreground">string</td>
-						<td class="px-4 py-3 text-muted-foreground">URL to the author's avatar image</td>
+						<td class="text-primary px-4 py-3 font-mono">src</td>
+						<td class="text-muted-foreground px-4 py-3 font-mono">string</td>
+						<td class="text-muted-foreground px-4 py-3">URL to the author's avatar image</td>
 					</tr>
 				</tbody>
 			</table>
