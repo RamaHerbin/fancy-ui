@@ -77,20 +77,21 @@
 		};
 	});
 
-	let activeTestimonial = $derived(
-		testimonials.length > 0 ? testimonials[activeIndex] : null
-	);
+	let activeTestimonial = $derived(testimonials.length > 0 ? testimonials[activeIndex] : null);
 </script>
 
 <div
-	class={cn("relative mx-auto max-w-sm md:max-w-4xl antialiased font-sans px-4 md:px-8 lg:px-12 py-20", className)}
+	class={cn(
+		"relative mx-auto max-w-sm px-4 py-20 font-sans antialiased md:max-w-4xl md:px-8 lg:px-12",
+		className
+	)}
 	onmouseenter={() => (isHovered = true)}
 	onmouseleave={() => (isHovered = false)}
 	role="region"
 	aria-label="Testimonials"
 >
 	{#if testimonials.length === 0}
-		<p class="text-center text-muted-foreground">No testimonials available.</p>
+		<p class="text-muted-foreground text-center">No testimonials available.</p>
 	{:else}
 		<div class="relative grid grid-cols-1 gap-20 md:grid-cols-2">
 			<!-- Image column -->
@@ -100,8 +101,8 @@
 						class={cn(
 							"absolute inset-0 h-full w-full origin-bottom rounded-3xl transition-all ease-in-out",
 							index === activeIndex
-								? "z-20 opacity-100 scale-100 translate-y-0 rotate-0"
-								: "z-10 opacity-0 scale-95 translate-y-4",
+								? "z-20 translate-y-0 scale-100 rotate-0 opacity-100"
+								: "z-10 translate-y-4 scale-95 opacity-0",
 							index !== activeIndex && direction === "next"
 								? "-translate-y-4"
 								: index !== activeIndex
@@ -127,9 +128,9 @@
 						"ease-in-out",
 						isAnimating
 							? direction === "next"
-								? "opacity-0 translate-y-4"
-								: "opacity-0 -translate-y-4"
-							: "opacity-100 translate-y-0"
+								? "translate-y-4 opacity-0"
+								: "-translate-y-4 opacity-0"
+							: "translate-y-0 opacity-100"
 					)}
 					style="transition: opacity {TRANSITION_DURATION}ms, transform {TRANSITION_DURATION}ms"
 				>
