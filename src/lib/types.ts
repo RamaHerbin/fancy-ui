@@ -99,4 +99,9 @@ export interface ComponentMeta {
 	status: ComponentStatus;
 	/** Dependencies on other fancy-ui components */
 	dependencies?: string[];
+	/** Credits for the original design/implementation */
+	credits?: Array<{
+		source: string;
+		url?: string;
+	}>;
 }
