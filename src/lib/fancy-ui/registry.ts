@@ -97,7 +97,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Avatar row with animated tooltips that follow mouse movement",
 		category: "feedback",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/animated-tooltip" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/animated-tooltip" },
+		],
 	},
 
 	"blur-reveal": {
@@ -141,7 +143,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "SVG grid of squares that highlight on hover with smooth fade transitions",
 		category: "effects",
 		status: "done",
-		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/interactive-grid-pattern" }],
+		credits: [
+			{
+				source: "Magic UI",
+				url: "https://magicui.design/docs/components/interactive-grid-pattern",
+			},
+		],
 	},
 
 	"logo-cloud": {
@@ -159,7 +166,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Image card with overlay that slides in from the mouse entry direction",
 		category: "cards",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/direction-aware-hover" }],
+		credits: [
+			{
+				source: "Aceternity UI",
+				url: "https://ui.aceternity.com/components/direction-aware-hover",
+			},
+		],
 	},
 
 	"rainbow-button": {
@@ -204,7 +216,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated starfield background with parallax mouse tracking",
 		category: "backgrounds",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/stars-background" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/stars-background" },
+		],
 	},
 
 	dock: {
@@ -222,7 +236,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "WebGL fluid simulation that follows cursor movement",
 		category: "effects",
 		status: "done",
-		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/fluid-cursor" }],
+		credits: [
+			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/fluid-cursor" },
+		],
 	},
 
 	"glow-border": {
@@ -231,7 +247,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated glowing border effect with gradient support",
 		category: "effects",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/background-gradient" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/background-gradient" },
+		],
 	},
 
 	"gradient-button": {
@@ -240,7 +258,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Button with a rotating conic-gradient rainbow border effect",
 		category: "buttons",
 		status: "done",
-		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/buttons/gradient-button" }],
+		credits: [
+			{ source: "Inspira UI", url: "https://inspira-ui.com/components/buttons/gradient-button" },
+		],
 	},
 
 	"interactive-hover-button": {
@@ -249,7 +269,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Button with interactive hover effect revealing alternate content",
 		category: "buttons",
 		status: "done",
-		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/interactive-hover-button" }],
+		credits: [
+			{
+				source: "Magic UI",
+				url: "https://magicui.design/docs/components/interactive-hover-button",
+			},
+		],
 	},
 
 	marquee: {
@@ -276,7 +301,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Canvas-based grid of squares with flickering opacity",
 		category: "backgrounds",
 		status: "done",
-		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/flickering-grid" }],
+		credits: [
+			{ source: "Magic UI", url: "https://magicui.design/docs/components/flickering-grid" },
+		],
 	},
 
 	"neon-border": {
@@ -285,7 +312,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Dual-color neon glow border effect with optional rotation animation",
 		category: "effects",
 		status: "done",
-		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/neon-gradient-card" }],
+		credits: [
+			{ source: "Magic UI", url: "https://magicui.design/docs/components/neon-gradient-card" },
+		],
 	},
 
 	"colourful-text": {
@@ -294,7 +323,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Per-character color animation with shuffling colors",
 		category: "text",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/colourful-text" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/colourful-text" },
+		],
 	},
 
 	"flip-words": {
@@ -357,7 +388,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Interactive 3D perspective card with depth effects on child elements",
 		category: "cards",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/3d-card-effect" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/3d-card-effect" },
+		],
 	},
 
 	"card-spotlight": {
@@ -366,7 +399,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Card with mouse-following radial gradient spotlight overlay",
 		category: "cards",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/card-spotlight" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/card-spotlight" },
+		],
 	},
 
 	"bento-grid": {
@@ -410,7 +445,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Card that reveals text on horizontal mouse drag with animated star particles",
 		category: "cards",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-reveal-card" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-reveal-card" },
+		],
 	},
 
 	"container-scroll": {
@@ -419,7 +456,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Scroll-driven animation that rotates and scales a card from tilted to flat",
 		category: "layout",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/container-scroll-animation" }],
+		credits: [
+			{
+				source: "Aceternity UI",
+				url: "https://ui.aceternity.com/components/container-scroll-animation",
+			},
+		],
 	},
 
 	"container-text-flip": {
@@ -446,7 +488,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Glass-like visual effect using SVG filters for chromatic displacement",
 		category: "effects",
 		status: "done",
-		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/special-effects/liquid-glass" }],
+		credits: [
+			{
+				source: "Inspira UI",
+				url: "https://inspira-ui.com/components/special-effects/liquid-glass",
+			},
+		],
 	},
 
 	"smooth-cursor": {
@@ -455,7 +502,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Physics-based smooth cursor with spring animations and rotation effects",
 		category: "effects",
 		status: "done",
-		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/smooth-cursor" }],
+		credits: [
+			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/smooth-cursor" },
+		],
 	},
 
 	"glowing-effect": {
@@ -502,7 +551,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Typewriter-style text reveal that fades in words one by one with optional blur",
 		category: "text",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-generate-effect" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-generate-effect" },
+		],
 	},
 
 	"line-shadow-text": {
@@ -511,7 +562,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Text with animated diagonal line shadow pattern that scrolls continuously",
 		category: "text",
 		status: "done",
-		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/line-shadow-text" }],
+		credits: [
+			{ source: "Magic UI", url: "https://magicui.design/docs/components/line-shadow-text" },
+		],
 	},
 
 	"tracing-beam": {
@@ -520,7 +573,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Vertical SVG beam that highlights scroll progress alongside content",
 		category: "effects",
 		status: "done",
-		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/tracing-beam" }],
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/tracing-beam" },
+		],
 	},
 };
 

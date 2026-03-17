@@ -18,7 +18,7 @@
 							href={credit.url}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-foreground font-medium underline underline-offset-4 hover:opacity-70 transition-opacity"
+							class="text-foreground font-medium underline underline-offset-4 transition-opacity hover:opacity-70"
 						>
 							{credit.source}
 						</a>
