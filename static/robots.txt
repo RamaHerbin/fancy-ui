@@ -1,3 +1,31 @@
-# allow crawling everything by default
+# Allow all crawlers
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /builder/
+
+# AI crawlers — explicitly allowed
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+Sitemap: https://fancy-ui.rama.app/sitemap.xml

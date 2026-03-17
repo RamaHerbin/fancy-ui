@@ -2,6 +2,8 @@
 	import { page } from "$app/stores";
 	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 	import DemoCredits from "$lib/components/DemoCredits.svelte";
+
+	const SITE_URL = "https://fancy-ui.rama.app";
 	import {
 		categories,
 		categoryLabels,
@@ -50,6 +52,42 @@
 		clearSearch();
 	}
 </script>
+
+<svelte:head>
+	{#if currentComponent}
+		<title>{currentComponent.name} — FancyUI</title>
+		<meta name="description" content={currentComponent.description} />
+		<meta property="og:title" content="{currentComponent.name} — FancyUI" />
+		<meta property="og:description" content={currentComponent.description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content="{SITE_URL}/demo/{currentComponent.slug}" />
+		<meta property="og:image" content="{SITE_URL}/og-image.png" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="{currentComponent.name} — FancyUI" />
+		<meta name="twitter:description" content={currentComponent.description} />
+		<meta name="twitter:image" content="{SITE_URL}/og-image.png" />
+		<link rel="canonical" href="{SITE_URL}/demo/{currentComponent.slug}" />
+	{:else}
+		<title>Components — FancyUI</title>
+		<meta
+			name="description"
+			content="Browse 50+ animated Svelte 5 UI components — effects, buttons, cards, text animations, backgrounds, and more."
+		/>
+		<meta property="og:title" content="Components — FancyUI" />
+		<meta
+			property="og:description"
+			content="Browse 50+ animated Svelte 5 UI components — effects, buttons, cards, text animations, backgrounds, and more."
+		/>
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content="{SITE_URL}/demo" />
+		<meta property="og:image" content="{SITE_URL}/og-image.png" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content="Components — FancyUI" />
+		<meta name="twitter:description" content="Browse 50+ animated Svelte 5 UI components." />
+		<meta name="twitter:image" content="{SITE_URL}/og-image.png" />
+		<link rel="canonical" href="{SITE_URL}/demo" />
+	{/if}
+</svelte:head>
 
 <!-- Mobile overlay -->
 {#if sidebarOpen}

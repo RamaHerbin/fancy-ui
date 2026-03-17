@@ -101,6 +101,45 @@
 		name="description"
 		content="50+ animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript."
 	/>
+	<meta property="og:title" content="FancyUI — Animated components for Svelte 5" />
+	<meta
+		property="og:description"
+		content="50+ animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript."
+	/>
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://fancy-ui.rama.app" />
+	<meta property="og:image" content="https://fancy-ui.rama.app/og-image.png" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="FancyUI — Animated components for Svelte 5" />
+	<meta
+		name="twitter:description"
+		content="50+ animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript."
+	/>
+	<meta name="twitter:image" content="https://fancy-ui.rama.app/og-image.png" />
+	<link rel="canonical" href="https://fancy-ui.rama.app" />
+	<!-- JSON-LD structured data -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "SoftwareApplication",
+		name: "FancyUI",
+		description:
+			"50+ animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript.",
+		url: "https://fancy-ui.rama.app",
+		applicationCategory: "DeveloperApplication",
+		operatingSystem: "Any",
+		offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+		license: "https://opensource.org/licenses/MIT",
+		codeRepository: "https://github.com/RamaHerbin/fancy-ui",
+		programmingLanguage: ["Svelte", "TypeScript"],
+		keywords: [
+			"Svelte 5",
+			"UI components",
+			"animations",
+			"Tailwind CSS",
+			"TypeScript",
+			"open source",
+		],
+	})}</script>`}
 </svelte:head>
 
 <!-- ─── HERO ─────────────────────────────────────────────────────────────── -->
