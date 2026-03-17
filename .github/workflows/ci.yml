@@ -31,9 +31,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check for changeset
-        # Skip this check for the automated "Version Packages" PR
-        if: ${{ github.head_ref != 'changeset-release/main' }}
         run: |
+          if [[ "${{ github.head_ref }}" == "changeset-release/main" ]]; then
+            echo "✅ Skipped for Version Packages PR."
+            exit 0
+          fi
           if ! ls .changeset/*.md 2>/dev/null | grep -qv README.md; then
             echo "❌ No changeset file found. Run 'pnpm changeset' and commit the generated file."
             exit 1
