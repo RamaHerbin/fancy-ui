@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- 6e66ac4: Add AnimatedTestimonials component — testimonial carousel with smooth slide animations, direction-aware navigation arrows, and optional autoplay support.
+
+### Patch Changes
+
+- 5cc87d8: Set up changesets versioning workflow
+
 All notable changes to fancy-ui will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -114,4 +124,3 @@ and Tailwind CSS v4.
 | Component | Description                                                    |
 | --------- | -------------------------------------------------------------- |
 | Compare   | Before/after image comparison slider with hover and drag modes |
-
