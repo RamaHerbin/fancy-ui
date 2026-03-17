@@ -80,6 +80,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated SVG beams connecting elements with smooth gradients",
 		category: "effects",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/animated-beam" }],
 	},
 
 	"animated-testimonials": {
@@ -104,6 +105,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Avatar row with animated tooltips that follow mouse movement",
 		category: "feedback",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/animated-tooltip" },
+		],
 	},
 
 	"blur-reveal": {
@@ -112,6 +116,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Scroll-triggered blur-to-clear reveal animation with staggered children",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/blur-fade" }],
 	},
 
 	"border-beam": {
@@ -120,6 +125,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated beam effect that travels around borders",
 		category: "effects",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/border-beam" }],
 	},
 
 	compare: {
@@ -128,6 +134,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Before/after image comparison slider with hover and drag modes",
 		category: "media",
 		status: "done",
+		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/compare" }],
 	},
 
 	"image-trail-cursor": {
@@ -144,6 +151,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "SVG grid of squares that highlight on hover with smooth fade transitions",
 		category: "effects",
 		status: "done",
+		credits: [
+			{
+				source: "Magic UI",
+				url: "https://magicui.design/docs/components/interactive-grid-pattern",
+			},
+		],
 	},
 
 	"logo-cloud": {
@@ -152,6 +165,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Logo display with animated marquee, static grid, and icon variants",
 		category: "data-display",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/marquee" }],
 	},
 
 	"direction-aware-hover": {
@@ -160,6 +174,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Image card with overlay that slides in from the mouse entry direction",
 		category: "cards",
 		status: "done",
+		credits: [
+			{
+				source: "Aceternity UI",
+				url: "https://ui.aceternity.com/components/direction-aware-hover",
+			},
+		],
 	},
 
 	"rainbow-button": {
@@ -168,6 +188,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated button with a rainbow gradient border effect",
 		category: "buttons",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/rainbow-button" }],
 	},
 
 	"ripple-button": {
@@ -176,6 +197,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Button with ripple click effect",
 		category: "buttons",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/ripple-button" }],
 	},
 
 	"shimmer-button": {
@@ -184,6 +206,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Button with a rotating conic-gradient shimmer border effect",
 		category: "buttons",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/shimmer-button" }],
 	},
 
 	timeline: {
@@ -192,6 +215,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Vertical timeline with scroll-driven progress line and sticky labels",
 		category: "navigation",
 		status: "done",
+		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/timeline" }],
 	},
 
 	"bg-stars": {
@@ -200,6 +224,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated starfield background with parallax mouse tracking",
 		category: "backgrounds",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/stars-background" },
+		],
 	},
 
 	dock: {
@@ -208,6 +235,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "macOS-style dock with icon magnification on hover",
 		category: "navigation",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/dock" }],
 	},
 
 	"fluid-cursor": {
@@ -216,6 +244,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "WebGL fluid simulation that follows cursor movement",
 		category: "effects",
 		status: "done",
+		credits: [
+			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/fluid-cursor" },
+		],
 	},
 
 	"glow-border": {
@@ -224,6 +255,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated glowing border effect with gradient support",
 		category: "effects",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/background-gradient" },
+		],
 	},
 
 	"gradient-button": {
@@ -232,6 +266,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Button with a rotating conic-gradient rainbow border effect",
 		category: "buttons",
 		status: "done",
+		credits: [
+			{ source: "Inspira UI", url: "https://inspira-ui.com/components/buttons/gradient-button" },
+		],
 	},
 
 	"interactive-hover-button": {
@@ -240,6 +277,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Button with interactive hover effect revealing alternate content",
 		category: "buttons",
 		status: "done",
+		credits: [
+			{
+				source: "Magic UI",
+				url: "https://magicui.design/docs/components/interactive-hover-button",
+			},
+		],
 	},
 
 	marquee: {
@@ -248,6 +291,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Infinite scrolling component for text, images, or cards",
 		category: "layout",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/marquee" }],
 	},
 
 	meteors: {
@@ -256,6 +300,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated meteor shower effect with randomized positions and delays",
 		category: "effects",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/meteors" }],
 	},
 
 	"flickering-grid": {
@@ -264,6 +309,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Canvas-based grid of squares with flickering opacity",
 		category: "backgrounds",
 		status: "done",
+		credits: [
+			{ source: "Magic UI", url: "https://magicui.design/docs/components/flickering-grid" },
+		],
 	},
 
 	"neon-border": {
@@ -272,6 +320,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Dual-color neon glow border effect with optional rotation animation",
 		category: "effects",
 		status: "done",
+		credits: [
+			{ source: "Magic UI", url: "https://magicui.design/docs/components/neon-gradient-card" },
+		],
 	},
 
 	"colourful-text": {
@@ -280,6 +331,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Per-character color animation with shuffling colors",
 		category: "text",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/colourful-text" },
+		],
 	},
 
 	"flip-words": {
@@ -288,6 +342,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Cycling word animation with per-letter fade-in and blur effects",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/flip-words" }],
 	},
 
 	"hyper-text": {
@@ -296,6 +351,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Character scramble effect that activates on hover",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/hyper-text" }],
 	},
 
 	"letter-pullup": {
@@ -304,6 +360,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Staggered letter pull-up animation with wave entrance effect",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/letter-pullup" }],
 	},
 
 	"number-ticker": {
@@ -312,6 +369,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Animated number counter with easing, triggered on viewport entry",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/number-ticker" }],
 	},
 
 	"sparkles-text": {
@@ -320,6 +378,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Text with animated SVG sparkle stars overlay",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/sparkles" }],
 	},
 
 	"box-reveal": {
@@ -328,6 +387,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Content reveal with sliding colored box animation",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/box-reveal" }],
 	},
 
 	"card-3d": {
@@ -336,6 +396,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Interactive 3D perspective card with depth effects on child elements",
 		category: "cards",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/3d-card-effect" },
+		],
 	},
 
 	"card-spotlight": {
@@ -344,6 +407,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Card with mouse-following radial gradient spotlight overlay",
 		category: "cards",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/card-spotlight" },
+		],
 	},
 
 	"bento-grid": {
@@ -352,6 +418,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Bento-style grid layout with slot-based and props-based card variants",
 		category: "cards",
 		status: "done",
+		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/bento-grid" }],
 	},
 
 	"flip-card": {
@@ -368,6 +435,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "3D book component with cover, spine, and back face that opens on hover",
 		category: "cards",
 		status: "done",
+		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/cards/book" }],
 	},
 
 	"glare-card": {
@@ -376,6 +444,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Holographic trading card effect with mouse-tracking glare and rainbow foil",
 		category: "cards",
 		status: "done",
+		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/glare-card" }],
 	},
 
 	"text-reveal-card": {
@@ -384,6 +453,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Card that reveals text on horizontal mouse drag with animated star particles",
 		category: "cards",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-reveal-card" },
+		],
 	},
 
 	"container-scroll": {
@@ -392,6 +464,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Scroll-driven animation that rotates and scales a card from tilted to flat",
 		category: "layout",
 		status: "done",
+		credits: [
+			{
+				source: "Aceternity UI",
+				url: "https://ui.aceternity.com/components/container-scroll-animation",
+			},
+		],
 	},
 
 	"container-text-flip": {
@@ -400,6 +478,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Text container that cycles through words with per-character blur animation",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/text/text-flip" }],
 	},
 
 	focus: {
@@ -408,6 +487,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Text component that cycles focus through words with blur and corner frame",
 		category: "text",
 		status: "done",
+		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/focus-cards" }],
 	},
 
 	"liquid-glass": {
@@ -416,6 +496,12 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Glass-like visual effect using SVG filters for chromatic displacement",
 		category: "effects",
 		status: "done",
+		credits: [
+			{
+				source: "Inspira UI",
+				url: "https://inspira-ui.com/components/special-effects/liquid-glass",
+			},
+		],
 	},
 
 	"smooth-cursor": {
@@ -424,6 +510,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Physics-based smooth cursor with spring animations and rotation effects",
 		category: "effects",
 		status: "done",
+		credits: [
+			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/smooth-cursor" },
+		],
 	},
 
 	"glowing-effect": {
@@ -432,6 +521,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Mouse-proximity based glowing border effect with animated conic gradient",
 		category: "effects",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/glowing-effect" }],
 	},
 
 	sparkles: {
@@ -441,6 +531,7 @@ export const registry: Record<string, ComponentMeta> = {
 			"Canvas-based floating particle sparkle effect with configurable density and colors",
 		category: "backgrounds",
 		status: "done",
+		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/sparkles" }],
 	},
 
 	confetti: {
@@ -450,6 +541,7 @@ export const registry: Record<string, ComponentMeta> = {
 			"Confetti celebration effect powered by canvas-confetti with button trigger support",
 		category: "effects",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/confetti" }],
 	},
 
 	ripple: {
@@ -458,6 +550,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Concentric pulsing circles with ripple wave animation",
 		category: "effects",
 		status: "done",
+		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/ripple" }],
 	},
 
 	"text-generate-effect": {
@@ -466,6 +559,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Typewriter-style text reveal that fades in words one by one with optional blur",
 		category: "text",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-generate-effect" },
+		],
 	},
 
 	"line-shadow-text": {
@@ -474,6 +570,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Text with animated diagonal line shadow pattern that scrolls continuously",
 		category: "text",
 		status: "done",
+		credits: [
+			{ source: "Magic UI", url: "https://magicui.design/docs/components/line-shadow-text" },
+		],
 	},
 
 	"tracing-beam": {
@@ -482,6 +581,9 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Vertical SVG beam that highlights scroll progress alongside content",
 		category: "effects",
 		status: "done",
+		credits: [
+			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/tracing-beam" },
+		],
 	},
 };
 
