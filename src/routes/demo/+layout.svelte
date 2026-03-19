@@ -2,8 +2,6 @@
 	import { page } from "$app/stores";
 	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 	import DemoCredits from "$lib/components/DemoCredits.svelte";
-
-	const SITE_URL = "https://fancy-ui.rama.app";
 	import {
 		categories,
 		categoryLabels,
@@ -11,6 +9,8 @@
 		getComponent,
 		getAllComponents,
 	} from "$lib/fancy-ui/registry.js";
+
+	const SITE_URL = "https://fancy-ui.rama.app";
 
 	let { children } = $props();
 

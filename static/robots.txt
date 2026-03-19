@@ -6,26 +6,34 @@ Disallow: /builder/
 # AI crawlers — explicitly allowed
 User-agent: GPTBot
 Allow: /
+Disallow: /builder/
 
 User-agent: ChatGPT-User
 Allow: /
+Disallow: /builder/
 
 User-agent: Google-Extended
 Allow: /
+Disallow: /builder/
 
 User-agent: anthropic-ai
 Allow: /
+Disallow: /builder/
 
 User-agent: ClaudeBot
 Allow: /
+Disallow: /builder/
 
 User-agent: PerplexityBot
 Allow: /
+Disallow: /builder/
 
 User-agent: Amazonbot
 Allow: /
+Disallow: /builder/
 
 User-agent: cohere-ai
 Allow: /
+Disallow: /builder/
 
 Sitemap: https://fancy-ui.rama.app/sitemap.xml

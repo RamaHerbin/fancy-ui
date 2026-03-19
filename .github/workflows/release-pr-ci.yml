@@ -23,3 +23,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm test
+
+  changeset:
+    name: Changeset present
+    runs-on: ubuntu-latest
+    # Skip for the automated "Version Packages" PR created by changesets
+    if: ${{ !startsWith(github.head_ref, 'changeset-release/') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for changeset
+        run: |
+          if ! ls .changeset/*.md 2>/dev/null | grep -qv README.md; then
+            echo "❌ No changeset file found. Run 'pnpm changeset' and commit the result."
+            exit 1
+          fi
+          echo "✅ Changeset file present."
