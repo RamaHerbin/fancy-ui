@@ -74,6 +74,21 @@ export const registry: Record<string, ComponentMeta> = {
 	// Done - Fully implemented and tested
 	// =========================================================================
 
+	"apple-card-carousel": {
+		name: "AppleCardCarousel",
+		slug: "apple-card-carousel",
+		description:
+			"Horizontal card carousel with spring-animated full-screen expansion, inspired by Apple's App Store UI",
+		category: "cards",
+		status: "done",
+		credits: [
+			{
+				source: "Aceternity UI",
+				url: "https://ui.aceternity.com/components/apple-cards-carousel",
+			},
+		],
+	},
+
 	"animated-beam": {
 		name: "AnimatedBeam",
 		slug: "animated-beam",
