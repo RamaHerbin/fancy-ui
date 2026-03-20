@@ -11,12 +11,24 @@
 </script>
 
 <script lang="ts">
+	import { onMount } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import AppleCard from "./AppleCard.svelte";
 
 	let { cards, class: className = "" }: AppleCardCarouselProps = $props();
 
 	let expandedIndex = $state(-1);
+	let reducedMotion = $state(false);
+
+	onMount(() => {
+		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+		reducedMotion = mq.matches;
+		const handler = (e: MediaQueryListEvent) => {
+			reducedMotion = e.matches;
+		};
+		mq.addEventListener("change", handler);
+		return () => mq.removeEventListener("change", handler);
+	});
 </script>
 
 <div class={cn("relative w-full", className)}>
@@ -28,6 +40,7 @@
 				{card}
 				index={i}
 				{expandedIndex}
+				{reducedMotion}
 				onExpand={(idx) => (expandedIndex = idx)}
 				onCollapse={() => (expandedIndex = -1)}
 			/>
