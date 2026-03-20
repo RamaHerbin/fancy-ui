@@ -78,6 +78,17 @@ describe("AppleCardCarousel", () => {
 		expect(getAllByRole("dialog")).toHaveLength(1);
 	});
 
+	it("clicking the backdrop collapses the card", () => {
+		const { getByLabelText, queryByRole } = render(AppleCardCarousel, { props: { cards } });
+		fireEvent.click(getByLabelText("Open Mountains"));
+		flushSync();
+		// The backdrop has aria-hidden="true"; target it via its class
+		const backdrop = document.querySelector(".fixed.z-40") as HTMLElement;
+		fireEvent.click(backdrop);
+		flushSync(() => vi.advanceTimersByTime(400));
+		expect(queryByRole("dialog")).toBeNull();
+	});
+
 	it("shows description text in the expanded view", () => {
 		const { getByLabelText, getByText } = render(AppleCardCarousel, { props: { cards } });
 		fireEvent.click(getByLabelText("Open Mountains"));

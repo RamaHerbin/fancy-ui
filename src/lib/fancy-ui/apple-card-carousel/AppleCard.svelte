@@ -13,45 +13,54 @@
 		/** Rich content shown in the expanded view (takes precedence over description) */
 		content?: Snippet;
 	}
+
+	/** Shared transition duration — must stay in sync with the CSS transition below */
+	export const TRANSITION_MS = 400;
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 
 	interface Props {
 		card: AppleCardData;
 		index: number;
 		expandedIndex: number;
+		reducedMotion: boolean;
 		onExpand: (index: number) => void;
 		onCollapse: () => void;
 		class?: string;
 	}
 
-	let { card, index, expandedIndex, onExpand, onCollapse, class: className = "" }: Props = $props();
+	let {
+		card,
+		index,
+		expandedIndex,
+		reducedMotion,
+		onExpand,
+		onCollapse,
+		class: className = "",
+	}: Props = $props();
 
 	let cardEl: HTMLDivElement;
+	let dialogEl: HTMLDivElement;
+	let closeBtn: HTMLButtonElement;
 	let rect = $state<{ top: number; left: number; width: number; height: number } | null>(null);
 	let overlayVisible = $state(false);
 	let fullyExpanded = $state(false);
-	let reducedMotion = $state(false);
+	let previousFocus: HTMLElement | null = null;
 
-	onMount(() => {
-		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-		reducedMotion = mq.matches;
-		const handler = (e: MediaQueryListEvent) => {
-			reducedMotion = e.matches;
-		};
-		mq.addEventListener("change", handler);
-		return () => mq.removeEventListener("change", handler);
-	});
-
-	function handleExpand() {
+	async function handleExpand() {
 		if (expandedIndex !== -1) return;
+		previousFocus = document.activeElement as HTMLElement;
 		const r = cardEl.getBoundingClientRect();
 		rect = { top: r.top, left: r.left, width: r.width, height: r.height };
 		overlayVisible = true;
 		onExpand(index);
+
+		// Wait for the overlay to be in the DOM before focusing
+		await tick();
+		closeBtn?.focus();
 
 		if (reducedMotion) {
 			fullyExpanded = true;
@@ -66,11 +75,13 @@
 
 	function handleCollapse() {
 		fullyExpanded = false;
-		const delay = reducedMotion ? 0 : 400;
+		const delay = reducedMotion ? 0 : TRANSITION_MS;
 		setTimeout(() => {
 			overlayVisible = false;
 			onCollapse();
 			rect = null;
+			previousFocus?.focus();
+			previousFocus = null;
 		}, delay);
 	}
 
@@ -82,7 +93,28 @@
 	}
 
 	function handleOverlayKeydown(e: KeyboardEvent) {
-		if (e.key === "Escape") handleCollapse();
+		if (e.key === "Escape") {
+			handleCollapse();
+			return;
+		}
+		// Simple focus trap: cycle focus within the dialog on Tab
+		if (e.key === "Tab" && dialogEl) {
+			const focusable = Array.from(
+				dialogEl.querySelectorAll<HTMLElement>(
+					'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+				)
+			);
+			if (focusable.length === 0) return;
+			const first = focusable[0];
+			const last = focusable[focusable.length - 1];
+			if (e.shiftKey && document.activeElement === first) {
+				e.preventDefault();
+				last.focus();
+			} else if (!e.shiftKey && document.activeElement === last) {
+				e.preventDefault();
+				first.focus();
+			}
+		}
 	}
 </script>
 
@@ -120,11 +152,12 @@
 	<div
 		class="fixed inset-0 z-40 bg-black/80"
 		aria-hidden="true"
-		style="opacity: {fullyExpanded ? 1 : 0}; transition: opacity {reducedMotion ? 0 : 400}ms ease;"
+		style="opacity: {fullyExpanded ? 1 : 0}; transition: opacity {reducedMotion ? 0 : TRANSITION_MS}ms ease;"
 		onclick={handleCollapse}
 	></div>
 
 	<div
+		bind:this={dialogEl}
 		role="dialog"
 		aria-modal="true"
 		aria-label={card.title}
@@ -138,12 +171,13 @@
 			border-radius: {fullyExpanded ? '0px' : '1.5rem'};
 			transition: {reducedMotion
 			? 'none'
-			: 'top 0.4s cubic-bezier(0.32,0.72,0,1), left 0.4s cubic-bezier(0.32,0.72,0,1), width 0.4s cubic-bezier(0.32,0.72,0,1), height 0.4s cubic-bezier(0.32,0.72,0,1), border-radius 0.4s cubic-bezier(0.32,0.72,0,1)'};
+			: `top ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), left ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), width ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), height ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1), border-radius ${TRANSITION_MS}ms cubic-bezier(0.32,0.72,0,1)`};
 		"
 		onkeydown={handleOverlayKeydown}
 	>
 		<!-- Close button -->
 		<button
+			bind:this={closeBtn}
 			class="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm transition-colors hover:bg-black/30"
 			aria-label="Close"
 			onclick={handleCollapse}
