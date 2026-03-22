@@ -174,6 +174,16 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"line-hover-link": {
+		name: "LineHoverLink",
+		slug: "line-hover-link",
+		description:
+			"Link component with 11 animated underline hover effects — pure CSS, no JS on hover",
+		category: "navigation",
+		status: "done",
+		credits: [{ source: "VengenceUI", url: "https://www.vengence-ui.com/docs/line-hover-link" }],
+	},
+
 	"logo-cloud": {
 		name: "LogoCloud",
 		slug: "logo-cloud",
