@@ -59,14 +59,15 @@
 		children,
 	}: LineHoverLinkProps = $props();
 
-	const needsSpan = ["strike", "bounce", "arc", "scribble"].includes(variant);
+	const needsSpan = $derived(["strike", "bounce", "arc", "scribble"].includes(variant));
+	const relValue = $derived(target === "_blank" ? (rel ?? "noopener noreferrer") : rel);
 </script>
 
 <a
 	{href}
 	{target}
-	{rel}
 	aria-label={ariaLabel}
+	rel={relValue}
 	class={cn("link-hover", `link-hover--${variant}`, className)}
 >
 	{#if needsSpan}
@@ -134,7 +135,7 @@
 		transition: transform 0.3s;
 	}
 
-	.link-hover--slide:hover::before {
+	.link-hover--slide:is(:hover, :focus-visible)::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
 	}
@@ -146,7 +147,7 @@
 		transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1);
 	}
 
-	.link-hover--double:hover::before {
+	.link-hover--double:is(:hover, :focus-visible)::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
 		transition-timing-function: cubic-bezier(0.4, 1, 0.8, 1);
@@ -160,7 +161,7 @@
 		transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1);
 	}
 
-	.link-hover--double:hover::after {
+	.link-hover--double:is(:hover, :focus-visible)::after {
 		transform-origin: 100% 50%;
 		transform: scale3d(1, 1, 1);
 		transition-timing-function: cubic-bezier(0.4, 1, 0.8, 1);
@@ -173,7 +174,7 @@
 		transition: transform 0.3s cubic-bezier(0.2, 1, 0.8, 1);
 	}
 
-	.link-hover--grow:hover::before {
+	.link-hover--grow:is(:hover, :focus-visible)::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 2, 1);
 		transition-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
@@ -187,7 +188,7 @@
 		transition: transform 0.4s 0.1s cubic-bezier(0.2, 1, 0.8, 1);
 	}
 
-	.link-hover--grow:hover::after {
+	.link-hover--grow:is(:hover, :focus-visible)::after {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
 		transition-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
@@ -206,7 +207,7 @@
 		transition: transform 0.3s cubic-bezier(0.4, 1, 0.8, 1);
 	}
 
-	.link-hover--strike:hover::before {
+	.link-hover--strike:is(:hover, :focus-visible)::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
 	}
@@ -216,7 +217,7 @@
 		transition: transform 0.3s cubic-bezier(0.4, 1, 0.8, 1);
 	}
 
-	.link-hover--strike:hover span {
+	.link-hover--strike:is(:hover, :focus-visible) span {
 		transform: scale3d(1.1, 1.1, 1.1);
 	}
 
@@ -231,8 +232,8 @@
 		transition-timing-function: cubic-bezier(0.2, 1, 0.8, 1);
 	}
 
-	.link-hover--fade:hover::before,
-	.link-hover--fade:hover::after {
+	.link-hover--fade:is(:hover, :focus-visible)::before,
+	.link-hover--fade:is(:hover, :focus-visible)::after {
 		opacity: 1;
 		transform: translate3d(0, 0, 0);
 		transition-timing-function: cubic-bezier(0.2, 0, 0.3, 1);
@@ -246,11 +247,11 @@
 	}
 
 	.link-hover--fade::before,
-	.link-hover--fade:hover::after {
+	.link-hover--fade:is(:hover, :focus-visible)::after {
 		transition-delay: 0.1s;
 	}
 
-	.link-hover--fade:hover::before {
+	.link-hover--fade:is(:hover, :focus-visible)::before {
 		transition-delay: 0s;
 	}
 
@@ -261,7 +262,7 @@
 		opacity: 0;
 	}
 
-	.link-hover--pulse:hover::before {
+	.link-hover--pulse:is(:hover, :focus-visible)::before {
 		opacity: 1;
 		animation: lineUp 0.3s ease forwards;
 	}
@@ -292,7 +293,7 @@
 		transition-delay: 0s;
 	}
 
-	.link-hover--pulse:hover::after {
+	.link-hover--pulse:is(:hover, :focus-visible)::after {
 		opacity: 1;
 		transition-delay: 0.3s;
 	}
@@ -304,7 +305,7 @@
 		transition: transform 0.3s;
 	}
 
-	.link-hover--swap:hover::before {
+	.link-hover--swap:is(:hover, :focus-visible)::before {
 		transform: scale3d(1, 1, 1);
 	}
 
@@ -315,7 +316,7 @@
 		transform-origin: 100% 50%;
 	}
 
-	.link-hover--swap:hover::after {
+	.link-hover--swap:is(:hover, :focus-visible)::after {
 		transform: scale3d(0, 1, 1);
 	}
 
@@ -326,7 +327,7 @@
 		opacity: 0;
 	}
 
-	.link-hover--sweep:hover::before {
+	.link-hover--sweep:is(:hover, :focus-visible)::before {
 		opacity: 1;
 		animation: coverUp 0.3s ease forwards;
 	}
@@ -355,7 +356,7 @@
 		transition: opacity 0.3s;
 	}
 
-	.link-hover--sweep:hover::after {
+	.link-hover--sweep:is(:hover, :focus-visible)::after {
 		opacity: 0;
 	}
 
@@ -370,7 +371,7 @@
 		transition-timing-function: cubic-bezier(0.2, 0.57, 0.67, 1.53);
 	}
 
-	.link-hover--bounce:hover::before {
+	.link-hover--bounce:is(:hover, :focus-visible)::before {
 		transition-timing-function: cubic-bezier(0.8, 0, 0.1, 1);
 		transition-duration: 0.4s;
 		opacity: 1;
@@ -383,7 +384,7 @@
 		transition: transform 0.2s 0.05s cubic-bezier(0.2, 0.57, 0.67, 1.53);
 	}
 
-	.link-hover--bounce:hover span {
+	.link-hover--bounce:is(:hover, :focus-visible) span {
 		transform: translate3d(0, 0, 0);
 		transition-timing-function: cubic-bezier(0.8, 0, 0.1, 1);
 		transition-duration: 0.4s;
@@ -406,7 +407,7 @@
 		stroke-dashoffset: 1;
 	}
 
-	.link-hover:hover .link-hover__graphic--stroke :global(path) {
+	.link-hover:is(:hover, :focus-visible) .link-hover__graphic--stroke :global(path) {
 		stroke-dashoffset: 0;
 	}
 
@@ -424,7 +425,7 @@
 		transition: stroke-dashoffset 0.4s cubic-bezier(0.7, 0, 0.3, 1);
 	}
 
-	.link-hover:hover .link-hover__graphic--arc :global(path) {
+	.link-hover:is(:hover, :focus-visible) .link-hover__graphic--arc :global(path) {
 		transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
 		transition-duration: 0.3s;
 	}
@@ -442,7 +443,7 @@
 		transition: stroke-dashoffset 0.6s cubic-bezier(0.7, 0, 0.3, 1);
 	}
 
-	.link-hover:hover .link-hover__graphic--scribble :global(path) {
+	.link-hover:is(:hover, :focus-visible) .link-hover__graphic--scribble :global(path) {
 		transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
 		transition-duration: 0.3s;
 	}
