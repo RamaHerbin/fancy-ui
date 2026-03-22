@@ -151,10 +151,9 @@
 		plane.rotation.z = Math.PI / 4;
 		scene.add(plane);
 
-		const hitPlane = new THREE.Mesh(
-			new THREE.PlaneGeometry(500, 500),
-			new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
-		);
+		const hitGeometry = new THREE.PlaneGeometry(500, 500);
+		const hitMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
+		const hitPlane = new THREE.Mesh(hitGeometry, hitMaterial);
 		scene.add(hitPlane);
 
 		const raycaster = new THREE.Raycaster();
@@ -216,6 +215,8 @@
 			textTexture.dispose();
 			geometry.dispose();
 			shaderMaterial.dispose();
+			hitGeometry.dispose();
+			hitMaterial.dispose();
 		};
 	});
 </script>
