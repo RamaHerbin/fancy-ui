@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1
+
+### Patch Changes
+
+- cb441e1: feat: add AppleCardCarousel component — horizontal card carousel with spring-animated full-screen expansion, inspired by Apple's App Store UI
+- de83ffd: feat(displacement-text): add 3D displacement text component
+- 76bfff4: feat: add LineHoverLink component — link with 11 animated underline hover effects, pure CSS
+- db6f88e: add npm package build pipeline — consumers can now install via `npm install fancy-ui`
+
 ## 0.2.0
 
 ### Minor Changes
