@@ -55,6 +55,7 @@ export * from "./ripple/index.js";
 export * from "./text-generate-effect/index.js";
 export * from "./line-shadow-text/index.js";
 export * from "./tracing-beam/index.js";
+export * from "./displacement-text/index.js";
 
 // =============================================================================
 // Registry
