@@ -31,12 +31,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pnpm package
+
       - uses: changesets/action@v1
         with:
           # Creates/updates the "Version Packages" PR instead of pushing directly to main.
           # This prevents Vercel from triggering a deploy on every changeset commit.
           # When the "Version Packages" PR is merged, the tag and GitHub Release are created.
-          publish: bash -c 'pnpm package && pnpm changeset publish'
+          publish: pnpm changeset publish
           commit: "chore: version packages"
           title: "Version Packages"
         env:
