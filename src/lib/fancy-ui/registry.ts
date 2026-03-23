@@ -610,6 +610,14 @@ export const registry: Record<string, ComponentMeta> = {
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/tracing-beam" },
 		],
 	},
+	"displacement-text": {
+		name: "DisplacementText",
+		slug: "displacement-text",
+		description: "3D text with WebGL displacement that follows the cursor using Three.js shaders",
+		category: "text",
+		status: "done",
+		credits: [{ source: "VengenceUI", url: "https://vengenceui.com/docs/liquid-text" }],
+	},
 };
 
 // =============================================================================
