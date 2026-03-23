@@ -152,7 +152,9 @@
 	<div
 		class="fixed inset-0 z-40 bg-black/80"
 		aria-hidden="true"
-		style="opacity: {fullyExpanded ? 1 : 0}; transition: opacity {reducedMotion ? 0 : TRANSITION_MS}ms ease;"
+		style="opacity: {fullyExpanded ? 1 : 0}; transition: opacity {reducedMotion
+			? 0
+			: TRANSITION_MS}ms ease;"
 		onclick={handleCollapse}
 	></div>
 
