@@ -10,6 +10,7 @@ vendor/
 .wrangler
 /.svelte-kit
 /build
+/dist
 
 # Tools
 .claude/
