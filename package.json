@@ -46,8 +46,11 @@
 		"changeset": "changeset",
 		"version": "changeset version",
 		"release": "changeset tag",
-		"package": "svelte-kit sync && svelte-package -i src/lib -o dist && rm -rf dist/builder dist/server dist/stores && publint",
+		"package": "svelte-kit sync && svelte-package -i src/lib -o dist && node -e \"const fs=require('fs'); ['dist/builder','dist/server','dist/stores'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}));\" && publint",
 		"prepublishOnly": "pnpm run package"
+	},
+	"engines": {
+		"node": ">=20.19.0"
 	},
 	"peerDependencies": {
 		"svelte": "^5.0.0",
@@ -57,7 +60,8 @@
 		"canvas-confetti": "^1.9.4",
 		"clsx": "^2.1.1",
 		"gsap": "^3.14.2",
-		"tailwind-merge": "^3.4.0"
+		"tailwind-merge": "^3.4.0",
+		"three": "^0.183.2"
 	},
 	"devDependencies": {
 		"@changesets/cli": "^2.30.0",
@@ -93,12 +97,5 @@
 		"typescript": "^5.9.3",
 		"vite": "^7.2.6",
 		"vitest": "^4.0.18"
-	},
-	"dependencies": {
-		"canvas-confetti": "^1.9.4",
-		"clsx": "^2.1.1",
-		"gsap": "^3.14.2",
-		"tailwind-merge": "^3.4.0",
-		"three": "^0.183.2"
 	}
 }
