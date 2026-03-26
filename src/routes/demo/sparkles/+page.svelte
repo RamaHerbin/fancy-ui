@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Sparkles } from "$lib/fancy-ui/sparkles";
+	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
 </script>
 
 <svelte:head>
@@ -35,5 +36,22 @@
 				maxSize={4}
 			/>
 		</div>
+	</section>
+
+	<section class="mb-12">
+		<h2 class="mb-4 text-xl font-semibold">Interactive Playground</h2>
+		<PropsPlayground
+			controls={[
+				{ key: 'background', type: 'color', label: 'Background' },
+				{ key: 'particleColor', type: 'color', label: 'Particle Color' },
+			]}
+			initialValues={{ background: '#0d47a1', particleColor: '#ffffff' }}
+		>
+			{#snippet preview(values)}
+				<div class="h-64 w-full overflow-hidden rounded-xl border">
+					<Sparkles background={values.background as string} particleColor={values.particleColor as string} />
+				</div>
+			{/snippet}
+		</PropsPlayground>
 	</section>
 </div>

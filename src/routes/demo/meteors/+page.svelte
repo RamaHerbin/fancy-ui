@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Meteors } from "$lib/fancy-ui/meteors";
+	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
 </script>
 
 <svelte:head>
@@ -65,5 +66,28 @@
 				</div>
 			</div>
 		</div>
+	</section>
+
+	<!-- Playground -->
+	<section class="mb-12">
+		<h2 class="mb-4 text-xl font-semibold">Interactive Playground</h2>
+		<PropsPlayground
+			controls={[{ key: 'count', type: 'range', label: 'Count', min: 1, max: 80, step: 1 }]}
+			initialValues={{ count: 20 }}
+		>
+			{#snippet preview(values)}
+				<div
+					class="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-8 shadow-xl"
+				>
+					<Meteors count={values.count as number} />
+					<div class="relative z-10">
+						<h3 class="mb-2 text-lg font-bold text-white">Shooting Stars</h3>
+						<p class="text-sm text-zinc-400">
+							A beautiful meteor shower effect for dark-themed cards and hero sections.
+						</p>
+					</div>
+				</div>
+			{/snippet}
+		</PropsPlayground>
 	</section>
 </div>
