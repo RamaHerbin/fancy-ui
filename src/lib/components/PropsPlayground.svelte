@@ -1,17 +1,17 @@
 <script lang="ts" module>
 	export type ControlDef =
-		| { key: string; type: 'range'; label: string; min: number; max: number; step?: number }
-		| { key: string; type: 'number'; label: string; min?: number; max?: number; step?: number }
-		| { key: string; type: 'color'; label: string }
-		| { key: string; type: 'text'; label: string }
-		| { key: string; type: 'boolean'; label: string }
-		| { key: string; type: 'select'; label: string; options: { value: string; label: string }[] };
+		| { key: string; type: "range"; label: string; min: number; max: number; step?: number }
+		| { key: string; type: "number"; label: string; min?: number; max?: number; step?: number }
+		| { key: string; type: "color"; label: string }
+		| { key: string; type: "text"; label: string }
+		| { key: string; type: "boolean"; label: string }
+		| { key: string; type: "select"; label: string; options: { value: string; label: string }[] };
 
 	export type PlaygroundValues = Record<string, string | number | boolean>;
 </script>
 
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import type { Snippet } from "svelte";
 
 	interface Props {
 		controls: ControlDef[];
@@ -31,7 +31,7 @@
 
 <svelte:window
 	onkeydown={(e) => {
-		if (e.key === 'Escape') panelOpen = false;
+		if (e.key === "Escape") panelOpen = false;
 	}}
 />
 
@@ -42,7 +42,7 @@
 			{@render preview(values)}
 		</div>
 		<!-- Footer bar -->
-		<div class="border-t px-4 py-3 flex items-center justify-between">
+		<div class="flex items-center justify-between border-t px-4 py-3">
 			<span class="text-sm font-medium">Playground</span>
 			<button
 				onclick={() => (panelOpen = true)}
@@ -59,7 +59,9 @@
 					stroke-linecap="round"
 					stroke-linejoin="round"
 				>
-					<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+					<path
+						d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+					/>
 					<circle cx="12" cy="12" r="3" />
 				</svg>
 				Customize
@@ -81,7 +83,7 @@
 		role="dialog"
 		aria-modal="true"
 		aria-label="Customize props"
-		class="fixed top-0 right-0 z-50 h-full w-80 flex flex-col bg-background border-l transition-transform duration-300 {panelOpen
+		class="bg-background fixed top-0 right-0 z-50 flex h-full w-80 flex-col border-l transition-transform duration-300 {panelOpen
 			? 'translate-x-0'
 			: 'translate-x-full'}"
 	>
@@ -119,11 +121,11 @@
 		</div>
 
 		<!-- Controls list -->
-		<div class="flex-1 overflow-y-auto p-4 space-y-5">
+		<div class="flex-1 space-y-5 overflow-y-auto p-4">
 			{#each controls as def}
 				<div>
-					{#if def.type === 'range'}
-						<div class="flex items-center justify-between mb-1.5">
+					{#if def.type === "range"}
+						<div class="mb-1.5 flex items-center justify-between">
 							<label class="text-sm font-medium" for="ctrl-{def.key}">{def.label}</label>
 							<span class="text-muted-foreground text-sm tabular-nums">{values[def.key]}</span>
 						</div>
@@ -135,10 +137,10 @@
 							step={def.step ?? 1}
 							value={values[def.key] as number}
 							oninput={(e) => (values[def.key] = Number(e.currentTarget.value))}
-							class="w-full accent-foreground"
+							class="accent-foreground w-full"
 						/>
-					{:else if def.type === 'number'}
-						<label class="text-sm font-medium block mb-1.5" for="ctrl-{def.key}">{def.label}</label>
+					{:else if def.type === "number"}
+						<label class="mb-1.5 block text-sm font-medium" for="ctrl-{def.key}">{def.label}</label>
 						<input
 							id="ctrl-{def.key}"
 							type="number"
@@ -149,8 +151,8 @@
 							oninput={(e) => (values[def.key] = Number(e.currentTarget.value))}
 							class="border-input bg-background w-full rounded-md border px-3 py-1.5 text-sm"
 						/>
-					{:else if def.type === 'color'}
-						<div class="flex items-center justify-between mb-1.5">
+					{:else if def.type === "color"}
+						<div class="mb-1.5 flex items-center justify-between">
 							<label class="text-sm font-medium" for="ctrl-{def.key}">{def.label}</label>
 							<span class="text-muted-foreground text-sm">{values[def.key]}</span>
 						</div>
@@ -161,8 +163,8 @@
 							oninput={(e) => (values[def.key] = e.currentTarget.value)}
 							class="h-9 w-full cursor-pointer rounded-md border"
 						/>
-					{:else if def.type === 'text'}
-						<label class="text-sm font-medium block mb-1.5" for="ctrl-{def.key}">{def.label}</label>
+					{:else if def.type === "text"}
+						<label class="mb-1.5 block text-sm font-medium" for="ctrl-{def.key}">{def.label}</label>
 						<input
 							id="ctrl-{def.key}"
 							type="text"
@@ -170,7 +172,7 @@
 							oninput={(e) => (values[def.key] = e.currentTarget.value)}
 							class="border-input bg-background w-full rounded-md border px-3 py-1.5 text-sm"
 						/>
-					{:else if def.type === 'boolean'}
+					{:else if def.type === "boolean"}
 						<div class="flex items-center justify-between">
 							<label class="text-sm font-medium" for="ctrl-{def.key}">{def.label}</label>
 							<button
@@ -186,7 +188,7 @@
 									: 'bg-muted'}"
 							>
 								<span
-									class="inline-block h-4 w-4 transform rounded-full bg-background transition-transform {values[
+									class="bg-background inline-block h-4 w-4 transform rounded-full transition-transform {values[
 										def.key
 									]
 										? 'translate-x-6'
@@ -194,8 +196,8 @@
 								></span>
 							</button>
 						</div>
-					{:else if def.type === 'select'}
-						<label class="text-sm font-medium block mb-1.5" for="ctrl-{def.key}">{def.label}</label>
+					{:else if def.type === "select"}
+						<label class="mb-1.5 block text-sm font-medium" for="ctrl-{def.key}">{def.label}</label>
 						<select
 							id="ctrl-{def.key}"
 							value={values[def.key] as string}

@@ -72,7 +72,7 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Interactive Playground</h2>
 		<PropsPlayground
-			controls={[{ key: 'count', type: 'range', label: 'Count', min: 1, max: 80, step: 1 }]}
+			controls={[{ key: "count", type: "range", label: "Count", min: 1, max: 80, step: 1 }]}
 			initialValues={{ count: 20 }}
 		>
 			{#snippet preview(values)}

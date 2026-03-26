@@ -112,14 +112,18 @@
 		<h2 class="mb-4 text-xl font-semibold">Interactive Playground</h2>
 		<PropsPlayground
 			controls={[
-				{ key: 'reverse', type: 'boolean', label: 'Reverse' },
-				{ key: 'pauseOnHover', type: 'boolean', label: 'Pause on Hover' },
-				{ key: 'vertical', type: 'boolean', label: 'Vertical' },
+				{ key: "reverse", type: "boolean", label: "Reverse" },
+				{ key: "pauseOnHover", type: "boolean", label: "Pause on Hover" },
+				{ key: "vertical", type: "boolean", label: "Vertical" },
 			]}
 			initialValues={{ reverse: false, pauseOnHover: false, vertical: false }}
 		>
 			{#snippet preview(values)}
-				<div class="relative w-full overflow-hidden rounded-xl border bg-background {values.vertical ? 'flex h-56 flex-row' : 'flex flex-col'}">
+				<div
+					class="bg-background relative w-full overflow-hidden rounded-xl border {values.vertical
+						? 'flex h-56 flex-row'
+						: 'flex flex-col'}"
+				>
 					<Marquee
 						reverse={values.reverse as boolean}
 						pauseOnHover={values.pauseOnHover as boolean}
@@ -130,8 +134,12 @@
 							<ReviewCard {...review} />
 						{/each}
 					</Marquee>
-					<div class="from-background pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r"></div>
-					<div class="from-background pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l"></div>
+					<div
+						class="from-background pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r"
+					></div>
+					<div
+						class="from-background pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l"
+					></div>
 				</div>
 			{/snippet}
 		</PropsPlayground>
