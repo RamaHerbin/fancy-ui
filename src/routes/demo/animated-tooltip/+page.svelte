@@ -6,7 +6,7 @@
 			id: 1,
 			name: "John Doe",
 			designation: "Software Engineer",
-			image: "https://images.unsplash.com/photo-1599566150163-29194dcabd36?w=100&h=100&fit=crop",
+			image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
 		},
 		{
 			id: 2,
