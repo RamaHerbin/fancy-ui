@@ -23,7 +23,7 @@
 	let { words, duration = 3000, class: className }: FlipWordsProps = $props();
 
 	let currentIndex = $state(0);
-	let isVisible = $state(true);
+	let isExiting = $state(false);
 	let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
 	let currentWord = $derived(words[currentIndex] ?? "");
@@ -35,11 +35,11 @@
 	);
 
 	function startAnimation() {
-		isVisible = false;
+		isExiting = true;
 
 		setTimeout(() => {
+			isExiting = false;
 			currentIndex = (currentIndex + 1) % words.length;
-			isVisible = true;
 		}, 600);
 	}
 
@@ -49,7 +49,9 @@
 	}
 
 	$effect(() => {
-		if (isVisible) {
+		// Re-schedule whenever a new word becomes active (not during exit)
+		if (!isExiting) {
+			void currentIndex; // track dependency
 			scheduleNext();
 		}
 	});
@@ -62,10 +64,11 @@
 </script>
 
 <div class="flip-words relative inline-block px-2">
-	{#if isVisible}
+	{#key currentIndex}
 		<div
 			class={cn(
-				"flip-words-enter relative z-10 inline-block text-left text-neutral-900 dark:text-neutral-100",
+				"relative z-10 inline-block text-left text-neutral-900 dark:text-neutral-100",
+				isExiting ? "flip-words-exit" : "flip-words-enter",
 				className
 			)}
 		>
@@ -86,7 +89,7 @@
 				</span>
 			{/each}
 		</div>
-	{/if}
+	{/key}
 </div>
 
 <style>
@@ -127,9 +130,26 @@
 				transform: translateY(0);
 			}
 		}
+
+		@keyframes flipExitWord {
+			0% {
+				opacity: 1;
+				transform: translateY(0);
+				filter: blur(0);
+			}
+			100% {
+				opacity: 0;
+				transform: translateY(-10px);
+				filter: blur(8px);
+			}
+		}
 	}
 
 	.flip-words-enter {
 		animation: flipEnterWord 0.6s ease-in-out forwards;
+	}
+
+	.flip-words-exit {
+		animation: flipExitWord 0.6s ease-in-out forwards;
 	}
 </style>
