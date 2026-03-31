@@ -1,7 +1,7 @@
 {
-	"name": "fancy-ui",
+	"name": "fancy-ui-svelte",
 	"private": false,
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"type": "module",
 	"license": "MIT",
 	"repository": {
@@ -20,7 +20,13 @@
 		"ui",
 		"tailwind"
 	],
-	"files": ["dist/fancy-ui", "dist/utils.js", "dist/utils.d.ts", "dist/types.js", "dist/types.d.ts"],
+	"files": [
+		"dist/fancy-ui",
+		"dist/utils.js",
+		"dist/utils.d.ts",
+		"dist/types.js",
+		"dist/types.d.ts"
+	],
 	"main": "./dist/fancy-ui/index.js",
 	"svelte": "./dist/fancy-ui/index.js",
 	"types": "./dist/fancy-ui/index.d.ts",
