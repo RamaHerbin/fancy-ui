@@ -20,11 +20,14 @@
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
 
+	const EXIT_MS = 600;
+
 	let { words, duration = 3000, class: className }: FlipWordsProps = $props();
 
 	let currentIndex = $state(0);
 	let isExiting = $state(false);
 	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+	let exitTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 	let currentWord = $derived(words[currentIndex] ?? "");
 	let splitWords = $derived(
@@ -35,30 +38,35 @@
 	);
 
 	function startAnimation() {
+		if (words.length < 2) return;
+
 		isExiting = true;
 
-		setTimeout(() => {
+		if (exitTimeoutId) clearTimeout(exitTimeoutId);
+		exitTimeoutId = setTimeout(() => {
 			isExiting = false;
 			currentIndex = (currentIndex + 1) % words.length;
-		}, 600);
+		}, EXIT_MS);
 	}
 
-	function scheduleNext() {
+	function scheduleNext(index: number, d: number) {
+		if (words.length < 2) return;
 		if (timeoutId) clearTimeout(timeoutId);
-		timeoutId = setTimeout(startAnimation, duration);
+		timeoutId = setTimeout(startAnimation, d);
 	}
 
 	$effect(() => {
-		// Re-schedule whenever a new word becomes active (not during exit)
+		// Re-schedule whenever a new word becomes active (not during exit).
+		// Reference currentIndex and duration directly so the effect re-runs on changes.
 		if (!isExiting) {
-			void currentIndex; // track dependency
-			scheduleNext();
+			scheduleNext(currentIndex, duration);
 		}
 	});
 
 	onMount(() => {
 		return () => {
 			if (timeoutId) clearTimeout(timeoutId);
+			if (exitTimeoutId) clearTimeout(exitTimeoutId);
 		};
 	});
 </script>
@@ -145,11 +153,15 @@
 		}
 	}
 
+	.flip-words {
+		--flip-words-ms: 0.6s;
+	}
+
 	.flip-words-enter {
-		animation: flipEnterWord 0.6s ease-in-out forwards;
+		animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
 	}
 
 	.flip-words-exit {
-		animation: flipExitWord 0.6s ease-in-out forwards;
+		animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
 	}
 </style>
