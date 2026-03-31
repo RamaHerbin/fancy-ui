@@ -52,7 +52,7 @@
 			status: "In progress",
 			statusColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
 			items: [
-				{ done: true, text: "npm package — install via npm install fancy-ui-svelte" },
+				{ done: true, text: "npm package — install via npm install fancy-ui" },
 				{ text: "Proper package exports + TypeScript declarations" },
 				{ text: "CHANGELOG + semantic versioning" },
 				{ text: "CONTRIBUTING guide" },
@@ -303,13 +303,13 @@
 			<BorderBeam duration={12} size={120} colorFrom="#9E7AFF" colorTo="#FE8BBB" borderWidth={1} />
 			<div class="p-6 font-mono text-sm">
 				<div class="mb-1 text-white/40"># 1. Install</div>
-				<div class="mb-4 text-emerald-400">npm install fancy-ui-svelte</div>
+				<div class="mb-4 text-emerald-400">npm install fancy-ui</div>
 				<div class="mb-1 text-white/40"># 2. Import any component</div>
 				<div class="mb-1">
 					<span class="text-purple-400">import</span>
 					<span class="text-white"> &#123; BorderBeam, Sparkles, Marquee &#125; </span>
 					<span class="text-purple-400">from</span>
-					<span class="text-amber-300"> 'fancy-ui-svelte'</span>
+					<span class="text-amber-300"> 'fancy-ui'</span>
 				</div>
 				<div class="mb-4 text-xs text-white/30">&nbsp;</div>
 				<div class="mb-1 text-white/40"># 3. Use it</div>
