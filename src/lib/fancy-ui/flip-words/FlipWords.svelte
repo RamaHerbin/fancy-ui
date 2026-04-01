@@ -20,11 +20,14 @@
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
 
+	const EXIT_MS = 600;
+
 	let { words, duration = 3000, class: className }: FlipWordsProps = $props();
 
 	let currentIndex = $state(0);
-	let isVisible = $state(true);
+	let isExiting = $state(false);
 	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+	let exitTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 	let currentWord = $derived(words[currentIndex] ?? "");
 	let splitWords = $derived(
@@ -35,37 +38,45 @@
 	);
 
 	function startAnimation() {
-		isVisible = false;
+		if (words.length < 2) return;
 
-		setTimeout(() => {
+		isExiting = true;
+
+		if (exitTimeoutId) clearTimeout(exitTimeoutId);
+		exitTimeoutId = setTimeout(() => {
+			isExiting = false;
 			currentIndex = (currentIndex + 1) % words.length;
-			isVisible = true;
-		}, 600);
+		}, EXIT_MS);
 	}
 
-	function scheduleNext() {
+	function scheduleNext(index: number, d: number) {
+		if (words.length < 2) return;
 		if (timeoutId) clearTimeout(timeoutId);
-		timeoutId = setTimeout(startAnimation, duration);
+		timeoutId = setTimeout(startAnimation, d);
 	}
 
 	$effect(() => {
-		if (isVisible) {
-			scheduleNext();
+		// Re-schedule whenever a new word becomes active (not during exit).
+		// Reference currentIndex and duration directly so the effect re-runs on changes.
+		if (!isExiting) {
+			scheduleNext(currentIndex, duration);
 		}
 	});
 
 	onMount(() => {
 		return () => {
 			if (timeoutId) clearTimeout(timeoutId);
+			if (exitTimeoutId) clearTimeout(exitTimeoutId);
 		};
 	});
 </script>
 
 <div class="flip-words relative inline-block px-2">
-	{#if isVisible}
+	{#key currentIndex}
 		<div
 			class={cn(
-				"flip-words-enter relative z-10 inline-block text-left text-neutral-900 dark:text-neutral-100",
+				"relative z-10 inline-block text-left text-neutral-900 dark:text-neutral-100",
+				isExiting ? "flip-words-exit" : "flip-words-enter",
 				className
 			)}
 		>
@@ -86,7 +97,7 @@
 				</span>
 			{/each}
 		</div>
-	{/if}
+	{/key}
 </div>
 
 <style>
@@ -127,9 +138,30 @@
 				transform: translateY(0);
 			}
 		}
+
+		@keyframes flipExitWord {
+			0% {
+				opacity: 1;
+				transform: translateY(0);
+				filter: blur(0);
+			}
+			100% {
+				opacity: 0;
+				transform: translateY(-10px);
+				filter: blur(8px);
+			}
+		}
+	}
+
+	.flip-words {
+		--flip-words-ms: 0.6s;
 	}
 
 	.flip-words-enter {
-		animation: flipEnterWord 0.6s ease-in-out forwards;
+		animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
+	}
+
+	.flip-words-exit {
+		animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
 	}
 </style>

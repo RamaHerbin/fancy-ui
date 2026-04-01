@@ -285,7 +285,7 @@
 	<!-- Second Content -->
 	<div
 		class={cn(
-			"absolute top-0 left-0 z-[19] h-full w-full rounded-2xl select-none",
+			"absolute top-0 left-0 z-[19] h-full w-full overflow-hidden rounded-2xl select-none",
 			secondContentClass
 		)}
 		style:pointer-events={isInteracting ? "none" : "auto"}
