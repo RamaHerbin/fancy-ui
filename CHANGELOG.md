@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- f40190a: feat(displacement-text): add 3D displacement text component
+- 649870d: Add interactive props playground to demo pages
+
+### Patch Changes
+
+- f40190a: feat: add AppleCardCarousel component — horizontal card carousel with spring-animated full-screen expansion, inspired by Apple's App Store UI
+- f40190a: fix compare corner overflow and broken animated-tooltip image
+- f40190a: docs: update homepage quick start and roadmap for npm package release
+- f40190a: fix(flip-words): prevent layout shift during word transition
+- f40190a: feat: add LineHoverLink component — link with 11 animated underline hover effects, pure CSS
+- f40190a: add npm package build pipeline — consumers can now install via `npm install fancy-ui`
+- 265a76b: docs: mark v0.2 as released and update v0.3 roadmap status
+
 ## 0.2.1
 
 ### Patch Changes
