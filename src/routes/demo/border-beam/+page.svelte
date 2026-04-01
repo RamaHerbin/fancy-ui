@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { BorderBeam } from "$lib/fancy-ui/border-beam";
-	import type { BorderBeamProps } from "$lib/fancy-ui/border-beam/BorderBeam.svelte";
+	import { BorderBeam, type BorderBeamProps } from "$lib/fancy-ui/border-beam";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
 </script>
 

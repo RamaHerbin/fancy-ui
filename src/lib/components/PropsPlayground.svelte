@@ -24,9 +24,20 @@
 	let panelOpen = $state(false);
 	let values = $state<PlaygroundValues>({ ...initialValues });
 
+	let customizeButtonRef: HTMLButtonElement | undefined = $state();
+	let closePanelButtonRef: HTMLButtonElement | undefined = $state();
+
 	function reset() {
 		values = { ...initialValues };
 	}
+
+	$effect(() => {
+		if (panelOpen) {
+			closePanelButtonRef?.focus();
+		} else {
+			customizeButtonRef?.focus();
+		}
+	});
 </script>
 
 <svelte:window
@@ -45,6 +56,7 @@
 		<div class="flex items-center justify-between border-t px-4 py-3">
 			<span class="text-sm font-medium">Playground</span>
 			<button
+				bind:this={customizeButtonRef}
 				onclick={() => (panelOpen = true)}
 				class="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
 			>
@@ -81,8 +93,9 @@
 	<!-- Side panel -->
 	<div
 		role="dialog"
-		aria-modal="true"
+		aria-modal={panelOpen}
 		aria-label="Customize props"
+		inert={!panelOpen}
 		class="bg-background fixed top-0 right-0 z-50 flex h-full w-80 flex-col border-l transition-transform duration-300 {panelOpen
 			? 'translate-x-0'
 			: 'translate-x-full'}"
