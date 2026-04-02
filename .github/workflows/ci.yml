@@ -1,15 +1,29 @@
 name: CI
 
 on:
+  # Run on regular PRs targeting main or develop
   pull_request:
     branches: [main, develop]
+  # Run on the automated Changesets release PR (opened by github-actions[bot]).
+  # pull_request_target runs the workflow from the base branch so the latest
+  # workflow file is always used, even for bot-created head branches.
+  pull_request_target:
+    branches: [main]
 
 jobs:
   check:
     name: Type-check & test
+    # Skip duplicate runs: for pull_request_target only run on the release branch;
+    # for pull_request run on everything else.
+    if: |
+      (github.event_name == 'pull_request_target' && github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # For pull_request_target, check out the actual head commit (not base)
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - uses: pnpm/action-setup@v4
         with:
@@ -26,13 +40,18 @@ jobs:
 
   changeset:
     name: Changeset present
+    if: |
+      (github.event_name == 'pull_request_target' && github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Check for changeset
         # Skip this check for the automated "Version Packages" PR
-        if: ${{ github.head_ref != 'changeset-release/main' }}
+        if: github.head_ref != 'changeset-release/main'
         run: |
           if ! ls .changeset/*.md 2>/dev/null | grep -qv README.md; then
             echo "❌ No changeset file found. Run 'pnpm changeset' and commit the generated file."
