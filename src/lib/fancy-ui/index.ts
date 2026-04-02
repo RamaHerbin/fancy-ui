@@ -56,6 +56,8 @@ export * from "./text-generate-effect/index.js";
 export * from "./line-shadow-text/index.js";
 export * from "./tracing-beam/index.js";
 export * from "./displacement-text/index.js";
+export * from "./matrix-rain/index.js";
+export * from "./terminal-text/index.js";
 
 // =============================================================================
 // Registry
