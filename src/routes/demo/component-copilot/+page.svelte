@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { nanoid } from "nanoid";
 	import { marked } from "marked";
+	import DOMPurify from "isomorphic-dompurify";
 	import { Send, RotateCcw, Trash2 } from "@lucide/svelte";
 	import { SparklesText } from "$lib/fancy-ui/sparkles-text";
 	import { GlowBorder } from "$lib/fancy-ui/glow-border";
@@ -25,11 +26,27 @@
 	let inputValue = $state("");
 	let messagesEnd: HTMLDivElement | undefined = $state();
 	let welcomeKey = $state(0);
+	let prevMessagesLength = 0;
+	let scrollFrame: number | null = null;
 
 	$effect(() => {
 		void streamingContent;
-		void messages.length;
-		messagesEnd?.scrollIntoView({ behavior: "smooth" });
+		const addedMessage = messages.length > prevMessagesLength;
+		prevMessagesLength = messages.length;
+		const behavior: ScrollBehavior = isStreaming || !addedMessage ? "auto" : "smooth";
+
+		if (scrollFrame !== null) cancelAnimationFrame(scrollFrame);
+		scrollFrame = requestAnimationFrame(() => {
+			messagesEnd?.scrollIntoView({ behavior });
+			scrollFrame = null;
+		});
+
+		return () => {
+			if (scrollFrame !== null) {
+				cancelAnimationFrame(scrollFrame);
+				scrollFrame = null;
+			}
+		};
 	});
 
 	$effect(() => {
@@ -37,7 +54,7 @@
 	});
 
 	function render(md: string): string {
-		return marked.parse(md) as string;
+		return DOMPurify.sanitize(marked.parse(md) as string);
 	}
 
 	const PROMPTS = [
@@ -74,14 +91,42 @@
 
 			const reader = response.body!.getReader();
 			const dec = new TextDecoder();
+			let fullContent = "";
+			let pendingContent = "";
+			let flushScheduled = false;
+
+			const flush = () => {
+				if (!pendingContent) {
+					flushScheduled = false;
+					return;
+				}
+				streamingContent += pendingContent;
+				pendingContent = "";
+				flushScheduled = false;
+			};
+			const scheduleFlush = () => {
+				if (flushScheduled) return;
+				flushScheduled = true;
+				requestAnimationFrame(flush);
+			};
 
 			while (true) {
 				const { done, value } = await reader.read();
 				if (done) break;
-				streamingContent += dec.decode(value, { stream: true });
+				const chunk = dec.decode(value, { stream: true });
+				fullContent += chunk;
+				pendingContent += chunk;
+				scheduleFlush();
 			}
 
-			messages = [...messages, { id: nanoid(), role: "assistant", content: streamingContent }];
+			const tail = dec.decode();
+			if (tail) {
+				fullContent += tail;
+				pendingContent += tail;
+			}
+			flush();
+
+			messages = [...messages, { id: nanoid(), role: "assistant", content: fullContent }];
 			streamingContent = "";
 		} catch (e) {
 			error = e instanceof Error ? e.message : "An unexpected error occurred.";
@@ -234,9 +279,8 @@
 				<div class="flex justify-start">
 					<div class="bg-card max-w-[85%] rounded-xl border px-4 py-2 text-sm">
 						{#if streamingContent}
-							<div class="prose prose-sm dark:prose-invert max-w-none">
-								{@html render(streamingContent)}
-							</div>
+							<!-- Plain text during streaming to avoid partial HTML / XSS from in-flight content -->
+							<p class="text-sm whitespace-pre-wrap">{streamingContent}</p>
 						{:else}
 							<div class="flex gap-1">
 								<span
