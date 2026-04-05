@@ -10,11 +10,11 @@
 	let inputEl: HTMLInputElement;
 	let terminalBodyEl: HTMLDivElement;
 
-	const RESPONSES: Record<string, string[]> = {
+	const RESPONSES: Record<string, string[] | (() => string[])> = {
 		help: ["Available commands: help, whoami, ls, date, clear, hack, exit"],
 		whoami: ["operator — clearance level: OMEGA"],
 		ls: ["payload.enc  mainframe.key  rabbit.hole  /dev/null"],
-		date: [new Date().toUTCString()],
+		date: () => [new Date().toUTCString()],
 		hack: [
 			"initiating hack sequence...",
 			"bypassing firewall... done",
@@ -36,7 +36,13 @@
 			return;
 		}
 
-		const lines = RESPONSES[cmd] ?? [`bash: ${cmd}: command not found`];
+		const entry = RESPONSES[cmd];
+		const lines =
+			entry == null
+				? [`bash: ${cmd}: command not found`]
+				: typeof entry === "function"
+					? entry()
+					: entry;
 		history = [...history, ...lines.map((text) => ({ type: "output" as const, text }))];
 
 		// Scroll to bottom after DOM update
@@ -198,10 +204,18 @@
 			<code class="bg-muted rounded px-1.5 py-0.5">help</code> pour voir les commandes.
 		</p>
 
-		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 		<div
 			class="terminal-window rounded-lg border border-green-900 bg-black font-mono"
+			role="button"
+			tabindex="0"
+			aria-label="Focus terminal input"
 			onclick={focusInput}
+			onkeydown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					focusInput();
+				}
+			}}
 		>
 			<!-- Title bar -->
 			<div class="flex items-center gap-2 border-b border-green-900 px-4 py-2">

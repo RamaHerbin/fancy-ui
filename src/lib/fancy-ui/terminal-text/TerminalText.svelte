@@ -131,17 +131,27 @@
 	}
 
 	$effect(() => {
-		// React to lines/speed/delay changes
+		// React only to lines/speed/delay — changing glitch won't restart the stream
 		void lines;
 		void speed;
 		void delay;
 
 		streamLines();
-		if (glitch) startGlitchLoop();
 
 		return () => {
 			clearAllTimeouts();
 		};
+	});
+
+	$effect(() => {
+		// React to glitch changes without restarting the stream
+		void glitch;
+
+		if (glitch) {
+			startGlitchLoop();
+		} else {
+			glitchState = null;
+		}
 	});
 </script>
 

@@ -25,25 +25,31 @@
 		"アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&";
 
 	let canvas: HTMLCanvasElement;
+	let ctx: CanvasRenderingContext2D | null = null;
 	let rafId: number;
 	let columns: number[] = [];
 	let frameCount = 0;
+	let canvasW = 0;
+	let canvasH = 0;
 
 	function randomGlyph(): string {
 		return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
 	}
 
 	function init(w: number, h: number) {
-		const colCount = Math.floor(w / (glyphSize * density));
-		columns = Array.from({ length: colCount }, () => Math.floor(Math.random() * (h / glyphSize)));
+		const safeGlyphSize = Math.max(1, glyphSize);
+		const safeDensity = Math.max(0.1, density);
+		const colCount = Math.max(1, Math.floor(w / (safeGlyphSize * safeDensity)));
+		columns = Array.from({ length: colCount }, () =>
+			Math.floor(Math.random() * (h / safeGlyphSize))
+		);
 	}
 
 	function draw() {
-		const ctx = canvas.getContext("2d");
 		if (!ctx) return;
 
-		const w = canvas.width;
-		const h = canvas.height;
+		const w = canvasW;
+		const h = canvasH;
 
 		// Fade trail
 		ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
@@ -88,16 +94,20 @@
 	}
 
 	$effect(() => {
-		const ctx = canvas.getContext("2d");
+		ctx = canvas.getContext("2d");
 		if (!ctx) return;
 
-		// Set canvas size to container size
+		// Set canvas size to container size with HiDPI scaling
 		const resize = () => {
-			canvas.width = canvas.offsetWidth;
-			canvas.height = canvas.offsetHeight;
-			ctx.fillStyle = "black";
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
-			init(canvas.width, canvas.height);
+			const dpr = window.devicePixelRatio || 1;
+			canvasW = canvas.clientWidth;
+			canvasH = canvas.clientHeight;
+			canvas.width = Math.floor(canvasW * dpr);
+			canvas.height = Math.floor(canvasH * dpr);
+			ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+			ctx!.fillStyle = "black";
+			ctx!.fillRect(0, 0, canvasW, canvasH);
+			init(canvasW, canvasH);
 		};
 
 		resize();
