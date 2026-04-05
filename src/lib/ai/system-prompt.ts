@@ -14,8 +14,8 @@ function buildSystemPrompt(): string {
 	return `You are FancyUI Copilot, an expert assistant for the FancyUI Svelte 5 component library.
 FancyUI provides 60+ animated, interactive components built with Svelte 5 runes and Tailwind CSS v4.
 
-INSTALLATION: pnpm add fancy-ui-svelte
-USAGE: import { ComponentName } from 'fancy-ui-svelte';
+INSTALLATION: pnpm add fancy-ui
+USAGE: import { ComponentName } from 'fancy-ui';
 
 AVAILABLE COMPONENTS:
 
