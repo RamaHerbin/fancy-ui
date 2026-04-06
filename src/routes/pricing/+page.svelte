@@ -91,6 +91,19 @@
 
 	let openFaq = $state<number | null>(null);
 
+	const compareRows: [string, boolean, boolean, boolean][] = [
+		["Open-source components", true, true, true],
+		["Tailwind CSS v4", true, true, true],
+		["Svelte 5 runes", true, true, true],
+		["Premium components", false, true, true],
+		["Figma design files", false, true, true],
+		["Discord access", false, true, true],
+		["White-label license", false, false, true],
+		["Custom component requests", false, false, true],
+		["Dedicated support", false, false, true],
+		["SLA guarantee", false, false, true],
+	];
+
 	function getPrice(plan: (typeof plans)[0]) {
 		if (plan.monthlyPrice === 0) return 0;
 		return annual ? plan.annualPrice : plan.monthlyPrice;
@@ -133,9 +146,14 @@
 			</p>
 
 			<!-- Billing toggle -->
-			<div class="mt-8 inline-flex items-center gap-4 rounded-full border px-2 py-1.5">
+			<div
+				role="group"
+				aria-label="Billing period"
+				class="mt-8 inline-flex items-center gap-4 rounded-full border px-2 py-1.5"
+			>
 				<button
 					onclick={() => (annual = false)}
+					aria-pressed={!annual}
 					class="rounded-full px-4 py-1.5 text-sm font-medium transition-all {!annual
 						? 'bg-foreground text-background shadow-sm'
 						: 'text-muted-foreground hover:text-foreground'}"
@@ -144,6 +162,7 @@
 				</button>
 				<button
 					onclick={() => (annual = true)}
+					aria-pressed={annual}
 					class="flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-all {annual
 						? 'bg-foreground text-background shadow-sm'
 						: 'text-muted-foreground hover:text-foreground'}"
@@ -291,7 +310,7 @@
 						</tr>
 					</thead>
 					<tbody class="divide-y">
-						{#each [["Open-source components", true, true, true], ["Tailwind CSS v4", true, true, true], ["Svelte 5 runes", true, true, true], ["Premium components", false, true, true], ["Figma design files", false, true, true], ["Discord access", false, true, true], ["White-label license", false, false, true], ["Custom component requests", false, false, true], ["Dedicated support", false, false, true], ["SLA guarantee", false, false, true]] as row}
+						{#each compareRows as row}
 							{@const [label, ...values] = row}
 							<tr class="hover:bg-muted/30 transition-colors">
 								<td class="text-muted-foreground px-6 py-3">{label}</td>
@@ -320,9 +339,12 @@
 						<button
 							class="flex w-full items-center justify-between px-6 py-4 text-left text-sm font-medium"
 							onclick={() => (openFaq = openFaq === i ? null : i)}
+							aria-expanded={openFaq === i}
+							aria-controls="faq-answer-{i}"
 						>
 							<span>{faq.q}</span>
 							<span
+								aria-hidden="true"
 								class="text-muted-foreground ml-4 shrink-0 transition-transform duration-200 {openFaq ===
 								i
 									? 'rotate-45'
@@ -332,7 +354,10 @@
 							</span>
 						</button>
 						{#if openFaq === i}
-							<div class="text-muted-foreground border-t px-6 py-4 text-sm leading-relaxed">
+							<div
+								id="faq-answer-{i}"
+								class="text-muted-foreground border-t px-6 py-4 text-sm leading-relaxed"
+							>
 								{faq.a}
 							</div>
 						{/if}
