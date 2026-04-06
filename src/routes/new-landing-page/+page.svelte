@@ -12,12 +12,32 @@
 		Timeline,
 		ImageTrailCursor,
 		FlickeringGrid,
+		AnimatedTooltip,
 	} from "$lib/fancy-ui";
-	import type { TimelineItem } from "$lib/fancy-ui";
+	import type { TimelineItem, TooltipItem } from "$lib/fancy-ui";
 	import SynthwaveGrid from "$lib/components/SynthwaveGrid.svelte";
 
 	const GITHUB_URL = "https://github.com/ramaherbin/fancy-ui";
 	const DEMO_URL = "/demo";
+
+	const contributors: (TooltipItem & { login: string; contributions: number })[] = [
+		{
+			id: 1,
+			login: "RamaHerbin",
+			name: "Rama Herbin",
+			designation: "Creator & maintainer",
+			image: "https://avatars.githubusercontent.com/u/41597427?v=4",
+			contributions: 160,
+		},
+		{
+			id: 2,
+			login: "claude",
+			name: "Claude",
+			designation: "AI contributor",
+			image: "https://avatars.githubusercontent.com/u/81847?v=4",
+			contributions: 1,
+		},
+	];
 
 	const taglineWords = ["animated", "beautiful", "interactive", "composable", "performant"];
 
@@ -325,7 +345,7 @@
 	</div>
 </section>
 
-<!-- ─── STATS BENTO (light bg) ────────────────────────────────────────────────── -->
+<!-- ─── STATS BENTO (Krea-style) ───────────────────────────────────────────────── -->
 <section class="bg-white px-4 py-24">
 	<div class="mx-auto max-w-7xl">
 		<!-- Editorial heading -->
@@ -333,99 +353,86 @@
 			<span class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">The numbers</span>
 			<div class="h-px flex-1 bg-zinc-100"></div>
 		</div>
-
-		<h2 class="mb-12 text-5xl leading-none font-bold tracking-tight text-zinc-900 sm:text-7xl">
+		<h2 class="mb-10 text-5xl font-bold leading-none tracking-tight text-zinc-900 sm:text-7xl">
 			60+ components.<br />Zero bloat.
 		</h2>
 
-		<!-- Tech marquee strip -->
-		<div class="mb-12 overflow-hidden rounded-xl border border-zinc-100 bg-zinc-50 py-3">
-			<Marquee pauseOnHover class="[--duration:30s]">
-				{#each [...techBadges, ...techBadges] as badge}
-					<span class="mx-3 text-sm font-medium text-zinc-400">
-						{badge} <span class="ml-3 text-zinc-200">·</span>
-					</span>
-				{/each}
-			</Marquee>
-		</div>
-
-		<!-- Bento grid -->
-		<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-			<!-- Large dark card: ~2kb runtime -->
-			<div class="relative col-span-1 overflow-hidden rounded-2xl bg-zinc-950 p-8 sm:col-span-2">
-				<div class="pointer-events-none absolute inset-0 opacity-30">
+		<!-- Row 1: dark 2col + 2 light stats -->
+		<div class="grid grid-cols-3 gap-3">
+			<!-- Dark hero card (col-span-2, row-span-2) — FlickeringGrid bg, large text -->
+			<div class="relative col-span-3 row-span-2 overflow-hidden rounded-3xl bg-white sm:col-span-2" style="min-height:280px">
+				<div class="pointer-events-none absolute inset-0">
 					<FlickeringGrid
-						color="#a855f7"
-						maxOpacity={0.4}
-						flickerChance={0.1}
-						squareSize={4}
-						gridGap={6}
+						color="#a0a0a0"
+						maxOpacity={0.15}
+						flickerChance={0.08}
+						squareSize={5}
+						gridGap={7}
 						class="h-full w-full"
 					/>
 				</div>
-				<div class="relative z-10">
-					<p class="mb-2 text-4xl font-bold text-white sm:text-6xl">~2kb</p>
-					<p class="text-lg font-semibold text-white/80">runtime bundle</p>
-					<p class="mt-2 text-sm text-white/40">60× lighter than React</p>
+				<div class="relative z-10 flex h-full flex-col justify-end p-10">
+					<p class="mb-1 text-6xl font-black leading-none tracking-tight text-zinc-900 sm:text-8xl">~2kb</p>
+					<p class="text-lg font-semibold text-zinc-500">Svelte runtime bundle</p>
+					<p class="mt-1 text-sm text-zinc-400">60× lighter than React · zero virtual DOM</p>
 				</div>
 			</div>
 
-			<!-- Small stat: 60+ components -->
-			<div class="flex flex-col justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-8">
-				<p class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">Components</p>
+			<!-- Light stat: 60+ -->
+			<div class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1">
+				<p class="text-sm font-medium text-zinc-400">Components</p>
 				<div>
-					<div class="flex items-end gap-1 text-zinc-900">
-						<span class="text-6xl font-bold tabular-nums">
-							<NumberTicker value={60} duration={1500} />
+					<div class="flex items-start leading-none text-zinc-900">
+						<span class="text-7xl font-black tabular-nums sm:text-8xl">
+							<NumberTicker value={60} duration={1500} class="!text-zinc-900" />
 						</span>
-						<span class="mb-1 text-3xl font-bold">+</span>
+						<span class="mt-1 text-4xl font-black">+</span>
 					</div>
-					<p class="mt-1 text-sm text-zinc-400">animated &amp; interactive</p>
+					<p class="mt-3 text-sm text-zinc-400">animated &amp; interactive</p>
 				</div>
 			</div>
 
-			<!-- Small stat: TypeScript -->
-			<div class="flex flex-col justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-8">
-				<p class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">TypeScript</p>
+			<!-- Light stat: 100% TS -->
+			<div class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1">
+				<p class="text-sm font-medium text-zinc-400">TypeScript</p>
 				<div>
-					<div class="flex items-end gap-1 text-zinc-900">
-						<span class="text-6xl font-bold tabular-nums">
-							<NumberTicker value={100} duration={1500} />
+					<div class="flex items-start leading-none text-zinc-900">
+						<span class="text-7xl font-black tabular-nums sm:text-8xl">
+							<NumberTicker value={100} duration={1500} class="!text-zinc-900" />
 						</span>
-						<span class="mb-1 text-3xl font-bold">%</span>
+						<span class="mt-1 text-4xl font-black">%</span>
 					</div>
-					<p class="mt-1 text-sm text-zinc-400">fully typed API</p>
+					<p class="mt-3 text-sm text-zinc-400">fully typed API</p>
 				</div>
 			</div>
+		</div>
 
-			<!-- Large dark card: install snippet -->
-			<div class="relative col-span-1 overflow-hidden rounded-2xl bg-[#0d1117] p-8 sm:col-span-2">
-				<BorderBeam
-					duration={12}
-					size={180}
-					colorFrom="#9E7AFF"
-					colorTo="#FE8BBB"
-					borderWidth={1}
-				/>
-				<div class="font-mono text-sm">
-					<div class="mb-1 text-white/30"># Install</div>
-					<div class="mb-5 text-base text-emerald-400">npm install fancy-ui</div>
-					<div class="mb-1 text-white/30"># Import any component</div>
-					<div class="text-base">
+		<!-- Row 2: install snippet 2col + MIT 1col -->
+		<div class="mt-3 grid grid-cols-3 gap-3">
+			<!-- Dark install card (col-span-2) -->
+			<div class="relative col-span-3 overflow-hidden rounded-3xl bg-zinc-950 p-10 sm:col-span-2">
+				<BorderBeam duration={14} size={250} colorFrom="#9E7AFF" colorTo="#FE8BBB" borderWidth={1} />
+				<p class="mb-6 text-sm font-medium text-white/30">Get started in seconds</p>
+				<div class="font-mono">
+					<div class="mb-4">
+						<span class="text-white/20 text-xs">$ </span>
+						<span class="text-emerald-400 text-lg font-semibold">npm install fancy-ui</span>
+					</div>
+					<div class="text-sm">
 						<span class="text-purple-400">import</span>
-						<span class="text-white"> &#123; Sparkles, BorderBeam &#125; </span>
+						<span class="text-white/80"> &#123; Sparkles, BorderBeam, Marquee &#125; </span>
 						<span class="text-purple-400">from</span>
 						<span class="text-amber-300"> 'fancy-ui'</span>
 					</div>
 				</div>
 			</div>
 
-			<!-- Small stat: MIT -->
-			<div class="flex flex-col justify-between rounded-2xl border border-zinc-100 bg-zinc-50 p-8">
-				<p class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">License</p>
+			<!-- Light MIT card -->
+			<div class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1">
+				<p class="text-sm font-medium text-zinc-400">License</p>
 				<div>
-					<p class="text-5xl font-bold text-zinc-900">MIT</p>
-					<p class="mt-1 text-sm text-zinc-400">Open source forever</p>
+					<p class="text-7xl font-black leading-none text-zinc-900 sm:text-8xl">MIT</p>
+					<p class="mt-3 text-sm text-zinc-400">Open source forever</p>
 				</div>
 			</div>
 		</div>
@@ -624,6 +631,60 @@
 			{/if}
 		{/snippet}
 	</Timeline>
+</section>
+
+<!-- ─── CONTRIBUTORS (light bg) ───────────────────────────────────────────────── -->
+<section class="bg-black px-4 py-24">
+	<div class="mx-auto max-w-4xl text-center">
+		<div class="mb-4">
+			<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Contributors</span>
+		</div>
+		<h2 class="mb-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+			Built by the community
+		</h2>
+		<p class="mb-12 text-zinc-500">
+			{contributors.length} contributor{contributors.length > 1 ? "s" : ""} and counting.
+			Every PR welcome.
+		</p>
+
+		<!-- Animated tooltip avatars -->
+		<div class="mb-12 flex justify-center">
+			<AnimatedTooltip items={contributors} />
+		</div>
+
+		<!-- Contributor list -->
+		<div class="mb-12 flex flex-wrap justify-center gap-3">
+			{#each contributors as c}
+				<a
+					href="https://github.com/{c.login}"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="group flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition-all hover:border-white/20 hover:bg-white/10"
+				>
+					<img
+						src={c.image}
+						alt={c.name}
+						class="size-6 rounded-full"
+					/>
+					<span class="font-medium text-white/70 group-hover:text-white">{c.login}</span>
+					<span class="text-xs text-white/30">{c.contributions}</span>
+				</a>
+			{/each}
+		</div>
+
+		<!-- CTA contribute -->
+		<a
+			href="{GITHUB_URL}/blob/main/CONTRIBUTING.md"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white"
+		>
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+				<path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+			</svg>
+			Become a contributor
+		</a>
+	</div>
 </section>
 
 <!-- ─── FINAL CTA (dark, synthwave) ───────────────────────────────────────────── -->
