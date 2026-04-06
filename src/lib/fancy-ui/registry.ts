@@ -618,6 +618,24 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 		credits: [{ source: "VengenceUI", url: "https://vengenceui.com/docs/liquid-text" }],
 	},
+
+	"matrix-rain": {
+		name: "MatrixRain",
+		slug: "matrix-rain",
+		description:
+			"Canvas-based Matrix-style falling glyph rain with configurable color, speed, and density",
+		category: "backgrounds",
+		status: "done",
+	},
+
+	"terminal-text": {
+		name: "TerminalText",
+		slug: "terminal-text",
+		description:
+			"Terminal-style text streamer with per-character animation, blinking cursor, and glitch effect",
+		category: "text",
+		status: "done",
+	},
 };
 
 // =============================================================================
