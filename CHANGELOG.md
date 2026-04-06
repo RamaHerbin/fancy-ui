@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- e1d3641: add Component Copilot AI chat demo at /demo/component-copilot
+- c81e5f6: add MatrixRain and TerminalText components with interactive demo
+
 ## 0.3.0
 
 ### Minor Changes
