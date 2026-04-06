@@ -20,7 +20,6 @@ CLAUDE.md
 # App-specific routes and components (not part of the component library)
 src/routes/portfolio/
 src/routes/auth/
-src/routes/api/
 src/routes/pages/
 src/lib/portfolio/
 
