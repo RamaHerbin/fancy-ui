@@ -63,6 +63,7 @@
 		"tailwindcss": "^4.0.0"
 	},
 	"dependencies": {
+		"@vercel/analytics": "^2.0.1",
 		"canvas-confetti": "^1.9.4",
 		"clsx": "^2.1.1",
 		"gsap": "^3.14.2",
