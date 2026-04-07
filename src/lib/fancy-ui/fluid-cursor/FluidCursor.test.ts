@@ -1,5 +1,5 @@
 import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import FluidCursor from "./FluidCursor.svelte";
 
 describe("FluidCursor", () => {
@@ -45,5 +45,46 @@ describe("FluidCursor", () => {
 		const { container } = render(FluidCursor, { props: { class: "my-fluid" } });
 		const div = container.firstElementChild as HTMLElement;
 		expect(div?.className).toContain("my-fluid");
+	});
+
+	describe("color props", () => {
+		it("renders without error when fluidColor is provided", () => {
+			const { container } = render(FluidCursor, { props: { fluidColor: "#00ffcc" } });
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when fluidColors is provided", () => {
+			const { container } = render(FluidCursor, {
+				props: { fluidColors: ["#ff0080", "#00ffcc", "#7700ff"] },
+			});
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when fluidColor and fluidColors are both provided (fluidColor takes priority)", () => {
+			// Both props accepted without throw — fluidColor priority is exercised at runtime
+			const { container } = render(FluidCursor, {
+				props: { fluidColor: "#ff0000", fluidColors: ["#00ffcc", "#7700ff"] },
+			});
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when backColor is a hex string", () => {
+			const { container } = render(FluidCursor, { props: { backColor: "#1a1a2e" } });
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("warns and falls back when an invalid hex string is passed to backColor", () => {
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			render(FluidCursor, { props: { backColor: "not-a-color" } });
+			expect(warn).toHaveBeenCalledWith(
+				expect.stringContaining("[FluidCursor] Invalid hex color")
+			);
+			warn.mockRestore();
+		});
+
+		it("renders without error when colorIntensity is out of [0,1] range (clamped internally)", () => {
+			const { container } = render(FluidCursor, { props: { colorIntensity: 5 } });
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
 	});
 });

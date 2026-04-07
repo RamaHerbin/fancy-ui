@@ -52,14 +52,18 @@
 
 	function hexToRgb(hex: string): ColorRGB {
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return result
-			? {
-					r: parseInt(result[1], 16) / 255,
-					g: parseInt(result[2], 16) / 255,
-					b: parseInt(result[3], 16) / 255,
-				}
-			: { r: 1, g: 1, b: 1 };
+		if (!result) {
+			console.warn(`[FluidCursor] Invalid hex color: "${hex}". Expected format: "#rrggbb". Falling back to white.`);
+			return { r: 1, g: 1, b: 1 };
+		}
+		return {
+			r: parseInt(result[1], 16) / 255,
+			g: parseInt(result[2], 16) / 255,
+			b: parseInt(result[3], 16) / 255,
+		};
 	}
+
+	const clampedColorIntensity = Math.max(0, Math.min(1, colorIntensity));
 
 	const resolvedBackColor: ColorRGB =
 		typeof backColor === "string" ? hexToRgb(backColor) : backColor;
@@ -959,6 +963,33 @@
 		let colorIndex = 0;
 		let animationFrameId: number;
 
+		// Cached pre-scaled colors to avoid re-parsing hex on every splat
+		let cachedFluidColorHex: string | undefined;
+		let cachedFluidColor: ColorRGB | null = null;
+		let cachedFluidColorsRef: string[] | undefined;
+		let cachedFluidColorsScaled: ColorRGB[] = [];
+
+		function getScaledColor(hex: string): ColorRGB {
+			const { r, g, b } = hexToRgb(hex);
+			return { r: r * clampedColorIntensity, g: g * clampedColorIntensity, b: b * clampedColorIntensity };
+		}
+
+		function getCachedFluidColor(hex: string): ColorRGB {
+			if (cachedFluidColor === null || cachedFluidColorHex !== hex) {
+				cachedFluidColorHex = hex;
+				cachedFluidColor = getScaledColor(hex);
+			}
+			return cachedFluidColor;
+		}
+
+		function getCachedFluidColors(colors: string[]): ColorRGB[] {
+			if (cachedFluidColorsRef !== colors) {
+				cachedFluidColorsRef = colors;
+				cachedFluidColorsScaled = colors.map(getScaledColor);
+			}
+			return cachedFluidColorsScaled;
+		}
+
 		function updateFrame() {
 			const dt = calcDeltaTime();
 			if (resizeCanvas()) initFramebuffers();
@@ -1254,19 +1285,18 @@
 
 		function generateColor(): ColorRGB {
 			if (fluidColor) {
-				const { r, g, b } = hexToRgb(fluidColor);
-				return { r: r * colorIntensity, g: g * colorIntensity, b: b * colorIntensity };
+				return getCachedFluidColor(fluidColor);
 			}
 			if (fluidColors && fluidColors.length > 0) {
-				const idx = colorIndex % fluidColors.length;
+				const colors = getCachedFluidColors(fluidColors);
+				const idx = colorIndex % colors.length;
 				colorIndex++;
-				const { r, g, b } = hexToRgb(fluidColors[idx]);
-				return { r: r * colorIntensity, g: g * colorIntensity, b: b * colorIntensity };
+				return colors[idx];
 			}
 			const c = HSVtoRGB(Math.random(), 1.0, 1.0);
-			c.r *= colorIntensity;
-			c.g *= colorIntensity;
-			c.b *= colorIntensity;
+			c.r *= clampedColorIntensity;
+			c.g *= clampedColorIntensity;
+			c.b *= clampedColorIntensity;
 			return c;
 		}
 
