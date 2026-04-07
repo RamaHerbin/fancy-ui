@@ -21,8 +21,11 @@
 		splatForce?: number;
 		shading?: boolean;
 		colorUpdateSpeed?: number;
-		backColor?: ColorRGB;
+		backColor?: ColorRGB | string;
 		transparent?: boolean;
+		fluidColor?: string;
+		fluidColors?: string[];
+		colorIntensity?: number;
 		class?: string;
 	}
 
@@ -41,8 +44,25 @@
 		colorUpdateSpeed = 10,
 		backColor = { r: 0.5, g: 0, b: 0 },
 		transparent = true,
+		fluidColor,
+		fluidColors,
+		colorIntensity = 0.15,
 		class: className = "",
 	}: Props = $props();
+
+	function hexToRgb(hex: string): ColorRGB {
+		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return result
+			? {
+					r: parseInt(result[1], 16) / 255,
+					g: parseInt(result[2], 16) / 255,
+					b: parseInt(result[3], 16) / 255,
+				}
+			: { r: 1, g: 1, b: 1 };
+	}
+
+	const resolvedBackColor: ColorRGB =
+		typeof backColor === "string" ? hexToRgb(backColor) : backColor;
 
 	let canvasRef: HTMLCanvasElement;
 
@@ -94,7 +114,7 @@
 			SHADING: shading,
 			COLOR_UPDATE_SPEED: colorUpdateSpeed,
 			PAUSED: false,
-			BACK_COLOR: backColor,
+			BACK_COLOR: resolvedBackColor,
 			TRANSPARENT: transparent,
 		};
 
@@ -936,6 +956,7 @@
 
 		let lastUpdateTime = Date.now();
 		let colorUpdateTimer = 0.0;
+		let colorIndex = 0;
 		let animationFrameId: number;
 
 		function updateFrame() {
@@ -1232,10 +1253,20 @@
 		}
 
 		function generateColor(): ColorRGB {
+			if (fluidColor) {
+				const { r, g, b } = hexToRgb(fluidColor);
+				return { r: r * colorIntensity, g: g * colorIntensity, b: b * colorIntensity };
+			}
+			if (fluidColors && fluidColors.length > 0) {
+				const idx = colorIndex % fluidColors.length;
+				colorIndex++;
+				const { r, g, b } = hexToRgb(fluidColors[idx]);
+				return { r: r * colorIntensity, g: g * colorIntensity, b: b * colorIntensity };
+			}
 			const c = HSVtoRGB(Math.random(), 1.0, 1.0);
-			c.r *= 0.15;
-			c.g *= 0.15;
-			c.b *= 0.15;
+			c.r *= colorIntensity;
+			c.g *= colorIntensity;
+			c.b *= colorIntensity;
 			return c;
 		}
 

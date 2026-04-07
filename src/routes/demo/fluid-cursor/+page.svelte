@@ -1,18 +1,54 @@
 <script lang="ts">
 	import { FluidCursor } from "$lib/fancy-ui/fluid-cursor";
+
+	const demos = [
+		{ label: "Default (random)", props: {} },
+		{ label: "Fixed color — teal", props: { fluidColor: "#00ffcc", colorIntensity: 0.4 } },
+		{
+			label: "Palette cycling",
+			props: { fluidColors: ["#ff0080", "#00ffcc", "#7700ff"], colorIntensity: 0.3 },
+		},
+		{
+			label: "Warm palette",
+			props: { fluidColors: ["#ff6b35", "#f7c59f", "#ffaa40"], colorIntensity: 0.35 },
+		},
+	];
+
+	let activeDemo = $state(0);
 </script>
 
 <svelte:head>
 	<title>FluidCursor - FancyUI</title>
 </svelte:head>
 
-<FluidCursor />
+<FluidCursor {...demos[activeDemo].props} />
 
 <div class="relative z-10 container mx-auto px-4 py-12">
 	<h1 class="mb-2 text-3xl font-bold">FluidCursor</h1>
 	<p class="text-muted-foreground mb-8">
 		A WebGL fluid simulation that follows your cursor. Move your mouse around to see the effect.
 	</p>
+
+	<section class="mb-12">
+		<h2 class="mb-4 text-xl font-semibold">Color demos</h2>
+		<div class="mb-4 flex flex-wrap gap-2">
+			{#each demos as demo, i}
+				<button
+					class="rounded-md border px-3 py-1.5 text-sm transition-colors {i === activeDemo
+						? 'bg-white text-black'
+						: 'text-muted-foreground hover:text-foreground'}"
+					onclick={() => (activeDemo = i)}
+				>
+					{demo.label}
+				</button>
+			{/each}
+		</div>
+		<div
+			class="flex h-48 items-center justify-center rounded-lg border border-dashed border-white/10"
+		>
+			<p class="text-sm text-white/20 select-none">Move your cursor here</p>
+		</div>
+	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Usage</h2>
@@ -26,16 +62,11 @@
   import {"{"} FluidCursor {"}"} from '$lib/fancy-ui/fluid-cursor';
 {"<"}/script{">"}
 
-{"<"}FluidCursor /{">"}</code
+{"<!-- Fixed color -->"}
+{"<"}FluidCursor fluidColor="#00ffcc" colorIntensity={"{"}0.4{"}"} /{">\n"}
+{"<!-- Cycling palette -->"}
+{"<"}FluidCursor fluidColors={"{"}{`["#ff0080", "#00ffcc", "#7700ff"]`}{"}"} /{">"}</code
 				></pre>
-		</div>
-	</section>
-
-	<section class="mb-12">
-		<div
-			class="flex h-96 items-center justify-center rounded-lg border border-dashed border-white/10"
-		>
-			<p class="text-sm text-white/20 select-none">Move your cursor here</p>
 		</div>
 	</section>
 
@@ -112,11 +143,35 @@
 						<td class="px-4 py-3 font-mono text-xs">10</td>
 						<td class="px-4 py-3">Speed of color cycling</td>
 					</tr>
-					<tr>
+					<tr class="border-b">
 						<td class="px-4 py-3 font-mono text-xs">transparent</td>
 						<td class="px-4 py-3 font-mono text-xs">boolean</td>
 						<td class="px-4 py-3 font-mono text-xs">true</td>
 						<td class="px-4 py-3">Enable transparent background</td>
+					</tr>
+					<tr class="border-b">
+						<td class="px-4 py-3 font-mono text-xs">fluidColor</td>
+						<td class="px-4 py-3 font-mono text-xs">string</td>
+						<td class="px-4 py-3 font-mono text-xs">—</td>
+						<td class="px-4 py-3">Fixed fluid color (hex). Disables random cycling.</td>
+					</tr>
+					<tr class="border-b">
+						<td class="px-4 py-3 font-mono text-xs">fluidColors</td>
+						<td class="px-4 py-3 font-mono text-xs">string[]</td>
+						<td class="px-4 py-3 font-mono text-xs">—</td>
+						<td class="px-4 py-3">Palette of hex colors to cycle through on each splat.</td>
+					</tr>
+					<tr class="border-b">
+						<td class="px-4 py-3 font-mono text-xs">colorIntensity</td>
+						<td class="px-4 py-3 font-mono text-xs">number</td>
+						<td class="px-4 py-3 font-mono text-xs">0.15</td>
+						<td class="px-4 py-3">Intensity multiplier applied to fluid colors (0–1).</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-3 font-mono text-xs">backColor</td>
+						<td class="px-4 py-3 font-mono text-xs">{"{ r, g, b }"} | string</td>
+						<td class="px-4 py-3 font-mono text-xs">{"{ r: 0.5, g: 0, b: 0 }"}</td>
+						<td class="px-4 py-3">Background color — RGB object or hex string.</td>
 					</tr>
 				</tbody>
 			</table>
