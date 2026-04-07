@@ -9,6 +9,7 @@ A WebGL-based fluid simulation that follows the cursor, creating beautiful flowi
 - Configurable simulation parameters
 - Transparent background support
 - Automatic canvas resizing
+- Controllable fluid colors via hex strings (fixed color, palette cycling, or random)
 
 ## Implementation Notes
 
@@ -26,6 +27,30 @@ The component implements a full Navier-Stokes fluid simulation with:
 - Pressure solving with iterative Jacobi method
 - Advection for both velocity and dye
 - Gradient subtraction for incompressible flow
+
+## Color Props
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `fluidColor` | `string` (hex) | — | Fixed fluid color. Disables random cycling. |
+| `fluidColors` | `string[]` (hex) | — | Palette to cycle through on each splat. |
+| `colorIntensity` | `number` | `0.15` | Intensity multiplier applied to fluid colors (0–1). |
+| `backColor` | `{ r, g, b }` or `string` (hex) | `{ r: 0.5, g: 0, b: 0 }` | Background color — accepts RGB object or hex string. |
+
+**Priority**: `fluidColor` > `fluidColors` > random HSV
+
+### Examples
+
+```svelte
+<!-- Fixed teal fluid -->
+<FluidCursor fluidColor="#00ffcc" />
+
+<!-- Cycling palette -->
+<FluidCursor fluidColors={["#ff0080", "#00ffcc", "#7700ff"]} colorIntensity={0.3} />
+
+<!-- Hex background -->
+<FluidCursor backColor="#1a1a2e" />
+```
 
 ### Event Handling
 
