@@ -1,38 +1,47 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
+about: Something isn't working as expected
+title: "[bug] "
+labels: bug
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Component
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+<!-- Which component is affected? e.g. BorderBeam, FluidCursor, Marquee -->
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Description
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+<!-- A clear and concise description of the bug -->
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+## Steps to reproduce
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+1.
+2.
+3.
 
-**Additional context**
-Add any other context about the problem here.
+## Expected behavior
+
+<!-- What should happen -->
+
+## Actual behavior
+
+<!-- What actually happens -->
+
+## Reproduction
+
+<!-- Link to a minimal reproduction (StackBlitz, CodeSandbox, or a repo) -->
+
+## Environment
+
+| | |
+|---|---|
+| fancy-ui version | |
+| Svelte version | |
+| Browser | |
+| OS | |
+
+## Additional context
+
+<!-- Screenshots, error messages, logs — anything that helps -->
