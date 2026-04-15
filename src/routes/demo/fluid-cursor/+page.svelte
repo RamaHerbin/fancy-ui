@@ -21,8 +21,6 @@
 	<title>FluidCursor - FancyUI</title>
 </svelte:head>
 
-<FluidCursor {...demos[activeDemo].props} />
-
 <div class="relative z-10 container mx-auto px-4 py-12">
 	<h1 class="mb-2 text-3xl font-bold">FluidCursor</h1>
 	<p class="text-muted-foreground mb-8">
@@ -43,10 +41,11 @@
 				</button>
 			{/each}
 		</div>
-		<div
-			class="flex h-48 items-center justify-center rounded-lg border border-dashed border-white/10"
-		>
-			<p class="text-sm text-white/20 select-none">Move your cursor anywhere</p>
+		<div class="relative h-48 overflow-hidden rounded-lg border">
+			<FluidCursor contained {...demos[activeDemo].props} />
+			<p class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-white/20 select-none">
+				Move your cursor here
+			</p>
 		</div>
 	</section>
 
