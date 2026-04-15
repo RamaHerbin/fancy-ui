@@ -51,11 +51,32 @@
 	</section>
 
 	<section class="mb-12">
+		<h2 class="mb-4 text-xl font-semibold">Contained</h2>
+		<p class="text-muted-foreground mb-4 text-sm">
+			Use <code class="bg-muted rounded px-1.5 py-0.5">contained</code> to confine the fluid canvas
+			to a specific element instead of covering the full viewport. Wrap it in a
+			<code class="bg-muted rounded px-1.5 py-0.5">relative overflow-hidden</code> container.
+		</p>
+		<div class="relative h-64 overflow-hidden rounded-xl border">
+			<FluidCursor
+				contained
+				fluidColors={["#6366f1", "#ec4899", "#06b6d4"]}
+				colorIntensity={0.5}
+				backColor={{ r: 0.04, g: 0.04, b: 0.08 }}
+			/>
+			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+				<p class="text-muted-foreground text-sm">Move your cursor here</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Usage</h2>
 		<div class="bg-card rounded-lg border p-6">
 			<p class="text-muted-foreground mb-4 text-sm">
-				The FluidCursor component renders a full-screen WebGL canvas that creates fluid effects
-				following mouse movement. It's typically used as a background effect.
+				The FluidCursor component renders a WebGL canvas that creates fluid effects following mouse
+				movement. Use it full-screen as a background effect, or
+				<code class="bg-muted rounded px-1.5 py-0.5">contained</code> inside any element.
 			</p>
 			<pre class="bg-muted overflow-x-auto rounded p-4 text-sm"><code
 					>{"<"}script{">"}
@@ -65,7 +86,11 @@
 {"<!-- Fixed color -->"}
 {"<"}FluidCursor fluidColor="#00ffcc" colorIntensity={"{"}0.4{"}"} /{">\n"}
 {"<!-- Cycling palette -->"}
-{"<"}FluidCursor fluidColors={"{"}{`["#ff0080", "#00ffcc", "#7700ff"]`}{"}"} /{">"}</code
+{"<"}FluidCursor fluidColors={"{"}{`["#ff0080", "#00ffcc", "#7700ff"]`}{"}"} /{">\n"}
+{"<!-- Contained inside a div -->"}
+{"<"}div class="relative h-64 overflow-hidden rounded-xl"{">"}
+  {"<"}FluidCursor contained fluidColors={"{"}{`["#6366f1", "#ec4899"]`}{"}"} /{">"}{"\n"}
+{"<"}/div{">"}</code
 				></pre>
 		</div>
 	</section>
@@ -167,11 +192,21 @@
 						<td class="px-4 py-3 font-mono text-xs">0.15</td>
 						<td class="px-4 py-3">Intensity multiplier applied to fluid colors (0–1).</td>
 					</tr>
-					<tr>
+					<tr class="border-b">
 						<td class="px-4 py-3 font-mono text-xs">backColor</td>
 						<td class="px-4 py-3 font-mono text-xs">{"{ r, g, b }"} | string</td>
 						<td class="px-4 py-3 font-mono text-xs">{"{ r: 0.5, g: 0, b: 0 }"}</td>
 						<td class="px-4 py-3">Background color — RGB object or hex string.</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-3 font-mono text-xs">contained</td>
+						<td class="px-4 py-3 font-mono text-xs">boolean</td>
+						<td class="px-4 py-3 font-mono text-xs">false</td>
+						<td class="px-4 py-3"
+							>Confines the canvas to its parent container instead of covering the full viewport.
+							Requires the parent to be <code class="bg-muted rounded px-1">relative overflow-hidden</code
+							>.</td
+						>
 					</tr>
 				</tbody>
 			</table>
