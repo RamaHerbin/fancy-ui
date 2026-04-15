@@ -26,6 +26,8 @@
 		fluidColor?: string;
 		fluidColors?: string[];
 		colorIntensity?: number;
+		/** When true, the canvas fills its parent container instead of covering the full viewport. */
+		contained?: boolean;
 		class?: string;
 	}
 
@@ -47,6 +49,7 @@
 		fluidColor,
 		fluidColors,
 		colorIntensity = 0.15,
+		contained = false,
 		class: className = "",
 	}: Props = $props();
 
@@ -954,6 +957,17 @@
 			return Math.floor(input * pixelRatio);
 		}
 
+		function getCanvasPos(clientX: number, clientY: number): { x: number; y: number } {
+			if (contained) {
+				const rect = canvas.getBoundingClientRect();
+				return {
+					x: scaleByPixelRatio(clientX - rect.left),
+					y: scaleByPixelRatio(clientY - rect.top),
+				};
+			}
+			return { x: scaleByPixelRatio(clientX), y: scaleByPixelRatio(clientY) };
+		}
+
 		// Simulation Setup
 		updateKeywords();
 		initFramebuffers();
@@ -1354,16 +1368,14 @@
 		// Event Listeners
 		function handleMouseDown(e: MouseEvent) {
 			const pointer = pointers[0];
-			const posX = scaleByPixelRatio(e.clientX);
-			const posY = scaleByPixelRatio(e.clientY);
+			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 			updatePointerDownData(pointer, -1, posX, posY);
 			clickSplat(pointer);
 		}
 
 		function handleFirstMouseMove(e: MouseEvent) {
 			const pointer = pointers[0];
-			const posX = scaleByPixelRatio(e.clientX);
-			const posY = scaleByPixelRatio(e.clientY);
+			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 			const color = generateColor();
 			updateFrame();
 			updatePointerMoveData(pointer, posX, posY, color);
@@ -1372,18 +1384,15 @@
 
 		function handleMouseMove(e: MouseEvent) {
 			const pointer = pointers[0];
-			const posX = scaleByPixelRatio(e.clientX);
-			const posY = scaleByPixelRatio(e.clientY);
-			const color = pointer.color;
-			updatePointerMoveData(pointer, posX, posY, color);
+			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
+			updatePointerMoveData(pointer, posX, posY, pointer.color);
 		}
 
 		function handleFirstTouchStart(e: TouchEvent) {
 			const touches = e.targetTouches;
 			const pointer = pointers[0];
 			for (let i = 0; i < touches.length; i++) {
-				const posX = scaleByPixelRatio(touches[i].clientX);
-				const posY = scaleByPixelRatio(touches[i].clientY);
+				const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
 				updateFrame();
 				updatePointerDownData(pointer, touches[i].identifier, posX, posY);
 			}
@@ -1394,8 +1403,7 @@
 			const touches = e.targetTouches;
 			const pointer = pointers[0];
 			for (let i = 0; i < touches.length; i++) {
-				const posX = scaleByPixelRatio(touches[i].clientX);
-				const posY = scaleByPixelRatio(touches[i].clientY);
+				const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
 				updatePointerDownData(pointer, touches[i].identifier, posX, posY);
 			}
 		}
@@ -1404,8 +1412,7 @@
 			const touches = e.targetTouches;
 			const pointer = pointers[0];
 			for (let i = 0; i < touches.length; i++) {
-				const posX = scaleByPixelRatio(touches[i].clientX);
-				const posY = scaleByPixelRatio(touches[i].clientY);
+				const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
 				updatePointerMoveData(pointer, posX, posY, pointer.color);
 			}
 		}
@@ -1434,6 +1441,17 @@
 	});
 </script>
 
-<div class={cn("pointer-events-none fixed top-0 left-0 z-50 size-full", className)}>
-	<canvas bind:this={canvasRef} id="fluid" class="block h-screen w-screen"></canvas>
+<div
+	class={cn(
+		contained
+			? "absolute inset-0 h-full w-full"
+			: "pointer-events-none fixed top-0 left-0 z-50 size-full",
+		className
+	)}
+>
+	<canvas
+		bind:this={canvasRef}
+		id="fluid"
+		class={contained ? "block h-full w-full" : "block h-screen w-screen"}
+	></canvas>
 </div>
