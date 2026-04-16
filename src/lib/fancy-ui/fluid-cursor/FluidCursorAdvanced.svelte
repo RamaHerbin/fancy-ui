@@ -56,7 +56,9 @@
 	function hexToRgb(hex: string): ColorRGB {
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 		if (!result) {
-			console.warn(`[FluidCursor] Invalid hex color: "${hex}". Expected format: "#rrggbb". Falling back to white.`);
+			console.warn(
+				`[FluidCursor] Invalid hex color: "${hex}". Expected format: "#rrggbb". Falling back to white.`
+			);
 			return { r: 1, g: 1, b: 1 };
 		}
 		return {
@@ -985,7 +987,11 @@
 
 		function getScaledColor(hex: string): ColorRGB {
 			const { r, g, b } = hexToRgb(hex);
-			return { r: r * clampedColorIntensity, g: g * clampedColorIntensity, b: b * clampedColorIntensity };
+			return {
+				r: r * clampedColorIntensity,
+				g: g * clampedColorIntensity,
+				b: b * clampedColorIntensity,
+			};
 		}
 
 		function getCachedFluidColor(hex: string): ColorRGB {

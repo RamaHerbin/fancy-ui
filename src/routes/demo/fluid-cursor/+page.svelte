@@ -53,8 +53,8 @@
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">FluidCursorAdvanced — Contained</h2>
 		<p class="text-muted-foreground mb-4 text-sm">
-			<code class="bg-muted rounded px-1.5 py-0.5">FluidCursorAdvanced</code> confines the fluid canvas
-			to a specific element instead of covering the full viewport. Wrap it in a
+			<code class="bg-muted rounded px-1.5 py-0.5">FluidCursorAdvanced</code> confines the fluid
+			canvas to a specific element instead of covering the full viewport. Wrap it in a
 			<code class="bg-muted rounded px-1.5 py-0.5">relative overflow-hidden</code> container.
 		</p>
 		<div class="relative h-64 overflow-hidden rounded-xl border">

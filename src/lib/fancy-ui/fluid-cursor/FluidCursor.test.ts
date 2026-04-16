@@ -76,9 +76,7 @@ describe("FluidCursor", () => {
 		it("warns and falls back when an invalid hex string is passed to backColor", () => {
 			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 			render(FluidCursor, { props: { backColor: "not-a-color" } });
-			expect(warn).toHaveBeenCalledWith(
-				expect.stringContaining("[FluidCursor] Invalid hex color")
-			);
+			expect(warn).toHaveBeenCalledWith(expect.stringContaining("[FluidCursor] Invalid hex color"));
 			warn.mockRestore();
 		});
 
