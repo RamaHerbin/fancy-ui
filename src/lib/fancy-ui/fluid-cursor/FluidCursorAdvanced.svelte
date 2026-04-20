@@ -1009,7 +1009,10 @@
 			return cachedFluidColorsScaled;
 		}
 
+		let isVisible = true;
+
 		function updateFrame() {
+			if (!isVisible) return;
 			const dt = calcDeltaTime();
 			if (resizeCanvas()) initFramebuffers();
 			updateColors(dt);
@@ -1430,12 +1433,27 @@
 		window.addEventListener("touchstart", handleTouchStart, false);
 		window.addEventListener("touchmove", handleTouchMove, false);
 
+		// Pause animation when scrolled out of view
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				const wasVisible = isVisible;
+				isVisible = entry.isIntersecting;
+				if (isVisible && !wasVisible) {
+					lastUpdateTime = Date.now();
+					animationFrameId = requestAnimationFrame(updateFrame);
+				}
+			},
+			{ threshold: 0 }
+		);
+		observer.observe(canvas);
+
 		// Start animation
 		updateFrame();
 
 		// Cleanup
 		return () => {
 			cancelAnimationFrame(animationFrameId);
+			observer.disconnect();
 			window.removeEventListener("mousedown", handleMouseDown);
 			document.body.removeEventListener("mousemove", handleFirstMouseMove);
 			window.removeEventListener("mousemove", handleMouseMove);
@@ -1456,7 +1474,6 @@
 >
 	<canvas
 		bind:this={canvasRef}
-		id="fluid"
 		class={contained ? "block h-full w-full" : "block h-screen w-screen"}
 	></canvas>
 </div>
