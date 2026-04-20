@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FluidCursor, FluidCursorAdvanced } from "$lib/fancy-ui/fluid-cursor";
+	import { FluidCursor } from "$lib/fancy-ui/fluid-cursor";
 
 	const demos = [
 		{ label: "Default (random)", props: {} },
@@ -51,48 +51,27 @@
 	</section>
 
 	<section class="mb-12">
-		<h2 class="mb-4 text-xl font-semibold">FluidCursorAdvanced — Contained</h2>
-		<p class="text-muted-foreground mb-4 text-sm">
-			<code class="bg-muted rounded px-1.5 py-0.5">FluidCursorAdvanced</code> confines the fluid
-			canvas to a specific element instead of covering the full viewport. Wrap it in a
-			<code class="bg-muted rounded px-1.5 py-0.5">relative overflow-hidden</code> container.
-		</p>
-		<div class="relative h-64 overflow-hidden rounded-xl border">
-			<FluidCursorAdvanced
-				fluidColors={["#6366f1", "#ec4899", "#06b6d4"]}
-				colorIntensity={0.5}
-				backColor={{ r: 0.04, g: 0.04, b: 0.08 }}
-			/>
-			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-				<p class="text-muted-foreground text-sm">Move your cursor here</p>
-			</div>
-		</div>
-	</section>
-
-	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Usage</h2>
 		<div class="bg-card rounded-lg border p-6">
+			<p class="text-muted-foreground mb-4 text-sm">
+				The FluidCursor component renders a full-screen WebGL canvas that creates fluid effects
+				following mouse movement. It's typically used as a background effect.
+			</p>
 			<pre class="bg-muted overflow-x-auto rounded p-4 text-sm"><code
 					>{"<"}script{">"}
-  import {"{"} FluidCursor, FluidCursorAdvanced {"}"} from '$lib/fancy-ui/fluid-cursor';
+  import {"{"} FluidCursor {"}"} from '$lib/fancy-ui/fluid-cursor';
 {"<"}/script{">"}
 
-{"<!-- Full-screen background effect -->"}
+{"<!-- Fixed color -->"}
 {"<"}FluidCursor fluidColor="#00ffcc" colorIntensity={"{"}0.4{"}"} /{">\n"}
-{"<!-- Contained inside a div -->"}
-{"<"}div class="relative h-64 overflow-hidden rounded-xl"{">"}
-  {"<"}FluidCursorAdvanced fluidColors={"{"}{`["#6366f1", "#ec4899"]`}{"}"} /{">"}{"\n"}
-{"<"}/div{">"}</code
+{"<!-- Cycling palette -->"}
+{"<"}FluidCursor fluidColors={"{"}{`["#ff0080", "#00ffcc", "#7700ff"]`}{"}"} /{">"}</code
 				></pre>
 		</div>
 	</section>
 
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Props</h2>
-		<p class="text-muted-foreground mb-4 text-sm">
-			Both <code class="bg-muted rounded px-1.5 py-0.5">FluidCursor</code> and
-			<code class="bg-muted rounded px-1.5 py-0.5">FluidCursorAdvanced</code> share the same props.
-		</p>
 		<div class="bg-card overflow-x-auto rounded-lg border">
 			<table class="w-full text-sm">
 				<thead>
