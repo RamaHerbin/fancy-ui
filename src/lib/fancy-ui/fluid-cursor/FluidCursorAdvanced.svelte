@@ -26,8 +26,6 @@
 		fluidColor?: string;
 		fluidColors?: string[];
 		colorIntensity?: number;
-		/** When true, the canvas fills its parent container instead of covering the full viewport. */
-		contained?: boolean;
 		class?: string;
 	}
 
@@ -49,9 +47,10 @@
 		fluidColor,
 		fluidColors,
 		colorIntensity = 0.15,
-		contained = false,
 		class: className = "",
 	}: Props = $props();
+
+	const contained = true;
 
 	function hexToRgb(hex: string): ColorRGB {
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
