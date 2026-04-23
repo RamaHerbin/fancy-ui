@@ -20,6 +20,8 @@ export * from "./marquee/index.js";
 export * from "./compare/index.js";
 export * from "./image-trail-cursor/index.js";
 export * from "./interactive-grid-pattern/index.js";
+export * from "./interactive-hover-button/index.js";
+export * from "./gradient-button/index.js";
 export * from "./logo-cloud/index.js";
 export * from "./direction-aware-hover/index.js";
 export * from "./rainbow-button/index.js";
