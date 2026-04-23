@@ -21,8 +21,11 @@
 		splatForce?: number;
 		shading?: boolean;
 		colorUpdateSpeed?: number;
-		backColor?: ColorRGB;
+		backColor?: ColorRGB | string;
 		transparent?: boolean;
+		fluidColor?: string;
+		fluidColors?: string[];
+		colorIntensity?: number;
 		class?: string;
 	}
 
@@ -41,8 +44,29 @@
 		colorUpdateSpeed = 10,
 		backColor = { r: 0.5, g: 0, b: 0 },
 		transparent = true,
+		fluidColor,
+		fluidColors,
+		colorIntensity = 0.15,
 		class: className = "",
 	}: Props = $props();
+
+	function hexToRgb(hex: string): ColorRGB {
+		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		if (!result) {
+			console.warn(`[FluidCursor] Invalid hex color: "${hex}". Expected format: "#rrggbb". Falling back to white.`);
+			return { r: 1, g: 1, b: 1 };
+		}
+		return {
+			r: parseInt(result[1], 16) / 255,
+			g: parseInt(result[2], 16) / 255,
+			b: parseInt(result[3], 16) / 255,
+		};
+	}
+
+	const clampedColorIntensity = Math.max(0, Math.min(1, colorIntensity));
+
+	const resolvedBackColor: ColorRGB =
+		typeof backColor === "string" ? hexToRgb(backColor) : backColor;
 
 	let canvasRef: HTMLCanvasElement;
 
@@ -94,7 +118,7 @@
 			SHADING: shading,
 			COLOR_UPDATE_SPEED: colorUpdateSpeed,
 			PAUSED: false,
-			BACK_COLOR: backColor,
+			BACK_COLOR: resolvedBackColor,
 			TRANSPARENT: transparent,
 		};
 
@@ -936,7 +960,35 @@
 
 		let lastUpdateTime = Date.now();
 		let colorUpdateTimer = 0.0;
+		let colorIndex = 0;
 		let animationFrameId: number;
+
+		// Cached pre-scaled colors to avoid re-parsing hex on every splat
+		let cachedFluidColorHex: string | undefined;
+		let cachedFluidColor: ColorRGB | null = null;
+		let cachedFluidColorsRef: string[] | undefined;
+		let cachedFluidColorsScaled: ColorRGB[] = [];
+
+		function getScaledColor(hex: string): ColorRGB {
+			const { r, g, b } = hexToRgb(hex);
+			return { r: r * clampedColorIntensity, g: g * clampedColorIntensity, b: b * clampedColorIntensity };
+		}
+
+		function getCachedFluidColor(hex: string): ColorRGB {
+			if (cachedFluidColor === null || cachedFluidColorHex !== hex) {
+				cachedFluidColorHex = hex;
+				cachedFluidColor = getScaledColor(hex);
+			}
+			return cachedFluidColor;
+		}
+
+		function getCachedFluidColors(colors: string[]): ColorRGB[] {
+			if (cachedFluidColorsRef !== colors) {
+				cachedFluidColorsRef = colors;
+				cachedFluidColorsScaled = colors.map(getScaledColor);
+			}
+			return cachedFluidColorsScaled;
+		}
 
 		function updateFrame() {
 			const dt = calcDeltaTime();
@@ -1232,10 +1284,19 @@
 		}
 
 		function generateColor(): ColorRGB {
+			if (fluidColor) {
+				return getCachedFluidColor(fluidColor);
+			}
+			if (fluidColors && fluidColors.length > 0) {
+				const colors = getCachedFluidColors(fluidColors);
+				const idx = colorIndex % colors.length;
+				colorIndex++;
+				return colors[idx];
+			}
 			const c = HSVtoRGB(Math.random(), 1.0, 1.0);
-			c.r *= 0.15;
-			c.g *= 0.15;
-			c.b *= 0.15;
+			c.r *= clampedColorIntensity;
+			c.g *= clampedColorIntensity;
+			c.b *= clampedColorIntensity;
 			return c;
 		}
 
