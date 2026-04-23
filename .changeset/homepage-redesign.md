@@ -2,4 +2,4 @@
 "fancy-ui": minor
 ---
 
-add new Krea-inspired landing page at /new-landing-page
+add new root exports (FluidCursor, InteractiveGridPattern) and remove hardcoded `tracking-wider` from NumberTicker

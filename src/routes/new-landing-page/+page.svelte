@@ -11,7 +11,7 @@
 		LineShadowText,
 		BoxReveal,
 		Timeline,
-		ImageTrailCursor,
+		Meteors,
 		FlickeringGrid,
 		AnimatedTooltip,
 		FluidCursor,
@@ -145,11 +145,9 @@
 <section
 	class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black"
 >
-	<!-- Fluid Cursor -->
-	<FluidCursor simResolution={128} />
-
-	<!-- Interactive Grid Pattern -->
+	<!-- Fluid Cursor + Interactive Grid (lazy) -->
 	{#if showInteractiveElements}
+		<FluidCursor simResolution={128} />
 		<InteractiveGridPattern
 			width={80}
 			height={80}
@@ -257,33 +255,20 @@
 				</div>
 			</a>
 
-			<!-- ImageTrailCursor card -->
+			<!-- Meteors card -->
 			<a
-				href="/demo/image-trail-cursor"
+				href="/demo/meteors"
 				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-zinc-900 sm:w-auto"
 			>
 				<div class="absolute inset-0">
-					<ImageTrailCursor
-						images={[
-							"https://picsum.photos/seed/fancy1/400/440",
-							"https://picsum.photos/seed/fancy2/400/440",
-							"https://picsum.photos/seed/fancy3/400/440",
-							"https://picsum.photos/seed/fancy4/400/440",
-							"https://picsum.photos/seed/fancy5/400/440",
-							"https://picsum.photos/seed/fancy6/400/440",
-						]}
-						variant="type1"
-					/>
-				</div>
-				<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-					<p class="text-xs text-white/20">Hover me</p>
+					<Meteors count={18} />
 				</div>
 				<div
 					class="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/20 to-transparent"
 				></div>
 				<div class="relative z-10 p-6">
-					<p class="mb-1 text-lg font-semibold text-white">Cursor Magic</p>
-					<p class="mb-4 text-sm text-white/50">8 animation variants that follow your cursor</p>
+					<p class="mb-1 text-lg font-semibold text-white">Meteors</p>
+					<p class="mb-4 text-sm text-white/50">Animated meteor shower backgrounds</p>
 					<span
 						class="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/70 transition-colors group-hover:bg-white/20"
 					>
