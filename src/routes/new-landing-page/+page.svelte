@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import {
 		Sparkles,
 		SparklesText,
@@ -13,9 +14,28 @@
 		ImageTrailCursor,
 		FlickeringGrid,
 		AnimatedTooltip,
+		FluidCursor,
+		InteractiveGridPattern,
 	} from "$lib/fancy-ui";
 	import type { TimelineItem, TooltipItem } from "$lib/fancy-ui";
 	import SynthwaveGrid from "$lib/components/SynthwaveGrid.svelte";
+
+	let showInteractiveElements = $state(false);
+
+	onMount(() => {
+		if ("requestIdleCallback" in window) {
+			requestIdleCallback(
+				() => {
+					showInteractiveElements = true;
+				},
+				{ timeout: 200 }
+			);
+		} else {
+			setTimeout(() => {
+				showInteractiveElements = true;
+			}, 100);
+		}
+	});
 
 	const GITHUB_URL = "https://github.com/ramaherbin/fancy-ui";
 	const DEMO_URL = "/demo";
@@ -125,17 +145,17 @@
 <section
 	class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black"
 >
-	<!-- Particle background -->
-	<div class="pointer-events-none absolute inset-0">
-		<Sparkles
-			background="transparent"
-			particleColor="#ffffff"
-			particleDensity={80}
-			minSize={0.6}
-			maxSize={1.4}
-			speed={1}
+	<!-- Fluid Cursor -->
+	<FluidCursor simResolution={128} />
+
+	<!-- Interactive Grid Pattern -->
+	{#if showInteractiveElements}
+		<InteractiveGridPattern
+			width={80}
+			height={80}
+			class="inset-0 h-full [mask-image:radial-gradient(600px_circle_at_center,white,transparent)] opacity-20"
 		/>
-	</div>
+	{/if}
 
 	<!-- Content -->
 	<div class="relative z-10 flex flex-col items-center gap-6 px-4 text-center">
@@ -353,14 +373,17 @@
 			<span class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">The numbers</span>
 			<div class="h-px flex-1 bg-zinc-100"></div>
 		</div>
-		<h2 class="mb-10 text-5xl font-bold leading-none tracking-tight text-zinc-900 sm:text-7xl">
+		<h2 class="mb-10 text-5xl leading-none font-bold tracking-tight text-zinc-900 sm:text-7xl">
 			60+ components.<br />Zero bloat.
 		</h2>
 
 		<!-- Row 1: dark 2col + 2 light stats -->
 		<div class="grid grid-cols-3 gap-3">
 			<!-- Dark hero card (col-span-2, row-span-2) — FlickeringGrid bg, large text -->
-			<div class="relative col-span-3 row-span-2 overflow-hidden rounded-3xl bg-white sm:col-span-2" style="min-height:280px">
+			<div
+				class="relative col-span-3 row-span-2 overflow-hidden rounded-3xl bg-white sm:col-span-2"
+				style="min-height:280px"
+			>
 				<div class="pointer-events-none absolute inset-0">
 					<FlickeringGrid
 						color="#a0a0a0"
@@ -372,35 +395,41 @@
 					/>
 				</div>
 				<div class="relative z-10 flex h-full flex-col justify-end p-10">
-					<p class="mb-1 text-6xl font-black leading-none tracking-tight text-zinc-900 sm:text-8xl">~2kb</p>
+					<p class="gradient-num mb-1 text-6xl leading-none font-black tracking-tight sm:text-8xl">
+						~2kb
+					</p>
 					<p class="text-lg font-semibold text-zinc-500">Svelte runtime bundle</p>
-					<p class="mt-1 text-sm text-zinc-400">60× lighter than React · zero virtual DOM</p>
+					<p class="mt-1 text-sm text-zinc-400">22× lighter than React · zero virtual DOM</p>
 				</div>
 			</div>
 
 			<!-- Light stat: 60+ -->
-			<div class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1">
+			<div
+				class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1"
+			>
 				<p class="text-sm font-medium text-zinc-400">Components</p>
 				<div>
-					<div class="flex items-start leading-none text-zinc-900">
-						<span class="text-7xl font-black tabular-nums sm:text-8xl">
-							<NumberTicker value={60} duration={1500} class="!text-zinc-900" />
+					<div class="flex items-start leading-none">
+						<span class="gradient-num text-7xl font-black tracking-tighter sm:text-8xl">
+							<NumberTicker value={60} duration={1500} />
 						</span>
-						<span class="mt-1 text-4xl font-black">+</span>
+						<span class="gradient-num mt-1 text-4xl font-black">+</span>
 					</div>
 					<p class="mt-3 text-sm text-zinc-400">animated &amp; interactive</p>
 				</div>
 			</div>
 
 			<!-- Light stat: 100% TS -->
-			<div class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1">
+			<div
+				class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1"
+			>
 				<p class="text-sm font-medium text-zinc-400">TypeScript</p>
 				<div>
-					<div class="flex items-start leading-none text-zinc-900">
-						<span class="text-7xl font-black tabular-nums sm:text-8xl">
-							<NumberTicker value={100} duration={1500} class="!text-zinc-900" />
+					<div class="flex items-start leading-none">
+						<span class="gradient-num text-7xl font-black tracking-tighter sm:text-8xl">
+							<NumberTicker value={100} duration={1500} />
 						</span>
-						<span class="mt-1 text-4xl font-black">%</span>
+						<span class="gradient-num mt-1 text-4xl font-black">%</span>
 					</div>
 					<p class="mt-3 text-sm text-zinc-400">fully typed API</p>
 				</div>
@@ -411,12 +440,18 @@
 		<div class="mt-3 grid grid-cols-3 gap-3">
 			<!-- Dark install card (col-span-2) -->
 			<div class="relative col-span-3 overflow-hidden rounded-3xl bg-zinc-950 p-10 sm:col-span-2">
-				<BorderBeam duration={14} size={250} colorFrom="#9E7AFF" colorTo="#FE8BBB" borderWidth={1} />
+				<BorderBeam
+					duration={14}
+					size={250}
+					colorFrom="#9E7AFF"
+					colorTo="#FE8BBB"
+					borderWidth={1}
+				/>
 				<p class="mb-6 text-sm font-medium text-white/30">Get started in seconds</p>
 				<div class="font-mono">
 					<div class="mb-4">
-						<span class="text-white/20 text-xs">$ </span>
-						<span class="text-emerald-400 text-lg font-semibold">npm install fancy-ui</span>
+						<span class="text-xs text-white/20">$ </span>
+						<span class="text-lg font-semibold text-emerald-400">npm install fancy-ui</span>
 					</div>
 					<div class="text-sm">
 						<span class="text-purple-400">import</span>
@@ -428,10 +463,12 @@
 			</div>
 
 			<!-- Light MIT card -->
-			<div class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1">
+			<div
+				class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1"
+			>
 				<p class="text-sm font-medium text-zinc-400">License</p>
 				<div>
-					<p class="text-7xl font-black leading-none text-zinc-900 sm:text-8xl">MIT</p>
+					<p class="gradient-num text-7xl leading-none font-black sm:text-8xl">MIT</p>
 					<p class="mt-3 text-sm text-zinc-400">Open source forever</p>
 				</div>
 			</div>
@@ -471,11 +508,11 @@
 						<div class="mb-4 text-2xl">⚡</div>
 						<h3 class="mb-3 text-xl font-bold text-zinc-900">No Virtual DOM</h3>
 						<p class="mb-6 leading-relaxed text-zinc-500">
-							Svelte compiles to native JS. No runtime overhead, no reconciler. React ships 130 kb
-							of runtime — FancyUI ships ~2 kb.
+							Svelte compiles to native JS. No runtime overhead, no reconciler. React ships 44 kb of
+							runtime (gzipped) — FancyUI ships ~2 kb.
 						</p>
 						<div class="flex flex-col gap-2 text-xs">
-							{#each [{ label: "FancyUI", kb: 2, pct: 2, color: "bg-purple-500" }, { label: "Vue 3", kb: 34, pct: 26, color: "bg-blue-400/60" }, { label: "React", kb: 130, pct: 100, color: "bg-zinc-300" }] as row}
+							{#each [{ label: "FancyUI", kb: 2, pct: 5, color: "bg-purple-500" }, { label: "Vue 3", kb: 34, pct: 77, color: "bg-blue-400/60" }, { label: "React", kb: 44, pct: 100, color: "bg-zinc-300" }] as row}
 								<div class="flex items-center gap-3">
 									<span class="w-16 shrink-0 text-zinc-400">{row.label}</span>
 									<div class="flex flex-1 items-center gap-2">
@@ -637,14 +674,14 @@
 <section class="bg-black px-4 py-24">
 	<div class="mx-auto max-w-4xl text-center">
 		<div class="mb-4">
-			<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Contributors</span>
+			<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Contributors</span
+			>
 		</div>
 		<h2 class="mb-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
 			Built by the community
 		</h2>
 		<p class="mb-12 text-zinc-500">
-			{contributors.length} contributor{contributors.length > 1 ? "s" : ""} and counting.
-			Every PR welcome.
+			{contributors.length} contributor{contributors.length > 1 ? "s" : ""} and counting. Every PR welcome.
 		</p>
 
 		<!-- Animated tooltip avatars -->
@@ -661,11 +698,7 @@
 					rel="noopener noreferrer"
 					class="group flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition-all hover:border-white/20 hover:bg-white/10"
 				>
-					<img
-						src={c.image}
-						alt={c.name}
-						class="size-6 rounded-full"
-					/>
+					<img src={c.image} alt={c.name} class="size-6 rounded-full" />
 					<span class="font-medium text-white/70 group-hover:text-white">{c.login}</span>
 					<span class="text-xs text-white/30">{c.contributions}</span>
 				</a>
@@ -680,7 +713,9 @@
 			class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white"
 		>
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-				<path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+				<path
+					d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"
+				/>
 			</svg>
 			Become a contributor
 		</a>
@@ -714,5 +749,18 @@
 	.no-scrollbar {
 		-ms-overflow-style: none;
 		scrollbar-width: none;
+	}
+	.gradient-num {
+		background: linear-gradient(200deg, #646464 0%, #000 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+
+	/* Selection: black bg + white text on light sections */
+	:global(::selection) {
+		background: #000;
+		color: #fff;
+		-webkit-text-fill-color: #fff;
 	}
 </style>

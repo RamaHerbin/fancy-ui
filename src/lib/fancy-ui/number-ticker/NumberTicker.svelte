@@ -117,10 +117,7 @@
 
 <span
 	bind:this={spanRef}
-	class={cn(
-		"number-ticker inline-block tracking-wider text-black tabular-nums dark:text-white",
-		className
-	)}
+	class={cn("number-ticker inline-block text-black tabular-nums dark:text-white", className)}
 >
 	{formattedValue}
 </span>
