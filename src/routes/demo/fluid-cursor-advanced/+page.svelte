@@ -180,16 +180,14 @@
 		<h2 class="mb-2 text-xl font-semibold">Autonomous mode</h2>
 		<p class="text-muted-foreground mb-6 text-sm">
 			Combine <code class="bg-muted rounded px-1.5 py-0.5">autoSplat</code> with
-			<code class="bg-muted rounded px-1.5 py-0.5">interactive={`{false}`}</code> for a fluid
-			background that animates without any cursor interaction — great for mobile and above-the-fold
-			heroes.
+			<code class="bg-muted rounded px-1.5 py-0.5">interactive={`{false}`}</code> for a fluid background
+			that animates without any cursor interaction — great for mobile and above-the-fold heroes.
 		</p>
 
 		<div class="mb-4 flex flex-wrap gap-2">
 			{#each speedOptions as opt}
 				<button
-					class="rounded-md border px-3 py-1.5 text-sm transition-colors {opt.ms ===
-					autonomousSpeed
+					class="rounded-md border px-3 py-1.5 text-sm transition-colors {opt.ms === autonomousSpeed
 						? 'bg-foreground text-background'
 						: 'text-muted-foreground hover:text-foreground'}"
 					onclick={() => (autonomousSpeed = opt.ms)}
@@ -220,8 +218,8 @@
 	<section class="mb-12">
 		<h2 class="mb-2 text-xl font-semibold">Splat on mount</h2>
 		<p class="text-muted-foreground mb-6 text-sm">
-			<code class="bg-muted rounded px-1.5 py-0.5">splatOnMount</code> fires 3–5 random splats the
-			moment the component mounts — useful for an immediate "alive" feeling.
+			<code class="bg-muted rounded px-1.5 py-0.5">splatOnMount</code> fires 3–5 random splats the moment
+			the component mounts — useful for an immediate "alive" feeling.
 		</p>
 
 		<div class="relative h-48 overflow-hidden rounded-xl border">
@@ -352,8 +350,8 @@
 						<td class="px-4 py-3 font-mono text-xs">boolean</td>
 						<td class="px-4 py-3 font-mono text-xs">true</td>
 						<td class="px-4 py-3"
-							>When <code class="bg-muted rounded px-1 py-0.5">false</code>, removes all
-							mouse/touch listeners. Combine with
+							>When <code class="bg-muted rounded px-1 py-0.5">false</code>, removes all mouse/touch
+							listeners. Combine with
 							<code class="bg-muted rounded px-1 py-0.5">autoSplat</code> for ambient animations.</td
 						>
 					</tr>
@@ -361,7 +359,8 @@
 						<td class="px-4 py-3 font-mono text-xs">autoSplat</td>
 						<td class="px-4 py-3 font-mono text-xs">boolean</td>
 						<td class="px-4 py-3 font-mono text-xs">false</td>
-						<td class="px-4 py-3">Fires random splats at a fixed interval without user interaction.</td
+						<td class="px-4 py-3"
+							>Fires random splats at a fixed interval without user interaction.</td
 						>
 					</tr>
 					<tr class="border-b">

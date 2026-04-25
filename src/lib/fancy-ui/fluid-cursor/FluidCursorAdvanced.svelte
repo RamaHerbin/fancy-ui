@@ -1301,7 +1301,13 @@
 				const x = cx + Math.cos(a) * r;
 				const y = cy + Math.sin(a) * r;
 				const color = generateColor();
-				splat(x, y, -Math.sin(a) * config.SPLAT_FORCE * 0.5, Math.cos(a) * config.SPLAT_FORCE * 0.5, color);
+				splat(
+					x,
+					y,
+					-Math.sin(a) * config.SPLAT_FORCE * 0.5,
+					Math.cos(a) * config.SPLAT_FORCE * 0.5,
+					color
+				);
 				i++;
 				if (i < steps) requestAnimationFrame(step);
 			}

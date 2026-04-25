@@ -94,7 +94,7 @@ describe("FluidCursorAdvanced", () => {
 			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 			render(FluidCursorAdvanced, { props: { backColor: "not-a-color" } });
 			expect(warn).toHaveBeenCalledWith(
-				expect.stringContaining("[FluidCursorAdvanced] Invalid hex color"),
+				expect.stringContaining("[FluidCursorAdvanced] Invalid hex color")
 			);
 			warn.mockRestore();
 		});
