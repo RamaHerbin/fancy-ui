@@ -56,7 +56,7 @@
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 		if (!result) {
 			console.warn(
-				`[FluidCursor] Invalid hex color: "${hex}". Expected format: "#rrggbb". Falling back to white.`
+				`[FluidCursorAdvanced] Invalid hex color: "${hex}". Expected format: "#rrggbb". Falling back to white.`
 			);
 			return { r: 1, g: 1, b: 1 };
 		}
@@ -958,9 +958,20 @@
 			return Math.floor(input * pixelRatio);
 		}
 
+		let canvasRectCache: DOMRect | null = null;
+		function updateCanvasRectCache() {
+			if (contained && canvas) canvasRectCache = canvas.getBoundingClientRect();
+		}
+		if (contained) {
+			window.addEventListener("resize", updateCanvasRectCache, { passive: true });
+			window.addEventListener("scroll", updateCanvasRectCache, { passive: true });
+			updateCanvasRectCache();
+		}
+
 		function getCanvasPos(clientX: number, clientY: number): { x: number; y: number } {
 			if (contained) {
-				const rect = canvas.getBoundingClientRect();
+				if (!canvasRectCache) updateCanvasRectCache();
+				const rect = canvasRectCache!;
 				return {
 					x: scaleByPixelRatio(clientX - rect.left),
 					y: scaleByPixelRatio(clientY - rect.top),
@@ -1385,7 +1396,6 @@
 			const pointer = pointers[0];
 			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 			const color = generateColor();
-			updateFrame();
 			updatePointerMoveData(pointer, posX, posY, color);
 			document.body.removeEventListener("mousemove", handleFirstMouseMove);
 		}
@@ -1401,7 +1411,6 @@
 			const pointer = pointers[0];
 			for (let i = 0; i < touches.length; i++) {
 				const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
-				updateFrame();
 				updatePointerDownData(pointer, touches[i].identifier, posX, posY);
 			}
 			document.body.removeEventListener("touchstart", handleFirstTouchStart);
@@ -1460,6 +1469,10 @@
 			document.body.removeEventListener("touchstart", handleFirstTouchStart);
 			window.removeEventListener("touchstart", handleTouchStart);
 			window.removeEventListener("touchmove", handleTouchMove);
+			if (contained) {
+				window.removeEventListener("resize", updateCanvasRectCache);
+				window.removeEventListener("scroll", updateCanvasRectCache);
+			}
 		};
 	});
 </script>
@@ -1467,7 +1480,7 @@
 <div
 	class={cn(
 		contained
-			? "absolute inset-0 h-full w-full"
+			? "pointer-events-none absolute inset-0 h-full w-full"
 			: "pointer-events-none fixed top-0 left-0 z-50 size-full",
 		className
 	)}
