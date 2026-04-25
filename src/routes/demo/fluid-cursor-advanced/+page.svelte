@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { FluidCursorAdvanced } from "$lib/fancy-ui/fluid-cursor";
 
+	// ── Preview demos ────────────────────────────────────────────────────────────
 	const demos = [
 		{
 			label: "Indigo / Pink / Cyan",
@@ -31,8 +32,39 @@
 			},
 		},
 	];
-
 	let activeDemo = $state(0);
+
+	// ── Container picker ─────────────────────────────────────────────────────────
+	const containers = [
+		{
+			id: "hero",
+			label: "Hero card",
+			sublabel: "Great as a section background",
+			icon: "✦",
+			bg: "linear-gradient(135deg, #0f0f1a 0%, #1a0f2e 100%)",
+			colors: ["#9E7AFF", "#6366f1", "#c084fc"],
+			intensity: 0.35,
+		},
+		{
+			id: "feature",
+			label: "Feature card",
+			sublabel: "Highlight key features",
+			icon: "◈",
+			bg: "linear-gradient(135deg, #001a1a 0%, #003333 100%)",
+			colors: ["#00ffcc", "#06b6d4", "#22d3ee"],
+			intensity: 0.35,
+		},
+		{
+			id: "cta",
+			label: "CTA card",
+			sublabel: "Drive conversions",
+			icon: "◆",
+			bg: "linear-gradient(135deg, #1a0010 0%, #2d0020 100%)",
+			colors: ["#ff0080", "#f43f5e", "#fb7185"],
+			intensity: 0.35,
+		},
+	];
+	let activeContainer = $state<string | null>(null);
 </script>
 
 <svelte:head>
@@ -47,6 +79,7 @@
 		>, it fills its parent element instead of covering the full viewport.
 	</p>
 
+	<!-- ── Preview ──────────────────────────────────────────────────────────────── -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Preview</h2>
 		<div class="mb-4 flex flex-wrap gap-2">
@@ -71,12 +104,73 @@
 		</div>
 	</section>
 
+	<!-- ── Container picker ─────────────────────────────────────────────────────── -->
+	<section class="mb-12">
+		<h2 class="mb-2 text-xl font-semibold">Pick a container</h2>
+		<p class="text-muted-foreground mb-6 text-sm">
+			Click any card to activate the fluid inside it — the simulation stays confined to that
+			container. Click again to deactivate.
+		</p>
+
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+			{#each containers as c}
+				{@const isActive = activeContainer === c.id}
+				<button
+					onclick={() => (activeContainer = isActive ? null : c.id)}
+					class="group relative h-56 cursor-pointer overflow-hidden rounded-2xl border-2 text-left transition-all duration-200
+						{isActive
+						? 'border-white/40 shadow-[0_0_30px_rgba(255,255,255,0.06)]'
+						: 'border-white/10 hover:border-white/25'}"
+					style="background: {c.bg}"
+				>
+					{#if isActive}
+						{#key c.id}
+							<FluidCursorAdvanced
+								fluidColors={c.colors}
+								colorIntensity={c.intensity}
+								simResolution={64}
+							/>
+						{/key}
+					{/if}
+
+					<div class="pointer-events-none relative z-10 flex h-full flex-col justify-between p-6">
+						<div class="flex items-center justify-between">
+							<span
+								class="text-xs font-semibold tracking-widest uppercase transition-colors
+									{isActive ? 'text-white/60' : 'text-white/30'}"
+							>
+								{isActive ? "Active" : "Click to activate"}
+							</span>
+							<span
+								class="size-2 rounded-full transition-all duration-300
+									{isActive ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-white/10'}"
+							></span>
+						</div>
+
+						<div>
+							<p class="mb-1 text-3xl">{c.icon}</p>
+							<p class="text-lg font-semibold text-white">{c.label}</p>
+							<p class="mt-0.5 text-sm text-white/40">{c.sublabel}</p>
+						</div>
+					</div>
+				</button>
+			{/each}
+		</div>
+
+		{#if activeContainer}
+			<p class="mt-3 text-center text-xs text-white/30">
+				Move your cursor inside the card — the fluid stays contained ✦
+			</p>
+		{/if}
+	</section>
+
+	<!-- ── Usage ────────────────────────────────────────────────────────────────── -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Usage</h2>
 		<div class="bg-card rounded-lg border p-6">
 			<pre class="bg-muted overflow-x-auto rounded p-4 text-sm"><code
 					>{"<"}script{">"}
-  import {"{"} FluidCursorAdvanced {"}"} from '$lib/fancy-ui/fluid-cursor';
+  import {"{"} FluidCursorAdvanced {"}"} from 'fancy-ui';
 {"<"}/script{">"}
 
 {"<!-- Parent must be relative + overflow-hidden -->"}
@@ -85,12 +179,12 @@
     fluidColors={"{"}{`["#6366f1", "#ec4899", "#06b6d4"]`}{"}"}
     colorIntensity={"{"}0.5{"}"}
     backColor={"{"}{`{ r: 0.04, g: 0.04, b: 0.08 }`}{"}"}
-  /{">"}{"\n"}
-{"<"}/div{">"}</code
+  /{">"}{"\n"}{"<"}/div{">"}</code
 				></pre>
 		</div>
 	</section>
 
+	<!-- ── Props ────────────────────────────────────────────────────────────────── -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Props</h2>
 		<div class="bg-card overflow-x-auto rounded-lg border">
