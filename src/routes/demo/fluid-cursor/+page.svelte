@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { FluidCursor } from "$lib/fancy-ui/fluid-cursor";
+	import { FluidCursor, FluidCursorAdvanced } from "$lib/fancy-ui/fluid-cursor";
 
-	const demos = [
+	// ── FluidCursor color demos ──────────────────────────────────────────────────
+	const colorDemos = [
 		{ label: "Default (random)", props: {} },
 		{ label: "Fixed color — teal", props: { fluidColor: "#00ffcc", colorIntensity: 0.4 } },
 		{
@@ -13,15 +14,46 @@
 			props: { fluidColors: ["#ff6b35", "#f7c59f", "#ffaa40"], colorIntensity: 0.35 },
 		},
 	];
+	let activeColorDemo = $state(0);
 
-	let activeDemo = $state(0);
+	// ── FluidCursorAdvanced contained demo ───────────────────────────────────────
+	const containers = [
+		{
+			id: "hero",
+			label: "Hero card",
+			sublabel: "Great as a section background",
+			icon: "✦",
+			bg: "linear-gradient(135deg, #0f0f1a 0%, #1a0f2e 100%)",
+			colors: ["#9E7AFF", "#6366f1", "#c084fc"],
+			intensity: 0.35,
+		},
+		{
+			id: "feature",
+			label: "Feature card",
+			sublabel: "Highlight key features",
+			icon: "◈",
+			bg: "linear-gradient(135deg, #001a1a 0%, #003333 100%)",
+			colors: ["#00ffcc", "#06b6d4", "#22d3ee"],
+			intensity: 0.35,
+		},
+		{
+			id: "cta",
+			label: "CTA card",
+			sublabel: "Drive conversions",
+			icon: "◆",
+			bg: "linear-gradient(135deg, #1a0010 0%, #2d0020 100%)",
+			colors: ["#ff0080", "#f43f5e", "#fb7185"],
+			intensity: 0.35,
+		},
+	];
+	let activeContainer = $state<string | null>(null);
 </script>
 
 <svelte:head>
 	<title>FluidCursor - FancyUI</title>
 </svelte:head>
 
-<FluidCursor {...demos[activeDemo].props} />
+<FluidCursor {...colorDemos[activeColorDemo].props} />
 
 <div class="relative z-10 container mx-auto px-4 py-12">
 	<h1 class="mb-2 text-3xl font-bold">FluidCursor</h1>
@@ -29,15 +61,16 @@
 		A WebGL fluid simulation that follows your cursor. Move your mouse around to see the effect.
 	</p>
 
+	<!-- ── Color demos ──────────────────────────────────────────────────────────── -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Color demos</h2>
 		<div class="mb-4 flex flex-wrap gap-2">
-			{#each demos as demo, i}
+			{#each colorDemos as demo, i}
 				<button
-					class="rounded-md border px-3 py-1.5 text-sm transition-colors {i === activeDemo
+					class="rounded-md border px-3 py-1.5 text-sm transition-colors {i === activeColorDemo
 						? 'bg-white text-black'
 						: 'text-muted-foreground hover:text-foreground'}"
-					onclick={() => (activeDemo = i)}
+					onclick={() => (activeColorDemo = i)}
 				>
 					{demo.label}
 				</button>
@@ -46,30 +79,102 @@
 		<div
 			class="flex h-48 items-center justify-center rounded-lg border border-dashed border-white/10"
 		>
-			<p class="text-sm text-white/20 select-none">Move your cursor anywhere</p>
+			<p class="select-none text-sm text-white/20">Move your cursor anywhere</p>
 		</div>
 	</section>
 
+	<!-- ── FluidCursorAdvanced — contained ──────────────────────────────────────── -->
+	<section class="mb-12">
+		<h2 class="mb-2 text-xl font-semibold">FluidCursorAdvanced — Contained</h2>
+		<p class="text-muted-foreground mb-6 text-sm">
+			Click a card to activate the fluid effect inside it. The simulation stays confined to that
+			container — move your cursor within the card to see it in action.
+		</p>
+
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+			{#each containers as c}
+				{@const isActive = activeContainer === c.id}
+				<button
+					onclick={() => (activeContainer = isActive ? null : c.id)}
+					class="group relative h-56 cursor-pointer overflow-hidden rounded-2xl border-2 text-left transition-all duration-200
+						{isActive
+						? 'border-white/40 shadow-[0_0_30px_rgba(255,255,255,0.06)]'
+						: 'border-white/10 hover:border-white/25'}"
+					style="background: {c.bg}"
+				>
+					<!-- Fluid cursor lives here when active -->
+					{#if isActive}
+						{#key c.id}
+							<FluidCursorAdvanced
+								fluidColors={c.colors}
+								colorIntensity={c.intensity}
+								simResolution={64}
+							/>
+						{/key}
+					{/if}
+
+					<!-- Card content (pointer-events-none so hover passes through to button) -->
+					<div
+						class="pointer-events-none relative z-10 flex h-full flex-col justify-between p-6"
+					>
+						<div class="flex items-center justify-between">
+							<span
+								class="text-xs font-semibold tracking-widest uppercase transition-colors
+									{isActive ? 'text-white/60' : 'text-white/30'}"
+							>
+								{isActive ? "Active" : "Click to activate"}
+							</span>
+							<!-- Active indicator -->
+							<span
+								class="size-2 rounded-full transition-all duration-300
+									{isActive ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-white/10'}"
+							></span>
+						</div>
+
+						<div>
+							<p class="mb-1 text-3xl">{c.icon}</p>
+							<p class="text-lg font-semibold text-white">{c.label}</p>
+							<p class="mt-0.5 text-sm text-white/40">{c.sublabel}</p>
+						</div>
+					</div>
+				</button>
+			{/each}
+		</div>
+
+		{#if activeContainer}
+			<p class="mt-3 text-center text-xs text-white/30">
+				Move your cursor inside the card — the fluid stays contained ✦
+			</p>
+		{/if}
+	</section>
+
+	<!-- ── Usage ────────────────────────────────────────────────────────────────── -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Usage</h2>
 		<div class="bg-card rounded-lg border p-6">
 			<p class="text-muted-foreground mb-4 text-sm">
-				The FluidCursor component renders a full-screen WebGL canvas that creates fluid effects
-				following mouse movement. It's typically used as a background effect.
+				<code class="bg-muted rounded px-1.5 py-0.5">FluidCursor</code> renders a full-screen WebGL
+				canvas. <code class="bg-muted rounded px-1.5 py-0.5">FluidCursorAdvanced</code> shares the
+				same props but confines the simulation to its parent container — just wrap it in a
+				<code class="bg-muted rounded px-1.5 py-0.5">relative overflow-hidden</code> div.
 			</p>
 			<pre class="bg-muted overflow-x-auto rounded p-4 text-sm"><code
 					>{"<"}script{">"}
-  import {"{"} FluidCursor {"}"} from '$lib/fancy-ui/fluid-cursor';
+  import {"{"} FluidCursor, FluidCursorAdvanced {"}"} from 'fancy-ui';
 {"<"}/script{">"}
 
-{"<!-- Fixed color -->"}
+{"<!-- Full-screen (classic) -->"}
 {"<"}FluidCursor fluidColor="#00ffcc" colorIntensity={"{"}0.4{"}"} /{">\n"}
-{"<!-- Cycling palette -->"}
-{"<"}FluidCursor fluidColors={"{"}{`["#ff0080", "#00ffcc", "#7700ff"]`}{"}"} /{">"}</code
+{"<!-- Contained inside a card -->"}
+{"<"}div class="relative overflow-hidden rounded-2xl h-64"{">"}
+  {"<"}FluidCursorAdvanced fluidColors={"{"}{`["#9E7AFF", "#6366f1"]`}{"}"} colorIntensity={"{"}0.35{"}"} /{">"} 
+  {"<"}div class="relative z-10 p-6"{">"} Your content here {"<"}/div{">"}
+{"<"}/div{">"}</code
 				></pre>
 		</div>
 	</section>
 
+	<!-- ── Props ────────────────────────────────────────────────────────────────── -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Props</h2>
 		<div class="bg-card overflow-x-auto rounded-lg border">
@@ -178,6 +283,7 @@
 		</div>
 	</section>
 
+	<!-- ── Notes ────────────────────────────────────────────────────────────────── -->
 	<section class="mb-12">
 		<h2 class="mb-4 text-xl font-semibold">Notes</h2>
 		<div class="bg-card rounded-lg border p-6">
@@ -187,6 +293,11 @@
 				<li>Move your mouse to create flowing fluid trails</li>
 				<li>Touch events are supported for mobile devices</li>
 				<li>The canvas automatically resizes with the window</li>
+				<li>
+					<code class="bg-muted rounded px-1">FluidCursorAdvanced</code> requires a parent with
+					<code class="bg-muted rounded px-1">position: relative</code> and
+					<code class="bg-muted rounded px-1">overflow: hidden</code>
+				</li>
 			</ul>
 		</div>
 	</section>
