@@ -65,6 +65,17 @@
 		},
 	];
 	let activeContainer = $state<string | null>(null);
+
+	// ── Autonomous mode ───────────────────────────────────────────────────────
+	const speedOptions = [
+		{ label: "Slow", ms: 3000 },
+		{ label: "Normal", ms: 1500 },
+		{ label: "Fast", ms: 600 },
+	];
+	let autonomousSpeed = $state(1500);
+
+	// ── Splat on mount ────────────────────────────────────────────────────────
+	let remountCounter = $state(0);
 </script>
 
 <svelte:head>
@@ -162,6 +173,78 @@
 				Move your cursor inside the card — the fluid stays contained ✦
 			</p>
 		{/if}
+	</section>
+
+	<!-- ── Autonomous mode ──────────────────────────────────────────────────────── -->
+	<section class="mb-12">
+		<h2 class="mb-2 text-xl font-semibold">Autonomous mode</h2>
+		<p class="text-muted-foreground mb-6 text-sm">
+			Combine <code class="bg-muted rounded px-1.5 py-0.5">autoSplat</code> with
+			<code class="bg-muted rounded px-1.5 py-0.5">interactive={`{false}`}</code> for a fluid
+			background that animates without any cursor interaction — great for mobile and above-the-fold
+			heroes.
+		</p>
+
+		<div class="mb-4 flex flex-wrap gap-2">
+			{#each speedOptions as opt}
+				<button
+					class="rounded-md border px-3 py-1.5 text-sm transition-colors {opt.ms ===
+					autonomousSpeed
+						? 'bg-foreground text-background'
+						: 'text-muted-foreground hover:text-foreground'}"
+					onclick={() => (autonomousSpeed = opt.ms)}
+				>
+					{opt.label}
+				</button>
+			{/each}
+		</div>
+
+		<div class="relative h-48 overflow-hidden rounded-xl border">
+			{#key autonomousSpeed}
+				<FluidCursorAdvanced
+					autoSplat={true}
+					autoSplatInterval={autonomousSpeed}
+					interactive={false}
+					fluidColors={["#6366f1", "#ec4899", "#06b6d4"]}
+					colorIntensity={0.4}
+					backColor={{ r: 0.04, g: 0.04, b: 0.08 }}
+				/>
+			{/key}
+			<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+				<p class="text-muted-foreground text-sm">No cursor needed — works on mobile too</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- ── Splat on mount ────────────────────────────────────────────────────────── -->
+	<section class="mb-12">
+		<h2 class="mb-2 text-xl font-semibold">Splat on mount</h2>
+		<p class="text-muted-foreground mb-6 text-sm">
+			<code class="bg-muted rounded px-1.5 py-0.5">splatOnMount</code> fires 3–5 random splats the
+			moment the component mounts — useful for an immediate "alive" feeling.
+		</p>
+
+		<div class="relative h-48 overflow-hidden rounded-xl border">
+			{#key remountCounter}
+				<FluidCursorAdvanced
+					splatOnMount={true}
+					fluidColors={["#ff6b35", "#f7c59f", "#ffaa40"]}
+					colorIntensity={0.4}
+					backColor={{ r: 0.05, g: 0.02, b: 0 }}
+				/>
+			{/key}
+			<div class="pointer-events-none absolute inset-0 flex items-end justify-center pb-4">
+				<p class="text-muted-foreground text-xs">Move your cursor to interact</p>
+			</div>
+		</div>
+		<div class="mt-3 flex justify-center">
+			<button
+				class="bg-foreground text-background rounded-md px-4 py-2 text-sm transition-opacity hover:opacity-80"
+				onclick={() => remountCounter++}
+			>
+				Remount
+			</button>
+		</div>
 	</section>
 
 	<!-- ── Usage ────────────────────────────────────────────────────────────────── -->
@@ -263,6 +346,43 @@
 						<td class="px-4 py-3 font-mono text-xs">boolean</td>
 						<td class="px-4 py-3 font-mono text-xs">true</td>
 						<td class="px-4 py-3">Enable transparent background.</td>
+					</tr>
+					<tr class="border-b">
+						<td class="px-4 py-3 font-mono text-xs">interactive</td>
+						<td class="px-4 py-3 font-mono text-xs">boolean</td>
+						<td class="px-4 py-3 font-mono text-xs">true</td>
+						<td class="px-4 py-3"
+							>When <code class="bg-muted rounded px-1 py-0.5">false</code>, removes all
+							mouse/touch listeners. Combine with
+							<code class="bg-muted rounded px-1 py-0.5">autoSplat</code> for ambient animations.</td
+						>
+					</tr>
+					<tr class="border-b">
+						<td class="px-4 py-3 font-mono text-xs">autoSplat</td>
+						<td class="px-4 py-3 font-mono text-xs">boolean</td>
+						<td class="px-4 py-3 font-mono text-xs">false</td>
+						<td class="px-4 py-3">Fires random splats at a fixed interval without user interaction.</td
+						>
+					</tr>
+					<tr class="border-b">
+						<td class="px-4 py-3 font-mono text-xs">autoSplatInterval</td>
+						<td class="px-4 py-3 font-mono text-xs">number</td>
+						<td class="px-4 py-3 font-mono text-xs">1500</td>
+						<td class="px-4 py-3">Interval in ms between auto splats.</td>
+					</tr>
+					<tr class="border-b">
+						<td class="px-4 py-3 font-mono text-xs">splatOnMount</td>
+						<td class="px-4 py-3 font-mono text-xs">boolean</td>
+						<td class="px-4 py-3 font-mono text-xs">false</td>
+						<td class="px-4 py-3">Fires 3–5 random splats when the component mounts.</td>
+					</tr>
+					<tr>
+						<td class="px-4 py-3 font-mono text-xs">pauseWhenHidden</td>
+						<td class="px-4 py-3 font-mono text-xs">boolean</td>
+						<td class="px-4 py-3 font-mono text-xs">true</td>
+						<td class="px-4 py-3"
+							>Pauses the animation loop when the canvas is scrolled out of view.</td
+						>
 					</tr>
 				</tbody>
 			</table>

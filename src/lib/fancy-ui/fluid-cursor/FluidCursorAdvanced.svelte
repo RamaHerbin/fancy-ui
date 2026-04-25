@@ -27,6 +27,11 @@
 		fluidColors?: string[];
 		colorIntensity?: number;
 		class?: string;
+		autoSplat?: boolean;
+		autoSplatInterval?: number;
+		interactive?: boolean;
+		pauseWhenHidden?: boolean;
+		splatOnMount?: boolean;
 	}
 
 	let {
@@ -48,6 +53,11 @@
 		fluidColors,
 		colorIntensity = 0.15,
 		class: className = "",
+		autoSplat = false,
+		autoSplatInterval = 1500,
+		interactive = true,
+		pauseWhenHidden = true,
+		splatOnMount = false,
 	}: Props = $props();
 
 	const contained = true;
@@ -1274,6 +1284,30 @@
 			dye.swap();
 		}
 
+		function multipleSplats(steps: number) {
+			// Simulate a cursor sweep along a random arc — each step on its own frame
+			// so the velocity field has time to evolve between injections.
+			const angle = Math.random() * Math.PI * 2;
+			const cx = 0.25 + Math.random() * 0.5;
+			const cy = 0.25 + Math.random() * 0.5;
+			const arcSpan = Math.PI * (0.8 + Math.random() * 0.8);
+			let i = 0;
+
+			function step() {
+				if (i >= steps) return;
+				const t = i / Math.max(1, steps - 1);
+				const a = angle + t * arcSpan;
+				const r = 0.15 + 0.05 * Math.sin(t * Math.PI);
+				const x = cx + Math.cos(a) * r;
+				const y = cy + Math.sin(a) * r;
+				const color = generateColor();
+				splat(x, y, -Math.sin(a) * config.SPLAT_FORCE * 0.5, Math.cos(a) * config.SPLAT_FORCE * 0.5, color);
+				i++;
+				if (i < steps) requestAnimationFrame(step);
+			}
+			requestAnimationFrame(step);
+		}
+
 		function correctRadius(radius: number) {
 			const aspectRatio = canvas.width / canvas.height;
 			if (aspectRatio > 1) radius *= aspectRatio;
@@ -1435,40 +1469,64 @@
 		}
 
 		// Add event listeners
-		window.addEventListener("mousedown", handleMouseDown);
-		document.body.addEventListener("mousemove", handleFirstMouseMove);
-		window.addEventListener("mousemove", handleMouseMove);
-		document.body.addEventListener("touchstart", handleFirstTouchStart);
-		window.addEventListener("touchstart", handleTouchStart, false);
-		window.addEventListener("touchmove", handleTouchMove, false);
+		if (interactive) {
+			window.addEventListener("mousedown", handleMouseDown);
+			document.body.addEventListener("mousemove", handleFirstMouseMove);
+			window.addEventListener("mousemove", handleMouseMove);
+			document.body.addEventListener("touchstart", handleFirstTouchStart);
+			window.addEventListener("touchstart", handleTouchStart, false);
+			window.addEventListener("touchmove", handleTouchMove, false);
+		}
 
 		// Pause animation when scrolled out of view
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				const wasVisible = isVisible;
-				isVisible = entry.isIntersecting;
-				if (isVisible && !wasVisible) {
-					lastUpdateTime = Date.now();
-					animationFrameId = requestAnimationFrame(updateFrame);
-				}
-			},
-			{ threshold: 0 }
-		);
-		observer.observe(canvas);
+		let observer: IntersectionObserver | null = null;
+		if (pauseWhenHidden) {
+			observer = new IntersectionObserver(
+				([entry]) => {
+					const wasVisible = isVisible;
+					isVisible = entry.isIntersecting;
+					if (isVisible && !wasVisible) {
+						lastUpdateTime = Date.now();
+						animationFrameId = requestAnimationFrame(updateFrame);
+					}
+				},
+				{ threshold: 0 }
+			);
+			observer.observe(canvas);
+		}
 
 		// Start animation
 		updateFrame();
+		if (splatOnMount) multipleSplats(Math.floor(Math.random() * 6) + 10);
+
+		// Auto-splat timer
+		let autoSplatTimer: ReturnType<typeof setInterval> | null = null;
+		if (autoSplat) {
+			autoSplatTimer = setInterval(() => {
+				const color = generateColor();
+				splat(
+					Math.random(),
+					Math.random(),
+					(Math.random() - 0.5) * 200,
+					(Math.random() - 0.5) * 200,
+					color
+				);
+			}, autoSplatInterval);
+		}
 
 		// Cleanup
 		return () => {
 			cancelAnimationFrame(animationFrameId);
-			observer.disconnect();
-			window.removeEventListener("mousedown", handleMouseDown);
-			document.body.removeEventListener("mousemove", handleFirstMouseMove);
-			window.removeEventListener("mousemove", handleMouseMove);
-			document.body.removeEventListener("touchstart", handleFirstTouchStart);
-			window.removeEventListener("touchstart", handleTouchStart);
-			window.removeEventListener("touchmove", handleTouchMove);
+			if (observer) observer.disconnect();
+			if (autoSplatTimer) clearInterval(autoSplatTimer);
+			if (interactive) {
+				window.removeEventListener("mousedown", handleMouseDown);
+				document.body.removeEventListener("mousemove", handleFirstMouseMove);
+				window.removeEventListener("mousemove", handleMouseMove);
+				document.body.removeEventListener("touchstart", handleFirstTouchStart);
+				window.removeEventListener("touchstart", handleTouchStart);
+				window.removeEventListener("touchmove", handleTouchMove);
+			}
 			if (contained) {
 				window.removeEventListener("resize", updateCanvasRectCache);
 				window.removeEventListener("scroll", updateCanvasRectCache);
