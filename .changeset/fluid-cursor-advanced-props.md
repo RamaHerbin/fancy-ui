@@ -1,5 +1,5 @@
 ---
-"fancy-ui": minor
+"fancy-ui": patch
 ---
 
 Add interaction and autonomous animation props to FluidCursorAdvanced: `interactive`, `autoSplat`, `autoSplatInterval`, `pauseWhenHidden`, `splatOnMount`
