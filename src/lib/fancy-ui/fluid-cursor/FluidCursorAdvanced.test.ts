@@ -1,5 +1,5 @@
 import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import FluidCursorAdvanced from "./FluidCursorAdvanced.svelte";
 
 describe("FluidCursorAdvanced", () => {
@@ -49,6 +49,34 @@ describe("FluidCursorAdvanced", () => {
 		expect(div?.className).toContain("my-advanced");
 	});
 
+	describe("interaction props", () => {
+		it("interactive={false} does not register mouse event listeners", () => {
+			const addSpy = vi.spyOn(window, "addEventListener");
+			render(FluidCursorAdvanced, { props: { interactive: false } });
+			const mousedownCalls = addSpy.mock.calls.filter(([event]) => event === "mousedown");
+			expect(mousedownCalls).toHaveLength(0);
+			const mousemoveCalls = addSpy.mock.calls.filter(([event]) => event === "mousemove");
+			expect(mousemoveCalls).toHaveLength(0);
+			addSpy.mockRestore();
+		});
+
+		it("mounts without error with autoSplat={true} and splatOnMount={true}", () => {
+			const { container } = render(FluidCursorAdvanced, {
+				props: { autoSplat: true, splatOnMount: true },
+			});
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("pauseWhenHidden={false} does not instantiate IntersectionObserver", () => {
+			const observeSpy = vi.fn();
+			const mockObserver = vi.fn(() => ({ observe: observeSpy, disconnect: vi.fn() }));
+			vi.stubGlobal("IntersectionObserver", mockObserver);
+			render(FluidCursorAdvanced, { props: { pauseWhenHidden: false } });
+			expect(mockObserver).not.toHaveBeenCalled();
+			vi.unstubAllGlobals();
+		});
+	});
+
 	describe("color props", () => {
 		it("renders without error when fluidColor is provided", () => {
 			const { container } = render(FluidCursorAdvanced, { props: { fluidColor: "#6366f1" } });
@@ -66,7 +94,7 @@ describe("FluidCursorAdvanced", () => {
 			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 			render(FluidCursorAdvanced, { props: { backColor: "not-a-color" } });
 			expect(warn).toHaveBeenCalledWith(
-				expect.stringContaining("[FluidCursorAdvanced] Invalid hex color"),
+				expect.stringContaining("[FluidCursorAdvanced] Invalid hex color")
 			);
 			warn.mockRestore();
 		});
