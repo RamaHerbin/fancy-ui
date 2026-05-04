@@ -11,7 +11,7 @@ Canvas wrapper that creates a confetti instance.
 |------|------|---------|-------------|
 | `options` | `ConfettiOptions` | `{}` | Default confetti options |
 | `globalOptions` | `ConfettiGlobalOptions` | `{}` | Canvas creation options |
-| `manualstart` | `boolean` | `false` | Skip auto-fire on mount |
+| `manualStart` | `boolean` | `false` | Skip auto-fire on mount |
 | `class` | `string` | `''` | Canvas CSS classes |
 
 ### ConfettiButton
