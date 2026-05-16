@@ -2,6 +2,9 @@
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
 
+	// Module-level singleton registry
+	let activeInstance: (() => void) | null = null;
+
 	interface ColorRGB {
 		r: number;
 		g: number;
@@ -32,6 +35,7 @@
 		interactive?: boolean;
 		pauseWhenHidden?: boolean;
 		splatOnMount?: boolean;
+		allowMultiple?: boolean;
 	}
 
 	let {
@@ -58,6 +62,7 @@
 		interactive = true,
 		pauseWhenHidden = true,
 		splatOnMount = false,
+		allowMultiple = false,
 	}: Props = $props();
 
 	const contained = true;
@@ -1521,7 +1526,7 @@
 		}
 
 		// Cleanup
-		return () => {
+		function cleanup() {
 			cancelAnimationFrame(animationFrameId);
 			if (observer) observer.disconnect();
 			if (autoSplatTimer) clearInterval(autoSplatTimer);
@@ -1537,7 +1542,27 @@
 				window.removeEventListener("resize", updateCanvasRectCache);
 				window.removeEventListener("scroll", updateCanvasRectCache);
 			}
-		};
+		}
+
+		if (!allowMultiple) {
+			if (activeInstance) {
+				if (import.meta.env.DEV) {
+					console.warn(
+						"[FluidCursorAdvanced] Destroying previous instance. Only one instance is allowed by default. Use `allowMultiple={true}` to opt out of singleton behavior."
+					);
+				}
+				activeInstance();
+			}
+			activeInstance = cleanup;
+			return () => {
+				cleanup();
+				if (activeInstance === cleanup) {
+					activeInstance = null;
+				}
+			};
+		}
+
+		return cleanup;
 	});
 </script>
 
