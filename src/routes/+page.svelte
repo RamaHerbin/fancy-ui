@@ -1,29 +1,78 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import {
 		Sparkles,
 		SparklesText,
 		FlipWords,
 		RainbowButton,
 		BorderBeam,
-		Meteors,
 		Marquee,
 		NumberTicker,
 		LineShadowText,
 		BoxReveal,
 		Timeline,
-		ImageTrailCursor,
-		BentoGrid,
-		BentoGridCard,
-		TextGenerateEffect,
+		Meteors,
+		FlickeringGrid,
+		AnimatedTooltip,
+		FluidCursor,
+		InteractiveGridPattern,
 	} from "$lib/fancy-ui";
-	import type { TimelineItem } from "$lib/fancy-ui";
+	import type { TimelineItem, TooltipItem } from "$lib/fancy-ui";
 	import SynthwaveGrid from "$lib/components/SynthwaveGrid.svelte";
-	import { Wand2, MousePointer2, GalleryHorizontal } from "@lucide/svelte";
+
+	let showInteractiveElements = $state(false);
+
+	onMount(() => {
+		if ("requestIdleCallback" in window) {
+			requestIdleCallback(
+				() => {
+					showInteractiveElements = true;
+				},
+				{ timeout: 200 }
+			);
+		} else {
+			setTimeout(() => {
+				showInteractiveElements = true;
+			}, 100);
+		}
+	});
 
 	const GITHUB_URL = "https://github.com/ramaherbin/fancy-ui";
 	const DEMO_URL = "/demo";
 
+	const contributors: (TooltipItem & { login: string; contributions: number })[] = [
+		{
+			id: 1,
+			login: "RamaHerbin",
+			name: "Rama Herbin",
+			designation: "Creator & maintainer",
+			image: "https://avatars.githubusercontent.com/u/41597427?v=4",
+			contributions: 160,
+		},
+		{
+			id: 2,
+			login: "claude",
+			name: "Claude",
+			designation: "AI contributor",
+			image: "https://avatars.githubusercontent.com/u/81847?v=4",
+			contributions: 1,
+		},
+	];
+
 	const taglineWords = ["animated", "beautiful", "interactive", "composable", "performant"];
+
+	const techBadges = [
+		"Svelte 5",
+		"Tailwind v4",
+		"TypeScript",
+		"SvelteKit",
+		"MIT License",
+		"shadcn-svelte",
+		"Animations",
+		"GSAP",
+		"Open Source",
+		"Zero Config",
+	];
 
 	const roadmapItems: TimelineItem[] = [
 		{ id: "now", label: "Now" },
@@ -82,42 +131,29 @@
 			],
 		},
 	};
-
-	const techBadges = [
-		"Svelte 5",
-		"Tailwind v4",
-		"TypeScript",
-		"SvelteKit",
-		"MIT",
-		"shadcn-svelte",
-		"Animations",
-		"GSAP",
-	];
 </script>
 
 <svelte:head>
 	<title>FancyUI — Animated components for Svelte 5</title>
 	<meta
 		name="description"
-		content="50+ animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript."
+		content="60+ animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript."
 	/>
 </svelte:head>
 
-<!-- ─── HERO ─────────────────────────────────────────────────────────────── -->
+<!-- ─── HERO (dark, full-screen) ────────────────────────────────────────────── -->
 <section
-	class="bg-background relative flex min-h-screen flex-col items-center justify-center overflow-hidden"
+	class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black"
 >
-	<!-- Particle background -->
-	<div class="pointer-events-none absolute inset-0">
-		<Sparkles
-			background="transparent"
-			particleColor="#ffffff"
-			particleDensity={80}
-			minSize={0.6}
-			maxSize={1.4}
-			speed={1}
+	<!-- Fluid Cursor + Interactive Grid (lazy) -->
+	{#if showInteractiveElements}
+		<FluidCursor simResolution={128} />
+		<InteractiveGridPattern
+			width={80}
+			height={80}
+			class="inset-0 h-full [mask-image:radial-gradient(600px_circle_at_center,white,transparent)] opacity-20"
 		/>
-	</div>
+	{/if}
 
 	<!-- Content -->
 	<div class="relative z-10 flex flex-col items-center gap-6 px-4 text-center">
@@ -128,17 +164,17 @@
 			Open source · MIT License
 		</div>
 
-		<h1 class="text-7xl font-bold tracking-tight text-white sm:text-9xl">
+		<h1>
 			<SparklesText
 				text="FancyUI"
 				sparklesCount={12}
 				colors={{ first: "#9E7AFF", second: "#FE8BBB" }}
-				class="text-7xl font-bold tracking-tight text-white sm:text-9xl"
+				class="text-8xl font-bold tracking-tight text-white sm:text-[10rem]"
 			/>
 		</h1>
 
 		<p class="max-w-xl text-xl text-white/60">
-			50+ <FlipWords words={taglineWords} duration={2500} class="font-semibold text-white" /> UI components
+			60+ <FlipWords words={taglineWords} duration={2500} class="font-semibold text-white" /> UI components
 			for Svelte 5
 		</p>
 
@@ -174,145 +210,378 @@
 			stroke="currentColor"
 			stroke-width="2"
 			aria-hidden="true"
-			focusable="false"
 		>
 			<path d="M12 5v14M5 12l7 7 7-7" />
 		</svg>
 	</div>
 </section>
 
-<!-- ─── STATS ──────────────────────────────────────────────────────────────── -->
-<section class="border-border bg-background border-y">
-	<div class="divide-border mx-auto grid max-w-3xl grid-cols-3 divide-x">
-		{#each [{ value: 50, suffix: "+", label: "Components" }, { value: 5, suffix: "", label: "Svelte 5 runes" }, { value: 100, suffix: "%", label: "TypeScript" }] as stat}
-			<div class="flex flex-col items-center gap-1 py-10">
-				<div class="text-foreground text-4xl font-bold tabular-nums sm:text-5xl">
-					<NumberTicker value={stat.value} duration={1500} />{stat.suffix}
-				</div>
-				<p class="text-muted-foreground text-sm">{stat.label}</p>
-			</div>
-		{/each}
-	</div>
-</section>
+<!-- ─── COMPONENT SHOWCASE CARDS (light bg) ──────────────────────────────────── -->
+<section class="bg-zinc-50 px-4 py-24">
+	<div class="mx-auto max-w-7xl">
+		<!-- Section label -->
+		<div class="mb-4 flex items-center gap-3">
+			<span class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">Components</span>
+			<div class="h-px flex-1 bg-zinc-200"></div>
+		</div>
 
-<!-- ─── COMPONENT SHOWCASE ────────────────────────────────────────────────── -->
-<section class="mx-auto max-w-6xl px-4 py-20">
-	<TextGenerateEffect
-		words="Everything you need"
-		class="text-foreground mb-2 text-center text-3xl font-bold sm:text-4xl"
-	/>
-	<TextGenerateEffect
-		words="Live interactive previews — no screenshots"
-		delay={0.4}
-		class="text-muted-foreground mb-12 text-center"
-	/>
+		<h2 class="mb-16 text-5xl font-bold tracking-tight text-zinc-900 sm:text-7xl">
+			Live previews.<br />No screenshots.
+		</h2>
 
-	<BentoGrid>
-		<!-- Sparkles -->
-		<BentoGridCard
-			name="Particle Backgrounds"
-			description="Atmospheric particle effects for hero sections and dark layouts."
-			href="/demo/sparkles"
-			cta="See demo"
-			class="col-span-3 md:col-span-1"
+		<!-- Horizontal scrollable cards -->
+		<div
+			class="no-scrollbar -mx-4 flex gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4"
 		>
-			{#snippet icon()}
-				<Wand2 class="size-6" />
-			{/snippet}
-			{#snippet background()}
-				<div class="absolute inset-0 bg-black">
-					<Sparkles background="transparent" particleColor="#ffffff" particleDensity={40} />
+			<!-- Sparkles card -->
+			<a
+				href="/demo/sparkles"
+				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-black sm:w-auto"
+			>
+				<div class="pointer-events-none absolute inset-0">
+					<Sparkles background="transparent" particleColor="#ffffff" particleDensity={50} />
 				</div>
-			{/snippet}
-		</BentoGridCard>
+				<div
+					class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
+				></div>
+				<div class="relative z-10 p-6">
+					<p class="mb-1 text-lg font-semibold text-white">Particle Backgrounds</p>
+					<p class="mb-4 text-sm text-white/50">Atmospheric effects for dark layouts</p>
+					<span
+						class="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/70 transition-colors group-hover:bg-white/20"
+					>
+						See demo →
+					</span>
+				</div>
+			</a>
 
-		<!-- ImageTrailCursor -->
-		<BentoGridCard
-			name="Cursor Magic"
-			description="Image trails that follow your cursor with 8 animation variants."
-			href="/demo/image-trail-cursor"
-			cta="See demo"
-			class="col-span-3 md:col-span-2"
-		>
-			{#snippet icon()}
-				<MousePointer2 class="size-6" />
-			{/snippet}
-			{#snippet background()}
-				<div class="absolute inset-0 bg-black">
-					<div class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
-						<p class="text-xs text-white/20">Hover here</p>
-					</div>
-					<ImageTrailCursor
-						images={[
-							"https://picsum.photos/seed/fancy1/400/440",
-							"https://picsum.photos/seed/fancy2/400/440",
-							"https://picsum.photos/seed/fancy3/400/440",
-							"https://picsum.photos/seed/fancy4/400/440",
-							"https://picsum.photos/seed/fancy5/400/440",
-							"https://picsum.photos/seed/fancy6/400/440",
-						]}
-						variant="type1"
+			<!-- Meteors card -->
+			<a
+				href="/demo/meteors"
+				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-zinc-900 sm:w-auto"
+			>
+				<div class="absolute inset-0">
+					<Meteors count={18} />
+				</div>
+				<div
+					class="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/20 to-transparent"
+				></div>
+				<div class="relative z-10 p-6">
+					<p class="mb-1 text-lg font-semibold text-white">Meteors</p>
+					<p class="mb-4 text-sm text-white/50">Animated meteor shower backgrounds</p>
+					<span
+						class="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/70 transition-colors group-hover:bg-white/20"
+					>
+						See demo →
+					</span>
+				</div>
+			</a>
+
+			<!-- FlickeringGrid card -->
+			<a
+				href="/demo/flickering-grid"
+				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-black sm:w-auto"
+			>
+				<div class="absolute inset-0">
+					<FlickeringGrid
+						color="#ffffff"
+						maxOpacity={0.15}
+						flickerChance={0.15}
+						squareSize={4}
+						gridGap={6}
+						class="h-full w-full"
 					/>
 				</div>
-			{/snippet}
-		</BentoGridCard>
+				<div
+					class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
+				></div>
+				<div class="relative z-10 p-6">
+					<p class="mb-1 text-lg font-semibold text-white">Flickering Grid</p>
+					<p class="mb-4 text-sm text-white/50">Dynamic grid backgrounds with canvas rendering</p>
+					<span
+						class="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/70 transition-colors group-hover:bg-white/20"
+					>
+						See demo →
+					</span>
+				</div>
+			</a>
 
-		<!-- Marquee -->
-		<BentoGridCard
-			name="Infinite Scroll"
-			description="Smooth marquee for any content — text, images, badges, cards."
-			href="/demo/marquee"
-			cta="See demo"
-			class="col-span-3"
-		>
-			{#snippet icon()}
-				<GalleryHorizontal class="size-6" />
-			{/snippet}
-			{#snippet background()}
-				<Marquee pauseOnHover repeat={4} class="absolute top-6 [--duration:25s]">
-					{#each techBadges as badge}
-						<span
-							class="mx-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/60"
-						>
-							{badge}
-						</span>
+			<!-- Marquee card -->
+			<a
+				href="/demo/marquee"
+				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-zinc-900 sm:w-auto"
+			>
+				<div class="absolute inset-0 flex flex-col gap-3 pt-6">
+					{#each [techBadges.slice(0, 5), techBadges.slice(5)] as row, i}
+						<Marquee pauseOnHover reverse={i === 1} class="[--duration:20s]">
+							{#each row as badge}
+								<span
+									class="mx-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/60"
+								>
+									{badge}
+								</span>
+							{/each}
+						</Marquee>
 					{/each}
-				</Marquee>
-			{/snippet}
-		</BentoGridCard>
-	</BentoGrid>
+				</div>
+				<div
+					class="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/30 to-transparent"
+				></div>
+				<div class="relative z-10 p-6">
+					<p class="mb-1 text-lg font-semibold text-white">Infinite Scroll</p>
+					<p class="mb-4 text-sm text-white/50">Smooth marquee for any content</p>
+					<span
+						class="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/70 transition-colors group-hover:bg-white/20"
+					>
+						See demo →
+					</span>
+				</div>
+			</a>
+		</div>
 
-	<div class="mt-8 text-center">
-		<a
-			href={DEMO_URL}
-			class="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline"
-		>
-			See all 50+ components →
-		</a>
+		<div class="mt-8">
+			<a
+				href={DEMO_URL}
+				class="text-sm text-zinc-400 underline-offset-4 transition-colors hover:text-zinc-900 hover:underline"
+			>
+				See all 60+ components →
+			</a>
+		</div>
 	</div>
 </section>
 
-<!-- ─── QUICK START ───────────────────────────────────────────────────────── -->
-<section class="bg-muted/40 px-4 py-20">
-	<div class="mx-auto max-w-2xl">
-		<BoxReveal color="var(--primary)" duration={0.4}>
-			<h2 class="text-foreground mb-8 text-center text-3xl font-bold sm:text-4xl">Quick start</h2>
-		</BoxReveal>
+<!-- ─── STATS BENTO (Krea-style) ───────────────────────────────────────────────── -->
+<section class="bg-white px-4 py-24">
+	<div class="mx-auto max-w-7xl">
+		<!-- Editorial heading -->
+		<div class="mb-4 flex items-center gap-3">
+			<span class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">The numbers</span>
+			<div class="h-px flex-1 bg-zinc-100"></div>
+		</div>
+		<h2 class="mb-10 text-5xl leading-none font-bold tracking-tight text-zinc-900 sm:text-7xl">
+			60+ components.<br />Zero bloat.
+		</h2>
 
-		<div class="border-border relative overflow-hidden rounded-xl border bg-[#0d1117]">
-			<BorderBeam duration={12} size={120} colorFrom="#9E7AFF" colorTo="#FE8BBB" borderWidth={1} />
-			<div class="p-6 font-mono text-sm">
-				<div class="mb-1 text-white/40"># 1. Install</div>
-				<div class="mb-4 text-emerald-400">npm install fancy-ui</div>
-				<div class="mb-1 text-white/40"># 2. Import any component</div>
-				<div class="mb-1">
+		<!-- Row 1: dark 2col + 2 light stats -->
+		<div class="grid grid-cols-3 gap-3">
+			<!-- Dark hero card (col-span-2, row-span-2) — FlickeringGrid bg, large text -->
+			<div
+				class="relative col-span-3 row-span-2 overflow-hidden rounded-3xl bg-white sm:col-span-2"
+				style="min-height:280px"
+			>
+				<div class="pointer-events-none absolute inset-0">
+					<FlickeringGrid
+						color="#a0a0a0"
+						maxOpacity={0.15}
+						flickerChance={0.08}
+						squareSize={5}
+						gridGap={7}
+						class="h-full w-full"
+					/>
+				</div>
+				<div class="relative z-10 flex h-full flex-col justify-end p-10">
+					<p class="gradient-num mb-1 text-6xl leading-none font-black tracking-tight sm:text-8xl">
+						~2kb
+					</p>
+					<p class="text-lg font-semibold text-zinc-500">Svelte runtime bundle</p>
+					<p class="mt-1 text-sm text-zinc-400">22× lighter than React · zero virtual DOM</p>
+				</div>
+			</div>
+
+			<!-- Light stat: 60+ -->
+			<div
+				class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1"
+			>
+				<p class="text-sm font-medium text-zinc-400">Components</p>
+				<div>
+					<div class="flex items-start leading-none">
+						<span class="gradient-num text-7xl font-black tracking-tighter sm:text-8xl">
+							<NumberTicker value={60} duration={1500} />
+						</span>
+						<span class="gradient-num mt-1 text-4xl font-black">+</span>
+					</div>
+					<p class="mt-3 text-sm text-zinc-400">animated &amp; interactive</p>
+				</div>
+			</div>
+
+			<!-- Light stat: 100% TS -->
+			<div
+				class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1"
+			>
+				<p class="text-sm font-medium text-zinc-400">TypeScript</p>
+				<div>
+					<div class="flex items-start leading-none">
+						<span class="gradient-num text-7xl font-black tracking-tighter sm:text-8xl">
+							<NumberTicker value={100} duration={1500} />
+						</span>
+						<span class="gradient-num mt-1 text-4xl font-black">%</span>
+					</div>
+					<p class="mt-3 text-sm text-zinc-400">fully typed API</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Row 2: install snippet 2col + MIT 1col -->
+		<div class="mt-3 grid grid-cols-3 gap-3">
+			<!-- Dark install card (col-span-2) -->
+			<div class="relative col-span-3 overflow-hidden rounded-3xl bg-zinc-950 p-10 sm:col-span-2">
+				<BorderBeam
+					duration={14}
+					size={250}
+					colorFrom="#9E7AFF"
+					colorTo="#FE8BBB"
+					borderWidth={1}
+				/>
+				<p class="mb-6 text-sm font-medium text-white/30">Get started in seconds</p>
+				<div class="font-mono">
+					<div class="mb-4">
+						<span class="text-xs text-white/20">$ </span>
+						<span class="text-lg font-semibold text-emerald-400">npm install fancy-ui</span>
+					</div>
+					<div class="text-sm">
+						<span class="text-purple-400">import</span>
+						<span class="text-white/80"> &#123; Sparkles, BorderBeam, Marquee &#125; </span>
+						<span class="text-purple-400">from</span>
+						<span class="text-amber-300"> 'fancy-ui'</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Light MIT card -->
+			<div
+				class="col-span-3 flex flex-col justify-between rounded-3xl bg-zinc-100 p-8 sm:col-span-1"
+			>
+				<p class="text-sm font-medium text-zinc-400">License</p>
+				<div>
+					<p class="gradient-num text-7xl leading-none font-black sm:text-8xl">MIT</p>
+					<p class="mt-3 text-sm text-zinc-400">Open source forever</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- ─── WHY FANCYUI — split layout (light bg) ────────────────────────────────── -->
+<section class="bg-zinc-50 px-4 py-24">
+	<div class="mx-auto max-w-7xl">
+		<div class="grid grid-cols-1 gap-16 lg:grid-cols-2">
+			<!-- Sticky left: editorial heading -->
+			<div class="lg:sticky lg:top-24 lg:self-start">
+				<div class="mb-4">
+					<span class="text-xs font-semibold tracking-widest text-zinc-400 uppercase"
+						>Why FancyUI</span
+					>
+				</div>
+				<LineShadowText
+					text="The fastest Svelte component library."
+					class="text-4xl leading-tight font-bold tracking-tight text-zinc-900 sm:text-5xl"
+				/>
+				<div class="mt-8">
+					<a
+						href="/compare"
+						class="text-sm text-zinc-400 underline-offset-4 transition-colors hover:text-zinc-900 hover:underline"
+					>
+						Full comparison →
+					</a>
+				</div>
+			</div>
+
+			<!-- Right: BoxReveal blocs -->
+			<div class="flex flex-col gap-12">
+				<BoxReveal color="var(--primary)" duration={0.5}>
+					<div class="rounded-2xl border border-zinc-200 bg-white p-8">
+						<div class="mb-4 text-2xl">⚡</div>
+						<h3 class="mb-3 text-xl font-bold text-zinc-900">No Virtual DOM</h3>
+						<p class="mb-6 leading-relaxed text-zinc-500">
+							Svelte compiles to native JS. No runtime overhead, no reconciler. React ships 44 kb of
+							runtime (gzipped) — FancyUI ships ~2 kb.
+						</p>
+						<div class="flex flex-col gap-2 text-xs">
+							{#each [{ label: "FancyUI", kb: 2, pct: 5, color: "bg-purple-500" }, { label: "Vue 3", kb: 34, pct: 77, color: "bg-blue-400/60" }, { label: "React", kb: 44, pct: 100, color: "bg-zinc-300" }] as row}
+								<div class="flex items-center gap-3">
+									<span class="w-16 shrink-0 text-zinc-400">{row.label}</span>
+									<div class="flex flex-1 items-center gap-2">
+										<div class="{row.color} h-1.5 rounded-full" style="width:{row.pct}%"></div>
+										<span class="text-zinc-400 tabular-nums">{row.kb} kb</span>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</BoxReveal>
+
+				<BoxReveal color="var(--primary)" duration={0.5} delay={0.1}>
+					<div class="rounded-2xl border border-zinc-200 bg-white p-8">
+						<div class="mb-4 text-2xl">🧩</div>
+						<h3 class="mb-3 text-xl font-bold text-zinc-900">60+ components</h3>
+						<p class="leading-relaxed text-zinc-500">
+							More than similar libraries combined — all animated, all interactive, all built for
+							Svelte 5 runes with full TypeScript support.
+						</p>
+						<div class="mt-6 flex flex-col gap-2 text-xs">
+							{#each [{ label: "FancyUI", count: "60+", pct: 100, color: "bg-purple-500" }, { label: "Aceternity", count: "~50", pct: 83, color: "bg-zinc-300" }, { label: "Inspira", count: "~30", pct: 50, color: "bg-zinc-200" }] as row}
+								<div class="flex items-center gap-3">
+									<span class="w-16 shrink-0 text-zinc-400">{row.label}</span>
+									<div class="flex flex-1 items-center gap-2">
+										<div class="{row.color} h-1.5 rounded-full" style="width:{row.pct}%"></div>
+										<span class="text-zinc-400 tabular-nums">{row.count}</span>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</BoxReveal>
+
+				<BoxReveal color="var(--primary)" duration={0.5} delay={0.2}>
+					<div class="rounded-2xl border border-zinc-200 bg-white p-8">
+						<div class="mb-4 text-2xl">✍️</div>
+						<h3 class="mb-3 text-xl font-bold text-zinc-900">Svelte 5 Runes</h3>
+						<p class="leading-relaxed text-zinc-500">
+							The simplest reactivity model. Just <code
+								class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-sm text-zinc-700"
+								>$state</code
+							>
+							and
+							<code class="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-sm text-zinc-700"
+								>$derived</code
+							>. No boilerplate, no complexity.
+						</p>
+					</div>
+				</BoxReveal>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- ─── QUICK START (dark bg) ─────────────────────────────────────────────────── -->
+<section class="bg-zinc-950 px-4 py-24">
+	<div class="mx-auto max-w-2xl">
+		<div class="mb-4 text-center">
+			<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Quick start</span>
+		</div>
+		<h2 class="mb-12 text-center text-4xl font-bold text-white sm:text-5xl">
+			Up and running<br />in seconds.
+		</h2>
+
+		<div class="relative overflow-hidden rounded-2xl bg-[#0d1117]">
+			<BorderBeam
+				duration={14}
+				size={200}
+				colorFrom="#9E7AFF"
+				colorTo="#FE8BBB"
+				borderWidth={1.5}
+			/>
+			<div class="p-8 font-mono text-sm leading-relaxed">
+				<div class="mb-1 text-white/30"># 1. Install</div>
+				<div class="mb-5 text-emerald-400">npm install fancy-ui</div>
+				<div class="mb-1 text-white/30"># 2. Import any component</div>
+				<div class="mb-5">
 					<span class="text-purple-400">import</span>
 					<span class="text-white"> &#123; BorderBeam, Sparkles, Marquee &#125; </span>
 					<span class="text-purple-400">from</span>
 					<span class="text-amber-300"> 'fancy-ui'</span>
 				</div>
-				<div class="mb-4 text-xs text-white/30">&nbsp;</div>
-				<div class="mb-1 text-white/40"># 3. Use it</div>
+				<div class="mb-1 text-white/30"># 3. Use it in your Svelte component</div>
 				<div>
 					<span class="text-blue-400">&lt;BorderBeam</span>
 					<span class="text-amber-300"> colorFrom</span>
@@ -328,8 +597,8 @@
 	</div>
 </section>
 
-<!-- ─── ROADMAP ───────────────────────────────────────────────────────────── -->
-<section class="bg-background px-4">
+<!-- ─── ROADMAP (dark bg) ──────────────────────────────────────────────────────── -->
+<section class="bg-zinc-950 px-4 pb-24">
 	<Timeline
 		items={roadmapItems}
 		title="What's next"
@@ -339,7 +608,7 @@
 			{@const step = roadmapContent[item.id]}
 			{#if step}
 				<div class="mb-4 flex items-center gap-2">
-					<h3 class="text-foreground text-lg font-bold md:hidden">{item.label}</h3>
+					<h3 class="text-lg font-bold text-white md:hidden">{item.label}</h3>
 					<span class="rounded-full border px-2.5 py-0.5 text-xs font-medium {step.statusColor}">
 						{step.status}
 					</span>
@@ -361,9 +630,9 @@
 										<path d="M20 6 9 17l-5-5" />
 									</svg>
 								</span>
-								<span class="text-foreground">{entry.text}</span>
+								<span class="text-zinc-200">{entry.text}</span>
 							{:else}
-								<span class="text-muted-foreground/40 mt-0.5 shrink-0">
+								<span class="mt-0.5 shrink-0 text-zinc-600">
 									<svg
 										width="14"
 										height="14"
@@ -376,7 +645,7 @@
 										<circle cx="12" cy="12" r="9" />
 									</svg>
 								</span>
-								<span class="text-muted-foreground">{entry.text}</span>
+								<span class="text-zinc-400">{entry.text}</span>
 							{/if}
 						</li>
 					{/each}
@@ -386,13 +655,65 @@
 	</Timeline>
 </section>
 
-<!-- ─── FINAL CTA ─────────────────────────────────────────────────────────── -->
-<section class="relative overflow-hidden bg-black px-4 py-24 text-center">
+<!-- ─── CONTRIBUTORS (light bg) ───────────────────────────────────────────────── -->
+<section class="bg-black px-4 py-24">
+	<div class="mx-auto max-w-4xl text-center">
+		<div class="mb-4">
+			<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Contributors</span
+			>
+		</div>
+		<h2 class="mb-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+			Built by the community
+		</h2>
+		<p class="mb-12 text-zinc-500">
+			{contributors.length} contributor{contributors.length > 1 ? "s" : ""} and counting. Every PR welcome.
+		</p>
+
+		<!-- Animated tooltip avatars -->
+		<div class="mb-12 flex justify-center">
+			<AnimatedTooltip items={contributors} />
+		</div>
+
+		<!-- Contributor list -->
+		<div class="mb-12 flex flex-wrap justify-center gap-3">
+			{#each contributors as c}
+				<a
+					href="https://github.com/{c.login}"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="group flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm transition-all hover:border-white/20 hover:bg-white/10"
+				>
+					<img src={c.image} alt={c.name} class="size-6 rounded-full" />
+					<span class="font-medium text-white/70 group-hover:text-white">{c.login}</span>
+					<span class="text-xs text-white/30">{c.contributions}</span>
+				</a>
+			{/each}
+		</div>
+
+		<!-- CTA contribute -->
+		<a
+			href="{GITHUB_URL}/blob/main/CONTRIBUTING.md"
+			target="_blank"
+			rel="noopener noreferrer"
+			class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white/70 transition-all hover:bg-white/10 hover:text-white"
+		>
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+				<path
+					d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"
+				/>
+			</svg>
+			Become a contributor
+		</a>
+	</div>
+</section>
+
+<!-- ─── FINAL CTA (dark, synthwave) ───────────────────────────────────────────── -->
+<section class="relative overflow-hidden bg-black px-4 py-32 text-center">
 	<SynthwaveGrid speed={0.7} verticalLines={16} horizontalLines={14} />
 	<div class="relative z-10 flex flex-col items-center gap-6">
-		<h2 class="text-3xl font-bold text-white sm:text-5xl">Start building today</h2>
+		<h2 class="text-4xl font-bold text-white sm:text-6xl">Start building today</h2>
 		<p class="max-w-sm text-white/50">Free, open source, and ready for Svelte 5.</p>
-		<div class="flex flex-wrap justify-center gap-3">
+		<div class="mt-2 flex flex-wrap justify-center gap-3">
 			<RainbowButton href={DEMO_URL}>Browse components</RainbowButton>
 			<a
 				href={GITHUB_URL}
@@ -405,3 +726,26 @@
 		</div>
 	</div>
 </section>
+
+<style>
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	.gradient-num {
+		background: linear-gradient(200deg, #646464 0%, #000 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+
+	/* Selection: black bg + white text on light sections */
+	:global(::selection) {
+		background: #000;
+		color: #fff;
+		-webkit-text-fill-color: #fff;
+	}
+</style>
