@@ -1,2 +1,6 @@
 export { default as FluidCursor } from "./FluidCursor.svelte";
-export { default as FluidCursorAdvanced } from "./FluidCursorAdvanced.svelte";
+
+/**
+ * @deprecated Use `FluidCursor` instead. `FluidCursorAdvanced` has been merged into `FluidCursor`.
+ */
+export { default as FluidCursorAdvanced } from "./FluidCursor.svelte";
