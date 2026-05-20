@@ -39,6 +39,7 @@
 
 	const GITHUB_URL = "https://github.com/ramaherbin/fancy-ui";
 	const DEMO_URL = "/demo";
+	const DOCS_URL = "/docs";
 
 	const contributors: (TooltipItem & { login: string; contributions: number })[] = [
 		{
@@ -185,6 +186,12 @@
 		<div class="mt-4 flex flex-wrap items-center justify-center gap-3">
 			<RainbowButton href={DEMO_URL}>Browse components</RainbowButton>
 			<a
+				href={DOCS_URL}
+				class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+			>
+				Documentation
+			</a>
+			<a
 				href={GITHUB_URL}
 				target="_blank"
 				rel="noopener noreferrer"
@@ -235,7 +242,7 @@
 		>
 			<!-- Sparkles card -->
 			<a
-				href="/demo/sparkles"
+				href="/docs/components/sparkles"
 				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-black sm:w-auto"
 			>
 				<div class="pointer-events-none absolute inset-0">
@@ -257,7 +264,7 @@
 
 			<!-- Meteors card -->
 			<a
-				href="/demo/meteors"
+				href="/docs/components/meteors"
 				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-zinc-900 sm:w-auto"
 			>
 				<div class="absolute inset-0">
@@ -279,7 +286,7 @@
 
 			<!-- FlickeringGrid card -->
 			<a
-				href="/demo/flickering-grid"
+				href="/docs/components/flickering-grid"
 				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-black sm:w-auto"
 			>
 				<div class="absolute inset-0">
@@ -308,7 +315,7 @@
 
 			<!-- Marquee card -->
 			<a
-				href="/demo/marquee"
+				href="/docs/components/marquee"
 				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-zinc-900 sm:w-auto"
 			>
 				<div class="absolute inset-0 flex flex-col gap-3 pt-6">

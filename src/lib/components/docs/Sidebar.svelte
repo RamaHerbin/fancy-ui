@@ -1,0 +1,138 @@
+<script lang="ts">
+	import { page } from "$app/stores";
+	import {
+		categories,
+		categoryLabels,
+		getComponentsGroupedByCategory,
+	} from "$lib/fancy-ui/registry.js";
+
+	interface Props {
+		open?: boolean;
+		onclose?: () => void;
+	}
+
+	let { open = $bindable(false), onclose }: Props = $props();
+
+	const grouped = getComponentsGroupedByCategory();
+
+	const gettingStartedLinks = [
+		{ href: "/docs/getting-started/introduction", label: "Introduction" },
+		{ href: "/docs/getting-started/installation", label: "Installation" },
+		{ href: "/docs/getting-started/theming", label: "Theming" },
+		{ href: "/docs/getting-started/changelog", label: "Changelog" },
+	];
+
+	let collapsedCategories = $state<Set<string>>(new Set());
+
+	function toggleCategory(cat: string) {
+		const next = new Set(collapsedCategories);
+		if (next.has(cat)) next.delete(cat);
+		else next.add(cat);
+		collapsedCategories = next;
+	}
+
+	function isActive(href: string): boolean {
+		return $page.url.pathname === href;
+	}
+</script>
+
+<!-- Mobile overlay -->
+{#if open}
+	<button
+		class="fixed inset-0 z-40 bg-black/50 lg:hidden"
+		onclick={onclose}
+		aria-label="Close sidebar"
+	></button>
+{/if}
+
+<aside
+	class="border-sidebar-border bg-sidebar text-sidebar-foreground fixed top-0 left-0 z-50 flex h-full w-64 flex-col border-r transition-transform duration-300 lg:translate-x-0 {open
+		? 'translate-x-0'
+		: '-translate-x-full'}"
+>
+	<!-- Header -->
+	<div class="border-sidebar-border flex h-14 shrink-0 items-center justify-between border-b px-4">
+		<a href="/docs" class="text-lg font-semibold tracking-tight" onclick={onclose}>
+			FancyUI <span class="text-muted-foreground text-xs font-normal">docs</span>
+		</a>
+	</div>
+
+	<!-- Nav -->
+	<nav class="flex-1 overflow-y-auto px-3 py-4">
+		<!-- Getting Started -->
+		<div class="mb-6">
+			<h3 class="text-sidebar-foreground/50 mb-1 px-2 text-xs font-semibold tracking-wider uppercase">
+				Getting Started
+			</h3>
+			<ul>
+				{#each gettingStartedLinks as link}
+					<li>
+						<a
+							href={link.href}
+							onclick={onclose}
+							class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive(link.href)
+								? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+								: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
+						>
+							{link.label}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</div>
+
+		<!-- Components link -->
+		<div class="mb-2">
+			<a
+				href="/docs/components"
+				onclick={onclose}
+				class="block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors {isActive('/docs/components')
+					? 'text-sidebar-accent-foreground'
+					: 'text-sidebar-foreground/50 hover:text-sidebar-foreground/70'}"
+			>
+				Components
+			</a>
+		</div>
+
+		<!-- Categories -->
+		{#each categories as category}
+			{@const items = grouped[category]}
+			{#if items.length > 0}
+				{@const collapsed = collapsedCategories.has(category)}
+				<div class="mb-2">
+					<button
+						onclick={() => toggleCategory(category)}
+						class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
+					>
+						{categoryLabels[category]}
+						<svg
+							class="h-3 w-3 transition-transform {collapsed ? '' : 'rotate-90'}"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+						</svg>
+					</button>
+					{#if !collapsed}
+						<ul>
+							{#each items as comp}
+								<li>
+									<a
+										href="/docs/components/{comp.slug}"
+										onclick={onclose}
+										class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive(`/docs/components/${comp.slug}`)
+											? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+											: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
+									>
+										{comp.name}
+									</a>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+			{/if}
+		{/each}
+	</nav>
+</aside>
