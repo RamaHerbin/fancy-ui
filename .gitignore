@@ -33,7 +33,7 @@ content/site.json
 static/portfolio/
 
 # Internal docs
-docs/
+/docs/
 TODO.md
 
 # Editor
