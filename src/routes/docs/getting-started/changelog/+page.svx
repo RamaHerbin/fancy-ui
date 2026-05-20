@@ -1,0 +1,100 @@
+---
+title: Changelog
+---
+
+<svelte:head>
+	<title>Changelog - FancyUI Docs</title>
+</svelte:head>
+
+# Changelog
+
+All notable changes to FancyUI. This project adheres to [Semantic Versioning](https://semver.org/).
+
+---
+
+## v0.4.1
+
+### Patch Changes
+
+- Fix `manualstart` prop renamed to `manualStart` in Confetti
+- Add FluidCursorAdvanced for contained canvas with interaction & autonomous animation props (`interactive`, `autoSplat`, `autoSplatInterval`, `pauseWhenHidden`, `splatOnMount`)
+- Add `fluidColor`, `fluidColors`, `colorIntensity` props and hex `backColor` support to FluidCursor
+- Add Vercel Analytics
+- New landing page design
+
+## v0.4.0
+
+### Minor Changes
+
+- Add **MatrixRain** — canvas-based Matrix-style falling glyph rain
+- Add **TerminalText** — terminal-style text streamer with per-character animation, blinking cursor, and glitch effect
+- Add **Component Copilot** — AI chat demo at `/demo/component-copilot`
+
+## v0.3.0
+
+### Minor Changes
+
+- Add **DisplacementText** — 3D text with WebGL displacement using Three.js shaders
+- Add **PropsPlayground** — interactive props editor for demo pages
+
+### Patch Changes
+
+- Add **AppleCardCarousel** — horizontal card carousel with spring-animated full-screen expansion
+- Add **LineHoverLink** — link with 11 animated underline hover effects, pure CSS
+- Add npm package build pipeline (`npm install fancy-ui`)
+- Fix Compare corner overflow and broken AnimatedTooltip image
+- Fix FlipWords layout shift during word transition
+
+## v0.2.1
+
+### Patch Changes
+
+- Republish with correct package name `fancy-ui-svelte`
+- Separate package build step from changeset publish
+
+## v0.2.0
+
+### Minor Changes
+
+- Add **AnimatedTestimonials** — testimonial carousel with smooth slide animations and optional autoplay
+- Set up changesets versioning workflow
+
+## v0.1.0 — 2026-03-13
+
+Initial public release — 50 components across 10 categories, built with Svelte 5 runes and Tailwind CSS v4.
+
+### Buttons (5)
+
+RainbowButton, ShimmerButton, RippleButton, GradientButton, InteractiveHoverButton
+
+### Cards (8)
+
+BentoGrid, Book, Card3D, CardSpotlight, DirectionAwareHover, FlipCard, GlareCard, TextRevealCard
+
+### Text & Typography (12)
+
+BlurReveal, BoxReveal, ColourfulText, ContainerTextFlip, FlipWords, Focus, HyperText, LetterPullup, LineShadowText, NumberTicker, SparklesText, TextGenerateEffect
+
+### Backgrounds (4)
+
+FallingStarsBg, FlickeringGrid, Sparkles, StarsBackground
+
+### Effects (14)
+
+AnimatedBeam, BorderBeam, Confetti, FluidCursor, GlowBorder, GlowingEffect, ImageTrailCursor, InteractiveGridPattern, LiquidGlass, Meteors, NeonBorder, Ripple, SmoothCursor, TracingBeam
+
+### Layout (2)
+
+ContainerScroll, Marquee
+
+### Navigation (3)
+
+Dock, Timeline, LogoCloud
+
+### Data Display (1)
+
+AnimatedTooltip
+
+### Media (1)
+
+Compare
