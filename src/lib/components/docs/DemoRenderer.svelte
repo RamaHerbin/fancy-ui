@@ -6,16 +6,40 @@
 	let { slug }: Props = $props();
 
 	let ComponentModule = $state<any>(null);
+	let ExampleComponent = $state<any>(null);
 	let loading = $state(true);
 	let error = $state("");
 
 	const modules = import.meta.glob("$lib/fancy-ui/*/index.ts");
+	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/BasicUsage.svelte");
 
 	$effect(() => {
 		const currentSlug = slug;
 		ComponentModule = null;
+		ExampleComponent = null;
 		loading = true;
 		error = "";
+
+		if (skipDirectRender.has(currentSlug)) {
+			// Load first example (BasicUsage) as preview
+			const exPath = `/src/lib/components/docs/examples/${currentSlug}/BasicUsage.svelte`;
+			const exLoader = exampleModules[exPath];
+			if (exLoader) {
+				exLoader().then((mod) => {
+					if (slug === currentSlug) {
+						ExampleComponent = (mod as any).default;
+						loading = false;
+					}
+				}).catch(() => {
+					if (slug === currentSlug) {
+						loading = false;
+					}
+				});
+			} else {
+				loading = false;
+			}
+			return;
+		}
 
 		const path = `/src/lib/fancy-ui/${currentSlug}/index.ts`;
 		const loader = modules[path];
@@ -167,10 +191,13 @@
 		{error}
 	</div>
 {:else if skipDirectRender.has(slug)}
-	<!-- Complex component: show note -->
-	<div class="flex h-64 flex-col items-center justify-center gap-4">
-		<p class="text-muted-foreground text-sm">This component requires additional setup for preview. See the examples below.</p>
-	</div>
+	{#if ExampleComponent}
+		<ExampleComponent />
+	{:else}
+		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
+			No preview available
+		</div>
+	{/if}
 {:else}
 	{@const Comp = getComponent()}
 	{@const props = defaultProps[slug] || {}}
