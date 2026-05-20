@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { page } from "$app/stores";
 
 	interface Heading {
 		id: string;
@@ -10,36 +10,52 @@
 	let headings = $state<Heading[]>([]);
 	let activeId = $state("");
 
-	onMount(() => {
-		const elements = document.querySelectorAll<HTMLElement>(
-			"[data-doc-content] h2, [data-doc-content] h3"
-		);
+	let observer: IntersectionObserver | null = null;
 
-		headings = Array.from(elements).map((el) => ({
-			id: el.id || el.textContent?.toLowerCase().replace(/\s+/g, "-") || "",
-			text: el.textContent || "",
-			level: parseInt(el.tagName[1]),
-		}));
+	$effect(() => {
+		// Re-run when route changes
+		void $page.url.pathname;
 
-		// Ensure IDs exist
-		elements.forEach((el, i) => {
-			if (!el.id) el.id = headings[i].id;
-		});
+		// Clean up previous observer
+		observer?.disconnect();
+		observer = null;
 
-		const observer = new IntersectionObserver(
-			(entries) => {
-				for (const entry of entries) {
-					if (entry.isIntersecting) {
-						activeId = entry.target.id;
-						break;
+		// Tick delay so new page content is rendered
+		const timeout = setTimeout(() => {
+			const elements = document.querySelectorAll<HTMLElement>(
+				"[data-doc-content] h2, [data-doc-content] h3"
+			);
+
+			headings = Array.from(elements).map((el) => ({
+				id: el.id || el.textContent?.toLowerCase().replace(/\s+/g, "-") || "",
+				text: el.textContent || "",
+				level: parseInt(el.tagName[1]),
+			}));
+
+			// Ensure IDs exist
+			elements.forEach((el, i) => {
+				if (!el.id) el.id = headings[i].id;
+			});
+
+			observer = new IntersectionObserver(
+				(entries) => {
+					for (const entry of entries) {
+						if (entry.isIntersecting) {
+							activeId = entry.target.id;
+							break;
+						}
 					}
-				}
-			},
-			{ rootMargin: "-80px 0px -60% 0px" }
-		);
+				},
+				{ rootMargin: "-80px 0px -60% 0px" }
+			);
 
-		elements.forEach((el) => observer.observe(el));
-		return () => observer.disconnect();
+			elements.forEach((el) => observer!.observe(el));
+		}, 100);
+
+		return () => {
+			clearTimeout(timeout);
+			observer?.disconnect();
+		};
 	});
 </script>
 

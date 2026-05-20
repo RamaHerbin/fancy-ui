@@ -84,7 +84,6 @@
 		"bg-stars": "StarsBackground",
 		dock: "Dock",
 		"fluid-cursor": "FluidCursor",
-		"fluid-cursor-advanced": "FluidCursor",
 		"glow-border": "GlowBorder",
 		"gradient-button": "GradientButton",
 		"interactive-hover-button": "InteractiveHoverButton",
@@ -170,7 +169,6 @@
 		"container-scroll",
 		"tracing-beam",
 		"fluid-cursor",
-		"fluid-cursor-advanced",
 		"smooth-cursor",
 		"liquid-glass",
 	]);

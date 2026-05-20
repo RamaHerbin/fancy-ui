@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-
 	interface Props {
 		code: string;
 		lang?: string;
@@ -12,16 +10,31 @@
 	let highlighted = $state("");
 	let copied = $state(false);
 
-	onMount(async () => {
-		const { createHighlighter } = await import("shiki");
-		const highlighter = await createHighlighter({
-			themes: ["github-dark"],
-			langs: [lang],
-		});
-		highlighted = highlighter.codeToHtml(code.trim(), {
-			lang,
-			theme: "github-dark",
-		});
+	let highlighterInstance: any = null;
+	let loadedLangs = new Set<string>();
+
+	$effect(() => {
+		const currentCode = code;
+		const currentLang = lang;
+		highlighted = "";
+
+		(async () => {
+			if (!highlighterInstance) {
+				const { createHighlighter } = await import("shiki");
+				highlighterInstance = await createHighlighter({
+					themes: ["github-dark"],
+					langs: [currentLang],
+				});
+				loadedLangs.add(currentLang);
+			} else if (!loadedLangs.has(currentLang)) {
+				await highlighterInstance.loadLanguage(currentLang);
+				loadedLangs.add(currentLang);
+			}
+			highlighted = highlighterInstance.codeToHtml(currentCode.trim(), {
+				lang: currentLang,
+				theme: "github-dark",
+			});
+		})();
 	});
 
 	async function copyCode() {

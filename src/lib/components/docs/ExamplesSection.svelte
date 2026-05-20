@@ -55,6 +55,10 @@
 				examples = results.filter((r) => r !== null) as LoadedExample[];
 				loading = false;
 			}
+		}).catch(() => {
+			if (slug === currentSlug) {
+				loading = false;
+			}
 		});
 	});
 </script>
