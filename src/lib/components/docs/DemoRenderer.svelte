@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-
 	interface Props {
 		slug: string;
 	}
@@ -13,21 +11,31 @@
 
 	const modules = import.meta.glob("$lib/fancy-ui/*/index.ts");
 
-	onMount(async () => {
-		const path = `/src/lib/fancy-ui/${slug}/index.ts`;
+	$effect(() => {
+		const currentSlug = slug;
+		ComponentModule = null;
+		loading = true;
+		error = "";
+
+		const path = `/src/lib/fancy-ui/${currentSlug}/index.ts`;
 		const loader = modules[path];
 		if (!loader) {
-			error = `No module found for "${slug}"`;
+			error = `No module found for "${currentSlug}"`;
 			loading = false;
 			return;
 		}
-		try {
-			ComponentModule = await loader();
-			loading = false;
-		} catch (e) {
-			error = `Failed to load: ${e}`;
-			loading = false;
-		}
+
+		loader().then((mod) => {
+			if (slug === currentSlug) {
+				ComponentModule = mod;
+				loading = false;
+			}
+		}).catch((e) => {
+			if (slug === currentSlug) {
+				error = `Failed to load: ${e}`;
+				loading = false;
+			}
+		});
 	});
 
 	// Component name mapping (slug → export name)

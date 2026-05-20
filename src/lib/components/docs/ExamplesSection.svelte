@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import { examplesRegistry } from "./examples/registry.js";
 	import ComponentPreview from "./ComponentPreview.svelte";
 
@@ -25,31 +24,38 @@
 	let examples = $state<LoadedExample[]>([]);
 	let loading = $state(true);
 
-	onMount(async () => {
-		const meta = examplesRegistry[slug];
+	$effect(() => {
+		const currentSlug = slug;
+		examples = [];
+		loading = true;
+
+		const meta = examplesRegistry[currentSlug];
 		if (!meta || meta.length === 0) {
 			loading = false;
 			return;
 		}
 
-		const loaded: LoadedExample[] = [];
-		for (const entry of meta) {
-			const path = `/src/lib/components/docs/examples/${slug}/${entry.name}.svelte`;
-			const loader = modules[path];
-			const rawLoader = rawModules[path];
-			if (!loader || !rawLoader) continue;
+		Promise.all(
+			meta.map(async (entry) => {
+				const path = `/src/lib/components/docs/examples/${currentSlug}/${entry.name}.svelte`;
+				const loader = modules[path];
+				const rawLoader = rawModules[path];
+				if (!loader || !rawLoader) return null;
 
-			const [mod, raw] = await Promise.all([loader(), rawLoader()]);
-			loaded.push({
-				title: entry.title,
-				description: entry.description,
-				component: (mod as any).default,
-				code: raw,
-			});
-		}
-
-		examples = loaded;
-		loading = false;
+				const [mod, raw] = await Promise.all([loader(), rawLoader()]);
+				return {
+					title: entry.title,
+					description: entry.description,
+					component: (mod as any).default,
+					code: raw,
+				};
+			})
+		).then((results) => {
+			if (slug === currentSlug) {
+				examples = results.filter((r): r is LoadedExample => r !== null);
+				loading = false;
+			}
+		});
 	});
 </script>
 
