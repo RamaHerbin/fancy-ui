@@ -52,7 +52,7 @@
 			})
 		).then((results) => {
 			if (slug === currentSlug) {
-				examples = results.filter((r): r is LoadedExample => r !== null);
+				examples = results.filter((r) => r !== null) as LoadedExample[];
 				loading = false;
 			}
 		});
