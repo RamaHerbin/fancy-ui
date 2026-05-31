@@ -10,6 +10,15 @@ title: Theming
 
 FancyUI uses CSS custom properties (OKLCh color space) for theming, fully compatible with shadcn-svelte conventions.
 
+## CSS Setup
+
+Import the FancyUI stylesheet in your app's CSS (e.g. `src/app.css`):
+
+```css
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
 ## Color System
 
 All colors use the **OKLCh** color space for perceptually uniform gradients:
