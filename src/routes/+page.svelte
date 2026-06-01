@@ -14,6 +14,7 @@
 		Meteors,
 		FlickeringGrid,
 		AnimatedTooltip,
+		ImageTrailCursor,
 		FluidCursor,
 		InteractiveGridPattern,
 	} from "$lib/fancy-ui";
@@ -217,16 +218,16 @@
 	</div>
 </section>
 
-<!-- ─── COMPONENT SHOWCASE CARDS (light bg) ──────────────────────────────────── -->
-<section class="bg-zinc-50 px-4 py-24">
+<!-- ─── COMPONENT SHOWCASE CARDS (dark bg) ──────────────────────────────────── -->
+<section class="bg-black px-4 py-24">
 	<div class="mx-auto max-w-7xl">
 		<!-- Section label -->
 		<div class="mb-4 flex items-center gap-3">
-			<span class="text-xs font-semibold tracking-widest text-zinc-400 uppercase">Components</span>
-			<div class="h-px flex-1 bg-zinc-200"></div>
+			<span class="text-xs font-semibold tracking-widest text-zinc-500 uppercase">Components</span>
+			<div class="h-px flex-1 bg-white/10"></div>
 		</div>
 
-		<h2 class="mb-16 text-5xl font-bold tracking-tight text-zinc-900 sm:text-7xl">
+		<h2 class="mb-16 text-5xl font-bold tracking-tight text-white sm:text-7xl">
 			Live previews.<br />No screenshots.
 		</h2>
 
@@ -278,27 +279,30 @@
 				</div>
 			</a>
 
-			<!-- FlickeringGrid card -->
+			<!-- ImageTrailCursor card -->
 			<a
-				href="/docs/components/flickering-grid"
+				href="/docs/components/image-trail-cursor"
 				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-black sm:w-auto"
 			>
-				<div class="absolute inset-0">
-					<FlickeringGrid
-						color="#ffffff"
-						maxOpacity={0.15}
-						flickerChance={0.15}
-						squareSize={4}
-						gridGap={6}
-						class="h-full w-full"
+				<div class="absolute inset-0 cursor-crosshair">
+					<ImageTrailCursor
+						images={[
+							"https://picsum.photos/seed/trail1/400/440",
+							"https://picsum.photos/seed/trail2/400/440",
+							"https://picsum.photos/seed/trail3/400/440",
+							"https://picsum.photos/seed/trail4/400/440",
+							"https://picsum.photos/seed/trail5/400/440",
+							"https://picsum.photos/seed/trail6/400/440",
+						]}
+						variant="type1"
 					/>
 				</div>
 				<div
-					class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
+					class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"
 				></div>
-				<div class="relative z-10 p-6">
-					<p class="mb-1 text-lg font-semibold text-white">Flickering Grid</p>
-					<p class="mb-4 text-sm text-white/50">Dynamic grid backgrounds with canvas rendering</p>
+				<div class="pointer-events-none relative z-10 p-6">
+					<p class="mb-1 text-lg font-semibold text-white">Image Trail Cursor</p>
+					<p class="mb-4 text-sm text-white/50">Interactive image trails that follow your cursor</p>
 					<span
 						class="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/70 transition-colors group-hover:bg-white/20"
 					>
@@ -307,30 +311,47 @@
 				</div>
 			</a>
 
-			<!-- Marquee card -->
+			<!-- AnimatedTooltip card -->
 			<a
-				href="/docs/components/marquee"
+				href="/docs/components/animated-tooltip"
 				class="group relative flex h-80 w-72 shrink-0 flex-col justify-end overflow-hidden rounded-2xl bg-zinc-900 sm:w-auto"
 			>
-				<div class="absolute inset-0 flex flex-col gap-3 pt-6">
-					{#each [techBadges.slice(0, 5), techBadges.slice(5)] as row, i}
-						<Marquee pauseOnHover reverse={i === 1} class="[--duration:20s]">
-							{#each row as badge}
-								<span
-									class="mx-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/60"
-								>
-									{badge}
-								</span>
-							{/each}
-						</Marquee>
-					{/each}
+				<div class="absolute inset-0 flex items-center justify-center">
+					<AnimatedTooltip
+						items={[
+							{
+								id: 1,
+								name: "Sarah Chen",
+								designation: "Frontend Lead",
+								image: "https://i.pravatar.cc/150?img=1",
+							},
+							{
+								id: 2,
+								name: "Alex Rivera",
+								designation: "Designer",
+								image: "https://i.pravatar.cc/150?img=3",
+							},
+							{
+								id: 3,
+								name: "Jordan Lee",
+								designation: "Full Stack Dev",
+								image: "https://i.pravatar.cc/150?img=5",
+							},
+							{
+								id: 4,
+								name: "Sam Taylor",
+								designation: "DevOps",
+								image: "https://i.pravatar.cc/150?img=8",
+							},
+						]}
+					/>
 				</div>
 				<div
 					class="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/30 to-transparent"
 				></div>
 				<div class="relative z-10 p-6">
-					<p class="mb-1 text-lg font-semibold text-white">Infinite Scroll</p>
-					<p class="mb-4 text-sm text-white/50">Smooth marquee for any content</p>
+					<p class="mb-1 text-lg font-semibold text-white">Animated Tooltip</p>
+					<p class="mb-4 text-sm text-white/50">Hover-activated tooltips with smooth animations</p>
 					<span
 						class="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/70 transition-colors group-hover:bg-white/20"
 					>
@@ -343,7 +364,7 @@
 		<div class="mt-8">
 			<a
 				href={DEMO_URL}
-				class="text-sm text-zinc-400 underline-offset-4 transition-colors hover:text-zinc-900 hover:underline"
+				class="text-sm text-zinc-500 underline-offset-4 transition-colors hover:text-white hover:underline"
 			>
 				See all 60+ components →
 			</a>
@@ -511,7 +532,7 @@
 
 			<!-- Right: BoxReveal blocs -->
 			<div class="flex flex-col gap-12">
-				<BoxReveal color="var(--primary)" duration={0.5}>
+				<BoxReveal color="#000" duration={0.5}>
 					<div class="rounded-2xl border border-white/10 bg-zinc-900 p-8">
 						<div class="mb-4 text-2xl">⚡</div>
 						<h3 class="mb-3 text-xl font-bold text-white">No Virtual DOM</h3>
@@ -533,7 +554,7 @@
 					</div>
 				</BoxReveal>
 
-				<BoxReveal color="var(--primary)" duration={0.5} delay={0.1}>
+				<BoxReveal color="#000" duration={0.5} delay={0.1}>
 					<div class="rounded-2xl border border-white/10 bg-zinc-900 p-8">
 						<div class="mb-4 text-2xl">🧩</div>
 						<h3 class="mb-3 text-xl font-bold text-white">60+ components</h3>
@@ -555,7 +576,7 @@
 					</div>
 				</BoxReveal>
 
-				<BoxReveal color="var(--primary)" duration={0.5} delay={0.2}>
+				<BoxReveal color="#000" duration={0.5} delay={0.2}>
 					<div class="rounded-2xl border border-white/10 bg-zinc-900 p-8">
 						<div class="mb-4 text-2xl">✍️</div>
 						<h3 class="mb-3 text-xl font-bold text-white">Svelte 5 Runes</h3>
