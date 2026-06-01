@@ -119,20 +119,34 @@ Beautiful animation and UI components for **Svelte 5**.
 **Install via npm:**
 
 ```bash
-npm install fancy-ui
+npm install fancy-ui-svelte
 ```
 
 Then import any component:
 
 ```ts
-import { Marquee, BorderBeam, Confetti } from 'fancy-ui';
+import { Marquee, BorderBeam, Confetti } from 'fancy-ui-svelte';
 ```
 
-To include Tailwind classes, add this to your app's CSS:
+Add the Tailwind integration to your app's CSS (e.g. `src/app.css`):
 
 ```css
-@import "fancy-ui/tailwind.css";
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
 ```
+
+This single import tells Tailwind v4 to scan the library's components so all utility classes are generated automatically. No manual `@source` path needed.
+
+<details>
+<summary>Alternative: manual @source (without the CSS import)</summary>
+
+```css
+@import "tailwindcss";
+@source "../node_modules/fancy-ui-svelte/dist";
+```
+
+The path is relative to your CSS file location.
+</details>
 
 **Or browse and copy a component:**
 1. Find the component you need in the [live demo](https://fancy-ui.rama.app)

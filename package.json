@@ -20,6 +20,10 @@
 		"ui",
 		"tailwind"
 	],
+	"sideEffects": [
+		"**/*.css",
+		"**/*.svelte"
+	],
 	"files": [
 		"dist/fancy-ui",
 		"dist/utils.js",
