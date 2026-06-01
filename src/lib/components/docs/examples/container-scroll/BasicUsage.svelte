@@ -10,10 +10,13 @@
 		</h2>
 	{/snippet}
 	{#snippet cardContent()}
-		<div class="flex size-full flex-col items-center justify-center bg-gradient-to-br from-violet-500 to-purple-700 p-8 text-white">
+		<div
+			class="flex size-full flex-col items-center justify-center bg-gradient-to-br from-violet-500 to-purple-700 p-8 text-white"
+		>
 			<h3 class="text-3xl font-bold">Your Content Here</h3>
 			<p class="mt-4 max-w-md text-center text-lg text-white/80">
-				This card rotates from 20 degrees to 0 as you scroll. It also scales smoothly to create a dramatic reveal effect.
+				This card rotates from 20 degrees to 0 as you scroll. It also scales smoothly to create a
+				dramatic reveal effect.
 			</p>
 		</div>
 	{/snippet}

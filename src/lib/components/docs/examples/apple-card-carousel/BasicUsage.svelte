@@ -7,7 +7,8 @@
 			category: "Nature",
 			title: "Misty Mountains",
 			src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&auto=format&fit=crop&q=60",
-			description: "A breathtaking view of misty mountains at dawn, where layers of fog weave between ancient peaks.",
+			description:
+				"A breathtaking view of misty mountains at dawn, where layers of fog weave between ancient peaks.",
 		},
 		{
 			category: "Architecture",
@@ -31,7 +32,8 @@
 			category: "Desert",
 			title: "Sand & Silence",
 			src: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&auto=format&fit=crop&q=60",
-			description: "The desert teaches patience. Endless dunes shift imperceptibly under a relentless sun.",
+			description:
+				"The desert teaches patience. Endless dunes shift imperceptibly under a relentless sun.",
 		},
 	];
 </script>

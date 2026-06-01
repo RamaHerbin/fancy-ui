@@ -25,16 +25,18 @@
 			const exPath = `/src/lib/components/docs/examples/${currentSlug}/BasicUsage.svelte`;
 			const exLoader = exampleModules[exPath];
 			if (exLoader) {
-				exLoader().then((mod) => {
-					if (slug === currentSlug) {
-						ExampleComponent = (mod as any).default;
-						loading = false;
-					}
-				}).catch(() => {
-					if (slug === currentSlug) {
-						loading = false;
-					}
-				});
+				exLoader()
+					.then((mod) => {
+						if (slug === currentSlug) {
+							ExampleComponent = (mod as any).default;
+							loading = false;
+						}
+					})
+					.catch(() => {
+						if (slug === currentSlug) {
+							loading = false;
+						}
+					});
 			} else {
 				loading = false;
 			}
@@ -49,17 +51,19 @@
 			return;
 		}
 
-		loader().then((mod) => {
-			if (slug === currentSlug) {
-				ComponentModule = mod;
-				loading = false;
-			}
-		}).catch((e) => {
-			if (slug === currentSlug) {
-				error = `Failed to load: ${e}`;
-				loading = false;
-			}
-		});
+		loader()
+			.then((mod) => {
+				if (slug === currentSlug) {
+					ComponentModule = mod;
+					loading = false;
+				}
+			})
+			.catch((e) => {
+				if (slug === currentSlug) {
+					error = `Failed to load: ${e}`;
+					loading = false;
+				}
+			});
 	});
 
 	// Component name mapping (slug → export name)
@@ -182,7 +186,9 @@
 
 {#if loading}
 	<div class="flex h-64 items-center justify-center">
-		<div class="border-muted-foreground size-6 animate-spin rounded-full border-2 border-t-transparent"></div>
+		<div
+			class="border-muted-foreground size-6 animate-spin rounded-full border-2 border-t-transparent"
+		></div>
 	</div>
 {:else if error}
 	<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
@@ -210,7 +216,11 @@
 		{:else if slug === "gradient-button"}
 			<Comp {...props}>Gradient Button</Comp>
 		{:else if slug === "confetti"}
-			<Comp {...props}><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium">Click for Confetti</button></Comp>
+			<Comp {...props}
+				><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
+					>Click for Confetti</button
+				></Comp
+			>
 		{:else if slug === "box-reveal"}
 			<Comp color="var(--primary)" duration={0.5}>
 				<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
@@ -242,7 +252,9 @@
 		{:else if slug === "marquee"}
 			<Comp pauseOnHover class="[--duration:20s]">
 				{#each ["Svelte 5", "Tailwind v4", "TypeScript", "Animations", "GSAP", "MIT License"] as badge}
-					<span class="bg-muted text-muted-foreground mx-2 rounded-full border px-3 py-1 text-xs font-medium">
+					<span
+						class="bg-muted text-muted-foreground mx-2 rounded-full border px-3 py-1 text-xs font-medium"
+					>
 						{badge}
 					</span>
 				{/each}
