@@ -189,7 +189,7 @@
 				href={GITHUB_URL}
 				target="_blank"
 				rel="noopener noreferrer"
-				class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+				class="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
 			>
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 					<path
@@ -425,7 +425,7 @@
 		<!-- Row 2: install snippet 2col + MIT 1col -->
 		<div class="mt-3 grid grid-cols-3 gap-3">
 			<!-- Dark install card (col-span-2) -->
-			<div class="relative col-span-3 overflow-hidden rounded-3xl bg-zinc-950 p-10 sm:col-span-2">
+			<div class="relative col-span-3 overflow-hidden rounded-3xl bg-[#0a0a12] p-10 sm:col-span-2">
 				<BorderBeam
 					duration={14}
 					size={250}
@@ -437,13 +437,33 @@
 				<div class="font-mono">
 					<div class="mb-4">
 						<span class="text-xs text-white/20">$ </span>
-						<span class="text-lg font-semibold text-emerald-400">npm install fancy-ui</span>
+						<span
+							class="text-lg font-semibold text-[#29becc]"
+							style="text-shadow: 0 0 2px #fff, 0 0 4px #29becc, 0 0 8px #29becc88"
+							>npm install fancy-ui-svelte</span
+						>
 					</div>
 					<div class="text-sm">
-						<span class="text-purple-400">import</span>
-						<span class="text-white/80"> &#123; Sparkles, BorderBeam, Marquee &#125; </span>
-						<span class="text-purple-400">from</span>
-						<span class="text-amber-300"> 'fancy-ui'</span>
+						<span
+							class="text-[#ff7edb]"
+							style="text-shadow: 0 0 2px #fff, 0 0 4px #ff00de, 0 0 8px #ff00de88">import</span
+						>
+						<span
+							class="text-white/90"
+							style="text-shadow: 0 0 2px rgba(255,255,255,0.3), 0 0 6px rgba(255,255,255,0.1)"
+						>
+							&#123; Sparkles, BorderBeam, Marquee &#125;
+						</span>
+						<span
+							class="text-[#ff7edb]"
+							style="text-shadow: 0 0 2px #fff, 0 0 4px #ff00de, 0 0 8px #ff00de88">from</span
+						>
+						<span
+							class="text-[#fede5d]"
+							style="text-shadow: 0 0 2px #fff, 0 0 4px #f4d554, 0 0 8px #f4d55488"
+						>
+							'fancy-ui-svelte'</span
+						>
 					</div>
 				</div>
 			</div>
@@ -564,7 +584,7 @@
 			Up and running<br />in seconds.
 		</h2>
 
-		<div class="relative overflow-hidden rounded-2xl bg-[#0d1117]">
+		<div class="relative overflow-hidden rounded-2xl bg-[#0a0a12]">
 			<BorderBeam
 				duration={14}
 				size={200}
@@ -574,24 +594,70 @@
 			/>
 			<div class="p-8 font-mono text-sm leading-relaxed">
 				<div class="mb-1 text-white/30"># 1. Install</div>
-				<div class="mb-5 text-emerald-400">npm install fancy-ui</div>
+				<div
+					class="mb-5 text-[#29becc]"
+					style="text-shadow: 0 0 2px #fff, 0 0 4px #29becc, 0 0 8px #29becc88"
+				>
+					npm install fancy-ui-svelte
+				</div>
 				<div class="mb-1 text-white/30"># 2. Import any component</div>
 				<div class="mb-5">
-					<span class="text-purple-400">import</span>
-					<span class="text-white"> &#123; BorderBeam, Sparkles, Marquee &#125; </span>
-					<span class="text-purple-400">from</span>
-					<span class="text-amber-300"> 'fancy-ui'</span>
+					<span
+						class="text-[#ff7edb]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #ff00de, 0 0 8px #ff00de88">import</span
+					>
+					<span
+						class="text-white/90"
+						style="text-shadow: 0 0 2px rgba(255,255,255,0.3), 0 0 6px rgba(255,255,255,0.1)"
+					>
+						&#123; BorderBeam, Sparkles, Marquee &#125;
+					</span>
+					<span
+						class="text-[#ff7edb]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #ff00de, 0 0 8px #ff00de88">from</span
+					>
+					<span
+						class="text-[#fede5d]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #f4d554, 0 0 8px #f4d55488"
+					>
+						'fancy-ui-svelte'</span
+					>
 				</div>
 				<div class="mb-1 text-white/30"># 3. Use it in your Svelte component</div>
 				<div>
-					<span class="text-blue-400">&lt;BorderBeam</span>
-					<span class="text-amber-300"> colorFrom</span>
-					<span class="text-white">=</span>
-					<span class="text-green-400">"#9E7AFF"</span>
-					<span class="text-amber-300"> colorTo</span>
-					<span class="text-white">=</span>
-					<span class="text-green-400">"#FE8BBB"</span>
-					<span class="text-blue-400"> /&gt;</span>
+					<span
+						class="text-[#36d7f7]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #29becc, 0 0 8px #29becc88"
+						>&lt;BorderBeam</span
+					>
+					<span
+						class="text-[#fede5d]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #f4d554, 0 0 8px #f4d55488"
+					>
+						colorFrom</span
+					>
+					<span class="text-white/90">=</span>
+					<span
+						class="text-[#85e89d]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #4dff7c, 0 0 8px #4dff7c88">"#9E7AFF"</span
+					>
+					<span
+						class="text-[#fede5d]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #f4d554, 0 0 8px #f4d55488"
+					>
+						colorTo</span
+					>
+					<span class="text-white/90">=</span>
+					<span
+						class="text-[#85e89d]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #4dff7c, 0 0 8px #4dff7c88">"#FE8BBB"</span
+					>
+					<span
+						class="text-[#36d7f7]"
+						style="text-shadow: 0 0 2px #fff, 0 0 4px #29becc, 0 0 8px #29becc88"
+					>
+						/&gt;</span
+					>
 				</div>
 			</div>
 		</div>
