@@ -23,7 +23,9 @@
 				{#each props as prop}
 					<tr class="border-border border-b last:border-0">
 						<td class="px-4 py-3">
-							<code class="bg-muted rounded px-1.5 py-0.5 text-xs font-mono font-medium text-purple-600 dark:text-purple-400">
+							<code
+								class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs font-medium text-purple-600 dark:text-purple-400"
+							>
 								{prop.name}
 							</code>
 							{#if prop.required}

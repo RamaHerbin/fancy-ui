@@ -4,7 +4,8 @@
 
 	const testimonials: Testimonial[] = [
 		{
-			quote: "Outstanding support and robust features. It's rare to find a product that delivers on all its promises.",
+			quote:
+				"Outstanding support and robust features. It's rare to find a product that delivers on all its promises.",
 			name: "James Kim",
 			designation: "Engineering Lead at DataPro",
 			src: "https://images.unsplash.com/photo-1636041293178-808a6762ab39?w=500&auto=format&fit=crop&q=60",

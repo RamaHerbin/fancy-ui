@@ -50,16 +50,18 @@
 					code: raw,
 				};
 			})
-		).then((results) => {
-			if (slug === currentSlug) {
-				examples = results.filter((r) => r !== null) as LoadedExample[];
-				loading = false;
-			}
-		}).catch(() => {
-			if (slug === currentSlug) {
-				loading = false;
-			}
-		});
+		)
+			.then((results) => {
+				if (slug === currentSlug) {
+					examples = results.filter((r) => r !== null) as LoadedExample[];
+					loading = false;
+				}
+			})
+			.catch(() => {
+				if (slug === currentSlug) {
+					loading = false;
+				}
+			});
 	});
 </script>
 
@@ -70,7 +72,10 @@
 		<div class="space-y-8">
 			{#each examples as example}
 				<div>
-					<h3 class="text-foreground mb-2 text-base font-semibold" id="example-{example.title.toLowerCase().replace(/\s+/g, '-')}">
+					<h3
+						class="text-foreground mb-2 text-base font-semibold"
+						id="example-{example.title.toLowerCase().replace(/\s+/g, '-')}"
+					>
 						{example.title}
 					</h3>
 					{#if example.description}

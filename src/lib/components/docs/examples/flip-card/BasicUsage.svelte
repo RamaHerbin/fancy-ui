@@ -3,7 +3,9 @@
 </script>
 
 <FlipCard>
-	<div class="flex size-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500">
+	<div
+		class="flex size-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500"
+	>
 		<p class="text-2xl font-bold text-white">Front</p>
 	</div>
 	{#snippet back()}

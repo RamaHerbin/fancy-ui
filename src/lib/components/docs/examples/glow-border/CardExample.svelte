@@ -8,7 +8,9 @@
 	<p class="text-muted-foreground mb-4 text-sm">
 		This card has a beautiful animated glow border that draws attention.
 	</p>
-	<button class="bg-primary text-primary-foreground w-full rounded-lg px-4 py-2 text-sm font-medium">
+	<button
+		class="bg-primary text-primary-foreground w-full rounded-lg px-4 py-2 text-sm font-medium"
+	>
 		Get Started
 	</button>
 </div>

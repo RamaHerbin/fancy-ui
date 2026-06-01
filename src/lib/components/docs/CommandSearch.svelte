@@ -15,10 +15,30 @@
 	let inputEl = $state<HTMLInputElement | null>(null);
 
 	const gettingStartedPages = [
-		{ name: "Introduction", slug: "introduction", href: "/docs/getting-started/introduction", category: "Getting Started" },
-		{ name: "Installation", slug: "installation", href: "/docs/getting-started/installation", category: "Getting Started" },
-		{ name: "Theming", slug: "theming", href: "/docs/getting-started/theming", category: "Getting Started" },
-		{ name: "Changelog", slug: "changelog", href: "/docs/getting-started/changelog", category: "Getting Started" },
+		{
+			name: "Introduction",
+			slug: "introduction",
+			href: "/docs/getting-started/introduction",
+			category: "Getting Started",
+		},
+		{
+			name: "Installation",
+			slug: "installation",
+			href: "/docs/getting-started/installation",
+			category: "Getting Started",
+		},
+		{
+			name: "Theming",
+			slug: "theming",
+			href: "/docs/getting-started/theming",
+			category: "Getting Started",
+		},
+		{
+			name: "Changelog",
+			slug: "changelog",
+			href: "/docs/getting-started/changelog",
+			category: "Getting Started",
+		},
 	];
 
 	let results = $derived.by(() => {
@@ -105,15 +125,34 @@
 {#if open}
 	<!-- Backdrop -->
 	<div class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm">
-		<button class="absolute inset-0" onclick={() => { open = false; onclose?.(); }} aria-label="Close search"></button>
+		<button
+			class="absolute inset-0"
+			onclick={() => {
+				open = false;
+				onclose?.();
+			}}
+			aria-label="Close search"
+		></button>
 	</div>
 
 	<!-- Dialog -->
 	<div class="fixed inset-x-0 top-[15%] z-[70] mx-auto w-full max-w-lg px-4">
-		<div class="bg-popover border-border overflow-hidden rounded-xl border shadow-2xl" role="dialog">
+		<div
+			class="bg-popover border-border overflow-hidden rounded-xl border shadow-2xl"
+			role="dialog"
+		>
 			<!-- Input -->
 			<div class="border-border flex items-center gap-3 border-b px-4">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted-foreground shrink-0">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="16"
+					height="16"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					class="text-muted-foreground shrink-0"
+				>
 					<circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
 				</svg>
 				<input
@@ -124,7 +163,10 @@
 					placeholder="Search components and pages..."
 					class="text-foreground placeholder:text-muted-foreground h-12 w-full bg-transparent text-sm outline-none"
 				/>
-				<kbd class="border-border bg-muted text-muted-foreground rounded border px-1.5 py-0.5 text-[10px] font-mono">ESC</kbd>
+				<kbd
+					class="border-border bg-muted text-muted-foreground rounded border px-1.5 py-0.5 font-mono text-[10px]"
+					>ESC</kbd
+				>
 			</div>
 
 			<!-- Results -->
@@ -136,18 +178,51 @@
 						<button
 							onclick={() => navigate(result.href)}
 							onmouseenter={() => (selectedIndex = i)}
-							class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors {selectedIndex === i
+							class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors {selectedIndex ===
+							i
 								? 'bg-accent text-accent-foreground'
 								: 'text-foreground'}"
 						>
 							<div class="flex items-center gap-3">
 								{#if result.type === "page"}
-									<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted-foreground shrink-0">
-										<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><path d="M14 2v6h6" />
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="14"
+										height="14"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										class="text-muted-foreground shrink-0"
+									>
+										<path
+											d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
+										/><path d="M14 2v6h6" />
 									</svg>
 								{:else}
-									<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted-foreground shrink-0">
-										<rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" />
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="14"
+										height="14"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										class="text-muted-foreground shrink-0"
+									>
+										<rect width="7" height="7" x="3" y="3" rx="1" /><rect
+											width="7"
+											height="7"
+											x="14"
+											y="3"
+											rx="1"
+										/><rect width="7" height="7" x="14" y="14" rx="1" /><rect
+											width="7"
+											height="7"
+											x="3"
+											y="14"
+											rx="1"
+										/>
 									</svg>
 								{/if}
 								<span>{result.name}</span>
