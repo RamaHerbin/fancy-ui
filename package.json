@@ -1,7 +1,7 @@
 {
 	"name": "fancy-ui-svelte",
 	"private": false,
-	"version": "0.4.1",
+	"version": "1.0.0",
 	"type": "module",
 	"license": "MIT",
 	"repository": {
