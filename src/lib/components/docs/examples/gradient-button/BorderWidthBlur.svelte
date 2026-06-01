@@ -10,9 +10,7 @@
 		<span class="text-muted-foreground text-xs">1px / 2px blur</span>
 	</div>
 	<div class="flex flex-col items-center gap-2">
-		<GradientButton borderWidth={2} blur={4} class="font-medium text-white">
-			Default
-		</GradientButton>
+		<GradientButton borderWidth={2} blur={4} class="font-medium text-white">Default</GradientButton>
 		<span class="text-muted-foreground text-xs">2px / 4px blur</span>
 	</div>
 	<div class="flex flex-col items-center gap-2">

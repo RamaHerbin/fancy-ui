@@ -6,9 +6,30 @@
 <PropsPlayground
 	controls={[
 		{ key: "numberOfCircles", type: "range", label: "Number of Circles", min: 1, max: 12, step: 1 },
-		{ key: "baseCircleSize", type: "range", label: "Base Circle Size", min: 50, max: 400, step: 10 },
-		{ key: "spaceBetweenCircle", type: "range", label: "Space Between", min: 20, max: 200, step: 10 },
-		{ key: "baseCircleOpacity", type: "range", label: "Base Opacity", min: 0.05, max: 0.8, step: 0.05 },
+		{
+			key: "baseCircleSize",
+			type: "range",
+			label: "Base Circle Size",
+			min: 50,
+			max: 400,
+			step: 10,
+		},
+		{
+			key: "spaceBetweenCircle",
+			type: "range",
+			label: "Space Between",
+			min: 20,
+			max: 200,
+			step: 10,
+		},
+		{
+			key: "baseCircleOpacity",
+			type: "range",
+			label: "Base Opacity",
+			min: 0.05,
+			max: 0.8,
+			step: 0.05,
+		},
 		{ key: "waveSpeed", type: "range", label: "Wave Speed (ms)", min: 10, max: 300, step: 10 },
 	]}
 	initialValues={{

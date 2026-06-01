@@ -19,7 +19,9 @@
 			</BoxReveal>
 			<BoxReveal delay={0.6}>
 				<div class="flex gap-2">
-					<button class="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm">Get Started</button>
+					<button class="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm"
+						>Get Started</button
+					>
 					<button class="rounded-lg border px-4 py-2 text-sm">Learn More</button>
 				</div>
 			</BoxReveal>
