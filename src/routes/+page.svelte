@@ -186,12 +186,6 @@
 		<div class="mt-4 flex flex-wrap items-center justify-center gap-3">
 			<RainbowButton href={DEMO_URL}>Browse components</RainbowButton>
 			<a
-				href={DOCS_URL}
-				class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
-			>
-				Documentation
-			</a>
-			<a
 				href={GITHUB_URL}
 				target="_blank"
 				rel="noopener noreferrer"
