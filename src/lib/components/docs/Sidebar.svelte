@@ -61,7 +61,9 @@
 	<nav class="flex-1 overflow-y-auto px-3 py-4">
 		<!-- Getting Started -->
 		<div class="mb-6">
-			<h3 class="text-sidebar-foreground/50 mb-1 px-2 text-xs font-semibold tracking-wider uppercase">
+			<h3
+				class="text-sidebar-foreground/50 mb-1 px-2 text-xs font-semibold tracking-wider uppercase"
+			>
 				Getting Started
 			</h3>
 			<ul>
@@ -86,7 +88,9 @@
 			<a
 				href="/docs/components"
 				onclick={onclose}
-				class="block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors {isActive('/docs/components')
+				class="block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors {isActive(
+					'/docs/components'
+				)
 					? 'text-sidebar-accent-foreground'
 					: 'text-sidebar-foreground/50 hover:text-sidebar-foreground/70'}"
 			>
@@ -111,7 +115,12 @@
 							stroke="currentColor"
 							viewBox="0 0 24 24"
 						>
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M9 5l7 7-7 7"
+							/>
 						</svg>
 					</button>
 					{#if !collapsed}
@@ -121,7 +130,9 @@
 									<a
 										href="/docs/components/{comp.slug}"
 										onclick={onclose}
-										class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive(`/docs/components/${comp.slug}`)
+										class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive(
+											`/docs/components/${comp.slug}`
+										)
 											? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
 											: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
 									>

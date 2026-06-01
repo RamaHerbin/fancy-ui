@@ -29,7 +29,9 @@
 				animationType={values.animationType as "none" | "half" | "full"}
 				duration={values.duration as number}
 			>
-				<div class="bg-background flex h-full w-full items-center justify-center rounded-lg px-8 py-3">
+				<div
+					class="bg-background flex h-full w-full items-center justify-center rounded-lg px-8 py-3"
+				>
 					<span class="font-medium">Neon Border</span>
 				</div>
 			</NeonBorder>

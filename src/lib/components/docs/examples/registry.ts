@@ -7,34 +7,78 @@ export interface ExampleMeta {
 export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"shimmer-button": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "ShimmerColors", title: "Shimmer Colors", description: "Change the shimmer highlight color." },
+		{
+			name: "ShimmerColors",
+			title: "Shimmer Colors",
+			description: "Change the shimmer highlight color.",
+		},
 		{ name: "AnimationSpeed", title: "Animation Speed", description: "Control the shimmer speed." },
 		{ name: "ShimmerSize", title: "Shimmer Size", description: "Adjust the border thickness." },
-		{ name: "CustomBackground", title: "Custom Background", description: "Set a custom background color." },
+		{
+			name: "CustomBackground",
+			title: "Custom Background",
+			description: "Set a custom background color.",
+		},
 		{ name: "BorderRadius", title: "Border Radius", description: "Change the button shape." },
 	],
 	"rainbow-button": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "AnimationSpeed", title: "Animation Speed", description: "Control the animation speed." },
+		{
+			name: "AnimationSpeed",
+			title: "Animation Speed",
+			description: "Control the animation speed.",
+		},
 		{ name: "WithIcons", title: "With Icons", description: "Add icons inside the button." },
 		{ name: "DisabledState", title: "Disabled State" },
 		{ name: "AsLink", title: "As Link", description: "Render as an anchor element." },
-		{ name: "CustomStyling", title: "Custom Styling", description: "Override styles with the class prop." },
+		{
+			name: "CustomStyling",
+			title: "Custom Styling",
+			description: "Override styles with the class prop.",
+		},
 	],
 	"ripple-button": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "CustomColors", title: "Custom Ripple Colors", description: "Customize the ripple color." },
-		{ name: "AnimationDuration", title: "Animation Duration", description: "Control the ripple speed." },
-		{ name: "CustomStyling", title: "Custom Styling", description: "Override styles with the class prop." },
-		{ name: "MultipleRipples", title: "Multiple Ripples", description: "Click rapidly to see multiple ripples." },
+		{
+			name: "CustomColors",
+			title: "Custom Ripple Colors",
+			description: "Customize the ripple color.",
+		},
+		{
+			name: "AnimationDuration",
+			title: "Animation Duration",
+			description: "Control the ripple speed.",
+		},
+		{
+			name: "CustomStyling",
+			title: "Custom Styling",
+			description: "Override styles with the class prop.",
+		},
+		{
+			name: "MultipleRipples",
+			title: "Multiple Ripples",
+			description: "Click rapidly to see multiple ripples.",
+		},
 	],
 	"gradient-button": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColors", title: "Custom Colors", description: "Change the gradient colors." },
-		{ name: "BorderWidthBlur", title: "Border Width & Blur", description: "Adjust thickness and softness." },
-		{ name: "AnimationSpeed", title: "Animation Speed", description: "Control the rotation speed." },
+		{
+			name: "BorderWidthBlur",
+			title: "Border Width & Blur",
+			description: "Adjust thickness and softness.",
+		},
+		{
+			name: "AnimationSpeed",
+			title: "Animation Speed",
+			description: "Control the rotation speed.",
+		},
 		{ name: "BorderRadius", title: "Border Radius", description: "Change the button shape." },
-		{ name: "BackgroundColor", title: "Background Color", description: "Set the content area background." },
+		{
+			name: "BackgroundColor",
+			title: "Background Color",
+			description: "Set the content area background.",
+		},
 		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"interactive-hover-button": [
@@ -45,7 +89,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"colourful-text": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColors", title: "Custom Colors", description: "Define a custom color palette." },
-		{ name: "TransitionSpeed", title: "Transition Speed", description: "Control color change speed." },
+		{
+			name: "TransitionSpeed",
+			title: "Transition Speed",
+			description: "Control color change speed.",
+		},
 		{ name: "LongerText", title: "Longer Text" },
 	],
 	"flip-words": [
@@ -60,7 +108,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	],
 	"letter-pullup": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "SlowerStagger", title: "Slower Stagger", description: "Increase delay between letters." },
+		{
+			name: "SlowerStagger",
+			title: "Slower Stagger",
+			description: "Increase delay between letters.",
+		},
 		{ name: "CustomStyling", title: "Custom Styling" },
 	],
 	"number-ticker": [
@@ -96,9 +148,13 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomDuration", title: "Custom Duration", description: "Control reveal speed." },
 		{ name: "HeavyBlur", title: "Heavy Blur", description: "Stronger initial blur." },
-		{ name: "StaggeredCards", title: "Staggered Cards", description: "Multiple items with stagger." },
+		{
+			name: "StaggeredCards",
+			title: "Staggered Cards",
+			description: "Multiple items with stagger.",
+		},
 	],
-	"focus": [
+	focus: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomBorderColor", title: "Custom Border Color" },
 		{ name: "ManualMode", title: "Manual Mode", description: "Hover to focus each word." },
@@ -126,7 +182,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	],
 	"neon-border": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "AnimationTypes", title: "Animation Types", description: "Different animation styles." },
+		{
+			name: "AnimationTypes",
+			title: "Animation Types",
+			description: "Different animation styles.",
+		},
 		{ name: "CustomColors", title: "Custom Colors" },
 		{ name: "SpeedVariations", title: "Speed Variations" },
 		{ name: "Playground", title: "Interactive Playground" },
@@ -136,17 +196,17 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "WhiteVariant", title: "White Variant" },
 		{ name: "WithBlur", title: "With Blur", description: "Add blur to the glow." },
 	],
-	"meteors": [
+	meteors: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomCount", title: "Custom Count", description: "Control number of meteors." },
 		{ name: "CardExample", title: "Card Example" },
 	],
-	"ripple": [
+	ripple: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "StyledCircles", title: "Styled Circles" },
 		{ name: "Playground", title: "Interactive Playground" },
 	],
-	"confetti": [
+	confetti: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomOptions", title: "Custom Options", description: "Customize confetti behavior." },
 	],
@@ -156,7 +216,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "GridSizeVariations", title: "Grid Size Variations" },
 		{ name: "Playground", title: "Interactive Playground" },
 	],
-	"sparkles": [
+	sparkles: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColors", title: "Custom Colors" },
 		{ name: "DenseAndFast", title: "Dense & Fast", description: "More particles, faster speed." },
@@ -173,7 +233,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	],
 	"matrix-rain": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "ComposedHero", title: "Composed Hero", description: "Hero section with matrix rain background." },
+		{
+			name: "ComposedHero",
+			title: "Composed Hero",
+			description: "Hero section with matrix rain background.",
+		},
 		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"terminal-text": [
@@ -198,7 +262,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "XAxisRotation", title: "X-Axis Rotation", description: "Flip vertically." },
 		{ name: "MultipleCards", title: "Multiple Cards" },
 	],
-	"book": [
+	book: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "ColorVariants", title: "Color Variants" },
 		{ name: "Sizes", title: "Sizes", description: "Different book sizes." },
@@ -211,32 +275,26 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "MultipleCards", title: "Multiple Cards" },
 	],
-	"marquee": [
+	marquee: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "Vertical", title: "Vertical", description: "Vertical scrolling direction." },
 	],
-	"dock": [
+	dock: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "Direction", title: "Direction", description: "Change dock orientation." },
 	],
-	"timeline": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-	],
+	timeline: [{ name: "BasicUsage", title: "Basic Usage" }],
 	"logo-cloud": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "IconGrid", title: "Icon Grid" },
 		{ name: "StaticGrid", title: "Static Grid" },
 	],
-	"container-scroll": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-	],
+	"container-scroll": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"bento-grid": [
 		{ name: "BasicUsage", title: "Basic Usage", description: "Slot-based BentoGridItem." },
 		{ name: "CardVariant", title: "Card Variant", description: "Props-based BentoGridCard." },
 	],
-	"animated-beam": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-	],
+	"animated-beam": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"animated-testimonials": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "WithAutoplay", title: "With Autoplay", description: "Auto-advances every 3 seconds." },
@@ -245,31 +303,31 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "TeamMembers", title: "Team Members" },
 	],
-	"apple-card-carousel": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-	],
-	"compare": [
+	"apple-card-carousel": [{ name: "BasicUsage", title: "Basic Usage" }],
+	compare: [
 		{ name: "BasicUsage", title: "Basic Usage", description: "Hover mode comparison." },
 		{ name: "DragMode", title: "Drag Mode", description: "Click and drag to control." },
 		{ name: "Autoplay", title: "Autoplay", description: "Automatic animation." },
-		{ name: "CustomContent", title: "Custom Content", description: "Use snippets instead of images." },
+		{
+			name: "CustomContent",
+			title: "Custom Content",
+			description: "Use snippets instead of images.",
+		},
 	],
 	"fluid-cursor": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColors", title: "Custom Colors", description: "Fixed teal fluid color." },
 	],
-	"smooth-cursor": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-	],
-	"liquid-glass": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-	],
-	"tracing-beam": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-	],
+	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"liquid-glass": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"tracing-beam": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"image-trail-cursor": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "Variants", title: "Animation Variants", description: "8 different trail animation styles." },
+		{
+			name: "Variants",
+			title: "Animation Variants",
+			description: "8 different trail animation styles.",
+		},
 	],
 	"interactive-grid-pattern": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -282,6 +340,10 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"displacement-text": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColor", title: "Custom Color" },
-		{ name: "ThemeAware", title: "Theme Aware", description: "Auto-switches between light and dark." },
+		{
+			name: "ThemeAware",
+			title: "Theme Aware",
+			description: "Auto-switches between light and dark.",
+		},
 	],
 };

@@ -25,7 +25,7 @@
 <div class="rounded-lg border border-white/10 bg-[#0d1117]">
 	<!-- Tabs -->
 	<div class="flex border-b border-white/10">
-		{#each (["pnpm", "npm", "bun"] as const) as tab}
+		{#each ["pnpm", "npm", "bun"] as const as tab}
 			<button
 				onclick={() => (activeTab = tab)}
 				class="px-4 py-2 text-xs font-medium transition-colors {activeTab === tab
