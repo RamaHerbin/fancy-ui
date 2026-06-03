@@ -62,7 +62,7 @@
 {#if headings.length > 0}
 	<nav class="hidden xl:block">
 		<div class="sticky top-20">
-			<h4 class="text-foreground mb-3 text-xs font-semibold uppercase tracking-wider">
+			<h4 class="text-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
 				On this page
 			</h4>
 			<ul class="space-y-1">

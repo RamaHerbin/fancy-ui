@@ -53,19 +53,22 @@
 		{/if}
 		<button
 			onclick={copyCode}
-			class="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/60 opacity-0 transition-opacity hover:bg-white/10 hover:text-white group-hover:opacity-100"
+			class="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/60 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/10 hover:text-white"
 		>
 			{copied ? "Copied!" : "Copy"}
 		</button>
 	</div>
 	{#if highlighted}
 		<div
-			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] text-sm [&_pre]:p-4 [&_code]:font-mono"
+			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] text-sm [&_code]:font-mono [&_pre]:p-4"
 			class:line-numbers={showLineNumbers}
 		>
 			{@html highlighted}
 		</div>
 	{:else}
-		<pre class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] p-4 font-mono text-sm text-white/80"><code>{code.trim()}</code></pre>
+		<pre
+			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] p-4 font-mono text-sm text-white/80"><code
+				>{code.trim()}</code
+			></pre>
 	{/if}
 </div>

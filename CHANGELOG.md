@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0
+
+### Minor Changes
+
+- 972b799: refactor(fluid-cursor): merge FluidCursorAdvanced into FluidCursor with new `contained` prop
+
+- f3f5f7d: feat(fluid-cursor-advanced): add singleton instance management with `allowMultiple` prop
+- dec71f5: feat(docs): merge demo examples into doc pages
+- ccab02c: Add neon synthwave glow effect to landing page code blocks
+
+### Patch Changes
+
+- 2e31372: chore: replace landing page with new design
+
 ## 0.4.1
 
 ### Patch Changes

@@ -16,7 +16,9 @@
 						<div class="size-full rounded-full bg-gradient-to-br from-blue-500 to-cyan-500"></div>
 					</DockIcon>
 					<DockIcon>
-						<div class="size-full rounded-full bg-gradient-to-br from-green-500 to-emerald-500"></div>
+						<div
+							class="size-full rounded-full bg-gradient-to-br from-green-500 to-emerald-500"
+						></div>
 					</DockIcon>
 				</Dock>
 			</div>

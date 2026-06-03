@@ -5,7 +5,9 @@
 <TextRevealCard>
 	<p class="mb-4 text-lg font-bold text-white">Move your mouse to reveal</p>
 	{#snippet text()}
-		<p class="bg-gradient-to-b from-white to-neutral-300 bg-clip-text py-6 text-[2rem] font-bold text-transparent md:text-[3rem]">
+		<p
+			class="bg-gradient-to-b from-white to-neutral-300 bg-clip-text py-6 text-[2rem] font-bold text-transparent md:text-[3rem]"
+		>
 			I know the secret
 		</p>
 	{/snippet}

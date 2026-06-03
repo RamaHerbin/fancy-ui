@@ -2,7 +2,9 @@
 	import { InteractiveGridPattern } from "$lib/fancy-ui/interactive-grid-pattern";
 </script>
 
-<div class="relative flex h-96 w-full items-center justify-center overflow-hidden rounded-lg border bg-neutral-950">
+<div
+	class="relative flex h-96 w-full items-center justify-center overflow-hidden rounded-lg border bg-neutral-950"
+>
 	<InteractiveGridPattern
 		width={30}
 		height={30}

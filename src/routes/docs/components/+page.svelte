@@ -16,7 +16,10 @@
 	let searchQuery = $state("");
 
 	let filteredComponents = $derived.by(() => {
-		let items = activeCategory === "all" ? allComponents : grouped[activeCategory as keyof typeof grouped] || [];
+		let items =
+			activeCategory === "all"
+				? allComponents
+				: grouped[activeCategory as keyof typeof grouped] || [];
 		if (searchQuery.trim()) {
 			const q = searchQuery.toLowerCase();
 			items = items.filter(
@@ -62,14 +65,23 @@
 	<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
 		<!-- Search -->
 		<div class="relative flex-1">
-			<svg class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<svg
+				class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
+				xmlns="http://www.w3.org/2000/svg"
+				width="14"
+				height="14"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+			>
 				<circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
 			</svg>
 			<input
 				type="text"
 				bind:value={searchQuery}
 				placeholder="Filter components..."
-				class="border-border bg-background text-foreground placeholder:text-muted-foreground h-9 w-full rounded-md border pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2"
+				class="border-border bg-background text-foreground placeholder:text-muted-foreground h-9 w-full rounded-md border pr-4 pl-9 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
 			/>
 		</div>
 
@@ -77,7 +89,8 @@
 		<div class="flex flex-wrap gap-1">
 			<button
 				onclick={() => (activeCategory = "all")}
-				class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeCategory === 'all'
+				class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeCategory ===
+				'all'
 					? 'bg-foreground text-background'
 					: 'bg-muted text-muted-foreground hover:text-foreground'}"
 			>
@@ -88,7 +101,8 @@
 				{#if count > 0}
 					<button
 						onclick={() => (activeCategory = cat)}
-						class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeCategory === cat
+						class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeCategory ===
+						cat
 							? 'bg-foreground text-background'
 							: 'bg-muted text-muted-foreground hover:text-foreground'}"
 					>
