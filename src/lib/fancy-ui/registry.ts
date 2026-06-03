@@ -886,18 +886,6 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
-	"fluid-cursor-advanced": {
-		name: "FluidCursorAdvanced",
-		slug: "fluid-cursor-advanced",
-		description: "WebGL fluid simulation confined to a parent container element",
-		category: "effects",
-		status: "done",
-		credits: [
-			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/fluid-cursor" },
-		],
-		tags: ["cursor", "webgl", "fluid", "simulation", "interactive", "contained"],
-	},
-
 	"glow-border": {
 		name: "GlowBorder",
 		slug: "glow-border",
