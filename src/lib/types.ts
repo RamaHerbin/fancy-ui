@@ -142,4 +142,6 @@ export interface ComponentMeta {
 	events?: EventDef[];
 	/** Version when component was added */
 	since?: string;
+	/** Kept only as a backwards-compatible alias; hidden from generated docs */
+	deprecated?: boolean;
 }
