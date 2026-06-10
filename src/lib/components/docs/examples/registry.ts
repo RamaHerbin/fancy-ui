@@ -346,4 +346,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Auto-switches between light and dark.",
 		},
 	],
+	"noise-reveal": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Toggle the reveal manually with the revealed prop.",
+		},
+	],
 };
