@@ -162,6 +162,25 @@ pnpm install
 pnpm dev
 ```
 
+## Using with AI agents (Claude Code, Cursor, Copilot)
+
+The docs site serves LLM-friendly documentation following the [llms.txt](https://llmstxt.org) convention:
+
+- [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) — setup guide, usage rules, and component index
+- [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) — full reference with every component's props
+
+To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
+
+```markdown
+## UI components
+
+Use fancy-ui-svelte (Svelte 5 + Tailwind CSS v4) for animated UI components.
+Full component and props reference: https://fancy-ui.rama.app/llms-full.txt
+Key rules: overlay/effect components (BorderBeam, GlowBorder, backgrounds, ...)
+need a parent with `relative overflow-hidden`; cursor effects (FluidCursor,
+SmoothCursor) mount once in the root +layout.svelte; Svelte 5 syntax only.
+```
+
 ## Development
 
 ```bash
