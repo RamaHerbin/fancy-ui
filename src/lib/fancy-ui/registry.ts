@@ -2099,6 +2099,54 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	"noise-reveal": {
+		name: "NoiseReveal",
+		slug: "noise-reveal",
+		description:
+			"WebGL image reveal with a Perlin-noise dissolve mask, contracting radial gradient, and wave displacement, inspired by a Codrops shader effect",
+		category: "media",
+		status: "done",
+		credits: [
+			{
+				source: "Codrops",
+				url: "https://tympanus.net/codrops/2024/12/02/how-to-code-a-shader-based-reveal-effect-with-react-three-fiber-glsl/",
+			},
+			{
+				source: "colindmg/r3f-image-reveal-effect",
+				url: "https://github.com/colindmg/r3f-image-reveal-effect",
+			},
+		],
+		tags: ["media", "image", "reveal", "webgl", "shader", "threejs", "noise"],
+		props: [
+			{ name: "src", type: "string", description: "Image URL", required: true },
+			{ name: "alt", type: "string", description: "Accessible label for the image" },
+			{
+				name: "trigger",
+				type: '"view" | "manual"',
+				default: '"view"',
+				description: 'Reveal trigger: "view" = on viewport entry, "manual" = via revealed prop',
+			},
+			{
+				name: "revealed",
+				type: "boolean",
+				default: "false",
+				description: 'Manual reveal state (used with trigger="manual"; also allows re-hiding)',
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "1.5",
+				description: "Reveal animation duration in seconds",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: 'Delay before reveal in seconds (trigger="view")',
+			},
+		],
+	},
 };
 
 // =============================================================================
