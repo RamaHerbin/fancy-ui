@@ -11,6 +11,30 @@ import type { ComponentMeta } from "$lib/types.js";
 
 const SITE_URL = "https://fancy-ui.rama.app";
 
+// Map slug → actual runtime exports of each component folder, so generated
+// import examples never reference names the package does not export
+// (e.g. card-3d exports CardContainer/CardBody/CardItem, not Card3D).
+const componentModules = import.meta.glob("../fancy-ui/*/index.ts", { eager: true }) as Record<
+	string,
+	Record<string, unknown>
+>;
+
+const exportsBySlug = new Map<string, string[]>();
+for (const [path, module] of Object.entries(componentModules)) {
+	const slug = path.split("/").at(-2);
+	if (!slug) continue;
+	exportsBySlug.set(
+		slug,
+		Object.keys(module).filter((name) => /^[A-Z]/.test(name))
+	);
+}
+
+function importNames(component: ComponentMeta): string[] {
+	const exported = exportsBySlug.get(component.slug) ?? [];
+	if (exported.includes(component.name)) return [component.name];
+	return exported.length > 0 ? exported : [component.name];
+}
+
 function doneComponents(): ComponentMeta[] {
 	return Object.values(registry).filter((c) => c.status === "done" && !c.deprecated);
 }
@@ -82,9 +106,11 @@ fancy-ui-svelte requires Tailwind CSS v4.
   effects: mount them ONCE in the root \`+layout.svelte\`, not per page.
 - All components are SSR-safe (canvas/WebGL work happens in \`onMount\`); no
   \`browser\` checks or dynamic imports needed.
-- Prop types are exported alongside each component:
-  \`import { BorderBeam, type BorderBeamProps } from 'fancy-ui-svelte';\`
-- Every component accepts \`class\` for Tailwind overrides (merged with \`tailwind-merge\`).`;
+- Do NOT import \`XxxProps\` types — only some components export them. Rely on
+  the props tables in ${SITE_URL}/llms-full.txt instead.
+- Most components accept \`class\` for Tailwind overrides (merged with
+  \`tailwind-merge\`), but helper sub-components (e.g. ConfettiButton, ReviewCard)
+  may not — only pass \`class\` when it appears in the component's props table.`;
 
 function header(componentCount: number): string {
 	return `# fancy-ui-svelte
@@ -141,7 +167,11 @@ export function generateLlmsFullTxt(): string {
 		lines.push(`## ${categoryLabels[category as keyof typeof categoryLabels]}`, "");
 		for (const c of items) {
 			lines.push(`### ${c.name}`, "", `${c.description}.`, "");
-			lines.push(`\`\`\`ts`, `import { ${c.name} } from 'fancy-ui-svelte';`, `\`\`\``);
+			lines.push(
+				`\`\`\`ts`,
+				`import { ${importNames(c).join(", ")} } from 'fancy-ui-svelte';`,
+				`\`\`\``
+			);
 			lines.push(...propsSection(c));
 			if (c.slots?.length) {
 				lines.push("", "Snippets:", "");
