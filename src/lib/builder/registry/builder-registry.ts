@@ -1247,7 +1247,7 @@ const fancyComponents: Record<string, BuilderComponentMeta> = {
 		paletteCategory: "effects",
 		acceptsChildren: false,
 		propSchemas: {
-			manualstart: {
+			manualStart: {
 				type: "boolean",
 				label: "Manual Start",
 				default: false,

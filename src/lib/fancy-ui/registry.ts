@@ -87,6 +87,15 @@ export const registry: Record<string, ComponentMeta> = {
 				url: "https://ui.aceternity.com/components/apple-cards-carousel",
 			},
 		],
+		tags: ["carousel", "cards", "animation", "spring", "scroll"],
+		props: [
+			{
+				name: "cards",
+				type: "AppleCardData[]",
+				description: "Cards to display in the carousel",
+				required: true,
+			},
+		],
 	},
 
 	"animated-beam": {
@@ -96,6 +105,95 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "effects",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/animated-beam" }],
+		tags: ["animation", "svg", "beam", "gradient", "connection"],
+		props: [
+			{
+				name: "containerRef",
+				type: "HTMLElement",
+				description: "Reference to the container element that holds both endpoints",
+				required: true,
+			},
+			{
+				name: "fromRef",
+				type: "HTMLElement",
+				description: "Reference to the source element",
+				required: true,
+			},
+			{
+				name: "toRef",
+				type: "HTMLElement",
+				description: "Reference to the destination element",
+				required: true,
+			},
+			{
+				name: "curvature",
+				type: "number",
+				default: "0",
+				description: "Vertical curvature of the beam path",
+			},
+			{
+				name: "reverse",
+				type: "boolean",
+				default: "false",
+				description: "Reverse the animation direction",
+			},
+			{
+				name: "pathColor",
+				type: "string",
+				default: '"gray"',
+				description: "Color of the static background path",
+			},
+			{ name: "pathWidth", type: "number", default: "2", description: "Stroke width of the path" },
+			{
+				name: "pathOpacity",
+				type: "number",
+				default: "0.2",
+				description: "Opacity of the background path",
+			},
+			{
+				name: "gradientStartColor",
+				type: "string",
+				default: '"#FFAA40"',
+				description: "Start color of the animated gradient",
+			},
+			{
+				name: "gradientStopColor",
+				type: "string",
+				default: '"#9C40FF"',
+				description: "End color of the animated gradient",
+			},
+			{ name: "delay", type: "number", default: "0", description: "Animation delay in seconds" },
+			{
+				name: "duration",
+				type: "number",
+				default: "random 4-7",
+				description: "Animation duration in seconds",
+			},
+			{
+				name: "startXOffset",
+				type: "number",
+				default: "0",
+				description: "Horizontal offset for the start point",
+			},
+			{
+				name: "startYOffset",
+				type: "number",
+				default: "0",
+				description: "Vertical offset for the start point",
+			},
+			{
+				name: "endXOffset",
+				type: "number",
+				default: "0",
+				description: "Horizontal offset for the end point",
+			},
+			{
+				name: "endYOffset",
+				type: "number",
+				default: "0",
+				description: "Vertical offset for the end point",
+			},
+		],
 	},
 
 	"animated-testimonials": {
@@ -104,6 +202,27 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Testimonial carousel with smooth slide animations and optional autoplay",
 		category: "data-display",
 		status: "done",
+		tags: ["testimonials", "carousel", "animation", "social-proof"],
+		props: [
+			{
+				name: "testimonials",
+				type: "Testimonial[]",
+				description: "Array of testimonials to display",
+				required: true,
+			},
+			{
+				name: "autoplay",
+				type: "boolean",
+				default: "false",
+				description: "Auto-advance testimonials",
+			},
+			{
+				name: "interval",
+				type: "number",
+				default: "5000",
+				description: "Interval between auto-advances in ms",
+			},
+		],
 	},
 
 	"bg-falling-stars": {
@@ -112,6 +231,11 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Canvas-based 3D starfield with perspective projection, motion trails, and glow",
 		category: "backgrounds",
 		status: "done",
+		tags: ["background", "stars", "canvas", "animation", "3d", "space"],
+		props: [
+			{ name: "color", type: "string", default: '"#FFF"', description: "Star color as hex string" },
+			{ name: "count", type: "number", default: "200", description: "Number of stars" },
+		],
 	},
 
 	"animated-tooltip": {
@@ -123,6 +247,15 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/animated-tooltip" },
 		],
+		tags: ["tooltip", "avatar", "animation", "hover", "team"],
+		props: [
+			{
+				name: "items",
+				type: "TooltipItem[]",
+				description: "Array of items with id, name, designation, and image URL",
+				required: true,
+			},
+		],
 	},
 
 	"blur-reveal": {
@@ -132,6 +265,36 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/blur-fade" }],
+		tags: ["animation", "reveal", "blur", "scroll", "stagger"],
+		props: [
+			{
+				name: "duration",
+				type: "number",
+				default: "1",
+				description: "Animation duration in seconds",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0.2",
+				description: "Stagger delay between children in seconds",
+			},
+			{
+				name: "blur",
+				type: "string",
+				default: '"20px"',
+				description: "Initial blur amount (CSS value)",
+			},
+			{
+				name: "yOffset",
+				type: "number",
+				default: "20",
+				description: "Initial vertical offset in pixels",
+			},
+		],
+		slots: [
+			{ name: "children", description: "Content elements to reveal with staggered animation" },
+		],
 	},
 
 	"border-beam": {
@@ -141,6 +304,31 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "effects",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/border-beam" }],
+		tags: ["animation", "border", "gradient", "beam"],
+		props: [
+			{ name: "size", type: "number", default: "200", description: "Size of the beam in pixels" },
+			{
+				name: "duration",
+				type: "number",
+				default: "15",
+				description: "Animation duration in seconds",
+			},
+			{
+				name: "borderWidth",
+				type: "number",
+				default: "1.5",
+				description: "Border width in pixels",
+			},
+			{ name: "anchor", type: "number", default: "90", description: "Anchor position (0-100)" },
+			{
+				name: "colorFrom",
+				type: "string",
+				default: '"#ffaa40"',
+				description: "Gradient start color",
+			},
+			{ name: "colorTo", type: "string", default: '"#9c40ff"', description: "Gradient end color" },
+			{ name: "delay", type: "number", default: "0", description: "Animation delay in seconds" },
+		],
 	},
 
 	compare: {
@@ -150,6 +338,86 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "media",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/compare" }],
+		tags: ["media", "image", "slider", "comparison", "before-after", "interactive"],
+		props: [
+			{
+				name: "firstImage",
+				type: "string",
+				default: '""',
+				description: "URL of the first (left) image",
+			},
+			{
+				name: "secondImage",
+				type: "string",
+				default: '""',
+				description: "URL of the second (right) image",
+			},
+			{
+				name: "firstImageAlt",
+				type: "string",
+				default: '"First image"',
+				description: "Alt text for the first image",
+			},
+			{
+				name: "secondImageAlt",
+				type: "string",
+				default: '"Second image"',
+				description: "Alt text for the second image",
+			},
+			{
+				name: "firstContentClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the first content container",
+			},
+			{
+				name: "secondContentClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the second content container",
+			},
+			{
+				name: "initialSliderPercentage",
+				type: "number",
+				default: "50",
+				description: "Initial slider position (0-100)",
+			},
+			{
+				name: "slideMode",
+				type: '"hover" | "drag"',
+				default: '"hover"',
+				description: "How the slider is controlled",
+			},
+			{
+				name: "showHandlebar",
+				type: "boolean",
+				default: "true",
+				description: "Show the drag handle bar",
+			},
+			{
+				name: "autoplay",
+				type: "boolean",
+				default: "false",
+				description: "Automatically animate the slider back and forth",
+			},
+			{
+				name: "autoplayDuration",
+				type: "number",
+				default: "5000",
+				description: "Duration of one autoplay cycle in ms",
+			},
+		],
+		slots: [
+			{
+				name: "firstContent",
+				description: "Custom content to render in the first (left) panel instead of an image",
+			},
+			{
+				name: "secondContent",
+				description: "Custom content to render in the second (right) panel instead of an image",
+			},
+			{ name: "handle", description: "Custom drag handle element" },
+		],
 	},
 
 	"image-trail-cursor": {
@@ -158,6 +426,21 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Cursor-following image trail with 8 animation variants",
 		category: "effects",
 		status: "done",
+		tags: ["cursor", "animation", "images", "trail", "interactive"],
+		props: [
+			{
+				name: "images",
+				type: "string[]",
+				default: "[]",
+				description: "Array of image URLs to show in the trail",
+			},
+			{
+				name: "variant",
+				type: '"type1" | "type2" | ... | "type8"',
+				default: '"type1"',
+				description: "Animation variant controlling how images appear and move",
+			},
+		],
 	},
 
 	"interactive-grid-pattern": {
@@ -172,6 +455,32 @@ export const registry: Record<string, ComponentMeta> = {
 				url: "https://magicui.design/docs/components/interactive-grid-pattern",
 			},
 		],
+		tags: ["grid", "pattern", "interactive", "hover", "svg", "background"],
+		props: [
+			{
+				name: "squaresClassName",
+				type: "string",
+				description: "Additional CSS classes for individual squares",
+			},
+			{
+				name: "width",
+				type: "number",
+				default: "40",
+				description: "Width of each square in pixels",
+			},
+			{
+				name: "height",
+				type: "number",
+				default: "40",
+				description: "Height of each square in pixels",
+			},
+			{
+				name: "squares",
+				type: "[number, number]",
+				default: "[24, 24]",
+				description: "Grid dimensions as [columns, rows]",
+			},
+		],
 	},
 
 	"line-hover-link": {
@@ -182,6 +491,20 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "navigation",
 		status: "done",
 		credits: [{ source: "VengenceUI", url: "https://www.vengence-ui.com/docs/line-hover-link" }],
+		tags: ["link", "navigation", "hover", "animation", "underline", "css"],
+		props: [
+			{
+				name: "variant",
+				type: '"slide" | "double" | "grow" | "strike" | "fade" | "pulse" | "swap" | "sweep" | "bounce" | "arc" | "scribble"',
+				default: '"slide"',
+				description: "The animation variant",
+			},
+			{ name: "href", type: "string", default: '"#"', description: "Link href" },
+			{ name: "target", type: "string", description: "Link target attribute" },
+			{ name: "rel", type: "string", description: "Link rel attribute" },
+			{ name: "aria-label", type: "string", description: "Accessible label" },
+		],
+		slots: [{ name: "children", description: "Link text content" }],
 	},
 
 	"logo-cloud": {
@@ -191,6 +514,16 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "data-display",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/marquee" }],
+		tags: ["logos", "marquee", "brands", "animation", "scrolling"],
+		props: [
+			{ name: "title", type: "string", description: "Optional title displayed above the logos" },
+			{
+				name: "logos",
+				type: "Logo[]",
+				default: "[]",
+				description: "Array of logos with name and image path",
+			},
+		],
 	},
 
 	"direction-aware-hover": {
@@ -205,6 +538,34 @@ export const registry: Record<string, ComponentMeta> = {
 				url: "https://ui.aceternity.com/components/direction-aware-hover",
 			},
 		],
+		tags: ["card", "hover", "image", "animation", "direction", "interactive"],
+		props: [
+			{
+				name: "imageUrl",
+				type: "string",
+				description: "URL of the background image",
+				required: true,
+			},
+			{
+				name: "imageAlt",
+				type: "string",
+				default: '"image"',
+				description: "Alt text for the image",
+			},
+			{
+				name: "childrenClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the overlay content wrapper",
+			},
+			{
+				name: "imageClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the image element",
+			},
+		],
+		slots: [{ name: "children", description: "Content shown in the overlay when hovered" }],
 	},
 
 	"rainbow-button": {
@@ -214,6 +575,12 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "buttons",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/rainbow-button" }],
+		tags: ["button", "animation", "rainbow", "gradient", "cta"],
+		props: [
+			{ name: "speed", type: "number", default: "2", description: "Animation speed in seconds" },
+			{ name: "href", type: "string", description: "Render as anchor element when provided" },
+		],
+		slots: [{ name: "children", description: "Button label content" }],
 	},
 
 	"ripple-button": {
@@ -223,6 +590,22 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "buttons",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/ripple-button" }],
+		tags: ["button", "ripple", "click", "animation", "material"],
+		props: [
+			{
+				name: "rippleColor",
+				type: "string",
+				default: '"#ADD8E6"',
+				description: "Color of the ripple effect",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "600",
+				description: "Animation duration in milliseconds",
+			},
+		],
+		slots: [{ name: "children", description: "Button content" }],
 	},
 
 	"shimmer-button": {
@@ -232,6 +615,40 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "buttons",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/shimmer-button" }],
+		tags: ["button", "shimmer", "gradient", "animation", "cta"],
+		props: [
+			{
+				name: "shimmerColor",
+				type: "string",
+				default: '"#ffffff"',
+				description: "Shimmer highlight color",
+			},
+			{
+				name: "shimmerSize",
+				type: "string",
+				default: '"0.05em"',
+				description: "Thickness of the shimmer border",
+			},
+			{
+				name: "borderRadius",
+				type: "string",
+				default: '"100px"',
+				description: "Button border radius",
+			},
+			{
+				name: "shimmerDuration",
+				type: "string",
+				default: '"3s"',
+				description: "Duration of the shimmer animation cycle",
+			},
+			{
+				name: "background",
+				type: "string",
+				default: '"rgba(0, 0, 0, 1)"',
+				description: "Button background color",
+			},
+		],
+		slots: [{ name: "children", description: "Button content" }],
 	},
 
 	timeline: {
@@ -241,6 +658,23 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "navigation",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/timeline" }],
+		tags: ["timeline", "scroll", "navigation", "progress", "vertical"],
+		props: [
+			{
+				name: "items",
+				type: "TimelineItem[]",
+				default: "[]",
+				description: "Timeline entries with id and label",
+			},
+			{ name: "title", type: "string", description: "Heading text" },
+			{ name: "description", type: "string", description: "Subheading text" },
+		],
+		slots: [
+			{
+				name: "content",
+				description: "Content snippet called for each timeline item, receives the item as argument",
+			},
+		],
 	},
 
 	"bg-stars": {
@@ -252,6 +686,35 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/stars-background" },
 		],
+		tags: ["background", "stars", "parallax", "animation", "space", "mouse"],
+		props: [
+			{
+				name: "factor",
+				type: "number",
+				default: "0.05",
+				description: "Parallax factor for mouse movement",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "50",
+				description: "Base animation speed in seconds",
+			},
+			{
+				name: "stiffness",
+				type: "number",
+				default: "50",
+				description: "Spring stiffness for parallax",
+			},
+			{
+				name: "damping",
+				type: "number",
+				default: "20",
+				description: "Spring damping for parallax",
+			},
+			{ name: "starColor", type: "string", default: '"#fff"', description: "Color of the stars" },
+		],
+		slots: [{ name: "children", description: "Child content to render over the stars" }],
 	},
 
 	dock: {
@@ -261,6 +724,34 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "navigation",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/dock" }],
+		tags: ["dock", "navigation", "macos", "magnification", "hover"],
+		props: [
+			{
+				name: "magnification",
+				type: "number",
+				default: "60",
+				description: "Maximum icon size in pixels when magnified",
+			},
+			{
+				name: "distance",
+				type: "number",
+				default: "140",
+				description: "Distance in pixels over which magnification takes effect",
+			},
+			{
+				name: "direction",
+				type: '"top" | "middle" | "bottom"',
+				default: '"middle"',
+				description: "Vertical alignment of icons relative to the dock bar",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "Dock orientation",
+			},
+		],
+		slots: [{ name: "children", description: "DockIcon and DockSeparator elements" }],
 	},
 
 	"fluid-cursor": {
@@ -272,6 +763,139 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/fluid-cursor" },
 		],
+		tags: ["cursor", "webgl", "fluid", "simulation", "interactive"],
+		props: [
+			{
+				name: "simResolution",
+				type: "number",
+				default: "128",
+				description: "Simulation grid resolution",
+			},
+			{
+				name: "dyeResolution",
+				type: "number",
+				default: "1440",
+				description: "Dye/color buffer resolution",
+			},
+			{
+				name: "captureResolution",
+				type: "number",
+				default: "512",
+				description: "Capture buffer resolution",
+			},
+			{
+				name: "densityDissipation",
+				type: "number",
+				default: "3.5",
+				description: "Rate at which density fades",
+			},
+			{
+				name: "velocityDissipation",
+				type: "number",
+				default: "2",
+				description: "Rate at which velocity fades",
+			},
+			{ name: "pressure", type: "number", default: "0.1", description: "Pressure solver strength" },
+			{
+				name: "pressureIterations",
+				type: "number",
+				default: "20",
+				description: "Number of pressure solver iterations",
+			},
+			{ name: "curl", type: "number", default: "3", description: "Amount of curl/vorticity" },
+			{
+				name: "splatRadius",
+				type: "number",
+				default: "0.2",
+				description: "Radius of fluid splats",
+			},
+			{ name: "splatForce", type: "number", default: "6000", description: "Force of fluid splats" },
+			{ name: "shading", type: "boolean", default: "true", description: "Enable fluid shading" },
+			{
+				name: "colorUpdateSpeed",
+				type: "number",
+				default: "10",
+				description: "Speed of color changes",
+			},
+			{
+				name: "backColor",
+				type: "ColorRGB | string",
+				default: "{ r: 0.5, g: 0, b: 0 }",
+				description: "Background color",
+			},
+			{
+				name: "transparent",
+				type: "boolean",
+				default: "true",
+				description: "Transparent background",
+			},
+			{ name: "fluidColor", type: "string", description: "Override all fluid with a single color" },
+			{
+				name: "fluidColors",
+				type: "string[]",
+				description: "Array of colors to cycle through for fluid splats",
+			},
+			{
+				name: "colorIntensity",
+				type: "number",
+				default: "0.15",
+				description: "Intensity of color mixing",
+			},
+			{
+				name: "autoSplat",
+				type: "boolean",
+				default: "false",
+				description: "Automatically create random splats",
+			},
+			{
+				name: "autoSplatInterval",
+				type: "number",
+				default: "1500",
+				description: "Interval between auto-splats in ms",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "React to mouse/touch input",
+			},
+			{
+				name: "pauseWhenHidden",
+				type: "boolean",
+				default: "true",
+				description: "Pause simulation when tab is hidden",
+			},
+			{
+				name: "splatOnMount",
+				type: "boolean",
+				default: "false",
+				description: "Create a splat on mount",
+			},
+			{
+				name: "allowMultiple",
+				type: "boolean",
+				default: "false",
+				description: "Allow multiple instances simultaneously",
+			},
+			{
+				name: "contained",
+				type: "boolean",
+				default: "true",
+				description: "Confine simulation to parent container",
+			},
+		],
+	},
+
+	"fluid-cursor-advanced": {
+		name: "FluidCursorAdvanced",
+		slug: "fluid-cursor-advanced",
+		description: "WebGL fluid simulation confined to a parent container element",
+		category: "effects",
+		status: "done",
+		credits: [
+			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/fluid-cursor" },
+		],
+		tags: ["cursor", "webgl", "fluid", "simulation", "interactive", "contained"],
 	},
 
 	"glow-border": {
@@ -282,6 +906,28 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/background-gradient" },
+		],
+		tags: ["border", "glow", "animation", "gradient", "decoration"],
+		props: [
+			{
+				name: "borderRadius",
+				type: "number",
+				default: "10",
+				description: "Border radius in pixels",
+			},
+			{
+				name: "color",
+				type: "string | string[]",
+				default: '"#FFF"',
+				description: "Glow color or array of colors for gradient",
+			},
+			{ name: "borderWidth", type: "number", default: "2", description: "Border width in pixels" },
+			{
+				name: "duration",
+				type: "number",
+				default: "10",
+				description: "Animation duration in seconds",
+			},
 		],
 	},
 
@@ -294,6 +940,42 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/buttons/gradient-button" },
 		],
+		tags: ["button", "gradient", "animation", "rainbow", "border", "cta"],
+		props: [
+			{
+				name: "colors",
+				type: "string[]",
+				default:
+					'["#FF0000","#FFA500","#FFFF00","#008000","#0000FF","#4B0082","#EE82EE","#FF0000"]',
+				description: "Gradient colors for the conic-gradient border",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "2500",
+				description: "Animation duration in milliseconds",
+			},
+			{ name: "borderWidth", type: "number", default: "2", description: "Border width in pixels" },
+			{
+				name: "borderRadius",
+				type: "number",
+				default: "8",
+				description: "Border radius in pixels",
+			},
+			{
+				name: "blur",
+				type: "number",
+				default: "4",
+				description: "Blur amount for the gradient in pixels",
+			},
+			{
+				name: "bgColor",
+				type: "string",
+				default: '"#000"',
+				description: "Background color of the button content area",
+			},
+		],
+		slots: [{ name: "children", description: "Button content" }],
 	},
 
 	"interactive-hover-button": {
@@ -308,6 +990,16 @@ export const registry: Record<string, ComponentMeta> = {
 				url: "https://magicui.design/docs/components/interactive-hover-button",
 			},
 		],
+		tags: ["button", "hover", "animation", "interactive", "reveal"],
+		props: [
+			{
+				name: "text",
+				type: "string",
+				default: '"Button"',
+				description: "Button label text (used when children slot is not provided)",
+			},
+		],
+		slots: [{ name: "children", description: "Button content (overrides text prop)" }],
 	},
 
 	marquee: {
@@ -317,6 +1009,34 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "layout",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/marquee" }],
+		tags: ["marquee", "scrolling", "animation", "layout", "infinite"],
+		props: [
+			{
+				name: "reverse",
+				type: "boolean",
+				default: "false",
+				description: "Reverse the scroll direction",
+			},
+			{
+				name: "pauseOnHover",
+				type: "boolean",
+				default: "false",
+				description: "Pause animation on hover",
+			},
+			{
+				name: "vertical",
+				type: "boolean",
+				default: "false",
+				description: "Scroll vertically instead of horizontally",
+			},
+			{
+				name: "repeat",
+				type: "number",
+				default: "4",
+				description: "Number of times to repeat children for seamless loop",
+			},
+		],
+		slots: [{ name: "children", description: "Content to repeat and scroll" }],
 	},
 
 	meteors: {
@@ -326,6 +1046,10 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "effects",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/meteors" }],
+		tags: ["animation", "meteors", "particles", "decoration", "space"],
+		props: [
+			{ name: "count", type: "number", default: "20", description: "Number of meteors to render" },
+		],
 	},
 
 	"flickering-grid": {
@@ -336,6 +1060,49 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 		credits: [
 			{ source: "Magic UI", url: "https://magicui.design/docs/components/flickering-grid" },
+		],
+		tags: ["background", "grid", "canvas", "animation", "pattern"],
+		props: [
+			{
+				name: "squareSize",
+				type: "number",
+				default: "4",
+				description: "Size of each grid square in pixels",
+			},
+			{
+				name: "gridGap",
+				type: "number",
+				default: "6",
+				description: "Gap between squares in pixels",
+			},
+			{
+				name: "flickerChance",
+				type: "number",
+				default: "0.3",
+				description: "Probability of a square changing opacity each second (0-1)",
+			},
+			{
+				name: "color",
+				type: "string",
+				default: '"#000000"',
+				description: "Color of the squares (hex format)",
+			},
+			{
+				name: "maxOpacity",
+				type: "number",
+				default: "0.3",
+				description: "Maximum opacity of squares (0-1)",
+			},
+			{
+				name: "width",
+				type: "number",
+				description: "Fixed width in pixels (defaults to container width)",
+			},
+			{
+				name: "height",
+				type: "number",
+				description: "Fixed height in pixels (defaults to container height)",
+			},
 		],
 	},
 
@@ -348,6 +1115,26 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Magic UI", url: "https://magicui.design/docs/components/neon-gradient-card" },
 		],
+		tags: ["border", "neon", "glow", "animation", "gradient", "decoration"],
+		props: [
+			{ name: "color1", type: "string", default: '"#0496ff"', description: "First neon color" },
+			{ name: "color2", type: "string", default: '"#ff0a54"', description: "Second neon color" },
+			{
+				name: "animationType",
+				type: '"none" | "half" | "full"',
+				default: '"half"',
+				description: "Animation type: none (static), half (50% coverage), full (100% coverage)",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "6",
+				description: "Animation duration in seconds",
+			},
+		],
+		slots: [
+			{ name: "children", description: "Content to display inside the neon border container" },
+		],
 	},
 
 	"colourful-text": {
@@ -359,6 +1146,28 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/colourful-text" },
 		],
+		tags: ["text", "animation", "color", "gradient", "typography"],
+		props: [
+			{ name: "text", type: "string", description: "Text to animate", required: true },
+			{
+				name: "colors",
+				type: "string[]",
+				default: "[10 preset colors]",
+				description: "Array of colors to cycle through",
+			},
+			{
+				name: "startColor",
+				type: "string",
+				default: '"rgb(255, 255, 255)"',
+				description: "Initial color before animation",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "0.5",
+				description: "Transition duration in seconds for each character",
+			},
+		],
 	},
 
 	"flip-words": {
@@ -368,6 +1177,21 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/flip-words" }],
+		tags: ["text", "animation", "words", "cycling", "typography", "blur"],
+		props: [
+			{
+				name: "words",
+				type: "string[]",
+				description: "Array of words to cycle through",
+				required: true,
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "3000",
+				description: "Time each word stays visible in ms",
+			},
+		],
 	},
 
 	"hyper-text": {
@@ -377,6 +1201,22 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/hyper-text" }],
+		tags: ["text", "animation", "scramble", "hover", "glitch", "typography"],
+		props: [
+			{ name: "text", type: "string", description: "Text to display and scramble", required: true },
+			{
+				name: "duration",
+				type: "number",
+				default: "800",
+				description: "Total animation duration in ms",
+			},
+			{
+				name: "animateOnLoad",
+				type: "boolean",
+				default: "false",
+				description: "Whether to animate on initial load",
+			},
+		],
 	},
 
 	"letter-pullup": {
@@ -386,6 +1226,21 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/letter-pullup" }],
+		tags: ["text", "animation", "letters", "stagger", "entrance", "typography"],
+		props: [
+			{
+				name: "words",
+				type: "string",
+				description: "Text to animate (each character gets its own animation)",
+				required: true,
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0.05",
+				description: "Delay between each letter animation in seconds",
+			},
+		],
 	},
 
 	"number-ticker": {
@@ -395,6 +1250,34 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/number-ticker" }],
+		tags: ["text", "counter", "animation", "number", "scroll", "statistics"],
+		props: [
+			{ name: "value", type: "number", default: "0", description: "Target number to animate to" },
+			{
+				name: "direction",
+				type: '"up" | "down"',
+				default: '"up"',
+				description: 'Animation direction: "up" counts 0→value, "down" counts value→0',
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "1000",
+				description: "Animation duration in ms",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: "Delay before animation starts in ms",
+			},
+			{
+				name: "decimalPlaces",
+				type: "number",
+				default: "0",
+				description: "Number of decimal places to display",
+			},
+		],
 	},
 
 	"sparkles-text": {
@@ -404,6 +1287,22 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/sparkles" }],
+		tags: ["text", "sparkles", "animation", "stars", "decoration", "typography"],
+		props: [
+			{ name: "text", type: "string", description: "Text to display", required: true },
+			{
+				name: "sparklesCount",
+				type: "number",
+				default: "10",
+				description: "Number of sparkle stars",
+			},
+			{
+				name: "colors",
+				type: "{ first: string; second: string }",
+				default: '{ first: "#9E7AFF", second: "#FE8BBB" }',
+				description: "Two colors for sparkle stars",
+			},
+		],
 	},
 
 	"box-reveal": {
@@ -413,6 +1312,28 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/box-reveal" }],
+		tags: ["text", "animation", "reveal", "scroll", "entrance"],
+		props: [
+			{
+				name: "color",
+				type: "string",
+				default: '"#5046e6"',
+				description: "Color of the reveal box",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "0.5",
+				description: "Animation duration in seconds",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0.25",
+				description: "Delay before animation starts in seconds",
+			},
+		],
+		slots: [{ name: "children", description: "Content to reveal" }],
 	},
 
 	"card-3d": {
@@ -424,6 +1345,16 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/3d-card-effect" },
 		],
+		tags: ["card", "3d", "perspective", "hover", "animation", "interactive"],
+		props: [
+			{
+				name: "containerClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the outer perspective wrapper",
+			},
+		],
+		slots: [{ name: "children", description: "CardBody and CardItem elements" }],
 	},
 
 	"card-spotlight": {
@@ -435,6 +1366,34 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/card-spotlight" },
 		],
+		tags: ["card", "spotlight", "mouse", "gradient", "interactive", "hover"],
+		props: [
+			{
+				name: "slotClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the inner content wrapper",
+			},
+			{
+				name: "gradientSize",
+				type: "number",
+				default: "200",
+				description: "Size of the spotlight gradient in pixels",
+			},
+			{
+				name: "gradientColor",
+				type: "string",
+				default: '"#262626"',
+				description: "Color of the spotlight gradient",
+			},
+			{
+				name: "gradientOpacity",
+				type: "number",
+				default: "0.8",
+				description: "Opacity of the spotlight gradient",
+			},
+		],
+		slots: [{ name: "children", description: "Card content" }],
 	},
 
 	"bento-grid": {
@@ -444,6 +1403,8 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "cards",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/bento-grid" }],
+		tags: ["grid", "layout", "bento", "cards", "dashboard"],
+		slots: [{ name: "children", description: "BentoGridItem components to arrange in the grid" }],
 	},
 
 	"flip-card": {
@@ -452,6 +1413,19 @@ export const registry: Record<string, ComponentMeta> = {
 		description: "Card that flips to reveal back content on hover using CSS 3D transforms",
 		category: "cards",
 		status: "done",
+		tags: ["card", "flip", "3d", "hover", "animation", "interactive"],
+		props: [
+			{
+				name: "rotate",
+				type: '"x" | "y"',
+				default: '"y"',
+				description: "Axis of rotation for the flip effect",
+			},
+		],
+		slots: [
+			{ name: "children", description: "Front face content" },
+			{ name: "back", description: "Back face content revealed on hover" },
+		],
 	},
 
 	book: {
@@ -461,6 +1435,36 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "cards",
 		status: "done",
 		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/cards/book" }],
+		tags: ["card", "book", "3d", "hover", "animation"],
+		props: [
+			{
+				name: "duration",
+				type: "number",
+				default: "1000",
+				description: "Hover animation duration in ms",
+			},
+			{
+				name: "color",
+				type: "BookColor",
+				default: '"zinc"',
+				description: "Color theme for the book cover gradient",
+			},
+			{
+				name: "isStatic",
+				type: "boolean",
+				default: "false",
+				description: "Show book in open position without hover animation",
+			},
+			{ name: "size", type: "BookSize", default: '"md"', description: "Size variant of the book" },
+			{ name: "radius", type: "BookRadius", default: '"md"', description: "Border radius variant" },
+			{
+				name: "shadowSize",
+				type: "BookShadowSize",
+				default: '"lg"',
+				description: "Drop shadow size variant",
+			},
+		],
+		slots: [{ name: "children", description: "Content rendered on the book cover (front face)" }],
 	},
 
 	"glare-card": {
@@ -470,6 +1474,10 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "cards",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/glare-card" }],
+		tags: ["card", "glare", "holographic", "mouse", "3d", "foil", "interactive"],
+		slots: [
+			{ name: "children", description: "Card content rendered inside the holographic surface" },
+		],
 	},
 
 	"text-reveal-card": {
@@ -480,6 +1488,26 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-reveal-card" },
+		],
+		tags: ["card", "text", "reveal", "drag", "interactive", "particles"],
+		props: [
+			{
+				name: "starsCount",
+				type: "number",
+				default: "130",
+				description: "Number of star particles in the background",
+			},
+			{
+				name: "starsClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the stars container",
+			},
+		],
+		slots: [
+			{ name: "children", description: "Content rendered above the reveal area (e.g., title)" },
+			{ name: "text", description: "Text shown in the revealed layer (dragged to reveal)" },
+			{ name: "revealText", description: "Text visible in the background star layer" },
 		],
 	},
 
@@ -495,6 +1523,17 @@ export const registry: Record<string, ComponentMeta> = {
 				url: "https://ui.aceternity.com/components/container-scroll-animation",
 			},
 		],
+		tags: ["layout", "scroll", "animation", "3d", "perspective"],
+		slots: [
+			{
+				name: "titleContent",
+				description: "Header/title content that translates upward on scroll",
+			},
+			{
+				name: "cardContent",
+				description: "Content inside the animated card that tilts flat on scroll",
+			},
+		],
 	},
 
 	"container-text-flip": {
@@ -504,6 +1543,33 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/text/text-flip" }],
+		tags: ["text", "animation", "words", "cycling", "blur", "typography"],
+		props: [
+			{
+				name: "words",
+				type: "string[]",
+				default: '["better","modern","beautiful","awesome"]',
+				description: "Array of words to cycle through",
+			},
+			{
+				name: "interval",
+				type: "number",
+				default: "3000",
+				description: "Time between word changes in ms",
+			},
+			{
+				name: "animationDuration",
+				type: "number",
+				default: "700",
+				description: "Per-character animation duration in ms",
+			},
+			{
+				name: "textClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the text content span",
+			},
+		],
 	},
 
 	focus: {
@@ -513,6 +1579,45 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/focus-cards" }],
+		tags: ["text", "animation", "focus", "blur", "words", "typography"],
+		props: [
+			{
+				name: "sentence",
+				type: "string",
+				default: '"Fancy Focus"',
+				description: "Space-separated words to cycle focus through",
+			},
+			{
+				name: "manualMode",
+				type: "boolean",
+				default: "false",
+				description: "Enable manual control via mouse hover instead of auto-cycling",
+			},
+			{
+				name: "blurAmount",
+				type: "number",
+				default: "5",
+				description: "Blur amount in pixels for unfocused words",
+			},
+			{
+				name: "borderColor",
+				type: "string",
+				default: '"green"',
+				description: "Color of the corner frame border",
+			},
+			{
+				name: "animationDuration",
+				type: "number",
+				default: "0.5",
+				description: "Transition duration in seconds",
+			},
+			{
+				name: "pauseBetweenAnimations",
+				type: "number",
+				default: "1",
+				description: "Pause between word cycles in seconds",
+			},
+		],
 	},
 
 	"liquid-glass": {
@@ -527,6 +1632,79 @@ export const registry: Record<string, ComponentMeta> = {
 				url: "https://inspira-ui.com/components/special-effects/liquid-glass",
 			},
 		],
+		tags: ["glass", "effect", "svg", "filter", "chromatic", "displacement", "blur"],
+		props: [
+			{ name: "radius", type: "number", default: "16", description: "Border radius in pixels" },
+			{
+				name: "border",
+				type: "number",
+				default: "0.07",
+				description: "Border thickness as fraction of min dimension",
+			},
+			{
+				name: "lightness",
+				type: "number",
+				default: "50",
+				description: "Background lightness percentage",
+			},
+			{
+				name: "displace",
+				type: "number",
+				description: "Optional Gaussian blur on the displacement output",
+			},
+			{
+				name: "blend",
+				type: "string",
+				default: '"difference"',
+				description: "SVG blend mode for the displacement channels",
+			},
+			{
+				name: "xChannel",
+				type: '"R" | "G" | "B"',
+				default: '"R"',
+				description: "X displacement channel selector",
+			},
+			{
+				name: "yChannel",
+				type: '"R" | "G" | "B"',
+				default: '"B"',
+				description: "Y displacement channel selector",
+			},
+			{ name: "alpha", type: "number", default: "0.93", description: "Background fill alpha" },
+			{
+				name: "blur",
+				type: "number",
+				default: "11",
+				description: "Blur applied to the background fill layer",
+			},
+			{
+				name: "rOffset",
+				type: "number",
+				default: "0",
+				description: "Red channel displacement offset",
+			},
+			{
+				name: "gOffset",
+				type: "number",
+				default: "10",
+				description: "Green channel displacement offset",
+			},
+			{
+				name: "bOffset",
+				type: "number",
+				default: "20",
+				description: "Blue channel displacement offset",
+			},
+			{ name: "scale", type: "number", default: "-180", description: "Displacement scale" },
+			{ name: "frost", type: "number", default: "0.05", description: "Frosted glass opacity" },
+			{
+				name: "containerClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the outer container",
+			},
+		],
+		slots: [{ name: "children", description: "Content rendered inside the glass effect" }],
 	},
 
 	"smooth-cursor": {
@@ -538,6 +1716,16 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/smooth-cursor" },
 		],
+		tags: ["cursor", "animation", "spring", "physics", "interactive"],
+		props: [
+			{
+				name: "springConfig",
+				type: "SpringConfig",
+				default: "{}",
+				description: "Spring physics configuration with damping, stiffness, and mass",
+			},
+		],
+		slots: [{ name: "cursor", description: "Custom cursor element (defaults to arrow SVG)" }],
 	},
 
 	"glowing-effect": {
@@ -547,6 +1735,58 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "effects",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/glowing-effect" }],
+		tags: ["border", "glow", "mouse", "gradient", "conic", "animation"],
+		props: [
+			{
+				name: "blur",
+				type: "number",
+				default: "0",
+				description: "Blur amount applied to the glow layer",
+			},
+			{
+				name: "inactiveZone",
+				type: "number",
+				default: "0.7",
+				description: "Fraction of element radius where glow is inactive",
+			},
+			{
+				name: "proximity",
+				type: "number",
+				default: "0",
+				description: "Extra pixel range outside element bounds where glow activates",
+			},
+			{
+				name: "spread",
+				type: "number",
+				default: "20",
+				description: "Angular spread of the conic gradient in degrees",
+			},
+			{
+				name: "variant",
+				type: '"default" | "white"',
+				default: '"default"',
+				description: "Color variant of the glow",
+			},
+			{
+				name: "glow",
+				type: "boolean",
+				default: "false",
+				description: "Always show glow regardless of mouse position",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "true",
+				description: "Disable the glowing effect",
+			},
+			{
+				name: "movementDuration",
+				type: "number",
+				default: "2",
+				description: "Duration of the angle lerp animation",
+			},
+			{ name: "borderWidth", type: "number", default: "1", description: "Border width in pixels" },
+		],
 	},
 
 	sparkles: {
@@ -557,6 +1797,40 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "backgrounds",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/sparkles" }],
+		tags: ["background", "particles", "canvas", "animation", "sparkles"],
+		props: [
+			{
+				name: "background",
+				type: "string",
+				default: '"#0d47a1"',
+				description: "Background color of the canvas container",
+			},
+			{
+				name: "particleColor",
+				type: "string",
+				default: '"#ffffff"',
+				description: "Color of the particles",
+			},
+			{
+				name: "minSize",
+				type: "number",
+				default: "1",
+				description: "Minimum particle radius in pixels",
+			},
+			{
+				name: "maxSize",
+				type: "number",
+				default: "3",
+				description: "Maximum particle radius in pixels",
+			},
+			{ name: "speed", type: "number", default: "4", description: "Particle speed multiplier" },
+			{
+				name: "particleDensity",
+				type: "number",
+				default: "120",
+				description: "Number of particles",
+			},
+		],
 	},
 
 	confetti: {
@@ -567,6 +1841,28 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "effects",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/confetti" }],
+		tags: ["confetti", "celebration", "animation", "canvas", "particles"],
+		props: [
+			{
+				name: "options",
+				type: "ConfettiOptions",
+				default: "{}",
+				description: "canvas-confetti options passed to each fire() call",
+			},
+			{
+				name: "globalOptions",
+				type: "ConfettiGlobalOptions",
+				default: "{}",
+				description: "Global canvas-confetti initialization options",
+			},
+			{
+				name: "manualStart",
+				type: "boolean",
+				default: "false",
+				description: "Prevent auto-firing on mount; call fire() manually",
+			},
+		],
+		slots: [{ name: "children", description: "ConfettiButton or other trigger elements" }],
 	},
 
 	ripple: {
@@ -576,6 +1872,51 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "effects",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/ripple" }],
+		tags: ["animation", "ripple", "circles", "decoration", "pulse"],
+		props: [
+			{
+				name: "baseCircleSize",
+				type: "number",
+				default: "210",
+				description: "Diameter of the smallest (innermost) circle in pixels",
+			},
+			{
+				name: "baseCircleOpacity",
+				type: "number",
+				default: "0.24",
+				description: "Opacity of the innermost circle",
+			},
+			{
+				name: "spaceBetweenCircle",
+				type: "number",
+				default: "70",
+				description: "Extra pixels added to each successive circle",
+			},
+			{
+				name: "circleOpacityDowngradeRatio",
+				type: "number",
+				default: "0.03",
+				description: "Opacity reduction per circle outward",
+			},
+			{
+				name: "circleClass",
+				type: "string",
+				default: '""',
+				description: "Additional CSS classes applied to each circle",
+			},
+			{
+				name: "waveSpeed",
+				type: "number",
+				default: "80",
+				description: "Animation delay between circles in ms",
+			},
+			{
+				name: "numberOfCircles",
+				type: "number",
+				default: "7",
+				description: "Total number of concentric circles",
+			},
+		],
 	},
 
 	"text-generate-effect": {
@@ -586,6 +1927,34 @@ export const registry: Record<string, ComponentMeta> = {
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-generate-effect" },
+		],
+		tags: ["text", "animation", "typewriter", "reveal", "blur", "typography"],
+		props: [
+			{ name: "words", type: "string", description: "Text to reveal word by word", required: true },
+			{
+				name: "filter",
+				type: "boolean",
+				default: "true",
+				description: "Apply blur filter during reveal animation",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "0.7",
+				description: "Fade-in duration per word in seconds",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: "Initial delay before animation starts in ms",
+			},
+			{
+				name: "stagger",
+				type: "number",
+				default: "200",
+				description: "Delay between each word in ms",
+			},
 		],
 	},
 
@@ -598,6 +1967,22 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Magic UI", url: "https://magicui.design/docs/components/line-shadow-text" },
 		],
+		tags: ["text", "animation", "shadow", "pattern", "typography", "decoration"],
+		props: [
+			{ name: "text", type: "string", description: "Text content to display", required: true },
+			{
+				name: "shadowColor",
+				type: "string",
+				default: '"black"',
+				description: "Color of the diagonal line shadow",
+			},
+			{
+				name: "as",
+				type: '"span" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "div"',
+				default: '"span"',
+				description: "HTML element to render as",
+			},
+		],
 	},
 
 	"tracing-beam": {
@@ -609,6 +1994,10 @@ export const registry: Record<string, ComponentMeta> = {
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/tracing-beam" },
 		],
+		tags: ["scroll", "animation", "svg", "beam", "progress", "sidebar"],
+		slots: [
+			{ name: "children", description: "Long-form content rendered alongside the tracing beam" },
+		],
 	},
 	"displacement-text": {
 		name: "DisplacementText",
@@ -617,6 +2006,25 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "text",
 		status: "done",
 		credits: [{ source: "VengenceUI", url: "https://vengenceui.com/docs/liquid-text" }],
+		tags: ["text", "webgl", "3d", "displacement", "cursor", "shader", "threejs"],
+		props: [
+			{ name: "text", type: "string", default: '"Hover Me"', description: "Text to display" },
+			{ name: "fontSize", type: "number", default: "200", description: "Font size in pixels" },
+			{ name: "font", type: "string", default: '"Inter, sans-serif"', description: "Font family" },
+			{ name: "color", type: "string", description: "Fixed text color (overrides theme colors)" },
+			{
+				name: "lightColor",
+				type: "string",
+				default: '"#000000"',
+				description: "Text color in light mode",
+			},
+			{
+				name: "darkColor",
+				type: "string",
+				default: '"#ffffff"',
+				description: "Text color in dark mode",
+			},
+		],
 	},
 
 	"matrix-rain": {
@@ -626,6 +2034,34 @@ export const registry: Record<string, ComponentMeta> = {
 			"Canvas-based Matrix-style falling glyph rain with configurable color, speed, and density",
 		category: "backgrounds",
 		status: "done",
+		tags: ["background", "matrix", "canvas", "animation", "glyphs", "cyberpunk"],
+		props: [
+			{
+				name: "color",
+				type: "string",
+				default: '"#00ff41"',
+				description: "Glyph color (the classic Matrix green)",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1.0",
+				description: "Fall speed multiplier (< 1 slower, > 1 faster)",
+			},
+			{ name: "density", type: "number", default: "1.0", description: "Column density multiplier" },
+			{
+				name: "glyphSize",
+				type: "number",
+				default: "16",
+				description: "Font size of each glyph in pixels",
+			},
+			{
+				name: "fadeOpacity",
+				type: "number",
+				default: "0.05",
+				description: "Opacity of the black overlay used to create trailing fade effect",
+			},
+		],
 	},
 
 	"terminal-text": {
@@ -635,6 +2071,45 @@ export const registry: Record<string, ComponentMeta> = {
 			"Terminal-style text streamer with per-character animation, blinking cursor, and glitch effect",
 		category: "text",
 		status: "done",
+		tags: ["text", "terminal", "animation", "typewriter", "glitch", "code"],
+		props: [
+			{
+				name: "lines",
+				type: "string[]",
+				description: "Array of lines to stream character by character",
+				required: true,
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "40",
+				description: "Delay between each character in ms",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: "Initial delay before streaming starts in ms",
+			},
+			{ name: "cursor", type: "boolean", default: "true", description: "Show blinking cursor" },
+			{
+				name: "cursorChar",
+				type: "string",
+				default: '"█"',
+				description: "Character used as the cursor",
+			},
+			{
+				name: "glitch",
+				type: "boolean",
+				default: "false",
+				description: "Enable random character glitch effect after streaming",
+			},
+			{
+				name: "onComplete",
+				type: "() => void",
+				description: "Callback fired when all lines finish streaming",
+			},
+		],
 	},
 };
 

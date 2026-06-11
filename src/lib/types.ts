@@ -84,6 +84,34 @@ export type ComponentCategory =
 	| "effects";
 
 /**
+ * Component prop definition for documentation
+ */
+export interface PropDef {
+	name: string;
+	type: string;
+	default?: string;
+	description: string;
+	required?: boolean;
+}
+
+/**
+ * Component slot definition for documentation
+ */
+export interface SlotDef {
+	name: string;
+	description: string;
+}
+
+/**
+ * Component event definition for documentation
+ */
+export interface EventDef {
+	name: string;
+	detail: string;
+	description: string;
+}
+
+/**
  * Component metadata for registry
  */
 export interface ComponentMeta {
@@ -104,4 +132,14 @@ export interface ComponentMeta {
 		source: string;
 		url?: string;
 	}>;
+	/** Searchable tags */
+	tags?: string[];
+	/** Component props documentation */
+	props?: PropDef[];
+	/** Component slots documentation */
+	slots?: SlotDef[];
+	/** Component events documentation */
+	events?: EventDef[];
+	/** Version when component was added */
+	since?: string;
 }

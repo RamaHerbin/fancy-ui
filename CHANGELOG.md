@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.5.0
+
+### Minor Changes
+
+- 972b799: refactor(fluid-cursor): merge FluidCursorAdvanced into FluidCursor with new `contained` prop
+
+- f3f5f7d: feat(fluid-cursor-advanced): add singleton instance management with `allowMultiple` prop
+- dec71f5: feat(docs): merge demo examples into doc pages
+- ccab02c: Add neon synthwave glow effect to landing page code blocks
+
+### Patch Changes
+
+- 2e31372: chore: replace landing page with new design
+
+## 0.4.1
+
+### Patch Changes
+
+- dee3bce: fix(confetti): rename manualstart prop to manualStart
+- f94d734: Add interaction and autonomous animation props to FluidCursorAdvanced: `interactive`, `autoSplat`, `autoSplatInterval`, `pauseWhenHidden`, `splatOnMount`
+- 945cf3f: Add FluidCursorAdvanced component that confines the WebGL fluid simulation to a parent container element
+- 39803f1: add fluidColor, fluidColors, colorIntensity props and hex backColor support to FluidCursor
+- 47d6f0d: add new root exports (FluidCursor, InteractiveGridPattern) and remove hardcoded `tracking-wider` from NumberTicker
+
 ## 0.4.0
 
 ### Minor Changes

@@ -2,6 +2,9 @@
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
 
+	// Module-level singleton registry
+	let activeInstance: (() => void) | null = null;
+
 	interface ColorRGB {
 		r: number;
 		g: number;
@@ -27,6 +30,13 @@
 		fluidColors?: string[];
 		colorIntensity?: number;
 		class?: string;
+		autoSplat?: boolean;
+		autoSplatInterval?: number;
+		interactive?: boolean;
+		pauseWhenHidden?: boolean;
+		splatOnMount?: boolean;
+		allowMultiple?: boolean;
+		contained?: boolean;
 	}
 
 	let {
@@ -48,12 +58,21 @@
 		fluidColors,
 		colorIntensity = 0.15,
 		class: className = "",
+		autoSplat = false,
+		autoSplatInterval = 1500,
+		interactive = true,
+		pauseWhenHidden = true,
+		splatOnMount = false,
+		allowMultiple = false,
+		contained = true,
 	}: Props = $props();
 
 	function hexToRgb(hex: string): ColorRGB {
 		const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 		if (!result) {
-			console.warn(`[FluidCursor] Invalid hex color: "${hex}". Expected format: "#rrggbb". Falling back to white.`);
+			console.warn(
+				`[FluidCursor] Invalid hex color: "${hex}". Expected format: "#rrggbb". Falling back to white.`
+			);
 			return { r: 1, g: 1, b: 1 };
 		}
 		return {
@@ -954,6 +973,28 @@
 			return Math.floor(input * pixelRatio);
 		}
 
+		let canvasRectCache: DOMRect | null = null;
+		function updateCanvasRectCache() {
+			if (contained && canvas) canvasRectCache = canvas.getBoundingClientRect();
+		}
+		if (contained) {
+			window.addEventListener("resize", updateCanvasRectCache, { passive: true });
+			window.addEventListener("scroll", updateCanvasRectCache, { passive: true });
+			updateCanvasRectCache();
+		}
+
+		function getCanvasPos(clientX: number, clientY: number): { x: number; y: number } {
+			if (contained) {
+				if (!canvasRectCache) updateCanvasRectCache();
+				const rect = canvasRectCache!;
+				return {
+					x: scaleByPixelRatio(clientX - rect.left),
+					y: scaleByPixelRatio(clientY - rect.top),
+				};
+			}
+			return { x: scaleByPixelRatio(clientX), y: scaleByPixelRatio(clientY) };
+		}
+
 		// Simulation Setup
 		updateKeywords();
 		initFramebuffers();
@@ -971,7 +1012,11 @@
 
 		function getScaledColor(hex: string): ColorRGB {
 			const { r, g, b } = hexToRgb(hex);
-			return { r: r * clampedColorIntensity, g: g * clampedColorIntensity, b: b * clampedColorIntensity };
+			return {
+				r: r * clampedColorIntensity,
+				g: g * clampedColorIntensity,
+				b: b * clampedColorIntensity,
+			};
 		}
 
 		function getCachedFluidColor(hex: string): ColorRGB {
@@ -990,7 +1035,10 @@
 			return cachedFluidColorsScaled;
 		}
 
+		let isVisible = true;
+
 		function updateFrame() {
+			if (!isVisible) return;
 			const dt = calcDeltaTime();
 			if (resizeCanvas()) initFramebuffers();
 			updateColors(dt);
@@ -1241,6 +1289,36 @@
 			dye.swap();
 		}
 
+		function multipleSplats(steps: number) {
+			// Simulate a cursor sweep along a random arc — each step on its own frame
+			// so the velocity field has time to evolve between injections.
+			const angle = Math.random() * Math.PI * 2;
+			const cx = 0.25 + Math.random() * 0.5;
+			const cy = 0.25 + Math.random() * 0.5;
+			const arcSpan = Math.PI * (0.8 + Math.random() * 0.8);
+			let i = 0;
+
+			function step() {
+				if (i >= steps) return;
+				const t = i / Math.max(1, steps - 1);
+				const a = angle + t * arcSpan;
+				const r = 0.15 + 0.05 * Math.sin(t * Math.PI);
+				const x = cx + Math.cos(a) * r;
+				const y = cy + Math.sin(a) * r;
+				const color = generateColor();
+				splat(
+					x,
+					y,
+					-Math.sin(a) * config.SPLAT_FORCE * 0.5,
+					Math.cos(a) * config.SPLAT_FORCE * 0.5,
+					color
+				);
+				i++;
+				if (i < steps) requestAnimationFrame(step);
+			}
+			requestAnimationFrame(step);
+		}
+
 		function correctRadius(radius: number) {
 			const aspectRatio = canvas.width / canvas.height;
 			if (aspectRatio > 1) radius *= aspectRatio;
@@ -1354,37 +1432,30 @@
 		// Event Listeners
 		function handleMouseDown(e: MouseEvent) {
 			const pointer = pointers[0];
-			const posX = scaleByPixelRatio(e.clientX);
-			const posY = scaleByPixelRatio(e.clientY);
+			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 			updatePointerDownData(pointer, -1, posX, posY);
 			clickSplat(pointer);
 		}
 
 		function handleFirstMouseMove(e: MouseEvent) {
 			const pointer = pointers[0];
-			const posX = scaleByPixelRatio(e.clientX);
-			const posY = scaleByPixelRatio(e.clientY);
+			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 			const color = generateColor();
-			updateFrame();
 			updatePointerMoveData(pointer, posX, posY, color);
 			document.body.removeEventListener("mousemove", handleFirstMouseMove);
 		}
 
 		function handleMouseMove(e: MouseEvent) {
 			const pointer = pointers[0];
-			const posX = scaleByPixelRatio(e.clientX);
-			const posY = scaleByPixelRatio(e.clientY);
-			const color = pointer.color;
-			updatePointerMoveData(pointer, posX, posY, color);
+			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
+			updatePointerMoveData(pointer, posX, posY, pointer.color);
 		}
 
 		function handleFirstTouchStart(e: TouchEvent) {
 			const touches = e.targetTouches;
 			const pointer = pointers[0];
 			for (let i = 0; i < touches.length; i++) {
-				const posX = scaleByPixelRatio(touches[i].clientX);
-				const posY = scaleByPixelRatio(touches[i].clientY);
-				updateFrame();
+				const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
 				updatePointerDownData(pointer, touches[i].identifier, posX, posY);
 			}
 			document.body.removeEventListener("touchstart", handleFirstTouchStart);
@@ -1394,8 +1465,7 @@
 			const touches = e.targetTouches;
 			const pointer = pointers[0];
 			for (let i = 0; i < touches.length; i++) {
-				const posX = scaleByPixelRatio(touches[i].clientX);
-				const posY = scaleByPixelRatio(touches[i].clientY);
+				const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
 				updatePointerDownData(pointer, touches[i].identifier, posX, posY);
 			}
 		}
@@ -1404,36 +1474,108 @@
 			const touches = e.targetTouches;
 			const pointer = pointers[0];
 			for (let i = 0; i < touches.length; i++) {
-				const posX = scaleByPixelRatio(touches[i].clientX);
-				const posY = scaleByPixelRatio(touches[i].clientY);
+				const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
 				updatePointerMoveData(pointer, posX, posY, pointer.color);
 			}
 		}
 
 		// Add event listeners
-		window.addEventListener("mousedown", handleMouseDown);
-		document.body.addEventListener("mousemove", handleFirstMouseMove);
-		window.addEventListener("mousemove", handleMouseMove);
-		document.body.addEventListener("touchstart", handleFirstTouchStart);
-		window.addEventListener("touchstart", handleTouchStart, false);
-		window.addEventListener("touchmove", handleTouchMove, false);
+		if (interactive) {
+			window.addEventListener("mousedown", handleMouseDown);
+			document.body.addEventListener("mousemove", handleFirstMouseMove);
+			window.addEventListener("mousemove", handleMouseMove);
+			document.body.addEventListener("touchstart", handleFirstTouchStart);
+			window.addEventListener("touchstart", handleTouchStart, false);
+			window.addEventListener("touchmove", handleTouchMove, false);
+		}
+
+		// Pause animation when scrolled out of view
+		let observer: IntersectionObserver | null = null;
+		if (pauseWhenHidden) {
+			observer = new IntersectionObserver(
+				([entry]) => {
+					const wasVisible = isVisible;
+					isVisible = entry.isIntersecting;
+					if (isVisible && !wasVisible) {
+						lastUpdateTime = Date.now();
+						animationFrameId = requestAnimationFrame(updateFrame);
+					}
+				},
+				{ threshold: 0 }
+			);
+			observer.observe(canvas);
+		}
 
 		// Start animation
 		updateFrame();
+		if (splatOnMount) multipleSplats(Math.floor(Math.random() * 6) + 10);
+
+		// Auto-splat timer
+		let autoSplatTimer: ReturnType<typeof setInterval> | null = null;
+		if (autoSplat) {
+			autoSplatTimer = setInterval(() => {
+				const color = generateColor();
+				splat(
+					Math.random(),
+					Math.random(),
+					(Math.random() - 0.5) * 200,
+					(Math.random() - 0.5) * 200,
+					color
+				);
+			}, autoSplatInterval);
+		}
 
 		// Cleanup
-		return () => {
+		function cleanup() {
 			cancelAnimationFrame(animationFrameId);
-			window.removeEventListener("mousedown", handleMouseDown);
-			document.body.removeEventListener("mousemove", handleFirstMouseMove);
-			window.removeEventListener("mousemove", handleMouseMove);
-			document.body.removeEventListener("touchstart", handleFirstTouchStart);
-			window.removeEventListener("touchstart", handleTouchStart);
-			window.removeEventListener("touchmove", handleTouchMove);
-		};
+			if (observer) observer.disconnect();
+			if (autoSplatTimer) clearInterval(autoSplatTimer);
+			if (interactive) {
+				window.removeEventListener("mousedown", handleMouseDown);
+				document.body.removeEventListener("mousemove", handleFirstMouseMove);
+				window.removeEventListener("mousemove", handleMouseMove);
+				document.body.removeEventListener("touchstart", handleFirstTouchStart);
+				window.removeEventListener("touchstart", handleTouchStart);
+				window.removeEventListener("touchmove", handleTouchMove);
+			}
+			if (contained) {
+				window.removeEventListener("resize", updateCanvasRectCache);
+				window.removeEventListener("scroll", updateCanvasRectCache);
+			}
+		}
+
+		if (!allowMultiple) {
+			if (activeInstance) {
+				if (import.meta.env.DEV) {
+					console.warn(
+						"[FluidCursor] Destroying previous instance. Only one instance is allowed by default. Use `allowMultiple={true}` to opt out of singleton behavior."
+					);
+				}
+				activeInstance();
+			}
+			activeInstance = cleanup;
+			return () => {
+				cleanup();
+				if (activeInstance === cleanup) {
+					activeInstance = null;
+				}
+			};
+		}
+
+		return cleanup;
 	});
 </script>
 
-<div class={cn("pointer-events-none fixed top-0 left-0 z-50 size-full", className)}>
-	<canvas bind:this={canvasRef} id="fluid" class="block h-screen w-screen"></canvas>
+<div
+	class={cn(
+		contained
+			? "pointer-events-none absolute inset-0 h-full w-full"
+			: "pointer-events-none fixed top-0 left-0 z-50 size-full",
+		className
+	)}
+>
+	<canvas
+		bind:this={canvasRef}
+		class={contained ? "block h-full w-full" : "block h-screen w-screen"}
+	></canvas>
 </div>
