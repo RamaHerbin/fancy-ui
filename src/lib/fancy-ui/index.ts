@@ -18,6 +18,7 @@ export * from "./border-beam/index.js";
 export * from "./glow-border/index.js";
 export * from "./marquee/index.js";
 export * from "./compare/index.js";
+export * from "./dock/index.js";
 export * from "./image-trail-cursor/index.js";
 export * from "./interactive-grid-pattern/index.js";
 export * from "./interactive-hover-button/index.js";
@@ -60,6 +61,7 @@ export * from "./tracing-beam/index.js";
 export * from "./displacement-text/index.js";
 export * from "./matrix-rain/index.js";
 export * from "./terminal-text/index.js";
+export * from "./noise-reveal/index.js";
 
 // =============================================================================
 // Registry

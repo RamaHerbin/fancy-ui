@@ -5,7 +5,7 @@ Beautiful animation and UI components for **Svelte 5**.
 ![Svelte 5](https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-52-8B5CF6)
+![Components](https://img.shields.io/badge/Components-56-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -23,7 +23,7 @@ Beautiful animation and UI components for **Svelte 5**.
 - **Svelte 5 Runes** &mdash; Built with `$state`, `$derived`, `$effect`, and `$props`
 - **Tailwind CSS 4** &mdash; Utility-first styling with theme tokens
 - **TypeScript** &mdash; Fully typed props and events
-- **52 Components** &mdash; Buttons, text animations, backgrounds, effects, and more
+- **56 Components** &mdash; Buttons, text animations, backgrounds, effects, and more
 - **Dark Mode** &mdash; All components support light and dark themes
 - **Tested** &mdash; Component tests with Vitest and Testing Library
 
@@ -162,6 +162,25 @@ pnpm install
 pnpm dev
 ```
 
+## Using with AI agents (Claude Code, Cursor, Copilot)
+
+The docs site serves LLM-friendly documentation following the [llms.txt](https://llmstxt.org) convention:
+
+- [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) — setup guide, usage rules, and component index
+- [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) — full reference with every component's props
+
+To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
+
+```markdown
+## UI components
+
+Use fancy-ui-svelte (Svelte 5 + Tailwind CSS v4) for animated UI components.
+Full component and props reference: https://fancy-ui.rama.app/llms-full.txt
+Key rules: overlay/effect components (BorderBeam, GlowBorder, backgrounds, ...)
+need a parent with `relative overflow-hidden`; cursor effects (FluidCursor,
+SmoothCursor) mount once in the root +layout.svelte; Svelte 5 syntax only.
+```
+
 ## Development
 
 ```bash
@@ -195,7 +214,7 @@ src/
 
 ## Contributing
 
-Contributions are welcome! 52 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
+Contributions are welcome! 56 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
 
 ### Adding a new component
 
