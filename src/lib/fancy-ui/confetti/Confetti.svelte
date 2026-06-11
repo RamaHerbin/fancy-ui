@@ -11,7 +11,7 @@
 	interface Props {
 		options?: ConfettiOptions;
 		globalOptions?: ConfettiGlobalOptions;
-		manualstart?: boolean;
+		manualStart?: boolean;
 		class?: string;
 		children?: Snippet;
 	}
@@ -19,7 +19,7 @@
 	let {
 		options = {},
 		globalOptions = {},
-		manualstart = false,
+		manualStart = false,
 		class: className = "",
 		children,
 	}: Props = $props();
@@ -39,7 +39,7 @@
 			resize: true,
 		});
 
-		if (!manualstart) {
+		if (!manualStart) {
 			fire();
 		}
 
