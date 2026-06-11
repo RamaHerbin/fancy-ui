@@ -50,15 +50,13 @@ pnpm check         # svelte-check type checking
 
 ## PR process
 
-1. Branch from `main` with a descriptive name (e.g. `feat/star-rating-component`).
+1. Branch from `develop` with a descriptive name (e.g. `feat/star-rating-component`).
 2. Keep commits focused — one logical change per commit with a clear message.
 3. **Add a changeset** (see below) — CI will block merging without one.
 4. Include a link to the live demo page in the PR description.
 5. Fill out the pull request template checklist.
 
-Once your PR is merged, the changeset bot opens (or updates) a **"Version Packages"** PR
-that bumps `package.json` and updates `CHANGELOG.md`. When that PR is merged, a git tag
-and GitHub Release are created automatically.
+Once your PR is merged into `develop`, see the [Release process](#release-process) section for what happens next.
 
 ## Changesets
 
@@ -102,5 +100,45 @@ fancy-ui follows **Semantic Versioning 2.0.0**. The project is in the `0.x` phas
 minor releases may include breaking changes (SemVer §4). Version `1.0.0` will be
 tagged once all component props are stable, `src/lib/index.ts` exports are frozen,
 and a complete CHANGELOG exists.
+
+## Release process
+
+fancy-ui uses a two-branch model:
+
+| Branch | Role |
+|---|---|
+| `develop` | Integration branch — all feature/fix PRs target here |
+| `main` | Release branch — only merged from `develop`, triggers publishing |
+
+### Full cycle
+
+1. **Feature branch → `develop`**
+   Open a PR targeting `develop`. CI runs type-check, tests, and verifies a changeset file is present. All checks must pass before merging.
+
+2. **`develop` → `main`**
+   Open a PR targeting `main`. CI runs type-check and tests (no changeset required — changesets were already added per-feature). Merge when green.
+
+3. **Release workflow (automatic)**
+   Every push to `main` triggers the Release workflow. It builds the package (`pnpm package`) then hands off to the Changesets action, which does one of two things:
+   - **If pending changesets exist → creates or updates the "Version Packages" PR.**
+     This PR bumps `package.json` versions and updates `CHANGELOG.md`. Do not merge it yet — keep accumulating features until you're ready to cut a release.
+   - **If the "Version Packages" PR was just merged → publishes to npm and creates a git tag.**
+     This is when `fancy-ui-svelte@x.y.z` actually lands on the npm registry.
+
+4. **Cutting a release**
+   Merge the "Version Packages" PR on GitHub. The Release workflow runs again, detects no pending changesets, and publishes directly to npm.
+
+### CI pipelines at a glance
+
+| Trigger | Pipeline | Blocking? | What it checks |
+|---|---|---|---|
+| PR → `develop` | CI | ✅ Yes | type-check, tests, changeset present |
+| PR → `main` | CI | ✅ Yes | type-check, tests |
+| Push to `main` | Release | — | builds + publish or opens "Version Packages" PR |
+
+### Secrets required
+
+- `NPM_TOKEN` — npm publish token (set in repo settings)
+- `GITHUB_TOKEN` — provided automatically by GitHub Actions
 
 Questions? Open an [issue](https://github.com/RamaHerbin/fancy-ui/issues) or start a discussion.
