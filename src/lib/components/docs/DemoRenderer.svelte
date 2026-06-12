@@ -176,6 +176,8 @@
 		"smooth-cursor",
 		"liquid-glass",
 		"noise-reveal",
+		"line-reveal",
+		"editorial-engine",
 	]);
 
 	function getComponent() {
