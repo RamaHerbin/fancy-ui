@@ -44,6 +44,13 @@ describe("FluidCursor", () => {
 		expect(div?.className).toContain("z-50");
 	});
 
+	it("mounts two instances without error (singleton destroys the first when WebGL is available)", () => {
+		const first = render(FluidCursor);
+		const second = render(FluidCursor);
+		expect(first.container.querySelector("canvas")).toBeInTheDocument();
+		expect(second.container.querySelector("canvas")).toBeInTheDocument();
+	});
+
 	it("applies custom class names", () => {
 		const { container } = render(FluidCursor, { props: { class: "my-fluid" } });
 		const div = container.firstElementChild as HTMLElement;

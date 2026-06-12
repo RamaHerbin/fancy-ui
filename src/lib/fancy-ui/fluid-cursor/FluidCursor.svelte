@@ -1,9 +1,11 @@
+<script lang="ts" module>
+	// Module-level singleton registry, shared across all instances
+	let activeInstance: (() => void) | null = null;
+</script>
+
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
-
-	// Module-level singleton registry
-	let activeInstance: (() => void) | null = null;
 
 	interface ColorRGB {
 		r: number;
@@ -962,10 +964,12 @@
 			const aspect = aspectRatio < 1 ? 1 / aspectRatio : aspectRatio;
 			const min = Math.round(resolution);
 			const max = Math.round(resolution * aspect);
+			// No point rendering more texels than the canvas has — in small
+			// wide containers the aspect-scaled size would balloon FBO memory.
 			if (w > h) {
-				return { width: max, height: min };
+				return { width: Math.min(max, w), height: Math.min(min, h) };
 			}
-			return { width: min, height: max };
+			return { width: Math.min(min, w), height: Math.min(max, h) };
 		}
 
 		function scaleByPixelRatio(input: number) {
@@ -1320,6 +1324,21 @@
 		}
 
 		function correctRadius(radius: number) {
+			if (contained) {
+				// The splat shader measures distance in canvas-height units, so a
+				// radius that looks right fullscreen shrinks with the container.
+				// Express the radius in viewport units, then convert to canvas
+				// units so the on-screen splat size matches fullscreen usage.
+				const winW = scaleByPixelRatio(window.innerWidth);
+				const winH = scaleByPixelRatio(window.innerHeight);
+				const winAspect = winW / winH;
+				if (winAspect > 1) radius *= winAspect;
+				radius *= (winH / canvas.height) ** 2;
+				// Cap so a single splat can't dwarf a small container
+				// (core radius ≤ 30% of the smaller canvas dimension).
+				const maxCore = (0.3 * Math.min(canvas.width, canvas.height)) / canvas.height;
+				return Math.min(radius, maxCore * maxCore);
+			}
 			const aspectRatio = canvas.width / canvas.height;
 			if (aspectRatio > 1) radius *= aspectRatio;
 			return radius;
@@ -1430,9 +1449,14 @@
 		}
 
 		// Event Listeners
+		function isInsideCanvas(posX: number, posY: number) {
+			return posX >= 0 && posX <= canvas.width && posY >= 0 && posY <= canvas.height;
+		}
+
 		function handleMouseDown(e: MouseEvent) {
 			const pointer = pointers[0];
 			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
+			if (contained && !isInsideCanvas(posX, posY)) return;
 			updatePointerDownData(pointer, -1, posX, posY);
 			clickSplat(pointer);
 		}
@@ -1449,6 +1473,9 @@
 			const pointer = pointers[0];
 			const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 			updatePointerMoveData(pointer, posX, posY, pointer.color);
+			// Keep tracking coords outside the container (so re-entry is smooth)
+			// but don't splat for movement that happens out of bounds.
+			if (contained && !isInsideCanvas(posX, posY)) pointer.moved = false;
 		}
 
 		function handleFirstTouchStart(e: TouchEvent) {
@@ -1476,6 +1503,7 @@
 			for (let i = 0; i < touches.length; i++) {
 				const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
 				updatePointerMoveData(pointer, posX, posY, pointer.color);
+				if (contained && !isInsideCanvas(posX, posY)) pointer.moved = false;
 			}
 		}
 
