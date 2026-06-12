@@ -1570,6 +1570,11 @@
 				window.removeEventListener("resize", updateCanvasRectCache);
 				window.removeEventListener("scroll", updateCanvasRectCache);
 			}
+			// When destroyed by the singleton (component still mounted), the
+			// canvas would otherwise keep showing its last rendered frame.
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.clearColor(0, 0, 0, 0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
 		}
 
 		if (!allowMultiple) {
