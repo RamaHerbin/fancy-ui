@@ -507,6 +507,92 @@ export const registry: Record<string, ComponentMeta> = {
 		slots: [{ name: "children", description: "Link text content" }],
 	},
 
+	"line-reveal": {
+		name: "LineReveal",
+		slug: "line-reveal",
+		description:
+			"Staggered line-by-line text reveal with lines computed by pretext instead of DOM splitting",
+		category: "text",
+		status: "done",
+		credits: [{ source: "pretext", url: "https://github.com/chenglou/pretext" }],
+		tags: ["text", "animation", "reveal", "stagger", "pretext", "typography"],
+		props: [
+			{ name: "text", type: "string", description: "Text to reveal", required: true },
+			{
+				name: "font",
+				type: "string",
+				default: '"600 32px system-ui, sans-serif"',
+				description: "CSS font shorthand used for both measurement and rendering",
+			},
+			{
+				name: "lineHeight",
+				type: "number",
+				default: "1.2 × font size",
+				description: "Line height in pixels",
+			},
+			{
+				name: "stagger",
+				type: "number",
+				default: "0.08",
+				description: "Delay between lines in seconds",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "0.7",
+				description: "Animation duration per line in seconds",
+			},
+			{ name: "delay", type: "number", default: "0", description: "Initial delay in seconds" },
+			{
+				name: "once",
+				type: "boolean",
+				default: "true",
+				description: "Animate only on first viewport entry",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+		],
+	},
+
+	"editorial-engine": {
+		name: "EditorialEngine",
+		slug: "editorial-engine",
+		description:
+			"Live magazine layout: multi-column text flowing around draggable orbs with zero DOM reads, powered by pretext",
+		category: "text",
+		status: "done",
+		credits: [
+			{ source: "pretext editorial engine", url: "https://chenglou.me/pretext/editorial-engine/" },
+		],
+		tags: ["text", "layout", "magazine", "columns", "pretext", "interactive", "typography"],
+		props: [
+			{
+				name: "headline",
+				type: "string",
+				default: "built-in copy",
+				description: "Auto-sized headline (largest font size that breaks no word)",
+			},
+			{
+				name: "body",
+				type: "string",
+				default: "built-in copy",
+				description: "Body text, paragraphs separated by blank lines",
+			},
+			{
+				name: "pullquotes",
+				type: "string[]",
+				default: "built-in quotes",
+				description: "Up to two pullquotes embedded in the columns",
+			},
+			{
+				name: "fontFamily",
+				type: "string",
+				default: "Palatino serif stack",
+				description: "Font family stack used for all text",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes for the stage" },
+		],
+	},
+
 	"logo-cloud": {
 		name: "LogoCloud",
 		slug: "logo-cloud",
