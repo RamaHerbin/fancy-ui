@@ -26,7 +26,6 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { onMount } from "svelte";
 	import { createEditorialEngine } from "./engine.js";
 
 	const DEFAULT_HEADLINE = "TEXT THAT FLOWS AROUND ANYTHING";
@@ -70,7 +69,10 @@ None of this needs a new browser API or a standards process. It needs cached fon
 	let stageRef: HTMLDivElement;
 	let ready = $state(false);
 
-	onMount(() => {
+	// Re-created whenever the text props change, so the prepared measurements
+	// always match the rendered content. Effects never run during SSR.
+	$effect(() => {
+		const options = { headline, body, pullquotes, fontFamily };
 		let destroy: (() => void) | null = null;
 		let cancelled = false;
 
@@ -78,7 +80,7 @@ None of this needs a new browser API or a standards process. It needs cached fon
 		// loaded first or widths come from the fallback font.
 		document.fonts.ready.then(() => {
 			if (cancelled) return;
-			destroy = createEditorialEngine(stageRef, { headline, body, pullquotes, fontFamily });
+			destroy = createEditorialEngine(stageRef, options);
 			ready = true;
 		});
 

@@ -307,7 +307,8 @@ export function createEditorialEngine(
 	stage.appendChild(dropCapEl);
 
 	// --- Prepared text (one-time measurement, cached) ---
-	const preparedBody = prepareWithSegments(body, bodyFont);
+	// pre-wrap keeps the blank-line paragraph breaks the `body` prop advertises.
+	const preparedBody = prepareWithSegments(body, bodyFont, { whiteSpace: "pre-wrap" });
 	const preparedPullquotes = pullquotes.map((text) => prepareWithSegments(text, pullquoteFont));
 	const pullquoteSpecs = [
 		{ prepared: preparedPullquotes[0], colIdx: 0, yFrac: 0.48, wFrac: 0.52, side: "right" },
@@ -316,16 +317,22 @@ export function createEditorialEngine(
 
 	const DROP_CAP_SIZE = BODY_LINE_HEIGHT * DROP_CAP_LINES - 4;
 	const dropCapFont = `700 ${DROP_CAP_SIZE}px ${fontFamily}`;
-	const dropCapText = body[0];
-	const preparedDropCap = prepareWithSegments(dropCapText, dropCapFont);
-	let dropCapWidth = 0;
-	walkLineRanges(preparedDropCap, 9999, (line) => {
-		dropCapWidth = line.width;
-	});
-	const dropCapTotalW = Math.ceil(dropCapWidth) + 10;
-	dropCapEl.textContent = dropCapText;
-	dropCapEl.style.font = dropCapFont;
-	dropCapEl.style.lineHeight = `${DROP_CAP_SIZE}px`;
+	// Empty body: no drop cap, render (nothing) from the very first grapheme.
+	const dropCapText = body.length > 0 ? body[0] : "";
+	let dropCapTotalW = 0;
+	if (dropCapText !== "") {
+		const preparedDropCap = prepareWithSegments(dropCapText, dropCapFont);
+		let dropCapWidth = 0;
+		walkLineRanges(preparedDropCap, 9999, (line) => {
+			dropCapWidth = line.width;
+		});
+		dropCapTotalW = Math.ceil(dropCapWidth) + 10;
+		dropCapEl.textContent = dropCapText;
+		dropCapEl.style.font = dropCapFont;
+		dropCapEl.style.lineHeight = `${DROP_CAP_SIZE}px`;
+	} else {
+		dropCapEl.style.display = "none";
+	}
 
 	// --- Headline auto-fit: binary search over font sizes, rejecting any size
 	// that breaks a word mid-line. Each probe is pure arithmetic.
@@ -360,6 +367,19 @@ export function createEditorialEngine(
 			} else {
 				hi = size - 1;
 			}
+		}
+		// No size fit (overlong word or tiny stage): fall back to the minimum
+		// size with word breaks allowed rather than dropping the headline.
+		if (bestLines.length === 0 && headline.length > 0) {
+			best = 20;
+			const lineHeight = Math.round(best * 0.93);
+			const prepared = prepareWithSegments(headline, `700 ${best}px ${fontFamily}`);
+			bestLines = layoutWithLines(prepared, maxWidth, lineHeight).lines.map((line, i) => ({
+				x: 0,
+				y: i * lineHeight,
+				text: line.text,
+				width: line.width,
+			}));
 		}
 		cachedKey = key;
 		cachedFit = { fontSize: best, lines: bestLines };
@@ -535,11 +555,11 @@ export function createEditorialEngine(
 		// Body flow with cursor handoff between columns. Cursor starts past the
 		// first grapheme — the drop cap renders it.
 		const allBodyLines: PositionedLine[] = [];
-		let cursor: LayoutCursor = { segmentIndex: 0, graphemeIndex: 1 };
+		let cursor: LayoutCursor = { segmentIndex: 0, graphemeIndex: dropCapText === "" ? 0 : 1 };
 		for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
 			const columnX = contentLeft + columnIndex * (columnWidth + colGap);
 			const rects: RectObstacle[] = [];
-			if (columnIndex === 0) rects.push(dropCapRect);
+			if (columnIndex === 0 && dropCapTotalW > 0) rects.push(dropCapRect);
 			for (const pq of pullquoteRects) {
 				if (pq.colIdx === columnIndex) rects.push(pq);
 			}

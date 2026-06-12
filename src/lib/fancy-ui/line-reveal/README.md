@@ -17,7 +17,7 @@ and lines re-wrap instantly on container resize.
 
 <LineReveal
 	text="Text measurement and layout without touching the DOM."
-	font="700 40px system-ui, sans-serif"
+	font="700 40px Helvetica, Arial, sans-serif"
 />
 ```
 
@@ -26,7 +26,7 @@ and lines re-wrap instantly on container resize.
 | Prop         | Type      | Default                          | Description                                                  |
 | ------------ | --------- | -------------------------------- | ------------------------------------------------------------ |
 | `text`       | `string`  | — (required)                     | Text to reveal                                               |
-| `font`       | `string`  | `"600 32px system-ui, sans-serif"` | CSS font shorthand, used for both measurement and rendering |
+| `font`       | `string`  | `"600 32px \"Helvetica Neue\", Helvetica, Arial, sans-serif"` | CSS font shorthand, used for both measurement and rendering |
 | `lineHeight` | `number`  | `1.2 × font size`                | Line height in pixels                                        |
 | `stagger`    | `number`  | `0.08`                           | Delay between lines in seconds                               |
 | `duration`   | `number`  | `0.7`                            | Animation duration per line in seconds                       |

@@ -521,7 +521,7 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "font",
 				type: "string",
-				default: '"600 32px system-ui, sans-serif"',
+				default: "'600 32px \"Helvetica Neue\", Helvetica, Arial, sans-serif'",
 				description: "CSS font shorthand used for both measurement and rendering",
 			},
 			{

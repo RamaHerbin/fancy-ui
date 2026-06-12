@@ -11,7 +11,9 @@
 		text: string;
 		/**
 		 * CSS font shorthand used for both measurement and rendering
-		 * (canvas `ctx.font` format, e.g. "600 32px Inter, sans-serif")
+		 * (canvas `ctx.font` format, e.g. "600 32px Inter, sans-serif").
+		 * Prefer named families: `system-ui` can resolve differently between
+		 * canvas measurement and DOM rendering.
 		 */
 		font?: string;
 		/** Line height in pixels (defaults to 1.2 × font size) */
@@ -40,7 +42,9 @@
 
 	let {
 		text,
-		font = "600 32px system-ui, sans-serif",
+		// Named families only: canvas and CSS can resolve `system-ui` to
+		// different fonts (notably on macOS), which skews measured widths.
+		font = '600 32px "Helvetica Neue", Helvetica, Arial, sans-serif',
 		lineHeight,
 		stagger = 0.08,
 		duration = 0.7,
