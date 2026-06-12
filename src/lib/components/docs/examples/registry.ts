@@ -353,4 +353,23 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Toggle the reveal manually with the revealed prop.",
 		},
 	],
+	"line-reveal": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Resize the container — lines re-wrap without replaying the animation.",
+		},
+		{
+			name: "CustomTiming",
+			title: "Custom Stagger & Duration",
+			description: "Slow down the per-line stagger and transition.",
+		},
+	],
+	"editorial-engine": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Drag the orbs, click to pause them, resize the window.",
+		},
+	],
 };
