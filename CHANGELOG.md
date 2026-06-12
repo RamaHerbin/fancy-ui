@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.6.0
+
+### Minor Changes
+
+- 6ede21f: Add NoiseReveal component: WebGL image reveal with a Perlin-noise dissolve mask, contracting radial gradient, and wave displacement, inspired by a Codrops shader effect
+- 8be8831: Add LineReveal and EditorialEngine components powered by @chenglou/pretext:
+  LineReveal staggers a line-by-line text reveal with lines computed by canvas
+  text measurement instead of DOM splitting; EditorialEngine renders a live
+  magazine layout (multi-column flow with cursor handoff, auto-fitted headline,
+  drop cap, pullquotes) where text reflows in real time around draggable orbs
+  with zero DOM reads.
+
+### Patch Changes
+
+- d17b72b: docs: clarify release pipeline and fix branch name in CONTRIBUTING.md
+- 9410c20: Fix bundle correctness and tighten the dependency surface:
+  - Export `Dock` (and `DockIcon`, `DockSeparator`) from the package entrypoint — the component was registered and shipped under `dist/`, but never re-exported, making it unreachable from `import { Dock } from "fancy-ui-svelte"`.
+  - Remove the dead `fluid-cursor-advanced` registry entry left over from the merge into `FluidCursor` — the component folder no longer exists, so the registry was advertising a non-shippable slug.
+  - Move `@vercel/analytics` from `dependencies` to `devDependencies` — it's only used by the docs site (`src/routes/+layout.svelte`) and was unnecessarily pulled into consumer installs.
+  - Drop the no-op `rewriteRelativeImportExtensions` flag from `tsconfig.json` — it has no effect with `moduleResolution: bundler` + SvelteKit's build pipeline.
+  - Fix README component count: `52`/`57` → `56`.
+  - Add `pnpm check:registry` (and run it in CI) — parses `src/lib/fancy-ui/registry.ts`, `src/lib/fancy-ui/index.ts`, and the component folders, and fails if they drift. Catches both quoted (`"book": { ... }`) and bare-identifier (`book: { ... }`) registry keys.
+
+- 8bdd475: Add llms.txt and llms-full.txt endpoints serving LLM-friendly documentation generated from the component registry
+
 ## 0.5.0
 
 ### Minor Changes
