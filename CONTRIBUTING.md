@@ -18,6 +18,7 @@ The dev server runs at `http://localhost:5173`. Component demos are at `/demo/<s
 1. **Copy the template** — duplicate `src/lib/fancy-ui/_template/` and rename it to your component slug (e.g. `src/lib/fancy-ui/my-component/`).
 
 2. **Register it** — add an entry to `src/lib/fancy-ui/registry.ts`:
+
    ```ts
    "my-component": {
      name: "MyComponent",
@@ -47,6 +48,59 @@ pnpm check         # svelte-check type checking
 ```
 
 `pnpm test` and `pnpm test:e2e` must pass. `pnpm check` must pass for any files you touched — pre-existing errors in unrelated files are acceptable.
+
+## Storybook
+
+Storybook documents and develops components in isolation, with live prop controls and autodocs.
+
+```bash
+pnpm storybook        # dev server on http://localhost:6006
+pnpm build-storybook  # static build in storybook-static/ (gitignored)
+```
+
+### Where stories live
+
+- All stories go in **`src/stories/`** — never in `src/lib/`, because everything under `src/lib` is published to npm by `svelte-package`.
+- One file per component: `src/stories/<component-slug>.stories.svelte`, where the slug matches the component folder in `src/lib/fancy-ui/<slug>/`.
+- Docs pages use MDX: `src/stories/*.mdx` (see `Introduction.mdx`).
+
+### Naming conventions
+
+- File: `shimmer-button.stories.svelte` (kebab-case slug).
+- Meta title: `"<Category>/<ComponentName>"` — e.g. `"Buttons/ShimmerButton"`. Categories mirror the registry categories (`Buttons`, `Cards`, `Text`, `Effects`, …).
+- Story names: `"Default"` first, then descriptive variants (`"Custom Shimmer"`, `"Thick Border"`).
+
+### Writing a story
+
+Svelte CSF via `@storybook/addon-svelte-csf` (Svelte 5, `defineMeta`):
+
+```svelte
+<script module lang="ts">
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import { ShimmerButton } from "$lib/fancy-ui/shimmer-button";
+
+	const { Story } = defineMeta({
+		title: "Buttons/ShimmerButton",
+		component: ShimmerButton,
+		tags: ["autodocs"],
+		args: { shimmerColor: "#ffffff" },
+	});
+</script>
+
+{#snippet template(args: any)}
+	<ShimmerButton {...args}>Click me</ShimmerButton>
+{/snippet}
+
+<Story name="Default" {template} />
+```
+
+Rules: use **real props only** (check the component's exported `Props` type); default state first, then 2–3 useful variants; `tags: ["autodocs"]` generates the docs page from props + JSDoc comments.
+
+### Configuration
+
+- `.storybook/main.ts` — stories glob (`src/stories/`), addons (`svelte-csf`, `a11y`, `docs`), framework `@storybook/sveltekit`.
+- `.storybook/preview.ts` — imports the app's global stylesheet (`src/routes/layout.css`: Tailwind v4 + design tokens), and provides a light/dark toolbar toggle (toggles the `.dark` class).
+- Tailwind and the `$lib` alias work out of the box: `@storybook/sveltekit` reuses the project's `vite.config.ts`.
 
 ## PR process
 
@@ -85,10 +139,10 @@ feat: add SpinnerButton component
 
 ### Bump type guide
 
-| Change | Bump |
-|---|---|
-| Bug fix, CSS correction, accessibility improvement, perf, docs | `patch` |
-| New component, new optional prop (with default), new export | `minor` |
+| Change                                                                                    | Bump                           |
+| ----------------------------------------------------------------------------------------- | ------------------------------ |
+| Bug fix, CSS correction, accessibility improvement, perf, docs                            | `patch`                        |
+| New component, new optional prop (with default), new export                               | `minor`                        |
 | Renamed/removed component or prop, changed prop type, raised Svelte/Tailwind/Node minimum | `minor` (0.x) → `major` (≥1.0) |
 
 **Breaking changes in a copy-paste library** — because users own the code they copy,
