@@ -175,6 +175,7 @@
 		"fluid-cursor",
 		"smooth-cursor",
 		"liquid-glass",
+		"frosted-glass",
 	]);
 
 	function getComponent() {
