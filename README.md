@@ -194,7 +194,7 @@ pnpm build        # Production build
 pnpm storybook    # Component workshop on :6006
 ```
 
-Component stories live in `src/stories/` — see [docs/storybook.md](./docs/storybook.md).
+Component stories live in `src/stories/` — see the [Storybook section in CONTRIBUTING.md](./CONTRIBUTING.md#storybook).
 
 ## Project Structure
 
