@@ -58,7 +58,9 @@
 		"version": "changeset version",
 		"release": "changeset tag",
 		"package": "svelte-kit sync && svelte-package -i src/lib -o dist && node -e \"const fs=require('fs'); ['dist/builder','dist/server','dist/stores'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}));\" && publint",
-		"prepublishOnly": "pnpm run package"
+		"prepublishOnly": "pnpm run package",
+		"storybook": "storybook dev -p 6006",
+		"build-storybook": "storybook build"
 	},
 	"engines": {
 		"node": ">=20.19.0"
@@ -81,6 +83,10 @@
 		"@internationalized/date": "^3.10.1",
 		"@lucide/svelte": "^0.562.0",
 		"@playwright/test": "^1.58.2",
+		"@storybook/addon-a11y": "^10.4.6",
+		"@storybook/addon-docs": "^10.4.6",
+		"@storybook/addon-svelte-csf": "^5.1.2",
+		"@storybook/sveltekit": "^10.4.6",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/kit": "^2.49.1",
 		"@sveltejs/package": "^2.5.7",
@@ -105,6 +111,7 @@
 		"prettier-plugin-tailwindcss": "^0.7.2",
 		"publint": "^0.3.18",
 		"shiki": "^4.0.2",
+		"storybook": "^10.4.6",
 		"svelte": "^5.45.6",
 		"svelte-check": "^4.3.4",
 		"tailwind-variants": "^3.2.2",
