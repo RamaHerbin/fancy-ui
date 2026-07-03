@@ -1,0 +1,58 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# FancyUI
+
+FancyUI (`fancy-ui-svelte`) is a collection of animated, copy-paste friendly UI components for **Svelte 5** and **Tailwind CSS v4** — buttons, cards, text effects, backgrounds, and visual effects for building polished landing pages and design systems.
+
+## Using a component
+
+Install the package and import any component from the root barrel:
+
+```svelte
+<script>
+	import { ShimmerButton } from "fancy-ui-svelte";
+</script>
+
+<ShimmerButton shimmerColor="#22d3ee">
+	<span class="text-white">Click me</span>
+</ShimmerButton>
+```
+
+Inside this repo, import from `$lib` instead:
+
+```ts
+import { ShimmerButton } from "$lib/fancy-ui/shimmer-button";
+```
+
+## Running Storybook
+
+```bash
+pnpm storybook        # dev server on http://localhost:6006
+pnpm build-storybook  # static build in storybook-static/
+```
+
+## Adding a new story
+
+1. Create `src/stories/<component-slug>.stories.svelte` (kebab-case, matching the component's folder slug in `src/lib/fancy-ui/`).
+2. Use Svelte CSF with `defineMeta`:
+
+```svelte
+<script module lang="ts">
+	import { defineMeta } from "@storybook/addon-svelte-csf";
+	import { MyComponent } from "$lib/fancy-ui/my-component";
+
+	const { Story } = defineMeta({
+		title: "Category/MyComponent",
+		component: MyComponent,
+		tags: ["autodocs"],
+	});
+</script>
+
+<Story name="Default" />
+```
+
+3. Show the default state plus 2–3 useful variants. Use real component props only — check the `Props` type exported by the component.
+
+Stories live in `src/stories/`, **never** in `src/lib/` — everything under `src/lib` ships to npm via `svelte-package`.
