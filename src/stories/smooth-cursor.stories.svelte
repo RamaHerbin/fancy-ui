@@ -30,8 +30,12 @@
 
 <Story name="Default" {template} />
 
+<!-- SmoothCursor hides the native cursor and attaches document-level listeners.
+     Excluded from autodocs so it doesn't run at the same time as "Default" on
+     the merged docs page; still fully viewable as its own story. -->
 <Story
 	name="Bouncy"
+	tags={["!autodocs"]}
 	{template}
 	args={{ springConfig: { damping: 20, stiffness: 300, mass: 1.2 } }}
 />

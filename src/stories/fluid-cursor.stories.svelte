@@ -13,6 +13,10 @@
 			curl: 3,
 			colorIntensity: 0.15,
 			densityDissipation: 3.5,
+			// FluidCursor is a singleton by default and destroys any prior instance on
+			// mount. Autodocs renders every story in this file simultaneously, so all
+			// stories opt into `allowMultiple` to coexist on the same docs page.
+			allowMultiple: true,
 		},
 		argTypes: {
 			splatRadius: { control: "number", description: "Radius of fluid splats" },
