@@ -320,14 +320,6 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	],
 	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"liquid-glass": [{ name: "BasicUsage", title: "Basic Usage" }],
-	"frosted-glass": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-		{
-			name: "Navbar",
-			title: "Landing Page Navbar",
-			description: "Landing page with a glass pill navigation.",
-		},
-	],
 	"tracing-beam": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"image-trail-cursor": [
 		{ name: "BasicUsage", title: "Basic Usage" },
