@@ -178,6 +178,7 @@
 		"noise-reveal",
 		"line-reveal",
 		"editorial-engine",
+		"frosted-glass",
 	]);
 
 	function getComponent() {
