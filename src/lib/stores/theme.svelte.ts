@@ -1,25 +1,30 @@
 /**
  * Theme Store
  *
- * Manages theme state (dark/light mode) and user preferences.
- * Provides reactive stores and utilities for theme switching.
+ * Manages the active theme (light/dark/system + named themes) and user
+ * preferences. A theme is identified by name; the registry lives in
+ * `$lib/fancy-ui/themes`. Applying a theme toggles the `.dark` class, sets a
+ * `data-theme` attribute, and writes the theme's CSS-variable overrides inline
+ * on `<html>` (on top of the base tokens in `src/routes/layout.css`).
  */
 
 import { browser } from "$app/environment";
+import { themes, getTheme as getThemeDef, MANAGED_VARS } from "$lib/fancy-ui/themes.js";
 
 // =============================================================================
 // Types
 // =============================================================================
 
-export type Theme = "light" | "dark" | "system";
+/** A theme name from the registry, or the special "system" value. */
+export type Theme = string;
 export type ResolvedTheme = "light" | "dark";
 
 export interface ThemeState {
-	/** Current theme setting */
+	/** Current theme setting (registry name or "system"). */
 	theme: Theme;
-	/** Resolved theme (actual light/dark based on system preference if theme is 'system') */
+	/** Resolved light/dark (from the theme's colorScheme, or the system preference). */
 	resolvedTheme: ResolvedTheme;
-	/** Whether user prefers reduced motion */
+	/** Whether the user prefers reduced motion. */
 	reducedMotion: boolean;
 }
 
@@ -29,14 +34,16 @@ export interface ThemeState {
 
 const STORAGE_KEY = "fancy-ui-theme";
 
-/** Reactive theme state using Svelte 5 runes */
 let theme = $state<Theme>("system");
 let systemPrefersDark = $state(false);
 let reducedMotion = $state(false);
 
-/** Derived resolved theme */
 const resolvedTheme = $derived<ResolvedTheme>(
-	theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme
+	theme === "system"
+		? systemPrefersDark
+			? "dark"
+			: "light"
+		: (getThemeDef(theme)?.colorScheme ?? "light")
 );
 
 // =============================================================================
@@ -46,32 +53,25 @@ const resolvedTheme = $derived<ResolvedTheme>(
 function initialize() {
 	if (!browser) return;
 
-	// Load saved theme preference
-	const saved = localStorage.getItem(STORAGE_KEY) as Theme | null;
-	if (saved && ["light", "dark", "system"].includes(saved)) {
+	// Load saved theme (a registry name or "system"); ignore unknown values.
+	const saved = localStorage.getItem(STORAGE_KEY);
+	if (saved && (saved === "system" || getThemeDef(saved))) {
 		theme = saved;
 	}
 
-	// Check system dark mode preference
 	const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 	systemPrefersDark = darkModeQuery.matches;
-
-	// Listen for system theme changes
 	darkModeQuery.addEventListener("change", (e) => {
 		systemPrefersDark = e.matches;
 		applyTheme();
 	});
 
-	// Check reduced motion preference
 	const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 	reducedMotion = motionQuery.matches;
-
-	// Listen for motion preference changes
 	motionQuery.addEventListener("change", (e) => {
 		reducedMotion = e.matches;
 	});
 
-	// Apply initial theme
 	applyTheme();
 }
 
@@ -83,18 +83,36 @@ function applyTheme() {
 	if (!browser) return;
 
 	const root = document.documentElement;
-	const resolved = theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
+	const resolved: ResolvedTheme =
+		theme === "system"
+			? systemPrefersDark
+				? "dark"
+				: "light"
+			: (getThemeDef(theme)?.colorScheme ?? "light");
 
-	if (resolved === "dark") {
-		root.classList.add("dark");
+	// Light/dark class (drives every component's `dark:` utilities).
+	if (resolved === "dark") root.classList.add("dark");
+	else root.classList.remove("dark");
+
+	// Clear any inline overrides from a previously-applied named theme.
+	for (const v of MANAGED_VARS) root.style.removeProperty(v);
+
+	// Apply the named theme's token overrides (light/dark/system carry none).
+	const def = theme === "system" ? undefined : getThemeDef(theme);
+	if (def && Object.keys(def.tokens).length > 0) {
+		for (const [key, value] of Object.entries(def.tokens)) {
+			root.style.setProperty(key, value);
+		}
+		root.setAttribute("data-theme", def.name);
 	} else {
-		root.classList.remove("dark");
+		root.removeAttribute("data-theme");
 	}
 
-	// Update meta theme-color for mobile browsers
+	// Update meta theme-color for mobile browsers.
 	const metaThemeColor = document.querySelector('meta[name="theme-color"]');
 	if (metaThemeColor) {
-		metaThemeColor.setAttribute("content", resolved === "dark" ? "#0a0a0a" : "#ffffff");
+		const bg = def?.tokens["--background"] ?? (resolved === "dark" ? "#0a0a0a" : "#ffffff");
+		metaThemeColor.setAttribute("content", bg);
 	}
 }
 
@@ -102,9 +120,7 @@ function applyTheme() {
 // Public API
 // =============================================================================
 
-/**
- * Set the theme
- */
+/** Set the active theme by name (registry name or "system"). */
 export function setTheme(newTheme: Theme) {
 	theme = newTheme;
 	if (browser) {
@@ -113,18 +129,12 @@ export function setTheme(newTheme: Theme) {
 	}
 }
 
-/**
- * Toggle between light and dark themes
- * If currently on 'system', switches to the opposite of the resolved theme
- */
+/** Flip between the base light and dark themes. */
 export function toggleTheme() {
-	const newTheme = resolvedTheme === "dark" ? "light" : "dark";
-	setTheme(newTheme);
+	setTheme(resolvedTheme === "dark" ? "light" : "dark");
 }
 
-/**
- * Cycle through themes: light → dark → system → light
- */
+/** Cycle light → dark → system → light. */
 export function cycleTheme() {
 	const order: Theme[] = ["light", "dark", "system"];
 	const currentIndex = order.indexOf(theme);
@@ -132,48 +142,26 @@ export function cycleTheme() {
 	setTheme(order[nextIndex]);
 }
 
-/**
- * Get current theme state
- */
 export function getThemeState(): ThemeState {
-	return {
-		theme,
-		resolvedTheme,
-		reducedMotion,
-	};
+	return { theme, resolvedTheme, reducedMotion };
 }
 
-/**
- * Get the current theme setting
- */
 export function getTheme(): Theme {
 	return theme;
 }
 
-/**
- * Get the resolved theme (actual light/dark)
- */
 export function getResolvedTheme(): ResolvedTheme {
 	return resolvedTheme;
 }
 
-/**
- * Check if reduced motion is preferred
- */
 export function getReducedMotion(): boolean {
 	return reducedMotion;
 }
 
-/**
- * Check if dark mode is active
- */
 export function isDark(): boolean {
 	return resolvedTheme === "dark";
 }
 
-/**
- * Check if light mode is active
- */
 export function isLight(): boolean {
 	return resolvedTheme === "light";
 }
@@ -183,24 +171,18 @@ export function isLight(): boolean {
 // =============================================================================
 
 /**
- * Create a reactive theme state object for use in components
+ * Create a reactive theme-state object for use in components.
  *
  * @example
  * ```svelte
  * <script>
- *   import { createThemeState } from '$lib/stores/theme';
+ *   import { createThemeState } from '$lib/stores';
  *   const themeState = createThemeState();
  * </script>
- *
- * <p>Current theme: {themeState.resolvedTheme}</p>
+ * <p>Current theme: {themeState.theme}</p>
  * ```
  */
 export function createThemeState() {
-	// Initialize on first use (client-side only)
-	if (browser && theme === "system" && !localStorage.getItem(STORAGE_KEY)) {
-		initialize();
-	}
-
 	return {
 		get theme() {
 			return theme;
@@ -217,13 +199,17 @@ export function createThemeState() {
 		get isLight() {
 			return resolvedTheme === "light";
 		},
+		/** The full theme registry, for building a switcher. */
+		get themes() {
+			return themes;
+		},
 		setTheme,
 		toggleTheme,
 		cycleTheme,
 	};
 }
 
-// Initialize when module loads (client-side)
+// Initialize when the module loads (client-side).
 if (browser) {
 	initialize();
 }

@@ -3,6 +3,28 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			// No-flash theme: set the light/dark class + data-theme before paint.
+			// (Full color tokens are applied by the theme store on hydration.)
+			(function () {
+				try {
+					var saved = localStorage.getItem("fancy-ui-theme");
+					var DARK = { dark: 1, synthwave: 1, dracula: 1, forest: 1, sunset: 1, mono: 1 };
+					var scheme;
+					if (!saved || saved === "system") {
+						scheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+					} else {
+						scheme = DARK[saved] ? "dark" : "light";
+					}
+					var root = document.documentElement;
+					if (scheme === "dark") root.classList.add("dark");
+					else root.classList.remove("dark");
+					if (saved && saved !== "system" && saved !== "light" && saved !== "dark") {
+						root.setAttribute("data-theme", saved);
+					}
+				} catch (e) {}
+			})();
+		</script>
 		<noscript><link rel="icon" type="image/svg+xml" href="/favicon.svg" /></noscript>
 		%sveltekit.head%
 	</head>
