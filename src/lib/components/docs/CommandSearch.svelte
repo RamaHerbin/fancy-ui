@@ -34,6 +34,12 @@
 			category: "Getting Started",
 		},
 		{
+			name: "Theme Generator",
+			slug: "theme-generator",
+			href: "/docs/getting-started/theme-generator",
+			category: "Getting Started",
+		},
+		{
 			name: "Changelog",
 			slug: "changelog",
 			href: "/docs/getting-started/changelog",

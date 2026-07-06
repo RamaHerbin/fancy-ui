@@ -10,6 +10,8 @@ title: Theming
 
 FancyUI uses CSS custom properties (OKLCh color space) for theming, fully compatible with shadcn-svelte conventions.
 
+> Prefer to tune it visually? The [Theme Generator](/docs/getting-started/theme-generator) lets you adjust these tokens with live sliders and copy the CSS.
+
 ## CSS Setup
 
 Import the FancyUI stylesheet in your app's CSS (e.g. `src/app.css`):
