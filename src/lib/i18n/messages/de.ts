@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "Einführung",
 	"page.installation": "Installation",
 	"page.theming": "Themes",
+	"page.themeGenerator": "Theme-Generator",
 	"page.changelog": "Änderungsprotokoll",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "Komponenten filtern...",
 	"gallery.all": "Alle",
 	"gallery.noMatch": "Keine Komponenten entsprechen deiner Suche.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"Passe FancyUIs OKLCh-Design-Tokens live an und kopiere das CSS in deine App.",
+	"tg.intro":
+		"Passe FancyUIs Design-Tokens an und beobachte, wie die Komponenten in Echtzeit reagieren. Wenn es passt, kopiere das generierte CSS in das Stylesheet deiner App (z. B. src/app.css). Farben verwenden den OKLCh-Farbraum; die Regenbogen-Palette verwendet HSL.",
+	"tg.seeTheming": "Die vollständige Token-Referenz findest du unter",
+	"tg.presets": "Voreinstellungen",
+	"tg.base": "Basis",
+	"tg.light": "Hell",
+	"tg.dark": "Dunkel",
+	"tg.primary": "Primär",
+	"tg.accent": "Akzent",
+	"tg.lightness": "Helligkeit",
+	"tg.chroma": "Chroma",
+	"tg.hue": "Farbton",
+	"tg.radius": "Radius",
+	"tg.motion": "Bewegung",
+	"tg.rainbowPalette": "Regenbogen-Palette",
+	"tg.livePreview": "Live-Vorschau",
+	"tg.cardSurface": "Kartenoberfläche",
+	"tg.cardSurfaceDesc": "Verwendet --card, --foreground, --border und --radius.",
+	"tg.primaryAction": "Primäraktion",
+	"tg.accentBadge": "Akzent-Badge",
+	"tg.beamDesc": "Beam-Farben folgen Primary → Accent.",
+	"tg.generatedCss": "Generiertes CSS",
+	"tg.copyCss": "CSS kopieren",
+	"tg.copied": "Kopiert",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Buttons",

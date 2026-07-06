@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "Introduzione",
 	"page.installation": "Installazione",
 	"page.theming": "Temi",
+	"page.themeGenerator": "Generatore di temi",
 	"page.changelog": "Registro modifiche",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "Filtra componenti...",
 	"gallery.all": "Tutti",
 	"gallery.noMatch": "Nessun componente corrisponde alla ricerca.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"Regola in tempo reale i design token OKLCh di FancyUI e copia il CSS nella tua app.",
+	"tg.intro":
+		"Regola i design token di FancyUI e osserva i componenti reagire in tempo reale. Quando l'aspetto è quello giusto, copia il CSS generato nel foglio di stile della tua app (ad es. src/app.css). I colori usano lo spazio colore OKLCh; la palette arcobaleno usa HSL.",
+	"tg.seeTheming": "Per il riferimento completo dei token, consulta",
+	"tg.presets": "Preset",
+	"tg.base": "Base",
+	"tg.light": "Chiaro",
+	"tg.dark": "Scuro",
+	"tg.primary": "Primario",
+	"tg.accent": "Accento",
+	"tg.lightness": "Luminosità",
+	"tg.chroma": "Croma",
+	"tg.hue": "Tonalità",
+	"tg.radius": "Raggio",
+	"tg.motion": "Movimento",
+	"tg.rainbowPalette": "Palette arcobaleno",
+	"tg.livePreview": "Anteprima in tempo reale",
+	"tg.cardSurface": "Superficie della scheda",
+	"tg.cardSurfaceDesc": "Usa --card, --foreground, --border e --radius.",
+	"tg.primaryAction": "Azione primaria",
+	"tg.accentBadge": "Badge d'accento",
+	"tg.beamDesc": "I colori del beam seguono Primary → Accent.",
+	"tg.generatedCss": "CSS generato",
+	"tg.copyCss": "Copia CSS",
+	"tg.copied": "Copiato",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Pulsanti",

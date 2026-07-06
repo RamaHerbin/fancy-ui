@@ -76,6 +76,33 @@ export const en = {
 	"gallery.all": "All",
 	"gallery.noMatch": "No components match your search.",
 
+	// Theme-generator page
+	"tg.metaDescription": "Tune FancyUI's OKLCh design tokens live and copy the CSS into your app.",
+	"tg.intro":
+		"Tune FancyUI's design tokens and watch the components react in real time. When it looks right, copy the generated CSS into your app's stylesheet (e.g. src/app.css). Colors use the OKLCh color space; the rainbow palette uses HSL.",
+	"tg.seeTheming": "For the full token reference, see",
+	"tg.presets": "Presets",
+	"tg.base": "Base",
+	"tg.light": "Light",
+	"tg.dark": "Dark",
+	"tg.primary": "Primary",
+	"tg.accent": "Accent",
+	"tg.lightness": "Lightness",
+	"tg.chroma": "Chroma",
+	"tg.hue": "Hue",
+	"tg.radius": "Radius",
+	"tg.motion": "Motion",
+	"tg.rainbowPalette": "Rainbow palette",
+	"tg.livePreview": "Live preview",
+	"tg.cardSurface": "Card surface",
+	"tg.cardSurfaceDesc": "Uses --card, --foreground, --border and --radius.",
+	"tg.primaryAction": "Primary action",
+	"tg.accentBadge": "Accent badge",
+	"tg.beamDesc": "Beam colors follow Primary → Accent.",
+	"tg.generatedCss": "Generated CSS",
+	"tg.copyCss": "Copy CSS",
+	"tg.copied": "Copied",
+
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Buttons",
 	"category.cards": "Cards",

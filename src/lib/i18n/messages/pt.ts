@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "Introdução",
 	"page.installation": "Instalação",
 	"page.theming": "Personalização de tema",
+	"page.themeGenerator": "Gerador de tema",
 	"page.changelog": "Registro de alterações",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "Filtrar componentes...",
 	"gallery.all": "Todos",
 	"gallery.noMatch": "Nenhum componente corresponde à sua pesquisa.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"Ajuste os tokens de design OKLCh do FancyUI ao vivo e copie o CSS para a sua aplicação.",
+	"tg.intro":
+		"Ajuste os tokens de design do FancyUI e veja os componentes reagirem em tempo real. Quando estiver do seu agrado, copie o CSS gerado para a folha de estilos da sua aplicação (por exemplo, src/app.css). As cores usam o espaço de cores OKLCh; a paleta arco-íris usa HSL.",
+	"tg.seeTheming": "Para a referência completa dos tokens, consulte",
+	"tg.presets": "Predefinições",
+	"tg.base": "Base",
+	"tg.light": "Claro",
+	"tg.dark": "Escuro",
+	"tg.primary": "Primária",
+	"tg.accent": "Destaque",
+	"tg.lightness": "Luminosidade",
+	"tg.chroma": "Croma",
+	"tg.hue": "Matiz",
+	"tg.radius": "Raio",
+	"tg.motion": "Movimento",
+	"tg.rainbowPalette": "Paleta arco-íris",
+	"tg.livePreview": "Pré-visualização ao vivo",
+	"tg.cardSurface": "Superfície do cartão",
+	"tg.cardSurfaceDesc": "Usa --card, --foreground, --border e --radius.",
+	"tg.primaryAction": "Ação primária",
+	"tg.accentBadge": "Selo de destaque",
+	"tg.beamDesc": "As cores do feixe seguem Primary → Accent.",
+	"tg.generatedCss": "CSS gerado",
+	"tg.copyCss": "Copiar CSS",
+	"tg.copied": "Copiado",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Botões",

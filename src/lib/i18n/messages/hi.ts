@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "परिचय",
 	"page.installation": "इंस्टॉलेशन",
 	"page.theming": "थीमिंग",
+	"page.themeGenerator": "थीम जनरेटर",
 	"page.changelog": "चेंजलॉग",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "कॉम्पोनेंट्स फ़िल्टर करें...",
 	"gallery.all": "सभी",
 	"gallery.noMatch": "आपकी खोज से कोई कॉम्पोनेंट मेल नहीं खाता।",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"FancyUI के OKLCh डिज़ाइन टोकन को लाइव ट्यून करें और CSS को अपने ऐप में कॉपी करें।",
+	"tg.intro":
+		"FancyUI के डिज़ाइन टोकन ट्यून करें और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखें। जब यह सही दिखे, तो जनरेट की गई CSS को अपने ऐप की स्टाइलशीट (उदाहरण के लिए src/app.css) में कॉपी करें। रंग OKLCh कलर स्पेस का उपयोग करते हैं; रेनबो पैलेट HSL का उपयोग करता है।",
+	"tg.seeTheming": "पूर्ण टोकन संदर्भ के लिए, देखें",
+	"tg.presets": "प्रीसेट",
+	"tg.base": "बेस",
+	"tg.light": "लाइट",
+	"tg.dark": "डार्क",
+	"tg.primary": "प्राइमरी",
+	"tg.accent": "एक्सेंट",
+	"tg.lightness": "लाइटनेस",
+	"tg.chroma": "क्रोमा",
+	"tg.hue": "ह्यू",
+	"tg.radius": "रेडियस",
+	"tg.motion": "मोशन",
+	"tg.rainbowPalette": "रेनबो पैलेट",
+	"tg.livePreview": "लाइव प्रीव्यू",
+	"tg.cardSurface": "कार्ड सरफेस",
+	"tg.cardSurfaceDesc": "--card, --foreground, --border और --radius का उपयोग करता है।",
+	"tg.primaryAction": "प्राइमरी एक्शन",
+	"tg.accentBadge": "एक्सेंट बैज",
+	"tg.beamDesc": "बीम रंग Primary → Accent का अनुसरण करते हैं।",
+	"tg.generatedCss": "जनरेट की गई CSS",
+	"tg.copyCss": "CSS कॉपी करें",
+	"tg.copied": "कॉपी हो गया",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "बटन",

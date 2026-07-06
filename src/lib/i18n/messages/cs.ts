@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "Úvod",
 	"page.installation": "Instalace",
 	"page.theming": "Vzhled",
+	"page.themeGenerator": "Generátor motivů",
 	"page.changelog": "Seznam změn",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "Filtrovat komponenty...",
 	"gallery.all": "Vše",
 	"gallery.noMatch": "Vašemu hledání neodpovídají žádné komponenty.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"Nastavte živě designové tokeny OKLCh ve FancyUI a zkopírujte CSS do své aplikace.",
+	"tg.intro":
+		"Nastavte designové tokeny FancyUI a sledujte, jak komponenty reagují v reálném čase. Až bude vzhled odpovídat, zkopírujte vygenerované CSS do stylesheetu své aplikace (např. src/app.css). Barvy používají barevný prostor OKLCh; duhová paleta používá HSL.",
+	"tg.seeTheming": "Úplnou referenci tokenů najdete v",
+	"tg.presets": "Předvolby",
+	"tg.base": "Základní",
+	"tg.light": "Světlý",
+	"tg.dark": "Tmavý",
+	"tg.primary": "Primární",
+	"tg.accent": "Akcent",
+	"tg.lightness": "Světlost",
+	"tg.chroma": "Sytost",
+	"tg.hue": "Odstín",
+	"tg.radius": "Zaoblení",
+	"tg.motion": "Pohyb",
+	"tg.rainbowPalette": "Duhová paleta",
+	"tg.livePreview": "Živý náhled",
+	"tg.cardSurface": "Povrch karty",
+	"tg.cardSurfaceDesc": "Používá --card, --foreground, --border a --radius.",
+	"tg.primaryAction": "Primární akce",
+	"tg.accentBadge": "Akcentní štítek",
+	"tg.beamDesc": "Barvy paprsku odpovídají Primary → Accent.",
+	"tg.generatedCss": "Vygenerované CSS",
+	"tg.copyCss": "Kopírovat CSS",
+	"tg.copied": "Zkopírováno",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Tlačítka",

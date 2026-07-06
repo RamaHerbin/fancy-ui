@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { GradientButton, ShimmerButton, BorderBeam } from "$lib/fancy-ui";
+	import { t } from "$lib/stores";
 
 	// ─── Base light/dark token sets (mirror src/routes/layout.css) ──────────────
 	const bases = {
@@ -168,27 +169,22 @@ ${selector} {
 </script>
 
 <svelte:head>
-	<title>Theme Generator - FancyUI Docs</title>
-	<meta
-		name="description"
-		content="Tune FancyUI's OKLCh design tokens live and copy the CSS into your app."
-	/>
+	<title>{t("page.themeGenerator")} - FancyUI Docs</title>
+	<meta name="description" content={t("tg.metaDescription")} />
 </svelte:head>
 
-<h1>Theme Generator</h1>
+<h1>{t("page.themeGenerator")}</h1>
 
 <p>
-	Tune FancyUI's design tokens and watch the components react in real time. When it looks right,
-	copy the generated CSS into your app's stylesheet (e.g. <code>src/app.css</code>). Colors use the
-	<strong>OKLCh</strong> color space; the rainbow palette uses HSL. For the full token reference,
-	see
-	<a href="/docs/getting-started/theming">Theming</a>.
+	{t("tg.intro")}
+	{t("tg.seeTheming")}
+	<a href="/docs/getting-started/theming">{t("page.theming")}</a>.
 </p>
 
 <!-- ─── Presets ─────────────────────────────────────────────────────────────── -->
 <div class="not-prose mt-8 flex flex-wrap items-center gap-2">
 	<span class="text-muted-foreground mr-1 text-xs font-semibold tracking-wider uppercase">
-		Presets
+		{t("tg.presets")}
 	</span>
 	{#each Object.keys(presets) as name}
 		<button
@@ -207,7 +203,7 @@ ${selector} {
 	<div class="border-border bg-card flex flex-col gap-6 rounded-2xl border p-5">
 		<!-- Base mode -->
 		<div>
-			<div class="text-foreground mb-2 text-sm font-semibold">Base</div>
+			<div class="text-foreground mb-2 text-sm font-semibold">{t("tg.base")}</div>
 			<div class="border-border inline-flex overflow-hidden rounded-lg border">
 				{#each modes as mode}
 					<button
@@ -217,7 +213,7 @@ ${selector} {
 							? 'bg-primary text-primary-foreground'
 							: 'text-muted-foreground hover:text-foreground'}"
 					>
-						{mode}
+						{mode === "light" ? t("tg.light") : t("tg.dark")}
 					</button>
 				{/each}
 			</div>
@@ -226,7 +222,7 @@ ${selector} {
 		<!-- Primary color (oklch) -->
 		<div>
 			<div class="mb-2 flex items-center justify-between">
-				<span class="text-foreground text-sm font-semibold">Primary</span>
+				<span class="text-foreground text-sm font-semibold">{t("tg.primary")}</span>
 				<span
 					class="border-border size-6 rounded-md border"
 					style="background:{primaryColor}"
@@ -235,14 +231,14 @@ ${selector} {
 			</div>
 			<div class="flex flex-col gap-2">
 				<label class="flex items-center gap-3 text-xs">
-					<span class="text-muted-foreground w-16 shrink-0">Lightness</span>
+					<span class="text-muted-foreground w-16 shrink-0">{t("tg.lightness")}</span>
 					<input type="range" min="0" max="1" step="0.005" bind:value={primary[0]} class="flex-1" />
 					<span class="text-muted-foreground w-10 text-right tabular-nums"
 						>{primary[0].toFixed(2)}</span
 					>
 				</label>
 				<label class="flex items-center gap-3 text-xs">
-					<span class="text-muted-foreground w-16 shrink-0">Chroma</span>
+					<span class="text-muted-foreground w-16 shrink-0">{t("tg.chroma")}</span>
 					<input
 						type="range"
 						min="0"
@@ -256,7 +252,7 @@ ${selector} {
 					>
 				</label>
 				<label class="flex items-center gap-3 text-xs">
-					<span class="text-muted-foreground w-16 shrink-0">Hue</span>
+					<span class="text-muted-foreground w-16 shrink-0">{t("tg.hue")}</span>
 					<input type="range" min="0" max="360" step="1" bind:value={primary[2]} class="flex-1" />
 					<span class="text-muted-foreground w-10 text-right tabular-nums"
 						>{Math.round(primary[2])}</span
@@ -268,7 +264,7 @@ ${selector} {
 		<!-- Accent color (oklch) -->
 		<div>
 			<div class="mb-2 flex items-center justify-between">
-				<span class="text-foreground text-sm font-semibold">Accent</span>
+				<span class="text-foreground text-sm font-semibold">{t("tg.accent")}</span>
 				<span
 					class="border-border size-6 rounded-md border"
 					style="background:{accentColor}"
@@ -277,14 +273,14 @@ ${selector} {
 			</div>
 			<div class="flex flex-col gap-2">
 				<label class="flex items-center gap-3 text-xs">
-					<span class="text-muted-foreground w-16 shrink-0">Lightness</span>
+					<span class="text-muted-foreground w-16 shrink-0">{t("tg.lightness")}</span>
 					<input type="range" min="0" max="1" step="0.005" bind:value={accent[0]} class="flex-1" />
 					<span class="text-muted-foreground w-10 text-right tabular-nums"
 						>{accent[0].toFixed(2)}</span
 					>
 				</label>
 				<label class="flex items-center gap-3 text-xs">
-					<span class="text-muted-foreground w-16 shrink-0">Chroma</span>
+					<span class="text-muted-foreground w-16 shrink-0">{t("tg.chroma")}</span>
 					<input
 						type="range"
 						min="0"
@@ -298,7 +294,7 @@ ${selector} {
 					>
 				</label>
 				<label class="flex items-center gap-3 text-xs">
-					<span class="text-muted-foreground w-16 shrink-0">Hue</span>
+					<span class="text-muted-foreground w-16 shrink-0">{t("tg.hue")}</span>
 					<input type="range" min="0" max="360" step="1" bind:value={accent[2]} class="flex-1" />
 					<span class="text-muted-foreground w-10 text-right tabular-nums"
 						>{Math.round(accent[2])}</span
@@ -310,7 +306,7 @@ ${selector} {
 		<!-- Radius -->
 		<div>
 			<label class="flex items-center gap-3">
-				<span class="text-foreground w-16 shrink-0 text-sm font-semibold">Radius</span>
+				<span class="text-foreground w-16 shrink-0 text-sm font-semibold">{t("tg.radius")}</span>
 				<input type="range" min="0" max="1.5" step="0.025" bind:value={radius} class="flex-1" />
 				<span class="text-muted-foreground w-14 text-right text-xs tabular-nums">{radius}rem</span>
 			</label>
@@ -319,7 +315,7 @@ ${selector} {
 		<!-- Animation speed -->
 		<div>
 			<label class="flex items-center gap-3">
-				<span class="text-foreground w-16 shrink-0 text-sm font-semibold">Motion</span>
+				<span class="text-foreground w-16 shrink-0 text-sm font-semibold">{t("tg.motion")}</span>
 				<input type="range" min="100" max="800" step="25" bind:value={anim} class="flex-1" />
 				<span class="text-muted-foreground w-14 text-right text-xs tabular-nums">{anim}ms</span>
 			</label>
@@ -327,7 +323,7 @@ ${selector} {
 
 		<!-- Rainbow palette -->
 		<div>
-			<div class="text-foreground mb-2 text-sm font-semibold">Rainbow palette</div>
+			<div class="text-foreground mb-2 text-sm font-semibold">{t("tg.rainbowPalette")}</div>
 			<div class="flex flex-col gap-2">
 				{#each rainbow as hue, i}
 					<label class="flex items-center gap-3 text-xs">
@@ -351,7 +347,7 @@ ${selector} {
 		style={previewStyle}
 	>
 		<div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-			Live preview
+			{t("tg.livePreview")}
 		</div>
 
 		<!-- Themed card -->
@@ -360,13 +356,8 @@ ${selector} {
 			style="border-radius:var(--radius)"
 		>
 			<div>
-				<div class="text-foreground text-lg font-semibold">Card surface</div>
-				<div class="text-muted-foreground text-sm">
-					Uses <code class="text-foreground">--card</code>,
-					<code class="text-foreground">--foreground</code>,
-					<code class="text-foreground">--border</code> and
-					<code class="text-foreground">--radius</code>.
-				</div>
+				<div class="text-foreground text-lg font-semibold">{t("tg.cardSurface")}</div>
+				<div class="text-muted-foreground text-sm">{t("tg.cardSurfaceDesc")}</div>
 			</div>
 			<div class="flex flex-wrap items-center gap-3">
 				<button
@@ -374,13 +365,13 @@ ${selector} {
 					class="hover-motion px-4 py-2 text-sm font-medium"
 					style="background:var(--primary);color:var(--primary-foreground);border-radius:var(--radius)"
 				>
-					Primary action
+					{t("tg.primaryAction")}
 				</button>
 				<span
 					class="px-3 py-1 text-xs font-medium"
 					style="background:var(--accent);color:var(--accent-foreground);border-radius:var(--radius)"
 				>
-					Accent badge
+					{t("tg.accentBadge")}
 				</span>
 			</div>
 		</div>
@@ -395,7 +386,7 @@ ${selector} {
 				borderWidth={1.5}
 			/>
 			<div class="text-foreground text-sm font-semibold">BorderBeam</div>
-			<div class="text-muted-foreground text-xs">Beam colors follow Primary → Accent.</div>
+			<div class="text-muted-foreground text-xs">{t("tg.beamDesc")}</div>
 		</div>
 
 		<!-- Rainbow palette — swatches (direct) + GradientButton (consumes the palette) -->
@@ -416,7 +407,7 @@ ${selector} {
 <!-- ─── CSS output ──────────────────────────────────────────────────────────── -->
 <div class="not-prose mt-8">
 	<div class="mb-2 flex items-center justify-between">
-		<span class="text-foreground text-sm font-semibold">Generated CSS</span>
+		<span class="text-foreground text-sm font-semibold">{t("tg.generatedCss")}</span>
 		<button
 			type="button"
 			onclick={copyCss}
@@ -434,7 +425,7 @@ ${selector} {
 				>
 					<path d="M20 6 9 17l-5-5" />
 				</svg>
-				Copied
+				{t("tg.copied")}
 			{:else}
 				<svg
 					width="14"
@@ -448,7 +439,7 @@ ${selector} {
 					<rect x="9" y="9" width="13" height="13" rx="2" />
 					<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
 				</svg>
-				Copy CSS
+				{t("tg.copyCss")}
 			{/if}
 		</button>
 	</div>

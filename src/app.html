@@ -23,7 +23,10 @@
 						root.setAttribute("data-theme", saved);
 					}
 					// Locale: set lang + dir before paint (RTL for Arabic/Persian).
-					var loc = localStorage.getItem("fancy-ui-locale");
+					// ?lang= URL param wins over the saved locale.
+					var loc =
+						new URLSearchParams(location.search).get("lang") ||
+						localStorage.getItem("fancy-ui-locale");
 					if (loc) {
 						var RTL = { ar: 1, fa: 1 };
 						root.lang = loc;

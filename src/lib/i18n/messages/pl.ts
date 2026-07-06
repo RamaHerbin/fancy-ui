@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "Wprowadzenie",
 	"page.installation": "Instalacja",
 	"page.theming": "Motywy",
+	"page.themeGenerator": "Generator motywów",
 	"page.changelog": "Lista zmian",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "Filtruj komponenty...",
 	"gallery.all": "Wszystkie",
 	"gallery.noMatch": "Żaden komponent nie pasuje do wyszukiwania.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"Dostosuj tokeny projektowe OKLCh w FancyUI na żywo i skopiuj CSS do swojej aplikacji.",
+	"tg.intro":
+		"Dostosuj tokeny projektowe FancyUI i obserwuj, jak komponenty reagują w czasie rzeczywistym. Gdy wygląd będzie odpowiedni, skopiuj wygenerowany CSS do arkusza stylów swojej aplikacji (np. src/app.css). Kolory używają przestrzeni kolorów OKLCh; paleta tęczowa używa HSL.",
+	"tg.seeTheming": "Pełny opis tokenów znajdziesz w",
+	"tg.presets": "Gotowe ustawienia",
+	"tg.base": "Podstawa",
+	"tg.light": "Jasny",
+	"tg.dark": "Ciemny",
+	"tg.primary": "Podstawowy",
+	"tg.accent": "Akcent",
+	"tg.lightness": "Jasność",
+	"tg.chroma": "Chroma",
+	"tg.hue": "Odcień",
+	"tg.radius": "Promień",
+	"tg.motion": "Ruch",
+	"tg.rainbowPalette": "Paleta tęczowa",
+	"tg.livePreview": "Podgląd na żywo",
+	"tg.cardSurface": "Powierzchnia karty",
+	"tg.cardSurfaceDesc": "Używa --card, --foreground, --border i --radius.",
+	"tg.primaryAction": "Akcja podstawowa",
+	"tg.accentBadge": "Odznaka akcentu",
+	"tg.beamDesc": "Kolory wiązki podążają za Primary → Accent.",
+	"tg.generatedCss": "Wygenerowany CSS",
+	"tg.copyCss": "Kopiuj CSS",
+	"tg.copied": "Skopiowano",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Przyciski",

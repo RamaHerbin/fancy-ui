@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "Pengantar",
 	"page.installation": "Instalasi",
 	"page.theming": "Tema",
+	"page.themeGenerator": "Generator Tema",
 	"page.changelog": "Catatan Perubahan",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "Filter komponen...",
 	"gallery.all": "Semua",
 	"gallery.noMatch": "Tidak ada komponen yang cocok dengan pencarian Anda.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"Sesuaikan token desain OKLCh FancyUI secara langsung dan salin CSS-nya ke aplikasi Anda.",
+	"tg.intro":
+		"Sesuaikan token desain FancyUI dan lihat komponen bereaksi secara real-time. Ketika sudah terlihat pas, salin CSS yang dihasilkan ke lembar gaya aplikasi Anda (mis. src/app.css). Warna menggunakan ruang warna OKLCh; palet pelangi menggunakan HSL.",
+	"tg.seeTheming": "Untuk referensi token lengkap, lihat",
+	"tg.presets": "Prasetel",
+	"tg.base": "Dasar",
+	"tg.light": "Terang",
+	"tg.dark": "Gelap",
+	"tg.primary": "Primer",
+	"tg.accent": "Aksen",
+	"tg.lightness": "Kecerahan",
+	"tg.chroma": "Kroma",
+	"tg.hue": "Rona",
+	"tg.radius": "Radius",
+	"tg.motion": "Gerak",
+	"tg.rainbowPalette": "Palet pelangi",
+	"tg.livePreview": "Pratinjau langsung",
+	"tg.cardSurface": "Permukaan kartu",
+	"tg.cardSurfaceDesc": "Menggunakan --card, --foreground, --border dan --radius.",
+	"tg.primaryAction": "Aksi primer",
+	"tg.accentBadge": "Lencana aksen",
+	"tg.beamDesc": "Warna beam mengikuti Primary → Accent.",
+	"tg.generatedCss": "CSS yang Dihasilkan",
+	"tg.copyCss": "Salin CSS",
+	"tg.copied": "Tersalin",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Tombol",

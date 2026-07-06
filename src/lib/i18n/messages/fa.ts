@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "معرفی",
 	"page.installation": "نصب",
 	"page.theming": "پوسته‌بندی",
+	"page.themeGenerator": "سازنده‌ی پوسته",
 	"page.changelog": "فهرست تغییرات",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "فیلتر کردن کامپوننت‌ها...",
 	"gallery.all": "همه",
 	"gallery.noMatch": "هیچ کامپوننتی با جستجوی شما مطابقت ندارد.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"توکن‌های طراحی OKLCh در FancyUI را به‌صورت زنده تنظیم کنید و CSS را در برنامه‌ی خود کپی کنید.",
+	"tg.intro":
+		"توکن‌های طراحی FancyUI را تنظیم کنید و واکنش آنی کامپوننت‌ها را ببینید. وقتی ظاهر مطلوب شد، CSS تولیدشده را در شیوه‌نامه‌ی برنامه‌ی خود (برای مثال src/app.css) کپی کنید. رنگ‌ها از فضای رنگی OKLCh استفاده می‌کنند؛ پالت رنگین‌کمانی از HSL استفاده می‌کند.",
+	"tg.seeTheming": "برای مرجع کامل توکن‌ها، مراجعه کنید به",
+	"tg.presets": "پیش‌تنظیم‌ها",
+	"tg.base": "پایه",
+	"tg.light": "روشن",
+	"tg.dark": "تیره",
+	"tg.primary": "اصلی",
+	"tg.accent": "تأکید",
+	"tg.lightness": "روشنایی",
+	"tg.chroma": "کروما",
+	"tg.hue": "فام",
+	"tg.radius": "شعاع",
+	"tg.motion": "حرکت",
+	"tg.rainbowPalette": "پالت رنگین‌کمانی",
+	"tg.livePreview": "پیش‌نمایش زنده",
+	"tg.cardSurface": "سطح کارت",
+	"tg.cardSurfaceDesc": "از --card، --foreground، --border و --radius استفاده می‌کند.",
+	"tg.primaryAction": "کنش اصلی",
+	"tg.accentBadge": "نشان تأکید",
+	"tg.beamDesc": "رنگ‌های پرتو از Primary → Accent پیروی می‌کنند.",
+	"tg.generatedCss": "CSS تولیدشده",
+	"tg.copyCss": "کپی CSS",
+	"tg.copied": "کپی شد",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "دکمه‌ها",

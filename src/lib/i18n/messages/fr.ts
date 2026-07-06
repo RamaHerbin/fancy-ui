@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "Introduction",
 	"page.installation": "Installation",
 	"page.theming": "Personnalisation du thème",
+	"page.themeGenerator": "Générateur de thème",
 	"page.changelog": "Journal des modifications",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "Filtrer les composants...",
 	"gallery.all": "Tous",
 	"gallery.noMatch": "Aucun composant ne correspond à votre recherche.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"Ajustez en direct les jetons de design OKLCh de FancyUI et copiez le CSS dans votre application.",
+	"tg.intro":
+		"Ajustez les jetons de design de FancyUI et regardez les composants réagir en temps réel. Quand le rendu vous convient, copiez le CSS généré dans la feuille de style de votre application (par exemple src/app.css). Les couleurs utilisent l'espace colorimétrique OKLCh ; la palette arc-en-ciel utilise HSL.",
+	"tg.seeTheming": "Pour la référence complète des jetons, voir",
+	"tg.presets": "Préréglages",
+	"tg.base": "Base",
+	"tg.light": "Clair",
+	"tg.dark": "Sombre",
+	"tg.primary": "Primaire",
+	"tg.accent": "Accent",
+	"tg.lightness": "Luminosité",
+	"tg.chroma": "Chroma",
+	"tg.hue": "Teinte",
+	"tg.radius": "Rayon",
+	"tg.motion": "Animation",
+	"tg.rainbowPalette": "Palette arc-en-ciel",
+	"tg.livePreview": "Aperçu en direct",
+	"tg.cardSurface": "Surface de carte",
+	"tg.cardSurfaceDesc": "Utilise --card, --foreground, --border et --radius.",
+	"tg.primaryAction": "Action primaire",
+	"tg.accentBadge": "Badge d'accent",
+	"tg.beamDesc": "Les couleurs du faisceau suivent Primary → Accent.",
+	"tg.generatedCss": "CSS généré",
+	"tg.copyCss": "Copier le CSS",
+	"tg.copied": "Copié",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Boutons",

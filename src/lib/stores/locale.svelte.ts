@@ -17,6 +17,9 @@ let current = $state<string>(defaultLocale);
 
 function resolveInitial(): string {
 	if (!browser) return defaultLocale;
+	// Precedence: ?lang= URL param → localStorage → navigator → default.
+	const fromUrl = new URLSearchParams(window.location.search).get("lang");
+	if (fromUrl && getLocaleDef(fromUrl)) return fromUrl;
 	const saved = localStorage.getItem(STORAGE_KEY);
 	if (saved && getLocaleDef(saved)) return saved;
 	const nav = (navigator.language ?? "").toLowerCase();
@@ -34,10 +37,33 @@ function applyLocale() {
 	document.documentElement.dir = def.dir;
 }
 
+/** Reflect the locale in the URL as ?lang=<code>, without a route change. */
+function syncUrl(code: string) {
+	if (!browser) return;
+	const url = new URL(window.location.href);
+	if (url.searchParams.get("lang") !== code) {
+		url.searchParams.set("lang", code);
+		history.replaceState(history.state, "", url);
+	}
+}
+
+function handlePopState() {
+	const fromUrl = new URLSearchParams(window.location.search).get("lang");
+	if (fromUrl && getLocaleDef(fromUrl) && fromUrl !== current) {
+		current = fromUrl;
+		localStorage.setItem(STORAGE_KEY, fromUrl);
+		applyLocale();
+	}
+}
+
 function initialize() {
 	if (!browser) return;
+	const urlLang = new URLSearchParams(window.location.search).get("lang");
 	current = resolveInitial();
 	applyLocale();
+	// A deep-linked ?lang= wins and is remembered for next visit.
+	if (urlLang && getLocaleDef(urlLang)) localStorage.setItem(STORAGE_KEY, current);
+	window.addEventListener("popstate", handlePopState);
 }
 
 // =============================================================================
@@ -50,6 +76,7 @@ export function setLocale(code: string) {
 	if (browser) {
 		localStorage.setItem(STORAGE_KEY, code);
 		applyLocale();
+		syncUrl(code);
 	}
 }
 

@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "Giriş",
 	"page.installation": "Kurulum",
 	"page.theming": "Tema",
+	"page.themeGenerator": "Tema Oluşturucu",
 	"page.changelog": "Değişiklik Günlüğü",
 
 	// Header
@@ -66,6 +67,34 @@ export default {
 	"gallery.filterPlaceholder": "Bileşenleri filtrele...",
 	"gallery.all": "Tümü",
 	"gallery.noMatch": "Aramanızla eşleşen bileşen yok.",
+
+	// Theme-generator page
+	"tg.metaDescription":
+		"FancyUI'nin OKLCh tasarım belirteçlerini canlı olarak ayarlayın ve CSS'yi uygulamanıza kopyalayın.",
+	"tg.intro":
+		"FancyUI'nin tasarım belirteçlerini ayarlayın ve bileşenlerin gerçek zamanlı olarak tepki vermesini izleyin. Doğru göründüğünde, oluşturulan CSS'yi uygulamanızın stil sayfasına (örneğin src/app.css) kopyalayın. Renkler OKLCh renk uzayını kullanır; gökkuşağı paleti HSL kullanır.",
+	"tg.seeTheming": "Tüm belirteç referansı için bkz.",
+	"tg.presets": "Hazır Ayarlar",
+	"tg.base": "Temel",
+	"tg.light": "Aydınlık",
+	"tg.dark": "Karanlık",
+	"tg.primary": "Birincil",
+	"tg.accent": "Vurgu",
+	"tg.lightness": "Açıklık",
+	"tg.chroma": "Kroma",
+	"tg.hue": "Ton",
+	"tg.radius": "Yarıçap",
+	"tg.motion": "Hareket",
+	"tg.rainbowPalette": "Gökkuşağı paleti",
+	"tg.livePreview": "Canlı önizleme",
+	"tg.cardSurface": "Kart yüzeyi",
+	"tg.cardSurfaceDesc": "--card, --foreground, --border ve --radius kullanır.",
+	"tg.primaryAction": "Birincil eylem",
+	"tg.accentBadge": "Vurgu rozeti",
+	"tg.beamDesc": "Işın renkleri Primary → Accent sırasını izler.",
+	"tg.generatedCss": "Oluşturulan CSS",
+	"tg.copyCss": "CSS'yi Kopyala",
+	"tg.copied": "Kopyalandı",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "Düğmeler",

@@ -11,6 +11,7 @@ export default {
 	"page.introduction": "소개",
 	"page.installation": "설치",
 	"page.theming": "테마 설정",
+	"page.themeGenerator": "테마 생성기",
 	"page.changelog": "변경 이력",
 
 	// Header
@@ -66,6 +67,33 @@ export default {
 	"gallery.filterPlaceholder": "컴포넌트 필터링...",
 	"gallery.all": "전체",
 	"gallery.noMatch": "검색과 일치하는 컴포넌트가 없습니다.",
+
+	// Theme-generator page
+	"tg.metaDescription": "FancyUI의 OKLCh 디자인 토큰을 실시간으로 조정하고 CSS를 앱에 복사하세요.",
+	"tg.intro":
+		"FancyUI의 디자인 토큰을 조정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하세요. 마음에 들면 생성된 CSS를 앱의 스타일시트(예: src/app.css)에 복사하세요. 색상은 OKLCh 색 공간을 사용하며, 무지개 팔레트는 HSL을 사용합니다.",
+	"tg.seeTheming": "전체 토큰 참조는 다음을 확인하세요",
+	"tg.presets": "프리셋",
+	"tg.base": "기본",
+	"tg.light": "라이트",
+	"tg.dark": "다크",
+	"tg.primary": "주 색상",
+	"tg.accent": "강조 색상",
+	"tg.lightness": "명도",
+	"tg.chroma": "채도",
+	"tg.hue": "색조",
+	"tg.radius": "반경",
+	"tg.motion": "모션",
+	"tg.rainbowPalette": "무지개 팔레트",
+	"tg.livePreview": "실시간 미리보기",
+	"tg.cardSurface": "카드 표면",
+	"tg.cardSurfaceDesc": "--card, --foreground, --border 및 --radius를 사용합니다.",
+	"tg.primaryAction": "주요 작업",
+	"tg.accentBadge": "강조 배지",
+	"tg.beamDesc": "빔 색상은 Primary → Accent를 따릅니다.",
+	"tg.generatedCss": "생성된 CSS",
+	"tg.copyCss": "CSS 복사",
+	"tg.copied": "복사됨",
 
 	// Category labels (docs-only overlay; registry stays English)
 	"category.buttons": "버튼",
