@@ -1,0 +1,72 @@
+---
+title: 설치
+---
+
+<svelte:head>
+	<title>설치 - FancyUI Docs</title>
+</svelte:head>
+
+# 설치
+
+## 사전 요구 사항
+
+- Svelte 5 기반 **SvelteKit**
+- **Tailwind CSS v4**
+- **Node.js** >= 20
+
+## 패키지 설치
+
+```bash
+# pnpm (recommended)
+pnpm add fancy-ui-svelte
+
+# npm
+npm install fancy-ui-svelte
+
+# bun
+bun add fancy-ui-svelte
+```
+
+## Tailwind CSS 설정
+
+FancyUI 컴포넌트는 Tailwind CSS v4를 사용합니다. 프로젝트에 Tailwind가 구성되어 있는지 확인하세요. FancyUI는 가져올 수 있는 보조 스타일시트를 제공합니다:
+
+```css
+/* In your app.css or layout.css */
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+## 사용법
+
+원하는 컴포넌트를 직접 가져오세요:
+
+```svelte
+<script lang="ts">
+  import { BorderBeam, Sparkles, RainbowButton } from 'fancy-ui-svelte';
+</script>
+
+<div class="relative overflow-hidden rounded-xl border p-8">
+  <RainbowButton>Click me</RainbowButton>
+  <BorderBeam colorFrom="#9E7AFF" colorTo="#FE8BBB" />
+</div>
+```
+
+## TypeScript
+
+모든 컴포넌트는 자체 속성 타입을 내보냅니다:
+
+```typescript
+import { type BorderBeamProps } from 'fancy-ui-svelte';
+```
+
+## 피어 의존성
+
+FancyUI는 다음을 피어 의존성으로 요구합니다:
+
+| 패키지 | 버전 |
+|---------|---------|
+| `svelte` | `^5.0.0` |
+| `tailwindcss` | `^4.0.0` |
+
+일부 컴포넌트에는 패키지에 함께 번들되는 추가 런타임 의존성(`gsap`, `three`, `canvas-confetti`)이 있습니다.

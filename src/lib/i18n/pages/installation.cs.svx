@@ -1,0 +1,72 @@
+---
+title: Instalace
+---
+
+<svelte:head>
+	<title>Instalace - FancyUI Docs</title>
+</svelte:head>
+
+# Instalace
+
+## Předpoklady
+
+- **SvelteKit** se Svelte 5
+- **Tailwind CSS v4**
+- **Node.js** >= 20
+
+## Instalace balíčku
+
+```bash
+# pnpm (recommended)
+pnpm add fancy-ui-svelte
+
+# npm
+npm install fancy-ui-svelte
+
+# bun
+bun add fancy-ui-svelte
+```
+
+## Nastavení Tailwind CSS
+
+Komponenty FancyUI používají Tailwind CSS v4. Ujistěte se, že váš projekt má nakonfigurovaný Tailwind. FancyUI dodává doplňkový stylesheet, který můžete importovat:
+
+```css
+/* In your app.css or layout.css */
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+## Použití
+
+Importujte libovolnou komponentu přímo:
+
+```svelte
+<script lang="ts">
+  import { BorderBeam, Sparkles, RainbowButton } from 'fancy-ui-svelte';
+</script>
+
+<div class="relative overflow-hidden rounded-xl border p-8">
+  <RainbowButton>Click me</RainbowButton>
+  <BorderBeam colorFrom="#9E7AFF" colorTo="#FE8BBB" />
+</div>
+```
+
+## TypeScript
+
+Všechny komponenty exportují své typy vlastností:
+
+```typescript
+import { type BorderBeamProps } from 'fancy-ui-svelte';
+```
+
+## Peer dependencies
+
+FancyUI vyžaduje tyto balíčky jako peer dependencies:
+
+| Balíček | Verze |
+|---------|---------|
+| `svelte` | `^5.0.0` |
+| `tailwindcss` | `^4.0.0` |
+
+Některé komponenty mají další runtime závislosti (`gsap`, `three`, `canvas-confetti`), které jsou přibaleny k balíčku.

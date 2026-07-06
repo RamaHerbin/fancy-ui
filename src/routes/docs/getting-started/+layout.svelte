@@ -62,13 +62,13 @@
 
 	.doc-prose :global(ul) {
 		list-style: disc;
-		padding-left: 1.5rem;
+		padding-inline-start: 1.5rem;
 		margin-bottom: 1rem;
 	}
 
 	.doc-prose :global(ol) {
 		list-style: decimal;
-		padding-left: 1.5rem;
+		padding-inline-start: 1.5rem;
 		margin-bottom: 1rem;
 	}
 
@@ -118,7 +118,7 @@
 	}
 
 	.doc-prose :global(th) {
-		text-align: left;
+		text-align: start;
 		padding: 0.625rem 1rem;
 		border-bottom: 1px solid var(--border);
 		font-weight: 600;
@@ -138,8 +138,8 @@
 	}
 
 	.doc-prose :global(blockquote) {
-		border-left: 3px solid var(--border);
-		padding-left: 1rem;
+		border-inline-start: 3px solid var(--border);
+		padding-inline-start: 1rem;
 		color: var(--muted-foreground);
 		font-style: italic;
 		margin-bottom: 1rem;

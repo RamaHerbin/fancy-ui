@@ -19,3 +19,5 @@ export {
 	isLight,
 	createThemeState,
 } from "./theme.svelte.js";
+
+export { setLocale, getLocale, getDir, t, createI18n } from "./locale.svelte.js";

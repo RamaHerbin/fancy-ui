@@ -1,0 +1,100 @@
+---
+title: Registro de cambios
+---
+
+<svelte:head>
+	<title>Changelog - FancyUI Docs</title>
+</svelte:head>
+
+# Registro de cambios
+
+Todos los cambios destacables de FancyUI. Este proyecto sigue el [Versionado semántico](https://semver.org/).
+
+---
+
+## v0.4.1
+
+### Cambios de parche
+
+- Corrige el nombre de la prop `manualstart` que pasa a llamarse `manualStart` en Confetti
+- Añade FluidCursorAdvanced para un lienzo contenido con props de interacción y animación autónoma (`interactive`, `autoSplat`, `autoSplatInterval`, `pauseWhenHidden`, `splatOnMount`)
+- Añade las props `fluidColor`, `fluidColors`, `colorIntensity` y compatibilidad con `backColor` en hexadecimal a FluidCursor
+- Añade Vercel Analytics
+- Nuevo diseño de la página de inicio
+
+## v0.4.0
+
+### Cambios menores
+
+- Añade **MatrixRain** — lluvia de glifos al estilo Matrix basada en canvas
+- Añade **TerminalText** — transmisor de texto estilo terminal con animación por carácter, cursor parpadeante y efecto glitch
+- Añade **Component Copilot** — demo de chat con IA en `/demo/component-copilot`
+
+## v0.3.0
+
+### Cambios menores
+
+- Añade **DisplacementText** — texto 3D con desplazamiento WebGL usando shaders de Three.js
+- Añade **PropsPlayground** — editor interactivo de props para las páginas de demostración
+
+### Cambios de parche
+
+- Añade **AppleCardCarousel** — carrusel de tarjetas horizontal con expansión a pantalla completa animada con spring
+- Añade **LineHoverLink** — enlace con 11 efectos animados de subrayado al pasar el cursor, CSS puro
+- Añade la canalización de compilación del paquete npm (`npm install fancy-ui`)
+- Corrige el desbordamiento de las esquinas de Compare y la imagen rota de AnimatedTooltip
+- Corrige el desplazamiento del diseño de FlipWords durante la transición de palabras
+
+## v0.2.1
+
+### Cambios de parche
+
+- Vuelve a publicar con el nombre de paquete correcto `fancy-ui-svelte`
+- Separa el paso de compilación del paquete de la publicación del changeset
+
+## v0.2.0
+
+### Cambios menores
+
+- Añade **AnimatedTestimonials** — carrusel de testimonios con animaciones de deslizamiento suaves y reproducción automática opcional
+- Configura el flujo de trabajo de versionado con changesets
+
+## v0.1.0 — 2026-03-13
+
+Primera versión pública — 50 componentes en 10 categorías, creados con runes de Svelte 5 y Tailwind CSS v4.
+
+### Botones (5)
+
+RainbowButton, ShimmerButton, RippleButton, GradientButton, InteractiveHoverButton
+
+### Tarjetas (8)
+
+BentoGrid, Book, Card3D, CardSpotlight, DirectionAwareHover, FlipCard, GlareCard, TextRevealCard
+
+### Texto y tipografía (12)
+
+BlurReveal, BoxReveal, ColourfulText, ContainerTextFlip, FlipWords, Focus, HyperText, LetterPullup, LineShadowText, NumberTicker, SparklesText, TextGenerateEffect
+
+### Fondos (4)
+
+FallingStarsBg, FlickeringGrid, Sparkles, StarsBackground
+
+### Efectos (14)
+
+AnimatedBeam, BorderBeam, Confetti, FluidCursor, GlowBorder, GlowingEffect, ImageTrailCursor, InteractiveGridPattern, LiquidGlass, Meteors, NeonBorder, Ripple, SmoothCursor, TracingBeam
+
+### Diseño (2)
+
+ContainerScroll, Marquee
+
+### Navegación (3)
+
+Dock, Timeline, LogoCloud
+
+### Visualización de datos (1)
+
+AnimatedTooltip
+
+### Multimedia (1)
+
+Compare

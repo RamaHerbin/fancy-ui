@@ -1,0 +1,72 @@
+---
+title: 安装
+---
+
+<svelte:head>
+	<title>安装 - FancyUI Docs</title>
+</svelte:head>
+
+# 安装
+
+## 前置要求
+
+- **SvelteKit** 搭配 Svelte 5
+- **Tailwind CSS v4**
+- **Node.js** >= 20
+
+## 安装包
+
+```bash
+# pnpm (recommended)
+pnpm add fancy-ui-svelte
+
+# npm
+npm install fancy-ui-svelte
+
+# bun
+bun add fancy-ui-svelte
+```
+
+## Tailwind CSS 配置
+
+FancyUI 组件使用 Tailwind CSS v4。请确保你的项目已配置好 Tailwind。FancyUI 提供了一份可供导入的补充样式表：
+
+```css
+/* In your app.css or layout.css */
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+## 用法
+
+直接导入任意组件：
+
+```svelte
+<script lang="ts">
+  import { BorderBeam, Sparkles, RainbowButton } from 'fancy-ui-svelte';
+</script>
+
+<div class="relative overflow-hidden rounded-xl border p-8">
+  <RainbowButton>Click me</RainbowButton>
+  <BorderBeam colorFrom="#9E7AFF" colorTo="#FE8BBB" />
+</div>
+```
+
+## TypeScript
+
+所有组件都导出各自的属性类型：
+
+```typescript
+import { type BorderBeamProps } from 'fancy-ui-svelte';
+```
+
+## 对等依赖
+
+FancyUI 需要以下对等依赖：
+
+| 包 | 版本 |
+|---------|---------|
+| `svelte` | `^5.0.0` |
+| `tailwindcss` | `^4.0.0` |
+
+部分组件还有额外的运行时依赖（`gsap`、`three`、`canvas-confetti`），它们已随包一起打包。

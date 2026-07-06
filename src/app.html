@@ -22,6 +22,13 @@
 					if (saved && saved !== "system" && saved !== "light" && saved !== "dark") {
 						root.setAttribute("data-theme", saved);
 					}
+					// Locale: set lang + dir before paint (RTL for Arabic/Persian).
+					var loc = localStorage.getItem("fancy-ui-locale");
+					if (loc) {
+						var RTL = { ar: 1, fa: 1 };
+						root.lang = loc;
+						root.dir = RTL[loc] ? "rtl" : "ltr";
+					}
 				} catch (e) {}
 			})();
 		</script>

@@ -1,0 +1,106 @@
+---
+title: テーマ設定
+---
+
+<svelte:head>
+	<title>テーマ設定 - FancyUI Docs</title>
+</svelte:head>
+
+# テーマ設定
+
+FancyUI はテーマ設定に CSS カスタムプロパティ（OKLCh 色空間）を使用しており、shadcn-svelte の規約と完全に互換性があります。
+
+## CSS のセットアップ
+
+アプリの CSS（例: `src/app.css`）に FancyUI のスタイルシートをインポートします。
+
+```css
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+## カラーシステム
+
+すべての色は、知覚的に均一なグラデーションを実現するために **OKLCh** 色空間を使用します。
+
+```css
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --border: oklch(0.929 0.013 255.508);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+}
+```
+
+## ダークモード
+
+ダークモードは、親要素の `.dark` クラスによって有効になります。FancyUI はすべてのトークンをオーバーライドします。
+
+```css
+.dark {
+  --background: oklch(0.05 0 0);
+  --foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --card: oklch(0.1 0.005 265);
+  --border: oklch(1 0 0 / 8%);
+}
+```
+
+## アニメーショントークン
+
+アニメーションのタイミングをグローバルに制御します。
+
+```css
+:root {
+  --animation-fast: 150ms;
+  --animation-normal: 300ms;
+  --animation-slow: 500ms;
+  --animation-slower: 1000ms;
+}
+```
+
+## イージング関数
+
+```css
+:root {
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+```
+
+## レインボーグラデーション
+
+`RainbowButton`、`GradientButton`、その他のグラデーションエフェクトで使用されます。
+
+```css
+:root {
+  --rainbow-1: hsl(0 100% 63%);
+  --rainbow-2: hsl(270 100% 63%);
+  --rainbow-3: hsl(210 100% 63%);
+  --rainbow-4: hsl(195 100% 63%);
+  --rainbow-5: hsl(90 100% 63%);
+}
+```
+
+## カスタマイズ
+
+見た目をカスタマイズするには、独自の CSS で任意のトークンをオーバーライドします。
+
+```css
+:root {
+  /* Make primary purple */
+  --primary: oklch(0.5 0.25 280);
+  --primary-foreground: oklch(0.98 0.01 280);
+
+  /* Slower animations */
+  --animation-normal: 500ms;
+}
+```

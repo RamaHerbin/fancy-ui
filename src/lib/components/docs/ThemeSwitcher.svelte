@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createThemeState } from "$lib/stores";
+	import { createThemeState, t } from "$lib/stores";
 
 	const themeState = createThemeState();
 
@@ -8,15 +8,16 @@
 
 	type Entry = { name: string; label: string; swatch: [string, string, string, string] };
 
-	const systemEntry: Entry = {
-		name: "system",
-		label: "System",
-		swatch: ["#a3a3a3", "#525252", "#e5e5e5", "#171717"],
-	};
+	const systemSwatch: [string, string, string, string] = [
+		"#a3a3a3",
+		"#525252",
+		"#e5e5e5",
+		"#171717",
+	];
 
 	const entries = $derived<Entry[]>([
-		systemEntry,
-		...themeState.themes.map((t) => ({ name: t.name, label: t.label, swatch: t.swatch })),
+		{ name: "system", label: t("theme.system"), swatch: systemSwatch },
+		...themeState.themes.map((th) => ({ name: th.name, label: th.label, swatch: th.swatch })),
 	]);
 
 	const activeName = $derived(themeState.theme);
@@ -27,7 +28,7 @@
 		const base = themeState.themes.find(
 			(t) => t.name === (themeState.resolvedTheme === "dark" ? "dark" : "light")
 		);
-		return base?.swatch ?? systemEntry.swatch;
+		return base?.swatch ?? systemSwatch;
 	});
 
 	function pick(name: string) {
@@ -72,7 +73,7 @@
 	<button
 		type="button"
 		onclick={toggle}
-		aria-label="Change theme"
+		aria-label={t("a11y.changeTheme")}
 		aria-haspopup="menu"
 		aria-expanded={open}
 		class="border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring flex h-9 items-center gap-1.5 rounded-md border px-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
@@ -100,10 +101,10 @@
 		<div
 			class="bg-popover border-border absolute right-0 z-[60] mt-1 max-h-80 w-52 overflow-y-auto rounded-lg border p-1.5 shadow-lg"
 			role="menu"
-			aria-label="Theme"
+			aria-label={t("theme.heading")}
 		>
 			<p class="text-muted-foreground px-2 py-1.5 text-xs font-semibold tracking-wider uppercase">
-				Theme
+				{t("theme.heading")}
 			</p>
 			{#each entries as entry, i}
 				<button

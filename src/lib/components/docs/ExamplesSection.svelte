@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { examplesRegistry } from "./examples/registry.js";
 	import ComponentPreview from "./ComponentPreview.svelte";
+	import { t } from "$lib/stores";
 
 	interface Props {
 		slug: string;
@@ -67,7 +68,7 @@
 
 {#if !loading && examples.length > 0}
 	<section class="mb-10">
-		<h2 class="text-foreground mb-6 text-xl font-semibold" id="examples">Examples</h2>
+		<h2 class="text-foreground mb-6 text-xl font-semibold" id="examples">{t("comp.examples")}</h2>
 
 		<div class="space-y-8">
 			{#each examples as example}

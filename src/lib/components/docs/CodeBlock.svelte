@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { t } from "$lib/stores";
+
 	interface Props {
 		code: string;
 		lang?: string;
@@ -55,7 +57,7 @@
 			onclick={copyCode}
 			class="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/60 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/10 hover:text-white"
 		>
-			{copied ? "Copied!" : "Copy"}
+			{copied ? t("action.copied") : t("action.copy")}
 		</button>
 	</div>
 	{#if highlighted}

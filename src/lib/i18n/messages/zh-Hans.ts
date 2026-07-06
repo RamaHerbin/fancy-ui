@@ -1,0 +1,70 @@
+// Simplified Chinese (zh-Hans) — machine-translated draft. TODO: native review.
+export default {
+	"nav.gettingStarted": "快速开始",
+	"nav.components": "组件",
+	"nav.docsSuffix": "文档",
+	"a11y.closeSidebar": "关闭侧边栏",
+	"a11y.toggleSidebar": "切换侧边栏",
+
+	"page.introduction": "简介",
+	"page.installation": "安装",
+	"page.theming": "主题",
+	"page.changelog": "更新日志",
+
+	"header.search": "搜索…",
+	"a11y.github": "GitHub",
+	"a11y.changeTheme": "切换主题",
+	"a11y.changeLanguage": "切换语言",
+	"theme.heading": "主题",
+	"theme.system": "跟随系统",
+	"language.heading": "语言",
+
+	"search.placeholder": "搜索组件和页面…",
+	"search.noResults": "未找到结果",
+	"search.esc": "ESC",
+
+	"comp.preview": "预览",
+	"comp.code": "代码",
+	"comp.installation": "安装",
+	"comp.usage": "用法",
+	"comp.props": "属性",
+	"comp.slots": "插槽",
+	"comp.links": "链接",
+	"comp.sourceCode": "源代码",
+	"comp.inspiredBy": "灵感来源",
+	"comp.examples": "示例",
+	"status.stable": "稳定",
+
+	"table.prop": "属性",
+	"table.type": "类型",
+	"table.default": "默认值",
+	"table.description": "说明",
+	"table.slot": "插槽",
+
+	"action.copy": "复制",
+	"action.copied": "已复制！",
+
+	"toc.onThisPage": "本页内容",
+
+	"theme.switchToLight": "切换到浅色模式",
+	"theme.switchToDark": "切换到深色模式",
+
+	"gallery.title": "组件",
+	"gallery.statComponents": "组件",
+	"gallery.statCategories": "分类",
+	"gallery.statTypescript": "TypeScript",
+	"gallery.filterPlaceholder": "筛选组件…",
+	"gallery.all": "全部",
+	"gallery.noMatch": "没有与搜索匹配的组件。",
+
+	"category.buttons": "按钮",
+	"category.cards": "卡片",
+	"category.backgrounds": "背景",
+	"category.text": "文本与排版",
+	"category.layout": "布局",
+	"category.feedback": "反馈",
+	"category.data-display": "数据展示",
+	"category.navigation": "导航",
+	"category.media": "媒体",
+	"category.effects": "特效",
+} as const;
