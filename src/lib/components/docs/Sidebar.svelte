@@ -19,6 +19,7 @@
 		{ href: "/docs/getting-started/introduction", label: "Introduction" },
 		{ href: "/docs/getting-started/installation", label: "Installation" },
 		{ href: "/docs/getting-started/theming", label: "Theming" },
+		{ href: "/docs/getting-started/theme-generator", label: "Theme Generator" },
 		{ href: "/docs/getting-started/changelog", label: "Changelog" },
 	];
 
