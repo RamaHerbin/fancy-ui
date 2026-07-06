@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+	import ThemeSwitcher from "$lib/components/docs/ThemeSwitcher.svelte";
 
 	interface Props {
 		onMenuClick?: () => void;
@@ -103,6 +103,6 @@
 			</svg>
 		</a>
 
-		<ThemeToggle />
+		<ThemeSwitcher />
 	</div>
 </header>
