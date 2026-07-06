@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { RainbowButton, GradientButton, ShimmerButton, BorderBeam } from "$lib/fancy-ui";
+	import { GradientButton, ShimmerButton, BorderBeam } from "$lib/fancy-ui";
 
 	// ─── Base light/dark token sets (mirror src/routes/layout.css) ──────────────
 	const bases = {
@@ -119,30 +119,41 @@
 	);
 
 	// ─── Copy-paste CSS output ────────────────────────────────────────────────────
+	// Dark-base themes are emitted under `.dark` (matching the app's dark selector)
+	// so the surface tokens land where the preview shows them, not in `:root`.
+	const selector = $derived(base === "dark" ? ".dark" : ":root");
 	const cssOutput = $derived(
 		`@import "tailwindcss";
 @import "fancy-ui-svelte/tailwind.css";
+/* Assumes a shadcn-svelte-style setup that maps these tokens to Tailwind theme
+   colors via @theme inline (e.g. --color-primary: var(--primary)). See Theming. */
 
-:root {
-	/* Colors */
+${selector} {
+	/* Surface (base: ${base}) */
+	--background: ${bases[base].background};
+	--foreground: ${bases[base].foreground};
+	--card: ${bases[base].card};
+	--muted-foreground: ${bases[base].mutedForeground};
+	--border: ${bases[base].border};
+
+	/* Brand */
 	--primary: ${primaryColor};
 	--primary-foreground: ${primaryFg};
 	--accent: ${accentColor};
 	--accent-foreground: ${accentFg};
-	--border: ${bases[base].border};
 
-	/* Shape & motion */
+	/* Shape & motion (mode-independent — move to :root if you theme both modes) */
 	--radius: ${radius}rem;
 	--animation-normal: ${anim}ms;
 
-	/* Rainbow palette (RainbowButton, gradient effects) */
+	/* Rainbow palette (gradient effects, e.g. GradientButton / --gradient-rainbow) */
 	--rainbow-1: ${hslRainbow(rainbow[0])};
 	--rainbow-2: ${hslRainbow(rainbow[1])};
 	--rainbow-3: ${hslRainbow(rainbow[2])};
 	--rainbow-4: ${hslRainbow(rainbow[3])};
 	--rainbow-5: ${hslRainbow(rainbow[4])};
 }
-${base === "dark" ? "/* Values above were tuned against the dark base — put them under .dark { … } if light is your default. */\n" : ""}`
+`
 	);
 
 	async function copyCss() {
@@ -374,10 +385,10 @@ ${base === "dark" ? "/* Values above were tuned against the dark base — put th
 			</div>
 		</div>
 
-		<!-- BorderBeam card (colors bound to primary/accent) -->
+		<!-- BorderBeam card — beam colors follow the tuned Primary → Accent -->
 		<div class="bg-card relative overflow-hidden p-5" style="border-radius:var(--radius)">
 			<BorderBeam
-				duration={Math.max(6, anim / 20)}
+				duration={8}
 				size={160}
 				colorFrom={primaryColor}
 				colorTo={accentColor}
@@ -387,20 +398,17 @@ ${base === "dark" ? "/* Values above were tuned against the dark base — put th
 			<div class="text-muted-foreground text-xs">Beam colors follow Primary → Accent.</div>
 		</div>
 
-		<!-- Button zoo -->
-		<div class="flex flex-wrap items-center gap-3">
-			<RainbowButton speed={anim / 1000}>Rainbow</RainbowButton>
-			<GradientButton colors={rainbowColors} duration={anim * 4} borderRadius={radius * 16}>
-				Gradient
-			</GradientButton>
-			<ShimmerButton
-				background={primaryColor}
-				shimmerColor={primaryFg}
-				borderRadius="{radius}rem"
-				shimmerDuration="{(anim * 6) / 1000}s"
-			>
-				Shimmer
-			</ShimmerButton>
+		<!-- Rainbow palette — swatches (direct) + GradientButton (consumes the palette) -->
+		<div class="flex flex-col gap-3">
+			<div class="flex items-center gap-1.5">
+				{#each rainbowColors as c}
+					<span class="h-6 flex-1 rounded" style="background:{c}"></span>
+				{/each}
+			</div>
+			<div class="flex flex-wrap items-center gap-3">
+				<GradientButton colors={rainbowColors}>Gradient</GradientButton>
+				<ShimmerButton background={primaryColor} shimmerColor={primaryFg}>Shimmer</ShimmerButton>
+			</div>
 		</div>
 	</div>
 </div>
