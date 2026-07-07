@@ -10,6 +10,8 @@ title: Personnalisation du thème
 
 FancyUI utilise des propriétés CSS personnalisées (espace colorimétrique OKLCh) pour la personnalisation du thème, entièrement compatible avec les conventions de shadcn-svelte.
 
+> Vous préférez l'ajuster visuellement ? Le [Générateur de thème](/docs/getting-started/theme-generator) vous permet de régler ces jetons à l'aide de curseurs en direct et de copier le CSS.
+
 ## Configuration CSS
 
 Importez la feuille de style FancyUI dans le CSS de votre application (par exemple `src/app.css`) :

@@ -10,6 +10,8 @@ title: テーマ設定
 
 FancyUI はテーマ設定に CSS カスタムプロパティ（OKLCh 色空間）を使用しており、shadcn-svelte の規約と完全に互換性があります。
 
+> 視覚的に調整したいですか？[テーマジェネレーター](/docs/getting-started/theme-generator) を使えば、ライブスライダーでこれらのトークンを調整し、CSS をコピーできます。
+
 ## CSS のセットアップ
 
 アプリの CSS（例: `src/app.css`）に FancyUI のスタイルシートをインポートします。

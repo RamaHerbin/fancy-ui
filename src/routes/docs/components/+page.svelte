@@ -40,7 +40,7 @@
 	<div class="mb-8">
 		<h1 class="text-foreground mb-2 text-3xl font-bold" id="components">{t("gallery.title")}</h1>
 		<p class="text-muted-foreground">
-			{stats.done} beautifully animated components for Svelte 5. Browse, search, and find what you need.
+			{t("gallery.subtitle").replace("{count}", String(stats.done))}
 		</p>
 	</div>
 

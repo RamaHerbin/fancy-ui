@@ -22,15 +22,19 @@
 					if (saved && saved !== "system" && saved !== "light" && saved !== "dark") {
 						root.setAttribute("data-theme", saved);
 					}
-					// Locale: set lang + dir before paint (RTL for Arabic/Persian).
-					// ?lang= URL param wins over the saved locale.
-					var loc =
-						new URLSearchParams(location.search).get("lang") ||
-						localStorage.getItem("fancy-ui-locale");
-					if (loc) {
+					// Locale (docs routes only): set lang + dir before paint.
+					// Precedence: ?lang= → saved → navigator.language. RTL for ar/fa.
+					if (location.pathname.indexOf("/docs") === 0) {
 						var RTL = { ar: 1, fa: 1 };
-						root.lang = loc;
-						root.dir = RTL[loc] ? "rtl" : "ltr";
+						var loc =
+							new URLSearchParams(location.search).get("lang") ||
+							localStorage.getItem("fancy-ui-locale") ||
+							(navigator.language || "").toLowerCase();
+						if (loc) {
+							var lb = loc.toLowerCase().split("-")[0];
+							root.lang = loc;
+							root.dir = RTL[loc] || RTL[lb] ? "rtl" : "ltr";
+						}
 					}
 				} catch (e) {}
 			})();

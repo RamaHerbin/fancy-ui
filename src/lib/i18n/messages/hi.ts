@@ -61,6 +61,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "कॉम्पोनेंट्स",
+	"gallery.subtitle":
+		"Svelte 5 के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
 	"gallery.statComponents": "कॉम्पोनेंट्स",
 	"gallery.statCategories": "श्रेणियाँ",
 	"gallery.statTypescript": "TypeScript",

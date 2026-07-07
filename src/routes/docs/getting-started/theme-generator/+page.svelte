@@ -176,9 +176,9 @@ ${selector} {
 <h1>{t("page.themeGenerator")}</h1>
 
 <p>
-	{t("tg.intro")}
-	{t("tg.seeTheming")}
-	<a href="/docs/getting-started/theming">{t("page.theming")}</a>.
+	{t("tg.intro")}{" "}{t("tg.seeTheming")}{" "}<a href="/docs/getting-started/theming"
+		>{t("page.theming")}</a
+	>.
 </p>
 
 <!-- ─── Presets ─────────────────────────────────────────────────────────────── -->
@@ -443,7 +443,7 @@ ${selector} {
 			{/if}
 		</button>
 	</div>
-	<pre class="!mt-0"><code>{cssOutput}</code></pre>
+	<pre dir="ltr" class="!mt-0"><code>{cssOutput}</code></pre>
 </div>
 
 <style>

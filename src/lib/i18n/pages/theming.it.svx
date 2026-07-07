@@ -10,6 +10,8 @@ title: Temi
 
 FancyUI usa proprietà CSS personalizzate (spazio colore OKLCh) per i temi, pienamente compatibili con le convenzioni di shadcn-svelte.
 
+> Preferisci regolarlo visivamente? Il [Generatore di temi](/docs/getting-started/theme-generator) ti permette di modificare questi token con slider in tempo reale e copiare il CSS.
+
 ## Configurazione CSS
 
 Importa il foglio di stile di FancyUI nel CSS della tua app (ad es. `src/app.css`):

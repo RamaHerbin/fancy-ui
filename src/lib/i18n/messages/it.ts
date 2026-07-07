@@ -61,6 +61,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "Componenti",
+	"gallery.subtitle":
+		"{count} componenti splendidamente animati per Svelte 5. Sfoglia, cerca e trova ciò che ti serve.",
 	"gallery.statComponents": "Componenti",
 	"gallery.statCategories": "Categorie",
 	"gallery.statTypescript": "TypeScript",

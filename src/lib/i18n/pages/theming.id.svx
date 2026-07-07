@@ -10,6 +10,8 @@ title: Tema
 
 FancyUI menggunakan properti kustom CSS (ruang warna OKLCh) untuk penataan tema, sepenuhnya kompatibel dengan konvensi shadcn-svelte.
 
+> Lebih suka menyesuaikannya secara visual? [Generator Tema](/docs/getting-started/theme-generator) memungkinkan Anda menyesuaikan token ini dengan penggeser langsung dan menyalin CSS-nya.
+
 ## Penyiapan CSS
 
 Impor lembar gaya FancyUI di CSS aplikasi Anda (mis. `src/app.css`):

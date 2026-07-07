@@ -10,6 +10,8 @@ title: Motywy
 
 FancyUI używa niestandardowych właściwości CSS (przestrzeń kolorów OKLCh) do tworzenia motywów, w pełni zgodnych z konwencjami shadcn-svelte.
 
+> Wolisz dostosować to wizualnie? [Generator motywów](/docs/getting-started/theme-generator) pozwala regulować te tokeny za pomocą suwaków na żywo i skopiować CSS.
+
 ## Konfiguracja CSS
 
 Zaimportuj arkusz stylów FancyUI w pliku CSS swojej aplikacji (np. `src/app.css`):

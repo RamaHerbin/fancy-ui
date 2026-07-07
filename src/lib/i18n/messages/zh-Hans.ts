@@ -51,6 +51,7 @@ export default {
 	"theme.switchToDark": "切换到深色模式",
 
 	"gallery.title": "组件",
+	"gallery.subtitle": "{count} 个精美的 Svelte 5 动画组件。浏览、搜索，找到你需要的内容。",
 	"gallery.statComponents": "组件",
 	"gallery.statCategories": "分类",
 	"gallery.statTypescript": "TypeScript",

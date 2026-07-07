@@ -144,4 +144,10 @@
 		font-style: italic;
 		margin-bottom: 1rem;
 	}
+
+	/* Code stays left-to-right even inside RTL (Arabic/Persian) locales. */
+	.doc-prose :global(pre),
+	.doc-prose :global(code) {
+		direction: ltr;
+	}
 </style>

@@ -69,6 +69,8 @@ export const en = {
 
 	// Components gallery
 	"gallery.title": "Components",
+	"gallery.subtitle":
+		"{count} beautifully animated components for Svelte 5. Browse, search, and find what you need.",
 	"gallery.statComponents": "Components",
 	"gallery.statCategories": "Categories",
 	"gallery.statTypescript": "TypeScript",

@@ -10,6 +10,8 @@ title: 主题
 
 FancyUI 使用 CSS 自定义属性（OKLCh 色彩空间）来实现主题，完全兼容 shadcn-svelte 的约定。
 
+> 更喜欢可视化调整？[主题生成器](/docs/getting-started/theme-generator)让你通过实时滑块调整这些令牌并复制 CSS。
+
 ## CSS 配置
 
 在应用的 CSS 中导入 FancyUI 样式表（例如 `src/app.css`）：

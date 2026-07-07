@@ -10,6 +10,8 @@ title: Tema
 
 FancyUI, tema oluşturmak için CSS özel özelliklerini (OKLCh renk uzayı) kullanır ve shadcn-svelte kurallarıyla tamamen uyumludur.
 
+> Görsel olarak ayarlamayı mı tercih edersiniz? [Tema Oluşturucu](/docs/getting-started/theme-generator), bu belirteçleri canlı kaydırıcılarla ayarlamanıza ve CSS'yi kopyalamanıza olanak tanır.
+
 ## CSS Kurulumu
 
 FancyUI stil sayfasını uygulamanızın CSS'sine içe aktarın (örneğin `src/app.css`):

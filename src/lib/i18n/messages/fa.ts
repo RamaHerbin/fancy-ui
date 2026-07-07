@@ -61,6 +61,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "کامپوننت‌ها",
+	"gallery.subtitle":
+		"{count} کامپوننت زیبا و متحرک برای Svelte 5. مرور کنید، جستجو کنید و آنچه را نیاز دارید بیابید.",
 	"gallery.statComponents": "کامپوننت‌ها",
 	"gallery.statCategories": "دسته‌ها",
 	"gallery.statTypescript": "TypeScript",

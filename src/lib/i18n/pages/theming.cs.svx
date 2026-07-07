@@ -10,6 +10,8 @@ title: Vzhled
 
 FancyUI používá pro nastavení vzhledu vlastní CSS proměnné (barevný prostor OKLCh) a je plně kompatibilní s konvencemi shadcn-svelte.
 
+> Chcete jej raději ladit vizuálně? [Generátor motivů](/docs/getting-started/theme-generator) vám umožňuje upravovat tyto tokeny živě pomocí posuvníků a zkopírovat CSS.
+
 ## Nastavení CSS
 
 Importujte stylesheet FancyUI do CSS své aplikace (např. `src/app.css`):

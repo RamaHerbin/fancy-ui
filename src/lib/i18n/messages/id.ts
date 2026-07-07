@@ -61,6 +61,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "Komponen",
+	"gallery.subtitle":
+		"{count} komponen beranimasi indah untuk Svelte 5. Jelajahi, cari, dan temukan yang Anda butuhkan.",
 	"gallery.statComponents": "Komponen",
 	"gallery.statCategories": "Kategori",
 	"gallery.statTypescript": "TypeScript",

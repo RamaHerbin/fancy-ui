@@ -10,6 +10,8 @@ title: 테마 설정
 
 FancyUI는 테마 설정을 위해 CSS 사용자 정의 속성(OKLCh 색 공간)을 사용하며, shadcn-svelte 규칙과 완전히 호환됩니다.
 
+> 시각적으로 조정하고 싶으신가요? [테마 생성기](/docs/getting-started/theme-generator)를 사용하면 실시간 슬라이더로 이 토큰들을 조정하고 CSS를 복사할 수 있습니다.
+
 ## CSS 설정
 
 앱의 CSS(예: `src/app.css`)에서 FancyUI 스타일시트를 가져오세요:

@@ -61,6 +61,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "컴포넌트",
+	"gallery.subtitle":
+		"Svelte 5를 위한 아름답게 애니메이션된 {count}개의 컴포넌트. 둘러보고, 검색하여 필요한 것을 찾으세요.",
 	"gallery.statComponents": "컴포넌트",
 	"gallery.statCategories": "카테고리",
 	"gallery.statTypescript": "TypeScript",

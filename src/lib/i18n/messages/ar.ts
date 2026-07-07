@@ -61,6 +61,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "المكوّنات",
+	"gallery.subtitle":
+		"{count} مكوّن متحرّك بشكل جميل لـ Svelte 5. تصفّح وابحث واعثر على ما تحتاجه.",
 	"gallery.statComponents": "المكوّنات",
 	"gallery.statCategories": "الفئات",
 	"gallery.statTypescript": "TypeScript",

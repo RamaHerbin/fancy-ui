@@ -67,6 +67,8 @@ export default {
 	"gallery.filterPlaceholder": "コンポーネントを絞り込む...",
 	"gallery.all": "すべて",
 	"gallery.noMatch": "検索に一致するコンポーネントがありません。",
+	"gallery.subtitle":
+		"Svelte 5 向けの美しくアニメーションする {count} 個のコンポーネント。閲覧・検索して、必要なものを見つけましょう。",
 
 	// Theme-generator page
 	"tg.metaDescription":

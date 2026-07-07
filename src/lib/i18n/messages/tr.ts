@@ -67,6 +67,8 @@ export default {
 	"gallery.filterPlaceholder": "Bileşenleri filtrele...",
 	"gallery.all": "Tümü",
 	"gallery.noMatch": "Aramanızla eşleşen bileşen yok.",
+	"gallery.subtitle":
+		"Svelte 5 için güzelce animasyonlu {count} bileşen. Göz atın, arayın ve ihtiyacınız olanı bulun.",
 
 	// Theme-generator page
 	"tg.metaDescription":

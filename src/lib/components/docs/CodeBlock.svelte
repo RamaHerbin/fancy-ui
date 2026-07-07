@@ -62,6 +62,7 @@
 	</div>
 	{#if highlighted}
 		<div
+			dir="ltr"
 			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] text-sm [&_code]:font-mono [&_pre]:p-4"
 			class:line-numbers={showLineNumbers}
 		>
@@ -69,6 +70,7 @@
 		</div>
 	{:else}
 		<pre
+			dir="ltr"
 			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] p-4 font-mono text-sm text-white/80"><code
 				>{code.trim()}</code
 			></pre>
