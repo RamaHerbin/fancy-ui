@@ -1,0 +1,58 @@
+---
+title: Úvod
+---
+
+<svelte:head>
+	<title>Úvod - FancyUI Docs</title>
+</svelte:head>
+
+# Úvod
+
+FancyUI je kolekce **50+ animovaných, interaktivních UI komponent** vytvořených nativně pro Svelte 5.
+
+## Filozofie
+
+- **Nativní pro Svelte 5** — vytvořeno pomocí runes (`$state`, `$derived`, `$effect`), žádná zastaralá API
+- **Animace na prvním místě** — každá komponenta je ihned k dispozici s vyladěnými animacemi
+- **Vhodné pro kopírování** — použijte jako balíček nebo zkopírujte zdrojový kód přímo
+- **Tailwind CSS 4** — stylováno pomocí utility tříd a vlastních CSS proměnných
+- **TypeScript** — plná typová bezpečnost s exportovanými rozhraními vlastností
+
+## Rychlý start
+
+```bash
+# 1. Install
+pnpm add fancy-ui-svelte
+
+# 2. Import
+import { BorderBeam, Sparkles } from 'fancy-ui-svelte'
+```
+
+```svelte
+<!-- 3. Use -->
+<div class="relative overflow-hidden rounded-xl border p-6">
+  <p>Your content here</p>
+  <BorderBeam />
+</div>
+```
+
+## Co je součástí
+
+FancyUI obsahuje komponenty napříč 10 kategoriemi:
+
+- **Tlačítka** — Rainbow, Shimmer, Ripple, Gradient, Interactive Hover
+- **Karty** — 3D, Spotlight, Glare, Flip, Bento Grid, Book, Apple Carousel
+- **Text** — Flip Words, Hyper Text, Colourful, Letter Pullup, Number Ticker
+- **Pozadí** — Stars, Falling Stars, Flickering Grid, Sparkles, Matrix Rain
+- **Efekty** — Border Beam, Meteors, Fluid Cursor, Smooth Cursor, Confetti
+- **Rozvržení** — Marquee, Container Scroll
+- **Navigace** — Dock, Timeline, Line Hover Link
+- **Zobrazení dat** — Logo Cloud, Animated Testimonials
+- **Zpětná vazba** — Animated Tooltip
+- **Média** — Compare (posuvník před/po)
+
+## Další kroky
+
+- [Instalace](/docs/getting-started/installation) — Nastavte FancyUI ve svém projektu
+- [Vzhled](/docs/getting-started/theming) — Přizpůsobte barvy a animace
+- [Procházet komponenty](/docs/components) — Prozkoumejte celou galerii

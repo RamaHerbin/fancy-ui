@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { t } from "$lib/stores";
+
 	interface Props {
 		packageName?: string;
 		componentImport?: string;
@@ -40,7 +42,7 @@
 				onclick={copyCommand}
 				class="rounded px-2 py-1 text-xs text-white/40 transition-colors hover:bg-white/10 hover:text-white"
 			>
-				{copied ? "Copied!" : "Copy"}
+				{copied ? t("action.copied") : t("action.copy")}
 			</button>
 		</div>
 	</div>

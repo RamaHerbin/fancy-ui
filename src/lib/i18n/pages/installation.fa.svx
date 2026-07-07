@@ -1,0 +1,72 @@
+---
+title: نصب
+---
+
+<svelte:head>
+	<title>نصب - FancyUI Docs</title>
+</svelte:head>
+
+# نصب
+
+## پیش‌نیازها
+
+- **SvelteKit** به همراه Svelte 5
+- **Tailwind CSS v4**
+- **Node.js** نسخه‌ی ۲۰ یا بالاتر
+
+## نصب بسته
+
+```bash
+# pnpm (recommended)
+pnpm add fancy-ui-svelte
+
+# npm
+npm install fancy-ui-svelte
+
+# bun
+bun add fancy-ui-svelte
+```
+
+## راه‌اندازی Tailwind CSS
+
+کامپوننت‌های FancyUI از Tailwind CSS v4 استفاده می‌کنند. مطمئن شوید که Tailwind در پروژه‌ی شما پیکربندی شده است. FancyUI یک شیوه‌نامه‌ی تکمیلی عرضه می‌کند که می‌توانید آن را وارد کنید:
+
+```css
+/* In your app.css or layout.css */
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+## نحوه استفاده
+
+هر کامپوننتی را مستقیماً وارد کنید:
+
+```svelte
+<script lang="ts">
+  import { BorderBeam, Sparkles, RainbowButton } from 'fancy-ui-svelte';
+</script>
+
+<div class="relative overflow-hidden rounded-xl border p-8">
+  <RainbowButton>Click me</RainbowButton>
+  <BorderBeam colorFrom="#9E7AFF" colorTo="#FE8BBB" />
+</div>
+```
+
+## TypeScript
+
+همه‌ی کامپوننت‌ها نوع‌های پراپ خود را صادر می‌کنند:
+
+```typescript
+import { type BorderBeamProps } from 'fancy-ui-svelte';
+```
+
+## وابستگی‌های همتا
+
+FancyUI به این موارد به‌عنوان وابستگی‌های همتا نیاز دارد:
+
+| بسته | نسخه |
+|---------|---------|
+| `svelte` | `^5.0.0` |
+| `tailwindcss` | `^4.0.0` |
+
+برخی کامپوننت‌ها وابستگی‌های زمان اجرای اضافه‌ای دارند (`gsap`، `three`، `canvas-confetti`) که به‌همراه بسته ارائه می‌شوند.

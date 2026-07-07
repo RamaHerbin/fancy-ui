@@ -12,7 +12,7 @@
 
 <Sidebar bind:open={sidebarOpen} onclose={() => (sidebarOpen = false)} />
 
-<div class="lg:pl-64">
+<div class="lg:ps-64">
 	<DocHeader
 		onMenuClick={() => (sidebarOpen = !sidebarOpen)}
 		onSearchClick={() => (searchOpen = true)}

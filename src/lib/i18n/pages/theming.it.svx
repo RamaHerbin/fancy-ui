@@ -1,0 +1,108 @@
+---
+title: Temi
+---
+
+<svelte:head>
+	<title>Temi - FancyUI Docs</title>
+</svelte:head>
+
+# Temi
+
+FancyUI usa proprietà CSS personalizzate (spazio colore OKLCh) per i temi, pienamente compatibili con le convenzioni di shadcn-svelte.
+
+> Preferisci regolarlo visivamente? Il [Generatore di temi](/docs/getting-started/theme-generator) ti permette di modificare questi token con slider in tempo reale e copiare il CSS.
+
+## Configurazione CSS
+
+Importa il foglio di stile di FancyUI nel CSS della tua app (ad es. `src/app.css`):
+
+```css
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+## Sistema di colori
+
+Tutti i colori usano lo spazio colore **OKLCh** per gradienti percettivamente uniformi:
+
+```css
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --border: oklch(0.929 0.013 255.508);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+}
+```
+
+## Modalità scura
+
+La modalità scura si attiva tramite la classe `.dark` su un elemento genitore. FancyUI sovrascrive tutti i token:
+
+```css
+.dark {
+  --background: oklch(0.05 0 0);
+  --foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --card: oklch(0.1 0.005 265);
+  --border: oklch(1 0 0 / 8%);
+}
+```
+
+## Token di animazione
+
+Controlla la temporizzazione delle animazioni a livello globale:
+
+```css
+:root {
+  --animation-fast: 150ms;
+  --animation-normal: 300ms;
+  --animation-slow: 500ms;
+  --animation-slower: 1000ms;
+}
+```
+
+## Funzioni di easing
+
+```css
+:root {
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+```
+
+## Gradienti arcobaleno
+
+Usati da `RainbowButton`, `GradientButton` e altri effetti a gradiente:
+
+```css
+:root {
+  --rainbow-1: hsl(0 100% 63%);
+  --rainbow-2: hsl(270 100% 63%);
+  --rainbow-3: hsl(210 100% 63%);
+  --rainbow-4: hsl(195 100% 63%);
+  --rainbow-5: hsl(90 100% 63%);
+}
+```
+
+## Personalizzazione
+
+Sovrascrivi qualsiasi token nel tuo CSS per personalizzare l'aspetto:
+
+```css
+:root {
+  /* Make primary purple */
+  --primary: oklch(0.5 0.25 280);
+  --primary-foreground: oklch(0.98 0.01 280);
+
+  /* Slower animations */
+  --animation-normal: 500ms;
+}
+```
