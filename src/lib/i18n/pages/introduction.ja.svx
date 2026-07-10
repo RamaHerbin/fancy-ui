@@ -1,0 +1,58 @@
+---
+title: はじめに
+---
+
+<svelte:head>
+	<title>はじめに - FancyUI Docs</title>
+</svelte:head>
+
+# はじめに
+
+FancyUI は、Svelte 5 向けにネイティブで構築された **50 以上のアニメーション対応インタラクティブ UI コンポーネント** のコレクションです。
+
+## 設計思想
+
+- **Svelte 5 ネイティブ** — runes（`$state`、`$derived`、`$effect`）で構築、レガシー API は不使用
+- **アニメーション優先** — すべてのコンポーネントに洗練されたアニメーションが標準で付属
+- **コピー＆ペーストに対応** — パッケージとして利用するか、ソースを直接コピー
+- **Tailwind CSS 4** — ユーティリティクラスと CSS カスタムプロパティでスタイリング
+- **TypeScript** — エクスポートされた prop インターフェースによる完全な型安全性
+
+## クイックスタート
+
+```bash
+# 1. Install
+pnpm add fancy-ui-svelte
+
+# 2. Import
+import { BorderBeam, Sparkles } from 'fancy-ui-svelte'
+```
+
+```svelte
+<!-- 3. Use -->
+<div class="relative overflow-hidden rounded-xl border p-6">
+  <p>Your content here</p>
+  <BorderBeam />
+</div>
+```
+
+## 収録内容
+
+FancyUI は 10 カテゴリーにわたるコンポーネントを収録しています。
+
+- **ボタン** — Rainbow, Shimmer, Ripple, Gradient, Interactive Hover
+- **カード** — 3D, Spotlight, Glare, Flip, Bento Grid, Book, Apple Carousel
+- **テキスト** — Flip Words, Hyper Text, Colourful, Letter Pullup, Number Ticker
+- **背景** — Stars, Falling Stars, Flickering Grid, Sparkles, Matrix Rain
+- **エフェクト** — Border Beam, Meteors, Fluid Cursor, Smooth Cursor, Confetti
+- **レイアウト** — Marquee, Container Scroll
+- **ナビゲーション** — Dock, Timeline, Line Hover Link
+- **データ表示** — Logo Cloud, Animated Testimonials
+- **フィードバック** — Animated Tooltip
+- **メディア** — Compare（ビフォー/アフタースライダー）
+
+## 次のステップ
+
+- [インストール](/docs/getting-started/installation) — プロジェクトに FancyUI をセットアップ
+- [テーマ設定](/docs/getting-started/theming) — 色とアニメーションをカスタマイズ
+- [コンポーネント一覧](/docs/components) — ギャラリー全体を見る

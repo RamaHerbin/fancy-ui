@@ -1,0 +1,108 @@
+---
+title: Personnalisation du thème
+---
+
+<svelte:head>
+	<title>Personnalisation du thème - FancyUI Docs</title>
+</svelte:head>
+
+# Personnalisation du thème
+
+FancyUI utilise des propriétés CSS personnalisées (espace colorimétrique OKLCh) pour la personnalisation du thème, entièrement compatible avec les conventions de shadcn-svelte.
+
+> Vous préférez l'ajuster visuellement ? Le [Générateur de thème](/docs/getting-started/theme-generator) vous permet de régler ces jetons à l'aide de curseurs en direct et de copier le CSS.
+
+## Configuration CSS
+
+Importez la feuille de style FancyUI dans le CSS de votre application (par exemple `src/app.css`) :
+
+```css
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+## Système de couleurs
+
+Toutes les couleurs utilisent l'espace colorimétrique **OKLCh** pour des dégradés perceptuellement uniformes :
+
+```css
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --border: oklch(0.929 0.013 255.508);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+}
+```
+
+## Mode sombre
+
+Le mode sombre est activé par la classe `.dark` sur un élément parent. FancyUI remplace tous les jetons :
+
+```css
+.dark {
+  --background: oklch(0.05 0 0);
+  --foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --card: oklch(0.1 0.005 265);
+  --border: oklch(1 0 0 / 8%);
+}
+```
+
+## Jetons d'animation
+
+Contrôlez le minutage des animations de manière globale :
+
+```css
+:root {
+  --animation-fast: 150ms;
+  --animation-normal: 300ms;
+  --animation-slow: 500ms;
+  --animation-slower: 1000ms;
+}
+```
+
+## Fonctions d'accélération
+
+```css
+:root {
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+```
+
+## Dégradés arc-en-ciel
+
+Utilisés par `RainbowButton`, `GradientButton` et d'autres effets de dégradé :
+
+```css
+:root {
+  --rainbow-1: hsl(0 100% 63%);
+  --rainbow-2: hsl(270 100% 63%);
+  --rainbow-3: hsl(210 100% 63%);
+  --rainbow-4: hsl(195 100% 63%);
+  --rainbow-5: hsl(90 100% 63%);
+}
+```
+
+## Personnalisation
+
+Remplacez n'importe quel jeton dans votre propre CSS pour personnaliser l'apparence :
+
+```css
+:root {
+  /* Make primary purple */
+  --primary: oklch(0.5 0.25 280);
+  --primary-foreground: oklch(0.98 0.01 280);
+
+  /* Slower animations */
+  --animation-normal: 500ms;
+}
+```

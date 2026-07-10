@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
 	import { searchComponents, getAllComponents } from "$lib/fancy-ui/registry.js";
-	import { categoryLabels } from "$lib/fancy-ui/registry.js";
+	import { t } from "$lib/stores";
+	import type { MessageKey } from "$lib/i18n/messages/en.js";
 
 	interface Props {
 		open?: boolean;
@@ -16,51 +17,52 @@
 
 	const gettingStartedPages = [
 		{
-			name: "Introduction",
+			nameKey: "page.introduction",
 			slug: "introduction",
 			href: "/docs/getting-started/introduction",
-			category: "Getting Started",
 		},
 		{
-			name: "Installation",
+			nameKey: "page.installation",
 			slug: "installation",
 			href: "/docs/getting-started/installation",
-			category: "Getting Started",
 		},
+		{ nameKey: "page.theming", slug: "theming", href: "/docs/getting-started/theming" },
 		{
-			name: "Theming",
-			slug: "theming",
-			href: "/docs/getting-started/theming",
-			category: "Getting Started",
+			nameKey: "page.themeGenerator",
+			slug: "theme-generator",
+			href: "/docs/getting-started/theme-generator",
 		},
-		{
-			name: "Changelog",
-			slug: "changelog",
-			href: "/docs/getting-started/changelog",
-			category: "Getting Started",
-		},
-	];
+		{ nameKey: "page.changelog", slug: "changelog", href: "/docs/getting-started/changelog" },
+	] as const;
 
 	let results = $derived.by(() => {
 		const q = query.trim().toLowerCase();
+		const gsCategory = t("nav.gettingStarted");
+		const pageResult = (p: (typeof gettingStartedPages)[number]) => ({
+			name: t(p.nameKey),
+			slug: p.slug,
+			href: p.href,
+			category: gsCategory,
+			type: "page" as const,
+		});
 		if (!q) {
 			return [
-				...gettingStartedPages.map((p) => ({ ...p, type: "page" as const })),
+				...gettingStartedPages.map(pageResult),
 				...getAllComponents()
 					.slice(0, 8)
 					.map((c) => ({
 						name: c.name,
 						slug: c.slug,
 						href: `/docs/components/${c.slug}`,
-						category: categoryLabels[c.category],
+						category: t(`category.${c.category}` as MessageKey),
 						type: "component" as const,
 					})),
 			];
 		}
 
 		const pages = gettingStartedPages
-			.filter((p) => p.name.toLowerCase().includes(q) || p.slug.includes(q))
-			.map((p) => ({ ...p, type: "page" as const }));
+			.filter((p) => t(p.nameKey).toLowerCase().includes(q) || p.slug.includes(q))
+			.map(pageResult);
 
 		const components = searchComponents(q)
 			.slice(0, 10)
@@ -68,7 +70,7 @@
 				name: c.name,
 				slug: c.slug,
 				href: `/docs/components/${c.slug}`,
-				category: categoryLabels[c.category],
+				category: t(`category.${c.category}` as MessageKey),
 				type: "component" as const,
 			}));
 
@@ -160,19 +162,19 @@
 					bind:value={query}
 					onkeydown={handleKeydown}
 					type="text"
-					placeholder="Search components and pages..."
+					placeholder={t("search.placeholder")}
 					class="text-foreground placeholder:text-muted-foreground h-12 w-full bg-transparent text-sm outline-none"
 				/>
 				<kbd
 					class="border-border bg-muted text-muted-foreground rounded border px-1.5 py-0.5 font-mono text-[10px]"
-					>ESC</kbd
+					>{t("search.esc")}</kbd
 				>
 			</div>
 
 			<!-- Results -->
 			<div class="max-h-[300px] overflow-y-auto p-2">
 				{#if results.length === 0}
-					<p class="text-muted-foreground px-3 py-6 text-center text-sm">No results found</p>
+					<p class="text-muted-foreground px-3 py-6 text-center text-sm">{t("search.noResults")}</p>
 				{:else}
 					{#each results as result, i}
 						<button

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { t } from "$lib/stores";
+
 	interface Props {
 		code: string;
 		lang?: string;
@@ -55,11 +57,12 @@
 			onclick={copyCode}
 			class="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/60 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/10 hover:text-white"
 		>
-			{copied ? "Copied!" : "Copy"}
+			{copied ? t("action.copied") : t("action.copy")}
 		</button>
 	</div>
 	{#if highlighted}
 		<div
+			dir="ltr"
 			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] text-sm [&_code]:font-mono [&_pre]:p-4"
 			class:line-numbers={showLineNumbers}
 		>
@@ -67,6 +70,7 @@
 		</div>
 	{:else}
 		<pre
+			dir="ltr"
 			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] p-4 font-mono text-sm text-white/80"><code
 				>{code.trim()}</code
 			></pre>

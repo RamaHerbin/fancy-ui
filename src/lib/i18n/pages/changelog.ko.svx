@@ -1,0 +1,100 @@
+---
+title: 변경 이력
+---
+
+<svelte:head>
+	<title>변경 이력 - FancyUI Docs</title>
+</svelte:head>
+
+# 변경 이력
+
+FancyUI의 모든 주요 변경 사항입니다. 이 프로젝트는 [유의적 버전](https://semver.org/)을 따릅니다.
+
+---
+
+## v0.4.1
+
+### 패치 변경 사항
+
+- Confetti에서 `manualstart` 속성이 `manualStart`로 이름이 변경된 문제 수정
+- 상호작용 및 자율 애니메이션 속성(`interactive`, `autoSplat`, `autoSplatInterval`, `pauseWhenHidden`, `splatOnMount`)을 갖춘 제한된 캔버스용 FluidCursorAdvanced 추가
+- FluidCursor에 `fluidColor`, `fluidColors`, `colorIntensity` 속성과 16진수 `backColor` 지원 추가
+- Vercel Analytics 추가
+- 새로운 랜딩 페이지 디자인
+
+## v0.4.0
+
+### 마이너 변경 사항
+
+- **MatrixRain** 추가 — 캔버스 기반의 Matrix 스타일 낙하 글리프 비
+- **TerminalText** 추가 — 문자별 애니메이션, 깜박이는 커서, 글리치 효과를 갖춘 터미널 스타일 텍스트 스트리머
+- **Component Copilot** 추가 — `/demo/component-copilot`의 AI 채팅 데모
+
+## v0.3.0
+
+### 마이너 변경 사항
+
+- **DisplacementText** 추가 — Three.js 셰이더를 사용한 WebGL 변위 3D 텍스트
+- **PropsPlayground** 추가 — 데모 페이지용 인터랙티브 속성 편집기
+
+### 패치 변경 사항
+
+- **AppleCardCarousel** 추가 — 스프링 애니메이션 전체 화면 확장을 갖춘 가로 카드 캐러셀
+- **LineHoverLink** 추가 — 순수 CSS로 만든 11가지 애니메이션 밑줄 호버 효과를 갖춘 링크
+- npm 패키지 빌드 파이프라인 추가 (`npm install fancy-ui`)
+- Compare 모서리 오버플로우 및 손상된 AnimatedTooltip 이미지 수정
+- 단어 전환 중 FlipWords 레이아웃 이동 수정
+
+## v0.2.1
+
+### 패치 변경 사항
+
+- 올바른 패키지 이름 `fancy-ui-svelte`로 재게시
+- 패키지 빌드 단계를 changeset 게시에서 분리
+
+## v0.2.0
+
+### 마이너 변경 사항
+
+- **AnimatedTestimonials** 추가 — 부드러운 슬라이드 애니메이션과 선택적 자동 재생을 갖춘 후기 캐러셀
+- changesets 버전 관리 워크플로 설정
+
+## v0.1.0 — 2026-03-13
+
+최초 공개 릴리스 — Svelte 5 룬(runes)과 Tailwind CSS v4로 제작된 10개 카테고리에 걸친 50개 컴포넌트.
+
+### 버튼 (5)
+
+RainbowButton, ShimmerButton, RippleButton, GradientButton, InteractiveHoverButton
+
+### 카드 (8)
+
+BentoGrid, Book, Card3D, CardSpotlight, DirectionAwareHover, FlipCard, GlareCard, TextRevealCard
+
+### 텍스트 및 타이포그래피 (12)
+
+BlurReveal, BoxReveal, ColourfulText, ContainerTextFlip, FlipWords, Focus, HyperText, LetterPullup, LineShadowText, NumberTicker, SparklesText, TextGenerateEffect
+
+### 배경 (4)
+
+FallingStarsBg, FlickeringGrid, Sparkles, StarsBackground
+
+### 효과 (14)
+
+AnimatedBeam, BorderBeam, Confetti, FluidCursor, GlowBorder, GlowingEffect, ImageTrailCursor, InteractiveGridPattern, LiquidGlass, Meteors, NeonBorder, Ripple, SmoothCursor, TracingBeam
+
+### 레이아웃 (2)
+
+ContainerScroll, Marquee
+
+### 내비게이션 (3)
+
+Dock, Timeline, LogoCloud
+
+### 데이터 표시 (1)
+
+AnimatedTooltip
+
+### 미디어 (1)
+
+Compare

@@ -1,27 +1,29 @@
 ---
-title: Theming
+title: Themes
 ---
 
 <svelte:head>
-	<title>Theming - FancyUI Docs</title>
+	<title>Themes - FancyUI Docs</title>
 </svelte:head>
 
-# Theming
+# Themes
 
-FancyUI uses CSS custom properties (OKLCh color space) for theming, fully compatible with shadcn-svelte conventions.
+FancyUI nutzt CSS-Custom-Properties (OKLCh-Farbraum) für das Theming und ist vollständig mit den Konventionen von shadcn-svelte kompatibel.
 
-## CSS Setup
+> Lieber visuell anpassen? Mit dem [Theme-Generator](/docs/getting-started/theme-generator) kannst du diese Tokens über Live-Regler anpassen und das CSS kopieren.
 
-Import the FancyUI stylesheet in your app's CSS (e.g. `src/app.css`):
+## CSS-Einrichtung
+
+Importiere das FancyUI-Stylesheet im CSS deiner App (z. B. `src/app.css`):
 
 ```css
 @import "tailwindcss";
 @import "fancy-ui-svelte/tailwind.css";
 ```
 
-## Color System
+## Farbsystem
 
-All colors use the **OKLCh** color space for perceptually uniform gradients:
+Alle Farben verwenden den **OKLCh**-Farbraum für wahrnehmungsgleichmäßige Verläufe:
 
 ```css
 :root {
@@ -38,9 +40,9 @@ All colors use the **OKLCh** color space for perceptually uniform gradients:
 }
 ```
 
-## Dark Mode
+## Dunkelmodus
 
-Dark mode is activated by the `.dark` class on a parent element. FancyUI overrides all tokens:
+Der Dunkelmodus wird durch die Klasse `.dark` auf einem übergeordneten Element aktiviert. FancyUI überschreibt alle Tokens:
 
 ```css
 .dark {
@@ -52,9 +54,9 @@ Dark mode is activated by the `.dark` class on a parent element. FancyUI overrid
 }
 ```
 
-## Animation Tokens
+## Animations-Tokens
 
-Control animation timing globally:
+Steuere das Animations-Timing global:
 
 ```css
 :root {
@@ -65,7 +67,7 @@ Control animation timing globally:
 }
 ```
 
-## Easing Functions
+## Easing-Funktionen
 
 ```css
 :root {
@@ -76,9 +78,9 @@ Control animation timing globally:
 }
 ```
 
-## Rainbow Gradients
+## Regenbogen-Verläufe
 
-Used by `RainbowButton`, `GradientButton`, and other gradient effects:
+Verwendet von `RainbowButton`, `GradientButton` und anderen Verlaufseffekten:
 
 ```css
 :root {
@@ -90,9 +92,9 @@ Used by `RainbowButton`, `GradientButton`, and other gradient effects:
 }
 ```
 
-## Customizing
+## Anpassen
 
-Override any token in your own CSS to customize the look:
+Überschreibe ein beliebiges Token in deinem eigenen CSS, um das Erscheinungsbild anzupassen:
 
 ```css
 :root {

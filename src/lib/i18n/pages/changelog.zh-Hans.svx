@@ -1,0 +1,100 @@
+---
+title: 更新日志
+---
+
+<svelte:head>
+	<title>更新日志 - FancyUI Docs</title>
+</svelte:head>
+
+# 更新日志
+
+FancyUI 的所有重要变更。本项目遵循[语义化版本](https://semver.org/)。
+
+---
+
+## v0.4.1
+
+### 补丁变更
+
+- 修复 Confetti 中 `manualstart` 属性重命名为 `manualStart`
+- 新增 FluidCursorAdvanced，用于带交互与自主动画属性的受限画布（`interactive`、`autoSplat`、`autoSplatInterval`、`pauseWhenHidden`、`splatOnMount`）
+- 为 FluidCursor 新增 `fluidColor`、`fluidColors`、`colorIntensity` 属性，并支持十六进制 `backColor`
+- 新增 Vercel Analytics
+- 全新落地页设计
+
+## v0.4.0
+
+### 次要变更
+
+- 新增 **MatrixRain** — 基于画布的 Matrix 风格坠落字符雨
+- 新增 **TerminalText** — 终端风格的文本流式播放器，支持逐字符动画、闪烁光标和故障（glitch）效果
+- 新增 **Component Copilot** — 位于 `/demo/component-copilot` 的 AI 聊天演示
+
+## v0.3.0
+
+### 次要变更
+
+- 新增 **DisplacementText** — 使用 Three.js 着色器实现 WebGL 位移的 3D 文本
+- 新增 **PropsPlayground** — 演示页面的交互式属性编辑器
+
+### 补丁变更
+
+- 新增 **AppleCardCarousel** — 横向卡片轮播，带弹簧动画的全屏展开
+- 新增 **LineHoverLink** — 带 11 种动画下划线悬停效果的链接，纯 CSS 实现
+- 新增 npm 包构建流程（`npm install fancy-ui`）
+- 修复 Compare 边角溢出以及 AnimatedTooltip 图片损坏的问题
+- 修复 FlipWords 在单词切换时的布局抖动
+
+## v0.2.1
+
+### 补丁变更
+
+- 以正确的包名 `fancy-ui-svelte` 重新发布
+- 将包构建步骤与 changeset 发布分离
+
+## v0.2.0
+
+### 次要变更
+
+- 新增 **AnimatedTestimonials** — 用户评价轮播，带流畅的滑动动画和可选的自动播放
+- 搭建 changesets 版本管理工作流
+
+## v0.1.0 — 2026-03-13
+
+首次公开发布 — 涵盖 10 个分类的 50 个组件，使用 Svelte 5 runes 和 Tailwind CSS v4 构建。
+
+### 按钮（5）
+
+RainbowButton, ShimmerButton, RippleButton, GradientButton, InteractiveHoverButton
+
+### 卡片（8）
+
+BentoGrid, Book, Card3D, CardSpotlight, DirectionAwareHover, FlipCard, GlareCard, TextRevealCard
+
+### 文本与排版（12）
+
+BlurReveal, BoxReveal, ColourfulText, ContainerTextFlip, FlipWords, Focus, HyperText, LetterPullup, LineShadowText, NumberTicker, SparklesText, TextGenerateEffect
+
+### 背景（4）
+
+FallingStarsBg, FlickeringGrid, Sparkles, StarsBackground
+
+### 特效（14）
+
+AnimatedBeam, BorderBeam, Confetti, FluidCursor, GlowBorder, GlowingEffect, ImageTrailCursor, InteractiveGridPattern, LiquidGlass, Meteors, NeonBorder, Ripple, SmoothCursor, TracingBeam
+
+### 布局（2）
+
+ContainerScroll, Marquee
+
+### 导航（3）
+
+Dock, Timeline, LogoCloud
+
+### 数据展示（1）
+
+AnimatedTooltip
+
+### 媒体（1）
+
+Compare

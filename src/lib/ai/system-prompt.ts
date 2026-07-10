@@ -11,11 +11,14 @@ function buildSystemPrompt(): string {
 		.map((cat) => `## ${categoryLabels[cat]}\n${byCategory[cat].join("\n")}`)
 		.join("\n\n");
 
-	return `You are FancyUI Copilot, an expert assistant for the FancyUI Svelte 5 component library.
-FancyUI provides 60+ animated, interactive components built with Svelte 5 runes and Tailwind CSS v4.
+	const count = getAllComponents().length;
 
-INSTALLATION: pnpm add fancy-ui
-USAGE: import { ComponentName } from 'fancy-ui';
+	return `You are FancyUI Copilot, an expert assistant for the FancyUI Svelte 5 component library.
+FancyUI provides ${count} animated, interactive components built with Svelte 5 runes and Tailwind CSS v4.
+
+INSTALLATION: pnpm add fancy-ui-svelte
+STYLESHEET: add \`@import "fancy-ui-svelte/tailwind.css";\` to your Tailwind entry CSS, or component classes won't be generated.
+USAGE: import { ComponentName } from 'fancy-ui-svelte';
 
 AVAILABLE COMPONENTS:
 

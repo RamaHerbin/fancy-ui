@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PropDef } from "$lib/types.js";
+	import { t } from "$lib/stores";
 
 	interface Props {
 		props: PropDef[];
@@ -13,10 +14,10 @@
 		<table class="w-full text-left text-sm">
 			<thead>
 				<tr class="border-border border-b">
-					<th class="text-foreground px-4 py-3 font-semibold">Prop</th>
-					<th class="text-foreground px-4 py-3 font-semibold">Type</th>
-					<th class="text-foreground px-4 py-3 font-semibold">Default</th>
-					<th class="text-foreground px-4 py-3 font-semibold">Description</th>
+					<th class="text-foreground px-4 py-3 font-semibold">{t("table.prop")}</th>
+					<th class="text-foreground px-4 py-3 font-semibold">{t("table.type")}</th>
+					<th class="text-foreground px-4 py-3 font-semibold">{t("table.default")}</th>
+					<th class="text-foreground px-4 py-3 font-semibold">{t("table.description")}</th>
 				</tr>
 			</thead>
 			<tbody>

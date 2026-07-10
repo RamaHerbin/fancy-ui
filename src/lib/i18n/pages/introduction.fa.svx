@@ -1,0 +1,58 @@
+---
+title: معرفی
+---
+
+<svelte:head>
+	<title>معرفی - FancyUI Docs</title>
+</svelte:head>
+
+# معرفی
+
+FancyUI مجموعه‌ای از **بیش از ۵۰ کامپوننت رابط کاربری متحرک و تعاملی** است که به‌صورت بومی برای Svelte 5 ساخته شده‌اند.
+
+## فلسفه
+
+- **بومیِ Svelte 5** — ساخته‌شده با runes (`$state`، `$derived`، `$effect`)، بدون APIهای قدیمی
+- **اولویت با انیمیشن** — هر کامپوننت به‌صورت آماده با انیمیشن‌های صیقل‌خورده عرضه می‌شود
+- **سازگار با کپی‌وچسباندن** — به‌عنوان یک بسته استفاده کنید یا کد منبع را مستقیماً کپی کنید
+- **Tailwind CSS 4** — استایل‌دهی‌شده با کلاس‌های کاربردی و متغیرهای سفارشی CSS
+- **TypeScript** — ایمنی کامل نوع با اینترفیس‌های پراپ صادرشده
+
+## شروع سریع
+
+```bash
+# 1. Install
+pnpm add fancy-ui-svelte
+
+# 2. Import
+import { BorderBeam, Sparkles } from 'fancy-ui-svelte'
+```
+
+```svelte
+<!-- 3. Use -->
+<div class="relative overflow-hidden rounded-xl border p-6">
+  <p>Your content here</p>
+  <BorderBeam />
+</div>
+```
+
+## آنچه شامل می‌شود
+
+FancyUI شامل کامپوننت‌هایی در ۱۰ دسته است:
+
+- **دکمه‌ها** — Rainbow, Shimmer, Ripple, Gradient, Interactive Hover
+- **کارت‌ها** — 3D, Spotlight, Glare, Flip, Bento Grid, Book, Apple Carousel
+- **متن** — Flip Words, Hyper Text, Colourful, Letter Pullup, Number Ticker
+- **پس‌زمینه‌ها** — Stars, Falling Stars, Flickering Grid, Sparkles, Matrix Rain
+- **جلوه‌ها** — Border Beam, Meteors, Fluid Cursor, Smooth Cursor, Confetti
+- **چیدمان** — Marquee, Container Scroll
+- **ناوبری** — Dock, Timeline, Line Hover Link
+- **نمایش داده** — Logo Cloud, Animated Testimonials
+- **بازخورد** — Animated Tooltip
+- **رسانه** — Compare (اسلایدر قبل/بعد)
+
+## گام‌های بعدی
+
+- [نصب](/docs/getting-started/installation) — راه‌اندازی FancyUI در پروژه‌ی شما
+- [پوسته‌بندی](/docs/getting-started/theming) — سفارشی‌سازی رنگ‌ها و انیمیشن‌ها
+- [مرور کامپوننت‌ها](/docs/components) — کاوش در گالری کامل

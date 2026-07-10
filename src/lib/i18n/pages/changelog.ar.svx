@@ -1,0 +1,100 @@
+---
+title: سجل التغييرات
+---
+
+<svelte:head>
+	<title>سجل التغييرات - FancyUI Docs</title>
+</svelte:head>
+
+# سجل التغييرات
+
+جميع التغييرات الجديرة بالذكر في FancyUI. يلتزم هذا المشروع بـ[الإصدارات الدلالية](https://semver.org/).
+
+---
+
+## v0.4.1
+
+### تغييرات التصحيح
+
+- إصلاح إعادة تسمية الخاصية `manualstart` إلى `manualStart` في Confetti
+- إضافة FluidCursorAdvanced لـ canvas محتوى مع خصائص التفاعل والحركة الذاتية (`interactive`، `autoSplat`، `autoSplatInterval`، `pauseWhenHidden`، `splatOnMount`)
+- إضافة الخصائص `fluidColor` و`fluidColors` و`colorIntensity` ودعم `backColor` بصيغة hex إلى FluidCursor
+- إضافة Vercel Analytics
+- تصميم جديد لصفحة الهبوط
+
+## v0.4.0
+
+### تغييرات ثانوية
+
+- إضافة **MatrixRain** — مطر رموز متساقطة بأسلوب Matrix معتمد على canvas
+- إضافة **TerminalText** — مُدفّق نص بأسلوب الطرفية مع حركة لكل حرف، ومؤشّر وامض، وتأثير خلل
+- إضافة **Component Copilot** — عرض دردشة بالذكاء الاصطناعي على `/demo/component-copilot`
+
+## v0.3.0
+
+### تغييرات ثانوية
+
+- إضافة **DisplacementText** — نص ثلاثي الأبعاد بإزاحة WebGL باستخدام مظلّلات Three.js
+- إضافة **PropsPlayground** — محرّر خصائص تفاعلي لصفحات العرض
+
+### تغييرات التصحيح
+
+- إضافة **AppleCardCarousel** — دوّار بطاقات أفقي مع توسّع إلى ملء الشاشة بحركة زنبركية
+- إضافة **LineHoverLink** — رابط مع 11 تأثير تسطير متحرّك عند التمرير، بـ CSS خالص
+- إضافة خط أنابيب بناء حزمة npm (`npm install fancy-ui`)
+- إصلاح تجاوز زاوية Compare وصورة AnimatedTooltip المعطوبة
+- إصلاح إزاحة تخطيط FlipWords أثناء انتقال الكلمات
+
+## v0.2.1
+
+### تغييرات التصحيح
+
+- إعادة النشر باسم الحزمة الصحيح `fancy-ui-svelte`
+- فصل خطوة بناء الحزمة عن نشر changeset
+
+## v0.2.0
+
+### تغييرات ثانوية
+
+- إضافة **AnimatedTestimonials** — دوّار شهادات مع حركات انزلاق سلسة وتشغيل تلقائي اختياري
+- إعداد سير عمل الإصدارات بـ changesets
+
+## v0.1.0 — 2026-03-13
+
+الإصدار العلني الأوّل — 50 مكوّناً موزّعة على 10 فئات، مبنية بـ runes الخاصة بـ Svelte 5 وTailwind CSS v4.
+
+### الأزرار (5)
+
+RainbowButton، ShimmerButton، RippleButton، GradientButton، InteractiveHoverButton
+
+### البطاقات (8)
+
+BentoGrid، Book، Card3D، CardSpotlight، DirectionAwareHover، FlipCard، GlareCard، TextRevealCard
+
+### النصوص والطباعة (12)
+
+BlurReveal، BoxReveal، ColourfulText، ContainerTextFlip، FlipWords، Focus، HyperText، LetterPullup، LineShadowText، NumberTicker، SparklesText، TextGenerateEffect
+
+### الخلفيات (4)
+
+FallingStarsBg، FlickeringGrid، Sparkles، StarsBackground
+
+### التأثيرات (14)
+
+AnimatedBeam، BorderBeam، Confetti، FluidCursor، GlowBorder، GlowingEffect، ImageTrailCursor، InteractiveGridPattern، LiquidGlass، Meteors، NeonBorder، Ripple، SmoothCursor، TracingBeam
+
+### التخطيط (2)
+
+ContainerScroll، Marquee
+
+### التنقّل (3)
+
+Dock، Timeline، LogoCloud
+
+### عرض البيانات (1)
+
+AnimatedTooltip
+
+### الوسائط (1)
+
+Compare

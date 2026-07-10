@@ -1,12 +1,13 @@
 <script lang="ts">
 	import {
 		categories,
-		categoryLabels,
 		getComponentsGroupedByCategory,
 		getAllComponents,
 		getStats,
 	} from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
+	import { t } from "$lib/stores";
+	import type { MessageKey } from "$lib/i18n/messages/en.js";
 
 	const grouped = getComponentsGroupedByCategory();
 	const allComponents = getAllComponents();
@@ -37,9 +38,9 @@
 <div class="max-w-5xl">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="text-foreground mb-2 text-3xl font-bold" id="components">Components</h1>
+		<h1 class="text-foreground mb-2 text-3xl font-bold" id="components">{t("gallery.title")}</h1>
 		<p class="text-muted-foreground">
-			{stats.done} beautifully animated components for Svelte 5. Browse, search, and find what you need.
+			{t("gallery.subtitle").replace("{count}", String(stats.done))}
 		</p>
 	</div>
 
@@ -47,17 +48,17 @@
 	<div class="bg-muted/40 mb-8 flex items-center gap-6 rounded-lg border p-4">
 		<div class="text-center">
 			<div class="text-foreground text-2xl font-bold">{stats.done}</div>
-			<div class="text-muted-foreground text-xs">Components</div>
+			<div class="text-muted-foreground text-xs">{t("gallery.statComponents")}</div>
 		</div>
 		<div class="bg-border h-8 w-px"></div>
 		<div class="text-center">
 			<div class="text-foreground text-2xl font-bold">{categories.length}</div>
-			<div class="text-muted-foreground text-xs">Categories</div>
+			<div class="text-muted-foreground text-xs">{t("gallery.statCategories")}</div>
 		</div>
 		<div class="bg-border h-8 w-px"></div>
 		<div class="text-center">
 			<div class="text-2xl font-bold text-emerald-500">100%</div>
-			<div class="text-muted-foreground text-xs">TypeScript</div>
+			<div class="text-muted-foreground text-xs">{t("gallery.statTypescript")}</div>
 		</div>
 	</div>
 
@@ -80,7 +81,7 @@
 			<input
 				type="text"
 				bind:value={searchQuery}
-				placeholder="Filter components..."
+				placeholder={t("gallery.filterPlaceholder")}
 				class="border-border bg-background text-foreground placeholder:text-muted-foreground h-9 w-full rounded-md border pr-4 pl-9 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
 			/>
 		</div>
@@ -94,7 +95,7 @@
 					? 'bg-foreground text-background'
 					: 'bg-muted text-muted-foreground hover:text-foreground'}"
 			>
-				All
+				{t("gallery.all")}
 			</button>
 			{#each categories as cat}
 				{@const count = grouped[cat]?.length || 0}
@@ -106,7 +107,7 @@
 							? 'bg-foreground text-background'
 							: 'bg-muted text-muted-foreground hover:text-foreground'}"
 					>
-						{categoryLabels[cat]}
+						{t(`category.${cat}` as MessageKey)}
 						<span class="ml-1 opacity-60">{count}</span>
 					</button>
 				{/if}
@@ -123,7 +124,7 @@
 		</div>
 	{:else}
 		<div class="text-muted-foreground py-20 text-center">
-			<p>No components match your search.</p>
+			<p>{t("gallery.noMatch")}</p>
 		</div>
 	{/if}
 </div>

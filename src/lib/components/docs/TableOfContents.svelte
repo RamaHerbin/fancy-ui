@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/stores";
+	import { t, getLocale } from "$lib/stores";
 
 	interface Heading {
 		id: string;
@@ -13,8 +14,9 @@
 	let observer: IntersectionObserver | null = null;
 
 	$effect(() => {
-		// Re-run when route changes
+		// Re-run when the route OR the locale changes (localized prose swaps in place).
 		void $page.url.pathname;
+		void getLocale();
 
 		// Clean up previous observer
 		observer?.disconnect();
@@ -63,7 +65,7 @@
 	<nav class="hidden xl:block">
 		<div class="sticky top-20">
 			<h4 class="text-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
-				On this page
+				{t("toc.onThisPage")}
 			</h4>
 			<ul class="space-y-1">
 				{#each headings as heading}

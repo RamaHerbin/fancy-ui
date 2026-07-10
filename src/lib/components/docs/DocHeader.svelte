@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+	import { t } from "$lib/stores";
+	import ThemeSwitcher from "$lib/components/docs/ThemeSwitcher.svelte";
+	import LanguageSwitcher from "$lib/components/docs/LanguageSwitcher.svelte";
 
 	interface Props {
 		onMenuClick?: () => void;
@@ -27,7 +29,7 @@
 	<button
 		class="border-border text-foreground flex h-9 w-9 items-center justify-center rounded-md border lg:hidden"
 		onclick={onMenuClick}
-		aria-label="Toggle sidebar"
+		aria-label={t("a11y.toggleSidebar")}
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -82,7 +84,7 @@
 				<circle cx="11" cy="11" r="8" />
 				<path d="m21 21-4.3-4.3" />
 			</svg>
-			Search...
+			{t("header.search")}
 			<kbd class="border-border bg-background rounded border px-1.5 py-0.5 font-mono text-[10px]">
 				{"\u2318"}K
 			</kbd>
@@ -94,7 +96,7 @@
 			target="_blank"
 			rel="noopener noreferrer"
 			class="text-muted-foreground hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
-			aria-label="GitHub"
+			aria-label={t("a11y.github")}
 		>
 			<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
 				<path
@@ -103,6 +105,7 @@
 			</svg>
 		</a>
 
-		<ThemeToggle />
+		<LanguageSwitcher />
+		<ThemeSwitcher />
 	</div>
 </header>

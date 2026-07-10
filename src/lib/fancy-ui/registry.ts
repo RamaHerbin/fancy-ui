@@ -1694,6 +1694,76 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"frosted-glass": {
+		name: "FrostedGlass",
+		slug: "frosted-glass",
+		description:
+			"Frosted glass surface with organic turbulence-noise refraction, an alternative to LiquidGlass",
+		category: "effects",
+		status: "done",
+		tags: ["glass", "effect", "svg", "filter", "turbulence", "displacement", "blur", "navbar"],
+		props: [
+			{ name: "radius", type: "number", default: "24", description: "Border radius in pixels" },
+			{
+				name: "baseFrequency",
+				type: "number",
+				default: "0.008",
+				description: "Turbulence noise frequency (lower = wider waves)",
+			},
+			{
+				name: "numOctaves",
+				type: "number",
+				default: "2",
+				description: "Turbulence octaves controlling noise detail",
+			},
+			{ name: "seed", type: "number", default: "92", description: "Turbulence random seed" },
+			{
+				name: "noiseBlur",
+				type: "number",
+				default: "2",
+				description: "Gaussian blur softening the noise before displacement",
+			},
+			{ name: "scale", type: "number", default: "70", description: "Displacement intensity" },
+			{
+				name: "tint",
+				type: "string",
+				default: '"hsla(0, 0%, 100%, 0.25)"',
+				description: "Overlay tint color",
+			},
+			{
+				name: "highlight",
+				type: "string",
+				default: '"hsla(0, 0%, 100%, 0.75)"',
+				description: "Specular rim highlight color",
+			},
+			{
+				name: "border",
+				type: "boolean",
+				default: "true",
+				description: "Show the conic-gradient glass border",
+			},
+			{
+				name: "fallbackBlur",
+				type: "number",
+				default: "20",
+				description: "Backdrop blur in pixels for the Safari fallback",
+			},
+			{
+				name: "fallbackSaturation",
+				type: "number",
+				default: "180",
+				description: "Backdrop saturation percentage for the Safari fallback",
+			},
+			{
+				name: "containerClass",
+				type: "string",
+				default: '""',
+				description: "CSS classes for the outer container",
+			},
+		],
+		slots: [{ name: "children", description: "Content rendered on top of the glass" }],
+	},
+
 	"liquid-glass": {
 		name: "LiquidGlass",
 		slug: "liquid-glass",

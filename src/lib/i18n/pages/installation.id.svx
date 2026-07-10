@@ -1,0 +1,72 @@
+---
+title: Instalasi
+---
+
+<svelte:head>
+	<title>Installation - FancyUI Docs</title>
+</svelte:head>
+
+# Instalasi
+
+## Prasyarat
+
+- **SvelteKit** dengan Svelte 5
+- **Tailwind CSS v4**
+- **Node.js** >= 20
+
+## Instal Paket
+
+```bash
+# pnpm (recommended)
+pnpm add fancy-ui-svelte
+
+# npm
+npm install fancy-ui-svelte
+
+# bun
+bun add fancy-ui-svelte
+```
+
+## Penyiapan Tailwind CSS
+
+Komponen FancyUI menggunakan Tailwind CSS v4. Pastikan proyek Anda telah mengonfigurasi Tailwind. FancyUI menyediakan lembar gaya tambahan yang dapat Anda impor:
+
+```css
+/* In your app.css or layout.css */
+@import "tailwindcss";
+@import "fancy-ui-svelte/tailwind.css";
+```
+
+## Penggunaan
+
+Impor komponen apa pun secara langsung:
+
+```svelte
+<script lang="ts">
+  import { BorderBeam, Sparkles, RainbowButton } from 'fancy-ui-svelte';
+</script>
+
+<div class="relative overflow-hidden rounded-xl border p-8">
+  <RainbowButton>Click me</RainbowButton>
+  <BorderBeam colorFrom="#9E7AFF" colorTo="#FE8BBB" />
+</div>
+```
+
+## TypeScript
+
+Semua komponen mengekspor tipe prop-nya:
+
+```typescript
+import { type BorderBeamProps } from 'fancy-ui-svelte';
+```
+
+## Dependensi Peer
+
+FancyUI memerlukan ini sebagai dependensi peer:
+
+| Package | Version |
+|---------|---------|
+| `svelte` | `^5.0.0` |
+| `tailwindcss` | `^4.0.0` |
+
+Beberapa komponen memiliki dependensi runtime tambahan (`gsap`, `three`, `canvas-confetti`) yang disertakan bersama paket.

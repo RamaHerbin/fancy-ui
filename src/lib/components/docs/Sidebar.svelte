@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import {
-		categories,
-		categoryLabels,
-		getComponentsGroupedByCategory,
-	} from "$lib/fancy-ui/registry.js";
+	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
+	import { t } from "$lib/stores";
+	import type { MessageKey } from "$lib/i18n/messages/en.js";
 
 	interface Props {
 		open?: boolean;
@@ -16,11 +14,12 @@
 	const grouped = getComponentsGroupedByCategory();
 
 	const gettingStartedLinks = [
-		{ href: "/docs/getting-started/introduction", label: "Introduction" },
-		{ href: "/docs/getting-started/installation", label: "Installation" },
-		{ href: "/docs/getting-started/theming", label: "Theming" },
-		{ href: "/docs/getting-started/changelog", label: "Changelog" },
-	];
+		{ href: "/docs/getting-started/introduction", key: "page.introduction" },
+		{ href: "/docs/getting-started/installation", key: "page.installation" },
+		{ href: "/docs/getting-started/theming", key: "page.theming" },
+		{ href: "/docs/getting-started/theme-generator", key: "page.themeGenerator" },
+		{ href: "/docs/getting-started/changelog", key: "page.changelog" },
+	] as const;
 
 	let collapsedCategories = $state<Set<string>>(new Set());
 
@@ -41,19 +40,19 @@
 	<button
 		class="fixed inset-0 z-40 bg-black/50 lg:hidden"
 		onclick={onclose}
-		aria-label="Close sidebar"
+		aria-label={t("a11y.closeSidebar")}
 	></button>
 {/if}
 
 <aside
-	class="border-sidebar-border bg-sidebar text-sidebar-foreground fixed top-0 left-0 z-50 flex h-full w-64 flex-col border-r transition-transform duration-300 lg:translate-x-0 {open
+	class="border-sidebar-border bg-sidebar text-sidebar-foreground fixed start-0 top-0 z-50 flex h-full w-64 flex-col border-e transition-transform duration-300 lg:translate-x-0 {open
 		? 'translate-x-0'
-		: '-translate-x-full'}"
+		: '-translate-x-full rtl:translate-x-full'}"
 >
 	<!-- Header -->
 	<div class="border-sidebar-border flex h-14 shrink-0 items-center justify-between border-b px-4">
 		<a href="/docs" class="text-lg font-semibold tracking-tight" onclick={onclose}>
-			FancyUI <span class="text-muted-foreground text-xs font-normal">docs</span>
+			FancyUI <span class="text-muted-foreground text-xs font-normal">{t("nav.docsSuffix")}</span>
 		</a>
 	</div>
 
@@ -64,7 +63,7 @@
 			<h3
 				class="text-sidebar-foreground/50 mb-1 px-2 text-xs font-semibold tracking-wider uppercase"
 			>
-				Getting Started
+				{t("nav.gettingStarted")}
 			</h3>
 			<ul>
 				{#each gettingStartedLinks as link}
@@ -76,7 +75,7 @@
 								? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
 								: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
 						>
-							{link.label}
+							{t(link.key)}
 						</a>
 					</li>
 				{/each}
@@ -94,7 +93,7 @@
 					? 'text-sidebar-accent-foreground'
 					: 'text-sidebar-foreground/50 hover:text-sidebar-foreground/70'}"
 			>
-				Components
+				{t("nav.components")}
 			</a>
 		</div>
 
@@ -108,7 +107,7 @@
 						onclick={() => toggleCategory(category)}
 						class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
 					>
-						{categoryLabels[category]}
+						{t(`category.${category}` as MessageKey)}
 						<svg
 							class="h-3 w-3 transition-transform {collapsed ? '' : 'rotate-90'}"
 							fill="none"

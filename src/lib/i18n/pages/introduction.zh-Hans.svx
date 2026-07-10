@@ -1,0 +1,58 @@
+---
+title: 简介
+---
+
+<svelte:head>
+	<title>简介 - FancyUI Docs</title>
+</svelte:head>
+
+# 简介
+
+FancyUI 是一套 **50 多个动画、交互式 UI 组件**，原生为 Svelte 5 打造。
+
+## 设计理念
+
+- **Svelte 5 原生** — 使用 runes 构建（`$state`、`$derived`、`$effect`），不依赖任何旧版 API
+- **动画优先** — 每个组件开箱即带精致的动画
+- **便于复制粘贴** — 既可作为包使用，也可直接复制源代码
+- **Tailwind CSS 4** — 使用工具类和 CSS 自定义属性进行样式设计
+- **TypeScript** — 完整的类型安全，并导出属性接口
+
+## 快速开始
+
+```bash
+# 1. Install
+pnpm add fancy-ui-svelte
+
+# 2. Import
+import { BorderBeam, Sparkles } from 'fancy-ui-svelte'
+```
+
+```svelte
+<!-- 3. Use -->
+<div class="relative overflow-hidden rounded-xl border p-6">
+  <p>Your content here</p>
+  <BorderBeam />
+</div>
+```
+
+## 包含内容
+
+FancyUI 涵盖 10 个分类的组件：
+
+- **按钮** — Rainbow、Shimmer、Ripple、Gradient、Interactive Hover
+- **卡片** — 3D、Spotlight、Glare、Flip、Bento Grid、Book、Apple Carousel
+- **文本** — Flip Words、Hyper Text、Colourful、Letter Pullup、Number Ticker
+- **背景** — Stars、Falling Stars、Flickering Grid、Sparkles、Matrix Rain
+- **特效** — Border Beam、Meteors、Fluid Cursor、Smooth Cursor、Confetti
+- **布局** — Marquee、Container Scroll
+- **导航** — Dock、Timeline、Line Hover Link
+- **数据展示** — Logo Cloud、Animated Testimonials
+- **反馈** — Animated Tooltip
+- **媒体** — Compare（前后对比滑块）
+
+## 下一步
+
+- [安装](/docs/getting-started/installation) — 在你的项目中配置 FancyUI
+- [主题](/docs/getting-started/theming) — 自定义颜色和动画
+- [浏览组件](/docs/components) — 探索完整的组件库
