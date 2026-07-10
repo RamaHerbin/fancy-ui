@@ -1,0 +1,18 @@
+/**
+ * Base styles for the Cameleon provider root. The skin's tokens are set as
+ * inline CSS variables on the same element; these rules consume them so the
+ * whole "world" (page background, text color, base font) changes per skin.
+ */
+.cameleon-root {
+	background: var(--skin-page-bg, transparent);
+	color: var(--skin-page-fg, inherit);
+	font-family: var(--skin-font-sans, inherit);
+	-webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cameleon-root * {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+	}
+}
