@@ -26,6 +26,7 @@
 	],
 	"files": [
 		"dist/fancy-ui",
+		"dist/utils",
 		"dist/utils.js",
 		"dist/utils.d.ts",
 		"dist/types.js",
