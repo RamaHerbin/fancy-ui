@@ -238,7 +238,6 @@ Contributions are welcome! 56 components and counting — PRs for new components
 | [Tailwind CSS](https://tailwindcss.com)      | 4       | Styling             |
 | [TypeScript](https://www.typescriptlang.org) | 5       | Type safety         |
 | [Vitest](https://vitest.dev)                 | 4       | Testing             |
-| [bits-ui](https://bits-ui.com)               | 2       | Headless primitives |
 | [GSAP](https://gsap.com)                     | 3       | Advanced animations |
 
 ## Credits

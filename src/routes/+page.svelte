@@ -520,14 +520,6 @@
 					text="The fastest Svelte component library."
 					class="text-4xl leading-tight font-bold tracking-tight text-white sm:text-5xl"
 				/>
-				<div class="mt-8">
-					<a
-						href="/compare"
-						class="text-sm text-zinc-500 underline-offset-4 transition-colors hover:text-white hover:underline"
-					>
-						Full comparison →
-					</a>
-				</div>
 			</div>
 
 			<!-- Right: BoxReveal blocs -->
