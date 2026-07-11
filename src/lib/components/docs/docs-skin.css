@@ -1,0 +1,122 @@
+/**
+ * Docs Skin Bridge
+ *
+ * Maps shadcn's semantic design tokens (--background, --foreground, --card...)
+ * onto the Cameleon Brutal skin's --skin-* variables, so switching the docs
+ * skin re-skins the shadcn-driven docs chrome (sidebar, header, cards, prose)
+ * without touching a single component's markup.
+ *
+ * Every rule here is scoped under .docs-skin so the /skins page (which sets
+ * data-skin directly via <FancyProvider> without the .docs-skin class) is
+ * unaffected — this bridge only applies to the documentation site shell.
+ */
+
+/* ---- Semantic token map --------------------------------------------------- */
+.docs-skin[data-skin="brutal"] {
+	--background: var(--skin-page-bg);
+	--foreground: var(--skin-ink);
+	--card: var(--skin-card);
+	--card-foreground: var(--skin-ink);
+	--popover: var(--skin-surface);
+	--popover-foreground: var(--skin-ink);
+	--primary: var(--skin-ink);
+	--primary-foreground: var(--skin-paper);
+	--secondary: var(--skin-surface);
+	--secondary-foreground: var(--skin-ink);
+	--muted: #eae3d2;
+	--muted-foreground: rgba(20, 20, 20, 0.62);
+	--accent: var(--skin-yellow);
+	--accent-foreground: var(--skin-ink);
+	--destructive: var(--skin-red);
+	--border: var(--skin-line);
+	--input: var(--skin-line);
+	--ring: var(--skin-blue);
+	--sidebar: var(--skin-card);
+	--sidebar-foreground: var(--skin-ink);
+	--sidebar-primary: var(--skin-ink);
+	--sidebar-primary-foreground: var(--skin-paper);
+	--sidebar-accent: var(--skin-yellow);
+	--sidebar-accent-foreground: var(--skin-ink);
+	--sidebar-border: var(--skin-line);
+	--sidebar-ring: var(--skin-blue);
+
+	/* Code surfaces (consumed by CodeBlock / InstallBlock / doc-prose <pre>). */
+	--code-bg: var(--skin-surface);
+	--code-border: var(--skin-line);
+	--code-fg: var(--skin-ink);
+	--code-fg-muted: rgba(20, 20, 20, 0.55);
+	--code-chip-bg: rgba(20, 20, 20, 0.08);
+	--code-kw: var(--skin-purple);
+	--code-str: #a16207;
+	--code-cmd: var(--skin-green);
+}
+
+/* ---- Hard shadows ----------------------------------------------------------- */
+.docs-skin[data-skin="brutal"]
+	:is(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+
+/* ---- Border weight ----------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] .border {
+	border-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-b {
+	border-bottom-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-t {
+	border-top-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-e {
+	border-inline-end-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-s {
+	border-inline-start-width: 1.5px;
+}
+
+/* ---- Type ----------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] h1 {
+	font-weight: 900;
+	letter-spacing: -0.04em;
+}
+.docs-skin[data-skin="brutal"] h2 {
+	font-weight: 850;
+	letter-spacing: -0.02em;
+}
+.docs-skin[data-skin="brutal"] :is(h3, h4) {
+	font-weight: 800;
+	letter-spacing: -0.01em;
+}
+.docs-skin[data-skin="brutal"] header nav,
+.docs-skin[data-skin="brutal"] kbd {
+	font-family: var(--skin-font-mono);
+}
+
+/* ---- Dark-literal patches ----------------------------------------------------- */
+/* Utilities like `dark:text-emerald-400` were authored for the shadcn dark theme;
+   Brutal is a light skin, so re-point them at the skin's accent colors. */
+.docs-skin[data-skin="brutal"] .dark\:text-emerald-400 {
+	color: var(--skin-green);
+}
+.docs-skin[data-skin="brutal"] .dark\:text-purple-400 {
+	color: var(--skin-purple);
+}
+
+/* ---- Shiki palette flip ----------------------------------------------------- */
+/* CodeBlock renders shiki with dual (--shiki-light / --shiki-dark) CSS vars and
+   defaultColor: false, so the picked color is entirely up to us here. The docs
+   site's non-brutal skin runs on a dark code surface, so it defaults to dark; the
+   Brutal skin's code surface is light, so it flips to the light shiki palette. */
+.docs-skin .shiki,
+.docs-skin .shiki span {
+	color: var(--shiki-dark);
+}
+.docs-skin[data-skin="brutal"] .shiki,
+.docs-skin[data-skin="brutal"] .shiki span {
+	color: var(--shiki-light);
+}
+
+/* ---- Standard skin ----------------------------------------------------- */
+.docs-skin[data-skin="standard"] {
+	-webkit-font-smoothing: auto;
+}

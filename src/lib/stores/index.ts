@@ -21,3 +21,12 @@ export {
 } from "./theme.svelte.js";
 
 export { setLocale, getLocale, getDir, t, createI18n, applyForRoute } from "./locale.svelte.js";
+
+export {
+	// Types
+	type DocsSkin,
+	// Functions
+	setSkin,
+	toggleSkin,
+	createSkinState,
+} from "./skin.svelte.js";

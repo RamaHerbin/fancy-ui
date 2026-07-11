@@ -24,7 +24,7 @@
 			if (!highlighterInstance) {
 				const { createHighlighter } = await import("shiki");
 				highlighterInstance = await createHighlighter({
-					themes: ["github-dark"],
+					themes: ["github-dark", "github-light"],
 					langs: [currentLang],
 				});
 				loadedLangs.add(currentLang);
@@ -34,7 +34,8 @@
 			}
 			highlighted = highlighterInstance.codeToHtml(currentCode.trim(), {
 				lang: currentLang,
-				theme: "github-dark",
+				themes: { light: "github-light", dark: "github-dark" },
+				defaultColor: false,
 			});
 		})();
 	});
@@ -49,13 +50,15 @@
 <div class="group relative">
 	<div class="absolute top-2 right-2 z-10 flex items-center gap-2">
 		{#if lang}
-			<span class="rounded bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/40 uppercase">
+			<span
+				class="rounded bg-(--code-chip-bg) px-2 py-0.5 text-[10px] font-medium text-(--code-fg-muted) uppercase"
+			>
 				{lang}
 			</span>
 		{/if}
 		<button
 			onclick={copyCode}
-			class="rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-white/60 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white/10 hover:text-white"
+			class="rounded-md border border-(--code-border) bg-(--code-chip-bg) px-2 py-1 text-xs text-(--code-fg-muted) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--code-fg)"
 		>
 			{copied ? t("action.copied") : t("action.copy")}
 		</button>
@@ -63,7 +66,7 @@
 	{#if highlighted}
 		<div
 			dir="ltr"
-			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] text-sm [&_code]:font-mono [&_pre]:p-4"
+			class="overflow-x-auto rounded-lg border border-(--code-border) bg-(--code-bg) text-sm [&_code]:font-mono [&_pre]:p-4"
 			class:line-numbers={showLineNumbers}
 		>
 			{@html highlighted}
@@ -71,7 +74,7 @@
 	{:else}
 		<pre
 			dir="ltr"
-			class="overflow-x-auto rounded-lg border border-white/10 bg-[#0d1117] p-4 font-mono text-sm text-white/80"><code
+			class="overflow-x-auto rounded-lg border border-(--code-border) bg-(--code-bg) p-4 font-mono text-sm text-(--code-fg)"><code
 				>{code.trim()}</code
 			></pre>
 	{/if}

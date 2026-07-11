@@ -2,6 +2,7 @@
 	import { page } from "$app/stores";
 	import { t } from "$lib/stores";
 	import ThemeSwitcher from "$lib/components/docs/ThemeSwitcher.svelte";
+	import SkinSwitcher from "$lib/components/docs/SkinSwitcher.svelte";
 	import LanguageSwitcher from "$lib/components/docs/LanguageSwitcher.svelte";
 
 	interface Props {
@@ -106,6 +107,7 @@
 		</a>
 
 		<LanguageSwitcher />
+		<SkinSwitcher />
 		<ThemeSwitcher />
 	</div>
 </header>
