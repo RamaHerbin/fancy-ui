@@ -14,10 +14,11 @@
 		brutalSkin,
 		glassSkin,
 		terminalSkin,
+		retroOsSkin,
 	} from "$lib/cameleon";
 	import type { Skin } from "$lib/cameleon";
 
-	const skins: Skin[] = [brutalSkin, glassSkin, terminalSkin];
+	const skins: Skin[] = [brutalSkin, glassSkin, terminalSkin, retroOsSkin];
 	let active = $state<Skin>(brutalSkin);
 
 	const badgeVariants = ["blue", "red", "yellow", "green", "purple", "solid"] as const;

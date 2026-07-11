@@ -1,0 +1,98 @@
+/* Retro OS skin — pixel-arrow cursor, CRT scanlines, stair-step pixel corners, chunky
+   native range slider. Scoped by data-skin. */
+[data-skin="retro-os"] {
+	position: relative;
+	cursor:
+		url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='20' shape-rendering='crispEdges'><path d='M1 0h2v2h2v2h2v2h2v2h2v2h2v2h-6v2h2v2h2v2h-4v-2h-2v-2h-2v-2h-2z' fill='%23FAF5E6'/><path d='M2 2h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h-5v1h1v2h1v2h-2v-2h-1v-2h-1v-2h-1z' fill='%23191308'/></svg>")
+			2 2,
+		auto;
+}
+
+/* CRT scanlines overlay — sits above content, below nothing (top layer of the skin). */
+[data-skin="retro-os"]::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 40;
+	border-radius: inherit;
+	background: repeating-linear-gradient(0deg, rgba(25, 19, 8, 0.04) 0 2px, transparent 2px 4px);
+}
+
+/* Stair-step pixel corners on cards. box-shadow does not survive clip-path (the clip cuts it
+   off at the box edge), so the drop shadow is done via filter: drop-shadow instead, which
+   applies after clipping. */
+[data-skin="retro-os"] .ds-card {
+	border-radius: 0;
+	border-width: 2px;
+	box-shadow: none;
+	filter: drop-shadow(3px 3px 0 #191308);
+	clip-path: polygon(
+		8px 0,
+		calc(100% - 8px) 0,
+		calc(100% - 8px) 4px,
+		calc(100% - 4px) 4px,
+		calc(100% - 4px) 8px,
+		100% 8px,
+		100% calc(100% - 8px),
+		calc(100% - 4px) calc(100% - 8px),
+		calc(100% - 4px) calc(100% - 4px),
+		calc(100% - 8px) calc(100% - 4px),
+		calc(100% - 8px) 100%,
+		8px 100%,
+		8px calc(100% - 4px),
+		4px calc(100% - 4px),
+		4px calc(100% - 8px),
+		0 calc(100% - 8px),
+		0 8px,
+		4px 8px,
+		4px 4px,
+		8px 4px
+	);
+}
+
+/* Native range slider — chunky square track + thumb, ink border, blue focus ring. */
+[data-skin="retro-os"] .cam-range {
+	height: 22px;
+}
+[data-skin="retro-os"] .cam-range::-webkit-slider-runnable-track {
+	height: 8px;
+	background: #fdfaf0;
+	border: 2px solid #191308;
+	border-radius: 0;
+}
+[data-skin="retro-os"] .cam-range::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	height: 18px;
+	width: 18px;
+	margin-top: -7px;
+	background: #faf5e6;
+	border: 2px solid #191308;
+	border-radius: 0;
+	box-shadow: 2px 2px 0 #191308;
+}
+[data-skin="retro-os"] .cam-range:focus-visible::-webkit-slider-thumb {
+	box-shadow:
+		2px 2px 0 #191308,
+		0 0 0 2px #3f62a7;
+}
+[data-skin="retro-os"] .cam-range::-moz-range-track {
+	height: 8px;
+	background: #fdfaf0;
+	border: 2px solid #191308;
+	border-radius: 0;
+}
+[data-skin="retro-os"] .cam-range::-moz-range-thumb {
+	height: 18px;
+	width: 18px;
+	background: #faf5e6;
+	border: 2px solid #191308;
+	border-radius: 0;
+	box-shadow: 2px 2px 0 #191308;
+}
+[data-skin="retro-os"] .cam-range:focus-visible::-moz-range-thumb {
+	box-shadow:
+		2px 2px 0 #191308,
+		0 0 0 2px #3f62a7;
+}

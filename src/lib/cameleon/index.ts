@@ -27,3 +27,4 @@ export { defaultSkin } from "./skins/default.js";
 export { brutalSkin } from "./skins/brutal/index.js";
 export { glassSkin } from "./skins/glass/index.js";
 export { terminalSkin } from "./skins/terminal/index.js";
+export { retroOsSkin } from "./skins/retro-os/index.js";
