@@ -380,4 +380,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Drag the orbs, click to pause them, resize the window.",
 		},
 	],
+	"liquid-text": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Move the cursor across the text — it smears, then relaxes back.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 };

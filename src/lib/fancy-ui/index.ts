@@ -65,6 +65,7 @@ export * from "./terminal-text/index.js";
 export * from "./noise-reveal/index.js";
 export * from "./line-reveal/index.js";
 export * from "./editorial-engine/index.js";
+export * from "./liquid-text/index.js";
 
 // =============================================================================
 // Registry
