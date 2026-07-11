@@ -1,9 +1,9 @@
 /**
  * Docs Skin Bridge
  *
- * Maps shadcn's semantic design tokens (--background, --foreground, --card...)
+ * Maps the app's semantic design tokens (--background, --foreground, --card...)
  * onto the Cameleon Brutal skin's --skin-* variables, so switching the docs
- * skin re-skins the shadcn-driven docs chrome (sidebar, header, cards, prose)
+ * skin re-skins the token-driven docs chrome (sidebar, header, cards, prose)
  * without touching a single component's markup.
  *
  * Every rule here is scoped under .docs-skin so the /skins page (which sets
@@ -93,7 +93,7 @@
 }
 
 /* ---- Dark-literal patches ----------------------------------------------------- */
-/* Utilities like `dark:text-emerald-400` were authored for the shadcn dark theme;
+/* Utilities like `dark:text-emerald-400` were authored for the app's dark theme;
    Brutal is a light skin, so re-point them at the skin's accent colors. */
 .docs-skin[data-skin="brutal"] .dark\:text-emerald-400 {
 	color: var(--skin-green);
