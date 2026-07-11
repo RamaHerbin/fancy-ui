@@ -152,13 +152,15 @@ const BADGE_FORCE: Partial<Record<PartState, string>> = {
 	hover: "shadow-[2px_2px_0_rgba(20,20,20,0.3)]",
 	active: "bg-[#141414] text-[#F4EEE0] before:bg-[#F4EEE0]",
 	focus: "border-[#1B6EF3] shadow-[0_0_0_3px_rgba(27,110,243,0.35)]",
-	disabled: "border-[rgba(20,20,20,0.3)] bg-[#EAE3D2] text-[rgba(20,20,20,0.4)] before:bg-[rgba(20,20,20,0.3)]",
+	disabled:
+		"border-[rgba(20,20,20,0.3)] bg-[#EAE3D2] text-[rgba(20,20,20,0.4)] before:bg-[rgba(20,20,20,0.3)]",
 	error: "border-[#E5372B] bg-[#FDECEA] text-[#C42B20] before:bg-[#E5372B]",
 };
 
 export function brutalBadge(args: RecipeArgs): RecipeResult {
 	const variant =
-		BADGE_VARIANT[(args.variant as keyof typeof BADGE_VARIANT) ?? "default"] ?? BADGE_VARIANT.default;
+		BADGE_VARIANT[(args.variant as keyof typeof BADGE_VARIANT) ?? "default"] ??
+		BADGE_VARIANT.default;
 	return { root: `${BADGE_BASE} ${variant} ${forced(BADGE_FORCE, args.state)}` };
 }
 

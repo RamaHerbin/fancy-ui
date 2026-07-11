@@ -40,7 +40,15 @@
 		{...rest}
 	/>
 	<span class={parts.box}>
-		<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true">
+		<svg
+			width="12"
+			height="12"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="3.5"
+			aria-hidden="true"
+		>
 			<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
 		</svg>
 	</span>

@@ -24,14 +24,7 @@ import type { Snippet } from "svelte";
  * pseudo-states — they appear here only for the /skins state-matrix demo, where a
  * recipe FORCES that visual statically (see `demoState` on the primitives).
  */
-export type PartState =
-	| "default"
-	| "error"
-	| "disabled"
-	| "loading"
-	| "hover"
-	| "active"
-	| "focus";
+export type PartState = "default" | "error" | "disabled" | "loading" | "hover" | "active" | "focus";
 
 /** Inputs to every recipe. Plain object → recipes are pure and unit-testable. */
 export interface RecipeArgs {

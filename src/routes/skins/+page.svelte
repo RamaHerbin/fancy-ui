@@ -133,14 +133,19 @@
 						<div class="ds-type-row">
 							<div style={t.style}>{t.sample}</div>
 							<div style="flex:1;"></div>
-							<div class="ds-mono" style="font-size:8.5px;text-align:right;max-width:40%;">{t.spec}</div>
+							<div class="ds-mono" style="font-size:8.5px;text-align:right;max-width:40%;">
+								{t.spec}
+							</div>
 						</div>
 					{/each}
 				</div>
 			</div>
 			<div class="ds-card">
 				{@render shead("03", "Grid, radius & borders", "var(--skin-yellow)")}
-				<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;margin-bottom:8px;">
+				<div
+					class="ds-mono"
+					style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;margin-bottom:8px;"
+				>
 					RADIUS
 				</div>
 				<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
@@ -151,7 +156,10 @@
 						</div>
 					{/each}
 				</div>
-				<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;margin:14px 0 8px;">
+				<div
+					class="ds-mono"
+					style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;margin:14px 0 8px;"
+				>
 					BORDER · SHADOW · SPACING
 				</div>
 				<div class="ds-mono" style="font-size:8.5px;line-height:1.6;opacity:0.75;">
@@ -169,19 +177,29 @@
 			<div class="ds-comp-grid">
 				<!-- Nav cards -->
 				<div style="display:flex;flex-direction:column;gap:8px;">
-					<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;">NAV CARD</div>
+					<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;">
+						NAV CARD
+					</div>
 					<div class="ds-nav" style="background:var(--skin-blue);color:#fff;">
-						<div class="row"><span class="ds-mono" style="font-size:10px;color:#fff;">01</span><span class="arrow">↗</span></div>
+						<div class="row">
+							<span class="ds-mono" style="font-size:10px;color:#fff;">01</span><span class="arrow"
+								>↗</span
+							>
+						</div>
 						<div style="font-size:15px;font-weight:800;">About Me</div>
 					</div>
 					<div class="ds-nav" style="background:var(--skin-card);">
-						<div class="row"><span class="ds-mono" style="font-size:10px;">06</span><span class="arrow">↗</span></div>
+						<div class="row">
+							<span class="ds-mono" style="font-size:10px;">06</span><span class="arrow">↗</span>
+						</div>
 						<div style="font-size:15px;font-weight:800;">More</div>
 					</div>
 				</div>
 				<!-- Section card + timeline -->
 				<div style="display:flex;flex-direction:column;gap:8px;">
-					<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;">SECTION + TIMELINE</div>
+					<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;">
+						SECTION + TIMELINE
+					</div>
 					<div class="ds-sec">
 						<div class="row">
 							<div class="ds-chip-sm" style="background:var(--skin-red);"></div>
@@ -201,34 +219,57 @@
 				</div>
 				<!-- Project card + pills -->
 				<div style="display:flex;flex-direction:column;gap:8px;">
-					<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;">PROJECT CARD</div>
+					<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;">
+						PROJECT CARD
+					</div>
 					<div class="ds-proj">
 						<div class="ds-icon" style="background:var(--skin-blue);color:#fff;">F</div>
 						<div>
 							<div style="font-size:15px;font-weight:850;">FancyUI</div>
-							<div class="ds-tag" style="color:var(--skin-blue);border-color:var(--skin-blue);">DESIGN SYSTEM</div>
+							<div class="ds-tag" style="color:var(--skin-blue);border-color:var(--skin-blue);">
+								DESIGN SYSTEM
+							</div>
 						</div>
-						<div style="font-size:11.5px;line-height:1.45;font-weight:500;opacity:0.9;">One-to-two line description.</div>
+						<div style="font-size:11.5px;line-height:1.45;font-weight:500;opacity:0.9;">
+							One-to-two line description.
+						</div>
 						<div style="display:flex;flex-wrap:wrap;gap:4px;">
-							<div class="ds-pill">Angular</div><div class="ds-pill">TypeScript</div>
+							<div class="ds-pill">Angular</div>
+							<div class="ds-pill">TypeScript</div>
 						</div>
 					</div>
 				</div>
 				<!-- Contact + CTA -->
 				<div style="display:flex;flex-direction:column;gap:8px;">
-					<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;">CONTACT · CTA</div>
-					<div class="ds-contact">
-						<span class="ds-kbd">MAIL</span><span style="font-size:11px;font-weight:700;">rama.herbin@gmail.com</span>
+					<div class="ds-mono" style="font-size:8.5px;font-weight:700;letter-spacing:0.1em;">
+						CONTACT · CTA
 					</div>
-					<div class="ds-contact" style="background:var(--skin-ink,var(--skin-line));color:var(--skin-card);">
-						<span class="ds-kbd" style="background:var(--skin-card);color:var(--skin-ink,var(--skin-line));">GIT</span>
+					<div class="ds-contact">
+						<span class="ds-kbd">MAIL</span><span style="font-size:11px;font-weight:700;"
+							>rama.herbin@gmail.com</span
+						>
+					</div>
+					<div
+						class="ds-contact"
+						style="background:var(--skin-ink,var(--skin-line));color:var(--skin-card);"
+					>
+						<span
+							class="ds-kbd"
+							style="background:var(--skin-card);color:var(--skin-ink,var(--skin-line));">GIT</span
+						>
 						<span style="font-size:11px;font-weight:700;">github.com/ramaherbin</span>
 					</div>
 					<div class="ds-strip" style="background:var(--skin-yellow);">
-						<div style="width:8px;height:8px;background:var(--skin-line);transform:rotate(45deg);"></div>
+						<div
+							style="width:8px;height:8px;background:var(--skin-line);transform:rotate(45deg);"
+						></div>
 						<div style="font-size:10.5px;font-weight:750;">CTA strip — statement + pill</div>
 						<div style="flex:1;"></div>
-						<div style="background:var(--skin-line);color:var(--skin-card);border-radius:999px;padding:4px 9px;font-size:8.5px;font-weight:750;">Let's build</div>
+						<div
+							style="background:var(--skin-line);color:var(--skin-card);border-radius:999px;padding:4px 9px;font-size:8.5px;font-weight:750;"
+						>
+							Let's build
+						</div>
 					</div>
 				</div>
 			</div>
@@ -241,7 +282,9 @@
 				{#each active.meta.responsive as r}
 					<div>
 						<div class="ds-resp-mock"></div>
-						<div class="ds-mono" style="font-size:8px;margin-top:5px;"><b>{r.label}</b> — {r.note}</div>
+						<div class="ds-mono" style="font-size:8px;margin-top:5px;">
+							<b>{r.label}</b> — {r.note}
+						</div>
 					</div>
 				{/each}
 			</div>
@@ -254,7 +297,8 @@
 			<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;">
 				{#each legend as s}
 					<div class="ds-legend">
-						<div class="ds-chip-xs" style="background:{s.accent};"></div>{s.label}
+						<div class="ds-chip-xs" style="background:{s.accent};"></div>
+						{s.label}
 					</div>
 				{/each}
 			</div>
@@ -265,11 +309,21 @@
 					{@render divider("BUTTON", "PILL · HARD-SHADOW LIFT")}
 					<div class="ds-cells" style="gap:22px;">
 						<div class="ds-cell"><Button>Button</Button><span class="ds-cap">DEFAULT ✦</span></div>
-						<div class="ds-cell"><Button demoState="hover">Button</Button><span class="ds-cap">HOVER</span></div>
-						<div class="ds-cell"><Button demoState="active">Button</Button><span class="ds-cap">ACTIVE</span></div>
-						<div class="ds-cell"><Button demoState="focus">Button</Button><span class="ds-cap">FOCUS</span></div>
-						<div class="ds-cell"><Button disabled>Button</Button><span class="ds-cap">DISABLED</span></div>
-						<div class="ds-cell"><Button variant="destructive">Delete</Button><span class="ds-cap">ERROR</span></div>
+						<div class="ds-cell">
+							<Button demoState="hover">Button</Button><span class="ds-cap">HOVER</span>
+						</div>
+						<div class="ds-cell">
+							<Button demoState="active">Button</Button><span class="ds-cap">ACTIVE</span>
+						</div>
+						<div class="ds-cell">
+							<Button demoState="focus">Button</Button><span class="ds-cap">FOCUS</span>
+						</div>
+						<div class="ds-cell">
+							<Button disabled>Button</Button><span class="ds-cap">DISABLED</span>
+						</div>
+						<div class="ds-cell">
+							<Button variant="destructive">Delete</Button><span class="ds-cap">ERROR</span>
+						</div>
 					</div>
 				</div>
 
@@ -277,12 +331,26 @@
 				<div class="ds-ctrl">
 					{@render divider("INPUT", "TEXT FIELD")}
 					<div class="ds-cells">
-						<div class="ds-cell ds-w"><Input value="Lyon, France" /><span class="ds-cap">DEFAULT ✦</span></div>
-						<div class="ds-cell ds-w"><Input value="Lyon, France" demoState="hover" /><span class="ds-cap">HOVER</span></div>
-						<div class="ds-cell ds-w"><Input value="Lyon, France" demoState="active" /><span class="ds-cap">ACTIVE</span></div>
-						<div class="ds-cell ds-w"><Input value="Lyon, France" demoState="focus" /><span class="ds-cap">FOCUS</span></div>
-						<div class="ds-cell ds-w"><Input value="Lyon, France" disabled /><span class="ds-cap">DISABLED</span></div>
-						<div class="ds-cell ds-w"><Input value="Lyon" error /><span class="ds-cap" style="color:var(--skin-red);">ERROR</span></div>
+						<div class="ds-cell ds-w">
+							<Input value="Lyon, France" /><span class="ds-cap">DEFAULT ✦</span>
+						</div>
+						<div class="ds-cell ds-w">
+							<Input value="Lyon, France" demoState="hover" /><span class="ds-cap">HOVER</span>
+						</div>
+						<div class="ds-cell ds-w">
+							<Input value="Lyon, France" demoState="active" /><span class="ds-cap">ACTIVE</span>
+						</div>
+						<div class="ds-cell ds-w">
+							<Input value="Lyon, France" demoState="focus" /><span class="ds-cap">FOCUS</span>
+						</div>
+						<div class="ds-cell ds-w">
+							<Input value="Lyon, France" disabled /><span class="ds-cap">DISABLED</span>
+						</div>
+						<div class="ds-cell ds-w">
+							<Input value="Lyon" error /><span class="ds-cap" style="color:var(--skin-red);"
+								>ERROR</span
+							>
+						</div>
 					</div>
 				</div>
 
@@ -312,22 +380,43 @@
 						{@render divider("CHECKBOX")}
 						<div class="ds-cells">
 							<div class="ds-cell"><Checkbox /><span class="ds-cap">DEFAULT</span></div>
-							<div class="ds-cell"><Checkbox demoState="hover" /><span class="ds-cap">HOVER</span></div>
+							<div class="ds-cell">
+								<Checkbox demoState="hover" /><span class="ds-cap">HOVER</span>
+							</div>
 							<div class="ds-cell"><Checkbox checked /><span class="ds-cap">ON</span></div>
-							<div class="ds-cell"><Checkbox checked demoState="focus" /><span class="ds-cap">FOCUS</span></div>
-							<div class="ds-cell"><Checkbox checked disabled /><span class="ds-cap">DISABLED</span></div>
-							<div class="ds-cell"><Checkbox error /><span class="ds-cap" style="color:var(--skin-red);">ERROR</span></div>
+							<div class="ds-cell">
+								<Checkbox checked demoState="focus" /><span class="ds-cap">FOCUS</span>
+							</div>
+							<div class="ds-cell">
+								<Checkbox checked disabled /><span class="ds-cap">DISABLED</span>
+							</div>
+							<div class="ds-cell">
+								<Checkbox error /><span class="ds-cap" style="color:var(--skin-red);">ERROR</span>
+							</div>
 						</div>
 					</div>
 					<div class="ds-ctrl">
 						{@render divider("RADIO")}
 						<div class="ds-cells">
-							<div class="ds-cell"><Radio group="a" value="b" /><span class="ds-cap">DEFAULT</span></div>
-							<div class="ds-cell"><Radio group="a" value="b" demoState="hover" /><span class="ds-cap">HOVER</span></div>
+							<div class="ds-cell">
+								<Radio group="a" value="b" /><span class="ds-cap">DEFAULT</span>
+							</div>
+							<div class="ds-cell">
+								<Radio group="a" value="b" demoState="hover" /><span class="ds-cap">HOVER</span>
+							</div>
 							<div class="ds-cell"><Radio group="a" value="a" /><span class="ds-cap">ON</span></div>
-							<div class="ds-cell"><Radio group="a" value="a" demoState="focus" /><span class="ds-cap">FOCUS</span></div>
-							<div class="ds-cell"><Radio group="a" value="a" disabled /><span class="ds-cap">DISABLED</span></div>
-							<div class="ds-cell"><Radio group="a" value="b" error /><span class="ds-cap" style="color:var(--skin-red);">ERROR</span></div>
+							<div class="ds-cell">
+								<Radio group="a" value="a" demoState="focus" /><span class="ds-cap">FOCUS</span>
+							</div>
+							<div class="ds-cell">
+								<Radio group="a" value="a" disabled /><span class="ds-cap">DISABLED</span>
+							</div>
+							<div class="ds-cell">
+								<Radio group="a" value="b" error /><span
+									class="ds-cap"
+									style="color:var(--skin-red);">ERROR</span
+								>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -338,19 +427,33 @@
 						{@render divider("SWITCH", "ON = ACCENT")}
 						<div class="ds-cells">
 							<div class="ds-cell"><Switch /><span class="ds-cap">OFF</span></div>
-							<div class="ds-cell"><Switch checked demoState="hover" /><span class="ds-cap">HOVER / ON</span></div>
+							<div class="ds-cell">
+								<Switch checked demoState="hover" /><span class="ds-cap">HOVER / ON</span>
+							</div>
 							<div class="ds-cell"><Switch checked /><span class="ds-cap">ON</span></div>
-							<div class="ds-cell"><Switch checked demoState="focus" /><span class="ds-cap">FOCUS</span></div>
-							<div class="ds-cell"><Switch checked disabled /><span class="ds-cap">DISABLED</span></div>
-							<div class="ds-cell"><Switch error /><span class="ds-cap" style="color:var(--skin-red);">ERROR</span></div>
+							<div class="ds-cell">
+								<Switch checked demoState="focus" /><span class="ds-cap">FOCUS</span>
+							</div>
+							<div class="ds-cell">
+								<Switch checked disabled /><span class="ds-cap">DISABLED</span>
+							</div>
+							<div class="ds-cell">
+								<Switch error /><span class="ds-cap" style="color:var(--skin-red);">ERROR</span>
+							</div>
 						</div>
 					</div>
 					<div class="ds-ctrl">
 						{@render divider("SLIDER", "LIVE ✦")}
 						<div class="ds-cells" style="gap:20px;">
 							<div class="ds-cell"><Slider value={52} /><span class="ds-cap">DEFAULT ✦</span></div>
-							<div class="ds-cell"><Slider value={52} disabled /><span class="ds-cap">DISABLED</span></div>
-							<div class="ds-cell"><Slider value={52} error /><span class="ds-cap" style="color:var(--skin-red);">ERROR</span></div>
+							<div class="ds-cell">
+								<Slider value={52} disabled /><span class="ds-cap">DISABLED</span>
+							</div>
+							<div class="ds-cell">
+								<Slider value={52} error /><span class="ds-cap" style="color:var(--skin-red);"
+									>ERROR</span
+								>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -359,10 +462,31 @@
 				<div class="ds-ctrl">
 					{@render divider("TEXTAREA", "MULTI-LINE")}
 					<div class="ds-cells">
-						<div class="ds-cell ds-w2"><Textarea value="Front-end engineer focused on design systems." rows={2} /><span class="ds-cap">DEFAULT</span></div>
-						<div class="ds-cell ds-w2"><Textarea value="Front-end engineer focused on design systems." rows={2} demoState="focus" /><span class="ds-cap">FOCUS</span></div>
-						<div class="ds-cell ds-w2"><Textarea value="Front-end engineer focused on design systems." rows={2} disabled /><span class="ds-cap">DISABLED</span></div>
-						<div class="ds-cell ds-w2"><Textarea value="Too short." rows={2} error /><span class="ds-cap" style="color:var(--skin-red);">ERROR</span></div>
+						<div class="ds-cell ds-w2">
+							<Textarea value="Front-end engineer focused on design systems." rows={2} /><span
+								class="ds-cap">DEFAULT</span
+							>
+						</div>
+						<div class="ds-cell ds-w2">
+							<Textarea
+								value="Front-end engineer focused on design systems."
+								rows={2}
+								demoState="focus"
+							/><span class="ds-cap">FOCUS</span>
+						</div>
+						<div class="ds-cell ds-w2">
+							<Textarea
+								value="Front-end engineer focused on design systems."
+								rows={2}
+								disabled
+							/><span class="ds-cap">DISABLED</span>
+						</div>
+						<div class="ds-cell ds-w2">
+							<Textarea value="Too short." rows={2} error /><span
+								class="ds-cap"
+								style="color:var(--skin-red);">ERROR</span
+							>
+						</div>
 					</div>
 				</div>
 
@@ -372,11 +496,24 @@
 						{@render divider("BADGE")}
 						<div class="ds-cells" style="gap:14px;">
 							<div class="ds-cell"><Badge>Label</Badge><span class="ds-cap">DEFAULT</span></div>
-							<div class="ds-cell"><Badge demoState="hover">Label</Badge><span class="ds-cap">HOVER</span></div>
-							<div class="ds-cell"><Badge demoState="active">Label</Badge><span class="ds-cap">ACTIVE</span></div>
-							<div class="ds-cell"><Badge demoState="focus">Label</Badge><span class="ds-cap">FOCUS</span></div>
-							<div class="ds-cell"><Badge demoState="disabled">Label</Badge><span class="ds-cap">DISABLED</span></div>
-							<div class="ds-cell"><Badge demoState="error">Error</Badge><span class="ds-cap" style="color:var(--skin-red);">ERROR</span></div>
+							<div class="ds-cell">
+								<Badge demoState="hover">Label</Badge><span class="ds-cap">HOVER</span>
+							</div>
+							<div class="ds-cell">
+								<Badge demoState="active">Label</Badge><span class="ds-cap">ACTIVE</span>
+							</div>
+							<div class="ds-cell">
+								<Badge demoState="focus">Label</Badge><span class="ds-cap">FOCUS</span>
+							</div>
+							<div class="ds-cell">
+								<Badge demoState="disabled">Label</Badge><span class="ds-cap">DISABLED</span>
+							</div>
+							<div class="ds-cell">
+								<Badge demoState="error">Error</Badge><span
+									class="ds-cap"
+									style="color:var(--skin-red);">ERROR</span
+								>
+							</div>
 						</div>
 						<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;">
 							{#each badgeVariants as v}<Badge variant={v}>{v}</Badge>{/each}
@@ -384,16 +521,32 @@
 					</div>
 					<div class="ds-ctrl">
 						{@render divider("TOOLTIP", "ON HOVER / FOCUS")}
-						<div style="display:flex;flex-direction:column;gap:40px;padding-top:40px;align-items:center;">
-							<div class="ds-cell" style="align-items:center;"><Tooltip content="Design systems & UI" demoOpen /><span class="ds-cap">DEFAULT</span></div>
-							<div class="ds-cell" style="align-items:center;"><Tooltip content="Focus-triggered" demoState="focus" demoOpen /><span class="ds-cap" style="color:var(--skin-blue);">FOCUS</span></div>
-							<div class="ds-cell" style="align-items:center;"><Tooltip content="Something went wrong" demoState="error" demoOpen>!</Tooltip><span class="ds-cap" style="color:var(--skin-red);">ERROR</span></div>
+						<div
+							style="display:flex;flex-direction:column;gap:40px;padding-top:40px;align-items:center;"
+						>
+							<div class="ds-cell" style="align-items:center;">
+								<Tooltip content="Design systems & UI" demoOpen /><span class="ds-cap">DEFAULT</span
+								>
+							</div>
+							<div class="ds-cell" style="align-items:center;">
+								<Tooltip content="Focus-triggered" demoState="focus" demoOpen /><span
+									class="ds-cap"
+									style="color:var(--skin-blue);">FOCUS</span
+								>
+							</div>
+							<div class="ds-cell" style="align-items:center;">
+								<Tooltip content="Something went wrong" demoState="error" demoOpen>!</Tooltip><span
+									class="ds-cap"
+									style="color:var(--skin-red);">ERROR</span
+								>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="ds-mono" style="font-size:9px;margin-top:16px;line-height:1.5;">
-				✦ = LIVE — HOVER, PRESS &amp; TAB IT. Other cells force the state statically. Same markup, no per-skin code.
+				✦ = LIVE — HOVER, PRESS &amp; TAB IT. Other cells force the state statically. Same markup,
+				no per-skin code.
 			</div>
 		</div>
 	</FancyProvider>

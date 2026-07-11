@@ -33,7 +33,8 @@ const FIELD =
 	"w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none " +
 	"transition focus:border-neutral-500 focus:ring-2 focus:ring-neutral-300 " +
 	"disabled:opacity-50 disabled:cursor-not-allowed aria-[invalid=true]:border-red-500 aria-[invalid=true]:ring-red-200";
-const CHOICE_ROOT = "inline-flex items-center gap-2 cursor-pointer select-none text-sm text-neutral-900";
+const CHOICE_ROOT =
+	"inline-flex items-center gap-2 cursor-pointer select-none text-sm text-neutral-900";
 const CHOICE_BOX =
 	"grid place-items-center h-[18px] w-[18px] shrink-0 border border-neutral-400 bg-white transition text-transparent " +
 	"peer-focus-visible:ring-2 peer-focus-visible:ring-neutral-300 peer-disabled:opacity-40 " +
@@ -78,14 +79,21 @@ export const defaultSkin: Skin = {
 			field: `${FIELD} appearance-none pr-9 cursor-pointer`,
 			chevron: "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500",
 		}),
-		checkbox: () => ({ root: CHOICE_ROOT, box: `${CHOICE_BOX} rounded peer-checked:bg-neutral-900 peer-checked:text-white` }),
-		radio: () => ({ root: CHOICE_ROOT, box: `${CHOICE_BOX} rounded-full peer-checked:bg-neutral-900` }),
+		checkbox: () => ({
+			root: CHOICE_ROOT,
+			box: `${CHOICE_BOX} rounded peer-checked:bg-neutral-900 peer-checked:text-white`,
+		}),
+		radio: () => ({
+			root: CHOICE_ROOT,
+			box: `${CHOICE_BOX} rounded-full peer-checked:bg-neutral-900`,
+		}),
 		switch: () => ({
 			root:
 				"group inline-flex h-[22px] w-[40px] shrink-0 items-center rounded-full border border-neutral-300 bg-neutral-200 p-[2px] " +
 				"cursor-pointer transition-colors aria-[checked=true]:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 " +
 				"focus-visible:ring-neutral-400 disabled:opacity-50",
-			thumb: "h-[14px] w-[14px] rounded-full bg-white shadow transition-transform group-aria-[checked=true]:translate-x-[18px]",
+			thumb:
+				"h-[14px] w-[14px] rounded-full bg-white shadow transition-transform group-aria-[checked=true]:translate-x-[18px]",
 		}),
 		slider: () => ({
 			root: "cam-range w-[160px] cursor-pointer appearance-none bg-transparent disabled:opacity-50",

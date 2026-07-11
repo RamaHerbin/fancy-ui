@@ -29,14 +29,16 @@ export const glassMeta: SkinMeta = {
 			style: "font-size:18px;font-weight:500;letter-spacing:-0.01em;",
 		},
 		{
-			sample: "Body — Translucent surfaces float above a deep gradient, softened by blur and bloom.",
+			sample:
+				"Body — Translucent surfaces float above a deep gradient, softened by blur and bloom.",
 			spec: "SYSTEM SANS 400 · 14–16 · 1.6 LINE",
 			style: "font-size:15px;font-weight:400;line-height:1.6;max-width:52ch;",
 		},
 		{
 			sample: "mono-label — rgba(255,255,255,0.12)",
 			spec: "SF MONO 500 · 10–12 + 0.02EM",
-			style: "font-family:var(--skin-font-mono);font-size:11px;font-weight:500;letter-spacing:0.02em;",
+			style:
+				"font-family:var(--skin-font-mono);font-size:11px;font-weight:500;letter-spacing:0.02em;",
 		},
 	],
 	specs: {
@@ -54,6 +56,9 @@ export const glassMeta: SkinMeta = {
 	responsive: [
 		{ label: "Desktop ≥1024", note: "wide frosted panels · blur + bloom on hover · 2–3 col grids" },
 		{ label: "Tablet 720–1023", note: "stacked glass cards · reduced blur radius · 2-col grids" },
-		{ label: "Mobile <720", note: "single column · solid-leaning surfaces for legibility · 44px targets" },
+		{
+			label: "Mobile <720",
+			note: "single column · solid-leaning surfaces for legibility · 44px targets",
+		},
 	],
 };

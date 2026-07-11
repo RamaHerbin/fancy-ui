@@ -42,7 +42,8 @@ export const brutalMeta: SkinMeta = {
 		{
 			sample: "MONO LABEL — LYON, FRANCE · / 02",
 			spec: "SPACE MONO 700 CAPS · 8.5–11 + 0.05–0.14EM",
-			style: "font-family:var(--skin-font-mono);font-size:10px;font-weight:700;letter-spacing:0.1em;",
+			style:
+				"font-family:var(--skin-font-mono);font-size:10px;font-weight:700;letter-spacing:0.1em;",
 		},
 	],
 	specs: {

@@ -16,27 +16,32 @@ export const terminalMeta: SkinMeta = {
 		{
 			sample: "DISPLAY",
 			spec: "SPACE MONO 700 CAPS · 56 · +0.02EM",
-			style: "font-family:var(--skin-font-mono);font-size:56px;font-weight:700;letter-spacing:0.02em;line-height:1;text-transform:uppercase;",
+			style:
+				"font-family:var(--skin-font-mono);font-size:56px;font-weight:700;letter-spacing:0.02em;line-height:1;text-transform:uppercase;",
 		},
 		{
 			sample: "HEADING — SYSTEM READOUT",
 			spec: "SPACE MONO 700 CAPS · 26 · +0.06EM",
-			style: "font-family:var(--skin-font-mono);font-size:26px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;",
+			style:
+				"font-family:var(--skin-font-mono);font-size:26px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;",
 		},
 		{
 			sample: "Body — phosphor glows on a black tube; the cursor blinks and waits for input.",
 			spec: "SPACE MONO 400 · 14 · 1.6",
-			style: "font-family:var(--skin-font-mono);font-size:14px;font-weight:400;line-height:1.6;max-width:52ch;",
+			style:
+				"font-family:var(--skin-font-mono);font-size:14px;font-weight:400;line-height:1.6;max-width:52ch;",
 		},
 		{
 			sample: "$ prompt --input",
 			spec: "SPACE MONO 400 · 13 · caret green",
-			style: "font-family:var(--skin-font-mono);font-size:13px;font-weight:400;letter-spacing:0.01em;",
+			style:
+				"font-family:var(--skin-font-mono);font-size:13px;font-weight:400;letter-spacing:0.01em;",
 		},
 		{
 			sample: "LABEL · STATUS: OK",
 			spec: "SPACE MONO 700 CAPS · 10.5 · +0.14EM",
-			style: "font-family:var(--skin-font-mono);font-size:10.5px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;",
+			style:
+				"font-family:var(--skin-font-mono);font-size:10.5px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;",
 		},
 	],
 	specs: {
@@ -53,8 +58,17 @@ export const terminalMeta: SkinMeta = {
 		spacing: "monospace grid · 4 / 8 / 12 / 16 / 24 · character-cell rhythm",
 	},
 	responsive: [
-		{ label: "Desktop ≥1024", note: "80-column mainframe · left nav column + fluid readout · hover inverts" },
-		{ label: "Tablet 720–1023", note: "narrowed to ~64 cols · top status bar + scroll chips · 2-col grid" },
-		{ label: "Mobile <720", note: "single 40-col stack · 44px+ tap targets · caret stays blinking" },
+		{
+			label: "Desktop ≥1024",
+			note: "80-column mainframe · left nav column + fluid readout · hover inverts",
+		},
+		{
+			label: "Tablet 720–1023",
+			note: "narrowed to ~64 cols · top status bar + scroll chips · 2-col grid",
+		},
+		{
+			label: "Mobile <720",
+			note: "single 40-col stack · 44px+ tap targets · caret stays blinking",
+		},
 	],
 };

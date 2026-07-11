@@ -156,7 +156,8 @@ const BADGE_FORCE: Partial<Record<PartState, string>> = {
 
 export function glassBadge(args: RecipeArgs): RecipeResult {
 	const variant =
-		BADGE_VARIANT[(args.variant as keyof typeof BADGE_VARIANT) ?? "default"] ?? BADGE_VARIANT.default;
+		BADGE_VARIANT[(args.variant as keyof typeof BADGE_VARIANT) ?? "default"] ??
+		BADGE_VARIANT.default;
 	return { root: `${BADGE_BASE} ${variant} ${forced(BADGE_FORCE, args.state)}` };
 }
 
