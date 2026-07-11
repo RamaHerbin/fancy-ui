@@ -13,7 +13,7 @@ import {
 	brutalBadge,
 	brutalTooltip,
 } from "./recipes.js";
-import { buttonTrailing } from "./ornaments.svelte";
+import { buttonTrailing } from "./ornaments.js";
 import "./brutal.css";
 
 export const brutalSkin: Skin = {

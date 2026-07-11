@@ -2,7 +2,7 @@ import type { Skin } from "../../types.js";
 import { terminalTokens } from "./tokens.js";
 import { terminalRecipes } from "./recipes.js";
 import { terminalMeta } from "./meta.js";
-import { buttonTrailing } from "./ornaments.svelte";
+import { buttonTrailing } from "./ornaments.js";
 import "./terminal.css";
 
 export const terminalSkin: Skin = {
