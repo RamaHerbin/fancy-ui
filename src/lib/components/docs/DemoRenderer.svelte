@@ -179,6 +179,7 @@
 		"line-reveal",
 		"editorial-engine",
 		"frosted-glass",
+		"liquid-text",
 	]);
 
 	function getComponent() {
