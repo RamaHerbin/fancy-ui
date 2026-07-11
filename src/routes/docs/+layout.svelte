@@ -3,8 +3,8 @@
 	import DocHeader from "$lib/components/docs/DocHeader.svelte";
 	import TableOfContents from "$lib/components/docs/TableOfContents.svelte";
 	import CommandSearch from "$lib/components/docs/CommandSearch.svelte";
-	import { FancyProvider, brutalSkin, defaultSkin, type Skin } from "$lib/cameleon";
-	import { createSkinState } from "$lib/stores";
+	import { FancyProvider, brutalSkin, defaultSkin, retroOsSkin, type Skin } from "$lib/cameleon";
+	import { createSkinState, type DocsSkin } from "$lib/stores";
 	import "$lib/components/docs/docs-skin.css";
 
 	let { children } = $props();
@@ -14,7 +14,12 @@
 
 	const skinState = createSkinState();
 	const standardSkin: Skin = { ...defaultSkin, name: "standard", tokens: {}, fonts: undefined };
-	const activeSkin = $derived(skinState.isBrutal ? brutalSkin : standardSkin);
+	const SKINS: Record<DocsSkin, Skin> = {
+		standard: standardSkin,
+		brutal: brutalSkin,
+		"retro-os": retroOsSkin,
+	};
+	const activeSkin = $derived(SKINS[skinState.skin]);
 </script>
 
 <FancyProvider skin={activeSkin} class="docs-skin min-h-svh">

@@ -30,8 +30,11 @@ export const en = {
 	"theme.heading": "Theme",
 	"theme.system": "System",
 	"language.heading": "Language",
+	"skin.heading": "Skin",
+	"skin.standard": "Standard",
 	"skin.brutal": "Brutal",
-	"a11y.toggleSkin": "Toggle Brutal skin",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Change skin",
 
 	// Command search
 	"search.placeholder": "Search components and pages...",

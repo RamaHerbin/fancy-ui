@@ -13,20 +13,21 @@ import { browser } from "$app/environment";
 // Types
 // =============================================================================
 
-export type DocsSkin = "standard" | "brutal";
+export type DocsSkin = "standard" | "brutal" | "retro-os";
 
 // =============================================================================
 // State
 // =============================================================================
 
 const STORAGE_KEY = "fancy-ui-skin";
+const VALID: DocsSkin[] = ["standard", "brutal", "retro-os"];
 
 let skin = $state<DocsSkin>("standard");
 
 if (browser) {
 	const saved = localStorage.getItem(STORAGE_KEY);
-	if (saved === "brutal" || saved === "standard") {
-		skin = saved;
+	if (VALID.includes(saved as DocsSkin)) {
+		skin = saved as DocsSkin;
 	}
 }
 
@@ -40,9 +41,10 @@ export function setSkin(next: DocsSkin) {
 	if (browser) localStorage.setItem(STORAGE_KEY, next);
 }
 
-/** Flip between the standard and brutal docs skins. */
+/** Cycle through the docs skins: standard -> brutal -> retro-os -> standard. */
 export function toggleSkin() {
-	setSkin(skin === "brutal" ? "standard" : "brutal");
+	const next = VALID[(VALID.indexOf(skin) + 1) % VALID.length];
+	setSkin(next);
 }
 
 // =============================================================================
