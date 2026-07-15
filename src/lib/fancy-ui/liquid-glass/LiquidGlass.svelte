@@ -18,6 +18,10 @@
 		bOffset?: number;
 		scale?: number;
 		frost?: number;
+		/** Backdrop blur in pixels for the Safari fallback */
+		fallbackBlur?: number;
+		/** Backdrop saturation percentage for the Safari fallback */
+		fallbackSaturation?: number;
 		class?: string;
 		containerClass?: string;
 		children?: Snippet;
@@ -38,6 +42,8 @@
 		bOffset = 20,
 		scale = -180,
 		frost = 0.05,
+		fallbackBlur = 20,
+		fallbackSaturation = 180,
 		class: className = "",
 		containerClass = "",
 		children,
@@ -57,8 +63,8 @@
 
 	let backdropStyle = $derived(
 		filterId
-			? `--frost:${frost};border-radius:${radius}px;backdrop-filter:url(#displacementFilter-${filterId});`
-			: `--frost:${frost};border-radius:${radius}px;`
+			? `--frost:${frost};border-radius:${radius}px;backdrop-filter:url(#displacementFilter-${filterId});--lg-fallback-blur:${fallbackBlur}px;--lg-fallback-saturation:${fallbackSaturation}%;`
+			: `--frost:${frost};border-radius:${radius}px;--lg-fallback-blur:${fallbackBlur}px;--lg-fallback-saturation:${fallbackSaturation}%;`
 	);
 
 	onMount(() => {
@@ -185,6 +191,13 @@
 			0px 4px 16px rgba(17, 17, 26, 0.05) inset,
 			0px 8px 24px rgba(17, 17, 26, 0.05) inset,
 			0px 16px 56px rgba(17, 17, 26, 0.05) inset;
+	}
+
+	/* Safari cannot resolve SVG url() references inside backdrop-filter - fall back to a plain frosted blur */
+	@supports (-webkit-hyphens: none) {
+		.liquid-glass-effect {
+			backdrop-filter: blur(var(--lg-fallback-blur)) saturate(var(--lg-fallback-saturation)) !important;
+		}
 	}
 
 	.liquid-glass-slot {

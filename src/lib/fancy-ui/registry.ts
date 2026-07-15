@@ -1842,6 +1842,18 @@ export const registry: Record<string, ComponentMeta> = {
 			{ name: "scale", type: "number", default: "-180", description: "Displacement scale" },
 			{ name: "frost", type: "number", default: "0.05", description: "Frosted glass opacity" },
 			{
+				name: "fallbackBlur",
+				type: "number",
+				default: "20",
+				description: "Backdrop blur in pixels for the Safari fallback",
+			},
+			{
+				name: "fallbackSaturation",
+				type: "number",
+				default: "180",
+				description: "Backdrop saturation percentage for the Safari fallback",
+			},
+			{
 				name: "containerClass",
 				type: "string",
 				default: '""',
