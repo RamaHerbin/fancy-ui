@@ -13,8 +13,6 @@ The effect stacks four layers inside a rounded container:
 
 An optional conic-gradient border (`border` prop) frames the container.
 
-Safari cannot combine `filter: url()` with `backdrop-filter`, so it falls back to a plain `blur() saturate()` frosted look (tunable via `fallbackBlur` / `fallbackSaturation`).
-
 ## Usage
 
 ```svelte
@@ -57,3 +55,7 @@ Safari cannot combine `filter: url()` with `backdrop-filter`, so it falls back t
 ## Notes
 
 - The displacement only shows over content that scrolls or moves behind the glass; over a flat background the effect reads as a subtle frost.
+
+## Browser support
+
+Safari (WebKit) cannot combine an SVG `filter: url(#…)` with `backdrop-filter`, so the turbulence displacement silently disappears there. To keep the component usable, FrostedGlass automatically detects Safari (via an `@supports (-webkit-hyphens: none)` feature query) and falls back to a plain frosted `blur()` + `saturate()`, tunable via the `fallbackBlur` and `fallbackSaturation` props. Chromium and Firefox get the full turbulence refraction.
