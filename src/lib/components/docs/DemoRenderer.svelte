@@ -1,3 +1,12 @@
+<script module lang="ts">
+	// Per-slug override of which example is rendered as the Preview. Exported so the
+	// component page can source the Code tab from the same example (keeps the two in sync).
+	export const PREVIEW_EXAMPLE: Record<string, string> = {
+		"frosted-glass": "Navbar",
+		"liquid-glass": "Navbar",
+	};
+</script>
+
 <script lang="ts">
 	interface Props {
 		slug: string;
@@ -11,7 +20,7 @@
 	let error = $state("");
 
 	const modules = import.meta.glob("$lib/fancy-ui/*/index.ts");
-	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/BasicUsage.svelte");
+	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/*.svelte");
 
 	$effect(() => {
 		const currentSlug = slug;
@@ -21,8 +30,9 @@
 		error = "";
 
 		if (skipDirectRender.has(currentSlug)) {
-			// Load first example (BasicUsage) as preview
-			const exPath = `/src/lib/components/docs/examples/${currentSlug}/BasicUsage.svelte`;
+			// Load the preview example (BasicUsage, unless overridden per-slug)
+			const previewExample = PREVIEW_EXAMPLE[currentSlug] ?? "BasicUsage";
+			const exPath = `/src/lib/components/docs/examples/${currentSlug}/${previewExample}.svelte`;
 			const exLoader = exampleModules[exPath];
 			if (exLoader) {
 				exLoader()
