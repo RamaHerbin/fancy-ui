@@ -186,8 +186,11 @@
 		margin-bottom: 28px;
 	}
 
+	/* Brand blue→purple hue gradient (matches the design). The semantic
+	   --gradient-primary is a lightness ramp between --primary/--accent, which
+	   fades clipped text into the background instead of reading as a gradient. */
 	.intro .grad {
-		background: var(--gradient-primary);
+		background: linear-gradient(90deg, #5b8cff, #a142ff);
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
@@ -196,7 +199,7 @@
 	}
 
 	.intro .solid {
-		color: var(--primary);
+		color: #b07aff;
 		font-weight: 600;
 	}
 
