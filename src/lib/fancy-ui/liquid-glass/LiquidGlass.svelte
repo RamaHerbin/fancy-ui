@@ -193,9 +193,13 @@
 			0px 16px 56px rgba(17, 17, 26, 0.05) inset;
 	}
 
-	/* Safari cannot resolve SVG url() references inside backdrop-filter - fall back to a plain frosted blur */
-	@supports (-webkit-hyphens: none) {
+	/* Safari cannot resolve SVG url() references inside backdrop-filter, so it needs a
+	   plain-blur fallback. -webkit-named-image is a WebKit-only feature query (Chromium
+	   and Firefox return false), so this never overrides Chromium's working SVG filter.
+	   Ship the -webkit- prefixed backdrop-filter too for Safari and iOS 17 and older. */
+	@supports (background: -webkit-named-image(i)) {
 		.liquid-glass-effect {
+			-webkit-backdrop-filter: blur(var(--lg-fallback-blur)) saturate(var(--lg-fallback-saturation)) !important;
 			backdrop-filter: blur(var(--lg-fallback-blur)) saturate(var(--lg-fallback-saturation)) !important;
 		}
 	}

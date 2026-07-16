@@ -4,7 +4,7 @@
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
-	import DemoRenderer from "$lib/components/docs/DemoRenderer.svelte";
+	import DemoRenderer, { PREVIEW_EXAMPLE } from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
 	import type { PageData } from "./$types";
 
@@ -19,6 +19,24 @@
 <\/script>
 
 <${component.name} />`);
+
+	// Raw source of every docs example, so slugs whose Preview is overridden to a specific
+	// example (PREVIEW_EXAMPLE) show that example's source in the Code tab instead of the
+	// generic single-tag usage — keeping the Preview and its Code tab in sync.
+	const rawExamples = import.meta.glob("$lib/components/docs/examples/**/*.svelte", {
+		query: "?raw",
+		import: "default",
+		eager: true,
+	}) as Record<string, string>;
+
+	let previewCode = $derived.by(() => {
+		const example = PREVIEW_EXAMPLE[component.slug];
+		if (example) {
+			const src = rawExamples[`/src/lib/components/docs/examples/${component.slug}/${example}.svelte`];
+			if (src) return src.trim();
+		}
+		return basicUsageCode;
+	});
 
 	let previewTab = $state<"preview" | "code">("preview");
 </script>
@@ -81,7 +99,7 @@
 				</div>
 			{:else}
 				<div class="max-h-[500px] overflow-auto">
-					<CodeBlock code={basicUsageCode} lang="svelte" />
+					<CodeBlock code={previewCode} lang="svelte" />
 				</div>
 			{/if}
 		</div>

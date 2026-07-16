@@ -58,4 +58,4 @@ An optional conic-gradient border (`border` prop) frames the container.
 
 ## Browser support
 
-Safari (WebKit) cannot combine an SVG `filter: url(#…)` with `backdrop-filter`, so the turbulence displacement silently disappears there. To keep the component usable, FrostedGlass automatically detects Safari (via an `@supports (-webkit-hyphens: none)` feature query) and falls back to a plain frosted `blur()` + `saturate()`, tunable via the `fallbackBlur` and `fallbackSaturation` props. Chromium and Firefox get the full turbulence refraction.
+Safari (WebKit) cannot combine an SVG `filter: url(#…)` with `backdrop-filter`, so the turbulence displacement silently disappears there. To keep the component usable, FrostedGlass automatically detects Safari (via a WebKit-only `@supports` feature query) and falls back to a plain frosted `blur()` + `saturate()` (both `-webkit-` prefixed and unprefixed), tunable via the `fallbackBlur` and `fallbackSaturation` props. Chromium and Firefox get the full turbulence refraction.

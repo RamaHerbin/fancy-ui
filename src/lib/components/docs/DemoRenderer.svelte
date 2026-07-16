@@ -1,3 +1,12 @@
+<script module lang="ts">
+	// Per-slug override of which example is rendered as the Preview. Exported so the
+	// component page can source the Code tab from the same example (keeps the two in sync).
+	export const PREVIEW_EXAMPLE: Record<string, string> = {
+		"frosted-glass": "Navbar",
+		"liquid-glass": "Navbar",
+	};
+</script>
+
 <script lang="ts">
 	interface Props {
 		slug: string;
@@ -12,12 +21,6 @@
 
 	const modules = import.meta.glob("$lib/fancy-ui/*/index.ts");
 	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/*.svelte");
-
-	// Per-slug override of which example is used as the Preview
-	const PREVIEW_EXAMPLE: Record<string, string> = {
-		"frosted-glass": "Navbar",
-		"liquid-glass": "Navbar",
-	};
 
 	$effect(() => {
 		const currentSlug = slug;

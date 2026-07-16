@@ -37,4 +37,4 @@ A glass-like visual effect using SVG filters for chromatic displacement, creatin
 
 ## Browser support
 
-Safari (WebKit) cannot resolve an SVG `url(#…)` filter reference inside `backdrop-filter`, so the chromatic displacement silently disappears there. To keep the component usable, LiquidGlass automatically detects Safari (via an `@supports (-webkit-hyphens: none)` feature query) and falls back to a plain frosted `blur()` + `saturate()`, tunable via the `fallbackBlur` and `fallbackSaturation` props. Chromium and Firefox get the full chromatic refraction.
+Safari (WebKit) cannot resolve an SVG `url(#…)` filter reference inside `backdrop-filter`, so the chromatic displacement silently disappears there. To keep the component usable, LiquidGlass automatically detects Safari (via a WebKit-only `@supports` feature query) and falls back to a plain frosted `blur()` + `saturate()` (both `-webkit-` prefixed and unprefixed), tunable via the `fallbackBlur` and `fallbackSaturation` props. Chromium and Firefox get the full chromatic refraction.
