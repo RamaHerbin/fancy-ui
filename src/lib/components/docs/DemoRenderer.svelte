@@ -1,9 +1,13 @@
 <script lang="ts">
+	import { createSkinState } from "$lib/stores";
+
 	interface Props {
 		slug: string;
 	}
 
 	let { slug }: Props = $props();
+
+	const skinState = createSkinState();
 
 	let ComponentModule = $state<any>(null);
 	let ExampleComponent = $state<any>(null);
@@ -11,18 +15,24 @@
 	let error = $state("");
 
 	const modules = import.meta.glob("$lib/fancy-ui/*/index.ts");
-	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/BasicUsage.svelte");
+	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/*.svelte");
+
+	// Per-skin preview overrides: when the docs skin matches, these slugs preview a different example
+	const SKIN_PREVIEW: Record<string, Record<string, string>> = {
+		"retro-os": { "fluid-cursor": "RetroPixel" },
+	};
 
 	$effect(() => {
 		const currentSlug = slug;
+		const exampleName = SKIN_PREVIEW[skinState.skin]?.[currentSlug] ?? "BasicUsage";
 		ComponentModule = null;
 		ExampleComponent = null;
 		loading = true;
 		error = "";
 
 		if (skipDirectRender.has(currentSlug)) {
-			// Load first example (BasicUsage) as preview
-			const exPath = `/src/lib/components/docs/examples/${currentSlug}/BasicUsage.svelte`;
+			// Load per-skin override (if any) or fall back to BasicUsage as preview
+			const exPath = `/src/lib/components/docs/examples/${currentSlug}/${exampleName}.svelte`;
 			const exLoader = exampleModules[exPath];
 			if (exLoader) {
 				exLoader()
