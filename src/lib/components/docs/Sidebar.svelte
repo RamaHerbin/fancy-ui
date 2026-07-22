@@ -45,7 +45,7 @@
 {/if}
 
 <aside
-	class="border-sidebar-border bg-sidebar text-sidebar-foreground fixed start-0 top-0 z-50 flex h-full w-64 flex-col border-e transition-transform duration-300 lg:translate-x-0 {open
+	class="border-sidebar-border bg-sidebar text-sidebar-foreground fixed start-0 top-0 z-50 flex h-full w-64 flex-col border-e transition-transform duration-300 lg:translate-x-0 rtl:lg:translate-x-0 {open
 		? 'translate-x-0'
 		: '-translate-x-full rtl:translate-x-full'}"
 >
