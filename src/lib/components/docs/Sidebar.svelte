@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
-	import { t } from "$lib/stores";
+	import { t, createSkinState } from "$lib/stores";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
 
 	interface Props {
 		open?: boolean;
@@ -50,11 +53,20 @@
 		: '-translate-x-full rtl:translate-x-full'}"
 >
 	<!-- Header -->
-	<div class="border-sidebar-border flex h-14 shrink-0 items-center justify-between border-b px-4">
-		<a href="/docs" class="text-lg font-semibold tracking-tight" onclick={onclose}>
-			FancyUI <span class="text-muted-foreground text-xs font-normal">{t("nav.docsSuffix")}</span>
-		</a>
-	</div>
+	{#if isRetro}
+		<div class="retro-explorer-bar shrink-0">
+			<span class="retro-explorer-chip" aria-hidden="true">NAV</span>
+			<a href="/docs" class="retro-explorer-title" onclick={onclose}>{t("retro.explorer")}</a>
+		</div>
+	{:else}
+		<div
+			class="border-sidebar-border flex h-14 shrink-0 items-center justify-between border-b px-4"
+		>
+			<a href="/docs" class="text-lg font-semibold tracking-tight" onclick={onclose}>
+				FancyUI <span class="text-muted-foreground text-xs font-normal">{t("nav.docsSuffix")}</span>
+			</a>
+		</div>
+	{/if}
 
 	<!-- Nav -->
 	<nav class="flex-1 overflow-y-auto px-3 py-4">

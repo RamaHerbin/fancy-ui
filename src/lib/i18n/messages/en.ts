@@ -172,6 +172,13 @@ export const en = {
 	"intro.cta.body":
 		"Check out the <strong>Theme Generator</strong> to customize colors and see components react in real time.",
 	"intro.cta.button": "Try Theme Generator →",
+
+	// Retro OS docs chrome
+	"retro.explorer": "Explorer",
+	"retro.start": "Start",
+	"retro.tagline": "Animated components for Svelte 5 — copy-paste friendly.",
+	"comp.previous": "Previous",
+	"comp.next": "Next",
 } as const;
 
 export type Messages = typeof en;

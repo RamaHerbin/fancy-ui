@@ -1,16 +1,40 @@
 <script lang="ts">
-	import { t } from "$lib/stores";
+	import { t, createSkinState } from "$lib/stores";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import DemoRenderer, { PREVIEW_EXAMPLE } from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
+	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
 
 	let component = $derived(data.component);
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
+
+	// Flat component order (category order) for the retro prev/next pager.
+	const orderedComponents = (() => {
+		const grouped = getComponentsGroupedByCategory();
+		const flat: { slug: string; name: string }[] = [];
+		for (const cat of categories) {
+			for (const c of grouped[cat] ?? []) flat.push({ slug: c.slug, name: c.name });
+		}
+		return flat;
+	})();
+
+	let pager = $derived.by(() => {
+		const idx = orderedComponents.findIndex((c) => c.slug === component.slug);
+		if (idx === -1) return null;
+		const n = orderedComponents.length;
+		return {
+			prev: orderedComponents[(idx - 1 + n) % n],
+			next: orderedComponents[(idx + 1) % n],
+		};
+	});
 	let sourceUrl = $derived(
 		`https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
 	);
@@ -49,12 +73,14 @@
 <div class="max-w-4xl">
 	<!-- Header -->
 	<div class="mb-3 flex flex-wrap items-center gap-2">
-		<span class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">
+		<span
+			class="retro-tag bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium"
+		>
 			{t(`category.${component.category}` as MessageKey)}
 		</span>
 		{#if component.status === "done"}
 			<span
-				class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+				class="retro-tag retro-tag-stable rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
 			>
 				{t("status.stable")}
 			</span>
@@ -67,7 +93,19 @@
 	<!-- ═══ PREVIEW (like Sigma UI) ═══ -->
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="preview">{t("comp.preview")}</h2>
-		<div class="border-border overflow-hidden rounded-lg border">
+		<div class="retro-window border-border overflow-hidden rounded-lg border">
+			{#if isRetro}
+				<!-- Retro window titlebar -->
+				<div class="retro-preview-bar">
+					<span class="retro-pixel-logo" aria-hidden="true">
+						<span></span><span></span><span></span><span></span>
+					</span>
+					<span class="retro-preview-title">{t("comp.preview")} — {component.name}</span>
+					<span class="retro-winctl retro-winctl-min" aria-hidden="true"></span>
+					<span class="retro-winctl retro-winctl-max" aria-hidden="true"></span>
+					<span class="retro-winctl retro-winctl-close" aria-hidden="true"></span>
+				</div>
+			{/if}
 			<!-- Tabs -->
 			<div class="border-border flex items-center justify-between border-b px-1">
 				<div class="flex">
@@ -126,7 +164,7 @@
 	{#if component.props && component.props.length > 0}
 		<section class="mb-10">
 			<h2 class="text-foreground mb-4 text-xl font-semibold" id="props">{t("comp.props")}</h2>
-			<div class="border-border overflow-hidden rounded-lg border">
+			<div class="retro-props border-border overflow-hidden rounded-lg border">
 				<PropsTable props={component.props} />
 			</div>
 		</section>
@@ -197,4 +235,24 @@
 			{/if}
 		</div>
 	</section>
+
+	<!-- ═══ PAGER (retro) ═══ -->
+	{#if isRetro && pager}
+		<nav class="retro-pager" aria-label="pager">
+			<a class="retro-pager-link retro-press" href="/docs/components/{pager.prev.slug}">
+				<span class="retro-pager-arrow" aria-hidden="true">«</span>
+				<span class="retro-pager-text">
+					<span class="retro-pager-eyebrow">{t("comp.previous")}</span>
+					<span class="retro-pager-name">{pager.prev.name}</span>
+				</span>
+			</a>
+			<a class="retro-pager-link retro-pager-next retro-press" href="/docs/components/{pager.next.slug}">
+				<span class="retro-pager-text">
+					<span class="retro-pager-eyebrow">{t("comp.next")}</span>
+					<span class="retro-pager-name">{pager.next.name}</span>
+				</span>
+				<span class="retro-pager-arrow" aria-hidden="true">»</span>
+			</a>
+		</nav>
+	{/if}
 </div>

@@ -3,6 +3,7 @@
 	import DocHeader from "$lib/components/docs/DocHeader.svelte";
 	import TableOfContents from "$lib/components/docs/TableOfContents.svelte";
 	import CommandSearch from "$lib/components/docs/CommandSearch.svelte";
+	import RetroTaskbar from "$lib/components/docs/retro/RetroTaskbar.svelte";
 	import { FancyProvider, brutalSkin, defaultSkin, retroOsSkin, type Skin } from "$lib/cameleon";
 	import { createSkinState, type DocsSkin } from "$lib/stores";
 	import "$lib/components/docs/docs-skin.css";
@@ -20,6 +21,7 @@
 		"retro-os": retroOsSkin,
 	};
 	const activeSkin = $derived(SKINS[skinState.skin]);
+	const isRetro = $derived(skinState.skin === "retro-os");
 </script>
 
 <FancyProvider skin={activeSkin} class="docs-skin min-h-svh">
@@ -31,7 +33,7 @@
 			onSearchClick={() => (searchOpen = true)}
 		/>
 
-		<div class="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+		<div class="mx-auto max-w-7xl px-4 py-8 lg:px-8" class:pb-20={isRetro}>
 			<div class="flex gap-10">
 				<!-- Main content -->
 				<main class="min-w-0 flex-1" data-doc-content>
@@ -45,6 +47,10 @@
 			</div>
 		</div>
 	</div>
+
+	{#if isRetro}
+		<RetroTaskbar />
+	{/if}
 
 	<CommandSearch bind:open={searchOpen} />
 </FancyProvider>

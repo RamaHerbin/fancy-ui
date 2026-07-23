@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { t } from "$lib/stores";
+	import { t, createSkinState } from "$lib/stores";
 	import ThemeSwitcher from "$lib/components/docs/ThemeSwitcher.svelte";
 	import SkinSwitcher from "$lib/components/docs/SkinSwitcher.svelte";
 	import LanguageSwitcher from "$lib/components/docs/LanguageSwitcher.svelte";
@@ -11,6 +11,9 @@
 	}
 
 	let { onMenuClick, onSearchClick }: Props = $props();
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
 
 	let breadcrumbs = $derived.by(() => {
 		const path = $page.url.pathname;
@@ -49,6 +52,16 @@
 		</svg>
 	</button>
 
+	<!-- Retro OS brand (menubar) -->
+	{#if isRetro}
+		<span class="retro-brand" aria-hidden="true">
+			<span class="retro-pixel-logo">
+				<span></span><span></span><span></span><span></span>
+			</span>
+			<span class="retro-brand-name">FANCYUI<span class="retro-brand-ext"> — DOCS.EXE</span></span>
+		</span>
+	{/if}
+
 	<!-- Breadcrumbs -->
 	<nav class="flex items-center gap-1.5 text-sm">
 		<a href="/docs" class="text-muted-foreground hover:text-foreground transition-colors">Docs</a>
@@ -69,7 +82,7 @@
 		<!-- Search trigger -->
 		<button
 			onclick={onSearchClick}
-			class="border-border bg-muted/50 text-muted-foreground hover:bg-muted hidden items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors sm:flex"
+			class="retro-search border-border bg-muted/50 text-muted-foreground hover:bg-muted hidden items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors sm:flex"
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -96,7 +109,7 @@
 			href="https://github.com/ramaherbin/fancy-ui"
 			target="_blank"
 			rel="noopener noreferrer"
-			class="text-muted-foreground hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+			class="retro-gh text-muted-foreground hover:text-foreground flex h-9 w-9 items-center justify-center rounded-md transition-colors"
 			aria-label={t("a11y.github")}
 		>
 			<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">

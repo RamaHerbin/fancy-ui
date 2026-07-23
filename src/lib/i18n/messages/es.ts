@@ -160,4 +160,11 @@ export default {
 	"intro.cta.body":
 		"Consulta el <strong>Generador de temas</strong> para personalizar los colores y ver cómo reaccionan los componentes en tiempo real.",
 	"intro.cta.button": "Probar el Generador de temas →",
+
+	// Retro OS docs chrome
+	"retro.explorer": "Explorador",
+	"retro.start": "Inicio",
+	"retro.tagline": "Componentes animados para Svelte 5 — listos para copiar y pegar.",
+	"comp.previous": "Anterior",
+	"comp.next": "Siguiente",
 } as const;

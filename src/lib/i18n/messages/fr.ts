@@ -160,4 +160,11 @@ export default {
 	"intro.cta.body":
 		"Découvrez le <strong>Générateur de thème</strong> pour personnaliser les couleurs et voir les composants réagir en temps réel.",
 	"intro.cta.button": "Essayer le Générateur de thème →",
+
+	// Retro OS docs chrome
+	"retro.explorer": "Explorateur",
+	"retro.start": "Démarrer",
+	"retro.tagline": "Composants animés pour Svelte 5 — prêts à copier-coller.",
+	"comp.previous": "Précédent",
+	"comp.next": "Suivant",
 };

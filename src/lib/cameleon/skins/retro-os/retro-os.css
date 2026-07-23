@@ -2,8 +2,11 @@
    native range slider. Scoped by data-skin. */
 [data-skin="retro-os"] {
 	position: relative;
+	/* Pixel-art pointer (28×32 PNG, embedded so it needs no static asset and works
+	   on both the docs and /skins). base64 avoids the ;utf8, SVG-cursor rejection in
+	   Chrome/Safari. Hotspot at the arrow tip (2 2). */
 	cursor:
-		url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='20' shape-rendering='crispEdges'><path d='M1 0h2v2h2v2h2v2h2v2h2v2h2v2h-6v2h2v2h2v2h-4v-2h-2v-2h-2v-2h-2z' fill='%23FAF5E6'/><path d='M2 2h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h-5v1h1v2h1v2h-2v-2h-1v-2h-1v-2h-1z' fill='%23191308'/></svg>")
+		url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAgCAYAAAABtRhCAAABIUlEQVR4AbySsW4CQQxEL1elT5UmkfL/3xQJGip6OtArxoUXY/v2OKTRYq89j+Fu/f76vKPloM96EMcwBiQlsps3fTHgm/wHWwOezv8LIiUaJndqGHAnv9RmAJISkRKlDs2BAdjcb4+HQFIiUqK2c7AQAoP56XYKJCUiJZolpsBZgN8vA0mJSIm8UbUuA6uG2VwbSEpESpQB/H0b6A269WYgKREpURW8GVgF+LlpICkRKZEH+Hoa6A2zug38/flbnkkgUiLV/mwDvUG3DoFKERlerrePV4r2QmC0MNsfgEqmX69aIN5IxHNC6lfPAVhd3DpnQCVRsq2G2Z4Bs8G97g0YJVNf/4DAPEfEc0TqZ6cBs8G97lclqBoqqc7u/uEJHwAAAP//CzLSHAAAAAZJREFUAwDGkJNzizebGwAAAABJRU5ErkJggg==")
 			2 2,
 		auto;
 }

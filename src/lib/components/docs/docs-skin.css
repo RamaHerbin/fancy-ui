@@ -168,3 +168,437 @@
 .docs-skin[data-skin="standard"] {
 	-webkit-font-smoothing: auto;
 }
+
+/* ===========================================================================
+   Retro OS — desktop window chrome
+   ===========================================================================
+   Everything below reshapes the docs shell into a late-90s desktop OS ONLY under
+   the retro-os skin. Gated markup (retro-brand, retro-explorer-bar, retro-preview-
+   bar, retro-taskbar, retro-pager…) is styled here; standard/brutal never match.
+   The light gold #ECD77F is a fill tint that has no --skin-* token, so it is used
+   as a literal here (same as the retro-os recipes). */
+
+/* ---- Shared: pixel logo, press interaction -------------------------------- */
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo {
+	display: inline-grid;
+	grid-template-columns: 8px 8px;
+	grid-template-rows: 8px 8px;
+	gap: 2px;
+	padding: 2px;
+	flex: none;
+	background: var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(1) {
+	background: #b8912b;
+}
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(2) {
+	background: #a0442f;
+}
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(3) {
+	background: #3f62a7;
+}
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(4) {
+	background: #3a6b42;
+}
+
+.docs-skin[data-skin="retro-os"] .retro-press {
+	transition:
+		transform 0.1s,
+		box-shadow 0.1s;
+}
+.docs-skin[data-skin="retro-os"] .retro-press:hover {
+	transform: translate(-1px, -1px);
+}
+.docs-skin[data-skin="retro-os"] .retro-press:active {
+	transform: translate(2px, 2px);
+	box-shadow: none;
+}
+
+/* ---- Menubar (DocHeader) --------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] header {
+	background: var(--skin-card);
+	border-bottom-width: 3px;
+	backdrop-filter: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-brand {
+	display: none;
+	align-items: center;
+	gap: 10px;
+	margin-inline-end: 6px;
+}
+@media (min-width: 640px) {
+	.docs-skin[data-skin="retro-os"] .retro-brand {
+		display: inline-flex;
+	}
+}
+.docs-skin[data-skin="retro-os"] .retro-brand-name {
+	font-family: var(--skin-font-pixel);
+	font-size: 12px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-brand-ext {
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-search {
+	border-radius: 0;
+	border-width: 2px;
+	background: var(--skin-surface);
+	color: var(--skin-muted);
+	font-family: var(--skin-font-mono);
+}
+.docs-skin[data-skin="retro-os"] .retro-gh {
+	width: auto;
+	height: auto;
+	padding: 6px 12px;
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: #ecd77f;
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	transition:
+		transform 0.1s,
+		box-shadow 0.1s;
+}
+.docs-skin[data-skin="retro-os"] .retro-gh:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-gh:active {
+	transform: translate(2px, 2px);
+	box-shadow: none;
+}
+
+/* ---- Sidebar → EXPLORER window --------------------------------------------- */
+.docs-skin[data-skin="retro-os"] aside {
+	background: var(--skin-card);
+	border-inline-end-width: 3px;
+}
+.docs-skin[data-skin="retro-os"] .retro-explorer-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 3.5rem;
+	padding: 0 12px;
+	border-bottom: 2px solid var(--skin-line);
+	background: var(--skin-blue);
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-explorer-chip {
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	font-weight: 700;
+	background: var(--skin-paper);
+	color: var(--skin-ink);
+	padding: 2px 6px;
+}
+.docs-skin[data-skin="retro-os"] .retro-explorer-title {
+	flex: 1;
+	font-family: var(--skin-font-pixel);
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--skin-paper);
+	text-decoration: none;
+}
+/* Group labels: Silkscreen + left triangle marker */
+.docs-skin[data-skin="retro-os"] aside nav h3,
+.docs-skin[data-skin="retro-os"] aside nav button {
+	display: flex;
+	align-items: center;
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	letter-spacing: 0;
+}
+.docs-skin[data-skin="retro-os"] aside nav h3::before,
+.docs-skin[data-skin="retro-os"] aside nav button::before {
+	content: "";
+	display: inline-block;
+	width: 0;
+	height: 0;
+	margin-inline-end: 6px;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 6px solid var(--skin-muted);
+}
+/* Leaf nav links: mono + square colored-dot bullet */
+.docs-skin[data-skin="retro-os"] aside nav ul li a {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	border-radius: 0;
+	font-family: var(--skin-font-mono);
+	font-size: 12.5px;
+}
+.docs-skin[data-skin="retro-os"] aside nav ul li a::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	flex: none;
+	background: var(--skin-muted);
+	border: 1.5px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] aside nav ul li a.bg-sidebar-accent::before {
+	background: var(--skin-red);
+}
+
+/* ---- Component page: page-header tags -------------------------------------- */
+.docs-skin[data-skin="retro-os"] .retro-tag {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	font-family: var(--skin-font-mono);
+	font-weight: 700;
+	background: var(--skin-yellow);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-tag-stable {
+	background: var(--skin-green);
+	color: var(--skin-paper);
+}
+
+/* ---- Preview window -------------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] .retro-window {
+	border-radius: 0;
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-preview-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 12px;
+	border-bottom: 2px solid var(--skin-line);
+	background: var(--skin-yellow);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-preview-title {
+	flex: 1;
+	min-width: 0;
+	font-family: var(--skin-font-pixel);
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl {
+	position: relative;
+	display: inline-flex;
+	width: 22px;
+	height: 22px;
+	flex: none;
+	box-sizing: border-box;
+	align-items: center;
+	justify-content: center;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-paper);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-min::after {
+	content: "";
+	width: 10px;
+	height: 2.5px;
+	margin-top: 7px;
+	background: currentColor;
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-max::after {
+	content: "";
+	width: 10px;
+	height: 10px;
+	box-sizing: border-box;
+	border: 2.5px solid currentColor;
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-close::before,
+.docs-skin[data-skin="retro-os"] .retro-winctl-close::after {
+	content: "";
+	position: absolute;
+	width: 12px;
+	height: 2.5px;
+	background: currentColor;
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-close::before {
+	transform: rotate(45deg);
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-close::after {
+	transform: rotate(-45deg);
+}
+/* Preview/Code tabs → pixel labels */
+.docs-skin[data-skin="retro-os"] .retro-window button {
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	text-transform: uppercase;
+}
+
+/* ---- Props grid ------------------------------------------------------------ */
+.docs-skin[data-skin="retro-os"] .retro-props {
+	border-radius: 0;
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-props thead tr {
+	background: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-props thead th {
+	color: var(--skin-paper);
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	letter-spacing: 0;
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody tr:nth-child(even) {
+	background: var(--skin-surface);
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody td code {
+	background: transparent;
+	border-radius: 0;
+	color: var(--skin-purple);
+	font-family: var(--skin-font-mono);
+}
+
+/* ---- Table of contents → mustard window ------------------------------------ */
+.docs-skin[data-skin="retro-os"] .retro-toc {
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-title {
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	font-weight: 700;
+	text-transform: uppercase;
+	padding: 9px 12px;
+	border-bottom: 2px solid var(--skin-line);
+	background: var(--skin-yellow);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list {
+	padding: 8px 0;
+	margin: 0;
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list li {
+	padding-left: 0 !important;
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list li a {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px;
+	font-family: var(--skin-font-mono);
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list li a::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	flex: none;
+	background: var(--skin-yellow);
+	border: 1.5px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list li a.text-foreground::before {
+	background: var(--skin-red);
+}
+
+/* ---- Prev/next pager ------------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] .retro-pager {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 40px;
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 16px;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	color: var(--skin-ink);
+	text-decoration: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-link:hover {
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-next {
+	background: #ecd77f;
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-text {
+	display: flex;
+	flex-direction: column;
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-next .retro-pager-text {
+	align-items: flex-end;
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-eyebrow {
+	font-family: var(--skin-font-pixel);
+	font-size: 8px;
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-name {
+	font-size: 13.5px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-arrow {
+	font-weight: 700;
+}
+
+/* ---- Taskbar --------------------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] .retro-taskbar {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 30;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 14px;
+	border-top: 3px solid var(--skin-line);
+	background: var(--skin-card);
+	font-family: var(--skin-font-mono);
+}
+@media (min-width: 1024px) {
+	.docs-skin[data-skin="retro-os"] .retro-taskbar {
+		left: 16rem;
+	}
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-start {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 14px;
+	border: 2px solid var(--skin-line);
+	background: #ecd77f;
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	font-family: var(--skin-font-pixel);
+	font-size: 11px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-start:hover {
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-status {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 6px 12px;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-surface);
+	font-size: 12px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-led {
+	width: 9px;
+	height: 9px;
+	flex: none;
+	border-radius: 50%;
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-clock {
+	font-size: 12px;
+	font-weight: 600;
+	text-align: right;
+	line-height: 1.3;
+	white-space: nowrap;
+}
