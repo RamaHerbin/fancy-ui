@@ -1,5 +1,10 @@
 <script lang="ts">
-	import LocalizedPage from "$lib/components/docs/LocalizedPage.svelte";
+	import IntroductionPage from "$lib/components/docs/IntroductionPage.svelte";
+	import { t } from "$lib/stores";
 </script>
 
-<LocalizedPage page="introduction" />
+<svelte:head>
+	<title>{t("intro.metaTitle")} - FancyUI Docs</title>
+</svelte:head>
+
+<IntroductionPage />

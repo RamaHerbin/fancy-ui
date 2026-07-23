@@ -1842,6 +1842,18 @@ export const registry: Record<string, ComponentMeta> = {
 			{ name: "scale", type: "number", default: "-180", description: "Displacement scale" },
 			{ name: "frost", type: "number", default: "0.05", description: "Frosted glass opacity" },
 			{
+				name: "fallbackBlur",
+				type: "number",
+				default: "20",
+				description: "Backdrop blur in pixels for the Safari fallback",
+			},
+			{
+				name: "fallbackSaturation",
+				type: "number",
+				default: "180",
+				description: "Backdrop saturation percentage for the Safari fallback",
+			},
+			{
 				name: "containerClass",
 				type: "string",
 				default: '""',
@@ -2300,6 +2312,110 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "0",
 				description: 'Delay before reveal in seconds (trigger="view")',
+			},
+		],
+	},
+
+	"liquid-text": {
+		name: "LiquidText",
+		slug: "liquid-text",
+		description:
+			"Big text that liquefies along the cursor's path via a raw-WebGL fluid solver, with chromatic-aberration fringing that relaxes back over time",
+		category: "text",
+		status: "done",
+		credits: [
+			{ source: "Inspired by ryanritzenthaler.com (behavioral study)" },
+			{ source: "Fluid solver after Pavel Dobryakov's WebGL fluid simulation" },
+		],
+		tags: ["text", "webgl", "fluid", "displacement", "cursor", "shader", "chromatic-aberration"],
+		props: [
+			{ name: "text", type: "string", default: '"Liquid"', description: "Text to display" },
+			{
+				name: "font",
+				type: "string",
+				default: '""',
+				description:
+					"Font family; empty string resolves via getComputedStyle(host).fontFamily",
+			},
+			{
+				name: "fontSize",
+				type: "number",
+				default: "0",
+				description: "Font size in pixels; 0 auto-fits to the container width",
+			},
+			{
+				name: "fontWeight",
+				type: "number | string",
+				default: "700",
+				description: "Font weight",
+			},
+			{
+				name: "lightColor",
+				type: "string",
+				default: '"#000000"',
+				description: "Text color in light mode",
+			},
+			{
+				name: "darkColor",
+				type: "string",
+				default: '"#ffffff"',
+				description: "Text color in dark mode",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+			{
+				name: "strength",
+				type: "number",
+				default: "0.5",
+				description: "Geometric UV warp gain",
+			},
+			{
+				name: "radius",
+				type: "number",
+				default: "160",
+				description: "Splat radius in screen pixels",
+			},
+			{
+				name: "forceGain",
+				type: "number",
+				default: "17",
+				description: "Mouse-delta to force multiplier",
+			},
+			{
+				name: "dissipation",
+				type: "number",
+				default: "0.98",
+				description: "Per-frame velocity decay factor",
+			},
+			{
+				name: "viscosity",
+				type: "number",
+				default: "4",
+				description: "Jacobi viscous diffusion strength (8 iterations)",
+			},
+			{
+				name: "chromaticRatio",
+				type: "number",
+				default: "0.2",
+				description: "Chromatic offset as a ratio of the warp",
+			},
+			{
+				name: "staticBelow",
+				type: "number",
+				default: "1024",
+				description:
+					"innerWidth at/below which the component renders as static DOM text (also used at mount)",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "Whether pointer movement drives the fluid simulation",
+			},
+			{
+				name: "pauseWhenHidden",
+				type: "boolean",
+				default: "true",
+				description: "Pause the render loop while the document is hidden",
 			},
 		],
 	},

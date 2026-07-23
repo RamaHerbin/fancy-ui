@@ -1,3 +1,12 @@
+<script module lang="ts">
+	// Per-slug override of which example is rendered as the Preview. Exported so the
+	// component page can source the Code tab from the same example (keeps the two in sync).
+	export const PREVIEW_EXAMPLE: Record<string, string> = {
+		"frosted-glass": "Navbar",
+		"liquid-glass": "Navbar",
+	};
+</script>
+
 <script lang="ts">
 	import { createSkinState } from "$lib/stores";
 
@@ -24,14 +33,15 @@
 
 	$effect(() => {
 		const currentSlug = slug;
-		const exampleName = SKIN_PREVIEW[skinState.skin]?.[currentSlug] ?? "BasicUsage";
+		const exampleName =
+			SKIN_PREVIEW[skinState.skin]?.[currentSlug] ?? PREVIEW_EXAMPLE[currentSlug] ?? "BasicUsage";
 		ComponentModule = null;
 		ExampleComponent = null;
 		loading = true;
 		error = "";
 
 		if (skipDirectRender.has(currentSlug)) {
-			// Load per-skin override (if any) or fall back to BasicUsage as preview
+			// Load the skin/slug preview override (if any), else BasicUsage
 			const exPath = `/src/lib/components/docs/examples/${currentSlug}/${exampleName}.svelte`;
 			const exLoader = exampleModules[exPath];
 			if (exLoader) {
@@ -189,6 +199,7 @@
 		"line-reveal",
 		"editorial-engine",
 		"frosted-glass",
+		"liquid-text",
 	]);
 
 	function getComponent() {

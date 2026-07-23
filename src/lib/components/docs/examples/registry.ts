@@ -319,7 +319,14 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "CustomColors", title: "Custom Colors", description: "Fixed teal fluid color." },
 	],
 	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
-	"liquid-glass": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"liquid-glass": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Navbar",
+			title: "Landing Page Navbar",
+			description: "Landing page with a liquid glass pill navigation.",
+		},
+	],
 	"frosted-glass": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{
@@ -379,5 +386,13 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Basic Usage",
 			description: "Drag the orbs, click to pause them, resize the window.",
 		},
+	],
+	"liquid-text": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Move the cursor across the text — it smears, then relaxes back.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 };
