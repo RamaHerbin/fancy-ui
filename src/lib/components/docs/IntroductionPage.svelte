@@ -1,7 +1,10 @@
 <script lang="ts">
-	import { t } from "$lib/stores";
+	import { t, createSkinState } from "$lib/stores";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
 
 	const importSnippet = "import { BorderBeam, Sparkles } from 'fancy-ui-svelte';";
 	const usageSnippet = `<div class="relative overflow-hidden rounded-xl border p-6">
@@ -11,6 +14,13 @@
 </script>
 
 <div class="intro">
+	{#if isRetro}
+		<div class="intro-badges">
+			<span class="intro-badge intro-badge-a">{t("nav.gettingStarted")}</span>
+			<span class="intro-badge intro-badge-b">v1.0</span>
+		</div>
+	{/if}
+
 	<h1>{t("intro.title")}</h1>
 
 	<p class="lead">

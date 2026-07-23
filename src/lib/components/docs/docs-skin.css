@@ -602,3 +602,245 @@
 	line-height: 1.3;
 	white-space: nowrap;
 }
+
+/* ---- Introduction page (bespoke retro layout) ------------------------------
+   Restyles the shared IntroductionPage markup into the mock's retro look.
+   docs-skin.css can target the component's class names (.intro .card…) because
+   Svelte scoping only ADDS a hash class; the [data-skin] prefix out-specifies
+   the component's own scoped rules, so no !important is needed. */
+
+/* Top badges */
+.docs-skin[data-skin="retro-os"] .intro-badges {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 14px;
+}
+.docs-skin[data-skin="retro-os"] .intro-badge {
+	font-family: var(--skin-font-mono);
+	font-size: 10.5px;
+	font-weight: 700;
+	border: 2px solid var(--skin-line);
+	padding: 1px 8px;
+}
+.docs-skin[data-skin="retro-os"] .intro-badge-a {
+	background: var(--skin-yellow);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .intro-badge-b {
+	background: var(--skin-green);
+	color: var(--skin-paper);
+}
+
+/* Headings + section-number chips */
+.docs-skin[data-skin="retro-os"] .intro h1 {
+	font-weight: 900;
+	letter-spacing: -1.5px;
+}
+.docs-skin[data-skin="retro-os"] .intro h2 {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-weight: 700;
+}
+/* Section-number chip via ::before so it stays out of the h2 textContent the
+   table-of-contents reads (keeps TOC labels clean, e.g. "Philosophy"). */
+.docs-skin[data-skin="retro-os"] .intro h2::before {
+	flex: none;
+	font-family: var(--skin-font-pixel);
+	font-size: 11px;
+	font-weight: 700;
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	padding: 4px 8px;
+}
+.docs-skin[data-skin="retro-os"] .intro h2#philosophy::before {
+	content: "01";
+}
+.docs-skin[data-skin="retro-os"] .intro h2#quick-start::before {
+	content: "02";
+}
+.docs-skin[data-skin="retro-os"] .intro h2#whats-included::before {
+	content: "03";
+}
+.docs-skin[data-skin="retro-os"] .intro h2#next-steps::before {
+	content: "04";
+}
+
+/* Lead highlights → flat retro accents (kill the clipped gradient) */
+.docs-skin[data-skin="retro-os"] .intro .grad {
+	background: none;
+	-webkit-text-fill-color: currentColor;
+	color: var(--skin-blue);
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .intro .solid {
+	color: var(--skin-red);
+	font-weight: 700;
+}
+
+/* Emoji icons → colored square (accent assigned per position) */
+.docs-skin[data-skin="retro-os"] .intro .ic {
+	font-size: 0;
+}
+.docs-skin[data-skin="retro-os"] .intro .ic::before {
+	content: "";
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	background: var(--skin-muted);
+	border: 1.5px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .intro .card-head .ic::before {
+	width: 12px;
+	height: 12px;
+}
+.docs-skin[data-skin="retro-os"] .intro .pills .pill:nth-child(1) .ic::before {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .intro .pills .pill:nth-child(2) .ic::before {
+	background: var(--skin-purple);
+}
+.docs-skin[data-skin="retro-os"] .intro .pills .pill:nth-child(3) .ic::before {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .intro .pills .pill:nth-child(4) .ic::before {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .intro .cards .card:nth-child(1) .ic::before {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .intro .cards .card:nth-child(2) .ic::before {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .intro .cards .card:nth-child(3) .ic::before {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .intro .cards .card:nth-child(4) .ic::before {
+	background: var(--skin-yellow);
+}
+
+/* Pills + TS badge */
+.docs-skin[data-skin="retro-os"] .intro .pill {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	font-family: var(--skin-font-mono);
+	font-weight: 600;
+}
+.docs-skin[data-skin="retro-os"] .intro .ts {
+	border-radius: 0;
+	background: var(--skin-blue);
+}
+
+/* Philosophy cards → hard-shadow square + hover lift */
+.docs-skin[data-skin="retro-os"] .intro .card {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .intro .card:hover {
+	transform: translate(-2px, -2px);
+	box-shadow: 5px 5px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .intro .card-head {
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .intro .chip {
+	border-radius: 0;
+	background: transparent;
+	color: var(--skin-purple);
+	font-family: var(--skin-font-mono);
+}
+
+/* Quick-start step numbers → square colored Silkscreen */
+.docs-skin[data-skin="retro-os"] .intro .num {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	font-family: var(--skin-font-pixel);
+	font-size: 11px;
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .intro .num-1 {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .intro .num-2 {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .intro .num-3 {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .intro .step-title {
+	font-weight: 700;
+}
+
+/* What's included → square category tiles */
+.docs-skin[data-skin="retro-os"] .intro .cat {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	font-family: var(--skin-font-mono);
+	font-weight: 600;
+}
+
+/* Next steps → square press rows */
+.docs-skin[data-skin="retro-os"] .intro .next-row {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	font-weight: 700;
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .intro .next-row:hover {
+	background: var(--skin-card);
+	transform: translate(-1px, -1px);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+
+/* CTA banner */
+.docs-skin[data-skin="retro-os"] .intro .cta {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: #f7efd2;
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-ic {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-yellow);
+	color: var(--skin-ink);
+	font-size: 0;
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-ic::before {
+	content: "";
+	width: 12px;
+	height: 12px;
+	background: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-title {
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-btn {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	box-shadow: 3px 3px 0 rgba(25, 19, 8, 0.35);
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-btn:hover {
+	background: var(--skin-ink);
+	transform: translate(-1px, -1px);
+	box-shadow: 4px 4px 0 rgba(25, 19, 8, 0.35);
+}
