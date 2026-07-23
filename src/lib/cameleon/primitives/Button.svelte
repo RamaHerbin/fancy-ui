@@ -24,6 +24,7 @@
 		size = "md",
 		loading = false,
 		disabled = false,
+		type = "button",
 		demoState,
 		class: className,
 		children,
@@ -44,6 +45,7 @@
 
 <button
 	bind:this={ref}
+	{type}
 	class={cn("cam-btn", parts.root, className)}
 	disabled={disabled || loading}
 	data-variant={variant}

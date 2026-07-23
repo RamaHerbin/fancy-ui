@@ -20,6 +20,7 @@
 	let {
 		group = $bindable(),
 		value,
+		name,
 		error = false,
 		demoState,
 		class: className,
@@ -34,12 +35,15 @@
 
 <label class={cn(parts.root, className)}>
 	<!-- radio invalidity belongs on the group, not the input; drive the demo
-	     error visual off a data-attribute so we don't misuse aria-invalid -->
+	     error visual off a data-attribute so we don't misuse aria-invalid.
+	     name defaults to the group so same-group radios stay mutually exclusive
+	     natively even when the parent doesn't share a bound group variable. -->
 	<input
 		type="radio"
 		class="peer sr-only"
 		bind:this={ref}
 		bind:group
+		name={name ?? group}
 		{value}
 		data-invalid={error ? "true" : undefined}
 		{...rest}

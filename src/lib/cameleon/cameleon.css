@@ -16,3 +16,12 @@
 		animation-duration: 0.01ms !important;
 	}
 }
+
+/* Skin-agnostic error affordance for the native range slider: the per-skin
+   .cam-range CSS styles the track/thumb but not the invalid state, so give
+   <Slider error> a consistent red outline driven by the skin's red token. */
+.cam-range[aria-invalid="true"] {
+	outline: 2px solid var(--skin-red, #e5372b);
+	outline-offset: 3px;
+	border-radius: 2px;
+}

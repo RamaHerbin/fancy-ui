@@ -21,7 +21,7 @@
 	}: SliderProps = $props();
 
 	const ctx = useSkin();
-	const parts = $derived(ctx.skin.recipes.slider({}));
+	const parts = $derived(ctx.skin.recipes.slider({ state: error ? "error" : undefined }));
 </script>
 
 <input
@@ -29,6 +29,6 @@
 	bind:this={ref}
 	bind:value
 	class={cn(parts.root, className)}
-	aria-invalid={error}
+	aria-invalid={error || undefined}
 	{...rest}
 />

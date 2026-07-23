@@ -21,6 +21,15 @@
 	const skins: Skin[] = [brutalSkin, glassSkin, terminalSkin, retroOsSkin];
 	let active = $state<Skin>(brutalSkin);
 
+	// A radius spec's `size` is a human-readable label ("8–10px", "8/4px",
+	// "0 (square world)") that is not always valid CSS. Derive a valid
+	// border-radius from the first number so the swatch renders the spec
+	// instead of falling back to square corners.
+	const cssRadius = (size: string): string => {
+		const n = size.match(/\d+/);
+		return n ? `${n[0]}px` : "0";
+	};
+
 	const badgeVariants = ["blue", "red", "yellow", "green", "purple", "solid"] as const;
 	const legend = [
 		{ label: "DEFAULT", accent: "var(--skin-line)" },
@@ -152,7 +161,7 @@
 				<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;">
 					{#each active.meta.specs.radius as r}
 						<div style="text-align:center;">
-							<div class="ds-radius" style="border-radius:{r.size};"></div>
+							<div class="ds-radius" style="border-radius:{cssRadius(r.size)};"></div>
 							<div class="ds-mono" style="font-size:8px;margin-top:3px;">{r.size} {r.label}</div>
 						</div>
 					{/each}
