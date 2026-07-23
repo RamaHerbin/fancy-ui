@@ -43,11 +43,10 @@ The dev server runs at `http://localhost:5173`. Component demos are at `/demo/<s
 
 ```bash
 pnpm test          # Vitest unit tests
-pnpm test:e2e      # Playwright end-to-end tests
 pnpm check         # svelte-check type checking
 ```
 
-`pnpm test` and `pnpm test:e2e` must pass. `pnpm check` must pass for any files you touched — pre-existing errors in unrelated files are acceptable.
+`pnpm test` must pass. `pnpm check` must pass for any files you touched — pre-existing errors in unrelated files are acceptable.
 
 ## Storybook
 
