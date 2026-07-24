@@ -317,6 +317,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"fluid-cursor": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColors", title: "Custom Colors", description: "Fixed teal fluid color." },
+		{
+			name: "HdrDemo",
+			title: "HDR Mode",
+			description:
+				"WebGPU engine with extended tone mapping — glows brighter than white on HDR displays.",
+		},
 	],
 	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"liquid-glass": [

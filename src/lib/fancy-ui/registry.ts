@@ -969,6 +969,19 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "true",
 				description: "Confine simulation to parent container",
 			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "false",
+				description:
+					"Render via the WebGPU HDR engine (wide gamut + brighter-than-white glow on HDR displays), with automatic WebGL fallback",
+			},
+			{
+				name: "hdrBoost",
+				type: "number",
+				default: "1.5",
+				description: "Display exposure multiplier in HDR mode, clamped to [1, 4]",
+			},
 		],
 	},
 
