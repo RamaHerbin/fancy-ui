@@ -707,6 +707,32 @@
 	font-size: 8px;
 }
 
+/* Timeline → square accent dots, ink-bordered paper step cards, muted step label,
+   gold progress line. Keyed on the component's inner dot (bg-neutral-200), its ring
+   (size-10 rounded-full), the step label (text-neutral-500), the card (bg-card) and
+   the progress line (bg-gradient-to-t). */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="size-10"][class~="rounded-full"] {
+	border-radius: 0;
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-neutral-200"] {
+	border-radius: 0;
+	background: var(--skin-blue);
+	border: 2px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="text-neutral-500"] {
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-card"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-gradient-to-t"] {
+	background: var(--skin-yellow) !important;
+}
+
 /* Carousel ← → nav arrows (retro-only, docs). Overrides the generic stage-button
    rule so the arrow glyphs render (Silkscreen has no arrows). */
 .docs-skin[data-skin="retro-os"] .retro-carousel-nav {
