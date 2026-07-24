@@ -974,7 +974,7 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description:
-					"Render via the WebGPU HDR engine (wide gamut + brighter-than-white glow on HDR displays), with automatic WebGL fallback",
+					"Render via the WebGPU HDR engine — wide gamut + brighter-than-white glow on HDR displays. Needs Chrome/Edge 129+ or Safari 26+; falls back to wide-gamut WebGL (Chrome 104+, Safari 16.4+, Firefox 132+), then to standard rendering",
 			},
 			{
 				name: "hdrBoost",
@@ -2347,8 +2347,7 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "font",
 				type: "string",
 				default: '""',
-				description:
-					"Font family; empty string resolves via getComputedStyle(host).fontFamily",
+				description: "Font family; empty string resolves via getComputedStyle(host).fontFamily",
 			},
 			{
 				name: "fontSize",
