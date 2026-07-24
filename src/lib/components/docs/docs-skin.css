@@ -733,6 +733,32 @@
 	background: var(--skin-yellow) !important;
 }
 
+/* Compare → retro framed slider: ink border + hard shadow, a solid ink divider
+   and a square pixel handle; the neon glow / starfield decorations are hidden.
+   Keeps the real images. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="w-[400px]"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="via-indigo-500"] {
+	width: 4px;
+	background: var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="from-indigo-400"],
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="from-cyan-400"],
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="-right-10"] {
+	display: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="-right-2.5"] {
+	width: 26px;
+	height: 26px;
+	border-radius: 0;
+	background: var(--skin-paper);
+	border: 2px solid var(--skin-line);
+	box-shadow: 2px 2px 0 var(--skin-line);
+}
+
 /* Carousel ← → nav arrows (retro-only, docs). Overrides the generic stage-button
    rule so the arrow glyphs render (Silkscreen has no arrows). */
 .docs-skin[data-skin="retro-os"] .retro-carousel-nav {
