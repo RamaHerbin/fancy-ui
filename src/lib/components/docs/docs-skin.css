@@ -686,6 +686,27 @@
 	color: #b8ac8c;
 }
 
+/* Book → retro blue cover (square, ink border, hard shadow) with a Silkscreen
+   badge and a bold paper title. Keyed on the cover's bg-gradient-to-tr faces; the
+   box-shadow override needs !important to beat the component's inline shadow. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-gradient-to-tr"] {
+	background: var(--skin-blue);
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	box-shadow: 4px 4px 0 var(--skin-line) !important;
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-gradient-to-tr"] h1 {
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-white/20"] {
+	border-radius: 0;
+	background: var(--skin-paper);
+	color: var(--skin-ink);
+	font-family: var(--skin-font-pixel);
+	font-size: 8px;
+}
+
 /* Carousel ← → nav arrows (retro-only, docs). Overrides the generic stage-button
    rule so the arrow glyphs render (Silkscreen has no arrows). */
 .docs-skin[data-skin="retro-os"] .retro-carousel-nav {
