@@ -13,14 +13,14 @@
 	let activeTab = $state<"preview" | "code">("preview");
 </script>
 
-<div class="border-border overflow-hidden rounded-lg border">
+<div class="retro-window border-border overflow-hidden rounded-lg border">
 	{#if title}
 		<div class="border-border text-foreground border-b px-4 py-2 text-sm font-medium">
 			{title}
 		</div>
 	{/if}
 	<!-- Tabs -->
-	<div class="border-border flex border-b">
+	<div class="retro-tabbar border-border flex border-b">
 		<button
 			onclick={() => (activeTab = "preview")}
 			class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'preview'
@@ -43,7 +43,7 @@
 
 	<!-- Content -->
 	{#if activeTab === "preview"}
-		<div class="bg-background flex min-h-[200px] items-center justify-center p-8">
+		<div class="retro-stage bg-background flex min-h-[200px] items-center justify-center p-8">
 			{@render preview()}
 		</div>
 	{:else if code}

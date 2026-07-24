@@ -421,11 +421,301 @@
 .docs-skin[data-skin="retro-os"] .retro-winctl-close::after {
 	transform: rotate(-45deg);
 }
-/* Preview/Code tabs → pixel labels */
-.docs-skin[data-skin="retro-os"] .retro-window button {
+/* Buttons — one pixel-press grammar for the docs' own controls (Claude Design).
+   Scoped to the tab bars / hooks below so it NEVER reaches the real components
+   rendered inside a preview body. */
+
+/* Preview/Code tab bar → pixel tab labels + ink active underline */
+.docs-skin[data-skin="retro-os"] .retro-tabbar button {
+	border-radius: 0;
 	font-family: var(--skin-font-pixel);
 	font-size: 10px;
 	text-transform: uppercase;
+}
+.docs-skin[data-skin="retro-os"] .retro-tabbar button.border-b-2 {
+	background: var(--skin-surface);
+	color: var(--skin-ink);
+	border-bottom-width: 3px;
+	border-bottom-color: var(--skin-line);
+}
+
+/* Package-manager tabs (pnpm / npm / bun) → mono, ink-filled active tab */
+.docs-skin[data-skin="retro-os"] .retro-pmtabs button {
+	border-radius: 0;
+	font-family: var(--skin-font-mono);
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-pmtabs button.border-b-2 {
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	border-bottom-color: var(--skin-line);
+}
+
+/* Copy buttons → mustard pixel chip */
+.docs-skin[data-skin="retro-os"] .retro-copy {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: #ecd77f;
+	color: var(--skin-ink);
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	text-transform: uppercase;
+}
+.docs-skin[data-skin="retro-os"] .retro-copy:hover {
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+}
+
+/* Button components rendered inside a preview → pixel-retro (Claude Design).
+   Deliberate, scoped to .retro-stage (the preview body) so it styles the demoed
+   button and its parts only; the published components are never modified. The
+   signature borders are recolored to the retro palette via their own CSS vars. */
+.docs-skin[data-skin="retro-os"] .retro-stage button,
+.docs-skin[data-skin="retro-os"] .retro-stage button * {
+	border-radius: 0 !important;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage button {
+	font-family: var(--skin-font-pixel);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	box-shadow: 4px 4px 0 var(--skin-line);
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+	/* Rainbow / gradient / shimmer accents → retro palette */
+	--rainbow-1: #a0442f;
+	--rainbow-2: #7d6414;
+	--rainbow-3: #3f62a7;
+	--rainbow-4: #3a6b42;
+	--rainbow-5: #b8912b;
+	--gb-colors: #a0442f, #b8912b, #3a6b42, #3f62a7, #a0442f;
+	--shimmer-color: #ecd77f;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage button:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 5px 5px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage button:active {
+	transform: translate(3px, 3px);
+	box-shadow: none;
+}
+/* RippleButton → solid ink block (no stable class; keyed on its --ripple-duration
+   inline var). Its bg-background/text-primary are overridden to ink/paper. */
+.docs-skin[data-skin="retro-os"] .retro-stage button[style*="--ripple-duration"] {
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	border: 2px solid var(--skin-line);
+	padding: 14px 28px;
+}
+
+/* AppleCardCarousel previews → retro pixel cards (square, ink border, hard
+   shadow, solid colored footer bar per card + Silkscreen category). Keeps the
+   real card image; keyed on the card's .snap-start class + footer :last-child. */
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start {
+	border-radius: 0 !important;
+	border: 2px solid var(--skin-line);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start > div:last-child {
+	right: 0;
+	border-top: 2px solid var(--skin-line);
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start:nth-child(4n + 2) > div:last-child {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start:nth-child(4n + 3) > div:last-child {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start:nth-child(4n) > div:last-child {
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start > div:last-child p {
+	font-family: var(--skin-font-pixel);
+	font-size: 8px;
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start > div:last-child h3 {
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"]
+	.retro-stage
+	.snap-start:nth-child(4n)
+	> div:last-child
+	:is(p, h3) {
+	color: var(--skin-ink);
+}
+
+/* DirectionAwareHover → retro framed image + ink slide-in overlay. Keeps the real
+   image; keyed on the component's group/card root, its bg-black/40 overlay and its
+   z-40 caption layer. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="bg-black/40"] {
+	background: rgba(25, 19, 8, 0.88);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="z-40"] p:first-child {
+	font-size: 20px;
+	font-weight: 900;
+	letter-spacing: -0.01em;
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="z-40"] p:nth-child(2) {
+	color: #b8ac8c;
+}
+
+/* Card3D (CardContainer) → retro paper card. Shares the group/card frame above
+   (square + ink border + hard shadow); here: paper fill, squared image, ink/muted
+   text, gold underline link and a mustard pixel Sign-up button. Inert for
+   DirectionAwareHover (it has no neutral-text / <a> / <button> children). */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] {
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] img {
+	border-radius: 0;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="text-neutral-600"] {
+	color: var(--skin-ink);
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="text-neutral-500"] {
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] a {
+	border-radius: 0;
+	padding: 0;
+	color: var(--skin-purple);
+	font-family: var(--skin-font-mono);
+	text-decoration: underline;
+	text-transform: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] button {
+	background: #ecd77f;
+	color: var(--skin-ink);
+	border: 2px solid var(--skin-line);
+	box-shadow: 2px 2px 0 var(--skin-line);
+}
+
+/* CardSpotlight → ink card with a gold pixel halo. The halo color is passed as a
+   prop in DemoRenderer under retro; here the card frame + text go ink/paper/muted.
+   Keyed on the component's bg-neutral-100 root. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-neutral-100"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-neutral-100"] [class~="rounded-xl"] {
+	border-radius: 0;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-neutral-100"] [class~="text-foreground"] {
+	color: var(--skin-paper);
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"]
+	.retro-stage
+	[class~="bg-neutral-100"]
+	[class~="text-muted-foreground"] {
+	color: #b8ac8c;
+}
+
+/* BentoGrid (BentoGridItem) → retro paper cards with a solid colored header block
+   and hover lift. Keyed on the item's group/bento root; header is its first child
+   (the gradient block), recolored to a retro accent cycled per card. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"]:hover {
+	transform: translate(-2px, -2px);
+	box-shadow: 5px 5px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"] > :first-child {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"]:nth-child(4n + 2) > :first-child {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"]:nth-child(4n + 3) > :first-child {
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"]:nth-child(4n) > :first-child {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"] [class~="font-bold"] {
+	color: var(--skin-ink);
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"] [class~="text-xs"] {
+	color: var(--skin-muted);
+}
+
+/* Carousel ← → nav arrows (retro-only, docs). Overrides the generic stage-button
+   rule so the arrow glyphs render (Silkscreen has no arrows). */
+.docs-skin[data-skin="retro-os"] .retro-carousel-nav {
+	display: flex;
+	gap: 8px;
+	margin-top: 14px;
+}
+.docs-skin[data-skin="retro-os"] .retro-carousel-nav button {
+	width: 32px;
+	height: 32px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	font-family: var(--skin-font-mono);
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0;
+	text-transform: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-carousel-nav button:hover {
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-carousel-nav button:active {
+	transform: translate(2px, 2px);
+	box-shadow: none;
+}
+
+/* Link buttons (Source Code / Inspired by) → pixel press button */
+.docs-skin[data-skin="retro-os"] .retro-btn {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	text-transform: uppercase;
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .retro-btn:hover {
+	background: var(--skin-card);
+	transform: translate(-1px, -1px);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-btn:active {
+	transform: translate(2px, 2px);
+	box-shadow: none;
 }
 
 /* ---- Props grid ------------------------------------------------------------ */

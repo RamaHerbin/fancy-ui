@@ -107,7 +107,7 @@
 				</div>
 			{/if}
 			<!-- Tabs -->
-			<div class="border-border flex items-center justify-between border-b px-1">
+			<div class="retro-tabbar border-border flex items-center justify-between border-b px-1">
 				<div class="flex">
 					<button
 						onclick={() => (previewTab = "preview")}
@@ -131,7 +131,7 @@
 			<!-- Content -->
 			{#if previewTab === "preview"}
 				<div
-					class="bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
+					class="retro-stage bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
 				>
 					<DemoRenderer slug={component.slug} />
 				</div>
@@ -209,7 +209,7 @@
 				href={sourceUrl}
 				target="_blank"
 				rel="noopener noreferrer"
-				class="border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
+				class="retro-btn border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
 			>
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
 					<path
@@ -225,7 +225,7 @@
 							href={credit.url}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
+							class="retro-btn border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
 						>
 							{t("comp.inspiredBy")}
 							{credit.source}

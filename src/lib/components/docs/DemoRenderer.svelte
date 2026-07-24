@@ -9,6 +9,7 @@
 
 <script lang="ts">
 	import { createSkinState } from "$lib/stores";
+	import RetroCarouselNav from "$lib/components/docs/retro/RetroCarouselNav.svelte";
 
 	interface Props {
 		slug: string;
@@ -17,6 +18,8 @@
 	let { slug }: Props = $props();
 
 	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
+	let carouselWrap = $state<HTMLDivElement | null>(null);
 
 	let ComponentModule = $state<any>(null);
 	let ExampleComponent = $state<any>(null);
@@ -221,7 +224,14 @@
 	</div>
 {:else if skipDirectRender.has(slug)}
 	{#if ExampleComponent}
-		<ExampleComponent />
+		{#if isRetro && slug === "apple-card-carousel"}
+			<div class="relative w-full" bind:this={carouselWrap}>
+				<ExampleComponent />
+				<RetroCarouselNav target={() => carouselWrap?.querySelector(".overflow-x-auto") ?? null} />
+			</div>
+		{:else}
+			<ExampleComponent />
+		{/if}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 			No preview available
@@ -256,7 +266,7 @@
 				<p class="text-muted-foreground">Content fades in from blur as you scroll.</p>
 			</Comp>
 		{:else if slug === "card-spotlight"}
-			<Comp class="h-64 w-80">
+			<Comp class="h-64 w-80" gradientColor={isRetro ? "rgba(236,215,127,0.5)" : "#262626"}>
 				<div class="relative z-20 p-6">
 					<h3 class="text-foreground text-lg font-bold">Card Spotlight</h3>
 					<p class="text-muted-foreground mt-2 text-sm">Mouse-following radial gradient effect.</p>

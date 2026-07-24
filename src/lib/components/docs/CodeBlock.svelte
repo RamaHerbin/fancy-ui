@@ -58,7 +58,7 @@
 		{/if}
 		<button
 			onclick={copyCode}
-			class="rounded-md border border-(--code-border) bg-(--code-chip-bg) px-2 py-1 text-xs text-(--code-fg-muted) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--code-fg)"
+			class="retro-copy rounded-md border border-(--code-border) bg-(--code-chip-bg) px-2 py-1 text-xs text-(--code-fg-muted) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--code-fg)"
 		>
 			{copied ? t("action.copied") : t("action.copy")}
 		</button>

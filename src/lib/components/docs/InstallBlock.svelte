@@ -26,7 +26,7 @@
 
 <div class="rounded-lg border border-(--code-border) bg-(--code-bg)">
 	<!-- Tabs -->
-	<div class="flex border-b border-(--code-border)">
+	<div class="retro-pmtabs flex border-b border-(--code-border)">
 		{#each ["pnpm", "npm", "bun"] as const as tab}
 			<button
 				onclick={() => (activeTab = tab)}
@@ -40,7 +40,7 @@
 		<div class="flex flex-1 justify-end p-1.5">
 			<button
 				onclick={copyCommand}
-				class="rounded px-2 py-1 text-xs text-(--code-fg-muted) transition-colors hover:bg-(--code-chip-bg) hover:text-(--code-fg)"
+				class="retro-copy rounded px-2 py-1 text-xs text-(--code-fg-muted) transition-colors hover:bg-(--code-chip-bg) hover:text-(--code-fg)"
 			>
 				{copied ? t("action.copied") : t("action.copy")}
 			</button>
