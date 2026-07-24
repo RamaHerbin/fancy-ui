@@ -21,6 +21,7 @@ import {
 	correctDeltaY,
 	correctRadius,
 	getSimResolution,
+	scaleRadiusForContainer,
 } from "./fluid-shared.js";
 
 export interface WebGpuFluidOptions {
@@ -607,7 +608,11 @@ async function createWebGpuFluid(
 
 		function splat(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
 			if (destroyed || lost || !velocity || !dye) return;
-			const radius = correctRadius(opts.splatRadius / 100, canvas.width, canvas.height);
+			let baseRadius = opts.splatRadius / 100;
+			if (opts.contained) {
+				baseRadius = scaleRadiusForContainer(baseRadius, canvas.clientHeight, window.innerHeight);
+			}
+			const radius = correctRadius(baseRadius, canvas.width, canvas.height);
 			const aspect = canvas.width / canvas.height;
 
 			writeUniforms(uSplatVel, {

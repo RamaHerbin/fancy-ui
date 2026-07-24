@@ -7,6 +7,7 @@
 		pointerPrototype,
 		hexToRgb,
 		HSVtoRGB,
+		scaleRadiusForContainer,
 		wrap,
 	} from "./fluid-shared.js";
 	import { startWebGpuFluid } from "./webgpu-engine.js";
@@ -1359,7 +1360,15 @@
 					gl.uniform3f(splatProgram.uniforms.color, dx, dy, 0);
 				}
 				if (splatProgram.uniforms.radius) {
-					gl.uniform1f(splatProgram.uniforms.radius, correctRadius(config.SPLAT_RADIUS / 100)!);
+					let baseRadius = config.SPLAT_RADIUS / 100;
+					if (contained) {
+						baseRadius = scaleRadiusForContainer(
+							baseRadius,
+							canvas.clientHeight,
+							window.innerHeight
+						);
+					}
+					gl.uniform1f(splatProgram.uniforms.radius, correctRadius(baseRadius)!);
 				}
 				blit(velocity.write);
 				velocity.swap();

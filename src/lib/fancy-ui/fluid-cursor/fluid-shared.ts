@@ -118,6 +118,25 @@ export function correctRadius(radius: number, width: number, height: number) {
 	return radius;
 }
 
+/**
+ * In contained mode the splat radius is a fraction of the canvas, so the same
+ * settings that look right fullscreen produce a tiny effect inside a small
+ * demo container. Scale the radius so the apparent splat size matches what it
+ * would be at viewport size, capped so a single splat cannot swallow a very
+ * small container (the gaussian's characteristic length is sqrt(radius), so
+ * the cap of 0.09 keeps it under ~30% of the container height).
+ */
+export function scaleRadiusForContainer(
+	radius: number,
+	containerHeight: number,
+	viewportHeight: number
+): number {
+	if (containerHeight <= 0 || viewportHeight <= 0) return radius;
+	const k = viewportHeight / containerHeight;
+	if (k <= 1) return radius;
+	return Math.min(radius * k * k, 0.09);
+}
+
 export function correctDeltaX(delta: number, width: number, height: number) {
 	const aspectRatio = width / height;
 	if (aspectRatio < 1) return delta * aspectRatio;

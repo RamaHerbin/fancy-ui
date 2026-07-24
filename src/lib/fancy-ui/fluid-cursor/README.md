@@ -54,6 +54,15 @@ The component implements a full Navier-Stokes fluid simulation with:
 <FluidCursor backColor="#1a1a2e" />
 ```
 
+### Contained-mode splat scaling
+
+`splatRadius` is defined as a fraction of the canvas, which would make the
+effect look tiny inside small containers (e.g. docs demos). In `contained`
+mode both engines automatically scale the radius so the apparent splat size
+matches what the same settings produce at viewport size, capped at ~30% of
+the container height (`scaleRadiusForContainer` in `fluid-shared.ts`).
+Fullscreen and viewport-sized containers are unaffected.
+
 ### Event Handling
 
 - Window-level mouse/touch events for full-screen tracking
