@@ -297,24 +297,46 @@ async function createWebGpuFluid(
 		const adapter = await gpu.requestAdapter();
 		if (!adapter) return null;
 		const device = await adapter.requestDevice();
+
+		const format: GPUTextureFormat = "rgba16float";
+		// `toneMapping` and `colorSpace` are ignored by browsers that do not
+		// support them yet (WebIDL drops unknown dictionary members), in which
+		// case output is clamped to SDR.
+		const configuration = {
+			device,
+			format,
+			alphaMode: "premultiplied",
+			colorSpace: "display-p3",
+			toneMapping: { mode: "extended" },
+		} as GPUCanvasConfiguration;
+
+		// Probe the configuration on a detached canvas first. Once a canvas
+		// has vended a "webgpu" context it can never provide a WebGL one, so
+		// claiming the visible canvas before knowing configure() succeeds
+		// would break the advertised WebGL fallback.
+		try {
+			const probe = document.createElement("canvas").getContext("webgpu");
+			if (!probe) {
+				device.destroy();
+				return null;
+			}
+			probe.configure(configuration);
+			probe.unconfigure();
+		} catch (error) {
+			device.destroy();
+			if (import.meta.env.DEV) {
+				console.warn("[FluidCursor] WebGPU canvas configuration rejected:", error);
+			}
+			return null;
+		}
+
 		const maybeContext = canvas.getContext("webgpu");
 		if (!maybeContext) {
 			device.destroy();
 			return null;
 		}
 		const context: GPUCanvasContext = maybeContext;
-
-		const format: GPUTextureFormat = "rgba16float";
-		// `toneMapping` and `colorSpace` are ignored by browsers that do not
-		// support them yet (WebIDL drops unknown dictionary members), in which
-		// case output is clamped to SDR.
-		context.configure({
-			device,
-			format,
-			alphaMode: "premultiplied",
-			colorSpace: "display-p3",
-			toneMapping: { mode: "extended" },
-		} as GPUCanvasConfiguration);
+		context.configure(configuration);
 
 		if (import.meta.env.DEV) {
 			// Browsers that do not support toneMapping drop the member, which
@@ -487,6 +509,41 @@ async function createWebGpuFluid(
 			return target;
 		}
 
+		// Bind groups are cached per (uniform buffer, texture views) combination
+		// — the ping-pong swaps only cycle through a small finite set, and
+		// recreating ~30 bind groups per frame (20 of them for the pressure
+		// iterations) is measurable allocation/validation overhead. The cache
+		// is cleared whenever textures are recreated (resize).
+		const bindGroupCache = new Map<string, GPUBindGroup>();
+		const resourceIds = new WeakMap<object, number>();
+		let nextResourceId = 0;
+		function idOf(resource: object): number {
+			let id = resourceIds.get(resource);
+			if (id === undefined) {
+				id = nextResourceId++;
+				resourceIds.set(resource, id);
+			}
+			return id;
+		}
+		function getBindGroup(uniforms: GPUBuffer, tex0: GPUTextureView, tex1: GPUTextureView) {
+			const key = `${idOf(uniforms)}:${idOf(tex0)}:${idOf(tex1)}`;
+			let bindGroup = bindGroupCache.get(key);
+			if (!bindGroup) {
+				bindGroup = device.createBindGroup({
+					layout: bindGroupLayout,
+					entries: [
+						{ binding: 0, resource: { buffer: uniforms } },
+						{ binding: 1, resource: smpLinear },
+						{ binding: 2, resource: smpNearest },
+						{ binding: 3, resource: tex0 },
+						{ binding: 4, resource: tex1 },
+					],
+				});
+				bindGroupCache.set(key, bindGroup);
+			}
+			return bindGroup;
+		}
+
 		function runPass(
 			encoder: GPUCommandEncoder,
 			pipeline: GPURenderPipeline,
@@ -495,16 +552,7 @@ async function createWebGpuFluid(
 			tex1: GPUTextureView,
 			target: GPUTextureView
 		) {
-			const bindGroup = device.createBindGroup({
-				layout: bindGroupLayout,
-				entries: [
-					{ binding: 0, resource: { buffer: uniforms } },
-					{ binding: 1, resource: smpLinear },
-					{ binding: 2, resource: smpNearest },
-					{ binding: 3, resource: tex0 },
-					{ binding: 4, resource: tex1 },
-				],
-			});
+			const bindGroup = getBindGroup(uniforms, tex0, tex1);
 			const pass = encoder.beginRenderPass({
 				colorAttachments: [
 					{
@@ -583,6 +631,9 @@ async function createWebGpuFluid(
 
 			dye = newDye;
 			velocity = newVelocity;
+
+			// Cached bind groups reference the destroyed texture views.
+			bindGroupCache.clear();
 
 			pressureTex?.read.destroy();
 			pressureTex?.write.destroy();

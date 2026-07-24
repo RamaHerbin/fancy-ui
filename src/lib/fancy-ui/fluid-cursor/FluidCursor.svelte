@@ -14,6 +14,9 @@
 
 	// Module-level singleton registry
 	let activeInstance: (() => void) | null = null;
+	// Monotonic mount counter so async (WebGPU) startups that finish out of
+	// order cannot let an older instance destroy a newer one.
+	let mountCounter = 0;
 
 	interface Props {
 		simResolution?: number;
@@ -158,6 +161,7 @@
 		const canvas = canvasRef;
 		if (!canvas) return;
 
+		const mountToken = ++mountCounter;
 		const pointers = [pointerPrototype()];
 
 		const config = {
@@ -207,6 +211,13 @@
 			})
 				.then((cleanup) => {
 					if (disposed) {
+						cleanup?.();
+						return;
+					}
+					// A newer singleton instance mounted while we were starting up:
+					// registering now would destroy it (newest-mount-wins would
+					// invert). Discard this stale completion instead.
+					if (!allowMultiple && mountToken !== mountCounter) {
 						cleanup?.();
 						return;
 					}

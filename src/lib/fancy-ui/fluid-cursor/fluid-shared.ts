@@ -136,7 +136,9 @@ export function scaleRadiusForContainer(
 	if (containerHeight <= 0 || viewportHeight <= 0) return radius;
 	const k = viewportHeight / containerHeight;
 	if (k <= 1) return radius;
-	return Math.min(radius * k, 0.09);
+	// The cap only limits the auto-scaling — a caller-provided radius that is
+	// already larger must never be shrunk by entering a small container.
+	return Math.max(radius, Math.min(radius * k, 0.09));
 }
 
 export function correctDeltaX(delta: number, width: number, height: number) {

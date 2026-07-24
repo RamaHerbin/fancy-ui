@@ -20,6 +20,10 @@ describe("scaleRadiusForContainer", () => {
 		expect(scaleRadiusForContainer(0.01, 50, 1000)).toBe(0.09);
 	});
 
+	it("never shrinks a caller-provided radius already above the cap", () => {
+		expect(scaleRadiusForContainer(0.2, 250, 1000)).toBe(0.2);
+	});
+
 	it("is defensive about degenerate dimensions", () => {
 		expect(scaleRadiusForContainer(0.002, 0, 1000)).toBe(0.002);
 		expect(scaleRadiusForContainer(0.002, 250, 0)).toBe(0.002);
