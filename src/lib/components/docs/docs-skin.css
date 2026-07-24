@@ -661,6 +661,31 @@
 	color: var(--skin-muted);
 }
 
+/* FlipCard → retro faces (square, ink border, hard shadow). The front content
+   becomes a cream hatch with ink text; the back face is a solid ink panel with
+   paper/muted text. Keyed on the arbitrary [backface-visibility] class. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"][class~="bg-black/80"] {
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] [class~="bg-gradient-to-br"] {
+	background: repeating-linear-gradient(45deg, #f7efd2 0 10px, #faf5e6 10px 20px);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] [class~="text-white"] {
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] [class~="font-semibold"] {
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] [class~="text-slate-400"] {
+	color: #b8ac8c;
+}
+
 /* Carousel ← → nav arrows (retro-only, docs). Overrides the generic stage-button
    rule so the arrow glyphs render (Silkscreen has no arrows). */
 .docs-skin[data-skin="retro-os"] .retro-carousel-nav {
