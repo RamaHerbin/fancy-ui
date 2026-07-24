@@ -149,7 +149,7 @@
 >
 	<!-- Fluid Cursor + Interactive Grid (lazy) -->
 	{#if showInteractiveElements}
-		<FluidCursor simResolution={128} />
+		<FluidCursor simResolution={128} hdr hdrBoost={2} splatOnMount />
 		<InteractiveGridPattern
 			width={80}
 			height={80}
