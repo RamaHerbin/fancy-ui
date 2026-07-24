@@ -32,7 +32,8 @@
 	let previewCode = $derived.by(() => {
 		const example = PREVIEW_EXAMPLE[component.slug];
 		if (example) {
-			const src = rawExamples[`/src/lib/components/docs/examples/${component.slug}/${example}.svelte`];
+			const src =
+				rawExamples[`/src/lib/components/docs/examples/${component.slug}/${example}.svelte`];
 			if (src) return src.trim();
 		}
 		return basicUsageCode;
@@ -52,11 +53,24 @@
 		<span class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">
 			{t(`category.${component.category}` as MessageKey)}
 		</span>
+		<span
+			class="rounded-full px-2.5 py-0.5 text-xs font-medium {component.group === 'core'
+				? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+				: 'bg-purple-500/10 text-purple-600 dark:text-purple-400'}"
+		>
+			{t(`group.${component.group}` as MessageKey)}
+		</span>
 		{#if component.status === "done"}
 			<span
 				class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
 			>
 				{t("status.stable")}
+			</span>
+		{:else if component.status === "in-progress"}
+			<span
+				class="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400"
+			>
+				{t("status.inProgress")}
 			</span>
 		{/if}
 	</div>

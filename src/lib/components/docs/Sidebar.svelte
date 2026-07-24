@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
+	import {
+		coreCategories,
+		fancyCategories,
+		getComponentsGroupedByCategoryForGroup,
+	} from "$lib/fancy-ui/registry.js";
 	import { t } from "$lib/stores";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 
@@ -11,7 +15,9 @@
 
 	let { open = $bindable(false), onclose }: Props = $props();
 
-	const grouped = getComponentsGroupedByCategory();
+	const groupedCore = getComponentsGroupedByCategoryForGroup("core");
+	const groupedFancy = getComponentsGroupedByCategoryForGroup("fancy");
+	const hasCoreComponents = coreCategories.some((category) => groupedCore[category].length > 0);
 
 	const gettingStartedLinks = [
 		{ href: "/docs/getting-started/introduction", key: "page.introduction" },
@@ -97,52 +103,116 @@
 			</a>
 		</div>
 
-		<!-- Categories -->
-		{#each categories as category}
-			{@const items = grouped[category]}
-			{#if items.length > 0}
-				{@const collapsed = collapsedCategories.has(category)}
-				<div class="mb-2">
-					<button
-						onclick={() => toggleCategory(category)}
-						class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
-					>
-						{t(`category.${category}` as MessageKey)}
-						<svg
-							class="h-3 w-3 transition-transform {collapsed ? '' : 'rotate-90'}"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 5l7 7-7 7"
-							/>
-						</svg>
-					</button>
-					{#if !collapsed}
-						<ul>
-							{#each items as comp}
-								<li>
-									<a
-										href="/docs/components/{comp.slug}"
-										onclick={onclose}
-										class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive(
-											`/docs/components/${comp.slug}`
-										)
-											? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-											: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
-									>
-										{comp.name}
-									</a>
-								</li>
-							{/each}
-						</ul>
+		<!-- Core group -->
+		{#if hasCoreComponents}
+			<div class="mb-4">
+				<h3
+					class="mb-1 px-2 text-xs font-semibold tracking-wider text-sky-500/80 uppercase dark:text-sky-400/80"
+				>
+					{t("group.core")}
+				</h3>
+				{#each coreCategories as category}
+					{@const items = groupedCore[category]}
+					{#if items.length > 0}
+						{@const collapsed = collapsedCategories.has(`core:${category}`)}
+						<div class="mb-2">
+							<button
+								onclick={() => toggleCategory(`core:${category}`)}
+								class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
+							>
+								{t(`category.${category}` as MessageKey)}
+								<svg
+									class="h-3 w-3 transition-transform {collapsed ? '' : 'rotate-90'}"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 5l7 7-7 7"
+									/>
+								</svg>
+							</button>
+							{#if !collapsed}
+								<ul>
+									{#each items as comp}
+										<li>
+											<a
+												href="/docs/components/{comp.slug}"
+												onclick={onclose}
+												class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive(
+													`/docs/components/${comp.slug}`
+												)
+													? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+													: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
+											>
+												{comp.name}
+											</a>
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						</div>
 					{/if}
-				</div>
-			{/if}
-		{/each}
+				{/each}
+			</div>
+		{/if}
+
+		<!-- Fancy group -->
+		<div class="mb-4">
+			<h3
+				class="mb-1 px-2 text-xs font-semibold tracking-wider text-purple-500/80 uppercase dark:text-purple-400/80"
+			>
+				{t("group.fancy")}
+			</h3>
+			{#each fancyCategories as category}
+				{@const items = groupedFancy[category]}
+				{#if items.length > 0}
+					{@const collapsed = collapsedCategories.has(`fancy:${category}`)}
+					<div class="mb-2">
+						<button
+							onclick={() => toggleCategory(`fancy:${category}`)}
+							class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
+						>
+							{t(`category.${category}` as MessageKey)}
+							<svg
+								class="h-3 w-3 transition-transform {collapsed ? '' : 'rotate-90'}"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 5l7 7-7 7"
+								/>
+							</svg>
+						</button>
+						{#if !collapsed}
+							<ul>
+								{#each items as comp}
+									<li>
+										<a
+											href="/docs/components/{comp.slug}"
+											onclick={onclose}
+											class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive(
+												`/docs/components/${comp.slug}`
+											)
+												? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+												: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
+										>
+											{comp.name}
+										</a>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</div>
+				{/if}
+			{/each}
+		</div>
 	</nav>
 </aside>

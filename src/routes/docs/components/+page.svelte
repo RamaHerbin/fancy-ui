@@ -13,7 +13,15 @@
 	const allComponents = getAllComponents();
 	const stats = getStats();
 
+	const coreCount = allComponents.filter((c) => c.group === "core").length;
+	const fancyCount = allComponents.filter((c) => c.group === "fancy").length;
+
+	// Only count categories that actually contain components (empty Core
+	// categories exist in the union until their phase lands).
+	const populatedCategories = categories.filter((c) => (grouped[c] ?? []).length > 0);
+
 	let activeCategory = $state<string>("all");
+	let activeGroup = $state<"all" | "core" | "fancy">("all");
 	let searchQuery = $state("");
 
 	let filteredComponents = $derived.by(() => {
@@ -21,6 +29,9 @@
 			activeCategory === "all"
 				? allComponents
 				: grouped[activeCategory as keyof typeof grouped] || [];
+		if (activeGroup !== "all") {
+			items = items.filter((c) => c.group === activeGroup);
+		}
 		if (searchQuery.trim()) {
 			const q = searchQuery.toLowerCase();
 			items = items.filter(
@@ -52,7 +63,7 @@
 		</div>
 		<div class="bg-border h-8 w-px"></div>
 		<div class="text-center">
-			<div class="text-foreground text-2xl font-bold">{categories.length}</div>
+			<div class="text-foreground text-2xl font-bold">{populatedCategories.length}</div>
 			<div class="text-muted-foreground text-xs">{t("gallery.statCategories")}</div>
 		</div>
 		<div class="bg-border h-8 w-px"></div>
@@ -60,6 +71,37 @@
 			<div class="text-2xl font-bold text-emerald-500">100%</div>
 			<div class="text-muted-foreground text-xs">{t("gallery.statTypescript")}</div>
 		</div>
+	</div>
+
+	<!-- Group filters -->
+	<div class="mb-4 flex flex-wrap gap-1">
+		<button
+			onclick={() => (activeGroup = "all")}
+			class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeGroup === 'all'
+				? 'bg-foreground text-background'
+				: 'bg-muted text-muted-foreground hover:text-foreground'}"
+		>
+			{t("gallery.all")}
+			<span class="ml-1 opacity-60">{allComponents.length}</span>
+		</button>
+		<button
+			onclick={() => (activeGroup = "core")}
+			class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeGroup === 'core'
+				? 'bg-sky-500/15 text-sky-600 dark:text-sky-400'
+				: 'bg-muted text-muted-foreground hover:text-foreground'}"
+		>
+			{t("group.core")}
+			<span class="ml-1 opacity-60">{coreCount}</span>
+		</button>
+		<button
+			onclick={() => (activeGroup = "fancy")}
+			class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeGroup === 'fancy'
+				? 'bg-purple-500/15 text-purple-600 dark:text-purple-400'
+				: 'bg-muted text-muted-foreground hover:text-foreground'}"
+		>
+			{t("group.fancy")}
+			<span class="ml-1 opacity-60">{fancyCount}</span>
+		</button>
 	</div>
 
 	<!-- Filters -->
@@ -119,7 +161,17 @@
 	{#if filteredComponents.length > 0}
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			{#each filteredComponents as component (component.slug)}
-				<ComponentCard {component} />
+				<div class="relative">
+					<span
+						class="pointer-events-none absolute top-2 right-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-medium {component.group ===
+						'core'
+							? 'bg-sky-500/15 text-sky-600 dark:text-sky-400'
+							: 'bg-purple-500/15 text-purple-600 dark:text-purple-400'}"
+					>
+						{t(`group.${component.group}` as MessageKey)}
+					</span>
+					<ComponentCard {component} />
+				</div>
 			{/each}
 		</div>
 	{:else}
