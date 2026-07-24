@@ -10,14 +10,14 @@ describe("scaleRadiusForContainer", () => {
 		expect(scaleRadiusForContainer(0.002, 1800, 900)).toBe(0.002);
 	});
 
-	it("scales quadratically so the apparent size matches viewport size", () => {
-		// Container 4x smaller than viewport: characteristic length must be
-		// 4x larger in container fractions, i.e. radius x16.
-		expect(scaleRadiusForContainer(0.002, 250, 1000)).toBeCloseTo(0.032, 10);
+	it("grows the radius linearly with the viewport/container ratio (sqrt(k) in apparent size)", () => {
+		// Container 4x smaller than viewport: radius x4, characteristic
+		// length x2 in container fractions.
+		expect(scaleRadiusForContainer(0.002, 250, 1000)).toBeCloseTo(0.008, 10);
 	});
 
 	it("caps the radius so a splat stays under ~30% of a tiny container", () => {
-		expect(scaleRadiusForContainer(0.002, 50, 1000)).toBe(0.09);
+		expect(scaleRadiusForContainer(0.01, 50, 1000)).toBe(0.09);
 	});
 
 	it("is defensive about degenerate dimensions", () => {

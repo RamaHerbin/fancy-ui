@@ -58,8 +58,9 @@ The component implements a full Navier-Stokes fluid simulation with:
 
 `splatRadius` is defined as a fraction of the canvas, which would make the
 effect look tiny inside small containers (e.g. docs demos). In `contained`
-mode both engines automatically scale the radius so the apparent splat size
-matches what the same settings produce at viewport size, capped at ~30% of
+mode both engines grow the aspect-corrected radius with the
+viewport/container height ratio — sub-linearly in apparent size (×√k), so a
+small demo reads bigger without mimicking fullscreen 1:1 — capped at ~30% of
 the container height (`scaleRadiusForContainer` in `fluid-shared.ts`).
 Fullscreen and viewport-sized containers are unaffected.
 

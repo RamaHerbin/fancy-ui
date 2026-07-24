@@ -1360,15 +1360,11 @@
 					gl.uniform3f(splatProgram.uniforms.color, dx, dy, 0);
 				}
 				if (splatProgram.uniforms.radius) {
-					let baseRadius = config.SPLAT_RADIUS / 100;
+					let radius = correctRadius(config.SPLAT_RADIUS / 100)!;
 					if (contained) {
-						baseRadius = scaleRadiusForContainer(
-							baseRadius,
-							canvas.clientHeight,
-							window.innerHeight
-						);
+						radius = scaleRadiusForContainer(radius, canvas.clientHeight, window.innerHeight);
 					}
-					gl.uniform1f(splatProgram.uniforms.radius, correctRadius(baseRadius)!);
+					gl.uniform1f(splatProgram.uniforms.radius, radius);
 				}
 				blit(velocity.write);
 				velocity.swap();

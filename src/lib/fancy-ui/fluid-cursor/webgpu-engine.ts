@@ -608,11 +608,10 @@ async function createWebGpuFluid(
 
 		function splat(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
 			if (destroyed || lost || !velocity || !dye) return;
-			let baseRadius = opts.splatRadius / 100;
+			let radius = correctRadius(opts.splatRadius / 100, canvas.width, canvas.height);
 			if (opts.contained) {
-				baseRadius = scaleRadiusForContainer(baseRadius, canvas.clientHeight, window.innerHeight);
+				radius = scaleRadiusForContainer(radius, canvas.clientHeight, window.innerHeight);
 			}
-			const radius = correctRadius(baseRadius, canvas.width, canvas.height);
 			const aspect = canvas.width / canvas.height;
 
 			writeUniforms(uSplatVel, {
