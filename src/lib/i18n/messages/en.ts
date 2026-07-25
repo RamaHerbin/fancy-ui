@@ -234,9 +234,64 @@ export const en = {
 	"install.nextSteps.theming.title": "Theming",
 	"install.nextSteps.theming.desc":
 		"Override the design tokens so every component matches your brand in light and dark mode.",
+
+	// Theming page
+	"theming.metaTitle": "Theming",
+	"theming.title": "Theming",
+	"theming.lead":
+		"Every FancyUI component reads its colors, radii and timings from CSS custom properties in the OKLCh color space — override a token and the whole library follows.",
+	"theming.pill.oklch": "OKLCh color space",
+	"theming.pill.shadcn": "shadcn-svelte compatible",
+	"theming.pill.dark": "Dark mode",
+	"theming.pill.tokens": "Design tokens",
+	"theming.generator.body":
+		"Prefer to tune it visually? The Theme Generator adjusts these tokens with live sliders and hands you the CSS.",
+	"theming.generator.cta": "Open the Theme Generator",
+	"theming.cssSetup.heading": "CSS setup",
+	"theming.cssSetup.body":
+		"Import the FancyUI stylesheet in your app's global CSS, usually src/app.css:",
+	"theming.colors.heading": "Color system",
+	"theming.colors.body": "All colors use the OKLCh color space for perceptually uniform gradients:",
+	"theming.colors.note":
+		"Token names follow shadcn-svelte conventions, so an existing shadcn theme drops in unchanged.",
+	"theming.dark.heading": "Dark mode",
+	"theming.dark.body":
+		"Dark mode is activated by the .dark class on a parent element. FancyUI overrides every token:",
+	"theming.motion.heading": "Animation tokens",
+	"theming.motion.body": "Control animation timing globally:",
+	"theming.easing.heading": "Easing functions",
+	"theming.easing.body": "Easing curves are tokens too, shared by every component transition:",
+	"theming.rainbow.heading": "Rainbow gradients",
+	"theming.rainbow.body": "Used by RainbowButton, GradientButton and other gradient effects:",
+	"theming.customizing.heading": "Customizing",
+	"theming.customizing.body": "Override any token in your own CSS to change the look:",
+	"theming.customizing.note":
+		"Tokens cascade: override them globally in :root, or scope them to a wrapper element to theme a single section.",
+	"theming.nextSteps.heading": "Next steps",
+	"theming.nextSteps.generator.title": "Theme Generator",
+	"theming.nextSteps.generator.desc":
+		"Tune every token with live sliders and copy the finished CSS.",
+	"theming.nextSteps.components.title": "Browse components",
+	"theming.nextSteps.components.desc": "See the tokens at work across the full component gallery.",
+
+	// Changelog page
+	"changelog.metaTitle": "Changelog",
+	"changelog.title": "Changelog",
+	"changelog.lead": "Every FancyUI release and what changed in it, newest first.",
+	"changelog.latest": "Latest",
+	"changelog.major": "Major changes",
+	"changelog.minor": "Minor changes",
+	"changelog.patch": "Patch changes",
 } as const;
 
 export type Messages = typeof en;
 export type MessageKey = keyof Messages;
+
+/**
+ * Shape every translated catalog must satisfy: all of en's keys, string
+ * values. `satisfies Catalog` on a catalog literal turns a missing, extra,
+ * or typo'd key into a compile error (enforced by scripts/check-i18n.mjs).
+ */
+export type Catalog = Record<MessageKey, string>;
 
 export default en;

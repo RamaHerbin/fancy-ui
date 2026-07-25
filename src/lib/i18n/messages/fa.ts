@@ -1,4 +1,6 @@
 // Persian (fa) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "شروع به کار",
@@ -228,4 +230,55 @@ export default {
 	"install.nextSteps.theming.title": "پوسته‌بندی",
 	"install.nextSteps.theming.desc":
 		"توکن‌های طراحی را بازنویسی کنید تا هر کامپوننت در حالت روشن و تاریک با برند شما هماهنگ شود.",
-};
+
+	// Theming page
+	"theming.metaTitle": "پوسته‌بندی",
+	"theming.title": "پوسته‌بندی",
+	"theming.lead":
+		"هر کامپوننت FancyUI رنگ‌ها، شعاع‌ها و زمان‌بندی‌های خود را از ویژگی‌های سفارشی CSS در فضای رنگی OKLCh می‌خواند — یک توکن را بازنویسی کنید تا کل کتابخانه از آن پیروی کند.",
+	"theming.pill.oklch": "فضای رنگی OKLCh",
+	"theming.pill.shadcn": "سازگار با shadcn-svelte",
+	"theming.pill.dark": "حالت تیره",
+	"theming.pill.tokens": "توکن‌های طراحی",
+	"theming.generator.body":
+		"ترجیح می‌دهید آن را به‌صورت بصری تنظیم کنید؟ سازنده‌ی پوسته این توکن‌ها را با اسلایدرهای زنده تنظیم می‌کند و CSS را در اختیار شما می‌گذارد.",
+	"theming.generator.cta": "باز کردن سازنده‌ی پوسته",
+	"theming.cssSetup.heading": "راه‌اندازی CSS",
+	"theming.cssSetup.body":
+		"استایل‌شیت FancyUI را در CSS سراسری برنامه‌ی خود، معمولاً src/app.css، وارد کنید:",
+	"theming.colors.heading": "سیستم رنگ",
+	"theming.colors.body":
+		"همه‌ی رنگ‌ها از فضای رنگی OKLCh برای گرادیان‌های یکنواخت از نظر ادراکی استفاده می‌کنند:",
+	"theming.colors.note":
+		"نام توکن‌ها از قراردادهای shadcn-svelte پیروی می‌کنند، بنابراین یک پوسته‌ی shadcn موجود بدون تغییر جای می‌گیرد.",
+	"theming.dark.heading": "حالت تیره",
+	"theming.dark.body":
+		"حالت تیره با کلاس .dark روی یک عنصر والد فعال می‌شود. FancyUI هر توکن را بازنویسی می‌کند:",
+	"theming.motion.heading": "توکن‌های انیمیشن",
+	"theming.motion.body": "زمان‌بندی انیمیشن را به‌صورت سراسری کنترل کنید:",
+	"theming.easing.heading": "توابع ایزینگ",
+	"theming.easing.body":
+		"منحنی‌های ایزینگ نیز توکن هستند و بین همه‌ی ترنزیشن‌های کامپوننت مشترک‌اند:",
+	"theming.rainbow.heading": "گرادیان‌های رنگین‌کمانی",
+	"theming.rainbow.body":
+		"استفاده‌شده توسط RainbowButton، GradientButton و دیگر جلوه‌های گرادیانی:",
+	"theming.customizing.heading": "شخصی‌سازی",
+	"theming.customizing.body": "برای تغییر ظاهر، هر توکنی را در CSS خودتان بازنویسی کنید:",
+	"theming.customizing.note":
+		"توکن‌ها به‌صورت آبشاری عمل می‌کنند: آن‌ها را به‌صورت سراسری در :root بازنویسی کنید یا آن‌ها را به یک عنصر بسته‌بندی‌کننده محدود کنید تا فقط یک بخش را پوسته‌بندی کنید.",
+	"theming.nextSteps.heading": "گام‌های بعدی",
+	"theming.nextSteps.generator.title": "سازنده‌ی پوسته",
+	"theming.nextSteps.generator.desc":
+		"هر توکن را با اسلایدرهای زنده تنظیم کنید و CSS نهایی را کپی کنید.",
+	"theming.nextSteps.components.title": "مرور کامپوننت‌ها",
+	"theming.nextSteps.components.desc": "توکن‌ها را در عمل، در سراسر گالری کامل کامپوننت‌ها ببینید.",
+
+	// Changelog page
+	"changelog.metaTitle": "فهرست تغییرات",
+	"changelog.title": "فهرست تغییرات",
+	"changelog.lead": "هر نسخه‌ی FancyUI و آنچه در آن تغییر کرده، از جدیدترین به قدیمی‌ترین.",
+	"changelog.latest": "جدیدترین",
+	"changelog.major": "تغییرات عمده",
+	"changelog.minor": "تغییرات فرعی",
+	"changelog.patch": "تغییرات وصله‌ای",
+} satisfies Catalog;

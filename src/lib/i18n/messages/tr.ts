@@ -1,4 +1,6 @@
 // Turkish (tr) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Başlarken",
@@ -228,4 +230,58 @@ export default {
 	"install.nextSteps.theming.title": "Tema",
 	"install.nextSteps.theming.desc":
 		"Her bileşenin açık ve koyu modda markanızla eşleşmesi için tasarım belirteçlerini geçersiz kılın.",
-};
+
+	// Theming page
+	"theming.metaTitle": "Tema",
+	"theming.title": "Tema",
+	"theming.lead":
+		"Her FancyUI bileşeni, renklerini, köşe yarıçaplarını ve zamanlamalarını OKLCh renk uzayındaki CSS özel özelliklerinden okur — bir belirteci geçersiz kılın, tüm kitaplık buna uyum sağlar.",
+	"theming.pill.oklch": "OKLCh renk uzayı",
+	"theming.pill.shadcn": "shadcn-svelte uyumlu",
+	"theming.pill.dark": "Karanlık mod",
+	"theming.pill.tokens": "Tasarım belirteçleri",
+	"theming.generator.body":
+		"Görsel olarak ayarlamayı mı tercih edersiniz? Tema Oluşturucu bu belirteçleri canlı kaydırıcılarla ayarlar ve CSS'yi size verir.",
+	"theming.generator.cta": "Tema Oluşturucu'yu Aç",
+	"theming.cssSetup.heading": "CSS kurulumu",
+	"theming.cssSetup.body":
+		"FancyUI stil dosyasını uygulamanızın genel CSS'sine, genellikle src/app.css'e, içe aktarın:",
+	"theming.colors.heading": "Renk sistemi",
+	"theming.colors.body":
+		"Tüm renkler, algısal olarak tutarlı gradyanlar için OKLCh renk uzayını kullanır:",
+	"theming.colors.note":
+		"Belirteç adları shadcn-svelte kurallarını izler, bu nedenle mevcut bir shadcn teması değişiklik yapılmadan kullanılabilir.",
+	"theming.dark.heading": "Karanlık mod",
+	"theming.dark.body":
+		"Karanlık mod, bir üst elementteki .dark sınıfıyla etkinleştirilir. FancyUI her belirteci geçersiz kılar:",
+	"theming.motion.heading": "Animasyon belirteçleri",
+	"theming.motion.body": "Animasyon zamanlamasını genel olarak kontrol edin:",
+	"theming.easing.heading": "Easing fonksiyonları",
+	"theming.easing.body":
+		"Easing eğrileri de birer belirteçtir ve her bileşen geçişinde paylaşılır:",
+	"theming.rainbow.heading": "Gökkuşağı gradyanları",
+	"theming.rainbow.body":
+		"RainbowButton, GradientButton ve diğer gradyan efektleri tarafından kullanılır:",
+	"theming.customizing.heading": "Özelleştirme",
+	"theming.customizing.body":
+		"Görünümü değiştirmek için kendi CSS'inizde herhangi bir belirteci geçersiz kılın:",
+	"theming.customizing.note":
+		"Belirteçler basamaklanır: onları genel olarak :root içinde geçersiz kılın veya tek bir bölümü temalandırmak için bir sarmalayıcı elemente sınırlayın.",
+	"theming.nextSteps.heading": "Sonraki Adımlar",
+	"theming.nextSteps.generator.title": "Tema Oluşturucu",
+	"theming.nextSteps.generator.desc":
+		"Her belirteci canlı kaydırıcılarla ayarlayın ve tamamlanmış CSS'yi kopyalayın.",
+	"theming.nextSteps.components.title": "Bileşenlere Göz At",
+	"theming.nextSteps.components.desc":
+		"Belirteçlerin tüm bileşen galerisinde nasıl çalıştığını görün.",
+
+	// Changelog page
+	"changelog.metaTitle": "Değişiklik Günlüğü",
+	"changelog.title": "Değişiklik Günlüğü",
+	"changelog.lead":
+		"FancyUI'nin tüm sürümleri ve her birinde değişenler, en yeniden en eskiye sıralanmıştır.",
+	"changelog.latest": "En yeni",
+	"changelog.major": "Büyük değişiklikler",
+	"changelog.minor": "Küçük değişiklikler",
+	"changelog.patch": "Yama değişiklikleri",
+} satisfies Catalog;

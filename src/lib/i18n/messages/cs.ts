@@ -1,4 +1,6 @@
 // Czech (cs) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Začínáme",
@@ -227,4 +229,54 @@ export default {
 	"install.nextSteps.theming.title": "Vzhled",
 	"install.nextSteps.theming.desc":
 		"Přepište design tokeny, aby každá komponenta odpovídala vaší značce ve světlém i tmavém režimu.",
-};
+
+	// Theming page
+	"theming.metaTitle": "Vzhled",
+	"theming.title": "Vzhled",
+	"theming.lead":
+		"Každá komponenta FancyUI čte své barvy, poloměry a časování z vlastních CSS proměnných v barevném prostoru OKLCh — přepište jeden token a celá knihovna se přizpůsobí.",
+	"theming.pill.oklch": "Barevný prostor OKLCh",
+	"theming.pill.shadcn": "Kompatibilní se shadcn-svelte",
+	"theming.pill.dark": "Tmavý režim",
+	"theming.pill.tokens": "Design tokeny",
+	"theming.generator.body":
+		"Chcete ho raději doladit vizuálně? Generátor motivů upravuje tyto tokeny pomocí živých posuvníků a dá vám hotové CSS.",
+	"theming.generator.cta": "Otevřít Generátor motivů",
+	"theming.cssSetup.heading": "Nastavení CSS",
+	"theming.cssSetup.body":
+		"Importujte stylesheet FancyUI do globálního stylesheetu své aplikace, obvykle src/app.css:",
+	"theming.colors.heading": "Systém barev",
+	"theming.colors.body":
+		"Všechny barvy používají barevný prostor OKLCh pro percepčně jednotné gradienty:",
+	"theming.colors.note":
+		"Názvy tokenů odpovídají konvencím shadcn-svelte, takže existující shadcn motiv funguje beze změny.",
+	"theming.dark.heading": "Tmavý režim",
+	"theming.dark.body":
+		"Tmavý režim se aktivuje třídou .dark na rodičovském prvku. FancyUI přepíše každý token:",
+	"theming.motion.heading": "Tokeny animace",
+	"theming.motion.body": "Řiďte časování animací globálně:",
+	"theming.easing.heading": "Funkce plynulosti",
+	"theming.easing.body":
+		"Křivky plynulosti jsou také tokeny, sdílené napříč přechody všech komponent:",
+	"theming.rainbow.heading": "Duhové gradienty",
+	"theming.rainbow.body": "Používají je RainbowButton, GradientButton a další gradientové efekty:",
+	"theming.customizing.heading": "Přizpůsobení",
+	"theming.customizing.body": "Přepište libovolný token ve svém vlastním CSS a změňte tak vzhled:",
+	"theming.customizing.note":
+		"Tokeny se dědí v kaskádě: přepište je globálně v :root, nebo je omezte na obalový prvek a upravte tak vzhled jen jedné sekce.",
+	"theming.nextSteps.heading": "Další kroky",
+	"theming.nextSteps.generator.title": "Generátor motivů",
+	"theming.nextSteps.generator.desc":
+		"Upravte každý token pomocí živých posuvníků a zkopírujte hotové CSS.",
+	"theming.nextSteps.components.title": "Procházet komponenty",
+	"theming.nextSteps.components.desc": "Podívejte se, jak tokeny fungují v celé galerii komponent.",
+
+	// Changelog page
+	"changelog.metaTitle": "Seznam změn",
+	"changelog.title": "Seznam změn",
+	"changelog.lead": "Každé vydání FancyUI a co se v něm změnilo, od nejnovějšího.",
+	"changelog.latest": "Nejnovější",
+	"changelog.major": "Velké změny",
+	"changelog.minor": "Menší změny",
+	"changelog.patch": "Opravy",
+} satisfies Catalog;

@@ -1,4 +1,6 @@
 // French (fr) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Prise en main",
@@ -231,4 +233,58 @@ export default {
 	"install.nextSteps.theming.title": "Personnalisation du thème",
 	"install.nextSteps.theming.desc":
 		"Redéfinissez les jetons de design pour que chaque composant corresponde à votre marque en mode clair et sombre.",
-};
+
+	// Theming page
+	"theming.metaTitle": "Personnalisation du thème",
+	"theming.title": "Personnalisation du thème",
+	"theming.lead":
+		"Chaque composant FancyUI lit ses couleurs, rayons et durées via des propriétés CSS personnalisées dans l'espace colorimétrique OKLCh — redéfinissez un jeton et toute la bibliothèque suit.",
+	"theming.pill.oklch": "Espace colorimétrique OKLCh",
+	"theming.pill.shadcn": "Compatible shadcn-svelte",
+	"theming.pill.dark": "Mode sombre",
+	"theming.pill.tokens": "Jetons de design",
+	"theming.generator.body":
+		"Vous préférez ajuster visuellement ? Le Générateur de thème modifie ces jetons avec des curseurs en direct et vous fournit le CSS.",
+	"theming.generator.cta": "Ouvrir le Générateur de thème",
+	"theming.cssSetup.heading": "Configuration CSS",
+	"theming.cssSetup.body":
+		"Importez la feuille de style FancyUI dans le CSS global de votre application, généralement src/app.css :",
+	"theming.colors.heading": "Système de couleurs",
+	"theming.colors.body":
+		"Toutes les couleurs utilisent l'espace colorimétrique OKLCh pour des dégradés perceptuellement uniformes :",
+	"theming.colors.note":
+		"Les noms de jetons suivent les conventions de shadcn-svelte, si bien qu'un thème shadcn existant s'intègre sans modification.",
+	"theming.dark.heading": "Mode sombre",
+	"theming.dark.body":
+		"Le mode sombre est activé par la classe .dark sur un élément parent. FancyUI redéfinit chaque jeton :",
+	"theming.motion.heading": "Jetons d'animation",
+	"theming.motion.body": "Contrôlez la durée des animations de façon globale :",
+	"theming.easing.heading": "Fonctions d'accélération",
+	"theming.easing.body":
+		"Les courbes d'accélération sont aussi des jetons, partagées par toutes les transitions de composants :",
+	"theming.rainbow.heading": "Dégradés arc-en-ciel",
+	"theming.rainbow.body":
+		"Utilisés par RainbowButton, GradientButton et d'autres effets de dégradé :",
+	"theming.customizing.heading": "Personnalisation",
+	"theming.customizing.body":
+		"Redéfinissez n'importe quel jeton dans votre propre CSS pour changer l'apparence :",
+	"theming.customizing.note":
+		"Les jetons se propagent en cascade : redéfinissez-les globalement dans :root, ou limitez-les à un élément conteneur pour thématiser une seule section.",
+	"theming.nextSteps.heading": "Étapes suivantes",
+	"theming.nextSteps.generator.title": "Générateur de thème",
+	"theming.nextSteps.generator.desc":
+		"Ajustez chaque jeton avec des curseurs en direct et copiez le CSS final.",
+	"theming.nextSteps.components.title": "Parcourir les composants",
+	"theming.nextSteps.components.desc":
+		"Découvrez les jetons à l'œuvre dans toute la galerie de composants.",
+
+	// Changelog page
+	"changelog.metaTitle": "Journal des modifications",
+	"changelog.title": "Journal des modifications",
+	"changelog.lead":
+		"Chaque version de FancyUI et ce qui y a changé, de la plus récente à la plus ancienne.",
+	"changelog.latest": "Dernière",
+	"changelog.major": "Changements majeurs",
+	"changelog.minor": "Changements mineurs",
+	"changelog.patch": "Correctifs",
+} satisfies Catalog;

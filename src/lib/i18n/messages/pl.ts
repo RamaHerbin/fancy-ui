@@ -1,4 +1,6 @@
 // Polish (pl) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Pierwsze kroki",
@@ -230,4 +232,54 @@ export default {
 	"install.nextSteps.theming.title": "Motywy",
 	"install.nextSteps.theming.desc":
 		"Nadpisz design tokeny, aby każdy komponent pasował do Twojej marki w trybie jasnym i ciemnym.",
-} as const;
+
+	// Theming page
+	"theming.metaTitle": "Motywy",
+	"theming.title": "Motywy",
+	"theming.lead":
+		"Każdy komponent FancyUI odczytuje swoje kolory, promienie i czasy z niestandardowych właściwości CSS w przestrzeni kolorów OKLCh — nadpisz token, a cała biblioteka się do niego dostosuje.",
+	"theming.pill.oklch": "Przestrzeń kolorów OKLCh",
+	"theming.pill.shadcn": "Kompatybilny z shadcn-svelte",
+	"theming.pill.dark": "Tryb ciemny",
+	"theming.pill.tokens": "Design tokeny",
+	"theming.generator.body":
+		"Wolisz dostosować to wizualnie? Generator motywów pozwala regulować te tokeny za pomocą suwaków na żywo i przekazuje Ci gotowy CSS.",
+	"theming.generator.cta": "Otwórz Generator motywów",
+	"theming.cssSetup.heading": "Konfiguracja CSS",
+	"theming.cssSetup.body":
+		"Zaimportuj arkusz stylów FancyUI do globalnego CSS swojej aplikacji, zwykle src/app.css:",
+	"theming.colors.heading": "System kolorów",
+	"theming.colors.body":
+		"Wszystkie kolory używają przestrzeni kolorów OKLCh dla percepcyjnie jednolitych gradientów:",
+	"theming.colors.note":
+		"Nazwy tokenów są zgodne z konwencjami shadcn-svelte, więc istniejący motyw shadcn działa bez zmian.",
+	"theming.dark.heading": "Tryb ciemny",
+	"theming.dark.body":
+		"Tryb ciemny włącza się za pomocą klasy .dark na elemencie nadrzędnym. FancyUI nadpisuje wtedy każdy token:",
+	"theming.motion.heading": "Tokeny animacji",
+	"theming.motion.body": "Kontroluj czasy animacji globalnie:",
+	"theming.easing.heading": "Funkcje easing",
+	"theming.easing.body":
+		"Krzywe easing to również tokeny, współdzielone przez wszystkie przejścia komponentów:",
+	"theming.rainbow.heading": "Gradienty tęczowe",
+	"theming.rainbow.body": "Używane przez RainbowButton, GradientButton i inne efekty gradientowe:",
+	"theming.customizing.heading": "Dostosowywanie",
+	"theming.customizing.body": "Nadpisz dowolny token we własnym CSS, aby zmienić wygląd:",
+	"theming.customizing.note":
+		"Tokeny działają kaskadowo: nadpisz je globalnie w :root albo ogranicz je do elementu-wrappera, aby zmienić styl jednej sekcji.",
+	"theming.nextSteps.heading": "Następne kroki",
+	"theming.nextSteps.generator.title": "Generator motywów",
+	"theming.nextSteps.generator.desc":
+		"Dostosuj każdy token za pomocą suwaków na żywo i skopiuj gotowy CSS.",
+	"theming.nextSteps.components.title": "Przeglądaj komponenty",
+	"theming.nextSteps.components.desc": "Zobacz tokeny w akcji w całej galerii komponentów.",
+
+	// Changelog page
+	"changelog.metaTitle": "Lista zmian",
+	"changelog.title": "Lista zmian",
+	"changelog.lead": "Wszystkie wydania FancyUI i wprowadzone w nich zmiany, od najnowszych.",
+	"changelog.latest": "Najnowsze",
+	"changelog.major": "Zmiany główne",
+	"changelog.minor": "Zmiany pomniejsze",
+	"changelog.patch": "Poprawki",
+} satisfies Catalog;

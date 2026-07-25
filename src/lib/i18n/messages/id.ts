@@ -1,4 +1,6 @@
 // Indonesian (id) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Memulai",
@@ -228,4 +230,54 @@ export default {
 	"install.nextSteps.theming.title": "Tema",
 	"install.nextSteps.theming.desc":
 		"Timpa token desain agar setiap komponen sesuai dengan merek Anda dalam mode terang dan gelap.",
-};
+
+	// Theming page
+	"theming.metaTitle": "Tema",
+	"theming.title": "Tema",
+	"theming.lead":
+		"Setiap komponen FancyUI membaca warna, radius, dan pewaktuannya dari properti kustom CSS dalam ruang warna OKLCh — timpa satu token dan seluruh pustaka akan mengikutinya.",
+	"theming.pill.oklch": "Ruang Warna OKLCh",
+	"theming.pill.shadcn": "Kompatibel dengan shadcn-svelte",
+	"theming.pill.dark": "Mode Gelap",
+	"theming.pill.tokens": "Token Desain",
+	"theming.generator.body":
+		"Lebih suka menyesuaikannya secara visual? Generator Tema mengatur token-token ini dengan slider langsung dan memberikan CSS-nya untuk Anda.",
+	"theming.generator.cta": "Buka Generator Tema",
+	"theming.cssSetup.heading": "Penyiapan CSS",
+	"theming.cssSetup.body":
+		"Impor stylesheet FancyUI ke CSS global aplikasi Anda, biasanya src/app.css:",
+	"theming.colors.heading": "Sistem Warna",
+	"theming.colors.body":
+		"Semua warna menggunakan ruang warna OKLCh untuk gradien yang seragam secara perseptual:",
+	"theming.colors.note":
+		"Nama token mengikuti konvensi shadcn-svelte, sehingga tema shadcn yang sudah ada dapat langsung dipasang tanpa perubahan.",
+	"theming.dark.heading": "Mode Gelap",
+	"theming.dark.body":
+		"Mode gelap diaktifkan oleh kelas .dark pada elemen induk. FancyUI menimpa setiap token:",
+	"theming.motion.heading": "Token Animasi",
+	"theming.motion.body": "Kendalikan pewaktuan animasi secara global:",
+	"theming.easing.heading": "Fungsi Easing",
+	"theming.easing.body":
+		"Kurva easing juga merupakan token, dibagikan oleh setiap transisi komponen:",
+	"theming.rainbow.heading": "Gradien Pelangi",
+	"theming.rainbow.body": "Digunakan oleh RainbowButton, GradientButton, dan efek gradien lainnya:",
+	"theming.customizing.heading": "Kustomisasi",
+	"theming.customizing.body": "Timpa token apa pun di CSS Anda sendiri untuk mengubah tampilannya:",
+	"theming.customizing.note":
+		"Token bersifat cascading: timpa secara global di :root, atau batasi cakupannya ke elemen wrapper untuk menata tema satu bagian saja.",
+	"theming.nextSteps.heading": "Langkah Selanjutnya",
+	"theming.nextSteps.generator.title": "Generator Tema",
+	"theming.nextSteps.generator.desc":
+		"Sesuaikan setiap token dengan slider langsung dan salin CSS akhirnya.",
+	"theming.nextSteps.components.title": "Jelajahi Komponen",
+	"theming.nextSteps.components.desc": "Lihat token bekerja di seluruh galeri komponen.",
+
+	// Changelog page
+	"changelog.metaTitle": "Catatan Perubahan",
+	"changelog.title": "Catatan Perubahan",
+	"changelog.lead": "Setiap rilis FancyUI dan apa yang berubah di dalamnya, terbaru lebih dulu.",
+	"changelog.latest": "Terbaru",
+	"changelog.major": "Perubahan besar",
+	"changelog.minor": "Perubahan kecil",
+	"changelog.patch": "Perubahan patch",
+} satisfies Catalog;

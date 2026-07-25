@@ -1,4 +1,6 @@
 // Spanish (es) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Primeros pasos",
@@ -229,4 +231,56 @@ export default {
 	"install.nextSteps.theming.title": "Temas",
 	"install.nextSteps.theming.desc":
 		"Redefine los tokens de diseño para que cada componente encaje con tu marca en modo claro y oscuro.",
-} as const;
+
+	// Theming page
+	"theming.metaTitle": "Temas",
+	"theming.title": "Temas",
+	"theming.lead":
+		"Cada componente de FancyUI lee sus colores, radios y tiempos desde propiedades personalizadas de CSS en el espacio de color OKLCh — redefine un token y toda la biblioteca lo sigue.",
+	"theming.pill.oklch": "Espacio de color OKLCh",
+	"theming.pill.shadcn": "Compatible con shadcn-svelte",
+	"theming.pill.dark": "Modo oscuro",
+	"theming.pill.tokens": "Tokens de diseño",
+	"theming.generator.body":
+		"¿Prefieres ajustarlo visualmente? El Generador de temas modifica estos tokens con controles deslizantes en vivo y te entrega el CSS.",
+	"theming.generator.cta": "Abrir el Generador de temas",
+	"theming.cssSetup.heading": "Configuración de CSS",
+	"theming.cssSetup.body":
+		"Importa la hoja de estilos de FancyUI en la hoja de estilos global de tu aplicación, normalmente src/app.css:",
+	"theming.colors.heading": "Sistema de colores",
+	"theming.colors.body":
+		"Todos los colores usan el espacio de color OKLCh para obtener degradados perceptualmente uniformes:",
+	"theming.colors.note":
+		"Los nombres de los tokens siguen las convenciones de shadcn-svelte, así que un tema de shadcn ya existente funciona sin cambios.",
+	"theming.dark.heading": "Modo oscuro",
+	"theming.dark.body":
+		"El modo oscuro se activa con la clase .dark en un elemento superior. FancyUI redefine cada token:",
+	"theming.motion.heading": "Tokens de animación",
+	"theming.motion.body": "Controla el tiempo de las animaciones de forma global:",
+	"theming.easing.heading": "Funciones de easing",
+	"theming.easing.body":
+		"Las curvas de easing también son tokens, compartidas por todas las transiciones de los componentes:",
+	"theming.rainbow.heading": "Degradados arcoíris",
+	"theming.rainbow.body": "Usados por RainbowButton, GradientButton y otros efectos de degradado:",
+	"theming.customizing.heading": "Personalización",
+	"theming.customizing.body": "Redefine cualquier token en tu propio CSS para cambiar el aspecto:",
+	"theming.customizing.note":
+		"Los tokens se propagan en cascada: redefínelos globalmente en :root, o limítalos a un elemento contenedor para aplicar el tema solo a una sección.",
+	"theming.nextSteps.heading": "Próximos pasos",
+	"theming.nextSteps.generator.title": "Generador de temas",
+	"theming.nextSteps.generator.desc":
+		"Ajusta cada token con controles deslizantes en vivo y copia el CSS final.",
+	"theming.nextSteps.components.title": "Explorar componentes",
+	"theming.nextSteps.components.desc":
+		"Observa los tokens en acción en toda la galería de componentes.",
+
+	// Changelog page
+	"changelog.metaTitle": "Registro de cambios",
+	"changelog.title": "Registro de cambios",
+	"changelog.lead":
+		"Cada versión de FancyUI y lo que cambió en ella, empezando por la más reciente.",
+	"changelog.latest": "Más reciente",
+	"changelog.major": "Cambios mayores",
+	"changelog.minor": "Cambios menores",
+	"changelog.patch": "Cambios de parche",
+} satisfies Catalog;

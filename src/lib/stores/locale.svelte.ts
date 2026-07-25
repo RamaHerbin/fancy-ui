@@ -10,6 +10,7 @@ import { browser } from "$app/environment";
 import { locales, defaultLocale, getLocaleDef, type Dir } from "$lib/i18n/locales.js";
 import { en, type MessageKey } from "$lib/i18n/messages/en.js";
 import { catalogs } from "$lib/i18n/messages/index.js";
+import type { ComponentCategory } from "$lib/types.js";
 
 const STORAGE_KEY = "fancy-ui-locale";
 
@@ -115,6 +116,20 @@ export function getDir(): Dir {
 export function t(key: MessageKey): string {
 	const code = current;
 	return catalogs[code]?.[key] ?? en[key];
+}
+
+/**
+ * Translate a component category label. The template-literal key is checked
+ * against the catalog at compile time, so adding a category without its
+ * `category.*` message key is a type error here instead of a runtime miss.
+ */
+export function tCategory(category: ComponentCategory): string {
+	return t(`category.${category}`);
+}
+
+/** Compose a docs <title> — the "FancyUI Docs" suffix is brand, never translated. */
+export function docTitle(pageTitle: string): string {
+	return `${pageTitle} - FancyUI Docs`;
 }
 
 /** Reactive accessor for components (locale + dir + translator + list). */

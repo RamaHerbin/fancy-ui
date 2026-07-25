@@ -25,6 +25,8 @@
 					// Locale (docs routes only): set lang + dir before paint.
 					// Precedence: ?lang= → saved → navigator.language. RTL for ar/fa.
 					if (location.pathname.indexOf("/docs") === 0) {
+						// Must mirror the `dir: "rtl"` entries in src/lib/i18n/locales.ts —
+						// enforced by scripts/check-i18n.mjs.
 						var RTL = { ar: 1, fa: 1 };
 						var loc =
 							new URLSearchParams(location.search).get("lang") ||
