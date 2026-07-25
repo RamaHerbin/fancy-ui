@@ -223,4 +223,43 @@ export default {
 	"install.nextSteps.theming.title": "السِّمات",
 	"install.nextSteps.theming.desc":
 		"تجاوز رموز التصميم ليتوافق كل مكوّن مع علامتك التجارية في الوضعين الفاتح والداكن.",
+
+	// Theming page
+	"theming.metaTitle": "السِّمات",
+	"theming.title": "السِّمات",
+	"theming.lead":
+		"كل مكوّن في FancyUI يقرأ ألوانه وزواياه الدائرية وتوقيتاته من خصائص CSS مخصّصة ضمن فضاء الألوان OKLCh — تجاوز رمزاً واحداً فتتبعه المكتبة كاملةً.",
+	"theming.pill.oklch": "فضاء الألوان OKLCh",
+	"theming.pill.shadcn": "متوافق مع shadcn-svelte",
+	"theming.pill.dark": "الوضع الداكن",
+	"theming.pill.tokens": "رموز التصميم",
+	"theming.generator.body":
+		"تفضّل ضبطه بصرياً؟ يعدّل مُولّد السِّمات هذه الرموز بواسطة أشرطة تمرير حيّة ويقدّم لك الـ CSS الجاهز.",
+	"theming.generator.cta": "افتح مُولّد السِّمات",
+	"theming.cssSetup.heading": "إعداد CSS",
+	"theming.cssSetup.body":
+		"استورد ملف أنماط FancyUI في ملف الأنماط العام لتطبيقك، عادةً src/app.css:",
+	"theming.colors.heading": "نظام الألوان",
+	"theming.colors.body":
+		"تستخدم جميع الألوان فضاء الألوان OKLCh للحصول على تدرّجات متجانسة إدراكياً:",
+	"theming.colors.note":
+		"تتّبع أسماء الرموز اتفاقيات shadcn-svelte، لذا يعمل أي سِمة shadcn موجودة مسبقاً دون أي تعديل.",
+	"theming.dark.heading": "الوضع الداكن",
+	"theming.dark.body":
+		"يُفعَّل الوضع الداكن عبر صنف .dark على عنصر أب. تُعيد FancyUI تعريف كل رمز:",
+	"theming.motion.heading": "رموز الحركة",
+	"theming.motion.body": "تحكّم في توقيت الحركة عالمياً:",
+	"theming.easing.heading": "دوال التسهيل",
+	"theming.easing.body": "منحنيات التسهيل هي رموز أيضاً، ومشتركة بين انتقالات كل المكوّنات:",
+	"theming.rainbow.heading": "التدرّجات القوسية",
+	"theming.rainbow.body": "تُستخدَم من قِبل RainbowButton وGradientButton وتأثيرات تدرّج أخرى:",
+	"theming.customizing.heading": "التخصيص",
+	"theming.customizing.body": "تجاوز أي رمز في ملف الأنماط الخاص بك لتغيير المظهر:",
+	"theming.customizing.note":
+		"تتسلسل الرموز تدرّجياً: تجاوزها عالمياً في :root، أو حدّد نطاقها بعنصر غلاف لتخصيص سِمة قسم واحد فقط.",
+	"theming.nextSteps.heading": "الخطوات التالية",
+	"theming.nextSteps.generator.title": "مُولّد السِّمات",
+	"theming.nextSteps.generator.desc": "اضبط كل رمز بأشرطة تمرير حيّة، وانسخ الـ CSS النهائي.",
+	"theming.nextSteps.components.title": "تصفّح المكوّنات",
+	"theming.nextSteps.components.desc": "شاهد الرموز أثناء عملها عبر معرض المكوّنات كاملاً.",
 };

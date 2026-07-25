@@ -228,4 +228,48 @@ export default {
 	"install.nextSteps.theming.title": "Themes",
 	"install.nextSteps.theming.desc":
 		"Überschreibe die Design-Tokens, damit jede Komponente im hellen und dunklen Modus zu deiner Marke passt.",
+
+	// Theming page
+	"theming.metaTitle": "Themes",
+	"theming.title": "Themes",
+	"theming.lead":
+		"Jede FancyUI-Komponente liest ihre Farben, Radien und Timings aus CSS-Custom-Properties im OKLCh-Farbraum — überschreibe einen Token, und die ganze Bibliothek zieht mit.",
+	"theming.pill.oklch": "OKLCh-Farbraum",
+	"theming.pill.shadcn": "Kompatibel mit shadcn-svelte",
+	"theming.pill.dark": "Dunkler Modus",
+	"theming.pill.tokens": "Design-Tokens",
+	"theming.generator.body":
+		"Lieber visuell abstimmen? Der Theme-Generator passt diese Tokens mit Live-Reglern an und liefert dir das CSS.",
+	"theming.generator.cta": "Theme-Generator öffnen",
+	"theming.cssSetup.heading": "CSS-Setup",
+	"theming.cssSetup.body":
+		"Importiere das FancyUI-Stylesheet in das globale Stylesheet deiner App, üblicherweise src/app.css:",
+	"theming.colors.heading": "Farbsystem",
+	"theming.colors.body":
+		"Alle Farben nutzen den OKLCh-Farbraum für wahrnehmungsgleichmäßige Verläufe:",
+	"theming.colors.note":
+		"Die Token-Namen folgen den shadcn-svelte-Konventionen, sodass ein bestehendes shadcn-Theme unverändert übernommen wird.",
+	"theming.dark.heading": "Dunkler Modus",
+	"theming.dark.body":
+		"Der dunkle Modus wird über die Klasse .dark an einem übergeordneten Element aktiviert. FancyUI überschreibt jeden Token:",
+	"theming.motion.heading": "Animations-Tokens",
+	"theming.motion.body": "Steuere das Animations-Timing global:",
+	"theming.easing.heading": "Easing-Funktionen",
+	"theming.easing.body":
+		"Auch Easing-Kurven sind Tokens – gemeinsam genutzt von jedem Komponenten-Übergang:",
+	"theming.rainbow.heading": "Regenbogen-Verläufe",
+	"theming.rainbow.body":
+		"Verwendet von RainbowButton, GradientButton und weiteren Verlaufseffekten:",
+	"theming.customizing.heading": "Anpassen",
+	"theming.customizing.body":
+		"Überschreibe einen beliebigen Token in deinem eigenen CSS, um das Aussehen zu ändern:",
+	"theming.customizing.note":
+		"Tokens kaskadieren: Überschreibe sie global in :root, oder grenze sie auf ein Wrapper-Element ein, um nur einen Bereich zu gestalten.",
+	"theming.nextSteps.heading": "Nächste Schritte",
+	"theming.nextSteps.generator.title": "Theme-Generator",
+	"theming.nextSteps.generator.desc":
+		"Stelle jeden Token mit Live-Reglern ein und kopiere das fertige CSS.",
+	"theming.nextSteps.components.title": "Komponenten durchsuchen",
+	"theming.nextSteps.components.desc":
+		"Sieh die Tokens in der gesamten Komponenten-Galerie in Aktion.",
 };

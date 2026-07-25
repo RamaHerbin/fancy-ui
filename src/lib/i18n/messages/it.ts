@@ -228,4 +228,46 @@ export default {
 	"install.nextSteps.theming.title": "Temi",
 	"install.nextSteps.theming.desc":
 		"Sovrascrivi i design token perché ogni componente rispecchi il tuo brand in modalità chiara e scura.",
+
+	// Theming page
+	"theming.metaTitle": "Temi",
+	"theming.title": "Temi",
+	"theming.lead":
+		"Ogni componente FancyUI legge i suoi colori, raggi e tempi dalle proprietà CSS personalizzate nello spazio colore OKLCh — sovrascrivi un token e l'intera libreria lo segue.",
+	"theming.pill.oklch": "Spazio colore OKLCh",
+	"theming.pill.shadcn": "Compatibile con shadcn-svelte",
+	"theming.pill.dark": "Modalità scura",
+	"theming.pill.tokens": "Design token",
+	"theming.generator.body":
+		"Preferisci regolarlo visivamente? Il Generatore di temi adatta questi token con slider in tempo reale e ti fornisce il CSS.",
+	"theming.generator.cta": "Apri il Generatore di temi",
+	"theming.cssSetup.heading": "Configurazione CSS",
+	"theming.cssSetup.body":
+		"Importa il foglio di stile di FancyUI nel CSS globale della tua app, di solito src/app.css:",
+	"theming.colors.heading": "Sistema dei colori",
+	"theming.colors.body":
+		"Tutti i colori usano lo spazio colore OKLCh per gradienti percettivamente uniformi:",
+	"theming.colors.note":
+		"I nomi dei token seguono le convenzioni di shadcn-svelte, quindi un tema shadcn esistente si integra senza modifiche.",
+	"theming.dark.heading": "Modalità scura",
+	"theming.dark.body":
+		"La modalità scura si attiva con la classe .dark su un elemento genitore. FancyUI sovrascrive ogni token:",
+	"theming.motion.heading": "Token di animazione",
+	"theming.motion.body": "Controlla i tempi di animazione a livello globale:",
+	"theming.easing.heading": "Funzioni di easing",
+	"theming.easing.body":
+		"Anche le curve di easing sono token, condivisi da ogni transizione dei componenti:",
+	"theming.rainbow.heading": "Gradienti arcobaleno",
+	"theming.rainbow.body": "Usati da RainbowButton, GradientButton e altri effetti a gradiente:",
+	"theming.customizing.heading": "Personalizzazione",
+	"theming.customizing.body": "Sovrascrivi qualsiasi token nel tuo CSS per cambiare l'aspetto:",
+	"theming.customizing.note":
+		"I token si propagano in cascata: sovrascrivili globalmente in :root, oppure limitali a un elemento wrapper per personalizzare una singola sezione.",
+	"theming.nextSteps.heading": "Prossimi passi",
+	"theming.nextSteps.generator.title": "Generatore di temi",
+	"theming.nextSteps.generator.desc":
+		"Regola ogni token con slider in tempo reale e copia il CSS finito.",
+	"theming.nextSteps.components.title": "Sfoglia i componenti",
+	"theming.nextSteps.components.desc":
+		"Guarda i token in azione in tutta la galleria dei componenti.",
 };

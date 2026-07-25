@@ -228,4 +228,45 @@ export default {
 	"install.nextSteps.theming.title": "Personalização de tema",
 	"install.nextSteps.theming.desc":
 		"Substitua os design tokens para que cada componente combine com a sua marca nos modos claro e escuro.",
+
+	// Theming page
+	"theming.metaTitle": "Personalização de tema",
+	"theming.title": "Personalização de tema",
+	"theming.lead":
+		"Cada componente do FancyUI lê suas cores, raios e tempos a partir de propriedades personalizadas do CSS no espaço de cores OKLCh — substitua um token e toda a biblioteca acompanha.",
+	"theming.pill.oklch": "Espaço de cores OKLCh",
+	"theming.pill.shadcn": "Compatível com shadcn-svelte",
+	"theming.pill.dark": "Modo escuro",
+	"theming.pill.tokens": "Tokens de design",
+	"theming.generator.body":
+		"Prefere ajustar visualmente? O Gerador de tema ajusta esses tokens com controles deslizantes ao vivo e entrega o CSS pronto.",
+	"theming.generator.cta": "Abrir o Gerador de tema",
+	"theming.cssSetup.heading": "Configuração do CSS",
+	"theming.cssSetup.body":
+		"Importe a folha de estilos do FancyUI no CSS global da sua aplicação, geralmente src/app.css:",
+	"theming.colors.heading": "Sistema de cores",
+	"theming.colors.body":
+		"Todas as cores usam o espaço de cores OKLCh para gradientes perceptualmente uniformes:",
+	"theming.colors.note":
+		"Os nomes dos tokens seguem as convenções do shadcn-svelte, então um tema shadcn existente funciona sem alterações.",
+	"theming.dark.heading": "Modo escuro",
+	"theming.dark.body":
+		"O modo escuro é ativado pela classe .dark em um elemento pai. O FancyUI substitui todos os tokens:",
+	"theming.motion.heading": "Tokens de animação",
+	"theming.motion.body": "Controle os tempos de animação globalmente:",
+	"theming.easing.heading": "Funções de easing",
+	"theming.easing.body":
+		"As curvas de easing também são tokens, compartilhadas por todas as transições de componentes:",
+	"theming.rainbow.heading": "Gradientes arco-íris",
+	"theming.rainbow.body": "Usado por RainbowButton, GradientButton e outros efeitos de gradiente:",
+	"theming.customizing.heading": "Personalização",
+	"theming.customizing.body": "Substitua qualquer token no seu próprio CSS para mudar a aparência:",
+	"theming.customizing.note":
+		"Os tokens seguem cascata: substitua-os globalmente em :root, ou limite-os a um elemento wrapper para personalizar apenas uma seção.",
+	"theming.nextSteps.heading": "Próximos passos",
+	"theming.nextSteps.generator.title": "Gerador de tema",
+	"theming.nextSteps.generator.desc":
+		"Ajuste cada token com controles deslizantes ao vivo e copie o CSS finalizado.",
+	"theming.nextSteps.components.title": "Explorar componentes",
+	"theming.nextSteps.components.desc": "Veja os tokens em ação em toda a galeria de componentes.",
 } as const;

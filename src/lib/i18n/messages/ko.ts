@@ -226,4 +226,44 @@ export default {
 	"install.nextSteps.theming.title": "테마 설정",
 	"install.nextSteps.theming.desc":
 		"디자인 토큰을 재정의하여 라이트 모드와 다크 모드 모두에서 모든 컴포넌트를 브랜드에 맞추세요.",
+
+	// Theming page
+	"theming.metaTitle": "테마 설정",
+	"theming.title": "테마 설정",
+	"theming.lead":
+		"모든 FancyUI 컴포넌트는 OKLCh 색 공간의 CSS 사용자 정의 속성에서 색상, 반경, 타이밍을 읽어옵니다. 토큰을 재정의하면 라이브러리 전체가 그에 따라 바뀝니다.",
+	"theming.pill.oklch": "OKLCh 색 공간",
+	"theming.pill.shadcn": "shadcn-svelte 호환",
+	"theming.pill.dark": "다크 모드",
+	"theming.pill.tokens": "디자인 토큰",
+	"theming.generator.body":
+		"시각적으로 조정하고 싶으신가요? 테마 생성기는 실시간 슬라이더로 이 토큰들을 조정하고 CSS를 바로 제공합니다.",
+	"theming.generator.cta": "테마 생성기 열기",
+	"theming.cssSetup.heading": "CSS 설정",
+	"theming.cssSetup.body": "앱의 전역 CSS(보통 src/app.css)에 FancyUI 스타일시트를 가져옵니다:",
+	"theming.colors.heading": "색상 시스템",
+	"theming.colors.body":
+		"모든 색상은 시각적으로 균일한 그레이디언트를 위해 OKLCh 색 공간을 사용합니다:",
+	"theming.colors.note":
+		"토큰 이름은 shadcn-svelte 규칙을 따르므로, 기존 shadcn 테마를 그대로 적용할 수 있습니다.",
+	"theming.dark.heading": "다크 모드",
+	"theming.dark.body":
+		"다크 모드는 상위 요소에 붙은 .dark 클래스로 활성화됩니다. FancyUI는 모든 토큰을 재정의합니다:",
+	"theming.motion.heading": "애니메이션 토큰",
+	"theming.motion.body": "애니메이션 타이밍을 전역으로 제어하세요:",
+	"theming.easing.heading": "이징 함수",
+	"theming.easing.body": "이징 곡선도 토큰이며, 모든 컴포넌트 트랜지션에서 공유됩니다:",
+	"theming.rainbow.heading": "무지개 그레이디언트",
+	"theming.rainbow.body": "RainbowButton, GradientButton 및 기타 그레이디언트 효과에서 사용됩니다:",
+	"theming.customizing.heading": "커스터마이징",
+	"theming.customizing.body": "직접 작성한 CSS에서 토큰을 재정의하여 모양을 바꾸세요:",
+	"theming.customizing.note":
+		"토큰은 캐스케이딩됩니다. :root에서 전역으로 재정의하거나, 래퍼 요소로 범위를 좁혀 특정 섹션만 테마를 지정할 수 있습니다.",
+	"theming.nextSteps.heading": "다음 단계",
+	"theming.nextSteps.generator.title": "테마 생성기",
+	"theming.nextSteps.generator.desc":
+		"실시간 슬라이더로 모든 토큰을 조정하고 완성된 CSS를 복사하세요.",
+	"theming.nextSteps.components.title": "컴포넌트 둘러보기",
+	"theming.nextSteps.components.desc":
+		"전체 컴포넌트 갤러리에서 토큰이 실제로 동작하는 모습을 확인하세요.",
 };
