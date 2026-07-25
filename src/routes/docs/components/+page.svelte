@@ -6,8 +6,7 @@
 		getStats,
 	} from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
-	import { t } from "$lib/stores";
-	import type { MessageKey } from "$lib/i18n/messages/en.js";
+	import { t, tCategory, docTitle } from "$lib/stores";
 
 	const grouped = getComponentsGroupedByCategory();
 	const allComponents = getAllComponents();
@@ -32,7 +31,7 @@
 </script>
 
 <svelte:head>
-	<title>Components - FancyUI Docs</title>
+	<title>{docTitle(t("gallery.title"))}</title>
 </svelte:head>
 
 <div class="max-w-5xl">
@@ -107,7 +106,7 @@
 							? 'bg-foreground text-background'
 							: 'bg-muted text-muted-foreground hover:text-foreground'}"
 					>
-						{t(`category.${cat}` as MessageKey)}
+						{tCategory(cat)}
 						<span class="ml-1 opacity-60">{count}</span>
 					</button>
 				{/if}

@@ -1,4 +1,6 @@
 // Hindi (hi) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "शुरू करें",
@@ -277,4 +279,4 @@ export default {
 	"changelog.major": "बड़े बदलाव",
 	"changelog.minor": "छोटे बदलाव",
 	"changelog.patch": "पैच बदलाव",
-};
+} satisfies Catalog;

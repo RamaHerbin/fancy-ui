@@ -1,4 +1,6 @@
 // Japanese (ja) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "スタートガイド",
@@ -283,4 +285,4 @@ export default {
 	"changelog.major": "メジャー変更",
 	"changelog.minor": "マイナー変更",
 	"changelog.patch": "パッチ変更",
-};
+} satisfies Catalog;

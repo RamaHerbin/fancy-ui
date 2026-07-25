@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
 	import { searchComponents, getAllComponents } from "$lib/fancy-ui/registry.js";
-	import { t } from "$lib/stores";
-	import type { MessageKey } from "$lib/i18n/messages/en.js";
+	import { t, tCategory } from "$lib/stores";
 
 	interface Props {
 		open?: boolean;
@@ -54,7 +53,7 @@
 						name: c.name,
 						slug: c.slug,
 						href: `/docs/components/${c.slug}`,
-						category: t(`category.${c.category}` as MessageKey),
+						category: tCategory(c.category),
 						type: "component" as const,
 					})),
 			];
@@ -70,7 +69,7 @@
 				name: c.name,
 				slug: c.slug,
 				href: `/docs/components/${c.slug}`,
-				category: t(`category.${c.category}` as MessageKey),
+				category: tCategory(c.category),
 				type: "component" as const,
 			}));
 

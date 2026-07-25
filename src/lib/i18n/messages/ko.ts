@@ -1,4 +1,6 @@
 // Korean (ko) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "시작하기",
@@ -275,4 +277,4 @@ export default {
 	"changelog.major": "메이저 변경",
 	"changelog.minor": "마이너 변경",
 	"changelog.patch": "패치 변경",
-};
+} satisfies Catalog;

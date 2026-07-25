@@ -1,4 +1,6 @@
 // Turkish (tr) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Başlarken",
@@ -282,4 +284,4 @@ export default {
 	"changelog.major": "Büyük değişiklikler",
 	"changelog.minor": "Küçük değişiklikler",
 	"changelog.patch": "Yama değişiklikleri",
-};
+} satisfies Catalog;

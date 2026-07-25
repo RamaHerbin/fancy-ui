@@ -1,4 +1,6 @@
 // Czech (cs) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Začínáme",
@@ -277,4 +279,4 @@ export default {
 	"changelog.major": "Velké změny",
 	"changelog.minor": "Menší změny",
 	"changelog.patch": "Opravy",
-};
+} satisfies Catalog;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { GradientButton, ShimmerButton, BorderBeam } from "$lib/fancy-ui";
-	import { t } from "$lib/stores";
+	import { t, docTitle } from "$lib/stores";
 
 	// ─── Base light/dark token sets (mirror src/routes/layout.css) ──────────────
 	const bases = {
@@ -169,7 +169,7 @@ ${selector} {
 </script>
 
 <svelte:head>
-	<title>{t("page.themeGenerator")} - FancyUI Docs</title>
+	<title>{docTitle(t("page.themeGenerator"))}</title>
 	<meta name="description" content={t("tg.metaDescription")} />
 </svelte:head>
 

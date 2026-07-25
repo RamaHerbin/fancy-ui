@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { t } from "$lib/stores";
-	import type { MessageKey } from "$lib/i18n/messages/en.js";
+	import { t, tCategory, docTitle } from "$lib/stores";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
@@ -32,7 +31,8 @@
 	let previewCode = $derived.by(() => {
 		const example = PREVIEW_EXAMPLE[component.slug];
 		if (example) {
-			const src = rawExamples[`/src/lib/components/docs/examples/${component.slug}/${example}.svelte`];
+			const src =
+				rawExamples[`/src/lib/components/docs/examples/${component.slug}/${example}.svelte`];
 			if (src) return src.trim();
 		}
 		return basicUsageCode;
@@ -42,7 +42,7 @@
 </script>
 
 <svelte:head>
-	<title>{component.name} - FancyUI Docs</title>
+	<title>{docTitle(component.name)}</title>
 	<meta name="description" content={component.description} />
 </svelte:head>
 
@@ -50,7 +50,7 @@
 	<!-- Header -->
 	<div class="mb-3 flex flex-wrap items-center gap-2">
 		<span class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">
-			{t(`category.${component.category}` as MessageKey)}
+			{tCategory(component.category)}
 		</span>
 		{#if component.status === "done"}
 			<span

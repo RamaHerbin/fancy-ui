@@ -1,4 +1,6 @@
 // Arabic (ar) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "بدء الاستخدام",
@@ -271,4 +273,4 @@ export default {
 	"changelog.major": "تغييرات كبرى",
 	"changelog.minor": "تغييرات صغرى",
 	"changelog.patch": "تغييرات الإصلاح",
-};
+} satisfies Catalog;

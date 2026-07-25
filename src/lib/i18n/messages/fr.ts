@@ -1,4 +1,6 @@
 // French (fr) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Prise en main",
@@ -285,4 +287,4 @@ export default {
 	"changelog.major": "Changements majeurs",
 	"changelog.minor": "Changements mineurs",
 	"changelog.patch": "Correctifs",
-};
+} satisfies Catalog;
