@@ -159,4 +159,68 @@ export default {
 	"intro.cta.body":
 		"اطّلع على <strong>مُولّد السِّمات</strong> لتخصيص الألوان ومشاهدة تفاعل المكوّنات في الوقت الفعلي.",
 	"intro.cta.button": "جرّب مُولّد السِّمات →",
+
+	// Installation (redesigned page)
+	"install.metaTitle": "التثبيت",
+	"install.title": "التثبيت",
+	"install.lead":
+		"أضف FancyUI إلى مشروع SvelteKit في ثلاث خطوات: ثبّت الحزمة، واستورد ملف الأنماط، واعرض مكوّناً.",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "المتطلّبات المسبقة",
+	"install.prerequisites.body":
+		"تستهدف FancyUI سلسلة أدوات Svelte الحالية. تحقّق من هذه النقاط الثلاث قبل التثبيت.",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"المكوّنات مكتوبة باستخدام الـ runes، لذا فإن Svelte 5 مطلوب، ولن تُترجَم في مشاريع Svelte 4.",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"يعتمد التنسيق على أصناف المرافق في Tailwind v4 وخصائص CSS المخصّصة.",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"مطلوب من قِبل إصدارات SvelteKit وVite التي تُبنى FancyUI عليها.",
+	"install.steps.heading": "التثبيت",
+	"install.steps.body": "اختر مدير الحزم لديك، واربط ملف الأنماط، ثم اعرض مكوّنك الأول.",
+	"install.step1.title": "ثبّت الحزمة",
+	"install.step1.desc":
+		"حزمة واحدة لكل المكوّنات. بدّل بين التبويبات لنسخ الأمر المناسب لمدير الحزم لديك.",
+	"install.step2.title": "استورد ملف الأنماط",
+	"install.step2.desc": "أضف ملف أنماط FancyUI مباشرة بعد استيراد Tailwind.",
+	"install.step2.caption": "في ملف الأنماط العام لديك، عادةً src/app.css.",
+	"install.step3.title": "اعرض مكوّناً",
+	"install.step3.desc": "استورد من جذر الحزمة وأدرج المكوّن في ترميزك مباشرة.",
+	"install.tailwind.heading": "إعداد Tailwind CSS",
+	"install.tailwind.body":
+		"بُنيت FancyUI على Tailwind CSS v4 الذي يُهيّأ عبر CSS بدلاً من ملف إعدادات JavaScript. إذا كان Tailwind يعمل بالفعل في مشروعك، فلا حاجة إلى أي إعداد إضافي.",
+	"install.tailwind.order":
+		"ترتيب الاستيراد مهم: Tailwind أولاً ثم FancyUI، حتى تُحلّ طبقات FancyUI وخصائصه المخصّصة فوق القيم الافتراضية.",
+	"install.tailwind.note":
+		"يحمل ملف الأنماط رموز التصميم التي يقرأها كل مكوّن: الألوان والزوايا الدائرية وتوقيتات الحركة. من دونه تظهر المكوّنات بلا تنسيق.",
+	"install.usage.heading": "الاستخدام",
+	"install.usage.body":
+		"كل مكوّن هو تصدير مُسمّى من جذر الحزمة، فلا حاجة إلى تذكّر مسارات استيراد لكل مكوّن على حدة.",
+	"install.usage.note": "تعرض صفحة كل مكوّن خصائصه وأمثلة حيّة وملاحظات حول إتاحة الوصول.",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"أنواع الخصائص مُصدَّرة إلى جانب كل مكوّن، حتى تتمكّن من تحديد أنواع المغلّفات والإعدادات المسبقة المشتركة.",
+	"install.typescript.note": "الأنواع مضمّنة داخل الحزمة، فلا حاجة إلى تثبيت حزمة أنواع منفصلة.",
+	"install.peerDeps.heading": "التبعيات النظيرة",
+	"install.peerDeps.body": "تفترض FancyUI وجود هذه التبعيات مسبقاً في مشروعك:",
+	"install.peerDeps.colPackage": "الحزمة",
+	"install.peerDeps.colVersion": "الإصدار",
+	"install.peerDeps.bundled":
+		"تحتاج بعض المكوّنات إلى مكتبات تشغيل إضافية. تأتي هذه المكتبات مضمّنة مع الحزمة، فلا حاجة إلى تثبيت أي شيء آخر:",
+	"install.peerDeps.bundledNote": "لا تُحمَّل إلا من قِبل المكوّنات التي تستخدمها.",
+	"install.nextSteps.heading": "الخطوات التالية",
+	"install.nextSteps.components.title": "تصفّح المكوّنات",
+	"install.nextSteps.components.desc":
+		"60 مكوّناً مع معاينات حيّة وخصائص وأمثلة جاهزة للنسخ واللصق.",
+	"install.nextSteps.theming.title": "السِّمات",
+	"install.nextSteps.theming.desc":
+		"تجاوز رموز التصميم ليتوافق كل مكوّن مع علامتك التجارية في الوضعين الفاتح والداكن.",
 };
