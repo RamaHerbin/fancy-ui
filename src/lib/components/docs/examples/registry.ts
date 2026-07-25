@@ -317,6 +317,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"fluid-cursor": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColors", title: "Custom Colors", description: "Fixed teal fluid color." },
+		{
+			name: "HdrDemo",
+			title: "HDR Mode",
+			description:
+				"WebGPU engine with extended tone mapping — glows brighter than white on HDR displays. Requires a WebGPU browser (Chrome/Edge 129+, Safari 26+) plus an HDR screen for the full glow; otherwise falls back to wide-gamut WebGL (Chrome 104+, Safari 16.4+, Firefox 132+), then to standard rendering.",
+		},
 	],
 	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"liquid-glass": [
