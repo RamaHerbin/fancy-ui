@@ -167,6 +167,73 @@ export const en = {
 	"intro.cta.body":
 		"Check out the <strong>Theme Generator</strong> to customize colors and see components react in real time.",
 	"intro.cta.button": "Try Theme Generator →",
+
+	// Installation page
+	"install.metaTitle": "Installation",
+	"install.title": "Installation",
+	"install.lead":
+		"Add FancyUI to a SvelteKit project in three steps: install the package, import the stylesheet, render a component.",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "Prerequisites",
+	"install.prerequisites.body":
+		"FancyUI targets the current Svelte toolchain. Check these three before installing.",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"Components are written with runes, so Svelte 5 is required. Svelte 4 projects will not compile them.",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"Styling relies on Tailwind v4 utilities and CSS custom properties.",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"Required by the SvelteKit and Vite versions FancyUI builds against.",
+	"install.steps.heading": "Install",
+	"install.steps.body":
+		"Pick your package manager, wire up the stylesheet, then render your first component.",
+	"install.step1.title": "Install the package",
+	"install.step1.desc":
+		"One package for every component. Switch tabs to copy the command for your package manager.",
+	"install.step2.title": "Import the stylesheet",
+	"install.step2.desc": "Add the FancyUI stylesheet right after your Tailwind import.",
+	"install.step2.caption": "In your global stylesheet, usually src/app.css.",
+	"install.step3.title": "Render a component",
+	"install.step3.desc": "Import from the package root and drop it into your markup.",
+	"install.tailwind.heading": "Tailwind CSS setup",
+	"install.tailwind.body":
+		"FancyUI is built on Tailwind CSS v4, which is configured in CSS instead of a JavaScript config file. If Tailwind already works in your project, there is nothing else to configure.",
+	"install.tailwind.order":
+		"Import order matters: Tailwind first, FancyUI second, so FancyUI's layers and custom properties resolve on top of the defaults.",
+	"install.tailwind.note":
+		"The stylesheet carries the design tokens every component reads: colors, radii and animation timings. Without it, components render unstyled.",
+	"install.usage.heading": "Usage",
+	"install.usage.body":
+		"Every component is a named export of the package root, so there are no per-component import paths to remember.",
+	"install.usage.note":
+		"Each component's page lists its props, live examples and accessibility notes.",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"Prop types are exported next to each component, so you can type wrappers and shared presets.",
+	"install.typescript.note":
+		"Types ship inside the package. There is no separate types package to install.",
+	"install.peerDeps.heading": "Peer dependencies",
+	"install.peerDeps.body": "FancyUI expects these to already exist in your project:",
+	"install.peerDeps.colPackage": "Package",
+	"install.peerDeps.colVersion": "Version",
+	"install.peerDeps.bundled":
+		"A few components need extra runtime libraries. These ship with the package, so there is nothing more to install:",
+	"install.peerDeps.bundledNote": "They are only pulled in by the components that use them.",
+	"install.nextSteps.heading": "Next steps",
+	"install.nextSteps.components.title": "Browse components",
+	"install.nextSteps.components.desc":
+		"60 components with live previews, props and copy-paste examples.",
+	"install.nextSteps.theming.title": "Theming",
+	"install.nextSteps.theming.desc":
+		"Override the design tokens so every component matches your brand in light and dark mode.",
 } as const;
 
 export type Messages = typeof en;

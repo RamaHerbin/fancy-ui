@@ -130,7 +130,8 @@ export default {
 	"intro.philosophy.card3.title": "Fácil de copiar e colar",
 	"intro.philosophy.card3.desc": "Use como pacote ou copie o código-fonte diretamente.",
 	"intro.philosophy.card4.title": "Tailwind CSS 4",
-	"intro.philosophy.card4.desc": "Estilizado com classes utilitárias e propriedades CSS personalizadas.",
+	"intro.philosophy.card4.desc":
+		"Estilizado com classes utilitárias e propriedades CSS personalizadas.",
 	"intro.philosophy.card5.title": "TypeScript",
 	"intro.philosophy.card5.desc": "Segurança de tipos completa com interfaces de props exportadas.",
 	"intro.quickStart.heading": "Início rápido",
@@ -160,4 +161,71 @@ export default {
 	"intro.cta.body":
 		"Confira o <strong>Gerador de tema</strong> para personalizar as cores e ver os componentes reagirem em tempo real.",
 	"intro.cta.button": "Experimentar o Gerador de tema →",
+
+	// Installation (redesigned page)
+	"install.metaTitle": "Instalação",
+	"install.title": "Instalação",
+	"install.lead":
+		"Adicione o FancyUI a um projeto SvelteKit em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "Pré-requisitos",
+	"install.prerequisites.body":
+		"O FancyUI é feito para a toolchain atual do Svelte. Verifique estes três pontos antes de instalar.",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"Os componentes são escritos com runes, portanto o Svelte 5 é obrigatório. Projetos em Svelte 4 não vão compilá-los.",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"A estilização depende das classes utilitárias do Tailwind v4 e de propriedades CSS personalizadas.",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"Exigido pelas versões do SvelteKit e do Vite com as quais o FancyUI é compilado.",
+	"install.steps.heading": "Instalação",
+	"install.steps.body":
+		"Escolha seu gerenciador de pacotes, conecte a folha de estilos e depois renderize seu primeiro componente.",
+	"install.step1.title": "Instale o pacote",
+	"install.step1.desc":
+		"Um único pacote para todos os componentes. Troque de aba para copiar o comando do seu gerenciador de pacotes.",
+	"install.step2.title": "Importe a folha de estilos",
+	"install.step2.desc": "Adicione a folha de estilos do FancyUI logo após o import do Tailwind.",
+	"install.step2.caption": "Na sua folha de estilos global, geralmente src/app.css.",
+	"install.step3.title": "Renderize um componente",
+	"install.step3.desc": "Importe da raiz do pacote e insira-o no seu markup.",
+	"install.tailwind.heading": "Configuração do Tailwind CSS",
+	"install.tailwind.body":
+		"O FancyUI é construído sobre o Tailwind CSS v4, que é configurado em CSS em vez de um arquivo de configuração JavaScript. Se o Tailwind já funciona no seu projeto, não há mais nada a configurar.",
+	"install.tailwind.order":
+		"A ordem dos imports importa: primeiro o Tailwind, depois o FancyUI, para que as camadas e as propriedades personalizadas do FancyUI sejam resolvidas sobre os padrões.",
+	"install.tailwind.note":
+		"A folha de estilos carrega os design tokens que cada componente lê: cores, raios e tempos de animação. Sem ela, os componentes são renderizados sem estilo.",
+	"install.usage.heading": "Uso",
+	"install.usage.body":
+		"Cada componente é um export nomeado da raiz do pacote, então não há caminhos de import por componente para memorizar.",
+	"install.usage.note":
+		"A página de cada componente lista suas propriedades, exemplos ao vivo e notas de acessibilidade.",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"Os tipos das propriedades são exportados junto de cada componente, então você pode tipar wrappers e presets compartilhados.",
+	"install.typescript.note":
+		"Os tipos vêm dentro do pacote. Não há um pacote de tipos separado para instalar.",
+	"install.peerDeps.heading": "Dependências peer",
+	"install.peerDeps.body": "O FancyUI espera que estas já existam no seu projeto:",
+	"install.peerDeps.colPackage": "Pacote",
+	"install.peerDeps.colVersion": "Versão",
+	"install.peerDeps.bundled":
+		"Alguns componentes precisam de bibliotecas de runtime extras. Elas acompanham o pacote, então não há mais nada para instalar:",
+	"install.peerDeps.bundledNote": "Elas só são carregadas pelos componentes que as usam.",
+	"install.nextSteps.heading": "Próximos passos",
+	"install.nextSteps.components.title": "Explorar componentes",
+	"install.nextSteps.components.desc":
+		"60 componentes com prévias ao vivo, propriedades e exemplos de copiar e colar.",
+	"install.nextSteps.theming.title": "Personalização de tema",
+	"install.nextSteps.theming.desc":
+		"Substitua os design tokens para que cada componente combine com a sua marca nos modos claro e escuro.",
 } as const;

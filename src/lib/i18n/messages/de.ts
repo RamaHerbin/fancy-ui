@@ -161,4 +161,71 @@ export default {
 	"intro.cta.body":
 		"Schau dir den <strong>Theme-Generator</strong> an, um Farben anzupassen und zu sehen, wie Komponenten in Echtzeit reagieren.",
 	"intro.cta.button": "Theme-Generator ausprobieren →",
+
+	// Installation (redesigned page)
+	"install.metaTitle": "Installation",
+	"install.title": "Installation",
+	"install.lead":
+		"Füge FancyUI in drei Schritten zu einem SvelteKit-Projekt hinzu: Paket installieren, Stylesheet importieren, Komponente rendern.",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "Voraussetzungen",
+	"install.prerequisites.body":
+		"FancyUI setzt auf die aktuelle Svelte-Toolchain. Prüfe diese drei Punkte vor der Installation.",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"Die Komponenten sind mit Runes geschrieben, daher ist Svelte 5 erforderlich. Svelte-4-Projekte kompilieren sie nicht.",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"Das Styling basiert auf Tailwind-v4-Utilities und CSS-Custom-Properties.",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"Erforderlich für die SvelteKit- und Vite-Versionen, gegen die FancyUI gebaut wird.",
+	"install.steps.heading": "Installieren",
+	"install.steps.body":
+		"Wähle deinen Paketmanager, binde das Stylesheet ein und rendere dann deine erste Komponente.",
+	"install.step1.title": "Paket installieren",
+	"install.step1.desc":
+		"Ein Paket für alle Komponenten. Wechsle den Tab, um den Befehl für deinen Paketmanager zu kopieren.",
+	"install.step2.title": "Stylesheet importieren",
+	"install.step2.desc": "Füge das FancyUI-Stylesheet direkt nach deinem Tailwind-Import hinzu.",
+	"install.step2.caption": "In deinem globalen Stylesheet, üblicherweise src/app.css.",
+	"install.step3.title": "Komponente rendern",
+	"install.step3.desc": "Importiere aus dem Paket-Root und füge sie in dein Markup ein.",
+	"install.tailwind.heading": "Tailwind-CSS-Setup",
+	"install.tailwind.body":
+		"FancyUI baut auf Tailwind CSS v4 auf, das in CSS statt in einer JavaScript-Konfigurationsdatei konfiguriert wird. Wenn Tailwind in deinem Projekt bereits funktioniert, gibt es nichts weiter einzurichten.",
+	"install.tailwind.order":
+		"Die Import-Reihenfolge ist wichtig: zuerst Tailwind, dann FancyUI, damit FancyUIs Layer und Custom Properties über den Standardwerten aufgelöst werden.",
+	"install.tailwind.note":
+		"Das Stylesheet enthält die Design-Tokens, die jede Komponente liest: Farben, Radien und Animations-Timings. Ohne es werden Komponenten ohne Styling gerendert.",
+	"install.usage.heading": "Verwendung",
+	"install.usage.body":
+		"Jede Komponente ist ein benannter Export des Paket-Roots, es gibt also keine Importpfade pro Komponente zu merken.",
+	"install.usage.note":
+		"Die Seite jeder Komponente listet ihre Props, Live-Beispiele und Hinweise zur Barrierefreiheit auf.",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"Die Prop-Typen werden neben jeder Komponente exportiert, sodass du Wrapper und gemeinsame Presets typisieren kannst.",
+	"install.typescript.note":
+		"Die Typen sind im Paket enthalten. Es gibt kein separates Typen-Paket zu installieren.",
+	"install.peerDeps.heading": "Peer-Dependencies",
+	"install.peerDeps.body": "FancyUI erwartet, dass diese bereits in deinem Projekt vorhanden sind:",
+	"install.peerDeps.colPackage": "Paket",
+	"install.peerDeps.colVersion": "Version",
+	"install.peerDeps.bundled":
+		"Einige Komponenten benötigen zusätzliche Laufzeit-Bibliotheken. Diese werden mit dem Paket ausgeliefert, es gibt also nichts weiter zu installieren:",
+	"install.peerDeps.bundledNote": "Sie werden nur von den Komponenten geladen, die sie verwenden.",
+	"install.nextSteps.heading": "Nächste Schritte",
+	"install.nextSteps.components.title": "Komponenten durchsuchen",
+	"install.nextSteps.components.desc":
+		"60 Komponenten mit Live-Vorschauen, Props und Copy-and-paste-Beispielen.",
+	"install.nextSteps.theming.title": "Themes",
+	"install.nextSteps.theming.desc":
+		"Überschreibe die Design-Tokens, damit jede Komponente im hellen und dunklen Modus zu deiner Marke passt.",
 };

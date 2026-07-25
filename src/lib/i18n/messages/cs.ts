@@ -160,4 +160,71 @@ export default {
 	"intro.cta.body":
 		"Podívejte se na <strong>Generátor motivů</strong>, přizpůsobte si barvy a sledujte, jak komponenty reagují v reálném čase.",
 	"intro.cta.button": "Vyzkoušet Generátor motivů →",
+
+	// Installation (redesigned page)
+	"install.metaTitle": "Instalace",
+	"install.title": "Instalace",
+	"install.lead":
+		"Přidejte FancyUI do projektu SvelteKit ve třech krocích: nainstalujte balíček, importujte stylesheet, vykreslete komponentu.",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "Předpoklady",
+	"install.prerequisites.body":
+		"FancyUI cílí na aktuální toolchain Svelte. Před instalací zkontrolujte tyto tři body.",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"Komponenty jsou napsané pomocí runes, takže je vyžadován Svelte 5. Projekty na Svelte 4 je nezkompilují.",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"Stylování spoléhá na utility třídy Tailwind v4 a vlastní CSS proměnné.",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"Vyžadováno verzemi SvelteKit a Vite, se kterými je FancyUI sestavováno.",
+	"install.steps.heading": "Instalace",
+	"install.steps.body":
+		"Zvolte správce balíčků, zapojte stylesheet a pak vykreslete svou první komponentu.",
+	"install.step1.title": "Nainstalujte balíček",
+	"install.step1.desc":
+		"Jeden balíček pro všechny komponenty. Přepněte záložku a zkopírujte příkaz pro svého správce balíčků.",
+	"install.step2.title": "Importujte stylesheet",
+	"install.step2.desc": "Přidejte stylesheet FancyUI hned za import Tailwindu.",
+	"install.step2.caption": "Ve vašem globálním stylesheetu, obvykle src/app.css.",
+	"install.step3.title": "Vykreslete komponentu",
+	"install.step3.desc": "Importujte z kořene balíčku a vložte ji do svého markupu.",
+	"install.tailwind.heading": "Nastavení Tailwind CSS",
+	"install.tailwind.body":
+		"FancyUI staví na Tailwind CSS v4, který se konfiguruje v CSS místo v JavaScriptovém konfiguračním souboru. Pokud už Tailwind ve vašem projektu funguje, není potřeba nic dalšího nastavovat.",
+	"install.tailwind.order":
+		"Na pořadí importů záleží: nejdřív Tailwind, pak FancyUI, aby se vrstvy a vlastní proměnné FancyUI vyhodnotily nad výchozími hodnotami.",
+	"install.tailwind.note":
+		"Stylesheet nese design tokeny, které čte každá komponenta: barvy, poloměry a časování animací. Bez něj se komponenty vykreslí bez stylů.",
+	"install.usage.heading": "Použití",
+	"install.usage.body":
+		"Každá komponenta je pojmenovaný export z kořene balíčku, takže si nemusíte pamatovat importní cesty jednotlivých komponent.",
+	"install.usage.note":
+		"Stránka každé komponenty uvádí její vlastnosti, živé ukázky a poznámky k přístupnosti.",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"Typy vlastností jsou exportovány vedle každé komponenty, takže můžete typovat wrappery a sdílené presety.",
+	"install.typescript.note":
+		"Typy jsou součástí balíčku. Není potřeba instalovat žádný samostatný balíček s typy.",
+	"install.peerDeps.heading": "Peer závislosti",
+	"install.peerDeps.body": "FancyUI očekává, že tyto balíčky už ve vašem projektu existují:",
+	"install.peerDeps.colPackage": "Balíček",
+	"install.peerDeps.colVersion": "Verze",
+	"install.peerDeps.bundled":
+		"Několik komponent potřebuje další runtime knihovny. Ty jsou dodávány s balíčkem, takže není potřeba nic dalšího instalovat:",
+	"install.peerDeps.bundledNote": "Načítají je pouze komponenty, které je používají.",
+	"install.nextSteps.heading": "Další kroky",
+	"install.nextSteps.components.title": "Procházet komponenty",
+	"install.nextSteps.components.desc":
+		"60 komponent s živými náhledy, vlastnostmi a příklady ke zkopírování.",
+	"install.nextSteps.theming.title": "Vzhled",
+	"install.nextSteps.theming.desc":
+		"Přepište design tokeny, aby každá komponenta odpovídala vaší značce ve světlém i tmavém režimu.",
 };

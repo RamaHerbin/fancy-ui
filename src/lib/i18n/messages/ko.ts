@@ -159,4 +159,71 @@ export default {
 	"intro.cta.body":
 		"색상을 사용자 지정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하려면 <strong>테마 생성기</strong>를 확인해 보세요.",
 	"intro.cta.button": "테마 생성기 사용해보기 →",
+
+	// Installation (redesigned page)
+	"install.metaTitle": "설치",
+	"install.title": "설치",
+	"install.lead":
+		"세 단계로 FancyUI를 SvelteKit 프로젝트에 추가하세요: 패키지를 설치하고, 스타일시트를 가져오고, 컴포넌트를 렌더링하면 됩니다.",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "사전 요구 사항",
+	"install.prerequisites.body":
+		"FancyUI는 최신 Svelte 툴체인을 대상으로 합니다. 설치 전에 다음 세 가지를 확인하세요.",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"컴포넌트가 룬으로 작성되어 있어 Svelte 5가 필요합니다. Svelte 4 프로젝트에서는 컴파일되지 않습니다.",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"스타일링은 Tailwind v4 유틸리티와 CSS 사용자 정의 속성에 의존합니다.",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"FancyUI가 빌드 대상으로 삼는 SvelteKit 및 Vite 버전에서 필요합니다.",
+	"install.steps.heading": "설치",
+	"install.steps.body":
+		"패키지 매니저를 선택하고, 스타일시트를 연결한 다음, 첫 컴포넌트를 렌더링하세요.",
+	"install.step1.title": "패키지 설치",
+	"install.step1.desc":
+		"모든 컴포넌트가 하나의 패키지에 담겨 있습니다. 탭을 전환하여 사용 중인 패키지 매니저에 맞는 명령어를 복사하세요.",
+	"install.step2.title": "스타일시트 가져오기",
+	"install.step2.desc": "Tailwind 가져오기 바로 뒤에 FancyUI 스타일시트를 추가하세요.",
+	"install.step2.caption": "전역 스타일시트(보통 src/app.css)에 추가합니다.",
+	"install.step3.title": "컴포넌트 렌더링",
+	"install.step3.desc": "패키지 루트에서 가져와 마크업에 배치하세요.",
+	"install.tailwind.heading": "Tailwind CSS 설정",
+	"install.tailwind.body":
+		"FancyUI는 Tailwind CSS v4 기반으로 제작되었으며, v4는 JavaScript 설정 파일 대신 CSS에서 설정합니다. 프로젝트에서 Tailwind가 이미 동작한다면 추가로 설정할 것은 없습니다.",
+	"install.tailwind.order":
+		"가져오기 순서가 중요합니다: Tailwind를 먼저, FancyUI를 나중에 가져와야 FancyUI의 레이어와 사용자 정의 속성이 기본값 위에서 해석됩니다.",
+	"install.tailwind.note":
+		"이 스타일시트에는 모든 컴포넌트가 읽는 디자인 토큰(색상, 반경, 애니메이션 타이밍)이 담겨 있습니다. 없으면 컴포넌트가 스타일 없이 렌더링됩니다.",
+	"install.usage.heading": "사용법",
+	"install.usage.body":
+		"모든 컴포넌트는 패키지 루트의 이름 있는 내보내기이므로, 컴포넌트별 가져오기 경로를 기억할 필요가 없습니다.",
+	"install.usage.note":
+		"각 컴포넌트 페이지에는 속성, 실시간 예제, 접근성 참고 사항이 정리되어 있습니다.",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"속성 타입이 각 컴포넌트와 함께 내보내지므로, 래퍼와 공유 프리셋에 타입을 지정할 수 있습니다.",
+	"install.typescript.note":
+		"타입은 패키지에 포함되어 있습니다. 별도로 설치할 타입 패키지는 없습니다.",
+	"install.peerDeps.heading": "피어 의존성",
+	"install.peerDeps.body": "FancyUI는 다음 패키지가 프로젝트에 이미 존재한다고 가정합니다:",
+	"install.peerDeps.colPackage": "패키지",
+	"install.peerDeps.colVersion": "버전",
+	"install.peerDeps.bundled":
+		"일부 컴포넌트는 추가 런타임 라이브러리가 필요합니다. 이들은 패키지에 함께 제공되므로 추가로 설치할 것은 없습니다:",
+	"install.peerDeps.bundledNote": "해당 라이브러리는 이를 사용하는 컴포넌트에서만 불러옵니다.",
+	"install.nextSteps.heading": "다음 단계",
+	"install.nextSteps.components.title": "컴포넌트 둘러보기",
+	"install.nextSteps.components.desc":
+		"실시간 미리보기, 속성, 복사-붙여넣기 예제를 갖춘 60개의 컴포넌트.",
+	"install.nextSteps.theming.title": "테마 설정",
+	"install.nextSteps.theming.desc":
+		"디자인 토큰을 재정의하여 라이트 모드와 다크 모드 모두에서 모든 컴포넌트를 브랜드에 맞추세요.",
 };

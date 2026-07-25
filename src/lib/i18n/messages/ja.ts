@@ -126,13 +126,16 @@ export default {
 	"intro.philosophy.card1.title": "Svelte 5 ネイティブ",
 	"intro.philosophy.card1.desc": "runes で構築。レガシー API は不使用。",
 	"intro.philosophy.card2.title": "アニメーション優先",
-	"intro.philosophy.card2.desc": "すべてのコンポーネントに、洗練されたアニメーションが標準で付属しています。",
+	"intro.philosophy.card2.desc":
+		"すべてのコンポーネントに、洗練されたアニメーションが標準で付属しています。",
 	"intro.philosophy.card3.title": "コピー＆ペーストに対応",
 	"intro.philosophy.card3.desc": "パッケージとして利用するか、ソースコードを直接コピーできます。",
 	"intro.philosophy.card4.title": "Tailwind CSS 4",
-	"intro.philosophy.card4.desc": "ユーティリティクラスと CSS カスタムプロパティでスタイリングされています。",
+	"intro.philosophy.card4.desc":
+		"ユーティリティクラスと CSS カスタムプロパティでスタイリングされています。",
 	"intro.philosophy.card5.title": "TypeScript",
-	"intro.philosophy.card5.desc": "エクスポートされた prop インターフェースによる、完全な型安全性を提供します。",
+	"intro.philosophy.card5.desc":
+		"エクスポートされた prop インターフェースによる、完全な型安全性を提供します。",
 	"intro.quickStart.heading": "クイックスタート",
 	"intro.quickStart.step1.title": "インストール",
 	"intro.quickStart.step1.desc": "FancyUI をプロジェクトに追加します。",
@@ -160,4 +163,72 @@ export default {
 	"intro.cta.body":
 		"<strong>テーマジェネレーター</strong> をチェックして、色をカスタマイズしたり、コンポーネントがリアルタイムに反応する様子を確認したりしましょう。",
 	"intro.cta.button": "テーマジェネレーターを試す →",
+
+	// Installation (redesigned page)
+	"install.metaTitle": "インストール",
+	"install.title": "インストール",
+	"install.lead":
+		"FancyUI は 3 つのステップで SvelteKit プロジェクトに追加できます: パッケージをインストールし、スタイルシートをインポートし、コンポーネントをレンダリングするだけです。",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "前提条件",
+	"install.prerequisites.body":
+		"FancyUI は現行の Svelte ツールチェーンを対象としています。インストール前に次の 3 点を確認してください。",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"コンポーネントは runes で書かれているため、Svelte 5 が必須です。Svelte 4 のプロジェクトではコンパイルできません。",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"スタイリングは Tailwind v4 のユーティリティと CSS カスタムプロパティに依存しています。",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"FancyUI がビルド対象とする SvelteKit と Vite のバージョンで必要になります。",
+	"install.steps.heading": "インストール",
+	"install.steps.body":
+		"パッケージマネージャーを選び、スタイルシートを設定して、最初のコンポーネントをレンダリングしましょう。",
+	"install.step1.title": "パッケージをインストール",
+	"install.step1.desc":
+		"すべてのコンポーネントが 1 つのパッケージに含まれています。タブを切り替えて、お使いのパッケージマネージャー用のコマンドをコピーしてください。",
+	"install.step2.title": "スタイルシートをインポート",
+	"install.step2.desc": "Tailwind のインポート直後に FancyUI のスタイルシートを追加します。",
+	"install.step2.caption": "グローバルスタイルシート（通常は src/app.css）に記述します。",
+	"install.step3.title": "コンポーネントをレンダリング",
+	"install.step3.desc": "パッケージルートからインポートして、マークアップに配置するだけです。",
+	"install.tailwind.heading": "Tailwind CSS のセットアップ",
+	"install.tailwind.body":
+		"FancyUI は Tailwind CSS v4 上に構築されており、JavaScript の設定ファイルではなく CSS で設定します。プロジェクトで Tailwind がすでに動作していれば、追加の設定は不要です。",
+	"install.tailwind.order":
+		"インポートの順序が重要です: Tailwind を先に、FancyUI を後にすることで、FancyUI のレイヤーとカスタムプロパティがデフォルトの上に解決されます。",
+	"install.tailwind.note":
+		"このスタイルシートには、すべてのコンポーネントが参照するデザイントークン（色、角丸、アニメーションのタイミング）が含まれています。これがないと、コンポーネントはスタイルなしで表示されます。",
+	"install.usage.heading": "使い方",
+	"install.usage.body":
+		"すべてのコンポーネントはパッケージルートの名前付きエクスポートなので、コンポーネントごとのインポートパスを覚える必要はありません。",
+	"install.usage.note":
+		"各コンポーネントのページには、プロパティ、ライブ例、アクセシビリティに関する注記が記載されています。",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"prop の型は各コンポーネントと合わせてエクスポートされているため、ラッパーや共有プリセットに型を付けられます。",
+	"install.typescript.note":
+		"型はパッケージに同梱されています。別途インストールする型パッケージはありません。",
+	"install.peerDeps.heading": "ピア依存関係",
+	"install.peerDeps.body":
+		"FancyUI は、次のパッケージがプロジェクトに既に存在することを前提としています:",
+	"install.peerDeps.colPackage": "パッケージ",
+	"install.peerDeps.colVersion": "バージョン",
+	"install.peerDeps.bundled":
+		"一部のコンポーネントは追加のランタイムライブラリを必要とします。これらはパッケージに同梱されているため、追加でインストールするものはありません:",
+	"install.peerDeps.bundledNote": "これらは、使用するコンポーネントからのみ読み込まれます。",
+	"install.nextSteps.heading": "次のステップ",
+	"install.nextSteps.components.title": "コンポーネントを見る",
+	"install.nextSteps.components.desc":
+		"ライブプレビュー、プロパティ、コピー＆ペーストできる例を備えた 60 個のコンポーネント。",
+	"install.nextSteps.theming.title": "テーマ設定",
+	"install.nextSteps.theming.desc":
+		"デザイントークンを上書きして、ライトモードとダークモードの両方で、すべてのコンポーネントをブランドに合わせられます。",
 };
