@@ -266,4 +266,13 @@ export default {
 	"theming.nextSteps.components.title": "컴포넌트 둘러보기",
 	"theming.nextSteps.components.desc":
 		"전체 컴포넌트 갤러리에서 토큰이 실제로 동작하는 모습을 확인하세요.",
+
+	// Changelog page
+	"changelog.metaTitle": "변경 이력",
+	"changelog.title": "변경 이력",
+	"changelog.lead": "FancyUI의 모든 릴리스와 변경 내용을 최신순으로 정리했습니다.",
+	"changelog.latest": "최신",
+	"changelog.major": "메이저 변경",
+	"changelog.minor": "마이너 변경",
+	"changelog.patch": "패치 변경",
 };

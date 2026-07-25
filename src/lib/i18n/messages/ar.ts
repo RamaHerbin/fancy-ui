@@ -262,4 +262,13 @@ export default {
 	"theming.nextSteps.generator.desc": "اضبط كل رمز بأشرطة تمرير حيّة، وانسخ الـ CSS النهائي.",
 	"theming.nextSteps.components.title": "تصفّح المكوّنات",
 	"theming.nextSteps.components.desc": "شاهد الرموز أثناء عملها عبر معرض المكوّنات كاملاً.",
+
+	// Changelog page
+	"changelog.metaTitle": "سجل التغييرات",
+	"changelog.title": "سجل التغييرات",
+	"changelog.lead": "كل إصدار من FancyUI وما تغيّر فيه، الأحدث أولاً.",
+	"changelog.latest": "الأحدث",
+	"changelog.major": "تغييرات كبرى",
+	"changelog.minor": "تغييرات صغرى",
+	"changelog.patch": "تغييرات الإصلاح",
 };

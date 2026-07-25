@@ -271,4 +271,13 @@ export default {
 		"Dostosuj każdy token za pomocą suwaków na żywo i skopiuj gotowy CSS.",
 	"theming.nextSteps.components.title": "Przeglądaj komponenty",
 	"theming.nextSteps.components.desc": "Zobacz tokeny w akcji w całej galerii komponentów.",
+
+	// Changelog page
+	"changelog.metaTitle": "Lista zmian",
+	"changelog.title": "Lista zmian",
+	"changelog.lead": "Wszystkie wydania FancyUI i wprowadzone w nich zmiany, od najnowszych.",
+	"changelog.latest": "Najnowsze",
+	"changelog.major": "Zmiany główne",
+	"changelog.minor": "Zmiany pomniejsze",
+	"changelog.patch": "Poprawki",
 } as const;

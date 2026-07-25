@@ -273,6 +273,15 @@ export const en = {
 		"Tune every token with live sliders and copy the finished CSS.",
 	"theming.nextSteps.components.title": "Browse components",
 	"theming.nextSteps.components.desc": "See the tokens at work across the full component gallery.",
+
+	// Changelog page
+	"changelog.metaTitle": "Changelog",
+	"changelog.title": "Changelog",
+	"changelog.lead": "Every FancyUI release and what changed in it, newest first.",
+	"changelog.latest": "Latest",
+	"changelog.major": "Major changes",
+	"changelog.minor": "Minor changes",
+	"changelog.patch": "Patch changes",
 } as const;
 
 export type Messages = typeof en;

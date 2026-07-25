@@ -235,4 +235,13 @@ export default {
 	"theming.nextSteps.generator.desc": "通过实时滑块调整每个令牌，并复制生成的 CSS。",
 	"theming.nextSteps.components.title": "浏览组件",
 	"theming.nextSteps.components.desc": "在完整的组件库中查看令牌的实际效果。",
+
+	// Changelog page
+	"changelog.metaTitle": "更新日志",
+	"changelog.title": "更新日志",
+	"changelog.lead": "FancyUI 的每个版本及其变更内容，按最新到最旧排列。",
+	"changelog.latest": "最新",
+	"changelog.major": "重大变更",
+	"changelog.minor": "次要变更",
+	"changelog.patch": "补丁变更",
 } as const;

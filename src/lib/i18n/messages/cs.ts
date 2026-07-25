@@ -268,4 +268,13 @@ export default {
 		"Upravte každý token pomocí živých posuvníků a zkopírujte hotové CSS.",
 	"theming.nextSteps.components.title": "Procházet komponenty",
 	"theming.nextSteps.components.desc": "Podívejte se, jak tokeny fungují v celé galerii komponent.",
+
+	// Changelog page
+	"changelog.metaTitle": "Seznam změn",
+	"changelog.title": "Seznam změn",
+	"changelog.lead": "Každé vydání FancyUI a co se v něm změnilo, od nejnovějšího.",
+	"changelog.latest": "Nejnovější",
+	"changelog.major": "Velké změny",
+	"changelog.minor": "Menší změny",
+	"changelog.patch": "Opravy",
 };

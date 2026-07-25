@@ -274,4 +274,13 @@ export default {
 	"theming.nextSteps.components.title": "コンポーネントを見る",
 	"theming.nextSteps.components.desc":
 		"コンポーネントギャラリー全体でトークンの働きを確認できます。",
+
+	// Changelog page
+	"changelog.metaTitle": "変更履歴",
+	"changelog.title": "変更履歴",
+	"changelog.lead": "FancyUI のすべてのリリースと変更内容を、新しい順に掲載しています。",
+	"changelog.latest": "最新",
+	"changelog.major": "メジャー変更",
+	"changelog.minor": "マイナー変更",
+	"changelog.patch": "パッチ変更",
 };

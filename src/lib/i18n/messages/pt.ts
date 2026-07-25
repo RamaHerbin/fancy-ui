@@ -269,4 +269,14 @@ export default {
 		"Ajuste cada token com controles deslizantes ao vivo e copie o CSS finalizado.",
 	"theming.nextSteps.components.title": "Explorar componentes",
 	"theming.nextSteps.components.desc": "Veja os tokens em ação em toda a galeria de componentes.",
+
+	// Changelog page
+	"changelog.metaTitle": "Registro de alterações",
+	"changelog.title": "Registro de alterações",
+	"changelog.lead":
+		"Todos os lançamentos do FancyUI e o que mudou em cada um, do mais recente para o mais antigo.",
+	"changelog.latest": "Mais recente",
+	"changelog.major": "Alterações principais",
+	"changelog.minor": "Alterações secundárias",
+	"changelog.patch": "Correções",
 } as const;

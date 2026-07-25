@@ -1,5 +1,12 @@
 <script lang="ts">
-	import LocalizedPage from "$lib/components/docs/LocalizedPage.svelte";
+	import ChangelogPage from "$lib/components/docs/ChangelogPage.svelte";
+	import { t } from "$lib/stores";
+
+	let { data } = $props();
 </script>
 
-<LocalizedPage page="changelog" />
+<svelte:head>
+	<title>{t("changelog.metaTitle")} - FancyUI Docs</title>
+</svelte:head>
+
+<ChangelogPage raw={data.changelogRaw} />

@@ -1,8 +1,9 @@
 /**
  * Locale registry for the docs site.
  *
- * Adding a language: add an entry here and drop a matching
- * `src/lib/i18n/messages/<code>.ts` catalog (and per-page `.svx` prose files).
+ * Adding a language: add an entry here, add a full
+ * `src/lib/i18n/messages/<code>.ts` catalog (same keys as `en.ts`), and if the
+ * language is RTL, mirror `dir` in the pre-paint RTL map in `src/app.html`.
  */
 
 export type Dir = "ltr" | "rtl";
