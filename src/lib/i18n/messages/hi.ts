@@ -228,4 +228,44 @@ export default {
 	"install.nextSteps.theming.title": "थीमिंग",
 	"install.nextSteps.theming.desc":
 		"डिज़ाइन टोकन ओवरराइड करें ताकि हर कॉम्पोनेंट लाइट और डार्क मोड में आपके ब्रांड से मेल खाए।",
+
+	// Theming page
+	"theming.metaTitle": "थीमिंग",
+	"theming.title": "थीमिंग",
+	"theming.lead":
+		"हर FancyUI कॉम्पोनेंट अपने रंग, रेडियस और टाइमिंग OKLCh कलर स्पेस में CSS कस्टम प्रॉपर्टीज से पढ़ता है — एक टोकन ओवरराइड करें और पूरी लाइब्रेरी उसका अनुसरण करेगी।",
+	"theming.pill.oklch": "OKLCh कलर स्पेस",
+	"theming.pill.shadcn": "shadcn-svelte के साथ संगत",
+	"theming.pill.dark": "डार्क मोड",
+	"theming.pill.tokens": "डिज़ाइन टोकन",
+	"theming.generator.body":
+		"इसे विज़ुअली ट्यून करना पसंद करेंगे? थीम जनरेटर इन टोकन को लाइव स्लाइडर से एडजस्ट करता है और आपको CSS दे देता है।",
+	"theming.generator.cta": "थीम जनरेटर खोलें",
+	"theming.cssSetup.heading": "CSS सेटअप",
+	"theming.cssSetup.body":
+		"अपने ऐप के ग्लोबल CSS में, आमतौर पर src/app.css में, FancyUI स्टाइलशीट इम्पोर्ट करें:",
+	"theming.colors.heading": "कलर सिस्टम",
+	"theming.colors.body":
+		"बोधगत रूप से एकसमान ग्रेडिएंट के लिए सभी रंग OKLCh कलर स्पेस का उपयोग करते हैं:",
+	"theming.colors.note":
+		"टोकन के नाम shadcn-svelte की परंपराओं का पालन करते हैं, इसलिए मौजूदा shadcn थीम बिना किसी बदलाव के फ़िट हो जाती है।",
+	"theming.dark.heading": "डार्क मोड",
+	"theming.dark.body":
+		"डार्क मोड किसी पैरेंट एलिमेंट पर .dark क्लास से सक्रिय होता है। FancyUI हर टोकन को ओवरराइड करता है:",
+	"theming.motion.heading": "एनिमेशन टोकन",
+	"theming.motion.body": "एनिमेशन टाइमिंग को ग्लोबल रूप से नियंत्रित करें:",
+	"theming.easing.heading": "ईज़िंग फ़ंक्शन",
+	"theming.easing.body": "ईज़िंग कर्व भी टोकन हैं, जो हर कॉम्पोनेंट ट्रांज़िशन में साझा होते हैं:",
+	"theming.rainbow.heading": "रेनबो ग्रेडिएंट",
+	"theming.rainbow.body":
+		"RainbowButton, GradientButton और अन्य ग्रेडिएंट इफेक्ट्स द्वारा उपयोग किया जाता है:",
+	"theming.customizing.heading": "कस्टमाइज़ेशन",
+	"theming.customizing.body": "दिखावट बदलने के लिए अपने CSS में किसी भी टोकन को ओवरराइड करें:",
+	"theming.customizing.note":
+		"टोकन कैस्केड होते हैं: उन्हें :root में ग्लोबल रूप से ओवरराइड करें, या किसी एक सेक्शन को थीम देने के लिए उन्हें किसी रैपर एलिमेंट तक सीमित करें।",
+	"theming.nextSteps.heading": "अगले कदम",
+	"theming.nextSteps.generator.title": "थीम जनरेटर",
+	"theming.nextSteps.generator.desc": "लाइव स्लाइडर से हर टोकन ट्यून करें और तैयार CSS कॉपी करें।",
+	"theming.nextSteps.components.title": "कॉम्पोनेंट्स ब्राउज़ करें",
+	"theming.nextSteps.components.desc": "पूरी कॉम्पोनेंट गैलरी में टोकन को काम करते हुए देखें।",
 };

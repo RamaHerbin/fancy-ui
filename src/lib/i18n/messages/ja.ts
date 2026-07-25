@@ -231,4 +231,47 @@ export default {
 	"install.nextSteps.theming.title": "テーマ設定",
 	"install.nextSteps.theming.desc":
 		"デザイントークンを上書きして、ライトモードとダークモードの両方で、すべてのコンポーネントをブランドに合わせられます。",
+
+	// Theming page
+	"theming.metaTitle": "テーマ設定",
+	"theming.title": "テーマ設定",
+	"theming.lead":
+		"すべての FancyUI コンポーネントは、OKLCh カラースペースの CSS カスタムプロパティから色、角丸、タイミングを読み取ります。トークンを上書きすれば、ライブラリ全体がそれに従います。",
+	"theming.pill.oklch": "OKLCh カラースペース",
+	"theming.pill.shadcn": "shadcn-svelte 互換",
+	"theming.pill.dark": "ダークモード",
+	"theming.pill.tokens": "デザイントークン",
+	"theming.generator.body":
+		"見た目で調整したいですか？ テーマジェネレーターならライブスライダーでこれらのトークンを調整し、CSS を渡してくれます。",
+	"theming.generator.cta": "テーマジェネレーターを開く",
+	"theming.cssSetup.heading": "CSS のセットアップ",
+	"theming.cssSetup.body":
+		"FancyUI のスタイルシートをアプリのグローバル CSS（通常は src/app.css）にインポートします:",
+	"theming.colors.heading": "カラーシステム",
+	"theming.colors.body":
+		"すべての色は、知覚的に均一なグラデーションのために OKLCh カラースペースを使用します:",
+	"theming.colors.note":
+		"トークン名は shadcn-svelte の規則に従っているため、既存の shadcn テーマもそのまま使えます。",
+	"theming.dark.heading": "ダークモード",
+	"theming.dark.body":
+		"ダークモードは、親要素に付けた .dark クラスで有効になります。FancyUI はすべてのトークンを上書きします:",
+	"theming.motion.heading": "アニメーショントークン",
+	"theming.motion.body": "アニメーションのタイミングをグローバルに制御します:",
+	"theming.easing.heading": "イージング関数",
+	"theming.easing.body":
+		"イージングカーブもトークンで、すべてのコンポーネントのトランジションで共有されます:",
+	"theming.rainbow.heading": "レインボーグラデーション",
+	"theming.rainbow.body":
+		"RainbowButton、GradientButton、その他のグラデーション効果で使用されます:",
+	"theming.customizing.heading": "カスタマイズ",
+	"theming.customizing.body": "見た目を変えるには、独自の CSS でトークンを上書きします:",
+	"theming.customizing.note":
+		"トークンはカスケードします。:root でグローバルに上書きするか、ラッパー要素に絞って単一セクションだけをテーマ設定できます。",
+	"theming.nextSteps.heading": "次のステップ",
+	"theming.nextSteps.generator.title": "テーマジェネレーター",
+	"theming.nextSteps.generator.desc":
+		"ライブスライダーで各トークンを調整し、完成した CSS をコピーします。",
+	"theming.nextSteps.components.title": "コンポーネントを見る",
+	"theming.nextSteps.components.desc":
+		"コンポーネントギャラリー全体でトークンの働きを確認できます。",
 };
