@@ -1,4 +1,6 @@
 // Simplified Chinese (zh-Hans) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	"nav.gettingStarted": "快速开始",
 	"nav.components": "组件",
@@ -244,4 +246,4 @@ export default {
 	"changelog.major": "重大变更",
 	"changelog.minor": "次要变更",
 	"changelog.patch": "补丁变更",
-} as const;
+} satisfies Catalog;

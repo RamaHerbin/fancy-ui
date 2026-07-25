@@ -1,4 +1,6 @@
 // Italian (it) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Per iniziare",
@@ -280,4 +282,4 @@ export default {
 	"changelog.major": "Modifiche principali",
 	"changelog.minor": "Modifiche minori",
 	"changelog.patch": "Modifiche patch",
-};
+} satisfies Catalog;

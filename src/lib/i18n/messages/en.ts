@@ -287,4 +287,11 @@ export const en = {
 export type Messages = typeof en;
 export type MessageKey = keyof Messages;
 
+/**
+ * Shape every translated catalog must satisfy: all of en's keys, string
+ * values. `satisfies Catalog` on a catalog literal turns a missing, extra,
+ * or typo'd key into a compile error (enforced by scripts/check-i18n.mjs).
+ */
+export type Catalog = Record<MessageKey, string>;
+
 export default en;

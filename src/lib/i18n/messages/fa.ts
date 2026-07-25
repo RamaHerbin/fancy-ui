@@ -1,4 +1,6 @@
 // Persian (fa) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "شروع به کار",
@@ -279,4 +281,4 @@ export default {
 	"changelog.major": "تغییرات عمده",
 	"changelog.minor": "تغییرات فرعی",
 	"changelog.patch": "تغییرات وصله‌ای",
-};
+} satisfies Catalog;

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ComponentMeta } from "$lib/types.js";
-	import { categoryLabels } from "$lib/fancy-ui/registry.js";
+	import { t, tCategory } from "$lib/stores";
 
 	interface Props {
 		component: ComponentMeta;
@@ -36,13 +36,13 @@
 		<p class="text-muted-foreground line-clamp-2 text-xs">{component.description}</p>
 		<div class="mt-auto flex items-center gap-2 pt-2">
 			<span class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[10px] font-medium">
-				{categoryLabels[component.category]}
+				{tCategory(component.category)}
 			</span>
 			{#if component.status === "done"}
 				<span
 					class="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400"
 				>
-					Stable
+					{t("status.stable")}
 				</span>
 			{/if}
 		</div>

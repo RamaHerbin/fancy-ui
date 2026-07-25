@@ -1,4 +1,6 @@
 // Indonesian (id) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Memulai",
@@ -278,4 +280,4 @@ export default {
 	"changelog.major": "Perubahan besar",
 	"changelog.minor": "Perubahan kecil",
 	"changelog.patch": "Perubahan patch",
-};
+} satisfies Catalog;

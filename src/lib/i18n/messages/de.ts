@@ -1,4 +1,6 @@
 // German (de) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Erste Schritte",
@@ -281,4 +283,4 @@ export default {
 	"changelog.major": "Größere Änderungen",
 	"changelog.minor": "Kleinere Änderungen",
 	"changelog.patch": "Patch-Änderungen",
-};
+} satisfies Catalog;

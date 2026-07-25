@@ -1,4 +1,6 @@
 // Polish (pl) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Pierwsze kroki",
@@ -280,4 +282,4 @@ export default {
 	"changelog.major": "Zmiany główne",
 	"changelog.minor": "Zmiany pomniejsze",
 	"changelog.patch": "Poprawki",
-} as const;
+} satisfies Catalog;
