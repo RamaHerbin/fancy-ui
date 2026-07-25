@@ -272,4 +272,14 @@ export default {
 	"theming.nextSteps.components.title": "Bileşenlere Göz At",
 	"theming.nextSteps.components.desc":
 		"Belirteçlerin tüm bileşen galerisinde nasıl çalıştığını görün.",
+
+	// Changelog page
+	"changelog.metaTitle": "Değişiklik Günlüğü",
+	"changelog.title": "Değişiklik Günlüğü",
+	"changelog.lead":
+		"FancyUI'nin tüm sürümleri ve her birinde değişenler, en yeniden en eskiye sıralanmıştır.",
+	"changelog.latest": "En yeni",
+	"changelog.major": "Büyük değişiklikler",
+	"changelog.minor": "Küçük değişiklikler",
+	"changelog.patch": "Yama değişiklikleri",
 };

@@ -270,4 +270,13 @@ export default {
 		"هر توکن را با اسلایدرهای زنده تنظیم کنید و CSS نهایی را کپی کنید.",
 	"theming.nextSteps.components.title": "مرور کامپوننت‌ها",
 	"theming.nextSteps.components.desc": "توکن‌ها را در عمل، در سراسر گالری کامل کامپوننت‌ها ببینید.",
+
+	// Changelog page
+	"changelog.metaTitle": "فهرست تغییرات",
+	"changelog.title": "فهرست تغییرات",
+	"changelog.lead": "هر نسخه‌ی FancyUI و آنچه در آن تغییر کرده، از جدیدترین به قدیمی‌ترین.",
+	"changelog.latest": "جدیدترین",
+	"changelog.major": "تغییرات عمده",
+	"changelog.minor": "تغییرات فرعی",
+	"changelog.patch": "تغییرات وصله‌ای",
 };

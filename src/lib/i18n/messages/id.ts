@@ -269,4 +269,13 @@ export default {
 		"Sesuaikan setiap token dengan slider langsung dan salin CSS akhirnya.",
 	"theming.nextSteps.components.title": "Jelajahi Komponen",
 	"theming.nextSteps.components.desc": "Lihat token bekerja di seluruh galeri komponen.",
+
+	// Changelog page
+	"changelog.metaTitle": "Catatan Perubahan",
+	"changelog.title": "Catatan Perubahan",
+	"changelog.lead": "Setiap rilis FancyUI dan apa yang berubah di dalamnya, terbaru lebih dulu.",
+	"changelog.latest": "Terbaru",
+	"changelog.major": "Perubahan besar",
+	"changelog.minor": "Perubahan kecil",
+	"changelog.patch": "Perubahan patch",
 };

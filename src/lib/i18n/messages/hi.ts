@@ -268,4 +268,13 @@ export default {
 	"theming.nextSteps.generator.desc": "लाइव स्लाइडर से हर टोकन ट्यून करें और तैयार CSS कॉपी करें।",
 	"theming.nextSteps.components.title": "कॉम्पोनेंट्स ब्राउज़ करें",
 	"theming.nextSteps.components.desc": "पूरी कॉम्पोनेंट गैलरी में टोकन को काम करते हुए देखें।",
+
+	// Changelog page
+	"changelog.metaTitle": "चेंजलॉग",
+	"changelog.title": "चेंजलॉग",
+	"changelog.lead": "हर FancyUI रिलीज़ और उसमें हुए बदलाव, सबसे नए से शुरू।",
+	"changelog.latest": "नवीनतम",
+	"changelog.major": "बड़े बदलाव",
+	"changelog.minor": "छोटे बदलाव",
+	"changelog.patch": "पैच बदलाव",
 };

@@ -275,4 +275,14 @@ export default {
 	"theming.nextSteps.components.title": "Parcourir les composants",
 	"theming.nextSteps.components.desc":
 		"Découvrez les jetons à l'œuvre dans toute la galerie de composants.",
+
+	// Changelog page
+	"changelog.metaTitle": "Journal des modifications",
+	"changelog.title": "Journal des modifications",
+	"changelog.lead":
+		"Chaque version de FancyUI et ce qui y a changé, de la plus récente à la plus ancienne.",
+	"changelog.latest": "Dernière",
+	"changelog.major": "Changements majeurs",
+	"changelog.minor": "Changements mineurs",
+	"changelog.patch": "Correctifs",
 };
