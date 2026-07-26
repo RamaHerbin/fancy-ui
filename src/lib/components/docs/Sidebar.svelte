@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
-	import { t } from "$lib/stores";
-	import type { MessageKey } from "$lib/i18n/messages/en.js";
+	import { t, tCategory } from "$lib/stores";
 
 	interface Props {
 		open?: boolean;
@@ -45,7 +44,7 @@
 {/if}
 
 <aside
-	class="border-sidebar-border bg-sidebar text-sidebar-foreground fixed start-0 top-0 z-50 flex h-full w-64 flex-col border-e transition-transform duration-300 lg:translate-x-0 {open
+	class="border-sidebar-border bg-sidebar text-sidebar-foreground fixed start-0 top-0 z-50 flex h-full w-64 flex-col border-e transition-transform duration-300 lg:translate-x-0 rtl:lg:translate-x-0 {open
 		? 'translate-x-0'
 		: '-translate-x-full rtl:translate-x-full'}"
 >
@@ -107,7 +106,7 @@
 						onclick={() => toggleCategory(category)}
 						class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
 					>
-						{t(`category.${category}` as MessageKey)}
+						{tCategory(category)}
 						<svg
 							class="h-3 w-3 transition-transform {collapsed ? '' : 'rotate-90'}"
 							fill="none"

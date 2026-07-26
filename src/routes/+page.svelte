@@ -20,6 +20,7 @@
 	} from "$lib/fancy-ui";
 	import type { TimelineItem, TooltipItem } from "$lib/fancy-ui";
 	import SynthwaveGrid from "$lib/components/SynthwaveGrid.svelte";
+	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
 
 	let showInteractiveElements = $state(false);
 
@@ -149,7 +150,7 @@
 >
 	<!-- Fluid Cursor + Interactive Grid (lazy) -->
 	{#if showInteractiveElements}
-		<FluidCursor simResolution={128} />
+		<FluidCursor simResolution={128} hdr hdrBoost={2} splatOnMount />
 		<InteractiveGridPattern
 			width={80}
 			height={80}
@@ -198,6 +199,7 @@
 					/>
 				</svg>
 				GitHub
+				<GitHubStars class="border-l border-white/15 pl-2 text-white/60" />
 			</a>
 		</div>
 	</div>

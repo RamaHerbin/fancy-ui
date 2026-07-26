@@ -1,5 +1,12 @@
 <script lang="ts">
-	import LocalizedPage from "$lib/components/docs/LocalizedPage.svelte";
+	import ChangelogPage from "$lib/components/docs/ChangelogPage.svelte";
+	import { t, docTitle } from "$lib/stores";
+
+	let { data } = $props();
 </script>
 
-<LocalizedPage page="changelog" />
+<svelte:head>
+	<title>{docTitle(t("changelog.metaTitle"))}</title>
+</svelte:head>
+
+<ChangelogPage raw={data.changelogRaw} />

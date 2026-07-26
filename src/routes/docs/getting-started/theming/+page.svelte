@@ -1,5 +1,10 @@
 <script lang="ts">
-	import LocalizedPage from "$lib/components/docs/LocalizedPage.svelte";
+	import ThemingPage from "$lib/components/docs/ThemingPage.svelte";
+	import { t, docTitle } from "$lib/stores";
 </script>
 
-<LocalizedPage page="theming" />
+<svelte:head>
+	<title>{docTitle(t("theming.metaTitle"))}</title>
+</svelte:head>
+
+<ThemingPage />

@@ -155,11 +155,13 @@
 		}
 	}
 
-	/* Safari can't combine filter:url() with backdrop-filter — fall back to
-	   plain frosted blur */
-	@supports (-webkit-hyphens: none) {
+	/* Safari can't combine filter:url() with backdrop-filter, so it needs a plain-blur
+	   fallback. -webkit-named-image is a WebKit-only feature query (Chromium and Firefox
+	   return false). Ship the -webkit- prefixed backdrop-filter too for Safari and iOS 17 and older. */
+	@supports (background: -webkit-named-image(i)) {
 		.frosted-glass-filter {
 			filter: none !important;
+			-webkit-backdrop-filter: blur(var(--fg-fallback-blur)) saturate(var(--fg-fallback-saturation));
 			backdrop-filter: blur(var(--fg-fallback-blur)) saturate(var(--fg-fallback-saturation));
 		}
 

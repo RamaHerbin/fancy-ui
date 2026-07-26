@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { t } from "$lib/stores";
-	import type { MessageKey } from "$lib/i18n/messages/en.js";
+	import { t, tCategory, docTitle } from "$lib/stores";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
-	import DemoRenderer from "$lib/components/docs/DemoRenderer.svelte";
+	import DemoRenderer, { PREVIEW_EXAMPLE } from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
 	import type { PageData } from "./$types";
 
@@ -20,11 +19,30 @@
 
 <${component.name} />`);
 
+	// Raw source of every docs example, so slugs whose Preview is overridden to a specific
+	// example (PREVIEW_EXAMPLE) show that example's source in the Code tab instead of the
+	// generic single-tag usage — keeping the Preview and its Code tab in sync.
+	const rawExamples = import.meta.glob("$lib/components/docs/examples/**/*.svelte", {
+		query: "?raw",
+		import: "default",
+		eager: true,
+	}) as Record<string, string>;
+
+	let previewCode = $derived.by(() => {
+		const example = PREVIEW_EXAMPLE[component.slug];
+		if (example) {
+			const src =
+				rawExamples[`/src/lib/components/docs/examples/${component.slug}/${example}.svelte`];
+			if (src) return src.trim();
+		}
+		return basicUsageCode;
+	});
+
 	let previewTab = $state<"preview" | "code">("preview");
 </script>
 
 <svelte:head>
-	<title>{component.name} - FancyUI Docs</title>
+	<title>{docTitle(component.name)}</title>
 	<meta name="description" content={component.description} />
 </svelte:head>
 
@@ -32,7 +50,7 @@
 	<!-- Header -->
 	<div class="mb-3 flex flex-wrap items-center gap-2">
 		<span class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">
-			{t(`category.${component.category}` as MessageKey)}
+			{tCategory(component.category)}
 		</span>
 		{#if component.status === "done"}
 			<span
@@ -81,7 +99,7 @@
 				</div>
 			{:else}
 				<div class="max-h-[500px] overflow-auto">
-					<CodeBlock code={basicUsageCode} lang="svelte" />
+					<CodeBlock code={previewCode} lang="svelte" />
 				</div>
 			{/if}
 		</div>

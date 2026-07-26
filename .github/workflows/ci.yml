@@ -36,6 +36,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:registry
+      - run: pnpm check:i18n
       - run: pnpm check
       - run: pnpm test
 

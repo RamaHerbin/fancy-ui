@@ -1,4 +1,6 @@
 // Italian (it) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Per iniziare",
@@ -109,4 +111,175 @@ export default {
 	"category.navigation": "Navigazione",
 	"category.media": "Media",
 	"category.effects": "Effetti",
-};
+
+	// Introduction (redesigned page)
+	"intro.title": "Introduzione",
+	"intro.metaTitle": "Introduzione",
+	"intro.leadPre": "è una raccolta di",
+	"intro.leadHighlight": "60 componenti UI",
+	"intro.leadHighlight2": "animati e interattivi",
+	"intro.leadPost": "creati nativamente per Svelte 5.",
+	"intro.pill.svelte": "Svelte 5 nativo",
+	"intro.pill.animation": "Animazioni al primo posto",
+	"intro.pill.copyPaste": "Facile da copiare e incollare",
+	"intro.pill.tailwind": "Tailwind CSS 4",
+	"intro.pill.typescript": "TypeScript",
+	"intro.philosophy.heading": "Filosofia",
+	"intro.philosophy.card1.title": "Nativo per Svelte 5",
+	"intro.philosophy.card1.desc": "Realizzato con le rune. Nessuna API legacy.",
+	"intro.philosophy.card2.title": "Animazioni al primo posto",
+	"intro.philosophy.card2.desc": "Ogni componente include animazioni curate, pronte all'uso.",
+	"intro.philosophy.card3.title": "Facile da copiare e incollare",
+	"intro.philosophy.card3.desc": "Usalo come pacchetto o copia direttamente il sorgente.",
+	"intro.philosophy.card4.title": "Tailwind CSS 4",
+	"intro.philosophy.card4.desc":
+		"Stile basato su classi di utilità e proprietà CSS personalizzate.",
+	"intro.philosophy.card5.title": "TypeScript",
+	"intro.philosophy.card5.desc": "Piena sicurezza dei tipi con interfacce delle prop esportate.",
+	"intro.quickStart.heading": "Avvio rapido",
+	"intro.quickStart.step1.title": "Installa",
+	"intro.quickStart.step1.desc": "Aggiungi FancyUI al tuo progetto.",
+	"intro.quickStart.step2.title": "Importa",
+	"intro.quickStart.step2.desc": "Importa i componenti di cui hai bisogno.",
+	"intro.quickStart.step3.title": "Usa",
+	"intro.quickStart.step3.desc": "Inseriscilo nei tuoi componenti Svelte.",
+	"intro.whatsIncluded.heading": "Cosa include",
+	"intro.whatsIncluded.body": "60 componenti suddivisi in 10 categorie:",
+	"intro.category.buttons": "Pulsanti",
+	"intro.category.cards": "Schede",
+	"intro.category.text": "Testo",
+	"intro.category.backgrounds": "Sfondi",
+	"intro.category.effects": "Effetti",
+	"intro.category.layout": "Layout",
+	"intro.category.navigation": "Navigazione",
+	"intro.category.dataDisplay": "Visualizzazione dati",
+	"intro.category.feedback": "Feedback",
+	"intro.category.media": "Media",
+	"intro.nextSteps.heading": "Prossimi passi",
+	"intro.nextSteps.installation": "Installazione",
+	"intro.nextSteps.theming": "Temi",
+	"intro.nextSteps.components": "Sfoglia i componenti",
+	"intro.cta.title": "Nuovo su FancyUI?",
+	"intro.cta.body":
+		"Scopri il <strong>Generatore di temi</strong> per personalizzare i colori e vedere i componenti reagire in tempo reale.",
+	"intro.cta.button": "Prova il Generatore di temi →",
+
+	// Installation (redesigned page)
+	"install.metaTitle": "Installazione",
+	"install.title": "Installazione",
+	"install.lead":
+		"Aggiungi FancyUI a un progetto SvelteKit in tre passaggi: installa il pacchetto, importa il foglio di stile, renderizza un componente.",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "Prerequisiti",
+	"install.prerequisites.body":
+		"FancyUI è pensato per l'attuale toolchain di Svelte. Verifica questi tre punti prima di installare.",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"I componenti sono scritti con le rune, quindi Svelte 5 è obbligatorio. I progetti Svelte 4 non li compileranno.",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"Lo stile si basa sulle utility di Tailwind v4 e sulle proprietà CSS personalizzate.",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"Richiesto dalle versioni di SvelteKit e Vite su cui è costruito FancyUI.",
+	"install.steps.heading": "Installazione",
+	"install.steps.body":
+		"Scegli il tuo gestore di pacchetti, collega il foglio di stile e poi renderizza il tuo primo componente.",
+	"install.step1.title": "Installa il pacchetto",
+	"install.step1.desc":
+		"Un unico pacchetto per tutti i componenti. Cambia scheda per copiare il comando del tuo gestore di pacchetti.",
+	"install.step2.title": "Importa il foglio di stile",
+	"install.step2.desc": "Aggiungi il foglio di stile di FancyUI subito dopo l'import di Tailwind.",
+	"install.step2.caption": "Nel tuo foglio di stile globale, di solito src/app.css.",
+	"install.step3.title": "Renderizza un componente",
+	"install.step3.desc": "Importa dalla radice del pacchetto e inseriscilo nel tuo markup.",
+	"install.tailwind.heading": "Configurazione di Tailwind CSS",
+	"install.tailwind.body":
+		"FancyUI è costruito su Tailwind CSS v4, che si configura in CSS invece che in un file di configurazione JavaScript. Se Tailwind funziona già nel tuo progetto, non c'è altro da configurare.",
+	"install.tailwind.order":
+		"L'ordine degli import è importante: prima Tailwind, poi FancyUI, così i layer e le proprietà personalizzate di FancyUI si risolvono sopra i valori predefiniti.",
+	"install.tailwind.note":
+		"Il foglio di stile contiene i design token letti da ogni componente: colori, raggi e tempi di animazione. Senza di esso, i componenti vengono renderizzati senza stile.",
+	"install.usage.heading": "Utilizzo",
+	"install.usage.body":
+		"Ogni componente è un export denominato della radice del pacchetto, quindi non ci sono percorsi di import per componente da ricordare.",
+	"install.usage.note":
+		"La pagina di ogni componente elenca le sue props, esempi dal vivo e note sull'accessibilità.",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"I tipi delle props sono esportati accanto a ogni componente, così puoi tipizzare wrapper e preset condivisi.",
+	"install.typescript.note":
+		"I tipi sono inclusi nel pacchetto. Non c'è un pacchetto di tipi separato da installare.",
+	"install.peerDeps.heading": "Dipendenze peer",
+	"install.peerDeps.body": "FancyUI si aspetta che queste siano già presenti nel tuo progetto:",
+	"install.peerDeps.colPackage": "Pacchetto",
+	"install.peerDeps.colVersion": "Versione",
+	"install.peerDeps.bundled":
+		"Alcuni componenti richiedono librerie runtime aggiuntive. Sono incluse nel pacchetto, quindi non c'è altro da installare:",
+	"install.peerDeps.bundledNote": "Vengono caricate solo dai componenti che le usano.",
+	"install.nextSteps.heading": "Prossimi passi",
+	"install.nextSteps.components.title": "Sfoglia i componenti",
+	"install.nextSteps.components.desc":
+		"60 componenti con anteprime dal vivo, props ed esempi da copiare e incollare.",
+	"install.nextSteps.theming.title": "Temi",
+	"install.nextSteps.theming.desc":
+		"Sovrascrivi i design token perché ogni componente rispecchi il tuo brand in modalità chiara e scura.",
+
+	// Theming page
+	"theming.metaTitle": "Temi",
+	"theming.title": "Temi",
+	"theming.lead":
+		"Ogni componente FancyUI legge i suoi colori, raggi e tempi dalle proprietà CSS personalizzate nello spazio colore OKLCh — sovrascrivi un token e l'intera libreria lo segue.",
+	"theming.pill.oklch": "Spazio colore OKLCh",
+	"theming.pill.shadcn": "Compatibile con shadcn-svelte",
+	"theming.pill.dark": "Modalità scura",
+	"theming.pill.tokens": "Design token",
+	"theming.generator.body":
+		"Preferisci regolarlo visivamente? Il Generatore di temi adatta questi token con slider in tempo reale e ti fornisce il CSS.",
+	"theming.generator.cta": "Apri il Generatore di temi",
+	"theming.cssSetup.heading": "Configurazione CSS",
+	"theming.cssSetup.body":
+		"Importa il foglio di stile di FancyUI nel CSS globale della tua app, di solito src/app.css:",
+	"theming.colors.heading": "Sistema dei colori",
+	"theming.colors.body":
+		"Tutti i colori usano lo spazio colore OKLCh per gradienti percettivamente uniformi:",
+	"theming.colors.note":
+		"I nomi dei token seguono le convenzioni di shadcn-svelte, quindi un tema shadcn esistente si integra senza modifiche.",
+	"theming.dark.heading": "Modalità scura",
+	"theming.dark.body":
+		"La modalità scura si attiva con la classe .dark su un elemento genitore. FancyUI sovrascrive ogni token:",
+	"theming.motion.heading": "Token di animazione",
+	"theming.motion.body": "Controlla i tempi di animazione a livello globale:",
+	"theming.easing.heading": "Funzioni di easing",
+	"theming.easing.body":
+		"Anche le curve di easing sono token, condivisi da ogni transizione dei componenti:",
+	"theming.rainbow.heading": "Gradienti arcobaleno",
+	"theming.rainbow.body": "Usati da RainbowButton, GradientButton e altri effetti a gradiente:",
+	"theming.customizing.heading": "Personalizzazione",
+	"theming.customizing.body": "Sovrascrivi qualsiasi token nel tuo CSS per cambiare l'aspetto:",
+	"theming.customizing.note":
+		"I token si propagano in cascata: sovrascrivili globalmente in :root, oppure limitali a un elemento wrapper per personalizzare una singola sezione.",
+	"theming.nextSteps.heading": "Prossimi passi",
+	"theming.nextSteps.generator.title": "Generatore di temi",
+	"theming.nextSteps.generator.desc":
+		"Regola ogni token con slider in tempo reale e copia il CSS finito.",
+	"theming.nextSteps.components.title": "Sfoglia i componenti",
+	"theming.nextSteps.components.desc":
+		"Guarda i token in azione in tutta la galleria dei componenti.",
+
+	// Changelog page
+	"changelog.metaTitle": "Registro modifiche",
+	"changelog.title": "Registro modifiche",
+	"changelog.lead":
+		"Tutte le release di FancyUI e le relative modifiche, dalla più recente alla meno recente.",
+	"changelog.latest": "Più recente",
+	"changelog.major": "Modifiche principali",
+	"changelog.minor": "Modifiche minori",
+	"changelog.patch": "Modifiche patch",
+} satisfies Catalog;
