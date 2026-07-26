@@ -155,12 +155,17 @@ export function correctDeltaY(delta: number, width: number, height: number) {
 
 /**
  * How the fluid is actually being rendered, surfaced as data so callers can
- * react (e.g. tell a true-HDR display apart from a clamped fallback):
- * - "webgpu-hdr": WebGPU with extended tone mapping active — true HDR output.
- * - "webgpu-sdr": WebGPU float16 + P3, but the browser clamped tone mapping.
+ * react (e.g. tell true HDR output apart from a clamped fallback):
+ * - "webgpu-hdr": WebGPU with extended tone mapping active AND a display
+ *   reporting `(dynamic-range: high)` — true HDR output.
+ * - "webgpu-sdr": WebGPU float16 + P3, but the browser clamped tone mapping or
+ *   the output display is SDR.
  * - "webgl-p3":   WebGL fallback with a display-p3 drawing buffer.
  * - "webgl-sdr":  WebGL fallback, plain sRGB.
- * - "none":       no GPU rendering available at all.
+ * - "none":       no GPU rendering available at all; the handle is inert.
+ *
+ * Sampled once when the handle is created: it does not update if the window
+ * later moves to a display with a different dynamic range.
  */
 export type FluidRenderLevel = "webgpu-hdr" | "webgpu-sdr" | "webgl-p3" | "webgl-sdr" | "none";
 

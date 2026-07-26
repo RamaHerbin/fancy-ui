@@ -344,7 +344,9 @@ async function createWebGpuFluid(
 
 		// Browsers that do not support toneMapping drop the member, which
 		// getConfiguration() makes observable. Surface it as data (not just a
-		// DEV log) so callers can tell true HDR from a clamped fallback.
+		// DEV log) so callers can tell an extended-tone-mapping canvas from a
+		// clamped fallback; whether the display is HDR is checked separately by
+		// startWebGpuFluid.
 		let extendedToneMapping = false;
 		try {
 			const applied = context.getConfiguration?.() as
@@ -357,7 +359,7 @@ async function createWebGpuFluid(
 		if (import.meta.env.DEV) {
 			console.info(
 				extendedToneMapping
-					? "[FluidCursor] HDR level: webgpu-hdr (extended tone mapping active)"
+					? "[FluidCursor] extended tone mapping active (webgpu-hdr if the display reports high dynamic range)"
 					: "[FluidCursor] HDR level: webgpu-sdr (float16 + P3, tone mapping clamped by browser)"
 			);
 		}
@@ -857,10 +859,17 @@ export async function startWebGpuFluid(
 	const pointers: Pointer[] = [pointerPrototype()];
 	// Dedicated synthetic pointer driven programmatically through the handle. It
 	// lives alongside the mouse pointer in the same list, so updateFrame splats
-	// both and the two inputs coexist.
-	const autopilotPointer = pointerPrototype();
-	pointers.push(autopilotPointer);
+	// both and the two inputs coexist. Created on first programmatic use, so a
+	// consumer that never drives the handle costs nothing.
+	let autopilotPointer: Pointer | null = null;
 	let penWasUp = true;
+	function ensureAutopilotPointer(): Pointer {
+		if (!autopilotPointer) {
+			autopilotPointer = pointerPrototype();
+			pointers.push(autopilotPointer);
+		}
+		return autopilotPointer;
+	}
 
 	let animationFrameId = 0;
 	let lastUpdateTime = Date.now();
@@ -980,6 +989,10 @@ export async function startWebGpuFluid(
 		if (colorUpdateTimer >= 1) {
 			colorUpdateTimer = colorUpdateTimer % 1;
 			pointers.forEach((p) => {
+				// The synthetic pointer's color belongs to the handle: pulling from
+				// the generator here would advance the shared palette index twice per
+				// update and overwrite explicit stroke colors.
+				if (p === autopilotPointer) return;
 				p.color = opts.generateColor();
 			});
 		}
@@ -1091,7 +1104,16 @@ export async function startWebGpuFluid(
 		}, opts.autoSplatInterval);
 	}
 
-	const renderLevel: FluidRenderLevel = engine.extendedToneMapping ? "webgpu-hdr" : "webgpu-sdr";
+	// Extended tone mapping only proves the browser kept the configuration — an
+	// SDR display still clamps the output — so "webgpu-hdr" requires both. The
+	// display state is sampled once here and does not follow the window to
+	// another monitor.
+	const hdrDisplay =
+		typeof window !== "undefined" && typeof window.matchMedia === "function"
+			? window.matchMedia("(dynamic-range: high)").matches
+			: false;
+	const renderLevel: FluidRenderLevel =
+		engine.extendedToneMapping && hdrDisplay ? "webgpu-hdr" : "webgpu-sdr";
 
 	return {
 		/**
@@ -1099,6 +1121,7 @@ export async function startWebGpuFluid(
 		 * so the coordinates pass straight through.
 		 */
 		moveTo(x: number, y: number, color?: ColorRGB) {
+			const pointer = ensureAutopilotPointer();
 			const posX = x * canvas.width;
 			const posY = y * canvas.height;
 			if (penWasUp) {
@@ -1106,22 +1129,28 @@ export async function startWebGpuFluid(
 				// updatePointerDownData) so the jump from the previous stroke's
 				// end never draws a connecting streak.
 				penWasUp = false;
-				autopilotPointer.down = true;
-				autopilotPointer.moved = false;
-				autopilotPointer.texcoordX = posX / canvas.width;
-				autopilotPointer.texcoordY = posY / canvas.height;
-				autopilotPointer.prevTexcoordX = autopilotPointer.texcoordX;
-				autopilotPointer.prevTexcoordY = autopilotPointer.texcoordY;
-				autopilotPointer.deltaX = 0;
-				autopilotPointer.deltaY = 0;
-				autopilotPointer.color = color ?? autopilotPointer.color;
+				pointer.down = true;
+				pointer.moved = false;
+				pointer.texcoordX = posX / canvas.width;
+				pointer.texcoordY = posY / canvas.height;
+				pointer.prevTexcoordX = pointer.texcoordX;
+				pointer.prevTexcoordY = pointer.texcoordY;
+				pointer.deltaX = 0;
+				pointer.deltaY = 0;
+				// A stroke with no explicit color takes a fresh generated one, as a
+				// real pointer-down does: the prototype's black would inject
+				// invisible dye.
+				pointer.color = color ?? opts.generateColor();
 				return;
 			}
-			updatePointerMoveData(autopilotPointer, posX, posY, color ?? autopilotPointer.color);
+			updatePointerMoveData(pointer, posX, posY, color ?? pointer.color);
 		},
 		penUp() {
+			// `moved` is deliberately left alone: updateFrame consumes and clears it
+			// on the next frame, so clearing it here would swallow the final segment
+			// of a stroke finished synchronously before that frame.
 			penWasUp = true;
-			autopilotPointer.moved = false;
+			if (autopilotPointer) autopilotPointer.down = false;
 		},
 		/** No Y flip on the WebGPU path. */
 		burst(x: number, y: number, dx: number, dy: number, color: ColorRGB) {

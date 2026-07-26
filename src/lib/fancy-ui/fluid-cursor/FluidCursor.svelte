@@ -168,6 +168,31 @@
 		return cleanup;
 	}
 
+	// Inert handle for environments where no renderer came up at all, so a
+	// consumer waiting on onReady can tell "unsupported" from "still starting".
+	const noRendererHandle: FluidCursorHandle = {
+		moveTo() {},
+		penUp() {},
+		burst() {},
+		renderLevel: "none",
+	};
+
+	// Hand the handle to the consumer. Guarded because the WebGPU path invokes
+	// this inside its startup promise chain: an exception from the callback would
+	// otherwise be caught as a WebGPU setup failure, retrying WebGL on a canvas
+	// already claimed by WebGPU and dropping the registered cleanup. Re-thrown
+	// asynchronously so it still surfaces as an unhandled error.
+	function notifyReady(handle: FluidCursorHandle) {
+		if (!onReady) return;
+		try {
+			onReady(handle);
+		} catch (error) {
+			queueMicrotask(() => {
+				throw error;
+			});
+		}
+	}
+
 	onMount(() => {
 		const canvas = canvasRef;
 		if (!canvas) return;
@@ -239,7 +264,7 @@
 						return;
 					}
 					activeCleanup = registerInstance(handle.cleanup);
-					onReady?.(handle);
+					notifyReady(handle);
 				})
 				.catch((error) => {
 					// Unexpected failure while wiring the WebGPU path: fall back
@@ -263,14 +288,20 @@
 			let renderLevel: FluidRenderLevel = "webgl-sdr";
 			// Dedicated synthetic pointer driven programmatically through the
 			// handle. It lives alongside the mouse pointer in the same list, so
-			// applyInputs splats both and the two inputs coexist.
-			const autopilotPointer = pointerPrototype();
-			pointers.push(autopilotPointer);
+			// applyInputs splats both and the two inputs coexist. Only created
+			// when a consumer asked for the handle: an unused extra pointer would
+			// still consume the shared fluidColors sequence in updateColors.
+			const autopilotPointer = onReady ? pointerPrototype() : null;
+			if (autopilotPointer) pointers.push(autopilotPointer);
 			let penWasUp = true;
 
 			// Get WebGL context
 			const context = getWebGLContext(canvas);
-			if (!context.gl || !context.ext) return;
+			if (!context.gl || !context.ext) {
+				// No renderer at all (WebGPU already failed if it was tried).
+				notifyReady(noRendererHandle);
+				return;
+			}
 
 			// These are guaranteed non-null after the check above
 			const gl = context.gl;
@@ -1189,6 +1220,10 @@
 				if (colorUpdateTimer >= 1) {
 					colorUpdateTimer = wrap(colorUpdateTimer, 0, 1);
 					pointers.forEach((p) => {
+						// The synthetic pointer's color belongs to the handle: pulling
+						// from the generator here would advance the shared fluidColors
+						// index twice per update and overwrite explicit stroke colors.
+						if (p === autopilotPointer) return;
 						p.color = generateColor();
 					});
 				}
@@ -1506,6 +1541,7 @@
 			// yields the same path a real mouse event's clientY takes. This is the
 			// only Y flip on the WebGL path.
 			function autopilotMoveTo(x: number, y: number, color?: ColorRGB) {
+				if (!autopilotPointer) return;
 				const posX = x * canvas.width;
 				const posY = y * canvas.height;
 				if (penWasUp) {
@@ -1521,14 +1557,20 @@
 					autopilotPointer.prevTexcoordY = autopilotPointer.texcoordY;
 					autopilotPointer.deltaX = 0;
 					autopilotPointer.deltaY = 0;
-					autopilotPointer.color = color ?? autopilotPointer.color;
+					// A stroke with no explicit color takes a fresh generated one, as
+					// a real pointer-down does: the prototype's black would inject
+					// invisible dye.
+					autopilotPointer.color = color ?? generateColor();
 					return;
 				}
 				updatePointerMoveData(autopilotPointer, posX, posY, color ?? autopilotPointer.color);
 			}
 			function autopilotPenUp() {
+				// `moved` is deliberately left alone: applyInputs consumes and clears
+				// it on the next frame, so clearing it here would swallow the final
+				// segment of a stroke finished synchronously before that frame.
 				penWasUp = true;
-				autopilotPointer.moved = false;
+				if (autopilotPointer) autopilotPointer.down = false;
 			}
 			// Top-left origin in, bottom-up texcoords out: flip y and negate dy.
 			function autopilotBurst(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
@@ -1650,14 +1692,18 @@
 				}
 			}
 
-			onReady?.({
+			// Register before notifying: a throwing callback must not cost us the
+			// cleanup registration (listeners, rAF loop and GL resources would
+			// otherwise outlive the component).
+			const dispose = registerInstance(cleanup);
+			notifyReady({
 				moveTo: autopilotMoveTo,
 				penUp: autopilotPenUp,
 				burst: autopilotBurst,
 				renderLevel,
 			});
 
-			return registerInstance(cleanup);
+			return dispose;
 		}
 	});
 </script>
