@@ -16,6 +16,8 @@
 import {
 	type ColorRGB,
 	type Pointer,
+	type FluidCursorHandle,
+	type FluidRenderLevel,
 	pointerPrototype,
 	correctDeltaX,
 	correctDeltaY,
@@ -279,6 +281,8 @@ interface FluidEngine {
 	resizeIfNeeded: () => void;
 	frame: (dt: number) => void;
 	readonly lost: boolean;
+	/** Whether the browser actually applied extended tone mapping (true HDR). */
+	readonly extendedToneMapping: boolean;
 	destroy: () => void;
 }
 
@@ -338,20 +342,21 @@ async function createWebGpuFluid(
 		const context: GPUCanvasContext = maybeContext;
 		context.configure(configuration);
 
+		// Browsers that do not support toneMapping drop the member, which
+		// getConfiguration() makes observable. Surface it as data (not just a
+		// DEV log) so callers can tell true HDR from a clamped fallback.
+		let extendedToneMapping = false;
+		try {
+			const applied = context.getConfiguration?.() as
+				| (GPUCanvasConfiguration & { toneMapping?: { mode?: string } })
+				| null;
+			extendedToneMapping = applied?.toneMapping?.mode === "extended";
+		} catch {
+			// getConfiguration unsupported (e.g. Safari): assume clamped output.
+		}
 		if (import.meta.env.DEV) {
-			// Browsers that do not support toneMapping drop the member, which
-			// getConfiguration() makes observable — log the real level.
-			let extended = false;
-			try {
-				const applied = context.getConfiguration?.() as
-					| (GPUCanvasConfiguration & { toneMapping?: { mode?: string } })
-					| null;
-				extended = applied?.toneMapping?.mode === "extended";
-			} catch {
-				// getConfiguration unsupported: assume clamped output.
-			}
 			console.info(
-				extended
+				extendedToneMapping
 					? "[FluidCursor] HDR level: webgpu-hdr (extended tone mapping active)"
 					: "[FluidCursor] HDR level: webgpu-sdr (float16 + P3, tone mapping clamped by browser)"
 			);
@@ -817,6 +822,7 @@ async function createWebGpuFluid(
 			get lost() {
 				return lost;
 			},
+			extendedToneMapping,
 			destroy() {
 				destroyed = true;
 				device.destroy();
@@ -832,18 +838,30 @@ async function createWebGpuFluid(
 
 /**
  * Full WebGPU setup for FluidCursor: engine + pointer wiring + rAF loop +
- * visibility pause + auto splats. Resolves with a cleanup function, or with
- * `null` when WebGPU is unavailable (caller falls back to the WebGL path).
+ * visibility pause + auto splats. Resolves with a {@link FluidCursorHandle}
+ * (augmented with `cleanup`), or with `null` when WebGPU is unavailable
+ * (caller falls back to the WebGL path).
+ *
+ * Handle coordinates are top-left origin in [0,1]; WebGPU texcoords already
+ * use a top-origin convention, so no Y flip happens here (the WebGL path owns
+ * its own flip).
  */
 export async function startWebGpuFluid(
 	canvas: HTMLCanvasElement,
 	opts: WebGpuFluidOptions
-): Promise<(() => void) | null> {
+): Promise<(FluidCursorHandle & { cleanup(): void }) | null> {
 	const maybeEngine = await createWebGpuFluid(canvas, opts);
 	if (!maybeEngine) return null;
 	const engine: FluidEngine = maybeEngine;
 
 	const pointers: Pointer[] = [pointerPrototype()];
+	// Dedicated synthetic pointer driven programmatically through the handle. It
+	// lives alongside the mouse pointer in the same list, so updateFrame splats
+	// both and the two inputs coexist.
+	const autopilotPointer = pointerPrototype();
+	pointers.push(autopilotPointer);
+	let penWasUp = true;
+
 	let animationFrameId = 0;
 	let lastUpdateTime = Date.now();
 	let colorUpdateTimer = 0;
@@ -1073,23 +1091,61 @@ export async function startWebGpuFluid(
 		}, opts.autoSplatInterval);
 	}
 
-	return () => {
-		stopped = true;
-		cancelAnimationFrame(animationFrameId);
-		if (observer) observer.disconnect();
-		if (autoSplatTimer) clearInterval(autoSplatTimer);
-		if (opts.interactive) {
-			window.removeEventListener("mousedown", handleMouseDown);
-			document.body.removeEventListener("mousemove", handleFirstMouseMove);
-			window.removeEventListener("mousemove", handleMouseMove);
-			document.body.removeEventListener("touchstart", handleFirstTouchStart);
-			window.removeEventListener("touchstart", handleTouchStart);
-			window.removeEventListener("touchmove", handleTouchMove);
-		}
-		if (opts.contained) {
-			window.removeEventListener("resize", updateCanvasRectCache);
-			window.removeEventListener("scroll", updateCanvasRectCache);
-		}
-		engine.destroy();
+	const renderLevel: FluidRenderLevel = engine.extendedToneMapping ? "webgpu-hdr" : "webgpu-sdr";
+
+	return {
+		/**
+		 * x,y in [0,1], top-left origin. WebGPU texcoords are already top-origin,
+		 * so the coordinates pass straight through.
+		 */
+		moveTo(x: number, y: number, color?: ColorRGB) {
+			const posX = x * canvas.width;
+			const posY = y * canvas.height;
+			if (penWasUp) {
+				// First move of a new stroke: reposition only (mirrors
+				// updatePointerDownData) so the jump from the previous stroke's
+				// end never draws a connecting streak.
+				penWasUp = false;
+				autopilotPointer.down = true;
+				autopilotPointer.moved = false;
+				autopilotPointer.texcoordX = posX / canvas.width;
+				autopilotPointer.texcoordY = posY / canvas.height;
+				autopilotPointer.prevTexcoordX = autopilotPointer.texcoordX;
+				autopilotPointer.prevTexcoordY = autopilotPointer.texcoordY;
+				autopilotPointer.deltaX = 0;
+				autopilotPointer.deltaY = 0;
+				autopilotPointer.color = color ?? autopilotPointer.color;
+				return;
+			}
+			updatePointerMoveData(autopilotPointer, posX, posY, color ?? autopilotPointer.color);
+		},
+		penUp() {
+			penWasUp = true;
+			autopilotPointer.moved = false;
+		},
+		/** No Y flip on the WebGPU path. */
+		burst(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
+			engine.splat(x, y, dx, dy, color);
+		},
+		renderLevel,
+		cleanup() {
+			stopped = true;
+			cancelAnimationFrame(animationFrameId);
+			if (observer) observer.disconnect();
+			if (autoSplatTimer) clearInterval(autoSplatTimer);
+			if (opts.interactive) {
+				window.removeEventListener("mousedown", handleMouseDown);
+				document.body.removeEventListener("mousemove", handleFirstMouseMove);
+				window.removeEventListener("mousemove", handleMouseMove);
+				document.body.removeEventListener("touchstart", handleFirstTouchStart);
+				window.removeEventListener("touchstart", handleTouchStart);
+				window.removeEventListener("touchmove", handleTouchMove);
+			}
+			if (opts.contained) {
+				window.removeEventListener("resize", updateCanvasRectCache);
+				window.removeEventListener("scroll", updateCanvasRectCache);
+			}
+			engine.destroy();
+		},
 	};
 }
