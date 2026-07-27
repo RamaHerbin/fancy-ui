@@ -152,3 +152,37 @@ export function correctDeltaY(delta: number, width: number, height: number) {
 	if (aspectRatio > 1) return delta / aspectRatio;
 	return delta;
 }
+
+/**
+ * How the fluid is actually being rendered, surfaced as data so callers can
+ * react (e.g. tell true HDR output apart from a clamped fallback):
+ * - "webgpu-hdr": WebGPU with extended tone mapping active AND a display
+ *   reporting `(dynamic-range: high)` — true HDR output.
+ * - "webgpu-sdr": WebGPU float16 + P3, but the browser clamped tone mapping or
+ *   the output display is SDR.
+ * - "webgl-p3":   WebGL fallback with a display-p3 drawing buffer.
+ * - "webgl-sdr":  WebGL fallback, plain sRGB.
+ * - "none":       no GPU rendering available at all; the handle is inert.
+ *
+ * Sampled once when the handle is created: it does not update if the window
+ * later moves to a display with a different dynamic range.
+ */
+export type FluidRenderLevel = "webgpu-hdr" | "webgpu-sdr" | "webgl-p3" | "webgl-sdr" | "none";
+
+/**
+ * Imperative control surface handed to `FluidCursor`'s `onReady` callback so a
+ * parent can drive the simulation programmatically (trace a path, fire a
+ * one-off burst) and read back which render path actually engaged. Coordinates
+ * are in [0,1] with the ORIGIN AT THE TOP-LEFT (CSS convention); velocity is
+ * derived from consecutive `moveTo` calls, so smooth paths feel like a real
+ * cursor. Any engine-specific Y flip is internal.
+ */
+export interface FluidCursorHandle {
+	/** Drive the synthetic pointer like a mouse. The next `moveTo` after `penUp` repositions without drawing. */
+	moveTo(x: number, y: number, color?: ColorRGB): void;
+	/** Lift the pen so the next `moveTo` repositions without producing a connecting streak. */
+	penUp(): void;
+	/** One-off impulse (click-like burst). Same coord convention; dx/dy in engine velocity units. */
+	burst(x: number, y: number, dx: number, dy: number, color: ColorRGB): void;
+	readonly renderLevel: FluidRenderLevel;
+}

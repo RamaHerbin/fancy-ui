@@ -16,6 +16,8 @@
 import {
 	type ColorRGB,
 	type Pointer,
+	type FluidCursorHandle,
+	type FluidRenderLevel,
 	pointerPrototype,
 	correctDeltaX,
 	correctDeltaY,
@@ -279,6 +281,8 @@ interface FluidEngine {
 	resizeIfNeeded: () => void;
 	frame: (dt: number) => void;
 	readonly lost: boolean;
+	/** Whether the browser actually applied extended tone mapping (true HDR). */
+	readonly extendedToneMapping: boolean;
 	destroy: () => void;
 }
 
@@ -338,21 +342,24 @@ async function createWebGpuFluid(
 		const context: GPUCanvasContext = maybeContext;
 		context.configure(configuration);
 
+		// Browsers that do not support toneMapping drop the member, which
+		// getConfiguration() makes observable. Surface it as data (not just a
+		// DEV log) so callers can tell an extended-tone-mapping canvas from a
+		// clamped fallback; whether the display is HDR is checked separately by
+		// startWebGpuFluid.
+		let extendedToneMapping = false;
+		try {
+			const applied = context.getConfiguration?.() as
+				| (GPUCanvasConfiguration & { toneMapping?: { mode?: string } })
+				| null;
+			extendedToneMapping = applied?.toneMapping?.mode === "extended";
+		} catch {
+			// getConfiguration unsupported (e.g. Safari): assume clamped output.
+		}
 		if (import.meta.env.DEV) {
-			// Browsers that do not support toneMapping drop the member, which
-			// getConfiguration() makes observable — log the real level.
-			let extended = false;
-			try {
-				const applied = context.getConfiguration?.() as
-					| (GPUCanvasConfiguration & { toneMapping?: { mode?: string } })
-					| null;
-				extended = applied?.toneMapping?.mode === "extended";
-			} catch {
-				// getConfiguration unsupported: assume clamped output.
-			}
 			console.info(
-				extended
-					? "[FluidCursor] HDR level: webgpu-hdr (extended tone mapping active)"
+				extendedToneMapping
+					? "[FluidCursor] extended tone mapping active (webgpu-hdr if the display reports high dynamic range)"
 					: "[FluidCursor] HDR level: webgpu-sdr (float16 + P3, tone mapping clamped by browser)"
 			);
 		}
@@ -817,6 +824,7 @@ async function createWebGpuFluid(
 			get lost() {
 				return lost;
 			},
+			extendedToneMapping,
 			destroy() {
 				destroyed = true;
 				device.destroy();
@@ -832,18 +840,37 @@ async function createWebGpuFluid(
 
 /**
  * Full WebGPU setup for FluidCursor: engine + pointer wiring + rAF loop +
- * visibility pause + auto splats. Resolves with a cleanup function, or with
- * `null` when WebGPU is unavailable (caller falls back to the WebGL path).
+ * visibility pause + auto splats. Resolves with a {@link FluidCursorHandle}
+ * (augmented with `cleanup`), or with `null` when WebGPU is unavailable
+ * (caller falls back to the WebGL path).
+ *
+ * Handle coordinates are top-left origin in [0,1]; WebGPU texcoords already
+ * use a top-origin convention, so no Y flip happens here (the WebGL path owns
+ * its own flip).
  */
 export async function startWebGpuFluid(
 	canvas: HTMLCanvasElement,
 	opts: WebGpuFluidOptions
-): Promise<(() => void) | null> {
+): Promise<(FluidCursorHandle & { cleanup(): void }) | null> {
 	const maybeEngine = await createWebGpuFluid(canvas, opts);
 	if (!maybeEngine) return null;
 	const engine: FluidEngine = maybeEngine;
 
 	const pointers: Pointer[] = [pointerPrototype()];
+	// Dedicated synthetic pointer driven programmatically through the handle. It
+	// lives alongside the mouse pointer in the same list, so updateFrame splats
+	// both and the two inputs coexist. Created on first programmatic use, so a
+	// consumer that never drives the handle costs nothing.
+	let autopilotPointer: Pointer | null = null;
+	let penWasUp = true;
+	function ensureAutopilotPointer(): Pointer {
+		if (!autopilotPointer) {
+			autopilotPointer = pointerPrototype();
+			pointers.push(autopilotPointer);
+		}
+		return autopilotPointer;
+	}
+
 	let animationFrameId = 0;
 	let lastUpdateTime = Date.now();
 	let colorUpdateTimer = 0;
@@ -962,6 +989,10 @@ export async function startWebGpuFluid(
 		if (colorUpdateTimer >= 1) {
 			colorUpdateTimer = colorUpdateTimer % 1;
 			pointers.forEach((p) => {
+				// The synthetic pointer's color belongs to the handle: pulling from
+				// the generator here would advance the shared palette index twice per
+				// update and overwrite explicit stroke colors.
+				if (p === autopilotPointer) return;
 				p.color = opts.generateColor();
 			});
 		}
@@ -1073,23 +1104,77 @@ export async function startWebGpuFluid(
 		}, opts.autoSplatInterval);
 	}
 
-	return () => {
-		stopped = true;
-		cancelAnimationFrame(animationFrameId);
-		if (observer) observer.disconnect();
-		if (autoSplatTimer) clearInterval(autoSplatTimer);
-		if (opts.interactive) {
-			window.removeEventListener("mousedown", handleMouseDown);
-			document.body.removeEventListener("mousemove", handleFirstMouseMove);
-			window.removeEventListener("mousemove", handleMouseMove);
-			document.body.removeEventListener("touchstart", handleFirstTouchStart);
-			window.removeEventListener("touchstart", handleTouchStart);
-			window.removeEventListener("touchmove", handleTouchMove);
-		}
-		if (opts.contained) {
-			window.removeEventListener("resize", updateCanvasRectCache);
-			window.removeEventListener("scroll", updateCanvasRectCache);
-		}
-		engine.destroy();
+	// Extended tone mapping only proves the browser kept the configuration — an
+	// SDR display still clamps the output — so "webgpu-hdr" requires both. The
+	// display state is sampled once here and does not follow the window to
+	// another monitor.
+	const hdrDisplay =
+		typeof window !== "undefined" && typeof window.matchMedia === "function"
+			? window.matchMedia("(dynamic-range: high)").matches
+			: false;
+	const renderLevel: FluidRenderLevel =
+		engine.extendedToneMapping && hdrDisplay ? "webgpu-hdr" : "webgpu-sdr";
+
+	return {
+		/**
+		 * x,y in [0,1], top-left origin. WebGPU texcoords are already top-origin,
+		 * so the coordinates pass straight through.
+		 */
+		moveTo(x: number, y: number, color?: ColorRGB) {
+			const pointer = ensureAutopilotPointer();
+			const posX = x * canvas.width;
+			const posY = y * canvas.height;
+			if (penWasUp) {
+				// First move of a new stroke: reposition only (mirrors
+				// updatePointerDownData) so the jump from the previous stroke's
+				// end never draws a connecting streak.
+				penWasUp = false;
+				pointer.down = true;
+				pointer.moved = false;
+				pointer.texcoordX = posX / canvas.width;
+				pointer.texcoordY = posY / canvas.height;
+				pointer.prevTexcoordX = pointer.texcoordX;
+				pointer.prevTexcoordY = pointer.texcoordY;
+				pointer.deltaX = 0;
+				pointer.deltaY = 0;
+				// A stroke with no explicit color takes a fresh generated one, as a
+				// real pointer-down does: the prototype's black would inject
+				// invisible dye.
+				pointer.color = color ?? opts.generateColor();
+				return;
+			}
+			updatePointerMoveData(pointer, posX, posY, color ?? pointer.color);
+		},
+		penUp() {
+			// `moved` is deliberately left alone: updateFrame consumes and clears it
+			// on the next frame, so clearing it here would swallow the final segment
+			// of a stroke finished synchronously before that frame.
+			penWasUp = true;
+			if (autopilotPointer) autopilotPointer.down = false;
+		},
+		/** No Y flip on the WebGPU path. */
+		burst(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
+			engine.splat(x, y, dx, dy, color);
+		},
+		renderLevel,
+		cleanup() {
+			stopped = true;
+			cancelAnimationFrame(animationFrameId);
+			if (observer) observer.disconnect();
+			if (autoSplatTimer) clearInterval(autoSplatTimer);
+			if (opts.interactive) {
+				window.removeEventListener("mousedown", handleMouseDown);
+				document.body.removeEventListener("mousemove", handleFirstMouseMove);
+				window.removeEventListener("mousemove", handleMouseMove);
+				document.body.removeEventListener("touchstart", handleFirstTouchStart);
+				window.removeEventListener("touchstart", handleTouchStart);
+				window.removeEventListener("touchmove", handleTouchMove);
+			}
+			if (opts.contained) {
+				window.removeEventListener("resize", updateCanvasRectCache);
+				window.removeEventListener("scroll", updateCanvasRectCache);
+			}
+			engine.destroy();
+		},
 	};
 }

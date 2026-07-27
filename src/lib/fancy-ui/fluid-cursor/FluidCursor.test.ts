@@ -146,4 +146,25 @@ describe("FluidCursor", () => {
 			expect(container.querySelector("canvas")).toBeInTheDocument();
 		});
 	});
+
+	describe("onReady handle", () => {
+		// jsdom provides no WebGL context, so this exercises the no-renderer path.
+		it('reports renderLevel "none" when no renderer is available', () => {
+			const onReady = vi.fn();
+			render(FluidCursor, { props: { onReady } });
+			expect(onReady).toHaveBeenCalledTimes(1);
+			expect(onReady.mock.calls[0][0].renderLevel).toBe("none");
+		});
+
+		it("hands over an inert handle that is safe to call", () => {
+			const onReady = vi.fn();
+			render(FluidCursor, { props: { onReady } });
+			const handle = onReady.mock.calls[0][0];
+			expect(() => {
+				handle.moveTo(0.5, 0.5);
+				handle.penUp();
+				handle.burst(0.5, 0.5, 10, 10, { r: 1, g: 0, b: 0 });
+			}).not.toThrow();
+		});
+	});
 });
