@@ -253,6 +253,6 @@ MIT
 
 <p align="center">
   <a href="https://www.anthropic.com/claude-code">
-    <img src=".github/claude-code-open-source-program.svg" alt="Claude Code Open Source Program" width="420" />
+    <img src=".github/claude-for-open-source-program.svg" alt="Claude for Open Source Program" width="420" />
   </a>
 </p>
