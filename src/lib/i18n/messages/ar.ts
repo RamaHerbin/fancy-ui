@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "بدء الاستخدام",
 	"nav.components": "المكوّنات",
+	"nav.home": "الرئيسية",
 	"nav.docsSuffix": "التوثيق",
 	"a11y.closeSidebar": "إغلاق الشريط الجانبي",
 	"a11y.toggleSidebar": "تبديل الشريط الجانبي",
+	"a11y.breadcrumb": "مسار التنقل",
 
 	// Getting-started page titles
 	"page.introduction": "مقدّمة",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "الشيفرة المصدرية",
 	"comp.inspiredBy": "مستوحى من",
 	"comp.examples": "أمثلة",
+	"comp.related": "مكوّنات ذات صلة",
+	"comp.previous": "السابق",
+	"comp.next": "التالي",
 	"status.stable": "مستقر",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "المكوّنات",
 	"gallery.subtitle":
 		"{count} مكوّن متحرّك بشكل جميل لـ Svelte 5. تصفّح وابحث واعثر على ما تحتاجه.",
+	"gallery.intro":
+		"كل مكوّن مبني أصلاً لـ Svelte 5 باستخدام الـ runes، ومنسّق بـ Tailwind CSS v4، ومكتوب بـ TypeScript، ويأتي مع معاينة حيّة وأمثلة جاهزة للنسخ واللصق. ثبّت الحزمة مرة واحدة وستمتلك الشيفرة.",
 	"gallery.statComponents": "المكوّنات",
 	"gallery.statCategories": "الفئات",
 	"gallery.statTypescript": "TypeScript",

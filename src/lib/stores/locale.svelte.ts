@@ -132,6 +132,36 @@ export function docTitle(pageTitle: string): string {
 	return `${pageTitle} - FancyUI Docs`;
 }
 
+/**
+ * Singular noun a component page's <title> uses to describe its category, e.g.
+ * "RainbowButton — Svelte button component". Keyed by `ComponentCategory`; a
+ * category without an entry falls back to its own name.
+ */
+const categoryTerms: Record<string, string> = {
+	buttons: "button",
+	cards: "card",
+	text: "text effect",
+	backgrounds: "background",
+	effects: "effect",
+	layout: "layout",
+	navigation: "navigation",
+	"data-display": "data display",
+	feedback: "feedback",
+	media: "media",
+};
+
+/**
+ * Compose a component page's <title>: "<Name> — Svelte <term> component | FancyUI".
+ *
+ * Deliberately NOT locale-reactive. The title is the search-result headline, and
+ * the query it has to match ("svelte button component") is English regardless of
+ * which locale the reader happens to have selected.
+ */
+export function componentDocTitle(name: string, category: string): string {
+	const term = categoryTerms[category] ?? category;
+	return `${name} — Svelte ${term} component | FancyUI`;
+}
+
 /** Reactive accessor for components (locale + dir + translator + list). */
 export function createI18n() {
 	return {

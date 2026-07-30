@@ -13,8 +13,24 @@ export const SITE_URL = "https://fancy-ui.rama.app";
 
 export const SITE_NAME = "FancyUI";
 
+/** npm package name — the distributable behind the brand. */
+export const PACKAGE_NAME = "fancy-ui-svelte";
+
 /** 1200×630 social card served from static/. */
 export const DEFAULT_OG_IMAGE = "/og.png";
+
+export const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
+
+export const LICENSE_URL = `${GITHUB_URL}/blob/main/LICENSE`;
+
+/**
+ * Stable `@id` anchors for the structured-data graph. Every page that emits a
+ * node about the site or the package reuses these so crawlers merge the
+ * fragments into one entity instead of inventing duplicates.
+ */
+export const SCHEMA_WEBSITE_ID = `${SITE_URL}/#website`;
+
+export const SCHEMA_APP_ID = `${SITE_URL}/#app`;
 
 /** Read from the registry so the number in the copy can never drift. */
 export const COMPONENT_COUNT = getAllComponents().length;

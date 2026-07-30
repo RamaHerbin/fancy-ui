@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "시작하기",
 	"nav.components": "컴포넌트",
+	"nav.home": "홈",
 	"nav.docsSuffix": "문서",
 	"a11y.closeSidebar": "사이드바 닫기",
 	"a11y.toggleSidebar": "사이드바 열기/닫기",
+	"a11y.breadcrumb": "탐색 경로",
 
 	// Getting-started page titles
 	"page.introduction": "소개",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "소스 코드",
 	"comp.inspiredBy": "영감을 받은 출처",
 	"comp.examples": "예제",
+	"comp.related": "관련 컴포넌트",
+	"comp.previous": "이전",
+	"comp.next": "다음",
 	"status.stable": "안정",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "컴포넌트",
 	"gallery.subtitle":
 		"Svelte 5를 위한 아름답게 애니메이션된 {count}개의 컴포넌트. 둘러보고, 검색하여 필요한 것을 찾으세요.",
+	"gallery.intro":
+		"모든 컴포넌트는 runes를 사용해 Svelte 5용으로 네이티브하게 만들어졌고, Tailwind CSS v4로 스타일링되었으며, TypeScript로 타입이 지정되어 있고, 라이브 미리보기와 복사해 붙여넣는 예제를 함께 제공합니다. 패키지를 한 번만 설치하면 코드는 여러분의 것입니다.",
 	"gallery.statComponents": "컴포넌트",
 	"gallery.statCategories": "카테고리",
 	"gallery.statTypescript": "TypeScript",

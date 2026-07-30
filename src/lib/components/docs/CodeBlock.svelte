@@ -5,9 +5,12 @@
 		code: string;
 		lang?: string;
 		showLineNumbers?: boolean;
+		/** Set false for a pane that is mounted but not on screen: the plain `<pre>` still renders,
+		 * but no highlighter is created until it becomes active. */
+		active?: boolean;
 	}
 
-	let { code, lang = "svelte", showLineNumbers = false }: Props = $props();
+	let { code, lang = "svelte", showLineNumbers = false, active = true }: Props = $props();
 
 	let highlighted = $state("");
 	let copied = $state(false);
@@ -18,7 +21,12 @@
 	$effect(() => {
 		const currentCode = code;
 		const currentLang = lang;
+		const isActive = active;
 		highlighted = "";
+
+		if (!isActive) return;
+
+		let stale = false;
 
 		(async () => {
 			if (!highlighterInstance) {
@@ -32,11 +40,16 @@
 				await highlighterInstance.loadLanguage(currentLang);
 				loadedLangs.add(currentLang);
 			}
+			if (stale) return;
 			highlighted = highlighterInstance.codeToHtml(currentCode.trim(), {
 				lang: currentLang,
 				theme: "github-dark",
 			});
 		})();
+
+		return () => {
+			stale = true;
+		};
 	});
 
 	async function copyCode() {

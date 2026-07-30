@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "شروع به کار",
 	"nav.components": "کامپوننت‌ها",
+	"nav.home": "خانه",
 	"nav.docsSuffix": "مستندات",
 	"a11y.closeSidebar": "بستن نوار کناری",
 	"a11y.toggleSidebar": "نمایش/پنهان کردن نوار کناری",
+	"a11y.breadcrumb": "مسیر راهنما",
 
 	// Getting-started page titles
 	"page.introduction": "معرفی",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "کد منبع",
 	"comp.inspiredBy": "الهام‌گرفته از",
 	"comp.examples": "نمونه‌ها",
+	"comp.related": "کامپوننت‌های مرتبط",
+	"comp.previous": "قبلی",
+	"comp.next": "بعدی",
 	"status.stable": "پایدار",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "کامپوننت‌ها",
 	"gallery.subtitle":
 		"{count} کامپوننت زیبا و متحرک برای Svelte 5. مرور کنید، جستجو کنید و آنچه را نیاز دارید بیابید.",
+	"gallery.intro":
+		"هر کامپوننت به‌صورت بومی برای Svelte 5 با runes ساخته شده، با Tailwind CSS v4 استایل‌دهی شده، با TypeScript تایپ شده و همراه با پیش‌نمایش زنده و نمونه‌های آمادهٔ کپی و جای‌گذاری ارائه می‌شود. بسته را یک بار نصب کنید و کد از آنِ شماست.",
 	"gallery.statComponents": "کامپوننت‌ها",
 	"gallery.statCategories": "دسته‌ها",
 	"gallery.statTypescript": "TypeScript",

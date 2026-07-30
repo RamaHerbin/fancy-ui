@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Začínáme",
 	"nav.components": "Komponenty",
+	"nav.home": "Domů",
 	"nav.docsSuffix": "dokumentace",
 	"a11y.closeSidebar": "Zavřít postranní panel",
 	"a11y.toggleSidebar": "Přepnout postranní panel",
+	"a11y.breadcrumb": "Drobečková navigace",
 
 	// Getting-started page titles
 	"page.introduction": "Úvod",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Zdrojový kód",
 	"comp.inspiredBy": "Inspirováno",
 	"comp.examples": "Příklady",
+	"comp.related": "Související komponenty",
+	"comp.previous": "Předchozí",
+	"comp.next": "Další",
 	"status.stable": "Stabilní",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "Komponenty",
 	"gallery.subtitle":
 		"{count} krásně animovaných komponent pro Svelte 5. Procházejte, vyhledávejte a najděte, co potřebujete.",
+	"gallery.intro":
+		"Každá komponenta je nativně postavená pro Svelte 5 s runes, nastylovaná pomocí Tailwind CSS v4, otypovaná v TypeScriptu a přichází s živým náhledem a příklady ke zkopírování. Balíček nainstalujete jednou a kód je váš.",
 	"gallery.statComponents": "Komponenty",
 	"gallery.statCategories": "Kategorie",
 	"gallery.statTypescript": "TypeScript",

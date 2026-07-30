@@ -11,9 +11,11 @@ export const en = {
 	// Sidebar / nav
 	"nav.gettingStarted": "Getting Started",
 	"nav.components": "Components",
+	"nav.home": "Home",
 	"nav.docsSuffix": "docs",
 	"a11y.closeSidebar": "Close sidebar",
 	"a11y.toggleSidebar": "Toggle sidebar",
+	"a11y.breadcrumb": "Breadcrumb",
 
 	// Getting-started page titles
 	"page.introduction": "Introduction",
@@ -47,6 +49,9 @@ export const en = {
 	"comp.sourceCode": "Source Code",
 	"comp.inspiredBy": "Inspired by",
 	"comp.examples": "Examples",
+	"comp.related": "Related components",
+	"comp.previous": "Previous",
+	"comp.next": "Next",
 	"status.stable": "Stable",
 
 	// Tables
@@ -71,6 +76,8 @@ export const en = {
 	"gallery.title": "Components",
 	"gallery.subtitle":
 		"{count} beautifully animated components for Svelte 5. Browse, search, and find what you need.",
+	"gallery.intro":
+		"Every component is built natively for Svelte 5 with runes, styled with Tailwind CSS v4, typed with TypeScript, and ships with a live preview and copy-paste examples. Install the package once and own the code.",
 	"gallery.statComponents": "Components",
 	"gallery.statCategories": "Categories",
 	"gallery.statTypescript": "TypeScript",

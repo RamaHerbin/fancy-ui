@@ -25,6 +25,7 @@
 
 	const url = $derived(absoluteUrl(path));
 	const imageUrl = $derived(absoluteUrl(image));
+	const imageAlt = $derived(`Social card for ${title}`);
 </script>
 
 <svelte:head>
@@ -43,6 +44,12 @@
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={url} />
 	<meta property="og:image" content={imageUrl} />
+	<!-- Every card this site serves is 1200×630: the default /og.png and the
+	     per-component /og/<slug>.jpg alike, so the dimensions are constant. -->
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:image:alt" content={imageAlt} />
+	<meta property="og:locale" content="en_US" />
 
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={title} />
