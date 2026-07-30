@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SynthwaveGrid from "$lib/components/SynthwaveGrid.svelte";
+	import SynthwaveScene from "$lib/components/landing/synthwave/SynthwaveScene.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
 
 	const GITHUB_URL = "https://github.com/ramaherbin/fancy-ui";
@@ -41,12 +41,12 @@
 </script>
 
 <!--
-	Final CTA + footer, both sitting on the synthwave scene: the canvas is the
-	backdrop for the whole block, so the grid runs behind the link columns
-	instead of stopping at the CTA.
+	Final CTA + footer, both sitting on the synthwave scene: the layered DOM
+	scene is the backdrop for the whole block, so the grid runs behind the link
+	columns instead of stopping at the CTA.
 -->
 <section class="relative overflow-hidden bg-black">
-	<SynthwaveGrid speed={0.7} verticalLines={16} horizontalLines={14} />
+	<SynthwaveScene />
 
 	<!-- CTA -->
 	<div class="relative z-10 flex min-h-[70vh] flex-col items-center justify-center px-6 py-24">
