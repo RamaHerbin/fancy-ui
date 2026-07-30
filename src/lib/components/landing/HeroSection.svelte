@@ -65,12 +65,11 @@
 					>tiful</span
 				><span
 					aria-hidden="true"
-					class="pointer-events-none absolute inset-0 text-[#e6ecff] opacity-75 blur-[10px]"
-					>tiful</span
-				><span
+					class="glow-echo pointer-events-none absolute inset-0 text-[#e6ecff] opacity-75 blur-[10px]"
+				></span><span
 					aria-hidden="true"
-					class="pointer-events-none absolute inset-0 text-white opacity-50 blur-[3px]">tiful</span
-				></span
+					class="glow-echo pointer-events-none absolute inset-0 text-white opacity-50 blur-[3px]"
+				></span></span
 			><br />
 			<span class="bg-[linear-gradient(180deg,#ffffff,#b8bfd4)] bg-clip-text text-transparent"
 				>interfaces</span
@@ -100,3 +99,12 @@
 		</div>
 	</div>
 </section>
+
+<style>
+	/* The two blur layers stacked over "tiful" are generated content, not text
+	   nodes, so the <h1> reads as "Build beautiful interfaces effortlessly."
+	   instead of repeating the syllable three times for crawlers. */
+	.glow-echo::before {
+		content: "tiful";
+	}
+</style>

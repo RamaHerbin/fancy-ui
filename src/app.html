@@ -41,7 +41,14 @@
 				} catch (e) {}
 			})();
 		</script>
-		<noscript><link rel="icon" type="image/svg+xml" href="/favicon.svg" /></noscript>
+		<!-- The SVG icon must stay first: AnimatedFavicon.svelte drives whichever link
+		     `document.querySelector('link[rel="icon"]')` returns, and the SVG one is
+		     also what SVG-capable browsers render. The .ico is the legacy fallback. -->
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
+		<meta name="theme-color" content="#0a0a0a" />
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

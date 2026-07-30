@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { GradientButton, ShimmerButton, BorderBeam } from "$lib/fancy-ui";
+	import Seo from "$lib/components/Seo.svelte";
 	import { t, docTitle } from "$lib/stores";
 
 	// ─── Base light/dark token sets (mirror src/routes/layout.css) ──────────────
@@ -168,10 +169,11 @@ ${selector} {
 	}
 </script>
 
-<svelte:head>
-	<title>{docTitle(t("page.themeGenerator"))}</title>
-	<meta name="description" content={t("tg.metaDescription")} />
-</svelte:head>
+<Seo
+	title={docTitle(t("page.themeGenerator"))}
+	description={t("tg.metaDescription")}
+	path="/docs/getting-started/theme-generator"
+/>
 
 <h1>{t("page.themeGenerator")}</h1>
 

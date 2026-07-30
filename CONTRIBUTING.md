@@ -11,7 +11,7 @@ pnpm install
 pnpm dev
 ```
 
-The dev server runs at `http://localhost:5173`. Component demos are at `/demo/<slug>`.
+The dev server runs at `http://localhost:5173`. Component demos are at `/docs/components/<slug>`.
 
 ## Adding a component
 

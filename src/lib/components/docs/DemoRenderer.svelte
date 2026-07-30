@@ -5,6 +5,65 @@
 		"frosted-glass": "Navbar",
 		"liquid-glass": "Navbar",
 	};
+
+	// Default props per slug. Exported so the component page can enrich the generic
+	// Code tab snippet with the same props the Preview renders with.
+	export const defaultProps: Record<string, Record<string, any>> = {
+		"flip-words": { words: ["beautiful", "animated", "interactive", "composable"] },
+		focus: { sentence: "Build beautiful interfaces with FancyUI" },
+		"hyper-text": { text: "Hover Me!" },
+		"colourful-text": { text: "Colourful" },
+		"sparkles-text": { text: "Sparkles", sparklesCount: 8 },
+		"letter-pullup": { words: "Letter Pullup" },
+		"line-shadow-text": { text: "Shadow" },
+		"text-generate-effect": { words: "The quick brown fox jumps over the lazy dog" },
+		"number-ticker": { value: 1234 },
+		"terminal-text": { lines: ["$ npm install fancy-ui", "Installing...", "Done!"] },
+		"container-text-flip": { words: ["better", "faster", "stronger", "beautiful"] },
+		"displacement-text": { text: "Hover Me" },
+		"flickering-grid": { color: "#6366f1", maxOpacity: 0.2, squareSize: 4, gridGap: 6 },
+		sparkles: { background: "transparent", particleColor: "#ffffff", particleDensity: 60 },
+		"matrix-rain": { color: "#00ff00" },
+		"border-beam": { colorFrom: "#9E7AFF", colorTo: "#FE8BBB", size: 200 },
+		ripple: {},
+		meteors: { count: 15 },
+		"glow-border": {},
+		"neon-border": {},
+		"glowing-effect": { disabled: false },
+		"interactive-grid-pattern": { width: 60, height: 60 },
+		"interactive-hover-button": { text: "Hover Me" },
+	};
+
+	// Components that we skip direct render (need too much setup). Exported so the
+	// component page knows when to source the Code tab from BasicUsage.svelte instead
+	// of the generic single-tag usage.
+	export const skipDirectRender = new Set([
+		"animated-beam",
+		"apple-card-carousel",
+		"animated-testimonials",
+		"animated-tooltip",
+		"compare",
+		"direction-aware-hover",
+		"logo-cloud",
+		"image-trail-cursor",
+		"timeline",
+		"dock",
+		"bento-grid",
+		"card-3d",
+		"flip-card",
+		"book",
+		"text-reveal-card",
+		"container-scroll",
+		"tracing-beam",
+		"fluid-cursor",
+		"smooth-cursor",
+		"liquid-glass",
+		"noise-reveal",
+		"line-reveal",
+		"editorial-engine",
+		"frosted-glass",
+		"liquid-text",
+	]);
 </script>
 
 <script lang="ts">
@@ -135,62 +194,6 @@
 		"matrix-rain": "MatrixRain",
 		"terminal-text": "TerminalText",
 	};
-
-	// Default props per slug
-	const defaultProps: Record<string, Record<string, any>> = {
-		"flip-words": { words: ["beautiful", "animated", "interactive", "composable"] },
-		focus: { sentence: "Build beautiful interfaces with FancyUI" },
-		"hyper-text": { text: "Hover Me!" },
-		"colourful-text": { text: "Colourful" },
-		"sparkles-text": { text: "Sparkles", sparklesCount: 8 },
-		"letter-pullup": { words: "Letter Pullup" },
-		"line-shadow-text": { text: "Shadow" },
-		"text-generate-effect": { words: "The quick brown fox jumps over the lazy dog" },
-		"number-ticker": { value: 1234 },
-		"terminal-text": { lines: ["$ npm install fancy-ui", "Installing...", "Done!"] },
-		"container-text-flip": { words: ["better", "faster", "stronger", "beautiful"] },
-		"displacement-text": { text: "Hover Me" },
-		"flickering-grid": { color: "#6366f1", maxOpacity: 0.2, squareSize: 4, gridGap: 6 },
-		sparkles: { background: "transparent", particleColor: "#ffffff", particleDensity: 60 },
-		"matrix-rain": { color: "#00ff00" },
-		"border-beam": { colorFrom: "#9E7AFF", colorTo: "#FE8BBB", size: 200 },
-		ripple: {},
-		meteors: { count: 15 },
-		"glow-border": {},
-		"neon-border": {},
-		"glowing-effect": { disabled: false },
-		"interactive-grid-pattern": { width: 60, height: 60 },
-		"interactive-hover-button": { text: "Hover Me" },
-	};
-
-	// Components that we skip direct render (need too much setup)
-	const skipDirectRender = new Set([
-		"animated-beam",
-		"apple-card-carousel",
-		"animated-testimonials",
-		"animated-tooltip",
-		"compare",
-		"direction-aware-hover",
-		"logo-cloud",
-		"image-trail-cursor",
-		"timeline",
-		"dock",
-		"bento-grid",
-		"card-3d",
-		"flip-card",
-		"book",
-		"text-reveal-card",
-		"container-scroll",
-		"tracing-beam",
-		"fluid-cursor",
-		"smooth-cursor",
-		"liquid-glass",
-		"noise-reveal",
-		"line-reveal",
-		"editorial-engine",
-		"frosted-glass",
-		"liquid-text",
-	]);
 
 	function getComponent() {
 		if (!ComponentModule) return null;

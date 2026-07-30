@@ -6,35 +6,37 @@
 	<div class="max-w-2xl space-y-16 pl-8">
 		<div>
 			<span class="mb-2 block text-xs font-semibold tracking-wider text-emerald-500 uppercase"
-				>Step 1</span
+				>v0.1</span
 			>
-			<h2 class="mb-3 text-xl font-semibold">Getting Started</h2>
+			<h2 class="mb-3 text-xl font-semibold">The First Sketch</h2>
 			<p class="text-muted-foreground leading-relaxed">
-				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut
-				labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-				laboris.
+				It started as a folder of throwaway components and a single button that looked good in
+				every theme. No tokens, no docs site, just a designer and an engineer arguing about border
+				radius until 2am. That argument became the first commit.
 			</p>
 		</div>
 
 		<div>
 			<span class="mb-2 block text-xs font-semibold tracking-wider text-purple-500 uppercase"
-				>Step 2</span
+				>v0.5</span
 			>
-			<h2 class="mb-3 text-xl font-semibold">Configuration</h2>
+			<h2 class="mb-3 text-xl font-semibold">Everything Learns to Move</h2>
 			<p class="text-muted-foreground leading-relaxed">
-				Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae
-				vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur.
+				Static components gave way to a proper motion layer: spring-based transitions, shared
+				layout animations, and a reduced-motion fallback for every single one of them. This is
+				also when the team agreed on a rule that stuck — nothing animates without a reason.
 			</p>
 		</div>
 
 		<div>
 			<span class="mb-2 block text-xs font-semibold tracking-wider text-blue-500 uppercase"
-				>Step 3</span
+				>v1.0</span
 			>
-			<h2 class="mb-3 text-xl font-semibold">Advanced Usage</h2>
+			<h2 class="mb-3 text-xl font-semibold">Launch Day</h2>
 			<p class="text-muted-foreground leading-relaxed">
-				Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae
-				consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.
+				The API stabilized, the docs got real examples instead of placeholders, and the changelog
+				finally had a version worth calling stable. Version 1.0 shipped quietly on a Tuesday, which
+				felt right for something that took over a year of small decisions to get there.
 			</p>
 		</div>
 	</div>

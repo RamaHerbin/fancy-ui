@@ -116,7 +116,7 @@ export default {
 	"intro.title": "Pengantar",
 	"intro.metaTitle": "Pengantar",
 	"intro.leadPre": "adalah kumpulan",
-	"intro.leadHighlight": "60 animasi",
+	"intro.leadHighlight": "{count} animasi",
 	"intro.leadHighlight2": "komponen UI interaktif",
 	"intro.leadPost": "yang dibangun secara native untuk Svelte 5.",
 	"intro.pill.svelte": "Svelte 5 Native",
@@ -143,7 +143,7 @@ export default {
 	"intro.quickStart.step3.title": "Gunakan",
 	"intro.quickStart.step3.desc": "Tempatkan di komponen Svelte Anda.",
 	"intro.whatsIncluded.heading": "Apa yang Disertakan",
-	"intro.whatsIncluded.body": "60 komponen di 10 kategori:",
+	"intro.whatsIncluded.body": "{count} komponen di 10 kategori:",
 	"intro.category.buttons": "Tombol",
 	"intro.category.cards": "Kartu",
 	"intro.category.text": "Teks",
@@ -226,7 +226,7 @@ export default {
 	"install.nextSteps.heading": "Langkah Selanjutnya",
 	"install.nextSteps.components.title": "Jelajahi Komponen",
 	"install.nextSteps.components.desc":
-		"60 komponen dengan pratinjau langsung, props, dan contoh salin-tempel.",
+		"{count} komponen dengan pratinjau langsung, props, dan contoh salin-tempel.",
 	"install.nextSteps.theming.title": "Tema",
 	"install.nextSteps.theming.desc":
 		"Timpa token desain agar setiap komponen sesuai dengan merek Anda dalam mode terang dan gelap.",

@@ -116,7 +116,7 @@ export default {
 	"intro.title": "परिचय",
 	"intro.metaTitle": "परिचय",
 	"intro.leadPre": "है",
-	"intro.leadHighlight": "60 एनिमेटेड",
+	"intro.leadHighlight": "{count} एनिमेटेड",
 	"intro.leadHighlight2": "इंटरैक्टिव UI कॉम्पोनेंट्स का एक संग्रह,",
 	"intro.leadPost": "जो Svelte 5 के लिए मूल रूप से बनाया गया है।",
 	"intro.pill.svelte": "Svelte 5 नेटिव",
@@ -143,7 +143,7 @@ export default {
 	"intro.quickStart.step3.title": "उपयोग करें",
 	"intro.quickStart.step3.desc": "इसे अपने Svelte कॉम्पोनेंट्स में जोड़ें।",
 	"intro.whatsIncluded.heading": "इसमें क्या शामिल है",
-	"intro.whatsIncluded.body": "10 श्रेणियों में 60 कॉम्पोनेंट्स:",
+	"intro.whatsIncluded.body": "10 श्रेणियों में {count} कॉम्पोनेंट्स:",
 	"intro.category.buttons": "बटन",
 	"intro.category.cards": "कार्ड",
 	"intro.category.text": "टेक्स्ट",
@@ -226,7 +226,7 @@ export default {
 	"install.nextSteps.heading": "अगले कदम",
 	"install.nextSteps.components.title": "कॉम्पोनेंट्स ब्राउज़ करें",
 	"install.nextSteps.components.desc":
-		"लाइव प्रीव्यू, प्रॉप्स और कॉपी-पेस्ट उदाहरणों के साथ 60 कॉम्पोनेंट्स।",
+		"लाइव प्रीव्यू, प्रॉप्स और कॉपी-पेस्ट उदाहरणों के साथ {count} कॉम्पोनेंट्स।",
 	"install.nextSteps.theming.title": "थीमिंग",
 	"install.nextSteps.theming.desc":
 		"डिज़ाइन टोकन ओवरराइड करें ताकि हर कॉम्पोनेंट लाइट और डार्क मोड में आपके ब्रांड से मेल खाए।",

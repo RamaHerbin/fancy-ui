@@ -121,7 +121,7 @@ export const en = {
 	"intro.title": "Introduction",
 	"intro.metaTitle": "Introduction",
 	"intro.leadPre": "is a collection of",
-	"intro.leadHighlight": "60 animated",
+	"intro.leadHighlight": "{count} animated",
 	"intro.leadHighlight2": "interactive UI components",
 	"intro.leadPost": "built natively for Svelte 5.",
 	"intro.pill.svelte": "Svelte 5 Native",
@@ -148,7 +148,7 @@ export const en = {
 	"intro.quickStart.step3.title": "Use",
 	"intro.quickStart.step3.desc": "Drop it in your Svelte components.",
 	"intro.whatsIncluded.heading": "What's Included",
-	"intro.whatsIncluded.body": "60 components across 10 categories:",
+	"intro.whatsIncluded.body": "{count} components across 10 categories:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Cards",
 	"intro.category.text": "Text",
@@ -230,7 +230,7 @@ export const en = {
 	"install.nextSteps.heading": "Next steps",
 	"install.nextSteps.components.title": "Browse components",
 	"install.nextSteps.components.desc":
-		"60 components with live previews, props and copy-paste examples.",
+		"{count} components with live previews, props and copy-paste examples.",
 	"install.nextSteps.theming.title": "Theming",
 	"install.nextSteps.theming.desc":
 		"Override the design tokens so every component matches your brand in light and dark mode.",

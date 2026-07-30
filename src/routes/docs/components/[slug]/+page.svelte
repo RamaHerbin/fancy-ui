@@ -3,8 +3,13 @@
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
-	import DemoRenderer, { PREVIEW_EXAMPLE } from "$lib/components/docs/DemoRenderer.svelte";
+	import DemoRenderer, {
+		PREVIEW_EXAMPLE,
+		skipDirectRender,
+		defaultProps,
+	} from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
+	import Seo from "$lib/components/Seo.svelte";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -19,32 +24,73 @@
 
 <${component.name} />`);
 
-	// Raw source of every docs example, so slugs whose Preview is overridden to a specific
-	// example (PREVIEW_EXAMPLE) show that example's source in the Code tab instead of the
-	// generic single-tag usage — keeping the Preview and its Code tab in sync.
+	// Raw source of every docs example, so the Code tab can mirror whatever the Preview
+	// actually renders (a PREVIEW_EXAMPLE override, a BasicUsage.svelte for skipDirectRender
+	// slugs, or the generic snippet enriched with defaultProps) instead of a generic
+	// single-tag usage that often can't even render on its own (e.g. missing required props).
 	const rawExamples = import.meta.glob("$lib/components/docs/examples/**/*.svelte", {
 		query: "?raw",
 		import: "default",
 		eager: true,
 	}) as Record<string, string>;
 
+	// Serializes a props object as Svelte attributes: strings are quoted, everything else
+	// (numbers, booleans, arrays, objects) is wrapped in braces as a JS expression.
+	function serializeProps(props: Record<string, any>): string {
+		return Object.entries(props)
+			.map(([key, value]) =>
+				typeof value === "string" ? `${key}="${value}"` : `${key}={${JSON.stringify(value)}}`
+			)
+			.join(" ");
+	}
+
+	// Docs examples import via the repo-internal $lib path; consumers must import the
+	// package, so raw example source is rewritten before display.
+	function toConsumerImports(src: string): string {
+		return src.replace(/(["'])\$lib\/fancy-ui(?:\/[^"']*)?\1/g, "$1fancy-ui-svelte$1");
+	}
+
 	let previewCode = $derived.by(() => {
-		const example = PREVIEW_EXAMPLE[component.slug];
+		const slug = component.slug;
+
+		// 1. Slug's Preview is overridden to a specific example — show that example's source.
+		const example = PREVIEW_EXAMPLE[slug];
 		if (example) {
-			const src =
-				rawExamples[`/src/lib/components/docs/examples/${component.slug}/${example}.svelte`];
-			if (src) return src.trim();
+			const src = rawExamples[`/src/lib/components/docs/examples/${slug}/${example}.svelte`];
+			if (src) return toConsumerImports(src.trim());
 		}
+
+		// 2. Slug needs too much setup to render directly — the Preview shows BasicUsage.svelte,
+		// so mirror that same source in the Code tab.
+		if (skipDirectRender.has(slug)) {
+			const src = rawExamples[`/src/lib/components/docs/examples/${slug}/BasicUsage.svelte`];
+			if (src) return toConsumerImports(src.trim());
+		}
+
+		// 3. Slug renders directly with defaultProps — enrich the generic snippet with them so
+		// the Code tab reproduces what the Preview actually renders.
+		const props = defaultProps[slug];
+		if (props && Object.keys(props).length > 0) {
+			const attrs = serializeProps(props);
+			return `<script lang="ts">
+  import { ${component.name} } from 'fancy-ui-svelte';
+<\/script>
+
+<${component.name} ${attrs} />`;
+		}
+
+		// 4. Fallback: generic single-tag usage.
 		return basicUsageCode;
 	});
 
 	let previewTab = $state<"preview" | "code">("preview");
 </script>
 
-<svelte:head>
-	<title>{docTitle(component.name)}</title>
-	<meta name="description" content={component.description} />
-</svelte:head>
+<Seo
+	title={docTitle(component.name)}
+	description={component.description}
+	path="/docs/components/{component.slug}"
+/>
 
 <div class="max-w-4xl">
 	<!-- Header -->

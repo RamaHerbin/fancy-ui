@@ -31,10 +31,10 @@
 				Beautiful interfaces, slick animations.<br />Made with FancyUI.
 			</p>
 			<a
-				href="/builder"
+				href="/docs/components"
 				class="mt-2 inline-flex w-fit items-center gap-2.5 rounded-[10px] border border-white/12 bg-[rgba(16,15,26,.8)] px-5 py-[11px] text-[13px] font-medium text-[#e6e9ef] transition-colors hover:border-[rgba(139,123,255,.5)]"
 			>
-				Browse Examples <span aria-hidden="true">→</span>
+				Browse Components <span aria-hidden="true">→</span>
 			</a>
 		</div>
 
@@ -68,7 +68,7 @@
 				class="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 lg:mt-3.5 lg:grid lg:grid-cols-3 lg:overflow-visible lg:pb-0"
 			>
 				<!-- Dashboard -->
-				<a href="/builder" class={CARD_CLASS}>
+				<a href="/docs/components" class={CARD_CLASS}>
 					<div class="{PREVIEW_CLASS} flex flex-col" aria-hidden="true">
 						<!-- window chrome -->
 						<div
@@ -183,7 +183,7 @@
 				</a>
 
 				<!-- Portfolio -->
-				<a href="/builder" class={CARD_CLASS}>
+				<a href="/docs/components" class={CARD_CLASS}>
 					<div class="{PREVIEW_CLASS} relative" aria-hidden="true">
 						<span
 							class="absolute top-[38px] right-9 size-[3px] rounded-full bg-[#fb923c] shadow-[0_0_6px_rgba(251,146,60,.9)]"
@@ -236,7 +236,7 @@
 				</a>
 
 				<!-- Landing Page -->
-				<a href="/builder" class={CARD_CLASS}>
+				<a href="/docs/components" class={CARD_CLASS}>
 					<div class="{PREVIEW_CLASS} relative" aria-hidden="true">
 						<svg
 							viewBox="0 0 300 90"

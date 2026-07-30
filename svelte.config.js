@@ -7,6 +7,12 @@ const config = {
 
 	kit: {
 		adapter: adapter(),
+		prerender: {
+			// The static surface is exactly what opts in via `prerender = true` plus the
+			// per-route `entries`. Crawling links instead would pull in /builder, whose
+			// auth redirect is session-dependent and must not be frozen at build time.
+			crawl: false,
+		},
 	},
 };
 

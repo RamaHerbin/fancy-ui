@@ -1,6 +1,6 @@
 # Dock
 
-A macOS-style dock component with icon magnification on hover.
+An icon dock component whose items magnify smoothly as the cursor approaches.
 
 ## Components
 

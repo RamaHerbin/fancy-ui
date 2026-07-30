@@ -2,7 +2,7 @@
 	import SynthwaveScene from "$lib/components/landing/synthwave/SynthwaveScene.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
 
-	const GITHUB_URL = "https://github.com/ramaherbin/fancy-ui";
+	const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
 	const DEMO_URL = "/docs/components";
 	const DOCS_URL = "/docs";
 
@@ -21,7 +21,7 @@
 				title: "Resources",
 				links: [
 					{ label: "Theme Generator", href: `${DOCS_URL}/getting-started/theme-generator` },
-					{ label: "Site Builder", href: "/builder" },
+					{ label: "llms.txt", href: "/llms.txt" },
 					{ label: "GitHub", href: GITHUB_URL, external: true },
 					{ label: "Changelog", href: `${DOCS_URL}/getting-started/changelog` },
 				],
@@ -32,7 +32,7 @@
 					{ label: "Contribute", href: `${GITHUB_URL}/blob/main/CONTRIBUTING.md`, external: true },
 					{ label: "Issues", href: `${GITHUB_URL}/issues`, external: true },
 					{ label: "Discussions", href: `${GITHUB_URL}/discussions`, external: true },
-					{ label: "Sponsors", href: `${GITHUB_URL}#support`, external: true },
+					{ label: "Sponsors", href: "https://github.com/sponsors/RamaHerbin", external: true },
 				],
 			},
 		];

@@ -116,7 +116,7 @@ export default {
 	"intro.title": "Einführung",
 	"intro.metaTitle": "Einführung",
 	"intro.leadPre": "ist eine Sammlung von",
-	"intro.leadHighlight": "60 animierten",
+	"intro.leadHighlight": "{count} animierten",
 	"intro.leadHighlight2": "interaktiven UI-Komponenten",
 	"intro.leadPost": "und wurde nativ für Svelte 5 entwickelt.",
 	"intro.pill.svelte": "Svelte 5 nativ",
@@ -144,7 +144,7 @@ export default {
 	"intro.quickStart.step3.title": "Verwenden",
 	"intro.quickStart.step3.desc": "Füge sie in deine Svelte-Komponenten ein.",
 	"intro.whatsIncluded.heading": "Was enthalten ist",
-	"intro.whatsIncluded.body": "60 Komponenten in 10 Kategorien:",
+	"intro.whatsIncluded.body": "{count} Komponenten in 10 Kategorien:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Karten",
 	"intro.category.text": "Text",
@@ -226,7 +226,7 @@ export default {
 	"install.nextSteps.heading": "Nächste Schritte",
 	"install.nextSteps.components.title": "Komponenten durchsuchen",
 	"install.nextSteps.components.desc":
-		"60 Komponenten mit Live-Vorschauen, Props und Copy-and-paste-Beispielen.",
+		"{count} Komponenten mit Live-Vorschauen, Props und Copy-and-paste-Beispielen.",
 	"install.nextSteps.theming.title": "Themes",
 	"install.nextSteps.theming.desc":
 		"Überschreibe die Design-Tokens, damit jede Komponente im hellen und dunklen Modus zu deiner Marke passt.",

@@ -2,6 +2,7 @@
 	import { t } from "$lib/stores";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
+	import { COMPONENT_COUNT } from "$lib/site.js";
 
 	const stylesheetSnippet = `@import "tailwindcss";
 @import "fancy-ui-svelte/tailwind.css";`;
@@ -151,9 +152,10 @@ const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
 		</div>
 		<p class="sec-body">{t("install.peerDeps.bundled")}</p>
 		<div class="dep-chips">
-			<code class="chip">gsap</code><code class="chip">three</code><code class="chip"
-				>canvas-confetti</code
-			>
+			<code class="chip">@chenglou/pretext</code><code class="chip">canvas-confetti</code
+			><code class="chip">clsx</code><code class="chip">gsap</code><code class="chip"
+				>tailwind-merge</code
+			><code class="chip">three</code>
 		</div>
 		<p class="caption">{t("install.peerDeps.bundledNote")}</p>
 	</section>
@@ -166,7 +168,9 @@ const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
 					<span class="next-title">{t("install.nextSteps.components.title")}</span>
 					<span class="arrow" aria-hidden="true">→</span>
 				</span>
-				<span class="next-desc">{t("install.nextSteps.components.desc")}</span>
+				<span class="next-desc"
+					>{t("install.nextSteps.components.desc").replace("{count}", String(COMPONENT_COUNT))}</span
+				>
 			</a>
 			<a class="next-card" href="/docs/getting-started/theming">
 				<span class="next-head">

@@ -115,7 +115,7 @@ export default {
 	"intro.title": "소개",
 	"intro.metaTitle": "소개",
 	"intro.leadPre": "는 Svelte 5 네이티브로 제작된",
-	"intro.leadHighlight": "60개의 애니메이션",
+	"intro.leadHighlight": "{count}개의 애니메이션",
 	"intro.leadHighlight2": "인터랙티브 UI 컴포넌트",
 	"intro.leadPost": "모음입니다.",
 	"intro.pill.svelte": "Svelte 5 네이티브",
@@ -142,7 +142,7 @@ export default {
 	"intro.quickStart.step3.title": "사용",
 	"intro.quickStart.step3.desc": "Svelte 컴포넌트에 추가하세요.",
 	"intro.whatsIncluded.heading": "포함된 내용",
-	"intro.whatsIncluded.body": "10개 카테고리에 걸친 60개의 컴포넌트:",
+	"intro.whatsIncluded.body": "10개 카테고리에 걸친 {count}개의 컴포넌트:",
 	"intro.category.buttons": "버튼",
 	"intro.category.cards": "카드",
 	"intro.category.text": "텍스트",
@@ -224,7 +224,7 @@ export default {
 	"install.nextSteps.heading": "다음 단계",
 	"install.nextSteps.components.title": "컴포넌트 둘러보기",
 	"install.nextSteps.components.desc":
-		"실시간 미리보기, 속성, 복사-붙여넣기 예제를 갖춘 60개의 컴포넌트.",
+		"실시간 미리보기, 속성, 복사-붙여넣기 예제를 갖춘 {count}개의 컴포넌트.",
 	"install.nextSteps.theming.title": "테마 설정",
 	"install.nextSteps.theming.desc":
 		"디자인 토큰을 재정의하여 라이트 모드와 다크 모드 모두에서 모든 컴포넌트를 브랜드에 맞추세요.",
