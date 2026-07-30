@@ -10,11 +10,15 @@
  * these cards demote it to a top-left lockup and give the stage to the
  * component name so the card stays readable at feed-thumbnail scale.
  *
- * Component metadata comes from `src/lib/fancy-ui/registry.ts`, imported
- * directly -- Node strips the type annotations (>=22.18, on by default), and
- * the registry's only import is `import type`, which erases to nothing. That
- * keeps this script honest about the real module rather than re-implementing
- * a TS parser like scripts/check-registry.mjs has to for its narrower job.
+ * Component metadata comes from `src/lib/fancy-ui/registry.ts`. The source is
+ * transpiled in-memory with Vite's transformWithEsbuild (vite is a direct
+ * dependency, so it resolves on every supported runtime, Node 20 included --
+ * no reliance on Node's native type stripping) and imported as a data: URL,
+ * which also sidesteps Windows drive-letter paths being misread as URL
+ * schemes by dynamic import(). The registry's only import is `import type`,
+ * which erases to nothing, so no bundling is needed. That keeps this script
+ * honest about the real module rather than re-implementing a TS parser like
+ * scripts/check-registry.mjs has to for its narrower job.
  *
  * Rendering is Playwright's bundled Chromium at 1200x630, deviceScaleFactor 1,
  * captured as JPEG. Nothing in the template reads the clock or a random
@@ -67,13 +71,16 @@ function loadStaticMark() {
 }
 
 async function loadRegistry() {
+	const registryPath = join(repoRoot, "src", "lib", "fancy-ui", "registry.ts");
 	try {
-		return await import(join(repoRoot, "src", "lib", "fancy-ui", "registry.ts"));
-	} catch (err) {
-		throw new Error(
-			`could not import registry.ts (${err.message}).\n` +
-				`This needs Node with TypeScript type-stripping -- Node ${process.version} may be too old (>=22.18 has it on by default).`
+		const { transformWithEsbuild } = await import("vite");
+		const source = readFileSync(registryPath, "utf8");
+		const { code } = await transformWithEsbuild(source, registryPath, { loader: "ts" });
+		return await import(
+			`data:text/javascript;base64,${Buffer.from(code, "utf8").toString("base64")}`
 		);
+	} catch (err) {
+		throw new Error(`could not load registry.ts (${err.message})`);
 	}
 }
 
