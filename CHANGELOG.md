@@ -31,7 +31,7 @@
 
 - 8eb3ae6: feat: add FrostedGlass component — turbulence-noise glass refraction (alternative to LiquidGlass)
 - b420f1c: Add multi-language support to the docs site: a language switcher in the header with 16 locales (en, fr, es, de, it, pt, pl, cs, ja, ko, zh-Hans, hi, id, tr, ar, fa), including full RTL layout for Arabic and Persian. UI chrome and the getting-started guides are translated (machine-translated drafts pending native review); the component registry stays English as the machine-facing source. Docs-site only — no change to the published component API.
-- 7ed0256: Add a DaisyUI-style theme switcher to the docs header — a swatch dropdown to pick from named themes (Light, Dark, Cupcake, Emerald, Corporate, Retro, Cyberpunk, Synthwave, Dracula, Forest, Sunset, Ocean, Mono) plus System. Each theme applies site-wide via CSS-variable overrides, persists in localStorage, and toggles light/dark. Docs-site only — no change to the published component API.
+- 7ed0256: Add a swatch-dropdown theme switcher to the docs header to pick from named themes (Light, Dark, Cupcake, Emerald, Corporate, Retro, Cyberpunk, Synthwave, Dracula, Forest, Sunset, Ocean, Mono) plus System. Each theme applies site-wide via CSS-variable overrides, persists in localStorage, and toggles light/dark. Docs-site only — no change to the published component API.
 
 ### Patch Changes
 
@@ -139,7 +139,7 @@ All notable changes to fancy-ui will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 > **Note on 0.x versioning:** While the version is below 1.0.0, minor releases may
-> include breaking changes. See the [versioning policy](CONTRIBUTING.md#versioning) for details.
+> include breaking changes. See the [versioning policy](https://github.com/RamaHerbin/fancy-ui/blob/main/CONTRIBUTING.md#versioning) for details.
 
 ---
 
