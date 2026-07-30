@@ -25,7 +25,7 @@ Beautiful animation and UI components for **Svelte 5**.
 - **TypeScript** &mdash; Fully typed props and events
 - **61 Components** &mdash; Buttons, text animations, backgrounds, effects, and more
 - **Dark Mode** &mdash; All components support light and dark themes
-- **Tested** &mdash; 560+ unit tests with Vitest and Testing Library
+- **Tested** &mdash; 600+ unit tests with Vitest and Testing Library
 
 ## Components
 
@@ -119,7 +119,7 @@ Beautiful animation and UI components for **Svelte 5**.
 | AnimatedTestimonials | Testimonial carousel with smooth slide animations and optional autoplay | [Demo](https://fancy-ui.rama.app/docs/components/animated-testimonials) |
 | AnimatedTooltip      | Avatar row with mouse-following tooltips                                | [Demo](https://fancy-ui.rama.app/docs/components/animated-tooltip)      |
 | Compare              | Before/after image comparison slider                                    | [Demo](https://fancy-ui.rama.app/docs/components/compare)               |
-| Dock                 | macOS-style dock with icon magnification                                | [Demo](https://fancy-ui.rama.app/docs/components/dock)                  |
+| Dock                 | Icon dock where items magnify as the cursor approaches                  | [Demo](https://fancy-ui.rama.app/docs/components/dock)                  |
 | LineHoverLink        | Link with 11 animated underline hover effects, pure CSS                 | [Demo](https://fancy-ui.rama.app/docs/components/line-hover-link)       |
 | LogoCloud            | Marquee, grid, and icon logo layouts                                    | [Demo](https://fancy-ui.rama.app/docs/components/logo-cloud)            |
 | NoiseReveal          | WebGL image reveal with a Perlin-noise dissolve mask                    | [Demo](https://fancy-ui.rama.app/docs/components/noise-reveal)          |
@@ -225,8 +225,8 @@ src/
 │   └── components/ui/     # shadcn-svelte primitives
 └── routes/
     ├── +page.svelte       # Home page
-    └── demo/              # Component demo pages
-        └── [component]/+page.svelte
+    └── docs/              # Docs site (registry-driven component pages)
+        └── components/[slug]/+page.svelte
 
 tests/
 └── e2e/                   # Playwright end-to-end tests
@@ -242,7 +242,7 @@ Contributions are welcome! 61 components and counting — PRs for new components
 
 1. Create the component folder under `src/lib/fancy-ui/`
 2. Implement the component in idiomatic Svelte 5
-3. Add a demo page at `src/routes/demo/[slug]/+page.svelte`
+3. Add a docs example under `src/lib/components/docs/examples/<slug>/` (`BasicUsage.svelte`)
 4. Register it in `src/lib/fancy-ui/registry.ts`
 5. Export it from `src/lib/fancy-ui/index.ts`
 

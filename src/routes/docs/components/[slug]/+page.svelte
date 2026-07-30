@@ -44,6 +44,12 @@
 			.join(" ");
 	}
 
+	// Docs examples import via the repo-internal $lib path; consumers must import the
+	// package, so raw example source is rewritten before display.
+	function toConsumerImports(src: string): string {
+		return src.replace(/(["'])\$lib\/fancy-ui(?:\/[^"']*)?\1/g, "$1fancy-ui-svelte$1");
+	}
+
 	let previewCode = $derived.by(() => {
 		const slug = component.slug;
 
@@ -51,14 +57,14 @@
 		const example = PREVIEW_EXAMPLE[slug];
 		if (example) {
 			const src = rawExamples[`/src/lib/components/docs/examples/${slug}/${example}.svelte`];
-			if (src) return src.trim();
+			if (src) return toConsumerImports(src.trim());
 		}
 
 		// 2. Slug needs too much setup to render directly — the Preview shows BasicUsage.svelte,
 		// so mirror that same source in the Code tab.
 		if (skipDirectRender.has(slug)) {
 			const src = rawExamples[`/src/lib/components/docs/examples/${slug}/BasicUsage.svelte`];
-			if (src) return src.trim();
+			if (src) return toConsumerImports(src.trim());
 		}
 
 		// 3. Slug renders directly with defaultProps — enrich the generic snippet with them so
