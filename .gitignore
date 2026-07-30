@@ -32,6 +32,9 @@ content/pages/*.json
 content/site.json
 static/portfolio/
 
+# Synthwave raw assets (multi-MB AI-generated source PNGs; run `pnpm build:assets` to regenerate the shipped avif/webp)
+static/synthwave/src/
+
 # Internal docs
 /docs/
 TODO.md
