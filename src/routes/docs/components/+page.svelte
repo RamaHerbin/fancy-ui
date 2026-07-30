@@ -6,6 +6,8 @@
 		getStats,
 	} from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
+	import Seo from "$lib/components/Seo.svelte";
+	import { SITE_DESCRIPTION } from "$lib/site.js";
 	import { t, tCategory, docTitle } from "$lib/stores";
 
 	const grouped = getComponentsGroupedByCategory();
@@ -30,9 +32,7 @@
 	});
 </script>
 
-<svelte:head>
-	<title>{docTitle(t("gallery.title"))}</title>
-</svelte:head>
+<Seo title={docTitle(t("gallery.title"))} description={SITE_DESCRIPTION} path="/docs/components" />
 
 <div class="max-w-5xl">
 	<!-- Header -->

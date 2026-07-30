@@ -8,15 +8,13 @@
 	import ExamplesSection from "$lib/components/landing/ExamplesSection.svelte";
 	import ValuesStrip from "$lib/components/landing/ValuesStrip.svelte";
 	import FooterCta from "$lib/components/landing/FooterCta.svelte";
+	import Seo from "$lib/components/Seo.svelte";
+	import { COMPONENT_COUNT } from "$lib/site.js";
+
+	const description = `${COMPONENT_COUNT} animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript.`;
 </script>
 
-<svelte:head>
-	<title>FancyUI — Animated components for Svelte 5</title>
-	<meta
-		name="description"
-		content="61 animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript."
-	/>
-</svelte:head>
+<Seo title="FancyUI — Animated components for Svelte 5" {description} path="/" />
 
 <div class="min-h-screen bg-[#050508] text-[#f8fafc]">
 	<LandingHeader />

@@ -5,6 +5,7 @@
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import DemoRenderer, { PREVIEW_EXAMPLE } from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
+	import Seo from "$lib/components/Seo.svelte";
 	import type { PageData } from "./$types";
 
 	let { data }: { data: PageData } = $props();
@@ -41,10 +42,11 @@
 	let previewTab = $state<"preview" | "code">("preview");
 </script>
 
-<svelte:head>
-	<title>{docTitle(component.name)}</title>
-	<meta name="description" content={component.description} />
-</svelte:head>
+<Seo
+	title={docTitle(component.name)}
+	description={component.description}
+	path="/docs/components/{component.slug}"
+/>
 
 <div class="max-w-4xl">
 	<!-- Header -->

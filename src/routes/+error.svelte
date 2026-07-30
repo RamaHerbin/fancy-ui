@@ -1,17 +1,19 @@
 <script lang="ts">
 	import { page } from "$app/state";
+	import Seo from "$lib/components/Seo.svelte";
 
 	const isNotFound = $derived(page.status === 404);
 	const message = $derived(
-		isNotFound
-			? "This page doesn't exist."
-			: (page.error?.message ?? "Something went wrong.")
+		isNotFound ? "This page doesn't exist." : (page.error?.message ?? "Something went wrong.")
 	);
 </script>
 
-<svelte:head>
-	<title>{page.status} — FancyUI</title>
-</svelte:head>
+<Seo
+	title="{page.status} — FancyUI"
+	description="This page could not be displayed. Browse the FancyUI components or head back to the home page."
+	path={page.url.pathname}
+	noindex
+/>
 
 <div
 	class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#050508] px-4 text-[#f8fafc]"
