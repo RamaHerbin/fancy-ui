@@ -1,12 +1,11 @@
 <script lang="ts">
-	const GITHUB_URL = "https://github.com/ramaherbin/fancy-ui";
+	const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
 
 	const navLinks: { label: string; href: string }[] = [
 		{ label: "Docs", href: "/docs/getting-started/introduction" },
 		{ label: "Components", href: "/docs/components" },
 		{ label: "Theming", href: "/docs/getting-started/theming" },
 		{ label: "Theme Generator", href: "/docs/getting-started/theme-generator" },
-		{ label: "Builder", href: "/builder" },
 	];
 </script>
 
