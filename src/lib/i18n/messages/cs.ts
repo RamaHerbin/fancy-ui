@@ -116,7 +116,7 @@ export default {
 	"intro.title": "Úvod",
 	"intro.metaTitle": "Úvod",
 	"intro.leadPre": "je kolekce",
-	"intro.leadHighlight": "60 animovaných",
+	"intro.leadHighlight": "{count} animovaných",
 	"intro.leadHighlight2": "interaktivních UI komponent",
 	"intro.leadPost": "vytvořených nativně pro Svelte 5.",
 	"intro.pill.svelte": "Nativní pro Svelte 5",
@@ -143,7 +143,7 @@ export default {
 	"intro.quickStart.step3.title": "Použití",
 	"intro.quickStart.step3.desc": "Vložte je do svých Svelte komponent.",
 	"intro.whatsIncluded.heading": "Co je součástí",
-	"intro.whatsIncluded.body": "60 komponent napříč 10 kategoriemi:",
+	"intro.whatsIncluded.body": "{count} komponent napříč 10 kategoriemi:",
 	"intro.category.buttons": "Tlačítka",
 	"intro.category.cards": "Karty",
 	"intro.category.text": "Text",
@@ -225,7 +225,7 @@ export default {
 	"install.nextSteps.heading": "Další kroky",
 	"install.nextSteps.components.title": "Procházet komponenty",
 	"install.nextSteps.components.desc":
-		"60 komponent s živými náhledy, vlastnostmi a příklady ke zkopírování.",
+		"{count} komponent s živými náhledy, vlastnostmi a příklady ke zkopírování.",
 	"install.nextSteps.theming.title": "Vzhled",
 	"install.nextSteps.theming.desc":
 		"Přepište design tokeny, aby každá komponenta odpovídala vaší značce ve světlém i tmavém režimu.",

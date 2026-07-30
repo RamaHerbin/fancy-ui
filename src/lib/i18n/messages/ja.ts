@@ -116,7 +116,7 @@ export default {
 	"intro.title": "はじめに",
 	"intro.metaTitle": "はじめに",
 	"intro.leadPre": "は、",
-	"intro.leadHighlight": "60種のアニメーション",
+	"intro.leadHighlight": "{count}種のアニメーション",
 	"intro.leadHighlight2": "インタラクティブな UI コンポーネント",
 	"intro.leadPost": "の詰め合わせで、Svelte 5 向けにネイティブに構築されています。",
 	"intro.pill.svelte": "Svelte 5 ネイティブ",
@@ -146,7 +146,7 @@ export default {
 	"intro.quickStart.step3.title": "使用",
 	"intro.quickStart.step3.desc": "Svelte コンポーネント内に配置するだけです。",
 	"intro.whatsIncluded.heading": "収録内容",
-	"intro.whatsIncluded.body": "10 のカテゴリーにわたる 60 個のコンポーネント:",
+	"intro.whatsIncluded.body": "10 のカテゴリーにわたる {count} 個のコンポーネント:",
 	"intro.category.buttons": "ボタン",
 	"intro.category.cards": "カード",
 	"intro.category.text": "テキスト",
@@ -229,7 +229,7 @@ export default {
 	"install.nextSteps.heading": "次のステップ",
 	"install.nextSteps.components.title": "コンポーネントを見る",
 	"install.nextSteps.components.desc":
-		"ライブプレビュー、プロパティ、コピー＆ペーストできる例を備えた 60 個のコンポーネント。",
+		"ライブプレビュー、プロパティ、コピー＆ペーストできる例を備えた {count} 個のコンポーネント。",
 	"install.nextSteps.theming.title": "テーマ設定",
 	"install.nextSteps.theming.desc":
 		"デザイントークンを上書きして、ライトモードとダークモードの両方で、すべてのコンポーネントをブランドに合わせられます。",

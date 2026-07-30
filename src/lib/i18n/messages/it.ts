@@ -116,7 +116,7 @@ export default {
 	"intro.title": "Introduzione",
 	"intro.metaTitle": "Introduzione",
 	"intro.leadPre": "è una raccolta di",
-	"intro.leadHighlight": "60 componenti UI",
+	"intro.leadHighlight": "{count} componenti UI",
 	"intro.leadHighlight2": "animati e interattivi",
 	"intro.leadPost": "creati nativamente per Svelte 5.",
 	"intro.pill.svelte": "Svelte 5 nativo",
@@ -144,7 +144,7 @@ export default {
 	"intro.quickStart.step3.title": "Usa",
 	"intro.quickStart.step3.desc": "Inseriscilo nei tuoi componenti Svelte.",
 	"intro.whatsIncluded.heading": "Cosa include",
-	"intro.whatsIncluded.body": "60 componenti suddivisi in 10 categorie:",
+	"intro.whatsIncluded.body": "{count} componenti suddivisi in 10 categorie:",
 	"intro.category.buttons": "Pulsanti",
 	"intro.category.cards": "Schede",
 	"intro.category.text": "Testo",
@@ -226,7 +226,7 @@ export default {
 	"install.nextSteps.heading": "Prossimi passi",
 	"install.nextSteps.components.title": "Sfoglia i componenti",
 	"install.nextSteps.components.desc":
-		"60 componenti con anteprime dal vivo, props ed esempi da copiare e incollare.",
+		"{count} componenti con anteprime dal vivo, props ed esempi da copiare e incollare.",
 	"install.nextSteps.theming.title": "Temi",
 	"install.nextSteps.theming.desc":
 		"Sovrascrivi i design token perché ogni componente rispecchi il tuo brand in modalità chiara e scura.",

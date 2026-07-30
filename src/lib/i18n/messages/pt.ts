@@ -116,7 +116,7 @@ export default {
 	"intro.title": "Introdução",
 	"intro.metaTitle": "Introdução",
 	"intro.leadPre": "é uma coleção de",
-	"intro.leadHighlight": "60 componentes de interface animados",
+	"intro.leadHighlight": "{count} componentes de interface animados",
 	"intro.leadHighlight2": "interativos",
 	"intro.leadPost": ", criados nativamente para o Svelte 5.",
 	"intro.pill.svelte": "Svelte 5 nativo",
@@ -144,7 +144,7 @@ export default {
 	"intro.quickStart.step3.title": "Usar",
 	"intro.quickStart.step3.desc": "Insira-o nos seus componentes Svelte.",
 	"intro.whatsIncluded.heading": "O que está incluído",
-	"intro.whatsIncluded.body": "60 componentes em 10 categorias:",
+	"intro.whatsIncluded.body": "{count} componentes em 10 categorias:",
 	"intro.category.buttons": "Botões",
 	"intro.category.cards": "Cartões",
 	"intro.category.text": "Texto",
@@ -226,7 +226,7 @@ export default {
 	"install.nextSteps.heading": "Próximos passos",
 	"install.nextSteps.components.title": "Explorar componentes",
 	"install.nextSteps.components.desc":
-		"60 componentes com prévias ao vivo, propriedades e exemplos de copiar e colar.",
+		"{count} componentes com prévias ao vivo, propriedades e exemplos de copiar e colar.",
 	"install.nextSteps.theming.title": "Personalização de tema",
 	"install.nextSteps.theming.desc":
 		"Substitua os design tokens para que cada componente combine com a sua marca nos modos claro e escuro.",

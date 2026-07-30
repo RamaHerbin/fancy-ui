@@ -116,7 +116,7 @@ export default {
 	"intro.title": "Giriş",
 	"intro.metaTitle": "Giriş",
 	"intro.leadPre": "Svelte 5 için doğal olarak geliştirilmiş",
-	"intro.leadHighlight": "60 animasyonlu",
+	"intro.leadHighlight": "{count} animasyonlu",
 	"intro.leadHighlight2": "etkileşimli arayüz bileşeninden",
 	"intro.leadPost": "oluşan bir koleksiyondur.",
 	"intro.pill.svelte": "Svelte 5 Doğal",
@@ -145,7 +145,7 @@ export default {
 	"intro.quickStart.step3.title": "Kullan",
 	"intro.quickStart.step3.desc": "Svelte bileşenlerinize ekleyin.",
 	"intro.whatsIncluded.heading": "Neler İçerir",
-	"intro.whatsIncluded.body": "10 kategoride 60 bileşen:",
+	"intro.whatsIncluded.body": "10 kategoride {count} bileşen:",
 	"intro.category.buttons": "Düğmeler",
 	"intro.category.cards": "Kartlar",
 	"intro.category.text": "Metin",
@@ -226,7 +226,7 @@ export default {
 	"install.nextSteps.heading": "Sonraki Adımlar",
 	"install.nextSteps.components.title": "Bileşenlere Göz At",
 	"install.nextSteps.components.desc":
-		"Canlı önizlemeler, özellikler ve kopyala-yapıştır örnekleriyle 60 bileşen.",
+		"Canlı önizlemeler, özellikler ve kopyala-yapıştır örnekleriyle {count} bileşen.",
 	"install.nextSteps.theming.title": "Tema",
 	"install.nextSteps.theming.desc":
 		"Her bileşenin açık ve koyu modda markanızla eşleşmesi için tasarım belirteçlerini geçersiz kılın.",

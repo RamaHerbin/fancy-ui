@@ -2,6 +2,7 @@
 	import { t } from "$lib/stores";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
+	import { COMPONENT_COUNT } from "$lib/site.js";
 
 	const importSnippet = "import { BorderBeam, Sparkles } from 'fancy-ui-svelte';";
 	const usageSnippet = `<div class="relative overflow-hidden rounded-xl border p-6">
@@ -16,7 +17,8 @@
 	<p class="lead">
 		<strong>FancyUI</strong>
 		{t("intro.leadPre")}
-		<span class="grad">{t("intro.leadHighlight")}</span>,
+		<span class="grad">{t("intro.leadHighlight").replace("{count}", String(COMPONENT_COUNT))}</span
+		>,
 		<span class="solid">{t("intro.leadHighlight2")}</span>
 		{t("intro.leadPost")}
 	</p>
@@ -43,10 +45,7 @@
 			<div class="card-head">
 				<span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.philosophy.card1.title")}
 			</div>
-			<p class="card-desc">
-				Built with runes (<code class="chip">$state</code>, <code class="chip">$derived</code>,
-				<code class="chip">$effect</code>). No legacy APIs.
-			</p>
+			<p class="card-desc">{t("intro.philosophy.card1.desc")}</p>
 		</div>
 		<div class="card">
 			<div class="card-head">
@@ -103,7 +102,9 @@
 	</div>
 
 	<h2 id="whats-included">{t("intro.whatsIncluded.heading")}</h2>
-	<p class="section-body">{t("intro.whatsIncluded.body")}</p>
+	<p class="section-body">
+		{t("intro.whatsIncluded.body").replace("{count}", String(COMPONENT_COUNT))}
+	</p>
 	<div class="cats">
 		<div class="cat">{t("intro.category.buttons")}</div>
 		<div class="cat">{t("intro.category.cards")}</div>
@@ -276,17 +277,6 @@
 		font-size: 13.5px;
 		line-height: 1.6;
 		color: var(--muted-foreground);
-	}
-
-	.chip {
-		background: var(--muted);
-		border-radius: 4px;
-		padding: 1px 6px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-		font-size: 12px;
-		color: var(--primary);
-		direction: ltr;
-		unicode-bidi: isolate;
 	}
 
 	/* Quick start ----------------------------------------------------------- */

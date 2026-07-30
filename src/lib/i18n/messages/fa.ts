@@ -116,7 +116,7 @@ export default {
 	"intro.title": "معرفی",
 	"intro.metaTitle": "معرفی",
 	"intro.leadPre": "مجموعه‌ای است از",
-	"intro.leadHighlight": "۶۰ کامپوننت متحرک",
+	"intro.leadHighlight": "{count} کامپوننت متحرک",
 	"intro.leadHighlight2": "رابط کاربری تعاملی",
 	"intro.leadPost": "که به‌صورت بومی برای Svelte 5 ساخته شده‌اند.",
 	"intro.pill.svelte": "بومیِ Svelte 5",
@@ -143,7 +143,7 @@ export default {
 	"intro.quickStart.step3.title": "استفاده",
 	"intro.quickStart.step3.desc": "آن را در کامپوننت‌های Svelte خود قرار دهید.",
 	"intro.whatsIncluded.heading": "آنچه شامل می‌شود",
-	"intro.whatsIncluded.body": "۶۰ کامپوننت در ۱۰ دسته:",
+	"intro.whatsIncluded.body": "{count} کامپوننت در ۱۰ دسته:",
 	"intro.category.buttons": "دکمه‌ها",
 	"intro.category.cards": "کارت‌ها",
 	"intro.category.text": "متن",
@@ -226,7 +226,7 @@ export default {
 	"install.nextSteps.heading": "گام‌های بعدی",
 	"install.nextSteps.components.title": "مرور کامپوننت‌ها",
 	"install.nextSteps.components.desc":
-		"۶۰ کامپوننت با پیش‌نمایش زنده، پراپ‌ها و نمونه‌های آماده‌ی کپی‌وچسباندن.",
+		"{count} کامپوننت با پیش‌نمایش زنده، پراپ‌ها و نمونه‌های آماده‌ی کپی‌وچسباندن.",
 	"install.nextSteps.theming.title": "پوسته‌بندی",
 	"install.nextSteps.theming.desc":
 		"توکن‌های طراحی را بازنویسی کنید تا هر کامپوننت در حالت روشن و تاریک با برند شما هماهنگ شود.",
