@@ -33,7 +33,8 @@ const tmpDir = join(outDir, ".tmp-build");
 
 const WIDTHS = [1920, 1280, 768];
 const MAX_ASSET_BYTES = 200 * 1024;
-const MAX_TOTAL_BYTES = 1024 * 1024;
+// 1.8 MB: three new scene plates (mountains-sharp, city, sky-clouds) added for the scene's reference art direction.
+const MAX_TOTAL_BYTES = 1.8 * 1024 * 1024;
 
 // Tuned by hand against the 200 KB/asset, 1 MB/total budget. If a future
 // source blows the budget, lower these first; only drop a WIDTHS tier
@@ -56,6 +57,13 @@ const ASSETS = [
 	{ name: "palm-back", file: "ChatGPT Image Jul 30, 2026, 01_00_21 PM (5).png" },
 	{ name: "palm-front", file: "ChatGPT Image Jul 30, 2026, 01_00_21 PM (6).png" },
 	{ name: "car", file: "car.fixed.png" },
+	// Three plates cropped from previously unused raw renders (`*.cropped.png`
+	// intermediates): a tight ridge strip, an alpha-bbox-trimmed city whose
+	// base sits at the image's bottom edge, and the upper 2/3 of the opaque
+	// sky plate (its baked-in horizon glow trimmed off).
+	{ name: "mountains-sharp", file: "mountains-sharp.cropped.png" },
+	{ name: "city", file: "city.cropped.png" },
+	{ name: "sky-clouds", file: "sky-clouds.cropped.png" },
 ];
 
 function pngDimensions(path) {
@@ -161,7 +169,7 @@ function main() {
 		process.exit(1);
 	}
 	if (total > MAX_TOTAL_BYTES) {
-		console.error("FAIL: total output size exceeds the 1 MB budget.");
+		console.error("FAIL: total output size exceeds the 1.8 MB budget.");
 		process.exit(1);
 	}
 }

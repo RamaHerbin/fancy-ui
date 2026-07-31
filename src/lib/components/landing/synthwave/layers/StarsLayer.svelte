@@ -1,4 +1,6 @@
 <script module lang="ts">
+	import { STARFIELD } from "../scene-config.js";
+
 	/**
 	 * Deterministic star field: a tiny seeded PRNG (mulberry32) generates the
 	 * positions once, when the module first loads, so the sky is identical on
@@ -24,20 +26,15 @@
 		twinkle: 1 | 2;
 	}
 
-	const STAR_COUNT = 90;
-	/** Arbitrary fixed seed — never change it, or the "same sky every render" guarantee breaks. */
-	const STAR_FIELD_SEED = 0x51a2_7547;
-	/** Stars only live in the upper band of the layer, above the horizon glow. */
-	const STARFIELD_MAX_HEIGHT = 40;
-
 	function generateStars(): Star[] {
-		const random = mulberry32(STAR_FIELD_SEED);
+		const random = mulberry32(STARFIELD.seed);
+		const radiusSpan = STARFIELD.radiusMaxPx - STARFIELD.radiusMinPx;
 		const stars: Star[] = [];
-		for (let i = 0; i < STAR_COUNT; i++) {
+		for (let i = 0; i < STARFIELD.count; i++) {
 			stars.push({
 				cx: random() * 100,
-				cy: random() * STARFIELD_MAX_HEIGHT,
-				r: Number((0.7 + random() * 1.3).toFixed(2)),
+				cy: random() * STARFIELD.maxHeightPct,
+				r: Number((STARFIELD.radiusMinPx + random() * radiusSpan).toFixed(2)),
 				twinkle: i % 2 === 0 ? 1 : 2,
 			});
 		}
@@ -50,8 +47,10 @@
 </script>
 
 <!--
-	A single full-bleed SVG, no canvas. Two groups pulse opacity at different,
-	unsynchronized periods so the field doesn't read as one blinking mass.
+	A single full-bleed SVG, no canvas. Sparse and dim on purpose: the stars are
+	barely-there pinpricks above the sunset haze, not a co-star. Two groups pulse
+	opacity at different, unsynchronized periods so the field doesn't read as one
+	blinking mass.
 
 	Deliberately no `viewBox`: a viewBox plus `preserveAspectRatio="none"` would
 	stretch the coordinate system to the layer's aspect ratio and blow every
@@ -59,7 +58,12 @@
 	percentages of the box instead, which places them the same way, and the radius
 	stays in px so a star stays round at any viewport size.
 -->
-<svg class="absolute inset-0 h-full w-full" focusable="false" role="presentation">
+<svg
+	class="absolute inset-0 h-full w-full"
+	focusable="false"
+	role="presentation"
+	style={`--twinkle-min: ${STARFIELD.twinkleMinOpacity}; --twinkle-max: ${STARFIELD.twinkleMaxOpacity}; --twinkle-a: ${STARFIELD.twinkleASeconds}s; --twinkle-b: ${STARFIELD.twinkleBSeconds}s; --static-opacity: ${STARFIELD.staticOpacity};`}
+>
 	<g class="twinkle-a">
 		{#each TWINKLE_A as star, i (i)}
 			<circle cx="{star.cx}%" cy="{star.cy}%" r={star.r} fill="#ffffff" />
@@ -74,21 +78,22 @@
 
 <style>
 	.twinkle-a {
-		animation: star-twinkle 3.4s ease-in-out infinite;
+		animation: star-twinkle var(--twinkle-a) ease-in-out infinite;
 	}
 
+	/* The 1.1s offset keeps the two groups from ever starting a pulse together. */
 	.twinkle-b {
-		animation: star-twinkle 5.1s ease-in-out infinite;
+		animation: star-twinkle var(--twinkle-b) ease-in-out infinite;
 		animation-delay: 1.1s;
 	}
 
 	@keyframes star-twinkle {
 		0%,
 		100% {
-			opacity: 0.35;
+			opacity: var(--twinkle-min);
 		}
 		50% {
-			opacity: 1;
+			opacity: var(--twinkle-max);
 		}
 	}
 
@@ -96,7 +101,7 @@
 		.twinkle-a,
 		.twinkle-b {
 			animation: none;
-			opacity: 0.75;
+			opacity: var(--static-opacity);
 		}
 	}
 </style>

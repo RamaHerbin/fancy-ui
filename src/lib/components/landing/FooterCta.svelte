@@ -49,7 +49,16 @@
 	<SynthwaveScene />
 
 	<!-- CTA -->
-	<div class="relative z-10 flex min-h-[70vh] flex-col items-center justify-center px-6 py-24">
+	<!--
+		The mb-12 grows the section, not the CTA: the scene's sun disc is anchored
+		to a percentage of the section height, so the extra 48px lowers the disc
+		~33px relative to the buttons and its top edge clears them instead of
+		being sliced by the button row. Padding inside this block would be
+		swallowed by min-h and move nothing.
+	-->
+	<div
+		class="relative z-10 mb-12 flex min-h-[70vh] flex-col items-center justify-center px-6 py-24"
+	>
 		<div class="flex flex-col items-center gap-4 text-center">
 			<h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-[38px]">
 				Ready to build something
@@ -81,14 +90,16 @@
 
 	<!-- Footer -->
 	<!--
-		The scrim is deliberately heavy: the scene's brightest features (sun glow,
-		car tail-lights) sit right behind these link columns and wash the text out
-		at lower opacities.
+		The scrim is a gradient, not a solid bar: it fades upward to transparent so
+		the grid keeps glowing through its top edge, and the scene's bottom
+		vignette does the rest of the legibility work behind the link columns.
 	-->
-	<footer
-		class="relative z-10 border-t border-white/7 bg-black/70 px-6 pt-12 backdrop-blur-md sm:px-14"
-	>
-		<div class="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:gap-16">
+	<footer class="relative z-10 px-6 pt-12 sm:px-14">
+		<div
+			class="pointer-events-none absolute inset-x-0 -top-16 bottom-0 bg-gradient-to-b from-transparent via-black/60 to-black/85"
+			aria-hidden="true"
+		></div>
+		<div class="relative mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:gap-16">
 			<div class="flex w-full flex-col gap-3.5 lg:w-[300px]">
 				<span class="text-lg font-bold text-white">Fancy<span class="text-[#8b7bff]">UI</span></span
 				>
@@ -131,7 +142,7 @@
 		</div>
 
 		<div
-			class="mx-auto mt-10 flex max-w-6xl flex-col gap-3 border-t border-white/6 py-4.5 text-xs text-[#8b93ab] sm:flex-row sm:items-center sm:justify-between"
+			class="relative mx-auto mt-10 flex max-w-6xl flex-col gap-3 border-t border-white/6 py-4.5 text-xs text-[#8b93ab] sm:flex-row sm:items-center sm:justify-between"
 		>
 			<span>© {year} FancyUI. Built with Svelte 5 and lots of ☕</span>
 			<span class="flex gap-5">
