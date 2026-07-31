@@ -9,12 +9,61 @@
 	import ValuesStrip from "$lib/components/landing/ValuesStrip.svelte";
 	import FooterCta from "$lib/components/landing/FooterCta.svelte";
 	import Seo from "$lib/components/Seo.svelte";
-	import { COMPONENT_COUNT } from "$lib/site.js";
+	import JsonLd from "$lib/components/JsonLd.svelte";
+	import {
+		COMPONENT_COUNT,
+		DEFAULT_OG_IMAGE,
+		LICENSE_URL,
+		PACKAGE_NAME,
+		SCHEMA_APP_ID,
+		SCHEMA_WEBSITE_ID,
+		SITE_DESCRIPTION,
+		SITE_NAME,
+		SITE_URL,
+		absoluteUrl,
+	} from "$lib/site.js";
 
 	const description = `${COMPONENT_COUNT} animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript.`;
+
+	/**
+	 * Site-level graph, emitted once from the home page. Both nodes carry a
+	 * stable `@id` so deeper pages can reference them instead of restating them.
+	 */
+	const graph = {
+		"@context": "https://schema.org",
+		"@graph": [
+			{
+				"@type": "WebSite",
+				"@id": SCHEMA_WEBSITE_ID,
+				name: SITE_NAME,
+				url: SITE_URL,
+				description: SITE_DESCRIPTION,
+				inLanguage: "en",
+			},
+			{
+				"@type": "SoftwareApplication",
+				"@id": SCHEMA_APP_ID,
+				name: SITE_NAME,
+				alternateName: PACKAGE_NAME,
+				applicationCategory: "DeveloperApplication",
+				operatingSystem: "Web",
+				description: SITE_DESCRIPTION,
+				url: SITE_URL,
+				image: absoluteUrl(DEFAULT_OG_IMAGE),
+				license: LICENSE_URL,
+				isPartOf: { "@id": SCHEMA_WEBSITE_ID },
+				offers: {
+					"@type": "Offer",
+					price: "0",
+					priceCurrency: "USD",
+				},
+			},
+		],
+	};
 </script>
 
 <Seo title="FancyUI — Animated components for Svelte 5" {description} path="/" />
+<JsonLd data={graph} />
 
 <div class="min-h-screen bg-[#050508] text-[#f8fafc]">
 	<LandingHeader />

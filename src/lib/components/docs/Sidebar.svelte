@@ -59,11 +59,13 @@
 	<nav class="flex-1 overflow-y-auto px-3 py-4">
 		<!-- Getting Started -->
 		<div class="mb-6">
-			<h3
+			<!-- Not a heading: the sidebar renders before the page <h1>, so a real
+			     heading here would open the document outline above the page title. -->
+			<p
 				class="text-sidebar-foreground/50 mb-1 px-2 text-xs font-semibold tracking-wider uppercase"
 			>
 				{t("nav.gettingStarted")}
-			</h3>
+			</p>
 			<ul>
 				{#each gettingStartedLinks as link}
 					<li>

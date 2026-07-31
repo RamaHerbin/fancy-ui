@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { t, tCategory, docTitle } from "$lib/stores";
+	import { t, tCategory, componentDocTitle } from "$lib/stores";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
@@ -9,8 +9,15 @@
 		defaultProps,
 	} from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
+	import Breadcrumbs from "$lib/components/docs/Breadcrumbs.svelte";
+	import RelatedComponents from "$lib/components/docs/RelatedComponents.svelte";
+	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
 	import Seo from "$lib/components/Seo.svelte";
+	import JsonLd from "$lib/components/JsonLd.svelte";
+	import { SITE_URL, SITE_NAME } from "$lib/site.js";
 	import type { PageData } from "./$types";
+
+	const REPO_URL = "https://github.com/RamaHerbin/fancy-ui";
 
 	let { data }: { data: PageData } = $props();
 
@@ -18,6 +25,47 @@
 	let sourceUrl = $derived(
 		`https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
 	);
+	let path = $derived(`/docs/components/${component.slug}`);
+	let pageUrl = $derived(`${SITE_URL}${path}`);
+	let ogImage = $derived(`/og/${component.slug}.jpg`);
+
+	// Registry descriptions are written as sentence fragments without terminal
+	// punctuation, so close the sentence before appending the shared suffix.
+	let metaDescription = $derived.by(() => {
+		const base = component.description.trim();
+		const sentence = /[.!?]$/.test(base) ? base : `${base}.`;
+		return `${sentence} Svelte 5 component — live preview, props and copy-paste examples.`;
+	});
+
+	let breadcrumbLd = $derived({
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: [
+			{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+			{ "@type": "ListItem", position: 2, name: "Components", item: `${SITE_URL}/docs/components` },
+			{ "@type": "ListItem", position: 3, name: component.name, item: pageUrl },
+		],
+	});
+
+	let articleLd = $derived({
+		"@context": "https://schema.org",
+		"@type": "TechArticle",
+		headline: component.name,
+		description: metaDescription,
+		url: pageUrl,
+		isPartOf: { "@id": `${SITE_URL}/#website` },
+		author: { "@type": "Organization", name: SITE_NAME },
+		publisher: { "@type": "Organization", name: SITE_NAME },
+		image: `${SITE_URL}${ogImage}`,
+		about: {
+			"@type": "SoftwareSourceCode",
+			name: component.name,
+			programmingLanguage: "Svelte",
+			codeRepository: REPO_URL,
+			license: `${REPO_URL}/blob/main/LICENSE`,
+		},
+	});
+
 	let basicUsageCode = $derived(`<script lang="ts">
   import { ${component.name} } from 'fancy-ui-svelte';
 <\/script>
@@ -87,12 +135,18 @@
 </script>
 
 <Seo
-	title={docTitle(component.name)}
-	description={component.description}
-	path="/docs/components/{component.slug}"
+	title={componentDocTitle(component.name, component.category)}
+	description={metaDescription}
+	{path}
+	image={ogImage}
+	type="article"
 />
+<JsonLd data={breadcrumbLd} />
+<JsonLd data={articleLd} />
 
 <div class="max-w-4xl">
+	<Breadcrumbs current={component.name} />
+
 	<!-- Header -->
 	<div class="mb-3 flex flex-wrap items-center gap-2">
 		<span class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">
@@ -110,7 +164,7 @@
 	<h1 class="text-foreground mb-2 text-3xl font-bold" id="overview">{component.name}</h1>
 	<p class="text-muted-foreground mb-6">{component.description}</p>
 
-	<!-- ═══ PREVIEW (like Sigma UI) ═══ -->
+	<!-- ═══ PREVIEW ═══ -->
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="preview">{t("comp.preview")}</h2>
 		<div class="border-border overflow-hidden rounded-lg border">
@@ -143,11 +197,13 @@
 				>
 					<DemoRenderer slug={component.slug} />
 				</div>
-			{:else}
-				<div class="max-h-[500px] overflow-auto">
-					<CodeBlock code={previewCode} lang="svelte" />
-				</div>
 			{/if}
+			<!-- The code pane is always mounted, only hidden, so the usage snippet is in the
+			     prerendered HTML instead of appearing solely after a client-side tab switch.
+			     Highlighting still waits for the tab to be opened. -->
+			<div class="max-h-[500px] overflow-auto" hidden={previewTab !== "code"}>
+				<CodeBlock code={previewCode} lang="svelte" active={previewTab === "code"} />
+			</div>
 		</div>
 	</section>
 
@@ -243,4 +299,9 @@
 			{/if}
 		</div>
 	</section>
+
+	<!-- ═══ RELATED ═══ -->
+	<RelatedComponents {component} />
+
+	<PrevNextNav slug={component.slug} />
 </div>

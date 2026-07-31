@@ -4,9 +4,11 @@ import type { Catalog } from "./en.js";
 export default {
 	"nav.gettingStarted": "快速开始",
 	"nav.components": "组件",
+	"nav.home": "首页",
 	"nav.docsSuffix": "文档",
 	"a11y.closeSidebar": "关闭侧边栏",
 	"a11y.toggleSidebar": "切换侧边栏",
+	"a11y.breadcrumb": "面包屑导航",
 
 	"page.introduction": "简介",
 	"page.installation": "安装",
@@ -36,6 +38,9 @@ export default {
 	"comp.sourceCode": "源代码",
 	"comp.inspiredBy": "灵感来源",
 	"comp.examples": "示例",
+	"comp.related": "相关组件",
+	"comp.previous": "上一个",
+	"comp.next": "下一个",
 	"status.stable": "稳定",
 
 	"table.prop": "属性",
@@ -54,6 +59,8 @@ export default {
 
 	"gallery.title": "组件",
 	"gallery.subtitle": "{count} 个精美的 Svelte 5 动画组件。浏览、搜索，找到你需要的内容。",
+	"gallery.intro":
+		"每个组件都使用 runes 为 Svelte 5 原生构建，采用 Tailwind CSS v4 样式，使用 TypeScript 类型定义，并附带实时预览和可复制粘贴的示例。安装一次依赖包，代码即归你所有。",
 	"gallery.statComponents": "组件",
 	"gallery.statCategories": "分类",
 	"gallery.statTypescript": "TypeScript",

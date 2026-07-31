@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Başlarken",
 	"nav.components": "Bileşenler",
+	"nav.home": "Ana sayfa",
 	"nav.docsSuffix": "belgeler",
 	"a11y.closeSidebar": "Kenar çubuğunu kapat",
 	"a11y.toggleSidebar": "Kenar çubuğunu aç/kapat",
+	"a11y.breadcrumb": "Sayfa yolu",
 
 	// Getting-started page titles
 	"page.introduction": "Giriş",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Kaynak Kodu",
 	"comp.inspiredBy": "İlham kaynağı",
 	"comp.examples": "Örnekler",
+	"comp.related": "İlgili bileşenler",
+	"comp.previous": "Önceki",
+	"comp.next": "Sonraki",
 	"status.stable": "Kararlı",
 
 	// Tables
@@ -63,6 +68,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "Bileşenler",
+	"gallery.intro":
+		"Her bileşen runes ile Svelte 5 için yerel olarak geliştirildi, Tailwind CSS v4 ile biçimlendirildi, TypeScript ile tiplendirildi ve canlı önizleme ile kopyala-yapıştır örnekleriyle geliyor. Paketi bir kez kurun, kod sizin olsun.",
 	"gallery.statComponents": "Bileşenler",
 	"gallery.statCategories": "Kategoriler",
 	"gallery.statTypescript": "TypeScript",

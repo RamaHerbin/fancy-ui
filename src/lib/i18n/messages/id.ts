@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Memulai",
 	"nav.components": "Komponen",
+	"nav.home": "Beranda",
 	"nav.docsSuffix": "dokumen",
 	"a11y.closeSidebar": "Tutup bilah sisi",
 	"a11y.toggleSidebar": "Alihkan bilah sisi",
+	"a11y.breadcrumb": "Navigasi remah roti",
 
 	// Getting-started page titles
 	"page.introduction": "Pengantar",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Kode Sumber",
 	"comp.inspiredBy": "Terinspirasi oleh",
 	"comp.examples": "Contoh",
+	"comp.related": "Komponen terkait",
+	"comp.previous": "Sebelumnya",
+	"comp.next": "Berikutnya",
 	"status.stable": "Stabil",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "Komponen",
 	"gallery.subtitle":
 		"{count} komponen beranimasi indah untuk Svelte 5. Jelajahi, cari, dan temukan yang Anda butuhkan.",
+	"gallery.intro":
+		"Setiap komponen dibangun secara native untuk Svelte 5 dengan runes, ditata dengan Tailwind CSS v4, diketik dengan TypeScript, dan dilengkapi pratinjau langsung serta contoh siap salin-tempel. Instal paketnya sekali dan kodenya menjadi milik Anda.",
 	"gallery.statComponents": "Komponen",
 	"gallery.statCategories": "Kategori",
 	"gallery.statTypescript": "TypeScript",

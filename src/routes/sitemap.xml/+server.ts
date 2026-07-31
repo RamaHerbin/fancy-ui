@@ -18,6 +18,9 @@ const STATIC_PATHS = [
 	"/docs/getting-started/changelog",
 ];
 
+// No <lastmod>: a registry edit touches every component page at once, so any
+// date we could derive collapses to the same value everywhere — an unreliable
+// lastmod is worse than none, since crawlers learn to ignore it.
 export const GET: RequestHandler = () => {
 	const paths = [
 		...STATIC_PATHS,

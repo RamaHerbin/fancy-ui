@@ -7,12 +7,27 @@
 	} from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
 	import Seo from "$lib/components/Seo.svelte";
-	import { SITE_DESCRIPTION } from "$lib/site.js";
+	import JsonLd from "$lib/components/JsonLd.svelte";
+	import { SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
 	import { t, tCategory, docTitle } from "$lib/stores";
 
 	const grouped = getComponentsGroupedByCategory();
 	const allComponents = getAllComponents();
 	const stats = getStats();
+
+	/** The full gallery, not the filtered view — filters are a client-side lens. */
+	const itemList = {
+		"@context": "https://schema.org",
+		"@type": "ItemList",
+		"@id": `${SITE_URL}/docs/components#list`,
+		numberOfItems: allComponents.length,
+		itemListElement: allComponents.map((component, index) => ({
+			"@type": "ListItem",
+			position: index + 1,
+			name: component.name,
+			url: `${SITE_URL}/docs/components/${component.slug}`,
+		})),
+	};
 
 	let activeCategory = $state<string>("all");
 	let searchQuery = $state("");
@@ -33,6 +48,7 @@
 </script>
 
 <Seo title={docTitle(t("gallery.title"))} description={SITE_DESCRIPTION} path="/docs/components" />
+<JsonLd data={itemList} />
 
 <div class="max-w-5xl">
 	<!-- Header -->
@@ -40,6 +56,9 @@
 		<h1 class="text-foreground mb-2 text-3xl font-bold" id="components">{t("gallery.title")}</h1>
 		<p class="text-muted-foreground">
 			{t("gallery.subtitle").replace("{count}", String(stats.done))}
+		</p>
+		<p class="text-muted-foreground mt-3 max-w-2xl text-sm leading-relaxed">
+			{t("gallery.intro")}
 		</p>
 	</div>
 

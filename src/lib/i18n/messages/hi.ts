@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "शुरू करें",
 	"nav.components": "कॉम्पोनेंट्स",
+	"nav.home": "होम",
 	"nav.docsSuffix": "डॉक्स",
 	"a11y.closeSidebar": "साइडबार बंद करें",
 	"a11y.toggleSidebar": "साइडबार टॉगल करें",
+	"a11y.breadcrumb": "ब्रेडक्रम्ब",
 
 	// Getting-started page titles
 	"page.introduction": "परिचय",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "सोर्स कोड",
 	"comp.inspiredBy": "से प्रेरित",
 	"comp.examples": "उदाहरण",
+	"comp.related": "संबंधित कॉम्पोनेंट्स",
+	"comp.previous": "पिछला",
+	"comp.next": "अगला",
 	"status.stable": "स्थिर",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "कॉम्पोनेंट्स",
 	"gallery.subtitle":
 		"Svelte 5 के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
+	"gallery.intro":
+		"हर कॉम्पोनेंट runes के साथ Svelte 5 के लिए नेटिव रूप से बना है, Tailwind CSS v4 से स्टाइल किया गया है, TypeScript में टाइप किया गया है, और लाइव प्रीव्यू तथा कॉपी-पेस्ट उदाहरणों के साथ आता है। पैकेज एक बार इंस्टॉल करें और कोड आपका।",
 	"gallery.statComponents": "कॉम्पोनेंट्स",
 	"gallery.statCategories": "श्रेणियाँ",
 	"gallery.statTypescript": "TypeScript",

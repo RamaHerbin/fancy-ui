@@ -27,6 +27,7 @@ export {
 	t,
 	tCategory,
 	docTitle,
+	componentDocTitle,
 	createI18n,
 	applyForRoute,
 } from "./locale.svelte.js";

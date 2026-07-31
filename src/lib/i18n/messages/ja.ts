@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "スタートガイド",
 	"nav.components": "コンポーネント",
+	"nav.home": "ホーム",
 	"nav.docsSuffix": "ドキュメント",
 	"a11y.closeSidebar": "サイドバーを閉じる",
 	"a11y.toggleSidebar": "サイドバーの表示切り替え",
+	"a11y.breadcrumb": "パンくずリスト",
 
 	// Getting-started page titles
 	"page.introduction": "はじめに",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "ソースコード",
 	"comp.inspiredBy": "インスピレーション元",
 	"comp.examples": "使用例",
+	"comp.related": "関連コンポーネント",
+	"comp.previous": "前へ",
+	"comp.next": "次へ",
 	"status.stable": "安定版",
 
 	// Tables
@@ -63,6 +68,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "コンポーネント",
+	"gallery.intro":
+		"すべてのコンポーネントは runes を使って Svelte 5 向けにネイティブに作られ、Tailwind CSS v4 でスタイリングされ、TypeScript で型付けされ、ライブプレビューとコピー＆ペーストできる使用例が付属します。パッケージを一度インストールすれば、コードはあなたのものです。",
 	"gallery.statComponents": "コンポーネント",
 	"gallery.statCategories": "カテゴリー",
 	"gallery.statTypescript": "TypeScript",

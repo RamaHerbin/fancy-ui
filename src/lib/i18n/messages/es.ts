@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Primeros pasos",
 	"nav.components": "Componentes",
+	"nav.home": "Inicio",
 	"nav.docsSuffix": "docs",
 	"a11y.closeSidebar": "Cerrar barra lateral",
 	"a11y.toggleSidebar": "Alternar barra lateral",
+	"a11y.breadcrumb": "Ruta de navegación",
 
 	// Getting-started page titles
 	"page.introduction": "Introducción",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Código fuente",
 	"comp.inspiredBy": "Inspirado en",
 	"comp.examples": "Ejemplos",
+	"comp.related": "Componentes relacionados",
+	"comp.previous": "Anterior",
+	"comp.next": "Siguiente",
 	"status.stable": "Estable",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "Componentes",
 	"gallery.subtitle":
 		"{count} componentes bellamente animados para Svelte 5. Explora, busca y encuentra lo que necesitas.",
+	"gallery.intro":
+		"Cada componente está creado de forma nativa para Svelte 5 con runes, estilizado con Tailwind CSS v4, tipado con TypeScript, y viene con una vista previa en vivo y ejemplos para copiar y pegar. Instala el paquete una vez y el código es tuyo.",
 	"gallery.statComponents": "Componentes",
 	"gallery.statCategories": "Categorías",
 	"gallery.statTypescript": "TypeScript",
