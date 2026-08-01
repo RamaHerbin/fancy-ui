@@ -846,6 +846,79 @@ export const registry: Record<string, ComponentMeta> = {
 		slots: [{ name: "children", description: "DockIcon and DockSeparator elements" }],
 	},
 
+	"fireworks-hdr": {
+		name: "FireworksHdr",
+		slug: "fireworks-hdr",
+		description:
+			"GPU fireworks background with a deterministic, DOM-free physics core (rockets, peony/willow/ring/glyph shells, sparks, embers, smoke) rendered by a WebGPU engine into a wide-gamut, extended-tone-mapping canvas so bursts and comet trails burn brighter than SDR white on HDR displays, degrading silently through a WebGL2 fallback and a soft-knee SDR path everywhere else",
+		category: "effects",
+		status: "done",
+		tags: ["hdr", "webgpu", "particles", "fireworks", "background"],
+		props: [
+			{
+				name: "palette",
+				type: "string[]",
+				default: '["#ff2fd6","#a142ff","#3d5bff","#42cfff"]',
+				description: "Brand hues (hex); order-independent, sorted cool→warm for the shell sweep",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"Opt into the GPU engine (WebGPU HDR first, then a WebGL2 fallback); when false, no engine boots",
+			},
+			{
+				name: "exposure",
+				type: "number",
+				default: "2.2",
+				description: "Display exposure multiplier, clamped to [1, 4]",
+			},
+			{
+				name: "ambient",
+				type: "boolean",
+				default: "true",
+				description: "Run the ambient auto-scheduler (Poisson-timed background shells)",
+			},
+			{
+				name: "ambientIntensity",
+				type: "number",
+				default: "0.35",
+				description: "Ambient energy [0,1] — scales shell size",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "Launch a shell toward the pointer on pointerdown",
+			},
+			{
+				name: "quality",
+				type: '"auto" | "high" | "mid" | "low"',
+				default: '"auto"',
+				description: "Particle budget; auto picks from the render level and device pixel ratio",
+			},
+			{
+				name: "respectReducedMotion",
+				type: "boolean",
+				default: "true",
+				description: "Force ambient off under prefers-reduced-motion (explicit launches still work)",
+			},
+			{
+				name: "class",
+				type: "string",
+				default: '""',
+				description: "Extra classes on the canvas wrapper",
+			},
+			{
+				name: "onReady",
+				type: "(handle: FireworksHandle) => void",
+				description:
+					"Fired once when the engine is live with an imperative handle; never fired when no GPU renderer comes up",
+			},
+		],
+	},
+
 	"fluid-cursor": {
 		name: "FluidCursor",
 		slug: "fluid-cursor",
