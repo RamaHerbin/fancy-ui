@@ -9,6 +9,15 @@ Beautiful animation and UI components for **Svelte 5**.
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
+  <a href="https://www.anthropic.com/claude-code">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset=".github/claude-for-open-source-program-dark.svg">
+      <img src=".github/claude-for-open-source-program.svg" alt="Claude for Open Source Program" width="280">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
   <a href="https://fancy-ui.rama.app">
     <img src=".github/fancyui-readme.png" alt="FancyUI preview" width="800" />
   </a>
@@ -265,11 +274,3 @@ Inspired by [Inspira UI](https://inspira-ui.com), [Aceternity UI](https://ui.ace
 ## License
 
 MIT
-
----
-
-<p align="center">
-  <a href="https://www.anthropic.com/claude-code">
-    <img src=".github/claude-for-open-source-program.svg" alt="Claude for Open Source Program" width="420" />
-  </a>
-</p>
