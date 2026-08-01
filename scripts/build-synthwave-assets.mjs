@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 /**
- * Synthwave DOM scene -- layer asset pipeline.
+ * Synthwave backdrop -- panorama asset pipeline.
  *
- * Reads the six chosen raw/fixed sources from `static/synthwave/src/` (a
- * git-ignored raw drop -- see .gitignore) and emits AVIF + WebP renditions
- * at `static/synthwave/<name>-<width>.{avif,webp}` for each width in
- * WIDTHS, skipping any width that would upscale past the source's native
- * size (never upscale).
+ * Reads the single flattened panorama source from `raw-assets/synthwave/`
+ * (a git-ignored raw drop kept outside `static/` so the build never copies
+ * multi-MB sources into the published output -- see .gitignore) and emits
+ * AVIF + WebP
+ * renditions at `static/synthwave/<name>-<width>.{avif,webp}` for each
+ * width in the entry's `widths` list, skipping any width that would
+ * upscale past the source's (post-crop) native size (never upscale).
+ *
+ * Each ASSETS entry may declare an optional `crop` ({ w, h, x, y }) which
+ * is applied via ffmpeg's crop filter before scaling -- used to cut the
+ * mobile window (sun + car rear) out of the full panorama.
  *
  * Shells out to the local `ffmpeg`, `cwebp` and `avifenc` binaries -- no
  * new npm dependency, no build-time image plugin. Safe to re-run: outputs
@@ -27,46 +33,39 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
-const srcDir = join(repoRoot, "static", "synthwave", "src");
+const srcDir = join(repoRoot, "raw-assets", "synthwave");
 const outDir = join(repoRoot, "static", "synthwave");
 const tmpDir = join(outDir, ".tmp-build");
 
-const WIDTHS = [1920, 1280, 768];
-const MAX_ASSET_BYTES = 200 * 1024;
-// 1.8 MB: three new scene plates (mountains-sharp, city, sky-clouds) added for the scene's reference art direction.
-const MAX_TOTAL_BYTES = 1.8 * 1024 * 1024;
+// 384 KB per rendition: a single rendition reaches each client now (one
+// <picture> picks one file), vs ~9 stacked layer files before -- so the
+// per-file ceiling can be far above the old 200 KB layer budget while the
+// per-client payload still drops.
+const MAX_ASSET_BYTES = 384 * 1024;
+const MAX_TOTAL_BYTES = 1.6 * 1024 * 1024;
 
-// Tuned by hand against the 200 KB/asset, 1 MB/total budget. If a future
-// source blows the budget, lower these first; only drop a WIDTHS tier
-// as a last resort.
-const AVIF_QCOLOR = 86;
-const AVIF_QALPHA = 93;
+// Tuned against the budgets above. The source is fully opaque (rgb24), so
+// no alpha-quality flags are needed. 4:4:4 chroma is kept on purpose: the
+// sun's stripe edges and the dark sky gradient band smear at 4:2:0.
+const AVIF_QCOLOR = 84;
 const AVIF_YUV = "444";
-const WEBP_QUALITY = 91;
-const WEBP_ALPHA_QUALITY = 100;
+const WEBP_QUALITY = 80;
 
-// Six shipped layers out of the eleven raw AI-generated renders (the other
-// five -- sky gradient, blank render, particle sheet, and two orphans --
-// are handled by CSS or dropped; see the PR description for the inventory).
-// `skyline` and `car` point at the hand-fixed intermediates (floor grid
-// erased / contact shadow retinted) rather than the raw renders.
+// One flattened 3:1 panorama replaces the old nine-layer stack. The mobile
+// entry re-crops the same source to the right-hand window (full sun disc +
+// car rear) before scaling to 768w.
 const ASSETS = [
-	{ name: "sun", file: "ChatGPT Image Jul 30, 2026, 01_00_20 PM (4).png" },
-	{ name: "mountains-far", file: "ChatGPT Image Jul 30, 2026, 01_00_19 PM (2).png" },
-	{ name: "skyline", file: "skyline.fixed.png" },
-	{ name: "palm-back", file: "ChatGPT Image Jul 30, 2026, 01_00_21 PM (5).png" },
-	{ name: "palm-front", file: "ChatGPT Image Jul 30, 2026, 01_00_21 PM (6).png" },
-	{ name: "car", file: "car.fixed.png" },
-	// Three plates cropped from previously unused raw renders (`*.cropped.png`
-	// intermediates): a tight ridge strip, an alpha-bbox-trimmed city whose
-	// base sits at the image's bottom edge, and the y 300-950 window of the
-	// opaque sky plate — the band of thin bright striated clouds, its bottom
-	// edge stopping just above the source's own horizon-glow line so the
-	// hottest streaks land right above the scene horizon (v2 re-crop; the v1
-	// top-683px crop kept only the dark upper sky).
-	{ name: "mountains-sharp", file: "mountains-sharp.cropped.png" },
-	{ name: "city", file: "city.cropped.png" },
-	{ name: "sky-clouds", file: "sky-clouds.cropped.png" },
+	{
+		name: "neon-horizon-drive",
+		file: "neon-horizon-drive.png",
+		widths: [2172, 1920, 1280],
+	},
+	{
+		name: "neon-horizon-drive-mobile",
+		file: "neon-horizon-drive.png",
+		widths: [768],
+		crop: { w: 1216, h: 724, x: 695, y: 0 },
+	},
 ];
 
 function pngDimensions(path) {
@@ -99,14 +98,28 @@ function main() {
 			if (!existsSync(srcPath)) {
 				throw new Error(`missing source for "${asset.name}": ${srcPath}`);
 			}
-			const { width: nativeW, height: nativeH } = pngDimensions(srcPath);
+			const native = pngDimensions(srcPath);
+			if (asset.crop) {
+				const { w, h, x, y } = asset.crop;
+				if (x + w > native.width || y + h > native.height) {
+					throw new Error(`crop for "${asset.name}" exceeds source bounds`);
+				}
+			}
+			const baseW = asset.crop ? asset.crop.w : native.width;
+			const baseH = asset.crop ? asset.crop.h : native.height;
 
-			for (const width of WIDTHS) {
-				if (width > nativeW) {
+			for (const width of asset.widths) {
+				if (width > baseW) {
 					rows.push({ asset: asset.name, width, format: "-", bytes: "skipped (upscale)" });
 					continue;
 				}
-				const height = Math.round((width * nativeH) / nativeW);
+				const height = Math.round((width * baseH) / baseW);
+				const filters = [];
+				if (asset.crop) {
+					const { w, h, x, y } = asset.crop;
+					filters.push(`crop=${w}:${h}:${x}:${y}`);
+				}
+				filters.push(`scale=${width}:${height}:flags=lanczos`);
 				const resizedPng = join(tmpDir, `${asset.name}-${width}.png`);
 				run("ffmpeg", [
 					"-y",
@@ -115,9 +128,9 @@ function main() {
 					"-i",
 					srcPath,
 					"-vf",
-					`scale=${width}:${height}:flags=lanczos`,
+					filters.join(","),
 					"-pix_fmt",
-					"rgba",
+					"rgb24",
 					"-frames:v",
 					"1",
 					resizedPng,
@@ -127,8 +140,6 @@ function main() {
 				run("cwebp", [
 					"-q",
 					String(WEBP_QUALITY),
-					"-alpha_q",
-					String(WEBP_ALPHA_QUALITY),
 					"-m",
 					"6",
 					"-quiet",
@@ -142,18 +153,7 @@ function main() {
 				if (webpBytes > MAX_ASSET_BYTES) overBudget = true;
 
 				const avifOut = join(outDir, `${asset.name}-${width}.avif`);
-				run("avifenc", [
-					"-q",
-					String(AVIF_QCOLOR),
-					"--qalpha",
-					String(AVIF_QALPHA),
-					"-s",
-					"6",
-					"-y",
-					AVIF_YUV,
-					resizedPng,
-					avifOut,
-				]);
+				run("avifenc", ["-q", String(AVIF_QCOLOR), "-s", "6", "-y", AVIF_YUV, resizedPng, avifOut]);
 				const avifBytes = statSync(avifOut).size;
 				rows.push({ asset: asset.name, width, format: "avif", bytes: fmtBytes(avifBytes) });
 				total += avifBytes;
@@ -168,11 +168,11 @@ function main() {
 	console.log(`total: ${fmtBytes(total)} (budget: ${fmtBytes(MAX_TOTAL_BYTES)})`);
 
 	if (overBudget) {
-		console.error("FAIL: at least one output exceeds the 200 KB per-asset budget.");
+		console.error(`FAIL: at least one output exceeds the ${fmtBytes(MAX_ASSET_BYTES)} per-asset budget.`);
 		process.exit(1);
 	}
 	if (total > MAX_TOTAL_BYTES) {
-		console.error("FAIL: total output size exceeds the 1.8 MB budget.");
+		console.error(`FAIL: total output size exceeds the ${fmtBytes(MAX_TOTAL_BYTES)} budget.`);
 		process.exit(1);
 	}
 }
