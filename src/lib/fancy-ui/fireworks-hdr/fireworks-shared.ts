@@ -17,7 +17,7 @@
 // =============================================================================
 
 /** Floats per particle in the interleaved pool. */
-export const STRIDE = 16;
+export const STRIDE = 17;
 
 /** Field offsets inside one particle's STRIDE-float slot. */
 export const F = {
@@ -37,6 +37,13 @@ export const F = {
 	targetX: 13,
 	targetY: 14,
 	dragScale: 15,
+	/**
+	 * Per-particle depth dim in (0,1] — the launch's `depth` folded into a
+	 * single multiplier applied to the resolved brightness every frame (§3.6).
+	 * Defaults to 1 for every spawn (see `appendParticle`), so only depth-aware
+	 * spawns need to write it.
+	 */
+	depthDim: 16,
 } as const;
 
 export const TYPE = {
@@ -101,12 +108,7 @@ export interface LaunchResult {
  * - "webgl-sdr": WebGL2 fallback, plain sRGB.
  * - "none":      no GPU rendering available; the component never fires onReady.
  */
-export type FireworksRenderLevel =
-	| "webgpu-hdr"
-	| "webgpu-sdr"
-	| "webgl-p3"
-	| "webgl-sdr"
-	| "none";
+export type FireworksRenderLevel = "webgpu-hdr" | "webgpu-sdr" | "webgl-p3" | "webgl-sdr" | "none";
 
 /**
  * Imperative control surface handed to `FireworksHdr`'s `onReady` callback
@@ -236,6 +238,15 @@ export const SMOKE_HEX = "#0a0b10";
 // Shell hue jitter (oklab degrees) and spark hue jitter — §2.5 / §1.6
 export const SHELL_JITTER_DEG = 7;
 export const SPARK_JITTER_DEG = 3;
+
+// Depth response for `depth ∈ [0,1]`: a far shell is dimmer, smaller, less
+// saturated AND spatially tighter. Every term is applied at spawn (the dim as a
+// per-particle multiplier on the brightness curve) so the same shell reads as
+// "further back" on all of its debris — sparks, embers, smoke, flash, glyph.
+export const DEPTH_DIM = 0.45; // brightness ×(1 − 0.45·d)
+export const DEPTH_SIZE = 0.5; // particle size ×(1 − 0.5·d)
+export const DEPTH_CHROMA = 0.35; // saturation ×(1 − 0.35·d)
+export const DEPTH_RADIUS = 0.25; // burst radius ×(1 − 0.25·d)
 
 // §2.6 Wind: session vector magnitudes (visual accel)
 const WIND_X: [number, number] = [0.02, 0.05];
@@ -533,32 +544,102 @@ const COOL_END = hexToLinearRgb(COOL_END_HEX);
 const MAGNESIUM = hexToLinearRgb(MAGNESIUM_HEX);
 const COMET_HEAD = hexToLinearRgb(COMET_HEAD_HEX);
 const SMOKE_COLOR = hexToLinearRgb(SMOKE_HEX);
-// Rocket ascent-trail spark hue is a fixed blend; precomputed once so emitTrail
-// doesn't re-mix (3 oklab allocations) on every emitted trail spark.
-const COMET_TRAIL_HUE = mixOklab(COMET_HEAD, PALETTE[0], 0.25);
+// How far the ascent trail is pulled from the comet head toward the shell hue.
+// The blend is done once per launch (stored on the spec) so emitTrail never
+// re-mixes (3 oklab allocations) per emitted spark, and a branded palette gets
+// its own trail instead of the built-in cyan.
+export const COMET_TRAIL_MIX = 0.25;
+// Fallback tint for a trail whose launch spec is already gone (the rocket
+// outlived its detonation record) — the built-in palette's cool end.
+const COMET_TRAIL_HUE = mixOklab(COMET_HEAD, PALETTE[0], COMET_TRAIL_MIX);
 
 // =============================================================================
 // §1 pure helpers — kinematics, bursts, spring, hue sweep, scheduling
 // =============================================================================
 
 /**
+ * The medium a solved launch actually flies through. Omit it (or pass zeroed
+ * fields) for the textbook undamped, square-canvas trajectory; pass the sim's
+ * own numbers and the solve inverts the SAME model `integrate` applies, so the
+ * shell really peaks at `apex` instead of undershooting by the drag it was
+ * never told about.
+ */
+export interface LaunchMedium {
+	/** Linear drag on the rocket (1/s) — `DRAG[TYPE.ROCKET]`. 0 → ballistic. */
+	drag?: number;
+	/** Canvas aspect W/H; x integrates as `pos.x += (vel.x / A) · dt`. */
+	aspect?: number;
+	/** Horizontal wind accel, already scaled by the rocket's windScale. */
+	windX?: number;
+	/** Vertical wind accel (+y down), already scaled by the rocket's windScale. */
+	windY?: number;
+}
+
+/** Rise height reached by an up-velocity `vu0` under gravity `g` and drag `k`. */
+function riseUnderDrag(vu0: number, g: number, k: number): number {
+	return vu0 / k - (g / (k * k)) * Math.log(1 + (k * vu0) / g);
+}
+
+/**
  * Solve a rocket's launch velocity (§4). With `flightMs` the timing wins
  * (vy = 0 exactly at flight, apex.y only targets x); without it the flight is
  * derived so the trajectory peaks at apex.y.
+ *
+ * `medium` makes the solve match the integrator: with drag `k` the vertical
+ * motion is `vu(t) = (vu0 + g/k)·e^(−kt) − g/k` (apex where that hits 0) and
+ * the horizontal one integrates to `(vx0 − ax/k)(1 − e^(−kt))/k + (ax/k)·t`,
+ * divided by the aspect. Without it both collapse to the undamped forms.
  */
 export function solveLaunch(
 	from: Vec2,
 	apex: Vec2,
 	g: number,
-	flightMs?: number
+	flightMs?: number,
+	medium?: LaunchMedium
 ): { v0: Vec2; flightMs: number } {
-	const fs =
-		flightMs !== undefined ? flightMs / 1000 : Math.sqrt(Math.max(0, (2 * (from.y - apex.y)) / g));
+	const k = medium?.drag ?? 0;
+	const aspect = medium?.aspect ?? 1;
+	const ax = medium?.windX ?? 0;
+	// Wind on y is a constant accel, so it just shifts effective gravity.
+	const gEff = Math.max(1e-4, g + (medium?.windY ?? 0));
+	const dy = Math.max(0, from.y - apex.y);
+	const dx = (apex.x - from.x) * aspect;
+
+	if (k <= 0) {
+		const fs = flightMs !== undefined ? flightMs / 1000 : Math.sqrt((2 * dy) / gEff);
+		const safeFs = fs > 1e-4 ? fs : 1e-4;
+		// Δx = vx0·t + ½·ax·t² → vx0 = Δx/t − ½·ax·t.
+		return {
+			v0: { x: dx / safeFs - 0.5 * ax * safeFs, y: -gEff * fs },
+			flightMs: fs * 1000,
+		};
+	}
+
+	let vu0: number;
+	let fs: number;
+	if (flightMs !== undefined) {
+		fs = flightMs / 1000;
+		// vu(t) = 0 at t = fs  ⇒  vu0 = (g/k)·(e^(k·fs) − 1).
+		vu0 = (gEff / k) * (Math.exp(k * Math.max(0, fs)) - 1);
+	} else {
+		// Invert rise(vu0) = dy by Newton (monotonic; rise' = vu0/(g + k·vu0)),
+		// seeded with the undamped answer — converges in a handful of steps.
+		vu0 = Math.sqrt(2 * gEff * dy);
+		for (let i = 0; i < 12; i++) {
+			const err = riseUnderDrag(vu0, gEff, k) - dy;
+			const slope = vu0 / (gEff + k * vu0);
+			if (Math.abs(err) < 1e-9 || slope <= 0) break;
+			vu0 = Math.max(0, vu0 - err / slope);
+		}
+		fs = (1 / k) * Math.log(1 + (k * vu0) / gEff);
+	}
+
 	const safeFs = fs > 1e-4 ? fs : 1e-4;
-	return {
-		v0: { x: (apex.x - from.x) / safeFs, y: -g * fs },
-		flightMs: fs * 1000,
-	};
+	// Δx = (ax/k)·t + (vx0 − ax/k)·(1 − e^(−k·t))/k → solve for vx0.
+	const decay = 1 - Math.exp(-k * safeFs);
+	const drift = ax / k;
+	const vx0 = drift + ((dx - drift * safeFs) * k) / decay;
+	return { v0: { x: vx0, y: -vu0 }, flightMs: fs * 1000 };
 }
 
 /** Gravity that makes a launch from `from` peak at `apex.y` in `flightSec`. */
@@ -684,7 +765,20 @@ export function poissonIntervalMs(
 	return Math.min(clampMax, Math.max(clampMin, x));
 }
 
-function rectExpandedContains(rect: Rect, x: number, y: number, margin: number): boolean {
+/** Margin the keep-clear rect is grown by before rejecting an apex (§6). */
+export const KEEP_CLEAR_MARGIN = 0.02;
+
+/**
+ * Whether `(x, y)` falls inside `rect` grown by `margin`. Exported so callers
+ * that derive an apex from a sampled one (e.g. a mirrored double) can re-run
+ * the same rejection test rather than assume the transform preserved it.
+ */
+export function rectExpandedContains(
+	rect: Rect,
+	x: number,
+	y: number,
+	margin = KEEP_CLEAR_MARGIN
+): boolean {
 	return (
 		x >= rect.x0 - margin && x <= rect.x1 + margin && y >= rect.y0 - margin && y <= rect.y1 + margin
 	);
@@ -710,7 +804,7 @@ export function sampleZone(
 		}
 		return zones[zones.length - 1];
 	};
-	const KEEP_MARGIN = 0.02;
+	const KEEP_MARGIN = KEEP_CLEAR_MARGIN;
 
 	for (let attempt = 0; attempt < maxTries; attempt++) {
 		const z = pickZone();
@@ -907,6 +1001,8 @@ export function adaptiveLevel(state: AdaptiveState): AdaptiveLevel {
 interface LaunchSpec {
 	shell: ShellKind;
 	colors: Rgb[]; // one or two hues
+	/** Ascent-trail hue for this shell (comet head mixed toward `colors[0]`). */
+	trailHue: Rgb;
 	scale: number;
 	depth: number;
 	seed: number;
@@ -917,7 +1013,7 @@ interface LaunchSpec {
 }
 
 type BurstReq = { origin: Vec2; spec: LaunchSpec };
-type FlashReq = { pos: Vec2; brightness: number; size: number; hue: Rgb };
+type FlashReq = { pos: Vec2; brightness: number; size: number; hue: Rgb; dim?: number };
 type SparkReq = {
 	pos: Vec2;
 	vel: Vec2;
@@ -962,7 +1058,7 @@ export function createSim(opts: SimOptions): Sim {
 	// Monotonic seed for step-time randomness that has no stored particle seed
 	// (keeps determinism: a fixed call order reproduces the same sequence).
 	let seq = 1;
-	const stepSeed = () => hash11((seq++) * 0.61803398875);
+	const stepSeed = () => hash11(seq++ * 0.61803398875);
 
 	function appendParticle(write: (base: number) => void): boolean {
 		if (count >= capacity) {
@@ -972,6 +1068,9 @@ export function createSim(opts: SimOptions): Sim {
 		const base = count * STRIDE;
 		// Zero the slot so unset fields are deterministic.
 		for (let k = 0; k < STRIDE; k++) pool[base + k] = 0;
+		// Depth dim is a multiplier, so its neutral value is 1, not 0. Set before
+		// the writer runs so depth-aware spawns can still override it.
+		pool[base + F.depthDim] = 1;
 		write(base);
 		count++;
 		return true;
@@ -1006,7 +1105,15 @@ export function createSim(opts: SimOptions): Sim {
 			x: clamp(o.apex.x + (rng() * 2 - 1) * 0.04, LAUNCH_X[0], LAUNCH_X[1]),
 			y: rand(rng, LAUNCH_Y[0], LAUNCH_Y[1]),
 		};
-		const { v0, flightMs } = solveLaunch(from, o.apex, G, o.flightMs);
+		// Solve against the medium the rocket is actually integrated through
+		// (drag, session wind, aspect) — a ballistic solve undershoots the apex by
+		// ~25% of the rise and misses horizontally on non-square canvases.
+		const { v0, flightMs } = solveLaunch(from, o.apex, G * GRAV_SCALE[TYPE.ROCKET], o.flightMs, {
+			drag: DRAG[TYPE.ROCKET],
+			aspect,
+			windX: sessionWind.x * WIND_SCALE[TYPE.ROCKET],
+			windY: sessionWind.y * WIND_SCALE[TYPE.ROCKET],
+		});
 		// Fuse hang 80–140 ms (intro glyph "?" uses 140 via explicit releaseAtMs path).
 		const hangMs = o.intensity === "intro" ? 140 : rand(rng, 80, 140);
 		const breakMs = flightMs + hangMs;
@@ -1015,8 +1122,11 @@ export function createSim(opts: SimOptions): Sim {
 		const spec: LaunchSpec = {
 			shell,
 			colors,
+			// The ascent trail is tinted toward THIS shell's hue (§4) — mixed once
+			// per launch, not per emitted spark, and never from the default palette.
+			trailHue: mixOklab(COMET_HEAD, colors[0], COMET_TRAIL_MIX),
 			scale: o.scale ?? 1,
-			depth: o.depth ?? 0,
+			depth: clamp(o.depth ?? 0, 0, 1),
 			seed,
 			intensity: o.intensity ?? "ambient",
 			glyphPoints: o.glyphPoints,
@@ -1078,7 +1188,13 @@ export function createSim(opts: SimOptions): Sim {
 		}
 		// Spawn-density lever (adaptive downgrade): scale burst counts, floor at 1.
 		const n = Math.max(1, Math.round(recipe.counts[opts.quality] * spawnScale));
-		const radius = rand(seededRng(spec.seed + 3), recipe.radius[0], recipe.radius[1]) * spec.scale;
+		// Depth also pulls the burst in spatially, so a far shell is a smaller
+		// bloom and not just a desaturated one at full size.
+		const radius =
+			rand(seededRng(spec.seed + 3), recipe.radius[0], recipe.radius[1]) *
+			spec.scale *
+			(1 - DEPTH_RADIUS * spec.depth);
+		const dim = depthDim(spec.depth);
 		const baseSpeed = radius * BURST_SPEED_K;
 		const dirs =
 			recipe.builder === "sphere"
@@ -1100,8 +1216,10 @@ export function createSim(opts: SimOptions): Sim {
 				? rand(seededRng(spec.seed + i + 17), 1.6, 2.8)
 				: rand(seededRng(spec.seed + i + 17), 0.9, 1.6);
 			const size =
-				(isEmber ? rand(seededRng(spec.seed + i + 29), 0.002, 0.003) : rand(seededRng(spec.seed + i + 29), 0.0025, 0.004)) *
-				(1 - 0.5 * spec.depth);
+				(isEmber
+					? rand(seededRng(spec.seed + i + 29), 0.002, 0.003)
+					: rand(seededRng(spec.seed + i + 29), 0.0025, 0.004)) *
+				(1 - DEPTH_SIZE * spec.depth);
 			appendParticle((base) => {
 				pool[base + F.posX] = origin.x;
 				pool[base + F.posY] = origin.y;
@@ -1118,6 +1236,7 @@ export function createSim(opts: SimOptions): Sim {
 				// z-parallax folded into dragScale as a mild size/brightness proxy is
 				// avoided; dragScale carries the straggler multiplier only.
 				pool[base + F.dragScale] = straggler ? 0.7 : 1;
+				pool[base + F.depthDim] = dim;
 				// Stash burst z in targetY (unused for sparks/embers) for future
 				// parallax; harmless if ignored by the renderer.
 				pool[base + F.targetY] = z;
@@ -1132,8 +1251,9 @@ export function createSim(opts: SimOptions): Sim {
 		flashQueue.push({
 			pos: { ...origin },
 			brightness: flashB,
-			size: rand(seededRng(spec.seed + 5), 0.08, 0.16),
+			size: rand(seededRng(spec.seed + 5), 0.08, 0.16) * (1 - DEPTH_SIZE * spec.depth),
 			hue: depthAdjust(spec.colors[0], spec.depth),
+			dim,
 		});
 	}
 
@@ -1144,6 +1264,7 @@ export function createSim(opts: SimOptions): Sim {
 			((spec.releaseAtMs ?? spec.breakMs + 1500) - spec.breakMs) / 1000
 		);
 		const hue = depthAdjust(spec.colors[0], spec.depth);
+		const dim = depthDim(spec.depth);
 		for (let i = 0; i < points.length; i++) {
 			const p = points[i];
 			appendParticle((base) => {
@@ -1157,7 +1278,8 @@ export function createSim(opts: SimOptions): Sim {
 				pool[base + F.velX] = (dx / d) * mag;
 				pool[base + F.velY] = (dy / d) * mag;
 				pool[base + F.ttl] = releaseDelaySec + 0.9; // hold window + release fade
-				pool[base + F.size] = 0.003;
+				pool[base + F.size] = 0.003 * (1 - DEPTH_SIZE * spec.depth);
+				pool[base + F.depthDim] = dim;
 				pool[base + F.r] = hue.r;
 				pool[base + F.g] = hue.g;
 				pool[base + F.b] = hue.b;
@@ -1187,6 +1309,7 @@ export function createSim(opts: SimOptions): Sim {
 			pool[base + F.type] = TYPE.SMOKE;
 			pool[base + F.seed] = spec.seed + s + 61;
 			pool[base + F.dragScale] = 1;
+			pool[base + F.depthDim] = depthDim(spec.depth);
 		});
 	}
 
@@ -1198,7 +1321,12 @@ export function createSim(opts: SimOptions): Sim {
 
 	function depthAdjust(hue: Rgb, depth: number): Rgb {
 		if (depth <= 0) return hue;
-		return scaleChroma(hue, 1 - 0.35 * depth);
+		return scaleChroma(hue, 1 - DEPTH_CHROMA * depth);
+	}
+
+	/** Brightness multiplier a launch's `depth` imposes on all of its debris. */
+	function depthDim(depth: number): number {
+		return depth <= 0 ? 1 : 1 - DEPTH_DIM * depth;
 	}
 
 	// A small deterministic rng seeded off an integer, for spawn-time jitter
@@ -1230,7 +1358,7 @@ export function createSim(opts: SimOptions): Sim {
 				appendParticle((base) => {
 					pool[base + F.posX] = f.pos.x;
 					pool[base + F.posY] = f.pos.y;
-					pool[base + F.ttl] = rand(seededRng((seq++) | 0), 0.06, 0.12);
+					pool[base + F.ttl] = rand(seededRng(seq++ | 0), 0.06, 0.12);
 					pool[base + F.size] = f.size;
 					pool[base + F.r] = f.hue.r;
 					pool[base + F.g] = f.hue.g;
@@ -1238,6 +1366,7 @@ export function createSim(opts: SimOptions): Sim {
 					pool[base + F.brightness] = f.brightness;
 					pool[base + F.type] = TYPE.FLASH;
 					pool[base + F.seed] = stepSeed() * 1000;
+					pool[base + F.depthDim] = f.dim ?? 1;
 				});
 			}
 		}
@@ -1283,7 +1412,10 @@ export function createSim(opts: SimOptions): Sim {
 
 			pool[base + F.age] += dt;
 			const lifeT = pool[base + F.ttl] > 0 ? pool[base + F.age] / pool[base + F.ttl] : 1;
-			pool[base + F.brightness] = brightnessCurve(type, base, lifeT) * deathGate(lifeT);
+			// The launch's depth rides along as a per-particle multiplier: the type
+			// curves stay the single source of the shape, depth only scales it.
+			pool[base + F.brightness] =
+				brightnessCurve(type, base, lifeT) * deathGate(lifeT) * pool[base + F.depthDim];
 
 			// §4.5 soft-dim: drift-ins behind the card fade to KEEP_CLEAR_DIM so the
 			// haze there stays under the §4.6 ceiling (this brightness feeds the
@@ -1293,12 +1425,7 @@ export function createSim(opts: SimOptions): Sim {
 			if (keepClear !== null && type !== TYPE.ROCKET && type !== TYPE.SEEKER) {
 				const px = pool[base + F.posX];
 				const py = pool[base + F.posY];
-				if (
-					px >= keepClear.x0 &&
-					px <= keepClear.x1 &&
-					py >= keepClear.y0 &&
-					py <= keepClear.y1
-				) {
+				if (px >= keepClear.x0 && px <= keepClear.x1 && py >= keepClear.y0 && py <= keepClear.y1) {
 					pool[base + F.brightness] *= KEEP_CLEAR_DIM;
 				}
 			}
@@ -1354,6 +1481,8 @@ export function createSim(opts: SimOptions): Sim {
 		const seed = pool[base + F.seed];
 		const px = pool[base + F.posX];
 		const py = pool[base + F.posY];
+		// targetX carries the launch id: the trail wears the launched shell's hue.
+		const hue = specs.get(pool[base + F.targetX])?.trailHue ?? COMET_TRAIL_HUE;
 		let k = 0;
 		while (emit >= 1) {
 			emit -= 1;
@@ -1363,7 +1492,7 @@ export function createSim(opts: SimOptions): Sim {
 				vel: { x: (j * 2 - 1) * 0.01, y: (hash11(j) * 2 - 1) * 0.01 },
 				ttl: rand(seededRng(seed + k + 71), 0.3, 0.5),
 				size: 0.002,
-				hue: COMET_TRAIL_HUE,
+				hue,
 				seed: seed + k + 500,
 			});
 			k++;

@@ -46,6 +46,13 @@ describe("FireworksHdr", () => {
 		expect(onReady).not.toHaveBeenCalled();
 	});
 
+	it("does not fire onLost when no engine ever booted (that is not a loss)", async () => {
+		const onLost = vi.fn();
+		render(FireworksHdr, { props: { onLost } });
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(onLost).not.toHaveBeenCalled();
+	});
+
 	it("does not attempt WebGPU when hdr={false}", () => {
 		const { container } = render(FireworksHdr, { props: { hdr: false } });
 		expect(container.querySelector("canvas")).toBeInTheDocument();

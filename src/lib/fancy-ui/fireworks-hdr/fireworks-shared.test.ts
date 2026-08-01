@@ -13,6 +13,8 @@ import {
 	nextShellHue,
 	poissonIntervalMs,
 	sampleZone,
+	rectExpandedContains,
+	KEEP_CLEAR_MARGIN,
 	flickerNoise,
 	deathGate,
 	mixOklab,
@@ -71,6 +73,207 @@ describe("solveLaunch / solveGravity", () => {
 		const { v0 } = solveLaunch(from, apex, g);
 		const minY = from.y - (v0.y * v0.y) / (2 * g);
 		expect(Math.abs(minY - apex.y)).toBeLessThan(0.005);
+	});
+});
+
+describe("solveLaunch through the medium it is integrated in", () => {
+	const NO_WIND = { x: 0, y: 0 };
+
+	/**
+	 * Fly a launched rocket and report the top of its arc — where the shell was
+	 * asked to peak. (It breaks a fuse-hang later, slightly past the apex.)
+	 */
+	function apexReached(
+		apex: { x: number; y: number },
+		from: { x: number; y: number },
+		aspect: number
+	): { x: number; y: number } {
+		const sim = createSim({
+			quality: "low",
+			aspect,
+			hdr: true,
+			rng: mulberry32(11),
+			wind: NO_WIND,
+		});
+		const { breakMs } = sim.launch({ apex, from, shell: "peony", seed: 3 });
+		let top = { ...from };
+		for (let f = 0; f < Math.ceil((breakMs / 1000) * 60) + 4; f++) {
+			for (let idx = 0; idx < sim.count; idx++) {
+				const base = idx * STRIDE;
+				if (sim.data[base + F.type] !== TYPE.ROCKET) continue;
+				const y = sim.data[base + F.posY];
+				if (y < top.y) top = { x: sim.data[base + F.posX], y };
+			}
+			sim.step(1 / 60);
+		}
+		return top;
+	}
+
+	it("peaks within 0.03 of the requested apex on a square canvas", () => {
+		const apex = { x: 0.5, y: 0.3 };
+		const at = apexReached(apex, { x: 0.5, y: 1.05 }, 1);
+		expect(Math.abs(at.y - apex.y)).toBeLessThan(0.03);
+		expect(Math.abs(at.x - apex.x)).toBeLessThan(0.03);
+	});
+
+	it("hits the requested x on a wide canvas (aspect divides horizontal motion)", () => {
+		const apex = { x: 0.75, y: 0.25 };
+		const at = apexReached(apex, { x: 0.2, y: 1.05 }, 1.9);
+		expect(Math.abs(at.x - apex.x)).toBeLessThan(0.03);
+		expect(Math.abs(at.y - apex.y)).toBeLessThan(0.03);
+	});
+
+	it("a drag-blind solve would undershoot — the medium-aware one does not", () => {
+		const from = { x: 0.5, y: 1.05 };
+		const apex = { x: 0.5, y: 0.3 };
+		const ballistic = solveLaunch(from, apex, G);
+		const damped = solveLaunch(from, apex, G, undefined, { drag: 0.6, aspect: 1 });
+		// Same target, but drag has to be out-run: more launch speed, less flight.
+		expect(-damped.v0.y).toBeGreaterThan(-ballistic.v0.y);
+		expect(damped.flightMs).toBeLessThan(ballistic.flightMs);
+	});
+
+	it("collapses to the undamped solve when no medium is given", () => {
+		const from = { x: 0.4, y: 1.04 };
+		const apex = { x: 0.62, y: 0.31 };
+		const bare = solveLaunch(from, apex, G);
+		const zeroed = solveLaunch(from, apex, G, undefined, {
+			drag: 0,
+			aspect: 1,
+			windX: 0,
+			windY: 0,
+		});
+		expect(zeroed.v0.x).toBeCloseTo(bare.v0.x, 12);
+		expect(zeroed.v0.y).toBeCloseTo(bare.v0.y, 12);
+		expect(zeroed.flightMs).toBeCloseTo(bare.flightMs, 12);
+	});
+
+	it("still puts vy at 0 exactly at an explicit flightMs, under drag", () => {
+		const k = 0.6;
+		const flightMs = 700;
+		const { v0 } = solveLaunch({ x: 0.5, y: 1.05 }, { x: 0.5, y: 0.3 }, G, flightMs, {
+			drag: k,
+			aspect: 1,
+		});
+		// vu(t) = (vu0 + g/k)·e^(−kt) − g/k, up-positive.
+		const t = flightMs / 1000;
+		const vu = (-v0.y + G / k) * Math.exp(-k * t) - G / k;
+		expect(Math.abs(vu)).toBeLessThan(1e-9);
+	});
+});
+
+describe("rectExpandedContains (mirrored-apex revalidation)", () => {
+	const RECT: Rect = { x0: 0.28, y0: 0.3, x1: 0.72, y1: 0.82 };
+
+	it("defaults to the sampler's keep-clear margin", () => {
+		expect(rectExpandedContains(RECT, RECT.x0 - KEEP_CLEAR_MARGIN / 2, 0.5)).toBe(true);
+		expect(rectExpandedContains(RECT, RECT.x0 - KEEP_CLEAR_MARGIN * 2, 0.5)).toBe(false);
+	});
+
+	it("catches a mirror of a valid point that lands inside an asymmetric rect", () => {
+		// Valid on the left of a rect that only extends right of center...
+		const asym: Rect = { x0: 0.5, y0: 0.3, x1: 0.95, y1: 0.82 };
+		const picked = { x: 0.2, y: 0.5 };
+		expect(rectExpandedContains(asym, picked.x, picked.y)).toBe(false);
+		// ...but its mirror is squarely inside it, which is what the scheduler
+		// re-tests before launching a mirrored double.
+		expect(rectExpandedContains(asym, 1 - picked.x, picked.y)).toBe(true);
+	});
+});
+
+describe("depth (§3.6 far-shell separation)", () => {
+	/** Measure a shell two frames after it detonates, before drag reshuffles it. */
+	function burst(depth: number) {
+		const sim = createSim({
+			quality: "low",
+			aspect: 1.6,
+			hdr: true,
+			rng: mulberry32(31),
+			wind: { x: 0, y: 0 },
+		});
+		const { breakMs } = sim.launch({
+			apex: { x: 0.5, y: 0.45 },
+			shell: "peony",
+			seed: 21,
+			depth,
+			flightMs: 100,
+		});
+		for (let f = 0; f < Math.ceil((breakMs / 1000) * 60) + 2; f++) sim.step(1 / 60);
+		let brightness = 0;
+		let size = 0;
+		// Burst extent shows up in the debris' launch speed (= radius · k). Read it
+		// off the embers: only a burst makes those, so falling ascent-trail sparks
+		// (which carry no depth of their own) cannot enter the measurement.
+		let speed = 0;
+		let sparks = 0;
+		for (let idx = 0; idx < sim.count; idx++) {
+			const base = idx * STRIDE;
+			const type = sim.data[base + F.type];
+			if (type !== TYPE.SPARK && type !== TYPE.EMBER && type !== TYPE.FLASH) continue;
+			brightness += sim.data[base + F.brightness];
+			if (type === TYPE.SPARK || type === TYPE.EMBER) {
+				size += sim.data[base + F.size];
+				sparks++;
+			}
+			if (type === TYPE.EMBER) {
+				speed = Math.max(speed, Math.hypot(sim.data[base + F.velX], sim.data[base + F.velY]));
+			}
+		}
+		return { brightness, size, speed, sparks };
+	}
+
+	it("dims, shrinks and tightens a far shell relative to a near one", () => {
+		const near = burst(0);
+		const far = burst(1);
+		expect(near.sparks).toBe(far.sparks); // same shell, same particle count
+		expect(near.brightness).toBeGreaterThan(0);
+		expect(far.brightness).toBeLessThan(near.brightness * 0.75);
+		expect(far.size).toBeLessThan(near.size * 0.75);
+		expect(far.speed).toBeLessThan(near.speed * 0.85);
+	});
+
+	it("is inert at depth 0", () => {
+		const zero = burst(0);
+		expect(zero.brightness).toBeGreaterThan(0);
+		expect(zero.sparks).toBeGreaterThan(0);
+	});
+});
+
+describe("ascent trail hue", () => {
+	/** Mean color of the trail sparks a rocket has emitted so far. */
+	function trailColor(color?: { r: number; g: number; b: number }) {
+		const sim = createSim({
+			quality: "high",
+			aspect: 1.6,
+			hdr: true,
+			rng: mulberry32(5),
+			wind: { x: 0, y: 0 },
+		});
+		sim.launch({ apex: { x: 0.5, y: 0.3 }, shell: "peony", seed: 9, color });
+		sim.step(1 / 60);
+		sim.step(1 / 60); // trail sparks are queued during step and drained on the next
+		let r = 0;
+		let g = 0;
+		let b = 0;
+		let n = 0;
+		for (let idx = 0; idx < sim.count; idx++) {
+			const base = idx * STRIDE;
+			if (sim.data[base + F.type] !== TYPE.SPARK) continue;
+			r += sim.data[base + F.r];
+			g += sim.data[base + F.g];
+			b += sim.data[base + F.b];
+			n++;
+		}
+		expect(n).toBeGreaterThan(0);
+		return { r: r / n, g: g / n, b: b / n };
+	}
+
+	it("follows the launched shell's hue instead of the built-in palette", () => {
+		const warm = trailColor(hexToLinearRgb("#ff3b1f"));
+		const cool = trailColor(hexToLinearRgb("#20d0ff"));
+		// A red shell must not trail cyan, and vice versa.
+		expect(warm.r).toBeGreaterThan(warm.b);
+		expect(cool.b).toBeGreaterThan(cool.r);
 	});
 });
 
@@ -480,7 +683,13 @@ describe("setSpawnScale (adaptive CPU lever)", () => {
 			const sim = createSim({ quality: "high", aspect: 1.6, hdr: true, rng: mulberry32(3) });
 			sim.setSpawnScale(scale);
 			const glyphPoints = Array.from({ length: 40 }, (_, i) => ({ x: 0.4 + 0.004 * i, y: 0.4 }));
-			sim.launch({ apex: { x: 0.5, y: 0.4 }, shell: "glyph", glyphPoints, seed: 3, releaseAtMs: 4000 });
+			sim.launch({
+				apex: { x: 0.5, y: 0.4 },
+				shell: "glyph",
+				glyphPoints,
+				seed: 3,
+				releaseAtMs: 4000,
+			});
 			for (let f = 0; f < 60; f++) sim.step(1 / 60);
 			let seekers = 0;
 			for (let idx = 0; idx < sim.count; idx++) {
@@ -645,7 +854,13 @@ describe("keep-clear soft dim (§4.5)", () => {
 			const sim = createSim({ quality: "low", aspect: 1.6, hdr: true, rng: mulberry32(11) });
 			if (withClear) sim.setKeepClear(FULL);
 			const glyphPoints = Array.from({ length: 12 }, (_, i) => ({ x: 0.45 + 0.005 * i, y: 0.45 }));
-			sim.launch({ apex: { x: 0.5, y: 0.4 }, shell: "glyph", glyphPoints, seed: 3, releaseAtMs: 2000 });
+			sim.launch({
+				apex: { x: 0.5, y: 0.4 },
+				shell: "glyph",
+				glyphPoints,
+				seed: 3,
+				releaseAtMs: 2000,
+			});
 			for (let f = 0; f < 60; f++) sim.step(1 / 60); // detonated, seekers held (release at 2 s)
 			return sumBrightness(sim, TYPE.SEEKER);
 		}

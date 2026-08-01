@@ -16,7 +16,10 @@
 //   - `extendedToneMapping` is read back from getConfiguration() and surfaced
 //     as data so "webgpu-hdr" can be told apart from a clamped fallback;
 //   - renderLevel is "webgpu-hdr" only when extended tone mapping is active AND
-//     the display reports `(dynamic-range: high)`.
+//     the display reports `(dynamic-range: high)`;
+//   - that same predicate drives the shaders' `sdr` uniform, so an SDR display
+//     always gets the exposure-1 soft-knee path even when the browser did keep
+//     extended tone mapping (otherwise its highlights clip to white).
 //
 // Three passes per frame:
 //   (a) decay:     accum.read → accum.write × exp(-TRAIL_FADE_RATE·dt)
@@ -285,6 +288,18 @@ export async function startWebGpuFireworks(
 			// getConfiguration unsupported (e.g. Safari): assume clamped output.
 		}
 
+		// Extended tone mapping only proves the browser kept the configuration —
+		// an SDR display still clamps — so true HDR output requires both. Sampled
+		// once; it does not follow the window to another monitor.
+		const hdrDisplay =
+			typeof window !== "undefined" && typeof window.matchMedia === "function"
+				? window.matchMedia("(dynamic-range: high)").matches
+				: false;
+		// The single HDR predicate: the shaders' SDR path and the reported render
+		// level must never disagree, or an SDR display gets HDR exposure and
+		// clips its highlights while the handle claims "webgpu-sdr".
+		const hdrOutput = extendedToneMapping && hdrDisplay;
+
 		let destroyed = false;
 		let lost = false;
 		device.lost.then((info) => {
@@ -495,7 +510,7 @@ export async function startWebGpuFireworks(
 		) {
 			if (destroyed || lost || !accum) return;
 			exposure = clampExposure(uniforms.exposure);
-			const sdr = extendedToneMapping ? 0 : 1;
+			const sdr = hdrOutput ? 0 : 1;
 			const count = Math.max(0, Math.min(liveCount, instanceCapacity));
 
 			// Upload live instances (float count must be a multiple of 4 for
@@ -581,15 +596,7 @@ export async function startWebGpuFireworks(
 			pass.end();
 		}
 
-		// Extended tone mapping only proves the browser kept the configuration —
-		// an SDR display still clamps — so "webgpu-hdr" requires both. Sampled
-		// once; it does not follow the window to another monitor.
-		const hdrDisplay =
-			typeof window !== "undefined" && typeof window.matchMedia === "function"
-				? window.matchMedia("(dynamic-range: high)").matches
-				: false;
-		const renderLevel: FireworksRenderLevel =
-			extendedToneMapping && hdrDisplay ? "webgpu-hdr" : "webgpu-sdr";
+		const renderLevel: FireworksRenderLevel = hdrOutput ? "webgpu-hdr" : "webgpu-sdr";
 
 		// Prime the drawing buffer + accumulation textures at the current size.
 		{

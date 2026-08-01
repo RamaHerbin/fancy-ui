@@ -30,10 +30,20 @@
 		/** Extra classes on the canvas wrapper. */
 		class?: string;
 		/**
-		 * Called once when the engine is live, with an imperative handle. Never
-		 * called when no GPU renderer comes up (the caller uses its own timeout).
+		 * Called when the engine is live, with an imperative handle. Never called
+		 * when no GPU renderer comes up (the caller uses its own timeout). Called
+		 * again after a GPU context loss is recovered, with a fresh handle whose
+		 * `renderLevel` reflects the engine that came back (a lost WebGPU device
+		 * can return as the WebGL2 fallback).
 		 */
 		onReady?: (handle: FireworksHandle) => void;
+		/**
+		 * Called once when the GPU context is lost and cannot be brought back.
+		 * The component has torn itself down by then: the loop is stopped, the
+		 * listeners are gone, and any handle it handed out is inert. Use it to
+		 * swap in a static fallback.
+		 */
+		onLost?: () => void;
 	}
 </script>
 
@@ -48,6 +58,7 @@
 		shellHueColor,
 		poissonIntervalMs,
 		sampleZone,
+		rectExpandedContains,
 		resolveQualityTier,
 		createAdaptiveState,
 		adaptiveDowngradeStep,
@@ -81,6 +92,7 @@
 		respectReducedMotion = true,
 		class: className = "",
 		onReady,
+		onLost,
 	}: FireworksHdrProps = $props();
 
 	let canvasRef: HTMLCanvasElement;
@@ -94,6 +106,9 @@
 	// flight, but never a fourth.
 	const MAX_AMBIENT_INFLIGHT_SOFT = 2;
 	const MAX_AMBIENT_INFLIGHT_HARD = 3;
+	// How long a lost WebGL context is given to announce its restoration before
+	// the component gives up and reports the failure through `onLost`.
+	const RESTORE_TIMEOUT_MS = 4000;
 
 	function clampExposure(v: number): number {
 		return Number.isFinite(v) ? Math.max(1, Math.min(4, v)) : 1;
@@ -180,6 +195,14 @@
 		let observer: IntersectionObserver | null = null;
 		let resizeObs: ResizeObserver | null = null;
 
+		// GPU context loss: one recovery attempt (WebGPU asks for a new device,
+		// WebGL waits for `webglcontextrestored`), then a full teardown so the
+		// caller can fall back instead of holding a dead handle.
+		let wired = false; // observers/listeners are registered exactly once
+		let recovering = false;
+		let recoveryUsed = false;
+		let restoreTimer = 0;
+
 		function updateAspect() {
 			if (!sim || !canvas) return;
 			const w = canvas.clientWidth || 1;
@@ -218,8 +241,20 @@
 
 		function doAmbientLaunch(mirror: boolean) {
 			if (!sim || ambientInFlight >= MAX_AMBIENT_INFLIGHT_HARD) return;
-			const picked = sampleZone(AMBIENT_ZONES, Math.random, keepClear);
-			const apex = mirror ? { x: 1 - picked.apex.x, y: picked.apex.y } : picked.apex;
+			let picked = sampleZone(AMBIENT_ZONES, Math.random, keepClear);
+			let apex = picked.apex;
+			if (mirror) {
+				const mirrored = { x: 1 - picked.apex.x, y: picked.apex.y };
+				// sampleZone validated the ORIGINAL point; reflecting it can drop the
+				// double straight into an asymmetric keep-clear rect. Re-test, and
+				// take a freshly sampled (validated) apex when the mirror lands in it.
+				if (keepClear && rectExpandedContains(keepClear, mirrored.x, mirrored.y)) {
+					picked = sampleZone(AMBIENT_ZONES, Math.random, keepClear);
+					apex = picked.apex;
+				} else {
+					apex = mirrored;
+				}
+			}
 			const shell = pickShell();
 			const res = sim.launch({
 				apex,
@@ -231,12 +266,9 @@
 			});
 			ambientInFlight++;
 			// Release the in-flight slot shortly after the shell detonates.
-			window.setTimeout(
-				() => {
-					ambientInFlight = Math.max(0, ambientInFlight - 1);
-				},
-				res.breakMs + 200
-			);
+			window.setTimeout(() => {
+				ambientInFlight = Math.max(0, ambientInFlight - 1);
+			}, res.breakMs + 200);
 		}
 
 		function ambientTick(dtMs: number) {
@@ -281,7 +313,12 @@
 
 		function loop(now: number) {
 			if (!running || disposed || !sim || !engine || !instances) return;
-			if (engine.lost) return;
+			// A lost device/context never recovers on its own: reboot or tear down
+			// rather than leave a live component driving a dead engine.
+			if (engine.lost) {
+				handleEngineLoss();
+				return;
+			}
 			const rawFrameMs = now - lastTime;
 			const dt = Math.min((now - lastTime) / 1000, DT_CLAMP);
 			lastTime = now;
@@ -367,16 +404,91 @@
 			resizeObs?.disconnect();
 			if (interactive) window.removeEventListener("pointerdown", handlePointerDown);
 			document.removeEventListener("visibilitychange", handleVisibility);
+			canvas.removeEventListener("webglcontextrestored", onContextRestored);
+			if (restoreTimer) window.clearTimeout(restoreTimer);
+			restoreTimer = 0;
+			wired = false;
 			engine?.destroy();
 			engine = null;
 			sim = null;
 			instances = null;
 		}
 
+		/** Drop the dead engine and its sim, keeping observers/listeners alive. */
+		function releaseEngine() {
+			stopLoop();
+			engine?.destroy();
+			engine = null;
+			sim = null;
+			instances = null;
+		}
+
+		function giveUp() {
+			if (disposed) return;
+			teardown();
+			onLost?.();
+		}
+
+		async function reboot() {
+			recovering = true;
+			let revived = false;
+			try {
+				revived = await boot();
+			} catch (error) {
+				if (import.meta.env.DEV) {
+					console.warn("[FireworksHdr] engine reboot failed:", error);
+				}
+			}
+			recovering = false;
+			if (!revived && !disposed) giveUp();
+		}
+
+		function onContextRestored() {
+			if (restoreTimer) window.clearTimeout(restoreTimer);
+			restoreTimer = 0;
+			if (disposed) return;
+			void reboot();
+		}
+
 		/**
-		 * Wire the sim, observers, and listeners around a live engine and fire
-		 * onReady once. Shared by both the WebGPU and WebGL2 paths so the render
-		 * level flows through from whichever engine actually came up.
+		 * A WebGPU device loss or a `webglcontextlost` leaves the engine dead: no
+		 * frame it draws lands. Reboot once (which also re-runs the WebGPU →
+		 * WebGL2 fallback), and if that fails tear the component down and report
+		 * it instead of leaving observers, listeners, and a handle wired to
+		 * nothing.
+		 */
+		function handleEngineLoss() {
+			if (disposed || recovering) return;
+			const wasWebgl = engine ? engine.renderLevel.startsWith("webgl") : false;
+			releaseEngine();
+			if (recoveryUsed) {
+				giveUp();
+				return;
+			}
+			recoveryUsed = true;
+			if (wasWebgl) {
+				// A lost WebGL context only vends a usable one again once the browser
+				// fires webglcontextrestored — which it may never do.
+				recovering = true;
+				canvas.addEventListener("webglcontextrestored", onContextRestored, { once: true });
+				restoreTimer = window.setTimeout(() => {
+					restoreTimer = 0;
+					canvas.removeEventListener("webglcontextrestored", onContextRestored);
+					recovering = false;
+					giveUp();
+				}, RESTORE_TIMEOUT_MS);
+			} else {
+				// WebGPU: a fresh device can be requested straight away.
+				void reboot();
+			}
+		}
+
+		/**
+		 * Wire the sim, observers, and listeners around a live engine and hand out
+		 * a handle. Shared by both the WebGPU and WebGL2 paths so the render level
+		 * flows through from whichever engine actually came up — and re-entrant,
+		 * so a post-loss reboot re-seats the sim without double-wiring the
+		 * observers and listeners it already owns.
 		 */
 		function activate(eng: FireworksEngineHandle) {
 			engine = eng;
@@ -393,36 +505,42 @@
 			sim.setKeepClear(keepClear);
 			instances = new Float32Array(sim.capacity * 8);
 
-			// Observers: pause off-screen / when hidden; track aspect + resize.
-			observer = new IntersectionObserver(
-				([entry]) => {
-					isVisible = entry.isIntersecting;
-					if (isVisible && !document.hidden && !disposed) startLoop();
-					else stopLoop();
-				},
-				{ threshold: 0 }
-			);
-			observer.observe(canvas);
+			if (!wired) {
+				// Observers: pause off-screen / when hidden; track aspect + resize.
+				observer = new IntersectionObserver(
+					([entry]) => {
+						isVisible = entry.isIntersecting;
+						if (isVisible && !document.hidden && !disposed) startLoop();
+						else stopLoop();
+					},
+					{ threshold: 0 }
+				);
+				observer.observe(canvas);
 
-			resizeObs = new ResizeObserver(() => {
-				updateAspect();
-				engine?.resizeIfNeeded();
-			});
-			resizeObs.observe(canvas);
+				resizeObs = new ResizeObserver(() => {
+					updateAspect();
+					engine?.resizeIfNeeded();
+				});
+				resizeObs.observe(canvas);
 
-			if (interactive) window.addEventListener("pointerdown", handlePointerDown);
-			document.addEventListener("visibilitychange", handleVisibility);
+				if (interactive) window.addEventListener("pointerdown", handlePointerDown);
+				document.addEventListener("visibilitychange", handleVisibility);
+				wired = true;
+			}
 
 			updateAspect();
 			startLoop();
+			// Re-fired after a recovery: the level may have dropped to the WebGL2
+			// fallback, and the caller needs a handle that says so.
 			onReady?.(buildHandle(level));
 		}
 
 		// --- boot the engine, then wire everything ---------------------------
 		// WebGPU first (if present), then the WebGL2 fallback. Only if BOTH fail do
 		// we stay silent — the app's own timeout then shows the static fallback
-		// (renderLevel "none"). onReady fires at most once, from `activate`.
-		async function boot() {
+		// (renderLevel "none"). Resolves to whether an engine actually activated,
+		// which is what the post-loss reboot decides on.
+		async function boot(): Promise<boolean> {
 			let eng: FireworksEngineHandle | null = null;
 
 			if (typeof navigator !== "undefined" && "gpu" in navigator) {
@@ -440,7 +558,7 @@
 
 			if (disposed) {
 				eng?.destroy();
-				return;
+				return false;
 			}
 
 			if (!eng) {
@@ -457,15 +575,16 @@
 				});
 				if (disposed) {
 					eng?.destroy();
-					return;
+					return false;
 				}
 			}
 
 			// Both paths exhausted: no GPU renderer. Stay silent (no onReady); the
 			// app's timeout owns the static fallback.
-			if (!eng) return;
+			if (!eng) return false;
 
 			activate(eng);
+			return true;
 		}
 
 		if (hdr) {
@@ -473,6 +592,7 @@
 				if (import.meta.env.DEV) {
 					console.warn("[FireworksHdr] engine boot failed:", error);
 				}
+				return false;
 			});
 		}
 

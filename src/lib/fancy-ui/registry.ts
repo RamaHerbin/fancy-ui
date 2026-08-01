@@ -902,7 +902,8 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "respectReducedMotion",
 				type: "boolean",
 				default: "true",
-				description: "Force ambient off under prefers-reduced-motion (explicit launches still work)",
+				description:
+					"Force ambient off under prefers-reduced-motion (explicit launches still work)",
 			},
 			{
 				name: "class",
@@ -914,7 +915,13 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "onReady",
 				type: "(handle: FireworksHandle) => void",
 				description:
-					"Fired once when the engine is live with an imperative handle; never fired when no GPU renderer comes up",
+					"Fired when the engine is live with an imperative handle, and again with a fresh handle after a recovered GPU context loss; never fired when no GPU renderer comes up",
+			},
+			{
+				name: "onLost",
+				type: "() => void",
+				description:
+					"Fired once when a GPU context loss could not be recovered; the component has torn itself down and any handle it gave out is inert",
 			},
 		],
 	},
@@ -2287,8 +2294,7 @@ export const registry: Record<string, ComponentMeta> = {
 	"matrix-rain": {
 		name: "MatrixRain",
 		slug: "matrix-rain",
-		description:
-			"Canvas-based falling glyph rain with configurable color, speed, and density",
+		description: "Canvas-based falling glyph rain with configurable color, speed, and density",
 		category: "backgrounds",
 		status: "done",
 		tags: ["background", "matrix", "canvas", "animation", "glyphs", "cyberpunk"],

@@ -17,19 +17,19 @@ ships no copy.
 
 ```svelte
 <script>
-  import { FireworksHdr } from "fancy-ui-svelte";
+	import { FireworksHdr } from "fancy-ui-svelte";
 
-  let handle;
+	let handle;
 </script>
 
 <div class="relative h-screen w-screen bg-black">
-  <FireworksHdr
-    palette={["#ff2fd6", "#a142ff", "#3d5bff", "#42cfff"]}
-    exposure={2.2}
-    ambient
-    interactive
-    onReady={(h) => (handle = h)}
-  />
+	<FireworksHdr
+		palette={["#ff2fd6", "#a142ff", "#3d5bff", "#42cfff"]}
+		exposure={2.2}
+		ambient
+		interactive
+		onReady={(h) => (handle = h)}
+	/>
 </div>
 ```
 
@@ -44,18 +44,19 @@ handle.setExposure(2.6);
 
 ## Props
 
-| Prop                   | Type                                 | Default                                     | Description                                                              |
-| ---------------------- | ------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------ |
-| `palette`              | `string[]` (hex)                     | `["#ff2fd6","#a142ff","#3d5bff","#42cfff"]` | Brand hues. Order is irrelevant — parsed and sorted cool→warm (by oklab hue angle) for the shell sweep. |
-| `hdr`                  | `boolean`                            | `true`                                      | Opt into the GPU engine (WebGPU HDR first, then a WebGL2 fallback). When `false`, no engine boots at all. |
-| `exposure`             | `number`                             | `2.2`                                       | Display exposure multiplier, clamped to `[1,4]`.                         |
-| `ambient`              | `boolean`                            | `true`                                      | Run the ambient auto-scheduler (Poisson-timed background shells).        |
-| `ambientIntensity`     | `number`                             | `0.35`                                      | Ambient energy `[0,1]` — scales shell size.                              |
-| `interactive`          | `boolean`                            | `true`                                      | Launch a shell toward the pointer on window `pointerdown`.               |
-| `quality`              | `"auto" \| "high" \| "mid" \| "low"` | `"auto"`                                    | Particle budget; `auto` picks from the render level + DPR.               |
-| `respectReducedMotion` | `boolean`                            | `true`                                      | Force ambient off under `prefers-reduced-motion` (explicit launches still work). |
-| `class`                | `string`                             | `""`                                        | Extra classes on the canvas wrapper.                                     |
-| `onReady`              | `(handle: FireworksHandle) => void`  | —                                           | Fired once when the engine is live. Never fired when no GPU renderer comes up. |
+| Prop                   | Type                                 | Default                                     | Description                                                                                                                                 |
+| ---------------------- | ------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `palette`              | `string[]` (hex)                     | `["#ff2fd6","#a142ff","#3d5bff","#42cfff"]` | Brand hues. Order is irrelevant — parsed and sorted cool→warm (by oklab hue angle) for the shell sweep.                                     |
+| `hdr`                  | `boolean`                            | `true`                                      | Opt into the GPU engine (WebGPU HDR first, then a WebGL2 fallback). When `false`, no engine boots at all.                                   |
+| `exposure`             | `number`                             | `2.2`                                       | Display exposure multiplier, clamped to `[1,4]`.                                                                                            |
+| `ambient`              | `boolean`                            | `true`                                      | Run the ambient auto-scheduler (Poisson-timed background shells).                                                                           |
+| `ambientIntensity`     | `number`                             | `0.35`                                      | Ambient energy `[0,1]` — scales shell size.                                                                                                 |
+| `interactive`          | `boolean`                            | `true`                                      | Launch a shell toward the pointer on window `pointerdown`.                                                                                  |
+| `quality`              | `"auto" \| "high" \| "mid" \| "low"` | `"auto"`                                    | Particle budget; `auto` picks from the render level + DPR.                                                                                  |
+| `respectReducedMotion` | `boolean`                            | `true`                                      | Force ambient off under `prefers-reduced-motion` (explicit launches still work).                                                            |
+| `class`                | `string`                             | `""`                                        | Extra classes on the canvas wrapper.                                                                                                        |
+| `onReady`              | `(handle: FireworksHandle) => void`  | —                                           | Fired when the engine is live, and again with a fresh handle after a recovered GPU context loss. Never fired when no GPU renderer comes up. |
+| `onLost`               | `() => void`                         | —                                           | Fired once when a GPU context loss could not be recovered; the component has torn itself down and any handle it gave out is inert.          |
 
 The canvas wrapper is `pointer-events-none` and `aria-hidden` — it is a
 background. `interactive` listens at the window level, so clicks pass through to
@@ -66,14 +67,14 @@ your UI while still launching a shell.
 The imperative control surface passed to `onReady`. Coordinates are normalized
 `[0,1]`, top-left origin.
 
-| Member         | Signature                                | Description                                             |
-| -------------- | ---------------------------------------- | ------------------------------------------------------ |
-| `launch`       | `(opts: LaunchOptions) => LaunchResult`  | Fire a shell; returns the resolved `{ flightMs, breakMs }`. |
-| `setAmbient`   | `(on: boolean, intensity?: number) => void` | Toggle the ambient scheduler / set its intensity `[0,1]`. |
-| `setKeepClear` | `(rect: Rect \| null) => void`           | Set (or clear) the rect ambient apexes avoid; also soft-dims stray particles that drift in. |
-| `setExposure`  | `(v: number) => void`                    | Update exposure (clamped `[1,4]`).                     |
-| `renderLevel`  | `FireworksRenderLevel`                   | Which path actually engaged (see below).               |
-| `cleanup`      | `() => void`                             | Stop the loop, remove listeners, release GPU memory.   |
+| Member         | Signature                                   | Description                                                                                 |
+| -------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `launch`       | `(opts: LaunchOptions) => LaunchResult`     | Fire a shell; returns the resolved `{ flightMs, breakMs }`.                                 |
+| `setAmbient`   | `(on: boolean, intensity?: number) => void` | Toggle the ambient scheduler / set its intensity `[0,1]`.                                   |
+| `setKeepClear` | `(rect: Rect \| null) => void`              | Set (or clear) the rect ambient apexes avoid; also soft-dims stray particles that drift in. |
+| `setExposure`  | `(v: number) => void`                       | Update exposure (clamped `[1,4]`).                                                          |
+| `renderLevel`  | `FireworksRenderLevel`                      | Which path actually engaged (see below).                                                    |
+| `cleanup`      | `() => void`                                | Stop the loop, remove listeners, release GPU memory.                                        |
 
 `setKeepClear` drives two things at once: the ambient scheduler steers new apexes
 out of the rect, and the sim soft-dims any spark, ember, or trail that drifts
@@ -94,13 +95,13 @@ alone being enough.
 startup and does **not** follow the window to another display. The value is
 honest — the component never claims HDR it is not delivering.
 
-| Level        | Meaning                                                                                                          |
-| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| Level        | Meaning                                                                                                               |
+| ------------ | --------------------------------------------------------------------------------------------------------------------- |
 | `webgpu-hdr` | WebGPU with extended tone mapping active **and** a `(dynamic-range: high)` display — true brighter-than-white output. |
-| `webgpu-sdr` | WebGPU float16 + P3, but the browser clamped tone mapping or the display is SDR.                                 |
-| `webgl-p3`   | WebGL2 fallback with a `display-p3` drawing buffer (wider gamut, no over-white headroom).                        |
-| `webgl-sdr`  | WebGL2 fallback, plain sRGB.                                                                                     |
-| `none`       | No GPU rendering available; `onReady` never fires.                                                               |
+| `webgpu-sdr` | WebGPU float16 + P3, but the browser clamped tone mapping or the display is SDR.                                      |
+| `webgl-p3`   | WebGL2 fallback with a `display-p3` drawing buffer (wider gamut, no over-white headroom).                             |
+| `webgl-sdr`  | WebGL2 fallback, plain sRGB.                                                                                          |
+| `none`       | No GPU rendering available; `onReady` never fires.                                                                    |
 
 Honesty invariants:
 
@@ -111,10 +112,26 @@ Honesty invariants:
 - `webgl-p3` is reported **only** when the `drawingBufferColorSpace = "display-p3"`
   assignment reads back as `display-p3`; otherwise the buffer stays sRGB and the
   level is `webgl-sdr`.
-- `onReady` fires **at most once**, and never when both engines fail. The
+- `onReady` fires once per live engine, and never when both engines fail. The
   consumer owns the fallback decision (e.g. a short timeout that swaps in a
   static poster) — the component stays silent rather than showing a broken
   canvas.
+- The `sdr` uniform the shaders branch on uses the **same** predicate as
+  `webgpu-hdr`. An SDR display therefore always gets the exposure-`1.0`
+  soft-knee path, even when the browser did keep extended tone mapping — the
+  render level and the pixels can never disagree.
+
+### GPU context loss
+
+A lost WebGPU device or a `webglcontextlost` event kills the engine: nothing it
+draws lands again. The component detects it on the next frame and recovers
+**once** — WebGPU asks for a fresh device (re-running the WebGPU → WebGL2
+fallback), WebGL waits up to 4 s for `webglcontextrestored`. A successful
+recovery re-seats the sim and fires `onReady` again with a handle whose
+`renderLevel` reflects the engine that came back. If recovery fails, or a second
+loss follows, the component tears itself down — loop stopped, observers and
+listeners removed, GPU memory released — and calls `onLost` so the consumer can
+swap in its static fallback. It never sits there driving a dead engine.
 
 On an SDR display the effect is still safe: exposure is pinned to `1.0`, a
 soft-knee compression keeps highlights from clipping, and a small saturation lift
@@ -126,14 +143,14 @@ _sub-white_ renders identically on HDR and SDR.
 `quality="auto"` resolves a tier from the render level, device-pixel-ratio, and a
 conservative low-power signal:
 
-| Condition                                    | Tier   |
-| -------------------------------------------- | ------ |
-| container min-dimension `< 480px`            | `low`  |
-| WebGL2 fallback **and** low-power device     | `low`  |
-| `webgpu-hdr`                                 | `high` |
-| `webgpu-sdr`, DPR ≥ 2                        | `high` |
-| `webgpu-sdr`, DPR < 2                        | `mid`  |
-| WebGL2 (`webgl-p3` / `webgl-sdr`)            | `mid`  |
+| Condition                                | Tier   |
+| ---------------------------------------- | ------ |
+| container min-dimension `< 480px`        | `low`  |
+| WebGL2 fallback **and** low-power device | `low`  |
+| `webgpu-hdr`                             | `high` |
+| `webgpu-sdr`, DPR ≥ 2                    | `high` |
+| `webgpu-sdr`, DPR < 2                    | `mid`  |
+| WebGL2 (`webgl-p3` / `webgl-sdr`)        | `mid`  |
 
 Tiers set the particle budget and trail emission rate:
 
@@ -148,13 +165,13 @@ time (α = 0.1) and drops a notch when the average holds above 24 ms (~<42 fps)
 for ~60 consecutive active frames. It only ever downgrades — never hunts back up
 — and sheds GPU cost before CPU cost:
 
-| Step | renderScale | spawnScale | Sheds                       |
-| ---- | ----------- | ---------- | --------------------------- |
-| 0    | 1.0         | 1.0        | — (full)                    |
-| 1    | 0.75        | 1.0        | GPU: accumulation buffer    |
-| 2    | 0.5         | 1.0        | GPU: accumulation buffer    |
-| 3    | 0.5         | 0.66       | CPU: burst spawn density    |
-| 4    | 0.5         | 0.4        | CPU: burst spawn density    |
+| Step | renderScale | spawnScale | Sheds                    |
+| ---- | ----------- | ---------- | ------------------------ |
+| 0    | 1.0         | 1.0        | — (full)                 |
+| 1    | 0.75        | 1.0        | GPU: accumulation buffer |
+| 2    | 0.5         | 1.0        | GPU: accumulation buffer |
+| 3    | 0.5         | 0.66       | CPU: burst spawn density |
+| 4    | 0.5         | 0.4        | CPU: burst spawn density |
 
 The pool is fixed-size (frozen at `createSim`), so the ladder never rebuilds it
 mid-show — it shrinks _new burst_ counts instead, which is pop-free. Glyph
@@ -289,14 +306,14 @@ pos.y += vel.y·dt`. Drag: `vel /= (1 + drag·dragScale·dt)`. Death gate:
 
 ### Per-type behavior
 
-| Type   | gravScale | drag (1/s)            | ttl (s)          | size (norm-h) | windScale |
-| ------ | --------- | --------------------- | ---------------- | ------------- | --------- |
-| rocket | 1.0       | 0.6                   | flight + hang    | 0.004 head    | 0.05      |
-| spark  | 0.85      | 1.8                   | 0.9–1.6          | 0.0025–0.004  | 0.30      |
-| ember  | 0.35      | 2.4 (terminal ~0.525) | 1.6–2.8          | 0.002–0.003   | 0.70      |
-| smoke  | −0.05 → 0 | 3.0                   | 1.5–3.0          | 0.010 → 0.050 | 1.0       |
-| flash  | 0         | 0                     | 0.06–0.12        | 0.08–0.16     | 0         |
-| seeker | 0 → 1.0   | 1.2 (pop)             | phased (0.9 rel.)| 0.003–0.005   | 0.4       |
+| Type   | gravScale | drag (1/s)            | ttl (s)           | size (norm-h) | windScale |
+| ------ | --------- | --------------------- | ----------------- | ------------- | --------- |
+| rocket | 1.0       | 0.6                   | flight + hang     | 0.004 head    | 0.05      |
+| spark  | 0.85      | 1.8                   | 0.9–1.6           | 0.0025–0.004  | 0.30      |
+| ember  | 0.35      | 2.4 (terminal ~0.525) | 1.6–2.8           | 0.002–0.003   | 0.70      |
+| smoke  | −0.05 → 0 | 3.0                   | 1.5–3.0           | 0.010 → 0.050 | 1.0       |
+| flash  | 0         | 0                     | 0.06–0.12         | 0.08–0.16     | 0         |
+| seeker | 0 → 1.0   | 1.2 (pop)             | phased (0.9 rel.) | 0.003–0.005   | 0.4       |
 
 Session wind is seeded once: `wx ∈ ±[0.02, 0.05]`, `wy ∈ ±[0.01, 0.02]` visual
 accel, applied as `a += w · windScale[type]`.
@@ -313,27 +330,43 @@ crackle  = flickerNoise(seed, age, 24) > 0.5 ? hi : lo
 
 ### Shells
 
-| Kind   | high | mid | low | ember frac | smoke | radius (×scale)          | builder      |
-| ------ | ---- | --- | --- | ---------- | ----- | ------------------------ | ------------ |
-| peony  | 320  | 200 | 120 | 0.15       | 1     | 0.10–0.20 (feat 0.24)    | sphereBurst  |
-| willow | 200  | 130 | 80  | 0.80       | 1–2   | 0.14–0.22                | willowBurst  |
-| ring   | 180  | 120 | 70  | 0.10       | 0     | 0.12–0.20                | ringBurst    |
-| glyph  | pts+garnish | +25% | +15% | garnish | 1 | 0.14                     | glyphPoints  |
+| Kind   | high        | mid  | low  | ember frac | smoke | radius (×scale)       | builder     |
+| ------ | ----------- | ---- | ---- | ---------- | ----- | --------------------- | ----------- |
+| peony  | 320         | 200  | 120  | 0.15       | 1     | 0.10–0.20 (feat 0.24) | sphereBurst |
+| willow | 200         | 130  | 80   | 0.80       | 1–2   | 0.14–0.22             | willowBurst |
+| ring   | 180         | 120  | 70   | 0.10       | 0     | 0.12–0.20             | ringBurst   |
+| glyph  | pts+garnish | +25% | +15% | garnish    | 1     | 0.14                  | glyphPoints |
 
 Break asymmetry ±12% via `hash11(seed+i)`; 5% stragglers at 1.4× speed,
 `dragScale ×0.7`. Depth `d`: `size ×(1 − 0.5d)`, `brightness ×(1 − 0.45d)`,
-`saturation ×(1 − 0.35d)`.
+`saturation ×(1 − 0.35d)`, `burst radius ×(1 − 0.25d)`. The dim rides on the
+particle (pool field `depthDim`) and multiplies whatever the type's brightness
+curve resolves to each frame, so it reaches sparks, embers, smoke, the
+detonation flash, and glyph seekers alike — not just the spawn value.
 
 ### Rockets
 
-`solveLaunch`: given `flightMs`, `v0y = −G·(flightMs/1000)`; otherwise
-`flight = sqrt(2·(from.y − apex.y) / G)`. `v0x = (apex.x − from.x) / flight`.
-`vy = 0` exactly at flight time. Fuse hang 80–140 ms seeded (the intro "?" uses
+`solveLaunch` inverts the same model `integrate` runs the rocket through —
+gravity `G`, linear drag `k = 0.6`, the session wind (rocket `windScale`), and
+the `pos.x += (vel.x / A)·dt` aspect divide — so the shell breaks at the apex it
+was asked for. Vertically, `vu(t) = (vu0 + g/k)·e^(−kt) − g/k`: given `flightMs`
+that solves to `vu0 = (g/k)·(e^(k·flight) − 1)` (`vy = 0` exactly at flight time,
+apex only sets the horizontal target); otherwise `vu0` is Newton-solved from the
+rise `vu0/k − (g/k²)·ln(1 + k·vu0/g) = from.y − apex.y` and the flight follows
+from it. Horizontally `Δx·A = (ax/k)·t + (vx0 − ax/k)·(1 − e^(−kt))/k`. Passing
+no medium (`drag = 0`, `A = 1`, no wind) collapses both back to the undamped
+`flight = sqrt(2·(from.y − apex.y)/G)`, `v0x = (apex.x − from.x)/flight` forms.
+A ballistic solve fed to the damped integrator undershoots the apex by ~25% of
+the rise and misses horizontally on any non-square canvas.
+
+Fuse hang 80–140 ms seeded (the intro "?" uses
 140); `breakMs = flightMs + hangMs`. At break: enqueue the shell at the current
 position plus one flash, then kill the rocket. Trail uses a fractional
 accumulator (`emit += trailRate·dt; while (emit ≥ 1) { spawn; emit-- }`) — trail
 sparks are ttl 0.3–0.5, size 0.002, ascent-tail brightness, ~zero velocity;
-the head is ascent-head brightness.
+the head is ascent-head brightness. The trail hue is the comet head mixed 25%
+toward **that launch's** first shell hue (stored on the launch spec), so a
+branded palette never gets the built-in cyan on its ascent.
 
 ### Glyph seekers
 
