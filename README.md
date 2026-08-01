@@ -10,7 +10,7 @@ Beautiful animation and UI components for **Svelte 5**.
 
 <p align="center">
   <a href="https://fancy-ui.rama.app">
-    <img src=".github/demo-gallery.png" alt="fancy-ui demo gallery" width="800" />
+    <img src=".github/fancyui-readme.png" alt="FancyUI preview" width="800" />
   </a>
 </p>
 
