@@ -6,6 +6,10 @@
 	right slot mirrors via `scaleX(-1)` on the <img> only — GSAP owns the sway
 	wrapper's transform and would clobber a mirror living there. Each slot sways
 	on the scene timeline with its own period, so the two never sync up.
+
+	v2: the imgs carry the `PALM_SILHOUETTES` grade (a static filter — allowed)
+	so the fronds read as near-black silhouettes with a trace of rim light. The
+	filter lives on the <img>, never on the sway wrapper — GSAP owns the wrapper.
 -->
 <script lang="ts">
 	import { gsap } from "gsap";
@@ -14,6 +18,7 @@
 		assetSources,
 		ASSET_SIZES,
 		getSceneContext,
+		PALM_SILHOUETTES,
 		PALM_SLOTS,
 	} from "../scene-config.js";
 
@@ -21,6 +26,9 @@
 	const slots = PALM_SLOTS.filter((slot) => slot.asset === "palm-back");
 	const sources = assetSources("palm-back");
 	const fallback = assetFallback("palm-back");
+
+	const silhouette = PALM_SILHOUETTES["palm-back"];
+	const silhouetteFilter = `brightness(${silhouette.brightness}) saturate(${silhouette.saturate})`;
 
 	const els: HTMLDivElement[] = [];
 
@@ -74,6 +82,7 @@
 				{/each}
 				<img
 					class:mirrored={slot.mirrored}
+					style:filter={silhouetteFilter}
 					src={fallback}
 					alt=""
 					loading="lazy"

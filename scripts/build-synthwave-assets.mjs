@@ -59,8 +59,11 @@ const ASSETS = [
 	{ name: "car", file: "car.fixed.png" },
 	// Three plates cropped from previously unused raw renders (`*.cropped.png`
 	// intermediates): a tight ridge strip, an alpha-bbox-trimmed city whose
-	// base sits at the image's bottom edge, and the upper 2/3 of the opaque
-	// sky plate (its baked-in horizon glow trimmed off).
+	// base sits at the image's bottom edge, and the y 300-950 window of the
+	// opaque sky plate — the band of thin bright striated clouds, its bottom
+	// edge stopping just above the source's own horizon-glow line so the
+	// hottest streaks land right above the scene horizon (v2 re-crop; the v1
+	// top-683px crop kept only the dark upper sky).
 	{ name: "mountains-sharp", file: "mountains-sharp.cropped.png" },
 	{ name: "city", file: "city.cropped.png" },
 	{ name: "sky-clouds", file: "sky-clouds.cropped.png" },

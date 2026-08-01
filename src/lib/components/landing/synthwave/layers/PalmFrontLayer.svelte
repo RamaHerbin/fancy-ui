@@ -5,6 +5,9 @@
 	PALM_SLOTS; the negative anchors are intended (they crop the trunk bases
 	below the frame and the crowns outside it). Sizing is height-driven with the
 	img aspect-ratio supplying the width, like PalmBackLayer.
+
+	v2: the fronds are graded to a NEAR-BLACK silhouette (PALM_SILHOUETTES) — a
+	static filter on the <img>, never on the sway wrapper, which GSAP owns.
 -->
 <script lang="ts">
 	import { gsap } from "gsap";
@@ -13,6 +16,7 @@
 		assetSources,
 		ASSET_SIZES,
 		getSceneContext,
+		PALM_SILHOUETTES,
 		PALM_SLOTS,
 	} from "../scene-config.js";
 
@@ -20,6 +24,11 @@
 	const slots = PALM_SLOTS.filter((slot) => slot.asset === "palm-front");
 	const sources = assetSources("palm-front");
 	const fallback = assetFallback("palm-front");
+
+	// Static silhouette grade (allowed — only ANIMATING a filter is not). It
+	// crushes the giant fronds to the reference's near-black frame corners.
+	const silhouette = PALM_SILHOUETTES["palm-front"];
+	const silhouetteFilter = `brightness(${silhouette.brightness}) saturate(${silhouette.saturate})`;
 
 	const els: HTMLDivElement[] = [];
 
@@ -74,6 +83,7 @@
 				-->
 				<img
 					class:mirrored={slot.mirrored}
+					style:filter={silhouetteFilter}
 					src={fallback}
 					alt=""
 					loading="lazy"

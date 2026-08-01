@@ -1,9 +1,10 @@
 <!--
-	Rear 3/4 hero car — the dominant right-foreground element, parked on the
-	open grid above and left of the footer's link columns. A small, heavily
-	blurred radial div behind it stands in for the tail-light glow (no second
-	image); its resting state is fully lit for the reduced-motion / no-JS case,
-	and the scene timeline dims it down to breathe between 0.75 and 1 opacity.
+	Rear 3/4 hero car — moderate size, parked on the grid RIGHT of frame (v2:
+	the v1 car was huge and centered; now it reads as one element of the scene,
+	not the subject). A small, heavily blurred radial div behind it stands in
+	for the RED tail-light glow (no second image); its resting state is fully
+	lit for the reduced-motion / no-JS case, and the scene timeline dims it
+	down to breathe between CAR_GLOW_MIN_OPACITY and 1.
 -->
 <script lang="ts">
 	import { gsap } from "gsap";
@@ -14,48 +15,21 @@
 		CAR_GLOW_MIN_OPACITY,
 		CAR_GLOW_PULSE_SECONDS,
 		getSceneContext,
-		SCENE_COLORS,
 	} from "../scene-config.js";
 
 	const scene = getSceneContext();
 	const sources = assetSources(CAR.asset);
 	const fallback = assetFallback(CAR.asset);
 
-	/*
-		Visual-judging overrides on top of the CAR config (scene-config is
-		read-only to this layer). Round one found the 22vw car reading as a toy;
-		round two found the 1.6x car still dim and buried behind the footer's
-		right link column. So the plate now scales 2.16x (1.6 x a further 1.35)
-		— visible body ≈ 32% of frame width — and re-anchors up and to the left:
-		the body's right edge stops ≈ 80px short of the rightmost footer
-		column's heading (at ~73% of frame width on the judged 1440px viewport),
-		and the wheel line rides just above the footer heading row, so the car
-		stands on open grid as the dominant right-foreground element like the
-		reference mock, instead of sinking behind the link text.
-
-		The plate carries transparent margin around the body. Measured from the
-		1280x853 plate's alpha bounding box: body right edge at 89.7% of plate
-		width, wheels at 70.3% of plate height. The anchors below subtract those
-		margins so the BODY (not the plate) lands BODY_RIGHT_PCT from the right
-		edge with its wheels WHEELS_BOTTOM_PCT up from the bottom.
-	*/
-	const CAR_SCALE = 2.16;
-	/** Visible body's right edge, % of frame width in from the right edge. */
-	const BODY_RIGHT_PCT = 32.5;
-	/** Wheel line, % of frame height up from the bottom edge. */
-	const WHEELS_BOTTOM_PCT = 24;
-	/** Transparent margin right of the body, as a fraction of plate width. */
-	const PLATE_MARGIN_RIGHT = 0.103; // 1 - 0.897
-	/** Transparent margin below the wheels, as a fraction of plate WIDTH. */
-	const PLATE_MARGIN_BELOW = 0.198; // (1 - 0.703) / (1280 / 853)
-
 	/* Geometry and glow tint flow from scene-config; the CSS below only consumes. */
 	const carVars = [
-		`--car-width: calc(${CAR.widthCss} * ${CAR_SCALE})`,
-		`--car-right: calc(${BODY_RIGHT_PCT}% - ${PLATE_MARGIN_RIGHT} * var(--car-width))`,
-		`--car-bottom: calc(${WHEELS_BOTTOM_PCT}% - ${PLATE_MARGIN_BELOW} * var(--car-width))`,
+		`--car-width: ${CAR.widthCss}`,
+		`--car-left: ${CAR.leftPct}%`,
+		`--car-bottom: ${CAR.bottomPct}%`,
 		`--car-aspect: ${CAR.aspect}`,
-		`--glow-mid-rgb: ${SCENE_COLORS.magentaBrightRGB}`,
+		`--glow-core: rgba(${CAR.glow.coreRGB}, ${CAR.glow.coreAlpha})`,
+		`--glow-fringe: rgba(${CAR.glow.fringeRGB}, ${CAR.glow.fringeAlpha})`,
+		`--glow-blur: ${CAR.glow.blurPx}px`,
 	].join("; ");
 
 	let glowEl: HTMLDivElement;
@@ -93,8 +67,8 @@
 		<div bind:this={glowEl} class="tail-glow"></div>
 		<picture>
 			{#each sources as source (source.type)}
-				<!-- The base 22vw/440px slot from CAR.widthCss, scaled by CAR_SCALE. -->
-				<source type={source.type} srcset={source.srcset} sizes="min(47.5vw, 950px)" />
+				<!-- The slot is CAR.widthCss (clamp 260px..20vw..390px). -->
+				<source type={source.type} srcset={source.srcset} sizes="min(20vw, 390px)" />
 			{/each}
 			<img src={fallback} alt="" loading="lazy" decoding="async" draggable="false" />
 		</picture>
@@ -105,14 +79,12 @@
 	.car-pos {
 		position: absolute;
 		/*
-			Right/bottom anchor the visible body (margin-compensated, see the
-			constants above): body right edge 32.5% in from the frame's right
-			edge — clear of the footer's rightmost column — with the wheel line
-			24% of frame height above the bottom, just over the footer heading
-			row. Up here the car stands on open grid, above the footer scrim's
-			darkest band, dominating the right foreground like the mock.
+			Left/bottom anchor straight from CAR: plate left edge at 63% of frame
+			width (centre ≈ 73% at the 20vw width) and wheels 26% of frame height
+			up from the bottom — lifted out of the foreground so the car stands
+			in the upper grid band, right of the sun, like the reference.
 		*/
-		right: var(--car-right);
+		left: var(--car-left);
 		bottom: var(--car-bottom);
 		width: var(--car-width);
 	}
@@ -122,39 +94,28 @@
 		width: 100%;
 		height: auto;
 		aspect-ratio: var(--car-aspect);
-		/*
-			Full strength — the bottom vignette and footer scrim were reading
-			the car as dimmed, so nothing here may soften it further.
-		*/
-		opacity: 1;
-		/*
-			Static tail-light bloom re-emitted from the car's own alpha
-			silhouette; hottest where the body abuts the lit tail-glow div. A
-			static filter — only the glow div's opacity ever animates.
-		*/
-		filter: drop-shadow(0 0 24px rgba(255, 60, 20, 0.8));
 	}
 
 	.tail-glow {
 		position: absolute;
+		/*
+			Centred behind the plate's tail-light band (the plate carries
+			transparent margin; the rear panel sits left-of-centre in it).
+		*/
 		left: 32%;
 		bottom: 20%;
 		width: 22%;
 		aspect-ratio: 1 / 1;
 		border-radius: 50%;
+		/* CSS rest state fully lit — the tween only ever dips below this. */
 		opacity: 1;
-		background: radial-gradient(
-			circle,
-			rgba(255, 80, 40, 0.85),
-			rgba(var(--glow-mid-rgb), 0.4) 55%,
-			rgba(var(--glow-mid-rgb), 0) 75%
-		);
 		/*
-			Static blur shapes the glow disc; the drop-shadow re-emits it as a
-			wider halo so the tail lights punch at the bigger car size. Both are
-			static filters — only opacity ever animates.
+			RED core → magenta fringe → transparent, from CAR.glow. Roughly half
+			the v1 energy: tail lights, not an explosion. The blur is a static
+			filter — only opacity ever animates.
 		*/
-		filter: blur(18px) drop-shadow(0 0 28px rgba(255, 70, 40, 0.85));
+		background: radial-gradient(circle, var(--glow-core), var(--glow-fringe) 55%, transparent 75%);
+		filter: blur(var(--glow-blur));
 		/* Keeps the breath on the compositor instead of re-blurring every frame. */
 		will-change: opacity;
 	}

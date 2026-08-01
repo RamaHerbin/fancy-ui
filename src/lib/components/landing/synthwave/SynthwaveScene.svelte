@@ -19,6 +19,7 @@
 	import SunLayer from "./layers/SunLayer.svelte";
 	import MountainsFarLayer from "./layers/MountainsFarLayer.svelte";
 	import SkylineLayer from "./layers/SkylineLayer.svelte";
+	import WaterLayer from "./layers/WaterLayer.svelte";
 	import GridLayer from "./layers/GridLayer.svelte";
 	import PalmBackLayer from "./layers/PalmBackLayer.svelte";
 	import PalmFrontLayer from "./layers/PalmFrontLayer.svelte";
@@ -38,6 +39,7 @@
 		sun: SunLayer,
 		"mountains-far": MountainsFarLayer,
 		skyline: SkylineLayer,
+		water: WaterLayer,
 		grid: GridLayer,
 		"palm-back": PalmBackLayer,
 		"palm-front": PalmFrontLayer,

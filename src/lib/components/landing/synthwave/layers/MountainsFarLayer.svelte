@@ -3,11 +3,15 @@
 	natural aspect (never tiled, never stretched full-frame) — a large range
 	anchored to the left edge and a smaller, dimmed one anchored to the right,
 	overlapping mid-frame so the composite reads as a layered range. Both bases
-	sit slightly below the horizon (`MOUNTAINS.basePct`) so the grid's bloom
-	overlaps their feet; the sun layer stacks in front, so the ridge can never
-	occlude the disc. A silhouette-masked magenta rim light tints each copy so
-	the ridges read as sunset-lit rather than gray. The layer id stays
-	`mountains-far` — only the asset drawn changed.
+	sit slightly below the horizon (`MOUNTAINS.basePct`) so the water band
+	stacked in front covers their feet — the far-shore contact; the sun layer
+	also stacks in front, so the ridge can never occlude the disc. v2 grade: the
+	ranges are NEAR-BLACK SILHOUETTES — a static `MOUNTAINS.silhouette` filter
+	on each img crushes the faces while a faint magenta rim from the source art
+	survives. The layer id stays `mountains-far` — only the asset drawn changed.
+	The strip's dark base band runs edge to edge, so each copy's inner cut end
+	would render as a straight vertical wall on the horizon; a static clip-path
+	slopes that end into an angular descending ridge instead.
 -->
 <script lang="ts">
 	import { assetFallback, assetSources, MOUNTAINS, SCENE_HORIZON_PCT } from "../scene-config.js";
@@ -26,9 +30,9 @@
 		`--ridge-right-width: ${MOUNTAINS.rightWidthVw}vw`,
 		`--ridge-right-opacity: ${MOUNTAINS.rightOpacity}`,
 		`--ridge-aspect: ${MOUNTAINS.aspect}`,
-		/* Rim-light overlay is masked by the strip itself so the glow never
-		   spills into the transparent sky between peaks. */
-		`--ridge-mask: url("${fallback}")`,
+		/* Static silhouette grade (allowed — never animated): crushes each range
+		   to near-black while the source art's magenta rim survives. */
+		`--ridge-silhouette: brightness(${MOUNTAINS.silhouette.brightness}) saturate(${MOUNTAINS.silhouette.saturate})`,
 	].join("; ");
 </script>
 
@@ -61,49 +65,40 @@
 		transform: translateY(-100%);
 	}
 
+	/*
+		The v1 layer painted a masked hot-pink rim-light overlay here — the exact
+		"lit pink" read v2 retires. The silhouette grade replaces it: a static
+		filter darkens the strip itself, and whatever rim the source art carries
+		is all the rim light the ridge gets. Purely static paint: no motion,
+		nothing for reduced-motion to gate.
+	*/
 	.ridge img {
 		display: block;
 		width: 100%;
 		height: auto;
 		aspect-ratio: var(--ridge-aspect);
+		filter: var(--ridge-silhouette);
 	}
 
 	/*
-		Magenta rim light: the raw strip renders gray-purple, but in the reference
-		mock the ridges are lit pink from above. A vertical gradient — hot pink at
-		the peaks fading out ~30% down, with a faint plum wash warming the body —
-		is masked by the strip's own alpha (`--ridge-mask`) so it paints only the
-		silhouette. Peaks reach highest into the box, so they catch the most
-		light. Purely static paint: no motion, nothing for reduced-motion to gate.
+		Sloped inner ends. The source strip's bottom third is a solid band that
+		reaches both edges of the image, so an unclipped copy ends in a straight
+		vertical cut — on the horizon that cut reads as a stretched rectangle
+		standing in the water. A static two-segment clip-path (steeper up top,
+		shallower at the base, like a real talus line) turns each inner end into
+		an angular descending slope; the outer ends stay square because they are
+		anchored off-frame in the parallax bleed. Purely static geometry.
 	*/
-	.ridge::after {
-		content: "";
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		background: linear-gradient(
-			to bottom,
-			rgba(224, 90, 168, 0.55) 0%,
-			rgba(214, 75, 160, 0.45) 8%,
-			rgba(214, 75, 160, 0) 30%,
-			rgba(107, 42, 94, 0.28) 100%
-		);
-		-webkit-mask-image: var(--ridge-mask);
-		mask-image: var(--ridge-mask);
-		-webkit-mask-size: 100% 100%;
-		mask-size: 100% 100%;
-		-webkit-mask-repeat: no-repeat;
-		mask-repeat: no-repeat;
-	}
-
 	.ridge-left {
 		left: calc(-1 * var(--parallax-bleed-x, 0px));
 		width: var(--ridge-left-width);
+		clip-path: polygon(0 0, 76% 0, 88% 58%, 100% 100%, 0 100%);
 	}
 
 	.ridge-right {
 		right: calc(-1 * var(--parallax-bleed-x, 0px));
 		width: var(--ridge-right-width);
 		opacity: var(--ridge-right-opacity);
+		clip-path: polygon(24% 0, 100% 0, 100% 100%, 0 100%, 12% 58%);
 	}
 </style>
