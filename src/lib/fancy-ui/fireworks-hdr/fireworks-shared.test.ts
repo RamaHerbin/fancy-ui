@@ -718,19 +718,25 @@ describe("createSim pool", () => {
 	it("keeps count ≤ capacity and every live particle age<ttl across churn", () => {
 		const sim = createSim({ quality: "mid", aspect: 1.6, hdr: true, rng: mulberry32(77) });
 		const data = sim.data;
+		// ~2500 live particles × 220 frames: scan in plain code and assert on the
+		// summary. A per-particle expect() here is half a million matcher calls,
+		// which is what the assertions cost, not the sim.
+		let overCapacity = 0;
+		let expired = 0;
 		for (let frame = 0; frame < 220; frame++) {
 			if (frame % 5 === 0) {
 				sim.launch({ apex: { x: 0.2 + 0.6 * ((frame / 5) % 2), y: 0.25 }, shell: "peony" });
 			}
 			sim.step(1 / 60);
-			expect(sim.count).toBeLessThanOrEqual(sim.capacity);
+			if (sim.count > sim.capacity) overCapacity++;
 			for (let idx = 0; idx < sim.count; idx++) {
 				const base = idx * STRIDE;
 				const ttl = data[base + F.ttl];
-				const age = data[base + F.age];
-				if (ttl > 0) expect(age).toBeLessThan(ttl);
+				if (ttl > 0 && data[base + F.age] >= ttl) expired++;
 			}
 		}
+		expect(overCapacity).toBe(0);
+		expect(expired).toBe(0);
 		// The churn actually produced particles (detonations happened).
 		expect(sim.count).toBeGreaterThan(0);
 	});
