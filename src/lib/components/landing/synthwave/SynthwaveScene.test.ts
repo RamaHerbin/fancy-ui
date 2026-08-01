@@ -5,7 +5,13 @@ import { fileURLToPath } from "node:url";
 import { gsap } from "gsap";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import SynthwaveScene from "./SynthwaveScene.svelte";
-import { ASSET_WIDTHS, assetFallback, assetSources, SCENE_LAYERS } from "./scene-config.js";
+import { ASSET_WIDTHS, assetFallback, assetSources } from "./backdrop-config.js";
+
+/** The scene's single backdrop asset name — also the root's `data-backdrop` tag. */
+const BACKDROP_NAME = "neon-horizon-drive";
+
+/** The one media query the mobile `<source>`s must carry, byte for byte. */
+const MOBILE_MEDIA = "(max-width: 639px)";
 
 /**
  * Repo's `static/` root, resolved from this file's own location rather than
@@ -18,54 +24,118 @@ function assertAssetExists(url: string): void {
 	const filePath = join(STATIC_ROOT, url);
 	if (!existsSync(filePath)) {
 		throw new Error(
-			`scene-config generated a URL with no matching file on disk: ${url} (${filePath})`
+			`backdrop-config generated a URL with no matching file on disk: ${url} (${filePath})`
 		);
 	}
 }
 
-/** Same shape as the repo's default `matchMedia` mock (src/test-setup.ts), parameterized by `matches`. */
-function mockMatchMedia(matches: boolean) {
-	return vi.fn().mockImplementation((query: string) => ({
-		matches,
-		media: query,
-		onchange: null,
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn(),
-		addListener: vi.fn(),
-		removeListener: vi.fn(),
-	}));
+/** Every URL mentioned in a `srcset` string ("url 1280w, url 768w"). */
+function srcsetUrls(srcset: string): string[] {
+	return srcset
+		.split(",")
+		.map((entry) => entry.trim().split(/\s+/)[0])
+		.filter((url) => url.length > 0);
+}
+
+function renderScene() {
+	const { container, unmount } = render(SynthwaveScene);
+	const root = container.querySelector<HTMLElement>(`[data-backdrop="${BACKDROP_NAME}"]`);
+	if (!root) {
+		throw new Error(`scene root [data-backdrop="${BACKDROP_NAME}"] not found`);
+	}
+	return { container, root, unmount };
+}
+
+/** Every element the scene renders — the panorama AND its glow sibling. */
+function sceneElements(container: HTMLElement): HTMLElement[] {
+	return Array.from(container.querySelectorAll<HTMLElement>("*"));
 }
 
 describe("SynthwaveScene", () => {
 	afterEach(() => {
 		cleanup();
-		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
 	});
 
-	it("renders one wrapper per SCENE_LAYERS entry, in order, tagged with data-layer", () => {
-		const { container } = render(SynthwaveScene);
-		const wrappers = container.querySelectorAll("[data-layer]");
-		expect(wrappers.length).toBe(SCENE_LAYERS.length);
-		expect(Array.from(wrappers).map((el) => el.getAttribute("data-layer"))).toEqual(
-			SCENE_LAYERS.map((layer) => layer.id)
-		);
-	});
-
-	it("scene root is aria-hidden and never intercepts pointer events", () => {
-		const { container } = render(SynthwaveScene);
-		const root = container.firstElementChild as HTMLElement;
+	it("root is tagged data-backdrop, hidden from AT, and never intercepts pointer events", () => {
+		const { root } = renderScene();
+		expect(root.getAttribute("data-backdrop")).toBe(BACKDROP_NAME);
 		expect(root.getAttribute("aria-hidden")).toBe("true");
 		expect(root.className).toContain("pointer-events-none");
 	});
 
+	describe("picture structure", () => {
+		it("renders exactly one <picture> with exactly one <img>", () => {
+			const { root } = renderScene();
+			expect(root.querySelectorAll("picture").length).toBe(1);
+			expect(root.querySelectorAll("img").length).toBe(1);
+		});
+
+		it("desktop sources cover avif AND webp, and never reference mobile renditions", () => {
+			const { root } = renderScene();
+			const sources = Array.from(root.querySelectorAll("picture source"));
+			const desktop = sources.filter((source) => !source.hasAttribute("media"));
+
+			const types = desktop.map((source) => source.getAttribute("type"));
+			expect(types).toContain("image/avif");
+			expect(types).toContain("image/webp");
+
+			for (const source of desktop) {
+				const urls = srcsetUrls(source.getAttribute("srcset") ?? "");
+				expect(urls.length).toBeGreaterThan(0);
+				for (const url of urls) {
+					expect(url).not.toContain("-mobile-");
+				}
+			}
+		});
+
+		it(`mobile sources carry media "${MOBILE_MEDIA}" exactly and reference only -mobile- renditions`, () => {
+			const { root } = renderScene();
+			const sources = Array.from(root.querySelectorAll("picture source"));
+			const mobile = sources.filter((source) => source.hasAttribute("media"));
+			expect(mobile.length).toBeGreaterThan(0);
+
+			for (const source of mobile) {
+				expect(source.getAttribute("media")).toBe(MOBILE_MEDIA);
+				const urls = srcsetUrls(source.getAttribute("srcset") ?? "");
+				expect(urls.length).toBeGreaterThan(0);
+				for (const url of urls) {
+					expect(url).toContain("-mobile-");
+				}
+			}
+		});
+
+		it("img is decorative, lazy, async-decoded, and dimensioned against layout shift", () => {
+			const { root } = renderScene();
+			const img = root.querySelector("img") as HTMLImageElement;
+			expect(img).toBeTruthy();
+			expect(img.getAttribute("alt")).toBe("");
+			expect(img.getAttribute("loading")).toBe("lazy");
+			expect(img.getAttribute("decoding")).toBe("async");
+			expect(img.getAttribute("width")).toMatch(/^\d+$/);
+			expect(img.getAttribute("height")).toMatch(/^\d+$/);
+		});
+	});
+
+	it("renders a decorative glow sibling that is inert and hidden from AT", () => {
+		// The glow is what melts the panorama's top edge behind the section
+		// above it: a gradient, so it has no edge of its own to give away. It
+		// sits outside the panorama's own box precisely because that box clips.
+		const { container, root } = renderScene();
+		const glow = container.querySelector<HTMLElement>("[data-backdrop-glow]");
+		expect(glow).toBeTruthy();
+		expect(glow!.getAttribute("aria-hidden")).toBe("true");
+		expect(glow!.className).toContain("pointer-events-none");
+		expect(glow!.contains(root)).toBe(false);
+		expect(root.contains(glow!)).toBe(false);
+	});
+
 	it("carries no z-index anywhere in the scene (stacking comes from DOM order only)", () => {
-		const { container } = render(SynthwaveScene);
-		const root = container.firstElementChild as HTMLElement;
-		const elements = [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))];
-		// Sanity check that layers actually rendered content worth scanning, so an
-		// empty scene can't make this assertion pass vacuously.
-		expect(elements.length).toBeGreaterThan(SCENE_LAYERS.length);
+		const { container } = renderScene();
+		const elements = sceneElements(container);
+		// Sanity floor so an empty scene can't make this assertion pass vacuously:
+		// glow + root + picture + (avif/webp x desktop/mobile) sources + img > 5.
+		expect(elements.length).toBeGreaterThan(5);
 
 		for (const el of elements) {
 			expect(el.style.zIndex).toBe("");
@@ -73,102 +143,43 @@ describe("SynthwaveScene", () => {
 		}
 	});
 
-	describe("reduced motion", () => {
-		it("registers no pointermove listener and creates no gsap timeline", () => {
-			vi.stubGlobal("matchMedia", mockMatchMedia(true));
-			const section = document.createElement("section");
-			document.body.appendChild(section);
-			// Spy before render(): onMount runs synchronously as part of mounting.
-			const addSpy = vi.spyOn(section, "addEventListener");
-
+	describe("fully static", () => {
+		it("never touches gsap: the global timeline is identical before mount and after unmount", () => {
+			// gsap is imported by THIS test only — the scene subtree must not pull
+			// it in, so mounting and unmounting leaves gsap's registry untouched.
 			const before = gsap.globalTimeline.getChildren().length;
-			render(SynthwaveScene, { target: section });
-			const after = gsap.globalTimeline.getChildren().length;
+			const { unmount } = renderScene();
+			const afterMount = gsap.globalTimeline.getChildren().length;
+			unmount();
+			const afterUnmount = gsap.globalTimeline.getChildren().length;
+
+			expect(afterMount).toBe(before);
+			expect(afterUnmount).toBe(before);
+		});
+
+		it("registers no pointermove listener anywhere", () => {
+			// Spy before render(): onMount runs synchronously as part of mounting.
+			// Prototype-level spy catches window, document, and every element.
+			const addSpy = vi.spyOn(EventTarget.prototype, "addEventListener");
+			renderScene();
 
 			const pointermoveAdds = addSpy.mock.calls.filter(([type]) => type === "pointermove");
 			expect(pointermoveAdds).toHaveLength(0);
-			// No master timeline and no layer tweens attach: gsap's registry is untouched.
-			expect(after).toBe(before);
 		});
 
-		it("layer effects never touch their animated element (fully static, not merely paused)", () => {
-			vi.stubGlobal("matchMedia", mockMatchMedia(true));
-			const { container } = render(SynthwaveScene);
+		it("no element in the subtree carries a style attribute", () => {
+			const { container } = renderScene();
+			const elements = sceneElements(container);
+			expect(elements.length).toBeGreaterThan(5);
 
-			// One representative animated element per gsap-driven layer. Under
-			// reduced motion each layer's `$effect` reads `scene.timeline()` as
-			// `null` and returns before ever calling gsap, so these must carry no
-			// inline style at all — not a transform/opacity frozen at rest.
-			const sunHalo = container.querySelector(".sun-halo") as HTMLElement;
-			const gridScroll = container.querySelector(".grid-scroll") as HTMLElement;
-			const tailGlow = container.querySelector(".tail-glow") as HTMLElement;
-
-			expect(sunHalo).toBeTruthy();
-			expect(gridScroll).toBeTruthy();
-			expect(tailGlow).toBeTruthy();
-			expect(sunHalo.style.transform).toBe("");
-			expect(gridScroll.style.transform).toBe("");
-			expect(tailGlow.style.opacity).toBe("");
-		});
-	});
-
-	describe("full motion", () => {
-		it("registers exactly one pointermove listener on the closest section and creates a timeline; unmount removes the listener and kills the master timeline", () => {
-			// The scene listens on `rootEl.closest("section")`, not the scene root
-			// itself (the CTA and footer sit on top of it and would otherwise
-			// swallow moves) — so the spy must be on a real <section> ancestor.
-			const section = document.createElement("section");
-			document.body.appendChild(section);
-			const addSpy = vi.spyOn(section, "addEventListener");
-			const removeSpy = vi.spyOn(section, "removeEventListener");
-
-			const before = gsap.globalTimeline.getChildren().length;
-			const { unmount } = render(SynthwaveScene, { target: section });
-			const afterMount = gsap.globalTimeline.getChildren().length;
-
-			const pointermoveAdds = addSpy.mock.calls.filter(([type]) => type === "pointermove");
-			expect(pointermoveAdds).toHaveLength(1);
-			// The master timeline (plus every layer tween reparented into it) is a
-			// new entry in gsap's global registry.
-			expect(afterMount).toBeGreaterThan(before);
-
-			unmount();
-
-			const removes = removeSpy.mock.calls.filter(([type]) => type === "pointermove");
-			expect(removes).toHaveLength(1);
-
-			// The master timeline and every layer tween reparented into it (sun
-			// halo, grid scroll, both palm sways, car glow, both fog drifts) are
-			// fully killed and removed on unmount: the count drops back down.
-			//
-			// It does NOT return all the way to `before`. That's a real, verified
-			// bug in `stopMotion()` (SynthwaveScene.svelte ~line 169):
-			// `gsap.killTweensOf(els)` is called with the *whole* ~10-element
-			// `els` array in one call. GSAP's `Tween.kill(targets, vars)` only
-			// takes its fast full-removal path when the tween's own target list
-			// exactly equals the passed-in array (`_arraysMatch`); a quickTo
-			// tween that targets a single one of those 10 elements never matches
-			// the 10-element array, so the fast path is skipped and the tween is
-			// never detached from `gsap.globalTimeline`. Reproduced outside
-			// Svelte/jsdom with plain objects and gsap alone: a single
-			// `gsap.killTweensOf([el1, el2])` call kills neither tween, while
-			// `gsap.killTweensOf(el1)` (no array) kills it. Concretely, every
-			// `stopMotion()` call here leaks the 2 pointer-parallax quickTo
-			// tweens (x, y) per layer — 20 for this scene's 10 layers — and
-			// `onMotionChange` (SynthwaveScene.svelte ~line 195) can call
-			// `stopMotion`/`startMotion` repeatedly on a single mount whenever the
-			// OS-level reduced-motion preference toggles, compounding the leak
-			// without any unmount at all. Not asserted as `toBe(before)` here —
-			// that would encode the bug as expected behavior; flagged to the team
-			// lead instead of patched, per this task's constraints.
-			const afterUnmount = gsap.globalTimeline.getChildren().length;
-			expect(afterUnmount).toBeLessThan(afterMount);
-			expect(afterUnmount).toBeGreaterThanOrEqual(before);
+			for (const el of elements) {
+				expect(el.hasAttribute("style")).toBe(false);
+			}
 		});
 	});
 });
 
-describe("scene-config asset URLs", () => {
+describe("backdrop-config asset URLs", () => {
 	const assetNames = Object.keys(ASSET_WIDTHS);
 
 	it("has at least one asset name to check (sanity)", () => {
@@ -179,10 +190,9 @@ describe("scene-config asset URLs", () => {
 		const sources = assetSources(name);
 		expect(sources.length).toBeGreaterThan(0);
 		for (const source of sources) {
-			const entries = source.srcset.split(", ");
-			expect(entries.length).toBeGreaterThan(0);
-			for (const entry of entries) {
-				const [url] = entry.split(" ");
+			const urls = srcsetUrls(source.srcset);
+			expect(urls.length).toBeGreaterThan(0);
+			for (const url of urls) {
 				assertAssetExists(url);
 			}
 		}

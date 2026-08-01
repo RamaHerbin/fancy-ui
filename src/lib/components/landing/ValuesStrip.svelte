@@ -39,9 +39,16 @@
 	];
 </script>
 
-<section class="bg-[#08080d] px-4 py-10 sm:px-8 sm:py-12 lg:px-14">
+<!--
+	`pb-0`, no negative bottom margin: the card's bottom edge IS the section's
+	bottom edge, so the backdrop below can measure its own clearance from it.
+	Pulling the next section up under the card used to hide the seam, but the
+	two backgrounds are the same #08080d — there is nothing to hide, and the
+	overlap only ate into the room the sun needs below the card.
+-->
+<section class="bg-[#08080d] px-4 pt-10 pb-0 sm:px-8 sm:pt-12 lg:px-14">
 	<div
-		class="mx-auto grid max-w-7xl grid-cols-1 gap-3.5 rounded-2xl border border-white/8 bg-[#0b0b12] p-[22px] sm:grid-cols-2 sm:p-6 lg:grid-cols-4"
+		class="relative z-10 mx-auto grid max-w-7xl grid-cols-1 gap-3.5 rounded-2xl border border-white/8 bg-[#0b0b12] p-[22px] sm:grid-cols-2 sm:p-6 lg:grid-cols-4"
 	>
 		{#each values as value (value.title)}
 			<div class="flex items-start gap-3.5">

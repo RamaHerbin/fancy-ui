@@ -41,16 +41,39 @@
 </script>
 
 <!--
-	Final CTA + footer, both sitting on the synthwave scene: the layered DOM
-	scene is the backdrop for the whole block, so the grid runs behind the link
-	columns instead of stopping at the CTA.
+	Final CTA + footer, both sitting on the synthwave backdrop: the static
+	panorama is the backdrop for the whole block, so the grid runs behind the
+	link columns instead of stopping at the CTA. The section gradient starts at
+	the ValuesStrip's #08080d so the seam above is invisible.
 -->
-<section class="relative overflow-hidden bg-black">
+<!--
+	No overflow-hidden here: the scene's riser gradient reaches above the
+	section top, behind the ValuesStrip card, and the panorama clips its own
+	<img>.
+-->
+<section class="relative bg-gradient-to-b from-[#08080d] to-black">
 	<SynthwaveScene />
 
-	<!-- CTA -->
-	<div class="relative z-10 flex min-h-[70vh] flex-col items-center justify-center px-6 py-24">
-		<div class="flex flex-col items-center gap-4 text-center">
+	<!--
+		CTA. The narrow-viewport top padding clears the whole sun disc: below
+		640px the backdrop uses the tighter mobile crop, where the disc fills
+		most of the width, so the heading starts under it rather than across it.
+		From sm up the panorama is wide enough for the heading to sit in the
+		sun's upper third, as designed.
+	-->
+	<div
+		class="relative z-10 flex flex-col items-center justify-center px-6 pt-60 pb-20 sm:pt-28 sm:pb-24"
+	>
+		<!--
+			Whisper of a radial scrim behind the CTA text: a tight ellipse hugging
+			the text block (capped at 0.15 alpha) so the sun keeps its full
+			amber-to-red grade instead of getting washed grey.
+		-->
+		<div
+			class="pointer-events-none absolute top-1/2 left-1/2 h-[100%] w-[min(720px,100%)] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.15)_0%,rgba(0,0,0,0.10)_48%,transparent_70%)]"
+			aria-hidden="true"
+		></div>
+		<div class="relative flex flex-col items-center gap-4 text-center">
 			<h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-[38px]">
 				Ready to build something
 				<span class="bg-gradient-to-r from-[#a78bfa] to-[#5b8cff] bg-clip-text text-transparent"
@@ -81,15 +104,26 @@
 
 	<!-- Footer -->
 	<!--
-		The scrim is deliberately heavy: the scene's brightest features (sun glow,
-		car tail-lights) sit right behind these link columns and wash the text out
-		at lower opacities.
+		The scrim is a gradient, not a solid bar: it fades upward to transparent so
+		the grid keeps glowing through its top edge, and the scene's bottom
+		vignette does the rest of the legibility work behind the link columns.
 	-->
-	<footer
-		class="relative z-10 border-t border-white/7 bg-black/70 px-6 pt-12 backdrop-blur-md sm:px-14"
-	>
-		<div class="mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:gap-16">
-			<div class="flex w-full flex-col gap-3.5 lg:w-[300px]">
+	<footer class="relative z-10 px-6 pt-12 sm:px-14">
+		<div
+			class="pointer-events-none absolute inset-x-0 -top-16 bottom-0 bg-gradient-to-b from-transparent via-black/60 to-black/85"
+			aria-hidden="true"
+		></div>
+		<div class="relative mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:gap-16">
+			<!--
+				Local floor for link contrast where the columns sit over the car and
+				grid glow at wide viewports — confined to the columns block so the
+				panorama above keeps its full vividness.
+			-->
+			<div
+				class="pointer-events-none absolute -inset-x-6 -inset-y-4 bg-[linear-gradient(to_top,rgba(5,2,15,0.85),transparent_220px)] [mask-image:linear-gradient(to_right,transparent,black_64px,black_calc(100%-64px),transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_64px,black_calc(100%-64px),transparent)]"
+				aria-hidden="true"
+			></div>
+			<div class="relative flex w-full flex-col gap-3.5 lg:w-[300px]">
 				<span class="text-lg font-bold text-white">Fancy<span class="text-[#8b7bff]">UI</span></span
 				>
 				<span class="text-[13px] leading-relaxed text-[#9aa3b2]">
@@ -111,7 +145,7 @@
 				</a>
 			</div>
 
-			<div class="grid flex-1 grid-cols-2 gap-8 sm:grid-cols-3">
+			<div class="relative grid flex-1 grid-cols-2 gap-8 sm:grid-cols-3">
 				{#each columns as column (column.title)}
 					<div class="flex flex-col gap-2.5 text-[13px]">
 						<span class="mb-1 font-semibold text-white">{column.title}</span>
@@ -131,7 +165,7 @@
 		</div>
 
 		<div
-			class="mx-auto mt-10 flex max-w-6xl flex-col gap-3 border-t border-white/6 py-4.5 text-xs text-[#8b93ab] sm:flex-row sm:items-center sm:justify-between"
+			class="relative mx-auto mt-10 flex max-w-6xl flex-col gap-3 border-t border-white/6 py-4.5 text-xs text-[#8b93ab] sm:flex-row sm:items-center sm:justify-between"
 		>
 			<span>© {year} FancyUI. Built with Svelte 5 and lots of ☕</span>
 			<span class="flex gap-5">

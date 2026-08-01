@@ -33,7 +33,8 @@ content/site.json
 static/portfolio/
 
 # Synthwave raw assets (multi-MB AI-generated source PNGs; run `pnpm build:assets` to regenerate the shipped avif/webp)
-static/synthwave/src/
+# Kept OUTSIDE static/ so the build never copies them into the published output.
+raw-assets/
 
 # Internal docs
 /docs/
