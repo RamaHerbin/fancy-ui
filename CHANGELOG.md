@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0
+
+### Minor Changes
+
+- 0b1d2d8: FluidCursor: new optional `onReady` callback handing the parent an imperative handle to drive the simulation programmatically — `moveTo(x, y, color?)` traces a path with a synthetic pointer, `penUp()` ends a stroke without a connecting streak, `burst(x, y, dx, dy, color)` fires a one-off impulse — plus a `renderLevel` readback (`"webgpu-hdr" | "webgpu-sdr" | "webgl-p3" | "webgl-sdr" | "none"`) so callers can tell true HDR output from a clamped fallback. `webgpu-hdr` requires both extended tone mapping and a display reporting `(dynamic-range: high)`; when no renderer comes up at all the callback receives an inert handle reporting `"none"`. The new `FluidCursorHandle` and `FluidRenderLevel` types are exported from the package root. Behavior is unchanged when `onReady` is omitted.
+
+### Patch Changes
+
+- 16532ad: Landing page: rebuild the marketing page from the design system — a sticky header, a hero with gradient type over the HDR FluidCursor simulation, a feature-chip row, a component showcase, a component index strip, an interactive install section (package-manager tabs with copy-to-clipboard), a detailed "See FancyUI in action." gallery with three full app previews, and a values strip. The page is now composed of focused section components under `src/lib/components/landing/` instead of one long route file, and every navigation target points at a route that exists. Docs-site only — no change to the published component API.
+- 0e75f8d: Docs site launch readiness: server-rendered pages with full SEO metadata (canonical, Open Graph and Twitter tags, sitemap, web manifest, favicons), a styled error page, corrected component counts and links, and expanded README and component documentation. No changes to the published component API.
+- ddd70b8: Landing: the footer's synthwave visual is now a single panoramic backdrop image that bleeds softly under the adjacent cards and footer links, replacing the previous multi-layer composition. Flatter, wider section with art-directed responsive crops. Docs-site only — no change to the published component API.
+- fdfc8b7: Docs: replace the README open-source program badge with the official wordmark lockup (vector outlines, dark-mode aware). Docs-only — no change to the published component API.
+- 3717993: Docs site: stronger search referencing — structured data (WebSite, SoftwareApplication, BreadcrumbList, TechArticle, ItemList), keyword-rich component page titles, server-rendered example content and code panes, breadcrumb, related-components and previous/next navigation, per-component social cards, and richer gallery copy. No changes to the published component API.
+
 ## 0.8.0
 
 ### Minor Changes
