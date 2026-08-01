@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Erste Schritte",
 	"nav.components": "Komponenten",
+	"nav.home": "Startseite",
 	"nav.docsSuffix": "Doku",
 	"a11y.closeSidebar": "Seitenleiste schließen",
 	"a11y.toggleSidebar": "Seitenleiste umschalten",
+	"a11y.breadcrumb": "Brotkrümelnavigation",
 
 	// Getting-started page titles
 	"page.introduction": "Einführung",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Quellcode",
 	"comp.inspiredBy": "Inspiriert von",
 	"comp.examples": "Beispiele",
+	"comp.related": "Verwandte Komponenten",
+	"comp.previous": "Zurück",
+	"comp.next": "Weiter",
 	"status.stable": "Stabil",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "Komponenten",
 	"gallery.subtitle":
 		"{count} wunderschön animierte Komponenten für Svelte 5. Durchstöbere, suche und finde, was du brauchst.",
+	"gallery.intro":
+		"Jede Komponente ist nativ für Svelte 5 mit Runes gebaut, mit Tailwind CSS v4 gestylt, mit TypeScript typisiert und bringt eine Live-Vorschau sowie Beispiele zum Kopieren mit. Installiere das Paket einmal — der Code gehört dir.",
 	"gallery.statComponents": "Komponenten",
 	"gallery.statCategories": "Kategorien",
 	"gallery.statTypescript": "TypeScript",
@@ -116,7 +123,7 @@ export default {
 	"intro.title": "Einführung",
 	"intro.metaTitle": "Einführung",
 	"intro.leadPre": "ist eine Sammlung von",
-	"intro.leadHighlight": "60 animierten",
+	"intro.leadHighlight": "{count} animierten",
 	"intro.leadHighlight2": "interaktiven UI-Komponenten",
 	"intro.leadPost": "und wurde nativ für Svelte 5 entwickelt.",
 	"intro.pill.svelte": "Svelte 5 nativ",
@@ -144,7 +151,7 @@ export default {
 	"intro.quickStart.step3.title": "Verwenden",
 	"intro.quickStart.step3.desc": "Füge sie in deine Svelte-Komponenten ein.",
 	"intro.whatsIncluded.heading": "Was enthalten ist",
-	"intro.whatsIncluded.body": "60 Komponenten in 10 Kategorien:",
+	"intro.whatsIncluded.body": "{count} Komponenten in 10 Kategorien:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Karten",
 	"intro.category.text": "Text",
@@ -226,7 +233,7 @@ export default {
 	"install.nextSteps.heading": "Nächste Schritte",
 	"install.nextSteps.components.title": "Komponenten durchsuchen",
 	"install.nextSteps.components.desc":
-		"60 Komponenten mit Live-Vorschauen, Props und Copy-and-paste-Beispielen.",
+		"{count} Komponenten mit Live-Vorschauen, Props und Copy-and-paste-Beispielen.",
 	"install.nextSteps.theming.title": "Themes",
 	"install.nextSteps.theming.desc":
 		"Überschreibe die Design-Tokens, damit jede Komponente im hellen und dunklen Modus zu deiner Marke passt.",

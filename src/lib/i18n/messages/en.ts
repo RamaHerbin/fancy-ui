@@ -11,9 +11,11 @@ export const en = {
 	// Sidebar / nav
 	"nav.gettingStarted": "Getting Started",
 	"nav.components": "Components",
+	"nav.home": "Home",
 	"nav.docsSuffix": "docs",
 	"a11y.closeSidebar": "Close sidebar",
 	"a11y.toggleSidebar": "Toggle sidebar",
+	"a11y.breadcrumb": "Breadcrumb",
 
 	// Getting-started page titles
 	"page.introduction": "Introduction",
@@ -47,6 +49,9 @@ export const en = {
 	"comp.sourceCode": "Source Code",
 	"comp.inspiredBy": "Inspired by",
 	"comp.examples": "Examples",
+	"comp.related": "Related components",
+	"comp.previous": "Previous",
+	"comp.next": "Next",
 	"status.stable": "Stable",
 
 	// Tables
@@ -71,6 +76,8 @@ export const en = {
 	"gallery.title": "Components",
 	"gallery.subtitle":
 		"{count} beautifully animated components for Svelte 5. Browse, search, and find what you need.",
+	"gallery.intro":
+		"Every component is built natively for Svelte 5 with runes, styled with Tailwind CSS v4, typed with TypeScript, and ships with a live preview and copy-paste examples. Install the package once and own the code.",
 	"gallery.statComponents": "Components",
 	"gallery.statCategories": "Categories",
 	"gallery.statTypescript": "TypeScript",
@@ -121,7 +128,7 @@ export const en = {
 	"intro.title": "Introduction",
 	"intro.metaTitle": "Introduction",
 	"intro.leadPre": "is a collection of",
-	"intro.leadHighlight": "60 animated",
+	"intro.leadHighlight": "{count} animated",
 	"intro.leadHighlight2": "interactive UI components",
 	"intro.leadPost": "built natively for Svelte 5.",
 	"intro.pill.svelte": "Svelte 5 Native",
@@ -148,7 +155,7 @@ export const en = {
 	"intro.quickStart.step3.title": "Use",
 	"intro.quickStart.step3.desc": "Drop it in your Svelte components.",
 	"intro.whatsIncluded.heading": "What's Included",
-	"intro.whatsIncluded.body": "60 components across 10 categories:",
+	"intro.whatsIncluded.body": "{count} components across 10 categories:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Cards",
 	"intro.category.text": "Text",
@@ -230,7 +237,7 @@ export const en = {
 	"install.nextSteps.heading": "Next steps",
 	"install.nextSteps.components.title": "Browse components",
 	"install.nextSteps.components.desc":
-		"60 components with live previews, props and copy-paste examples.",
+		"{count} components with live previews, props and copy-paste examples.",
 	"install.nextSteps.theming.title": "Theming",
 	"install.nextSteps.theming.desc":
 		"Override the design tokens so every component matches your brand in light and dark mode.",

@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "بدء الاستخدام",
 	"nav.components": "المكوّنات",
+	"nav.home": "الرئيسية",
 	"nav.docsSuffix": "التوثيق",
 	"a11y.closeSidebar": "إغلاق الشريط الجانبي",
 	"a11y.toggleSidebar": "تبديل الشريط الجانبي",
+	"a11y.breadcrumb": "مسار التنقل",
 
 	// Getting-started page titles
 	"page.introduction": "مقدّمة",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "الشيفرة المصدرية",
 	"comp.inspiredBy": "مستوحى من",
 	"comp.examples": "أمثلة",
+	"comp.related": "مكوّنات ذات صلة",
+	"comp.previous": "السابق",
+	"comp.next": "التالي",
 	"status.stable": "مستقر",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "المكوّنات",
 	"gallery.subtitle":
 		"{count} مكوّن متحرّك بشكل جميل لـ Svelte 5. تصفّح وابحث واعثر على ما تحتاجه.",
+	"gallery.intro":
+		"كل مكوّن مبني أصلاً لـ Svelte 5 باستخدام الـ runes، ومنسّق بـ Tailwind CSS v4، ومكتوب بـ TypeScript، ويأتي مع معاينة حيّة وأمثلة جاهزة للنسخ واللصق. ثبّت الحزمة مرة واحدة وستمتلك الشيفرة.",
 	"gallery.statComponents": "المكوّنات",
 	"gallery.statCategories": "الفئات",
 	"gallery.statTypescript": "TypeScript",
@@ -115,7 +122,7 @@ export default {
 	"intro.title": "مقدّمة",
 	"intro.metaTitle": "مقدّمة",
 	"intro.leadPre": "هي مجموعة من",
-	"intro.leadHighlight": "60 مكوّناً متحركاً",
+	"intro.leadHighlight": "{count} مكوّناً متحركاً",
 	"intro.leadHighlight2": "وتفاعلياً لواجهة المستخدم",
 	"intro.leadPost": "مبنية أصلاً لـ Svelte 5.",
 	"intro.pill.svelte": "أصلي لـ Svelte 5",
@@ -142,7 +149,7 @@ export default {
 	"intro.quickStart.step3.title": "الاستخدام",
 	"intro.quickStart.step3.desc": "أضِفها إلى مكوّنات Svelte الخاصة بك.",
 	"intro.whatsIncluded.heading": "ما الذي تتضمّنه",
-	"intro.whatsIncluded.body": "60 مكوّناً موزّعة على 10 فئات:",
+	"intro.whatsIncluded.body": "{count} مكوّناً موزّعة على 10 فئات:",
 	"intro.category.buttons": "الأزرار",
 	"intro.category.cards": "البطاقات",
 	"intro.category.text": "النصوص والطباعة",
@@ -221,7 +228,7 @@ export default {
 	"install.nextSteps.heading": "الخطوات التالية",
 	"install.nextSteps.components.title": "تصفّح المكوّنات",
 	"install.nextSteps.components.desc":
-		"60 مكوّناً مع معاينات حيّة وخصائص وأمثلة جاهزة للنسخ واللصق.",
+		"{count} مكوّناً مع معاينات حيّة وخصائص وأمثلة جاهزة للنسخ واللصق.",
 	"install.nextSteps.theming.title": "السِّمات",
 	"install.nextSteps.theming.desc":
 		"تجاوز رموز التصميم ليتوافق كل مكوّن مع علامتك التجارية في الوضعين الفاتح والداكن.",

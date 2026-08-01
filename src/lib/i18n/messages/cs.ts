@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Začínáme",
 	"nav.components": "Komponenty",
+	"nav.home": "Domů",
 	"nav.docsSuffix": "dokumentace",
 	"a11y.closeSidebar": "Zavřít postranní panel",
 	"a11y.toggleSidebar": "Přepnout postranní panel",
+	"a11y.breadcrumb": "Drobečková navigace",
 
 	// Getting-started page titles
 	"page.introduction": "Úvod",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Zdrojový kód",
 	"comp.inspiredBy": "Inspirováno",
 	"comp.examples": "Příklady",
+	"comp.related": "Související komponenty",
+	"comp.previous": "Předchozí",
+	"comp.next": "Další",
 	"status.stable": "Stabilní",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "Komponenty",
 	"gallery.subtitle":
 		"{count} krásně animovaných komponent pro Svelte 5. Procházejte, vyhledávejte a najděte, co potřebujete.",
+	"gallery.intro":
+		"Každá komponenta je nativně postavená pro Svelte 5 s runes, nastylovaná pomocí Tailwind CSS v4, otypovaná v TypeScriptu a přichází s živým náhledem a příklady ke zkopírování. Balíček nainstalujete jednou a kód je váš.",
 	"gallery.statComponents": "Komponenty",
 	"gallery.statCategories": "Kategorie",
 	"gallery.statTypescript": "TypeScript",
@@ -116,7 +123,7 @@ export default {
 	"intro.title": "Úvod",
 	"intro.metaTitle": "Úvod",
 	"intro.leadPre": "je kolekce",
-	"intro.leadHighlight": "60 animovaných",
+	"intro.leadHighlight": "{count} animovaných",
 	"intro.leadHighlight2": "interaktivních UI komponent",
 	"intro.leadPost": "vytvořených nativně pro Svelte 5.",
 	"intro.pill.svelte": "Nativní pro Svelte 5",
@@ -143,7 +150,7 @@ export default {
 	"intro.quickStart.step3.title": "Použití",
 	"intro.quickStart.step3.desc": "Vložte je do svých Svelte komponent.",
 	"intro.whatsIncluded.heading": "Co je součástí",
-	"intro.whatsIncluded.body": "60 komponent napříč 10 kategoriemi:",
+	"intro.whatsIncluded.body": "{count} komponent napříč 10 kategoriemi:",
 	"intro.category.buttons": "Tlačítka",
 	"intro.category.cards": "Karty",
 	"intro.category.text": "Text",
@@ -225,7 +232,7 @@ export default {
 	"install.nextSteps.heading": "Další kroky",
 	"install.nextSteps.components.title": "Procházet komponenty",
 	"install.nextSteps.components.desc":
-		"60 komponent s živými náhledy, vlastnostmi a příklady ke zkopírování.",
+		"{count} komponent s živými náhledy, vlastnostmi a příklady ke zkopírování.",
 	"install.nextSteps.theming.title": "Vzhled",
 	"install.nextSteps.theming.desc":
 		"Přepište design tokeny, aby každá komponenta odpovídala vaší značce ve světlém i tmavém režimu.",

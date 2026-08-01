@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "시작하기",
 	"nav.components": "컴포넌트",
+	"nav.home": "홈",
 	"nav.docsSuffix": "문서",
 	"a11y.closeSidebar": "사이드바 닫기",
 	"a11y.toggleSidebar": "사이드바 열기/닫기",
+	"a11y.breadcrumb": "탐색 경로",
 
 	// Getting-started page titles
 	"page.introduction": "소개",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "소스 코드",
 	"comp.inspiredBy": "영감을 받은 출처",
 	"comp.examples": "예제",
+	"comp.related": "관련 컴포넌트",
+	"comp.previous": "이전",
+	"comp.next": "다음",
 	"status.stable": "안정",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "컴포넌트",
 	"gallery.subtitle":
 		"Svelte 5를 위한 아름답게 애니메이션된 {count}개의 컴포넌트. 둘러보고, 검색하여 필요한 것을 찾으세요.",
+	"gallery.intro":
+		"모든 컴포넌트는 runes를 사용해 Svelte 5용으로 네이티브하게 만들어졌고, Tailwind CSS v4로 스타일링되었으며, TypeScript로 타입이 지정되어 있고, 라이브 미리보기와 복사해 붙여넣는 예제를 함께 제공합니다. 패키지를 한 번만 설치하면 코드는 여러분의 것입니다.",
 	"gallery.statComponents": "컴포넌트",
 	"gallery.statCategories": "카테고리",
 	"gallery.statTypescript": "TypeScript",
@@ -115,7 +122,7 @@ export default {
 	"intro.title": "소개",
 	"intro.metaTitle": "소개",
 	"intro.leadPre": "는 Svelte 5 네이티브로 제작된",
-	"intro.leadHighlight": "60개의 애니메이션",
+	"intro.leadHighlight": "{count}개의 애니메이션",
 	"intro.leadHighlight2": "인터랙티브 UI 컴포넌트",
 	"intro.leadPost": "모음입니다.",
 	"intro.pill.svelte": "Svelte 5 네이티브",
@@ -142,7 +149,7 @@ export default {
 	"intro.quickStart.step3.title": "사용",
 	"intro.quickStart.step3.desc": "Svelte 컴포넌트에 추가하세요.",
 	"intro.whatsIncluded.heading": "포함된 내용",
-	"intro.whatsIncluded.body": "10개 카테고리에 걸친 60개의 컴포넌트:",
+	"intro.whatsIncluded.body": "10개 카테고리에 걸친 {count}개의 컴포넌트:",
 	"intro.category.buttons": "버튼",
 	"intro.category.cards": "카드",
 	"intro.category.text": "텍스트",
@@ -224,7 +231,7 @@ export default {
 	"install.nextSteps.heading": "다음 단계",
 	"install.nextSteps.components.title": "컴포넌트 둘러보기",
 	"install.nextSteps.components.desc":
-		"실시간 미리보기, 속성, 복사-붙여넣기 예제를 갖춘 60개의 컴포넌트.",
+		"실시간 미리보기, 속성, 복사-붙여넣기 예제를 갖춘 {count}개의 컴포넌트.",
 	"install.nextSteps.theming.title": "테마 설정",
 	"install.nextSteps.theming.desc":
 		"디자인 토큰을 재정의하여 라이트 모드와 다크 모드 모두에서 모든 컴포넌트를 브랜드에 맞추세요.",

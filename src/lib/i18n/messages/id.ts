@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Memulai",
 	"nav.components": "Komponen",
+	"nav.home": "Beranda",
 	"nav.docsSuffix": "dokumen",
 	"a11y.closeSidebar": "Tutup bilah sisi",
 	"a11y.toggleSidebar": "Alihkan bilah sisi",
+	"a11y.breadcrumb": "Navigasi remah roti",
 
 	// Getting-started page titles
 	"page.introduction": "Pengantar",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Kode Sumber",
 	"comp.inspiredBy": "Terinspirasi oleh",
 	"comp.examples": "Contoh",
+	"comp.related": "Komponen terkait",
+	"comp.previous": "Sebelumnya",
+	"comp.next": "Berikutnya",
 	"status.stable": "Stabil",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "Komponen",
 	"gallery.subtitle":
 		"{count} komponen beranimasi indah untuk Svelte 5. Jelajahi, cari, dan temukan yang Anda butuhkan.",
+	"gallery.intro":
+		"Setiap komponen dibangun secara native untuk Svelte 5 dengan runes, ditata dengan Tailwind CSS v4, diketik dengan TypeScript, dan dilengkapi pratinjau langsung serta contoh siap salin-tempel. Instal paketnya sekali dan kodenya menjadi milik Anda.",
 	"gallery.statComponents": "Komponen",
 	"gallery.statCategories": "Kategori",
 	"gallery.statTypescript": "TypeScript",
@@ -116,7 +123,7 @@ export default {
 	"intro.title": "Pengantar",
 	"intro.metaTitle": "Pengantar",
 	"intro.leadPre": "adalah kumpulan",
-	"intro.leadHighlight": "60 animasi",
+	"intro.leadHighlight": "{count} animasi",
 	"intro.leadHighlight2": "komponen UI interaktif",
 	"intro.leadPost": "yang dibangun secara native untuk Svelte 5.",
 	"intro.pill.svelte": "Svelte 5 Native",
@@ -143,7 +150,7 @@ export default {
 	"intro.quickStart.step3.title": "Gunakan",
 	"intro.quickStart.step3.desc": "Tempatkan di komponen Svelte Anda.",
 	"intro.whatsIncluded.heading": "Apa yang Disertakan",
-	"intro.whatsIncluded.body": "60 komponen di 10 kategori:",
+	"intro.whatsIncluded.body": "{count} komponen di 10 kategori:",
 	"intro.category.buttons": "Tombol",
 	"intro.category.cards": "Kartu",
 	"intro.category.text": "Teks",
@@ -226,7 +233,7 @@ export default {
 	"install.nextSteps.heading": "Langkah Selanjutnya",
 	"install.nextSteps.components.title": "Jelajahi Komponen",
 	"install.nextSteps.components.desc":
-		"60 komponen dengan pratinjau langsung, props, dan contoh salin-tempel.",
+		"{count} komponen dengan pratinjau langsung, props, dan contoh salin-tempel.",
 	"install.nextSteps.theming.title": "Tema",
 	"install.nextSteps.theming.desc":
 		"Timpa token desain agar setiap komponen sesuai dengan merek Anda dalam mode terang dan gelap.",

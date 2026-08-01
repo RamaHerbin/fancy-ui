@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "شروع به کار",
 	"nav.components": "کامپوننت‌ها",
+	"nav.home": "خانه",
 	"nav.docsSuffix": "مستندات",
 	"a11y.closeSidebar": "بستن نوار کناری",
 	"a11y.toggleSidebar": "نمایش/پنهان کردن نوار کناری",
+	"a11y.breadcrumb": "مسیر راهنما",
 
 	// Getting-started page titles
 	"page.introduction": "معرفی",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "کد منبع",
 	"comp.inspiredBy": "الهام‌گرفته از",
 	"comp.examples": "نمونه‌ها",
+	"comp.related": "کامپوننت‌های مرتبط",
+	"comp.previous": "قبلی",
+	"comp.next": "بعدی",
 	"status.stable": "پایدار",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "کامپوننت‌ها",
 	"gallery.subtitle":
 		"{count} کامپوننت زیبا و متحرک برای Svelte 5. مرور کنید، جستجو کنید و آنچه را نیاز دارید بیابید.",
+	"gallery.intro":
+		"هر کامپوننت به‌صورت بومی برای Svelte 5 با runes ساخته شده، با Tailwind CSS v4 استایل‌دهی شده، با TypeScript تایپ شده و همراه با پیش‌نمایش زنده و نمونه‌های آمادهٔ کپی و جای‌گذاری ارائه می‌شود. بسته را یک بار نصب کنید و کد از آنِ شماست.",
 	"gallery.statComponents": "کامپوننت‌ها",
 	"gallery.statCategories": "دسته‌ها",
 	"gallery.statTypescript": "TypeScript",
@@ -116,7 +123,7 @@ export default {
 	"intro.title": "معرفی",
 	"intro.metaTitle": "معرفی",
 	"intro.leadPre": "مجموعه‌ای است از",
-	"intro.leadHighlight": "۶۰ کامپوننت متحرک",
+	"intro.leadHighlight": "{count} کامپوننت متحرک",
 	"intro.leadHighlight2": "رابط کاربری تعاملی",
 	"intro.leadPost": "که به‌صورت بومی برای Svelte 5 ساخته شده‌اند.",
 	"intro.pill.svelte": "بومیِ Svelte 5",
@@ -143,7 +150,7 @@ export default {
 	"intro.quickStart.step3.title": "استفاده",
 	"intro.quickStart.step3.desc": "آن را در کامپوننت‌های Svelte خود قرار دهید.",
 	"intro.whatsIncluded.heading": "آنچه شامل می‌شود",
-	"intro.whatsIncluded.body": "۶۰ کامپوننت در ۱۰ دسته:",
+	"intro.whatsIncluded.body": "{count} کامپوننت در ۱۰ دسته:",
 	"intro.category.buttons": "دکمه‌ها",
 	"intro.category.cards": "کارت‌ها",
 	"intro.category.text": "متن",
@@ -226,7 +233,7 @@ export default {
 	"install.nextSteps.heading": "گام‌های بعدی",
 	"install.nextSteps.components.title": "مرور کامپوننت‌ها",
 	"install.nextSteps.components.desc":
-		"۶۰ کامپوننت با پیش‌نمایش زنده، پراپ‌ها و نمونه‌های آماده‌ی کپی‌وچسباندن.",
+		"{count} کامپوننت با پیش‌نمایش زنده، پراپ‌ها و نمونه‌های آماده‌ی کپی‌وچسباندن.",
 	"install.nextSteps.theming.title": "پوسته‌بندی",
 	"install.nextSteps.theming.desc":
 		"توکن‌های طراحی را بازنویسی کنید تا هر کامپوننت در حالت روشن و تاریک با برند شما هماهنگ شود.",

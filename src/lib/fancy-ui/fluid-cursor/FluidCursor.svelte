@@ -4,6 +4,8 @@
 	import {
 		type ColorRGB,
 		type Pointer,
+		type FluidCursorHandle,
+		type FluidRenderLevel,
 		pointerPrototype,
 		hexToRgb,
 		HSVtoRGB,
@@ -46,6 +48,14 @@
 		contained?: boolean;
 		hdr?: boolean;
 		hdrBoost?: number;
+		/**
+		 * Called once the fluid engine is live, with an imperative handle to
+		 * drive the simulation programmatically (trace a path via
+		 * `moveTo`/`penUp`, fire a one-off `burst`) and read back the actual
+		 * `renderLevel`. Pair with `interactive={false}` to drive it entirely
+		 * without a real cursor.
+		 */
+		onReady?: (handle: FluidCursorHandle) => void;
 	}
 
 	let {
@@ -76,6 +86,7 @@
 		contained = true,
 		hdr = false,
 		hdrBoost = 1.5,
+		onReady,
 	}: Props = $props();
 
 	const clampedColorIntensity = Math.max(0, Math.min(1, colorIntensity));
@@ -157,6 +168,31 @@
 		return cleanup;
 	}
 
+	// Inert handle for environments where no renderer came up at all, so a
+	// consumer waiting on onReady can tell "unsupported" from "still starting".
+	const noRendererHandle: FluidCursorHandle = {
+		moveTo() {},
+		penUp() {},
+		burst() {},
+		renderLevel: "none",
+	};
+
+	// Hand the handle to the consumer. Guarded because the WebGPU path invokes
+	// this inside its startup promise chain: an exception from the callback would
+	// otherwise be caught as a WebGPU setup failure, retrying WebGL on a canvas
+	// already claimed by WebGPU and dropping the registered cleanup. Re-thrown
+	// asynchronously so it still surfaces as an unhandled error.
+	function notifyReady(handle: FluidCursorHandle) {
+		if (!onReady) return;
+		try {
+			onReady(handle);
+		} catch (error) {
+			queueMicrotask(() => {
+				throw error;
+			});
+		}
+	}
+
 	onMount(() => {
 		const canvas = canvasRef;
 		if (!canvas) return;
@@ -209,23 +245,26 @@
 				splatOnMount,
 				generateColor,
 			})
-				.then((cleanup) => {
+				.then((handle) => {
 					if (disposed) {
-						cleanup?.();
+						handle?.cleanup();
 						return;
 					}
 					// A newer singleton instance mounted while we were starting up:
 					// registering now would destroy it (newest-mount-wins would
 					// invert). Discard this stale completion instead.
 					if (!allowMultiple && mountToken !== mountCounter) {
-						cleanup?.();
+						handle?.cleanup();
 						return;
 					}
-					if (!cleanup) {
+					if (!handle) {
+						// WebGPU unavailable: the WebGL fallback surfaces its own
+						// handle through onReady.
 						activeCleanup = startWebGl() ?? null;
 						return;
 					}
-					activeCleanup = registerInstance(cleanup);
+					activeCleanup = registerInstance(handle.cleanup);
+					notifyReady(handle);
 				})
 				.catch((error) => {
 					// Unexpected failure while wiring the WebGPU path: fall back
@@ -245,9 +284,24 @@
 
 		// WebGL engine path (default, and fallback when WebGPU is missing).
 		function startWebGl(): (() => void) | undefined {
+			// Wide-gamut probe result, surfaced through the handle's renderLevel.
+			let renderLevel: FluidRenderLevel = "webgl-sdr";
+			// Dedicated synthetic pointer driven programmatically through the
+			// handle. It lives alongside the mouse pointer in the same list, so
+			// applyInputs splats both and the two inputs coexist. Only created
+			// when a consumer asked for the handle: an unused extra pointer would
+			// still consume the shared fluidColors sequence in updateColors.
+			const autopilotPointer = onReady ? pointerPrototype() : null;
+			if (autopilotPointer) pointers.push(autopilotPointer);
+			let penWasUp = true;
+
 			// Get WebGL context
 			const context = getWebGLContext(canvas);
-			if (!context.gl || !context.ext) return;
+			if (!context.gl || !context.ext) {
+				// No renderer at all (WebGPU already failed if it was tried).
+				notifyReady(noRendererHandle);
+				return;
+			}
 
 			// These are guaranteed non-null after the check above
 			const gl = context.gl;
@@ -282,14 +336,23 @@
 
 				// HDR fallback: wide-gamut backbuffer when the WebGPU engine is
 				// unavailable. Colors are reinterpreted in P3 (more saturated).
+				// The property is read back because assigning an unsupported color
+				// space silently leaves the buffer in sRGB.
 				if (hdr && "drawingBufferColorSpace" in gl) {
 					try {
 						gl.drawingBufferColorSpace = "display-p3";
-						if (import.meta.env.DEV) {
-							console.info("[FluidCursor] HDR level: webgl-p3 (wide gamut fallback)");
+						if (gl.drawingBufferColorSpace === "display-p3") {
+							renderLevel = "webgl-p3";
 						}
 					} catch {
 						// Unsupported color space: buffer stays sRGB.
+					}
+					if (import.meta.env.DEV) {
+						console.info(
+							renderLevel === "webgl-p3"
+								? "[FluidCursor] HDR level: webgl-p3 (wide gamut fallback)"
+								: "[FluidCursor] HDR level: webgl-sdr (display-p3 drawing buffer rejected)"
+						);
 					}
 				}
 
@@ -1157,6 +1220,10 @@
 				if (colorUpdateTimer >= 1) {
 					colorUpdateTimer = wrap(colorUpdateTimer, 0, 1);
 					pointers.forEach((p) => {
+						// The synthetic pointer's color belongs to the handle: pulling
+						// from the generator here would advance the shared fluidColors
+						// index twice per update and overwrite explicit stroke colors.
+						if (p === autopilotPointer) return;
 						p.color = generateColor();
 					});
 				}
@@ -1467,6 +1534,49 @@
 				return delta;
 			}
 
+			// Programmatic drive surface (exposed through onReady).
+			//
+			// x,y in [0,1], top-left origin. `updatePointerMoveData` applies
+			// `texcoordY = 1 - posY / height`, so feeding it a top-left pixel Y
+			// yields the same path a real mouse event's clientY takes. This is the
+			// only Y flip on the WebGL path.
+			function autopilotMoveTo(x: number, y: number, color?: ColorRGB) {
+				if (!autopilotPointer) return;
+				const posX = x * canvas.width;
+				const posY = y * canvas.height;
+				if (penWasUp) {
+					// First move of a new stroke: reposition only (mirrors
+					// updatePointerDownData) so the jump from the previous stroke's
+					// end never draws a connecting streak.
+					penWasUp = false;
+					autopilotPointer.down = true;
+					autopilotPointer.moved = false;
+					autopilotPointer.texcoordX = posX / canvas.width;
+					autopilotPointer.texcoordY = 1 - posY / canvas.height;
+					autopilotPointer.prevTexcoordX = autopilotPointer.texcoordX;
+					autopilotPointer.prevTexcoordY = autopilotPointer.texcoordY;
+					autopilotPointer.deltaX = 0;
+					autopilotPointer.deltaY = 0;
+					// A stroke with no explicit color takes a fresh generated one, as
+					// a real pointer-down does: the prototype's black would inject
+					// invisible dye.
+					autopilotPointer.color = color ?? generateColor();
+					return;
+				}
+				updatePointerMoveData(autopilotPointer, posX, posY, color ?? autopilotPointer.color);
+			}
+			function autopilotPenUp() {
+				// `moved` is deliberately left alone: applyInputs consumes and clears
+				// it on the next frame, so clearing it here would swallow the final
+				// segment of a stroke finished synchronously before that frame.
+				penWasUp = true;
+				if (autopilotPointer) autopilotPointer.down = false;
+			}
+			// Top-left origin in, bottom-up texcoords out: flip y and negate dy.
+			function autopilotBurst(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
+				splat(x, 1 - y, dx, -dy, color);
+			}
+
 			// Event Listeners
 			function handleMouseDown(e: MouseEvent) {
 				const pointer = pointers[0];
@@ -1582,7 +1692,18 @@
 				}
 			}
 
-			return registerInstance(cleanup);
+			// Register before notifying: a throwing callback must not cost us the
+			// cleanup registration (listeners, rAF loop and GL resources would
+			// otherwise outlive the component).
+			const dispose = registerInstance(cleanup);
+			notifyReady({
+				moveTo: autopilotMoveTo,
+				penUp: autopilotPenUp,
+				burst: autopilotBurst,
+				renderLevel,
+			});
+
+			return dispose;
 		}
 	});
 </script>

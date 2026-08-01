@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "शुरू करें",
 	"nav.components": "कॉम्पोनेंट्स",
+	"nav.home": "होम",
 	"nav.docsSuffix": "डॉक्स",
 	"a11y.closeSidebar": "साइडबार बंद करें",
 	"a11y.toggleSidebar": "साइडबार टॉगल करें",
+	"a11y.breadcrumb": "ब्रेडक्रम्ब",
 
 	// Getting-started page titles
 	"page.introduction": "परिचय",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "सोर्स कोड",
 	"comp.inspiredBy": "से प्रेरित",
 	"comp.examples": "उदाहरण",
+	"comp.related": "संबंधित कॉम्पोनेंट्स",
+	"comp.previous": "पिछला",
+	"comp.next": "अगला",
 	"status.stable": "स्थिर",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "कॉम्पोनेंट्स",
 	"gallery.subtitle":
 		"Svelte 5 के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
+	"gallery.intro":
+		"हर कॉम्पोनेंट runes के साथ Svelte 5 के लिए नेटिव रूप से बना है, Tailwind CSS v4 से स्टाइल किया गया है, TypeScript में टाइप किया गया है, और लाइव प्रीव्यू तथा कॉपी-पेस्ट उदाहरणों के साथ आता है। पैकेज एक बार इंस्टॉल करें और कोड आपका।",
 	"gallery.statComponents": "कॉम्पोनेंट्स",
 	"gallery.statCategories": "श्रेणियाँ",
 	"gallery.statTypescript": "TypeScript",
@@ -116,7 +123,7 @@ export default {
 	"intro.title": "परिचय",
 	"intro.metaTitle": "परिचय",
 	"intro.leadPre": "है",
-	"intro.leadHighlight": "60 एनिमेटेड",
+	"intro.leadHighlight": "{count} एनिमेटेड",
 	"intro.leadHighlight2": "इंटरैक्टिव UI कॉम्पोनेंट्स का एक संग्रह,",
 	"intro.leadPost": "जो Svelte 5 के लिए मूल रूप से बनाया गया है।",
 	"intro.pill.svelte": "Svelte 5 नेटिव",
@@ -143,7 +150,7 @@ export default {
 	"intro.quickStart.step3.title": "उपयोग करें",
 	"intro.quickStart.step3.desc": "इसे अपने Svelte कॉम्पोनेंट्स में जोड़ें।",
 	"intro.whatsIncluded.heading": "इसमें क्या शामिल है",
-	"intro.whatsIncluded.body": "10 श्रेणियों में 60 कॉम्पोनेंट्स:",
+	"intro.whatsIncluded.body": "10 श्रेणियों में {count} कॉम्पोनेंट्स:",
 	"intro.category.buttons": "बटन",
 	"intro.category.cards": "कार्ड",
 	"intro.category.text": "टेक्स्ट",
@@ -226,7 +233,7 @@ export default {
 	"install.nextSteps.heading": "अगले कदम",
 	"install.nextSteps.components.title": "कॉम्पोनेंट्स ब्राउज़ करें",
 	"install.nextSteps.components.desc":
-		"लाइव प्रीव्यू, प्रॉप्स और कॉपी-पेस्ट उदाहरणों के साथ 60 कॉम्पोनेंट्स।",
+		"लाइव प्रीव्यू, प्रॉप्स और कॉपी-पेस्ट उदाहरणों के साथ {count} कॉम्पोनेंट्स।",
 	"install.nextSteps.theming.title": "थीमिंग",
 	"install.nextSteps.theming.desc":
 		"डिज़ाइन टोकन ओवरराइड करें ताकि हर कॉम्पोनेंट लाइट और डार्क मोड में आपके ब्रांड से मेल खाए।",

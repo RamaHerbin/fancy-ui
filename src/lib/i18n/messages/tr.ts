@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Başlarken",
 	"nav.components": "Bileşenler",
+	"nav.home": "Ana sayfa",
 	"nav.docsSuffix": "belgeler",
 	"a11y.closeSidebar": "Kenar çubuğunu kapat",
 	"a11y.toggleSidebar": "Kenar çubuğunu aç/kapat",
+	"a11y.breadcrumb": "Sayfa yolu",
 
 	// Getting-started page titles
 	"page.introduction": "Giriş",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Kaynak Kodu",
 	"comp.inspiredBy": "İlham kaynağı",
 	"comp.examples": "Örnekler",
+	"comp.related": "İlgili bileşenler",
+	"comp.previous": "Önceki",
+	"comp.next": "Sonraki",
 	"status.stable": "Kararlı",
 
 	// Tables
@@ -63,6 +68,8 @@ export default {
 
 	// Components gallery
 	"gallery.title": "Bileşenler",
+	"gallery.intro":
+		"Her bileşen runes ile Svelte 5 için yerel olarak geliştirildi, Tailwind CSS v4 ile biçimlendirildi, TypeScript ile tiplendirildi ve canlı önizleme ile kopyala-yapıştır örnekleriyle geliyor. Paketi bir kez kurun, kod sizin olsun.",
 	"gallery.statComponents": "Bileşenler",
 	"gallery.statCategories": "Kategoriler",
 	"gallery.statTypescript": "TypeScript",
@@ -116,7 +123,7 @@ export default {
 	"intro.title": "Giriş",
 	"intro.metaTitle": "Giriş",
 	"intro.leadPre": "Svelte 5 için doğal olarak geliştirilmiş",
-	"intro.leadHighlight": "60 animasyonlu",
+	"intro.leadHighlight": "{count} animasyonlu",
 	"intro.leadHighlight2": "etkileşimli arayüz bileşeninden",
 	"intro.leadPost": "oluşan bir koleksiyondur.",
 	"intro.pill.svelte": "Svelte 5 Doğal",
@@ -145,7 +152,7 @@ export default {
 	"intro.quickStart.step3.title": "Kullan",
 	"intro.quickStart.step3.desc": "Svelte bileşenlerinize ekleyin.",
 	"intro.whatsIncluded.heading": "Neler İçerir",
-	"intro.whatsIncluded.body": "10 kategoride 60 bileşen:",
+	"intro.whatsIncluded.body": "10 kategoride {count} bileşen:",
 	"intro.category.buttons": "Düğmeler",
 	"intro.category.cards": "Kartlar",
 	"intro.category.text": "Metin",
@@ -226,7 +233,7 @@ export default {
 	"install.nextSteps.heading": "Sonraki Adımlar",
 	"install.nextSteps.components.title": "Bileşenlere Göz At",
 	"install.nextSteps.components.desc":
-		"Canlı önizlemeler, özellikler ve kopyala-yapıştır örnekleriyle 60 bileşen.",
+		"Canlı önizlemeler, özellikler ve kopyala-yapıştır örnekleriyle {count} bileşen.",
 	"install.nextSteps.theming.title": "Tema",
 	"install.nextSteps.theming.desc":
 		"Her bileşenin açık ve koyu modda markanızla eşleşmesi için tasarım belirteçlerini geçersiz kılın.",

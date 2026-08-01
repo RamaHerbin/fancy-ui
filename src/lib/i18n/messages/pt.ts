@@ -5,9 +5,11 @@ export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "Primeiros passos",
 	"nav.components": "Componentes",
+	"nav.home": "Início",
 	"nav.docsSuffix": "documentação",
 	"a11y.closeSidebar": "Fechar barra lateral",
 	"a11y.toggleSidebar": "Alternar barra lateral",
+	"a11y.breadcrumb": "Trilha de navegação",
 
 	// Getting-started page titles
 	"page.introduction": "Introdução",
@@ -41,6 +43,9 @@ export default {
 	"comp.sourceCode": "Código-fonte",
 	"comp.inspiredBy": "Inspirado em",
 	"comp.examples": "Exemplos",
+	"comp.related": "Componentes relacionados",
+	"comp.previous": "Anterior",
+	"comp.next": "Próximo",
 	"status.stable": "Estável",
 
 	// Tables
@@ -65,6 +70,8 @@ export default {
 	"gallery.title": "Componentes",
 	"gallery.subtitle":
 		"{count} componentes lindamente animados para o Svelte 5. Navegue, pesquise e encontre o que precisa.",
+	"gallery.intro":
+		"Cada componente é criado nativamente para Svelte 5 com runes, estilizado com Tailwind CSS v4, tipado com TypeScript e vem com pré-visualização ao vivo e exemplos para copiar e colar. Instale o pacote uma vez e o código é seu.",
 	"gallery.statComponents": "Componentes",
 	"gallery.statCategories": "Categorias",
 	"gallery.statTypescript": "TypeScript",
@@ -116,7 +123,7 @@ export default {
 	"intro.title": "Introdução",
 	"intro.metaTitle": "Introdução",
 	"intro.leadPre": "é uma coleção de",
-	"intro.leadHighlight": "60 componentes de interface animados",
+	"intro.leadHighlight": "{count} componentes de interface animados",
 	"intro.leadHighlight2": "interativos",
 	"intro.leadPost": ", criados nativamente para o Svelte 5.",
 	"intro.pill.svelte": "Svelte 5 nativo",
@@ -144,7 +151,7 @@ export default {
 	"intro.quickStart.step3.title": "Usar",
 	"intro.quickStart.step3.desc": "Insira-o nos seus componentes Svelte.",
 	"intro.whatsIncluded.heading": "O que está incluído",
-	"intro.whatsIncluded.body": "60 componentes em 10 categorias:",
+	"intro.whatsIncluded.body": "{count} componentes em 10 categorias:",
 	"intro.category.buttons": "Botões",
 	"intro.category.cards": "Cartões",
 	"intro.category.text": "Texto",
@@ -226,7 +233,7 @@ export default {
 	"install.nextSteps.heading": "Próximos passos",
 	"install.nextSteps.components.title": "Explorar componentes",
 	"install.nextSteps.components.desc":
-		"60 componentes com prévias ao vivo, propriedades e exemplos de copiar e colar.",
+		"{count} componentes com prévias ao vivo, propriedades e exemplos de copiar e colar.",
 	"install.nextSteps.theming.title": "Personalização de tema",
 	"install.nextSteps.theming.desc":
 		"Substitua os design tokens para que cada componente combine com a sua marca nos modos claro e escuro.",
