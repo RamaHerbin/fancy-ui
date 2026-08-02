@@ -9,6 +9,7 @@ export * from "./apple-card-carousel/index.js";
 export * from "./line-hover-link/index.js";
 export * from "./animated-beam/index.js";
 export * from "./animated-testimonials/index.js";
+export * from "./fireworks-hdr/index.js";
 export * from "./fluid-cursor/index.js";
 export * from "./animated-tooltip/index.js";
 export * from "./blur-reveal/index.js";
