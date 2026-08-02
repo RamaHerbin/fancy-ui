@@ -1,0 +1,5 @@
+---
+"fancy-ui-svelte": patch
+---
+
+FireworksHdr: retune the look so a shell reads as a firework. The particle quad is now oversized with the gaussian windowed to zero at its edge — an unwindowed halo still carried ~7% of its peak where the geometry stopped, and additive blending drew that step as a hard-edged square around every flash. Debris gravity drops to a fraction of the rocket's (a spark's terminal velocity was several times the burst's own expansion speed, so shells collapsed into downward fountains instead of opening), burst speed rises to match the drag, and each spark draws its own drag so the debris no longer falls as a parallel curtain. Sparks hand over from the magnesium white to the shell hue by a third of their life instead of three quarters, the detonation flash is smaller and decays faster, the accumulation trail and per-instance velocity stretch are shorter, ascent trails scatter laterally, rockets carry a slight positional wobble, and 6% of a shell's sparks crackle at 24 Hz (documented in the spec, previously never wired). No API change.

@@ -33,12 +33,12 @@ import { STRETCH, EXPOSURE_AMBIENT, type FireworksRenderLevel } from "./firework
 
 /**
  * Single global accumulation fade rate (1/s). Per-frame factor is
- * exp(-TRAIL_FADE_RATE·dt); at 60 fps that is ≈0.912, giving ascent comet
- * trails ~415 ms to fade to 10% (AD §3.3 ascent range 350–500 ms). Burst
- * streaks linger a little longer than their 150–220 ms ideal — the accepted
- * single-rate compromise (a two-channel decay would be overengineering here).
+ * exp(-TRAIL_FADE_RATE·dt); at 60 fps that is ≈0.889, fading a trail to 10% in
+ * ~330 ms (AD §3.3 ascent range 350–500 ms). Held deliberately short: the
+ * accumulation buffer is what smears a moving particle into a line, so a slower
+ * fade turns falling debris into long straight filaments instead of sparks.
  */
-export const TRAIL_FADE_RATE = 5.5;
+export const TRAIL_FADE_RATE = 7.0;
 
 /** Device-pixel-ratio clamp — HDR float buffers are fill-rate heavy. */
 const MAX_DPR = 2;
@@ -123,6 +123,9 @@ fn fs_decay(in: FSOut) -> @location(0) vec4f {
 struct ParticleU { aspect: f32, sdr: f32, coreScale: f32, _pad: f32 }
 @group(0) @binding(0) var<uniform> pu: ParticleU;
 
+// Quad oversize so the halo can fall to zero before the geometry ends.
+const QUAD_PAD: f32 = 1.35;
+
 struct PVOut {
 	@builtin(position) pos: vec4f,
 	@location(0) local: vec2f,  // quad-local coords in [-1,1]
@@ -146,13 +149,15 @@ fn vs_particle(
 	// SDR trades brightness headroom for size — bigger, not brighter (§7.4).
 	let size = iSize * select(1.0, pu.coreScale, pu.sdr > 0.5);
 
-	// Velocity-stretch: major axis along velocity, clamped 1–4× the minor.
+	// Velocity-stretch: major axis along velocity, clamped 1–2.5× the minor.
 	let velLen = length(iVel);
 	var dir = vec2f(1.0, 0.0);
 	if (velLen > 1e-6) { dir = iVel / velLen; }
 	let perp = vec2f(-dir.y, dir.x);
-	let minorHalf = size;
-	let majorHalf = clamp(size + velLen, size, size * 4.0);
+	// QUAD_PAD gives the halo room to reach zero INSIDE the quad; the fragment
+	// keeps the gaussian in un-padded units so the visible size is unchanged.
+	let minorHalf = size * QUAD_PAD;
+	let majorHalf = clamp(size + velLen, size, size * 2.5) * QUAD_PAD;
 
 	// Offset in isotropic screen-height units, then map to [0,1] (x compressed
 	// by aspect) and to NDC (flip y for the top-left origin).
@@ -162,7 +167,7 @@ fn vs_particle(
 
 	var out: PVOut;
 	out.pos = vec4f(ndc, 0.0, 1.0);
-	out.local = c;
+	out.local = c * QUAD_PAD;
 	out.color = iColor;
 	return out;
 }
@@ -173,7 +178,11 @@ fn fs_particle(in: PVOut) -> @location(0) vec4f {
 	let r2 = dot(in.local, in.local);
 	let core = exp(-r2 * 6.0);
 	let halo = exp(-r2 * 1.6) * 0.35;
-	let intensity = core + halo;
+	// Window it to exactly zero at the quad edge. The halo alone still carries
+	// ~7% of its peak there, and additive blending turns that step into a
+	// hard-edged square around anything bright (a flash reads as a lit box).
+	let win = smoothstep(QUAD_PAD, QUAD_PAD * 0.6, sqrt(r2));
+	let intensity = (core + halo) * win;
 	// Additive (one/one): premultiplied contribution.
 	return vec4f(in.color * intensity, intensity);
 }

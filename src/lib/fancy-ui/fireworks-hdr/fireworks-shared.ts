@@ -208,17 +208,19 @@ export const SDR_KNEE_START = 0.8;
 export const SDR_CORE_SCALE = 1.4;
 export const SDR_SAT_BOOST = 0.12;
 
-// §7 instance velocity-stretch (seconds of motion baked into the quad's major axis)
-export const STRETCH = 0.015;
+// §7 instance velocity-stretch (seconds of motion baked into the quad's major
+// axis). Small on purpose — the accumulation trail already conveys motion, and
+// stacking a long stretch on top of it turns every spark into a needle.
+export const STRETCH = 0.01;
 
 // §2.3 Brightness ladder (pre-exposure; 1.0 = SDR white)
-export const B_FLASH_INTRO = 6.0;
-export const B_FLASH_AMBIENT = 3.8;
+export const B_FLASH_INTRO = 3.4;
+export const B_FLASH_AMBIENT = 2.1;
 export const B_SPARK_FRESH = 2.2;
 export const B_SPARK_STEADY = 0.9;
 export const B_SPARK_TERMINAL = 0.15;
 export const B_ASCENT_HEAD = 2.8;
-export const B_ASCENT_TAIL = 0.6;
+export const B_ASCENT_TAIL = 0.45;
 export const B_BURST_STREAK = 0.5;
 export const B_EMBER_MEAN = 0.35;
 export const B_SMOKE_MIN = 0.05;
@@ -238,6 +240,19 @@ export const SMOKE_HEX = "#0a0b10";
 // Shell hue jitter (oklab degrees) and spark hue jitter — §2.5 / §1.6
 export const SHELL_JITTER_DEG = 7;
 export const SPARK_JITTER_DEG = 3;
+
+// Ascent wobble (§4): lateral drift rate and its frequency. Applied to the
+// rocket's position only — the velocity, and therefore the solved apex, is
+// untouched, so the wobble cannot walk a shell off its target.
+export const ROCKET_WOBBLE_AMP = 0.045;
+export const ROCKET_WOBBLE_HZ = 11;
+
+// Spark life-color schedule (§1.7): white → shell hue → cool end.
+export const HUE_ARRIVES_AT = 0.34;
+export const COOL_START = 0.72;
+// Share of a shell's sparks that crackle — a fast on/off flicker (CRACKLE_HZ)
+// on top of the normal decay. This is the "silver" chatter of a real break.
+export const CRACKLE_FRAC = 0.06;
 
 // Depth response for `depth ∈ [0,1]`: a far shell is dimmer, smaller, less
 // saturated AND spatially tighter. Every term is applied at spawn (the dim as a
@@ -262,11 +277,15 @@ const WIND_SCALE: Record<ParticleType, number> = {
 	[TYPE.SEEKER]: 0.4,
 };
 
-// Per-type gravity scale (§2.2 gravScale column)
+// Per-type gravity scale (§2.2 gravScale column). Sparks and embers fall at a
+// small fraction of the rocket's gravity: at full G their terminal velocity
+// (g·G/drag) dwarfs the burst's own expansion speed, so a shell never opens
+// into a sphere — it rains straight down as a fountain. Keeping ember gravity
+// above spark gravity is what still separates a willow's droop from a peony.
 const GRAV_SCALE: Record<ParticleType, number> = {
 	[TYPE.ROCKET]: 1.0,
-	[TYPE.SPARK]: 0.85,
-	[TYPE.EMBER]: 0.35,
+	[TYPE.SPARK]: 0.15,
+	[TYPE.EMBER]: 0.3,
 	[TYPE.SMOKE]: -0.05,
 	[TYPE.FLASH]: 0,
 	[TYPE.SEEKER]: 0, // gravity is phase-driven for seekers
@@ -275,16 +294,17 @@ const GRAV_SCALE: Record<ParticleType, number> = {
 // Per-type drag (1/s, §2.2 drag column)
 const DRAG: Record<ParticleType, number> = {
 	[TYPE.ROCKET]: 0.6,
-	[TYPE.SPARK]: 1.8,
+	[TYPE.SPARK]: 2.2,
 	[TYPE.EMBER]: 2.4,
 	[TYPE.SMOKE]: 3.0,
 	[TYPE.FLASH]: 0,
 	[TYPE.SEEKER]: 1.2,
 };
 
-// Burst initial speed = radius · this (visual units); tuned so spark drag pulls
-// them to ~radius before slowing. Not spec-pinned — a visual constant.
-const BURST_SPEED_K = 2.2;
+// Burst initial speed = radius · this (visual units). Under linear drag a spark
+// coasts v0/drag, so k ≈ drag makes the shell open to about its nominal radius
+// before the droop takes over. Not spec-pinned — a visual constant.
+const BURST_SPEED_K = 3.0;
 
 // §3 Quality tiers
 export const QUALITY: Record<QualityTier, TierSpec> = {
@@ -529,12 +549,21 @@ function sparkColorAtLifeInto(
 		out.b = MAGNESIUM.b;
 		return;
 	}
-	if (lifeT < 0.75) {
-		const t = (lifeT - whiteHold) / (0.75 - whiteHold);
+	// The magnesium flash reads as the detonation, not as the shell: it has to
+	// hand over to the shell hue early (by ~a third of the life) or a burst is
+	// a white ball for most of the time anyone is looking at it.
+	if (lifeT < HUE_ARRIVES_AT) {
+		const t = (lifeT - whiteHold) / (HUE_ARRIVES_AT - whiteHold);
 		mixOklabInto(MAGNESIUM, _sparkHue, Math.min(1, t), out);
 		return;
 	}
-	const t = (lifeT - 0.75) / 0.25;
+	if (lifeT < COOL_START) {
+		out.r = _sparkHue.r;
+		out.g = _sparkHue.g;
+		out.b = _sparkHue.b;
+		return;
+	}
+	const t = (lifeT - COOL_START) / (1 - COOL_START);
 	mixOklabInto(_sparkHue, COOL_END, Math.min(1, t), out);
 }
 
@@ -1211,10 +1240,11 @@ export function createSim(opts: SimOptions): Sim {
 			const speed = baseSpeed * asym * (straggler ? 1.4 : 1);
 			const isEmber = hash11(spec.seed + i + 313) < recipe.emberFrac;
 			const type: ParticleType = isEmber ? TYPE.EMBER : TYPE.SPARK;
+			const crackles = !isEmber && hash11(spec.seed + i + 577) < CRACKLE_FRAC;
 			const hue = depthAdjust(pickShellColor(spec, i), spec.depth);
 			const ttl = isEmber
-				? rand(seededRng(spec.seed + i + 17), 1.6, 2.8)
-				: rand(seededRng(spec.seed + i + 17), 0.9, 1.6);
+				? rand(seededRng(spec.seed + i + 17), 1.4, 2.4)
+				: rand(seededRng(spec.seed + i + 17), 0.75, 1.3);
 			const size =
 				(isEmber
 					? rand(seededRng(spec.seed + i + 29), 0.002, 0.003)
@@ -1234,9 +1264,13 @@ export function createSim(opts: SimOptions): Sim {
 				pool[base + F.type] = type;
 				pool[base + F.seed] = spec.seed + i;
 				// z-parallax folded into dragScale as a mild size/brightness proxy is
-				// avoided; dragScale carries the straggler multiplier only.
-				pool[base + F.dragScale] = straggler ? 0.7 : 1;
+				// avoided; dragScale carries the straggler multiplier and a per-spark
+				// spread — identical drag makes every spark fall at one speed, which
+				// combs the debris into a parallel curtain instead of a shell.
+				pool[base + F.dragScale] = straggler ? 0.7 : 0.85 + 0.45 * hash11(spec.seed + i + 233);
 				pool[base + F.depthDim] = dim;
+				// Field reuse for sparks: targetX flags the cracklers.
+				pool[base + F.targetX] = crackles ? 1 : 0;
 				// Stash burst z in targetY (unused for sparks/embers) for future
 				// parallax; harmless if ignored by the renderer.
 				pool[base + F.targetY] = z;
@@ -1251,7 +1285,7 @@ export function createSim(opts: SimOptions): Sim {
 		flashQueue.push({
 			pos: { ...origin },
 			brightness: flashB,
-			size: rand(seededRng(spec.seed + 5), 0.08, 0.16) * (1 - DEPTH_SIZE * spec.depth),
+			size: rand(seededRng(spec.seed + 5), 0.025, 0.05) * (1 - DEPTH_SIZE * spec.depth),
 			hue: depthAdjust(spec.colors[0], spec.depth),
 			dim,
 		});
@@ -1403,6 +1437,15 @@ export function createSim(opts: SimOptions): Sim {
 			if (type === TYPE.ROCKET) {
 				emitTrail(base, dt);
 				integrate(base, type, dt, w);
+				// Ascent wobble: a real shell corkscrews slightly on its way up, and
+				// the perfectly straight column the integrator draws reads as a wire.
+				// Positional only (velocity untouched), and small enough that the
+				// apex the launch solved for still holds.
+				const wob = pool[base + F.seed];
+				pool[base + F.posX] +=
+					Math.sin(pool[base + F.age] * ROCKET_WOBBLE_HZ + hash11(wob) * 6.283) *
+					ROCKET_WOBBLE_AMP *
+					dt;
 			} else if (type === TYPE.SEEKER) {
 				stepSeeker(base, dt);
 			} else {
@@ -1489,9 +1532,11 @@ export function createSim(opts: SimOptions): Sim {
 			const j = hash11(seed + pool[base + F.age] * 1000 + k);
 			sparkQueue.push({
 				pos: { x: px, y: py },
-				vel: { x: (j * 2 - 1) * 0.01, y: (hash11(j) * 2 - 1) * 0.01 },
-				ttl: rand(seededRng(seed + k + 71), 0.3, 0.5),
-				size: 0.002,
+				// Wider lateral scatter: a rigidly co-linear trail reads as a drawn
+				// beam rather than a comet shedding sparks.
+				vel: { x: (j * 2 - 1) * 0.035, y: (hash11(j) * 2 - 1) * 0.02 },
+				ttl: rand(seededRng(seed + k + 71), 0.22, 0.45),
+				size: 0.0018,
 				hue,
 				seed: seed + k + 500,
 			});
@@ -1555,15 +1600,22 @@ export function createSim(opts: SimOptions): Sim {
 		const age = pool[base + F.age];
 		switch (type) {
 			case TYPE.FLASH:
+				// Steep decay: the flash marks the break, it must not sit on top of
+				// the shell as a white disc while the sparks are opening.
 				return pool[base + F.brightness] > 0
-					? Math.max(pool[base + F.brightness], B_FLASH_AMBIENT) * Math.exp(-4 * lifeT)
-					: B_FLASH_AMBIENT * Math.exp(-4 * lifeT);
+					? Math.max(pool[base + F.brightness], B_FLASH_AMBIENT) * Math.exp(-5.5 * lifeT)
+					: B_FLASH_AMBIENT * Math.exp(-5.5 * lifeT);
 			case TYPE.SPARK: {
 				// Two-stage: fast drop 2.2→~0.9, then cubic ease-in to 0 past 0.7.
 				let b = B_SPARK_STEADY + (B_SPARK_FRESH - B_SPARK_STEADY) * Math.exp(-lifeT * 8);
 				if (lifeT > 0.7) {
 					const u = (lifeT - 0.7) / 0.3;
 					b = Math.max(B_SPARK_TERMINAL, b * (1 - u) * (1 - u) * (1 - u));
+				}
+				// Crackle: flagged sparks chatter on/off at CRACKLE_HZ instead of
+				// fading smoothly (field reuse — targetX is free for sparks).
+				if (pool[base + F.targetX] > 0.5) {
+					b *= flickerNoise(seed, age, CRACKLE_HZ) > 0.5 ? 1.9 : 0.25;
 				}
 				return b;
 			}
@@ -1629,7 +1681,7 @@ export function createSim(opts: SimOptions): Sim {
 		const seed = pool[base + F.seed];
 		switch (type) {
 			case TYPE.SPARK: {
-				const whiteHold = 0.06 + 0.12 * hash11(seed);
+				const whiteHold = 0.04 + 0.07 * hash11(seed);
 				sparkColorAtLifeInto(_dispHue, lifeT, whiteHold, seed, out);
 				return;
 			}

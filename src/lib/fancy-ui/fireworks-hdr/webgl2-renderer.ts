@@ -44,7 +44,11 @@ import {
 	SDR_SAT_BOOST,
 	type FireworksRenderLevel,
 } from "./fireworks-shared.js";
-import { TRAIL_FADE_RATE, type FireworksEngineHandle, type FrameUniforms } from "./webgpu-renderer.js";
+import {
+	TRAIL_FADE_RATE,
+	type FireworksEngineHandle,
+	type FrameUniforms,
+} from "./webgpu-renderer.js";
 
 /** Device-pixel-ratio clamp (matches the WebGPU renderer — fill-rate is the cap). */
 const MAX_DPR = 2;
@@ -158,27 +162,33 @@ uniform float uCoreScale; // SDR trades headroom for size (§7.4); always on in 
 out vec2 vLocal;
 out vec3 vColor;
 const vec2 C[4] = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, 1.0));
+// Quad oversize so the halo can fall to zero before the geometry ends.
+const float QUAD_PAD = 1.35;
 void main() {
 	vec2 c = C[gl_VertexID];
 	float size = iSize * uCoreScale;
 	float velLen = length(iVel);
 	vec2 dir = velLen > 1e-6 ? iVel / velLen : vec2(1.0, 0.0);
 	vec2 perp = vec2(-dir.y, dir.x);
-	float minorHalf = size;
-	float majorHalf = clamp(size + velLen, size, size * 4.0);
+	float minorHalf = size * QUAD_PAD;
+	float majorHalf = clamp(size + velLen, size, size * 2.5) * QUAD_PAD;
 	vec2 off = dir * (majorHalf * c.x) + perp * (minorHalf * c.y);
 	vec2 p01 = iPos + vec2(off.x / uAspect, off.y);
 	vec2 ndc = vec2(p01.x * 2.0 - 1.0, 1.0 - p01.y * 2.0);
 	gl_Position = vec4(ndc, 0.0, 1.0);
-	vLocal = c;
+	vLocal = c * QUAD_PAD;
 	vColor = iColor;
 }`;
 
+// Windowed to exactly zero at the quad edge — an unwindowed halo still carries
+// ~7% there, which additive blending shows as a hard-edged square.
 const PARTICLE_LOBE_GLSL = /* glsl */ `
+	const float QUAD_PAD = 1.35;
 	float r2 = dot(vLocal, vLocal);
 	float core = exp(-r2 * 6.0);
 	float halo = exp(-r2 * 1.6) * 0.35;
-	float intensity = core + halo;`;
+	float win = smoothstep(QUAD_PAD, QUAD_PAD * 0.6, sqrt(r2));
+	float intensity = (core + halo) * win;`;
 
 // Path A particle fragment: raw premultiplied HDR contribution; the display
 // pass owns the SDR ladder.
@@ -220,7 +230,11 @@ void main() {
 	frag = vec4(0.0, 0.0, 0.0, uAlpha);
 }`;
 
-function compileShader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader | null {
+function compileShader(
+	gl: WebGL2RenderingContext,
+	type: number,
+	source: string
+): WebGLShader | null {
 	const shader = gl.createShader(type);
 	if (!shader) return null;
 	gl.shaderSource(shader, source);
@@ -235,7 +249,11 @@ function compileShader(gl: WebGL2RenderingContext, type: number, source: string)
 	return shader;
 }
 
-function linkProgram(gl: WebGL2RenderingContext, vsSrc: string, fsSrc: string): WebGLProgram | null {
+function linkProgram(
+	gl: WebGL2RenderingContext,
+	vsSrc: string,
+	fsSrc: string
+): WebGLProgram | null {
 	const vs = compileShader(gl, gl.VERTEX_SHADER, vsSrc);
 	const fs = compileShader(gl, gl.FRAGMENT_SHADER, fsSrc);
 	if (!vs || !fs) {
@@ -319,8 +337,9 @@ export function startWebGl2Fireworks(
 	let renderLevel: FireworksRenderLevel = "webgl-sdr";
 	if (wantP3 && "drawingBufferColorSpace" in glc) {
 		try {
-			(glc as WebGL2RenderingContext & { drawingBufferColorSpace: string }).drawingBufferColorSpace =
-				"display-p3";
+			(
+				glc as WebGL2RenderingContext & { drawingBufferColorSpace: string }
+			).drawingBufferColorSpace = "display-p3";
 			if (
 				(glc as WebGL2RenderingContext & { drawingBufferColorSpace: string })
 					.drawingBufferColorSpace === "display-p3"
@@ -351,7 +370,9 @@ export function startWebGl2Fireworks(
 	// (No listeners/resources are allocated yet at this point.)
 	if (wantFloatAccum && !floatAccum) {
 		if (import.meta.env.DEV) {
-			console.warn("[FireworksHdr] WebGL2 float-accum probe/context mismatch; bailing to static fallback");
+			console.warn(
+				"[FireworksHdr] WebGL2 float-accum probe/context mismatch; bailing to static fallback"
+			);
 		}
 		return null;
 	}
@@ -396,7 +417,11 @@ export function startWebGl2Fireworks(
 	}
 
 	// --- programs ------------------------------------------------------------
-	particleProgram = linkProgram(glc, PARTICLE_VS, floatAccum ? PARTICLE_FS_ACCUM : PARTICLE_FS_DIRECT);
+	particleProgram = linkProgram(
+		glc,
+		PARTICLE_VS,
+		floatAccum ? PARTICLE_FS_ACCUM : PARTICLE_FS_DIRECT
+	);
 	decayProgram = floatAccum ? linkProgram(glc, FULLSCREEN_VS, DECAY_FS) : null;
 	displayProgram = floatAccum ? linkProgram(glc, FULLSCREEN_VS, DISPLAY_FS) : null;
 	fadeProgram = floatAccum ? null : linkProgram(glc, FULLSCREEN_VS, FADE_FS);

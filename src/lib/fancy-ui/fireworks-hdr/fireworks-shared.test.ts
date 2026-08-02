@@ -15,6 +15,9 @@ import {
 	sampleZone,
 	rectExpandedContains,
 	KEEP_CLEAR_MARGIN,
+	sparkColorAtLife,
+	HUE_ARRIVES_AT,
+	COOL_START,
 	flickerNoise,
 	deathGate,
 	mixOklab,
@@ -178,6 +181,97 @@ describe("rectExpandedContains (mirrored-apex revalidation)", () => {
 		// ...but its mirror is squarely inside it, which is what the scheduler
 		// re-tests before launching a mirrored double.
 		expect(rectExpandedContains(asym, 1 - picked.x, picked.y)).toBe(true);
+	});
+});
+
+describe("a shell opens instead of raining down", () => {
+	// The failure this pins: with debris gravity anywhere near the rocket's, a
+	// spark's terminal velocity dwarfs the burst speed, so every shell collapses
+	// into a downward fountain instead of a sphere.
+	const ASPECT = 1.6;
+
+	function shellShape(shell: "peony" | "ring") {
+		const sim = createSim({
+			quality: "high",
+			aspect: ASPECT,
+			hdr: true,
+			rng: mulberry32(19),
+			wind: { x: 0, y: 0 },
+		});
+		const { breakMs } = sim.launch({ apex: { x: 0.5, y: 0.4 }, shell, seed: 8 });
+		// The shell breaks a fuse-hang past the apex, so anchor on where the rocket
+		// actually was when it died, not on the requested apex.
+		const origin = { x: 0.5, y: 0.4 };
+		const frames = Math.ceil(((breakMs + 340) / 1000) * 60);
+		for (let f = 0; f < frames; f++) {
+			for (let idx = 0; idx < sim.count; idx++) {
+				const base = idx * STRIDE;
+				if (sim.data[base + F.type] !== TYPE.ROCKET) continue;
+				origin.x = sim.data[base + F.posX];
+				origin.y = sim.data[base + F.posY];
+			}
+			sim.step(1 / 60);
+		}
+		let widest = 0;
+		let highest = 0;
+		let lowest = 0;
+		for (let idx = 0; idx < sim.count; idx++) {
+			const base = idx * STRIDE;
+			const type = sim.data[base + F.type];
+			if (type !== TYPE.SPARK && type !== TYPE.EMBER) continue;
+			// Burst debris only: the ascent trail is spawned around the launch base.
+			const dy = sim.data[base + F.posY] - origin.y;
+			// x is integrated as pos.x += (vel.x / A)·dt, so normalized dx has to be
+			// multiplied back by the aspect to compare against dy — a round burst is
+			// legitimately narrower in x on a wide canvas.
+			const dx = (sim.data[base + F.posX] - origin.x) * ASPECT;
+			if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) continue;
+			widest = Math.max(widest, Math.abs(dx));
+			highest = Math.min(highest, dy);
+			lowest = Math.max(lowest, dy);
+		}
+		return { widest, up: -highest, down: lowest };
+	}
+
+	it("throws sparks sideways and upward, not only downward", () => {
+		const peony = shellShape("peony");
+		expect(peony.widest).toBeGreaterThan(0.04);
+		// A shell that opens still rises a good fraction of what it falls this
+		// early. Under the pre-retune constants (spark gravity 0.85, drag 1.8,
+		// burst speed ×2.2) gravity beat the expansion outright and this ratio was
+		// ~0: every spark was already below the break point.
+		expect(peony.up).toBeGreaterThan(0.03);
+		expect(peony.up / peony.down).toBeGreaterThan(0.35);
+	});
+
+	it("keeps a ring roughly as wide as it is deep", () => {
+		const ring = shellShape("ring");
+		// In visual units the ring's horizontal reach is its radius; gravity only
+		// adds to the downward side, so the two stay the same order.
+		expect(ring.widest).toBeGreaterThan(ring.down * 0.7);
+		expect(ring.widest).toBeGreaterThan(ring.up);
+	});
+});
+
+describe("spark life color", () => {
+	const CYAN = hexToLinearRgb("#42cfff");
+
+	it("reaches the shell hue early instead of staying white", () => {
+		// Mid-life the spark must read as its hue: blue clearly over red.
+		const mid = sparkColorAtLife(CYAN, 0.5, 0.08, 1234);
+		expect(mid.b).toBeGreaterThan(mid.r * 3);
+		// And the detonation white is still there at the very start.
+		const fresh = sparkColorAtLife(CYAN, 0.02, 0.08, 1234);
+		expect(fresh.r).toBeGreaterThan(fresh.b * 0.7);
+		expect(fresh.r).toBeGreaterThan(mid.r);
+	});
+
+	it("has fully handed over to the hue by HUE_ARRIVES_AT", () => {
+		const atArrival = sparkColorAtLife(CYAN, HUE_ARRIVES_AT + 0.01, 0.05, 77);
+		const later = sparkColorAtLife(CYAN, COOL_START - 0.01, 0.05, 77);
+		// Constant hue between arrival and the cool-down: no lingering white mix.
+		expect(atArrival.r).toBeCloseTo(later.r, 6);
+		expect(atArrival.b).toBeCloseTo(later.b, 6);
 	});
 });
 
