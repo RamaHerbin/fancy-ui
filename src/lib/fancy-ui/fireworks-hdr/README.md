@@ -7,8 +7,9 @@ _brighter than SDR white_ on an HDR display. It degrades silently — a clamped
 WebGPU-SDR path, then a WebGL2 fallback (display-p3 or plain sRGB), then nothing
 at all — so the effect stays safe on everything else.
 
-The simulation (rockets, peony/willow/ring/glyph shells, sparks, embers, smoke,
-seekers) is fully deterministic given a seed, and pointer- or code-driven. The
+The simulation (rockets, peony/willow/ring shells, heart/star/custom pattern
+shells, glyph shells, sparks, embers, smoke, seekers) is fully deterministic
+given a seed, and pointer- or code-driven. The
 intro "word" burned by the host app (glyph shells spelling out letters) is just
 the generic `glyph` shell fed explicit target points — the component itself
 ships no copy.
@@ -44,19 +45,20 @@ handle.setExposure(2.6);
 
 ## Props
 
-| Prop                   | Type                                 | Default                                     | Description                                                                                                                                 |
-| ---------------------- | ------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `palette`              | `string[]` (hex)                     | `["#ff2fd6","#a142ff","#3d5bff","#42cfff"]` | Brand hues. Order is irrelevant — parsed and sorted cool→warm (by oklab hue angle) for the shell sweep.                                     |
-| `hdr`                  | `boolean`                            | `true`                                      | Opt into the GPU engine (WebGPU HDR first, then a WebGL2 fallback). When `false`, no engine boots at all.                                   |
-| `exposure`             | `number`                             | `2.2`                                       | Display exposure multiplier, clamped to `[1,4]`.                                                                                            |
-| `ambient`              | `boolean`                            | `true`                                      | Run the ambient auto-scheduler (Poisson-timed background shells).                                                                           |
-| `ambientIntensity`     | `number`                             | `0.35`                                      | Ambient energy `[0,1]` — scales shell size.                                                                                                 |
-| `interactive`          | `boolean`                            | `true`                                      | Launch a shell toward the pointer on window `pointerdown`.                                                                                  |
-| `quality`              | `"auto" \| "high" \| "mid" \| "low"` | `"auto"`                                    | Particle budget; `auto` picks from the render level + DPR.                                                                                  |
-| `respectReducedMotion` | `boolean`                            | `true`                                      | Force ambient off under `prefers-reduced-motion` (explicit launches still work).                                                            |
-| `class`                | `string`                             | `""`                                        | Extra classes on the canvas wrapper.                                                                                                        |
-| `onReady`              | `(handle: FireworksHandle) => void`  | —                                           | Fired when the engine is live, and again with a fresh handle after a recovered GPU context loss. Never fired when no GPU renderer comes up. |
-| `onLost`               | `() => void`                         | —                                           | Fired once when a GPU context loss could not be recovered; the component has torn itself down and any handle it gave out is inert.          |
+| Prop                   | Type                                 | Default                                     | Description                                                                                                                                                            |
+| ---------------------- | ------------------------------------ | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `palette`              | `string[]` (hex)                     | `["#ff2fd6","#a142ff","#3d5bff","#42cfff"]` | Brand hues. Order is irrelevant — parsed and sorted cool→warm (by oklab hue angle) for the shell sweep.                                                                |
+| `hdr`                  | `boolean`                            | `true`                                      | Opt into the GPU engine (WebGPU HDR first, then a WebGL2 fallback). When `false`, no engine boots at all.                                                              |
+| `exposure`             | `number`                             | `2.2`                                       | Display exposure multiplier, clamped to `[1,4]`.                                                                                                                       |
+| `ambient`              | `boolean`                            | `true`                                      | Run the ambient auto-scheduler (Poisson-timed background shells).                                                                                                      |
+| `ambientIntensity`     | `number`                             | `0.35`                                      | Ambient energy `[0,1]` — scales shell size.                                                                                                                            |
+| `interactive`          | `boolean`                            | `true`                                      | Launch a shell toward the pointer on window `pointerdown`.                                                                                                             |
+| `quality`              | `"auto" \| "high" \| "mid" \| "low"` | `"auto"`                                    | Particle budget; `auto` picks from the render level + DPR.                                                                                                             |
+| `ambientShells`        | `ShellKind[]`                        | —                                           | Restrict the ambient scheduler to these shells, picked uniformly (default: weighted peony/willow/ring). `"glyph"` and `"shape"` are ignored — they need caller points. |
+| `respectReducedMotion` | `boolean`                            | `true`                                      | Force ambient off under `prefers-reduced-motion` (explicit launches still work).                                                                                       |
+| `class`                | `string`                             | `""`                                        | Extra classes on the canvas wrapper.                                                                                                                                   |
+| `onReady`              | `(handle: FireworksHandle) => void`  | —                                           | Fired when the engine is live, and again with a fresh handle after a recovered GPU context loss. Never fired when no GPU renderer comes up.                            |
+| `onLost`               | `() => void`                         | —                                           | Fired once when a GPU context loss could not be recovered; the component has torn itself down and any handle it gave out is inert.                                     |
 
 The canvas wrapper is `pointer-events-none` and `aria-hidden` — it is a
 background. `interactive` listens at the window level, so clicks pass through to
@@ -83,11 +85,60 @@ alone being enough.
 
 ## Types
 
-- `LaunchOptions` — `{ apex, from?, shell?, color?, glyphPoints?, scale?, flightMs?, intensity?, depth?, seed?, releaseAtMs? }`. `glyphPoints` is **required** when `shell === "glyph"`. `flightMs` (when given) wins over the apex height for timing — apex only sets the horizontal target; omit it and the flight time is solved from gravity. `depth ∈ [0,1]` pushes a shell "back" (dimmer, smaller, desaturated).
+- `LaunchOptions` — `{ apex, from?, shell?, color?, glyphPoints?, shapePoints?, scale?, flightMs?, intensity?, depth?, seed?, releaseAtMs? }`. `glyphPoints` is **required** when `shell === "glyph"`, `shapePoints` when `shell === "shape"`. `flightMs` (when given) wins over the apex height for timing — apex only sets the horizontal target; omit it and the flight time is solved from gravity. `depth ∈ [0,1]` pushes a shell "back" (dimmer, smaller, desaturated).
 - `LaunchResult` — `{ flightMs, breakMs }` where `breakMs = flightMs + fuse-hang` (when the shell detonates).
-- `ShellKind` — `"peony" | "willow" | "ring" | "glyph"`.
+- `ShellKind` — `"peony" | "willow" | "ring" | "heart" | "star" | "shape" | "glyph"`.
 - `QualityTier` — `"high" | "mid" | "low"`.
 - `FireworksRenderLevel` — `"webgpu-hdr" | "webgpu-sdr" | "webgl-p3" | "webgl-sdr" | "none"`.
+
+## Pattern shells
+
+`heart` and `star` break into a figure instead of a sphere, and `shape` draws
+any closed outline you hand it:
+
+```js
+handle.launch({ apex: { x: 0.5, y: 0.3 }, shell: "heart" });
+handle.launch({ apex: { x: 0.5, y: 0.3 }, shell: "star" });
+
+// Any closed figure: y-UP points around the origin, scale is free — the outline
+// is normalized to the unit circle and then drawn at the shell's radius.
+handle.launch({
+	apex: { x: 0.5, y: 0.3 },
+	shell: "shape",
+	shapePoints: [
+		{ x: 0.1, y: 1 },
+		{ x: -0.55, y: 0.05 },
+		{ x: -0.1, y: 0.05 },
+		{ x: -0.3, y: -1 },
+		{ x: 0.5, y: 0.1 },
+		{ x: 0.05, y: 0.1 },
+	],
+});
+```
+
+How it works: the burst is **cut from the outline** rather than from a sphere.
+Each spark leaves the break point in the direction of its outline sample, with a
+speed proportional to that sample's distance from the centre — under linear drag
+every spark coasts `v0 / drag`, so the figure redraws itself in the sky at the
+shell's radius and then droops. Points are walked along the outline's edges, so
+a six-point polygon draws as well as a sampled curve.
+
+Pattern shells are marked `crisp`: they drop the ±12% break asymmetry to ±3%,
+carry no stragglers, and keep embers at 5% — all three exist to make a peony
+look natural, and all three read as a _broken figure_ on a heart. Radial jitter
+(±6%) stays, because a mathematically perfect outline looks printed.
+
+A `shape` shell launched without `shapePoints` falls back to a plain sphere
+burst rather than vanishing.
+
+The ambient scheduler can fire them too:
+
+```svelte
+<FireworksHdr ambientShells={["peony", "heart", "star"]} />
+```
+
+`glyph` and `shape` are ignored in that list — they need points the scheduler
+has no way to invent.
 
 ## Render levels
 

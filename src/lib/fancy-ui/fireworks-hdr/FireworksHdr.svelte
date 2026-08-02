@@ -25,6 +25,13 @@
 		interactive?: boolean;
 		/** Quality tier, or "auto" to pick from the render level + DPR. */
 		quality?: "auto" | "high" | "mid" | "low";
+		/**
+		 * Which shells the ambient scheduler is allowed to fire, picked uniformly.
+		 * Defaults to the weighted peony/willow/ring mix. Pattern shells ("heart",
+		 * "star") are valid here; "glyph" and "shape" are not — they need points
+		 * the scheduler has no way to invent, so they are ignored if listed.
+		 */
+		ambientShells?: ShellKind[];
 		/** Force ambient off under prefers-reduced-motion (launches still work). */
 		respectReducedMotion?: boolean;
 		/** Extra classes on the canvas wrapper. */
@@ -89,6 +96,7 @@
 		ambientIntensity = 0.35,
 		interactive = true,
 		quality = "auto",
+		ambientShells,
 		respectReducedMotion = true,
 		class: className = "",
 		onReady,
@@ -214,7 +222,13 @@
 			return (canvas.clientWidth || 1) / (canvas.clientHeight || 1);
 		}
 
+		// Shells the scheduler can fire unaided — "glyph" and "shape" need caller
+		// points, so they are dropped from any list rather than breaking blank.
+		const SELF_DRAWING: ShellKind[] = ["peony", "willow", "ring", "heart", "star"];
+		const ambientMix = (ambientShells ?? []).filter((k) => SELF_DRAWING.includes(k));
+
 		function pickShell(): ShellKind {
+			if (ambientMix.length) return ambientMix[Math.floor(Math.random() * ambientMix.length)];
 			const r = Math.random();
 			if (r < 0.62) return "peony";
 			if (r < 0.82) return "willow";

@@ -331,6 +331,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description:
 				"Ambient shells run on their own; tap the sky or use the handle to launch one. Brightest on an HDR display in a WebGPU browser, and safe (soft-knee SDR) everywhere else.",
 		},
+		{
+			name: "CustomShapes",
+			title: "Pattern shells",
+			description:
+				"Shells that break into a figure: the built-in heart and star, or any closed outline you pass as points. The burst is cut from the figure, so it draws itself in the sky and then droops.",
+		},
 	],
 	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"liquid-glass": [
