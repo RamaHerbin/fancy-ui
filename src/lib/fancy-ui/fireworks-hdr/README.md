@@ -204,13 +204,16 @@ HDR; SDR pins exposure to 1.0 with a soft knee.
 - Family (ping-pong index order): cyan `#42cfff` (196°), blue `#3d5bff` (231°),
   violet `#a142ff` (271°), magenta `#ff2fd6` (312°). Electric blue `#3d5bff` is
   the signature hue.
-- **White-hot life ramp** (life fraction `L`): `L 0–0.06` pure white (magnesium
-  bias `#f4f8ff`); `0.06–0.18` crossfade white→hue in oklab (never grey);
-  `0.18–0.75` full hue; `0.75–1.0` cool then dim to warm-white `#ffcf9c`.
+- **White-hot life ramp** (life fraction `L`): white hold to `L 0.04–0.11`
+  (magnesium bias `#f4f8ff`, per-spark), crossfade white→hue in oklab (never
+  grey) completed by `L 0.34`, full hue to `0.72`, then cool and dim to
+  warm-white `#ffcf9c`. The magnesium reads as the _detonation_, so handing over
+  late leaves the shell white for most of the time anyone is looking at it.
 - **Shell assignment**: 85% single-hue via a ping-pong sweep
   cyan→blue→violet→magenta→violet→blue→cyan; 12% adjacent-duo only
-  (`cyan+blue`, `blue+violet`, `violet+magenta`); 3% silver crackle. Never
-  rainbow, never cyan+magenta.
+  (`cyan+blue`, `blue+violet`, `violet+magenta`). Never rainbow, never
+  cyan+magenta. 6% of a shell's sparks crackle — an on/off chatter at 24 Hz
+  (`flickerNoise > 0.5 ? ×1.9 : ×0.25`) instead of a smooth fade.
 - Intro glyph hues: **H = cyan, D = blue, R = violet, ? = magenta**.
 - Hue jitter ±7° per shell, ±3° per spark.
 - Embers are palette-tinted (dimmed, desaturated parent hue), cooling to
@@ -221,9 +224,9 @@ HDR; SDR pins exposure to 1.0 with a soft knee.
 
 ### Brightness ladder (pre-exposure)
 
-Intro flash **6.0** · ambient flash **3.8** · fresh spark **2.2** · steady
+Intro flash **3.4** · ambient flash **2.1** · fresh spark **2.2** · steady
 **0.9** · terminal **0.15** · hue-hot **2.5 → 1.2** · ascent head **2.8** / tail
-**0.6** · burst streak **0.5** · ember mean **0.35** (flicker ×0.6–2.0 @
+**0.45** · burst streak **0.5** · ember mean **0.35** (flicker ×0.6–2.0 @
 8–14 Hz irregular) · smoke **0.05–0.12** · glyph hold **1.3** · glyph release
 **2.6** · haze ceiling behind the card **≤ 0.18** (hard).
 
@@ -306,14 +309,23 @@ pos.y += vel.y·dt`. Drag: `vel /= (1 + drag·dragScale·dt)`. Death gate:
 
 ### Per-type behavior
 
-| Type   | gravScale | drag (1/s)            | ttl (s)           | size (norm-h) | windScale |
-| ------ | --------- | --------------------- | ----------------- | ------------- | --------- |
-| rocket | 1.0       | 0.6                   | flight + hang     | 0.004 head    | 0.05      |
-| spark  | 0.85      | 1.8                   | 0.9–1.6           | 0.0025–0.004  | 0.30      |
-| ember  | 0.35      | 2.4 (terminal ~0.525) | 1.6–2.8           | 0.002–0.003   | 0.70      |
-| smoke  | −0.05 → 0 | 3.0                   | 1.5–3.0           | 0.010 → 0.050 | 1.0       |
-| flash  | 0         | 0                     | 0.06–0.12         | 0.08–0.16     | 0         |
-| seeker | 0 → 1.0   | 1.2 (pop)             | phased (0.9 rel.) | 0.003–0.005   | 0.4       |
+| Type   | gravScale | drag (1/s)           | ttl (s)           | size (norm-h) | windScale |
+| ------ | --------- | -------------------- | ----------------- | ------------- | --------- |
+| rocket | 1.0       | 0.6                  | flight + hang     | 0.004 head    | 0.05      |
+| spark  | 0.15      | 2.2 (terminal ~0.25) | 0.75–1.3          | 0.0025–0.004  | 0.30      |
+| ember  | 0.30      | 2.4 (terminal ~0.45) | 1.4–2.4           | 0.002–0.003   | 0.70      |
+| smoke  | −0.05 → 0 | 3.0                  | 1.5–3.0           | 0.010 → 0.050 | 1.0       |
+| flash  | 0         | 0                    | 0.05–0.09         | 0.025–0.05    | 0         |
+| seeker | 0 → 1.0   | 1.2 (pop)            | phased (0.9 rel.) | 0.003–0.005   | 0.4       |
+
+Debris gravity is a **fraction** of the rocket's, and that is a look decision,
+not a physical one: a spark's terminal velocity is `gravScale·G / drag`, and at
+full gravity that is several times the burst's own expansion speed — the shell
+never opens into a sphere, it rains straight down as a fountain. Ember gravity
+stays above spark gravity so a willow still droops harder than a peony. Each
+non-straggler spark also draws its own `dragScale ∈ [0.85, 1.30]`: identical
+drag makes every spark fall at exactly the same speed, which combs the debris
+into a parallel curtain.
 
 Session wind is seeded once: `wx ∈ ±[0.02, 0.05]`, `wy ∈ ±[0.01, 0.02]` visual
 accel, applied as `a += w · windScale[type]`.
@@ -363,8 +375,12 @@ Fuse hang 80–140 ms seeded (the intro "?" uses
 140); `breakMs = flightMs + hangMs`. At break: enqueue the shell at the current
 position plus one flash, then kill the rocket. Trail uses a fractional
 accumulator (`emit += trailRate·dt; while (emit ≥ 1) { spawn; emit-- }`) — trail
-sparks are ttl 0.3–0.5, size 0.002, ascent-tail brightness, ~zero velocity;
-the head is ascent-head brightness. The trail hue is the comet head mixed 25%
+sparks are ttl 0.22–0.45, size 0.0018, ascent-tail brightness, and scatter
+laterally (`±0.035` x, `±0.02` y) — a rigidly co-linear trail reads as a drawn
+wire rather than a comet shedding sparks. The head is ascent-head brightness,
+and the rocket's **position** (never its velocity) carries a 11 Hz lateral
+wobble of `0.045`/s so the climb is not a ruler-straight column; leaving the
+velocity alone keeps the solved apex intact. The trail hue is the comet head mixed 25%
 toward **that launch's** first shell hue (stored on the launch spec), so a
 branded palette never gets the built-in cyan on its ascent.
 
@@ -392,7 +408,18 @@ branded palette never gets the built-in cyan on its ascent.
 4. `writeInstances`.
 
 **Instance layout (8 floats)**: `[posX, posY, size, r·bright, g·bright, b·bright,
-velX·STRETCH, velY·STRETCH]` with `STRETCH ≈ 0.015 s`. The renderer draws a
-velocity-stretched quad (major axis from the velocity terms, minor from size),
-two-lobe gaussian (hot core + soft halo), additive. Swap-remove keeps the pool
-contiguous — no freelist; allocate at `count++`, reject at capacity.
+velX·STRETCH, velY·STRETCH]` with `STRETCH = 0.010 s`. The renderer draws a
+velocity-stretched quad (major axis from the velocity terms, capped at 2.5× the
+minor), two-lobe gaussian (hot core + soft halo), additive. Swap-remove keeps
+the pool contiguous — no freelist; allocate at `count++`, reject at capacity.
+
+Two things about that quad are load-bearing and identical in both renderers:
+
+- **`QUAD_PAD = 1.35`.** The quad is oversized and the gaussian is windowed to
+  exactly zero at its edge (`smoothstep(PAD, 0.6·PAD, r)`). Unwindowed, the halo
+  still carries ~7% of its peak where the geometry stops, and additive blending
+  renders that step as a **hard-edged square** around anything bright — a
+  detonation flash reads as a lit box, not a glow.
+- **Stretch is deliberately short.** The accumulation buffer already smears a
+  moving particle into a line; a long per-instance stretch on top of it turns
+  every spark into a needle.
