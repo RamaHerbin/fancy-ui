@@ -25,6 +25,7 @@
 @import "./skins/brutal/content.css";
 @import "./skins/brutal/preview.css";
 
+@import "./skins/retro-os/skin-base.css";
 @import "./skins/retro-os/shared.css";
 @import "./skins/retro-os/header.css";
 @import "./skins/retro-os/sidebar.css";

@@ -1,14 +1,18 @@
 /**
- * Docs Skin Bridge
+ * Docs Skin Bridge — shared semantic token map.
  *
  * Maps the app's semantic design tokens (--background, --foreground, --card...)
- * onto the Cameleon Brutal and Retro OS skins' --skin-* variables, so switching
- * the docs skin re-skins the token-driven docs chrome (sidebar, header, cards,
- * prose) without touching a single component's markup.
+ * onto the Cameleon skins' --skin-* variables, so switching the docs skin
+ * re-skins the token-driven docs chrome without touching component markup.
  *
  * Every rule here is scoped under .docs-skin so the /skins page (which sets
  * data-skin directly via <FancyProvider> without the .docs-skin class) is
  * unaffected — this bridge only applies to the documentation site shell.
+ *
+ * Only rules that hold for BOTH skins live here; anything one skin tunes
+ * independently lives in that skin's region files (skins/brutal/*,
+ * skins/retro-os/*), which import after this file and therefore win the
+ * cascade at equal specificity.
  */
 
 /* ---- Semantic token map --------------------------------------------------- */
@@ -47,121 +51,14 @@
 	--code-cmd: var(--skin-green);
 }
 
-/* ---- Brutal-specific tokens ------------------------------------------------ */
-.docs-skin[data-skin="brutal"] {
-	--muted: #eae3d2;
-	--muted-foreground: rgba(20, 20, 20, 0.62);
-	--code-fg-muted: rgba(20, 20, 20, 0.55);
-	--code-chip-bg: rgba(20, 20, 20, 0.08);
-	--code-str: #a16207;
-}
-
-/* ---- Retro OS-specific tokens ---------------------------------------------- */
-.docs-skin[data-skin="retro-os"] {
-	--muted: #e5dcc2;
-	--muted-foreground: var(--skin-muted);
-	/* retro-os hovers use the design tint, not the gold accent */
-	--accent: #ecd77f;
-	--accent-foreground: var(--skin-ink);
-	--sidebar-accent: #ecd77f;
-	--code-fg-muted: rgba(25, 19, 8, 0.55);
-	--code-chip-bg: rgba(25, 19, 8, 0.08);
-	/* kw stays blue: the purple token equals the str dark-yellow hex */
-	--code-kw: var(--skin-blue);
-	--code-str: #7d6414;
-}
-
-/* ---- Hard shadows ----------------------------------------------------------- */
-.docs-skin[data-skin="brutal"]
-	:is(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
-	box-shadow: 4px 4px 0 var(--skin-line);
-}
-.docs-skin[data-skin="retro-os"]
-	:is(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
-	box-shadow: 3px 3px 0 var(--skin-line);
-}
-
-/* ---- Border weight ----------------------------------------------------------- */
-.docs-skin[data-skin="brutal"] .border {
-	border-width: 1.5px;
-}
-.docs-skin[data-skin="brutal"] .border-b {
-	border-bottom-width: 1.5px;
-}
-.docs-skin[data-skin="brutal"] .border-t {
-	border-top-width: 1.5px;
-}
-.docs-skin[data-skin="brutal"] .border-e {
-	border-inline-end-width: 1.5px;
-}
-.docs-skin[data-skin="brutal"] .border-s {
-	border-inline-start-width: 1.5px;
-}
-.docs-skin[data-skin="retro-os"] .border {
-	border-width: 2px;
-}
-.docs-skin[data-skin="retro-os"] .border-b {
-	border-bottom-width: 2px;
-}
-.docs-skin[data-skin="retro-os"] .border-t {
-	border-top-width: 2px;
-}
-.docs-skin[data-skin="retro-os"] .border-e {
-	border-inline-end-width: 2px;
-}
-.docs-skin[data-skin="retro-os"] .border-s {
-	border-inline-start-width: 2px;
-}
-
-/* ---- Type ----------------------------------------------------------- */
-.docs-skin[data-skin="brutal"] h1,
-.docs-skin[data-skin="retro-os"] h1 {
-	font-weight: 900;
-	letter-spacing: -0.04em;
-}
-.docs-skin[data-skin="brutal"] h2,
-.docs-skin[data-skin="retro-os"] h2 {
-	font-weight: 850;
-	letter-spacing: -0.02em;
-}
-.docs-skin[data-skin="brutal"] :is(h3, h4),
-.docs-skin[data-skin="retro-os"] :is(h3, h4) {
-	font-weight: 800;
-	letter-spacing: -0.01em;
-}
-.docs-skin[data-skin="brutal"] header nav,
-.docs-skin[data-skin="brutal"] kbd,
-.docs-skin[data-skin="retro-os"] header nav,
-.docs-skin[data-skin="retro-os"] kbd {
-	font-family: var(--skin-font-mono);
-}
-
-/* ---- Dark-literal patches ----------------------------------------------------- */
-/* Utilities like `dark:text-emerald-400` were authored for the app's dark theme;
-   Brutal and Retro OS are light skins, so re-point them at the skin's accent colors. */
-.docs-skin[data-skin="brutal"] .dark\:text-emerald-400,
-.docs-skin[data-skin="retro-os"] .dark\:text-emerald-400 {
-	color: var(--skin-green);
-}
-.docs-skin[data-skin="brutal"] .dark\:text-purple-400,
-.docs-skin[data-skin="retro-os"] .dark\:text-purple-400 {
-	color: var(--skin-purple);
-}
-
-/* ---- Shiki palette flip ----------------------------------------------------- */
+/* ---- Shiki base ------------------------------------------------------------- */
 /* CodeBlock renders shiki with dual (--shiki-light / --shiki-dark) CSS vars and
-   defaultColor: false, so the picked color is entirely up to us here. The docs
-   site's non-brutal skin runs on a dark code surface, so it defaults to dark; the
-   Brutal skin's code surface is light, so it flips to the light shiki palette. */
+   defaultColor: false, so the picked color is entirely up to us. The standard
+   skin runs on a dark code surface, so the base is dark; each skin's own files
+   flip it when their code surface is light. */
 .docs-skin .shiki,
 .docs-skin .shiki span {
 	color: var(--shiki-dark);
-}
-.docs-skin[data-skin="brutal"] .shiki,
-.docs-skin[data-skin="brutal"] .shiki span,
-.docs-skin[data-skin="retro-os"] .shiki,
-.docs-skin[data-skin="retro-os"] .shiki span {
-	color: var(--shiki-light);
 }
 
 /* ---- Standard skin ----------------------------------------------------- */

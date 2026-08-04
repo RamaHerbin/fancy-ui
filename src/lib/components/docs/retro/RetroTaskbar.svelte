@@ -19,7 +19,7 @@
 
 <div class="retro-taskbar" role="presentation">
 	<button type="button" class="retro-taskbar-start retro-press">
-		<span class="retro-pixel-logo" aria-hidden="true">
+		<span class="retro-pixel-logo retro-pixel-logo-sm" aria-hidden="true">
 			<span></span><span></span><span></span><span></span>
 		</span>
 		{t("retro.start")}

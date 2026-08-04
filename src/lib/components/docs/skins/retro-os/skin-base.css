@@ -1,0 +1,73 @@
+/* Retro OS docs skin — skin-level base: tokens, shadow/border/type grammar.
+   Scope every rule under .docs-skin[data-skin="retro-os"]. */
+
+/* ---- Retro OS-specific tokens ---------------------------------------------- */
+.docs-skin[data-skin="retro-os"] {
+	--muted: #e5dcc2;
+	--muted-foreground: var(--skin-muted);
+	/* retro-os hovers use the design tint, not the gold accent */
+	--accent: #ecd77f;
+	--accent-foreground: var(--skin-ink);
+	--sidebar-accent: #ecd77f;
+	--code-fg-muted: rgba(25, 19, 8, 0.55);
+	--code-chip-bg: rgba(25, 19, 8, 0.08);
+	/* kw stays blue: the purple token equals the str dark-yellow hex */
+	--code-kw: var(--skin-blue);
+	--code-str: #7d6414;
+}
+
+/* ---- Hard shadows ----------------------------------------------------------- */
+.docs-skin[data-skin="retro-os"]
+	:is(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+
+/* ---- Border weight ----------------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] .border {
+	border-width: 2px;
+}
+.docs-skin[data-skin="retro-os"] .border-b {
+	border-bottom-width: 2px;
+}
+.docs-skin[data-skin="retro-os"] .border-t {
+	border-top-width: 2px;
+}
+.docs-skin[data-skin="retro-os"] .border-e {
+	border-inline-end-width: 2px;
+}
+.docs-skin[data-skin="retro-os"] .border-s {
+	border-inline-start-width: 2px;
+}
+
+/* ---- Type ----------------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] h1 {
+	font-weight: 900;
+	letter-spacing: -0.04em;
+}
+.docs-skin[data-skin="retro-os"] h2 {
+	font-weight: 850;
+	letter-spacing: -0.02em;
+}
+.docs-skin[data-skin="retro-os"] :is(h3, h4) {
+	font-weight: 800;
+	letter-spacing: -0.01em;
+}
+.docs-skin[data-skin="retro-os"] header nav,
+.docs-skin[data-skin="retro-os"] kbd {
+	font-family: var(--skin-font-mono);
+}
+
+/* ---- Dark-literal patches ----------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] .dark\:text-emerald-400 {
+	color: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .dark\:text-purple-400 {
+	color: var(--skin-purple);
+}
+
+/* ---- Shiki palette flip ----------------------------------------------------- */
+/* Retro OS's code surface is light today, so it flips to the light palette. */
+.docs-skin[data-skin="retro-os"] .shiki,
+.docs-skin[data-skin="retro-os"] .shiki span {
+	color: var(--shiki-light);
+}

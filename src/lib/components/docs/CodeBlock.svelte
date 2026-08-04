@@ -60,18 +60,18 @@
 	}
 </script>
 
-<div class="group relative">
-	<div class="absolute top-2 right-2 z-10 flex items-center gap-2">
+<div class="docs-code group relative">
+	<div class="docs-code-tools absolute top-2 right-2 z-10 flex items-center gap-2">
 		{#if lang}
 			<span
-				class="rounded bg-(--code-chip-bg) px-2 py-0.5 text-[10px] font-medium text-(--code-fg-muted) uppercase"
+				class="retro-code-lang rounded bg-(--code-chip-bg) px-2 py-0.5 text-[10px] font-medium text-(--code-fg-muted) uppercase"
 			>
 				{lang}
 			</span>
 		{/if}
 		<button
 			onclick={copyCode}
-			class="retro-copy rounded-md border border-(--code-border) bg-(--code-chip-bg) px-2 py-1 text-xs text-(--code-fg-muted) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--code-fg)"
+			class="retro-copy docs-copy rounded-md border border-(--code-border) bg-(--code-chip-bg) px-2 py-1 text-xs text-(--code-fg-muted) opacity-0 transition-opacity group-hover:opacity-100 hover:text-(--code-fg)"
 		>
 			{copied ? t("action.copied") : t("action.copy")}
 		</button>
@@ -79,7 +79,7 @@
 	{#if highlighted}
 		<div
 			dir="ltr"
-			class="overflow-x-auto rounded-lg border border-(--code-border) bg-(--code-bg) text-sm [&_code]:font-mono [&_pre]:p-4"
+			class="docs-code-surface overflow-x-auto rounded-lg border border-(--code-border) bg-(--code-bg) text-sm [&_code]:font-mono [&_pre]:p-4"
 			class:line-numbers={showLineNumbers}
 		>
 			{@html highlighted}
@@ -87,7 +87,7 @@
 	{:else}
 		<pre
 			dir="ltr"
-			class="overflow-x-auto rounded-lg border border-(--code-border) bg-(--code-bg) p-4 font-mono text-sm text-(--code-fg)"><code
+			class="docs-code-surface overflow-x-auto rounded-lg border border-(--code-border) bg-(--code-bg) p-4 font-mono text-sm text-(--code-fg)"><code
 				>{code.trim()}</code
 			></pre>
 	{/if}

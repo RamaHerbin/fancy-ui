@@ -1,1 +1,69 @@
-/* Brutal docs skin — page region. Scope every rule under .docs-skin[data-skin="brutal"]. */
+/* Brutal docs skin — page region: skin tokens, shadow/border/type grammar.
+   Scope every rule under .docs-skin[data-skin="brutal"]. */
+
+/* ---- Brutal-specific tokens ------------------------------------------------ */
+.docs-skin[data-skin="brutal"] {
+	--muted: #eae3d2;
+	--muted-foreground: rgba(20, 20, 20, 0.62);
+	--code-fg-muted: rgba(20, 20, 20, 0.55);
+	--code-chip-bg: rgba(20, 20, 20, 0.08);
+	--code-str: #a16207;
+}
+
+/* ---- Hard shadows ----------------------------------------------------------- */
+.docs-skin[data-skin="brutal"]
+	:is(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+
+/* ---- Border weight ----------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] .border {
+	border-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-b {
+	border-bottom-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-t {
+	border-top-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-e {
+	border-inline-end-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-s {
+	border-inline-start-width: 1.5px;
+}
+
+/* ---- Type ----------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] h1 {
+	font-weight: 900;
+	letter-spacing: -0.04em;
+}
+.docs-skin[data-skin="brutal"] h2 {
+	font-weight: 850;
+	letter-spacing: -0.02em;
+}
+.docs-skin[data-skin="brutal"] :is(h3, h4) {
+	font-weight: 800;
+	letter-spacing: -0.01em;
+}
+.docs-skin[data-skin="brutal"] header nav,
+.docs-skin[data-skin="brutal"] kbd {
+	font-family: var(--skin-font-mono);
+}
+
+/* ---- Dark-literal patches ----------------------------------------------------- */
+/* Utilities like `dark:text-emerald-400` were authored for the app's dark theme;
+   Brutal is a light skin, so re-point them at the skin's accent colors. */
+.docs-skin[data-skin="brutal"] .dark\:text-emerald-400 {
+	color: var(--skin-green);
+}
+.docs-skin[data-skin="brutal"] .dark\:text-purple-400 {
+	color: var(--skin-purple);
+}
+
+/* ---- Shiki palette flip ----------------------------------------------------- */
+/* Brutal's code surface is light, so it flips to the light shiki palette. */
+.docs-skin[data-skin="brutal"] .shiki,
+.docs-skin[data-skin="brutal"] .shiki span {
+	color: var(--shiki-light);
+}

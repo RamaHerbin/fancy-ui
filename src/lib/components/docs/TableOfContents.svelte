@@ -66,15 +66,15 @@
 
 {#if headings.length > 0}
 	<nav class="hidden xl:block">
-		<div class="sticky top-20" class:retro-toc={isRetro}>
+		<div class="docs-toc sticky top-20" class:retro-toc={isRetro}>
 			{#if isRetro}
 				<div class="retro-toc-title">{t("toc.onThisPage")}</div>
 			{:else}
-				<h4 class="text-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
+				<h4 class="docs-toc-title text-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
 					{t("toc.onThisPage")}
 				</h4>
 			{/if}
-			<ul class="space-y-1" class:retro-toc-list={isRetro}>
+			<ul class="docs-toc-list space-y-1" class:retro-toc-list={isRetro}>
 				{#each headings as heading}
 					<li style:padding-left="{(heading.level - 2) * 12}px">
 						<a
