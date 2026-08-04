@@ -11,7 +11,7 @@ pnpm install
 pnpm dev
 ```
 
-The dev server runs at `http://localhost:5173`. Component demos are at `/demo/<slug>`.
+The dev server runs at `http://localhost:5173`. Component demos are at `/docs/components/<slug>`.
 
 ## Adding a component
 
@@ -48,6 +48,19 @@ pnpm check         # svelte-check type checking
 ```
 
 `pnpm test` and `pnpm test:e2e` must pass. `pnpm check` must pass for any files you touched — pre-existing errors in unrelated files are acceptable.
+
+## Docs translations (i18n)
+
+The docs site is localized through a single mechanism: **message catalogs** in `src/lib/i18n/messages/`. `en.ts` is the source of truth; every other `<code>.ts` file translates the exact same keys and is looked up at runtime by `t()` (from `$lib/stores`), which falls back to English per key.
+
+**Adding a UI string:** add the key to `en.ts` first, then add its translation to all other catalogs. Two gates keep the catalogs honest:
+
+- `satisfies Catalog` on every translated catalog makes a missing, extra, or typo'd key a compile error (`pnpm check`).
+- `pnpm check:i18n` verifies locale registry ↔ catalog files ↔ key parity ↔ the RTL map in `src/app.html`, and runs in CI.
+
+**Adding a locale:** add an entry to `src/lib/i18n/locales.ts`, drop a full `src/lib/i18n/messages/<code>.ts` catalog (`export default { … } satisfies Catalog;`), and if the language is RTL, mirror it in the pre-paint `RTL` map in `src/app.html`.
+
+**What stays English:** component names, and the registry descriptions in `src/lib/fancy-ui/registry.ts` (including `categoryLabels`/`categoryDescriptions`) — they are the machine-facing source feeding `/llms.txt` and the Component Copilot. Docs UI must not render them as display text; use the translated `category.*` keys (via `tCategory()`) instead.
 
 ## Storybook
 
@@ -159,10 +172,10 @@ and a complete CHANGELOG exists.
 
 fancy-ui uses a two-branch model:
 
-| Branch | Role |
-|---|---|
-| `develop` | Integration branch — all feature/fix PRs target here |
-| `main` | Release branch — only merged from `develop`, triggers publishing |
+| Branch    | Role                                                             |
+| --------- | ---------------------------------------------------------------- |
+| `develop` | Integration branch — all feature/fix PRs target here             |
+| `main`    | Release branch — only merged from `develop`, triggers publishing |
 
 ### Full cycle
 
@@ -184,11 +197,11 @@ fancy-ui uses a two-branch model:
 
 ### CI pipelines at a glance
 
-| Trigger | Pipeline | Blocking? | What it checks |
-|---|---|---|---|
-| PR → `develop` | CI | ✅ Yes | type-check, tests, changeset present |
-| PR → `main` | CI | ✅ Yes | type-check, tests |
-| Push to `main` | Release | — | builds + publish or opens "Version Packages" PR |
+| Trigger        | Pipeline | Blocking? | What it checks                                  |
+| -------------- | -------- | --------- | ----------------------------------------------- |
+| PR → `develop` | CI       | ✅ Yes    | type-check, tests, changeset present            |
+| PR → `main`    | CI       | ✅ Yes    | type-check, tests                               |
+| Push to `main` | Release  | —         | builds + publish or opens "Version Packages" PR |
 
 ### Secrets required
 

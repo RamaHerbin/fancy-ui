@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
-	import { t, createSkinState } from "$lib/stores";
-	import type { MessageKey } from "$lib/i18n/messages/en.js";
+	// `MessageKey` went with develop's `tCategory`, which now owns category labels.
+	import { t, tCategory, createSkinState } from "$lib/stores";
 
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
@@ -72,11 +72,13 @@
 	<nav class="flex-1 overflow-y-auto px-3 py-4">
 		<!-- Getting Started -->
 		<div class="mb-6">
-			<h3
+			<!-- Not a heading: the sidebar renders before the page <h1>, so a real
+			     heading here would open the document outline above the page title. -->
+			<p
 				class="text-sidebar-foreground/50 mb-1 px-2 text-xs font-semibold tracking-wider uppercase"
 			>
 				{t("nav.gettingStarted")}
-			</h3>
+			</p>
 			<ul>
 				{#each gettingStartedLinks as link}
 					<li>
@@ -119,7 +121,7 @@
 						onclick={() => toggleCategory(category)}
 						class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
 					>
-						{t(`category.${category}` as MessageKey)}
+						{tCategory(category)}
 						<svg
 							class="h-3 w-3 transition-transform {collapsed ? '' : 'rotate-90'}"
 							fill="none"

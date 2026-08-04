@@ -20,7 +20,17 @@ export {
 	createThemeState,
 } from "./theme.svelte.js";
 
-export { setLocale, getLocale, getDir, t, createI18n, applyForRoute } from "./locale.svelte.js";
+export {
+	setLocale,
+	getLocale,
+	getDir,
+	t,
+	tCategory,
+	docTitle,
+	componentDocTitle,
+	createI18n,
+	applyForRoute,
+} from "./locale.svelte.js";
 
 export {
 	// Types

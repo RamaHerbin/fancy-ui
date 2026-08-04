@@ -78,6 +78,37 @@ describe("FluidCursor", () => {
 		});
 	});
 
+	describe("hdr props", () => {
+		it("renders without error with hdr={true} when WebGPU is unavailable", () => {
+			const { container } = render(FluidCursor, { props: { hdr: true } });
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when hdrBoost is out of [1,4] range (clamped internally)", () => {
+			const { container } = render(FluidCursor, { props: { hdr: true, hdrBoost: 100 } });
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("falls back cleanly when WebGPU is present but no adapter is returned", async () => {
+			const requestAdapter = vi.fn(async () => null);
+			// Define `gpu` on the real navigator instead of replacing it, so the
+			// Navigator prototype (userAgent, etc.) stays intact.
+			Object.defineProperty(navigator, "gpu", {
+				value: { requestAdapter },
+				configurable: true,
+			});
+			try {
+				const { container } = render(FluidCursor, { props: { hdr: true } });
+				// Let the async WebGPU attempt resolve and fall back.
+				await new Promise((resolve) => setTimeout(resolve, 0));
+				expect(requestAdapter).toHaveBeenCalled();
+				expect(container.querySelector("canvas")).toBeInTheDocument();
+			} finally {
+				delete (navigator as unknown as Record<string, unknown>).gpu;
+			}
+		});
+	});
+
 	describe("color props", () => {
 		it("renders without error when fluidColor is provided", () => {
 			const { container } = render(FluidCursor, { props: { fluidColor: "#00ffcc" } });
@@ -113,6 +144,27 @@ describe("FluidCursor", () => {
 		it("renders without error when colorIntensity is out of [0,1] range (clamped internally)", () => {
 			const { container } = render(FluidCursor, { props: { colorIntensity: 5 } });
 			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+	});
+
+	describe("onReady handle", () => {
+		// jsdom provides no WebGL context, so this exercises the no-renderer path.
+		it('reports renderLevel "none" when no renderer is available', () => {
+			const onReady = vi.fn();
+			render(FluidCursor, { props: { onReady } });
+			expect(onReady).toHaveBeenCalledTimes(1);
+			expect(onReady.mock.calls[0][0].renderLevel).toBe("none");
+		});
+
+		it("hands over an inert handle that is safe to call", () => {
+			const onReady = vi.fn();
+			render(FluidCursor, { props: { onReady } });
+			const handle = onReady.mock.calls[0][0];
+			expect(() => {
+				handle.moveTo(0.5, 0.5);
+				handle.penUp();
+				handle.burst(0.5, 0.5, 10, 10, { r: 1, g: 0, b: 0 });
+			}).not.toThrow();
 		});
 	});
 });

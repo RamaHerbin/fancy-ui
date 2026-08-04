@@ -78,7 +78,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "AppleCardCarousel",
 		slug: "apple-card-carousel",
 		description:
-			"Horizontal card carousel with spring-animated full-screen expansion, inspired by Apple's App Store UI",
+			"Horizontal card carousel where the focused card expands into a spring-animated full-screen view",
 		category: "cards",
 		status: "done",
 		credits: [
@@ -261,7 +261,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"blur-reveal": {
 		name: "BlurReveal",
 		slug: "blur-reveal",
-		description: "Scroll-triggered blur-to-clear reveal animation with staggered children",
+		description:
+			"Scroll-triggered reveal that unblurs and slides each direct child into place as the container enters the viewport, staggering up to 10 children via CSS nth-child delays and respecting reduced motion",
 		category: "text",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/blur-fade" }],
@@ -300,7 +301,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"border-beam": {
 		name: "BorderBeam",
 		slug: "border-beam",
-		description: "Animated beam effect that travels around borders",
+		description:
+			"Gradient beam that races around a container's border using a CSS offset-path animation, masked so only the border ring is painted, with configurable size, speed, anchor position, and gradient colors",
 		category: "effects",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/border-beam" }],
@@ -423,7 +425,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"image-trail-cursor": {
 		name: "ImageTrailCursor",
 		slug: "image-trail-cursor",
-		description: "Cursor-following image trail with 8 animation variants",
+		description:
+			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 8 selectable variants spanning simple fades, momentum drift, rotation flings, and 3D perspective tilt",
 		category: "effects",
 		status: "done",
 		tags: ["cursor", "animation", "images", "trail", "interactive"],
@@ -672,7 +675,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"ripple-button": {
 		name: "RippleButton",
 		slug: "ripple-button",
-		description: "Button with ripple click effect",
+		description:
+			"Button that spawns an expanding, fading ripple circle centered on the click point, with configurable color and duration",
 		category: "buttons",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/ripple-button" }],
@@ -766,7 +770,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"bg-stars": {
 		name: "StarsBackground",
 		slug: "bg-stars",
-		description: "Animated starfield background with parallax mouse tracking",
+		description:
+			"Three-layer starfield background that scrolls continuously while parallax-shifting in response to cursor movement via spring physics, with stars rendered as box-shadow dots across near, mid, and far depth layers",
 		category: "backgrounds",
 		status: "done",
 		credits: [
@@ -806,11 +811,12 @@ export const registry: Record<string, ComponentMeta> = {
 	dock: {
 		name: "Dock",
 		slug: "dock",
-		description: "macOS-style dock with icon magnification on hover",
+		description:
+			"Icon dock where each item magnifies smoothly as the cursor approaches, sharing pointer position via Svelte context so every DockIcon scales by proximity within a configurable magnification and distance range",
 		category: "navigation",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/dock" }],
-		tags: ["dock", "navigation", "macos", "magnification", "hover"],
+		tags: ["dock", "navigation", "launcher", "magnification", "hover"],
 		props: [
 			{
 				name: "magnification",
@@ -840,10 +846,97 @@ export const registry: Record<string, ComponentMeta> = {
 		slots: [{ name: "children", description: "DockIcon and DockSeparator elements" }],
 	},
 
+	"fireworks-hdr": {
+		name: "FireworksHdr",
+		slug: "fireworks-hdr",
+		description:
+			"GPU fireworks background with a deterministic, DOM-free physics core (rockets, peony/willow/ring/glyph shells, sparks, embers, smoke) rendered by a WebGPU engine into a wide-gamut, extended-tone-mapping canvas so bursts and comet trails burn brighter than SDR white on HDR displays, degrading silently through a WebGL2 fallback and a soft-knee SDR path everywhere else",
+		category: "effects",
+		status: "done",
+		tags: ["hdr", "webgpu", "particles", "fireworks", "background"],
+		props: [
+			{
+				name: "palette",
+				type: "string[]",
+				default: '["#ff2fd6","#a142ff","#3d5bff","#42cfff"]',
+				description: "Brand hues (hex); order-independent, sorted cool→warm for the shell sweep",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"Opt into the GPU engine (WebGPU HDR first, then a WebGL2 fallback); when false, no engine boots",
+			},
+			{
+				name: "exposure",
+				type: "number",
+				default: "2.2",
+				description: "Display exposure multiplier, clamped to [1, 4]",
+			},
+			{
+				name: "ambient",
+				type: "boolean",
+				default: "true",
+				description: "Run the ambient auto-scheduler (Poisson-timed background shells)",
+			},
+			{
+				name: "ambientIntensity",
+				type: "number",
+				default: "0.35",
+				description: "Ambient energy [0,1] — scales shell size",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "Launch a shell toward the pointer on pointerdown",
+			},
+			{
+				name: "quality",
+				type: '"auto" | "high" | "mid" | "low"',
+				default: '"auto"',
+				description: "Particle budget; auto picks from the render level and device pixel ratio",
+			},
+			{
+				name: "respectReducedMotion",
+				type: "boolean",
+				default: "true",
+				description:
+					"Force ambient off under prefers-reduced-motion (explicit launches still work)",
+			},
+			{
+				name: "class",
+				type: "string",
+				default: '""',
+				description: "Extra classes on the canvas wrapper",
+			},
+			{
+				name: "ambientShells",
+				type: "ShellKind[]",
+				description:
+					"Restrict the ambient scheduler to these shells, picked uniformly — including the pattern shells 'heart' and 'star'; defaults to a weighted peony/willow/ring mix ('glyph' and 'shape' are ignored, they need caller-supplied points)",
+			},
+			{
+				name: "onReady",
+				type: "(handle: FireworksHandle) => void",
+				description:
+					"Fired when the engine is live with an imperative handle, and again with a fresh handle after a recovered GPU context loss; never fired when no GPU renderer comes up",
+			},
+			{
+				name: "onLost",
+				type: "() => void",
+				description:
+					"Fired once when a GPU context loss could not be recovered; the component has torn itself down and any handle it gave out is inert",
+			},
+		],
+	},
+
 	"fluid-cursor": {
 		name: "FluidCursor",
 		slug: "fluid-cursor",
-		description: "WebGL fluid simulation that follows cursor movement",
+		description:
+			"Full Navier-Stokes fluid simulation that swirls color in response to cursor and touch movement, running on WebGL2 with a WebGL1 fallback and an optional WebGPU HDR path for wide-gamut, brighter-than-white glow",
 		category: "effects",
 		status: "done",
 		credits: [
@@ -969,13 +1062,27 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "true",
 				description: "Confine simulation to parent container",
 			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "false",
+				description:
+					"Render via the WebGPU HDR engine — wide gamut + brighter-than-white glow on HDR displays. Needs Chrome/Edge 129+ or Safari 26+; falls back to wide-gamut WebGL (Chrome 104+, Safari 16.4+, Firefox 132+), then to standard rendering",
+			},
+			{
+				name: "hdrBoost",
+				type: "number",
+				default: "1.5",
+				description: "Display exposure multiplier in HDR mode, clamped to [1, 4]",
+			},
 		],
 	},
 
 	"glow-border": {
 		name: "GlowBorder",
 		slug: "glow-border",
-		description: "Animated glowing border effect with gradient support",
+		description:
+			"Glowing ring that animates around a container's edge by sweeping a radial gradient's position, masked with CSS mask-composite so only the border ring is painted, supporting single or multi-color gradients",
 		category: "effects",
 		status: "done",
 		credits: [
@@ -1129,7 +1236,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"flickering-grid": {
 		name: "FlickeringGrid",
 		slug: "flickering-grid",
-		description: "Canvas-based grid of squares with flickering opacity",
+		description:
+			"Canvas grid of squares that flicker in and out of opacity at random each frame, pausing automatically via IntersectionObserver when scrolled off-screen and resizing to fit its container via ResizeObserver",
 		category: "backgrounds",
 		status: "done",
 		credits: [
@@ -1214,7 +1322,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"colourful-text": {
 		name: "ColourfulText",
 		slug: "colourful-text",
-		description: "Per-character color animation with shuffling colors",
+		description:
+			"Per-character text animation where each glyph transitions to a new color from a shuffled palette, staggered across characters and reshuffling automatically every 5 seconds using pure CSS transitions",
 		category: "text",
 		status: "done",
 		credits: [
@@ -1271,7 +1380,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"hyper-text": {
 		name: "HyperText",
 		slug: "hyper-text",
-		description: "Character scramble effect that activates on hover",
+		description:
+			"Text that scrambles into random uppercase letters and resolves character-by-character back to the original on hover, with a staggered per-letter reveal and an optional animate-on-load mode",
 		category: "text",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/hyper-text" }],
@@ -1357,7 +1467,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"sparkles-text": {
 		name: "SparklesText",
 		slug: "sparkles-text",
-		description: "Text with animated SVG sparkle stars overlay",
+		description:
+			"Text overlaid with small SVG star sparkles that scale, rotate, and fade in a continuous loop, each one regenerating at a random position once its lifespan expires, cycling between two configurable colors",
 		category: "text",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/sparkles" }],
@@ -1382,7 +1493,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"box-reveal": {
 		name: "BoxReveal",
 		slug: "box-reveal",
-		description: "Content reveal with sliding colored box animation",
+		description:
+			"Reveal animation where a solid color box slides left to right across content on viewport entry, unveiling it as it fades up into place underneath, triggered once via IntersectionObserver",
 		category: "text",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/box-reveal" }],
@@ -1434,7 +1546,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"card-spotlight": {
 		name: "CardSpotlight",
 		slug: "card-spotlight",
-		description: "Card with mouse-following radial gradient spotlight overlay",
+		description:
+			"Card whose radial-gradient spotlight tracks the cursor as it moves inside, fading in on hover and parking itself off-canvas when the pointer leaves, with configurable gradient size, color, and opacity",
 		category: "cards",
 		status: "done",
 		credits: [
@@ -2024,7 +2137,8 @@ export const registry: Record<string, ComponentMeta> = {
 	ripple: {
 		name: "Ripple",
 		slug: "ripple",
-		description: "Concentric pulsing circles with ripple wave animation",
+		description:
+			"Set of concentric circles that pulse in a staggered wave, each ring larger, more transparent, and more delayed than the last, with the outermost ring rendered dashed to suggest a fading signal",
 		category: "effects",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/ripple" }],
@@ -2186,8 +2300,7 @@ export const registry: Record<string, ComponentMeta> = {
 	"matrix-rain": {
 		name: "MatrixRain",
 		slug: "matrix-rain",
-		description:
-			"Canvas-based Matrix-style falling glyph rain with configurable color, speed, and density",
+		description: "Canvas-based falling glyph rain with configurable color, speed, and density",
 		category: "backgrounds",
 		status: "done",
 		tags: ["background", "matrix", "canvas", "animation", "glyphs", "cyberpunk"],
@@ -2196,7 +2309,7 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "color",
 				type: "string",
 				default: '"#00ff41"',
-				description: "Glyph color (the classic Matrix green)",
+				description: "Glyph color (classic terminal green)",
 			},
 			{
 				name: "speed",
@@ -2272,7 +2385,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "NoiseReveal",
 		slug: "noise-reveal",
 		description:
-			"WebGL image reveal with a Perlin-noise dissolve mask, contracting radial gradient, and wave displacement, inspired by a Codrops shader effect",
+			"WebGL image reveal with a Perlin-noise dissolve mask, contracting radial gradient, and wave displacement",
 		category: "media",
 		status: "done",
 		credits: [
@@ -2334,8 +2447,7 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "font",
 				type: "string",
 				default: '""',
-				description:
-					"Font family; empty string resolves via getComputedStyle(host).fontFamily",
+				description: "Font family; empty string resolves via getComputedStyle(host).fontFamily",
 			},
 			{
 				name: "fontSize",

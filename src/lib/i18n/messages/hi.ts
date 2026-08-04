@@ -1,11 +1,15 @@
 // Hindi (hi) — machine-translated draft. TODO: native review.
+import type { Catalog } from "./en.js";
+
 export default {
 	// Sidebar / nav
 	"nav.gettingStarted": "शुरू करें",
 	"nav.components": "कॉम्पोनेंट्स",
+	"nav.home": "होम",
 	"nav.docsSuffix": "डॉक्स",
 	"a11y.closeSidebar": "साइडबार बंद करें",
 	"a11y.toggleSidebar": "साइडबार टॉगल करें",
+	"a11y.breadcrumb": "ब्रेडक्रम्ब",
 
 	// Getting-started page titles
 	"page.introduction": "परिचय",
@@ -39,6 +43,9 @@ export default {
 	"comp.sourceCode": "सोर्स कोड",
 	"comp.inspiredBy": "से प्रेरित",
 	"comp.examples": "उदाहरण",
+	"comp.related": "संबंधित कॉम्पोनेंट्स",
+	"comp.previous": "पिछला",
+	"comp.next": "अगला",
 	"status.stable": "स्थिर",
 
 	// Tables
@@ -63,6 +70,8 @@ export default {
 	"gallery.title": "कॉम्पोनेंट्स",
 	"gallery.subtitle":
 		"Svelte 5 के लिए {count} खूबसूरती से एनिमेटेड कॉम्पोनेंट्स। ब्राउज़ करें, खोजें, और जो चाहिए वह पाएं।",
+	"gallery.intro":
+		"हर कॉम्पोनेंट runes के साथ Svelte 5 के लिए नेटिव रूप से बना है, Tailwind CSS v4 से स्टाइल किया गया है, TypeScript में टाइप किया गया है, और लाइव प्रीव्यू तथा कॉपी-पेस्ट उदाहरणों के साथ आता है। पैकेज एक बार इंस्टॉल करें और कोड आपका।",
 	"gallery.statComponents": "कॉम्पोनेंट्स",
 	"gallery.statCategories": "श्रेणियाँ",
 	"gallery.statTypescript": "TypeScript",
@@ -114,7 +123,7 @@ export default {
 	"intro.title": "परिचय",
 	"intro.metaTitle": "परिचय",
 	"intro.leadPre": "है",
-	"intro.leadHighlight": "60 एनिमेटेड",
+	"intro.leadHighlight": "{count} एनिमेटेड",
 	"intro.leadHighlight2": "इंटरैक्टिव UI कॉम्पोनेंट्स का एक संग्रह,",
 	"intro.leadPost": "जो Svelte 5 के लिए मूल रूप से बनाया गया है।",
 	"intro.pill.svelte": "Svelte 5 नेटिव",
@@ -126,8 +135,7 @@ export default {
 	"intro.philosophy.card1.title": "Svelte 5 नेटिव",
 	"intro.philosophy.card1.desc": "रून्स के साथ बनाया गया। कोई लेगेसी API नहीं।",
 	"intro.philosophy.card2.title": "एनिमेशन-फर्स्ट",
-	"intro.philosophy.card2.desc":
-		"हर कॉम्पोनेंट बॉक्स से बाहर ही परिष्कृत एनिमेशन के साथ आता है।",
+	"intro.philosophy.card2.desc": "हर कॉम्पोनेंट बॉक्स से बाहर ही परिष्कृत एनिमेशन के साथ आता है।",
 	"intro.philosophy.card3.title": "कॉपी-पेस्ट अनुकूल",
 	"intro.philosophy.card3.desc": "पैकेज के रूप में उपयोग करें या सीधे सोर्स कॉपी करें।",
 	"intro.philosophy.card4.title": "Tailwind CSS 4",
@@ -142,7 +150,7 @@ export default {
 	"intro.quickStart.step3.title": "उपयोग करें",
 	"intro.quickStart.step3.desc": "इसे अपने Svelte कॉम्पोनेंट्स में जोड़ें।",
 	"intro.whatsIncluded.heading": "इसमें क्या शामिल है",
-	"intro.whatsIncluded.body": "10 श्रेणियों में 60 कॉम्पोनेंट्स:",
+	"intro.whatsIncluded.body": "10 श्रेणियों में {count} कॉम्पोनेंट्स:",
 	"intro.category.buttons": "बटन",
 	"intro.category.cards": "कार्ड",
 	"intro.category.text": "टेक्स्ट",
@@ -161,4 +169,130 @@ export default {
 	"intro.cta.body":
 		"रंगों को कस्टमाइज़ करने और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखने के लिए <strong>थीम जनरेटर</strong> देखें।",
 	"intro.cta.button": "थीम जनरेटर आज़माएं →",
-};
+
+	// Installation (redesigned page)
+	"install.metaTitle": "इंस्टॉलेशन",
+	"install.title": "इंस्टॉलेशन",
+	"install.lead":
+		"तीन चरणों में FancyUI को SvelteKit प्रोजेक्ट में जोड़ें: पैकेज इंस्टॉल करें, स्टाइलशीट इम्पोर्ट करें, और एक कॉम्पोनेंट रेंडर करें।",
+	"install.pill.svelte": "Svelte 5",
+	"install.pill.tailwind": "Tailwind CSS 4",
+	"install.pill.node": "Node.js 20.19+",
+	"install.pill.typescript": "TypeScript",
+	"install.prerequisites.heading": "पूर्वापेक्षाएँ",
+	"install.prerequisites.body":
+		"FancyUI वर्तमान Svelte टूलचेन को लक्षित करता है। इंस्टॉल करने से पहले ये तीन चीज़ें जाँच लें।",
+	"install.prerequisites.card1.title": "SvelteKit",
+	"install.prerequisites.card1.version": "Svelte 5",
+	"install.prerequisites.card1.desc":
+		"कॉम्पोनेंट्स रून्स के साथ लिखे गए हैं, इसलिए Svelte 5 आवश्यक है। Svelte 4 प्रोजेक्ट्स इन्हें कंपाइल नहीं कर पाएंगे।",
+	"install.prerequisites.card2.title": "Tailwind CSS",
+	"install.prerequisites.card2.version": "v4",
+	"install.prerequisites.card2.desc":
+		"स्टाइलिंग Tailwind v4 यूटिलिटीज़ और CSS कस्टम प्रॉपर्टीज पर निर्भर करती है।",
+	"install.prerequisites.card3.title": "Node.js",
+	"install.prerequisites.card3.version": "20.19+",
+	"install.prerequisites.card3.desc":
+		"उन SvelteKit और Vite संस्करणों के लिए आवश्यक, जिनके साथ FancyUI बिल्ड होता है।",
+	"install.steps.heading": "इंस्टॉल करें",
+	"install.steps.body":
+		"अपना पैकेज मैनेजर चुनें, स्टाइलशीट सेट करें, फिर अपना पहला कॉम्पोनेंट रेंडर करें।",
+	"install.step1.title": "पैकेज इंस्टॉल करें",
+	"install.step1.desc":
+		"हर कॉम्पोनेंट के लिए एक ही पैकेज। अपने पैकेज मैनेजर की कमांड कॉपी करने के लिए टैब बदलें।",
+	"install.step2.title": "स्टाइलशीट इम्पोर्ट करें",
+	"install.step2.desc": "अपने Tailwind इम्पोर्ट के ठीक बाद FancyUI स्टाइलशीट जोड़ें।",
+	"install.step2.caption": "आपकी ग्लोबल स्टाइलशीट में, आमतौर पर src/app.css।",
+	"install.step3.title": "एक कॉम्पोनेंट रेंडर करें",
+	"install.step3.desc": "पैकेज रूट से इम्पोर्ट करें और इसे अपने मार्कअप में जोड़ दें।",
+	"install.tailwind.heading": "Tailwind CSS सेटअप",
+	"install.tailwind.body":
+		"FancyUI Tailwind CSS v4 पर बना है, जिसे JavaScript कॉन्फ़िग फ़ाइल के बजाय CSS में कॉन्फ़िगर किया जाता है। यदि आपके प्रोजेक्ट में Tailwind पहले से काम कर रहा है, तो और कुछ कॉन्फ़िगर करने की आवश्यकता नहीं है।",
+	"install.tailwind.order":
+		"इम्पोर्ट का क्रम महत्वपूर्ण है: पहले Tailwind, फिर FancyUI, ताकि FancyUI की लेयर्स और कस्टम प्रॉपर्टीज डिफ़ॉल्ट के ऊपर लागू हों।",
+	"install.tailwind.note":
+		"इस स्टाइलशीट में वे डिज़ाइन टोकन हैं जिन्हें हर कॉम्पोनेंट पढ़ता है: रंग, रेडियस और एनिमेशन टाइमिंग। इसके बिना कॉम्पोनेंट्स बिना स्टाइल के दिखेंगे।",
+	"install.usage.heading": "उपयोग",
+	"install.usage.body":
+		"हर कॉम्पोनेंट पैकेज रूट का एक नेम्ड एक्सपोर्ट है, इसलिए हर कॉम्पोनेंट के लिए अलग इम्पोर्ट पाथ याद रखने की आवश्यकता नहीं है।",
+	"install.usage.note":
+		"हर कॉम्पोनेंट के पेज पर उसके प्रॉप्स, लाइव उदाहरण और एक्सेसिबिलिटी नोट्स दिए गए हैं।",
+	"install.typescript.heading": "TypeScript",
+	"install.typescript.body":
+		"प्रॉप टाइप्स हर कॉम्पोनेंट के साथ एक्सपोर्ट किए जाते हैं, ताकि आप रैपर और साझा प्रीसेट को टाइप कर सकें।",
+	"install.typescript.note":
+		"टाइप्स पैकेज के अंदर ही शामिल हैं। इंस्टॉल करने के लिए कोई अलग टाइप्स पैकेज नहीं है।",
+	"install.peerDeps.heading": "पियर डिपेंडेंसीज़",
+	"install.peerDeps.body": "FancyUI अपेक्षा करता है कि ये आपके प्रोजेक्ट में पहले से मौजूद हों:",
+	"install.peerDeps.colPackage": "पैकेज",
+	"install.peerDeps.colVersion": "संस्करण",
+	"install.peerDeps.bundled":
+		"कुछ कॉम्पोनेंट्स को अतिरिक्त रनटाइम लाइब्रेरीज़ की आवश्यकता होती है। ये पैकेज के साथ ही आती हैं, इसलिए और कुछ इंस्टॉल करने की आवश्यकता नहीं है:",
+	"install.peerDeps.bundledNote":
+		"ये केवल उन्हीं कॉम्पोनेंट्स द्वारा लोड की जाती हैं जो इनका उपयोग करते हैं।",
+	"install.nextSteps.heading": "अगले कदम",
+	"install.nextSteps.components.title": "कॉम्पोनेंट्स ब्राउज़ करें",
+	"install.nextSteps.components.desc":
+		"लाइव प्रीव्यू, प्रॉप्स और कॉपी-पेस्ट उदाहरणों के साथ {count} कॉम्पोनेंट्स।",
+	"install.nextSteps.theming.title": "थीमिंग",
+	"install.nextSteps.theming.desc":
+		"डिज़ाइन टोकन ओवरराइड करें ताकि हर कॉम्पोनेंट लाइट और डार्क मोड में आपके ब्रांड से मेल खाए।",
+
+	// Theming page
+	"theming.metaTitle": "थीमिंग",
+	"theming.title": "थीमिंग",
+	"theming.lead":
+		"हर FancyUI कॉम्पोनेंट अपने रंग, रेडियस और टाइमिंग OKLCh कलर स्पेस में CSS कस्टम प्रॉपर्टीज से पढ़ता है — एक टोकन ओवरराइड करें और पूरी लाइब्रेरी उसका अनुसरण करेगी।",
+	"theming.pill.oklch": "OKLCh कलर स्पेस",
+	"theming.pill.shadcn": "shadcn-svelte के साथ संगत",
+	"theming.pill.dark": "डार्क मोड",
+	"theming.pill.tokens": "डिज़ाइन टोकन",
+	"theming.generator.body":
+		"इसे विज़ुअली ट्यून करना पसंद करेंगे? थीम जनरेटर इन टोकन को लाइव स्लाइडर से एडजस्ट करता है और आपको CSS दे देता है।",
+	"theming.generator.cta": "थीम जनरेटर खोलें",
+	"theming.cssSetup.heading": "CSS सेटअप",
+	"theming.cssSetup.body":
+		"अपने ऐप के ग्लोबल CSS में, आमतौर पर src/app.css में, FancyUI स्टाइलशीट इम्पोर्ट करें:",
+	"theming.colors.heading": "कलर सिस्टम",
+	"theming.colors.body":
+		"बोधगत रूप से एकसमान ग्रेडिएंट के लिए सभी रंग OKLCh कलर स्पेस का उपयोग करते हैं:",
+	"theming.colors.note":
+		"टोकन के नाम shadcn-svelte की परंपराओं का पालन करते हैं, इसलिए मौजूदा shadcn थीम बिना किसी बदलाव के फ़िट हो जाती है।",
+	"theming.dark.heading": "डार्क मोड",
+	"theming.dark.body":
+		"डार्क मोड किसी पैरेंट एलिमेंट पर .dark क्लास से सक्रिय होता है। FancyUI हर टोकन को ओवरराइड करता है:",
+	"theming.motion.heading": "एनिमेशन टोकन",
+	"theming.motion.body": "एनिमेशन टाइमिंग को ग्लोबल रूप से नियंत्रित करें:",
+	"theming.easing.heading": "ईज़िंग फ़ंक्शन",
+	"theming.easing.body": "ईज़िंग कर्व भी टोकन हैं, जो हर कॉम्पोनेंट ट्रांज़िशन में साझा होते हैं:",
+	"theming.rainbow.heading": "रेनबो ग्रेडिएंट",
+	"theming.rainbow.body":
+		"RainbowButton, GradientButton और अन्य ग्रेडिएंट इफेक्ट्स द्वारा उपयोग किया जाता है:",
+	"theming.customizing.heading": "कस्टमाइज़ेशन",
+	"theming.customizing.body": "दिखावट बदलने के लिए अपने CSS में किसी भी टोकन को ओवरराइड करें:",
+	"theming.customizing.note":
+		"टोकन कैस्केड होते हैं: उन्हें :root में ग्लोबल रूप से ओवरराइड करें, या किसी एक सेक्शन को थीम देने के लिए उन्हें किसी रैपर एलिमेंट तक सीमित करें।",
+	"theming.nextSteps.heading": "अगले कदम",
+	"theming.nextSteps.generator.title": "थीम जनरेटर",
+	"theming.nextSteps.generator.desc": "लाइव स्लाइडर से हर टोकन ट्यून करें और तैयार CSS कॉपी करें।",
+	"theming.nextSteps.components.title": "कॉम्पोनेंट्स ब्राउज़ करें",
+	"theming.nextSteps.components.desc": "पूरी कॉम्पोनेंट गैलरी में टोकन को काम करते हुए देखें।",
+
+	// Changelog page
+	"changelog.metaTitle": "चेंजलॉग",
+	"changelog.title": "चेंजलॉग",
+	"changelog.lead": "हर FancyUI रिलीज़ और उसमें हुए बदलाव, सबसे नए से शुरू।",
+	"changelog.latest": "नवीनतम",
+	"changelog.major": "बड़े बदलाव",
+	"changelog.minor": "छोटे बदलाव",
+	"changelog.patch": "पैच बदलाव",
+	// Cameleon docs skins
+	"skin.heading": "स्किन",
+	"skin.standard": "मानक",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "स्किन बदलें",
+	"retro.explorer": "एक्सप्लोरर",
+	"retro.start": "स्टार्ट",
+	"retro.tagline": "Svelte 5 के लिए एनिमेटेड कंपोनेंट — कॉपी-पेस्ट के लिए तैयार।",
+} satisfies Catalog;

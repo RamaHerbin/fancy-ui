@@ -41,14 +41,24 @@
 		{/if}
 	</div>
 
-	<!-- Content -->
-	{#if activeTab === "preview"}
+	<!-- Content. Both panes stay mounted so the source is in the served HTML; the inactive one is
+	     hidden through the `hidden` attribute on an unstyled wrapper, because a display utility on
+	     the element itself would out-rank the user-agent rule for [hidden]. -->
+	<div data-pane="preview" hidden={activeTab !== "preview"}>
+		<!-- `retro-stage` is the hook the retro-os docs skin styles the demo box with. -->
 		<div class="retro-stage bg-background flex min-h-[200px] items-center justify-center p-8">
-			{@render preview()}
+			<!-- The box is always served, so its height is reserved before the demo mounts; the demo
+			     itself is torn down off-tab rather than left animating behind `hidden`. -->
+			{#if activeTab === "preview"}
+				{@render preview()}
+			{/if}
 		</div>
-	{:else if code}
-		<div class="max-h-[500px] overflow-auto">
-			<CodeBlock {code} />
+	</div>
+	{#if code}
+		<div data-pane="code" hidden={activeTab !== "code"}>
+			<div class="max-h-[500px] overflow-auto">
+				<CodeBlock {code} active={activeTab === "code"} />
+			</div>
 		</div>
 	{/if}
 </div>
