@@ -1,0 +1,54 @@
+/* ---- Menubar (DocHeader) --------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] header {
+	background: var(--skin-card);
+	border-bottom-width: 3px;
+	backdrop-filter: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-brand {
+	display: none;
+	align-items: center;
+	gap: 10px;
+	margin-inline-end: 6px;
+}
+@media (min-width: 640px) {
+	.docs-skin[data-skin="retro-os"] .retro-brand {
+		display: inline-flex;
+	}
+}
+.docs-skin[data-skin="retro-os"] .retro-brand-name {
+	font-family: var(--skin-font-pixel);
+	font-size: 12px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-brand-ext {
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-search {
+	border-radius: 0;
+	border-width: 2px;
+	background: var(--skin-surface);
+	color: var(--skin-muted);
+	font-family: var(--skin-font-mono);
+}
+.docs-skin[data-skin="retro-os"] .retro-gh {
+	width: auto;
+	height: auto;
+	padding: 6px 12px;
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: #ecd77f;
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	transition:
+		transform 0.1s,
+		box-shadow 0.1s;
+}
+.docs-skin[data-skin="retro-os"] .retro-gh:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-gh:active {
+	transform: translate(2px, 2px);
+	box-shadow: none;
+}

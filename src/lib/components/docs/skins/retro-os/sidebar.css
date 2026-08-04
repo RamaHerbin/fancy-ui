@@ -1,0 +1,72 @@
+/* ---- Sidebar → EXPLORER window --------------------------------------------- */
+.docs-skin[data-skin="retro-os"] aside {
+	background: var(--skin-card);
+	border-inline-end-width: 3px;
+}
+.docs-skin[data-skin="retro-os"] .retro-explorer-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 3.5rem;
+	padding: 0 12px;
+	border-bottom: 2px solid var(--skin-line);
+	background: var(--skin-blue);
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-explorer-chip {
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	font-weight: 700;
+	background: var(--skin-paper);
+	color: var(--skin-ink);
+	padding: 2px 6px;
+}
+.docs-skin[data-skin="retro-os"] .retro-explorer-title {
+	flex: 1;
+	font-family: var(--skin-font-pixel);
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--skin-paper);
+	text-decoration: none;
+}
+/* Group labels: Silkscreen + left triangle marker */
+.docs-skin[data-skin="retro-os"] aside nav h3,
+.docs-skin[data-skin="retro-os"] aside nav button {
+	display: flex;
+	align-items: center;
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	letter-spacing: 0;
+}
+.docs-skin[data-skin="retro-os"] aside nav h3::before,
+.docs-skin[data-skin="retro-os"] aside nav button::before {
+	content: "";
+	display: inline-block;
+	width: 0;
+	height: 0;
+	margin-inline-end: 6px;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 6px solid var(--skin-muted);
+}
+/* Leaf nav links: mono + square colored-dot bullet */
+.docs-skin[data-skin="retro-os"] aside nav ul li a {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	border-radius: 0;
+	font-family: var(--skin-font-mono);
+	font-size: 12.5px;
+}
+.docs-skin[data-skin="retro-os"] aside nav ul li a::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	flex: none;
+	background: var(--skin-muted);
+	border: 1.5px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] aside nav ul li a.bg-sidebar-accent::before {
+	background: var(--skin-red);
+}

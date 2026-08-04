@@ -1,0 +1,44 @@
+/* ===========================================================================
+   Retro OS — desktop window chrome
+   ===========================================================================
+   Everything below reshapes the docs shell into a late-90s desktop OS ONLY under
+   the retro-os skin. Gated markup (retro-brand, retro-explorer-bar, retro-preview-
+   bar, retro-taskbar, retro-pager…) is styled here; standard/brutal never match.
+   The light gold #ECD77F is a fill tint that has no --skin-* token, so it is used
+   as a literal here (same as the retro-os recipes). */
+
+/* ---- Shared: pixel logo, press interaction -------------------------------- */
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo {
+	display: inline-grid;
+	grid-template-columns: 8px 8px;
+	grid-template-rows: 8px 8px;
+	gap: 2px;
+	padding: 2px;
+	flex: none;
+	background: var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(1) {
+	background: #b8912b;
+}
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(2) {
+	background: #a0442f;
+}
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(3) {
+	background: #3f62a7;
+}
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(4) {
+	background: #3a6b42;
+}
+
+.docs-skin[data-skin="retro-os"] .retro-press {
+	transition:
+		transform 0.1s,
+		box-shadow 0.1s;
+}
+.docs-skin[data-skin="retro-os"] .retro-press:hover {
+	transform: translate(-1px, -1px);
+}
+.docs-skin[data-skin="retro-os"] .retro-press:active {
+	transform: translate(2px, 2px);
+	box-shadow: none;
+}
