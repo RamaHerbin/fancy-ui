@@ -227,12 +227,22 @@
 		const SELF_DRAWING: ShellKind[] = ["peony", "willow", "ring", "heart", "star"];
 		const ambientMix = (ambientShells ?? []).filter((k) => SELF_DRAWING.includes(k));
 
+		/** The stock weighted mix — what a launch uses when nothing overrides it. */
 		function pickShell(): ShellKind {
-			if (ambientMix.length) return ambientMix[Math.floor(Math.random() * ambientMix.length)];
 			const r = Math.random();
 			if (r < 0.62) return "peony";
 			if (r < 0.82) return "willow";
 			return "ring";
+		}
+
+		/**
+		 * The scheduler's own pick. `ambientShells` is scoped to the scheduler, so
+		 * pointer launches keep the stock mix — a prop named for the ambient loop
+		 * must not quietly rewrite what a click does.
+		 */
+		function pickAmbientShell(): ShellKind {
+			if (ambientMix.length) return ambientMix[Math.floor(Math.random() * ambientMix.length)];
+			return pickShell();
 		}
 
 		function ambientColor(): Rgb {
@@ -269,7 +279,7 @@
 					apex = mirrored;
 				}
 			}
-			const shell = pickShell();
+			const shell = pickAmbientShell();
 			const res = sim.launch({
 				apex,
 				shell,

@@ -124,9 +124,17 @@ shell's radius and then droops. Points are walked along the outline's edges, so
 a six-point polygon draws as well as a sampled curve.
 
 Pattern shells are marked `crisp`: they drop the ±12% break asymmetry to ±3%,
-carry no stragglers, and keep embers at 5% — all three exist to make a peony
-look natural, and all three read as a _broken figure_ on a heart. Radial jitter
-(±6%) stays, because a mathematically perfect outline looks printed.
+carry no stragglers, keep embers at 5%, and give every spark the **same**
+`dragScale` — all four exist to make a peony look natural, and all four read as
+a _broken figure_ on a heart. The drag one matters most: a spark coasts
+`v0 / (drag · dragScale)`, so a per-spark drag spread scales each spark's reach
+independently and the outline never expands as one shape. Radial jitter (±6%)
+stays, because a mathematically perfect outline looks printed.
+
+`shapePoints` are walked by **perimeter**, not per vertex, and centred on their
+bounding box: inserting a vertex in the middle of an edge leaves both the figure
+and its particle density unchanged, and a short edge does not collect as many
+sparks as a long one.
 
 A `shape` shell launched without `shapePoints` falls back to a plain sphere
 burst rather than vanishing.
@@ -138,7 +146,15 @@ The ambient scheduler can fire them too:
 ```
 
 `glyph` and `shape` are ignored in that list — they need points the scheduler
-has no way to invent.
+has no way to invent. The prop is scoped to the scheduler: pointer launches keep
+the stock peony/willow/ring mix.
+
+The figure helpers are exported from the package root, so an outline can be
+built without reimplementing them:
+
+```js
+import { heartOutline, starOutline, polygonOutline, outlineBurst } from "fancy-ui-svelte";
+```
 
 ## Render levels
 

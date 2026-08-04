@@ -834,14 +834,21 @@ export function outlineBurst(n: number, seed: number, outline: Outline, jitter =
  */
 export function polygonOutline(points: Vec2[]): Outline {
 	if (!points.length) return () => ({ x: 0, y: 0 });
-	let cx = 0;
-	let cy = 0;
+	// Centre on the bounding box, not the vertex mean: a mean moves when the
+	// caller inserts a vertex mid-edge, which would silently re-aim the figure
+	// around the break point even though the drawn shape is identical.
+	let minX = Infinity;
+	let maxX = -Infinity;
+	let minY = Infinity;
+	let maxY = -Infinity;
 	for (const p of points) {
-		cx += p.x;
-		cy += p.y;
+		if (p.x < minX) minX = p.x;
+		if (p.x > maxX) maxX = p.x;
+		if (p.y < minY) minY = p.y;
+		if (p.y > maxY) maxY = p.y;
 	}
-	cx /= points.length;
-	cy /= points.length;
+	const cx = (minX + maxX) / 2;
+	const cy = (minY + maxY) / 2;
 	let max = 0;
 	const centered = points.map((p) => {
 		const v = { x: p.x - cx, y: p.y - cy };
@@ -850,12 +857,32 @@ export function polygonOutline(points: Vec2[]): Outline {
 	});
 	const scale = max > 1e-6 ? 1 / max : 1;
 	const n = centered.length;
+
+	// Walk by PERIMETER, not by vertex index: `t → segment t·n` hands every edge
+	// the same share of the sparks, so a short edge comes out as dense as a long
+	// one and inserting a vertex mid-edge changes the figure's density. Cumulative
+	// edge lengths spread the particles evenly around the outline instead.
+	const cumulative: number[] = new Array(n + 1);
+	cumulative[0] = 0;
+	for (let i = 0; i < n; i++) {
+		const a = centered[i];
+		const b = centered[(i + 1) % n];
+		cumulative[i + 1] = cumulative[i] + Math.hypot(b.x - a.x, b.y - a.y);
+	}
+	const perimeter = cumulative[n];
+
 	return (t: number): Vec2 => {
 		const u = ((t % 1) + 1) % 1;
-		const scaled = u * n;
-		const i = Math.floor(scaled);
-		const f = scaled - i;
-		const a = centered[i % n];
+		// Degenerate outline (all points equal): every sample is the same point.
+		if (perimeter <= 1e-9) return { x: centered[0].x * scale, y: centered[0].y * scale };
+		const target = u * perimeter;
+		// Linear scan: outlines are a handful of points and this runs once per
+		// spawned spark, not per frame.
+		let i = 0;
+		while (i < n - 1 && cumulative[i + 1] <= target) i++;
+		const segLen = cumulative[i + 1] - cumulative[i];
+		const f = segLen > 1e-9 ? (target - cumulative[i]) / segLen : 0;
+		const a = centered[i];
 		const b = centered[(i + 1) % n];
 		return { x: lerp(a.x, b.x, f) * scale, y: lerp(a.y, b.y, f) * scale };
 	};
@@ -1435,7 +1462,16 @@ export function createSim(opts: SimOptions): Sim {
 				// avoided; dragScale carries the straggler multiplier and a per-spark
 				// spread — identical drag makes every spark fall at one speed, which
 				// combs the debris into a parallel curtain instead of a shell.
-				pool[base + F.dragScale] = straggler ? 0.7 : 0.85 + 0.45 * hash11(spec.seed + i + 233);
+				//
+				// A pattern shell gets NO spread: a spark coasts `v0 / (drag·dragScale)`,
+				// so varying the scale scales each spark's reach independently and the
+				// figure never expands as one shape. The ±6% radial jitter in
+				// `outlineBurst` is the deliberate, bounded version of that.
+				pool[base + F.dragScale] = recipe.crisp
+					? 1
+					: straggler
+						? 0.7
+						: 0.85 + 0.45 * hash11(spec.seed + i + 233);
 				pool[base + F.depthDim] = dim;
 				// Field reuse for sparks: targetX flags the cracklers.
 				pool[base + F.targetX] = crackles ? 1 : 0;

@@ -316,6 +316,63 @@ describe("pattern shells", () => {
 		expect(Math.abs(cy)).toBeLessThan(0.02);
 	});
 
+	it("spreads samples by perimeter, not per edge", () => {
+		// A very wide, very short rectangle: sampling per vertex would hand the two
+		// 0.1-long edges the same share of the sparks as the two 4-long ones.
+		const wide = [
+			{ x: -2, y: -0.05 },
+			{ x: 2, y: -0.05 },
+			{ x: 2, y: 0.05 },
+			{ x: -2, y: 0.05 },
+		];
+		// A sample sits on a long edge when it is away from the two short ends.
+		const onLongEdges = (o: (t: number) => { x: number; y: number }) =>
+			Array.from({ length: 1000 }, (_, i) => o(i / 1000)).filter((p) => Math.abs(p.x) < 0.98)
+				.length;
+		// Long edges hold 4/4.1 of the perimeter, so ~97.5% of the samples.
+		const share = onLongEdges(polygonOutline(wide)) / 1000;
+		expect(share).toBeGreaterThan(0.9);
+		// Splitting a long edge with an extra vertex must change nothing: same
+		// perimeter, same density, same figure.
+		const split = [
+			{ x: -2, y: -0.05 },
+			{ x: 0, y: -0.05 },
+			{ x: 2, y: -0.05 },
+			{ x: 2, y: 0.05 },
+			{ x: -2, y: 0.05 },
+		];
+		expect(Math.abs(onLongEdges(polygonOutline(split)) / 1000 - share)).toBeLessThan(0.05);
+	});
+
+	it("gives pattern-shell sparks one drag, so the figure expands as a whole", () => {
+		function dragScales(shell: "heart" | "peony") {
+			const sim = createSim({
+				quality: "high",
+				aspect: 1,
+				hdr: true,
+				rng: mulberry32(3),
+				wind: { x: 0, y: 0 },
+			});
+			sim.launch({ apex: { x: 0.5, y: 0.4 }, shell, seed: 6, flightMs: 60 });
+			for (let f = 0; f < 14; f++) sim.step(1 / 60);
+			const out: number[] = [];
+			for (let idx = 0; idx < sim.count; idx++) {
+				const base = idx * STRIDE;
+				const type = sim.data[base + F.type];
+				if (type === TYPE.SPARK || type === TYPE.EMBER) out.push(sim.data[base + F.dragScale]);
+			}
+			return out;
+		}
+		// Coast distance is v0 / (drag · dragScale): a spread here scales every
+		// spark's reach independently and smears the outline.
+		const heart = dragScales("heart");
+		expect(heart.length).toBeGreaterThan(50);
+		expect(new Set(heart)).toEqual(new Set([1]));
+		// A peony still gets its spread — that is what keeps debris from falling
+		// as one parallel curtain.
+		expect(new Set(dragScales("peony")).size).toBeGreaterThan(10);
+	});
+
 	it("cuts the burst from the figure — every spark starts on the outline", () => {
 		const dirs = outlineBurst(200, 7, heartOutline, 0);
 		const curve = sample(heartOutline);
