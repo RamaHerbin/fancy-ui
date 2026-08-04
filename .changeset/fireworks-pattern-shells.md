@@ -1,5 +1,0 @@
----
-"fancy-ui-svelte": patch
----
-
-FireworksHdr: pattern shells. `shell: "heart"` and `shell: "star"` break into a figure instead of a sphere, and `shell: "shape"` draws any closed outline passed as `shapePoints` (y-up points around the origin, any scale — the outline is normalized and redrawn at the shell's radius, walking its edges so a hand-written polygon works as well as a sampled curve). The burst is cut from the outline: each spark's speed is proportional to its sample's distance from the centre, so linear drag coasts the figure into shape in the sky before it droops. Pattern shells suppress the break asymmetry, the stragglers and most embers, which exist to make a peony look natural but read as a broken figure on a heart. A new `ambientShells` prop restricts the ambient scheduler to a chosen set of shells, pattern shells included. The outline helpers (`heartOutline`, `starOutline`, `polygonOutline`, `outlineBurst`) are exported for building your own figures, and a `shape` shell launched without points falls back to a plain sphere rather than vanishing.
