@@ -67,7 +67,7 @@ export interface Rgb {
 	b: number;
 }
 
-export type ShellKind = "peony" | "willow" | "ring" | "glyph";
+export type ShellKind = "peony" | "willow" | "ring" | "glyph" | "heart" | "star" | "shape";
 export type Intensity = "intro" | "ambient";
 export type QualityTier = "high" | "mid" | "low";
 
@@ -80,6 +80,14 @@ export interface LaunchOptions {
 	color?: Rgb | Rgb[];
 	/** REQUIRED when `shell === 'glyph'`: normalized target points. */
 	glyphPoints?: Vec2[];
+	/**
+	 * REQUIRED when `shell === 'shape'`: the closed figure the burst is cut
+	 * from, as y-UP points around the origin. Scale is free — the outline is
+	 * normalized to the unit circle, then drawn at the shell's radius. Points are
+	 * walked in order and the figure is closed automatically, so a hand-written
+	 * polygon works as well as a sampled curve.
+	 */
+	shapePoints?: Vec2[];
 	scale?: number;
 	flightMs?: number;
 	/** @default 'ambient' */
@@ -149,8 +157,22 @@ export interface ShellRecipe {
 	smoke: number;
 	radius: [number, number];
 	builder: BurstBuilderKind;
+	/**
+	 * Pattern shells only: the unit outline the burst is cut from, sampled at
+	 * `t ∈ [0,1)`. Points are y-UP and bounded by the unit circle; the burst
+	 * converts to the sim's y-down convention.
+	 */
+	outline?: Outline;
+	/**
+	 * Pattern shells hold a readable figure, so they suppress the break
+	 * asymmetry, the stragglers and most of the embers that would smear it.
+	 */
+	crisp?: boolean;
 }
-type BurstBuilderKind = "sphere" | "willow" | "ring" | "glyph";
+type BurstBuilderKind = "sphere" | "willow" | "ring" | "glyph" | "outline";
+
+/** A closed unit figure: `t ∈ [0,1)` → point, y-up, `|p| ≤ 1`. */
+export type Outline = (t: number) => Vec2;
 
 export interface Sim {
 	launch(opts: LaunchOptions): LaunchResult;
@@ -342,6 +364,36 @@ export const SHELL: Record<ShellKind, ShellRecipe> = {
 		smoke: 1,
 		radius: [0.14, 0.14],
 		builder: "glyph",
+	},
+	// Pattern shells: the figure IS the shell, so they run denser than a peony of
+	// the same radius (an outline needs particles per unit of arc, not per unit of
+	// volume) and suppress everything that would blur it.
+	heart: {
+		counts: { high: 260, mid: 170, low: 100 },
+		emberFrac: 0.05,
+		smoke: 1,
+		radius: [0.13, 0.2],
+		builder: "outline",
+		outline: heartOutline,
+		crisp: true,
+	},
+	star: {
+		counts: { high: 240, mid: 160, low: 95 },
+		emberFrac: 0.05,
+		smoke: 1,
+		radius: [0.13, 0.2],
+		builder: "outline",
+		outline: starOutline(5, 0.45),
+		crisp: true,
+	},
+	// Caller-supplied figure — see LaunchOptions.shapePoints.
+	shape: {
+		counts: { high: 260, mid: 170, low: 100 },
+		emberFrac: 0.05,
+		smoke: 1,
+		radius: [0.13, 0.2],
+		builder: "outline",
+		crisp: true,
 	},
 };
 
@@ -707,6 +759,135 @@ export function ringBurst(n: number, seed: number): BurstDir[] {
 	return out;
 }
 
+/**
+ * Classic heart curve, normalized into the unit circle and y-up.
+ * `x = 16sin³t`, `y = 13cos t − 5cos 2t − 2cos 3t − cos 4t` — the 17 divisor is
+ * the curve's own extent, so the figure fills the shell radius without clipping.
+ */
+export function heartOutline(t: number): Vec2 {
+	const a = t * Math.PI * 2;
+	const s = Math.sin(a);
+	return {
+		x: (16 * s * s * s) / 17,
+		y: (13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)) / 17,
+	};
+}
+
+/**
+ * A `points`-pointed star walked along its edges (not just its vertices), so a
+ * sparse particle count still draws the figure rather than a scatter of tips.
+ * `inner` is the valley radius as a fraction of the tip radius.
+ */
+export function starOutline(points = 5, inner = 0.45): Outline {
+	const verts = points * 2;
+	return (t: number): Vec2 => {
+		const u = ((t % 1) + 1) % 1;
+		const scaled = u * verts;
+		const i = Math.floor(scaled);
+		const f = scaled - i;
+		const radiusAt = (k: number) => (k % 2 === 0 ? 1 : inner);
+		// Vertices start at the top (−π/2 in y-up math) so a star sits point-up.
+		const angleAt = (k: number) => (k / verts) * Math.PI * 2 + Math.PI / 2;
+		const a0 = angleAt(i);
+		const a1 = angleAt(i + 1);
+		const r0 = radiusAt(i);
+		const r1 = radiusAt(i + 1);
+		const x0 = Math.cos(a0) * r0;
+		const y0 = Math.sin(a0) * r0;
+		const x1 = Math.cos(a1) * r1;
+		const y1 = Math.sin(a1) * r1;
+		return { x: lerp(x0, x1, f), y: lerp(y0, y1, f) };
+	};
+}
+
+/**
+ * Cut a burst from a closed unit figure (§3.7). Each direction keeps the
+ * outline point's own magnitude, so the spawn speed is proportional to its
+ * distance from the centre — under linear drag every spark coasts `v0/drag`,
+ * which is what redraws the figure in the sky at `radius` scale.
+ *
+ * Points are y-up going in and y-down coming out, matching the sim.
+ */
+export function outlineBurst(n: number, seed: number, outline: Outline, jitter = 0.06): BurstDir[] {
+	const out: BurstDir[] = [];
+	const phase = hash11(seed) * 0.5;
+	for (let i = 0; i < n; i++) {
+		// Half-step stagger keeps consecutive shells from sampling identically.
+		const t = (i + phase) / n;
+		const p = outline(t);
+		// Radial jitter only — lateral jitter would fray the outline.
+		const j = 1 + (hash11(seed + i * 1.7) * 2 - 1) * jitter;
+		out.push({
+			dir: { x: p.x * j, y: -p.y * j },
+			// A figure is a plane facing the viewer: keep z shallow so the burst
+			// reads flat rather than as a sphere wearing the outline.
+			z: (hash11(seed + i + 401) * 2 - 1) * 0.12,
+		});
+	}
+	return out;
+}
+
+/**
+ * Turn caller points into an {@link Outline}: normalized to the unit circle
+ * about their own centroid and walked as a closed polygon, so both a sampled
+ * curve and a hand-written polygon draw correctly.
+ */
+export function polygonOutline(points: Vec2[]): Outline {
+	if (!points.length) return () => ({ x: 0, y: 0 });
+	// Centre on the bounding box, not the vertex mean: a mean moves when the
+	// caller inserts a vertex mid-edge, which would silently re-aim the figure
+	// around the break point even though the drawn shape is identical.
+	let minX = Infinity;
+	let maxX = -Infinity;
+	let minY = Infinity;
+	let maxY = -Infinity;
+	for (const p of points) {
+		if (p.x < minX) minX = p.x;
+		if (p.x > maxX) maxX = p.x;
+		if (p.y < minY) minY = p.y;
+		if (p.y > maxY) maxY = p.y;
+	}
+	const cx = (minX + maxX) / 2;
+	const cy = (minY + maxY) / 2;
+	let max = 0;
+	const centered = points.map((p) => {
+		const v = { x: p.x - cx, y: p.y - cy };
+		max = Math.max(max, Math.hypot(v.x, v.y));
+		return v;
+	});
+	const scale = max > 1e-6 ? 1 / max : 1;
+	const n = centered.length;
+
+	// Walk by PERIMETER, not by vertex index: `t → segment t·n` hands every edge
+	// the same share of the sparks, so a short edge comes out as dense as a long
+	// one and inserting a vertex mid-edge changes the figure's density. Cumulative
+	// edge lengths spread the particles evenly around the outline instead.
+	const cumulative: number[] = new Array(n + 1);
+	cumulative[0] = 0;
+	for (let i = 0; i < n; i++) {
+		const a = centered[i];
+		const b = centered[(i + 1) % n];
+		cumulative[i + 1] = cumulative[i] + Math.hypot(b.x - a.x, b.y - a.y);
+	}
+	const perimeter = cumulative[n];
+
+	return (t: number): Vec2 => {
+		const u = ((t % 1) + 1) % 1;
+		// Degenerate outline (all points equal): every sample is the same point.
+		if (perimeter <= 1e-9) return { x: centered[0].x * scale, y: centered[0].y * scale };
+		const target = u * perimeter;
+		// Linear scan: outlines are a handful of points and this runs once per
+		// spawned spark, not per frame.
+		let i = 0;
+		while (i < n - 1 && cumulative[i + 1] <= target) i++;
+		const segLen = cumulative[i + 1] - cumulative[i];
+		const f = segLen > 1e-9 ? (target - cumulative[i]) / segLen : 0;
+		const a = centered[i];
+		const b = centered[(i + 1) % n];
+		return { x: lerp(a.x, b.x, f) * scale, y: lerp(a.y, b.y, f) * scale };
+	};
+}
+
 /** Upward-biased, vertically compressed sphere (willow droop before gravity). */
 export function willowBurst(n: number, seed: number): BurstDir[] {
 	return sphereBurst(n, seed).map((d) => ({
@@ -1037,6 +1218,8 @@ interface LaunchSpec {
 	seed: number;
 	intensity: Intensity;
 	glyphPoints?: Vec2[];
+	/** Resolved figure for a pattern shell (built once per launch). */
+	outline?: Outline;
 	releaseAtMs?: number;
 	breakMs: number;
 }
@@ -1159,6 +1342,9 @@ export function createSim(opts: SimOptions): Sim {
 			seed,
 			intensity: o.intensity ?? "ambient",
 			glyphPoints: o.glyphPoints,
+			// Resolved here, not per particle: normalizing the caller's points is
+			// O(n) and the burst is expanded a frame later, once.
+			outline: o.shapePoints?.length ? polygonOutline(o.shapePoints) : undefined,
 			releaseAtMs: o.releaseAtMs,
 			breakMs,
 		};
@@ -1225,18 +1411,27 @@ export function createSim(opts: SimOptions): Sim {
 			(1 - DEPTH_RADIUS * spec.depth);
 		const dim = depthDim(spec.depth);
 		const baseSpeed = radius * BURST_SPEED_K;
-		const dirs =
-			recipe.builder === "sphere"
-				? sphereBurst(n, spec.seed)
-				: recipe.builder === "ring"
-					? ringBurst(n, spec.seed)
-					: willowBurst(n, spec.seed);
+		const outline = spec.outline ?? recipe.outline;
+		let dirs: BurstDir[];
+		if (recipe.builder === "outline") {
+			// A "shape" shell launched without points has no figure to draw; fall
+			// back to a plain sphere so the shell still breaks instead of vanishing.
+			dirs = outline ? outlineBurst(n, spec.seed, outline) : sphereBurst(n, spec.seed);
+		} else if (recipe.builder === "ring") {
+			dirs = ringBurst(n, spec.seed);
+		} else if (recipe.builder === "willow") {
+			dirs = willowBurst(n, spec.seed);
+		} else {
+			dirs = sphereBurst(n, spec.seed);
+		}
 
 		for (let i = 0; i < dirs.length; i++) {
 			const { dir, z } = dirs[i];
 			// Break asymmetry ±12% and 5% stragglers ×1.4 speed / dragScale×0.7.
-			const asym = 1 + (hash11(spec.seed + i) * 2 - 1) * 0.12;
-			const straggler = hash11(spec.seed + i + 991) < 0.05;
+			// A pattern shell keeps neither: both are read as a broken figure.
+			const asymAmount = recipe.crisp ? 0.03 : 0.12;
+			const asym = 1 + (hash11(spec.seed + i) * 2 - 1) * asymAmount;
+			const straggler = !recipe.crisp && hash11(spec.seed + i + 991) < 0.05;
 			const speed = baseSpeed * asym * (straggler ? 1.4 : 1);
 			const isEmber = hash11(spec.seed + i + 313) < recipe.emberFrac;
 			const type: ParticleType = isEmber ? TYPE.EMBER : TYPE.SPARK;
@@ -1267,7 +1462,16 @@ export function createSim(opts: SimOptions): Sim {
 				// avoided; dragScale carries the straggler multiplier and a per-spark
 				// spread — identical drag makes every spark fall at one speed, which
 				// combs the debris into a parallel curtain instead of a shell.
-				pool[base + F.dragScale] = straggler ? 0.7 : 0.85 + 0.45 * hash11(spec.seed + i + 233);
+				//
+				// A pattern shell gets NO spread: a spark coasts `v0 / (drag·dragScale)`,
+				// so varying the scale scales each spark's reach independently and the
+				// figure never expands as one shape. The ±6% radial jitter in
+				// `outlineBurst` is the deliberate, bounded version of that.
+				pool[base + F.dragScale] = recipe.crisp
+					? 1
+					: straggler
+						? 0.7
+						: 0.85 + 0.45 * hash11(spec.seed + i + 233);
 				pool[base + F.depthDim] = dim;
 				// Field reuse for sparks: targetX flags the cracklers.
 				pool[base + F.targetX] = crackles ? 1 : 0;

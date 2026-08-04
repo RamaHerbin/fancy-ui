@@ -912,6 +912,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Extra classes on the canvas wrapper",
 			},
 			{
+				name: "ambientShells",
+				type: "ShellKind[]",
+				description:
+					"Restrict the ambient scheduler to these shells, picked uniformly — including the pattern shells 'heart' and 'star'; defaults to a weighted peony/willow/ring mix ('glyph' and 'shape' are ignored, they need caller-supplied points)",
+			},
+			{
 				name: "onReady",
 				type: "(handle: FireworksHandle) => void",
 				description:

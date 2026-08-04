@@ -53,6 +53,17 @@ describe("FireworksHdr", () => {
 		expect(onLost).not.toHaveBeenCalled();
 	});
 
+	it("re-exports the figure helpers consumers are told to import", async () => {
+		// The package barrel is `export * from "./fireworks-hdr/index.js"`, so what
+		// this module exposes is exactly what `import { … } from "fancy-ui-svelte"`
+		// can reach.
+		const barrel = await import("./index.js");
+		expect(typeof barrel.heartOutline).toBe("function");
+		expect(typeof barrel.starOutline).toBe("function");
+		expect(typeof barrel.polygonOutline).toBe("function");
+		expect(typeof barrel.outlineBurst).toBe("function");
+	});
+
 	it("does not attempt WebGPU when hdr={false}", () => {
 		const { container } = render(FireworksHdr, { props: { hdr: false } });
 		expect(container.querySelector("canvas")).toBeInTheDocument();

@@ -9,6 +9,10 @@ import {
 	solveGravity,
 	sphereBurst,
 	ringBurst,
+	heartOutline,
+	starOutline,
+	polygonOutline,
+	outlineBurst,
 	springStep,
 	nextShellHue,
 	poissonIntervalMs,
@@ -250,6 +254,172 @@ describe("a shell opens instead of raining down", () => {
 		// adds to the downward side, so the two stay the same order.
 		expect(ring.widest).toBeGreaterThan(ring.down * 0.7);
 		expect(ring.widest).toBeGreaterThan(ring.up);
+	});
+});
+
+describe("pattern shells", () => {
+	/** Sample a closed outline densely. */
+	function sample(outline: (t: number) => { x: number; y: number }, n = 720) {
+		return Array.from({ length: n }, (_, i) => outline(i / n));
+	}
+
+	it("heart is upright, closed, and inside the unit circle", () => {
+		const pts = sample(heartOutline);
+		for (const p of pts) expect(Math.hypot(p.x, p.y)).toBeLessThanOrEqual(1.0001);
+		// Closed: the curve returns to where it started.
+		expect(Math.hypot(pts[0].x - heartOutline(1).x, pts[0].y - heartOutline(1).y)).toBeLessThan(
+			1e-9
+		);
+		// Upright, y-up: a single point at the bottom, two lobes at the top.
+		const lowest = pts.reduce((a, b) => (b.y < a.y ? b : a));
+		expect(Math.abs(lowest.x)).toBeLessThan(0.05);
+		const topLobes = pts.filter((p) => p.y > 0.55);
+		expect(topLobes.some((p) => p.x > 0.2)).toBe(true);
+		expect(topLobes.some((p) => p.x < -0.2)).toBe(true);
+		// ...and the dimple between them: nothing at top-centre.
+		expect(pts.filter((p) => Math.abs(p.x) < 0.05 && p.y > 0.75)).toHaveLength(0);
+	});
+
+	it("star has exactly one radial maximum per point, and sits point-up", () => {
+		const star = starOutline(5, 0.45);
+		const pts = sample(star, 1000);
+		const radii = pts.map((p) => Math.hypot(p.x, p.y));
+		let peaks = 0;
+		for (let i = 0; i < radii.length; i++) {
+			const prev = radii[(i - 1 + radii.length) % radii.length];
+			const next = radii[(i + 1) % radii.length];
+			if (radii[i] >= prev && radii[i] > next) peaks++;
+		}
+		expect(peaks).toBe(5);
+		expect(Math.max(...radii)).toBeCloseTo(1, 5);
+		expect(Math.min(...radii)).toBeGreaterThan(0.4); // valleys at the inner ratio
+		// A tip points straight up.
+		const highest = pts.reduce((a, b) => (b.y > a.y ? b : a));
+		expect(highest.y).toBeCloseTo(1, 3);
+		expect(Math.abs(highest.x)).toBeLessThan(0.02);
+	});
+
+	it("normalizes caller points about their own centroid", () => {
+		// A square, off-centre and off-scale: still becomes a unit figure.
+		const square = [
+			{ x: 10, y: 10 },
+			{ x: 14, y: 10 },
+			{ x: 14, y: 14 },
+			{ x: 10, y: 14 },
+		];
+		const pts = sample(polygonOutline(square), 400);
+		const max = Math.max(...pts.map((p) => Math.hypot(p.x, p.y)));
+		expect(max).toBeCloseTo(1, 6);
+		const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+		const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+		expect(Math.abs(cx)).toBeLessThan(0.02);
+		expect(Math.abs(cy)).toBeLessThan(0.02);
+	});
+
+	it("spreads samples by perimeter, not per edge", () => {
+		// A very wide, very short rectangle: sampling per vertex would hand the two
+		// 0.1-long edges the same share of the sparks as the two 4-long ones.
+		const wide = [
+			{ x: -2, y: -0.05 },
+			{ x: 2, y: -0.05 },
+			{ x: 2, y: 0.05 },
+			{ x: -2, y: 0.05 },
+		];
+		// A sample sits on a long edge when it is away from the two short ends.
+		const onLongEdges = (o: (t: number) => { x: number; y: number }) =>
+			Array.from({ length: 1000 }, (_, i) => o(i / 1000)).filter((p) => Math.abs(p.x) < 0.98)
+				.length;
+		// Long edges hold 4/4.1 of the perimeter, so ~97.5% of the samples.
+		const share = onLongEdges(polygonOutline(wide)) / 1000;
+		expect(share).toBeGreaterThan(0.9);
+		// Splitting a long edge with an extra vertex must change nothing: same
+		// perimeter, same density, same figure.
+		const split = [
+			{ x: -2, y: -0.05 },
+			{ x: 0, y: -0.05 },
+			{ x: 2, y: -0.05 },
+			{ x: 2, y: 0.05 },
+			{ x: -2, y: 0.05 },
+		];
+		expect(Math.abs(onLongEdges(polygonOutline(split)) / 1000 - share)).toBeLessThan(0.05);
+	});
+
+	it("gives pattern-shell sparks one drag, so the figure expands as a whole", () => {
+		function dragScales(shell: "heart" | "peony") {
+			const sim = createSim({
+				quality: "high",
+				aspect: 1,
+				hdr: true,
+				rng: mulberry32(3),
+				wind: { x: 0, y: 0 },
+			});
+			sim.launch({ apex: { x: 0.5, y: 0.4 }, shell, seed: 6, flightMs: 60 });
+			for (let f = 0; f < 14; f++) sim.step(1 / 60);
+			const out: number[] = [];
+			for (let idx = 0; idx < sim.count; idx++) {
+				const base = idx * STRIDE;
+				const type = sim.data[base + F.type];
+				if (type === TYPE.SPARK || type === TYPE.EMBER) out.push(sim.data[base + F.dragScale]);
+			}
+			return out;
+		}
+		// Coast distance is v0 / (drag · dragScale): a spread here scales every
+		// spark's reach independently and smears the outline.
+		const heart = dragScales("heart");
+		expect(heart.length).toBeGreaterThan(50);
+		expect(new Set(heart)).toEqual(new Set([1]));
+		// A peony still gets its spread — that is what keeps debris from falling
+		// as one parallel curtain.
+		expect(new Set(dragScales("peony")).size).toBeGreaterThan(10);
+	});
+
+	it("cuts the burst from the figure — every spark starts on the outline", () => {
+		const dirs = outlineBurst(200, 7, heartOutline, 0);
+		const curve = sample(heartOutline);
+		for (const { dir } of dirs) {
+			// y is flipped into the sim's y-down convention on the way out.
+			const nearest = Math.min(...curve.map((p) => Math.hypot(p.x - dir.x, -p.y - dir.y)));
+			expect(nearest).toBeLessThan(0.02);
+		}
+		// Flat figure: the burst faces the viewer instead of being a sphere.
+		expect(Math.max(...dirs.map((d) => Math.abs(d.z)))).toBeLessThan(0.15);
+	});
+
+	it("a heart shell launches sparks along the heart, not a sphere", () => {
+		const sim = createSim({
+			quality: "high",
+			aspect: 1,
+			hdr: true,
+			rng: mulberry32(5),
+			wind: { x: 0, y: 0 },
+		});
+		sim.launch({ apex: { x: 0.5, y: 0.4 }, shell: "heart", seed: 11, flightMs: 60 });
+		for (let f = 0; f < 14; f++) sim.step(1 / 60); // just past the break
+		const speeds: number[] = [];
+		for (let idx = 0; idx < sim.count; idx++) {
+			const base = idx * STRIDE;
+			const type = sim.data[base + F.type];
+			if (type !== TYPE.SPARK && type !== TYPE.EMBER) continue;
+			speeds.push(Math.hypot(sim.data[base + F.velX], sim.data[base + F.velY]));
+		}
+		expect(speeds.length).toBeGreaterThan(50);
+		// A sphere burst is one speed (±12% asymmetry); a figure is not — the heart's
+		// dimple sits far closer to the centre than its lobes do.
+		const max = Math.max(...speeds);
+		const min = Math.min(...speeds);
+		expect(min / max).toBeLessThan(0.5);
+	});
+
+	it("falls back to a sphere when a shape shell gets no points", () => {
+		const sim = createSim({ quality: "low", aspect: 1, hdr: true, rng: mulberry32(2) });
+		sim.launch({ apex: { x: 0.5, y: 0.4 }, shell: "shape", seed: 4, flightMs: 60 });
+		for (let f = 0; f < 14; f++) sim.step(1 / 60);
+		let burst = 0;
+		for (let idx = 0; idx < sim.count; idx++) {
+			const type = sim.data[idx * STRIDE + F.type];
+			if (type === TYPE.SPARK || type === TYPE.EMBER) burst++;
+		}
+		expect(burst).toBeGreaterThan(50); // it breaks rather than vanishing
 	});
 });
 
