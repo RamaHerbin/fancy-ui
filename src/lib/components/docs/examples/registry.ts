@@ -324,6 +324,20 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 				"WebGPU engine with extended tone mapping — glows brighter than white on HDR displays. Requires a WebGPU browser (Chrome/Edge 129+, Safari 26+) plus an HDR screen for the full glow; otherwise falls back to wide-gamut WebGL (Chrome 104+, Safari 16.4+, Firefox 132+), then to standard rendering.",
 		},
 	],
+	"fireworks-hdr": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"Ambient shells run on their own; tap the sky or use the handle to launch one. Brightest on an HDR display in a WebGPU browser, and safe (soft-knee SDR) everywhere else.",
+		},
+		{
+			name: "CustomShapes",
+			title: "Pattern shells",
+			description:
+				"Shells that break into a figure: the built-in heart and star, or any closed outline you pass as points. The burst is cut from the figure, so it draws itself in the sky and then droops.",
+		},
+	],
 	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"liquid-glass": [
 		{ name: "BasicUsage", title: "Basic Usage" },
