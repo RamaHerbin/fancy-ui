@@ -323,6 +323,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description:
 				"WebGPU engine with extended tone mapping — glows brighter than white on HDR displays. Requires a WebGPU browser (Chrome/Edge 129+, Safari 26+) plus an HDR screen for the full glow; otherwise falls back to wide-gamut WebGL (Chrome 104+, Safari 16.4+, Firefox 132+), then to standard rendering.",
 		},
+		{
+			name: "BitmapDither",
+			title: "Bitmap Dithering",
+			description:
+				"Retro ordered-dither rendering — the fluid is snapped to a chunky pixel grid and each color channel is quantized with a 4x4 Bayer threshold, so dot density encodes brightness. Forces the WebGL renderer (hdr is ignored).",
+		},
 	],
 	"fireworks-hdr": [
 		{

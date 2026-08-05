@@ -109,6 +109,36 @@ describe("FluidCursor", () => {
 		});
 	});
 
+	describe("dither props", () => {
+		it("renders without error with dither={true}", () => {
+			const { container } = render(FluidCursor, { props: { dither: true } });
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when dither values are out of range (clamped internally)", () => {
+			const { container } = render(FluidCursor, {
+				props: { dither: true, ditherPixelSize: 0, ditherLevels: 100 },
+			});
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("does not attempt WebGPU when dither and hdr are both set", async () => {
+			const requestAdapter = vi.fn(async () => null);
+			Object.defineProperty(navigator, "gpu", {
+				value: { requestAdapter },
+				configurable: true,
+			});
+			try {
+				const { container } = render(FluidCursor, { props: { dither: true, hdr: true } });
+				await new Promise((resolve) => setTimeout(resolve, 0));
+				expect(requestAdapter).not.toHaveBeenCalled();
+				expect(container.querySelector("canvas")).toBeInTheDocument();
+			} finally {
+				delete (navigator as unknown as Record<string, unknown>).gpu;
+			}
+		});
+	});
+
 	describe("color props", () => {
 		it("renders without error when fluidColor is provided", () => {
 			const { container } = render(FluidCursor, { props: { fluidColor: "#00ffcc" } });
