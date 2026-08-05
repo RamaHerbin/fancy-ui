@@ -1,0 +1,67 @@
+/**
+ * Docs Skin Bridge — shared semantic token map.
+ *
+ * Maps the app's semantic design tokens (--background, --foreground, --card...)
+ * onto the Cameleon skins' --skin-* variables, so switching the docs skin
+ * re-skins the token-driven docs chrome without touching component markup.
+ *
+ * Every rule here is scoped under .docs-skin so the /skins page (which sets
+ * data-skin directly via <FancyProvider> without the .docs-skin class) is
+ * unaffected — this bridge only applies to the documentation site shell.
+ *
+ * Only rules that hold for BOTH skins live here; anything one skin tunes
+ * independently lives in that skin's region files (skins/brutal/*,
+ * skins/retro-os/*), which import after this file and therefore win the
+ * cascade at equal specificity.
+ */
+
+/* ---- Semantic token map --------------------------------------------------- */
+.docs-skin[data-skin="brutal"],
+.docs-skin[data-skin="retro-os"] {
+	--background: var(--skin-page-bg);
+	--foreground: var(--skin-ink);
+	--card: var(--skin-card);
+	--card-foreground: var(--skin-ink);
+	--popover: var(--skin-surface);
+	--popover-foreground: var(--skin-ink);
+	--primary: var(--skin-ink);
+	--primary-foreground: var(--skin-paper);
+	--secondary: var(--skin-surface);
+	--secondary-foreground: var(--skin-ink);
+	--accent: var(--skin-yellow);
+	--accent-foreground: var(--skin-ink);
+	--destructive: var(--skin-red);
+	--border: var(--skin-line);
+	--input: var(--skin-line);
+	--ring: var(--skin-blue);
+	--sidebar: var(--skin-card);
+	--sidebar-foreground: var(--skin-ink);
+	--sidebar-primary: var(--skin-ink);
+	--sidebar-primary-foreground: var(--skin-paper);
+	--sidebar-accent: var(--skin-yellow);
+	--sidebar-accent-foreground: var(--skin-ink);
+	--sidebar-border: var(--skin-line);
+	--sidebar-ring: var(--skin-blue);
+
+	/* Code surfaces (consumed by CodeBlock / InstallBlock / doc-prose <pre>). */
+	--code-bg: var(--skin-surface);
+	--code-border: var(--skin-line);
+	--code-fg: var(--skin-ink);
+	--code-kw: var(--skin-purple);
+	--code-cmd: var(--skin-green);
+}
+
+/* ---- Shiki base ------------------------------------------------------------- */
+/* CodeBlock renders shiki with dual (--shiki-light / --shiki-dark) CSS vars and
+   defaultColor: false, so the picked color is entirely up to us. The standard
+   skin runs on a dark code surface, so the base is dark; each skin's own files
+   flip it when their code surface is light. */
+.docs-skin .shiki,
+.docs-skin .shiki span {
+	color: var(--shiki-dark);
+}
+
+/* ---- Standard skin ----------------------------------------------------- */
+.docs-skin[data-skin="standard"] {
+	-webkit-font-smoothing: auto;
+}

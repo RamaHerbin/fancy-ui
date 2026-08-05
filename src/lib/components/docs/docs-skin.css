@@ -1,0 +1,33 @@
+/**
+ * Docs Skin Bridge — import index.
+ *
+ * Maps the app's semantic design tokens (--background, --foreground, --card...)
+ * onto the Cameleon Brutal and Retro OS skins' --skin-* variables, so switching
+ * the docs skin re-skins the token-driven docs chrome (sidebar, header, cards,
+ * prose) without touching a single component's markup.
+ *
+ * Every rule is scoped under .docs-skin so the /skins page (which sets
+ * data-skin directly via <FancyProvider> without the .docs-skin class) is
+ * unaffected — this bridge only applies to the documentation site shell.
+ *
+ * The rules live in per-region files so each area of the shell can evolve
+ * independently:
+ *   skins/bridge.css                 semantic token map + shared type/border/shadow grammar
+ *   skins/brutal/…                   Brutal paper chrome, one file per region
+ *   skins/retro-os/…                 Retro OS desktop chrome, one file per region
+ */
+
+@import "./skins/bridge.css";
+
+@import "./skins/brutal/page.css";
+@import "./skins/brutal/header.css";
+@import "./skins/brutal/sidebar.css";
+@import "./skins/brutal/content.css";
+@import "./skins/brutal/preview.css";
+
+@import "./skins/retro-os/skin-base.css";
+@import "./skins/retro-os/shared.css";
+@import "./skins/retro-os/header.css";
+@import "./skins/retro-os/sidebar.css";
+@import "./skins/retro-os/content.css";
+@import "./skins/retro-os/preview-taskbar.css";

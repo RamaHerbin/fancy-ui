@@ -35,6 +35,9 @@ export const SCHEMA_APP_ID = `${SITE_URL}/#app`;
 /** Read from the registry so the number in the copy can never drift. */
 export const COMPONENT_COUNT = getAllComponents().length;
 
+/** Package version, baked in from package.json by Vite (see vite.config.ts). */
+export const PACKAGE_VERSION = __PKG_VERSION__;
+
 export const SITE_DESCRIPTION = `${COMPONENT_COUNT} animated UI components for Svelte 5 — WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.`;
 
 /** Resolve a site-relative path or an already-absolute URL to an absolute URL. */

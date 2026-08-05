@@ -161,6 +161,12 @@ export default {
 	"intro.category.dataDisplay": "نمایش داده",
 	"intro.category.feedback": "بازخورد",
 	"intro.category.media": "رسانه",
+	"intro.stats.buttons": "Rainbow، Ripple، Shimmer و دیگران. دکمه‌هایی که به کلیک دعوت می‌کنند.",
+	"intro.stats.cards": "چرخ‌وفلک‌ها، شبکه‌های بنتو، جلوه‌های سه‌بعدی. راه‌هایی برای نمایش محتوا بدون خستگی.",
+	"intro.stats.effects": "نشانگرها، ردها، متن‌های متحرک. جزئیات کوچکی که تفاوت می‌سازند.",
+	"sidebar.starTitle": "ستاره در GitHub",
+	"sidebar.starBody": "اگر FancyUI را می‌پسندید، ستاره‌ای بدهید!",
+	"rail.nextPage": "صفحهٔ بعد",
 	"intro.nextSteps.heading": "گام‌های بعدی",
 	"intro.nextSteps.installation": "نصب",
 	"intro.nextSteps.theming": "پوسته‌بندی",
@@ -168,7 +174,7 @@ export default {
 	"intro.cta.title": "تازه با FancyUI آشنا شده‌اید؟",
 	"intro.cta.body":
 		"<strong>سازنده‌ی پوسته</strong> را بررسی کنید تا رنگ‌ها را سفارشی‌سازی کرده و واکنش آنی کامپوننت‌ها را مشاهده کنید.",
-	"intro.cta.button": "امتحان سازنده‌ی پوسته →",
+	"intro.cta.button": "امتحان سازنده‌ی پوسته",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "نصب",
@@ -288,4 +294,13 @@ export default {
 	"changelog.major": "تغییرات عمده",
 	"changelog.minor": "تغییرات فرعی",
 	"changelog.patch": "تغییرات وصله‌ای",
+	// Cameleon docs skins
+	"skin.heading": "پوسته",
+	"skin.standard": "استاندارد",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "تغییر پوسته",
+	"retro.explorer": "کاوشگر",
+	"retro.start": "شروع",
+	"retro.tagline": "کامپوننت‌های متحرک برای Svelte 5 — آماده کپی و چسباندن.",
 } satisfies Catalog;

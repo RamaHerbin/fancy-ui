@@ -162,6 +162,12 @@ export default {
 	"intro.category.dataDisplay": "Visualizzazione dati",
 	"intro.category.feedback": "Feedback",
 	"intro.category.media": "Media",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer e compagnia. Pulsanti che invitano al clic.",
+	"intro.stats.cards": "Caroselli, griglie bento, effetti 3D. Modi per presentare contenuti senza annoiare.",
+	"intro.stats.effects": "Cursori, scie, testi animati. I piccoli tocchi che fanno la differenza.",
+	"sidebar.starTitle": "Stella su GitHub",
+	"sidebar.starBody": "Se FancyUI ti piace, lascia una stella!",
+	"rail.nextPage": "Pagina successiva",
 	"intro.nextSteps.heading": "Prossimi passi",
 	"intro.nextSteps.installation": "Installazione",
 	"intro.nextSteps.theming": "Temi",
@@ -169,7 +175,7 @@ export default {
 	"intro.cta.title": "Nuovo su FancyUI?",
 	"intro.cta.body":
 		"Scopri il <strong>Generatore di temi</strong> per personalizzare i colori e vedere i componenti reagire in tempo reale.",
-	"intro.cta.button": "Prova il Generatore di temi →",
+	"intro.cta.button": "Prova il Generatore di temi",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Installazione",
@@ -289,4 +295,13 @@ export default {
 	"changelog.major": "Modifiche principali",
 	"changelog.minor": "Modifiche minori",
 	"changelog.patch": "Modifiche patch",
+	// Cameleon docs skins
+	"skin.heading": "Skin",
+	"skin.standard": "Standard",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Cambia skin",
+	"retro.explorer": "Esplora risorse",
+	"retro.start": "Start",
+	"retro.tagline": "Componenti animati per Svelte 5 — pronti da copiare e incollare.",
 } satisfies Catalog;

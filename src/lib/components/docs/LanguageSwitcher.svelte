@@ -73,6 +73,8 @@
 				d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
 			/>
 		</svg>
+		<!-- Hidden by default; the brutal skin swaps the globe for this mono code. -->
+		<span class="docs-lang-badge" aria-hidden="true">{localeBadge(activeCode)}</span>
 		<svg
 			width="12"
 			height="12"
@@ -134,3 +136,10 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Hidden unless a skin (brutal) opts in via docs-skin.css. */
+	.docs-lang-badge {
+		display: none;
+	}
+</style>

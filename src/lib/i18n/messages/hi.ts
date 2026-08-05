@@ -161,6 +161,12 @@ export default {
 	"intro.category.dataDisplay": "डेटा डिस्प्ले",
 	"intro.category.feedback": "फ़ीडबैक",
 	"intro.category.media": "मीडिया",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer और साथी। ऐसे बटन जिन पर क्लिक करने का मन करे।",
+	"intro.stats.cards": "कैरोसेल, बेंटो ग्रिड, 3D प्रभाव। कंटेंट दिखाने के दिलचस्प तरीके।",
+	"intro.stats.effects": "कर्सर, ट्रेल, ऐनिमेटेड टेक्स्ट। छोटे स्पर्श जो फ़र्क़ बनाते हैं।",
+	"sidebar.starTitle": "GitHub पर स्टार करें",
+	"sidebar.starBody": "अगर FancyUI पसंद आए तो एक स्टार दें!",
+	"rail.nextPage": "अगला पृष्ठ",
 	"intro.nextSteps.heading": "अगले कदम",
 	"intro.nextSteps.installation": "इंस्टॉलेशन",
 	"intro.nextSteps.theming": "थीमिंग",
@@ -168,7 +174,7 @@ export default {
 	"intro.cta.title": "FancyUI में नए हैं?",
 	"intro.cta.body":
 		"रंगों को कस्टमाइज़ करने और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखने के लिए <strong>थीम जनरेटर</strong> देखें।",
-	"intro.cta.button": "थीम जनरेटर आज़माएं →",
+	"intro.cta.button": "थीम जनरेटर आज़माएं",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "इंस्टॉलेशन",
@@ -286,4 +292,13 @@ export default {
 	"changelog.major": "बड़े बदलाव",
 	"changelog.minor": "छोटे बदलाव",
 	"changelog.patch": "पैच बदलाव",
+	// Cameleon docs skins
+	"skin.heading": "स्किन",
+	"skin.standard": "मानक",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "स्किन बदलें",
+	"retro.explorer": "एक्सप्लोरर",
+	"retro.start": "स्टार्ट",
+	"retro.tagline": "Svelte 5 के लिए एनिमेटेड कंपोनेंट — कॉपी-पेस्ट के लिए तैयार।",
 } satisfies Catalog;

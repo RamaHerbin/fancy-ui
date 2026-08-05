@@ -160,6 +160,12 @@ export default {
 	"intro.category.dataDisplay": "عرض البيانات",
 	"intro.category.feedback": "التغذية الراجعة",
 	"intro.category.media": "الوسائط",
+	"intro.stats.buttons": "Rainbow وRipple وShimmer وغيرها. أزرار تدعوك للنقر عليها.",
+	"intro.stats.cards": "دوّارات وشبكات بينتو وتأثيرات ثلاثية الأبعاد. طرق لعرض المحتوى دون ملل.",
+	"intro.stats.effects": "مؤشرات وآثار ونصوص متحركة. لمسات صغيرة تصنع الفرق.",
+	"sidebar.starTitle": "نجمة على GitHub",
+	"sidebar.starBody": "إذا أعجبك FancyUI فامنحه نجمة!",
+	"rail.nextPage": "الصفحة التالية",
 	"intro.nextSteps.heading": "الخطوات التالية",
 	"intro.nextSteps.installation": "التثبيت",
 	"intro.nextSteps.theming": "السِّمات",
@@ -167,7 +173,7 @@ export default {
 	"intro.cta.title": "جديد على FancyUI؟",
 	"intro.cta.body":
 		"اطّلع على <strong>مُولّد السِّمات</strong> لتخصيص الألوان ومشاهدة تفاعل المكوّنات في الوقت الفعلي.",
-	"intro.cta.button": "جرّب مُولّد السِّمات →",
+	"intro.cta.button": "جرّب مُولّد السِّمات",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "التثبيت",
@@ -280,4 +286,13 @@ export default {
 	"changelog.major": "تغييرات كبرى",
 	"changelog.minor": "تغييرات صغرى",
 	"changelog.patch": "تغييرات الإصلاح",
+	// Cameleon docs skins
+	"skin.heading": "المظهر",
+	"skin.standard": "قياسي",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "تغيير المظهر",
+	"retro.explorer": "المستكشف",
+	"retro.start": "ابدأ",
+	"retro.tagline": "مكوّنات متحركة لـ Svelte 5 — جاهزة للنسخ واللصق.",
 } satisfies Catalog;
