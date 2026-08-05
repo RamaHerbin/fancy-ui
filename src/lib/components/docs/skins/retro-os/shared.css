@@ -4,10 +4,14 @@
    Everything below reshapes the docs shell into a late-90s desktop OS ONLY under
    the retro-os skin. Gated markup (retro-brand, retro-explorer-bar, retro-preview-
    bar, retro-taskbar, retro-pager…) is styled here; standard/brutal never match.
-   The light gold #ECD77F is a fill tint that has no --skin-* token, so it is used
-   as a literal here (same as the retro-os recipes). */
 
-/* ---- Shared: pixel logo, press interaction -------------------------------- */
+   Every value is transcribed from the in-repo design reference
+   (vendor/design-refs/retro-os/FancyUI-Docs-Retro.dc.html) — do not eyeball or
+   round them. The light gold #ECD77F is a fill tint that has no --skin-* token,
+   so it is used as a literal here (same as the retro-os recipes). */
+
+/* ---- Shared: pixel logo ---------------------------------------------------- */
+/* Reference l.30: a 2x2 ink-gapped grid of the four accents. */
 .docs-skin[data-skin="retro-os"] .retro-pixel-logo {
 	display: inline-grid;
 	grid-template-columns: 8px 8px;
@@ -16,6 +20,15 @@
 	padding: 2px;
 	flex: none;
 	background: var(--skin-line);
+}
+/* Small variant — the taskbar START button (reference l.660) uses 6px cells with
+   a 1.5px gutter, same four colors. Declared after the base at equal specificity
+   so source order carries the override. */
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo-sm {
+	grid-template-columns: 6px 6px;
+	grid-template-rows: 6px 6px;
+	gap: 1.5px;
+	padding: 1.5px;
 }
 .docs-skin[data-skin="retro-os"] .retro-pixel-logo > span:nth-child(1) {
 	background: #b8912b;
@@ -30,15 +43,90 @@
 	background: #3a6b42;
 }
 
+/* ---- Shared: press grammar (spec §1.3 hard-shadow ladder) ------------------ */
+/* One class carries the motion; the rung of the ladder lives in custom
+   properties, so a consumer picks its level with a modifier instead of
+   re-declaring four rules:
+
+     .retro-press              rest 2 → hover 3, sink  2px, .1s   GITHUB · START · small ctl
+     .retro-press-md           rest 3 → hover 4, sink  2px, .12s  pager · section button
+     .retro-press-lg           rest 4 → hover 5, sink  3px, .12s  preview window · stage button
+     .retro-press-card         rest 3 → hover 5, lift -2px, no active (cards)
+
+   An element that paints its own rest shadow keeps it: its rule lives in a
+   region file imported after this one, so it wins at equal specificity. To move
+   such an element to another rung, set --retro-press-rest/--retro-press-hover on
+   it rather than re-declaring the states. */
 .docs-skin[data-skin="retro-os"] .retro-press {
+	--retro-press-rest: 2px;
+	--retro-press-hover: 3px;
+	--retro-press-active: 0px;
+	--retro-press-lift: -1px;
+	--retro-press-sink: 2px;
+	--retro-press-time: 0.1s;
+	box-shadow: var(--retro-press-rest) var(--retro-press-rest) 0 var(--skin-line);
 	transition:
-		transform 0.1s,
-		box-shadow 0.1s;
+		transform var(--retro-press-time),
+		box-shadow var(--retro-press-time);
+}
+.docs-skin[data-skin="retro-os"] .retro-press-md {
+	--retro-press-rest: 3px;
+	--retro-press-hover: 4px;
+	--retro-press-time: 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .retro-press-lg {
+	--retro-press-rest: 4px;
+	--retro-press-hover: 5px;
+	--retro-press-sink: 3px;
+	--retro-press-time: 0.12s;
+}
+/* Cards lift twice as far and have no pressed state: the active values simply
+   repeat the hover ones. */
+.docs-skin[data-skin="retro-os"] .retro-press-card {
+	--retro-press-rest: 3px;
+	--retro-press-hover: 5px;
+	--retro-press-active: 5px;
+	--retro-press-lift: -2px;
+	--retro-press-sink: -2px;
+	--retro-press-time: 0.12s;
 }
 .docs-skin[data-skin="retro-os"] .retro-press:hover {
-	transform: translate(-1px, -1px);
+	transform: translate(var(--retro-press-lift), var(--retro-press-lift));
+	box-shadow: var(--retro-press-hover) var(--retro-press-hover) 0 var(--skin-line);
 }
-.docs-skin[data-skin="retro-os"] .retro-press:active {
-	transform: translate(2px, 2px);
-	box-shadow: none;
+/* `:not(:disabled)` is both meaningful (a disabled control never presses) and a
+   specificity bump, so the pressed state also beats a later file's `:hover`. */
+.docs-skin[data-skin="retro-os"] .retro-press:not(:disabled):active {
+	transform: translate(var(--retro-press-sink), var(--retro-press-sink));
+	box-shadow: var(--retro-press-active) var(--retro-press-active) 0 var(--skin-line);
+}
+/* Spec §1.4: the reference has no focus state, so this is the authored one —
+   an element that already carries a hard shadow keeps it and stacks the ring. */
+.docs-skin[data-skin="retro-os"] .retro-press:focus-visible {
+	outline: none;
+	box-shadow:
+		var(--retro-press-rest) var(--retro-press-rest) 0 var(--skin-line),
+		0 0 0 2px var(--skin-blue);
+}
+
+/* ---- RTL ------------------------------------------------------------------ */
+/* Hard offset shadows point away from the reading direction, and the press lift
+   follows them: mirror the X sign of both. `:where()` keeps specificity identical
+   to the LTR rules above, so source order decides — which also lets a region file
+   imported after this one keep owning its own element's mirror. */
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-press {
+	box-shadow: calc(var(--retro-press-rest) * -1) var(--retro-press-rest) 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-press:hover {
+	transform: translate(calc(var(--retro-press-lift) * -1), var(--retro-press-lift));
+	box-shadow: calc(var(--retro-press-hover) * -1) var(--retro-press-hover) 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-press:not(:disabled):active {
+	transform: translate(calc(var(--retro-press-sink) * -1), var(--retro-press-sink));
+	box-shadow: calc(var(--retro-press-active) * -1) var(--retro-press-active) 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-press:focus-visible {
+	box-shadow:
+		calc(var(--retro-press-rest) * -1) var(--retro-press-rest) 0 var(--skin-line),
+		0 0 0 2px var(--skin-blue);
 }

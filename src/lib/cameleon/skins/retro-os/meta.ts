@@ -3,9 +3,10 @@ import type { SkinMeta } from "../../types.js";
 /** Retro OS design metadata — the exact values from the design system. */
 export const retroOsMeta: SkinMeta = {
 	palette: [
-		{ name: "Desk", value: "#F1E9D4", note: "fond + scanlines" },
-		{ name: "Panneau", value: "#FAF5E6", note: "fenêtre" },
-		{ name: "Carte", value: "#FDFAF0", note: "tuile interne" },
+		{ name: "Bureau", value: "#E5DCC2", note: "hors fenêtre" },
+		{ name: "Fenêtre", value: "#F1E9D4", note: "papier + scanlines" },
+		{ name: "Panneau", value: "#FAF5E6", note: "menubar · explorer · cartes" },
+		{ name: "Surface", value: "#FDFAF0", note: "champ · scène" },
 		{ name: "Encre", value: "#191308", note: "texte · bordures" },
 		{ name: "Jaune foncé", value: "#7D6414", note: "01 EXP" },
 		{ name: "Rouge", value: "#A0442F", note: "02 PROJ" },

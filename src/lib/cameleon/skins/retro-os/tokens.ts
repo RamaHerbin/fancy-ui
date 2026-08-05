@@ -3,6 +3,10 @@
  * Desk/panel/card paper stack, ink borders, five flat accents, Archivo +
  * IBM Plex Mono + Silkscreen.
  *
+ * Paper stack note: the desk (#E5DCC2) is the surface OUTSIDE the window; the
+ * window itself is #F1E9D4 (--skin-page-bg / --skin-paper), panels are #FAF5E6
+ * (--skin-card) and inputs/stages are #FDFAF0 (--skin-surface).
+ *
  * Accent mapping note: the design has exactly five accents and no purple.
  * --skin-yellow carries the gold accent #B8912B (the lighter #ECD77F is a
  * fill tint, not an accent, and lives in per-skin CSS instead of tokens).
@@ -10,6 +14,7 @@
  * of the shared five-accent contract still get a fifth distinct color.
  */
 export const retroOsTokens: Record<string, string> = {
+	"--skin-desk": "#E5DCC2",
 	"--skin-page-bg": "#F1E9D4",
 	"--skin-page-fg": "#191308",
 	"--skin-paper": "#F1E9D4",

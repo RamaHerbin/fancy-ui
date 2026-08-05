@@ -175,7 +175,7 @@ export default {
 	"intro.cta.title": "Neu bei FancyUI?",
 	"intro.cta.body":
 		"Schau dir den <strong>Theme-Generator</strong> an, um Farben anzupassen und zu sehen, wie Komponenten in Echtzeit reagieren.",
-	"intro.cta.button": "Theme-Generator ausprobieren →",
+	"intro.cta.button": "Theme-Generator ausprobieren",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Installation",

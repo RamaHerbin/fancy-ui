@@ -177,7 +177,7 @@ export default {
 	"intro.cta.title": "FancyUI は初めてですか？",
 	"intro.cta.body":
 		"<strong>テーマジェネレーター</strong> をチェックして、色をカスタマイズしたり、コンポーネントがリアルタイムに反応する様子を確認したりしましょう。",
-	"intro.cta.button": "テーマジェネレーターを試す →",
+	"intro.cta.button": "テーマジェネレーターを試す",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "インストール",

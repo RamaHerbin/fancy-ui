@@ -173,7 +173,7 @@ export default {
 	"intro.cta.title": "FancyUI가 처음이신가요?",
 	"intro.cta.body":
 		"색상을 사용자 지정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하려면 <strong>테마 생성기</strong>를 확인해 보세요.",
-	"intro.cta.button": "테마 생성기 사용해보기 →",
+	"intro.cta.button": "테마 생성기 사용해보기",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "설치",

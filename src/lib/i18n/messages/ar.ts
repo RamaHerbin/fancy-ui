@@ -173,7 +173,7 @@ export default {
 	"intro.cta.title": "جديد على FancyUI؟",
 	"intro.cta.body":
 		"اطّلع على <strong>مُولّد السِّمات</strong> لتخصيص الألوان ومشاهدة تفاعل المكوّنات في الوقت الفعلي.",
-	"intro.cta.button": "جرّب مُولّد السِّمات →",
+	"intro.cta.button": "جرّب مُولّد السِّمات",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "التثبيت",

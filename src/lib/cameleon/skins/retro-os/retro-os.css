@@ -11,8 +11,14 @@
 		auto;
 }
 
-/* CRT scanlines overlay — sits above content, below nothing (top layer of the skin). */
-[data-skin="retro-os"]::after {
+/* CRT scanlines overlay — sits above content, below nothing (top layer of the skin).
+   Excluded on the docs shell (.docs-skin): there the skin paints a desk around a
+   window, and a root-level overlay would tint the desk too. The docs site re-declares
+   the very same gradient as the .retro-frame background-image (docs/skins/retro-os/
+   skin-base.css) so the scanlines stay inside the window, exactly like the reference.
+   Every other context (the /skins page, a consumer's <FancyProvider>) keeps the
+   overlay unchanged. */
+[data-skin="retro-os"]:not(.docs-skin)::after {
 	content: "";
 	position: absolute;
 	inset: 0;

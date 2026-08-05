@@ -184,7 +184,7 @@ export const en = {
 	"intro.cta.title": "New to FancyUI?",
 	"intro.cta.body":
 		"Check out the <strong>Theme Generator</strong> to customize colors and see components react in real time.",
-	"intro.cta.button": "Try Theme Generator →",
+	"intro.cta.button": "Try Theme Generator",
 
 	// Installation page
 	"install.metaTitle": "Installation",

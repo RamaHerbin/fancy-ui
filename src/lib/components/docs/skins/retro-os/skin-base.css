@@ -1,19 +1,106 @@
-/* Retro OS docs skin — skin-level base: tokens, shadow/border/type grammar.
-   Scope every rule under .docs-skin[data-skin="retro-os"]. */
+/* Retro OS docs skin — skin-level base: tokens, desk + window frame, body grid,
+   shadow/border/type grammar. Scope every rule under .docs-skin[data-skin="retro-os"]. */
 
 /* ---- Retro OS-specific tokens ---------------------------------------------- */
 .docs-skin[data-skin="retro-os"] {
-	--muted: #e5dcc2;
+	--muted: var(--skin-desk);
 	--muted-foreground: var(--skin-muted);
 	/* retro-os hovers use the design tint, not the gold accent */
 	--accent: #ecd77f;
 	--accent-foreground: var(--skin-ink);
 	--sidebar-accent: #ecd77f;
-	--code-fg-muted: rgba(25, 19, 8, 0.55);
-	--code-chip-bg: rgba(25, 19, 8, 0.08);
-	/* kw stays blue: the purple token equals the str dark-yellow hex */
-	--code-kw: var(--skin-blue);
-	--code-str: #7d6414;
+
+	/* Code surfaces are INK-dark: every code pane in the reference is #191308
+	   (terminal green body text, gold keywords, salmon strings), so the light
+	   bridge defaults are flipped here rather than in bridge.css. */
+	--code-bg: #191308;
+	--code-border: #191308;
+	--code-fg: #faf5e6;
+	--code-fg-muted: #b8ac8c;
+	--code-cmd: #b5dcb2;
+	--code-kw: #ecd77f;
+	--code-str: #f0bfa8;
+	--code-chip-bg: rgba(250, 245, 230, 0.1);
+}
+
+/* ---- R1 · Desk + window frame ----------------------------------------------- */
+/* The whole docs shell is a single desktop window sitting on a desk: the desk is
+   full-bleed #E5DCC2, the window is a 1600px-max #F1E9D4 sheet with a 3px ink
+   border and an 8px hard shadow. */
+.docs-skin[data-skin="retro-os"] {
+	background: var(--skin-desk);
+}
+.docs-skin[data-skin="retro-os"] .retro-desktop {
+	min-height: 100svh;
+	background: var(--skin-desk);
+	/* flow-root keeps the frame's 24px top margin INSIDE the desk instead of
+	   collapsing out through its top edge. */
+	display: flow-root;
+}
+.docs-skin[data-skin="retro-os"] .retro-frame {
+	/* The explicit inline size is load-bearing: on a block box `margin-inline:auto`
+	   resolves to 0 whenever the viewport is narrower than max-width, which sent the
+	   window edge-to-edge and pushed the 8px shadow off-screen below 1648px. Sizing
+	   the frame to the viewport minus the gutter keeps the desk visible and the
+	   shadow on screen at every width; the auto margins still centre it once the
+	   1600px cap kicks in. Under 640px the gutter drops to 12px per side. */
+	width: calc(100% - 24px);
+	max-width: 1600px;
+	margin: 12px auto;
+	border: 3px solid var(--skin-line);
+	background-color: var(--skin-paper);
+	background-image: repeating-linear-gradient(
+		0deg,
+		rgba(25, 19, 8, 0.04) 0 2px,
+		transparent 2px 4px
+	);
+	box-shadow: 8px 8px 0 var(--skin-line);
+	color: var(--skin-ink);
+	font-family: var(--skin-font-sans);
+	/* The reference frame is overflow:hidden — deliberately NOT copied: it would
+	   turn the window into a scroll container and silently kill position:sticky on
+	   the TOC panel and the menubar. overflow-x:clip clips without scrolling.
+	   The pixel cursor is inherited from [data-skin="retro-os"] (retro-os.css). */
+	overflow-x: clip;
+}
+@media (min-width: 640px) {
+	.docs-skin[data-skin="retro-os"] .retro-frame {
+		width: calc(100% - 48px);
+		margin: 24px auto;
+	}
+}
+
+/* ---- R3 · Body grid --------------------------------------------------------- */
+/* Reference: grid-template-columns:264px 1fr 216px; gap:24px; padding:24px. The
+   216px TOC rail lives inside .docs-shell (.docs-content-row), so the frame-level
+   grid is 264px + the main column and the rail is split off one level down — the
+   resulting content width is identical (1600 − 6 border − 48 padding − 2×24 gap
+   − 264 − 216 = 1018px). Below lg the sidebar reverts to the off-canvas drawer
+   (out of flow), so the grid drops to a single column. */
+.docs-skin[data-skin="retro-os"] .retro-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 24px;
+	padding: 24px;
+	align-items: start;
+}
+@media (min-width: 1024px) {
+	.docs-skin[data-skin="retro-os"] .retro-body {
+		grid-template-columns: 264px minmax(0, 1fr);
+	}
+}
+.docs-skin[data-skin="retro-os"] .retro-main {
+	min-width: 0;
+}
+/* The shared shell carries the non-retro page offsets (mx-auto max-w-7xl px-4
+   py-8 lg:px-8) — inside the window the grid padding above owns that rhythm. */
+.docs-skin[data-skin="retro-os"] .docs-shell {
+	max-width: none;
+	margin: 0;
+	padding: 0;
+}
+.docs-skin[data-skin="retro-os"] .docs-content-row {
+	gap: 24px;
 }
 
 /* ---- Hard shadows ----------------------------------------------------------- */
@@ -40,17 +127,16 @@
 }
 
 /* ---- Type ----------------------------------------------------------- */
+/* The reference uses Archivo at 400/700/900 only, and exactly two non-default
+   letter-spacings in the whole document: -1.5px on the 46px h1 and -0.3px on a
+   carousel card title. Everything else tracks normally. */
 .docs-skin[data-skin="retro-os"] h1 {
 	font-weight: 900;
-	letter-spacing: -0.04em;
+	letter-spacing: -1.5px;
 }
-.docs-skin[data-skin="retro-os"] h2 {
-	font-weight: 850;
-	letter-spacing: -0.02em;
-}
-.docs-skin[data-skin="retro-os"] :is(h3, h4) {
-	font-weight: 800;
-	letter-spacing: -0.01em;
+.docs-skin[data-skin="retro-os"] :is(h2, h3, h4) {
+	font-weight: 700;
+	letter-spacing: normal;
 }
 .docs-skin[data-skin="retro-os"] header nav,
 .docs-skin[data-skin="retro-os"] kbd {
@@ -65,9 +151,35 @@
 	color: var(--skin-purple);
 }
 
-/* ---- Shiki palette flip ----------------------------------------------------- */
-/* Retro OS's code surface is light today, so it flips to the light palette. */
+/* ---- Shiki palette ----------------------------------------------------- */
+/* The code surface is ink-dark (see --code-bg), so shiki stays on the dark
+   palette — restated here so the intent survives a bridge.css change. */
 .docs-skin[data-skin="retro-os"] .shiki,
 .docs-skin[data-skin="retro-os"] .shiki span {
-	color: var(--shiki-light);
+	color: var(--code-fg);
+}
+/* Keyed on shiki's inline --shiki-dark value; hexes must stay UPPERCASE
+   (attribute-value matching is case-sensitive and shiki emits #F97583). */
+.docs-skin[data-skin="retro-os"] .shiki span[style*="--shiki-dark:#F97583"],
+.docs-skin[data-skin="retro-os"] .shiki span[style*="--shiki-dark:#B392F0"] {
+	color: var(--code-kw);
+}
+.docs-skin[data-skin="retro-os"] .shiki span[style*="--shiki-dark:#9ECBFF"] {
+	color: var(--code-str);
+}
+.docs-skin[data-skin="retro-os"] .shiki span[style*="--shiki-dark:#85E89D"],
+.docs-skin[data-skin="retro-os"] .shiki span[style*="--shiki-dark:#79B8FF"] {
+	color: var(--code-cmd);
+}
+
+/* ---- RTL ----------------------------------------------------------------- */
+/* Hard offset shadows point away from the reading direction: mirror the X offset.
+   :where() keeps specificity identical to the rules above, so source order wins. */
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-frame {
+	box-shadow: -8px 8px 0 var(--skin-line);
+}
+:where([dir="rtl"])
+	.docs-skin[data-skin="retro-os"]
+	:is(.shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+	box-shadow: -3px 3px 0 var(--skin-line);
 }

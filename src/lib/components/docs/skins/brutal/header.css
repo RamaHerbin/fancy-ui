@@ -1,1 +1,389 @@
-/* Brutal docs skin — header region. Scope every rule under .docs-skin[data-skin="brutal"]. */
+/* Brutal docs skin — header region (R7 top bar · R8 breadcrumb · R9 search pill ·
+   R10 square icon buttons · R11 theme button).
+
+   Every value is transcribed from the in-repo design reference
+   (vendor/design-refs/brutal/FancyUI-Intro-CV-Style.dc.html) — do not eyeball or
+   round them. Scope every rule under .docs-skin[data-skin="brutal"] so the
+   standard skin and the /skins page (data-skin without .docs-skin) stay untouched.
+
+   Icon sizing note: the reference SVGs and the repo's SVGs use different
+   viewBoxes, so a stroke-width cannot be copied verbatim — it is converted with
+   rendered = stroke-width x (display / viewBox), solving for the repo's viewBox
+   at the reference's rendered stroke. Each conversion is shown where it happens. */
+
+/* ---- R7 · Top bar container ------------------------------------------------ */
+.docs-skin[data-skin="brutal"] header {
+	position: sticky;
+	top: 0;
+	z-index: 40;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 58px;
+	box-sizing: border-box;
+	padding: 0 clamp(14px, 2.5vw, 28px);
+	/* Opaque paper — the reference has no translucency and no backdrop-filter. */
+	background: var(--skin-paper);
+	backdrop-filter: none;
+	border-bottom: 1.5px solid var(--skin-line);
+}
+
+/* The right-hand control group is the reference's `flex:1` spacer + 10px gap. */
+.docs-skin[data-skin="brutal"] header > .flex-1 {
+	gap: 10px;
+}
+
+/* Hamburger (repo renders it below `lg`; the reference below 1180px).
+   R10 grammar minus the lift: hover paints the hard shadow only.
+   `display` is deliberately never declared here so Tailwind's `lg:hidden`
+   keeps hiding the button on desktop. */
+.docs-skin[data-skin="brutal"] header > button {
+	width: 34px;
+	height: 34px;
+	flex: none;
+	box-sizing: border-box;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 9px;
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	cursor: pointer;
+	outline: none;
+	transition: box-shadow 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] header > button:hover {
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="brutal"] header > button:active {
+	box-shadow: none;
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="brutal"] header > button:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.3);
+}
+/* Reference glyph: 14px svg, viewBox 16, stroke-width 1.7 → 1.4875px rendered.
+   Repo glyph uses viewBox 24 → 1.4875 x 24 / 14 = 2.55. */
+.docs-skin[data-skin="brutal"] header > button > svg {
+	width: 14px;
+	height: 14px;
+	stroke-width: 2.55;
+}
+
+/* ---- R8 · Breadcrumb ------------------------------------------------------- */
+/* Archivo 13px — page.css maps `header nav` to the mono stack for the Retro OS
+   menubar, so the sans stack is restored here (same specificity, later import). */
+.docs-skin[data-skin="brutal"] header nav {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	font-family: var(--skin-font-sans);
+	font-size: 13px;
+	/* Undoes the markup's `text-sm` line-height so the crumbs measure like the
+	   reference, which declares none. */
+	line-height: normal;
+}
+.docs-skin[data-skin="brutal"] header nav a {
+	font-weight: 600;
+	color: var(--skin-ink);
+	opacity: 0.6;
+	border-radius: 4px;
+	text-decoration: none;
+	outline: none;
+}
+/* Re-states ink so the skin's global `a:hover` blue does not bleed into a crumb. */
+.docs-skin[data-skin="brutal"] header nav a:hover {
+	color: var(--skin-ink);
+	opacity: 1;
+	text-decoration: underline;
+}
+.docs-skin[data-skin="brutal"] header nav a:focus-visible {
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.3);
+}
+/* Current crumb (the only non-separator span). */
+.docs-skin[data-skin="brutal"] header nav > span {
+	font-weight: 800;
+	color: var(--skin-ink);
+	opacity: 1;
+}
+.docs-skin[data-skin="brutal"] header nav > span.retro-crumb-sep {
+	font-weight: 400;
+	color: var(--skin-ink);
+	opacity: 0.4;
+}
+
+/* ---- R9 · Search pill + ⌘K chip -------------------------------------------- */
+/* The reference hides the pill below 768px; `display` is therefore declared on
+   both sides of the breakpoint (it overrides the markup's `hidden sm:flex`). */
+.docs-skin[data-skin="brutal"] .docs-search {
+	display: none;
+	align-items: center;
+	gap: 8px;
+	/* The reference declares `width: 210px` with no `box-sizing` reset, so the
+	   pill is content-box: 210 + 12+12 padding + 1.5+1.5 border = 236px used. */
+	width: 210px;
+	flex: none;
+	box-sizing: content-box;
+	padding: 7px 12px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 999px;
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	cursor: text;
+	outline: none;
+	/* The reference declares no line-height, so the pill measures 32px from its
+	   padding; the markup's `text-sm` would otherwise inflate it to 37px. */
+	line-height: normal;
+	transition: box-shadow 0.12s ease;
+}
+@media (min-width: 768px) {
+	.docs-skin[data-skin="brutal"] .docs-search {
+		display: flex;
+	}
+}
+.docs-skin[data-skin="brutal"] .docs-search:hover {
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="brutal"] .docs-search:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.3);
+}
+/* Reference glyph: 12px svg, viewBox 14, stroke-width 1.6 → 1.371px rendered.
+   Repo glyph uses viewBox 24 → 1.371 x 24 / 12 = 2.74. */
+.docs-skin[data-skin="brutal"] .docs-search .retro-search-icon {
+	width: 12px;
+	height: 12px;
+	flex: none;
+	opacity: 0.6;
+	color: var(--skin-ink);
+	stroke-width: 2.74;
+}
+/* `flex:1` stands in for the reference's spacer span before the chip. */
+.docs-skin[data-skin="brutal"] .docs-search .retro-search-label {
+	flex: 1;
+	text-align: start;
+	font-size: 12.5px;
+	font-weight: 550;
+	opacity: 0.55;
+}
+.docs-skin[data-skin="brutal"] .docs-search kbd {
+	flex: none;
+	font-family: var(--skin-font-mono);
+	font-size: 9px;
+	font-weight: 700;
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	border: 0;
+	border-radius: 5px;
+	padding: 2px 6px;
+}
+
+/* ---- R10 · Square icon buttons (GitHub · language · skin) ------------------- */
+.docs-skin[data-skin="brutal"] .docs-gh,
+.docs-skin[data-skin="brutal"] header [data-language-switcher] > button,
+.docs-skin[data-skin="brutal"] header [data-skin-switcher] > button {
+	height: 34px;
+	flex: none;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 9px;
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	cursor: pointer;
+	outline: none;
+	transition:
+		box-shadow 0.12s ease,
+		transform 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] .docs-gh:hover,
+.docs-skin[data-skin="brutal"] header [data-language-switcher] > button:hover,
+.docs-skin[data-skin="brutal"] header [data-skin-switcher] > button:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	background: var(--skin-card);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .docs-gh:active,
+.docs-skin[data-skin="brutal"] header [data-language-switcher] > button:active,
+.docs-skin[data-skin="brutal"] header [data-skin-switcher] > button:active {
+	transform: none;
+	box-shadow: none;
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="brutal"] .docs-gh:focus-visible,
+.docs-skin[data-skin="brutal"] header [data-language-switcher] > button:focus-visible,
+.docs-skin[data-skin="brutal"] header [data-skin-switcher] > button:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.3);
+}
+
+/* GitHub: a 34x34 icon square — the reference shows the mark alone. */
+.docs-skin[data-skin="brutal"] .docs-gh {
+	width: 34px;
+	padding: 0;
+	text-decoration: none;
+}
+.docs-skin[data-skin="brutal"] .docs-gh .retro-gh-icon {
+	width: 16px;
+	height: 16px;
+	flex: none;
+	fill: currentColor;
+}
+/* Star count (GitHubStars) — no counter in the reference. */
+.docs-skin[data-skin="brutal"] .docs-gh > span {
+	display: none;
+}
+
+/* Language: mono locale code + chevron, auto width. */
+.docs-skin[data-skin="brutal"] header [data-language-switcher] > button {
+	justify-content: flex-start;
+	gap: 5px;
+	padding: 0 9px;
+}
+.docs-skin[data-skin="brutal"] .docs-lang-badge {
+	display: inline-block;
+	font-family: var(--skin-font-mono);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1;
+	color: var(--skin-ink);
+}
+/* The globe gives way to the locale code; the chevron stays. */
+.docs-skin[data-skin="brutal"] header [data-language-switcher] > button > svg:first-of-type {
+	display: none;
+}
+/* Reference chevron: 9px svg, viewBox 14, stroke-width 1.8 → 1.157px rendered.
+   Repo chevron uses viewBox 24 → 1.157 x 24 / 9 = 3.09. */
+.docs-skin[data-skin="brutal"] header [data-language-switcher] > button > svg:last-of-type,
+.docs-skin[data-skin="brutal"] header [data-skin-switcher] > button > svg {
+	width: 9px;
+	height: 9px;
+	flex: none;
+	color: var(--skin-ink);
+	stroke-width: 3.09;
+}
+
+/* Skin switcher: absent from the reference, so it inherits the R10 grammar and
+   the language button's mono label (it is the control that selects this skin). */
+.docs-skin[data-skin="brutal"] header [data-skin-switcher] > button {
+	justify-content: flex-start;
+	gap: 5px;
+	padding: 0 9px;
+	font-family: var(--skin-font-mono);
+	font-size: 10px;
+	font-weight: 700;
+}
+
+/* ---- R11 · Theme button ---------------------------------------------------- */
+/* Solid ink square. The repo trigger renders a 4-swatch grid + chevron; both are
+   hidden and the reference's 13px sun is painted as a mask on ::before, which
+   keeps the glyph vector-exact (same circle r=3.2 / 8 rays as the reference)
+   and recolors with `currentColor` instead of shipping a second SVG file. */
+.docs-skin[data-skin="brutal"] .docs-theme-btn {
+	width: 34px;
+	height: 34px;
+	flex: none;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 9px;
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	cursor: pointer;
+	outline: none;
+	transition:
+		box-shadow 0.12s ease,
+		transform 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] .docs-theme-btn:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 rgba(20, 20, 20, 0.35);
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="brutal"] .docs-theme-btn:active {
+	transform: none;
+	box-shadow: none;
+}
+/* No border-color change on focus — the border is already ink. */
+.docs-skin[data-skin="brutal"] .docs-theme-btn:focus-visible {
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.3);
+}
+.docs-skin[data-skin="brutal"] .docs-theme-btn > span,
+.docs-skin[data-skin="brutal"] .docs-theme-btn > svg {
+	display: none;
+}
+.docs-skin[data-skin="brutal"] .docs-theme-btn::before {
+	--brutal-sun: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2016%2016'%20fill='none'%20stroke='%23000'%20stroke-linecap='round'%3E%3Ccircle%20cx='8'%20cy='8'%20r='3.2'%20stroke-width='1.6'/%3E%3Cpath%20d='M8%201.2%20L8%202.8%20M8%2013.2%20L8%2014.8%20M1.2%208%20L2.8%208%20M13.2%208%20L14.8%208%20M3.2%203.2%20L4.3%204.3%20M11.7%2011.7%20L12.8%2012.8%20M12.8%203.2%20L11.7%204.3%20M4.3%2011.7%20L3.2%2012.8'%20stroke-width='1.5'/%3E%3C/svg%3E");
+	content: "";
+	width: 13px;
+	height: 13px;
+	flex: none;
+	background-color: currentColor;
+	-webkit-mask: var(--brutal-sun) center / 13px 13px no-repeat;
+	mask: var(--brutal-sun) center / 13px 13px no-repeat;
+}
+
+/* ---- Compact top bar ------------------------------------------------------- */
+/* The reference switches at 1180px; the repo's shell switches the sidebar and
+   the hamburger at `lg` (1024px), so the compact bar is mapped onto `lg`.
+   Below it: breadcrumb out, 28x28 ink FU tile in beside the hamburger. */
+@media (max-width: 1023.98px) {
+	.docs-skin[data-skin="brutal"] header nav {
+		display: none;
+	}
+	.docs-skin[data-skin="brutal"] header > button {
+		order: -1;
+	}
+	.docs-skin[data-skin="brutal"] header::before {
+		content: "FU";
+		order: 0;
+		/* The header gap is 10px; the reference pairs the tile 9px from the button. */
+		margin-inline-start: -1px;
+		width: 28px;
+		height: 28px;
+		flex: none;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 7px;
+		background: var(--skin-ink);
+		color: var(--skin-paper);
+		font-family: var(--skin-font-mono);
+		font-size: 10px;
+		font-weight: 700;
+	}
+}
+/* The reference also drops the language button below 768px (the skin switcher
+   stays: it is the only way back to another skin). */
+@media (max-width: 767.98px) {
+	.docs-skin[data-skin="brutal"] header [data-language-switcher] {
+		display: none;
+	}
+}
+
+/* ---- RTL mirror ------------------------------------------------------------ */
+/* Hard offsets are bottom-right in LTR; under ar/fa they flip to bottom-left and
+   the lift transforms flip with them. Focus halos are symmetric — left as-is. */
+[dir="rtl"] .docs-skin[data-skin="brutal"] header > button:hover,
+[dir="rtl"] .docs-skin[data-skin="brutal"] .docs-search:hover {
+	box-shadow: -3px 3px 0 var(--skin-line);
+}
+[dir="rtl"] .docs-skin[data-skin="brutal"] .docs-gh:hover,
+[dir="rtl"] .docs-skin[data-skin="brutal"] header [data-language-switcher] > button:hover,
+[dir="rtl"] .docs-skin[data-skin="brutal"] header [data-skin-switcher] > button:hover {
+	transform: translate(1px, -1px);
+	box-shadow: -3px 3px 0 var(--skin-line);
+}
+[dir="rtl"] .docs-skin[data-skin="brutal"] .docs-theme-btn:hover {
+	transform: translate(1px, -1px);
+	box-shadow: -3px 3px 0 rgba(20, 20, 20, 0.35);
+}

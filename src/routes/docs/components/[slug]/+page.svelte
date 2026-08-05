@@ -155,6 +155,7 @@
 	<div class="mb-3 flex flex-wrap items-center gap-2">
 		<span
 			class="retro-tag bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium"
+			data-category={component.category}
 		>
 			{tCategory(component.category)}
 		</span>
@@ -173,54 +174,56 @@
 	<!-- ═══ PREVIEW ═══ -->
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="preview">{t("comp.preview")}</h2>
-		<div class="retro-window border-border overflow-hidden rounded-lg border">
-			{#if isRetro}
-				<!-- Retro window titlebar -->
-				<div class="retro-preview-bar">
-					<span class="retro-pixel-logo" aria-hidden="true">
-						<span></span><span></span><span></span><span></span>
-					</span>
-					<span class="retro-preview-title">{t("comp.preview")} — {component.name}</span>
-					<span class="retro-winctl retro-winctl-min" aria-hidden="true"></span>
-					<span class="retro-winctl retro-winctl-max" aria-hidden="true"></span>
-					<span class="retro-winctl retro-winctl-close" aria-hidden="true"></span>
+		<div class="retro-window-shadow">
+			<div class="retro-window border-border overflow-hidden rounded-lg border">
+				{#if isRetro}
+					<!-- Retro window titlebar -->
+					<div class="retro-preview-bar">
+						<span class="retro-pixel-logo" aria-hidden="true">
+							<span></span><span></span><span></span><span></span>
+						</span>
+						<span class="retro-preview-title">{t("comp.preview")} — {component.name}</span>
+						<span class="retro-winctl retro-winctl-min" aria-hidden="true"></span>
+						<span class="retro-winctl retro-winctl-max" aria-hidden="true"></span>
+						<span class="retro-winctl retro-winctl-close" aria-hidden="true"></span>
+					</div>
+				{/if}
+				<!-- Tabs -->
+				<div class="retro-tabbar border-border flex items-center justify-between border-b px-1">
+					<div class="flex">
+						<button
+							onclick={() => (previewTab = "preview")}
+							class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'preview'
+								? 'border-foreground text-foreground border-b-2'
+								: 'text-muted-foreground hover:text-foreground'}"
+						>
+							{t("comp.preview")}
+						</button>
+						<button
+							onclick={() => (previewTab = "code")}
+							class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'code'
+								? 'border-foreground text-foreground border-b-2'
+								: 'text-muted-foreground hover:text-foreground'}"
+						>
+							{t("comp.code")}
+						</button>
+					</div>
 				</div>
-			{/if}
-			<!-- Tabs -->
-			<div class="retro-tabbar border-border flex items-center justify-between border-b px-1">
-				<div class="flex">
-					<button
-						onclick={() => (previewTab = "preview")}
-						class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'preview'
-							? 'border-foreground text-foreground border-b-2'
-							: 'text-muted-foreground hover:text-foreground'}"
-					>
-						{t("comp.preview")}
-					</button>
-					<button
-						onclick={() => (previewTab = "code")}
-						class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'code'
-							? 'border-foreground text-foreground border-b-2'
-							: 'text-muted-foreground hover:text-foreground'}"
-					>
-						{t("comp.code")}
-					</button>
-				</div>
-			</div>
 
-			<!-- Content -->
-			{#if previewTab === "preview"}
-				<div
-					class="retro-stage bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
-				>
-					<DemoRenderer slug={component.slug} />
+				<!-- Content -->
+				{#if previewTab === "preview"}
+					<div
+						class="retro-stage bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
+					>
+						<DemoRenderer slug={component.slug} />
+					</div>
+				{/if}
+				<!-- The code pane is always mounted, only hidden, so the usage snippet is in the
+				     prerendered HTML instead of appearing solely after a client-side tab switch.
+				     Highlighting still waits for the tab to be opened. -->
+				<div class="max-h-[500px] overflow-auto" hidden={previewTab !== "code"}>
+					<CodeBlock code={previewCode} lang="svelte" active={previewTab === "code"} />
 				</div>
-			{/if}
-			<!-- The code pane is always mounted, only hidden, so the usage snippet is in the
-			     prerendered HTML instead of appearing solely after a client-side tab switch.
-			     Highlighting still waits for the tab to be opened. -->
-			<div class="max-h-[500px] overflow-auto" hidden={previewTab !== "code"}>
-				<CodeBlock code={previewCode} lang="svelte" active={previewTab === "code"} />
 			</div>
 		</div>
 	</section>

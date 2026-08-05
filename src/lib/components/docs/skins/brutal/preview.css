@@ -1,1 +1,308 @@
-/* Brutal docs skin — preview region. Scope every rule under .docs-skin[data-skin="brutal"]. */
+/* Brutal docs skin — preview region: the ink code surfaces (R18), their copy
+   control, the install block and the component-page preview chrome.
+   Scope every rule under .docs-skin[data-skin="brutal"].
+
+   Import order matters for the token block below: this file is imported after
+   skins/brutal/page.css, so the code-token custom properties deliberately
+   restate declarations page.css makes at equal specificity — later wins, no
+   !important needed. Rules (as opposed to tokens) must not rely on that. */
+
+/* ---- Code tokens (R18) ------------------------------------------------------ */
+/* The reference code surface is ink #141414 with light-on-dark syntax, so the
+   bridge's light mapping (--code-bg: --skin-surface) is reversed here. */
+.docs-skin[data-skin="brutal"] {
+	--code-bg: var(--skin-ink);
+	--code-fg: var(--skin-paper);
+	--code-border: var(--skin-ink);
+	/* Paper at the reference's copy-button alpha — the muted tone on ink. */
+	--code-fg-muted: rgba(244, 238, 224, 0.7);
+	/* Derived: no chip sits on ink in the reference (the language chip is hidden
+	   below and the copy button is transparent), so this is only a legible
+	   fallback for any future consumer of the token. */
+	--code-chip-bg: rgba(244, 238, 224, 0.12);
+	/* R18 syntax table: keyword / tag / command are yellow, strings are green. */
+	--code-kw: var(--skin-yellow);
+	--code-str: #7ed9a0;
+	/* The reference's plain code text — the command's arguments read as plain
+	   paper; the package-manager word itself is painted below (§1.1: the
+	   reference emits `pnpm` at #F5B40C, `add fancy-ui-svelte` at #F4EEE0). */
+	--code-cmd: var(--skin-paper);
+}
+
+/* ---- Shiki palette (R18) ---------------------------------------------------- */
+/* Brutal's code surface is ink, but the reference does not use github-dark's
+   palette on it: keywords are yellow and strings green, not pink and blue. So
+   the base is the paper foreground, and each token github-dark would paint is
+   remapped below. */
+.docs-skin[data-skin="brutal"] .shiki,
+.docs-skin[data-skin="brutal"] .shiki span {
+	color: var(--code-fg);
+}
+/* R18 syntax table — remap github-dark tokens onto the reference palette.
+   Keyed on shiki's inline `--shiki-dark` value; the hex must stay uppercase
+   because attribute-value matching is case-sensitive and shiki emits
+   `--shiki-dark:#F97583`. */
+.docs-skin[data-skin="brutal"] .shiki span[style*="--shiki-dark:#F97583"],
+.docs-skin[data-skin="brutal"] .shiki span[style*="--shiki-dark:#85E89D"] {
+	color: var(--code-kw);
+}
+.docs-skin[data-skin="brutal"] .shiki span[style*="--shiki-dark:#9ECBFF"] {
+	color: var(--code-str);
+}
+.docs-skin[data-skin="brutal"] .shiki span[style*="--shiki-dark:#B392F0"] {
+	color: #d9a8f5;
+}
+.docs-skin[data-skin="brutal"] .shiki span[style*="--shiki-dark:#79B8FF"] {
+	color: #7fa8f5;
+}
+
+/* ---- Code block surface (R18) ----------------------------------------------- */
+.docs-skin[data-skin="brutal"] .docs-code-surface {
+	border-width: 1.5px;
+	border-radius: 10px;
+	color: var(--code-fg);
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+	line-height: 1.7;
+}
+/* The prose layer styles bare `pre` (0,2,1: font-size .875rem, line-height 1.6,
+   margin-bottom 1.25rem), which out-ranks the type scale inherited from the
+   surface above — so the shiki `pre` restates it at higher specificity. Without
+   this the block renders 14px/22.4px and carries a dead 20px ink band under the
+   last line, and reads larger than `.docs-install-cmd` on the same page. */
+.docs-skin[data-skin="brutal"] pre.docs-code-surface,
+.docs-skin[data-skin="brutal"] .docs-code-surface pre {
+	margin: 0;
+	padding: 12px 14px;
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+	line-height: 1.7;
+}
+.docs-skin[data-skin="brutal"] .docs-code-surface code {
+	font-family: var(--skin-font-mono);
+}
+
+/* The reference has no language chip on the ink surface. */
+.docs-skin[data-skin="brutal"] .retro-code-lang {
+	display: none;
+}
+
+/* ---- Copy button (R18 / D29) ------------------------------------------------- */
+/* The reference control is a persistent 26×26 icon square, not a text button:
+   the label is kept in the accessibility tree (font-size: 0, never display:none)
+   and the glyph is painted as a mask so it inherits `color`. */
+.docs-skin[data-skin="brutal"] .docs-copy {
+	display: inline-flex;
+	width: 26px;
+	height: 26px;
+	flex: none;
+	box-sizing: border-box;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 1.5px solid rgba(244, 238, 224, 0.35);
+	border-radius: 6px;
+	background: transparent;
+	color: rgba(244, 238, 224, 0.7);
+	font-size: 0;
+	opacity: 1;
+	outline: none;
+	cursor: pointer;
+	transition:
+		border-color 0.12s ease,
+		color 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] .docs-copy::before {
+	content: "";
+	width: 11px;
+	height: 11px;
+	flex: none;
+	background: currentColor;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='4.5' width='8' height='8' rx='1.6'/%3E%3Cpath d='M9.5 4.5 L9.5 3 A1.5 1.5 0 0 0 8 1.5 L3 1.5 A1.5 1.5 0 0 0 1.5 3 L1.5 8 A1.5 1.5 0 0 0 3 9.5 L4.5 9.5'/%3E%3C/svg%3E")
+		center / 11px 11px no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='4.5' width='8' height='8' rx='1.6'/%3E%3Cpath d='M9.5 4.5 L9.5 3 A1.5 1.5 0 0 0 8 1.5 L3 1.5 A1.5 1.5 0 0 0 1.5 3 L1.5 8 A1.5 1.5 0 0 0 3 9.5 L4.5 9.5'/%3E%3C/svg%3E")
+		center / 11px 11px no-repeat;
+}
+.docs-skin[data-skin="brutal"] .docs-copy:hover {
+	border-color: var(--skin-paper);
+	background: transparent;
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="brutal"] .docs-copy:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.4);
+}
+
+/* ---- Install block (R18 / D28) ----------------------------------------------- */
+.docs-skin[data-skin="brutal"] .docs-install {
+	border-width: 1.5px;
+	border-radius: 10px;
+}
+
+/* Package-manager tabs (pnpm / npm / bun) — mono tabs on the ink surface. The
+   reference has no tab strip, so its dividers borrow the copy-button alpha and
+   the active tab borrows the keyword yellow the reference paints `pnpm` with. */
+.docs-skin[data-skin="brutal"] .retro-pmtabs {
+	align-items: center;
+	border-bottom-width: 1.5px;
+	border-bottom-color: rgba(244, 238, 224, 0.35);
+}
+.docs-skin[data-skin="brutal"] .retro-pmtabs button:not(.docs-copy) {
+	padding: 8px 14px;
+	border-radius: 0;
+	color: rgba(244, 238, 224, 0.7);
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+	font-weight: 700;
+	outline: none;
+	transition: color 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] .retro-pmtabs button:not(.docs-copy):hover {
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="brutal"] .retro-pmtabs button.border-b-2 {
+	border-bottom-width: 2px;
+	border-bottom-color: var(--skin-yellow);
+	color: var(--skin-yellow);
+}
+.docs-skin[data-skin="brutal"] .retro-pmtabs button:not(.docs-copy):focus-visible {
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.4);
+}
+/* Trailing cell that holds the copy square — centre the 26px control in the strip. */
+.docs-skin[data-skin="brutal"] .retro-pmtabs > div {
+	align-items: center;
+	padding: 0 6px;
+}
+
+/* Command line — the reference's single-line variant (10px 14px, mono 12px). */
+.docs-skin[data-skin="brutal"] .docs-install-cmd {
+	padding: 10px 14px;
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+}
+/* The package-manager word is a command keyword (§1.1 / R18 syntax table): the
+   reference paints `pnpm` yellow and leaves `add fancy-ui-svelte` on the plain
+   paper foreground. Painting it here rather than on the shared markup keeps the
+   other skins' single-tone command line byte-identical. */
+.docs-skin[data-skin="brutal"] .docs-install-pm {
+	color: var(--code-kw);
+}
+/* Import line — the reference's multi-line variant (12px 14px, line-height 1.7). */
+.docs-skin[data-skin="brutal"] .docs-install-cmd + div {
+	padding: 12px 14px;
+	border-top-width: 1.5px;
+	border-top-color: rgba(244, 238, 224, 0.35);
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+	line-height: 1.7;
+}
+
+/* ---- Component preview window ------------------------------------------------ */
+/* The reference does not depict a component page, so this chrome is derived from
+   the §1 card grammar: 1.5px ink border, 12px radius, card fill, ambient rest
+   shadow (hard offsets stay hover-only, and a window is not interactive). */
+.docs-skin[data-skin="brutal"] .retro-window {
+	border-width: 1.5px;
+	border-radius: 12px;
+	background: var(--skin-card);
+	box-shadow: 0 8px 16px rgba(60, 50, 20, 0.07);
+}
+.docs-skin[data-skin="brutal"] .retro-tabbar {
+	border-bottom-width: 1.5px;
+	border-bottom-color: var(--skin-line);
+}
+/* Breadcrumb grammar (13px / 600, opacity .6, full opacity on hover). */
+.docs-skin[data-skin="brutal"] .retro-tabbar button {
+	border-radius: 0;
+	color: var(--skin-ink);
+	font-size: 13px;
+	font-weight: 600;
+	opacity: 0.6;
+	outline: none;
+	transition: opacity 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] .retro-tabbar button:hover {
+	color: var(--skin-ink);
+	opacity: 1;
+}
+.docs-skin[data-skin="brutal"] .retro-tabbar button.border-b-2 {
+	border-bottom-width: 2px;
+	border-bottom-color: var(--skin-line);
+	color: var(--skin-ink);
+	font-weight: 800;
+	opacity: 1;
+}
+.docs-skin[data-skin="brutal"] .retro-tabbar button:focus-visible {
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.3);
+}
+/* Demo box — the inner tile of a card, so it takes the surface tone. */
+.docs-skin[data-skin="brutal"] .retro-stage {
+	background: var(--skin-surface);
+}
+/* A code pane inside the window is flush with it: the window already draws the
+   1.5px ink frame and the tab bar already draws the separator. */
+.docs-skin[data-skin="brutal"] .retro-window .docs-code-surface {
+	border-width: 0;
+	border-radius: 0;
+}
+
+/* ---- Component props table --------------------------------------------------- */
+/* Also derived from the §1 card grammar; row rules reuse the timeline alpha. */
+.docs-skin[data-skin="brutal"] .retro-props {
+	border-width: 1.5px;
+	border-radius: 12px;
+	background: var(--skin-card);
+	box-shadow: 0 8px 16px rgba(60, 50, 20, 0.07);
+}
+.docs-skin[data-skin="brutal"] .retro-props th {
+	padding: 10px 14px;
+	border-bottom: 1.5px solid var(--skin-line);
+	font-family: var(--skin-font-mono);
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	opacity: 0.6;
+}
+.docs-skin[data-skin="brutal"] .retro-props tbody tr {
+	border-bottom: 1.5px solid rgba(20, 20, 20, 0.25);
+}
+.docs-skin[data-skin="brutal"] .retro-props tbody tr:last-child {
+	border-bottom: 0;
+}
+.docs-skin[data-skin="brutal"] .retro-props td {
+	padding: 10px 14px;
+	font-size: 12.5px;
+	font-weight: 500;
+}
+.docs-skin[data-skin="brutal"] .retro-props .font-mono {
+	font-family: var(--skin-font-mono);
+}
+/* Inline code chip (R16 grammar, on the light card — not the ink surface). */
+.docs-skin[data-skin="brutal"] .retro-props code {
+	padding: 1px 5px;
+	border: 1.3px solid var(--skin-line);
+	border-radius: 5px;
+	background: var(--skin-surface);
+	color: var(--skin-ink);
+	font-family: var(--skin-font-mono);
+	font-size: 10.5px;
+}
+.docs-skin[data-skin="brutal"] .retro-props tbody td:first-child code {
+	color: var(--skin-purple);
+}
+.docs-skin[data-skin="brutal"] .retro-props .text-red-500 {
+	color: var(--skin-red);
+}
+
+/* ---- RTL --------------------------------------------------------------------- */
+/* Nothing in this region paints a hard offset shadow or a lift transform, so
+   there is no LTR-baked offset to mirror (R23.4); the ambient shadows and the
+   focus halos above are symmetric. Code, however, is LTR content in every
+   locale — keep the install block's command and import lines reading LTR, the
+   way CodeBlock already forces `dir="ltr"` on its own surface. */
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] .docs-install-cmd,
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] .docs-install-cmd + div {
+	direction: ltr;
+	text-align: start;
+}

@@ -174,7 +174,7 @@ export default {
 	"intro.cta.title": "Baru Mengenal FancyUI?",
 	"intro.cta.body":
 		"Lihat <strong>Generator Tema</strong> untuk menyesuaikan warna dan melihat komponen bereaksi secara real-time.",
-	"intro.cta.button": "Coba Generator Tema →",
+	"intro.cta.button": "Coba Generator Tema",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalasi",

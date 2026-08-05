@@ -159,7 +159,7 @@ export default {
 	"intro.nextSteps.components": "浏览组件",
 	"intro.cta.title": "刚接触 FancyUI？",
 	"intro.cta.body": "查看<strong>主题生成器</strong>，自定义颜色并实时查看组件的变化。",
-	"intro.cta.button": "试用主题生成器 →",
+	"intro.cta.button": "试用主题生成器",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "安装",

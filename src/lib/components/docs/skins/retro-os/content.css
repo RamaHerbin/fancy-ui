@@ -1,3 +1,18 @@
+/* Retro OS docs skin — content region: Introduction page, table of contents,
+   prev/next pager. Scope every rule under .docs-skin[data-skin="retro-os"].
+
+   Every value is transcribed from the reference
+   (vendor/design-refs/retro-os/FancyUI-Docs-Retro.dc.html), never eyeballed.
+   Two fills have no --skin-* token and appear as literals, same precedent as
+   the other retro-os region files: #ECD77F (light gold fill) and #F7EFD2
+   (hover tint). Note the reference's paper-colored glyph fill is #FAF5E6,
+   which is --skin-card; --skin-paper is the darker window paper #F1E9D4.
+
+   Line-height: the spec (§1.2) declares only h1 / stat-count 1, 12–12.5px body copy
+   1.5, card desc 1.55 and the lead 1.6 — "everything else default". The docs root
+   inherits 1.5 (and Tailwind text-sm/text-xs bring their own ratios), so each pixel
+   and mono chrome box below resets line-height to normal to match the reference. */
+
 /* ---- Component page: page-header tags -------------------------------------- */
 .docs-skin[data-skin="retro-os"] .retro-tag {
 	border-radius: 0;
@@ -12,8 +27,22 @@
 	color: var(--skin-paper);
 }
 
-/* ---- Table of contents → mustard window ------------------------------------ */
+/* ---- Table of contents → mustard window (R10) ------------------------------ */
+/* Reference grid column is 216px; the rail ships as w-48 (192px). */
+.docs-skin[data-skin="retro-os"] .docs-rail {
+	width: 216px;
+}
+/* The rail's inner <nav> is the sticky containing block; without a full-height
+   nav its height matches the panel and the sticky offset has zero travel. */
+.docs-skin[data-skin="retro-os"] .docs-rail > nav {
+	height: 100%;
+}
+/* The reference is a non-scrolling canvas, so its 24px sticky offset never has
+   to clear anything. Here the docs header stays sticky at the top of the frame
+   and measures 54px (10+10 padding + 31px search field + 3px bottom rule), so
+   the panel is offset past it or its gold titlebar parks under the menubar. */
 .docs-skin[data-skin="retro-os"] .retro-toc {
+	top: 78px; /* 54px sticky menubar + the reference's 24px */
 	border: 2px solid var(--skin-line);
 	background: var(--skin-card);
 	box-shadow: 3px 3px 0 var(--skin-line);
@@ -22,6 +51,7 @@
 	font-family: var(--skin-font-pixel);
 	font-size: 9px;
 	font-weight: 700;
+	line-height: normal;
 	text-transform: uppercase;
 	padding: 9px 12px;
 	border-bottom: 2px solid var(--skin-line);
@@ -29,10 +59,15 @@
 	color: var(--skin-ink);
 }
 .docs-skin[data-skin="retro-os"] .retro-toc-list {
+	display: flex;
+	flex-direction: column;
 	padding: 8px 0;
 	margin: 0;
 }
+/* The list ships with space-y-1 + an inline per-level padding-left; the
+   reference rows are contiguous and full-bleed. */
 .docs-skin[data-skin="retro-os"] .retro-toc-list li {
+	margin: 0;
 	padding-left: 0 !important;
 }
 .docs-skin[data-skin="retro-os"] .retro-toc-list li a {
@@ -41,43 +76,99 @@
 	gap: 8px;
 	padding: 6px 12px;
 	font-family: var(--skin-font-mono);
+	font-size: 12px;
+	font-weight: 400;
+	line-height: normal;
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list li a.text-foreground {
+	color: var(--skin-ink);
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list li a:hover {
+	background: #f7efd2;
+	color: var(--skin-ink);
 }
 .docs-skin[data-skin="retro-os"] .retro-toc-list li a::before {
 	content: "";
 	width: 6px;
 	height: 6px;
 	flex: none;
-	background: var(--skin-yellow);
 	border: 1.5px solid var(--skin-line);
 }
-.docs-skin[data-skin="retro-os"] .retro-toc-list li a.text-foreground::before {
+/* Dots cycle through four accents by index; the active row is not recolored. */
+.docs-skin[data-skin="retro-os"] .retro-toc-list li:nth-child(4n + 1) a::before {
 	background: var(--skin-red);
 }
+.docs-skin[data-skin="retro-os"] .retro-toc-list li:nth-child(4n + 2) a::before {
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list li:nth-child(4n + 3) a::before {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .retro-toc-list li:nth-child(4n + 4) a::before {
+	background: var(--skin-green);
+}
+/* Authored focus (§1.4): full-bleed rows inside a bordered panel, so the ring
+   is inset — a +2px offset would sit on top of the panel border. */
+.docs-skin[data-skin="retro-os"] .retro-toc-list li a:focus-visible {
+	outline: 2px solid var(--skin-blue);
+	outline-offset: -2px;
+	border-radius: 0;
+}
 
-/* ---- Prev/next pager ------------------------------------------------------- */
+/* ---- Prev/next pager (R11) -------------------------------------------------- */
+/* The reference pager is a plain flex row 22px under the page column; the shared
+   markup ships a bordered grid (mt-12 border-t pt-6 grid-cols-2). */
 .docs-skin[data-skin="retro-os"] .retro-pager {
 	display: flex;
 	justify-content: space-between;
 	gap: 16px;
-	margin-bottom: 40px;
+	margin-top: 22px;
+	margin-bottom: 0;
+	padding-top: 0;
+	border-top-width: 0;
 }
 .docs-skin[data-skin="retro-os"] .retro-pager-link {
 	display: inline-flex;
+	flex-direction: row;
 	align-items: center;
 	gap: 10px;
 	padding: 10px 16px;
+	border-radius: 0;
 	border: 2px solid var(--skin-line);
 	background: var(--skin-card);
 	box-shadow: 3px 3px 0 var(--skin-line);
 	color: var(--skin-ink);
 	text-decoration: none;
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
 }
 .docs-skin[data-skin="retro-os"] .retro-pager-link:hover {
+	background: var(--skin-card);
+	transform: translate(-1px, -1px);
 	box-shadow: 4px 4px 0 var(--skin-line);
 }
-.docs-skin[data-skin="retro-os"] .retro-pager-next {
+.docs-skin[data-skin="retro-os"] .retro-pager-link:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0 0 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-link:focus-visible {
+	outline: none;
+	box-shadow:
+		3px 3px 0 var(--skin-line),
+		0 0 0 2px var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .retro-pager-next,
+.docs-skin[data-skin="retro-os"] .retro-pager-next:hover {
 	background: #ecd77f;
 }
+/* Getting-started pages mount a next-only pager; keep it on the end edge. */
+.docs-skin[data-skin="retro-os"] .retro-pager-next:only-child {
+	margin-inline-start: auto;
+}
+/* .retro-pager-text is display:contents by default (component-scoped). */
 .docs-skin[data-skin="retro-os"] .retro-pager-text {
 	display: flex;
 	flex-direction: column;
@@ -88,34 +179,46 @@
 .docs-skin[data-skin="retro-os"] .retro-pager-eyebrow {
 	font-family: var(--skin-font-pixel);
 	font-size: 8px;
+	font-weight: 700;
+	line-height: normal;
+	text-transform: uppercase;
 	color: var(--skin-muted);
 }
 .docs-skin[data-skin="retro-os"] .retro-pager-name {
 	font-size: 13.5px;
 	font-weight: 700;
+	line-height: normal;
+	color: var(--skin-ink);
 }
 .docs-skin[data-skin="retro-os"] .retro-pager-arrow {
+	flex: none;
 	font-weight: 700;
 }
 
 /* ---- Introduction page (bespoke retro layout) ------------------------------
-   Restyles the shared IntroductionPage markup into the mock's retro look.
-   docs-skin.css can target the component's class names (.intro .card…) because
+   Restyles the shared IntroductionPage markup into the reference's retro look.
+   These rules can target the component's class names (.intro .card…) because
    Svelte scoping only ADDS a hash class; the [data-skin] prefix out-specifies
-   the component's own scoped rules, so no !important is needed. */
+   the component's own scoped rules, so no !important is needed.
+   The reference main column is 1024px wide and the content fills it, so the
+   840px reading cap is lifted (the lead keeps its own 640px measure). */
+.docs-skin[data-skin="retro-os"] .intro {
+	max-width: none;
+}
 
-/* Top badges */
+/* Page header: badges + h1 + lead + chips (R5) — reference column gap 10px */
 .docs-skin[data-skin="retro-os"] .intro-badges {
 	display: flex;
 	gap: 8px;
-	margin-bottom: 14px;
+	margin-bottom: 10px;
 }
 .docs-skin[data-skin="retro-os"] .intro-badge {
 	font-family: var(--skin-font-mono);
 	font-size: 10.5px;
 	font-weight: 700;
+	line-height: normal;
 	border: 2px solid var(--skin-line);
-	padding: 1px 8px;
+	padding: 1px 7px;
 }
 .docs-skin[data-skin="retro-os"] .intro-badge-a {
 	background: var(--skin-yellow);
@@ -123,19 +226,107 @@
 }
 .docs-skin[data-skin="retro-os"] .intro-badge-b {
 	background: var(--skin-green);
-	color: var(--skin-paper);
+	color: var(--skin-card);
 }
-
-/* Headings + section-number chips */
 .docs-skin[data-skin="retro-os"] .intro h1 {
+	margin: 0 0 10px;
+	font-size: 46px;
 	font-weight: 900;
 	letter-spacing: -1.5px;
+	line-height: 1;
 }
+/* Lead: ink, not muted; 14px below = 10px column gap + the chip row's 4px. */
+.docs-skin[data-skin="retro-os"] .intro .lead {
+	margin: 0 0 14px;
+	font-size: 15.5px;
+	line-height: 1.6;
+	max-width: 640px;
+	color: var(--skin-ink);
+}
+/* Lead highlights → flat retro accents (kill the clipped gradient) */
+.docs-skin[data-skin="retro-os"] .intro .grad {
+	background: none;
+	-webkit-text-fill-color: currentColor;
+	color: var(--skin-blue);
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .intro .solid {
+	color: var(--skin-red);
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .intro .pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+}
+.docs-skin[data-skin="retro-os"] .intro .pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 5px 11px;
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	font-family: var(--skin-font-mono);
+	font-size: 11.5px;
+	font-weight: 600;
+	line-height: normal;
+	cursor: default;
+}
+.docs-skin[data-skin="retro-os"] .intro .pill:hover {
+	background: #f7efd2;
+}
+
+/* Emoji glyphs → pixel squares. The chip square is 9px/1.5px; the philosophy
+   card icon is a 24px accent square wrapping an 8px paper square (::before). */
+.docs-skin[data-skin="retro-os"] .intro .ic {
+	font-size: 0;
+}
+.docs-skin[data-skin="retro-os"] .intro .pill .ic::before {
+	content: "";
+	display: inline-block;
+	width: 9px;
+	height: 9px;
+	flex: none;
+	border: 1.5px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .intro .pill[data-accent="1"] .ic::before {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .intro .pill[data-accent="2"] .ic::before {
+	background: var(--skin-purple);
+}
+.docs-skin[data-skin="retro-os"] .intro .pill[data-accent="3"] .ic::before {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .intro .pill[data-accent="4"] .ic::before {
+	background: var(--skin-blue);
+}
+/* Chip 5 has no emoji: the "TS" badge becomes the 5th square (ink). */
+.docs-skin[data-skin="retro-os"] .intro .pill .ts {
+	display: inline-block;
+	width: 9px;
+	height: 9px;
+	flex: none;
+	padding: 0;
+	border-radius: 0;
+	border: 1.5px solid var(--skin-line);
+	background: var(--skin-ink);
+	font-size: 0;
+}
+
+/* Numbered section headers 01–04 (R6) */
 .docs-skin[data-skin="retro-os"] .intro h2 {
 	display: flex;
 	align-items: center;
 	gap: 10px;
+	margin: 26px 0 12px;
+	font-size: 22px;
 	font-weight: 700;
+	letter-spacing: normal;
+	line-height: normal;
 }
 /* Section-number chip via ::before so it stays out of the h2 textContent the
    table-of-contents reads (keeps TOC labels clean, e.g. "Philosophy"). */
@@ -145,7 +336,7 @@
 	font-size: 11px;
 	font-weight: 700;
 	background: var(--skin-ink);
-	color: var(--skin-paper);
+	color: var(--skin-card);
 	padding: 4px 8px;
 }
 .docs-skin[data-skin="retro-os"] .intro h2#philosophy::before {
@@ -161,74 +352,17 @@
 	content: "04";
 }
 
-/* Lead highlights → flat retro accents (kill the clipped gradient) */
-.docs-skin[data-skin="retro-os"] .intro .grad {
-	background: none;
-	-webkit-text-fill-color: currentColor;
-	color: var(--skin-blue);
-	font-weight: 700;
+/* Philosophy cards → hard-shadow squares with a pixel icon (R7) */
+.docs-skin[data-skin="retro-os"] .intro .cards {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 14px;
 }
-.docs-skin[data-skin="retro-os"] .intro .solid {
-	color: var(--skin-red);
-	font-weight: 700;
-}
-
-/* Emoji icons → colored square (accent assigned per position) */
-.docs-skin[data-skin="retro-os"] .intro .ic {
-	font-size: 0;
-}
-.docs-skin[data-skin="retro-os"] .intro .ic::before {
-	content: "";
-	display: inline-block;
-	width: 10px;
-	height: 10px;
-	background: var(--skin-muted);
-	border: 1.5px solid var(--skin-line);
-}
-.docs-skin[data-skin="retro-os"] .intro .card-head .ic::before {
-	width: 12px;
-	height: 12px;
-}
-.docs-skin[data-skin="retro-os"] .intro .pills .pill:nth-child(1) .ic::before {
-	background: var(--skin-red);
-}
-.docs-skin[data-skin="retro-os"] .intro .pills .pill:nth-child(2) .ic::before {
-	background: var(--skin-purple);
-}
-.docs-skin[data-skin="retro-os"] .intro .pills .pill:nth-child(3) .ic::before {
-	background: var(--skin-green);
-}
-.docs-skin[data-skin="retro-os"] .intro .pills .pill:nth-child(4) .ic::before {
-	background: var(--skin-blue);
-}
-.docs-skin[data-skin="retro-os"] .intro .cards .card:nth-child(1) .ic::before {
-	background: var(--skin-blue);
-}
-.docs-skin[data-skin="retro-os"] .intro .cards .card:nth-child(2) .ic::before {
-	background: var(--skin-red);
-}
-.docs-skin[data-skin="retro-os"] .intro .cards .card:nth-child(3) .ic::before {
-	background: var(--skin-green);
-}
-.docs-skin[data-skin="retro-os"] .intro .cards .card:nth-child(4) .ic::before {
-	background: var(--skin-yellow);
-}
-
-/* Pills + TS badge */
-.docs-skin[data-skin="retro-os"] .intro .pill {
-	border-radius: 0;
-	border: 2px solid var(--skin-line);
-	background: var(--skin-card);
-	font-family: var(--skin-font-mono);
-	font-weight: 600;
-}
-.docs-skin[data-skin="retro-os"] .intro .ts {
-	border-radius: 0;
-	background: var(--skin-blue);
-}
-
-/* Philosophy cards → hard-shadow square + hover lift */
 .docs-skin[data-skin="retro-os"] .intro .card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 14px 16px;
 	border-radius: 0;
 	border: 2px solid var(--skin-line);
 	background: var(--skin-card);
@@ -242,22 +376,76 @@
 	box-shadow: 5px 5px 0 var(--skin-line);
 }
 .docs-skin[data-skin="retro-os"] .intro .card-head {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	font-size: 14.5px;
 	font-weight: 700;
+	color: var(--skin-ink);
 }
-.docs-skin[data-skin="retro-os"] .intro .chip {
-	border-radius: 0;
-	background: transparent;
-	color: var(--skin-purple);
-	font-family: var(--skin-font-mono);
+.docs-skin[data-skin="retro-os"] .intro .card-desc {
+	font-size: 12.5px;
+	line-height: 1.55;
+	color: var(--skin-muted);
 }
-
-/* Quick-start step numbers → square colored Silkscreen */
-.docs-skin[data-skin="retro-os"] .intro .num {
+/* Card 5 carries the "TS" badge instead of an emoji — same 24px square. */
+.docs-skin[data-skin="retro-os"] .intro .card-head .ic,
+.docs-skin[data-skin="retro-os"] .intro .card-head .ts {
+	display: inline-flex;
+	width: 24px;
+	height: 24px;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
 	border-radius: 0;
 	border: 2px solid var(--skin-line);
+	box-sizing: border-box;
+	font-size: 0;
+}
+.docs-skin[data-skin="retro-os"] .intro .card-head .ic::before,
+.docs-skin[data-skin="retro-os"] .intro .card-head .ts::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	flex: none;
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .intro .card[data-accent="1"] .card-head :is(.ic, .ts) {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .intro .card[data-accent="2"] .card-head :is(.ic, .ts) {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .intro .card[data-accent="3"] .card-head :is(.ic, .ts) {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .intro .card[data-accent="4"] .card-head :is(.ic, .ts) {
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="retro-os"] .intro .card[data-accent="5"] .card-head :is(.ic, .ts) {
+	background: var(--skin-purple);
+}
+
+/* Quick-start step chrome (R8) — the code surface itself is the preview region */
+.docs-skin[data-skin="retro-os"] .intro .steps {
+	gap: 18px;
+}
+.docs-skin[data-skin="retro-os"] .intro .step {
+	gap: 14px;
+	align-items: flex-start;
+}
+.docs-skin[data-skin="retro-os"] .intro .num {
+	width: 26px;
+	height: 26px;
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	box-sizing: border-box;
 	font-family: var(--skin-font-pixel);
 	font-size: 11px;
-	color: var(--skin-paper);
+	font-weight: 700;
+	color: var(--skin-card);
 }
 .docs-skin[data-skin="retro-os"] .intro .num-1 {
 	background: var(--skin-blue);
@@ -268,67 +456,194 @@
 .docs-skin[data-skin="retro-os"] .intro .num-3 {
 	background: var(--skin-red);
 }
+.docs-skin[data-skin="retro-os"] .intro .step-body {
+	gap: 6px;
+}
 .docs-skin[data-skin="retro-os"] .intro .step-title {
+	font-size: 15px;
 	font-weight: 700;
+	line-height: normal;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .intro .step-desc {
+	font-size: 13px;
+	line-height: normal;
+	color: var(--skin-muted);
 }
 
-/* What's included → square category tiles */
-.docs-skin[data-skin="retro-os"] .intro .cat {
-	border-radius: 0;
-	border: 2px solid var(--skin-line);
-	background: var(--skin-card);
-	box-shadow: 2px 2px 0 var(--skin-line);
-	font-family: var(--skin-font-mono);
-	font-weight: 600;
+/* What's included → stat cards (R9) */
+.docs-skin[data-skin="retro-os"] .intro .intro-stats {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 14px;
 }
-
-/* Next steps → square press rows */
-.docs-skin[data-skin="retro-os"] .intro .next-row {
-	border-radius: 0;
+.docs-skin[data-skin="retro-os"] .intro .intro-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 14px 16px;
 	border: 2px solid var(--skin-line);
 	background: var(--skin-card);
 	box-shadow: 3px 3px 0 var(--skin-line);
-	font-weight: 700;
 	transition:
 		transform 0.12s,
 		box-shadow 0.12s;
 }
-.docs-skin[data-skin="retro-os"] .intro .next-row:hover {
+.docs-skin[data-skin="retro-os"] .intro .intro-stat:hover {
+	transform: translate(-2px, -2px);
+	box-shadow: 5px 5px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .intro .stat-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.docs-skin[data-skin="retro-os"] .intro .stat-square {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	flex: none;
+	border: 2px solid var(--skin-line);
+	box-sizing: border-box;
+}
+.docs-skin[data-skin="retro-os"] .intro .intro-stat[data-accent="1"] .stat-square {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .intro .intro-stat[data-accent="2"] .stat-square {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .intro .intro-stat[data-accent="3"] .stat-square {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .intro .stat-label {
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: normal;
+	text-transform: uppercase;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .intro .stat-count {
+	font-size: 24px;
+	font-weight: 900;
+	line-height: 1;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .intro .stat-desc {
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--skin-muted);
+}
+
+/* Next steps → inline pixel buttons (R9) */
+.docs-skin[data-skin="retro-os"] .intro .next {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+.docs-skin[data-skin="retro-os"] .intro .next-row {
+	display: inline-flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	padding: 8px 16px;
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
 	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: normal;
+	text-transform: uppercase;
+	color: var(--skin-ink);
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+}
+/* First row is the reference's primary (gold) button; the rest are paper. */
+.docs-skin[data-skin="retro-os"] .intro .next-row:first-child {
+	background: #ecd77f;
+}
+.docs-skin[data-skin="retro-os"] .intro .next-row:hover {
 	transform: translate(-1px, -1px);
 	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .intro .next-row:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0 0 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .intro .next-row:focus-visible {
+	outline: none;
+	box-shadow:
+		3px 3px 0 var(--skin-line),
+		0 0 0 2px var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .intro .next-row .arrow {
+	color: inherit;
 }
 
 /* CTA banner */
 .docs-skin[data-skin="retro-os"] .intro .cta {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin-top: 26px;
+	padding: 16px 20px;
 	border-radius: 0;
 	border: 2px solid var(--skin-line);
 	background: #f7efd2;
 	box-shadow: 4px 4px 0 var(--skin-line);
 }
+.docs-skin[data-skin="retro-os"] .intro .cta-left {
+	gap: 16px;
+}
 .docs-skin[data-skin="retro-os"] .intro .cta-ic {
+	width: 36px;
+	height: 36px;
 	border-radius: 0;
 	border: 2px solid var(--skin-line);
+	box-sizing: border-box;
 	background: var(--skin-yellow);
 	color: var(--skin-ink);
 	font-size: 0;
 }
 .docs-skin[data-skin="retro-os"] .intro .cta-ic::before {
 	content: "";
+	display: inline-block;
 	width: 12px;
 	height: 12px;
-	background: var(--skin-paper);
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
 }
 .docs-skin[data-skin="retro-os"] .intro .cta-title {
+	font-size: 14.5px;
 	font-weight: 700;
+	line-height: normal;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-body {
+	font-size: 12.5px;
+	line-height: 1.5;
+	color: var(--skin-muted);
 }
 .docs-skin[data-skin="retro-os"] .intro .cta-btn {
+	gap: 8px;
+	padding: 8px 16px;
 	border-radius: 0;
 	border: 2px solid var(--skin-line);
 	background: var(--skin-ink);
-	color: var(--skin-paper);
+	color: var(--skin-card);
 	font-family: var(--skin-font-pixel);
 	font-size: 10px;
+	font-weight: 700;
+	line-height: normal;
+	text-transform: uppercase;
 	box-shadow: 3px 3px 0 rgba(25, 19, 8, 0.35);
 	transition:
 		transform 0.12s,
@@ -338,4 +653,69 @@
 	background: var(--skin-ink);
 	transform: translate(-1px, -1px);
 	box-shadow: 4px 4px 0 rgba(25, 19, 8, 0.35);
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-btn:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0 0 0 rgba(25, 19, 8, 0.35);
+}
+.docs-skin[data-skin="retro-os"] .intro .cta-btn:focus-visible {
+	outline: none;
+	box-shadow:
+		3px 3px 0 rgba(25, 19, 8, 0.35),
+		0 0 0 2px var(--skin-blue);
+}
+
+/* The reference is a fixed 1600px canvas; the docs site is fluid to 360px, so
+   the two fixed 3-column grids fall back to one column on narrow screens. */
+@media (max-width: 640px) {
+	.docs-skin[data-skin="retro-os"] .intro .cards,
+	.docs-skin[data-skin="retro-os"] .intro .intro-stats {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ---- RTL -------------------------------------------------------------------- */
+/* Hard offsets and the press lift mirror on the inline axis. */
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-toc,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-pager-link,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .card,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .intro-stat,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .next-row {
+	box-shadow: -3px 3px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .cta {
+	box-shadow: -4px 4px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .cta-btn {
+	box-shadow: -3px 3px 0 rgba(25, 19, 8, 0.35);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .card:hover,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .intro-stat:hover {
+	transform: translate(2px, -2px);
+	box-shadow: -5px 5px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-pager-link:hover,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .next-row:hover {
+	transform: translate(1px, -1px);
+	box-shadow: -4px 4px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .cta-btn:hover {
+	transform: translate(1px, -1px);
+	box-shadow: -4px 4px 0 rgba(25, 19, 8, 0.35);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-pager-link:active,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .next-row:active,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .cta-btn:active {
+	transform: translate(-2px, 2px);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-pager-link:focus-visible,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .next-row:focus-visible {
+	box-shadow:
+		-3px 3px 0 var(--skin-line),
+		0 0 0 2px var(--skin-blue);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .intro .cta-btn:focus-visible {
+	box-shadow:
+		-3px 3px 0 rgba(25, 19, 8, 0.35),
+		0 0 0 2px var(--skin-blue);
 }

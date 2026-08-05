@@ -174,7 +174,7 @@ export default {
 	"intro.cta.title": "Začínáte s FancyUI?",
 	"intro.cta.body":
 		"Podívejte se na <strong>Generátor motivů</strong>, přizpůsobte si barvy a sledujte, jak komponenty reagují v reálném čase.",
-	"intro.cta.button": "Vyzkoušet Generátor motivů →",
+	"intro.cta.button": "Vyzkoušet Generátor motivů",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalace",

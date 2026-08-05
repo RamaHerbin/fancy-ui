@@ -179,7 +179,9 @@
 				<div class="cta-body">{@html t("intro.cta.body")}</div>
 			</div>
 		</div>
-		<a class="cta-btn" href="/docs/getting-started/theme-generator">{t("intro.cta.button")}</a>
+		<a class="cta-btn" href="/docs/getting-started/theme-generator"
+			>{t("intro.cta.button")}<span class="cta-arrow" aria-hidden="true">{" →"}</span></a
+		>
 	</div>
 
 	{#if isRetro}
@@ -501,6 +503,13 @@
 	.intro .cta-btn:hover {
 		background: var(--muted);
 		opacity: 1;
+	}
+
+	/* The trailing glyph lives in its own span so a skin can swap it for its own
+	   affordance; box-less by default, so the standard skin renders the label and
+	   the arrow as one uninterrupted run of text exactly as before. */
+	.cta-arrow {
+		display: contents;
 	}
 
 	@media (max-width: 640px) {

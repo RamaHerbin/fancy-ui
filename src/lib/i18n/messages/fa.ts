@@ -174,7 +174,7 @@ export default {
 	"intro.cta.title": "تازه با FancyUI آشنا شده‌اید؟",
 	"intro.cta.body":
 		"<strong>سازنده‌ی پوسته</strong> را بررسی کنید تا رنگ‌ها را سفارشی‌سازی کرده و واکنش آنی کامپوننت‌ها را مشاهده کنید.",
-	"intro.cta.button": "امتحان سازنده‌ی پوسته →",
+	"intro.cta.button": "امتحان سازنده‌ی پوسته",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "نصب",

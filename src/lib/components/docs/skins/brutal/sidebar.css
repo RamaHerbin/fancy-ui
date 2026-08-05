@@ -1,1 +1,378 @@
-/* Brutal docs skin — sidebar region. Scope every rule under .docs-skin[data-skin="brutal"]. */
+/* Brutal docs skin — sidebar region. Scope every rule under .docs-skin[data-skin="brutal"].
+
+   Every value is transcribed from the in-repo design reference
+   (vendor/design-refs/brutal/FancyUI-Intro-CV-Style.dc.html) — do not eyeball
+   or round them.
+
+   Regions covered here: R2 (shell + brand block), R3 (category label rows and
+   their chevron), R4 (leaf items), R5 (active item), R6 (Star on GitHub card).
+   The shadow / lift / focus / arrow tokens come from page.css, which also
+   mirrors them for RTL. */
+
+/* ---- R2 — sidebar shell ------------------------------------------------------ */
+/* 264px instead of the repo's `w-64` (256px), on paper rather than card, with
+   the universal 1.5px ink edge. The drawer mechanics (fixed + translate under
+   `lg`) stay the repo's — only the metrics and the palette change. */
+.docs-skin[data-skin="brutal"] aside {
+	width: 264px;
+	border-inline-end: 1.5px solid var(--skin-line);
+	background: var(--skin-paper);
+	color: var(--skin-ink);
+}
+
+/* The content column clears the sidebar through `lg:ps-64` (16rem); it has to
+   follow the 264px shell at the same breakpoint or the two overlap by 8px. */
+@media (min-width: 64rem) {
+	.docs-skin[data-skin="brutal"] .lg\:ps-64 {
+		padding-inline-start: 264px;
+	}
+}
+
+/* ---- R2 — brand block -------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] .docs-brand {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 10px;
+	padding: 18px 20px;
+	border-bottom: 1.5px solid var(--skin-line);
+	outline: none;
+	color: var(--skin-ink);
+	text-decoration: none;
+}
+.docs-skin[data-skin="brutal"] .docs-brand:hover {
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .docs-brand:focus-visible {
+	box-shadow: var(--brutal-focus-ring);
+}
+.docs-skin[data-skin="brutal"] .docs-brand-logo {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 9px;
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+	font-weight: 700;
+	line-height: normal;
+}
+.docs-skin[data-skin="brutal"] .docs-brand-text {
+	display: block;
+	min-width: 0;
+}
+.docs-skin[data-skin="brutal"] .docs-brand-name {
+	display: block;
+	font-size: 16px;
+	font-weight: 850;
+	letter-spacing: -0.02em;
+	line-height: 1;
+}
+/* The reference reads `DOCS · V2.4`; the repo feeds a localized label plus the
+   real package version, so the uppercasing is done here rather than in markup. */
+.docs-skin[data-skin="brutal"] .docs-brand-sub {
+	display: block;
+	margin-top: 3px;
+	opacity: 0.55;
+	font-family: var(--skin-font-mono);
+	font-size: 8px;
+	font-weight: 400;
+	letter-spacing: 0.1em;
+	line-height: normal;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+/* ---- Nav scroll region -------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] aside nav {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	padding: 14px 14px 10px;
+}
+/* The reference is one flat 3px-gap column; the repo wraps each group in a div,
+   so the group is put on the same rhythm and the 12px the reference sets on a
+   category row moves to the group — group-to-group spacing stays 3 + 12 = 15px. */
+.docs-skin[data-skin="brutal"] aside nav > div {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	margin: 0;
+}
+.docs-skin[data-skin="brutal"] aside nav > div + div {
+	margin-top: 12px;
+}
+.docs-skin[data-skin="brutal"] aside nav ul {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+/* ---- R3 — category label rows ------------------------------------------------- */
+/* The static GETTING STARTED `<p>`, the collapsible category `<button>`s and the
+   repo-only COMPONENTS link (D5) share one grammar. The reference fades the
+   label text only (opacity .6 on the text div, the dot stays full strength), so
+   the fade rides on `color` — identical over paper, and it leaves the ::before
+   dot free to carry its own accent. */
+.docs-skin[data-skin="brutal"] aside nav p[data-category],
+.docs-skin[data-skin="brutal"] aside nav button[data-category],
+.docs-skin[data-skin="brutal"] .docs-nav-components a {
+	display: flex;
+	width: 100%;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 7px;
+	margin: 0;
+	padding: 7px 10px;
+	border-radius: 9px;
+	outline: none;
+	color: rgba(20, 20, 20, 0.6);
+	font-family: var(--skin-font-mono);
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	line-height: normal;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+/* The static row is not a toggle: it sits tighter to the list underneath it. */
+.docs-skin[data-skin="brutal"] aside nav p[data-category] {
+	padding: 4px 10px 7px;
+}
+.docs-skin[data-skin="brutal"] aside nav p[data-category]::before,
+.docs-skin[data-skin="brutal"] aside nav button[data-category]::before,
+.docs-skin[data-skin="brutal"] .docs-nav-components a::before {
+	content: "";
+	/* The reference lays out on content-box, so the 1.5px ink outline sits
+	   outside the 10px colored square; under the repo's global border-box reset
+	   the same declaration would shrink the fill to 7px. */
+	box-sizing: content-box;
+	width: 10px;
+	height: 10px;
+	flex: none;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 3px;
+	background: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] aside nav button[data-category]:hover,
+.docs-skin[data-skin="brutal"] .docs-nav-components a:hover {
+	background: var(--skin-card);
+	color: rgba(20, 20, 20, 0.6);
+}
+.docs-skin[data-skin="brutal"] aside nav button[data-category]:focus-visible,
+.docs-skin[data-skin="brutal"] .docs-nav-components a:focus-visible {
+	box-shadow: var(--brutal-focus-ring);
+}
+/* D5 — the COMPONENTS index row has no counterpart in the reference; it takes
+   an ink dot so it reads as an index rather than as one more accent group. */
+.docs-skin[data-skin="brutal"] .docs-nav-components a.text-sidebar-accent-foreground {
+	color: var(--skin-ink);
+}
+
+/* Dot per category. The reference assigns blue / red / green / purple to the
+   four groups it shows (getting-started, buttons, cards, text); the remaining
+   registry categories keep cycling the same five accents in registry order. */
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="getting-started"]::before {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="buttons"]::before {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="cards"]::before {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="text"]::before {
+	background: var(--skin-purple);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="backgrounds"]::before {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="effects"]::before {
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="layout"]::before {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="navigation"]::before {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="data-display"]::before {
+	background: var(--skin-purple);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="feedback"]::before {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="brutal"] aside nav :is(p, button)[data-category="media"]::before {
+	background: var(--skin-yellow);
+}
+
+/* ---- R3 — chevron (D4) --------------------------------------------------------- */
+/* The reference rotates a DOWN chevron (0deg open, -90deg collapsed). The repo's
+   path already points right, so the equivalent pair here is 90deg open / 0deg
+   collapsed. Both angles are pinned so the direction never rests on a utility
+   class alone, and Tailwind's `rotate` property is zeroed so the two rotations
+   cannot compose. */
+.docs-skin[data-skin="brutal"] .docs-nav-chevron {
+	width: 11px;
+	height: 11px;
+	flex: none;
+	margin-inline-start: auto;
+	rotate: none;
+	transform: rotate(0deg);
+	transition: transform 0.15s ease;
+	color: var(--skin-ink);
+	opacity: 1;
+}
+.docs-skin[data-skin="brutal"] .docs-nav-chevron.rotate-90 {
+	transform: rotate(90deg);
+}
+/* stroke-width 1.8 is authored against the reference's 14-unit viewBox; the repo
+   path lives in a 24-unit one, so 1.8 × 24 / 14 keeps the rendered weight. */
+.docs-skin[data-skin="brutal"] .docs-nav-chevron path {
+	stroke-width: 3.086;
+}
+
+/* ---- R4 — leaf items ------------------------------------------------------------ */
+/* The resting border is transparent rather than absent so hover and focus can
+   paint it without shifting the row by 1.5px. */
+.docs-skin[data-skin="brutal"] aside nav ul li a {
+	display: block;
+	padding: 6px 12px;
+	border: 1.5px solid transparent;
+	border-radius: 9px;
+	outline: none;
+	color: var(--skin-ink);
+	font-size: 13.5px;
+	font-weight: 600;
+	line-height: normal;
+	text-decoration: none;
+	transition:
+		border-color 0.12s ease,
+		background 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] aside nav ul li a:not(.bg-sidebar-accent):hover {
+	border-color: var(--skin-line);
+	background: var(--skin-card);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] aside nav ul li a:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: var(--brutal-focus-ring);
+}
+
+/* ---- R5 — active item ------------------------------------------------------------ */
+/* The one hard offset in the whole skin that is not a hover affordance: the
+   active row rests on it and has no hover state of its own. */
+.docs-skin[data-skin="brutal"] aside nav ul li a.bg-sidebar-accent {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	border-color: var(--skin-line);
+	background: var(--skin-blue);
+	box-shadow: var(--brutal-shadow-hard);
+	color: #ffffff;
+	font-weight: 750;
+}
+/* Trailing ↗, painted in ink — not white — exactly like the reference's svg. */
+.docs-skin[data-skin="brutal"] aside nav ul li a.bg-sidebar-accent::after {
+	content: "";
+	width: 11px;
+	height: 11px;
+	flex: none;
+	margin-inline-start: auto;
+	background: var(--skin-ink);
+	-webkit-mask: var(--brutal-arrow-ne) center / contain no-repeat;
+	mask: var(--brutal-arrow-ne) center / contain no-repeat;
+}
+/* Focus keeps the resting offset and stacks the halo on top of it. */
+.docs-skin[data-skin="brutal"] aside nav ul li a.bg-sidebar-accent:focus-visible {
+	border-color: var(--skin-line);
+	box-shadow: var(--brutal-shadow-hard), var(--brutal-focus-ring);
+}
+
+/* ---- R6 — "Star on GitHub" card ---------------------------------------------------- */
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 10px;
+	margin: 12px 14px 16px;
+	padding: 12px 13px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 12px;
+	outline: none;
+	background: var(--skin-card);
+	box-shadow: var(--brutal-ambient-sm);
+	color: var(--skin-ink);
+	text-decoration: none;
+	cursor: pointer;
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
+}
+/* `color` is restated so the card wins over the skin's global `a:hover` blue. */
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta:hover {
+	transform: var(--brutal-lift);
+	box-shadow: var(--brutal-shadow-hard-lg);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta:active {
+	transform: none;
+	box-shadow: none;
+}
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: var(--brutal-focus-ring);
+}
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta-marker {
+	/* Square, no radius — content-box for the same reason as the category dot. */
+	box-sizing: content-box;
+	width: 9px;
+	height: 9px;
+	flex: none;
+	border: 1.5px solid var(--skin-line);
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta-text {
+	display: block;
+	min-width: 0;
+}
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta-title {
+	display: block;
+	font-size: 12.5px;
+	font-weight: 800;
+	line-height: normal;
+}
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta-sub {
+	display: block;
+	margin-top: 1px;
+	opacity: 0.7;
+	font-size: 10.5px;
+	font-weight: 500;
+	line-height: normal;
+}
+.docs-skin[data-skin="brutal"] .docs-sidebar-cta > svg {
+	flex: none;
+	margin-inline-start: auto;
+	color: var(--skin-ink);
+}
+
+/* ---- RTL ---------------------------------------------------------------------------- */
+/* Hard offsets and lift transforms mirror through the tokens page.css redefines
+   under [dir="rtl"], so only the direction-carrying glyphs need flipping here.
+   `:where()` keeps these at the same specificity as their LTR counterparts —
+   they win on source order alone. */
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] aside nav ul li a.bg-sidebar-accent::after,
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] .docs-sidebar-cta > svg {
+	transform: scaleX(-1);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] .docs-nav-chevron {
+	transform: rotate(180deg);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] .docs-nav-chevron.rotate-90 {
+	transform: rotate(90deg);
+}

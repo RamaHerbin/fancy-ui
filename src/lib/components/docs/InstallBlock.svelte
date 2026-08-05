@@ -48,7 +48,7 @@
 	</div>
 	<!-- Command -->
 	<div class="docs-install-cmd p-4 font-mono text-sm text-(--code-cmd)">
-		{commands[activeTab]}
+		<span class="docs-install-pm">{activeTab}</span>{commands[activeTab].slice(activeTab.length)}
 	</div>
 	<!-- Import -->
 	{#if componentImport}

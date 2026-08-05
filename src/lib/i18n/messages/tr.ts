@@ -176,7 +176,7 @@ export default {
 	"intro.cta.title": "FancyUI'de yeni misiniz?",
 	"intro.cta.body":
 		"Renkleri özelleştirmek ve bileşenlerin gerçek zamanlı nasıl tepki verdiğini görmek için <strong>Tema Oluşturucu</strong>'yu inceleyin.",
-	"intro.cta.button": "Tema Oluşturucu'yu Dene →",
+	"intro.cta.button": "Tema Oluşturucu'yu Dene",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Kurulum",

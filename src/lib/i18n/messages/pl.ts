@@ -177,7 +177,7 @@ export default {
 	"intro.cta.title": "Nowy w FancyUI?",
 	"intro.cta.body":
 		"Sprawdź <strong>Generator motywów</strong>, aby dostosować kolory i zobaczyć, jak komponenty reagują w czasie rzeczywistym.",
-	"intro.cta.button": "Wypróbuj Generator motywów →",
+	"intro.cta.button": "Wypróbuj Generator motywów",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalacja",

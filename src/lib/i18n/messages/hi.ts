@@ -174,7 +174,7 @@ export default {
 	"intro.cta.title": "FancyUI में नए हैं?",
 	"intro.cta.body":
 		"रंगों को कस्टमाइज़ करने और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखने के लिए <strong>थीम जनरेटर</strong> देखें।",
-	"intro.cta.button": "थीम जनरेटर आज़माएं →",
+	"intro.cta.button": "थीम जनरेटर आज़माएं",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "इंस्टॉलेशन",
