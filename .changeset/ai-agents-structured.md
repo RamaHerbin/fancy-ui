@@ -1,0 +1,5 @@
+---
+"fancy-ui-svelte": minor
+---
+
+Add the agent-activity and structured-output surfaces of the AI/chat family: `AgentPlan` (glanceable checklist with done/total count, completion bar, status glyphs, and one level of substeps), `SubagentList` (fan-out panel for parallel workers with per-row status dots, model badges, and progress bars under a self-deriving label), `ApprovalCard` (human-in-the-loop gate whose approve/deny footer swaps for a politely announced verdict line, with a destructive variant), `RecommendationCard` (an agent's proposal with a counted-up confidence figure beside a filling ring, banded by certainty), `ArtifactCard` (a generated document as a tangible object — version navigator, streaming preview behind a fade, and a real Open button), and `AiDataTable` (compact comparison table for structured model output with real table semantics, keyboard-scrollable overflow, and no client-side sorting by design). All six render duplicate model-supplied ids without crashing, follow the shared `--ft-status-*` tokens, and ship with colocated tests, docs examples, and stories.

@@ -434,4 +434,10 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"inline-citation": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"web-search": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"image-generation": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"agent-plan": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"subagent-list": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"approval-card": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"recommendation-card": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"artifact-card": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"ai-data-table": [{ name: "BasicUsage", title: "Basic Usage" }],
 };

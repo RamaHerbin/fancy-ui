@@ -286,7 +286,7 @@
 				--ft-toolcall-pending,
 				color-mix(
 					in oklab,
-					var(--ft-status-pending, light-dark(oklch(0.55 0.02 260), oklch(0.72 0.02 260))) 55%,
+					var(--ft-status-pending, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260))) 55%,
 					transparent
 				)
 			);
@@ -298,7 +298,7 @@
 				--ft-toolcall-cancelled,
 				color-mix(
 					in oklab,
-					var(--ft-status-cancelled, light-dark(oklch(0.55 0.02 260), oklch(0.72 0.02 260))) 40%,
+					var(--ft-status-cancelled, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260))) 40%,
 					transparent
 				)
 			);
