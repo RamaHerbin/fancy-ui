@@ -2537,6 +2537,237 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	// =========================================================================
+	// AI — chat & agent surfaces
+	// =========================================================================
+	"pixel-loader": {
+		name: "PixelLoader",
+		slug: "pixel-loader",
+		description:
+			"Grid of pixels pulsing in a diagonal wave as a pre-token loading indicator for AI responses",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "reasoning", "loading", "indicator"],
+		props: [
+			{ name: "cols", type: "number", default: "5", description: "Number of pixel columns" },
+			{ name: "rows", type: "number", default: "5", description: "Number of pixel rows" },
+			{
+				name: "cellSize",
+				type: "number",
+				default: "6",
+				description: "Size of a single pixel in px",
+			},
+			{ name: "gap", type: "number", default: "2", description: "Space between pixels in px" },
+			{
+				name: "color",
+				type: "string",
+				default: '"var(--ft-pixel-color, currentColor)"',
+				description: "Pixel colour, any CSS colour value",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1.6",
+				description: "Duration of one full pulse cycle in seconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Loading"',
+				description: "Accessible label announced by assistive tech",
+			},
+		],
+	},
+	"typing-indicator": {
+		name: "TypingIndicator",
+		slug: "typing-indicator",
+		description:
+			"Animated three-dot presence indicator with a staggered CSS wave, tuned to signal activity without pulling focus",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "indicator", "presence"],
+		props: [
+			{ name: "size", type: "number", default: "6", description: "Dot diameter in pixels" },
+			{
+				name: "color",
+				type: "string",
+				default: '"var(--ft-typing-color, currentColor)"',
+				description: "Dot color; any CSS color or custom property expression",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1.2",
+				description: "Duration of one full animation cycle in seconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Typing"',
+				description: "Visually hidden text announced to assistive technology",
+			},
+		],
+	},
+	"thinking-indicator": {
+		name: "ThinkingIndicator",
+		slug: "thinking-indicator",
+		description:
+			"Live agent status line with a shimmering activity label and an elapsed timer, as a bare inline row or a bordered status pill",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "reasoning", "status", "indicator"],
+		props: [
+			{
+				name: "status",
+				type: "string",
+				description: 'What the agent is doing right now, e.g. "Reading files"',
+				required: true,
+			},
+			{
+				name: "running",
+				type: "boolean",
+				default: "true",
+				description: "Whether the activity is in flight: drives the shimmer and the live timer",
+			},
+			{
+				name: "variant",
+				type: '"inline" | "pill"',
+				default: '"inline"',
+				description: "Bare text row, or a bordered chip with a leading pulse dot",
+			},
+			{
+				name: "since",
+				type: "number",
+				description: "Epoch ms the activity started; the internal stopwatch ticks from it",
+			},
+			{
+				name: "elapsedMs",
+				type: "number",
+				description: "Externally-driven elapsed time in ms; overrides the internal stopwatch",
+			},
+			{
+				name: "showElapsed",
+				type: "boolean",
+				default: "true",
+				description: "Show the elapsed duration alongside the status",
+			},
+		],
+		slots: [
+			{
+				name: "done",
+				description: "Rendered instead of the status label once running is false",
+			},
+		],
+	},
+	"streaming-text": {
+		name: "StreamingText",
+		slug: "streaming-text",
+		description:
+			"Renders a growing string as a live token stream: the appended delta lands tinted and settles, with an optional block cursor while the response is in flight",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "streaming", "text", "reasoning"],
+		props: [
+			{
+				name: "text",
+				type: "string",
+				description: "The accumulated text so far, not the latest delta; reassign as chunks arrive",
+				required: true,
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description: "Show a soft block cursor after the last character",
+			},
+			{
+				name: "markdown",
+				type: "boolean",
+				default: "false",
+				description:
+					"Render as markdown instead of the tinted plain-text stream; disables the delta tint",
+			},
+			{
+				name: "settleMs",
+				type: "number",
+				default: "350",
+				description: "How long a newly arrived chunk stays tinted in ms, plain mode only",
+			},
+			{
+				name: "tintColor",
+				type: "string",
+				description: "Colour a chunk fades from, and the cursor's fill; sets --ft-tint-color",
+			},
+			{
+				name: "onComplete",
+				type: "() => void",
+				description: "Called once when streaming goes from true to false",
+			},
+		],
+	},
+	"reasoning-panel": {
+		name: "ReasoningPanel",
+		slug: "reasoning-panel",
+		description:
+			"Collapsible reasoning trace that streams while the model thinks, then folds itself into a one-line summary",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "reasoning", "disclosure", "streaming"],
+		props: [
+			{
+				name: "text",
+				type: "string",
+				description: "The reasoning trace so far; hand over a longer string to stream more in",
+				required: true,
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description: "Whether the trace is still growing; drives the timer, shimmer, and autoscroll",
+			},
+			{
+				name: "open",
+				type: "boolean",
+				description:
+					"Expanded state (bindable). Left undefined, the panel opens while streaming and collapses 600ms after it ends, until the reader toggles it by hand",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Reasoning"',
+				description: "Header text",
+			},
+			{
+				name: "since",
+				type: "number",
+				description: "Epoch ms the current burst started at; pins the live timer's origin",
+			},
+			{
+				name: "durationMs",
+				type: "number",
+				description:
+					"Final duration for the summary line; falls back to the duration the panel measured itself",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"12rem"',
+				description: "Scroll height of the trace once expanded",
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description: "Called on every open/close, by click or on the panel's own initiative",
+			},
+		],
+	},
 };
 
 // =============================================================================
