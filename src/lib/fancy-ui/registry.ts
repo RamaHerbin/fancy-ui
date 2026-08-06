@@ -3120,6 +3120,206 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	sources: {
+		name: "Sources",
+		slug: "sources",
+		description:
+			"The citations under an answer: a pill carrying a stack of domain monograms and a count, expanding into scannable source cards with title, host, and the line worth reading",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "citations", "sources", "compound"],
+		props: [
+			{
+				name: "sources",
+				type: "SourceData[]",
+				description: "The documents backing the answer, in reading order",
+				required: true,
+			},
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the list is expanded; bindable",
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description:
+					"Called when the pill is clicked, with the state it moved to; driving open yourself does not fire it",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Replaces the default trigger-and-list composition entirely; omit it and the root renders both",
+			},
+			{
+				name: "item",
+				description:
+					"On SourcesList — replaces the default card; receives the source and its index",
+			},
+			{
+				name: "icon",
+				description: "On SourceCard — replaces the monogram: a favicon you host, a logo",
+			},
+		],
+	},
+	"inline-citation": {
+		name: "InlineCitation",
+		slug: "inline-citation",
+		description:
+			"A numbered reference that sits inside a sentence and reveals the document behind it — title, domain and snippet — in a floating card on hover or focus",
+		category: "ai-chat",
+		status: "done",
+		dependencies: ["sources"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "citations", "tooltip"],
+		props: [
+			{
+				name: "source",
+				type: "SourceData",
+				description: "The document being cited; its title, domain and snippet fill the card",
+				required: true,
+			},
+			{
+				name: "index",
+				type: "number",
+				description: "The reference number shown in the marker, e.g. 3 renders [3]",
+				required: true,
+			},
+			{
+				name: "href",
+				type: "string",
+				default: "source.url",
+				description:
+					"Link target; an explicit empty string renders an unlinked marker that only reveals the card",
+			},
+			{
+				name: "onOpen",
+				type: "() => void",
+				description: "Called each time the card appears, once per appearance rather than per hover",
+			},
+		],
+		slots: [
+			{
+				name: "preview",
+				description: "Replaces the default card body; receives the source",
+			},
+		],
+	},
+	"web-search": {
+		name: "WebSearch",
+		slug: "web-search",
+		description:
+			"A search the agent ran: the query in a search-bar header, an indeterminate scanning bar while it runs, and results that land one row at a time",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "search", "results", "knowledge"],
+		props: [
+			{
+				name: "query",
+				type: "string",
+				description: "What the agent looked up, shown in the search-bar header",
+				required: true,
+			},
+			{
+				name: "results",
+				type: "SearchResultData[]",
+				description: "Hits found so far, oldest first; appending to it lands a new row",
+				required: true,
+			},
+			{
+				name: "searching",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the lookup is still running: drives the scanning bar and the waiting state",
+			},
+			{
+				name: "onSelect",
+				type: "(result: SearchResultData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "maxVisible",
+				type: "number",
+				default: "0",
+				description: "Rows shown before the expander takes over; 0 shows every result",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Web search"',
+				description: "Accessible name for the whole block",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the row element and its behaviour",
+			},
+		],
+	},
+	"image-generation": {
+		name: "ImageGeneration",
+		slug: "image-generation",
+		description:
+			"Fixed frame that holds its place while a model draws: an empty outline, then a pixel grid working over a drifting dot field, then the finished image easing out of a blur",
+		category: "ai-chat",
+		status: "done",
+		dependencies: ["pixel-loader"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "image", "generation", "media"],
+		props: [
+			{
+				name: "status",
+				type: '"idle" | "generating" | "done" | "error"',
+				description: "Which stage of the generation to render",
+				required: true,
+			},
+			{
+				name: "src",
+				type: "string | null",
+				description: 'The generated image, shown once status is "done"',
+			},
+			{
+				name: "alt",
+				type: "string",
+				description: "Describes the image to assistive tech — typically the prompt",
+				required: true,
+			},
+			{
+				name: "aspectRatio",
+				type: "string",
+				default: '"1 / 1"',
+				description: "CSS aspect-ratio of the frame, holding the layout across every state",
+			},
+			{
+				name: "prompt",
+				type: "string",
+				description: "Muted caption line under the frame",
+			},
+			{
+				name: "errorText",
+				type: "string",
+				default: '"Generation failed"',
+				description: "The failure line shown in the error state",
+			},
+			{
+				name: "onRetry",
+				type: "() => void",
+				description: "Pressing retry calls this; the retry button only exists when it is set",
+			},
+			{
+				name: "onLoad",
+				type: "() => void",
+				description: "Called once the generated image has finished loading",
+			},
+		],
+	},
 };
 
 // =============================================================================

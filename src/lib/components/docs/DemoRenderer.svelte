@@ -76,6 +76,10 @@
 		"tool-timeline",
 		"terminal-block",
 		"code-diff",
+		"sources",
+		"inline-citation",
+		"web-search",
+		"image-generation",
 	]);
 </script>
 
