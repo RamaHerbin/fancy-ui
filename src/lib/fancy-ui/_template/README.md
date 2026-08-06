@@ -43,20 +43,20 @@ src/lib/fancy-ui/[component-name]/
 
 Use this mapping guide:
 
-| Vue Pattern | Svelte 5 Equivalent |
-|-------------|---------------------|
-| `defineProps<T>()` | `let { ... }: T = $props()` |
-| `ref(value)` | `let value = $state(initialValue)` |
-| `computed(() => ...)` | `const value = $derived(...)` |
-| `watch(dep, callback)` | `$effect(() => { ... })` |
-| `<slot />` | `{@render children?.()}` |
-| `<slot name="x" />` | `{@render slotName?.()}` |
-| `emit('event', data)` | Pass callback prop or use CustomEvent |
-| `:class="{ active }"` | `class:active` or `cn(..., { active })` |
-| `v-if` | `{#if condition}` |
-| `v-for` | `{#each items as item}` |
-| `@click` | `onclick={handler}` |
-| `@click.prevent` | `onclick={(e) => { e.preventDefault(); ... }}` |
+| Vue Pattern            | Svelte 5 Equivalent                            |
+| ---------------------- | ---------------------------------------------- |
+| `defineProps<T>()`     | `let { ... }: T = $props()`                    |
+| `ref(value)`           | `let value = $state(initialValue)`             |
+| `computed(() => ...)`  | `const value = $derived(...)`                  |
+| `watch(dep, callback)` | `$effect(() => { ... })`                       |
+| `<slot />`             | `{@render children?.()}`                       |
+| `<slot name="x" />`    | `{@render slotName?.()}`                       |
+| `emit('event', data)`  | Pass callback prop or use CustomEvent          |
+| `:class="{ active }"`  | `class:active` or `cn(..., { active })`        |
+| `v-if`                 | `{#if condition}`                              |
+| `v-for`                | `{#each items as item}`                        |
+| `@click`               | `onclick={handler}`                            |
+| `@click.prevent`       | `onclick={(e) => { e.preventDefault(); ... }}` |
 
 ### Step 3: Handle Styling
 
@@ -67,29 +67,34 @@ Use this mapping guide:
    - `border-border`, `ring-ring`
 3. **Use `cn()` utility** for class merging:
    ```svelte
-   <div class={cn('base-styles', className)} />
+   <div class={cn("base-styles", className)} />
    ```
 4. **Scoped styles** for animations:
    ```svelte
    <style>
-     @keyframes custom {
-       from { opacity: 0; }
-       to { opacity: 1; }
-     }
+   	@keyframes custom {
+   		from {
+   			opacity: 0;
+   		}
+   		to {
+   			opacity: 1;
+   		}
+   	}
    </style>
    ```
 
 ### Step 4: Export the Component
 
 1. Update `index.ts`:
+
    ```typescript
-   import ComponentName, { type ComponentNameProps } from './ComponentName.svelte';
+   import ComponentName, { type ComponentNameProps } from "./ComponentName.svelte";
    export { ComponentName, type ComponentNameProps };
    ```
 
 2. Add to `src/lib/fancy-ui/index.ts`:
    ```typescript
-   export * from './component-name';
+   export * from "./component-name";
    ```
 
 ### Step 5: Create Demo Page
@@ -98,23 +103,23 @@ Create `src/routes/demo/[component-name]/+page.svelte`:
 
 ```svelte
 <script lang="ts">
-  import { ComponentName } from '$lib/fancy-ui/component-name';
+	import { ComponentName } from "$lib/fancy-ui/component-name";
 </script>
 
 <svelte:head>
-  <title>ComponentName - FancyUI</title>
+	<title>ComponentName - FancyUI</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl py-12 px-4">
-  <h1 class="text-3xl font-bold mb-2">ComponentName</h1>
-  <p class="text-muted-foreground mb-8">Description here.</p>
+<div class="container mx-auto max-w-4xl px-4 py-12">
+	<h1 class="mb-2 text-3xl font-bold">ComponentName</h1>
+	<p class="text-muted-foreground mb-8">Description here.</p>
 
-  <section class="mb-12">
-    <h2 class="text-xl font-semibold mb-4">Basic Usage</h2>
-    <div class="rounded-lg border bg-card p-6">
-      <ComponentName />
-    </div>
-  </section>
+	<section class="mb-12">
+		<h2 class="mb-4 text-xl font-semibold">Basic Usage</h2>
+		<div class="bg-card rounded-lg border p-6">
+			<ComponentName />
+		</div>
+	</section>
 </div>
 ```
 
@@ -137,16 +142,12 @@ Add to the components array in `src/routes/demo/+page.svelte`:
 
 ```svelte
 <script lang="ts">
-  interface Props {
-    duration?: number;
-    class?: string;
-  }
+	interface Props {
+		duration?: number;
+		class?: string;
+	}
 
-  let {
-    duration = 1000,
-    class: className,
-    ...restProps
-  }: Props = $props();
+	let { duration = 1000, class: className, ...restProps }: Props = $props();
 </script>
 ```
 
@@ -154,12 +155,12 @@ Add to the components array in `src/routes/demo/+page.svelte`:
 
 ```svelte
 <script lang="ts">
-  let count = $state(0);
-  let items = $state<string[]>([]);
+	let count = $state(0);
+	let items = $state<string[]>([]);
 
-  function increment() {
-    count++;
-  }
+	function increment() {
+		count++;
+	}
 </script>
 ```
 
@@ -167,10 +168,10 @@ Add to the components array in `src/routes/demo/+page.svelte`:
 
 ```svelte
 <script lang="ts">
-  let { width, height } = $props();
+	let { width, height } = $props();
 
-  const area = $derived(width * height);
-  const isLarge = $derived(area > 1000);
+	const area = $derived(width * height);
+	const isLarge = $derived(area > 1000);
 </script>
 ```
 
@@ -178,14 +179,14 @@ Add to the components array in `src/routes/demo/+page.svelte`:
 
 ```svelte
 <script lang="ts">
-  let element: HTMLElement;
+	let element: HTMLElement;
 
-  $effect(() => {
-    const observer = new ResizeObserver(handleResize);
-    observer.observe(element);
+	$effect(() => {
+		const observer = new ResizeObserver(handleResize);
+		observer.observe(element);
 
-    return () => observer.disconnect();
-  });
+		return () => observer.disconnect();
+	});
 </script>
 ```
 
@@ -193,11 +194,11 @@ Add to the components array in `src/routes/demo/+page.svelte`:
 
 ```svelte
 <script lang="ts">
-  interface Props {
-    value?: number;
-  }
+	interface Props {
+		value?: number;
+	}
 
-  let { value = $bindable(0) }: Props = $props();
+	let { value = $bindable(0) }: Props = $props();
 </script>
 ```
 
@@ -205,16 +206,16 @@ Add to the components array in `src/routes/demo/+page.svelte`:
 
 ```svelte
 <script lang="ts">
-  interface Props {
-    onclick?: (event: MouseEvent) => void;
-  }
+	interface Props {
+		onclick?: (event: MouseEvent) => void;
+	}
 
-  let { onclick }: Props = $props();
+	let { onclick }: Props = $props();
 
-  function handleClick(event: MouseEvent) {
-    // Internal logic
-    onclick?.(event);
-  }
+	function handleClick(event: MouseEvent) {
+		// Internal logic
+		onclick?.(event);
+	}
 </script>
 
 <button onclick={handleClick}>Click me</button>
@@ -240,6 +241,7 @@ Before marking a component as done:
 ### TypeScript Errors with Event Handlers
 
 Use explicit typing:
+
 ```svelte
 <button onclick={(e: MouseEvent) => handleClick(e)}>
 ```
@@ -247,6 +249,7 @@ Use explicit typing:
 ### Class Prop Conflicts
 
 Always rename `class` to `className`:
+
 ```svelte
 let { class: className }: Props = $props();
 ```
@@ -254,26 +257,28 @@ let { class: className }: Props = $props();
 ### Animation Not Working
 
 Ensure keyframes are in `<style>` block and class is applied:
+
 ```svelte
 <style>
-  @keyframes fade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
+	@keyframes fade {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
 
-  .animate-fade {
-    animation: fade 0.3s ease-out;
-  }
+	.animate-fade {
+		animation: fade 0.3s ease-out;
+	}
 </style>
 ```
 
 ### Reactive Value Not Updating
 
 Use `$state()` for mutable values, not `let`:
-```svelte
-// Wrong
-let count = 0;
 
-// Correct
-let count = $state(0);
+```svelte
+// Wrong let count = 0; // Correct let count = $state(0);
 ```

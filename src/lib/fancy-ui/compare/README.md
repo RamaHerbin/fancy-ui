@@ -12,80 +12,63 @@ A before/after image comparison slider with smooth interactions.
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `firstImage` | `string` | `''` | URL of the first (left) image |
-| `secondImage` | `string` | `''` | URL of the second (right) image |
-| `firstImageAlt` | `string` | `'First image'` | Alt text for first image |
-| `secondImageAlt` | `string` | `'Second image'` | Alt text for second image |
-| `class` | `string` | `''` | Additional CSS classes |
-| `firstContentClass` | `string` | `''` | CSS classes for first content |
-| `secondContentClass` | `string` | `''` | CSS classes for second content |
-| `initialSliderPercentage` | `number` | `50` | Initial slider position (0-100) |
-| `slideMode` | `'hover' \| 'drag'` | `'hover'` | Interaction mode |
-| `showHandlebar` | `boolean` | `true` | Show the drag handle |
-| `autoplay` | `boolean` | `false` | Enable auto-animation |
-| `autoplayDuration` | `number` | `5000` | Duration of one autoplay cycle (ms) |
+| Prop                      | Type                | Default          | Description                         |
+| ------------------------- | ------------------- | ---------------- | ----------------------------------- |
+| `firstImage`              | `string`            | `''`             | URL of the first (left) image       |
+| `secondImage`             | `string`            | `''`             | URL of the second (right) image     |
+| `firstImageAlt`           | `string`            | `'First image'`  | Alt text for first image            |
+| `secondImageAlt`          | `string`            | `'Second image'` | Alt text for second image           |
+| `class`                   | `string`            | `''`             | Additional CSS classes              |
+| `firstContentClass`       | `string`            | `''`             | CSS classes for first content       |
+| `secondContentClass`      | `string`            | `''`             | CSS classes for second content      |
+| `initialSliderPercentage` | `number`            | `50`             | Initial slider position (0-100)     |
+| `slideMode`               | `'hover' \| 'drag'` | `'hover'`        | Interaction mode                    |
+| `showHandlebar`           | `boolean`           | `true`           | Show the drag handle                |
+| `autoplay`                | `boolean`           | `false`          | Enable auto-animation               |
+| `autoplayDuration`        | `number`            | `5000`           | Duration of one autoplay cycle (ms) |
 
 ## Events (Callbacks)
 
-| Callback | Type | Description |
-|----------|------|-------------|
+| Callback             | Type                           | Description                         |
+| -------------------- | ------------------------------ | ----------------------------------- |
 | `onpercentagechange` | `(percentage: number) => void` | Called when slider position changes |
-| `ondragstart` | `() => void` | Called when drag starts |
-| `ondragend` | `() => void` | Called when drag ends |
-| `onhoverenter` | `() => void` | Called when mouse enters |
-| `onhoverleave` | `() => void` | Called when mouse leaves |
+| `ondragstart`        | `() => void`                   | Called when drag starts             |
+| `ondragend`          | `() => void`                   | Called when drag ends               |
+| `onhoverenter`       | `() => void`                   | Called when mouse enters            |
+| `onhoverleave`       | `() => void`                   | Called when mouse leaves            |
 
 ## Snippets
 
-| Snippet | Description |
-|---------|-------------|
-| `firstContent` | Custom content for the left side |
+| Snippet         | Description                       |
+| --------------- | --------------------------------- |
+| `firstContent`  | Custom content for the left side  |
 | `secondContent` | Custom content for the right side |
-| `handle` | Custom handle element |
+| `handle`        | Custom handle element             |
 
 ## Usage
 
 ```svelte
 <script>
-  import { Compare } from '$lib/fancy-ui/compare';
+	import { Compare } from "$lib/fancy-ui/compare";
 </script>
 
 <!-- Basic usage with images -->
-<Compare
-  firstImage="/before.jpg"
-  secondImage="/after.jpg"
-  class="rounded-lg"
-/>
+<Compare firstImage="/before.jpg" secondImage="/after.jpg" class="rounded-lg" />
 
 <!-- Drag mode -->
-<Compare
-  firstImage="/before.jpg"
-  secondImage="/after.jpg"
-  slideMode="drag"
-/>
+<Compare firstImage="/before.jpg" secondImage="/after.jpg" slideMode="drag" />
 
 <!-- With autoplay -->
-<Compare
-  firstImage="/before.jpg"
-  secondImage="/after.jpg"
-  autoplay
-  autoplayDuration={3000}
-/>
+<Compare firstImage="/before.jpg" secondImage="/after.jpg" autoplay autoplayDuration={3000} />
 
 <!-- Custom content -->
 <Compare>
-  {#snippet firstContent()}
-    <div class="bg-blue-500 size-full flex items-center justify-center">
-      Before
-    </div>
-  {/snippet}
-  {#snippet secondContent()}
-    <div class="bg-red-500 size-full flex items-center justify-center">
-      After
-    </div>
-  {/snippet}
+	{#snippet firstContent()}
+		<div class="flex size-full items-center justify-center bg-blue-500">Before</div>
+	{/snippet}
+	{#snippet secondContent()}
+		<div class="flex size-full items-center justify-center bg-red-500">After</div>
+	{/snippet}
 </Compare>
 ```
 

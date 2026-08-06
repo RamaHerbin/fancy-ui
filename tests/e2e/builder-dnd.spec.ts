@@ -1,19 +1,19 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-const BUILDER_URL = '/builder/test';
+const BUILDER_URL = "/builder/test";
 // process.platform matches the test runner OS — fine for local + CI where
 // runner and browser always share the same platform (no remote browsers).
-const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+const modifier = process.platform === "darwin" ? "Meta" : "Control";
 
-test.describe('Builder — Drag-and-drop (palette → canvas)', () => {
+test.describe("Builder — Drag-and-drop (palette → canvas)", () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto(BUILDER_URL);
 		await page.locator('[role="treeitem"]').first().waitFor({ timeout: 15000 });
 		// networkidle ensures Svelte hydration is complete before interacting
-		await page.waitForLoadState('networkidle');
+		await page.waitForLoadState("networkidle");
 	});
 
-	test('Clicking a palette component adds it to the canvas and layer tree', async ({ page }) => {
+	test("Clicking a palette component adds it to the canvas and layer tree", async ({ page }) => {
 		const initialCount = await page.locator('[role="treeitem"]').count();
 
 		await page.locator('[data-testid="palette-item-_spacer"]').click();
@@ -22,7 +22,7 @@ test.describe('Builder — Drag-and-drop (palette → canvas)', () => {
 		await expect(page.locator('[role="treeitem"]')).toHaveCount(initialCount + 1);
 	});
 
-	test('Undo removes the added block', async ({ page }) => {
+	test("Undo removes the added block", async ({ page }) => {
 		const initialCount = await page.locator('[role="treeitem"]').count();
 
 		// Add a component via click
@@ -35,7 +35,7 @@ test.describe('Builder — Drag-and-drop (palette → canvas)', () => {
 		await expect(page.locator('[role="treeitem"]')).toHaveCount(initialCount);
 	});
 
-	test('Dragging a palette component to the canvas adds it', async ({ page }) => {
+	test("Dragging a palette component to the canvas adds it", async ({ page }) => {
 		const initialCount = await page.locator('[role="treeitem"]').count();
 
 		const paletteBtn = page.locator('[data-testid="palette-item-_spacer"]');

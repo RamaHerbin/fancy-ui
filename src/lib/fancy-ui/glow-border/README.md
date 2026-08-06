@@ -6,38 +6,41 @@ An animated glowing border effect using CSS masks and gradients.
 
 ```svelte
 <script>
-  import { GlowBorder } from '$lib/fancy-ui/glow-border';
+	import { GlowBorder } from "$lib/fancy-ui/glow-border";
 </script>
 
-<div class="relative rounded-xl bg-card p-6">
-  <p>Content goes here</p>
-  <GlowBorder color="#00ffff" />
+<div class="bg-card relative rounded-xl p-6">
+	<p>Content goes here</p>
+	<GlowBorder color="#00ffff" />
 </div>
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `class` | `string` | `''` | Additional CSS classes |
-| `color` | `string \| string[]` | `'#FFF'` | Glow color(s) - single or array for gradient |
-| `borderRadius` | `number` | `10` | Border radius in pixels |
-| `borderWidth` | `number` | `2` | Border thickness in pixels |
-| `duration` | `number` | `10` | Animation duration in seconds |
+| Prop           | Type                 | Default  | Description                                  |
+| -------------- | -------------------- | -------- | -------------------------------------------- |
+| `class`        | `string`             | `''`     | Additional CSS classes                       |
+| `color`        | `string \| string[]` | `'#FFF'` | Glow color(s) - single or array for gradient |
+| `borderRadius` | `number`             | `10`     | Border radius in pixels                      |
+| `borderWidth`  | `number`             | `2`      | Border thickness in pixels                   |
+| `duration`     | `number`             | `10`     | Animation duration in seconds                |
 
 ## Examples
 
 ### Single Color
+
 ```svelte
 <GlowBorder color="#00ffff" />
 ```
 
 ### Multi-Color Gradient
+
 ```svelte
-<GlowBorder color={['#3b82f6', '#8b5cf6', '#ec4899']} />
+<GlowBorder color={["#3b82f6", "#8b5cf6", "#ec4899"]} />
 ```
 
 ### Custom Thickness
+
 ```svelte
 <GlowBorder borderWidth={4} color="#ff00ff" />
 ```

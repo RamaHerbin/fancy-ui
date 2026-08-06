@@ -184,12 +184,7 @@
 
 			{#if isBrutal}
 				<!-- Brutal-only footer card (reference R6). -->
-				<a
-					class="docs-sidebar-cta"
-					href={GITHUB_URL}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
+				<a class="docs-sidebar-cta" href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
 					<span class="docs-sidebar-cta-marker" aria-hidden="true"></span>
 					<span class="docs-sidebar-cta-text">
 						<span class="docs-sidebar-cta-title">{t("sidebar.starTitle")}</span>

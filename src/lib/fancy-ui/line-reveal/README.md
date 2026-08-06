@@ -23,16 +23,16 @@ and lines re-wrap instantly on container resize.
 
 ## Props
 
-| Prop         | Type      | Default                          | Description                                                  |
-| ------------ | --------- | -------------------------------- | ------------------------------------------------------------ |
-| `text`       | `string`  | — (required)                     | Text to reveal                                               |
+| Prop         | Type      | Default                                                       | Description                                                 |
+| ------------ | --------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
+| `text`       | `string`  | — (required)                                                  | Text to reveal                                              |
 | `font`       | `string`  | `"600 32px \"Helvetica Neue\", Helvetica, Arial, sans-serif"` | CSS font shorthand, used for both measurement and rendering |
-| `lineHeight` | `number`  | `1.2 × font size`                | Line height in pixels                                        |
-| `stagger`    | `number`  | `0.08`                           | Delay between lines in seconds                               |
-| `duration`   | `number`  | `0.7`                            | Animation duration per line in seconds                       |
-| `delay`      | `number`  | `0`                              | Initial delay in seconds                                     |
-| `once`       | `boolean` | `true`                           | Animate only on first viewport entry                         |
-| `class`      | `string`  | —                                | Additional CSS classes                                       |
+| `lineHeight` | `number`  | `1.2 × font size`                                             | Line height in pixels                                       |
+| `stagger`    | `number`  | `0.08`                                                        | Delay between lines in seconds                              |
+| `duration`   | `number`  | `0.7`                                                         | Animation duration per line in seconds                      |
+| `delay`      | `number`  | `0`                                                           | Initial delay in seconds                                    |
+| `once`       | `boolean` | `true`                                                        | Animate only on first viewport entry                        |
+| `class`      | `string`  | —                                                             | Additional CSS classes                                      |
 
 ## Notes
 

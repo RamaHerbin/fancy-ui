@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "ナビゲーション",
 	"category.media": "メディア",
 	"category.effects": "エフェクト",
+	"category.ai-chat": "AI チャット",
+	"category.ai-agents": "AI エージェント",
 
 	// Introduction (redesigned page)
 	"intro.title": "はじめに",

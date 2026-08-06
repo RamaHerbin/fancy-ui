@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Nawigacja",
 	"category.media": "Media",
 	"category.effects": "Efekty",
+	"category.ai-chat": "Czat AI",
+	"category.ai-agents": "Agenci AI",
 
 	// Introduction (redesigned page)
 	"intro.title": "Wprowadzenie",
@@ -164,7 +166,8 @@ export default {
 	"intro.category.dataDisplay": "Wyświetlanie danych",
 	"intro.category.feedback": "Informacje zwrotne",
 	"intro.category.media": "Media",
-	"intro.stats.buttons": "Rainbow, Ripple, Shimmer i spółka. Przyciski, które aż proszą się o kliknięcie.",
+	"intro.stats.buttons":
+		"Rainbow, Ripple, Shimmer i spółka. Przyciski, które aż proszą się o kliknięcie.",
 	"intro.stats.cards": "Karuzele, siatki bento, efekty 3D. Sposoby prezentacji treści bez nudy.",
 	"intro.stats.effects": "Kursory, smugi, animowane teksty. Drobne detale, które robią różnicę.",
 	"sidebar.starTitle": "Gwiazdka na GitHubie",

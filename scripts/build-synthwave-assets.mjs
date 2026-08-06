@@ -137,16 +137,7 @@ function main() {
 				]);
 
 				const webpOut = join(outDir, `${asset.name}-${width}.webp`);
-				run("cwebp", [
-					"-q",
-					String(WEBP_QUALITY),
-					"-m",
-					"6",
-					"-quiet",
-					resizedPng,
-					"-o",
-					webpOut,
-				]);
+				run("cwebp", ["-q", String(WEBP_QUALITY), "-m", "6", "-quiet", resizedPng, "-o", webpOut]);
 				const webpBytes = statSync(webpOut).size;
 				rows.push({ asset: asset.name, width, format: "webp", bytes: fmtBytes(webpBytes) });
 				total += webpBytes;
@@ -168,7 +159,9 @@ function main() {
 	console.log(`total: ${fmtBytes(total)} (budget: ${fmtBytes(MAX_TOTAL_BYTES)})`);
 
 	if (overBudget) {
-		console.error(`FAIL: at least one output exceeds the ${fmtBytes(MAX_ASSET_BYTES)} per-asset budget.`);
+		console.error(
+			`FAIL: at least one output exceeds the ${fmtBytes(MAX_ASSET_BYTES)} per-asset budget.`
+		);
 		process.exit(1);
 	}
 	if (total > MAX_TOTAL_BYTES) {

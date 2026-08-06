@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Gezinme",
 	"category.media": "Medya",
 	"category.effects": "Efektler",
+	"category.ai-chat": "Yapay Zekâ Sohbeti",
+	"category.ai-agents": "Yapay Zekâ Ajanları",
 
 	// Introduction (redesigned page)
 	"intro.title": "Giriş",
@@ -164,7 +166,8 @@ export default {
 	"intro.category.feedback": "Geri Bildirim",
 	"intro.category.media": "Medya",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer ve arkadaşları. Tıklanmak isteyen düğmeler.",
-	"intro.stats.cards": "Karuseller, bento ızgaralar, 3D efektler. İçeriği sıkmadan sunmanın yolları.",
+	"intro.stats.cards":
+		"Karuseller, bento ızgaralar, 3D efektler. İçeriği sıkmadan sunmanın yolları.",
 	"intro.stats.effects": "İmleçler, izler, animasyonlu metinler. Farkı yaratan küçük dokunuşlar.",
 	"sidebar.starTitle": "GitHub'da yıldızla",
 	"sidebar.starBody": "FancyUI'ı beğendiyseniz bir yıldız bırakın!",

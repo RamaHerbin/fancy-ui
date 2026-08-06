@@ -4,10 +4,10 @@ A card that flips to reveal back content on hover, using pure CSS 3D transforms.
 
 ## Props
 
-| Prop     | Type         | Default | Description                     |
-| -------- | ------------ | ------- | ------------------------------- |
-| `rotate` | `"x" \| "y"` | `"y"`   | Axis of rotation                |
-| `class`  | `string`     | `""`    | Additional CSS classes          |
+| Prop     | Type         | Default | Description            |
+| -------- | ------------ | ------- | ---------------------- |
+| `rotate` | `"x" \| "y"` | `"y"`   | Axis of rotation       |
+| `class`  | `string`     | `""`    | Additional CSS classes |
 
 ## Snippets
 
@@ -18,9 +18,9 @@ A card that flips to reveal back content on hover, using pure CSS 3D transforms.
 
 ```svelte
 <FlipCard>
-  <img src="/front.jpg" alt="Front" class="size-full object-cover" />
-  {#snippet back()}
-    <p>Back content here</p>
-  {/snippet}
+	<img src="/front.jpg" alt="Front" class="size-full object-cover" />
+	{#snippet back()}
+		<p>Back content here</p>
+	{/snippet}
 </FlipCard>
 ```

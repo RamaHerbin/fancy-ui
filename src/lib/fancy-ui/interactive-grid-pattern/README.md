@@ -6,23 +6,23 @@ SVG grid of squares that highlight on hover with smooth fade transitions.
 
 ```svelte
 <script lang="ts">
-  import { InteractiveGridPattern } from '$lib/fancy-ui/interactive-grid-pattern';
+	import { InteractiveGridPattern } from "$lib/fancy-ui/interactive-grid-pattern";
 </script>
 
 <div class="relative h-96 w-full overflow-hidden">
-  <InteractiveGridPattern />
+	<InteractiveGridPattern />
 </div>
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `class` | `string` | - | Classes on the SVG container |
-| `squaresClassName` | `string` | - | Classes on individual rect elements |
-| `width` | `number` | `40` | Square width in pixels |
-| `height` | `number` | `40` | Square height in pixels |
-| `squares` | `[number, number]` | `[24, 24]` | Grid dimensions `[columns, rows]` |
+| Prop               | Type               | Default    | Description                         |
+| ------------------ | ------------------ | ---------- | ----------------------------------- |
+| `class`            | `string`           | -          | Classes on the SVG container        |
+| `squaresClassName` | `string`           | -          | Classes on individual rect elements |
+| `width`            | `number`           | `40`       | Square width in pixels              |
+| `height`           | `number`           | `40`       | Square height in pixels             |
+| `squares`          | `[number, number]` | `[24, 24]` | Grid dimensions `[columns, rows]`   |
 
 ## Implementation Notes
 

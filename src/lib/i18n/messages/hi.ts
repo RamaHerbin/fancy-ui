@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "नेविगेशन",
 	"category.media": "मीडिया",
 	"category.effects": "इफेक्ट्स",
+	"category.ai-chat": "AI चैट",
+	"category.ai-agents": "AI एजेंट",
 
 	// Introduction (redesigned page)
 	"intro.title": "परिचय",

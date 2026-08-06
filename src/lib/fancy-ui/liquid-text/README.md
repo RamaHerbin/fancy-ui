@@ -55,24 +55,24 @@ fringing on the warped edges, then relaxes back to rest as the fluid decays.
 
 ## Props
 
-| Prop             | Type                 | Default     | Description                                                                          |
-| ---------------- | -------------------- | ----------- | -------------------------------------------------------------------------------------- |
-| `text`           | `string`             | `"Liquid"`  | The text rendered into the fluid texture (or as static fallback text).                 |
-| `font`           | `string`             | `""`        | CSS font-family for the text. Empty string resolves to `getComputedStyle(host).fontFamily`. |
-| `fontSize`       | `number`             | `0`         | Font size in px. `0` auto-fits the text to the container's width.                     |
-| `fontWeight`     | `number \| string`   | `700`       | CSS font-weight for the rasterized/fallback text.                                     |
-| `lightColor`     | `string`             | `"#000000"` | Text color used in light mode.                                                        |
-| `darkColor`      | `string`             | `"#ffffff"` | Text color used in dark mode.                                                          |
-| `class`          | `string`             | `""`        | Additional class names applied to the root element.                                  |
-| `strength`       | `number`             | `0.5`       | Geometric UV warp gain — how far the fluid velocity displaces the text's UVs.         |
-| `radius`         | `number`             | `160`       | Splat radius in screen pixels around the pointer.                                    |
-| `forceGain`      | `number`             | `17`        | Multiplier from mouse-delta-per-frame to splat force.                                 |
-| `dissipation`    | `number`             | `0.98`      | Per-frame velocity decay factor (relax-back rate for the smear).                      |
-| `viscosity`      | `number`             | `4`         | Viscous diffusion strength (Jacobi iteration, 8 iters).                               |
-| `chromaticRatio` | `number`             | `0.2`       | Chromatic offset = warp amount × this ratio.                                         |
-| `staticBelow`    | `number`             | `1024`      | If `window.innerWidth <= staticBelow` at mount, render static DOM text instead.       |
-| `interactive`    | `boolean`            | `true`      | Whether the fluid sim reacts to pointer movement.                                     |
-| `pauseWhenHidden`| `boolean`            | `true`      | Pause the render loop via `visibilitychange` when the tab/page is hidden.             |
+| Prop              | Type               | Default     | Description                                                                                 |
+| ----------------- | ------------------ | ----------- | ------------------------------------------------------------------------------------------- |
+| `text`            | `string`           | `"Liquid"`  | The text rendered into the fluid texture (or as static fallback text).                      |
+| `font`            | `string`           | `""`        | CSS font-family for the text. Empty string resolves to `getComputedStyle(host).fontFamily`. |
+| `fontSize`        | `number`           | `0`         | Font size in px. `0` auto-fits the text to the container's width.                           |
+| `fontWeight`      | `number \| string` | `700`       | CSS font-weight for the rasterized/fallback text.                                           |
+| `lightColor`      | `string`           | `"#000000"` | Text color used in light mode.                                                              |
+| `darkColor`       | `string`           | `"#ffffff"` | Text color used in dark mode.                                                               |
+| `class`           | `string`           | `""`        | Additional class names applied to the root element.                                         |
+| `strength`        | `number`           | `0.5`       | Geometric UV warp gain — how far the fluid velocity displaces the text's UVs.               |
+| `radius`          | `number`           | `160`       | Splat radius in screen pixels around the pointer.                                           |
+| `forceGain`       | `number`           | `17`        | Multiplier from mouse-delta-per-frame to splat force.                                       |
+| `dissipation`     | `number`           | `0.98`      | Per-frame velocity decay factor (relax-back rate for the smear).                            |
+| `viscosity`       | `number`           | `4`         | Viscous diffusion strength (Jacobi iteration, 8 iters).                                     |
+| `chromaticRatio`  | `number`           | `0.2`       | Chromatic offset = warp amount × this ratio.                                                |
+| `staticBelow`     | `number`           | `1024`      | If `window.innerWidth <= staticBelow` at mount, render static DOM text instead.             |
+| `interactive`     | `boolean`          | `true`      | Whether the fluid sim reacts to pointer movement.                                           |
+| `pauseWhenHidden` | `boolean`          | `true`      | Pause the render loop via `visibilitychange` when the tab/page is hidden.                   |
 
 ## Behavior contract
 

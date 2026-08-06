@@ -12,30 +12,30 @@ An image card that reveals an overlay sliding in from the direction the mouse en
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `imageUrl` | `string` | (required) | URL of the image to display |
-| `imageAlt` | `string` | `'image'` | Alt text for the image |
-| `class` | `string` | `''` | Additional CSS classes for the container |
-| `imageClass` | `string` | `''` | Additional CSS classes for the image |
-| `childrenClass` | `string` | `''` | Additional CSS classes for the content overlay |
+| Prop            | Type     | Default    | Description                                    |
+| --------------- | -------- | ---------- | ---------------------------------------------- |
+| `imageUrl`      | `string` | (required) | URL of the image to display                    |
+| `imageAlt`      | `string` | `'image'`  | Alt text for the image                         |
+| `class`         | `string` | `''`       | Additional CSS classes for the container       |
+| `imageClass`    | `string` | `''`       | Additional CSS classes for the image           |
+| `childrenClass` | `string` | `''`       | Additional CSS classes for the content overlay |
 
 ## Snippets
 
-| Snippet | Description |
-|---------|-------------|
+| Snippet    | Description                         |
+| ---------- | ----------------------------------- |
 | `children` | Content to display on hover overlay |
 
 ## Usage
 
 ```svelte
 <script>
-  import { DirectionAwareHover } from '$lib/fancy-ui/direction-aware-hover';
+	import { DirectionAwareHover } from "$lib/fancy-ui/direction-aware-hover";
 </script>
 
 <DirectionAwareHover imageUrl="/photo.jpg">
-  <p class="font-bold">Title</p>
-  <p class="text-sm">Subtitle</p>
+	<p class="font-bold">Title</p>
+	<p class="text-sm">Subtitle</p>
 </DirectionAwareHover>
 ```
 

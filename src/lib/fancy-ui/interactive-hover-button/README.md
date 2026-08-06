@@ -5,7 +5,7 @@ Button with a hover animation: text slides out to the right while an arrow and d
 ## Props
 
 | Prop       | Type     | Default    | Description                         |
-|------------|----------|------------|-------------------------------------|
+| ---------- | -------- | ---------- | ----------------------------------- |
 | `text`     | `string` | `"Button"` | Button label text                   |
 | `class`    | `string` | `""`       | Additional CSS classes              |
 | `children` | Snippet  | -          | Optional content (overrides `text`) |

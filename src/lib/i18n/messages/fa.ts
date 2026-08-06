@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "ناوبری",
 	"category.media": "رسانه",
 	"category.effects": "جلوه‌ها",
+	"category.ai-chat": "گفت‌وگوی هوش مصنوعی",
+	"category.ai-agents": "عامل‌های هوش مصنوعی",
 
 	// Introduction (redesigned page)
 	"intro.title": "معرفی",
@@ -162,7 +164,8 @@ export default {
 	"intro.category.feedback": "بازخورد",
 	"intro.category.media": "رسانه",
 	"intro.stats.buttons": "Rainbow، Ripple، Shimmer و دیگران. دکمه‌هایی که به کلیک دعوت می‌کنند.",
-	"intro.stats.cards": "چرخ‌وفلک‌ها، شبکه‌های بنتو، جلوه‌های سه‌بعدی. راه‌هایی برای نمایش محتوا بدون خستگی.",
+	"intro.stats.cards":
+		"چرخ‌وفلک‌ها، شبکه‌های بنتو، جلوه‌های سه‌بعدی. راه‌هایی برای نمایش محتوا بدون خستگی.",
 	"intro.stats.effects": "نشانگرها، ردها، متن‌های متحرک. جزئیات کوچکی که تفاوت می‌سازند.",
 	"sidebar.starTitle": "ستاره در GitHub",
 	"sidebar.starBody": "اگر FancyUI را می‌پسندید، ستاره‌ای بدهید!",

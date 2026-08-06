@@ -4,10 +4,10 @@ Canvas-based 3D starfield background with perspective projection, motion trails,
 
 ## Props
 
-| Prop    | Type     | Default  | Description           |
-|---------|----------|----------|-----------------------|
-| `color` | `string` | `"#FFF"` | Star color (hex)      |
-| `count` | `number` | `200`    | Number of stars       |
+| Prop    | Type     | Default  | Description            |
+| ------- | -------- | -------- | ---------------------- |
+| `color` | `string` | `"#FFF"` | Star color (hex)       |
+| `count` | `number` | `200`    | Number of stars        |
 | `class` | `string` | `""`     | Additional CSS classes |
 
 ## Implementation Notes

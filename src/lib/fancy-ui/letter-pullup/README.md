@@ -4,11 +4,11 @@ Staggered letter pull-up animation. Each character pulls up from below with a co
 
 ## Props
 
-| Prop    | Type     | Default | Description                                 |
-| ------- | -------- | ------- | ------------------------------------------- |
-| `words` | `string` | required| Text to animate                             |
-| `delay` | `number` | `0.05`  | Delay between each letter animation (secs)  |
-| `class` | `string` | `''`    | Additional CSS classes                      |
+| Prop    | Type     | Default  | Description                                |
+| ------- | -------- | -------- | ------------------------------------------ |
+| `words` | `string` | required | Text to animate                            |
+| `delay` | `number` | `0.05`   | Delay between each letter animation (secs) |
+| `class` | `string` | `''`     | Additional CSS classes                     |
 
 ## Usage
 

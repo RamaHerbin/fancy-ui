@@ -81,7 +81,9 @@ export type ComponentCategory =
 	| "data-display"
 	| "navigation"
 	| "media"
-	| "effects";
+	| "effects"
+	| "ai-chat"
+	| "ai-agents";
 
 /**
  * Component prop definition for documentation

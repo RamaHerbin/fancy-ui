@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navigace",
 	"category.media": "Média",
 	"category.effects": "Efekty",
+	"category.ai-chat": "AI chat",
+	"category.ai-agents": "AI agenti",
 
 	// Introduction (redesigned page)
 	"intro.title": "Úvod",
