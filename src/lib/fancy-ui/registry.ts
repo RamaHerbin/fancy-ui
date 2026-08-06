@@ -3339,6 +3339,360 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"agent-plan": {
+		name: "AgentPlan",
+		slug: "agent-plan",
+		description:
+			"Glanceable checklist of an agent's plan: a done/total count and completion bar over one row per step, with a status glyph, an optional detail line, and substeps indented under a rail",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "plan", "checklist", "progress"],
+		props: [
+			{
+				name: "steps",
+				type: "PlanStepData[]",
+				description:
+					"The plan, in the order the agent means to work through it; nests one level via substeps",
+				required: true,
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Plan"',
+				description: "Header text, sitting beside the done/total count",
+			},
+			{
+				name: "showProgress",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the thin completion bar shows under the header; its fraction counts substeps as steps",
+			},
+			{
+				name: "onSelect",
+				type: "(step: PlanStepData) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Replaces the built-in row body, keeping the glyph and the indent; receives the step and its position in visual order",
+			},
+		],
+	},
+	"subagent-list": {
+		name: "SubagentList",
+		slug: "subagent-list",
+		description:
+			"Fan-out panel for parallel workers: one row per delegated agent with its status dot, model badge, task, and its own progress bar",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "parallel", "progress", "workers"],
+		props: [
+			{
+				name: "agents",
+				type: "SubagentData[]",
+				description:
+					"The delegated workers, in the order they were spawned: id, name, task, status, and optionally progress and model",
+				required: true,
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					'Accessible name for the list. Left unset it is derived from the statuses — "2 agents running" while anything runs, "3 agents finished" once the last one lands',
+			},
+			{
+				name: "onSelect",
+				type: "(agent: SubagentData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "compact",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows with the task line dropped",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the status dot",
+			},
+		],
+	},
+	"approval-card": {
+		name: "ApprovalCard",
+		slug: "approval-card",
+		description:
+			"A human-in-the-loop gate before a side effect: the agent states what it is about to do, and the footer swaps its approve and deny buttons for a one-line verdict once someone decides",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "approval", "human-in-the-loop", "gate"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: 'What permission is being asked for, e.g. "Run database migration"',
+				required: true,
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Muted second line under the title — the consequence, the blast radius",
+			},
+			{
+				name: "state",
+				type: '"pending" | "approved" | "denied"',
+				default: '"pending"',
+				description:
+					"Which side of the gate we are on (bindable). Buttons exist only while pending; writing a resolved value from outside settles the card without firing a callback",
+			},
+			{
+				name: "destructive",
+				type: "boolean",
+				default: "false",
+				description:
+					"Marks the action as irreversible: red approve button, a warning tint on the card, and an alert mark on the shield so the warning is not carried by colour alone",
+			},
+			{
+				name: "approveLabel",
+				type: "string",
+				default: '"Approve"',
+				description: "Label for the approve button",
+			},
+			{
+				name: "denyLabel",
+				type: "string",
+				default: '"Deny"',
+				description: "Label for the deny button",
+			},
+			{
+				name: "onApprove",
+				type: "() => void",
+				description: "Called when approve is pressed, after state has been written",
+			},
+			{
+				name: "onDeny",
+				type: "() => void",
+				description: "Called when deny is pressed, after state has been written",
+			},
+			{
+				name: "busy",
+				type: "boolean",
+				default: "false",
+				description:
+					"The consumer is executing the decision: both buttons go disabled and the card is marked aria-busy",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Detail region between the header and the footer — a diff, a command preview, the payload about to be posted",
+			},
+		],
+	},
+	"recommendation-card": {
+		name: "RecommendationCard",
+		slug: "recommendation-card",
+		description:
+			"An agent's proposal awaiting an answer: a kicker, the recommendation, a confidence figure counted up beside a ring that fills to match, and two buttons that collapse into one quiet resolved line",
+		category: "ai-agents",
+		status: "done",
+		dependencies: ["number-ticker"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "recommendation", "confidence"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: 'What the agent is proposing, e.g. "Add an index on orders.customer_id"',
+				required: true,
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Secondary muted line under the title — the reasoning, the expected effect",
+			},
+			{
+				name: "confidence",
+				type: "number",
+				description:
+					"How sure the agent is, from 0 to 1. Omitted, the whole confidence block disappears rather than reading as zero; out-of-range numbers are clamped and the band shifts colour at 0.75 and 0.5",
+			},
+			{
+				name: "acceptLabel",
+				type: "string",
+				default: '"Apply"',
+				description: "Label for the confirm button",
+			},
+			{
+				name: "dismissLabel",
+				type: "string",
+				default: '"Dismiss"',
+				description: "Label for the decline button",
+			},
+			{
+				name: "onAccept",
+				type: "() => void",
+				description: "Called when the recommendation is accepted, after `state` has been written",
+			},
+			{
+				name: "onDismiss",
+				type: "() => void",
+				description: "Called when the recommendation is dismissed, after `state` has been written",
+			},
+			{
+				name: "state",
+				type: '"open" | "accepted" | "dismissed"',
+				default: '"open"',
+				description:
+					"Where the recommendation stands (bindable). Resolving swaps the buttons for a quiet line inside a polite live region; a resolved card refuses to resolve again",
+			},
+			{
+				name: "badge",
+				type: "string",
+				description: 'Small kicker above the title, e.g. "Suggestion"',
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"The detail region between the header and the footer — a snippet of the change being proposed",
+			},
+		],
+	},
+	"artifact-card": {
+		name: "ArtifactCard",
+		slug: "artifact-card",
+		description:
+			"A generated document as a tangible object: title, kind, a version navigator, and the first six lines of the text itself streaming in behind a fade",
+		category: "ai-agents",
+		status: "done",
+		dependencies: ["streaming-text"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "artifact", "document", "versioned", "streaming"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: "What the document is called",
+				required: true,
+			},
+			{
+				name: "kind",
+				type: "string",
+				default: '"Document"',
+				description: "The kind of thing it is, on the muted line under the title",
+			},
+			{
+				name: "version",
+				type: "number",
+				description: "Which revision is on screen, 1-based; rendered as v3",
+			},
+			{
+				name: "versionCount",
+				type: "number",
+				description: "How many revisions exist; with version the badge reads v3/5",
+			},
+			{
+				name: "onVersionChange",
+				type: "(version: number) => void",
+				description:
+					"Asked for another revision by 1-based number, never one outside its bounds; supplying it turns the badge into a navigator",
+			},
+			{
+				name: "status",
+				type: '"idle" | "streaming" | "done" | "error"',
+				default: '"done"',
+				description:
+					"Where the document is in its life; streaming sweeps the top edge and trails a cursor, error grows a tinted footer",
+			},
+			{
+				name: "preview",
+				type: "string",
+				description:
+					"The text so far, not the latest delta; clamped to roughly six lines behind a bottom fade",
+			},
+			{
+				name: "onOpen",
+				type: "() => void",
+				description:
+					"Asked to open the document; supplying it makes the whole card activatable by click, Enter, or Space",
+			},
+		],
+		slots: [
+			{
+				name: "actions",
+				description:
+					"Buttons for the top-right rail; each keeps its own click, without opening the card",
+			},
+		],
+	},
+	"ai-data-table": {
+		name: "AiDataTable",
+		slug: "ai-data-table",
+		description:
+			"Compact comparison table for a model's structured answer: real table semantics, tabular numeric columns, check-or-dash booleans, and one tintable column — rendered in the order it arrived, with no sorting",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "table", "comparison", "structured-output"],
+		props: [
+			{
+				name: "columns",
+				type: "AiDataTableColumn[]",
+				description:
+					"Columns in render order: key, label, and optional align / numeric. A numeric column gets tabular figures and right alignment",
+				required: true,
+			},
+			{
+				name: "rows",
+				type: "AiDataTableRow[]",
+				description:
+					"Rows keyed by column key, in the order the model produced them; a missing key renders as empty",
+				required: true,
+			},
+			{
+				name: "caption",
+				type: "string",
+				description:
+					"Names the table for assistive tech; rendered in a visually-hidden <caption> unless captionVisible",
+			},
+			{
+				name: "captionVisible",
+				type: "boolean",
+				default: "false",
+				description: "Also shows the caption, as a muted line above the table",
+			},
+			{
+				name: "dense",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows, for a table read at a glance rather than studied",
+			},
+			{
+				name: "highlightColumn",
+				type: "string",
+				description:
+					"Key of the column to tint — the recommendation, or whichever criterion decided it",
+			},
+		],
+		slots: [
+			{
+				name: "cell",
+				description:
+					"Replaces the default rendering of every cell; receives the raw value and { row, key }",
+			},
+		],
+	},
 };
 
 // =============================================================================
