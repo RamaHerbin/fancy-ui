@@ -75,6 +75,10 @@ export * from "./reasoning-panel/index.js";
 export * from "./chat-message/index.js";
 export * from "./prompt-suggestions/index.js";
 export * from "./chat-error/index.js";
+export * from "./tool-call/index.js";
+export * from "./tool-timeline/index.js";
+export * from "./terminal-block/index.js";
+export * from "./code-diff/index.js";
 
 // =============================================================================
 // Registry

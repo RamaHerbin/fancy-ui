@@ -4,6 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+	/* Resolves light-dark() tokens (e.g. the library's --ft-status-* fallbacks)
+	   and native form/scrollbar chrome against the active theme. */
+	color-scheme: light;
+
 	/* Layout */
 	--radius: 0.625rem;
 
@@ -84,6 +88,7 @@
 }
 
 .dark {
+	color-scheme: dark;
 	--background: oklch(0.05 0 0);
 	--foreground: oklch(0.984 0.003 247.858);
 	--card: oklch(0.1 0.005 265);
