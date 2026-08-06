@@ -79,6 +79,10 @@ export * from "./tool-call/index.js";
 export * from "./tool-timeline/index.js";
 export * from "./terminal-block/index.js";
 export * from "./code-diff/index.js";
+export * from "./sources/index.js";
+export * from "./inline-citation/index.js";
+export * from "./web-search/index.js";
+export * from "./image-generation/index.js";
 
 // =============================================================================
 // Registry

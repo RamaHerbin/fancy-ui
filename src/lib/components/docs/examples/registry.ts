@@ -436,4 +436,8 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"tool-timeline": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"terminal-block": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"code-diff": [{ name: "BasicUsage", title: "Basic Usage" }],
+	sources: [{ name: "BasicUsage", title: "Basic Usage" }],
+	"inline-citation": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"web-search": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"image-generation": [{ name: "BasicUsage", title: "Basic Usage" }],
 };
