@@ -4,11 +4,11 @@ Cycling word animation. Cycles through an array of words with per-letter fade-in
 
 ## Props
 
-| Prop       | Type       | Default  | Description                       |
-| ---------- | ---------- | -------- | --------------------------------- |
-| `words`    | `string[]` | required | Array of words to cycle through   |
-| `duration` | `number`   | `3000`   | Time each word stays visible (ms) |
-| `class`    | `string`   | `''`     | Additional CSS classes            |
+| Prop       | Type       | Default  | Description                        |
+| ---------- | ---------- | -------- | ---------------------------------- |
+| `words`    | `string[]` | required | Array of words to cycle through    |
+| `duration` | `number`   | `3000`   | Time each word stays visible (ms)  |
+| `class`    | `string`   | `''`     | Additional CSS classes             |
 
 ## Usage
 

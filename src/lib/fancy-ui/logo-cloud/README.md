@@ -6,12 +6,12 @@ Logo display components in three variants: animated marquee, static grid, and co
 
 ```svelte
 <script lang="ts">
-	import { AnimatedLogoCloud, StaticLogoCloud, IconLogoCloud } from "$lib/fancy-ui/logo-cloud";
+  import { AnimatedLogoCloud, StaticLogoCloud, IconLogoCloud } from '$lib/fancy-ui/logo-cloud';
 
-	const logos = [
-		{ name: "Vercel", path: "/logos/vercel.svg" },
-		{ name: "Next.js", path: "/logos/nextjs.svg" },
-	];
+  const logos = [
+    { name: 'Vercel', path: '/logos/vercel.svg' },
+    { name: 'Next.js', path: '/logos/nextjs.svg' },
+  ];
 </script>
 
 <AnimatedLogoCloud title="Trusted by" {logos} />
@@ -21,19 +21,19 @@ Logo display components in three variants: animated marquee, static grid, and co
 
 ## Variants
 
-| Component           | Description                               |
-| ------------------- | ----------------------------------------- |
+| Component | Description |
+|-----------|-------------|
 | `AnimatedLogoCloud` | Infinite horizontal scroll with fade mask |
-| `StaticLogoCloud`   | Responsive grid layout                    |
-| `IconLogoCloud`     | Compact icon-sized grid                   |
+| `StaticLogoCloud` | Responsive grid layout |
+| `IconLogoCloud` | Compact icon-sized grid |
 
 ## Props (shared)
 
-| Prop    | Type     | Default | Description                       |
-| ------- | -------- | ------- | --------------------------------- |
-| `class` | `string` | -       | Classes on the container          |
-| `title` | `string` | -       | Optional heading text             |
-| `logos` | `Logo[]` | `[]`    | Array of `{ name, path }` objects |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `class` | `string` | - | Classes on the container |
+| `title` | `string` | - | Optional heading text |
+| `logos` | `Logo[]` | `[]` | Array of `{ name, path }` objects |
 
 ## Implementation Notes
 

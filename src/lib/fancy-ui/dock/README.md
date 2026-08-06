@@ -12,17 +12,17 @@ An icon dock component whose items magnify smoothly as the cursor approaches.
 
 ```svelte
 <script>
-	import { Dock, DockIcon, DockSeparator } from "$lib/fancy-ui/dock";
+  import { Dock, DockIcon, DockSeparator } from '$lib/fancy-ui/dock';
 </script>
 
 <Dock>
-	<DockIcon>
-		<img src="/icon1.svg" class="size-full" alt="Icon" />
-	</DockIcon>
-	<DockSeparator />
-	<DockIcon>
-		<img src="/icon2.svg" class="size-full" alt="Icon" />
-	</DockIcon>
+  <DockIcon>
+    <img src="/icon1.svg" class="size-full" alt="Icon" />
+  </DockIcon>
+  <DockSeparator />
+  <DockIcon>
+    <img src="/icon2.svg" class="size-full" alt="Icon" />
+  </DockIcon>
 </Dock>
 ```
 
@@ -30,25 +30,25 @@ An icon dock component whose items magnify smoothly as the cursor approaches.
 
 ### Dock
 
-| Prop            | Type                            | Default        | Description                             |
-| --------------- | ------------------------------- | -------------- | --------------------------------------- |
-| `class`         | `string`                        | `''`           | Additional CSS classes                  |
-| `magnification` | `number`                        | `60`           | Maximum size increase in pixels         |
-| `distance`      | `number`                        | `140`          | Mouse distance for magnification effect |
-| `direction`     | `'top' \| 'middle' \| 'bottom'` | `'middle'`     | Vertical alignment of icons             |
-| `orientation`   | `'horizontal' \| 'vertical'`    | `'horizontal'` | Dock orientation                        |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `class` | `string` | `''` | Additional CSS classes |
+| `magnification` | `number` | `60` | Maximum size increase in pixels |
+| `distance` | `number` | `140` | Mouse distance for magnification effect |
+| `direction` | `'top' \| 'middle' \| 'bottom'` | `'middle'` | Vertical alignment of icons |
+| `orientation` | `'horizontal' \| 'vertical'` | `'horizontal'` | Dock orientation |
 
 ### DockIcon
 
-| Prop    | Type     | Default | Description            |
-| ------- | -------- | ------- | ---------------------- |
-| `class` | `string` | `''`    | Additional CSS classes |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `class` | `string` | `''` | Additional CSS classes |
 
 ### DockSeparator
 
-| Prop    | Type     | Default | Description            |
-| ------- | -------- | ------- | ---------------------- |
-| `class` | `string` | `''`    | Additional CSS classes |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `class` | `string` | `''` | Additional CSS classes |
 
 ## Implementation Notes
 

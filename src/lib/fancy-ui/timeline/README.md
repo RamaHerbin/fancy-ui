@@ -12,39 +12,39 @@ A vertical timeline with scroll-driven progress line and sticky labels.
 
 ## Props
 
-| Prop          | Type             | Default | Description                            |
-| ------------- | ---------------- | ------- | -------------------------------------- |
-| `items`       | `TimelineItem[]` | `[]`    | Timeline entries with `id` and `label` |
-| `title`       | `string`         | —       | Heading text above the timeline        |
-| `description` | `string`         | —       | Subheading text                        |
-| `class`       | `string`         | `''`    | Additional CSS classes                 |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `items` | `TimelineItem[]` | `[]` | Timeline entries with `id` and `label` |
+| `title` | `string` | — | Heading text above the timeline |
+| `description` | `string` | — | Subheading text |
+| `class` | `string` | `''` | Additional CSS classes |
 
 ## Snippets
 
-| Snippet   | Args                   | Description                              |
-| --------- | ---------------------- | ---------------------------------------- |
+| Snippet | Args | Description |
+|---------|------|-------------|
 | `content` | `(item: TimelineItem)` | Content rendered for each timeline entry |
 
 ## Usage
 
 ```svelte
 <script>
-	import { Timeline } from "$lib/fancy-ui/timeline";
+  import { Timeline } from '$lib/fancy-ui/timeline';
 
-	const items = [
-		{ id: "step-1", label: "2024" },
-		{ id: "step-2", label: "2023" },
-	];
+  const items = [
+    { id: 'step-1', label: '2024' },
+    { id: 'step-2', label: '2023' },
+  ];
 </script>
 
 <Timeline {items} title="My Journey">
-	{#snippet content(item)}
-		{#if item.id === "step-1"}
-			<p>First step content</p>
-		{:else if item.id === "step-2"}
-			<p>Second step content</p>
-		{/if}
-	{/snippet}
+  {#snippet content(item)}
+    {#if item.id === 'step-1'}
+      <p>First step content</p>
+    {:else if item.id === 'step-2'}
+      <p>Second step content</p>
+    {/if}
+  {/snippet}
 </Timeline>
 ```
 

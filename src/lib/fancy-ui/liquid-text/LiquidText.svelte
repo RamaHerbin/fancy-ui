@@ -96,11 +96,7 @@
 		return shader;
 	}
 
-	function linkProgram(
-		gl: GL,
-		vertexShader: WebGLShader,
-		fragmentShader: WebGLShader
-	): WebGLProgram {
+	function linkProgram(gl: GL, vertexShader: WebGLShader, fragmentShader: WebGLShader): WebGLProgram {
 		const program = gl.createProgram();
 		if (!program) throw new Error("LiquidText: unable to create program");
 		gl.attachShader(program, vertexShader);
@@ -245,12 +241,7 @@
 		deleteFbo(gl, dfbo.write);
 	}
 
-	function textureRenderable(
-		gl: GL,
-		internalFormat: number,
-		format: number,
-		type: number
-	): boolean {
+	function textureRenderable(gl: GL, internalFormat: number, format: number, type: number): boolean {
 		const texture = gl.createTexture();
 		if (!texture) return false;
 		gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -350,17 +341,13 @@
 		const scalarFormat = resolveFormat(gl, isWebGL2, "scalar", halfFloatTexType);
 		if (!velocityFormat || !scalarFormat) return null;
 
-		return {
-			gl,
-			ext: { isWebGL2, halfFloatTexType, supportLinearFiltering, velocityFormat, scalarFormat },
-		};
+		return { gl, ext: { isWebGL2, halfFloatTexType, supportLinearFiltering, velocityFormat, scalarFormat } };
 	}
 
 	function createBlit(gl: GL) {
 		const vertexBuffer = gl.createBuffer();
 		const indexBuffer = gl.createBuffer();
-		if (!vertexBuffer || !indexBuffer)
-			throw new Error("LiquidText: unable to allocate geometry buffers");
+		if (!vertexBuffer || !indexBuffer) throw new Error("LiquidText: unable to allocate geometry buffers");
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, -1, 1, 1, 1, 1, -1]), gl.STATIC_DRAW);
@@ -837,30 +824,9 @@
 			let cssHeight = 0;
 
 			function createSimBuffers(simW: number, simH: number) {
-				velocity = createDoubleFbo(
-					gl,
-					simW,
-					simH,
-					ext.velocityFormat,
-					ext.halfFloatTexType,
-					filter
-				);
-				divergenceFbo = createFbo(
-					gl,
-					simW,
-					simH,
-					ext.scalarFormat,
-					ext.halfFloatTexType,
-					gl.NEAREST
-				);
-				pressure = createDoubleFbo(
-					gl,
-					simW,
-					simH,
-					ext.scalarFormat,
-					ext.halfFloatTexType,
-					gl.NEAREST
-				);
+				velocity = createDoubleFbo(gl, simW, simH, ext.velocityFormat, ext.halfFloatTexType, filter);
+				divergenceFbo = createFbo(gl, simW, simH, ext.scalarFormat, ext.halfFloatTexType, gl.NEAREST);
+				pressure = createDoubleFbo(gl, simW, simH, ext.scalarFormat, ext.halfFloatTexType, gl.NEAREST);
 				diffuseSource = createFbo(gl, simW, simH, ext.velocityFormat, ext.halfFloatTexType, filter);
 			}
 
@@ -1154,18 +1120,11 @@
 	}
 </script>
 
-<div
-	bind:this={rootEl}
-	class={cn("liquid-text relative block w-full", className)}
-	style:height={rootHeight}
->
+<div bind:this={rootEl} class={cn("liquid-text relative block w-full", className)} style:height={rootHeight}>
 	<canvas
 		bind:this={canvasEl}
 		aria-hidden="true"
-		class={cn(
-			"pointer-events-none absolute inset-0 block h-full w-full",
-			mode === "canvas" ? "" : "invisible"
-		)}
+		class={cn("pointer-events-none absolute inset-0 block h-full w-full", mode === "canvas" ? "" : "invisible")}
 	></canvas>
 	{#if mode === "canvas"}
 		<span class="sr-only">{text}</span>
@@ -1175,8 +1134,8 @@
 			style:color={themeColor}
 			style:font-family={resolvedFont}
 			style:font-size={`${displayFontSize}px`}
-			style:font-weight={fontWeight}>{text}</span
-		>
+			style:font-weight={fontWeight}
+		>{text}</span>
 	{/if}
 </div>
 

@@ -9,11 +9,11 @@ A card that reveals text as the user drags their mouse horizontally. Features an
 
 ## Props (TextRevealCard)
 
-| Prop         | Type     | Default | Description               |
-| ------------ | -------- | ------- | ------------------------- |
-| `starsCount` | `number` | `130`   | Number of star dots       |
-| `starsClass` | `string` | `""`    | CSS classes for star dots |
-| `class`      | `string` | `""`    | Additional CSS classes    |
+| Prop         | Type     | Default | Description                 |
+| ------------ | -------- | ------- | --------------------------- |
+| `starsCount` | `number` | `130`   | Number of star dots         |
+| `starsClass` | `string` | `""`    | CSS classes for star dots   |
+| `class`      | `string` | `""`    | Additional CSS classes      |
 
 ## Snippets
 
@@ -25,12 +25,12 @@ A card that reveals text as the user drags their mouse horizontally. Features an
 
 ```svelte
 <TextRevealCard>
-	<p class="text-lg font-bold text-white">Hover to reveal</p>
-	{#snippet text()}
-		<p class="text-4xl font-bold text-white">Revealed!</p>
-	{/snippet}
-	{#snippet revealText()}
-		<p class="text-4xl font-bold text-white/20">Hidden text</p>
-	{/snippet}
+  <p class="text-lg font-bold text-white">Hover to reveal</p>
+  {#snippet text()}
+    <p class="text-4xl font-bold text-white">Revealed!</p>
+  {/snippet}
+  {#snippet revealText()}
+    <p class="text-4xl font-bold text-white/20">Hidden text</p>
+  {/snippet}
 </TextRevealCard>
 ```

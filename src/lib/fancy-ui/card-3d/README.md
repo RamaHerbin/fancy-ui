@@ -12,10 +12,10 @@ Interactive 3D perspective card that tilts based on mouse position, with child e
 
 ### CardContainer
 
-| Prop             | Type     | Default | Description                   |
-| ---------------- | -------- | ------- | ----------------------------- |
-| `class`          | `string` | `''`    | Classes for the inner wrapper |
-| `containerClass` | `string` | `''`    | Classes for the outer wrapper |
+| Prop             | Type     | Default | Description                    |
+| ---------------- | -------- | ------- | ------------------------------ |
+| `class`          | `string` | `''`    | Classes for the inner wrapper  |
+| `containerClass` | `string` | `''`    | Classes for the outer wrapper  |
 
 ### CardBody
 
@@ -40,11 +40,13 @@ Interactive 3D perspective card that tilts based on mouse position, with child e
 
 ```svelte
 <CardContainer>
-	<CardBody class="bg-card w-[20rem] rounded-xl border p-6">
-		<CardItem translateZ={50} class="text-xl font-bold">Title</CardItem>
-		<CardItem translateZ={100}>
-			<img src="..." alt="..." class="rounded-xl" />
-		</CardItem>
-	</CardBody>
+  <CardBody class="rounded-xl border bg-card p-6 w-[20rem]">
+    <CardItem translateZ={50} class="text-xl font-bold">
+      Title
+    </CardItem>
+    <CardItem translateZ={100}>
+      <img src="..." alt="..." class="rounded-xl" />
+    </CardItem>
+  </CardBody>
 </CardContainer>
 ```

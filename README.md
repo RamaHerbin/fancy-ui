@@ -36,6 +36,7 @@ Beautiful animation and UI components for **Svelte 5**.
 - **Dark Mode** &mdash; All components support light and dark themes
 - **Tested** &mdash; 600+ unit tests with Vitest and Testing Library
 
+
 ## Quick Start
 
 **Install via npm:**

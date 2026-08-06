@@ -11,25 +11,25 @@ A scroll-triggered reveal animation that transitions children from blurred and o
 
 ## Props
 
-| Prop       | Type     | Default  | Description                               |
-| ---------- | -------- | -------- | ----------------------------------------- |
-| `duration` | `number` | `1`      | Animation duration in seconds             |
-| `delay`    | `number` | `0.2`    | Stagger delay between children in seconds |
-| `blur`     | `string` | `'20px'` | Initial blur amount (CSS value)           |
-| `yOffset`  | `number` | `20`     | Initial vertical offset in pixels         |
-| `class`    | `string` | `''`     | Additional CSS classes for the container  |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `duration` | `number` | `1` | Animation duration in seconds |
+| `delay` | `number` | `0.2` | Stagger delay between children in seconds |
+| `blur` | `string` | `'20px'` | Initial blur amount (CSS value) |
+| `yOffset` | `number` | `20` | Initial vertical offset in pixels |
+| `class` | `string` | `''` | Additional CSS classes for the container |
 
 ## Usage
 
 ```svelte
 <script>
-	import { BlurReveal } from "$lib/fancy-ui/blur-reveal";
+  import { BlurReveal } from '$lib/fancy-ui/blur-reveal';
 </script>
 
 <BlurReveal>
-	<h1>This fades in first</h1>
-	<p>This fades in second</p>
-	<p>This fades in third</p>
+  <h1>This fades in first</h1>
+  <p>This fades in second</p>
+  <p>This fades in third</p>
 </BlurReveal>
 ```
 

@@ -3,7 +3,8 @@ name: Feature request
 about: Suggest a new component or improvement
 title: "[feat] "
 labels: enhancement
-assignees: ""
+assignees: ''
+
 ---
 
 ## Type

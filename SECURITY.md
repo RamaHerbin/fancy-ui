@@ -6,10 +6,10 @@ fancy-ui is currently in 0.x (pre-1.0). Only the latest published `0.x` release
 receives security fixes. Older 0.x releases are not patched — please upgrade
 to the latest version before reporting an issue.
 
-| Version      | Supported          |
-| ------------ | ------------------ |
-| Latest `0.x` | :white_check_mark: |
-| Older `0.x`  | :x:                |
+| Version       | Supported          |
+| ------------- | ------------------- |
+| Latest `0.x`  | :white_check_mark:  |
+| Older `0.x`   | :x:                 |
 
 ## Scope
 

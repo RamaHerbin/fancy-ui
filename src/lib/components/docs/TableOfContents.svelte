@@ -70,9 +70,7 @@
 			{#if isRetro}
 				<div class="retro-toc-title">{t("toc.onThisPage")}</div>
 			{:else}
-				<h4
-					class="docs-toc-title text-foreground mb-3 text-xs font-semibold tracking-wider uppercase"
-				>
+				<h4 class="docs-toc-title text-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
 					{t("toc.onThisPage")}
 				</h4>
 			{/if}

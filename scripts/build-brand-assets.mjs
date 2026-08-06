@@ -58,9 +58,7 @@ function loadStaticMark() {
 	// unanimated markup already renders at the intended rest pose.
 	const stripped = raw.replace(/<style>[\s\S]*?<\/style>\s*/, "");
 	if (stripped === raw) {
-		throw new Error(
-			"expected a <style> block in static/favicon.svg to strip -- source may have changed"
-		);
+		throw new Error("expected a <style> block in static/favicon.svg to strip -- source may have changed");
 	}
 	return stripped;
 }
@@ -208,25 +206,25 @@ async function main() {
 		// Apple ignores alpha on touch icons, so it gets a solid background.
 		const appleTouchIcon = await renderStage(
 			iconHtml(markSvg, { size: 180, background: BG, scale: 0.72, transparent: false }),
-			180
+			180,
 		);
 		await writeIcon("apple-touch-icon.png", appleTouchIcon);
 
 		const icon192 = await renderStage(
 			iconHtml(markSvg, { size: 192, background: BG, scale: 0.76, transparent: true }),
-			192
+			192,
 		);
 		await writeIcon("icon-192.png", icon192);
 
 		const icon512 = await renderStage(
 			iconHtml(markSvg, { size: 512, background: BG, scale: 0.76, transparent: true }),
-			512
+			512,
 		);
 		await writeIcon("icon-512.png", icon512);
 
 		const favicon32 = await renderStage(
 			iconHtml(markSvg, { size: 32, background: BG, scale: 0.86, transparent: true }),
-			32
+			32,
 		);
 		const icoBuf = pngToIco(favicon32, 32);
 		await writeIcon("favicon.ico", icoBuf);
@@ -262,9 +260,7 @@ async function main() {
 	console.table(rows);
 
 	if (overBudget) {
-		console.error(
-			"FAIL: at least one asset exceeds its byte budget (og.png < 300 KB, icons < 50 KB)."
-		);
+		console.error("FAIL: at least one asset exceeds its byte budget (og.png < 300 KB, icons < 50 KB).");
 		process.exit(1);
 	}
 	console.log("OK: all assets within budget.");

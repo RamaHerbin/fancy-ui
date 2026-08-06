@@ -3,7 +3,8 @@ name: Bug report
 about: Something isn't working as expected
 title: "[bug] "
 labels: bug
-assignees: ""
+assignees: ''
+
 ---
 
 ## Component
@@ -34,12 +35,12 @@ assignees: ""
 
 ## Environment
 
-|                  |     |
-| ---------------- | --- |
-| fancy-ui version |     |
-| Svelte version   |     |
-| Browser          |     |
-| OS               |     |
+| | |
+|---|---|
+| fancy-ui version | |
+| Svelte version | |
+| Browser | |
+| OS | |
 
 ## Additional context
 

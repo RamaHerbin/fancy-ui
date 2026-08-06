@@ -12,9 +12,9 @@ Bento-style grid layout for organizing features and content cards.
 
 ### BentoGrid
 
-| Prop    | Type     | Default | Description             |
-| ------- | -------- | ------- | ----------------------- |
-| `class` | `string` | `''`    | Additional grid classes |
+| Prop    | Type     | Default | Description              |
+| ------- | -------- | ------- | ------------------------ |
+| `class` | `string` | `''`    | Additional grid classes  |
 
 ### BentoGridItem
 
@@ -28,26 +28,24 @@ Bento-style grid layout for organizing features and content cards.
 
 ### BentoGridCard
 
-| Prop          | Type      | Default | Description             |
-| ------------- | --------- | ------- | ----------------------- |
-| `name`        | `string`  | —       | Card title              |
-| `description` | `string`  | —       | Card description        |
-| `href`        | `string`  | —       | CTA link URL            |
-| `cta`         | `string`  | —       | CTA button text         |
-| `class`       | `string`  | `''`    | Additional classes      |
-| `icon`        | `Snippet` | —       | Icon snippet            |
-| `background`  | `Snippet` | —       | Background overlay slot |
+| Prop          | Type      | Default | Description              |
+| ------------- | --------- | ------- | ------------------------ |
+| `name`        | `string`  | —       | Card title               |
+| `description` | `string`  | —       | Card description         |
+| `href`        | `string`  | —       | CTA link URL             |
+| `cta`         | `string`  | —       | CTA button text          |
+| `class`       | `string`  | `''`    | Additional classes       |
+| `icon`        | `Snippet` | —       | Icon snippet             |
+| `background`  | `Snippet` | —       | Background overlay slot  |
 
 ## Usage
 
 ```svelte
 <BentoGrid>
-	<BentoGridItem class="md:col-span-2">
-		{#snippet header()}<div
-				class="h-full rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500"
-			/>{/snippet}
-		{#snippet title()}Feature{/snippet}
-		{#snippet description()}Description here.{/snippet}
-	</BentoGridItem>
+  <BentoGridItem class="md:col-span-2">
+    {#snippet header()}<div class="h-full bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl" />{/snippet}
+    {#snippet title()}Feature{/snippet}
+    {#snippet description()}Description here.{/snippet}
+  </BentoGridItem>
 </BentoGrid>
 ```

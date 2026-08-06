@@ -11,7 +11,9 @@
 
 <div class="relative h-80 w-full overflow-hidden rounded-lg border bg-black">
 	<FireworksHdr onReady={(h) => (handle = h)} />
-	<div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3">
+	<div
+		class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3"
+	>
 		<p class="text-sm text-white/60 select-none">Tap the sky, or send one up</p>
 		<button
 			type="button"
