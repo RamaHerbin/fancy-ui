@@ -69,6 +69,9 @@
 		"thinking-indicator",
 		"streaming-text",
 		"reasoning-panel",
+		"chat-message",
+		"prompt-suggestions",
+		"chat-error",
 	]);
 </script>
 
