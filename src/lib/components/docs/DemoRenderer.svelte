@@ -80,6 +80,12 @@
 		"inline-citation",
 		"web-search",
 		"image-generation",
+		"agent-plan",
+		"subagent-list",
+		"approval-card",
+		"recommendation-card",
+		"artifact-card",
+		"ai-data-table",
 	]);
 </script>
 
