@@ -423,4 +423,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "Markdown", title: "Markdown Streaming" },
 	],
 	"reasoning-panel": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"chat-message": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"prompt-suggestions": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"chat-error": [{ name: "BasicUsage", title: "Basic Usage" }],
 };

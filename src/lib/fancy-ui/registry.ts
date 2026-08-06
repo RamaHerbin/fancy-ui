@@ -2730,7 +2730,8 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "streaming",
 				type: "boolean",
 				default: "false",
-				description: "Whether the trace is still growing; drives the timer, shimmer, and autoscroll",
+				description:
+					"Whether the trace is still growing; drives the timer, shimmer, and autoscroll",
 			},
 			{
 				name: "open",
@@ -2765,6 +2766,162 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "onToggle",
 				type: "(open: boolean) => void",
 				description: "Called on every open/close, by click or on the panel's own initiative",
+			},
+		],
+	},
+	"chat-message": {
+		name: "ChatMessage",
+		slug: "chat-message",
+		description:
+			"One conversation turn, aligned and dressed by its role, streaming its body while the answer arrives, with an action rail that fades in on hover and a version navigator underneath",
+		category: "ai-chat",
+		status: "done",
+		dependencies: ["streaming-text"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "message", "compound", "streaming"],
+		props: [
+			{
+				name: "role",
+				type: '"user" | "assistant" | "system"',
+				default: '"assistant"',
+				description: "Who produced the turn; drives alignment, chrome, and the accessible name",
+			},
+			{
+				name: "content",
+				type: "string",
+				default: '""',
+				description:
+					"The body so far, not the latest delta; reassign with a longer string as chunks arrive",
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description: "Whether content is still growing; shows the trailing cursor",
+			},
+			{
+				name: "markdown",
+				type: "boolean",
+				default: "false",
+				description: "Render the body as markdown instead of a tinted plain-text stream",
+			},
+			{
+				name: "timestamp",
+				type: "Date | number",
+				description:
+					"When the turn was produced; rendered relative, with the exact time as its tooltip",
+			},
+		],
+		slots: [
+			{ name: "avatar", description: "Rendered beside the body: an image, initials, an icon" },
+			{
+				name: "children",
+				description: "Replaces the default body rendering entirely; content is then ignored",
+			},
+			{
+				name: "actions",
+				description: "The action rail — put ChatMessageActions here; fades in on hover or focus",
+			},
+			{
+				name: "footer",
+				description: "Rendered under the body — where ChatMessageBranches belongs",
+			},
+		],
+	},
+	"prompt-suggestions": {
+		name: "PromptSuggestions",
+		slug: "prompt-suggestions",
+		description:
+			"Row of prompt pills that cascade in after a reply lands, offering the user a next turn without composing one",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "suggestions", "pills"],
+		props: [
+			{
+				name: "suggestions",
+				type: "string[]",
+				description: "Prompt texts offered to the user, in display order",
+				required: true,
+			},
+			{
+				name: "onSelect",
+				type: "(suggestion: string, index: number) => void",
+				description: "Called with the chosen prompt and its index when a pill is activated",
+			},
+			{
+				name: "visible",
+				type: "boolean",
+				default: "true",
+				description: "Whether the pills are shown; flipping this to true replays the entrance",
+			},
+			{
+				name: "staggerMs",
+				type: "number",
+				default: "60",
+				description: "Delay between two consecutive pills entering, in milliseconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Suggestions"',
+				description: "Accessible name of the group wrapping the pills",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Custom pill content, receiving the suggestion and its index",
+			},
+		],
+	},
+	"chat-error": {
+		name: "ChatError",
+		slug: "chat-error",
+		description:
+			"Quiet inline failure banner for a chat turn: the error, an optional detail line, and a retry button that disables itself while the retry is in flight",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "error", "feedback", "retry"],
+		props: [
+			{
+				name: "message",
+				type: "string",
+				default: '"Something went wrong"',
+				description: "The failure line",
+			},
+			{
+				name: "detail",
+				type: "string",
+				description: "Secondary muted line under the message, e.g. the error code",
+			},
+			{
+				name: "onRetry",
+				type: "() => void",
+				description: "Pressing retry calls this; the retry button only exists when it is set",
+			},
+			{
+				name: "retryLabel",
+				type: "string",
+				default: '"Retry"',
+				description: "Label for the retry button",
+			},
+			{
+				name: "retrying",
+				type: "boolean",
+				default: "false",
+				description: "Whether a retry is in flight: disables the button and marks the row busy",
+			},
+		],
+		slots: [
+			{
+				name: "icon",
+				description: "Leading icon, replacing the default warning triangle",
+			},
+			{
+				name: "children",
+				description: "Rendered instead of the message and detail block",
 			},
 		],
 	},
