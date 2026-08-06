@@ -72,6 +72,10 @@
 		"chat-message",
 		"prompt-suggestions",
 		"chat-error",
+		"tool-call",
+		"tool-timeline",
+		"terminal-block",
+		"code-diff",
 	]);
 </script>
 

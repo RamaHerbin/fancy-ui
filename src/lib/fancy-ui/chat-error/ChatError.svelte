@@ -109,18 +109,42 @@
 	 * Every colour derives from `--ft-error-fg` at the point of use rather than
 	 * being redeclared on the root, so setting that one variable anywhere up the
 	 * tree — inline style, a theme class — retints the whole row without having
-	 * to win a specificity fight against these scoped rules.
+	 * to win a specificity fight against these scoped rules. Unset, it falls
+	 * through to `--ft-status-error`, the failure colour this component family
+	 * shares, so a theme can speak once and be heard by all of them.
 	 */
 	.ft-error {
-		background: var(--ft-error-bg, color-mix(in oklab, var(--ft-error-fg, #d33) 8%, transparent));
+		background: var(
+			--ft-error-bg,
+			color-mix(
+				in oklab,
+				var(
+						--ft-error-fg,
+						var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+					)
+					8%,
+				transparent
+			)
+		);
 		border-color: var(
 			--ft-error-border,
-			color-mix(in oklab, var(--ft-error-fg, #d33) 20%, transparent)
+			color-mix(
+				in oklab,
+				var(
+						--ft-error-fg,
+						var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+					)
+					20%,
+				transparent
+			)
 		);
 	}
 
 	.ft-error-icon {
-		color: var(--ft-error-fg, #d33);
+		color: var(
+			--ft-error-fg,
+			var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+		);
 	}
 
 	.ft-error-dot {

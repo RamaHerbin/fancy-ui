@@ -65,6 +65,10 @@ The row's tint comes from a single variable. `--ft-error-fg` colours the icon an
 
 `--ft-error-bg` and `--ft-error-border` are read first and override the derived values if you want the wash and the outline to part ways with the accent. All three are read at their point of use rather than declared on the root, so a value set by a consumer wins without having to out-specify the component's own scoped rules.
 
+Left unset, `--ft-error-fg` falls through to `--ft-status-error`, the failure colour shared with `ToolCall`, `ToolTimeline`, `TerminalBlock` and `CodeDiff`. Set that one instead and everything that reports a failure moves together.
+
+Its default is a `light-dark()` pair — `oklch(0.5 0.19 25)` on light, `oklch(0.7 0.18 25)` on dark — since one token cannot clear 4.5:1 against both white and near-black. Declare `color-scheme: light` / `dark` on your theme so the right half is picked; without it a page gets the light half. See the [ToolCall README](../tool-call/README.md#styling) for the full palette.
+
 ## Implementation notes
 
 - The root is a `role="alert"` region, so the failure is announced when it appears. It carries `aria-busy="true"` only while `retrying`, which tells assistive tech the row is mid-update rather than settled.

@@ -2925,6 +2925,201 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"tool-call": {
+		name: "ToolCall",
+		slug: "tool-call",
+		description:
+			"One tool invocation in a disclosure card: status dot, tool name, duration, and the request and result payloads pretty-printed on expand",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "tool", "disclosure"],
+		props: [
+			{
+				name: "call",
+				type: "ToolCallData",
+				description:
+					"The invocation to render: id, name, status, and whatever payloads exist so far",
+				required: true,
+			},
+			{
+				name: "open",
+				type: "boolean",
+				description:
+					'Expanded state (bindable). Left undefined the card stays collapsed, except that a call with status "error" opens itself — until the reader toggles it by hand',
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description: "Called on every open/close, by click or on the card's own initiative",
+			},
+		],
+		slots: [
+			{ name: "input", description: "Replaces the default request rendering; receives call.input" },
+			{
+				name: "output",
+				description: "Replaces the default result rendering; receives call.output",
+			},
+			{ name: "icon", description: "Leading icon, replacing the default wrench" },
+		],
+	},
+	"tool-timeline": {
+		name: "ToolTimeline",
+		slug: "tool-timeline",
+		description:
+			"Compact session summary of an agent's tool calls: one row per action on a vertical rail, with the target it touched, its diff stats, and when it ran",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "tool", "timeline", "activity"],
+		props: [
+			{
+				name: "items",
+				type: "ToolTimelineItemData[]",
+				description: "The agent's activity log, oldest first",
+				required: true,
+			},
+			{
+				name: "onSelect",
+				type: "(item: ToolTimelineItemData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "compact",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows with the detail line dropped",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Activity"',
+				description: "Accessible name for the list",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the rail and its dot",
+			},
+		],
+	},
+	"terminal-block": {
+		name: "TerminalBlock",
+		slug: "terminal-block",
+		description:
+			"Live command transcript: the prompt line, output as it streams in with its ANSI colours read, a block cursor while it runs, and an exit-status footer when it stops",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "terminal", "streaming", "output"],
+		props: [
+			{
+				name: "output",
+				type: "string",
+				description:
+					"Everything the command has printed so far, not the latest chunk; reassign as lines arrive",
+				required: true,
+			},
+			{
+				name: "command",
+				type: "string",
+				description: "The command that produced the output, shown after the prompt glyph",
+			},
+			{
+				name: "prompt",
+				type: "string",
+				default: '"$"',
+				description: "Prompt glyph in front of the command",
+			},
+			{
+				name: "running",
+				type: "boolean",
+				default: "false",
+				description: "Whether the command is still running: shows the cursor, pins the scroll",
+			},
+			{
+				name: "exitCode",
+				type: "number | null",
+				default: "null",
+				description: "Anything other than null ends the run and shows the status footer",
+			},
+			{
+				name: "durationMs",
+				type: "number",
+				description: "How long the run took, shown next to the exit status",
+			},
+			{
+				name: "ansi",
+				type: "boolean",
+				default: "true",
+				description:
+					"Read the SGR subset and colour the output; false still strips the escapes, it just paints nothing",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"20rem"',
+				description: "Height at which the output starts scrolling",
+			},
+		],
+		slots: [
+			{
+				name: "header",
+				description: "Title bar above the output — window dots, a file name, a copy button",
+			},
+		],
+	},
+	"code-diff": {
+		name: "CodeDiff",
+		slug: "code-diff",
+		description:
+			"Unified diff tuned for chat width: one foldable card per file, tinted add/delete rows, and a copy-safe gutter",
+		category: "ai-agents",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "diff", "code", "review"],
+		props: [
+			{
+				name: "diff",
+				type: "string",
+				description:
+					"Raw unified diff text, headers and all; parsed on every change, so a patch still arriving can be handed over as it grows",
+				required: true,
+			},
+			{
+				name: "filename",
+				type: "string",
+				description: "Header label when the patch names no file, or names exactly one",
+			},
+			{
+				name: "lineNumbers",
+				type: "boolean",
+				default: "true",
+				description: "Whether to show the old/new line-number gutters",
+			},
+			{
+				name: "collapsed",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the bodies are folded away (bindable). Set it and the whole patch folds; a click folds one file and writes back whether anything is left open",
+			},
+			{
+				name: "maxLines",
+				type: "number",
+				default: "0",
+				description:
+					'Lines shown per file before the rest hide behind a "Show N more lines" button; 0 shows everything',
+			},
+			{
+				name: "wrap",
+				type: "boolean",
+				default: "false",
+				description: "Whether long lines wrap instead of scrolling sideways",
+			},
+		],
+	},
 };
 
 // =============================================================================
