@@ -64,6 +64,11 @@
 		"editorial-engine",
 		"frosted-glass",
 		"liquid-text",
+		"pixel-loader",
+		"typing-indicator",
+		"thinking-indicator",
+		"streaming-text",
+		"reasoning-panel",
 	]);
 </script>
 

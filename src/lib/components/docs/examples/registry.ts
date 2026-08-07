@@ -421,4 +421,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		},
 		{ name: "Playground", title: "Interactive Playground" },
 	],
+	"pixel-loader": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"typing-indicator": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"thinking-indicator": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"streaming-text": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Markdown", title: "Markdown Streaming" },
+	],
+	"reasoning-panel": [{ name: "BasicUsage", title: "Basic Usage" }],
 };

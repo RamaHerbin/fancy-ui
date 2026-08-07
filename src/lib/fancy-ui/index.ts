@@ -67,6 +67,11 @@ export * from "./noise-reveal/index.js";
 export * from "./line-reveal/index.js";
 export * from "./editorial-engine/index.js";
 export * from "./liquid-text/index.js";
+export * from "./pixel-loader/index.js";
+export * from "./typing-indicator/index.js";
+export * from "./thinking-indicator/index.js";
+export * from "./streaming-text/index.js";
+export * from "./reasoning-panel/index.js";
 
 // =============================================================================
 // Registry
