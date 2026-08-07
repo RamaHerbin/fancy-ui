@@ -39,7 +39,10 @@
 	);
 	// A stop button with nothing to call is a lie, so it goes grey — which is also
 	// what happens with no context at all.
-	const stoppable = $derived(typeof composer?.stop === "function");
+	// `composer.stop` is always a function — the root publishes one whether or not
+	// a consumer passed `onStop` — so the context reports separately whether there
+	// is anything behind it.
+	const stoppable = $derived(composer?.stoppable ?? false);
 	// Outside a composer both branches land on disabled: there is nothing to stop,
 	// and an absent draft is an empty one.
 	const isDisabled = $derived((composer?.disabled ?? false) || (streaming ? !stoppable : empty));

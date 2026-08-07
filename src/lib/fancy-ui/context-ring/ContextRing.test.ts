@@ -285,4 +285,37 @@ describe("ContextRing", () => {
 		expect(root(container).className).toContain("my-ring");
 		expect(root(container).className).toContain("ft-ctxring");
 	});
+
+	it("names the trigger with the reading, since the meter inside it is not exposed", () => {
+		// A button flattens its descendants to presentational, so the nested meter
+		// and its value never reach assistive tech.
+		const { container } = render(ContextRing, {
+			props: { usage: usage({ used: 12_400, max: 200_000 }), expandable: true },
+		});
+
+		expect(trigger(container)?.getAttribute("aria-label")).toBe(
+			"Context usage, 12,400 of 200,000 tokens"
+		);
+	});
+
+	it("closes the popover when expandability is taken away, and leaves it closed", async () => {
+		const initial = {
+			usage: usage({ breakdown: [{ label: "System prompt", tokens: 1200 }] }),
+			expandable: true,
+		};
+		const { container, rerender } = render(ContextRing, { props: initial });
+
+		await fireEvent.click(trigger(container) as HTMLButtonElement);
+		expect(panel(container)).not.toBeNull();
+
+		await rerender({ ...initial, expandable: false });
+		await tick();
+		expect(panel(container)).toBeNull();
+
+		// Turning it back on must not reopen a panel nobody asked for again.
+		await rerender({ ...initial, expandable: true });
+		await tick();
+		expect(panel(container)).toBeNull();
+		expect(trigger(container)?.getAttribute("aria-expanded")).toBe("false");
+	});
 });

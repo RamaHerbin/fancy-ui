@@ -68,9 +68,12 @@
 		if (disabled || streaming) return;
 		const text = value.trim();
 		if (text === "" && attachments.length === 0) return;
+		// With nobody listening there is nowhere for the draft to go, and clearing
+		// it would throw away text the reader has no way of getting back.
+		if (!onSubmit) return;
 		// A copy, so a consumer stashing the payload does not end up holding the
 		// live list it is about to mutate.
-		onSubmit?.({ text, attachments: [...attachments] });
+		onSubmit({ text, attachments: [...attachments] });
 		// The text is ours to clear; the attachments belong to the consumer, who
 		// alone knows whether an upload is still in flight.
 		value = "";
@@ -147,6 +150,9 @@
 		},
 		get streaming() {
 			return streaming;
+		},
+		get stoppable() {
+			return typeof onStop === "function";
 		},
 		// Declared read-only on ComposerContext so no other part writes it; the
 		// setter exists for ComposerInput alone, which registers its element here
