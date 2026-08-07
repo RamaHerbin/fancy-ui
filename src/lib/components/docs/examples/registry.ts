@@ -452,4 +452,10 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	],
 	"voice-input": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"context-ring": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"scroll-anchor": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"thread-list": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"chat-panel": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "FullConversation", title: "Full Conversation" },
+	],
 };

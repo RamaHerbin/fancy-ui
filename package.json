@@ -2,7 +2,7 @@
 	"name": "fancy-ui-svelte",
 	"private": false,
 	"version": "0.9.1",
-	"description": "61 animated UI components for Svelte 5 — WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
+	"description": "90 animated UI components for Svelte 5 — WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"author": "Rama Herbin",
 	"funding": "https://github.com/sponsors/RamaHerbin",
 	"type": "module",

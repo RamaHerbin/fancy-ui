@@ -3902,6 +3902,147 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"scroll-anchor": {
+		name: "ScrollAnchor",
+		slug: "scroll-anchor",
+		description:
+			"A scroll region that stays pinned to its last line while content streams in, lets go when the reader scrolls up, and floats a pill offering the way back down",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "scroll", "streaming", "utility"],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the region pins itself to the bottom as content arrives — bind it to your streaming flag. False leaves an ordinary scroll box, and hides the return button with it",
+			},
+			{
+				name: "bottomThreshold",
+				type: "number",
+				default: "40",
+				description: "How close to the bottom (px) still counts as pinned",
+			},
+			{
+				name: "returnLabel",
+				type: "string",
+				default: '"Jump to latest"',
+				description: "Label on the floating return button, and its accessible name",
+			},
+			{
+				name: "showReturn",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the floating return button appears once the reader scrolls away from the bottom",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"100%"',
+				description: "Height cap on the scrolling region — any CSS length",
+			},
+			{
+				name: "onStickChange",
+				type: "(stuck: boolean) => void",
+				description: "Called when the region pins itself or lets go, never on every scroll",
+			},
+		],
+		slots: [{ name: "children", description: "The scrolling content" }],
+	},
+	"thread-list": {
+		name: "ThreadList",
+		slug: "thread-list",
+		description:
+			"Conversation history for a chat sidebar: one row per thread with an unread dot, its last message, and a relative timestamp, plus selection and per-row delete",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "threads", "history", "navigation"],
+		props: [
+			{
+				name: "threads",
+				type: "ThreadData[]",
+				description: "The conversations to list, in the order they should appear",
+				required: true,
+			},
+			{
+				name: "activeId",
+				type: "string",
+				description:
+					"Id of the selected conversation (bindable). A click writes the new id back whether or not onSelect is supplied",
+			},
+			{
+				name: "onSelect",
+				type: "(thread: ThreadData) => void",
+				description: "Called with the conversation the reader picked",
+			},
+			{
+				name: "onDelete",
+				type: "(thread: ThreadData) => void",
+				description: "Supplying it puts a delete button on every row, revealed on hover or focus",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Conversations"',
+				description: "Accessible name for the list",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Replaces the built-in row body; receives the thread and whether it is the active one",
+			},
+			{
+				name: "empty",
+				description: 'Replaces the built-in "No conversations yet" line',
+			},
+		],
+	},
+	"chat-panel": {
+		name: "ChatPanel",
+		slug: "chat-panel",
+		description:
+			"The shell a conversation lives in: a sticky header, a transcript that pins itself to the bottom while an answer arrives and offers the way back once you scroll up, and a sticky composer row",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "panel", "shell", "compound"],
+		props: [
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether a reply is still arriving; pins the transcript to its bottom until the reader scrolls up",
+			},
+			{
+				name: "empty",
+				type: "boolean",
+				default: "false",
+				description: "Renders the emptyState snippet in place of the message stream",
+			},
+			{
+				name: "returnLabel",
+				type: "string",
+				default: '"Jump to latest"',
+				description: "Label on the pill offered once the reader scrolls away from the bottom",
+			},
+		],
+		slots: [
+			{ name: "header", description: "Sticky top region: a title, a model name, a close button" },
+			{ name: "children", description: "The message stream, filling the scroll region" },
+			{ name: "composer", description: "Sticky bottom region — where Composer belongs" },
+			{
+				name: "emptyState",
+				description: "Rendered instead of children while empty — where ChatEmptyState belongs",
+			},
+		],
+	},
 };
 
 // =============================================================================

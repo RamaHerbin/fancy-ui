@@ -92,6 +92,9 @@ export * from "./ai-data-table/index.js";
 export * from "./composer/index.js";
 export * from "./voice-input/index.js";
 export * from "./context-ring/index.js";
+export * from "./scroll-anchor/index.js";
+export * from "./thread-list/index.js";
+export * from "./chat-panel/index.js";
 
 // =============================================================================
 // Registry
