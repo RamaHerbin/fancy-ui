@@ -242,4 +242,24 @@ describe("ScrollAnchor", () => {
 		expect(root.className).toContain("my-region");
 		expect(root.className).toContain("ft-scrollanchor");
 	});
+
+	it("recomputes the pin state when bottomThreshold changes, with nothing scrolled", async () => {
+		const { container, rerender } = render(ScrollAnchor, {
+			props: { children, bottomThreshold: 40 },
+		});
+		measure(region(container), BOTTOM - 60); // 60px from the bottom
+		await scrollTo(region(container), BOTTOM - 60);
+		expect(pill(container)).not.toBeNull();
+
+		// Only the threshold moves: 60px now counts as pinned.
+		await rerender({ children, bottomThreshold: 100 });
+		expect(pill(container)).toBeNull();
+	});
+
+	it("fills a bounded parent so the region's default height cap can resolve", () => {
+		// jsdom lays nothing out, so what is checkable here is the class that
+		// gives the percentage something to resolve against.
+		const { container } = render(ScrollAnchor, { props: { children } });
+		expect((container.firstElementChild as HTMLElement).className).toContain("h-full");
+	});
 });

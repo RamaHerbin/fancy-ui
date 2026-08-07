@@ -79,11 +79,16 @@
 	// up on a transition, so a region that mounts already overflowing — a
 	// transcript rendered in one go — would otherwise show no way down to the end.
 	// Reading the same geometry here keeps the two in step from the first frame.
+	// `bottomThreshold` is read outside the untrack on purpose: it changes the
+	// answer with nothing having scrolled, so the pill has to be recomputed when
+	// it does. `stuck` is only written here, never read, so this cannot re-trigger
+	// itself.
 	$effect(() => {
 		const node = region;
+		const threshold = bottomThreshold;
 		if (!node) return;
 		untrack(() => {
-			stuck = node.scrollHeight - node.scrollTop - node.clientHeight <= bottomThreshold;
+			stuck = node.scrollHeight - node.scrollTop - node.clientHeight <= threshold;
 		});
 	});
 
@@ -105,7 +110,13 @@
 	}
 </script>
 
-<div bind:this={ref} class={cn("ft-scrollanchor relative", className)}>
+<!--
+	`h-full` so the region's default `max-height: 100%` has something definite to
+	resolve against: a percentage against a parent of `height: auto` computes to
+	no cap at all. With no bounded ancestor this still resolves to `auto`, so
+	nothing changes for a wrapper that was sizing itself.
+-->
+<div bind:this={ref} class={cn("ft-scrollanchor relative h-full", className)}>
 	<!--
 		`tabindex="-1"` is there for the return button alone: the region takes focus
 		when the button that had it unmounts, and stays out of the tab order the rest

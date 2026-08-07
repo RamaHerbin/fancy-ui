@@ -98,13 +98,28 @@
 	 * suffix, and the suffix counts occurrences rather than positions: keying on
 	 * the position would rename every row below an insertion, destroying the state
 	 * of rows that never moved.
+	 *
+	 * A suffix is also checked against the ids actually in the list, since one of
+	 * them may well look like a generated one: `x`, `x`, `x#1` would otherwise
+	 * hand the same key to two different rows.
 	 */
 	const rows = $derived.by<ThreadRow[]>(() => {
+		const ids = new Set(threads.map((thread) => thread.id));
 		const seen = new Map<string, number>();
+		const used = new Set<string>();
 		return threads.map((thread) => {
 			const seenBefore = seen.get(thread.id) ?? 0;
 			seen.set(thread.id, seenBefore + 1);
-			return { thread, key: seenBefore === 0 ? thread.id : `${thread.id}#${seenBefore}` };
+			let key = thread.id;
+			if (seenBefore > 0) {
+				let suffix = seenBefore;
+				do {
+					key = `${thread.id}#${suffix}`;
+					suffix++;
+				} while (ids.has(key) || used.has(key));
+			}
+			used.add(key);
+			return { thread, key };
 		});
 	});
 </script>

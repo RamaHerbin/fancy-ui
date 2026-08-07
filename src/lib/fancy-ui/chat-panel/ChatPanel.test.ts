@@ -293,6 +293,38 @@ describe("ChatPanel", () => {
 		expect(root(container).className).toContain("my-panel");
 		expect(root(container).className).toContain("ft-panel");
 	});
+
+	it("offers the pill when the transcript grows without a DOM mutation", async () => {
+		// An image finishing its download, a font swapping in, a block expanding
+		// under CSS: the height changes with the DOM untouched, and no scroll event
+		// follows either.
+		let notify: ResizeObserverCallback | undefined;
+		vi.stubGlobal(
+			"ResizeObserver",
+			class {
+				constructor(callback: ResizeObserverCallback) {
+					notify = callback;
+				}
+				observe = vi.fn();
+				unobserve = vi.fn();
+				disconnect = vi.fn();
+			}
+		);
+
+		const { container } = render(ChatPanel, {
+			props: { children: snippet("<p>two turns</p>"), streaming: false },
+		});
+		const region = patchGeometry(scrollRegion(container), BOTTOM);
+		await fireEvent.scroll(region);
+		expect(pill(container)).toBeFalsy();
+
+		Object.defineProperty(region, "scrollHeight", { value: 2000, configurable: true });
+		notify?.([], {} as ResizeObserver);
+		await settle();
+
+		expect(pill(container)?.textContent).toContain("Jump to latest");
+		vi.unstubAllGlobals();
+	});
 });
 
 describe("ChatEmptyState", () => {

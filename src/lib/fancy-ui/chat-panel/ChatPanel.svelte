@@ -50,6 +50,9 @@
 	const BOTTOM_THRESHOLD = 40;
 
 	let scrollEl = $state<HTMLDivElement | null>(null);
+	// The transcript itself. The scroll region has a fixed height, so it never
+	// resizes; its content is what grows when an image lands or a font swaps in.
+	let contentEl = $state<HTMLDivElement | null>(null);
 
 	// Content that fits its container counts as pinned, so the pill starts hidden
 	// and the first sync corrects it if the transcript is already taller.
@@ -167,8 +170,19 @@
 		const growth = new MutationObserver(handleMutation);
 		growth.observe(el, { childList: true, subtree: true, characterData: true });
 
+		// A mutation is not the only way the transcript gets taller: an image
+		// finishing its download, a web font swapping in, or a block expanding
+		// under CSS changes the height with the DOM untouched, and the pill would
+		// go on claiming the reader is at the end.
+		let resize: ResizeObserver | null = null;
+		if (contentEl && typeof ResizeObserver !== "undefined") {
+			resize = new ResizeObserver(handleMutation);
+			resize.observe(contentEl);
+		}
+
 		return () => {
 			growth.disconnect();
+			resize?.disconnect();
 			if (frame !== null) cancelAnimationFrame(frame);
 			frame = null;
 		};
@@ -216,11 +230,17 @@
 			onscroll={handleScroll}
 			use:autoscroll={{ enabled: streaming }}
 		>
-			{#if empty}
-				{@render emptyState?.()}
-			{:else}
-				{@render children?.()}
-			{/if}
+			<!--
+				A stable wrapper around whichever branch renders, so there is one
+				element to watch for height changes whether the panel is empty or not.
+			-->
+			<div bind:this={contentEl}>
+				{#if empty}
+					{@render emptyState?.()}
+				{:else}
+					{@render children?.()}
+				{/if}
+			</div>
 		</div>
 
 		{#if !stuck}

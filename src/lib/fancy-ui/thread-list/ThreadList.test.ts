@@ -315,4 +315,17 @@ describe("ThreadList", () => {
 		unmount();
 		expect(vi.getTimerCount()).toBe(before);
 	});
+
+	it("keeps every key distinct when a raw id looks like a generated suffix", () => {
+		// `x`, `x`, `x#1`: the second `x` would otherwise be handed the key the
+		// third row already answers to.
+		const collision: ThreadData[] = [
+			{ id: "x", title: "First", updatedAt: T0 },
+			{ id: "x", title: "Second", updatedAt: T0 - MINUTE },
+			{ id: "x#1", title: "Third", updatedAt: T0 - 2 * MINUTE },
+		];
+		const { container } = render(ThreadList, { props: { threads: collision } });
+
+		expect(text(container, ".ft-threadlist-title")).toEqual(["First", "Second", "Third"]);
+	});
 });
