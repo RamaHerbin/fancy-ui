@@ -92,15 +92,17 @@ An `error` on the call is shown in the result section whatever the snippets do, 
 
 Colour comes from `--ft-status-*`, the run-status vocabulary shared with `ToolTimeline`, `TerminalBlock`, `CodeDiff` and `ChatError`. Set one of them anywhere up the tree and every component in the family follows:
 
-| Variable                | Default (light / dark)                          | Meaning                      |
-| ----------------------- | ----------------------------------------------- | ---------------------------- |
-| `--ft-status-pending`   | `oklch(0.55 0.02 260)` / `oklch(0.72 0.02 260)` | Queued, nothing has run yet  |
-| `--ft-status-running`   | `oklch(0.5 0.18 265)` / `oklch(0.72 0.15 265)`  | In flight                    |
-| `--ft-status-done`      | `oklch(0.5 0.14 145)` / `oklch(0.72 0.15 145)`  | Succeeded                    |
-| `--ft-status-error`     | `oklch(0.5 0.19 25)` / `oklch(0.7 0.18 25)`     | Failed                       |
-| `--ft-status-cancelled` | `oklch(0.55 0.02 260)` / `oklch(0.72 0.02 260)` | Abandoned before it finished |
+| Variable                | Default (light / dark)                         | Meaning                      |
+| ----------------------- | ---------------------------------------------- | ---------------------------- |
+| `--ft-status-pending`   | `oklch(0.5 0.02 260)` / `oklch(0.72 0.02 260)` | Queued, nothing has run yet  |
+| `--ft-status-running`   | `oklch(0.5 0.18 265)` / `oklch(0.72 0.15 265)` | In flight                    |
+| `--ft-status-done`      | `oklch(0.5 0.14 145)` / `oklch(0.72 0.15 145)` | Succeeded                    |
+| `--ft-status-error`     | `oklch(0.5 0.19 25)` / `oklch(0.7 0.18 25)`    | Failed                       |
+| `--ft-status-cancelled` | `oklch(0.5 0.02 260)` / `oklch(0.72 0.02 260)` | Abandoned before it finished |
 
-Each default is a `light-dark()` pair, because no single token clears 4.5:1 against both white and near-black — the light half is tuned for a light page and the dark half for a dark one. Which half applies is decided by `color-scheme`, so **your theme must declare it**:
+Each default is a `light-dark()` pair, because no single token clears 4.5:1 against both white and near-black — the light half is tuned for a light page and the dark half for a dark one. The greys carrying `pending` and `cancelled` are 0.5 rather than a softer 0.55 on the light side: they mostly paint dots, rings and dashes, which are graphical objects and owe 3:1 of their own, and 0.55 did not clear it.
+
+Which half applies is decided by `color-scheme`, so **your theme must declare it**:
 
 ```css
 :root {

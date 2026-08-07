@@ -83,6 +83,12 @@ export * from "./sources/index.js";
 export * from "./inline-citation/index.js";
 export * from "./web-search/index.js";
 export * from "./image-generation/index.js";
+export * from "./agent-plan/index.js";
+export * from "./subagent-list/index.js";
+export * from "./approval-card/index.js";
+export * from "./recommendation-card/index.js";
+export * from "./artifact-card/index.js";
+export * from "./ai-data-table/index.js";
 
 // =============================================================================
 // Registry
