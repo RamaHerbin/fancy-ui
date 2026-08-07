@@ -440,4 +440,10 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"recommendation-card": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"artifact-card": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"ai-data-table": [{ name: "BasicUsage", title: "Basic Usage" }],
+	composer: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "FullComposer", title: "Full Composer" },
+	],
+	"voice-input": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"context-ring": [{ name: "BasicUsage", title: "Basic Usage" }],
 };

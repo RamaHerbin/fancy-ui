@@ -123,13 +123,21 @@ export function float(node: HTMLElement, opts: FloatOptions): ActionReturn<Float
 	let listening = false;
 
 	const position = () => {
+		// Out of flow *before* the anchor is measured. A float rendered as a sibling
+		// of its anchor still occupies a slot in the layout until this line runs,
+		// and that slot pushes the anchor somewhere it will not be once the float
+		// is fixed — so a rect read first describes a position that no longer
+		// exists, and the float lands beside it for good.
+		node.style.position = "fixed";
+		node.style.visibility = "";
+
 		const anchor = readAnchor(options.anchor);
 		if (!anchor) {
 			node.style.visibility = "hidden";
 			return;
 		}
-		node.style.position = "fixed";
-		node.style.visibility = "";
+		// Still ahead of the node's own measurement: a forced width changes how the
+		// content wraps, and therefore the height the placement is computed from.
 		node.style.width = options.matchWidth ? `${anchor.width}px` : "";
 
 		const box = node.getBoundingClientRect();
