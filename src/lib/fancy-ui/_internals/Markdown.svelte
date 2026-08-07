@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import type { Snippet } from "svelte";
 	import type { BlockToken } from "./markdown.js";
 
 	export interface MarkdownProps {
@@ -10,6 +11,15 @@
 		 * blockquote. Consumers pass `text`.
 		 */
 		blocks?: BlockToken[];
+		/**
+		 * Rendered inline at the very end of the document — a streaming caret, say.
+		 * Every block here is block-level, so a caret placed after the component
+		 * would sit on its own line instead of trailing the last character; this
+		 * puts it inside the last paragraph, heading or list item instead. A
+		 * document ending in code, a table, a rule, or nothing at all has no inline
+		 * tail to hold it, and drops it.
+		 */
+		trailingCursor?: Snippet;
 	}
 </script>
 
@@ -19,37 +29,53 @@
 	import MarkdownInline from "./MarkdownInline.svelte";
 	import Self from "./Markdown.svelte";
 
-	let { text = "", class: className, blocks }: MarkdownProps = $props();
+	let { text = "", class: className, blocks, trailingCursor }: MarkdownProps = $props();
 
 	let nodes = $derived(blocks ?? parseMarkdown(text));
+	let lastIndex = $derived(nodes.length - 1);
 </script>
 
 <div class={cn("ft-md", className)}>
-	{#each nodes as block}
+	{#each nodes as block, index}
+		{@const cursor = index === lastIndex ? trailingCursor : undefined}
 		{#if block.type === "paragraph"}
-			<p class="ft-md-p"><MarkdownInline tokens={block.children} /></p>
+			<p class="ft-md-p">
+				<MarkdownInline tokens={block.children} />{#if cursor}{@render cursor()}{/if}
+			</p>
 		{:else if block.type === "heading"}
-			<svelte:element this={`h${block.depth}`} class="ft-md-h" data-depth={block.depth}>
-				<MarkdownInline tokens={block.children} />
-			</svelte:element>
+			<svelte:element this={`h${block.depth}`} class="ft-md-h" data-depth={block.depth}
+				><MarkdownInline
+					tokens={block.children}
+				/>{#if cursor}{@render cursor()}{/if}</svelte:element
+			>
 		{:else if block.type === "code"}
 			<pre class="ft-md-pre" data-lang={block.lang || null}><code>{block.text}</code></pre>
 		{:else if block.type === "list"}
 			{#if block.ordered}
 				<ol class="ft-md-ol" start={block.start}>
-					{#each block.items as item}
-						<li><MarkdownInline tokens={item} /></li>
+					{#each block.items as item, itemIndex}
+						<li>
+							<MarkdownInline
+								tokens={item}
+							/>{#if cursor && itemIndex === block.items.length - 1}{@render cursor()}{/if}
+						</li>
 					{/each}
 				</ol>
 			{:else}
 				<ul class="ft-md-ul">
-					{#each block.items as item}
-						<li><MarkdownInline tokens={item} /></li>
+					{#each block.items as item, itemIndex}
+						<li>
+							<MarkdownInline
+								tokens={item}
+							/>{#if cursor && itemIndex === block.items.length - 1}{@render cursor()}{/if}
+						</li>
 					{/each}
 				</ul>
 			{/if}
 		{:else if block.type === "blockquote"}
-			<blockquote class="ft-md-quote"><Self blocks={block.children} /></blockquote>
+			<blockquote class="ft-md-quote">
+				<Self blocks={block.children} trailingCursor={cursor} />
+			</blockquote>
 		{:else if block.type === "table"}
 			<div class="ft-md-table-scroll">
 				<table class="ft-md-table">

@@ -162,6 +162,59 @@ describe("autoscroll", () => {
 		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
 	});
 
+	it("pinOnConnect starts pinned and jumps to the bottom, whatever the container says", async () => {
+		// A trace joined mid-stream mounts full of content at scrollTop 0, which
+		// otherwise reads as a reader who scrolled up.
+		const node = makeNode(0);
+		autoscroll(node, { pinOnConnect: true });
+		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
+
+		node.scrollTop = 0; // proof the pin ran, without dispatching a scroll event
+		node.appendChild(document.createElement("p"));
+		await settle();
+		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
+	});
+
+	it("re-sticks when content reaches the bottom edge with no scroll event", async () => {
+		const node = makeNode(100);
+		const onStickChange = vi.fn();
+		autoscroll(node, { onStickChange });
+
+		// A row was removed: same scrollTop, but the bottom edge came to meet it.
+		Object.defineProperty(node, "scrollHeight", { value: 500, configurable: true });
+		node.appendChild(document.createElement("p"));
+		await deliverMutations();
+
+		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(true);
+	});
+
+	it("does not release a pinned container just because content grew below it", async () => {
+		const node = makeNode();
+		const onStickChange = vi.fn();
+		autoscroll(node, { onStickChange });
+
+		// Growth puts fresh content below the viewport for a frame; unsticking here
+		// would cancel the pin that is about to run.
+		Object.defineProperty(node, "scrollHeight", { value: 2000, configurable: true });
+		node.appendChild(document.createElement("p"));
+		await settle();
+
+		expect(onStickChange).not.toHaveBeenCalled();
+		expect(node.scrollTop).toBe(2000);
+	});
+
+	it("re-reads the pin state when the threshold changes mid-flight", () => {
+		const node = makeNode(590); // 10px from the bottom
+		const onStickChange = vi.fn();
+		const handle = autoscroll(node, { bottomThreshold: 5, onStickChange });
+
+		handle.update?.({ bottomThreshold: 50, onStickChange });
+		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(true);
+
+		handle.update?.({ bottomThreshold: 5, onStickChange });
+		expect(onStickChange).toHaveBeenLastCalledWith(false);
+	});
+
 	it("pins when a row grows without touching the child list", async () => {
 		// An image finishing its download, a web font swapping in, a row expanding
 		// under CSS: the container has a fixed height, so only the row resizes.
