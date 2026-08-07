@@ -30,6 +30,9 @@
 				control: "color",
 				description: "Override all fluid with a single color",
 			},
+			dither: { control: "boolean", description: "Retro bitmap dithering" },
+			ditherPixelSize: { control: "number", description: "CSS pixels per dithered dot" },
+			ditherLevels: { control: "number", description: "Color levels per channel" },
 		},
 	});
 </script>
@@ -43,6 +46,29 @@
 	</div>
 {/snippet}
 
+{#snippet templateDark(args: any)}
+	<div class="relative h-64 w-full overflow-hidden rounded-lg border bg-black">
+		<FluidCursor {...args} />
+		<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+			<p class="text-sm text-white/60 select-none">Move your cursor here</p>
+		</div>
+	</div>
+{/snippet}
+
 <Story name="Default" {template} />
 
 <Story name="Custom Color" {template} args={{ fluidColor: "#00ffcc", colorIntensity: 0.4 }} />
+
+<Story
+	name="Bitmap Dither"
+	template={templateDark}
+	args={{
+		dither: true,
+		ditherPixelSize: 3,
+		ditherLevels: 4,
+		fluidColors: ["#a142ff", "#42cfff", "#2fe6a8", "#ffb02f"],
+		colorIntensity: 0.5,
+		autoSplat: true,
+		splatOnMount: true,
+	}}
+/>

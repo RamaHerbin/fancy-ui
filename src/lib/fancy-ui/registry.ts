@@ -1075,6 +1075,25 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "1.5",
 				description: "Display exposure multiplier in HDR mode, clamped to [1, 4]",
 			},
+			{
+				name: "dither",
+				type: "boolean",
+				default: "false",
+				description:
+					"Experimental retro bitmap dithering — pixelates the fluid to a chunky grid and quantizes color with an ordered 4x4 Bayer threshold. Forces the WebGL renderer; hdr is ignored while set",
+			},
+			{
+				name: "ditherPixelSize",
+				type: "number",
+				default: "3",
+				description: "Size of one dithered pixel in CSS pixels, minimum 1",
+			},
+			{
+				name: "ditherLevels",
+				type: "number",
+				default: "4",
+				description: "Color levels per channel in dither mode, clamped to [2, 16]",
+			},
 		],
 	},
 
