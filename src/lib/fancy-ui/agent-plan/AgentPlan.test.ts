@@ -358,4 +358,19 @@ describe("AgentPlan", () => {
 		expect(root.className).toContain("my-plan");
 		expect(root.className).toContain("ft-agentplan");
 	});
+
+	it("keeps every key distinct when a raw id looks like a generated suffix", () => {
+		// The second "x" would otherwise be handed the key the third step answers to.
+		const { container } = render(AgentPlan, {
+			props: {
+				steps: [
+					step({ id: "x", label: "First" }),
+					step({ id: "x", label: "Second" }),
+					step({ id: "x#1", label: "Third" }),
+				],
+			},
+		});
+
+		expect(labels(container)).toEqual(["First", "Second", "Third"]);
+	});
 });
