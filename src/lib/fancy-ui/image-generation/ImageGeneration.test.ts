@@ -160,6 +160,24 @@ describe("ImageGeneration", () => {
 		expect(onLoad).toHaveBeenCalledTimes(1);
 	});
 
+	it("still reports the arrival when a retry of the same src finally loads", async () => {
+		// A failure reveals the image, but recording it as a load would make the
+		// retry look like something that already arrived.
+		const onLoad = vi.fn();
+		const { container } = render(ImageGeneration, {
+			props: { status: "done", src: SRC, alt: "A red barn", onLoad },
+		});
+		await tick();
+
+		const img = image(container) as HTMLImageElement;
+		await fireEvent.error(img);
+		expect(onLoad).not.toHaveBeenCalled();
+		expect(img.className).not.toContain("ft-imagegen-img-blurred");
+
+		await fireEvent.load(img);
+		expect(onLoad).toHaveBeenCalledTimes(1);
+	});
+
 	it("re-arms the reveal when a new src replaces a loaded one", async () => {
 		const onLoad = vi.fn();
 		const next = SRC.replace("R0lGOD", "R0lGOE");

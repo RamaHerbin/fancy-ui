@@ -30,6 +30,22 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { hostOf, monogram } from "../_internals/host.js";
+	import { sanitizeHref } from "../_internals/markdown.js";
+
+	/**
+	 * A result url made safe for an `href`, or `null` when it must not be a link
+	 * at all. These arrive from a model with the rest of the answer, so they clear
+	 * the same scheme check as every link in this family; a bare host is promoted
+	 * to `https://` first, since an `href` of "docs.example.dev/guide" resolves
+	 * against this app's own origin. A genuine relative path is left alone.
+	 */
+	function resolveHref(raw: string | undefined): string | null {
+		if (typeof raw !== "string" || raw === "") return null;
+		const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("//");
+		const host = raw.split(/[/?#]/, 1)[0];
+		const looksHostLike = !hasScheme && !raw.startsWith("/") && host.includes(".");
+		return sanitizeHref(looksHostLike ? `https://${raw}` : raw);
+	}
 
 	let {
 		query,
@@ -127,6 +143,7 @@
 			-->
 			{#each visible as result, index (result.id)}
 				{@const domain = hostOf(result.url)}
+				{@const safeHref = resolveHref(result.url)}
 				<li class="ft-websearch-item">
 					{#snippet body()}
 						{#if item}
@@ -162,7 +179,7 @@
 						>
 							{@render body()}
 						</button>
-					{:else if result.url}
+					{:else if safeHref}
 						<!--
 							Somebody else's page, arriving from a model: `nofollow ugc` keeps the
 							host from vouching for it, and `noopener noreferrer` keeps the opened
@@ -170,7 +187,7 @@
 						-->
 						<a
 							class={cn(ROW_BASE, ROW_INTERACTIVE)}
-							href={result.url}
+							href={safeHref}
 							target="_blank"
 							rel="noopener noreferrer nofollow ugc"
 						>

@@ -26,6 +26,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { float } from "../_internals/float.js";
+	import { sanitizeHref } from "../_internals/markdown.js";
 	import SourceCard from "../sources/SourceCard.svelte";
 
 	let {
@@ -47,8 +48,10 @@
 	const previewId = `${uid}-preview`;
 
 	// An explicit `""` is the opt-out, which is why this is `??` and not `||`:
-	// only an omitted prop falls through to the source's own URL.
-	const resolvedHref = $derived(href ?? source.url);
+	// only an omitted prop falls through to the source's own URL. Whatever it
+	// ends up being clears the same scheme check every link in this family runs
+	// through, since a url on a source is as model-supplied as the prose around it.
+	const resolvedHref = $derived(sanitizeHref(href ?? source.url ?? "") ?? "");
 	const isLink = $derived(resolvedHref !== "");
 
 	let open = $state(false);
@@ -212,9 +215,12 @@
 			<!--
 				The same card the sources list shows, so a document a reader met in one
 				place is recognisable in the other and there is one set of rules for
-				deriving its host and its monogram.
+				deriving its host and its monogram — but in its plain, non-anchor shape:
+				this preview is dismissed on blur, so a link inside it is one no keyboard
+				can ever reach. The marker itself is already that link. A consumer's own
+				`preview` snippet is theirs to compose and is left alone.
 			-->
-			<SourceCard {source} />
+			<SourceCard {source} interactive={false} />
 		{/if}
 	</span>
 {/if}

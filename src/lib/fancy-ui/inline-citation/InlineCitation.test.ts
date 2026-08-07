@@ -330,4 +330,24 @@ describe("InlineCitation", () => {
 		expect(el.classList.contains("text-rose-500")).toBe(true);
 		expect(el.classList.contains("ft-citation-marker")).toBe(true);
 	});
+
+	it("does not become a link for a scheme the family refuses", () => {
+		const { container } = render(InlineCitation, {
+			props: { index: 1, source: source({ url: "javascript:alert(1)" }) },
+		});
+
+		expect(container.querySelector("a")).toBeNull();
+		expect(marker(container).tagName).not.toBe("A");
+	});
+
+	it("keeps the default preview free of a link no keyboard can reach", async () => {
+		// The preview is dismissed on blur, so an anchor inside it is unreachable
+		// by Tab. The marker itself is already the link.
+		const { container } = render(InlineCitation, { props: { index: 1, source: source() } });
+
+		await fireEvent.focus(marker(container));
+		const preview = container.querySelector(".ft-citation-preview") as HTMLElement;
+		expect(preview).not.toBeNull();
+		expect(preview.querySelector("a")).toBeNull();
+	});
 });

@@ -52,7 +52,11 @@ export function hostOf(url: string | undefined): string {
  */
 export function monogram(text: string | undefined): string {
 	const match = /[\p{L}\p{N}]/u.exec(text ?? "");
-	return (match?.[0] ?? "?").toUpperCase();
+	const upper = (match?.[0] ?? "?").toUpperCase();
+	// A few letters upper-case into more than one character — "ß" becomes "SS" —
+	// and this has one glyph's worth of room. The original stands in those cases:
+	// a lone "ß" reads better than half of "SS".
+	return [...upper].length > 1 ? (match?.[0] ?? "?") : upper;
 }
 
 function stripWww(host: string): string {

@@ -61,4 +61,9 @@ describe("monogram", () => {
 		expect(monogram("!?…")).toBe("?");
 		expect(monogram(undefined)).toBe("?");
 	});
+
+	it("keeps a letter that upper-cases into two, since there is room for one", () => {
+		expect(monogram("ßeta docs")).toBe("ß");
+		expect(monogram("ﬄ ligature")).toBe("ﬄ");
+	});
 });
