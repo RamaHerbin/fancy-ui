@@ -72,6 +72,9 @@ export * from "./typing-indicator/index.js";
 export * from "./thinking-indicator/index.js";
 export * from "./streaming-text/index.js";
 export * from "./reasoning-panel/index.js";
+export * from "./chat-message/index.js";
+export * from "./prompt-suggestions/index.js";
+export * from "./chat-error/index.js";
 
 // =============================================================================
 // Registry
