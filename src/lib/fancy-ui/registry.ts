@@ -3693,6 +3693,215 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	composer: {
+		name: "Composer",
+		slug: "composer",
+		description:
+			"The input at the bottom of a chat, taken apart: a root that owns the draft and eight parts that read it — a growing textarea, a send button that becomes a stop button, a toolbar, a model picker, an attachment row with its chips, and a completion menu you can mount twice on the same draft for / commands and @ mentions",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "composer", "input", "compound"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description:
+					"The draft text, bindable. Cleared by a successful submit; the attachments are not, since only the consumer knows whether an upload is still in flight",
+			},
+			{
+				name: "attachments",
+				type: "AttachmentData[]",
+				default: "[]",
+				description:
+					"Files riding along with the draft, bindable. The consumer owns uploading them and pushing the results here",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks typing, sending, and attaching. Every part reads it off the context, so one flag takes the whole composition inert",
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description:
+					"A response is arriving: the send button becomes a stop button, the textarea goes readonly rather than disabled, and a submit is refused whatever triggered it",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description:
+					"Placeholder for the default input. Ignored once children replaces the composition — the ComposerInput inside it carries its own",
+			},
+			{
+				name: "onSubmit",
+				type: "(payload: { text: string; attachments: AttachmentData[] }) => void",
+				description:
+					"Called with the trimmed draft and a snapshot of the attachments. Never fires on an empty draft that carries no files",
+			},
+			{
+				name: "onStop",
+				type: "() => void",
+				description: "Called when the stop button is pressed while streaming",
+			},
+			{
+				name: "onAttach",
+				type: "(files: File[]) => void",
+				description:
+					"Called with the files handed to the picker. Upload them, then push the results onto attachments — the composer never uploads anything itself",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Replaces the default input-and-send-row composition entirely: mount the parts in whatever order the layout needs",
+			},
+			{
+				name: "accessory",
+				description:
+					"An overlay covering the composer — a voice panel, a drop target, a confirmation. It sits above the composition rather than replacing it, so the draft is still there when it lifts",
+			},
+		],
+	},
+	"voice-input": {
+		name: "VoiceInput",
+		slug: "voice-input",
+		description:
+			"A mic button that opens into a recording panel: a live waveform painted from amplitude levels you supply, a stopwatch, the transcript as it arrives, and a cross and a check to throw it away or keep it",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "voice", "waveform", "input"],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether a recording is in progress (bindable). Every button writes through it; setting it from outside opens or closes the panel without firing a callback",
+			},
+			{
+				name: "transcript",
+				type: "string",
+				default: '""',
+				description:
+					"Live text pushed by the consumer as their recogniser produces it, rendered muted under the waveform; a growing string grows in place",
+			},
+			{
+				name: "samples",
+				type: "ArrayLike<number>",
+				description:
+					"Amplitude levels in 0..1 bridged from your own audio pipeline, one entry per bar. The component never opens a microphone itself",
+			},
+			{
+				name: "demo",
+				type: "boolean",
+				default: "false",
+				description:
+					"Draw a deterministic synthetic wave when no samples arrive, so the panel is legible on a page with no audio behind it. Real samples always win",
+			},
+			{
+				name: "onStart",
+				type: "() => void",
+				description: "Called when the mic button starts a recording",
+			},
+			{
+				name: "onStop",
+				type: "() => void",
+				description: "Called when the check ends the recording and keeps the transcript",
+			},
+			{
+				name: "onCancel",
+				type: "() => void",
+				description: "Called when the cross abandons the recording",
+			},
+			{
+				name: "height",
+				type: "number",
+				default: "48",
+				description: "Waveform height in CSS pixels, clamped to 16..240",
+			},
+			{
+				name: "color",
+				type: "string",
+				default: "var(--ft-voice-color, currentColor)",
+				description:
+					"Any CSS colour for the bars, including a var() or currentColor — written onto the canvas as its CSS color and read back resolved, because a 2D context understands neither",
+			},
+		],
+	},
+	"context-ring": {
+		name: "ContextRing",
+		slug: "context-ring",
+		description:
+			"How much of the context window is gone, in the space of a favicon: a donut that fills as the conversation grows, the compact count beside it, and an optional popover breaking the total down by what is holding it",
+		category: "ai-chat",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "tokens", "context", "indicator"],
+		props: [
+			{
+				name: "usage",
+				type: "TokenUsageData",
+				description:
+					"Context-window consumption: tokens used, out of how many, and optionally the breakdown rows the popover lists",
+				required: true,
+			},
+			{
+				name: "size",
+				type: "number",
+				default: "28",
+				description: "Outer diameter of the ring, in pixels; drives the viewBox and the radius",
+			},
+			{
+				name: "strokeWidth",
+				type: "number",
+				default: "3",
+				description:
+					"Thickness of the track and the arc, in pixels; clamped to the radius so a thick ring cannot eat its own centre",
+			},
+			{
+				name: "showLabel",
+				type: "boolean",
+				default: "true",
+				description:
+					'Whether the compact "12.4k / 200k" figure is shown beside the ring — exact under a thousand, one decimal under 100k, rounded above',
+			},
+			{
+				name: "warnAt",
+				type: "number",
+				default: "0.75",
+				description:
+					"Fraction at which the ring leaves the quiet band and takes the running colour",
+			},
+			{
+				name: "criticalAt",
+				type: "number",
+				default: "0.9",
+				description:
+					"Fraction at which the ring takes the error colour. Floored at warnAt, so a threshold set below the warning cannot create a band that never wins",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Context usage"',
+				description:
+					"Accessible name for the meter, and — when expandable — for the button that contains it",
+			},
+			{
+				name: "expandable",
+				type: "boolean",
+				default: "false",
+				description:
+					"Turns the ring into a button that toggles a popover listing usage.breakdown; closes on Escape, on a click outside, or on a second press",
+			},
+		],
+	},
 };
 
 // =============================================================================
