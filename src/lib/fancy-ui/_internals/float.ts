@@ -117,10 +117,18 @@ function readAnchor(anchor: FloatOptions["anchor"]): FloatRect | null {
 	return anchor as FloatRect;
 }
 
+function anchorElement(anchor: FloatOptions["anchor"]): HTMLElement | null {
+	if (typeof anchor !== "object" || anchor === null) return null;
+	return typeof (anchor as HTMLElement).getBoundingClientRect === "function"
+		? (anchor as HTMLElement)
+		: null;
+}
+
 export function float(node: HTMLElement, opts: FloatOptions): ActionReturn<FloatOptions> {
 	let options = opts;
 	let frame: number | null = null;
 	let listening = false;
+	let sizes: ResizeObserver | null = null;
 
 	const position = () => {
 		const anchor = readAnchor(options.anchor);
@@ -156,6 +164,22 @@ export function float(node: HTMLElement, opts: FloatOptions): ActionReturn<Float
 		});
 	};
 
+	/*
+	 * Scroll and resize only cover the viewport moving under the pair. A menu
+	 * whose results arrive asynchronously, a font swap, or an anchor that grows
+	 * changes the geometry with no global event to hear, leaving the float stale
+	 * against its anchor or overflowing the edge it was flipped away from.
+	 * Re-observed on every sync because `update` may hand over another anchor.
+	 */
+	const observeSizes = () => {
+		if (typeof ResizeObserver === "undefined") return;
+		sizes ??= new ResizeObserver(schedule);
+		sizes.disconnect();
+		sizes.observe(node);
+		const anchor = anchorElement(options.anchor);
+		if (anchor) sizes.observe(anchor);
+	};
+
 	const listen = (on: boolean) => {
 		if (on === listening) return;
 		listening = on;
@@ -165,6 +189,8 @@ export function float(node: HTMLElement, opts: FloatOptions): ActionReturn<Float
 		} else {
 			window.removeEventListener("scroll", schedule, { capture: true });
 			window.removeEventListener("resize", schedule);
+			sizes?.disconnect();
+			sizes = null;
 		}
 	};
 
@@ -186,6 +212,7 @@ export function float(node: HTMLElement, opts: FloatOptions): ActionReturn<Float
 			return;
 		}
 		listen(true);
+		observeSizes();
 		position();
 	};
 
@@ -198,6 +225,8 @@ export function float(node: HTMLElement, opts: FloatOptions): ActionReturn<Float
 		},
 		destroy() {
 			listen(false);
+			sizes?.disconnect();
+			sizes = null;
 			if (frame !== null) cancelAnimationFrame(frame);
 			frame = null;
 		},

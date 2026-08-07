@@ -70,15 +70,42 @@ export function autoscroll(
 		frame = requestAnimationFrame(pin);
 	}
 
+	/*
+	 * The container itself has a fixed height, so watching only it misses every
+	 * way already-rendered content grows without touching the child list: an image
+	 * finishing its download, a web font swapping in, a row expanding under CSS.
+	 * Watching the rows too catches those, and tracking them through the mutation
+	 * records keeps the cost proportional to what changed rather than re-walking
+	 * the whole transcript on every streamed token.
+	 */
+	function observeRows(records: MutationRecord[]): void {
+		if (!resizes) return;
+		for (const record of records) {
+			if (record.target !== node) continue;
+			for (const added of record.addedNodes) {
+				if (added instanceof Element) resizes.observe(added);
+			}
+			for (const removed of record.removedNodes) {
+				if (removed instanceof Element) resizes.unobserve(removed);
+			}
+		}
+	}
+
+	function handleMutations(records: MutationRecord[]): void {
+		observeRows(records);
+		schedulePin();
+	}
+
 	function connect(): void {
 		if (connected) return;
 		connected = true;
 		node.addEventListener("scroll", handleScroll, { passive: true });
-		mutations = new MutationObserver(schedulePin);
+		mutations = new MutationObserver(handleMutations);
 		mutations.observe(node, { childList: true, subtree: true, characterData: true });
 		if (typeof ResizeObserver !== "undefined") {
 			resizes = new ResizeObserver(schedulePin);
 			resizes.observe(node);
+			for (const row of node.children) resizes.observe(row);
 		}
 	}
 

@@ -118,6 +118,36 @@ describe("parseUnifiedDiff — file status", () => {
 		expect([file.additions, file.deletions]).toEqual([0, 2]);
 	});
 
+	it("nulls the old path of a binary add, which carries no /dev/null header", () => {
+		const [file] = parseUnifiedDiff(
+			[
+				"diff --git a/assets/logo.png b/assets/logo.png",
+				"new file mode 100644",
+				"index 0000000..7c1b2f9",
+				"GIT binary patch",
+				"literal 2048",
+			].join("\n")
+		);
+		expect(file.isNew).toBe(true);
+		expect(file.oldPath).toBeNull();
+		expect(file.newPath).toBe("assets/logo.png");
+	});
+
+	it("nulls the new path of a binary delete for the same reason", () => {
+		const [file] = parseUnifiedDiff(
+			[
+				"diff --git a/assets/old.png b/assets/old.png",
+				"deleted file mode 100644",
+				"index 7c1b2f9..0000000",
+				"GIT binary patch",
+				"literal 0",
+			].join("\n")
+		);
+		expect(file.isDeleted).toBe(true);
+		expect(file.oldPath).toBe("assets/old.png");
+		expect(file.newPath).toBeNull();
+	});
+
 	it("detects a rename and reads both paths from the rename lines", () => {
 		const [file] = parseUnifiedDiff(
 			[
@@ -148,6 +178,33 @@ describe("parseUnifiedDiff — tolerant parsing", () => {
 			["context", 10, 10],
 			["del", 11, null],
 			["add", null, 11],
+		]);
+	});
+
+	it("starts the next file at bare ---/+++ headers once the hunk counts are spent", () => {
+		// `diff -u one.txt two.txt` concatenated: no `diff --git` separator, so the
+		// second file announces itself with headers that look like body lines.
+		const files = parseUnifiedDiff(
+			[
+				"--- one.txt",
+				"+++ one.txt",
+				"@@ -1,2 +1,2 @@",
+				" keep",
+				"-old one",
+				"+new one",
+				"--- two.txt",
+				"+++ two.txt",
+				"@@ -1 +1 @@",
+				"-old two",
+				"+new two",
+			].join("\n")
+		);
+		expect(files).toHaveLength(2);
+		expect(files.map((f) => f.newPath)).toEqual(["one.txt", "two.txt"]);
+		expect(files.map((f) => f.hunks.length)).toEqual([1, 1]);
+		expect(files.map((f) => [f.additions, f.deletions])).toEqual([
+			[1, 1],
+			[1, 1],
 		]);
 	});
 

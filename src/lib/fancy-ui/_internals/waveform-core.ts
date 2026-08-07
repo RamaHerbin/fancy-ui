@@ -28,7 +28,9 @@ function clamp01(value: number): number {
 
 /**
  * Paints one frame: clears the surface, then draws `floor(width / (barWidth +
- * gap))` bars, each sampling `samples` linearly across its length. Bar height is
+ * gap))` bars. Each bar covers its own slice of the buffer and takes that
+ * slice's peak, so the last bar reaches the end of the buffer and a transient
+ * between two sample points is never skipped. Bar height is
  * `max(minAmp, sample) * height`, so a silent signal still shows a floor.
  */
 export function drawWaveformFrame(
@@ -50,11 +52,18 @@ export function drawWaveformFrame(
 	const sampleCount = samples.length;
 	ctx.fillStyle = style.color;
 
+	const perBar = sampleCount / barCount;
+
 	for (let i = 0; i < barCount; i++) {
 		let sample = 0;
 		if (sampleCount > 0) {
-			const index = Math.min(sampleCount - 1, Math.floor((i / barCount) * sampleCount));
-			sample = clamp01(samples[index] ?? 0);
+			// More bars than samples leaves empty slices: those fall back to the one
+			// sample the slice starts on. The last bar always closes on the buffer's
+			// end so recent audio cannot fall off the right edge.
+			const from = Math.min(Math.floor(i * perBar), sampleCount - 1);
+			const to =
+				i === barCount - 1 ? sampleCount : Math.max(Math.floor((i + 1) * perBar), from + 1);
+			for (let s = from; s < to; s++) sample = Math.max(sample, clamp01(samples[s] ?? 0));
 		}
 
 		const barHeight = Math.max(floorAmp, sample) * height;

@@ -21,8 +21,10 @@
 
 	// Built once, with the initial text already settled: the server renders the
 	// whole string as a single plain span and only later growth animates. Reading
-	// the props here is meant to capture their first value, hence the untrack.
-	const stream = untrack(() => createTextStream(text, { settleMs }));
+	// the text here is meant to capture its first value, hence the untrack —
+	// `settleMs` goes in as a getter so a later duration reaches later chunks
+	// instead of leaving them on the mount-time timeout the CSS no longer matches.
+	const stream = untrack(() => createTextStream(text, { settleMs: () => settleMs }));
 
 	// The first run pushes the text the stream was built from, which is a no-op.
 	$effect(() => {

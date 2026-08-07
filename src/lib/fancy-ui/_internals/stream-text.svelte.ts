@@ -25,8 +25,12 @@ export interface StreamSegment {
 }
 
 export interface TextStreamOptions {
-	/** How long a delta stays fresh before it settles, in ms. */
-	settleMs?: number;
+	/**
+	 * How long a delta stays fresh before it settles, in ms. Pass a getter when
+	 * the value can change after construction: it is read once per push, so a
+	 * later duration applies to later chunks instead of only to the CSS.
+	 */
+	settleMs?: number | (() => number);
 	/** Set false to skip the animation entirely: every push settles at once. */
 	animate?: boolean;
 }
@@ -45,7 +49,9 @@ export interface TextStream {
 }
 
 export function createTextStream(initial = "", opts: TextStreamOptions = {}): TextStream {
-	const settleMs = opts.settleMs ?? DEFAULT_SETTLE_MS;
+	const settleOption = opts.settleMs;
+	const settleAt =
+		typeof settleOption === "function" ? settleOption : () => settleOption ?? DEFAULT_SETTLE_MS;
 	const animate = opts.animate !== false;
 
 	// `list` and `full` are the authoritative copies and are deliberately not
@@ -120,10 +126,13 @@ export function createTextStream(initial = "", opts: TextStreamOptions = {}): Te
 		}
 
 		publish();
-		const timer = setTimeout(() => {
-			timers.delete(timer);
-			settle(seg.id);
-		}, settleMs);
+		const timer = setTimeout(
+			() => {
+				timers.delete(timer);
+				settle(seg.id);
+			},
+			Math.max(0, settleAt())
+		);
 		timers.add(timer);
 	}
 

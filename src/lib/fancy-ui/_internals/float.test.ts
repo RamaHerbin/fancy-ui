@@ -161,8 +161,34 @@ describe("float action", () => {
 	afterEach(() => {
 		for (const handle of live) handle.destroy?.();
 		vi.restoreAllMocks();
+		vi.unstubAllGlobals();
 		document.body.innerHTML = "";
 	});
+
+	/** jsdom ships no ResizeObserver; this one reports what it was handed. */
+	function stubResizeObserver() {
+		const observed: Element[] = [];
+		let notify: () => void = () => {};
+		vi.stubGlobal(
+			"ResizeObserver",
+			class {
+				constructor(callback: () => void) {
+					notify = callback;
+				}
+				observe(target: Element) {
+					observed.push(target);
+				}
+				unobserve() {}
+				disconnect() {
+					observed.length = 0;
+				}
+			}
+		);
+		return {
+			observed,
+			resize: () => notify(),
+		};
+	}
 
 	it("listens for scroll and resize while enabled, and lets go on destroy", () => {
 		const { handle } = mount({ anchor: ANCHOR });
@@ -182,6 +208,29 @@ describe("float action", () => {
 		expect(removeListener).toHaveBeenCalledWith("scroll", expect.any(Function), { capture: true });
 		expect(removeListener).toHaveBeenCalledWith("resize", expect.any(Function));
 		expect(caf).toHaveBeenCalledExactlyOnceWith(1);
+	});
+
+	it("watches the float and its anchor for size changes", () => {
+		// Async results arriving in an open menu, a font swap, or an anchor that
+		// grows all move the geometry without a scroll or a window resize.
+		const sizes = stubResizeObserver();
+		const anchor = makeNode({ width: 200, height: 40 });
+		const { node } = mount({ anchor });
+
+		expect(sizes.observed).toEqual([node, anchor]);
+
+		sizes.resize();
+		expect(raf).toHaveBeenCalledTimes(1);
+	});
+
+	it("re-points the size watch at a new anchor on update", () => {
+		const sizes = stubResizeObserver();
+		const first = makeNode({ width: 200, height: 40 });
+		const second = makeNode({ width: 300, height: 40 });
+		const { node, handle } = mount({ anchor: first });
+
+		handle.update?.({ anchor: second });
+		expect(sizes.observed).toEqual([node, second]);
 	});
 
 	it("coalesces a burst of scroll events into a single frame", () => {

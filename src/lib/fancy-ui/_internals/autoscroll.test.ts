@@ -32,10 +32,35 @@ async function settle(): Promise<void> {
 	await new Promise((resolve) => requestAnimationFrame(resolve));
 }
 
+/** jsdom ships no ResizeObserver; this one reports what it was handed. */
+function stubResizeObserver() {
+	const observed = new Set<Element>();
+	let notify: () => void = () => {};
+	vi.stubGlobal(
+		"ResizeObserver",
+		class {
+			constructor(callback: () => void) {
+				notify = callback;
+			}
+			observe(target: Element) {
+				observed.add(target);
+			}
+			unobserve(target: Element) {
+				observed.delete(target);
+			}
+			disconnect() {
+				observed.clear();
+			}
+		}
+	);
+	return { observed, resize: () => notify() };
+}
+
 describe("autoscroll", () => {
 	afterEach(() => {
 		document.body.innerHTML = "";
 		vi.useRealTimers();
+		vi.unstubAllGlobals();
 	});
 
 	it("starts stuck when the container is already at the bottom, without announcing it", () => {
@@ -135,6 +160,40 @@ describe("autoscroll", () => {
 		node.appendChild(document.createElement("p"));
 		await settle();
 		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
+	});
+
+	it("pins when a row grows without touching the child list", async () => {
+		// An image finishing its download, a web font swapping in, a row expanding
+		// under CSS: the container has a fixed height, so only the row resizes.
+		const sizes = stubResizeObserver();
+		const node = makeNode();
+		const row = document.createElement("p");
+		node.appendChild(row);
+
+		autoscroll(node);
+		expect(sizes.observed.has(node)).toBe(true);
+		expect(sizes.observed.has(row)).toBe(true);
+
+		node.scrollTop = 0; // proof the pin ran, without dispatching a scroll event
+		sizes.resize();
+		await new Promise((resolve) => requestAnimationFrame(resolve));
+		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
+	});
+
+	it("follows rows in and out of the transcript", async () => {
+		const sizes = stubResizeObserver();
+		const node = makeNode();
+		autoscroll(node);
+
+		const row = document.createElement("p");
+		node.appendChild(row);
+		await deliverMutations();
+		expect(sizes.observed.has(row)).toBe(true);
+
+		// Left observed, a removed row would keep the transcript alive in memory.
+		row.remove();
+		await deliverMutations();
+		expect(sizes.observed.has(row)).toBe(false);
 	});
 
 	it("does nothing after destroy, and destroying twice does not throw", async () => {
