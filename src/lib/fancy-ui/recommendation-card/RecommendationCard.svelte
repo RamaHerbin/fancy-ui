@@ -39,7 +39,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import NumberTicker from "../number-ticker/NumberTicker.svelte";
 
@@ -91,6 +91,9 @@
 	let filled = $state(false);
 	let reduced = $state(false);
 
+	/** Where focus lands once the buttons it might have held are gone. */
+	let resolvedRef: HTMLParagraphElement | null = null;
+
 	// The ring starts empty and fills once the target is written, so its sweep runs
 	// from a known origin — a transition never animates from a value the browser
 	// has not painted yet.
@@ -139,6 +142,10 @@
 		current = next;
 		if (next === "accepted") onAccept?.();
 		else onDismiss?.();
+		// The button just pressed is about to leave the DOM along with the rest of
+		// the action group, so focus is moved to the verdict once it has painted —
+		// otherwise the browser drops it back to the document body.
+		tick().then(() => resolvedRef?.focus());
 	}
 </script>
 
@@ -251,7 +258,9 @@
 			</div>
 		{:else}
 			<p
-				class="ft-rec-resolved flex items-center gap-1.5 text-xs font-medium"
+				bind:this={resolvedRef}
+				tabindex="-1"
+				class="ft-rec-resolved focus-visible:ring-ring flex items-center gap-1.5 rounded-md text-xs font-medium focus-visible:ring-1 focus-visible:outline-none"
 				class:ft-accepted={current === "accepted"}
 			>
 				<span class="flex-none" aria-hidden="true">

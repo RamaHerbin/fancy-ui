@@ -292,6 +292,19 @@ describe("AgentPlan", () => {
 		expect(container.querySelectorAll(".ft-agentplan-glyph")).toHaveLength(5);
 	});
 
+	it("speaks the status of a custom row, since the sr-only label lives only in the default body", () => {
+		const { container } = render(AgentPlan, {
+			props: {
+				steps: [step({ status: "error" })],
+				item: createRawSnippet<[PlanStepData, number]>(() => ({
+					render: () => `<span class="custom-row">mine</span>`,
+				})),
+			},
+		});
+
+		expect(container.querySelector(".sr-only")?.textContent).toBe("Failed");
+	});
+
 	it("renders a plan that repeats an id instead of crashing on it", () => {
 		const steps: PlanStepData[] = [
 			step({ id: "retry", label: "Retry the request", status: "done" }),
@@ -321,6 +334,19 @@ describe("AgentPlan", () => {
 		// Same node, not a remount: an appended step must not replay every entrance.
 		expect(rows(container)[0]).toBe(first);
 		expect(rows(container)).toHaveLength(6);
+	});
+
+	it("keeps a row's key stable when a step is inserted earlier in the plan", async () => {
+		const { container, rerender } = render(AgentPlan, { props: { steps: nested() } });
+		const last = rows(container)[rows(container).length - 1];
+
+		// Inserted at the front rather than appended: keying by flattened position
+		// would shift every row after the insertion point even though none of
+		// their ids changed, tearing them down and rebuilding them for nothing.
+		await rerender({ steps: [step({ id: "s0", label: "Set up the sandbox" }), ...nested()] });
+
+		expect(rows(container)).toHaveLength(6);
+		expect(rows(container)[rows(container).length - 1]).toBe(last);
 	});
 
 	it("merges custom classes onto the root", () => {

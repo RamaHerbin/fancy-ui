@@ -235,6 +235,15 @@ describe("RecommendationCard", () => {
 		expect(root(container).dataset.state).toBe("dismissed");
 	});
 
+	it("moves focus to the verdict once the buttons that held it are gone", async () => {
+		const { container } = render(RecommendationCard, { props: { title: TITLE } });
+
+		await fireEvent.click(accept(container));
+		await tick();
+
+		expect(document.activeElement).toBe(resolved(container));
+	});
+
 	it("writes an acceptance back out through the binding", async () => {
 		const { container, getByTestId } = render(Harness, { props: { title: TITLE } });
 		expect(getByTestId("bound-state").textContent).toBe("open");

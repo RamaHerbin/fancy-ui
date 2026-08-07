@@ -294,6 +294,18 @@ describe("SubagentList", () => {
 		expect(row.textContent).toContain("62%");
 	});
 
+	it("does not repeat the progress bar's own announcement on a non-selectable row", () => {
+		const { container } = render(SubagentList, {
+			props: { agents: [agent({ status: "running", progress: 0.62 })] },
+		});
+
+		// Outside a button the progress bar is its own object, independently
+		// announced with its label and value — this text would only echo it.
+		expect(container.querySelector(".sr-only")).toBeNull();
+		expect(bar(container)?.getAttribute("aria-label")).toBe("Running");
+		expect(bar(container)?.getAttribute("aria-valuenow")).toBe("62");
+	});
+
 	it("renders a fan-out that repeats an id instead of crashing on it", () => {
 		// Keying on the id alone would throw `each_key_duplicate` before a single row
 		// reached the DOM, and the ids here come from a model.
