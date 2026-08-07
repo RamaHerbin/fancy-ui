@@ -324,6 +324,23 @@ describe("SubagentList", () => {
 		expect(rows(container)).toHaveLength(4);
 	});
 
+	it("keeps every row's node when the fan-out is reordered", async () => {
+		const { container, rerender } = render(SubagentList, { props: { agents } });
+		const [researcher, writer, reviewer] = rows(container);
+
+		// The ones still running sorted to the top. Keying on the position would
+		// rename all three rows, remounting them and replaying every entrance for a
+		// list where nothing was actually spawned.
+		await rerender({ agents: [agents[2], agents[0], agents[1]] });
+
+		// Identity, not likeness: a rebuilt row looks exactly like the one it
+		// replaced, which is precisely why it plays the entrance again.
+		const moved = rows(container);
+		expect(moved[0]).toBe(reviewer);
+		expect(moved[1]).toBe(researcher);
+		expect(moved[2]).toBe(writer);
+	});
+
 	it("merges custom classes onto the root", () => {
 		const { container } = render(SubagentList, { props: { agents, class: "my-fanout" } });
 		const root = container.firstElementChild as HTMLElement;

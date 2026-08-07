@@ -53,10 +53,11 @@
 	interface PlanRow {
 		step: PlanStepData;
 		/**
-		 * What the `{#each}` is keyed by. The id leads, so a row keeps its DOM node
-		 * across a re-render, but the position is appended: a model that emits the
-		 * same id twice would otherwise crash the block, and a plan that repeats a
-		 * step is a plan, not an error.
+		 * What the `{#each}` is keyed by. The first step under an id keeps that id,
+		 * so a row survives a reordered plan with its DOM node intact; only a repeat
+		 * gets a suffix, and the suffix counts occurrences rather than positions. A
+		 * model that emits the same id twice would otherwise crash the block, and a
+		 * plan that repeats a step is a plan, not an error.
 		 */
 		key: string;
 		/** 0 for a top-level step, 1 for anything nested under one. */
@@ -69,9 +70,18 @@
 
 	const rows = $derived.by(() => {
 		const out: PlanRow[] = [];
+		const seen = new Map<string, number>();
 
 		const push = (step: PlanStepData, depth: number) => {
-			out.push({ step, key: `${step.id}#${out.length}`, depth, index: out.length, lastSub: false });
+			const seenBefore = seen.get(step.id) ?? 0;
+			seen.set(step.id, seenBefore + 1);
+			out.push({
+				step,
+				key: seenBefore === 0 ? step.id : `${step.id}#${seenBefore}`,
+				depth,
+				index: out.length,
+				lastSub: false,
+			});
 		};
 
 		for (const step of steps) {

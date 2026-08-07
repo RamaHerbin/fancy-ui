@@ -5,8 +5,9 @@
  * streams in, and lets go the moment the reader scrolls up to look back.
  *
  * "Stuck" is a pure function of the distance from the bottom, recomputed on
- * every scroll event. There is no programmatic-scroll flag to get out of sync:
- * whatever the scrollbar says is the truth.
+ * every scroll event and again whenever the action reconnects. There is no
+ * programmatic-scroll flag to get out of sync: whatever the scrollbar says is
+ * the truth.
  */
 
 import type { ActionReturn } from "svelte/action";
@@ -73,6 +74,11 @@ export function autoscroll(
 	function connect(): void {
 		if (connected) return;
 		connected = true;
+		// Anything at all may have happened while we were disconnected — the reader
+		// scrolling, the transcript growing, the container being resized — and none
+		// of it reached the stored answer, so it is re-read rather than trusted.
+		// Silent when nothing moved, which is the case on the very first connect.
+		handleScroll();
 		node.addEventListener("scroll", handleScroll, { passive: true });
 		mutations = new MutationObserver(schedulePin);
 		mutations.observe(node, { childList: true, subtree: true, characterData: true });

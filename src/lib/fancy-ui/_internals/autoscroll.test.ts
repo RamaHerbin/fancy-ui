@@ -131,10 +131,55 @@ describe("autoscroll", () => {
 		await settle();
 		expect(node.scrollTop).toBe(0);
 
+		// Back at the bottom before the action is handed back, since re-enabling
+		// re-reads the container and a reader still scrolled up is left where they
+		// are — which the reconnect test above is the one to prove.
+		node.scrollTop = BOTTOM;
 		handle.update?.({ enabled: true });
+		node.scrollTop = 0; // proof the pin ran, without dispatching a scroll event
 		node.appendChild(document.createElement("p"));
 		await settle();
 		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
+	});
+
+	it("re-reads the container on reconnect, in both directions", async () => {
+		const node = makeNode();
+		const onStickChange = vi.fn();
+		const handle = autoscroll(node, { enabled: true, onStickChange });
+
+		// Scrolled up with the listeners off: nothing told the action about it.
+		handle.update?.({ enabled: false, onStickChange });
+		node.scrollTop = 0;
+		handle.update?.({ enabled: true, onStickChange });
+		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(false);
+
+		// And back: a container that returned to its bottom edge while disconnected
+		// has to be found pinned again, or nothing would ever pin it.
+		handle.update?.({ enabled: false, onStickChange });
+		node.scrollTop = BOTTOM;
+		handle.update?.({ enabled: true, onStickChange });
+		expect(onStickChange).toHaveBeenCalledTimes(2);
+		expect(onStickChange).toHaveBeenLastCalledWith(true);
+
+		// Proof the fresh answer is the one the pin acts on.
+		node.scrollTop = 0;
+		node.appendChild(document.createElement("p"));
+		await settle();
+		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
+	});
+
+	it("mounting disabled and enabling later reads the container as it is then", () => {
+		// Mounted at the bottom — an empty transcript always is — and only enabled
+		// once a reply starts, by which time the reader has scrolled up to re-read.
+		const node = makeNode();
+		const onStickChange = vi.fn();
+		const handle = autoscroll(node, { enabled: false, onStickChange });
+
+		node.scrollTop = 0;
+		expect(onStickChange).not.toHaveBeenCalled();
+
+		handle.update?.({ enabled: true, onStickChange });
+		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(false);
 	});
 
 	it("does nothing after destroy, and destroying twice does not throw", async () => {

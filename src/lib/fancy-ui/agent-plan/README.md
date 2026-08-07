@@ -44,7 +44,7 @@ interface PlanStepData {
 }
 ```
 
-Only `id`, `label`, and `status` are required. Give each step an `id` that is unique across the whole plan, substeps included: it leads the key each row is tracked by, so unique ids are what keep a row on its own DOM node when the plan changes shape. Repeats are survivable rather than fatal — the position is folded into the key — but two steps sharing an id will trade places rather than move.
+Only `id`, `label`, and `status` are required. Give each step an `id` that is unique across the whole plan, substeps included: it is the key each row is tracked by, so unique ids are what keep a row on its own DOM node when the plan changes shape. Repeats are survivable rather than fatal — the second and later steps under an id get an occurrence suffix — but two steps sharing an id will trade places rather than move.
 
 ## Props
 
@@ -132,5 +132,5 @@ The `--ft-agentplan-*` names below sit in front of the shared ones, for the case
 - The list is flat in the DOM with an indent class, because `listitem` needs `list` as its parent and a wrapper per group would break that for the sake of a left margin CSS can do. The rail is drawn per row and stops on the last child of its group.
 - The bar is `aria-hidden`: the header already says `4/7` in words.
 - Every animation — the running pulse, the bar sliding to its new width — lives behind `prefers-reduced-motion: no-preference`. Reduced motion gets the same states, instantly.
-- Each row is keyed by its step's `id` with its flattened position appended. The id is what keeps a row on its own DOM node across a re-render; the position is what stops a model that emits the same id twice from crashing the block, and appending a step leaves every existing key untouched.
+- Each row is keyed by its step's `id` alone, so a row keeps its own DOM node across a re-render and across a reordered plan. A model that emits the same id twice would crash the block, so the second and later steps under an id get an occurrence suffix — occurrences, never positions, which would rename every row below a change.
 - Nothing is scheduled and no DOM is touched at construction time, so the list renders under SSR unchanged.

@@ -89,6 +89,9 @@
 		"composer",
 		"voice-input",
 		"context-ring",
+		"scroll-anchor",
+		"thread-list",
+		"chat-panel",
 	]);
 </script>
 

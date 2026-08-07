@@ -106,6 +106,29 @@
 	function percent(progress: number | undefined): number {
 		return Math.round(Math.min(1, Math.max(0, progress ?? 0)) * 100);
 	}
+
+	/** One rendered row: the worker, its position, and the key the block tracks it by. */
+	interface SubagentRow {
+		agent: SubagentData;
+		index: number;
+		key: string;
+	}
+
+	/**
+	 * The first worker under an id keeps that id as its key, so a row that is only
+	 * moved keeps its DOM node — and does not replay its entrance. Only a repeat
+	 * gets a suffix, and the suffix counts occurrences rather than positions: a
+	 * position would rename every row below an insertion, making the whole list
+	 * animate in again because one worker was spawned above it.
+	 */
+	const rows = $derived.by<SubagentRow[]>(() => {
+		const seen = new Map<string, number>();
+		return agents.map((agent, index) => {
+			const seenBefore = seen.get(agent.id) ?? 0;
+			seen.set(agent.id, seenBefore + 1);
+			return { agent, index, key: seenBefore === 0 ? agent.id : `${agent.id}#${seenBefore}` };
+		});
+	});
 </script>
 
 <!--
@@ -123,13 +146,11 @@
 	-->
 	<ul class="ft-subagents-list" role="list" aria-label={listLabel}>
 		<!--
-			Keyed by id so a newly spawned worker mounts as a fresh node and plays the
-			entrance on its own, while the rows already on screen keep their DOM nodes
-			and stay put. The position is appended because the ids come from a model:
-			a repeated one would otherwise crash the block, and appending leaves the
-			keys of the rows already on screen untouched when a worker is added.
+			Keyed by the identity worked out above, never by the position: a newly
+			spawned worker mounts as a fresh node and plays the entrance on its own,
+			while the rows already on screen keep their DOM nodes and stay put.
 		-->
-		{#each agents as agent, index (`${agent.id}#${index}`)}
+		{#each rows as { agent, index, key } (key)}
 			<li class="ft-subagents-row">
 				{#snippet body()}
 					<!--

@@ -323,6 +323,33 @@ describe("AgentPlan", () => {
 		expect(rows(container)).toHaveLength(6);
 	});
 
+	it("keeps every row's node when the plan is reordered", async () => {
+		const plan = nested();
+		const { container, rerender } = render(AgentPlan, { props: { steps: plan } });
+		const before = rows(container);
+
+		// The agent reshuffles what it means to do next. Keying on the position
+		// would rename every row below the move and rebuild them all.
+		await rerender({ steps: [plan[2], plan[0], plan[1]] });
+
+		// s3, s1, then s2 with its two substeps still hanging off it — the same five
+		// nodes, moved. Identity, not likeness: a rebuilt row looks exactly like the
+		// one it replaced.
+		const moved = rows(container);
+		expect(moved[0]).toBe(before[4]);
+		expect(moved[1]).toBe(before[0]);
+		expect(moved[2]).toBe(before[1]);
+		expect(moved[3]).toBe(before[2]);
+		expect(moved[4]).toBe(before[3]);
+		expect(labels(container)).toEqual([
+			"Apply the fix",
+			"Read the failing test",
+			"Locate the retry helper",
+			"Search the repo",
+			"Open the module",
+		]);
+	});
+
 	it("merges custom classes onto the root", () => {
 		const { container } = render(AgentPlan, {
 			props: { steps: [step()], class: "my-plan" },
