@@ -5,14 +5,14 @@
  * so adding a locale is just dropping a file (its default export is the catalog).
  */
 
-import type { Messages } from "./en.js";
+import type { Catalog } from "./en.js";
 
 const modules = import.meta.glob("./*.ts", { eager: true }) as Record<
 	string,
-	{ default?: Partial<Messages> }
+	{ default?: Catalog }
 >;
 
-export const catalogs: Record<string, Partial<Messages>> = {};
+export const catalogs: Record<string, Catalog> = {};
 
 for (const [path, mod] of Object.entries(modules)) {
 	const code = path.match(/\.\/(.+)\.ts$/)?.[1];

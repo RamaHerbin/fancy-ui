@@ -10,13 +10,22 @@ on:
   pull_request_target:
     branches: [main]
 
+# pull_request_target exposes secrets and a writable token to a job that checks
+# out head code, so keep the default grant read-only. Nothing here needs more.
+permissions:
+  contents: read
+
 jobs:
   check:
     name: Type-check & test
     # Skip duplicate runs: for pull_request_target only run on the release branch;
     # for pull_request run on everything else.
+    # head_ref is just a branch name and a fork can use any name it likes, so the
+    # head-repo check is what actually keeps untrusted code out of this job.
     if: |
-      (github.event_name == 'pull_request_target' && github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-latest
     steps:
@@ -36,13 +45,18 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:registry
+      - run: pnpm check:i18n
       - run: pnpm check
       - run: pnpm test
+      - run: pnpm build
+      - run: pnpm package
 
   changeset:
     name: Changeset present
     if: |
-      (github.event_name == 'pull_request_target' && github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-latest
     steps:

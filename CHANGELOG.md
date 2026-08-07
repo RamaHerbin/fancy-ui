@@ -1,12 +1,59 @@
 # Changelog
 
+## 0.9.1
+
+### Patch Changes
+
+- d81ae56: FireworksHdr: new component — a GPU fireworks engine that renders shells into an HDR accumulation buffer, with a WebGPU path (float16 + display-p3 + extended tone mapping) and a WebGL2 fallback that resolves to display-p3 or plain sRGB. Ambient shells schedule themselves on a Poisson cadence inside weighted zones, avoid a caller-supplied keep-clear rect, and adapt their render scale and spawn density to the measured frame time; `prefers-reduced-motion` turns the scheduler off while imperative launches keep working. The `onReady` callback hands over a `FireworksHandle` (`launch`, `setAmbient`, `setKeepClear`, `setExposure`, `renderLevel`, `cleanup`) and an `onLost` callback reports a GPU context loss that could not be recovered. `FireworksHdr`, `FireworksHdrProps`, `FireworksHandle`, `LaunchOptions`, `LaunchResult`, `FireworksRenderLevel`, `ShellKind` and `QualityTier` are exported from the package root.
+- 5ad8082: FireworksHdr: pattern shells. `shell: "heart"` and `shell: "star"` break into a figure instead of a sphere, and `shell: "shape"` draws any closed outline passed as `shapePoints` (y-up points around the origin, any scale — the outline is normalized and redrawn at the shell's radius, walking its edges so a hand-written polygon works as well as a sampled curve). The burst is cut from the outline: each spark's speed is proportional to its sample's distance from the centre, so linear drag coasts the figure into shape in the sky before it droops. Pattern shells suppress the break asymmetry, the stragglers and most embers, which exist to make a peony look natural but read as a broken figure on a heart. A new `ambientShells` prop restricts the ambient scheduler to a chosen set of shells, pattern shells included. The outline helpers (`heartOutline`, `starOutline`, `polygonOutline`, `outlineBurst`) are exported for building your own figures, and a `shape` shell launched without points falls back to a plain sphere rather than vanishing.
+- e65e029: FireworksHdr: retune the look so a shell reads as a firework. The particle quad is now oversized with the gaussian windowed to zero at its edge — an unwindowed halo still carried ~7% of its peak where the geometry stopped, and additive blending drew that step as a hard-edged square around every flash. Debris gravity drops to a fraction of the rocket's (a spark's terminal velocity was several times the burst's own expansion speed, so shells collapsed into downward fountains instead of opening), burst speed rises to match the drag, and each spark draws its own drag so the debris no longer falls as a parallel curtain. Sparks hand over from the magnesium white to the shell hue by a third of their life instead of three quarters, the detonation flash is smaller and decays faster, the accumulation trail and per-instance velocity stretch are shorter, ascent trails scatter laterally, rockets carry a slight positional wobble, and 6% of a shell's sparks crackle at 24 Hz (documented in the spec, previously never wired). No API change.
+
+## 0.9.0
+
+### Minor Changes
+
+- 0b1d2d8: FluidCursor: new optional `onReady` callback handing the parent an imperative handle to drive the simulation programmatically — `moveTo(x, y, color?)` traces a path with a synthetic pointer, `penUp()` ends a stroke without a connecting streak, `burst(x, y, dx, dy, color)` fires a one-off impulse — plus a `renderLevel` readback (`"webgpu-hdr" | "webgpu-sdr" | "webgl-p3" | "webgl-sdr" | "none"`) so callers can tell true HDR output from a clamped fallback. `webgpu-hdr` requires both extended tone mapping and a display reporting `(dynamic-range: high)`; when no renderer comes up at all the callback receives an inert handle reporting `"none"`. The new `FluidCursorHandle` and `FluidRenderLevel` types are exported from the package root. Behavior is unchanged when `onReady` is omitted.
+
+### Patch Changes
+
+- 16532ad: Landing page: rebuild the marketing page from the design system — a sticky header, a hero with gradient type over the HDR FluidCursor simulation, a feature-chip row, a component showcase, a component index strip, an interactive install section (package-manager tabs with copy-to-clipboard), a detailed "See FancyUI in action." gallery with three full app previews, and a values strip. The page is now composed of focused section components under `src/lib/components/landing/` instead of one long route file, and every navigation target points at a route that exists. Docs-site only — no change to the published component API.
+- 0e75f8d: Docs site launch readiness: server-rendered pages with full SEO metadata (canonical, Open Graph and Twitter tags, sitemap, web manifest, favicons), a styled error page, corrected component counts and links, and expanded README and component documentation. No changes to the published component API.
+- ddd70b8: Landing: the footer's synthwave visual is now a single panoramic backdrop image that bleeds softly under the adjacent cards and footer links, replacing the previous multi-layer composition. Flatter, wider section with art-directed responsive crops. Docs-site only — no change to the published component API.
+- fdfc8b7: Docs: replace the README open-source program badge with the official wordmark lockup (vector outlines, dark-mode aware). Docs-only — no change to the published component API.
+- 3717993: Docs site: stronger search referencing — structured data (WebSite, SoftwareApplication, BreadcrumbList, TechArticle, ItemList), keyword-rich component page titles, server-rendered example content and code panes, breadcrumb, related-components and previous/next navigation, per-component social cards, and richer gallery copy. No changes to the published component API.
+
+## 0.8.0
+
+### Minor Changes
+
+- 2cd6cc7: FluidCursor HDR mode: new `hdr` and `hdrBoost` props. When enabled, the simulation renders through a new WebGPU engine (WGSL port of the fluid solver) into an `rgba16float` / `display-p3` canvas with extended tone mapping — colors glow brighter than SDR white on HDR displays. Falls back automatically to the existing WebGL renderer (with a wide-gamut P3 backbuffer where supported), and rendering with `hdr` disabled is unchanged.
+
+  Also: in `contained` mode the splat radius now auto-scales to viewport-equivalent size (capped at ~30% of the container height), so the effect no longer looks tiny inside small containers such as docs demos. Fullscreen and viewport-sized containers are unaffected.
+
+- 38eaa22: LiquidGlass: add an automatic Safari fallback — WebKit cannot resolve SVG url() filter references inside backdrop-filter, so the chromatic displacement silently disappeared there. On Safari the component now renders a plain frosted blur instead, tunable via the new optional props `fallbackBlur` (default 20) and `fallbackSaturation` (default 180), mirroring FrostedGlass. Docs: both glass components' preview now showcases the landing-page navbar example.
+- 37554b2: Add LiquidText component: big text that liquefies along the cursor's path via a raw-WebGL fluid solver, with chromatic-aberration fringing that relaxes back over time. Falls back to static styled text under reduced-motion, missing WebGL, or narrow viewports.
+
+### Patch Changes
+
+- 8771355: Docs: the Changelog page now renders straight from the repository's CHANGELOG.md, so it can never fall behind a release again, with translated page chrome in all 16 locales. The per-locale prose-page mechanism this replaces is removed along with its 48 localized files.
+- 8771355: Docs: lock the localization system down — a CI parity gate (`pnpm check:i18n`) plus compile-time key checking (`satisfies Catalog`) across all 16 catalogs, typed `tCategory()`/`docTitle()` helpers replacing five unchecked casts and six hand-built title strings, and translated category/status badges in the component gallery (they were stuck in English next to translated headings).
+- c5ff67a: Docs: redesign the getting-started Introduction page — a structured layout with a feature-pill row, a Philosophy card grid, a numbered Quick Start (install / import / use), a What's Included category grid, Next Steps links, and a Theme Generator call-to-action. Theme-aware (adapts to light/dark and the theme switcher) and wired through the i18n store. Docs-site only; no change to the published component API.
+- 66e10d1: Docs & landing: live GitHub star count next to the GitHub links (fetched client-side, cached for 1h, hidden when the API is unreachable).
+- 46737d9: Docs: the Installation page is redesigned as a first-class component (numbered install steps, prerequisite cards, anchored sections) following the docs design language, with all 16 locales translated via the message system.
+- 5a0e389: Docs: add the Claude Code Open Source Program badge to the README.
+- 3c404d5: fix(docs Sidebar): keep the sidebar docked on desktop under RTL locales
+
+  Under RTL locales (`ar`, `fa`) the docs sidebar was pushed off-screen on desktop (`lg`+), leaving an empty `ps-64` gutter and no navigation. The desktop docking utility `lg:translate-x-0` and the mobile-drawer RTL transform `rtl:translate-x-full` compile to equal-specificity rules, so source order decides — and `rtl:translate-x-full` is emitted later, winning on RTL desktop. Adding an RTL-aware desktop override (`rtl:lg:translate-x-0`) restores the docked sidebar (mirrored to the right) while leaving the mobile drawer behaviour unchanged. Docs-site only — no change to the published component API.
+
+- 8771355: Docs: the Theming page is redesigned as a first-class component (token pills, Theme Generator callout, anchored sections for every token group) following the docs design language, with all 16 locales translated via the message system.
+
 ## 0.7.0
 
 ### Minor Changes
 
 - 8eb3ae6: feat: add FrostedGlass component — turbulence-noise glass refraction (alternative to LiquidGlass)
 - b420f1c: Add multi-language support to the docs site: a language switcher in the header with 16 locales (en, fr, es, de, it, pt, pl, cs, ja, ko, zh-Hans, hi, id, tr, ar, fa), including full RTL layout for Arabic and Persian. UI chrome and the getting-started guides are translated (machine-translated drafts pending native review); the component registry stays English as the machine-facing source. Docs-site only — no change to the published component API.
-- 7ed0256: Add a DaisyUI-style theme switcher to the docs header — a swatch dropdown to pick from named themes (Light, Dark, Cupcake, Emerald, Corporate, Retro, Cyberpunk, Synthwave, Dracula, Forest, Sunset, Ocean, Mono) plus System. Each theme applies site-wide via CSS-variable overrides, persists in localStorage, and toggles light/dark. Docs-site only — no change to the published component API.
+- 7ed0256: Add a swatch-dropdown theme switcher to the docs header to pick from named themes (Light, Dark, Cupcake, Emerald, Corporate, Retro, Cyberpunk, Synthwave, Dracula, Forest, Sunset, Ocean, Mono) plus System. Each theme applies site-wide via CSS-variable overrides, persists in localStorage, and toggles light/dark. Docs-site only — no change to the published component API.
 
 ### Patch Changes
 
@@ -114,7 +161,7 @@ All notable changes to fancy-ui will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 > **Note on 0.x versioning:** While the version is below 1.0.0, minor releases may
-> include breaking changes. See the [versioning policy](CONTRIBUTING.md#versioning) for details.
+> include breaking changes. See the [versioning policy](https://github.com/RamaHerbin/fancy-ui/blob/main/CONTRIBUTING.md#versioning) for details.
 
 ---
 

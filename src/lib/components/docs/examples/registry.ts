@@ -317,6 +317,32 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"fluid-cursor": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColors", title: "Custom Colors", description: "Fixed teal fluid color." },
+		{
+			name: "HdrDemo",
+			title: "HDR Mode",
+			description:
+				"WebGPU engine with extended tone mapping — glows brighter than white on HDR displays. Requires a WebGPU browser (Chrome/Edge 129+, Safari 26+) plus an HDR screen for the full glow; otherwise falls back to wide-gamut WebGL (Chrome 104+, Safari 16.4+, Firefox 132+), then to standard rendering.",
+		},
+		{
+			name: "BitmapDither",
+			title: "Bitmap Dithering",
+			description:
+				"Retro ordered-dither rendering — the fluid is snapped to a chunky pixel grid and each color channel is quantized with a 4x4 Bayer threshold, so dot density encodes brightness. Forces the WebGL renderer (hdr is ignored).",
+		},
+	],
+	"fireworks-hdr": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"Ambient shells run on their own; tap the sky or use the handle to launch one. Brightest on an HDR display in a WebGPU browser, and safe (soft-knee SDR) everywhere else.",
+		},
+		{
+			name: "CustomShapes",
+			title: "Pattern shells",
+			description:
+				"Shells that break into a figure: the built-in heart and star, or any closed outline you pass as points. The burst is cut from the figure, so it draws itself in the sky and then droops.",
+		},
 	],
 	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"liquid-glass": [
@@ -394,5 +420,42 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Move the cursor across the text — it smears, then relaxes back.",
 		},
 		{ name: "Playground", title: "Interactive Playground" },
+	],
+	"pixel-loader": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"typing-indicator": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"thinking-indicator": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"streaming-text": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Markdown", title: "Markdown Streaming" },
+	],
+	"reasoning-panel": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"chat-message": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"prompt-suggestions": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"chat-error": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"tool-call": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"tool-timeline": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"terminal-block": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"code-diff": [{ name: "BasicUsage", title: "Basic Usage" }],
+	sources: [{ name: "BasicUsage", title: "Basic Usage" }],
+	"inline-citation": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"web-search": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"image-generation": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"agent-plan": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"subagent-list": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"approval-card": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"recommendation-card": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"artifact-card": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"ai-data-table": [{ name: "BasicUsage", title: "Basic Usage" }],
+	composer: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "FullComposer", title: "Full Composer" },
+	],
+	"voice-input": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"context-ring": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"scroll-anchor": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"thread-list": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"chat-panel": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "FullConversation", title: "Full Conversation" },
 	],
 };

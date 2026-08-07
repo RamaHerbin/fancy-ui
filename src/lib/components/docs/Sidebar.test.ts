@@ -48,4 +48,20 @@ describe("Sidebar", () => {
 		expect(cls).toContain("translate-x-0");
 		expect(cls).not.toContain("-translate-x-full");
 	});
+
+	it("labels its sections without headings", () => {
+		// The sidebar precedes the page <h1> in DOM order on every docs page, so
+		// any heading here would open the document outline above the page title.
+		const { container } = render(Sidebar);
+		expect(getAside(container).querySelectorAll("h1, h2, h3, h4, h5, h6")).toHaveLength(0);
+	});
+
+	it("keeps the section label styling of the heading it replaced", () => {
+		const { container } = render(Sidebar);
+		const label = getAside(container).querySelector("p") as HTMLElement;
+		expect(label).toBeInTheDocument();
+		for (const cls of ["text-xs", "font-semibold", "tracking-wider", "uppercase"]) {
+			expect(label.className).toContain(cls);
+		}
+	});
 });

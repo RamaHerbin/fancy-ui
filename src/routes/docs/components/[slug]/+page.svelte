@@ -1,57 +1,165 @@
 <script lang="ts">
-	import { t } from "$lib/stores";
+	import { t, tCategory, componentDocTitle, createSkinState } from "$lib/stores";
+	// The group badge composes its key at runtime, so the cast needs the key union.
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
-	import DemoRenderer, { PREVIEW_EXAMPLE } from "$lib/components/docs/DemoRenderer.svelte";
+	import DemoRenderer, {
+		PREVIEW_EXAMPLE,
+		skipDirectRender,
+		defaultProps,
+	} from "$lib/components/docs/DemoRenderer.svelte";
 	import ExamplesSection from "$lib/components/docs/ExamplesSection.svelte";
+	import Breadcrumbs from "$lib/components/docs/Breadcrumbs.svelte";
+	import RelatedComponents from "$lib/components/docs/RelatedComponents.svelte";
+	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
+	import Seo from "$lib/components/Seo.svelte";
+	import JsonLd from "$lib/components/JsonLd.svelte";
+	import { SITE_URL, SITE_NAME } from "$lib/site.js";
 	import type { PageData } from "./$types";
+
+	const REPO_URL = "https://github.com/RamaHerbin/fancy-ui";
 
 	let { data }: { data: PageData } = $props();
 
 	let component = $derived(data.component);
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
+
 	let sourceUrl = $derived(
 		`https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
 	);
+	let path = $derived(`/docs/components/${component.slug}`);
+	let pageUrl = $derived(`${SITE_URL}${path}`);
+	let ogImage = $derived(`/og/${component.slug}.jpg`);
+
+	// Registry descriptions are written as sentence fragments without terminal
+	// punctuation, so close the sentence before appending the shared suffix.
+	let metaDescription = $derived.by(() => {
+		const base = component.description.trim();
+		const sentence = /[.!?]$/.test(base) ? base : `${base}.`;
+		return `${sentence} Svelte 5 component — live preview, props and copy-paste examples.`;
+	});
+
+	let breadcrumbLd = $derived({
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: [
+			{ "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+			{ "@type": "ListItem", position: 2, name: "Components", item: `${SITE_URL}/docs/components` },
+			{ "@type": "ListItem", position: 3, name: component.name, item: pageUrl },
+		],
+	});
+
+	let articleLd = $derived({
+		"@context": "https://schema.org",
+		"@type": "TechArticle",
+		headline: component.name,
+		description: metaDescription,
+		url: pageUrl,
+		isPartOf: { "@id": `${SITE_URL}/#website` },
+		author: { "@type": "Organization", name: SITE_NAME },
+		publisher: { "@type": "Organization", name: SITE_NAME },
+		image: `${SITE_URL}${ogImage}`,
+		about: {
+			"@type": "SoftwareSourceCode",
+			name: component.name,
+			programmingLanguage: "Svelte",
+			codeRepository: REPO_URL,
+			license: `${REPO_URL}/blob/main/LICENSE`,
+		},
+	});
+
 	let basicUsageCode = $derived(`<script lang="ts">
   import { ${component.name} } from 'fancy-ui-svelte';
 <\/script>
 
 <${component.name} />`);
 
-	// Raw source of every docs example, so slugs whose Preview is overridden to a specific
-	// example (PREVIEW_EXAMPLE) show that example's source in the Code tab instead of the
-	// generic single-tag usage — keeping the Preview and its Code tab in sync.
+	// Raw source of every docs example, so the Code tab can mirror whatever the Preview
+	// actually renders (a PREVIEW_EXAMPLE override, a BasicUsage.svelte for skipDirectRender
+	// slugs, or the generic snippet enriched with defaultProps) instead of a generic
+	// single-tag usage that often can't even render on its own (e.g. missing required props).
 	const rawExamples = import.meta.glob("$lib/components/docs/examples/**/*.svelte", {
 		query: "?raw",
 		import: "default",
 		eager: true,
 	}) as Record<string, string>;
 
+	// Serializes a props object as Svelte attributes: strings are quoted, everything else
+	// (numbers, booleans, arrays, objects) is wrapped in braces as a JS expression.
+	function serializeProps(props: Record<string, any>): string {
+		return Object.entries(props)
+			.map(([key, value]) =>
+				typeof value === "string" ? `${key}="${value}"` : `${key}={${JSON.stringify(value)}}`
+			)
+			.join(" ");
+	}
+
+	// Docs examples import via the repo-internal $lib path; consumers must import the
+	// package, so raw example source is rewritten before display.
+	function toConsumerImports(src: string): string {
+		return src.replace(/(["'])\$lib\/fancy-ui(?:\/[^"']*)?\1/g, "$1fancy-ui-svelte$1");
+	}
+
 	let previewCode = $derived.by(() => {
-		const example = PREVIEW_EXAMPLE[component.slug];
+		const slug = component.slug;
+
+		// 1. Slug's Preview is overridden to a specific example — show that example's source.
+		const example = PREVIEW_EXAMPLE[slug];
 		if (example) {
-			const src =
-				rawExamples[`/src/lib/components/docs/examples/${component.slug}/${example}.svelte`];
-			if (src) return src.trim();
+			const src = rawExamples[`/src/lib/components/docs/examples/${slug}/${example}.svelte`];
+			if (src) return toConsumerImports(src.trim());
 		}
+
+		// 2. Slug needs too much setup to render directly — the Preview shows BasicUsage.svelte,
+		// so mirror that same source in the Code tab.
+		if (skipDirectRender.has(slug)) {
+			const src = rawExamples[`/src/lib/components/docs/examples/${slug}/BasicUsage.svelte`];
+			if (src) return toConsumerImports(src.trim());
+		}
+
+		// 3. Slug renders directly with defaultProps — enrich the generic snippet with them so
+		// the Code tab reproduces what the Preview actually renders.
+		const props = defaultProps[slug];
+		if (props && Object.keys(props).length > 0) {
+			const attrs = serializeProps(props);
+			return `<script lang="ts">
+  import { ${component.name} } from 'fancy-ui-svelte';
+<\/script>
+
+<${component.name} ${attrs} />`;
+		}
+
+		// 4. Fallback: generic single-tag usage.
 		return basicUsageCode;
 	});
 
 	let previewTab = $state<"preview" | "code">("preview");
 </script>
 
-<svelte:head>
-	<title>{component.name} - FancyUI Docs</title>
-	<meta name="description" content={component.description} />
-</svelte:head>
+<Seo
+	title={componentDocTitle(component.name, component.category)}
+	description={metaDescription}
+	{path}
+	image={ogImage}
+	type="article"
+/>
+<JsonLd data={breadcrumbLd} />
+<JsonLd data={articleLd} />
 
 <div class="max-w-4xl">
+	<Breadcrumbs current={component.name} />
+
 	<!-- Header -->
 	<div class="mb-3 flex flex-wrap items-center gap-2">
-		<span class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">
-			{t(`category.${component.category}` as MessageKey)}
+		<span
+			class="retro-tag bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium"
+			data-category={component.category}
+		>
+			{tCategory(component.category)}
 		</span>
 		<span
 			class="rounded-full px-2.5 py-0.5 text-xs font-medium {component.group === 'core'
@@ -62,7 +170,7 @@
 		</span>
 		{#if component.status === "done"}
 			<span
-				class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+				class="retro-tag retro-tag-stable rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
 			>
 				{t("status.stable")}
 			</span>
@@ -78,44 +186,60 @@
 	<h1 class="text-foreground mb-2 text-3xl font-bold" id="overview">{component.name}</h1>
 	<p class="text-muted-foreground mb-6">{component.description}</p>
 
-	<!-- ═══ PREVIEW (like Sigma UI) ═══ -->
+	<!-- ═══ PREVIEW ═══ -->
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="preview">{t("comp.preview")}</h2>
-		<div class="border-border overflow-hidden rounded-lg border">
-			<!-- Tabs -->
-			<div class="border-border flex items-center justify-between border-b px-1">
-				<div class="flex">
-					<button
-						onclick={() => (previewTab = "preview")}
-						class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'preview'
-							? 'border-foreground text-foreground border-b-2'
-							: 'text-muted-foreground hover:text-foreground'}"
+		<div class="retro-window-shadow">
+			<div class="retro-window border-border overflow-hidden rounded-lg border">
+				{#if isRetro}
+					<!-- Retro window titlebar -->
+					<div class="retro-preview-bar">
+						<span class="retro-pixel-logo" aria-hidden="true">
+							<span></span><span></span><span></span><span></span>
+						</span>
+						<span class="retro-preview-title">{t("comp.preview")} — {component.name}</span>
+						<span class="retro-winctl retro-winctl-min" aria-hidden="true"></span>
+						<span class="retro-winctl retro-winctl-max" aria-hidden="true"></span>
+						<span class="retro-winctl retro-winctl-close" aria-hidden="true"></span>
+					</div>
+				{/if}
+				<!-- Tabs -->
+				<div class="retro-tabbar border-border flex items-center justify-between border-b px-1">
+					<div class="flex">
+						<button
+							onclick={() => (previewTab = "preview")}
+							class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'preview'
+								? 'border-foreground text-foreground border-b-2'
+								: 'text-muted-foreground hover:text-foreground'}"
+						>
+							{t("comp.preview")}
+						</button>
+						<button
+							onclick={() => (previewTab = "code")}
+							class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'code'
+								? 'border-foreground text-foreground border-b-2'
+								: 'text-muted-foreground hover:text-foreground'}"
+						>
+							{t("comp.code")}
+						</button>
+					</div>
+				</div>
+
+				<!-- Content -->
+				{#if previewTab === "preview"}
+					<div
+						class="retro-stage bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
 					>
-						{t("comp.preview")}
-					</button>
-					<button
-						onclick={() => (previewTab = "code")}
-						class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'code'
-							? 'border-foreground text-foreground border-b-2'
-							: 'text-muted-foreground hover:text-foreground'}"
-					>
-						{t("comp.code")}
-					</button>
+						<DemoRenderer slug={component.slug} />
+					</div>
+				{/if}
+				<!-- The code pane is always mounted, only hidden, so the usage snippet is in the
+				     prerendered HTML instead of appearing solely after a client-side tab switch.
+				     Highlighting still waits for the tab to be opened. -->
+				<div class="max-h-[500px] overflow-auto" hidden={previewTab !== "code"}>
+					<CodeBlock code={previewCode} lang="svelte" active={previewTab === "code"} />
 				</div>
 			</div>
-
-			<!-- Content -->
-			{#if previewTab === "preview"}
-				<div
-					class="bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
-				>
-					<DemoRenderer slug={component.slug} />
-				</div>
-			{:else}
-				<div class="max-h-[500px] overflow-auto">
-					<CodeBlock code={previewCode} lang="svelte" />
-				</div>
-			{/if}
 		</div>
 	</section>
 
@@ -140,7 +264,7 @@
 	{#if component.props && component.props.length > 0}
 		<section class="mb-10">
 			<h2 class="text-foreground mb-4 text-xl font-semibold" id="props">{t("comp.props")}</h2>
-			<div class="border-border overflow-hidden rounded-lg border">
+			<div class="retro-props border-border overflow-hidden rounded-lg border">
 				<PropsTable props={component.props} />
 			</div>
 		</section>
@@ -185,7 +309,7 @@
 				href={sourceUrl}
 				target="_blank"
 				rel="noopener noreferrer"
-				class="border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
+				class="retro-btn border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
 			>
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
 					<path
@@ -201,7 +325,7 @@
 							href={credit.url}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
+							class="retro-btn border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
 						>
 							{t("comp.inspiredBy")}
 							{credit.source}
@@ -211,4 +335,9 @@
 			{/if}
 		</div>
 	</section>
+
+	<!-- ═══ RELATED ═══ -->
+	<RelatedComponents {component} />
+
+	<PrevNextNav slug={component.slug} />
 </div>

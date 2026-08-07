@@ -9,6 +9,7 @@ export * from "./apple-card-carousel/index.js";
 export * from "./line-hover-link/index.js";
 export * from "./animated-beam/index.js";
 export * from "./animated-testimonials/index.js";
+export * from "./fireworks-hdr/index.js";
 export * from "./fluid-cursor/index.js";
 export * from "./animated-tooltip/index.js";
 export * from "./blur-reveal/index.js";
@@ -66,6 +67,34 @@ export * from "./noise-reveal/index.js";
 export * from "./line-reveal/index.js";
 export * from "./editorial-engine/index.js";
 export * from "./liquid-text/index.js";
+export * from "./pixel-loader/index.js";
+export * from "./typing-indicator/index.js";
+export * from "./thinking-indicator/index.js";
+export * from "./streaming-text/index.js";
+export * from "./reasoning-panel/index.js";
+export * from "./chat-message/index.js";
+export * from "./prompt-suggestions/index.js";
+export * from "./chat-error/index.js";
+export * from "./tool-call/index.js";
+export * from "./tool-timeline/index.js";
+export * from "./terminal-block/index.js";
+export * from "./code-diff/index.js";
+export * from "./sources/index.js";
+export * from "./inline-citation/index.js";
+export * from "./web-search/index.js";
+export * from "./image-generation/index.js";
+export * from "./agent-plan/index.js";
+export * from "./subagent-list/index.js";
+export * from "./approval-card/index.js";
+export * from "./recommendation-card/index.js";
+export * from "./artifact-card/index.js";
+export * from "./ai-data-table/index.js";
+export * from "./composer/index.js";
+export * from "./voice-input/index.js";
+export * from "./context-ring/index.js";
+export * from "./scroll-anchor/index.js";
+export * from "./thread-list/index.js";
+export * from "./chat-panel/index.js";
 
 // =============================================================================
 // Registry
@@ -89,3 +118,6 @@ export {
 	hasComponent,
 	getComponentCategory,
 } from "./registry.js";
+
+// Shared AI/chat data types (type-only; _internals is not a component folder)
+export type * from "./_internals/ai-types.js";

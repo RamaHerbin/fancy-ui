@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://fancy-ui.rama.app/docs
+    about: Component docs, installation guide and theming reference.
+  - name: Questions & ideas (GitHub Discussions)
+    url: https://github.com/RamaHerbin/fancy-ui/discussions
+    about: Ask questions, share what you built, propose components.

@@ -19,6 +19,37 @@ const MAX_MESSAGE_LENGTH = 20_000;
 const ALLOWED_PROVIDERS = ["openai", "ollama"] as const;
 type Provider = (typeof ALLOWED_PROVIDERS)[number];
 
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_MS = 5 * 60_000;
+
+// Instance-local counters. Every serverless instance keeps its own Map, so this
+// damps casual abuse — it is not a guaranteed global cap.
+const rateLimitBuckets = new Map<string, { count: number; windowStart: number }>();
+
+function rateLimitKey(forwardedFor: string | null): string {
+	// First hop of x-forwarded-for is the client as seen by the edge proxy.
+	const first = forwardedFor?.split(",")[0]?.trim();
+	return first && first.length > 0 ? first : "unknown";
+}
+
+function isRateLimited(key: string): boolean {
+	const now = Date.now();
+
+	// Opportunistic pruning: drop expired buckets while we are already here.
+	for (const [k, entry] of rateLimitBuckets) {
+		if (now - entry.windowStart >= RATE_LIMIT_WINDOW_MS) rateLimitBuckets.delete(k);
+	}
+
+	const bucket = rateLimitBuckets.get(key);
+	if (!bucket) {
+		rateLimitBuckets.set(key, { count: 1, windowStart: now });
+		return false;
+	}
+
+	bucket.count += 1;
+	return bucket.count > RATE_LIMIT_MAX;
+}
+
 const ALLOWED_MODELS: Record<Provider, readonly string[]> = {
 	openai: ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"],
 	ollama: ["llama3.2", "llama3.1", "mistral", "phi3", "gemma2"],
@@ -46,7 +77,20 @@ function parseClientMessages(raw: unknown): ClientMessage[] | null {
 	return result;
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, url }) => {
+	// Off unless the platform env var is set to exactly "true". Read per-request
+	// from $env/dynamic/private so flipping it needs no rebuild.
+	if (env.COPILOT_ENABLED !== "true") error(404, "Not found");
+
+	// Same-origin only. Browsers always send Origin on cross-site fetch POSTs, and
+	// a missing Origin (curl and friends) is rejected as well.
+	const origin = request.headers.get("origin");
+	if (!origin || origin !== url.origin) error(403, "Forbidden");
+
+	if (isRateLimited(rateLimitKey(request.headers.get("x-forwarded-for")))) {
+		error(429, "Too many requests. Try again shortly.");
+	}
+
 	let parsed: unknown;
 	try {
 		parsed = await request.json();

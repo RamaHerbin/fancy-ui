@@ -85,7 +85,9 @@ export type ComponentCategory =
 	| "actions"
 	| "forms"
 	| "overlays"
-	| "display";
+	| "display"
+	| "ai-chat"
+	| "ai-agents";
 
 /**
  * Component prop definition for documentation

@@ -10,6 +10,7 @@ import { browser } from "$app/environment";
 import { locales, defaultLocale, getLocaleDef, type Dir } from "$lib/i18n/locales.js";
 import { en, type MessageKey } from "$lib/i18n/messages/en.js";
 import { catalogs } from "$lib/i18n/messages/index.js";
+import type { ComponentCategory } from "$lib/types.js";
 
 const STORAGE_KEY = "fancy-ui-locale";
 
@@ -115,6 +116,50 @@ export function getDir(): Dir {
 export function t(key: MessageKey): string {
 	const code = current;
 	return catalogs[code]?.[key] ?? en[key];
+}
+
+/**
+ * Translate a component category label. The template-literal key is checked
+ * against the catalog at compile time, so adding a category without its
+ * `category.*` message key is a type error here instead of a runtime miss.
+ */
+export function tCategory(category: ComponentCategory): string {
+	return t(`category.${category}`);
+}
+
+/** Compose a docs <title> — the "FancyUI Docs" suffix is brand, never translated. */
+export function docTitle(pageTitle: string): string {
+	return `${pageTitle} - FancyUI Docs`;
+}
+
+/**
+ * Singular noun a component page's <title> uses to describe its category, e.g.
+ * "RainbowButton — Svelte button component". Keyed by `ComponentCategory`; a
+ * category without an entry falls back to its own name.
+ */
+const categoryTerms: Record<string, string> = {
+	buttons: "button",
+	cards: "card",
+	text: "text effect",
+	backgrounds: "background",
+	effects: "effect",
+	layout: "layout",
+	navigation: "navigation",
+	"data-display": "data display",
+	feedback: "feedback",
+	media: "media",
+};
+
+/**
+ * Compose a component page's <title>: "<Name> — Svelte <term> component | FancyUI".
+ *
+ * Deliberately NOT locale-reactive. The title is the search-result headline, and
+ * the query it has to match ("svelte button component") is English regardless of
+ * which locale the reader happens to have selected.
+ */
+export function componentDocTitle(name: string, category: string): string {
+	const term = categoryTerms[category] ?? category;
+	return `${name} — Svelte ${term} component | FancyUI`;
 }
 
 /** Reactive accessor for components (locale + dir + translator + list). */

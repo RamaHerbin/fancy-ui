@@ -1,0 +1,158 @@
+/* Brutal docs skin — page region: skin tokens, shadow/border/type grammar.
+   Scope every rule under .docs-skin[data-skin="brutal"].
+
+   Every value is transcribed from the in-repo design reference
+   (vendor/design-refs/brutal/FancyUI-Intro-CV-Style.dc.html) — do not eyeball
+   or round them. */
+
+/* ---- Brutal-specific tokens ------------------------------------------------ */
+.docs-skin[data-skin="brutal"] {
+	--muted: #eae3d2;
+	--muted-foreground: rgba(20, 20, 20, 0.62);
+	--code-fg-muted: rgba(20, 20, 20, 0.55);
+	--code-chip-bg: rgba(20, 20, 20, 0.08);
+	--code-str: #a16207;
+
+	/* Shadow grammar. The rest state is a soft ambient shadow; the hard offset
+	   is a hover affordance (the only exceptions are the active nav item and the
+	   yellow CTA banner, which never change). Mirrored for RTL at the end of
+	   this file — consume the tokens and the mirror comes for free. */
+	--brutal-shadow-hard: 3px 3px 0 var(--skin-line);
+	--brutal-shadow-hard-lg: 4px 4px 0 var(--skin-line);
+	--brutal-shadow-hard-dark: 3px 3px 0 rgba(20, 20, 20, 0.35);
+	--brutal-shadow-hard-dark-lg: 4px 4px 0 rgba(20, 20, 20, 0.3);
+	--brutal-ambient-sm: 0 6px 12px rgba(60, 50, 20, 0.08);
+	--brutal-ambient-md: 0 8px 16px rgba(60, 50, 20, 0.07);
+	--brutal-ambient-lg: 0 10px 18px rgba(60, 50, 20, 0.1);
+
+	/* Lift transforms paired with the hard offset. */
+	--brutal-lift: translate(-2px, -2px);
+	--brutal-lift-sm: translate(-1px, -1px);
+
+	/* Focus rings — light surfaces get the 0.3 halo, ink surfaces the 0.4 one. */
+	--brutal-focus-ring: 0 0 0 3px rgba(27, 110, 243, 0.3);
+	--brutal-focus-ring-dark: 0 0 0 3px rgba(27, 110, 243, 0.4);
+
+	/* The reference's ↗ glyph (path `M3 11 L11 3 M4.5 3 L11 3 L11 9.5`,
+	   stroke-width 1.9, round caps/joins) as a mask source, so a pseudo-element
+	   can paint it in currentColor without adding markup. */
+	--brutal-arrow-ne: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 11 L11 3 M4.5 3 L11 3 L11 9.5' fill='none' stroke='%23000' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* ---- R1 — root frame -------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] {
+	-webkit-font-smoothing: antialiased;
+}
+
+/* Links. The reference declares `a { color:#1B6EF3 }` / `a:hover { #144FB0 }`
+   globally and lets every chrome element override it inline. Here the global
+   default sits at zero specificity so any docs-chrome class still wins, and the
+   prose surfaces get an explicit rule that out-specifies `.doc-prose a`. */
+:where(.docs-skin[data-skin="brutal"]) a {
+	color: var(--skin-blue);
+}
+:where(.docs-skin[data-skin="brutal"]) a:hover {
+	color: var(--skin-blue-700);
+}
+.docs-skin[data-skin="brutal"] .doc-prose a {
+	color: var(--skin-blue);
+}
+.docs-skin[data-skin="brutal"] .doc-prose a:hover {
+	color: var(--skin-blue-700);
+	opacity: 1;
+}
+
+/* ---- Shadows ---------------------------------------------------------------- */
+/* Utility-driven surfaces rest on an ambient shadow and only snap to the hard
+   offset on hover — the reference never paints a resting 4px 4px 0. */
+.docs-skin[data-skin="brutal"] :is(.shadow-sm, .shadow) {
+	box-shadow: var(--brutal-ambient-sm);
+	transition: box-shadow 0.15s ease;
+}
+.docs-skin[data-skin="brutal"] :is(.shadow-md, .shadow-lg) {
+	box-shadow: var(--brutal-ambient-md);
+	transition: box-shadow 0.15s ease;
+}
+.docs-skin[data-skin="brutal"] :is(.shadow-xl, .shadow-2xl) {
+	box-shadow: var(--brutal-ambient-lg);
+	transition: box-shadow 0.15s ease;
+}
+.docs-skin[data-skin="brutal"] :is(.shadow-sm, .shadow):hover {
+	box-shadow: var(--brutal-shadow-hard);
+}
+.docs-skin[data-skin="brutal"] :is(.shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl):hover {
+	box-shadow: var(--brutal-shadow-hard-lg);
+}
+
+/* ---- Border weight ----------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] .border {
+	border-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-b {
+	border-bottom-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-t {
+	border-top-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-e {
+	border-inline-end-width: 1.5px;
+}
+.docs-skin[data-skin="brutal"] .border-s {
+	border-inline-start-width: 1.5px;
+}
+
+/* ---- Type ----------------------------------------------------------- */
+.docs-skin[data-skin="brutal"] h1 {
+	font-weight: 900;
+	letter-spacing: -0.035em;
+}
+.docs-skin[data-skin="brutal"] h2 {
+	font-weight: 850;
+	letter-spacing: -0.015em;
+}
+.docs-skin[data-skin="brutal"] :is(h3, h4) {
+	font-weight: 800;
+	letter-spacing: -0.01em;
+}
+/* Only the ⌘K chip is mono here — the breadcrumb is Archivo 13px (header.css). */
+.docs-skin[data-skin="brutal"] kbd {
+	font-family: var(--skin-font-mono);
+}
+
+/* ---- R12 — content column shell --------------------------------------------- */
+/* The reference is one flex row: no max-width cap, clamped padding, and a main
+   column capped at 840px with the rail beside it. */
+.docs-skin[data-skin="brutal"] .docs-shell {
+	max-width: none;
+	padding: clamp(18px, 2.6vw, 34px) clamp(14px, 2.5vw, 34px) 90px;
+}
+.docs-skin[data-skin="brutal"] .docs-content-row {
+	align-items: flex-start;
+	gap: clamp(20px, 3vw, 44px);
+}
+.docs-skin[data-skin="brutal"] main[data-doc-content] {
+	max-width: 840px;
+}
+
+/* ---- Dark-literal patches ----------------------------------------------------- */
+/* Utilities like `dark:text-emerald-400` were authored for the app's dark theme;
+   Brutal is a light skin, so re-point them at the skin's accent colors. */
+.docs-skin[data-skin="brutal"] .dark\:text-emerald-400 {
+	color: var(--skin-green);
+}
+.docs-skin[data-skin="brutal"] .dark\:text-purple-400 {
+	color: var(--skin-purple);
+}
+
+/* ---- RTL mirror -------------------------------------------------------------- */
+/* The hard offset is bottom-right in LTR; the repo ships ar/fa, where it flips
+   to bottom-left and the lift transforms flip with it. Redefining the tokens
+   mirrors every consumer at once (page/header/sidebar/content regions alike). */
+[dir="rtl"] .docs-skin[data-skin="brutal"] {
+	--brutal-shadow-hard: -3px 3px 0 var(--skin-line);
+	--brutal-shadow-hard-lg: -4px 4px 0 var(--skin-line);
+	--brutal-shadow-hard-dark: -3px 3px 0 rgba(20, 20, 20, 0.35);
+	--brutal-shadow-hard-dark-lg: -4px 4px 0 rgba(20, 20, 20, 0.3);
+	--brutal-lift: translate(2px, -2px);
+	--brutal-lift-sm: translate(1px, -1px);
+}

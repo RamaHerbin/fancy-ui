@@ -6,7 +6,11 @@
 		getStats,
 	} from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
-	import { t } from "$lib/stores";
+	import Seo from "$lib/components/Seo.svelte";
+	import JsonLd from "$lib/components/JsonLd.svelte";
+	import { SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
+	import { t, tCategory, docTitle } from "$lib/stores";
+	// Group badges compose their key at runtime, so the cast needs the key union.
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
 
 	const grouped = getComponentsGroupedByCategory();
@@ -19,6 +23,20 @@
 	// Only count categories that actually contain components (empty Core
 	// categories exist in the union until their phase lands).
 	const populatedCategories = categories.filter((c) => (grouped[c] ?? []).length > 0);
+
+	/** The full gallery, not the filtered view — filters are a client-side lens. */
+	const itemList = {
+		"@context": "https://schema.org",
+		"@type": "ItemList",
+		"@id": `${SITE_URL}/docs/components#list`,
+		numberOfItems: allComponents.length,
+		itemListElement: allComponents.map((component, index) => ({
+			"@type": "ListItem",
+			position: index + 1,
+			name: component.name,
+			url: `${SITE_URL}/docs/components/${component.slug}`,
+		})),
+	};
 
 	let activeCategory = $state<string>("all");
 	let activeGroup = $state<"all" | "core" | "fancy">("all");
@@ -42,9 +60,8 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Components - FancyUI Docs</title>
-</svelte:head>
+<Seo title={docTitle(t("gallery.title"))} description={SITE_DESCRIPTION} path="/docs/components" />
+<JsonLd data={itemList} />
 
 <div class="max-w-5xl">
 	<!-- Header -->
@@ -52,6 +69,9 @@
 		<h1 class="text-foreground mb-2 text-3xl font-bold" id="components">{t("gallery.title")}</h1>
 		<p class="text-muted-foreground">
 			{t("gallery.subtitle").replace("{count}", String(stats.done))}
+		</p>
+		<p class="text-muted-foreground mt-3 max-w-2xl text-sm leading-relaxed">
+			{t("gallery.intro")}
 		</p>
 	</div>
 
@@ -149,7 +169,7 @@
 							? 'bg-foreground text-background'
 							: 'bg-muted text-muted-foreground hover:text-foreground'}"
 					>
-						{t(`category.${cat}` as MessageKey)}
+						{tCategory(cat)}
 						<span class="ml-1 opacity-60">{count}</span>
 					</button>
 				{/if}

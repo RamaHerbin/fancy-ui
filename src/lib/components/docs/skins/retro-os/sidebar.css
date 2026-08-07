@@ -1,0 +1,267 @@
+/* ===========================================================================
+   Retro OS — R4: the EXPLORER window (sidebar)
+   ===========================================================================
+   Reference: FancyUI-Docs-Retro.dc.html l.49-72 (the first cell of the body
+   grid). The sidebar is NOT a full-height rail there: it is a 264px floating
+   window that sits inside the frame grid, hugs its own content and carries the
+   pixel stair-step corners + a 3px hard drop shadow.
+
+   Breakpoint contract: at `lg` (1024px) and up the aside joins `.retro-body`'s
+   grid as a static 264px column and the two wrapper layers become the ink +
+   paper boxes of the floating window. Below `lg` the docs shell has no grid, so
+   the aside stays the existing off-canvas drawer and the wrappers stay
+   `display: contents` (their component-scoped default) — the drawer keeps its
+   own scrolling flex column.
+
+   The light gold #ECD77F (active leaf fill) and the tint #F7EFD2 (hover fill)
+   have no --skin-* token, so they are literals here, like the rest of the
+   retro-os recipes. */
+
+/* ---- Aside shell ----------------------------------------------------------- */
+/* Drawer mode (below lg): unchanged — paper fill + the 3px ink rail edge. */
+.docs-skin[data-skin="retro-os"] aside {
+	background: var(--skin-card);
+	border-inline-end-width: 3px;
+}
+
+@media (min-width: 1024px) {
+	/* Window mode: the aside is just the grid cell; the paper moves to the
+	   floating window inside it, so the rail edge and the fill both go away. */
+	.docs-skin[data-skin="retro-os"] aside {
+		position: static;
+		z-index: auto;
+		width: 264px;
+		height: auto;
+		transform: none;
+		background: transparent;
+		border-inline-end-width: 0;
+		/* The window's 3px hard shadow lives here, not on the window itself:
+		   clip-path is applied AFTER filter, so a drop-shadow on the clipped
+		   element gets cut away. The reference solves this with a dedicated
+		   wrapper (l.50 shadow → l.51 ink → l.52 paper); the aside is that
+		   wrapper — same border box, no clip-path. Staying inside the `lg`
+		   media query also keeps the off-canvas drawer working below 1024px
+		   (a filter would make the aside a containing block for it). */
+		filter: drop-shadow(3px 3px 0 var(--skin-ink));
+	}
+
+	/* The shared skin base re-arms Tailwind's `.border-e` utility at (0,3,0),
+	   which outranks the (0,2,1) rule above and repaints a 2px ink rail on the
+	   aside. Match the utility so the only ink at that edge stays the window's
+	   own 2.5px ring + 3px drop shadow (and the cell measures a full 264px). */
+	.docs-skin[data-skin="retro-os"] aside.border-e {
+		border-inline-end-width: 0;
+	}
+
+	/* ---- Floating window: ink layer + paper layer ------------------------- */
+	/* Both wrappers are `display: contents` by default (Sidebar.svelte's own
+	   <style>, specificity 0,2,0) — these rules (0,3,0) turn them into the two
+	   real boxes of the window. Same 8px/4px notch polygon as `.ds-card` in
+	   cameleon/skins/retro-os/retro-os.css; the hard shadow is the aside's
+	   drop-shadow above (it cannot live on a clipped element). */
+	.docs-skin[data-skin="retro-os"] .retro-explorer-window {
+		--retro-pixel-clip: polygon(
+			8px 0,
+			calc(100% - 8px) 0,
+			calc(100% - 8px) 4px,
+			calc(100% - 4px) 4px,
+			calc(100% - 4px) 8px,
+			100% 8px,
+			100% calc(100% - 8px),
+			calc(100% - 4px) calc(100% - 8px),
+			calc(100% - 4px) calc(100% - 4px),
+			calc(100% - 8px) calc(100% - 4px),
+			calc(100% - 8px) 100%,
+			8px 100%,
+			8px calc(100% - 4px),
+			4px calc(100% - 4px),
+			4px calc(100% - 8px),
+			0 calc(100% - 8px),
+			0 8px,
+			4px 8px,
+			4px 4px,
+			8px 4px
+		);
+		display: block;
+		padding: 2.5px;
+		background: var(--skin-ink);
+		clip-path: var(--retro-pixel-clip);
+	}
+	.docs-skin[data-skin="retro-os"] .retro-explorer-inner {
+		display: block;
+		background: var(--skin-card);
+		clip-path: var(--retro-pixel-clip);
+	}
+}
+
+/* ---- Titlebar -------------------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] .retro-explorer-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: auto;
+	padding: 8px 12px;
+	border-bottom: 2px solid var(--skin-line);
+	background: var(--skin-blue);
+	color: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-explorer-chip {
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: normal;
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	padding: 2px 6px;
+}
+.docs-skin[data-skin="retro-os"] .retro-explorer-title {
+	flex: 1;
+	font-family: var(--skin-font-pixel);
+	font-size: 12px;
+	font-weight: 700;
+	line-height: normal;
+	/* the `retro.explorer` message reads "Explorer"; the reference is EXPLORER */
+	text-transform: uppercase;
+	color: var(--skin-card);
+	text-decoration: none;
+}
+
+/* ---- Tree body ------------------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] aside nav {
+	display: flex;
+	flex-direction: column;
+	padding: 12px 0 16px;
+}
+/* Reference groups are stacked flush; the Tailwind mb-6 / mb-2 rhythm goes. */
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category],
+.docs-skin[data-skin="retro-os"] aside nav > .docs-nav-components {
+	margin-bottom: 0;
+}
+
+/* ---- Group labels ---------------------------------------------------------- */
+/* The reference label is a static row with a ▼ triangle at the start; the repo
+   keeps its collapse <button>, so the trailing chevron is hidden instead. */
+.docs-skin[data-skin="retro-os"] aside nav p[data-category],
+.docs-skin[data-skin="retro-os"] aside nav button[data-category],
+.docs-skin[data-skin="retro-os"] .docs-nav-components a {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	margin: 0;
+	padding: 10px 14px 6px;
+	border-radius: 0;
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	font-weight: 700;
+	line-height: normal;
+	letter-spacing: 0;
+	text-transform: uppercase;
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] aside nav p[data-category]::before,
+.docs-skin[data-skin="retro-os"] aside nav button[data-category]::before,
+.docs-skin[data-skin="retro-os"] .docs-nav-components a::before {
+	content: "";
+	display: inline-block;
+	flex: none;
+	width: 0;
+	height: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 6px solid var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .docs-nav-chevron {
+	display: none;
+}
+/* The `Components` index row has no reference counterpart (delta 2c): it takes
+   the group-label grammar so it reads as one of the tree's section headers,
+   and darkens to ink when it is the current page or hovered. */
+.docs-skin[data-skin="retro-os"] .docs-nav-components a:hover,
+.docs-skin[data-skin="retro-os"] .docs-nav-components a.text-sidebar-accent-foreground {
+	color: var(--skin-ink);
+}
+
+/* ---- Leaf items ------------------------------------------------------------ */
+.docs-skin[data-skin="retro-os"] aside nav ul li a {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding-block: 6px;
+	padding-inline: 26px 14px;
+	border-radius: 0;
+	font-family: var(--skin-font-mono);
+	font-size: 12.5px;
+	font-weight: 400;
+	line-height: normal;
+	background: transparent;
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] aside nav ul li a:hover {
+	background: #f7efd2;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] aside nav ul li a.bg-sidebar-accent {
+	background: #ecd77f;
+	color: var(--skin-ink);
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] aside nav ul li a::before {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	flex: none;
+	background: var(--retro-nav-dot, var(--skin-muted));
+	border: 1.5px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] aside nav ul li a.bg-sidebar-accent::before {
+	background: var(--skin-red);
+}
+
+/* ---- Per-group leaf dot ----------------------------------------------------- */
+/* Reference l.936-944 assigns one accent per group. The nine groups it ships are
+   transcribed as-is; `text` and `backgrounds` do not exist there, so they take
+   the two remaining colors of the same five-accent cycle (#7D6414 dark gold and
+   #3F62A7 blue) — chosen so no two adjacent groups in the registry's display
+   order repeat a dot color. */
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="getting-started"],
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="layout"] {
+	--retro-nav-dot: var(--skin-yellow); /* #B8912B */
+}
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="buttons"],
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="backgrounds"],
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="data-display"] {
+	--retro-nav-dot: var(--skin-blue); /* #3F62A7 */
+}
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="cards"],
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="navigation"] {
+	--retro-nav-dot: var(--skin-green); /* #3A6B42 */
+}
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="text"],
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="media"] {
+	--retro-nav-dot: var(--skin-purple); /* #7D6414 */
+}
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="feedback"],
+.docs-skin[data-skin="retro-os"] aside nav > div[data-category="effects"] {
+	--retro-nav-dot: var(--skin-red); /* #A0442F */
+}
+
+/* ---- Focus ------------------------------------------------------------------ */
+/* The reference defines no focus state (§1.4): this is the authored one. Nav
+   rows are full-bleed inside a clipped window, so the ring is inset (a +2px
+   offset would be cut away by the window's clip-path) — same 2px blue ring. */
+.docs-skin[data-skin="retro-os"] aside nav a:focus-visible,
+.docs-skin[data-skin="retro-os"] aside nav button:focus-visible {
+	outline: 2px solid var(--skin-blue);
+	outline-offset: -2px;
+	border-radius: 0;
+}
+
+/* ---- RTL -------------------------------------------------------------------- */
+/* Hard offsets mirror on the inline axis; the notch polygon is symmetric. */
+@media (min-width: 1024px) {
+	:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] aside {
+		filter: drop-shadow(-3px 3px 0 var(--skin-ink));
+	}
+}

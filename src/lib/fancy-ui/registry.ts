@@ -25,6 +25,8 @@ export const categoryLabels: Record<ComponentCategory, string> = {
 	navigation: "Navigation",
 	media: "Media",
 	effects: "Effects",
+	"ai-chat": "AI Chat",
+	"ai-agents": "AI Agents",
 	actions: "Actions",
 	forms: "Forms",
 	overlays: "Overlays",
@@ -45,6 +47,8 @@ export const categoryDescriptions: Record<ComponentCategory, string> = {
 	navigation: "Navigation menus, tabs, and wayfinding components",
 	media: "Image, video, and media display components",
 	effects: "Visual effects, animations, and decorative elements",
+	"ai-chat": "Conversation surfaces: messages, composers, threads, and streaming text",
+	"ai-agents": "Agent activity: reasoning, tool use, plans, and human-in-the-loop cards",
 	actions: "Interactive action primitives like buttons, toggles, and triggers",
 	forms: "Form primitives for capturing and validating user input",
 	overlays: "Overlay primitives like dialogs, popovers, and menus",
@@ -65,6 +69,8 @@ export const fancyCategories: ComponentCategory[] = [
 	"data-display",
 	"feedback",
 	"media",
+	"ai-chat",
+	"ai-agents",
 ];
 
 /**
@@ -109,7 +115,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "AppleCardCarousel",
 		slug: "apple-card-carousel",
 		description:
-			"Horizontal card carousel with spring-animated full-screen expansion, inspired by Apple's App Store UI",
+			"Horizontal card carousel where the focused card expands into a spring-animated full-screen view",
 		category: "cards",
 		group: "fancy",
 		status: "done",
@@ -297,7 +303,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"blur-reveal": {
 		name: "BlurReveal",
 		slug: "blur-reveal",
-		description: "Scroll-triggered blur-to-clear reveal animation with staggered children",
+		description:
+			"Scroll-triggered reveal that unblurs and slides each direct child into place as the container enters the viewport, staggering up to 10 children via CSS nth-child delays and respecting reduced motion",
 		category: "text",
 		group: "fancy",
 		status: "done",
@@ -337,7 +344,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"border-beam": {
 		name: "BorderBeam",
 		slug: "border-beam",
-		description: "Animated beam effect that travels around borders",
+		description:
+			"Gradient beam that races around a container's border using a CSS offset-path animation, masked so only the border ring is painted, with configurable size, speed, anchor position, and gradient colors",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -462,7 +470,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"image-trail-cursor": {
 		name: "ImageTrailCursor",
 		slug: "image-trail-cursor",
-		description: "Cursor-following image trail with 8 animation variants",
+		description:
+			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 8 selectable variants spanning simple fades, momentum drift, rotation flings, and 3D perspective tilt",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -719,7 +728,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"ripple-button": {
 		name: "RippleButton",
 		slug: "ripple-button",
-		description: "Button with ripple click effect",
+		description:
+			"Button that spawns an expanding, fading ripple circle centered on the click point, with configurable color and duration",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -816,7 +826,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"bg-stars": {
 		name: "StarsBackground",
 		slug: "bg-stars",
-		description: "Animated starfield background with parallax mouse tracking",
+		description:
+			"Three-layer starfield background that scrolls continuously while parallax-shifting in response to cursor movement via spring physics, with stars rendered as box-shadow dots across near, mid, and far depth layers",
 		category: "backgrounds",
 		group: "fancy",
 		status: "done",
@@ -857,12 +868,13 @@ export const registry: Record<string, ComponentMeta> = {
 	dock: {
 		name: "Dock",
 		slug: "dock",
-		description: "macOS-style dock with icon magnification on hover",
+		description:
+			"Icon dock where each item magnifies smoothly as the cursor approaches, sharing pointer position via Svelte context so every DockIcon scales by proximity within a configurable magnification and distance range",
 		category: "navigation",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/dock" }],
-		tags: ["dock", "navigation", "macos", "magnification", "hover"],
+		tags: ["dock", "navigation", "launcher", "magnification", "hover"],
 		props: [
 			{
 				name: "magnification",
@@ -892,10 +904,98 @@ export const registry: Record<string, ComponentMeta> = {
 		slots: [{ name: "children", description: "DockIcon and DockSeparator elements" }],
 	},
 
+	"fireworks-hdr": {
+		name: "FireworksHdr",
+		slug: "fireworks-hdr",
+		description:
+			"GPU fireworks background with a deterministic, DOM-free physics core (rockets, peony/willow/ring/glyph shells, sparks, embers, smoke) rendered by a WebGPU engine into a wide-gamut, extended-tone-mapping canvas so bursts and comet trails burn brighter than SDR white on HDR displays, degrading silently through a WebGL2 fallback and a soft-knee SDR path everywhere else",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["hdr", "webgpu", "particles", "fireworks", "background"],
+		props: [
+			{
+				name: "palette",
+				type: "string[]",
+				default: '["#ff2fd6","#a142ff","#3d5bff","#42cfff"]',
+				description: "Brand hues (hex); order-independent, sorted cool→warm for the shell sweep",
+			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"Opt into the GPU engine (WebGPU HDR first, then a WebGL2 fallback); when false, no engine boots",
+			},
+			{
+				name: "exposure",
+				type: "number",
+				default: "2.2",
+				description: "Display exposure multiplier, clamped to [1, 4]",
+			},
+			{
+				name: "ambient",
+				type: "boolean",
+				default: "true",
+				description: "Run the ambient auto-scheduler (Poisson-timed background shells)",
+			},
+			{
+				name: "ambientIntensity",
+				type: "number",
+				default: "0.35",
+				description: "Ambient energy [0,1] — scales shell size",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "Launch a shell toward the pointer on pointerdown",
+			},
+			{
+				name: "quality",
+				type: '"auto" | "high" | "mid" | "low"',
+				default: '"auto"',
+				description: "Particle budget; auto picks from the render level and device pixel ratio",
+			},
+			{
+				name: "respectReducedMotion",
+				type: "boolean",
+				default: "true",
+				description:
+					"Force ambient off under prefers-reduced-motion (explicit launches still work)",
+			},
+			{
+				name: "class",
+				type: "string",
+				default: '""',
+				description: "Extra classes on the canvas wrapper",
+			},
+			{
+				name: "ambientShells",
+				type: "ShellKind[]",
+				description:
+					"Restrict the ambient scheduler to these shells, picked uniformly — including the pattern shells 'heart' and 'star'; defaults to a weighted peony/willow/ring mix ('glyph' and 'shape' are ignored, they need caller-supplied points)",
+			},
+			{
+				name: "onReady",
+				type: "(handle: FireworksHandle) => void",
+				description:
+					"Fired when the engine is live with an imperative handle, and again with a fresh handle after a recovered GPU context loss; never fired when no GPU renderer comes up",
+			},
+			{
+				name: "onLost",
+				type: "() => void",
+				description:
+					"Fired once when a GPU context loss could not be recovered; the component has torn itself down and any handle it gave out is inert",
+			},
+		],
+	},
+
 	"fluid-cursor": {
 		name: "FluidCursor",
 		slug: "fluid-cursor",
-		description: "WebGL fluid simulation that follows cursor movement",
+		description:
+			"Full Navier-Stokes fluid simulation that swirls color in response to cursor and touch movement, running on WebGL2 with a WebGL1 fallback and an optional WebGPU HDR path for wide-gamut, brighter-than-white glow",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -1022,13 +1122,46 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "true",
 				description: "Confine simulation to parent container",
 			},
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "false",
+				description:
+					"Render via the WebGPU HDR engine — wide gamut + brighter-than-white glow on HDR displays. Needs Chrome/Edge 129+ or Safari 26+; falls back to wide-gamut WebGL (Chrome 104+, Safari 16.4+, Firefox 132+), then to standard rendering",
+			},
+			{
+				name: "hdrBoost",
+				type: "number",
+				default: "1.5",
+				description: "Display exposure multiplier in HDR mode, clamped to [1, 4]",
+			},
+			{
+				name: "dither",
+				type: "boolean",
+				default: "false",
+				description:
+					"Experimental retro bitmap dithering — pixelates the fluid to a chunky grid and quantizes color with an ordered 4x4 Bayer threshold. Forces the WebGL renderer; hdr is ignored while set",
+			},
+			{
+				name: "ditherPixelSize",
+				type: "number",
+				default: "3",
+				description: "Size of one dithered pixel in CSS pixels, minimum 1",
+			},
+			{
+				name: "ditherLevels",
+				type: "number",
+				default: "4",
+				description: "Color levels per channel in dither mode, clamped to [2, 16]",
+			},
 		],
 	},
 
 	"glow-border": {
 		name: "GlowBorder",
 		slug: "glow-border",
-		description: "Animated glowing border effect with gradient support",
+		description:
+			"Glowing ring that animates around a container's edge by sweeping a radial gradient's position, masked with CSS mask-composite so only the border ring is painted, supporting single or multi-color gradients",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -1187,7 +1320,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"flickering-grid": {
 		name: "FlickeringGrid",
 		slug: "flickering-grid",
-		description: "Canvas-based grid of squares with flickering opacity",
+		description:
+			"Canvas grid of squares that flicker in and out of opacity at random each frame, pausing automatically via IntersectionObserver when scrolled off-screen and resizing to fit its container via ResizeObserver",
 		category: "backgrounds",
 		group: "fancy",
 		status: "done",
@@ -1274,7 +1408,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"colourful-text": {
 		name: "ColourfulText",
 		slug: "colourful-text",
-		description: "Per-character color animation with shuffling colors",
+		description:
+			"Per-character text animation where each glyph transitions to a new color from a shuffled palette, staggered across characters and reshuffling automatically every 5 seconds using pure CSS transitions",
 		category: "text",
 		group: "fancy",
 		status: "done",
@@ -1333,7 +1468,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"hyper-text": {
 		name: "HyperText",
 		slug: "hyper-text",
-		description: "Character scramble effect that activates on hover",
+		description:
+			"Text that scrambles into random uppercase letters and resolves character-by-character back to the original on hover, with a staggered per-letter reveal and an optional animate-on-load mode",
 		category: "text",
 		group: "fancy",
 		status: "done",
@@ -1422,7 +1558,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"sparkles-text": {
 		name: "SparklesText",
 		slug: "sparkles-text",
-		description: "Text with animated SVG sparkle stars overlay",
+		description:
+			"Text overlaid with small SVG star sparkles that scale, rotate, and fade in a continuous loop, each one regenerating at a random position once its lifespan expires, cycling between two configurable colors",
 		category: "text",
 		group: "fancy",
 		status: "done",
@@ -1448,7 +1585,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"box-reveal": {
 		name: "BoxReveal",
 		slug: "box-reveal",
-		description: "Content reveal with sliding colored box animation",
+		description:
+			"Reveal animation where a solid color box slides left to right across content on viewport entry, unveiling it as it fades up into place underneath, triggered once via IntersectionObserver",
 		category: "text",
 		group: "fancy",
 		status: "done",
@@ -1502,7 +1640,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"card-spotlight": {
 		name: "CardSpotlight",
 		slug: "card-spotlight",
-		description: "Card with mouse-following radial gradient spotlight overlay",
+		description:
+			"Card whose radial-gradient spotlight tracks the cursor as it moves inside, fading in on hover and parking itself off-canvas when the pointer leaves, with configurable gradient size, color, and opacity",
 		category: "cards",
 		group: "fancy",
 		status: "done",
@@ -2107,7 +2246,8 @@ export const registry: Record<string, ComponentMeta> = {
 	ripple: {
 		name: "Ripple",
 		slug: "ripple",
-		description: "Concentric pulsing circles with ripple wave animation",
+		description:
+			"Set of concentric circles that pulse in a staggered wave, each ring larger, more transparent, and more delayed than the last, with the outermost ring rendered dashed to suggest a fading signal",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -2274,8 +2414,7 @@ export const registry: Record<string, ComponentMeta> = {
 	"matrix-rain": {
 		name: "MatrixRain",
 		slug: "matrix-rain",
-		description:
-			"Canvas-based Matrix-style falling glyph rain with configurable color, speed, and density",
+		description: "Canvas-based falling glyph rain with configurable color, speed, and density",
 		category: "backgrounds",
 		group: "fancy",
 		status: "done",
@@ -2285,7 +2424,7 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "color",
 				type: "string",
 				default: '"#00ff41"',
-				description: "Glyph color (the classic Matrix green)",
+				description: "Glyph color (classic terminal green)",
 			},
 			{
 				name: "speed",
@@ -2362,7 +2501,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "NoiseReveal",
 		slug: "noise-reveal",
 		description:
-			"WebGL image reveal with a Perlin-noise dissolve mask, contracting radial gradient, and wave displacement, inspired by a Codrops shader effect",
+			"WebGL image reveal with a Perlin-noise dissolve mask, contracting radial gradient, and wave displacement",
 		category: "media",
 		group: "fancy",
 		status: "done",
@@ -2426,8 +2565,7 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "font",
 				type: "string",
 				default: '""',
-				description:
-					"Font family; empty string resolves via getComputedStyle(host).fontFamily",
+				description: "Font family; empty string resolves via getComputedStyle(host).fontFamily",
 			},
 			{
 				name: "fontSize",
@@ -2508,6 +2646,1521 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "true",
 				description: "Pause the render loop while the document is hidden",
+			},
+		],
+	},
+
+	// =========================================================================
+	// AI — chat & agent surfaces
+	// =========================================================================
+	"pixel-loader": {
+		name: "PixelLoader",
+		slug: "pixel-loader",
+		description:
+			"Grid of pixels pulsing in a diagonal wave as a pre-token loading indicator for AI responses",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "reasoning", "loading", "indicator"],
+		props: [
+			{ name: "cols", type: "number", default: "5", description: "Number of pixel columns" },
+			{ name: "rows", type: "number", default: "5", description: "Number of pixel rows" },
+			{
+				name: "cellSize",
+				type: "number",
+				default: "6",
+				description: "Size of a single pixel in px",
+			},
+			{ name: "gap", type: "number", default: "2", description: "Space between pixels in px" },
+			{
+				name: "color",
+				type: "string",
+				default: '"var(--ft-pixel-color, currentColor)"',
+				description: "Pixel colour, any CSS colour value",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1.6",
+				description: "Duration of one full pulse cycle in seconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Loading"',
+				description: "Accessible label announced by assistive tech",
+			},
+		],
+	},
+	"typing-indicator": {
+		name: "TypingIndicator",
+		slug: "typing-indicator",
+		description:
+			"Animated three-dot presence indicator with a staggered CSS wave, tuned to signal activity without pulling focus",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "indicator", "presence"],
+		props: [
+			{ name: "size", type: "number", default: "6", description: "Dot diameter in pixels" },
+			{
+				name: "color",
+				type: "string",
+				default: '"var(--ft-typing-color, currentColor)"',
+				description: "Dot color; any CSS color or custom property expression",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1.2",
+				description: "Duration of one full animation cycle in seconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Typing"',
+				description: "Visually hidden text announced to assistive technology",
+			},
+		],
+	},
+	"thinking-indicator": {
+		name: "ThinkingIndicator",
+		slug: "thinking-indicator",
+		description:
+			"Live agent status line with a shimmering activity label and an elapsed timer, as a bare inline row or a bordered status pill",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "reasoning", "status", "indicator"],
+		props: [
+			{
+				name: "status",
+				type: "string",
+				description: 'What the agent is doing right now, e.g. "Reading files"',
+				required: true,
+			},
+			{
+				name: "running",
+				type: "boolean",
+				default: "true",
+				description: "Whether the activity is in flight: drives the shimmer and the live timer",
+			},
+			{
+				name: "variant",
+				type: '"inline" | "pill"',
+				default: '"inline"',
+				description: "Bare text row, or a bordered chip with a leading pulse dot",
+			},
+			{
+				name: "since",
+				type: "number",
+				description: "Epoch ms the activity started; the internal stopwatch ticks from it",
+			},
+			{
+				name: "elapsedMs",
+				type: "number",
+				description: "Externally-driven elapsed time in ms; overrides the internal stopwatch",
+			},
+			{
+				name: "showElapsed",
+				type: "boolean",
+				default: "true",
+				description: "Show the elapsed duration alongside the status",
+			},
+		],
+		slots: [
+			{
+				name: "done",
+				description: "Rendered instead of the status label once running is false",
+			},
+		],
+	},
+	"streaming-text": {
+		name: "StreamingText",
+		slug: "streaming-text",
+		description:
+			"Renders a growing string as a live token stream: the appended delta lands tinted and settles, with an optional block cursor while the response is in flight",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "streaming", "text", "reasoning"],
+		props: [
+			{
+				name: "text",
+				type: "string",
+				description: "The accumulated text so far, not the latest delta; reassign as chunks arrive",
+				required: true,
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description: "Show a soft block cursor after the last character",
+			},
+			{
+				name: "markdown",
+				type: "boolean",
+				default: "false",
+				description:
+					"Render as markdown instead of the tinted plain-text stream; disables the delta tint",
+			},
+			{
+				name: "settleMs",
+				type: "number",
+				default: "350",
+				description: "How long a newly arrived chunk stays tinted in ms, plain mode only",
+			},
+			{
+				name: "tintColor",
+				type: "string",
+				description: "Colour a chunk fades from, and the cursor's fill; sets --ft-tint-color",
+			},
+			{
+				name: "onComplete",
+				type: "() => void",
+				description: "Called once when streaming goes from true to false",
+			},
+		],
+	},
+	"reasoning-panel": {
+		name: "ReasoningPanel",
+		slug: "reasoning-panel",
+		description:
+			"Collapsible reasoning trace that streams while the model thinks, then folds itself into a one-line summary",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "reasoning", "disclosure", "streaming"],
+		props: [
+			{
+				name: "text",
+				type: "string",
+				description: "The reasoning trace so far; hand over a longer string to stream more in",
+				required: true,
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the trace is still growing; drives the timer, shimmer, and autoscroll",
+			},
+			{
+				name: "open",
+				type: "boolean",
+				description:
+					"Expanded state (bindable). Left undefined, the panel opens while streaming and collapses 600ms after it ends, until the reader toggles it by hand",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Reasoning"',
+				description: "Header text",
+			},
+			{
+				name: "since",
+				type: "number",
+				description: "Epoch ms the current burst started at; pins the live timer's origin",
+			},
+			{
+				name: "durationMs",
+				type: "number",
+				description:
+					"Final duration for the summary line; falls back to the duration the panel measured itself",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"12rem"',
+				description: "Scroll height of the trace once expanded",
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description: "Called on every open/close, by click or on the panel's own initiative",
+			},
+		],
+	},
+	"chat-message": {
+		name: "ChatMessage",
+		slug: "chat-message",
+		description:
+			"One conversation turn, aligned and dressed by its role, streaming its body while the answer arrives, with an action rail that fades in on hover and a version navigator underneath",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		dependencies: ["streaming-text"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "message", "compound", "streaming"],
+		props: [
+			{
+				name: "role",
+				type: '"user" | "assistant" | "system"',
+				default: '"assistant"',
+				description: "Who produced the turn; drives alignment, chrome, and the accessible name",
+			},
+			{
+				name: "content",
+				type: "string",
+				default: '""',
+				description:
+					"The body so far, not the latest delta; reassign with a longer string as chunks arrive",
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description: "Whether content is still growing; shows the trailing cursor",
+			},
+			{
+				name: "markdown",
+				type: "boolean",
+				default: "false",
+				description: "Render the body as markdown instead of a tinted plain-text stream",
+			},
+			{
+				name: "timestamp",
+				type: "Date | number",
+				description:
+					"When the turn was produced; rendered relative, with the exact time as its tooltip",
+			},
+		],
+		slots: [
+			{ name: "avatar", description: "Rendered beside the body: an image, initials, an icon" },
+			{
+				name: "children",
+				description: "Replaces the default body rendering entirely; content is then ignored",
+			},
+			{
+				name: "actions",
+				description: "The action rail — put ChatMessageActions here; fades in on hover or focus",
+			},
+			{
+				name: "footer",
+				description: "Rendered under the body — where ChatMessageBranches belongs",
+			},
+		],
+	},
+	"prompt-suggestions": {
+		name: "PromptSuggestions",
+		slug: "prompt-suggestions",
+		description:
+			"Row of prompt pills that cascade in after a reply lands, offering the user a next turn without composing one",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "suggestions", "pills"],
+		props: [
+			{
+				name: "suggestions",
+				type: "string[]",
+				description: "Prompt texts offered to the user, in display order",
+				required: true,
+			},
+			{
+				name: "onSelect",
+				type: "(suggestion: string, index: number) => void",
+				description: "Called with the chosen prompt and its index when a pill is activated",
+			},
+			{
+				name: "visible",
+				type: "boolean",
+				default: "true",
+				description: "Whether the pills are shown; flipping this to true replays the entrance",
+			},
+			{
+				name: "staggerMs",
+				type: "number",
+				default: "60",
+				description: "Delay between two consecutive pills entering, in milliseconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Suggestions"',
+				description: "Accessible name of the group wrapping the pills",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Custom pill content, receiving the suggestion and its index",
+			},
+		],
+	},
+	"chat-error": {
+		name: "ChatError",
+		slug: "chat-error",
+		description:
+			"Quiet inline failure banner for a chat turn: the error, an optional detail line, and a retry button that disables itself while the retry is in flight",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "error", "feedback", "retry"],
+		props: [
+			{
+				name: "message",
+				type: "string",
+				default: '"Something went wrong"',
+				description: "The failure line",
+			},
+			{
+				name: "detail",
+				type: "string",
+				description: "Secondary muted line under the message, e.g. the error code",
+			},
+			{
+				name: "onRetry",
+				type: "() => void",
+				description: "Pressing retry calls this; the retry button only exists when it is set",
+			},
+			{
+				name: "retryLabel",
+				type: "string",
+				default: '"Retry"',
+				description: "Label for the retry button",
+			},
+			{
+				name: "retrying",
+				type: "boolean",
+				default: "false",
+				description: "Whether a retry is in flight: disables the button and marks the row busy",
+			},
+		],
+		slots: [
+			{
+				name: "icon",
+				description: "Leading icon, replacing the default warning triangle",
+			},
+			{
+				name: "children",
+				description: "Rendered instead of the message and detail block",
+			},
+		],
+	},
+	"tool-call": {
+		name: "ToolCall",
+		slug: "tool-call",
+		description:
+			"One tool invocation in a disclosure card: status dot, tool name, duration, and the request and result payloads pretty-printed on expand",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "tool", "disclosure"],
+		props: [
+			{
+				name: "call",
+				type: "ToolCallData",
+				description:
+					"The invocation to render: id, name, status, and whatever payloads exist so far",
+				required: true,
+			},
+			{
+				name: "open",
+				type: "boolean",
+				description:
+					'Expanded state (bindable). Left undefined the card stays collapsed, except that a call with status "error" opens itself — until the reader toggles it by hand',
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description: "Called on every open/close, by click or on the card's own initiative",
+			},
+		],
+		slots: [
+			{ name: "input", description: "Replaces the default request rendering; receives call.input" },
+			{
+				name: "output",
+				description: "Replaces the default result rendering; receives call.output",
+			},
+			{ name: "icon", description: "Leading icon, replacing the default wrench" },
+		],
+	},
+	"tool-timeline": {
+		name: "ToolTimeline",
+		slug: "tool-timeline",
+		description:
+			"Compact session summary of an agent's tool calls: one row per action on a vertical rail, with the target it touched, its diff stats, and when it ran",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "tool", "timeline", "activity"],
+		props: [
+			{
+				name: "items",
+				type: "ToolTimelineItemData[]",
+				description: "The agent's activity log, oldest first",
+				required: true,
+			},
+			{
+				name: "onSelect",
+				type: "(item: ToolTimelineItemData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "compact",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows with the detail line dropped",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Activity"',
+				description: "Accessible name for the list",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the rail and its dot",
+			},
+		],
+	},
+	"terminal-block": {
+		name: "TerminalBlock",
+		slug: "terminal-block",
+		description:
+			"Live command transcript: the prompt line, output as it streams in with its ANSI colours read, a block cursor while it runs, and an exit-status footer when it stops",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "terminal", "streaming", "output"],
+		props: [
+			{
+				name: "output",
+				type: "string",
+				description:
+					"Everything the command has printed so far, not the latest chunk; reassign as lines arrive",
+				required: true,
+			},
+			{
+				name: "command",
+				type: "string",
+				description: "The command that produced the output, shown after the prompt glyph",
+			},
+			{
+				name: "prompt",
+				type: "string",
+				default: '"$"',
+				description: "Prompt glyph in front of the command",
+			},
+			{
+				name: "running",
+				type: "boolean",
+				default: "false",
+				description: "Whether the command is still running: shows the cursor, pins the scroll",
+			},
+			{
+				name: "exitCode",
+				type: "number | null",
+				default: "null",
+				description: "Anything other than null ends the run and shows the status footer",
+			},
+			{
+				name: "durationMs",
+				type: "number",
+				description: "How long the run took, shown next to the exit status",
+			},
+			{
+				name: "ansi",
+				type: "boolean",
+				default: "true",
+				description:
+					"Read the SGR subset and colour the output; false still strips the escapes, it just paints nothing",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"20rem"',
+				description: "Height at which the output starts scrolling",
+			},
+		],
+		slots: [
+			{
+				name: "header",
+				description: "Title bar above the output — window dots, a file name, a copy button",
+			},
+		],
+	},
+	"code-diff": {
+		name: "CodeDiff",
+		slug: "code-diff",
+		description:
+			"Unified diff tuned for chat width: one foldable card per file, tinted add/delete rows, and a copy-safe gutter",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "diff", "code", "review"],
+		props: [
+			{
+				name: "diff",
+				type: "string",
+				description:
+					"Raw unified diff text, headers and all; parsed on every change, so a patch still arriving can be handed over as it grows",
+				required: true,
+			},
+			{
+				name: "filename",
+				type: "string",
+				description: "Header label when the patch names no file, or names exactly one",
+			},
+			{
+				name: "lineNumbers",
+				type: "boolean",
+				default: "true",
+				description: "Whether to show the old/new line-number gutters",
+			},
+			{
+				name: "collapsed",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the bodies are folded away (bindable). Set it and the whole patch folds; a click folds one file and writes back whether anything is left open",
+			},
+			{
+				name: "maxLines",
+				type: "number",
+				default: "0",
+				description:
+					'Lines shown per file before the rest hide behind a "Show N more lines" button; 0 shows everything',
+			},
+			{
+				name: "wrap",
+				type: "boolean",
+				default: "false",
+				description: "Whether long lines wrap instead of scrolling sideways",
+			},
+		],
+	},
+	sources: {
+		name: "Sources",
+		slug: "sources",
+		description:
+			"The citations under an answer: a pill carrying a stack of domain monograms and a count, expanding into scannable source cards with title, host, and the line worth reading",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "citations", "sources", "compound"],
+		props: [
+			{
+				name: "sources",
+				type: "SourceData[]",
+				description: "The documents backing the answer, in reading order",
+				required: true,
+			},
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the list is expanded; bindable",
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description:
+					"Called when the pill is clicked, with the state it moved to; driving open yourself does not fire it",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Replaces the default trigger-and-list composition entirely; omit it and the root renders both",
+			},
+			{
+				name: "item",
+				description:
+					"On SourcesList — replaces the default card; receives the source and its index",
+			},
+			{
+				name: "icon",
+				description: "On SourceCard — replaces the monogram: a favicon you host, a logo",
+			},
+		],
+	},
+	"inline-citation": {
+		name: "InlineCitation",
+		slug: "inline-citation",
+		description:
+			"A numbered reference that sits inside a sentence and reveals the document behind it — title, domain and snippet — in a floating card on hover or focus",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		dependencies: ["sources"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "citations", "tooltip"],
+		props: [
+			{
+				name: "source",
+				type: "SourceData",
+				description: "The document being cited; its title, domain and snippet fill the card",
+				required: true,
+			},
+			{
+				name: "index",
+				type: "number",
+				description: "The reference number shown in the marker, e.g. 3 renders [3]",
+				required: true,
+			},
+			{
+				name: "href",
+				type: "string",
+				default: "source.url",
+				description:
+					"Link target; an explicit empty string renders an unlinked marker that only reveals the card",
+			},
+			{
+				name: "onOpen",
+				type: "() => void",
+				description: "Called each time the card appears, once per appearance rather than per hover",
+			},
+		],
+		slots: [
+			{
+				name: "preview",
+				description: "Replaces the default card body; receives the source",
+			},
+		],
+	},
+	"web-search": {
+		name: "WebSearch",
+		slug: "web-search",
+		description:
+			"A search the agent ran: the query in a search-bar header, an indeterminate scanning bar while it runs, and results that land one row at a time",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "search", "results", "knowledge"],
+		props: [
+			{
+				name: "query",
+				type: "string",
+				description: "What the agent looked up, shown in the search-bar header",
+				required: true,
+			},
+			{
+				name: "results",
+				type: "SearchResultData[]",
+				description: "Hits found so far, oldest first; appending to it lands a new row",
+				required: true,
+			},
+			{
+				name: "searching",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the lookup is still running: drives the scanning bar and the waiting state",
+			},
+			{
+				name: "onSelect",
+				type: "(result: SearchResultData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "maxVisible",
+				type: "number",
+				default: "0",
+				description: "Rows shown before the expander takes over; 0 shows every result",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Web search"',
+				description: "Accessible name for the whole block",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the row element and its behaviour",
+			},
+		],
+	},
+	"image-generation": {
+		name: "ImageGeneration",
+		slug: "image-generation",
+		description:
+			"Fixed frame that holds its place while a model draws: an empty outline, then a pixel grid working over a drifting dot field, then the finished image easing out of a blur",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		dependencies: ["pixel-loader"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "image", "generation", "media"],
+		props: [
+			{
+				name: "status",
+				type: '"idle" | "generating" | "done" | "error"',
+				description: "Which stage of the generation to render",
+				required: true,
+			},
+			{
+				name: "src",
+				type: "string | null",
+				description: 'The generated image, shown once status is "done"',
+			},
+			{
+				name: "alt",
+				type: "string",
+				description: "Describes the image to assistive tech — typically the prompt",
+				required: true,
+			},
+			{
+				name: "aspectRatio",
+				type: "string",
+				default: '"1 / 1"',
+				description: "CSS aspect-ratio of the frame, holding the layout across every state",
+			},
+			{
+				name: "prompt",
+				type: "string",
+				description: "Muted caption line under the frame",
+			},
+			{
+				name: "errorText",
+				type: "string",
+				default: '"Generation failed"',
+				description: "The failure line shown in the error state",
+			},
+			{
+				name: "onRetry",
+				type: "() => void",
+				description: "Pressing retry calls this; the retry button only exists when it is set",
+			},
+			{
+				name: "onLoad",
+				type: "() => void",
+				description: "Called once the generated image has finished loading",
+			},
+		],
+	},
+	"agent-plan": {
+		name: "AgentPlan",
+		slug: "agent-plan",
+		description:
+			"Glanceable checklist of an agent's plan: a done/total count and completion bar over one row per step, with a status glyph, an optional detail line, and substeps indented under a rail",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "plan", "checklist", "progress"],
+		props: [
+			{
+				name: "steps",
+				type: "PlanStepData[]",
+				description:
+					"The plan, in the order the agent means to work through it; nests one level via substeps",
+				required: true,
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Plan"',
+				description: "Header text, sitting beside the done/total count",
+			},
+			{
+				name: "showProgress",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the thin completion bar shows under the header; its fraction counts substeps as steps",
+			},
+			{
+				name: "onSelect",
+				type: "(step: PlanStepData) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Replaces the built-in row body, keeping the glyph and the indent; receives the step and its position in visual order",
+			},
+		],
+	},
+	"subagent-list": {
+		name: "SubagentList",
+		slug: "subagent-list",
+		description:
+			"Fan-out panel for parallel workers: one row per delegated agent with its status dot, model badge, task, and its own progress bar",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "parallel", "progress", "workers"],
+		props: [
+			{
+				name: "agents",
+				type: "SubagentData[]",
+				description:
+					"The delegated workers, in the order they were spawned: id, name, task, status, and optionally progress and model",
+				required: true,
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					'Accessible name for the list. Left unset it is derived from the statuses — "2 agents running" while anything runs, "3 agents finished" once the last one lands',
+			},
+			{
+				name: "onSelect",
+				type: "(agent: SubagentData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "compact",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows with the task line dropped",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the status dot",
+			},
+		],
+	},
+	"approval-card": {
+		name: "ApprovalCard",
+		slug: "approval-card",
+		description:
+			"A human-in-the-loop gate before a side effect: the agent states what it is about to do, and the footer swaps its approve and deny buttons for a one-line verdict once someone decides",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "approval", "human-in-the-loop", "gate"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: 'What permission is being asked for, e.g. "Run database migration"',
+				required: true,
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Muted second line under the title — the consequence, the blast radius",
+			},
+			{
+				name: "state",
+				type: '"pending" | "approved" | "denied"',
+				default: '"pending"',
+				description:
+					"Which side of the gate we are on (bindable). Buttons exist only while pending; writing a resolved value from outside settles the card without firing a callback",
+			},
+			{
+				name: "destructive",
+				type: "boolean",
+				default: "false",
+				description:
+					"Marks the action as irreversible: red approve button, a warning tint on the card, and an alert mark on the shield so the warning is not carried by colour alone",
+			},
+			{
+				name: "approveLabel",
+				type: "string",
+				default: '"Approve"',
+				description: "Label for the approve button",
+			},
+			{
+				name: "denyLabel",
+				type: "string",
+				default: '"Deny"',
+				description: "Label for the deny button",
+			},
+			{
+				name: "onApprove",
+				type: "() => void",
+				description: "Called when approve is pressed, after state has been written",
+			},
+			{
+				name: "onDeny",
+				type: "() => void",
+				description: "Called when deny is pressed, after state has been written",
+			},
+			{
+				name: "busy",
+				type: "boolean",
+				default: "false",
+				description:
+					"The consumer is executing the decision: both buttons go disabled and the card is marked aria-busy",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Detail region between the header and the footer — a diff, a command preview, the payload about to be posted",
+			},
+		],
+	},
+	"recommendation-card": {
+		name: "RecommendationCard",
+		slug: "recommendation-card",
+		description:
+			"An agent's proposal awaiting an answer: a kicker, the recommendation, a confidence figure counted up beside a ring that fills to match, and two buttons that collapse into one quiet resolved line",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		dependencies: ["number-ticker"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "recommendation", "confidence"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: 'What the agent is proposing, e.g. "Add an index on orders.customer_id"',
+				required: true,
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Secondary muted line under the title — the reasoning, the expected effect",
+			},
+			{
+				name: "confidence",
+				type: "number",
+				description:
+					"How sure the agent is, from 0 to 1. Omitted, the whole confidence block disappears rather than reading as zero; out-of-range numbers are clamped and the band shifts colour at 0.75 and 0.5",
+			},
+			{
+				name: "acceptLabel",
+				type: "string",
+				default: '"Apply"',
+				description: "Label for the confirm button",
+			},
+			{
+				name: "dismissLabel",
+				type: "string",
+				default: '"Dismiss"',
+				description: "Label for the decline button",
+			},
+			{
+				name: "onAccept",
+				type: "() => void",
+				description: "Called when the recommendation is accepted, after `state` has been written",
+			},
+			{
+				name: "onDismiss",
+				type: "() => void",
+				description: "Called when the recommendation is dismissed, after `state` has been written",
+			},
+			{
+				name: "state",
+				type: '"open" | "accepted" | "dismissed"',
+				default: '"open"',
+				description:
+					"Where the recommendation stands (bindable). Resolving swaps the buttons for a quiet line inside a polite live region; a resolved card refuses to resolve again",
+			},
+			{
+				name: "badge",
+				type: "string",
+				description: 'Small kicker above the title, e.g. "Suggestion"',
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"The detail region between the header and the footer — a snippet of the change being proposed",
+			},
+		],
+	},
+	"artifact-card": {
+		name: "ArtifactCard",
+		slug: "artifact-card",
+		description:
+			"A generated document as a tangible object: title, kind, a version navigator, and the first six lines of the text itself streaming in behind a fade",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		dependencies: ["streaming-text"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "artifact", "document", "versioned", "streaming"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: "What the document is called",
+				required: true,
+			},
+			{
+				name: "kind",
+				type: "string",
+				default: '"Document"',
+				description: "The kind of thing it is, on the muted line under the title",
+			},
+			{
+				name: "version",
+				type: "number",
+				description: "Which revision is on screen, 1-based; rendered as v3",
+			},
+			{
+				name: "versionCount",
+				type: "number",
+				description: "How many revisions exist; with version the badge reads v3/5",
+			},
+			{
+				name: "onVersionChange",
+				type: "(version: number) => void",
+				description:
+					"Asked for another revision by 1-based number, never one outside its bounds; supplying it turns the badge into a navigator",
+			},
+			{
+				name: "status",
+				type: '"idle" | "streaming" | "done" | "error"',
+				default: '"done"',
+				description:
+					"Where the document is in its life; streaming sweeps the top edge and trails a cursor, error grows a tinted footer",
+			},
+			{
+				name: "preview",
+				type: "string",
+				description:
+					"The text so far, not the latest delta; clamped to roughly six lines behind a bottom fade",
+			},
+			{
+				name: "onOpen",
+				type: "() => void",
+				description:
+					"Asked to open the document; supplying it makes the whole card activatable by click, Enter, or Space",
+			},
+		],
+		slots: [
+			{
+				name: "actions",
+				description:
+					"Buttons for the top-right rail; each keeps its own click, without opening the card",
+			},
+		],
+	},
+	"ai-data-table": {
+		name: "AiDataTable",
+		slug: "ai-data-table",
+		description:
+			"Compact comparison table for a model's structured answer: real table semantics, tabular numeric columns, check-or-dash booleans, and one tintable column — rendered in the order it arrived, with no sorting",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "table", "comparison", "structured-output"],
+		props: [
+			{
+				name: "columns",
+				type: "AiDataTableColumn[]",
+				description:
+					"Columns in render order: key, label, and optional align / numeric. A numeric column gets tabular figures and right alignment",
+				required: true,
+			},
+			{
+				name: "rows",
+				type: "AiDataTableRow[]",
+				description:
+					"Rows keyed by column key, in the order the model produced them; a missing key renders as empty",
+				required: true,
+			},
+			{
+				name: "caption",
+				type: "string",
+				description:
+					"Names the table for assistive tech; rendered in a visually-hidden <caption> unless captionVisible",
+			},
+			{
+				name: "captionVisible",
+				type: "boolean",
+				default: "false",
+				description: "Also shows the caption, as a muted line above the table",
+			},
+			{
+				name: "dense",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows, for a table read at a glance rather than studied",
+			},
+			{
+				name: "highlightColumn",
+				type: "string",
+				description:
+					"Key of the column to tint — the recommendation, or whichever criterion decided it",
+			},
+		],
+		slots: [
+			{
+				name: "cell",
+				description:
+					"Replaces the default rendering of every cell; receives the raw value and { row, key }",
+			},
+		],
+	},
+	composer: {
+		name: "Composer",
+		slug: "composer",
+		description:
+			"The input at the bottom of a chat, taken apart: a root that owns the draft and eight parts that read it — a growing textarea, a send button that becomes a stop button, a toolbar, a model picker, an attachment row with its chips, and a completion menu you can mount twice on the same draft for / commands and @ mentions",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "composer", "input", "compound"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description:
+					"The draft text, bindable. Cleared by a successful submit; the attachments are not, since only the consumer knows whether an upload is still in flight",
+			},
+			{
+				name: "attachments",
+				type: "AttachmentData[]",
+				default: "[]",
+				description:
+					"Files riding along with the draft, bindable. The consumer owns uploading them and pushing the results here",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks typing, sending, and attaching. Every part reads it off the context, so one flag takes the whole composition inert",
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description:
+					"A response is arriving: the send button becomes a stop button, the textarea goes readonly rather than disabled, and a submit is refused whatever triggered it",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description:
+					"Placeholder for the default input. Ignored once children replaces the composition — the ComposerInput inside it carries its own",
+			},
+			{
+				name: "onSubmit",
+				type: "(payload: { text: string; attachments: AttachmentData[] }) => void",
+				description:
+					"Called with the trimmed draft and a snapshot of the attachments. Never fires on an empty draft that carries no files",
+			},
+			{
+				name: "onStop",
+				type: "() => void",
+				description: "Called when the stop button is pressed while streaming",
+			},
+			{
+				name: "onAttach",
+				type: "(files: File[]) => void",
+				description:
+					"Called with the files handed to the picker. Upload them, then push the results onto attachments — the composer never uploads anything itself",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Replaces the default input-and-send-row composition entirely: mount the parts in whatever order the layout needs",
+			},
+			{
+				name: "accessory",
+				description:
+					"An overlay covering the composer — a voice panel, a drop target, a confirmation. It sits above the composition rather than replacing it, so the draft is still there when it lifts",
+			},
+		],
+	},
+	"voice-input": {
+		name: "VoiceInput",
+		slug: "voice-input",
+		description:
+			"A mic button that opens into a recording panel: a live waveform painted from amplitude levels you supply, a stopwatch, the transcript as it arrives, and a cross and a check to throw it away or keep it",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "voice", "waveform", "input"],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether a recording is in progress (bindable). Every button writes through it; setting it from outside opens or closes the panel without firing a callback",
+			},
+			{
+				name: "transcript",
+				type: "string",
+				default: '""',
+				description:
+					"Live text pushed by the consumer as their recogniser produces it, rendered muted under the waveform; a growing string grows in place",
+			},
+			{
+				name: "samples",
+				type: "ArrayLike<number>",
+				description:
+					"Amplitude levels in 0..1 bridged from your own audio pipeline, one entry per bar. The component never opens a microphone itself",
+			},
+			{
+				name: "demo",
+				type: "boolean",
+				default: "false",
+				description:
+					"Draw a deterministic synthetic wave when no samples arrive, so the panel is legible on a page with no audio behind it. Real samples always win",
+			},
+			{
+				name: "onStart",
+				type: "() => void",
+				description: "Called when the mic button starts a recording",
+			},
+			{
+				name: "onStop",
+				type: "() => void",
+				description: "Called when the check ends the recording and keeps the transcript",
+			},
+			{
+				name: "onCancel",
+				type: "() => void",
+				description: "Called when the cross abandons the recording",
+			},
+			{
+				name: "height",
+				type: "number",
+				default: "48",
+				description: "Waveform height in CSS pixels, clamped to 16..240",
+			},
+			{
+				name: "color",
+				type: "string",
+				default: "var(--ft-voice-color, currentColor)",
+				description:
+					"Any CSS colour for the bars, including a var() or currentColor — written onto the canvas as its CSS color and read back resolved, because a 2D context understands neither",
+			},
+		],
+	},
+	"context-ring": {
+		name: "ContextRing",
+		slug: "context-ring",
+		description:
+			"How much of the context window is gone, in the space of a favicon: a donut that fills as the conversation grows, the compact count beside it, and an optional popover breaking the total down by what is holding it",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "tokens", "context", "indicator"],
+		props: [
+			{
+				name: "usage",
+				type: "TokenUsageData",
+				description:
+					"Context-window consumption: tokens used, out of how many, and optionally the breakdown rows the popover lists",
+				required: true,
+			},
+			{
+				name: "size",
+				type: "number",
+				default: "28",
+				description: "Outer diameter of the ring, in pixels; drives the viewBox and the radius",
+			},
+			{
+				name: "strokeWidth",
+				type: "number",
+				default: "3",
+				description:
+					"Thickness of the track and the arc, in pixels; clamped to the radius so a thick ring cannot eat its own centre",
+			},
+			{
+				name: "showLabel",
+				type: "boolean",
+				default: "true",
+				description:
+					'Whether the compact "12.4k / 200k" figure is shown beside the ring — exact under a thousand, one decimal under 100k, rounded above',
+			},
+			{
+				name: "warnAt",
+				type: "number",
+				default: "0.75",
+				description:
+					"Fraction at which the ring leaves the quiet band and takes the running colour",
+			},
+			{
+				name: "criticalAt",
+				type: "number",
+				default: "0.9",
+				description:
+					"Fraction at which the ring takes the error colour. Floored at warnAt, so a threshold set below the warning cannot create a band that never wins",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Context usage"',
+				description:
+					"Accessible name for the meter, and — when expandable — for the button that contains it",
+			},
+			{
+				name: "expandable",
+				type: "boolean",
+				default: "false",
+				description:
+					"Turns the ring into a button that toggles a popover listing usage.breakdown; closes on Escape, on a click outside, or on a second press",
+			},
+		],
+	},
+	"scroll-anchor": {
+		name: "ScrollAnchor",
+		slug: "scroll-anchor",
+		description:
+			"A scroll region that stays pinned to its last line while content streams in, lets go when the reader scrolls up, and floats a pill offering the way back down",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "scroll", "streaming", "utility"],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the region pins itself to the bottom as content arrives — bind it to your streaming flag. False leaves an ordinary scroll box, and hides the return button with it",
+			},
+			{
+				name: "bottomThreshold",
+				type: "number",
+				default: "40",
+				description: "How close to the bottom (px) still counts as pinned",
+			},
+			{
+				name: "returnLabel",
+				type: "string",
+				default: '"Jump to latest"',
+				description: "Label on the floating return button, and its accessible name",
+			},
+			{
+				name: "showReturn",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the floating return button appears once the reader scrolls away from the bottom",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"100%"',
+				description: "Height cap on the scrolling region — any CSS length",
+			},
+			{
+				name: "onStickChange",
+				type: "(stuck: boolean) => void",
+				description: "Called when the region pins itself or lets go, never on every scroll",
+			},
+		],
+		slots: [{ name: "children", description: "The scrolling content" }],
+	},
+	"thread-list": {
+		name: "ThreadList",
+		slug: "thread-list",
+		description:
+			"Conversation history for a chat sidebar: one row per thread with an unread dot, its last message, and a relative timestamp, plus selection and per-row delete",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "threads", "history", "navigation"],
+		props: [
+			{
+				name: "threads",
+				type: "ThreadData[]",
+				description: "The conversations to list, in the order they should appear",
+				required: true,
+			},
+			{
+				name: "activeId",
+				type: "string",
+				description:
+					"Id of the selected conversation (bindable). A click writes the new id back whether or not onSelect is supplied",
+			},
+			{
+				name: "onSelect",
+				type: "(thread: ThreadData) => void",
+				description: "Called with the conversation the reader picked",
+			},
+			{
+				name: "onDelete",
+				type: "(thread: ThreadData) => void",
+				description: "Supplying it puts a delete button on every row, revealed on hover or focus",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Conversations"',
+				description: "Accessible name for the list",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Replaces the built-in row body; receives the thread and whether it is the active one",
+			},
+			{
+				name: "empty",
+				description: 'Replaces the built-in "No conversations yet" line',
+			},
+		],
+	},
+	"chat-panel": {
+		name: "ChatPanel",
+		slug: "chat-panel",
+		description:
+			"The shell a conversation lives in: a sticky header, a transcript that pins itself to the bottom while an answer arrives and offers the way back once you scroll up, and a sticky composer row",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "panel", "shell", "compound"],
+		props: [
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether a reply is still arriving; pins the transcript to its bottom until the reader scrolls up",
+			},
+			{
+				name: "empty",
+				type: "boolean",
+				default: "false",
+				description: "Renders the emptyState snippet in place of the message stream",
+			},
+			{
+				name: "returnLabel",
+				type: "string",
+				default: '"Jump to latest"',
+				description: "Label on the pill offered once the reader scrolls away from the bottom",
+			},
+		],
+		slots: [
+			{ name: "header", description: "Sticky top region: a title, a model name, a close button" },
+			{ name: "children", description: "The message stream, filling the scroll region" },
+			{ name: "composer", description: "Sticky bottom region — where Composer belongs" },
+			{
+				name: "emptyState",
+				description: "Rendered instead of children while empty — where ChatEmptyState belongs",
 			},
 		],
 	},
