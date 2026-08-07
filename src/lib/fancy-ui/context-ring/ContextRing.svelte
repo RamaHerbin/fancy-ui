@@ -168,6 +168,13 @@
 		open = !open;
 	}
 
+	// Taking expandability away takes the panel with it. Left open, it would keep
+	// its window listeners with no trigger on screen, and turning expandability
+	// back on would reopen a panel nobody asked to see again.
+	$effect(() => {
+		if (!expandable) open = false;
+	});
+
 	// Escape and a click elsewhere both dismiss. Bound to the window rather than to
 	// the panel so they work whether or not anything inside it holds focus; the
 	// listeners exist only while the panel does.
@@ -257,9 +264,10 @@
 >
 	{#if expandable}
 		<!--
-			No `aria-label` here on purpose: the button takes its name from the meter
-			it contains, so the one string a consumer sets through `label` names both
-			and the two can never drift apart.
+			An explicit `aria-label`, because a button flattens everything inside it to
+			presentational: the `role="meter"` and its value below never reach
+			assistive tech once they are nested here. The button's own name carries
+			both the meter's name and its current reading instead.
 		-->
 		<button
 			bind:this={trigger}
@@ -267,6 +275,7 @@
 			class="ft-ctxring-trigger hover:bg-foreground/5 focus-visible:ring-ring -mx-1 -my-0.5 inline-flex items-center gap-2 rounded-md px-1 py-0.5 transition-colors focus-visible:ring-2 focus-visible:outline-none"
 			aria-expanded={open}
 			aria-controls={panelId}
+			aria-label="{label}, {valueText}"
 			onclick={toggle}
 		>
 			{@render face()}

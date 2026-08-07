@@ -74,14 +74,20 @@
 	/** The token Escape dismissed, so it does not spring back on the next keystroke. */
 	let dismissedStart = $state(-1);
 	let activeIndex = $state(0);
-	let caret = $state<FloatRect | null>(null);
 
 	const matches = $derived(items.filter((item) => (filter ?? defaultFilter)(item, query)));
 	const visible = $derived(matches.slice(0, Math.max(0, maxItems)));
 	// The stored index is a wish; this is what it can actually be once the query
 	// has shortened the list under it.
 	const active = $derived(visible.length === 0 ? -1 : Math.min(activeIndex, visible.length - 1));
-	const anchor = $derived(caret ?? ORIGIN);
+	// A getter, not a rect measured once when the token opened: the float action
+	// re-reads its anchor on every scroll and resize, and a frozen rect would send
+	// it repositioning against where the caret used to be.
+	const anchor = $derived.by(() => {
+		const el = textarea;
+		const start = tokenStart;
+		return (): FloatRect => (el && start >= 0 ? measureCaretRect(el, start) : ORIGIN);
+	});
 
 	/**
 	 * The menu never takes focus — the reader is typing, and a completion list that
@@ -158,11 +164,11 @@
 		// A different token, or a different query within it, starts the list again
 		// from the top — the row that was active may not even be in it any more.
 		if (token.start !== tokenStart || token.query !== query) activeIndex = 0;
+		// Anchored to the trigger character, not to the caret: the menu then holds
+		// still while the query is typed instead of crawling along with it. The
+		// anchor getter above reads this position live.
 		tokenStart = token.start;
 		query = token.query;
-		// Anchored to the trigger character, not to the caret: the menu then holds
-		// still while the query is typed instead of crawling along with it.
-		caret = measureCaretRect(el, token.start);
 		open = true;
 	}
 

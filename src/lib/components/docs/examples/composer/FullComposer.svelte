@@ -71,9 +71,19 @@
 	let timers: ReturnType<typeof setTimeout>[] = [];
 	let reduced = false;
 
+	/** Just the reply in flight, so stopping it leaves the rest of the demo alone. */
+	let replyTimers: ReturnType<typeof setTimeout>[] = [];
+
 	/** Every timer in this file goes through here, so unmount can take them all back. */
 	function later(fn: () => void, ms: number) {
 		timers.push(setTimeout(fn, ms));
+	}
+
+	/** A reply's own timer: tracked twice, so `halt` can cancel it and unmount still can. */
+	function laterReply(fn: () => void, ms: number) {
+		const timer = setTimeout(fn, ms);
+		timers.push(timer);
+		replyTimers.push(timer);
 	}
 
 	// -------------------------------------------------------------------------
@@ -173,10 +183,10 @@
 				turn.id === id ? { ...turn, text: turn.text === "" ? word : `${turn.text} ${word}` } : turn
 			);
 			i += 1;
-			later(chunk, WORD_MS);
+			laterReply(chunk, WORD_MS);
 		}
 
-		later(chunk, REPLY_MS);
+		laterReply(chunk, REPLY_MS);
 	}
 
 	function send(payload: { text: string; attachments: AttachmentData[] }) {
@@ -192,8 +202,11 @@
 	}
 
 	function halt() {
-		for (const timer of timers) clearTimeout(timer);
-		timers = [];
+		// Only the reply: an upload or a transcription running alongside it has
+		// nothing to do with the answer being stopped, and cancelling their timers
+		// would leave their chips frozen mid-progress.
+		for (const timer of replyTimers) clearTimeout(timer);
+		replyTimers = [];
 		streaming = false;
 	}
 

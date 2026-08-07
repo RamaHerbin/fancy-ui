@@ -112,6 +112,16 @@ describe("Composer", () => {
 		expect(textarea(container).value).toBe("");
 	});
 
+	it("keeps the draft when nothing is listening for a submit", async () => {
+		// Clearing here would throw away text with nowhere for it to have gone.
+		const { container } = mount({ initialValue: "hello there" });
+
+		await fireEvent.submit(form(container));
+
+		expect(readout(container, "bound-value")).toBe("hello there");
+		expect(textarea(container).value).toBe("hello there");
+	});
+
 	it("refuses an empty and a whitespace-only draft", async () => {
 		const onSubmit = vi.fn();
 		const { container } = mount({ onSubmit });
@@ -432,6 +442,21 @@ describe("ComposerSubmit", () => {
 
 	it("wakes up for an attachment-only draft", () => {
 		const { container } = mount({ initialAttachments: [{ id: "a1", name: "notes.pdf" }] });
+		expect(sendButton(container).disabled).toBe(false);
+	});
+
+	it("greys out the stop control when there is no onStop behind it", () => {
+		// The root always publishes a callable `stop`, so the control has to ask
+		// the context whether anything is actually listening.
+		const { container } = mount({ initialValue: "hello", streaming: true });
+		const button = sendButton(container);
+
+		expect(button.getAttribute("aria-label")).toBe("Stop");
+		expect(button.disabled).toBe(true);
+	});
+
+	it("offers the stop control once a handler exists", () => {
+		const { container } = mount({ initialValue: "hello", streaming: true, onStop: () => {} });
 		expect(sendButton(container).disabled).toBe(false);
 	});
 
