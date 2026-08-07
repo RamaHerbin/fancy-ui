@@ -104,6 +104,8 @@ export default {
 	"category.navigation": "导航",
 	"category.media": "媒体",
 	"category.effects": "特效",
+	"category.ai-chat": "AI 聊天",
+	"category.ai-agents": "AI 智能体",
 
 	// Introduction (redesigned page)
 	"intro.title": "简介",

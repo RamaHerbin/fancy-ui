@@ -26,6 +26,7 @@ const indexPath = join(fancyUiDir, "index.ts");
 
 // Non-component entries inside src/lib/fancy-ui/
 const NON_COMPONENT_ENTRIES = new Set([
+	"_internals",
 	"_template",
 	"index.ts",
 	"registry.ts",

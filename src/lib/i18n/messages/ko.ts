@@ -117,6 +117,8 @@ export default {
 	"category.navigation": "내비게이션",
 	"category.media": "미디어",
 	"category.effects": "효과",
+	"category.ai-chat": "AI 채팅",
+	"category.ai-agents": "AI 에이전트",
 
 	// Introduction (redesigned page)
 	"intro.title": "소개",

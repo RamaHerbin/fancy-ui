@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navigation",
 	"category.media": "Medien",
 	"category.effects": "Effekte",
+	"category.ai-chat": "KI-Chat",
+	"category.ai-agents": "KI-Agenten",
 
 	// Introduction (redesigned page)
 	"intro.title": "Einführung",
@@ -163,8 +165,10 @@ export default {
 	"intro.category.feedback": "Feedback",
 	"intro.category.media": "Medien",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer und Co. Buttons, die zum Klicken einladen.",
-	"intro.stats.cards": "Karussells, Bento-Raster, 3D-Effekte. Inhalte präsentieren, ohne zu langweilen.",
-	"intro.stats.effects": "Cursor, Spuren, animierte Texte. Die kleinen Details, die den Unterschied machen.",
+	"intro.stats.cards":
+		"Karussells, Bento-Raster, 3D-Effekte. Inhalte präsentieren, ohne zu langweilen.",
+	"intro.stats.effects":
+		"Cursor, Spuren, animierte Texte. Die kleinen Details, die den Unterschied machen.",
 	"sidebar.starTitle": "Stern auf GitHub",
 	"sidebar.starBody": "Wenn dir FancyUI gefällt, gib einen Stern!",
 	"rail.nextPage": "Nächste Seite",

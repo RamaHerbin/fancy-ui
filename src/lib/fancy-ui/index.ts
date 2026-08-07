@@ -90,3 +90,6 @@ export {
 	hasComponent,
 	getComponentCategory,
 } from "./registry.js";
+
+// Shared AI/chat data types (type-only; _internals is not a component folder)
+export type * from "./_internals/ai-types.js";

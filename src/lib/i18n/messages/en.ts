@@ -128,6 +128,8 @@ export const en = {
 	"category.navigation": "Navigation",
 	"category.media": "Media",
 	"category.effects": "Effects",
+	"category.ai-chat": "AI Chat",
+	"category.ai-agents": "AI Agents",
 
 	// Introduction page
 	"intro.title": "Introduction",
@@ -172,8 +174,10 @@ export const en = {
 	"intro.category.feedback": "Feedback",
 	"intro.category.media": "Media",
 	"intro.stats.buttons": "Rainbow, ripple, shimmer and friends. Buttons that beg to be clicked.",
-	"intro.stats.cards": "Carousels, bento grids, 3D tilts. Ways to present content without boring anyone.",
-	"intro.stats.effects": "Cursors, trails, animated text. The little touches that make the difference.",
+	"intro.stats.cards":
+		"Carousels, bento grids, 3D tilts. Ways to present content without boring anyone.",
+	"intro.stats.effects":
+		"Cursors, trails, animated text. The little touches that make the difference.",
 	"sidebar.starTitle": "Star on GitHub",
 	"sidebar.starBody": "If you like FancyUI, give it a star!",
 	"rail.nextPage": "Next page",

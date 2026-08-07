@@ -117,6 +117,8 @@ export default {
 	"category.navigation": "التنقّل",
 	"category.media": "الوسائط",
 	"category.effects": "التأثيرات",
+	"category.ai-chat": "محادثة الذكاء الاصطناعي",
+	"category.ai-agents": "وكلاء الذكاء الاصطناعي",
 
 	// Introduction (redesigned page)
 	"intro.title": "مقدّمة",

@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navigasi",
 	"category.media": "Media",
 	"category.effects": "Efek",
+	"category.ai-chat": "Obrolan AI",
+	"category.ai-agents": "Agen AI",
 
 	// Introduction (redesigned page)
 	"intro.title": "Pengantar",
@@ -161,7 +163,8 @@ export default {
 	"intro.category.dataDisplay": "Tampilan Data",
 	"intro.category.feedback": "Umpan Balik",
 	"intro.category.media": "Media",
-	"intro.stats.buttons": "Rainbow, Ripple, Shimmer, dan kawan-kawan. Tombol yang bikin ingin diklik.",
+	"intro.stats.buttons":
+		"Rainbow, Ripple, Shimmer, dan kawan-kawan. Tombol yang bikin ingin diklik.",
 	"intro.stats.cards": "Karusel, kisi bento, efek 3D. Cara menyajikan konten tanpa membosankan.",
 	"intro.stats.effects": "Kursor, jejak, teks animasi. Sentuhan kecil yang membuat perbedaan.",
 	"sidebar.starTitle": "Bintang di GitHub",

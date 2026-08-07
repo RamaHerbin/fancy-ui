@@ -25,6 +25,8 @@ export const categoryLabels: Record<ComponentCategory, string> = {
 	navigation: "Navigation",
 	media: "Media",
 	effects: "Effects",
+	"ai-chat": "AI Chat",
+	"ai-agents": "AI Agents",
 };
 
 /**
@@ -41,6 +43,8 @@ export const categoryDescriptions: Record<ComponentCategory, string> = {
 	navigation: "Navigation menus, tabs, and wayfinding components",
 	media: "Image, video, and media display components",
 	effects: "Visual effects, animations, and decorative elements",
+	"ai-chat": "Conversation surfaces: messages, composers, threads, and streaming text",
+	"ai-agents": "Agent activity: reasoning, tool use, plans, and human-in-the-loop cards",
 };
 
 /**
@@ -57,6 +61,8 @@ export const categories: ComponentCategory[] = [
 	"data-display",
 	"feedback",
 	"media",
+	"ai-chat",
+	"ai-agents",
 ];
 
 // =============================================================================

@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navigation",
 	"category.media": "Médias",
 	"category.effects": "Effets",
+	"category.ai-chat": "Chat IA",
+	"category.ai-agents": "Agents IA",
 
 	// Introduction (redesigned page)
 	"intro.title": "Introduction",
@@ -164,9 +166,12 @@ export default {
 	"intro.category.dataDisplay": "Affichage de données",
 	"intro.category.feedback": "Retour d'information",
 	"intro.category.media": "Médias",
-	"intro.stats.buttons": "Rainbow, Ripple, Shimmer et compagnie. Des boutons qui donnent envie de cliquer.",
-	"intro.stats.cards": "Carrousels, grilles bento, effets 3D. De quoi présenter du contenu sans l'ennuyer.",
-	"intro.stats.effects": "Curseurs, traînées, textes animés. Les petites touches qui font la différence.",
+	"intro.stats.buttons":
+		"Rainbow, Ripple, Shimmer et compagnie. Des boutons qui donnent envie de cliquer.",
+	"intro.stats.cards":
+		"Carrousels, grilles bento, effets 3D. De quoi présenter du contenu sans l'ennuyer.",
+	"intro.stats.effects":
+		"Curseurs, traînées, textes animés. Les petites touches qui font la différence.",
 	"sidebar.starTitle": "Star sur GitHub",
 	"sidebar.starBody": "Si FancyUI vous plaît, laissez une étoile !",
 	"rail.nextPage": "Page suivante",
