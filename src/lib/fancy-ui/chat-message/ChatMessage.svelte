@@ -35,6 +35,7 @@
 	import { cn } from "$lib/utils.js";
 	import StreamingText from "../streaming-text/StreamingText.svelte";
 	import { formatRelativeTime } from "../_internals/relative-time.js";
+	import { createNow } from "../_internals/elapsed.svelte.js";
 	import { CHAT_MESSAGE_CONTEXT_KEY, type ChatMessageContext } from "./types.js";
 
 	let {
@@ -90,7 +91,17 @@
 				: timestamp
 	);
 	const isValidTime = $derived(time !== undefined && Number.isFinite(time));
-	const relative = $derived(isValidTime ? formatRelativeTime(time as number) : "");
+
+	// A message left mounted through a long-lived session must not freeze at
+	// whatever age it had on first paint. `now` only ticks while a timestamp is
+	// actually shown; the effect's cleanup (the `stop` that `start()` returns)
+	// silences it once the message unmounts or the timestamp is cleared.
+	const now = createNow();
+	$effect(() => (isValidTime ? now.start() : undefined));
+
+	const relative = $derived(
+		isValidTime ? formatRelativeTime(time as number, { now: now.value }) : ""
+	);
 	const iso = $derived(isValidTime ? new Date(time as number).toISOString() : undefined);
 </script>
 
@@ -113,7 +124,12 @@
 		<div
 			class="text-muted-foreground flex max-w-prose flex-col items-center gap-1 py-1 text-center"
 		>
-			<div class="text-xs leading-relaxed text-balance">
+			<div
+				class="text-xs leading-relaxed text-balance"
+				aria-live="polite"
+				aria-atomic="true"
+				aria-busy={streaming}
+			>
 				{#if children}
 					{@render children()}
 				{:else}
@@ -141,6 +157,9 @@
 			<div
 				class={cn("text-sm leading-relaxed", isUser && "rounded-2xl px-4 py-2.5")}
 				class:ft-message-bubble={isUser}
+				aria-live="polite"
+				aria-atomic="true"
+				aria-busy={streaming}
 			>
 				{#if children}
 					{@render children()}

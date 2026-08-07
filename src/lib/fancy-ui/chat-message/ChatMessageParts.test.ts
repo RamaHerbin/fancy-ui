@@ -13,7 +13,9 @@ function button(container: HTMLElement): HTMLButtonElement {
 }
 
 function rail(container: HTMLElement): HTMLElement {
-	return container.querySelector('[role="toolbar"]') as HTMLElement;
+	// Selected by aria-label rather than role: ChatMessageBranches is also a
+	// role="group" inside the same harness, and only the label disambiguates.
+	return container.querySelector('[aria-label="Message actions"]') as HTMLElement;
 }
 
 describe("ChatMessageAction", () => {
@@ -151,8 +153,9 @@ describe("ChatMessageBranches", () => {
 describe("ChatMessageActions", () => {
 	afterEach(cleanup);
 
-	it("is a labelled toolbar", () => {
+	it("is a labelled group rather than a toolbar with unimplemented arrow-key navigation", () => {
 		const { container } = render(ChatMessageActions, {});
+		expect(rail(container).getAttribute("role")).toBe("group");
 		expect(rail(container).getAttribute("aria-label")).toBe("Message actions");
 	});
 
@@ -199,10 +202,11 @@ describe("ChatMessageActions", () => {
 			props: { role: "user", index: 2, count: 3, onNavigate, onCopy },
 		});
 
-		// The branch navigator hugs the same edge the user turn does.
-		expect((container.querySelector('[role="group"]') as HTMLElement).className).toContain(
-			"justify-end"
-		);
+		// The branch navigator hugs the same edge the user turn does. Selected by
+		// aria-label: the action rail is also role="group" in this harness.
+		expect(
+			(container.querySelector('[aria-label="Response versions"]') as HTMLElement).className
+		).toContain("justify-end");
 
 		await fireEvent.click(getByLabelText("Copy"));
 		expect(onCopy).toHaveBeenCalledTimes(1);

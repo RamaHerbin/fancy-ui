@@ -8,7 +8,9 @@
 		onSelect?: (suggestion: string, index: number) => void;
 		/** Whether the pills are shown; flipping this to true replays the entrance */
 		visible?: boolean;
-		/** Delay between two consecutive pills entering, in milliseconds */
+		/** Delay between two consecutive pills entering, in milliseconds. Defaults to
+		 * 60ms via a CSS fallback — omit this prop to let an ancestor's
+		 * `--ft-suggestions-stagger` theme the whole subtree instead. */
 		staggerMs?: number;
 		/** Accessible name of the group wrapping the pills */
 		label?: string;
@@ -28,19 +30,26 @@
 		suggestions,
 		onSelect,
 		visible = true,
-		staggerMs = 60,
+		staggerMs,
 		label = "Suggestions",
 		item,
 		class: className,
 		ref = $bindable(null),
 	}: PromptSuggestionsProps = $props();
 
+	/** Mirrors the CSS fallback on `--ft-suggestions-delay` below. */
+	const DEFAULT_STAGGER_MS = 60;
 	/** Past this the last pill of a long row would still be waiting long after the reply landed. */
 	const MAX_STAGGER_MS = 400;
 
 	// A negative stagger would drop later pills in mid-entrance rather than
-	// delaying them, which reads as a glitch instead of a cascade.
-	const stagger = $derived(Math.min(Math.max(staggerMs, 0), MAX_STAGGER_MS));
+	// delaying them, which reads as a glitch instead of a cascade. `undefined`
+	// is left alone: the inline custom property is only ever written when the
+	// caller actually passed a value, so an ancestor's `--ft-suggestions-stagger`
+	// is free to theme the subtree otherwise.
+	const stagger = $derived(
+		staggerMs === undefined ? undefined : Math.min(Math.max(staggerMs, 0), MAX_STAGGER_MS)
+	);
 
 	// Recreating the pills is what restarts their CSS animation, so the keyed
 	// {#each} hangs off a counter that only moves when `visible` flips false →
@@ -67,7 +76,7 @@
 	});
 
 	const rootStyle = $derived(
-		`--ft-suggestions-stagger:${stagger}ms${visible ? "" : ";display:none"}`
+		`${stagger === undefined ? "" : `--ft-suggestions-stagger:${stagger}ms;`}${visible ? "" : "display:none"}`
 	);
 </script>
 
@@ -82,7 +91,7 @@
 		<button
 			type="button"
 			class="ft-suggestion border-border text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:ring-ring cursor-pointer rounded-full border px-3 py-1.5 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
-			style="--ft-suggestions-delay:calc(var(--ft-suggestions-stagger) * {i})"
+			style="--ft-suggestions-delay:calc(var(--ft-suggestions-stagger, {DEFAULT_STAGGER_MS}ms) * {i})"
 			onclick={() => onSelect?.(suggestion, i)}
 		>
 			{#if item}{@render item(suggestion, i)}{:else}{suggestion}{/if}

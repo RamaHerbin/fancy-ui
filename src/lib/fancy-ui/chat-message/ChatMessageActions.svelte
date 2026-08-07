@@ -22,7 +22,7 @@
 	let { alwaysVisible = false, children, class: className }: ChatMessageActionsProps = $props();
 
 	// Undefined when the rail is used outside a ChatMessage: it then behaves as a
-	// plain always-hidden-until-focused toolbar rather than throwing.
+	// plain always-hidden-until-focused button group rather than throwing.
 	const message = getContext<ChatMessageContext | undefined>(CHAT_MESSAGE_CONTEXT_KEY);
 
 	const visible = $derived(alwaysVisible || (message?.hovered.current ?? false));
@@ -31,7 +31,7 @@
 <div
 	class={cn("ft-message-actions flex items-center gap-0.5", className)}
 	class:ft-visible={visible}
-	role="toolbar"
+	role="group"
 	aria-label="Message actions"
 >
 	{#if children}

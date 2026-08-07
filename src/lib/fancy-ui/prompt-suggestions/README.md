@@ -56,7 +56,7 @@ A row of prompt pills that cascade in after a reply lands, offering the user a n
 
 ## Theming
 
-Two custom properties drive the entrance. `--ft-suggestions-stagger` is written by the `staggerMs` prop, so set it from CSS only if you want it to win for a whole subtree; `--ft-suggestions-duration` has no prop and is the intended override point for how long a single pill takes to arrive.
+Two custom properties drive the entrance. `--ft-suggestions-stagger` is only written inline when you pass `staggerMs`; leave it out and set the property from CSS instead if you want a whole subtree themed at once, falling back to 60ms where nothing sets it. `--ft-suggestions-duration` has no prop and is the intended override point for how long a single pill takes to arrive.
 
 ```css
 .chat-thread {
@@ -66,7 +66,7 @@ Two custom properties drive the entrance. `--ft-suggestions-stagger` is written 
 
 ## Implementation Notes
 
-- Each pill carries `--ft-suggestions-delay: calc(var(--ft-suggestions-stagger) * i)` and the keyframe reads that, so the whole cascade is one shared custom property away from being retimed — no per-pill recomputation in JS.
+- Each pill carries `--ft-suggestions-delay: calc(var(--ft-suggestions-stagger, 60ms) * i)` and the keyframe reads that, so the whole cascade is one shared custom property away from being retimed — no per-pill recomputation in JS.
 - The entrance uses `animation-fill-mode: backwards`. Without it every pill would paint at full opacity, then drop out to fade back in when its delay expired, which reads as a flicker rather than a cascade.
 - `visible = false` sets `display: none` on the group inline. The pills stay in the DOM but leave the accessibility tree and the tab order.
 - Replaying the cascade needs new elements — a CSS animation does not restart on an element that already finished one. The `{#each}` is keyed on a counter that only advances when `visible` goes false → true, which recreates the pills at exactly that moment and nowhere else. The counter is bumped in an `$effect.pre` so the re-key and the unhiding land in the same DOM update; a post-flush bump would show the old pills for a frame first.
