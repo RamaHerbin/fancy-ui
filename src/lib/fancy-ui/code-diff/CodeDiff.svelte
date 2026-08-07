@@ -80,7 +80,19 @@
 	// Names alone would let a reused path carry state across two unrelated
 	// patches, so the whole list is watched: when it changes, both records start
 	// empty and every file is back under `collapsed`.
-	const signature = $derived(files.map((file) => nameOf(file, files.length)).join("\n"));
+	// A name on its own cannot tell two patches apart when both touch the same
+	// path, so a replacement would inherit the fold and clamp state of the patch
+	// before it. The first hunk's declared start pins that down, and it is fixed
+	// the moment that header parses — a patch still streaming in only ever gains
+	// lines and later hunks, so growth in place still reads as the same file.
+	const signature = $derived(
+		files
+			.map((file) => {
+				const anchor = file.hunks[0];
+				return `${nameOf(file, files.length)}:${anchor?.oldStart ?? ""}:${anchor?.newStart ?? ""}`;
+			})
+			.join("\n")
+	);
 	// Untracked on purpose: this is the "what did we render last" marker, and it is
 	// the effect below — not this line — that is meant to notice a change.
 	let lastSignature = untrack(() => signature);

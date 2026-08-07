@@ -217,4 +217,31 @@ describe("TerminalBlock", () => {
 		expect(root(container).className).toContain("my-block");
 		expect(root(container).className).toContain("font-mono");
 	});
+
+	it.each([
+		[59_999, "1m 00s"],
+		[119_999, "2m 00s"],
+		[3_599_999, "60m 00s"],
+	])("carries a rounded %ims into the next minute", (durationMs, expected) => {
+		// Rounding each unit on its own produced counts that do not exist: "60.0s",
+		// "1m 60s", "59m 60s".
+		const { container } = render(TerminalBlock, {
+			props: { output: "x", exitCode: 0, durationMs },
+		});
+		expect(container.querySelector(".ft-muted")?.textContent).toContain(expected);
+	});
+
+	it("pins an already-running transcript that mounts overflowing", () => {
+		// jsdom lays nothing out, so the container has to be told it overflows.
+		const original = Object.getOwnPropertyDescriptor(Element.prototype, "scrollHeight");
+		Object.defineProperty(Element.prototype, "scrollHeight", { configurable: true, value: 1000 });
+		try {
+			const { container } = render(TerminalBlock, {
+				props: { output: "line\n".repeat(50), running: true },
+			});
+			expect(log(container).scrollTop).toBe(1000);
+		} finally {
+			if (original) Object.defineProperty(Element.prototype, "scrollHeight", original);
+		}
+	});
 });

@@ -65,7 +65,9 @@ interface Sgr {
 }
 
 function applySgr(params: string, state: Sgr): void {
-	for (const part of params.split(";")) {
+	const parts = params.split(";");
+	for (let i = 0; i < parts.length; i++) {
+		const part = parts[i];
 		// An omitted parameter means 0, so `ESC[m` and `ESC[;32m` both behave.
 		const code = part === "" ? 0 : Number(part);
 		if (!Number.isInteger(code)) continue;
@@ -76,6 +78,16 @@ function applySgr(params: string, state: Sgr): void {
 		}
 		if (code === 1) {
 			state.bold = true;
+			continue;
+		}
+		// An extended colour carries its value in the parameters that follow it —
+		// `38;5;n` or `38;2;r;g;b` — and those are data, not codes: the 31 in
+		// `38;5;31` is a palette index, not "red". Both forms are dropped either
+		// way; taking the whole run at once is what stops the payload being read
+		// back out as styling. A truncated run consumes only what is there, since
+		// the loop bound catches an index past the end.
+		if (code === 38 || code === 48) {
+			i += parts[i + 1] === "5" ? 2 : parts[i + 1] === "2" ? 4 : 1;
 			continue;
 		}
 		const colour = fgVar(code);

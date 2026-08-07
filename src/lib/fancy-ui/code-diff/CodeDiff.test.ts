@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect } from "vitest";
 import CodeDiff from "./CodeDiff.svelte";
 
@@ -341,5 +342,36 @@ describe("CodeDiff", () => {
 
 		await rerender({ diff: `${BARE_HUNK}+const c = 4;\n` });
 		expect(rowsOfKind(container, "add")).toHaveLength(2);
+	});
+
+	describe("an unrelated patch that reuses a path", () => {
+		// Two files on purpose: folding the only file of a one-file patch flips
+		// `collapsed`, the consumer-facing master switch, and that is meant to
+		// survive a replacement. What must not survive is the per-file override.
+		const file = (path: string, hunk: string) =>
+			[
+				`diff --git a/${path} b/${path}`,
+				`--- a/${path}`,
+				`+++ b/${path}`,
+				hunk,
+				"-before",
+				"+after",
+			].join("\n");
+		const FIRST = `${file("src/query.ts", "@@ -10,2 +10,2 @@")}\n${file("src/other.ts", "@@ -1,2 +1,2 @@")}\n`;
+		const SECOND = `${file("src/query.ts", "@@ -50,2 +50,2 @@")}\n${file("src/other.ts", "@@ -1,2 +1,2 @@")}\n`;
+
+		it("unfolds instead of inheriting the previous patch's fold state", async () => {
+			const { container, rerender } = render(CodeDiff, { props: { diff: FIRST } });
+			expect(headers(container)).toHaveLength(2);
+
+			await fireEvent.click(headers(container)[0]);
+			expect(headers(container)[0].getAttribute("aria-expanded")).toBe("false");
+
+			await rerender({ diff: SECOND });
+			// The reset runs in the effect that follows the prop update, so the
+			// header it re-renders is a flush behind `rerender` itself.
+			await tick();
+			expect(headers(container)[0].getAttribute("aria-expanded")).toBe("true");
+		});
 	});
 });

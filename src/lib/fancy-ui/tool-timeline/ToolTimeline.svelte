@@ -26,6 +26,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { formatRelativeTime } from "../_internals/relative-time.js";
+	import { createNow } from "../_internals/elapsed.svelte.js";
 
 	let {
 		items,
@@ -36,6 +37,13 @@
 		class: className,
 		ref = $bindable(null),
 	}: ToolTimelineProps = $props();
+
+	// A relative label is only recomputed when something makes this component
+	// render, so a timeline left mounted across a minute boundary would keep
+	// reporting the age its rows had when they first appeared. One shared clock
+	// for the whole list costs a single interval, whatever the row count.
+	const now = createNow();
+	$effect(() => now.start());
 
 	function iso(timestamp: Date | number) {
 		const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
@@ -105,7 +113,8 @@
 								<time
 									class="ft-tooltimeline-time text-muted-foreground tabular-nums"
 									datetime={iso(entry.timestamp)}
-									title={iso(entry.timestamp)}>{formatRelativeTime(entry.timestamp)}</time
+									title={iso(entry.timestamp)}
+									>{formatRelativeTime(entry.timestamp, { now: now.value })}</time
 								>
 							{/if}
 						</span>
