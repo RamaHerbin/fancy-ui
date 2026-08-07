@@ -343,4 +343,36 @@ describe("SubagentList", () => {
 		expect(root.className).toContain("my-fanout");
 		expect(root.className).toContain("ft-subagents");
 	});
+
+	it("keeps a row's key across an insertion above it, and survives colliding ids", async () => {
+		// Positional keys renamed every row below an insertion, throwing away the
+		// DOM nodes — and their entrance animations — of rows that never moved.
+		const { container, rerender } = render(SubagentList, {
+			props: { agents: [agent({ id: "a", name: "Alpha" }), agent({ id: "b", name: "Bravo" })] },
+		});
+		const last = container.querySelectorAll(".ft-subagents-row")[1];
+
+		await rerender({
+			agents: [
+				agent({ id: "z", name: "Zulu" }),
+				agent({ id: "a", name: "Alpha" }),
+				agent({ id: "b", name: "Bravo" }),
+			],
+		});
+		expect(container.querySelectorAll(".ft-subagents-row")[2]).toBe(last);
+
+		cleanup();
+		const collision = render(SubagentList, {
+			props: {
+				agents: [
+					agent({ id: "x", name: "First" }),
+					agent({ id: "x", name: "Second" }),
+					agent({ id: "x#1", name: "Third" }),
+				],
+			},
+		});
+		expect(
+			[...collision.container.querySelectorAll(".ft-subagents-name")].map((el) => el.textContent)
+		).toEqual(["First", "Second", "Third"]);
+	});
 });

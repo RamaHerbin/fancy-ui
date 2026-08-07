@@ -106,6 +106,33 @@
 	function percent(progress: number | undefined): number {
 		return Math.round(Math.min(1, Math.max(0, progress ?? 0)) * 100);
 	}
+
+	/**
+	 * The first worker under an id keeps that id as its key, so a row survives a
+	 * reorder with its DOM node intact; only a repeat is suffixed, and by
+	 * occurrence rather than position, which would rename every row below an
+	 * insertion. The suffix also clears the ids actually in the list, since a
+	 * worker may genuinely be called "x#1" while two others are called "x".
+	 */
+	const rows = $derived.by(() => {
+		const ids = new Set(agents.map((agent) => agent.id));
+		const seen = new Map<string, number>();
+		const used = new Set<string>();
+		return agents.map((agent, index) => {
+			const occurrence = seen.get(agent.id) ?? 0;
+			seen.set(agent.id, occurrence + 1);
+			let key = agent.id;
+			if (occurrence > 0) {
+				let suffix = occurrence;
+				do {
+					key = `${agent.id}#${suffix}`;
+					suffix++;
+				} while (ids.has(key) || used.has(key));
+			}
+			used.add(key);
+			return { agent, index, key };
+		});
+	});
 </script>
 
 <!--
@@ -125,11 +152,11 @@
 		<!--
 			Keyed by id so a newly spawned worker mounts as a fresh node and plays the
 			entrance on its own, while the rows already on screen keep their DOM nodes
-			and stay put. The position is appended because the ids come from a model:
-			a repeated one would otherwise crash the block, and appending leaves the
-			keys of the rows already on screen untouched when a worker is added.
+			and stay put. The ids come from a model, so a repeat has to be
+			disambiguated or the block would crash — see `rows` for how, and why it
+			counts occurrences rather than positions.
 		-->
-		{#each agents as agent, index (`${agent.id}#${index}`)}
+		{#each rows as { agent, index, key } (key)}
 			<li class="ft-subagents-row">
 				{#snippet body()}
 					<!--

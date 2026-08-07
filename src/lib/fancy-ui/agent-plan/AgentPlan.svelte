@@ -73,11 +73,30 @@
 	const rows = $derived.by(() => {
 		const out: PlanRow[] = [];
 		const seen = new Map<string, number>();
+		// Every id in the plan, substeps included: a suffixed key has to clear them
+		// as well as the keys already handed out, since a step may genuinely be
+		// called "x#1" while two others are called "x".
+		const ids = new Set<string>();
+		const collectIds = (list: PlanStepData[]) => {
+			for (const step of list) {
+				ids.add(step.id);
+				if (step.substeps) collectIds(step.substeps);
+			}
+		};
+		collectIds(steps);
+		const used = new Set<string>();
 
 		const push = (step: PlanStepData, depth: number) => {
 			const occurrence = seen.get(step.id) ?? 0;
 			seen.set(step.id, occurrence + 1);
-			out.push({ step, key: `${step.id}#${occurrence}`, depth, index: out.length, lastSub: false });
+			let key = `${step.id}#${occurrence}`;
+			let suffix = occurrence;
+			while (ids.has(key) || used.has(key)) {
+				suffix++;
+				key = `${step.id}#${suffix}`;
+			}
+			used.add(key);
+			out.push({ step, key, depth, index: out.length, lastSub: false });
 		};
 
 		for (const step of steps) {
