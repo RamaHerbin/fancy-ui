@@ -54,9 +54,12 @@
 		step: PlanStepData;
 		/**
 		 * What the `{#each}` is keyed by. The id leads, so a row keeps its DOM node
-		 * across a re-render, but the position is appended: a model that emits the
-		 * same id twice would otherwise crash the block, and a plan that repeats a
-		 * step is a plan, not an error.
+		 * across a re-render, but an occurrence count is appended rather than the
+		 * row's flattened position: a model that emits the same id twice would
+		 * otherwise crash the block, and counting by occurrence rather than
+		 * position means inserting or removing a step elsewhere in the plan does
+		 * not change the key — and so does not remount — a row whose own id never
+		 * changed.
 		 */
 		key: string;
 		/** 0 for a top-level step, 1 for anything nested under one. */
@@ -69,9 +72,12 @@
 
 	const rows = $derived.by(() => {
 		const out: PlanRow[] = [];
+		const seen = new Map<string, number>();
 
 		const push = (step: PlanStepData, depth: number) => {
-			out.push({ step, key: `${step.id}#${out.length}`, depth, index: out.length, lastSub: false });
+			const occurrence = seen.get(step.id) ?? 0;
+			seen.set(step.id, occurrence + 1);
+			out.push({ step, key: `${step.id}#${occurrence}`, depth, index: out.length, lastSub: false });
 		};
 
 		for (const step of steps) {
@@ -159,6 +165,7 @@
 	{@render glyph(row.step.status)}
 
 	{#if item}
+		<span class="sr-only">{STATUS_LABELS[row.step.status]}</span>
 		{@render item(row.step, row.index)}
 	{:else}
 		<span class="ft-agentplan-text min-w-0 flex-1">

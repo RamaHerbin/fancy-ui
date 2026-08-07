@@ -179,7 +179,17 @@
 						<span class="ft-subagents-meta flex shrink-0 items-center">
 							{#if showsProgress(agent)}
 								{@const value = percent(agent.progress)}
-								<span class="sr-only">{STATUS_LABELS[agent.status]}, {value}%</span>
+								{#if onSelect}
+									<!--
+										Only needed inside the selectable row's button: a `progressbar`
+										is a range role, so its own value feeds the button's accessible
+										name instead of being announced on its own, and these words are
+										what makes that name legible. A standalone row keeps the
+										`progressbar` as its own object, independently announced with
+										its label and value — this text would only repeat it.
+									-->
+									<span class="sr-only">{STATUS_LABELS[agent.status]}, {value}%</span>
+								{/if}
 								<span
 									class="ft-subagents-progress"
 									role="progressbar"

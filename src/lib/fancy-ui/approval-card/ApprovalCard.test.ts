@@ -1,5 +1,5 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { createRawSnippet } from "svelte";
+import { createRawSnippet, tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import ApprovalCard from "./ApprovalCard.svelte";
 import Harness from "./ApprovalCardHarness.test.svelte";
@@ -161,6 +161,15 @@ describe("ApprovalCard", () => {
 
 		expect(root(container).getAttribute("aria-busy")).toBeNull();
 		expect(approve(container).disabled).toBe(false);
+	});
+
+	it("moves focus to the verdict once the buttons that held it are gone", async () => {
+		const { container } = render(ApprovalCard, { props: { title: TITLE } });
+
+		await fireEvent.click(approve(container));
+		await tick();
+
+		expect(document.activeElement).toBe(resolved(container));
 	});
 
 	it("refuses a decision that arrives while busy", async () => {
