@@ -458,4 +458,125 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "FullConversation", title: "Full Conversation" },
 	],
+
+	button: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Variants", title: "Variants", description: "All six visual treatments." },
+		{ name: "Sizes", title: "Sizes", description: "Small, medium, and large." },
+		{
+			name: "LoadingState",
+			title: "Loading State",
+			description: "Spinner in place of the icon, activation blocked, no dimming.",
+		},
+		{ name: "WithIcons", title: "With Icons", description: "iconStart and iconEnd snippets." },
+		{
+			name: "AsLink",
+			title: "As Link",
+			description: "href renders an anchor instead of a button.",
+		},
+		{
+			name: "DisabledState",
+			title: "Disabled State",
+			description: "Disabled on the button vs. the anchor — two different mechanisms.",
+		},
+	],
+	"icon-button": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Variants", title: "Variants" },
+		{ name: "Sizes", title: "Sizes" },
+		{ name: "Shapes", title: "Shapes" },
+	],
+	"button-group": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "SegmentedControl",
+			title: "Segmented Control",
+			description:
+				"A Day / Week / Month picker; the active item is the demo's own state, not ButtonGroup's.",
+		},
+		{
+			name: "SplitButton",
+			title: "Split Button",
+			description: "A wide primary action and a narrow trailing trigger, joined by the same seam.",
+		},
+		{
+			name: "Vertical",
+			title: "Vertical",
+			description:
+				'orientation="vertical" stacks the items and rotates the divider onto the same axis.',
+		},
+	],
+	link: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Variants", title: "Variants", description: "Default vs. muted color treatment." },
+		{
+			name: "ExternalLink",
+			title: "External Link",
+			description: "Off-site link with the arrow glyph, new tab, and safe rel.",
+		},
+		{
+			name: "UnderlineModes",
+			title: "Underline Modes",
+			description: "hover, always, and none underline behavior.",
+		},
+	],
+	toggle: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A single icon-only toggle with a bound pressed state.",
+		},
+		{ name: "Sizes", title: "Sizes", description: "The three available sizes, sm/md/lg." },
+		{ name: "Variants", title: "Variants", description: "Ghost vs. outline, resting and pressed." },
+		{
+			name: "TextFormatting",
+			title: "Text Formatting",
+			description: "A bold/italic/underline row with a live preview.",
+		},
+	],
+	"toggle-group": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "SingleSelection",
+			title: "Single Selection",
+			description: "Activating the active item again clears it.",
+		},
+		{
+			name: "MultipleSelection",
+			title: "Multiple Selection",
+			description: 'Independent on/off marks with type="multiple".',
+		},
+		{
+			name: "Vertical",
+			title: "Vertical",
+			description: "A vertical rail — both arrow-key pairs still work.",
+		},
+		{
+			name: "DisabledItems",
+			title: "Disabled Items",
+			description: "One item unavailable; the keyboard model skips it.",
+		},
+	],
+	"copy-button": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "An outline button that copies a value on click.",
+		},
+		{
+			name: "IconOnly",
+			title: "Icon Only",
+			description: "Drops the visible label into aria-label for a toolbar.",
+		},
+		{
+			name: "CustomLabels",
+			title: "Custom Labels",
+			description: "Overrides the idle and copied label text.",
+		},
+		{
+			name: "Variants",
+			title: "Variants",
+			description: "Four Button variants used as the idle skin.",
+		},
+	],
 };

@@ -96,6 +96,15 @@ export * from "./scroll-anchor/index.js";
 export * from "./thread-list/index.js";
 export * from "./chat-panel/index.js";
 
+// Core — actions
+export * from "./button/index.js";
+export * from "./icon-button/index.js";
+export * from "./button-group/index.js";
+export * from "./link/index.js";
+export * from "./toggle/index.js";
+export * from "./toggle-group/index.js";
+export * from "./copy-button/index.js";
+
 // =============================================================================
 // Registry
 // =============================================================================

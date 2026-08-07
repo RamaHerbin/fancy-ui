@@ -4164,6 +4164,530 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	// =========================================================================
+	// Core — actions
+	// =========================================================================
+
+	button: {
+		name: "Button",
+		slug: "button",
+		description:
+			"The foundational push-button: six variants, three sizes, a loading state, and a polymorphic href/anchor mode",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["button", "cta", "actions", "form", "link", "loading", "icon"],
+		props: [
+			{
+				name: "variant",
+				type: '"primary" | "secondary" | "outline" | "ghost" | "accent" | "destructive"',
+				default: '"primary"',
+				description: "Visual treatment",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Padding / font-size / radius scale",
+			},
+			{
+				name: "type",
+				type: '"button" | "submit" | "reset"',
+				default: '"button"',
+				description: "Native type; ignored once href renders an anchor instead",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Greys the button out and blocks activation",
+			},
+			{
+				name: "loading",
+				type: "boolean",
+				default: "false",
+				description:
+					"Spinner in place of iconStart, aria-busy, inert to activation on both the button and anchor branch — does not dim the button",
+			},
+			{
+				name: "href",
+				type: "string",
+				description: "Renders an <a> instead of a <button> when set",
+			},
+			{
+				name: "target",
+				type: "string",
+				description: 'Anchor target. "_blank" forces a safe rel',
+			},
+			{
+				name: "rel",
+				type: "string",
+				description: 'Anchor rel, widened rather than replaced when target="_blank"',
+			},
+			{
+				name: "fullWidth",
+				type: "boolean",
+				default: "false",
+				description: "Stretches the button to its container's width",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name for a button whose content is icon-only",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Fires on activation; never called while disabled or loading",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The button's label / content" },
+			{
+				name: "iconStart",
+				description: "Rendered before the label; replaced by the spinner while loading",
+			},
+			{ name: "iconEnd", description: "Rendered after the label" },
+		],
+	},
+
+	"icon-button": {
+		name: "IconButton",
+		slug: "icon-button",
+		description:
+			"Square or circular icon-only button built on Button, with a required accessible label",
+		category: "actions",
+		group: "core",
+		status: "done",
+		dependencies: ["button"],
+		tags: ["button", "icon", "action", "accessibility"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name. Required — there is no visible text to fall back on",
+				required: true,
+			},
+			{
+				name: "variant",
+				type: '"primary" | "secondary" | "outline" | "ghost" | "accent" | "destructive"',
+				default: '"outline"',
+				description: "Visual treatment, forwarded to the underlying Button",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Square footprint (30 / 36 / 42px) and resting radius",
+			},
+			{
+				name: "shape",
+				type: '"square" | "circle"',
+				default: '"square"',
+				description: "Square keeps the size's own radius; circle rounds it fully",
+			},
+			{
+				name: "type",
+				type: '"button" | "submit" | "reset"',
+				default: '"button"',
+				description: "Native type; ignored once href renders an anchor instead",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Greys the control out and blocks activation",
+			},
+			{
+				name: "loading",
+				type: "boolean",
+				default: "false",
+				description: "Spinner in place of the icon, aria-busy, blocks activation",
+			},
+			{
+				name: "href",
+				type: "string",
+				description: "Renders an <a> instead of a <button> when set",
+			},
+			{ name: "target", type: "string", description: 'Anchor target. "_blank" forces a safe rel' },
+			{
+				name: "rel",
+				type: "string",
+				description: 'Anchor rel, widened rather than replaced when target="_blank"',
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Fires on activation; never called while disabled or loading",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+			{
+				name: "ref",
+				type: "HTMLButtonElement | HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [{ name: "children", description: "The icon, rendered centred" }],
+	},
+
+	"button-group": {
+		name: "ButtonGroup",
+		slug: "button-group",
+		description:
+			"Joins a row of adjacent actions into one seamless control — one border, one divider, no doubled edges",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["button", "group", "segmented", "split button", "toolbar", "actions"],
+		props: [
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "Stacking axis for the joined items",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name for the group, exposed as aria-label",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root <div>",
+			},
+		],
+		slots: [{ name: "children", description: "The adjacent actions to join" }],
+	},
+
+	link: {
+		name: "Link",
+		slug: "link",
+		description:
+			"Inline text link with a muted variant, configurable underline, and a safe external-link mode with a new-tab arrow",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["link", "anchor", "external", "underline", "typography"],
+		props: [
+			{
+				name: "href",
+				type: "string",
+				description: "Destination URL",
+				required: true,
+			},
+			{
+				name: "variant",
+				type: '"default" | "muted"',
+				default: '"default"',
+				description:
+					"default reads as inline copy; muted recedes into supporting text at a smaller size",
+			},
+			{
+				name: "external",
+				type: "boolean",
+				default: "false",
+				description: "Appends an arrow glyph, defaults target to _blank, and guarantees a safe rel",
+			},
+			{
+				name: "underline",
+				type: '"hover" | "always" | "none"',
+				default: '"hover"',
+				description: "When the underline shows",
+			},
+			{
+				name: "target",
+				type: "string",
+				description: "Anchor target; external fills this in as _blank when left unset",
+			},
+			{
+				name: "rel",
+				type: "string",
+				description:
+					"Anchor rel; merged with noopener noreferrer whenever the link opens a new tab",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Native click handler",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [{ name: "children", description: "The link's text or content" }],
+	},
+
+	toggle: {
+		name: "Toggle",
+		slug: "toggle",
+		description:
+			"Two-state button carrying aria-pressed, for a single on/off option like a formatting mark or a filter",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["toggle", "button", "pressed", "formatting", "switch"],
+		props: [
+			{
+				name: "pressed",
+				type: "boolean",
+				default: "false",
+				description: "Whether the toggle is currently pressed (active); bindable",
+			},
+			{
+				name: "onPressedChange",
+				type: "(pressed: boolean) => void",
+				description: "Called with the new pressed state whenever the toggle is activated",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the toggle; blocks both the state change and the callback",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Visual size of the control",
+			},
+			{
+				name: "variant",
+				type: '"ghost" | "outline"',
+				default: '"ghost"',
+				description: '"ghost" has no resting border, "outline" keeps one at rest',
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — required when children is icon-only",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Toggle content, typically a single glyph or a short label",
+			},
+		],
+	},
+
+	"toggle-group": {
+		name: "ToggleGroup",
+		slug: "toggle-group",
+		description:
+			"A segmented row of toggle buttons with roving-tabindex keyboard navigation and single or multiple selection.",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["toggle", "segmented-control", "roving-tabindex", "compound", "selection", "toolbar"],
+		props: [
+			{
+				name: "type",
+				type: '"single" | "multiple"',
+				default: '"single"',
+				description: "Whether one item can be active at a time, or several.",
+			},
+			{
+				name: "value",
+				type: "string | string[]",
+				default: '""',
+				description:
+					'The active value(s), bindable — a string when type="single", an array of strings when type="multiple".',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string | string[]) => void",
+				description:
+					"Called with the new value, shaped to match `type`, whenever the selection changes.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables every item in the group.",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Sizes every item.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "The rail's stacking axis; both arrow-key pairs work either way.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name for the group.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "ToggleGroupItem.value",
+				type: "string",
+				required: true,
+				description: "The item's value — what gets added to or removed from the group's selection.",
+			},
+			{
+				name: "ToggleGroupItem.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this item, independent of the group's own `disabled`.",
+			},
+			{
+				name: "ToggleGroupItem.label",
+				type: "string",
+				description: "Accessible name for icon-only content on this item. Also the text fallback.",
+			},
+			{
+				name: "ToggleGroupItem.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the item's button.",
+			},
+			{
+				name: "ToggleGroupItem.ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the item's button element.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The ToggleGroup's content — the ToggleGroupItems." },
+			{
+				name: "ToggleGroupItem.children",
+				description: "The item's content, typically a glyph or a short label.",
+			},
+		],
+	},
+
+	"copy-button": {
+		name: "CopyButton",
+		slug: "copy-button",
+		description:
+			"Button preset wired to the clipboard, swapping its icon and label to a success skin for a moment after a successful copy",
+		category: "actions",
+		group: "core",
+		status: "done",
+		dependencies: ["button"],
+		tags: ["copy", "clipboard", "button", "success"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				description: "The text written to the clipboard on activation",
+				required: true,
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Copy"',
+				description: "Idle label",
+			},
+			{
+				name: "copiedLabel",
+				type: "string",
+				default: '"Copied"',
+				description: "Label shown for resetMs after a successful copy",
+			},
+			{
+				name: "resetMs",
+				type: "number",
+				default: "2000",
+				description: "How long the copied state holds before reverting, in milliseconds",
+			},
+			{
+				name: "variant",
+				type: "ButtonVariant",
+				default: '"outline"',
+				description: "Passed straight through to the underlying Button",
+			},
+			{
+				name: "size",
+				type: "ButtonSize",
+				default: '"md"',
+				description: "Passed straight through to the underlying Button",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the button and blocks the copy",
+			},
+			{
+				name: "iconOnly",
+				type: "boolean",
+				default: "false",
+				description: "Drops the visible label, moving it to aria-label instead",
+			},
+			{
+				name: "onCopy",
+				type: "(value: string, ok: boolean) => void",
+				description: "Called with the value and whether the write actually succeeded",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference, matching Button's own ref type",
+			},
+		],
+		slots: [{ name: "children", description: "Overrides the default icon + label content" }],
+	},
 };
 
 // =============================================================================
