@@ -56,15 +56,23 @@
 	});
 </script>
 
+<!--
+	Markdown renders block children, so a cursor appended after the document
+	would sit on its own line below it. It goes in through `trailingCursor`
+	instead, which puts it inside the last block's own inline run. Plain text is
+	already inline, so there it is simply rendered after the stream.
+-->
+{#snippet cursor()}<span class="ft-streaming-cursor" aria-hidden="true"></span>{/snippet}
+
 <span
 	bind:this={ref}
 	class={cn("ft-streaming-text", className)}
 	class:ft-streaming-block={markdown}
 	style={tintColor ? `--ft-tint-color: ${tintColor}` : undefined}
-	>{#if markdown}<Markdown {text} />{:else}<StreamText {text} {settleMs} />{/if}{#if streaming}<span
-			class="ft-streaming-cursor"
-			aria-hidden="true"
-		></span>{/if}</span
+	>{#if markdown}<Markdown
+			{text}
+			trailingCursor={streaming ? cursor : undefined}
+		/>{:else}<StreamText {text} {settleMs} />{#if streaming}{@render cursor()}{/if}{/if}</span
 >
 
 <style>

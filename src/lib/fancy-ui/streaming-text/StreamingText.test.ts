@@ -100,4 +100,23 @@ describe("StreamingText", () => {
 		expect(root.className).toContain("text-sm");
 		expect(root.getAttribute("style")).toContain("--ft-tint-color: #ff0066");
 	});
+
+	it("keeps the cursor beside the final character in markdown mode", () => {
+		// Markdown renders block children: a cursor appended after the document
+		// would drop to its own line under it instead of trailing the text.
+		const { container } = render(StreamingText, {
+			props: { text: "A **bold** claim", markdown: true, streaming: true },
+		});
+
+		const paragraph = container.querySelector(".ft-md-p");
+		expect(paragraph?.querySelector(".ft-streaming-cursor")).toBeTruthy();
+		expect(paragraph?.lastElementChild?.className).toContain("ft-streaming-cursor");
+	});
+
+	it("drops the markdown cursor as soon as the stream settles", () => {
+		const { container } = render(StreamingText, {
+			props: { text: "Done.", markdown: true, streaming: false },
+		});
+		expect(container.querySelector(".ft-streaming-cursor")).toBeNull();
+	});
 });

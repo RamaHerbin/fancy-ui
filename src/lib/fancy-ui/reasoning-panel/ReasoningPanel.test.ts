@@ -184,4 +184,22 @@ describe("ReasoningPanel", () => {
 		expect(() => unmount()).not.toThrow();
 		expect(vi.getTimerCount()).toBe(0);
 	});
+
+	it("announces onToggle when a consumer writes to the bound open prop directly", async () => {
+		// A write to a variable bound with `bind:open` never reaches the internal
+		// commit path, and the README promises every change is announced.
+		vi.useFakeTimers();
+		const onToggle = vi.fn();
+		const { container, rerender } = render(ReasoningPanel, {
+			props: { text: "trace", open: false, onToggle },
+		});
+
+		await rerender({ text: "trace", open: true, onToggle });
+		expect(header(container).getAttribute("aria-expanded")).toBe("true");
+		expect(onToggle).toHaveBeenLastCalledWith(true);
+
+		await rerender({ text: "trace", open: false, onToggle });
+		expect(onToggle).toHaveBeenLastCalledWith(false);
+		expect(onToggle).toHaveBeenCalledTimes(2);
+	});
 });

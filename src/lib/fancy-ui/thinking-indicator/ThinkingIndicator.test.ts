@@ -168,4 +168,17 @@ describe("ThinkingIndicator", () => {
 		expect(root.className).toContain("my-indicator");
 		expect(root.className).toContain("ft-thinking");
 	});
+
+	it("shows 0s when it mounts already finished, whatever since says", () => {
+		// The clock is never read before mount: the server render and the client's
+		// hydration pass would otherwise land on different seconds. A finished row
+		// rendered from scratch is documented to show 0s and pass elapsedMs instead.
+		vi.useFakeTimers();
+		vi.setSystemTime(T0);
+		const { container } = render(ThinkingIndicator, {
+			props: { status: "Reading files", since: T0 - 5000, running: false },
+		});
+
+		expect(container.querySelector(".ft-thinking-elapsed")?.textContent).toBe("0s");
+	});
 });
