@@ -432,4 +432,8 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"chat-message": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"prompt-suggestions": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"chat-error": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"tool-call": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"tool-timeline": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"terminal-block": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"code-diff": [{ name: "BasicUsage", title: "Basic Usage" }],
 };
