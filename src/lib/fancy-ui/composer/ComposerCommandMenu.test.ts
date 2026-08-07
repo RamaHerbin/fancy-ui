@@ -56,6 +56,7 @@ function rig(trigger = "/", registerTextarea = true): Rig {
 		},
 		disabled: false,
 		streaming: false,
+		stoppable: false,
 		textareaRef: {
 			get current() {
 				return registerTextarea ? el : null;

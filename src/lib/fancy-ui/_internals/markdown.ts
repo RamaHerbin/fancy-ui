@@ -88,10 +88,15 @@ export function sanitizeHref(raw: string): string | null {
 /* -------------------------------------------------------------------------- */
 
 export function parseInline(src: string): InlineToken[] {
-	return parseInlineAt(typeof src === "string" ? src : "", 0);
+	return parseInlineAt(typeof src === "string" ? src : "", 0, false);
 }
 
-function parseInlineAt(src: string, depth: number): InlineToken[] {
+/**
+ * `inLink` is true while parsing a link's own label. CommonMark forbids a link
+ * inside a link, and so does the DOM: nested `<a>` elements are repaired by the
+ * HTML parser, so SSR markup and the client's hydration tree would disagree.
+ */
+function parseInlineAt(src: string, depth: number, inLink: boolean): InlineToken[] {
 	if (src === "") return [];
 	if (depth > MAX_INLINE_DEPTH) return [{ type: "text", text: src }];
 
@@ -117,6 +122,19 @@ function parseInlineAt(src: string, depth: number): InlineToken[] {
 	}
 	// Backtick run lengths that already failed to find a closer (see "`" branch).
 	let failedSpanRuns: Set<number> | null = null;
+	// End of the "*" run the cursor is currently inside. A run that opens no
+	// emphasis is walked one character at a time, and counting the rest of the run
+	// again at each step is quadratic — an 80k run of asterisks would stall the
+	// thread. The cursor only moves forward, so one forward scan per run is enough.
+	let starRunEnd = -1;
+	function starRun(from: number): number {
+		if (from >= starRunEnd) {
+			let end = from;
+			while (src[end] === "*") end++;
+			starRunEnd = end;
+		}
+		return starRunEnd - from;
+	}
 
 	function flush() {
 		if (buf !== "") {
@@ -162,20 +180,22 @@ function parseInlineAt(src: string, depth: number): InlineToken[] {
 			const image = matchLink(src, i + 1);
 			if (image) {
 				flush();
-				out.push(...parseInlineAt(image.label, depth + 1));
+				out.push(...parseInlineAt(image.label, depth + 1, inLink));
 				i = image.end;
 				continue;
 			}
 		}
 
-		if (c === "[" && hasCloseAhead(i) && hasParenAhead(i)) {
+		// Inside a label the "[" falls through to text, which degrades the inner
+		// link to its literal source rather than nesting an anchor.
+		if (c === "[" && !inLink && hasCloseAhead(i) && hasParenAhead(i)) {
 			const link = matchLink(src, i);
 			if (link) {
 				flush();
 				out.push({
 					type: "link",
 					href: sanitizeHref(link.dest),
-					children: parseInlineAt(link.label, depth + 1),
+					children: parseInlineAt(link.label, depth + 1, true),
 				});
 				i = link.end;
 				continue;
@@ -183,12 +203,12 @@ function parseInlineAt(src: string, depth: number): InlineToken[] {
 		}
 
 		if (c === "*") {
-			const emphasis = matchEmphasis(src, i);
+			const emphasis = matchEmphasis(src, i, starRun(i));
 			if (emphasis) {
 				flush();
 				out.push({
 					type: emphasis.strong ? "strong" : "em",
-					children: parseInlineAt(emphasis.inner, depth + 1),
+					children: parseInlineAt(emphasis.inner, depth + 1, inLink),
 				});
 				i = emphasis.end;
 				continue;
@@ -199,7 +219,10 @@ function parseInlineAt(src: string, depth: number): InlineToken[] {
 			const close = findCloser(src, i + 2, "~~");
 			if (close > i + 2) {
 				flush();
-				out.push({ type: "del", children: parseInlineAt(src.slice(i + 2, close), depth + 1) });
+				out.push({
+					type: "del",
+					children: parseInlineAt(src.slice(i + 2, close), depth + 1, inLink),
+				});
 				i = close + 2;
 				continue;
 			}
@@ -211,6 +234,13 @@ function parseInlineAt(src: string, depth: number): InlineToken[] {
 
 	flush();
 	return out;
+}
+
+/** Length of the run of `ch` starting at `i`. */
+function countRun(src: string, i: number, ch: string): number {
+	let run = 0;
+	while (src[i + run] === ch) run++;
+	return run;
 }
 
 /** Index of the next `delim` at this nesting level, or -1. */
@@ -263,11 +293,11 @@ function normalizeCodeSpan(raw: string): string {
 
 function matchEmphasis(
 	src: string,
-	i: number
+	i: number,
+	// Length of the "*" run starting at `i`. The caller already knows it while
+	// walking a run, and recounting it here is what makes a long run quadratic.
+	run = countRun(src, i, "*")
 ): { strong: boolean; inner: string; end: number } | null {
-	let run = 0;
-	while (src[i + run] === "*") run++;
-
 	if (run >= 3) {
 		const close = findCloser(src, i + 3, "***");
 		// Re-wrapping in single markers lets the recursive pass build em-in-strong.

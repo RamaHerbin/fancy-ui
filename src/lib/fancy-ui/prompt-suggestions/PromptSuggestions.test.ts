@@ -79,16 +79,19 @@ describe("PromptSuggestions", () => {
 		expect(root(container).style.display).toBe("");
 	});
 
-	it("staggers each pill by its index off the shared custom property", () => {
+	it("staggers each pill by its index off the shared custom property, defaulting through CSS", () => {
 		const { container } = render(PromptSuggestions, { props: { suggestions: SUGGESTIONS } });
 
-		expect(root(container).style.getPropertyValue("--ft-suggestions-stagger")).toBe("60ms");
+		// No staggerMs given: the inline property is left unset so an ancestor's
+		// own --ft-suggestions-stagger can theme the subtree; the 60ms default
+		// only applies as the CSS fallback below.
+		expect(root(container).style.getPropertyValue("--ft-suggestions-stagger")).toBe("");
 
 		const delays = pills(container).map((b) => b.style.getPropertyValue("--ft-suggestions-delay"));
 		expect(delays).toEqual([
-			"calc(var(--ft-suggestions-stagger) * 0)",
-			"calc(var(--ft-suggestions-stagger) * 1)",
-			"calc(var(--ft-suggestions-stagger) * 2)",
+			"calc(var(--ft-suggestions-stagger, 60ms) * 0)",
+			"calc(var(--ft-suggestions-stagger, 60ms) * 1)",
+			"calc(var(--ft-suggestions-stagger, 60ms) * 2)",
 		]);
 	});
 

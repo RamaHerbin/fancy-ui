@@ -49,6 +49,29 @@ describe("createTextStream", () => {
 		expect(shape(stream.segments)).toEqual([{ text: "two words at once", fresh: true }]);
 	});
 
+	it("reads a settleMs getter once per chunk, so a later duration reaches later chunks", async () => {
+		vi.useFakeTimers();
+		let settleMs = 100;
+		const stream = createTextStream("", { settleMs: () => settleMs });
+
+		stream.push("first");
+		await vi.advanceTimersByTimeAsync(100);
+		expect(shape(stream.segments)).toEqual([{ text: "first", fresh: false }]);
+
+		settleMs = 1000;
+		stream.push("first second");
+		await vi.advanceTimersByTimeAsync(100);
+		// Still animating: the chunk took the duration in force when it arrived,
+		// not the one the stream was built with.
+		expect(shape(stream.segments)).toEqual([
+			{ text: "first", fresh: false },
+			{ text: " second", fresh: true },
+		]);
+
+		await vi.advanceTimersByTimeAsync(900);
+		expect(shape(stream.segments)).toEqual([{ text: "first second", fresh: false }]);
+	});
+
 	it("ignores a push of the text it already holds", () => {
 		vi.useFakeTimers();
 		const stream = createTextStream("", { settleMs: 100 });

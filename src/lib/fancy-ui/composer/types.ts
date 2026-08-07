@@ -28,6 +28,12 @@ export interface ComposerContext {
 	readonly disabled: boolean;
 	/** A response is arriving: send becomes stop. */
 	readonly streaming: boolean;
+	/**
+	 * Whether `stop()` reaches anyone. The root always publishes a callable
+	 * `stop`, so a control asking "is there a handler behind it" has to ask this
+	 * instead — otherwise a stop button offers itself with nothing to stop.
+	 */
+	readonly stoppable: boolean;
 	/** The live textarea, once `ComposerInput` has mounted one. */
 	readonly textareaRef: { readonly current: HTMLTextAreaElement | null };
 	/** Send the draft. No-ops while disabled, while streaming, and on an empty draft. */

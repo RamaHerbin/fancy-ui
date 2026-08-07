@@ -101,6 +101,38 @@ describe("drawWaveformFrame", () => {
 		expect(xs).toEqual([0, 4, 8]);
 	});
 
+	it("reaches the end of the sample buffer with its last bar", () => {
+		const { ctx, raw } = stubCtx();
+		// 16 samples, silent except the very last one, drawn as 4 bars.
+		const samples = new Float32Array(16);
+		samples[15] = 1;
+		drawWaveformFrame(ctx, samples, 16, 100, style({ barWidth: 3, gap: 1, minAmp: 0 }));
+
+		const heights = raw.fillRect.mock.calls.map(([, , , h]) => h);
+		expect(heights).toHaveLength(4);
+		expect(heights[3]).toBe(100);
+	});
+
+	it("takes the peak of each bar's slice rather than one sample point", () => {
+		const { ctx, raw } = stubCtx();
+		// A transient between the points a single-sample bar would have read.
+		const samples = [0, 0, 1, 0, 0, 0, 0, 0];
+		drawWaveformFrame(ctx, samples, 8, 100, style({ barWidth: 3, gap: 1, minAmp: 0 }));
+
+		const heights = raw.fillRect.mock.calls.map(([, , , h]) => h);
+		expect(heights).toHaveLength(2);
+		expect(heights[0]).toBe(100);
+	});
+
+	it("gives every bar a sample when there are more bars than samples", () => {
+		const { ctx, raw } = stubCtx();
+		drawWaveformFrame(ctx, [1], 40, 100, style({ barWidth: 3, gap: 1, minAmp: 0 }));
+
+		const heights = raw.fillRect.mock.calls.map(([, , , h]) => h);
+		expect(heights).toHaveLength(10);
+		for (const h of heights) expect(h).toBe(100);
+	});
+
 	it("draws nothing but still clears when the surface is too small for a bar", () => {
 		const { ctx, raw } = stubCtx();
 		drawWaveformFrame(ctx, [0.5], 2, 100, style());

@@ -107,26 +107,30 @@
 		return Math.round(Math.min(1, Math.max(0, progress ?? 0)) * 100);
 	}
 
-	/** One rendered row: the worker, its position, and the key the block tracks it by. */
-	interface SubagentRow {
-		agent: SubagentData;
-		index: number;
-		key: string;
-	}
-
 	/**
-	 * The first worker under an id keeps that id as its key, so a row that is only
-	 * moved keeps its DOM node — and does not replay its entrance. Only a repeat
-	 * gets a suffix, and the suffix counts occurrences rather than positions: a
-	 * position would rename every row below an insertion, making the whole list
-	 * animate in again because one worker was spawned above it.
+	 * The first worker under an id keeps that id as its key, so a row survives a
+	 * reorder with its DOM node intact; only a repeat is suffixed, and by
+	 * occurrence rather than position, which would rename every row below an
+	 * insertion. The suffix also clears the ids actually in the list, since a
+	 * worker may genuinely be called "x#1" while two others are called "x".
 	 */
-	const rows = $derived.by<SubagentRow[]>(() => {
+	const rows = $derived.by(() => {
+		const ids = new Set(agents.map((agent) => agent.id));
 		const seen = new Map<string, number>();
+		const used = new Set<string>();
 		return agents.map((agent, index) => {
-			const seenBefore = seen.get(agent.id) ?? 0;
-			seen.set(agent.id, seenBefore + 1);
-			return { agent, index, key: seenBefore === 0 ? agent.id : `${agent.id}#${seenBefore}` };
+			const occurrence = seen.get(agent.id) ?? 0;
+			seen.set(agent.id, occurrence + 1);
+			let key = agent.id;
+			if (occurrence > 0) {
+				let suffix = occurrence;
+				do {
+					key = `${agent.id}#${suffix}`;
+					suffix++;
+				} while (ids.has(key) || used.has(key));
+			}
+			used.add(key);
+			return { agent, index, key };
 		});
 	});
 </script>
@@ -146,9 +150,11 @@
 	-->
 	<ul class="ft-subagents-list" role="list" aria-label={listLabel}>
 		<!--
-			Keyed by the identity worked out above, never by the position: a newly
-			spawned worker mounts as a fresh node and plays the entrance on its own,
-			while the rows already on screen keep their DOM nodes and stay put.
+			Keyed by id so a newly spawned worker mounts as a fresh node and plays the
+			entrance on its own, while the rows already on screen keep their DOM nodes
+			and stay put. The ids come from a model, so a repeat has to be
+			disambiguated or the block would crash — see `rows` for how, and why it
+			counts occurrences rather than positions.
 		-->
 		{#each rows as { agent, index, key } (key)}
 			<li class="ft-subagents-row">
@@ -200,7 +206,17 @@
 						<span class="ft-subagents-meta flex shrink-0 items-center">
 							{#if showsProgress(agent)}
 								{@const value = percent(agent.progress)}
-								<span class="sr-only">{STATUS_LABELS[agent.status]}, {value}%</span>
+								{#if onSelect}
+									<!--
+										Only needed inside the selectable row's button: a `progressbar`
+										is a range role, so its own value feeds the button's accessible
+										name instead of being announced on its own, and these words are
+										what makes that name legible. A standalone row keeps the
+										`progressbar` as its own object, independently announced with
+										its label and value — this text would only repeat it.
+									-->
+									<span class="sr-only">{STATUS_LABELS[agent.status]}, {value}%</span>
+								{/if}
 								<span
 									class="ft-subagents-progress"
 									role="progressbar"

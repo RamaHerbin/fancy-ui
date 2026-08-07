@@ -118,9 +118,18 @@
 	function formatDuration(ms: number | undefined): string | null {
 		if (ms === undefined || !Number.isFinite(ms) || ms < 0) return null;
 		if (ms < 1000) return `${Math.round(ms)}ms`;
-		if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
-		const minutes = Math.floor(ms / 60_000);
-		const seconds = Math.round((ms % 60_000) / 1000);
+		if (ms < 60_000) {
+			// Rounded to a tenth first: a value that rounds up to a full 60.0s has
+			// to fall through to the minute form rather than print a second count
+			// that does not exist.
+			const deciseconds = Math.round(ms / 100);
+			if (deciseconds < 600) return `${(deciseconds / 10).toFixed(1)}s`;
+		}
+		// Rounding to whole seconds before splitting means the carry happens on its
+		// own: rounding each unit separately is what produced "1m 60s".
+		const totalSeconds = Math.round(ms / 1000);
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds % 60;
 		return `${minutes}m ${seconds < 10 ? "0" : ""}${seconds}s`;
 	}
 </script>
@@ -137,7 +146,7 @@
 		role="log"
 		class="overflow-y-auto px-4 py-3 leading-relaxed"
 		style:max-height={maxHeight}
-		use:autoscroll={{ enabled: running }}
+		use:autoscroll={{ enabled: running, pinOnConnect: true }}
 	>
 		{#if command}
 			<div class="ft-line flex gap-2">

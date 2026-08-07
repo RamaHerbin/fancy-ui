@@ -62,14 +62,22 @@
 	 * re-arms the reveal for the new image without an effect to reset a flag.
 	 */
 	let loadedSrc: string | null = $state(null);
+	/*
+	 * Which URL failed, kept apart from which one loaded. Recording a failure as
+	 * a load reveals the image, but it also makes a retry of the same URL look
+	 * like something that already arrived, so the retry that finally works
+	 * reports nothing to the caller.
+	 */
+	let erroredSrc: string | null = $state(null);
 
-	const blurred = $derived(mounted && loadedSrc !== src);
+	const blurred = $derived(mounted && loadedSrc !== src && erroredSrc !== src);
 
 	function handleLoad() {
 		// A cached image can be complete before `onMount` runs and fire its load
 		// event after; both paths land here, and only the first one counts.
 		if (loadedSrc === src) return;
 		loadedSrc = src ?? null;
+		erroredSrc = null;
 		onLoad?.();
 	}
 
@@ -77,7 +85,7 @@
 		// A broken image would otherwise sit blurred forever waiting for a load
 		// that is never coming. Reveal it — the browser's own broken-image mark
 		// is the honest thing to show — without claiming it loaded.
-		loadedSrc = src ?? null;
+		erroredSrc = src ?? null;
 	}
 
 	onMount(() => {
@@ -96,7 +104,7 @@
 				// viewBox. Reveal it without claiming a load that may never have
 				// happened; the browser's own broken-image mark is the honest thing to
 				// show, and an SVG that renders fine has nothing to hide behind.
-				loadedSrc = src ?? null;
+				erroredSrc = src ?? null;
 			}
 		}
 		mounted = true;

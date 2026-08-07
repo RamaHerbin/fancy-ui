@@ -53,11 +53,13 @@
 	interface PlanRow {
 		step: PlanStepData;
 		/**
-		 * What the `{#each}` is keyed by. The first step under an id keeps that id,
-		 * so a row survives a reordered plan with its DOM node intact; only a repeat
-		 * gets a suffix, and the suffix counts occurrences rather than positions. A
-		 * model that emits the same id twice would otherwise crash the block, and a
-		 * plan that repeats a step is a plan, not an error.
+		 * What the `{#each}` is keyed by. The id leads, so a row keeps its DOM node
+		 * across a re-render, but an occurrence count is appended rather than the
+		 * row's flattened position: a model that emits the same id twice would
+		 * otherwise crash the block, and counting by occurrence rather than
+		 * position means inserting or removing a step elsewhere in the plan does
+		 * not change the key — and so does not remount — a row whose own id never
+		 * changed.
 		 */
 		key: string;
 		/** 0 for a top-level step, 1 for anything nested under one. */
@@ -71,17 +73,30 @@
 	const rows = $derived.by(() => {
 		const out: PlanRow[] = [];
 		const seen = new Map<string, number>();
+		// Every id in the plan, substeps included: a suffixed key has to clear them
+		// as well as the keys already handed out, since a step may genuinely be
+		// called "x#1" while two others are called "x".
+		const ids = new Set<string>();
+		const collectIds = (list: PlanStepData[]) => {
+			for (const step of list) {
+				ids.add(step.id);
+				if (step.substeps) collectIds(step.substeps);
+			}
+		};
+		collectIds(steps);
+		const used = new Set<string>();
 
 		const push = (step: PlanStepData, depth: number) => {
-			const seenBefore = seen.get(step.id) ?? 0;
-			seen.set(step.id, seenBefore + 1);
-			out.push({
-				step,
-				key: seenBefore === 0 ? step.id : `${step.id}#${seenBefore}`,
-				depth,
-				index: out.length,
-				lastSub: false,
-			});
+			const occurrence = seen.get(step.id) ?? 0;
+			seen.set(step.id, occurrence + 1);
+			let key = `${step.id}#${occurrence}`;
+			let suffix = occurrence;
+			while (ids.has(key) || used.has(key)) {
+				suffix++;
+				key = `${step.id}#${suffix}`;
+			}
+			used.add(key);
+			out.push({ step, key, depth, index: out.length, lastSub: false });
 		};
 
 		for (const step of steps) {
@@ -169,6 +184,7 @@
 	{@render glyph(row.step.status)}
 
 	{#if item}
+		<span class="sr-only">{STATUS_LABELS[row.step.status]}</span>
 		{@render item(row.step, row.index)}
 	{:else}
 		<span class="ft-agentplan-text min-w-0 flex-1">

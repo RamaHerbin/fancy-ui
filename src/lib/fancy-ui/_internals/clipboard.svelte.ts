@@ -20,6 +20,10 @@ export interface CopyState {
 export function createCopy(resetMs = 2000): CopyState {
 	let copied = $state(false);
 	let timer: ReturnType<typeof setTimeout> | undefined;
+	let destroyed = false;
+	// A permission prompt can hold a write open for as long as the reader takes to
+	// answer it, which is long enough to unmount the owner or start another copy.
+	let ticket = 0;
 
 	function clearTimer() {
 		if (timer !== undefined) {
@@ -35,6 +39,7 @@ export function createCopy(resetMs = 2000): CopyState {
 
 		async copy(text: string): Promise<boolean> {
 			if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) return false;
+			const mine = ++ticket;
 			try {
 				await navigator.clipboard.writeText(text);
 			} catch {
@@ -42,6 +47,10 @@ export function createCopy(resetMs = 2000): CopyState {
 				// writes outside a user gesture.
 				return false;
 			}
+			// The write landed, so the caller is told so either way; it just no longer
+			// owns the flag. Writing it here would either resurrect state on a
+			// destroyed helper or arm a timer teardown can no longer cancel.
+			if (destroyed || mine !== ticket) return true;
 			copied = true;
 			// A re-copy restarts the window rather than inheriting the old deadline.
 			clearTimer();
@@ -53,6 +62,7 @@ export function createCopy(resetMs = 2000): CopyState {
 		},
 
 		destroy() {
+			destroyed = true;
 			clearTimer();
 		},
 	};

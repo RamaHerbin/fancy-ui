@@ -271,3 +271,38 @@ describe("SourcesList", () => {
 		error.mockRestore();
 	});
 });
+
+describe("SourceCard — model-supplied urls", () => {
+	afterEach(cleanup);
+
+	const card = (url: string, props: Record<string, unknown> = {}) =>
+		render(SourceCard, {
+			props: { source: { id: "s", title: "A document", url } as SourceData, ...props },
+		});
+
+	it("refuses a scheme the family does not link to", () => {
+		for (const url of ["javascript:alert(1)", "data:text/html,<script>", "vbscript:x"]) {
+			const { container } = card(url);
+			expect(container.querySelector("a"), url).toBeNull();
+			cleanup();
+		}
+	});
+
+	it("makes a bare host absolute, so it cannot resolve against this app's origin", () => {
+		const { container } = card("docs.example.dev/guide");
+		expect(container.querySelector("a")?.getAttribute("href")).toBe(
+			"https://docs.example.dev/guide"
+		);
+	});
+
+	it("leaves a genuine relative path alone", () => {
+		const { container } = card("/local/guide");
+		expect(container.querySelector("a")?.getAttribute("href")).toBe("/local/guide");
+	});
+
+	it("renders the plain shape when it is told it cannot host a link", () => {
+		const { container } = card("https://docs.example.dev/guide", { interactive: false });
+		expect(container.querySelector("a")).toBeNull();
+		expect(container.textContent).toContain("A document");
+	});
+});

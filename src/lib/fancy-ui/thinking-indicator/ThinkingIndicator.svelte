@@ -27,7 +27,6 @@
 </script>
 
 <script lang="ts">
-	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { createElapsed, formatElapsed } from "../_internals/elapsed.svelte.js";
 
@@ -43,10 +42,14 @@
 		ref = $bindable(null),
 	}: ThinkingIndicatorProps = $props();
 
-	// Seeded with the initial `since` so the first client paint already shows the
-	// true duration instead of flashing "0s" before the effect below runs. Only
-	// that first value is wanted here — later changes go through `start()`.
-	const elapsed = untrack(() => createElapsed({ since }));
+	// Seeded at zero rather than from `since`: reading the wall clock here would
+	// happen once on the server and again at hydration, and the two can land on
+	// different seconds, leaving the `<time>` text and its `datetime` disagreeing
+	// with the markup being hydrated. The effect below reads the real elapsed
+	// time immediately after mounting — client-only, as effects never run during
+	// SSR — so a row that mounts already finished stays at 0s, which is what the
+	// README documents for that case.
+	const elapsed = createElapsed();
 
 	// `start` returns its own stop function, which doubles as the effect cleanup:
 	// flipping `running` off, swapping in an external `elapsedMs`, or changing

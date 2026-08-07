@@ -320,4 +320,24 @@ describe("WebSearch", () => {
 		expect(cls).toContain("w-full");
 		expect(cls).toContain("mt-4");
 	});
+
+	describe("model-supplied result urls", () => {
+		const one = (url: string) =>
+			render(WebSearch, {
+				props: { query: "runes", results: [{ id: "r", title: "A result", url }] },
+			});
+
+		it("refuses a scheme the family does not link to, and still shows the row", () => {
+			const { container } = one("javascript:alert(1)");
+			expect(container.querySelector("a")).toBeNull();
+			expect(container.textContent).toContain("A result");
+		});
+
+		it("makes a bare host absolute rather than resolving it against this origin", () => {
+			const { container } = one("docs.example.dev/guide");
+			expect(container.querySelector("a")?.getAttribute("href")).toBe(
+				"https://docs.example.dev/guide"
+			);
+		});
+	});
 });

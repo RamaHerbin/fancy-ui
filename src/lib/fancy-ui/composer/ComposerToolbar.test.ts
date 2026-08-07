@@ -34,6 +34,7 @@ function composerContext(disabled: () => boolean = () => false): Map<symbol, Com
 			return disabled();
 		},
 		streaming: false,
+		stoppable: false,
 		textareaRef: { current: null },
 		submit: () => {},
 		stop: () => {},

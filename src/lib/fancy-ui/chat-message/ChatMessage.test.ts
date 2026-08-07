@@ -104,6 +104,60 @@ describe("ChatMessage", () => {
 		expect(bare.container.querySelector("time")).toBeFalsy();
 	});
 
+	it("keeps the relative timestamp advancing while the message stays mounted", async () => {
+		vi.useFakeTimers();
+		const start = Date.now();
+		const { container } = render(ChatMessage, {
+			props: { content: "Answer", timestamp: start - 5 * 60 * 1000 },
+		});
+		const time = () => container.querySelector("time") as HTMLTimeElement;
+
+		expect(time().textContent).toBe("5 minutes ago");
+
+		// No prop changes — only the wall clock moves, through the shared "now"
+		// clock's own refresh interval. The async variant lets the effect it
+		// triggers actually flush before the assertion below runs.
+		vi.setSystemTime(start + 60 * 1000);
+		await vi.advanceTimersByTimeAsync(30_000);
+
+		expect(time().textContent).toBe("6 minutes ago");
+	});
+
+	it("stops ticking once unmounted, leaving no timer behind", () => {
+		vi.useFakeTimers();
+		const { unmount } = render(ChatMessage, {
+			props: { content: "Answer", timestamp: Date.now() - 5 * 60 * 1000 },
+		});
+
+		expect(vi.getTimerCount()).toBeGreaterThan(0);
+		unmount();
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it("marks the body as a polite, busy-aware live region while streaming", async () => {
+		const { container, rerender } = render(ChatMessage, {
+			props: { content: "The answer", streaming: true },
+		});
+		const body = container.querySelector(".text-sm.leading-relaxed") as HTMLElement;
+
+		expect(body.getAttribute("aria-live")).toBe("polite");
+		expect(body.getAttribute("aria-atomic")).toBe("true");
+		expect(body.getAttribute("aria-busy")).toBe("true");
+
+		await rerender({ content: "The answer is 4.", streaming: false });
+		expect(body.getAttribute("aria-busy")).toBe("false");
+	});
+
+	it("marks a system turn's body as a polite live region too", () => {
+		const { container } = render(ChatMessage, {
+			props: { role: "system", content: "Model switched" },
+		});
+		const body = container.querySelector(".text-xs.leading-relaxed") as HTMLElement;
+
+		expect(body.getAttribute("aria-live")).toBe("polite");
+		expect(body.getAttribute("aria-busy")).toBe("false");
+	});
+
 	it("lets the children snippet replace the default body", () => {
 		const { container } = render(ChatMessage, {
 			props: {

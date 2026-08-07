@@ -32,10 +32,35 @@ async function settle(): Promise<void> {
 	await new Promise((resolve) => requestAnimationFrame(resolve));
 }
 
+/** jsdom ships no ResizeObserver; this one reports what it was handed. */
+function stubResizeObserver() {
+	const observed = new Set<Element>();
+	let notify: () => void = () => {};
+	vi.stubGlobal(
+		"ResizeObserver",
+		class {
+			constructor(callback: () => void) {
+				notify = callback;
+			}
+			observe(target: Element) {
+				observed.add(target);
+			}
+			unobserve(target: Element) {
+				observed.delete(target);
+			}
+			disconnect() {
+				observed.clear();
+			}
+		}
+	);
+	return { observed, resize: () => notify() };
+}
+
 describe("autoscroll", () => {
 	afterEach(() => {
 		document.body.innerHTML = "";
 		vi.useRealTimers();
+		vi.unstubAllGlobals();
 	});
 
 	it("starts stuck when the container is already at the bottom, without announcing it", () => {
@@ -131,55 +156,97 @@ describe("autoscroll", () => {
 		await settle();
 		expect(node.scrollTop).toBe(0);
 
-		// Back at the bottom before the action is handed back, since re-enabling
-		// re-reads the container and a reader still scrolled up is left where they
-		// are — which the reconnect test above is the one to prove.
-		node.scrollTop = BOTTOM;
 		handle.update?.({ enabled: true });
+		node.appendChild(document.createElement("p"));
+		await settle();
+		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
+	});
+
+	it("pinOnConnect starts pinned and jumps to the bottom, whatever the container says", async () => {
+		// A trace joined mid-stream mounts full of content at scrollTop 0, which
+		// otherwise reads as a reader who scrolled up.
+		const node = makeNode(0);
+		autoscroll(node, { pinOnConnect: true });
+		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
+
 		node.scrollTop = 0; // proof the pin ran, without dispatching a scroll event
 		node.appendChild(document.createElement("p"));
 		await settle();
 		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
 	});
 
-	it("re-reads the container on reconnect, in both directions", async () => {
+	it("re-sticks when content reaches the bottom edge with no scroll event", async () => {
+		const node = makeNode(100);
+		const onStickChange = vi.fn();
+		autoscroll(node, { onStickChange });
+
+		// A row was removed: same scrollTop, but the bottom edge came to meet it.
+		Object.defineProperty(node, "scrollHeight", { value: 500, configurable: true });
+		node.appendChild(document.createElement("p"));
+		await deliverMutations();
+
+		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(true);
+	});
+
+	it("does not release a pinned container just because content grew below it", async () => {
 		const node = makeNode();
 		const onStickChange = vi.fn();
-		const handle = autoscroll(node, { enabled: true, onStickChange });
+		autoscroll(node, { onStickChange });
 
-		// Scrolled up with the listeners off: nothing told the action about it.
-		handle.update?.({ enabled: false, onStickChange });
-		node.scrollTop = 0;
-		handle.update?.({ enabled: true, onStickChange });
-		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(false);
-
-		// And back: a container that returned to its bottom edge while disconnected
-		// has to be found pinned again, or nothing would ever pin it.
-		handle.update?.({ enabled: false, onStickChange });
-		node.scrollTop = BOTTOM;
-		handle.update?.({ enabled: true, onStickChange });
-		expect(onStickChange).toHaveBeenCalledTimes(2);
-		expect(onStickChange).toHaveBeenLastCalledWith(true);
-
-		// Proof the fresh answer is the one the pin acts on.
-		node.scrollTop = 0;
+		// Growth puts fresh content below the viewport for a frame; unsticking here
+		// would cancel the pin that is about to run.
+		Object.defineProperty(node, "scrollHeight", { value: 2000, configurable: true });
 		node.appendChild(document.createElement("p"));
 		await settle();
+
+		expect(onStickChange).not.toHaveBeenCalled();
+		expect(node.scrollTop).toBe(2000);
+	});
+
+	it("re-reads the pin state when the threshold changes mid-flight", () => {
+		const node = makeNode(590); // 10px from the bottom
+		const onStickChange = vi.fn();
+		const handle = autoscroll(node, { bottomThreshold: 5, onStickChange });
+
+		handle.update?.({ bottomThreshold: 50, onStickChange });
+		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(true);
+
+		handle.update?.({ bottomThreshold: 5, onStickChange });
+		expect(onStickChange).toHaveBeenLastCalledWith(false);
+	});
+
+	it("pins when a row grows without touching the child list", async () => {
+		// An image finishing its download, a web font swapping in, a row expanding
+		// under CSS: the container has a fixed height, so only the row resizes.
+		const sizes = stubResizeObserver();
+		const node = makeNode();
+		const row = document.createElement("p");
+		node.appendChild(row);
+
+		autoscroll(node);
+		expect(sizes.observed.has(node)).toBe(true);
+		expect(sizes.observed.has(row)).toBe(true);
+
+		node.scrollTop = 0; // proof the pin ran, without dispatching a scroll event
+		sizes.resize();
+		await new Promise((resolve) => requestAnimationFrame(resolve));
 		expect(node.scrollTop).toBe(SCROLL_HEIGHT);
 	});
 
-	it("mounting disabled and enabling later reads the container as it is then", () => {
-		// Mounted at the bottom — an empty transcript always is — and only enabled
-		// once a reply starts, by which time the reader has scrolled up to re-read.
+	it("follows rows in and out of the transcript", async () => {
+		const sizes = stubResizeObserver();
 		const node = makeNode();
-		const onStickChange = vi.fn();
-		const handle = autoscroll(node, { enabled: false, onStickChange });
+		autoscroll(node);
 
-		node.scrollTop = 0;
-		expect(onStickChange).not.toHaveBeenCalled();
+		const row = document.createElement("p");
+		node.appendChild(row);
+		await deliverMutations();
+		expect(sizes.observed.has(row)).toBe(true);
 
-		handle.update?.({ enabled: true, onStickChange });
-		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(false);
+		// Left observed, a removed row would keep the transcript alive in memory.
+		row.remove();
+		await deliverMutations();
+		expect(sizes.observed.has(row)).toBe(false);
 	});
 
 	it("does nothing after destroy, and destroying twice does not throw", async () => {

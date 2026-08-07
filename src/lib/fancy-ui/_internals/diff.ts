@@ -41,6 +41,7 @@ export interface DiffFile {
 }
 
 const HUNK_HEADER = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)$/;
+const FILE_HEADER = /^(?:---|\+\+\+) /;
 
 const GIT_HEADER = "diff --git ";
 
@@ -159,9 +160,13 @@ export function parseUnifiedDiff(src: string): DiffFile[] {
 				continue;
 			}
 			// `---`/`+++` are ambiguous with content, so only unmistakable
-			// boundaries end a hunk early; otherwise the declared counts do.
-			const boundary = raw.startsWith(GIT_HEADER) || HUNK_HEADER.test(raw);
+			// boundaries end a hunk early; otherwise the declared counts do. Once
+			// the counts are spent they stop being ambiguous: concatenated `diff -u`
+			// output has no `diff --git` separator, and its next file announces
+			// itself with exactly those two headers.
 			const budget = state.remainingOld > 0 || state.remainingNew > 0;
+			const boundary =
+				raw.startsWith(GIT_HEADER) || HUNK_HEADER.test(raw) || (!budget && FILE_HEADER.test(raw));
 			if (!boundary && (budget || isBodyLine(raw))) {
 				appendBody(state, raw);
 				continue;
@@ -213,12 +218,19 @@ export function parseUnifiedDiff(src: string): DiffFile[] {
 			file.newPath = cleanPath(raw.slice("rename to ".length), false);
 			continue;
 		}
+		// A binary add or delete carries no `--- /dev/null` / `+++ /dev/null` to
+		// clear the path the git header already copied onto both sides, so the mode
+		// marker has to do it: `{ isNew: true, oldPath: "new.bin" }` is nonsense.
 		if (raw.startsWith("new file mode")) {
-			currentFile(state).isNew = true;
+			const file = currentFile(state);
+			file.isNew = true;
+			file.oldPath = null;
 			continue;
 		}
 		if (raw.startsWith("deleted file mode")) {
-			currentFile(state).isDeleted = true;
+			const file = currentFile(state);
+			file.isDeleted = true;
+			file.newPath = null;
 			continue;
 		}
 		if (isBodyLine(raw)) {

@@ -1,4 +1,5 @@
 import { render, cleanup } from "@testing-library/svelte";
+import { createRawSnippet } from "svelte";
 import { afterEach, describe, it, expect } from "vitest";
 import Markdown from "./Markdown.svelte";
 import { parseMarkdown, parseInline, sanitizeHref } from "./markdown.js";
@@ -468,5 +469,76 @@ describe("Markdown", () => {
 		expect(scopeOf(root)).toBeDefined();
 		expect(scopeOf(nested)).toBe(scopeOf(root));
 		expect(scopeOf(nested.querySelector(".ft-md-h") as HTMLElement)).toBe(scopeOf(root));
+	});
+});
+
+describe("Markdown trailingCursor", () => {
+	afterEach(cleanup);
+
+	// Every block this renders is block-level, so a caret appended after the
+	// component sits on its own line. It has to go inside the last inline run.
+	const cursor = createRawSnippet(() => ({
+		render: () => `<span class="test-cursor"></span>`,
+	}));
+
+	const cursorParent = (container: HTMLElement) =>
+		container.querySelector(".test-cursor")?.parentElement;
+
+	it("lands inside the last paragraph, after its text", () => {
+		const { container } = render(Markdown, {
+			props: { text: "First para\n\nA **bold** claim", trailingCursor: cursor },
+		});
+		const host = cursorParent(container);
+		expect(host?.classList.contains("ft-md-p")).toBe(true);
+		expect(host?.textContent).toContain("bold");
+		expect(host?.lastElementChild?.classList.contains("test-cursor")).toBe(true);
+	});
+
+	it("lands inside a trailing heading", () => {
+		const { container } = render(Markdown, {
+			props: { text: "body\n\n## Next up", trailingCursor: cursor },
+		});
+		expect(cursorParent(container)?.classList.contains("ft-md-h")).toBe(true);
+	});
+
+	it("lands inside the last item of a trailing list", () => {
+		const { container } = render(Markdown, {
+			props: { text: "- one\n- two", trailingCursor: cursor },
+		});
+		const host = cursorParent(container);
+		expect(host?.tagName).toBe("LI");
+		expect(host?.textContent).toContain("two");
+	});
+
+	it("follows a trailing blockquote down into its own last block", () => {
+		const { container } = render(Markdown, {
+			props: { text: "> quoted body", trailingCursor: cursor },
+		});
+		const host = cursorParent(container);
+		expect(host?.classList.contains("ft-md-p")).toBe(true);
+		expect(container.querySelector(".ft-md-quote")?.contains(host ?? null)).toBe(true);
+	});
+
+	it("appears once, only at the end", () => {
+		const { container } = render(Markdown, {
+			props: { text: "one\n\ntwo\n\nthree", trailingCursor: cursor },
+		});
+		expect(container.querySelectorAll(".test-cursor")).toHaveLength(1);
+		expect(cursorParent(container)?.textContent).toContain("three");
+	});
+
+	it("is dropped when the document ends with no inline tail to hold it", () => {
+		for (const source of ["```\ncode\n```", "---", ""]) {
+			const { container } = render(Markdown, {
+				props: { text: source, trailingCursor: cursor },
+			});
+			expect(container.querySelector(".test-cursor"), source).toBeNull();
+			cleanup();
+		}
+	});
+
+	it("renders nothing extra when no cursor is passed", () => {
+		const { container } = render(Markdown, { props: { text: "plain" } });
+		expect(container.querySelector(".test-cursor")).toBeNull();
 	});
 });

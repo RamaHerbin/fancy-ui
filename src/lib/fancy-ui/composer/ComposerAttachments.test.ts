@@ -29,6 +29,7 @@ function fakeComposer(options: { attachments?: AttachmentData[]; disabled?: bool
 		attachments: { current: attachments },
 		disabled: options.disabled ?? false,
 		streaming: false,
+		stoppable: false,
 		textareaRef: { current: null },
 		submit: vi.fn(),
 		stop: vi.fn(),

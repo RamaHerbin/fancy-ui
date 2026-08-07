@@ -66,14 +66,17 @@
 	// `open` stays undefined until something actually decides: `autoOpen` carries
 	// the answer in the meantime, so a consumer that never touches the prop still
 	// gets the automatic behaviour and one that binds it still owns the value.
-	let autoOpen = $state(false);
+	// Seeded from the initial status as well, because the effect that opens a
+	// failed call never runs on the server: a call that already reports failure
+	// would otherwise be rendered folded and only spring open at hydration.
+	let autoOpen = $state(untrack(() => call.status === "error"));
 	let userToggled = $state(false);
 
 	const isOpen = $derived(open ?? autoOpen);
 	const status = $derived(call.status);
 	const isError = $derived(status === "error");
 	const errorText = $derived(isError ? (call.error ?? FALLBACK_ERROR) : "");
-	const duration = $derived(call.durationMs === undefined ? "" : formatElapsed(call.durationMs));
+	const duration = $derived(call.durationMs === undefined ? "" : formatDuration(call.durationMs));
 
 	// A snippet counts as content on its own: a caller who renders the payload
 	// themselves may well have nothing on `call` for us to look at.
@@ -83,6 +86,17 @@
 
 	const requestText = $derived(hasRequest ? formatPayload(call.input) : "");
 	const resultText = $derived(hasOutput ? formatPayload(call.output) : "");
+
+	/**
+	 * The shared formatter floors to the second, which reads as "0s" for anything
+	 * quicker than that — and a tool call more often than not is. Sub-second work
+	 * is reported in milliseconds here; everything else defers to the shared
+	 * formatter, whose contract other callers depend on.
+	 */
+	function formatDuration(ms: number): string {
+		if (Number.isFinite(ms) && ms >= 0 && ms < 1000) return `${Math.round(ms)}ms`;
+		return formatElapsed(ms);
+	}
 
 	/**
 	 * Objects and arrays get pretty-printed JSON; primitives are rendered bare so
@@ -101,14 +115,22 @@
 			return JSON.stringify(value, null, 2) ?? String(value);
 		} catch {
 			try {
-				const seen = new WeakSet<object>();
+				// Tracking every object ever seen would call the second of two
+				// siblings pointing at one value a cycle, which it is not. Only the
+				// chain currently being descended counts. `this` is whatever object
+				// owns the key being visited, so popping back to it before the check
+				// unwinds the stack on the way out of a branch.
+				const ancestors: unknown[] = [];
 				const json = JSON.stringify(
 					value,
-					(_key, entry: unknown) => {
+					function (this: unknown, _key, entry: unknown) {
 						if (typeof entry === "bigint") return `${entry}n`;
 						if (entry !== null && typeof entry === "object") {
-							if (seen.has(entry)) return "[Circular]";
-							seen.add(entry);
+							while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+								ancestors.pop();
+							}
+							if (ancestors.includes(entry)) return "[Circular]";
+							ancestors.push(entry);
 						}
 						return entry;
 					},

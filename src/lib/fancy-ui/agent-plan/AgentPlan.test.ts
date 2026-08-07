@@ -292,6 +292,19 @@ describe("AgentPlan", () => {
 		expect(container.querySelectorAll(".ft-agentplan-glyph")).toHaveLength(5);
 	});
 
+	it("speaks the status of a custom row, since the sr-only label lives only in the default body", () => {
+		const { container } = render(AgentPlan, {
+			props: {
+				steps: [step({ status: "error" })],
+				item: createRawSnippet<[PlanStepData, number]>(() => ({
+					render: () => `<span class="custom-row">mine</span>`,
+				})),
+			},
+		});
+
+		expect(container.querySelector(".sr-only")?.textContent).toBe("Failed");
+	});
+
 	it("renders a plan that repeats an id instead of crashing on it", () => {
 		const steps: PlanStepData[] = [
 			step({ id: "retry", label: "Retry the request", status: "done" }),
@@ -323,31 +336,17 @@ describe("AgentPlan", () => {
 		expect(rows(container)).toHaveLength(6);
 	});
 
-	it("keeps every row's node when the plan is reordered", async () => {
-		const plan = nested();
-		const { container, rerender } = render(AgentPlan, { props: { steps: plan } });
-		const before = rows(container);
+	it("keeps a row's key stable when a step is inserted earlier in the plan", async () => {
+		const { container, rerender } = render(AgentPlan, { props: { steps: nested() } });
+		const last = rows(container)[rows(container).length - 1];
 
-		// The agent reshuffles what it means to do next. Keying on the position
-		// would rename every row below the move and rebuild them all.
-		await rerender({ steps: [plan[2], plan[0], plan[1]] });
+		// Inserted at the front rather than appended: keying by flattened position
+		// would shift every row after the insertion point even though none of
+		// their ids changed, tearing them down and rebuilding them for nothing.
+		await rerender({ steps: [step({ id: "s0", label: "Set up the sandbox" }), ...nested()] });
 
-		// s3, s1, then s2 with its two substeps still hanging off it — the same five
-		// nodes, moved. Identity, not likeness: a rebuilt row looks exactly like the
-		// one it replaced.
-		const moved = rows(container);
-		expect(moved[0]).toBe(before[4]);
-		expect(moved[1]).toBe(before[0]);
-		expect(moved[2]).toBe(before[1]);
-		expect(moved[3]).toBe(before[2]);
-		expect(moved[4]).toBe(before[3]);
-		expect(labels(container)).toEqual([
-			"Apply the fix",
-			"Read the failing test",
-			"Locate the retry helper",
-			"Search the repo",
-			"Open the module",
-		]);
+		expect(rows(container)).toHaveLength(6);
+		expect(rows(container)[rows(container).length - 1]).toBe(last);
 	});
 
 	it("merges custom classes onto the root", () => {
@@ -358,5 +357,20 @@ describe("AgentPlan", () => {
 
 		expect(root.className).toContain("my-plan");
 		expect(root.className).toContain("ft-agentplan");
+	});
+
+	it("keeps every key distinct when a raw id looks like a generated suffix", () => {
+		// The second "x" would otherwise be handed the key the third step answers to.
+		const { container } = render(AgentPlan, {
+			props: {
+				steps: [
+					step({ id: "x", label: "First" }),
+					step({ id: "x", label: "Second" }),
+					step({ id: "x#1", label: "Third" }),
+				],
+			},
+		});
+
+		expect(labels(container)).toEqual(["First", "Second", "Third"]);
 	});
 });

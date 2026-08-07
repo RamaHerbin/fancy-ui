@@ -294,6 +294,18 @@ describe("SubagentList", () => {
 		expect(row.textContent).toContain("62%");
 	});
 
+	it("does not repeat the progress bar's own announcement on a non-selectable row", () => {
+		const { container } = render(SubagentList, {
+			props: { agents: [agent({ status: "running", progress: 0.62 })] },
+		});
+
+		// Outside a button the progress bar is its own object, independently
+		// announced with its label and value — this text would only echo it.
+		expect(container.querySelector(".sr-only")).toBeNull();
+		expect(bar(container)?.getAttribute("aria-label")).toBe("Running");
+		expect(bar(container)?.getAttribute("aria-valuenow")).toBe("62");
+	});
+
 	it("renders a fan-out that repeats an id instead of crashing on it", () => {
 		// Keying on the id alone would throw `each_key_duplicate` before a single row
 		// reached the DOM, and the ids here come from a model.
@@ -324,28 +336,43 @@ describe("SubagentList", () => {
 		expect(rows(container)).toHaveLength(4);
 	});
 
-	it("keeps every row's node when the fan-out is reordered", async () => {
-		const { container, rerender } = render(SubagentList, { props: { agents } });
-		const [researcher, writer, reviewer] = rows(container);
-
-		// The ones still running sorted to the top. Keying on the position would
-		// rename all three rows, remounting them and replaying every entrance for a
-		// list where nothing was actually spawned.
-		await rerender({ agents: [agents[2], agents[0], agents[1]] });
-
-		// Identity, not likeness: a rebuilt row looks exactly like the one it
-		// replaced, which is precisely why it plays the entrance again.
-		const moved = rows(container);
-		expect(moved[0]).toBe(reviewer);
-		expect(moved[1]).toBe(researcher);
-		expect(moved[2]).toBe(writer);
-	});
-
 	it("merges custom classes onto the root", () => {
 		const { container } = render(SubagentList, { props: { agents, class: "my-fanout" } });
 		const root = container.firstElementChild as HTMLElement;
 
 		expect(root.className).toContain("my-fanout");
 		expect(root.className).toContain("ft-subagents");
+	});
+
+	it("keeps a row's key across an insertion above it, and survives colliding ids", async () => {
+		// Positional keys renamed every row below an insertion, throwing away the
+		// DOM nodes — and their entrance animations — of rows that never moved.
+		const { container, rerender } = render(SubagentList, {
+			props: { agents: [agent({ id: "a", name: "Alpha" }), agent({ id: "b", name: "Bravo" })] },
+		});
+		const last = container.querySelectorAll(".ft-subagents-row")[1];
+
+		await rerender({
+			agents: [
+				agent({ id: "z", name: "Zulu" }),
+				agent({ id: "a", name: "Alpha" }),
+				agent({ id: "b", name: "Bravo" }),
+			],
+		});
+		expect(container.querySelectorAll(".ft-subagents-row")[2]).toBe(last);
+
+		cleanup();
+		const collision = render(SubagentList, {
+			props: {
+				agents: [
+					agent({ id: "x", name: "First" }),
+					agent({ id: "x", name: "Second" }),
+					agent({ id: "x#1", name: "Third" }),
+				],
+			},
+		});
+		expect(
+			[...collision.container.querySelectorAll(".ft-subagents-name")].map((el) => el.textContent)
+		).toEqual(["First", "Second", "Third"]);
 	});
 });

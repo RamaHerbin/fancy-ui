@@ -119,4 +119,28 @@ describe("parseAnsi", () => {
 		expect(parseAnsi(null as unknown as string)).toEqual([]);
 		expect(parseAnsi(42 as unknown as string)).toEqual([]);
 	});
+
+	describe("extended colour sequences", () => {
+		it("reads a palette index as data, not as a code of its own", () => {
+			// The 31 is the palette entry of `38;5;31`, not the code for red.
+			expect(parseAnsi(`${ESC}[38;5;31mx`)).toEqual([{ text: "x", bold: false, fg: null }]);
+		});
+
+		it("reads a colour channel as data, not as bold", () => {
+			expect(parseAnsi(`${ESC}[38;2;1;2;3mx`)).toEqual([{ text: "x", bold: false, fg: null }]);
+		});
+
+		it("still applies a real code that follows the sequence", () => {
+			expect(parseAnsi(`${ESC}[38;5;208;1mx`)).toEqual([{ text: "x", bold: true, fg: null }]);
+		});
+
+		it("consumes only what is there when the sequence is truncated", () => {
+			expect(parseAnsi(`${ESC}[38;5mx`)).toEqual([{ text: "x", bold: false, fg: null }]);
+			expect(parseAnsi(`${ESC}[38;2;1;2mx`)).toEqual([{ text: "x", bold: false, fg: null }]);
+		});
+
+		it("treats a background sequence the same way", () => {
+			expect(parseAnsi(`${ESC}[48;5;1mx`)).toEqual([{ text: "x", bold: false, fg: null }]);
+		});
+	});
 });

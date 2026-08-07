@@ -66,6 +66,10 @@
 	// Plain lets: neither should wake an effect that writes them.
 	let wasStreaming = false;
 	let collapseTimer: ReturnType<typeof setTimeout> | undefined;
+	// The last value `onToggle` was told about. `commit` keeps it in step with
+	// its own calls, so the effect below only speaks up for changes that never
+	// went through it — a consumer writing straight to a bound variable.
+	let lastNotifiedOpen = untrack(() => open ?? autoOpen);
 
 	const elapsed = createElapsed();
 
@@ -90,6 +94,7 @@
 		if (untrack(() => open ?? autoOpen) === next) return;
 		open = next;
 		autoOpen = next;
+		lastNotifiedOpen = next;
 		onToggle?.(next);
 	}
 
@@ -122,6 +127,18 @@
 			}, AUTO_COLLAPSE_MS);
 		});
 		return clearCollapseTimer;
+	});
+
+	// A consumer that writes straight to a variable bound with `bind:open` moves
+	// the panel without going through `commit`, so nothing above reports it. The
+	// README promises every change is announced, whichever side caused it.
+	$effect(() => {
+		const next = isOpen;
+		untrack(() => {
+			if (next === lastNotifiedOpen) return;
+			lastNotifiedOpen = next;
+			onToggle?.(next);
+		});
 	});
 
 	// The timer only exists while the trace grows; its last reading survives as
@@ -176,7 +193,7 @@
 				inert={!isOpen}
 				class="text-muted-foreground overflow-y-auto px-3 pb-3 leading-relaxed"
 				style:max-height={maxHeight}
-				use:autoscroll={{ enabled: streaming && isOpen }}
+				use:autoscroll={{ enabled: streaming && isOpen, pinOnConnect: true }}
 			>
 				<StreamText {text} />
 			</div>

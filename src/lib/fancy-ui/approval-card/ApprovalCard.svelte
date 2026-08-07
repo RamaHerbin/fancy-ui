@@ -36,6 +36,7 @@
 </script>
 
 <script lang="ts">
+	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 
 	let {
@@ -63,6 +64,9 @@
 	const isApproved = $derived(state === "approved");
 	const resolvedLabel = $derived(isApproved ? RESOLVED_LABELS.approved : RESOLVED_LABELS.denied);
 
+	/** Where focus lands once the buttons it might have held are gone. */
+	let resolvedRef: HTMLParagraphElement | null = null;
+
 	/**
 	 * The decision is written to `state` before the callback fires, so a consumer
 	 * reading the bound value from inside its own handler already sees the answer.
@@ -73,6 +77,10 @@
 		state = next;
 		if (next === "approved") onApprove?.();
 		else onDeny?.();
+		// The button just pressed is about to leave the DOM along with the rest of
+		// the action group, so focus is moved to the verdict once it has painted —
+		// otherwise the browser drops it back to the document body.
+		tick().then(() => resolvedRef?.focus());
 	}
 </script>
 
@@ -153,7 +161,9 @@
 			</div>
 		{:else}
 			<p
-				class="ft-approval-resolved flex items-center gap-1.5 text-xs font-medium"
+				bind:this={resolvedRef}
+				tabindex="-1"
+				class="ft-approval-resolved focus-visible:ring-ring flex items-center gap-1.5 rounded-md text-xs font-medium focus-visible:ring-1 focus-visible:outline-none"
 				class:ft-approved={isApproved}
 			>
 				<span class="flex-none" aria-hidden="true">

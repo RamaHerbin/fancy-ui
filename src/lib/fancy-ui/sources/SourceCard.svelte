@@ -10,6 +10,12 @@
 		source: SourceData;
 		/** Replaces the monogram: a favicon you host, a logo, an icon. */
 		icon?: Snippet;
+		/**
+		 * Renders the plain, non-anchor shape even when the source has a url. For a
+		 * card embedded in a surface — a tooltip preview — that cannot host a link
+		 * reachable by keyboard.
+		 */
+		interactive?: boolean;
 		/** Additional CSS classes */
 		class?: string;
 	}
@@ -18,8 +24,9 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { hostOf, monogram } from "../_internals/host.js";
+	import { sanitizeHref } from "../_internals/markdown.js";
 
-	let { source, icon, class: className }: SourceCardProps = $props();
+	let { source, icon, interactive = true, class: className }: SourceCardProps = $props();
 
 	// An explicit `domain` always wins — a caller who says "the standards body"
 	// means that, not `www.w3.org`.
@@ -28,8 +35,29 @@
 	// with no parsable host falls back to its own title.
 	const mark = $derived(monogram(domain || source.title));
 	// A citation with nowhere to go is still worth showing — it just must not
-	// pretend to be a link.
-	const href = $derived(typeof source.url === "string" && source.url !== "" ? source.url : "");
+	// pretend to be a link. A model-provided url also has to clear the same
+	// scheme check every link in this family runs through, and a bare host
+	// ("docs.example.dev/guide") has to become absolute before it goes in an
+	// `href`, or the browser resolves it against this app's own origin instead
+	// of the cited site.
+	const href = $derived(
+		interactive && typeof source.url === "string" ? (resolveHref(source.url) ?? "") : ""
+	);
+
+	/**
+	 * A model-provided url made safe for an anchor's `href`, or `null` when it
+	 * must not render as a link at all: a disallowed scheme is rejected outright
+	 * by the shared markdown-link sanitizer, and a scheme-less host is promoted
+	 * to `https://` first. A genuine relative path ("/local/guide") has nowhere
+	 * else to resolve against and is left alone.
+	 */
+	function resolveHref(raw: string): string | null {
+		if (raw === "") return null;
+		const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("//");
+		const host = raw.split(/[/?#]/, 1)[0];
+		const looksHostLike = !hasScheme && !raw.startsWith("/") && host.includes(".");
+		return sanitizeHref(looksHostLike ? `https://${raw}` : raw);
+	}
 </script>
 
 {#snippet body()}

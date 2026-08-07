@@ -43,6 +43,7 @@ interface ComposerContext {
 	readonly attachments: { readonly current: AttachmentData[] };
 	readonly disabled: boolean;
 	readonly streaming: boolean;
+	readonly stoppable: boolean;
 	readonly textareaRef: { readonly current: HTMLTextAreaElement | null };
 	submit(): void;
 	stop(): void;

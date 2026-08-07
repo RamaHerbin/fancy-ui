@@ -74,6 +74,39 @@ describe("createCopy", () => {
 		expect(c.copied).toBe(false);
 	});
 
+	it("ignores a write that only lands after destroy", async () => {
+		// A permission prompt can hold the write open across the owner's teardown.
+		let settle: () => void = () => {};
+		stubClipboard(vi.fn(() => new Promise<void>((resolve) => (settle = resolve))));
+		const c = createCopy(500);
+
+		const pending = c.copy("hello");
+		c.destroy();
+		settle();
+
+		await expect(pending).resolves.toBe(true);
+		expect(c.copied).toBe(false);
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	it("lets the newest copy own the flag when an earlier write settles late", async () => {
+		const settlers: Array<() => void> = [];
+		stubClipboard(vi.fn(() => new Promise<void>((resolve) => settlers.push(resolve))));
+		const c = createCopy(500);
+
+		const first = c.copy("first");
+		const second = c.copy("second");
+		settlers[1]();
+		await second;
+		expect(c.copied).toBe(true);
+
+		// The superseded write resolves afterwards: it must not re-arm the window.
+		settlers[0]();
+		await expect(first).resolves.toBe(true);
+		await vi.advanceTimersByTimeAsync(500);
+		expect(c.copied).toBe(false);
+	});
+
 	it("cancels the pending reset on destroy", async () => {
 		stubClipboard(vi.fn().mockResolvedValue(undefined));
 		const c = createCopy(500);

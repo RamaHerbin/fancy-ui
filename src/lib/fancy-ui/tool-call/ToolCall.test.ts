@@ -85,7 +85,10 @@ describe("ToolCall", () => {
 		});
 
 		expect(header(container).getAttribute("aria-expanded")).toBe("true");
-		expect(onToggle).toHaveBeenLastCalledWith(true);
+		// Open from the first render rather than toggled there, which is what keeps
+		// server markup expanded instead of folding until hydration catches up.
+		// Nothing moved, so there is nothing for onToggle to report.
+		expect(onToggle).not.toHaveBeenCalled();
 	});
 
 	it("opens itself when a running call turns into a failure", async () => {
@@ -156,6 +159,19 @@ describe("ToolCall", () => {
 		});
 
 		expect(payloads(container)).toEqual(['{\n  "name": "loop",\n  "self": "[Circular]"\n}']);
+	});
+
+	it("keeps a value shared by two siblings intact rather than calling the repeat a cycle", () => {
+		// The bigint is what forces this payload down the replacer path at all: a
+		// plain shared reference serializes on the first attempt.
+		const shared = { id: "x" };
+		const { container } = render(ToolCall, {
+			props: { call: call({ output: { first: shared, second: shared, count: 1n } }), open: true },
+		});
+
+		expect(payloads(container)).toEqual([
+			'{\n  "first": {\n    "id": "x"\n  },\n  "second": {\n    "id": "x"\n  },\n  "count": "1n"\n}',
+		]);
 	});
 
 	it("renders a bigint JSON refuses outright", () => {
@@ -264,6 +280,9 @@ describe("ToolCall", () => {
 	});
 
 	it.each([
+		// Sub-second work is what most calls actually are; the shared formatter
+		// floors to the second and would report every one of them as "0s".
+		[240, "240ms"],
 		[1400, "1s"],
 		[65_000, "1m 05s"],
 	])("formats a duration of %ims", (durationMs, expected) => {
