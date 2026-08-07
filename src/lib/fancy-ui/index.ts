@@ -89,6 +89,9 @@ export * from "./approval-card/index.js";
 export * from "./recommendation-card/index.js";
 export * from "./artifact-card/index.js";
 export * from "./ai-data-table/index.js";
+export * from "./composer/index.js";
+export * from "./voice-input/index.js";
+export * from "./context-ring/index.js";
 
 // =============================================================================
 // Registry

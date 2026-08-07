@@ -86,6 +86,9 @@
 		"recommendation-card",
 		"artifact-card",
 		"ai-data-table",
+		"composer",
+		"voice-input",
+		"context-ring",
 	]);
 </script>
 
