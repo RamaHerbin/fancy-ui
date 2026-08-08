@@ -4688,6 +4688,735 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 		slots: [{ name: "children", description: "Overrides the default icon + label content" }],
 	},
+
+	// =========================================================================
+	// Core — forms
+	// =========================================================================
+
+	label: {
+		name: "Label",
+		slug: "label",
+		description:
+			"A form label with a decorative required asterisk, wired to a FormField's context when it has one",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["label", "form", "accessibility"],
+		props: [
+			{
+				name: "for",
+				type: "string",
+				description: "Explicit target id. Inside a FormField, the field's own control id wins",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description:
+					"Renders the required asterisk. Inside a FormField, the field's own `required` wins",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLLabelElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [{ name: "children", description: "The label text/content" }],
+	},
+
+	"form-field": {
+		name: "FormField",
+		slug: "form-field",
+		description:
+			"Wraps a control with a label, help/error text and id wiring, so a screen reader gets the full picture without manual aria plumbing",
+		category: "forms",
+		group: "core",
+		status: "done",
+		dependencies: ["label"],
+		tags: ["form", "field", "label", "validation", "accessibility", "compound"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				description:
+					"Label text — the common case. For custom label markup, render a Label in children instead",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Help text under the control, replaced by error while the field is invalid",
+			},
+			{
+				name: "error",
+				type: "string",
+				description: "Error text. Setting it marks the field invalid and replaces the help text",
+			},
+			{
+				name: "valid",
+				type: "boolean",
+				default: "false",
+				description:
+					"Decorative checkmark next to the help text; error always wins if both are set",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description:
+					"Marks the field required: the label gets an asterisk, the control gets aria-required",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the field: reaches the wrapped control through context",
+			},
+			{
+				name: "id",
+				type: "string",
+				description:
+					"Opts out of the generated id. description/error ids are suffixes of this same value",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [{ name: "children", description: "The control" }],
+	},
+
+	input: {
+		name: "Input",
+		slug: "input",
+		description:
+			"A single-line text field with resting, focus, error and disabled looks, built on a native input",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["input", "text-field", "form", "validation"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "Current value; bindable",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every input event",
+			},
+			{
+				name: "type",
+				type: '"text" | "email" | "url" | "tel" | "password" | "search" | "number"',
+				default: '"text"',
+				description: "Native input type",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description: "Blocks typing but stays focusable and is still submitted, unlike disabled",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "autocomplete",
+				type: "FullAutoFill",
+				description:
+					"Native autocomplete hint; the union from svelte/elements, not an arbitrary string",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+	},
+
+	textarea: {
+		name: "Textarea",
+		slug: "textarea",
+		description:
+			"A multi-line text field with an optional live character counter and auto-growing height, built on a native textarea",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["textarea", "text-field", "form", "validation", "counter", "auto-resize"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "Current value; bindable",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every input event",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description: "Blocks typing but stays focusable and is still submitted, unlike disabled",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "autocomplete",
+				type: "FullAutoFill",
+				description:
+					"Native autocomplete hint; the union from svelte/elements, not an arbitrary string",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "rows",
+				type: "number",
+				default: "3",
+				description: "Visible height in text rows before anything grows it; also the no-JS height",
+			},
+			{
+				name: "maxlength",
+				type: "number",
+				description: "Native character ceiling; also the counter's denominator",
+			},
+			{
+				name: "showCount",
+				type: "boolean",
+				default: "false",
+				description: 'Renders the live "n / max" counter under the field',
+			},
+			{
+				name: "autoResize",
+				type: "boolean",
+				default: "false",
+				description: "Grows to fit content instead of scrolling; disables manual resize",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes — applied to the textarea itself, not the wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLTextAreaElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+	},
+
+	checkbox: {
+		name: "Checkbox",
+		slug: "checkbox",
+		description:
+			"A tri-look checkbox — unchecked, checked, indeterminate and disabled — built on a native checkbox input",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["checkbox", "form", "indeterminate", "validation"],
+		props: [
+			{
+				name: "checked",
+				type: "boolean",
+				default: "false",
+				description: "Whether the box is checked; bindable",
+			},
+			{
+				name: "indeterminate",
+				type: "boolean",
+				default: "false",
+				description: "Mixed/dash visual state; bindable",
+			},
+			{
+				name: "onCheckedChange",
+				type: "(checked: boolean) => void",
+				description: "Called with the new checked value whenever the box is activated",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks interaction; excluded from form submission",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "value",
+				type: "string",
+				description: "Form value submitted while checked",
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					"Accessible name, rendered as aria-label; skip it when children already supplies the visible label text",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the wrapping label",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference to the native input",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Visible label text, rendered beside the box",
+			},
+		],
+	},
+
+	"radio-group": {
+		name: "RadioGroup",
+		slug: "radio-group",
+		description:
+			"A set of mutually exclusive options, built on real input type=radio elements sharing one name so the browser gives the roving tab stop and keyboard navigation for free.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["radio", "form", "selection", "compound", "validation"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: 'The selected value, bindable — "" means nothing is selected.',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value whenever the selection changes.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description:
+					"Shared name for the native radios. Generated per instance when omitted, so two groups on the same page never fight over each other's selection.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables every item in the group.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Marks the group required for native form validation.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Marks the group invalid — sets aria-invalid.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"vertical"',
+				description: "The list's stacking axis.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					"Accessible name, standalone. Inside a FormField that rendered its own label, its labelId wins instead; a FormField with no label of its own falls back to this.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "RadioGroupItem.value",
+				type: "string",
+				required: true,
+				description: "This item's value — what the group's value becomes when it is picked.",
+			},
+			{
+				name: "RadioGroupItem.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this item, independent of the group's own disabled.",
+			},
+			{
+				name: "RadioGroupItem.label",
+				type: "string",
+				description: "Visible label text. Also the fallback content, and the fallback name.",
+			},
+			{
+				name: "RadioGroupItem.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the wrapping label.",
+			},
+			{
+				name: "RadioGroupItem.ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable reference to the item's native input.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The RadioGroup's content — the RadioGroupItems." },
+			{
+				name: "RadioGroupItem.children",
+				description: "Custom content rendered in place of the item's label.",
+			},
+		],
+	},
+
+	switch: {
+		name: "Switch",
+		slug: "switch",
+		description:
+			"A sliding on/off control that takes effect immediately, built on a native checkbox input",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["switch", "toggle", "form", "settings"],
+		props: [
+			{
+				name: "checked",
+				type: "boolean",
+				default: "false",
+				description: "Whether the switch is on; bindable",
+			},
+			{
+				name: "onCheckedChange",
+				type: "(checked: boolean) => void",
+				description: "Called with the new value whenever the switch is activated",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks interaction; excluded from form submission",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "value",
+				type: "string",
+				description: "Form value submitted while on",
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					"Accessible name, rendered as aria-label; skip it when children already supplies the visible label text",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Track/knob size",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the wrapping label",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference to the native input",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Visible label text, rendered beside the track",
+			},
+		],
+	},
+
+	slider: {
+		name: "Slider",
+		slug: "slider",
+		description:
+			"Restyled native range input with a purple-to-cyan gradient fill that tracks the current value and a glowing thumb",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["slider", "range", "form", "input"],
+		props: [
+			{ name: "value", type: "number", default: "0", description: "Current value; bindable" },
+			{
+				name: "onValueChange",
+				type: "(value: number) => void",
+				description: "Called with the new value on every input event",
+			},
+			{ name: "min", type: "number", default: "0", description: "Lower bound" },
+			{ name: "max", type: "number", default: "100", description: "Upper bound" },
+			{
+				name: "step",
+				type: "number",
+				default: "1",
+				description: "Increment size, including fractional steps",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks dragging and keyboard interaction. Overridden by a surrounding FormField",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id. Overridden by a surrounding FormField's own controlId",
+			},
+			{ name: "name", type: "string", description: "Native name, read on form submission" },
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "showValue",
+				type: "boolean",
+				default: "false",
+				description: "Shows the current value in a bubble that tracks the thumb",
+			},
+			{
+				name: "showBounds",
+				type: "boolean",
+				default: "false",
+				description: "Shows min and max as end labels below the track",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, applied to the outer wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Reference to the underlying input type=range",
+			},
+		],
+	},
+
+	"number-input": {
+		name: "NumberInput",
+		slug: "number-input",
+		description:
+			"Numeric field with decrement/increment buttons that clamp to min/max, disable themselves at the bounds, and step fractional values without float drift",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["number", "stepper", "form", "input", "quantity"],
+		props: [
+			{
+				name: "value",
+				type: "number | null",
+				default: "null",
+				description: "Current value; bindable. null when the field is empty",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: number | null) => void",
+				description: "Called with the new value on every change, including a clear to null",
+			},
+			{ name: "min", type: "number", description: "Lower bound. Leave unset for no lower bound" },
+			{ name: "max", type: "number", description: "Upper bound. Leave unset for no upper bound" },
+			{
+				name: "step",
+				type: "number",
+				default: "1",
+				description: "Increment size, including fractional steps",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks focus, typing and the step buttons; excluded from form submission. Overridden by a surrounding FormField",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks typing and the step buttons but stays focusable and is still submitted, unlike disabled",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required. Overridden by a surrounding FormField",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description:
+					"Drives the error border and aria-invalid. Overridden by a surrounding FormField",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id. Overridden by a surrounding FormField's own controlId",
+			},
+			{ name: "name", type: "string", description: "Native name, read on form submission" },
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, applied to the outer bordered wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Reference to the underlying input type=number",
+			},
+		],
+	},
 };
 
 // =============================================================================
