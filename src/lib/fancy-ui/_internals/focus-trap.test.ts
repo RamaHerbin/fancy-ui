@@ -158,6 +158,83 @@ describe("focusTrap", () => {
 
 		outside.remove();
 	});
+
+	// The element `previouslyFocused` closed over is a raw reference, not a
+	// live query — if it leaves the document while the trap is still active
+	// (a toolbar re-render, a list row disappearing, a trigger inside a
+	// reordering `{#each}`), `.focus()` on it is the same silent no-op any
+	// detached node produces. These three pin the fallback chain that exists
+	// specifically to catch that.
+	it("falls back to fallbackFocus() when the previously-focused element has left the document", () => {
+		const outside = document.createElement("button");
+		outside.id = "outside";
+		document.body.appendChild(outside);
+		outside.focus();
+
+		const fallback = document.createElement("button");
+		fallback.id = "fallback";
+		document.body.appendChild(fallback);
+
+		const trapNode = setup(`
+			<div id="trap">
+				<button id="a">A</button>
+			</div>
+		`);
+		const trap = focusTrap(trapNode, { fallbackFocus: () => fallback });
+
+		outside.remove(); // the element focus would otherwise return to
+
+		trap?.destroy?.();
+		expect(document.activeElement?.id).toBe("fallback");
+
+		fallback.remove();
+	});
+
+	it("falls back to document.body when neither the previously-focused element nor fallbackFocus() is connected", () => {
+		const outside = document.createElement("button");
+		outside.id = "outside";
+		document.body.appendChild(outside);
+		outside.focus();
+
+		const danglingFallback = document.createElement("button"); // never appended
+		const trapNode = setup(`
+			<div id="trap">
+				<button id="a">A</button>
+			</div>
+		`);
+		const trap = focusTrap(trapNode, { fallbackFocus: () => danglingFallback });
+
+		outside.remove();
+
+		trap?.destroy?.();
+		expect(document.activeElement).toBe(document.body);
+	});
+
+	it("never calls fallbackFocus() while the previously-focused element is still connected", () => {
+		const outside = document.createElement("button");
+		outside.id = "outside";
+		document.body.appendChild(outside);
+		outside.focus();
+
+		let fallbackCalled = false;
+		const trapNode = setup(`
+			<div id="trap">
+				<button id="a">A</button>
+			</div>
+		`);
+		const trap = focusTrap(trapNode, {
+			fallbackFocus: () => {
+				fallbackCalled = true;
+				return null;
+			},
+		});
+
+		trap?.destroy?.();
+		expect(document.activeElement?.id).toBe("outside");
+		expect(fallbackCalled).toBe(false);
+
+		outside.remove();
+	});
 });
 
 describe("focusTrap — visibility and empty containers", () => {
