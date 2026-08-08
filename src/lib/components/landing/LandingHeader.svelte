@@ -42,11 +42,13 @@
 					/>
 				</svg>
 			</a>
+			<!-- Solid white, matching the hero's primary CTA: the two sit ~40px apart on
+			     load, and two different treatments of the same label read as a bug. -->
 			<a
 				href="/docs"
-				class="rounded-[10px] bg-[linear-gradient(100deg,#7c3aed,#3b82f6)] px-[18px] py-[9px] text-[13px] font-semibold text-white shadow-[0_4px_18px_rgba(91,140,255,0.35)] transition-opacity hover:opacity-90"
+				class="inline-flex items-center gap-2 rounded-[10px] bg-[#f8fafc] px-[18px] py-[9px] text-[13px] font-semibold text-[#0a0a0e] transition-opacity hover:opacity-90"
 			>
-				Get Started
+				Get Started <span aria-hidden="true">→</span>
 			</a>
 		</div>
 	</div>
