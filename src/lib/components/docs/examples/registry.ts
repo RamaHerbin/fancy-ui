@@ -982,4 +982,190 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Restricted to business hours, 09:00 to 17:00.",
 		},
 	],
+
+	navbar: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithActions",
+			title: "With Actions",
+			description: "Search and a sign-in button on the right.",
+		},
+		{
+			name: "StickyBar",
+			title: "Sticky Bar",
+			description: "Pinned to the top of a scrolling container with a blurred background.",
+		},
+	],
+	sidebar: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithBadges",
+			title: "With Badges",
+			description: "A count folded into an item's accessible name, and a second grouped section.",
+		},
+		{
+			name: "Collapsed",
+			title: "Collapsed",
+			description: "Icon-only rail — labels and badge meaning move to sr-only text, never removed.",
+		},
+		{
+			name: "WithFooter",
+			title: "With Footer",
+			description: "An avatar and name row, above a separator, pinned to the bottom.",
+		},
+	],
+	tabs: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Three tabs, automatic activation, the underline variant.",
+		},
+		{
+			name: "SegmentedVariant",
+			title: "Segmented Variant",
+			description: "The pill-rail visual style instead of the accent underline.",
+		},
+		{
+			name: "ManualActivation",
+			title: "Manual Activation",
+			description: "Arrow keys only move focus; Enter/Space or a click selects.",
+		},
+		{
+			name: "VerticalTabs",
+			title: "Vertical Tabs",
+			description: "Stacked in a column, with Up/Down driving the roving tabindex.",
+		},
+		{
+			name: "DisabledTab",
+			title: "Disabled Tab",
+			description: "One trigger unavailable — skipped by the arrows and Home/End.",
+		},
+	],
+	breadcrumb: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A three-level trail; the last item is the current page.",
+		},
+		{
+			name: "Truncated",
+			title: "Truncated",
+			description: "A five-level trail collapsed to first, ellipsis, and last two.",
+		},
+		{
+			name: "CustomSeparator",
+			title: "Custom Separator",
+			description: "A '>' glyph in place of the default slash.",
+		},
+	],
+	pagination: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "ManyPages",
+			title: "Many Pages",
+			description: "A 200-page run — the sequence stays a handful of numbers plus two ellipses.",
+		},
+		{
+			name: "WithEdges",
+			title: "With First/Last",
+			description: "First/Last jump buttons alongside Previous/Next.",
+		},
+		{ name: "DisabledState", title: "Disabled State" },
+	],
+	stepper: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "VerticalStepper",
+			title: "Vertical Stepper",
+			description: "Stacked in a column instead of a horizontal row.",
+		},
+		{
+			name: "ClickableSteps",
+			title: "Clickable Steps",
+			description: "Steps render as buttons a reader can click to jump between them.",
+		},
+		{
+			name: "WithDescriptions",
+			title: "With Descriptions",
+			description: "A secondary line under each step's label.",
+		},
+	],
+	"dropdown-menu": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithShortcuts",
+			title: "With Shortcuts",
+			description: "Display-only keyboard shortcuts rendered as trailing kbd tags.",
+		},
+		{
+			name: "DestructiveItem",
+			title: "Destructive Item",
+			description: "A destructive action set apart with the destructive variant.",
+		},
+		{
+			name: "WithSubmenu",
+			title: "With Submenu",
+			description: "A nested submenu that opens on hover, click or ArrowRight.",
+		},
+		{
+			name: "DisabledItems",
+			title: "Disabled Items",
+			description: "Disabled rows are skipped by keyboard navigation and inert to click.",
+		},
+	],
+	"context-menu": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithSubmenu",
+			title: "With Submenu",
+			description:
+				"A nested submenu inside a context menu, using the same Sub primitives as DropdownMenu.",
+		},
+		{
+			name: "DisabledItems",
+			title: "Disabled Items",
+			description: "Disabled rows are skipped by keyboard navigation and inert to click.",
+		},
+	],
+	"command-menu": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "GroupedItems",
+			title: "Grouped Items",
+			description: "Items with no group render first, then each group under its own heading.",
+		},
+		{
+			name: "EmptyState",
+			title: "Empty State",
+			description: "The message shown when nothing matches the query.",
+		},
+		{
+			name: "CustomFilter",
+			title: "Custom Filter",
+			description: "Replacing the default filter entirely, e.g. with a prefix match.",
+		},
+		{
+			name: "WithKeywords",
+			title: "With Keywords",
+			description: "Matching on keywords that never appear in the visible label.",
+		},
+	],
+	"navigation-menu": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"Two triggers, each opening a two-column panel with a feature tile and link rows.",
+		},
+		{
+			name: "SimpleLinks",
+			title: "Simple Links",
+			description: "A single trigger opening a plain, single-column stack of links.",
+		},
+		{
+			name: "WithCurrentPage",
+			title: "With Current Page",
+			description: "A panel where one link is marked as the current page.",
+		},
+	],
 };

@@ -1,0 +1,53 @@
+<!--
+  Test-only rig. `bind:` cannot be expressed from a `.ts` test file — the props
+  object a test hands to `render` is copied into the component's own reactive
+  state, so a write inside the component never lands back on it. Binding here
+  and echoing the value into the DOM is the only way to prove `page` travels
+  back out to the consumer rather than merely changing what the control draws,
+  and the same goes for `ref`. Not exported from index.ts, and not collected
+  by Vitest (the run includes `*.test.ts` only).
+-->
+<script lang="ts">
+	import Pagination from "./Pagination.svelte";
+
+	interface Props {
+		count: number;
+		page?: number;
+		onPageChange?: (page: number) => void;
+		siblingCount?: number;
+		boundaryCount?: number;
+		showEdges?: boolean;
+		disabled?: boolean;
+		label?: string;
+	}
+
+	let {
+		count,
+		page = $bindable(1),
+		onPageChange,
+		siblingCount = 1,
+		boundaryCount = 1,
+		showEdges = false,
+		disabled = false,
+		label = "Pagination",
+	}: Props = $props();
+
+	let el = $state<HTMLElement | null>(null);
+	$effect(() => {
+		el?.setAttribute("data-bound-ref", "yes");
+	});
+</script>
+
+<Pagination
+	bind:page
+	bind:ref={el}
+	{count}
+	{onPageChange}
+	{siblingCount}
+	{boundaryCount}
+	{showEdges}
+	{disabled}
+	{label}
+/>
+
+<span data-testid="bound-page">{page}</span>

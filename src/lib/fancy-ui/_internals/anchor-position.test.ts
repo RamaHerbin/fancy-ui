@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { computePosition } from "./anchor-position";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { anchorPosition, computePosition, type Side } from "./anchor-position";
 
 function rect(partial: Partial<DOMRect>): DOMRect {
 	const { x = 0, y = 0, width = 0, height = 0 } = partial;
@@ -140,5 +140,159 @@ describe("computePosition", () => {
 		expect(() =>
 			computePosition(anchor, { width: 10, height: 10 }, { viewport: { width: 100, height: 100 } })
 		).not.toThrow();
+	});
+});
+
+describe("anchorPosition — onPlacement", () => {
+	afterEach(() => {
+		document.body.innerHTML = "";
+	});
+
+	/**
+	 * jsdom gives every element a zero rect, so both the anchor and the
+	 * floating node need stubbed geometry for a flip to be reachable at all.
+	 * The viewport is jsdom's default 1024x768.
+	 */
+	function setup(anchorRect: Partial<DOMRect>, floating: { width: number; height: number }) {
+		const anchorEl = document.createElement("button");
+		const node = document.createElement("div");
+		document.body.append(anchorEl, node);
+
+		anchorEl.getBoundingClientRect = () => rect(anchorRect);
+		node.getBoundingClientRect = () => rect({ width: floating.width, height: floating.height });
+
+		return { anchorEl, node };
+	}
+
+	it("reports the requested side when nothing flips", () => {
+		const { anchorEl, node } = setup(
+			{ x: 100, y: 100, width: 50, height: 20 },
+			{
+				width: 200,
+				height: 100,
+			}
+		);
+		const seen: Side[] = [];
+
+		const action = anchorPosition(node, {
+			anchor: () => anchorEl,
+			side: "bottom",
+			onPlacement: (side) => seen.push(side),
+		});
+
+		expect(seen).toEqual(["bottom"]);
+		action?.destroy?.();
+	});
+
+	it("reports the opposite side when the requested one overflows", () => {
+		// 740 + 8 offset + 100 tall = 848, past jsdom's 768-high viewport.
+		const { anchorEl, node } = setup(
+			{ x: 100, y: 720, width: 50, height: 20 },
+			{
+				width: 200,
+				height: 100,
+			}
+		);
+		const seen: Side[] = [];
+
+		const action = anchorPosition(node, {
+			anchor: () => anchorEl,
+			side: "bottom",
+			onPlacement: (side) => seen.push(side),
+		});
+
+		expect(seen).toEqual(["top"]);
+		action?.destroy?.();
+	});
+
+	it("does not re-report while the resolved side stays the same", () => {
+		const { anchorEl, node } = setup(
+			{ x: 100, y: 100, width: 50, height: 20 },
+			{
+				width: 200,
+				height: 100,
+			}
+		);
+		const onPlacement = vi.fn();
+
+		const action = anchorPosition(node, { anchor: () => anchorEl, onPlacement });
+		window.dispatchEvent(new Event("scroll"));
+		window.dispatchEvent(new Event("resize"));
+
+		// One initial placement, and silence for recomputes that land on the
+		// same side — otherwise every scroll frame would re-render a caret.
+		expect(onPlacement).toHaveBeenCalledTimes(1);
+		action?.destroy?.();
+	});
+
+	it("reports again once the resolved side actually changes", () => {
+		const anchorEl = document.createElement("button");
+		const node = document.createElement("div");
+		document.body.append(anchorEl, node);
+		node.getBoundingClientRect = () => rect({ width: 200, height: 100 });
+
+		let anchorTop = 100;
+		anchorEl.getBoundingClientRect = () => rect({ x: 100, y: anchorTop, width: 50, height: 20 });
+
+		const seen: Side[] = [];
+		const action = anchorPosition(node, {
+			anchor: () => anchorEl,
+			side: "bottom",
+			onPlacement: (side) => seen.push(side),
+		});
+
+		// The anchor scrolls down far enough that "bottom" no longer fits.
+		anchorTop = 720;
+		window.dispatchEvent(new Event("scroll"));
+
+		expect(seen).toEqual(["bottom", "top"]);
+		action?.destroy?.();
+	});
+
+	it("reports to a replacement callback even though the side has not moved", () => {
+		const { anchorEl, node } = setup(
+			{ x: 100, y: 100, width: 50, height: 20 },
+			{ width: 200, height: 100 }
+		);
+		const first = vi.fn();
+		const second = vi.fn();
+
+		const action = anchorPosition(node, {
+			anchor: () => anchorEl,
+			side: "bottom",
+			onPlacement: first,
+		});
+		expect(first).toHaveBeenCalledTimes(1);
+
+		// What an inline arrow in the action's options object produces on every
+		// re-render: identical geometry, a brand-new function. It has never
+		// been told the side, so silence here would leave it permanently
+		// uninformed — the gate exists to suppress duplicate reports to the
+		// same listener, not the first report to a new one.
+		action?.update?.({
+			anchor: () => anchorEl,
+			side: "bottom",
+			onPlacement: second,
+		});
+
+		expect(second).toHaveBeenCalledTimes(1);
+		expect(second).toHaveBeenCalledWith("bottom");
+		expect(first).toHaveBeenCalledTimes(1);
+		action?.destroy?.();
+	});
+
+	it("still stays silent for a same-callback update with an unchanged side", () => {
+		const { anchorEl, node } = setup(
+			{ x: 100, y: 100, width: 50, height: 20 },
+			{ width: 200, height: 100 }
+		);
+		const onPlacement = vi.fn();
+		const opts = { anchor: () => anchorEl, side: "bottom" as const, onPlacement };
+
+		const action = anchorPosition(node, opts);
+		action?.update?.({ ...opts, offset: 12 });
+
+		expect(onPlacement).toHaveBeenCalledTimes(1);
+		action?.destroy?.();
 	});
 });

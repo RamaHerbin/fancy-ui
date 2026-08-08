@@ -6771,6 +6771,835 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	// =========================================================================
+	// Core — navigation
+	// =========================================================================
+
+	navbar: {
+		name: "Navbar",
+		slug: "navbar",
+		description:
+			"A horizontal top-of-page bar with a brand mark, navigation links, and actions on the right.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["nav", "header", "top-bar", "links", "sticky"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				default: '"Main"',
+				description: "Accessible name for the nav landmark.",
+			},
+			{
+				name: "sticky",
+				type: "boolean",
+				default: "false",
+				description:
+					"Pins the bar to the top with `position: sticky` and a translucent, blurred background.",
+			},
+			{
+				name: "bordered",
+				type: "boolean",
+				default: "true",
+				description: "Draws a 1px hairline along the bottom edge.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the root nav element.",
+			},
+			{
+				name: "NavbarLink.href",
+				type: "string",
+				required: true,
+				description: "Destination URL.",
+			},
+			{
+				name: "NavbarLink.current",
+				type: "boolean",
+				default: "false",
+				description:
+					'Marks this as the current page — aria-current="page" plus a visible weight/colour change.',
+			},
+			{
+				name: "NavbarLink.external",
+				type: "boolean",
+				default: "false",
+				description: "Opens in a new tab with a safe rel, and notes it for assistive tech.",
+			},
+			{
+				name: "NavbarLink.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Strips the link out of the click and keyboard-activation paths.",
+			},
+			{
+				name: "NavbarLink.onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Native click handler. Never called while disabled.",
+			},
+			{
+				name: "NavbarLink.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the anchor.",
+			},
+			{
+				name: "NavbarLink.ref",
+				type: "HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable reference to the anchor element.",
+			},
+		],
+		slots: [
+			{ name: "brand", description: "The brand mark / wordmark, on the left." },
+			{ name: "children", description: "The navigation links, between the brand and the actions." },
+			{ name: "actions", description: "Actions on the right — search, sign-in, a theme switch." },
+			{ name: "NavbarLink.children", description: "The link's label." },
+		],
+	},
+
+	sidebar: {
+		name: "Sidebar",
+		slug: "sidebar",
+		description:
+			"A collapsible, grouped navigation rail with labelled sections, a current-item accent, and badges folded into each item's accessible name.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["sidebar", "nav", "rail", "collapsible", "compound", "badge"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				default: '"Sidebar"',
+				description: "Accessible name for the nav landmark.",
+			},
+			{
+				name: "collapsed",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the sidebar is collapsed to an icon-only rail. Plain, not bindable — nothing inside the compound ever changes it itself.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the root nav element.",
+			},
+			{
+				name: "SidebarGroup.label",
+				type: "string",
+				required: true,
+				description: 'The section heading, e.g. "General".',
+			},
+			{
+				name: "SidebarGroup.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the group.",
+			},
+			{
+				name: "SidebarItem.href",
+				type: "string",
+				description: 'Renders an <a> when set; a <button type="button"> otherwise.',
+			},
+			{
+				name: "SidebarItem.current",
+				type: "boolean",
+				default: "false",
+				description:
+					'Marks this as the current item — aria-current="page" plus the accent left bar.',
+			},
+			{
+				name: "SidebarItem.badge",
+				type: "string | number",
+				description: "A count or short flag, e.g. 4, rendered as a pill.",
+			},
+			{
+				name: "SidebarItem.badgeLabel",
+				type: "string",
+				description:
+					"What the badge means, folded into the accessible name. Defaults to just the badge value.",
+			},
+			{
+				name: "SidebarItem.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables both the click and keyboard-activation paths.",
+			},
+			{
+				name: "SidebarItem.onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Native click handler, for the button branch. Never called while disabled.",
+			},
+			{
+				name: "SidebarItem.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the item.",
+			},
+			{
+				name: "SidebarItem.ref",
+				type: "HTMLAnchorElement | HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the item's interactive element.",
+			},
+			{
+				name: "SidebarSeparator.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the hairline.",
+			},
+			{
+				name: "SidebarSeparator.ref",
+				type: "HTMLHRElement | null",
+				default: "null",
+				description: "Bindable reference to the <hr> element.",
+			},
+			{
+				name: "SidebarFooter.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the footer row.",
+			},
+			{
+				name: "SidebarFooter.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the footer's root element.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "SidebarGroup, SidebarSeparator and SidebarFooter." },
+			{ name: "SidebarGroup.children", description: "The SidebarItems in this section." },
+			{
+				name: "SidebarItem.icon",
+				description: "A decorative glyph or icon, shown even while the sidebar is collapsed.",
+			},
+			{
+				name: "SidebarItem.children",
+				description: "The item's label. Moves to sr-only text while collapsed — never removed.",
+			},
+			{
+				name: "SidebarFooter.avatar",
+				description: "A decorative avatar, shown even while the sidebar is collapsed.",
+			},
+			{
+				name: "SidebarFooter.children",
+				description: "The name / text next to the avatar. sr-only while collapsed.",
+			},
+		],
+	},
+
+	tabs: {
+		name: "Tabs",
+		slug: "tabs",
+		description:
+			"A tablist compound with roving-tabindex keyboard navigation, automatic or manual activation, and an accent-underline or segmented visual style.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["tabs", "tablist", "roving-tabindex", "compound", "navigation"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "The active tab's value, bindable.",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value whenever the active tab changes.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "The tablist's stacking axis and which arrow-key pair moves it.",
+			},
+			{
+				name: "activation",
+				type: '"automatic" | "manual"',
+				default: '"automatic"',
+				description: "Whether arrowing to a trigger selects it immediately, or only moves focus.",
+			},
+			{
+				name: "variant",
+				type: '"underline" | "segmented"',
+				default: '"underline"',
+				description: "Accent underline, or a segmented pill rail.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "TabsList.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the tablist.",
+			},
+			{
+				name: "TabsList.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the tablist element.",
+			},
+			{
+				name: "TabsTrigger.value",
+				type: "string",
+				required: true,
+				description: "This trigger's value — which TabsContent it activates.",
+			},
+			{
+				name: "TabsTrigger.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this trigger; it is skipped by the arrows and Home/End.",
+			},
+			{
+				name: "TabsTrigger.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "TabsTrigger.ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger's button element.",
+			},
+			{
+				name: "TabsContent.value",
+				type: "string",
+				required: true,
+				description: "Which TabsTrigger shows this panel.",
+			},
+			{
+				name: "TabsContent.forceMount",
+				type: "boolean",
+				default: "false",
+				description:
+					"Keeps this panel mounted (with hidden) even while inactive, instead of unmounting it entirely.",
+			},
+			{
+				name: "TabsContent.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the panel.",
+			},
+			{
+				name: "TabsContent.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "A TabsList and one or more TabsContents." },
+			{ name: "TabsList.children", description: "The TabsTriggers." },
+			{
+				name: "TabsTrigger.children",
+				description: "The trigger's content, typically the tab's label.",
+			},
+			{ name: "TabsContent.children", description: "The panel's content." },
+		],
+	},
+
+	breadcrumb: {
+		name: "Breadcrumb",
+		slug: "breadcrumb",
+		description:
+			"A data-driven trail of links with automatic truncation, a decorative separator, and the current page marked for assistive tech.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["breadcrumb", "trail", "navigation", "truncation"],
+		props: [
+			{
+				name: "items",
+				type: "BreadcrumbItem[]",
+				required: true,
+				description: "The full trail, first to last. The last entry is always the current page.",
+			},
+			{
+				name: "maxItems",
+				type: "number",
+				default: "0",
+				description:
+					"Collapse the trail once it holds more than this many items. 0 never collapses.",
+			},
+			{
+				name: "itemsBeforeCollapse",
+				type: "number",
+				default: "1",
+				description: "How many leading items stay visible once collapsed.",
+			},
+			{
+				name: "itemsAfterCollapse",
+				type: "number",
+				default: "1",
+				description:
+					"How many trailing items stay visible once collapsed. Floored at 1 — the current page is never hidden.",
+			},
+			{
+				name: "separator",
+				type: "string",
+				default: '"/"',
+				description:
+					"Separator glyph rendered between crumbs. Decorative — never read by a screen reader.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Breadcrumb"',
+				description: "Accessible name for the nav.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the nav.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the nav element.",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Custom rendering for one crumb, given the item and its index in items (Snippet<[BreadcrumbItem, number]>). Optional — fully replaces the default link/current-page rendering, including aria-current, once supplied.",
+			},
+		],
+	},
+
+	pagination: {
+		name: "Pagination",
+		slug: "pagination",
+		description:
+			"A page-number control with Previous/Next, ellipsis collapsing for long runs, and optional First/Last jump buttons.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["pagination", "pager", "page-numbers", "navigation"],
+		props: [
+			{
+				name: "page",
+				type: "number",
+				default: "1",
+				description: "Current page, 1-based. Bindable.",
+			},
+			{
+				name: "count",
+				type: "number",
+				required: true,
+				description: "Total number of pages.",
+			},
+			{
+				name: "onPageChange",
+				type: "(page: number) => void",
+				description: "Called with the new page whenever it changes, however the change happened.",
+			},
+			{
+				name: "siblingCount",
+				type: "number",
+				default: "1",
+				description: "Pages shown on each side of the current page.",
+			},
+			{
+				name: "boundaryCount",
+				type: "number",
+				default: "1",
+				description: "Pages always shown at each end of the run.",
+			},
+			{
+				name: "showEdges",
+				type: "boolean",
+				default: "false",
+				description: "Shows First/Last jump buttons alongside Previous/Next.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables every control in the nav.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Pagination"',
+				description: "Accessible name for the nav landmark.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the nav element.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the nav element.",
+			},
+		],
+		slots: [
+			{ name: "previousLabel", description: "Overrides the Previous button's content." },
+			{ name: "nextLabel", description: "Overrides the Next button's content." },
+		],
+	},
+
+	stepper: {
+		name: "Stepper",
+		slug: "stepper",
+		description:
+			"A multi-step progress indicator where each step derives its own number and status — done, current, or upcoming — from its position in the sequence.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["stepper", "steps", "wizard", "progress", "compound", "navigation"],
+		props: [
+			{
+				name: "current",
+				type: "number",
+				default: "0",
+				description: "The active step's 0-based index. Bindable.",
+			},
+			{
+				name: "onCurrentChange",
+				type: "(current: number) => void",
+				description: "Called with the new index whenever it changes, however the change happened.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "The rail's stacking axis.",
+			},
+			{
+				name: "clickable",
+				type: "boolean",
+				default: "false",
+				description: "Whether steps render as buttons a reader can click to jump between them.",
+			},
+			{
+				name: "onStepClick",
+				type: "(index: number) => void",
+				description:
+					"Called with a step's index when it's activated by a click. Only fires when clickable.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLOListElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "Step.label",
+				type: "string",
+				required: true,
+				description: "The step's primary label.",
+			},
+			{
+				name: "Step.description",
+				type: "string",
+				description: "Optional secondary line shown under the label.",
+			},
+			{
+				name: "Step.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the step's li.",
+			},
+			{
+				name: "Step.ref",
+				type: "HTMLLIElement | null",
+				default: "null",
+				description: "Bindable reference to the step's li element.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The Steps." },
+			{
+				name: "Step.children",
+				description: "Overrides the bullet's default content (checkmark / number / outline).",
+			},
+		],
+	},
+
+	"dropdown-menu": {
+		name: "DropdownMenu",
+		slug: "dropdown-menu",
+		description:
+			"A menu of actions or options that opens from a trigger button, with full keyboard navigation, submenus and real DOM focus on every item.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["menu", "dropdown", "actions", "compound", "submenu", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the menu is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called whenever the menu opens or closes, however it happened",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the trigger to place the menu on. Flips when it would overflow",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"start"',
+				description: "Alignment along the trigger's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "4",
+				description: "Gap in pixels between the trigger and the menu",
+			},
+			{
+				name: "loop",
+				type: "boolean",
+				default: "true",
+				description: "Whether arrow-key navigation wraps at the ends",
+			},
+		],
+		slots: [{ name: "children", description: "The DropdownMenuTrigger and DropdownMenuContent" }],
+	},
+
+	"context-menu": {
+		name: "ContextMenu",
+		slug: "context-menu",
+		description:
+			"A menu that opens at the pointer on right-click, sharing DropdownMenu's item, submenu and keyboard behaviour but anchored to a virtual point instead of a trigger element.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		dependencies: ["dropdown-menu"],
+		tags: ["menu", "context-menu", "right-click", "compound", "submenu", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the menu is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called whenever the menu opens or closes, however it happened",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the pointer to place the menu on. Flips when it would overflow",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"start"',
+				description: "Alignment along the pointer's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "2",
+				description: "Gap in pixels between the pointer and the menu",
+			},
+			{
+				name: "loop",
+				type: "boolean",
+				default: "true",
+				description: "Whether arrow-key navigation wraps at the ends",
+			},
+		],
+		slots: [{ name: "children", description: "The ContextMenuTrigger and ContextMenuContent" }],
+	},
+
+	"command-menu": {
+		name: "CommandMenu",
+		slug: "command-menu",
+		description:
+			"A modal search palette over a flat vocabulary of items — grouped results, diacritic-insensitive filtering, match highlighting, and full keyboard navigation with focus that never leaves the search field.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["command", "palette", "search", "modal", "listbox", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the menu is open; bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description:
+					"Fires whenever open changes — Escape, an outside click, or committing an item",
+			},
+			{
+				name: "items",
+				type: "CommandItem[]",
+				required: true,
+				description: "The full, unfiltered vocabulary",
+			},
+			{
+				name: "query",
+				type: "string",
+				default: '""',
+				description: "The current search text; bindable. Reset every time the menu reopens",
+			},
+			{
+				name: "onQueryChange",
+				type: "(query: string) => void",
+				description: "Fires whenever query changes",
+			},
+			{
+				name: "onSelect",
+				type: "(item: CommandItem) => void",
+				description: "Called with the committed item, after that item's own onSelect",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Search..."',
+				description: "Placeholder for the search field",
+			},
+			{
+				name: "emptyMessage",
+				type: "string",
+				default: '"No results"',
+				description: "Shown in place of the list when nothing matches",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Command menu"',
+				description: "Accessible name for the dialog and the search field",
+			},
+			{
+				name: "filter",
+				type: "(item: CommandItem, query: string) => boolean",
+				description:
+					"Overrides the default case- and diacritic-insensitive substring filter entirely",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element.",
+			},
+		],
+		slots: [
+			{
+				name: "icon",
+				description:
+					"Rendered before each row's label, given that row's item. Treated as decorative",
+			},
+			{
+				name: "empty",
+				description: "Rendered in place of the list when nothing matches, instead of emptyMessage",
+			},
+		],
+	},
+
+	"navigation-menu": {
+		name: "NavigationMenu",
+		slug: "navigation-menu",
+		description:
+			"A horizontal row of triggers that each open a rich, multi-column panel below the row — disclosure-pattern site navigation, not an application menu.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["navigation", "menu", "disclosure", "mega menu", "dropdown", "header"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "The open item's value, bindable. Empty string when every panel is closed.",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called whenever the open item changes, from any trigger.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Main"',
+				description: "Accessible name for the nav landmark.",
+			},
+			{
+				name: "openDelay",
+				type: "number",
+				default: "150",
+				description: "Delay in ms before a hovered trigger opens its panel.",
+			},
+			{
+				name: "closeDelay",
+				type: "number",
+				default: "200",
+				description:
+					"Delay in ms before a panel closes after the pointer leaves it and its trigger.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the nav.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the nav element.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Typically a single NavigationMenuList. Snippet<[]> — the compound's own sub-components (NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent, NavigationMenuLink) are exported from the same module and used inside it.",
+			},
+		],
+	},
 };
 
 // =============================================================================

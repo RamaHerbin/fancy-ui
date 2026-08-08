@@ -155,6 +155,17 @@ export interface AnchorPositionOptions {
 	side?: Side;
 	align?: Align;
 	offset?: number;
+	/**
+	 * Called with the side the element was actually placed on, which differs
+	 * from the requested `side` whenever a flip occurred. Fires once on the
+	 * initial placement and thereafter only when the resolved side changes,
+	 * so a consumer can react (move a caret, mirror a submenu's open
+	 * direction) without re-rendering on every scroll frame.
+	 *
+	 * Without this, `computePosition`'s resolved side is computed and
+	 * discarded here, and a consumer has no way to learn a flip happened.
+	 */
+	onPlacement?: (side: Side) => void;
 }
 
 /**
@@ -171,6 +182,11 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 	}
 
 	let options = opts;
+	// The last side reported through `onPlacement`, so a scroll or resize that
+	// recomputes to the same side stays silent. `null` means "nothing reported
+	// yet", which is distinct from any real side and makes the first placement
+	// always fire.
+	let reportedSide: Side | null = null;
 
 	function update(): void {
 		const anchorEl = options.anchor();
@@ -178,7 +194,7 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 
 		const anchorRect = anchorEl.getBoundingClientRect();
 		const floatingRect = node.getBoundingClientRect();
-		const { x, y } = computePosition(
+		const { x, y, side } = computePosition(
 			anchorRect,
 			{ width: floatingRect.width, height: floatingRect.height },
 			{
@@ -192,6 +208,11 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 		node.style.position = "fixed";
 		node.style.left = `${x}px`;
 		node.style.top = `${y}px`;
+
+		if (side !== reportedSide) {
+			reportedSide = side;
+			options.onPlacement?.(side);
+		}
 	}
 
 	update();
@@ -201,6 +222,15 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 
 	return {
 		update(newOpts: AnchorPositionOptions) {
+			// A new `onPlacement` is a new listener that has never been told
+			// anything, so it gets a report even if the side did not move.
+			// Without this, the idiomatic Svelte call site — an inline arrow
+			// in the action's options object, rebuilt on every re-render —
+			// silently never fires after the first one: `reportedSide` is
+			// scoped to the node, not to the callback, so the gate that exists
+			// to suppress duplicate reports to the *same* listener ends up
+			// suppressing the first report to a *different* one.
+			if (newOpts.onPlacement !== options.onPlacement) reportedSide = null;
 			options = newOpts;
 			update();
 		},

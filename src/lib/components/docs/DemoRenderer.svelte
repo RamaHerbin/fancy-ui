@@ -133,6 +133,22 @@
 		"combobox",
 		"autocomplete",
 		"file-upload",
+		// Core / navigation. Every one of these is either a compound whose
+		// children carry the whole component (Tabs, Stepper, the three menus,
+		// Navbar, Sidebar) or is driven by a required collection prop
+		// (Breadcrumb's items, Pagination's count, CommandMenu's items), so a
+		// propless direct render is an empty shell. Their BasicUsage supplies
+		// the composition or the data.
+		"navbar",
+		"sidebar",
+		"tabs",
+		"breadcrumb",
+		"pagination",
+		"stepper",
+		"dropdown-menu",
+		"context-menu",
+		"command-menu",
+		"navigation-menu",
 	]);
 </script>
 
