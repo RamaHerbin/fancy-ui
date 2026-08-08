@@ -69,7 +69,7 @@ marks the field invalid:
 | `invalid`       | `boolean`                                                                   | `false`  | Drives the error border and `aria-invalid`                                |
 | `id`            | `string`                                                                    | —        | Element id                                                                |
 | `name`          | `string`                                                                    | —        | Native `name`, read on form submission                                    |
-| `autocomplete`  | `string`                                                                    | —        | Native `autocomplete` hint                                                |
+| `autocomplete`  | `FullAutoFill`                                                              | —        | Native `autocomplete` hint                                                |
 | `label`         | `string`                                                                    | —        | Accessible name — for a control with no visible Label next to it          |
 | `class`         | `string`                                                                    | —        | Additional CSS classes                                                    |
 | `ref`           | `HTMLInputElement \| null`                                                  | `null`   | Bindable element reference                                                |

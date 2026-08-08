@@ -68,7 +68,7 @@
 	// FormField, so this border tint is a secondary cue, never the only one.
 	// Plain semantic Tailwind tokens, same as every other border on this
 	// input — only the brand accent below gets a local fallback, because
-	// unlike `--input`/`--destructive` it has no shadcn-style token a
+	// unlike `--input`/`--destructive` it has no conventionally-named token a
 	// consumer's theme is likely to already define.
 	const controlClasses = $derived(
 		cn(

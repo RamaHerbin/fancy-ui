@@ -123,3 +123,19 @@ the surrounding field supplies `controlId`, `aria-describedby`,
 - Typing is not clamped keystroke-by-keystroke — that would make it
   impossible to type "50" past a lower number without every intermediate
   digit getting clipped. Clamping happens on blur instead.
+
+## Theming
+
+The focus ring resolves through `--ft-accent`, the brand accent shared by every
+Core control, with a `light-dark()` fallback baked in — so it works untouched
+and can be retinted from anywhere up the tree:
+
+```css
+.my-form {
+	--ft-accent: oklch(0.55 0.2 300);
+}
+```
+
+Everything else — the field fill, the border, the disabled dimming, the step
+buttons — uses the theme's own semantic tokens, so it follows the light/dark
+switch and the theme generator with no per-theme overrides.

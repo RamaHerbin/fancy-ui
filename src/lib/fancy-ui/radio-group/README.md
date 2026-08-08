@@ -174,8 +174,8 @@ the same shape `Toggle` and `Button` use:
 Set `--ft-accent` higher up the tree to retint every `RadioGroupItem`
 beneath it. The resting ring and the invalid tint use the app's own
 `border-input`/`border-destructive` tokens directly, unlike the accent —
-those already have a conventional shadcn-style name a consumer's theme is
-expected to define.
+those already carry a conventional name a consumer's theme is expected to
+define.
 
 ## Implementation Notes
 
