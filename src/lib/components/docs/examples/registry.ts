@@ -856,4 +856,130 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "duration: Infinity — dismissed only by the user, never automatically.",
 		},
 	],
+
+	select: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Three frameworks, one selected by default.",
+		},
+		{
+			name: "WithFormField",
+			title: "With FormField",
+			description: "Wrapped in FormField — required and the error message driven by context.",
+		},
+		{
+			name: "DisabledOptions",
+			title: "Disabled Options",
+			description: "One option unavailable — skipped by keyboard, typeahead and pointer selection.",
+		},
+		{
+			name: "Placement",
+			title: "Placement",
+			description: "The panel anchored on all four sides of the trigger.",
+		},
+	],
+	combobox: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Four frameworks, filtered by typing.",
+		},
+		{
+			name: "CustomFilter",
+			title: "Custom Filter",
+			description:
+				"Matches by value prefix instead of the label — shows the highlight degrading gracefully when the match isn't a literal label substring.",
+		},
+		{
+			name: "WithFormField",
+			title: "With FormField",
+			description: "Wrapped in FormField — required and the error message driven by context.",
+		},
+	],
+	autocomplete: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A city field with six candidate suggestions.",
+		},
+		{
+			name: "MinLength",
+			title: "Min Length",
+			description: "Suggestions stay hidden until the third character.",
+		},
+		{
+			name: "WithFormField",
+			title: "With FormField",
+			description: "Wrapped in FormField — required and the error message driven by context.",
+		},
+	],
+	"search-input": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Debounced",
+			title: "Debounced",
+			description: "onSearch fires 300ms after typing settles instead of on every keystroke.",
+		},
+		{ name: "WithFormField", title: "With FormField" },
+	],
+	"password-input": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithStrength",
+			title: "With Strength Meter",
+			description: "showStrength turns on the meter and label once there's a value.",
+		},
+		{
+			name: "NewPassword",
+			title: "New Password",
+			description: 'autocomplete="new-password" plus showStrength, inside a FormField.',
+		},
+	],
+	"file-upload": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "MultipleWithProgress",
+			title: "Multiple, With Progress",
+			description:
+				"Driving status/progress from an onFilesChange callback with a simulated upload.",
+		},
+		{
+			name: "Constraints",
+			title: "Constraints",
+			description: "accept, maxSize and maxFiles all enforced in JS on both the picker and a drop.",
+		},
+		{ name: "WithFormField", title: "With FormField" },
+	],
+	"date-picker": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithBounds",
+			title: "With Bounds",
+			description: "Restricted to a 30-day window starting today.",
+		},
+		{
+			name: "DisabledDates",
+			title: "Disabled Dates",
+			description: "Weekends rejected via isDateDisabled.",
+		},
+		{
+			name: "WithFormField",
+			title: "With FormField",
+			description: "Wrapped in FormField — required and the error message driven by context.",
+		},
+	],
+	"time-picker": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "CustomStep",
+			title: "Custom Step",
+			description: "15-minute slots instead of the default 30.",
+		},
+		{
+			name: "WithBounds",
+			title: "With Bounds",
+			description: "Restricted to business hours, 09:00 to 17:00.",
+		},
+	],
 };

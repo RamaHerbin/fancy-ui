@@ -5979,6 +5979,798 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	// =========================================================================
+	// Core — forms, floating surfaces
+	// =========================================================================
+
+	select: {
+		name: "Select",
+		slug: "select",
+		description:
+			"A single-choice dropdown built on a real button and a portalled listbox panel, with full keyboard navigation, typeahead and focus that never leaves the trigger.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["select", "dropdown", "listbox", "combobox", "form", "compound", "accessibility"],
+		props: [
+			{
+				name: "options",
+				type: "SelectOption[]",
+				required: true,
+				description: "The choices, in order — { value, label, disabled? }.",
+			},
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: 'The selected value, bindable — "" means nothing is selected.',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value whenever the selection changes.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown in the trigger while nothing is selected.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks opening; excludes the control from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description:
+					"Marks the control required (aria-required). No native form-validation enforcement — see the README.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name. When set, a hidden input carries the value into the form.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the trigger to place the panel on. Flips when it would overflow.",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"start"',
+				description: "Alignment along the trigger's cross axis.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger.",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger button.",
+			},
+		],
+	},
+
+	combobox: {
+		name: "Combobox",
+		slug: "combobox",
+		description:
+			"A single-choice text field over a closed set of options — typing filters a portalled listbox, and a value outside the list can never be selected.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["combobox", "dropdown", "listbox", "filter", "form", "compound", "accessibility"],
+		props: [
+			{
+				name: "options",
+				type: "ComboboxOption[]",
+				required: true,
+				description: "The closed set of selectable options.",
+			},
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: 'The selected option\'s value, bindable — "" means nothing is selected.',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called whenever the selection commits.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty and nothing is selected.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required, on the visible field.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description:
+					"Native name — submitted via a hidden input carrying value, not the visible label.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "filter",
+				type: "(option: ComboboxOption, query: string) => boolean",
+				description:
+					"Matches an option against the current query. Default: case-insensitive substring on label.",
+			},
+			{
+				name: "emptyMessage",
+				type: "string",
+				default: '"No results"',
+				description: "Shown in the panel when no option matches the current query.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes.",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable reference to the input element.",
+			},
+		],
+	},
+
+	autocomplete: {
+		name: "Autocomplete",
+		slug: "autocomplete",
+		description:
+			"A free-text field with a portalled panel of matching suggestions — any typed value is valid; the panel only ever helps finish it faster.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: [
+			"autocomplete",
+			"suggestions",
+			"typeahead",
+			"listbox",
+			"form",
+			"compound",
+			"accessibility",
+		],
+		props: [
+			{
+				name: "suggestions",
+				type: "string[]",
+				required: true,
+				description: "Candidate strings offered as the user types.",
+			},
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "The free-text value, bindable.",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every keystroke.",
+			},
+			{
+				name: "onSelect",
+				type: "(suggestion: string) => void",
+				description:
+					"Called only when a suggestion is committed via click or Enter — never from plain typing.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "minLength",
+				type: "number",
+				default: "1",
+				description: "Characters required before suggestions appear.",
+			},
+			{
+				name: "maxSuggestions",
+				type: "number",
+				default: "8",
+				description: "Maximum number of suggestions shown at once.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes.",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable reference to the input element.",
+			},
+		],
+	},
+
+	"search-input": {
+		name: "SearchInput",
+		slug: "search-input",
+		description:
+			"A pill-shaped search field with a leading icon, a clear button once there's something to clear, and optional debounced search",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["search", "input", "form", "debounce", "filter"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "Current value; bindable",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every input event",
+			},
+			{
+				name: "onSearch",
+				type: "(value: string) => void",
+				description: "Fired on Enter, and on debounced settle when debounceMs is set",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Search"',
+				description: "Shown while the field is empty",
+			},
+			{
+				name: "debounceMs",
+				type: "number",
+				default: "0",
+				description:
+					"Delay before a settled value fires onSearch on its own; 0 disables debouncing",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description: "Blocks typing and clearing but stays focusable and is still submitted",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "clearable",
+				type: "boolean",
+				default: "true",
+				description: "Renders a clear button once there is something to clear",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the field surface",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+	},
+
+	"password-input": {
+		name: "PasswordInput",
+		slug: "password-input",
+		description:
+			"A password field with a show/hide reveal toggle and an optional strength meter that never relies on colour alone",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["password", "input", "form", "strength", "reveal"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "Current value; bindable",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every input event",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description: "Blocks typing but stays focusable and is still submitted",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "autocomplete",
+				type: '"current-password" | "new-password" | "off"',
+				default: '"current-password"',
+				description: "new-password opts a password manager into offering to generate one",
+			},
+			{
+				name: "showToggle",
+				type: "boolean",
+				default: "true",
+				description: "Renders the show/hide reveal button",
+			},
+			{
+				name: "showStrength",
+				type: "boolean",
+				default: "false",
+				description: "Renders the strength meter and label once there's a value",
+			},
+			{
+				name: "strength",
+				type: "(value: string) => { score: 0 | 1 | 2 | 3 | 4; label: string }",
+				description:
+					"Overrides the built-in heuristic scorer — see README before trusting the default",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the field surface",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+	},
+
+	"file-upload": {
+		name: "FileUpload",
+		slug: "file-upload",
+		description:
+			"A drop zone backed by a native file input, with per-file progress, JS-side validation and a removable file list",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["file-upload", "upload", "drag-and-drop", "form", "validation", "progress"],
+		props: [
+			{
+				name: "files",
+				type: "UploadFile[]",
+				default: "[]",
+				description: "Selected files; bindable",
+			},
+			{
+				name: "onFilesChange",
+				type: "(files: UploadFile[]) => void",
+				description: "Called with the new list on every change — a selection, a drop, or a removal",
+			},
+			{
+				name: "accept",
+				type: "string",
+				description:
+					"The input's native accept attribute; also enforced in JS since a dropped file bypasses it",
+			},
+			{
+				name: "multiple",
+				type: "boolean",
+				default: "false",
+				description: "Allows more than one file per selection or drop",
+			},
+			{
+				name: "maxSize",
+				type: "number",
+				description: 'Maximum size per file, in bytes. A larger file is added with status "error"',
+			},
+			{
+				name: "maxFiles",
+				type: "number",
+				description:
+					"Maximum number of files the list may hold. Extra files are rejected, not added",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks selecting, dropping and removing files",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required on the underlying input",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id, applied to the underlying file input",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name on the underlying input",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "hint",
+				type: "string",
+				description: 'Constraint text under the drop zone, e.g. "PNG, SVG — 4 MB max"',
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable reference to the underlying file input",
+			},
+		],
+	},
+
+	"date-picker": {
+		name: "DatePicker",
+		slug: "date-picker",
+		description:
+			"A field that opens a floating month grid, with full keyboard navigation (arrow keys across days, Page Up/Down across months, Shift for years), min/max and per-day disabling, and a fully localized accessible name on every day cell.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["date-picker", "calendar", "grid", "form", "date", "accessibility"],
+		props: [
+			{
+				name: "value",
+				type: "Date | null",
+				default: "null",
+				description:
+					"The selected date; bindable. Always a local-midnight Date — see the README's time-zone note.",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: Date | null) => void",
+				description: "Called with the new value whenever a day is picked.",
+			},
+			{
+				name: "min",
+				type: "Date",
+				description: "Earliest selectable day (inclusive), compared at day granularity.",
+			},
+			{
+				name: "max",
+				type: "Date",
+				description: "Latest selectable day (inclusive), compared at day granularity.",
+			},
+			{
+				name: "weekStartsOn",
+				type: "0 | 1",
+				default: "1",
+				description: "0 for Sunday, 1 for Monday.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks opening the panel; excludes the control from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Marks the field required for the surrounding form.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name. When set, a hidden input carries the value as YYYY-MM-DD.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Pick a date"',
+				description: "Shown in the trigger while no day is selected.",
+			},
+			{
+				name: "locale",
+				type: "string",
+				description: "BCP 47 locale for month, weekday, day and trigger-label formatting.",
+			},
+			{
+				name: "isDateDisabled",
+				type: "(date: Date) => boolean",
+				description: "Rejects individual days beyond min/max — e.g. weekends, holidays.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger button.",
+			},
+		],
+	},
+
+	"time-picker": {
+		name: "TimePicker",
+		slug: "time-picker",
+		description:
+			"A field that opens a floating listbox of time slots generated at a configurable step, fully keyboard-navigable, with the highlighted slot always scrolled into view.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["time-picker", "listbox", "combobox", "form", "time", "accessibility"],
+		props: [
+			{
+				name: "value",
+				type: "string | null",
+				default: "null",
+				description: 'The selected time, "HH:mm" 24-hour; bindable. hour12 changes display only.',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string | null) => void",
+				description: "Called with the new value whenever a slot is picked.",
+			},
+			{
+				name: "step",
+				type: "number",
+				default: "30",
+				description: "Minutes between generated slots.",
+			},
+			{
+				name: "min",
+				type: "string",
+				description: 'Earliest selectable slot ("HH:mm", inclusive).',
+			},
+			{
+				name: "max",
+				type: "string",
+				description: 'Latest selectable slot ("HH:mm", inclusive).',
+			},
+			{
+				name: "hour12",
+				type: "boolean",
+				default: "false",
+				description: "Display only — 12-hour clock with AM/PM. The value stays HH:mm either way.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks opening the panel; excludes the control from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Marks the field required for the surrounding form.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name. When set, a hidden input carries the HH:mm value.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Select a time"',
+				description: "Shown in the trigger while no time is selected.",
+			},
+			{
+				name: "locale",
+				type: "string",
+				description: "BCP 47 locale for slot and trigger-label formatting.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger button.",
+			},
+		],
+	},
 };
 
 // =============================================================================
