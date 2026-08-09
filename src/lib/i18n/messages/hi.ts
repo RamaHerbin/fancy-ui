@@ -178,6 +178,15 @@ export default {
 		"रंगों को कस्टमाइज़ करने और कॉम्पोनेंट्स को रियल टाइम में प्रतिक्रिया करते देखने के लिए <strong>थीम जनरेटर</strong> देखें।",
 	"intro.cta.button": "थीम जनरेटर आज़माएं",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "कोर",
+	"group.fancy": "फ़ैंसी",
+	"category.actions": "एक्शन्स",
+	"category.forms": "फ़ॉर्म्स",
+	"category.overlays": "ओवरले",
+	"category.display": "डिस्प्ले",
+	"status.inProgress": "निर्माणाधीन",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "इंस्टॉलेशन",
 	"install.title": "इंस्टॉलेशन",

@@ -178,6 +178,15 @@ export default {
 		"Podívejte se na <strong>Generátor motivů</strong>, přizpůsobte si barvy a sledujte, jak komponenty reagují v reálném čase.",
 	"intro.cta.button": "Vyzkoušet Generátor motivů",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Akce",
+	"category.forms": "Formuláře",
+	"category.overlays": "Překryvy",
+	"category.display": "Zobrazení",
+	"status.inProgress": "Ve vývoji",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalace",
 	"install.title": "Instalace",

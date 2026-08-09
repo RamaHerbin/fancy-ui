@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
+	import {
+		coreCategories,
+		fancyCategories,
+		getComponentsGroupedByCategoryForGroup,
+	} from "$lib/fancy-ui/registry.js";
 	// `MessageKey` went with develop's `tCategory`, which now owns category labels.
 	import { t, tCategory, createSkinState } from "$lib/stores";
 	import { GITHUB_URL, PACKAGE_VERSION } from "$lib/site.js";
@@ -16,7 +20,9 @@
 
 	let { open = $bindable(false), onclose }: Props = $props();
 
-	const grouped = getComponentsGroupedByCategory();
+	const groupedCore = getComponentsGroupedByCategoryForGroup("core");
+	const groupedFancy = getComponentsGroupedByCategoryForGroup("fancy");
+	const hasCoreComponents = coreCategories.some((category) => groupedCore[category].length > 0);
 
 	const gettingStartedLinks = [
 		{ href: "/docs/getting-started/introduction", key: "page.introduction" },
@@ -130,14 +136,83 @@
 					</a>
 				</div>
 
-				<!-- Categories -->
-				{#each categories as category}
-					{@const items = grouped[category]}
+				<!-- Core group -->
+				<!-- Group labels are flat children of <nav>, not wrappers around their
+				     categories: the skins style categories through `nav > div[data-category]`,
+				     so an extra wrapper would take every category out of their reach.
+				     Same reason as Getting Started for using <p> over a real heading. -->
+				{#if hasCoreComponents}
+					<p
+						data-group="core"
+						class="docs-nav-group mt-4 mb-1 px-2 text-xs font-semibold tracking-wider text-sky-500/80 uppercase dark:text-sky-400/80"
+					>
+						{t("group.core")}
+					</p>
+					{#each coreCategories as category}
+						{@const items = groupedCore[category]}
+						{#if items.length > 0}
+							{@const collapsed = collapsedCategories.has(`core:${category}`)}
+							<div class="mb-2" data-category={category}>
+								<button
+									onclick={() => toggleCategory(`core:${category}`)}
+									data-category={category}
+									class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
+								>
+									{tCategory(category)}
+									<svg
+										class="docs-nav-chevron h-3 w-3 transition-transform {collapsed
+											? ''
+											: 'rotate-90'}"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M9 5l7 7-7 7"
+										/>
+									</svg>
+								</button>
+								{#if !collapsed}
+									<ul>
+										{#each items as comp}
+											<li>
+												<a
+													href="/docs/components/{comp.slug}"
+													onclick={onclose}
+													class="block rounded-md px-2 py-1.5 text-sm transition-colors {isActive(
+														`/docs/components/${comp.slug}`
+													)
+														? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+														: 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}"
+												>
+													{comp.name}
+												</a>
+											</li>
+										{/each}
+									</ul>
+								{/if}
+							</div>
+						{/if}
+					{/each}
+				{/if}
+
+				<!-- Fancy group -->
+				<p
+					data-group="fancy"
+					class="docs-nav-group mt-4 mb-1 px-2 text-xs font-semibold tracking-wider text-purple-500/80 uppercase dark:text-purple-400/80"
+				>
+					{t("group.fancy")}
+				</p>
+				{#each fancyCategories as category}
+					{@const items = groupedFancy[category]}
 					{#if items.length > 0}
-						{@const collapsed = collapsedCategories.has(category)}
+						{@const collapsed = collapsedCategories.has(`fancy:${category}`)}
 						<div class="mb-2" data-category={category}>
 							<button
-								onclick={() => toggleCategory(category)}
+								onclick={() => toggleCategory(`fancy:${category}`)}
 								data-category={category}
 								class="text-sidebar-foreground/50 hover:text-sidebar-foreground/70 flex w-full items-center justify-between px-2 py-1 text-xs font-semibold tracking-wider uppercase"
 							>
@@ -184,12 +259,7 @@
 
 			{#if isBrutal}
 				<!-- Brutal-only footer card (reference R6). -->
-				<a
-					class="docs-sidebar-cta"
-					href={GITHUB_URL}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
+				<a class="docs-sidebar-cta" href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
 					<span class="docs-sidebar-cta-marker" aria-hidden="true"></span>
 					<span class="docs-sidebar-cta-text">
 						<span class="docs-sidebar-cta-title">{t("sidebar.starTitle")}</span>

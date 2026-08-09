@@ -177,6 +177,15 @@ export default {
 		"اطّلع على <strong>مُولّد السِّمات</strong> لتخصيص الألوان ومشاهدة تفاعل المكوّنات في الوقت الفعلي.",
 	"intro.cta.button": "جرّب مُولّد السِّمات",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "الأساسيات",
+	"group.fancy": "المبهرة",
+	"category.actions": "الإجراءات",
+	"category.forms": "النماذج",
+	"category.overlays": "الطبقات المنبثقة",
+	"category.display": "العرض",
+	"status.inProgress": "قيد التطوير",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "التثبيت",
 	"install.title": "التثبيت",

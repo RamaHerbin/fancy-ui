@@ -182,6 +182,15 @@ export default {
 		"Sprawdź <strong>Generator motywów</strong>, aby dostosować kolory i zobaczyć, jak komponenty reagują w czasie rzeczywistym.",
 	"intro.cta.button": "Wypróbuj Generator motywów",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Akcje",
+	"category.forms": "Formularze",
+	"category.overlays": "Nakładki",
+	"category.display": "Wyświetlanie",
+	"status.inProgress": "W przygotowaniu",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalacja",
 	"install.title": "Instalacja",

@@ -179,6 +179,15 @@ export default {
 		"<strong>سازنده‌ی پوسته</strong> را بررسی کنید تا رنگ‌ها را سفارشی‌سازی کرده و واکنش آنی کامپوننت‌ها را مشاهده کنید.",
 	"intro.cta.button": "امتحان سازنده‌ی پوسته",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "پایه",
+	"group.fancy": "چشم‌نواز",
+	"category.actions": "کنش‌ها",
+	"category.forms": "فرم‌ها",
+	"category.overlays": "لایه‌های شناور",
+	"category.display": "نمایش",
+	"status.inProgress": "در حال توسعه",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "نصب",
 	"install.title": "نصب",

@@ -177,6 +177,15 @@ export default {
 		"색상을 사용자 지정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하려면 <strong>테마 생성기</strong>를 확인해 보세요.",
 	"intro.cta.button": "테마 생성기 사용해보기",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "액션",
+	"category.forms": "폼",
+	"category.overlays": "오버레이",
+	"category.display": "표시",
+	"status.inProgress": "개발 중",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "설치",
 	"install.title": "설치",

@@ -181,6 +181,15 @@ export default {
 		"Confira o <strong>Gerador de tema</strong> para personalizar as cores e ver os componentes reagirem em tempo real.",
 	"intro.cta.button": "Experimentar o Gerador de tema",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Ações",
+	"category.forms": "Formulários",
+	"category.overlays": "Sobreposições",
+	"category.display": "Exibição",
+	"status.inProgress": "Em construção",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalação",
 	"install.title": "Instalação",

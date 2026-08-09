@@ -181,6 +181,15 @@ export default {
 		"<strong>テーマジェネレーター</strong> をチェックして、色をカスタマイズしたり、コンポーネントがリアルタイムに反応する様子を確認したりしましょう。",
 	"intro.cta.button": "テーマジェネレーターを試す",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "アクション",
+	"category.forms": "フォーム",
+	"category.overlays": "オーバーレイ",
+	"category.display": "表示",
+	"status.inProgress": "開発中",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "インストール",
 	"install.title": "インストール",

@@ -180,6 +180,15 @@ export default {
 		"Scopri il <strong>Generatore di temi</strong> per personalizzare i colori e vedere i componenti reagire in tempo reale.",
 	"intro.cta.button": "Prova il Generatore di temi",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Azioni",
+	"category.forms": "Moduli",
+	"category.overlays": "Sovrapposizioni",
+	"category.display": "Visualizzazione",
+	"status.inProgress": "In lavorazione",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "Installazione",
 	"install.title": "Installazione",

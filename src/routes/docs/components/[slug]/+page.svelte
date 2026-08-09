@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { t, tCategory, componentDocTitle, createSkinState } from "$lib/stores";
+	// The group badge composes its key at runtime, so the cast needs the key union.
+	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
@@ -159,11 +161,24 @@
 		>
 			{tCategory(component.category)}
 		</span>
+		<span
+			class="rounded-full px-2.5 py-0.5 text-xs font-medium {component.group === 'core'
+				? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+				: 'bg-purple-500/10 text-purple-600 dark:text-purple-400'}"
+		>
+			{t(`group.${component.group}` as MessageKey)}
+		</span>
 		{#if component.status === "done"}
 			<span
 				class="retro-tag retro-tag-stable rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
 			>
 				{t("status.stable")}
+			</span>
+		{:else if component.status === "in-progress"}
+			<span
+				class="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400"
+			>
+				{t("status.inProgress")}
 			</span>
 		{/if}
 	</div>

@@ -163,6 +163,15 @@ export default {
 	"intro.cta.body": "查看<strong>主题生成器</strong>，自定义颜色并实时查看组件的变化。",
 	"intro.cta.button": "试用主题生成器",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "操作",
+	"category.forms": "表单",
+	"category.overlays": "浮层",
+	"category.display": "展示",
+	"status.inProgress": "开发中",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "安装",
 	"install.title": "安装",

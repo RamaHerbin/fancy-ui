@@ -82,6 +82,10 @@ export type ComponentCategory =
 	| "navigation"
 	| "media"
 	| "effects"
+	| "actions"
+	| "forms"
+	| "overlays"
+	| "display"
 	| "ai-chat"
 	| "ai-agents";
 
@@ -125,6 +129,8 @@ export interface ComponentMeta {
 	description: string;
 	/** Component category */
 	category: ComponentCategory;
+	/** Component group: "core" = foundational primitives, "fancy" = animated showcase components */
+	group: "core" | "fancy";
 	/** Porting status */
 	status: ComponentStatus;
 	/** Dependencies on other fancy-ui components */

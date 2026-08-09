@@ -179,6 +179,15 @@ export default {
 		"Lihat <strong>Generator Tema</strong> untuk menyesuaikan warna dan melihat komponen bereaksi secara real-time.",
 	"intro.cta.button": "Coba Generator Tema",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Aksi",
+	"category.forms": "Formulir",
+	"category.overlays": "Overlay",
+	"category.display": "Tampilan",
+	"status.inProgress": "Dalam Pengerjaan",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalasi",
 	"install.title": "Instalasi",

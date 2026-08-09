@@ -190,6 +190,15 @@ export const en = {
 		"Check out the <strong>Theme Generator</strong> to customize colors and see components react in real time.",
 	"intro.cta.button": "Try Theme Generator",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Actions",
+	"category.forms": "Forms",
+	"category.overlays": "Overlays",
+	"category.display": "Display",
+	"status.inProgress": "In progress",
+
 	// Installation page
 	"install.metaTitle": "Installation",
 	"install.title": "Installation",

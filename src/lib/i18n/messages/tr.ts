@@ -181,6 +181,15 @@ export default {
 		"Renkleri özelleştirmek ve bileşenlerin gerçek zamanlı nasıl tepki verdiğini görmek için <strong>Tema Oluşturucu</strong>'yu inceleyin.",
 	"intro.cta.button": "Tema Oluşturucu'yu Dene",
 
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Eylemler",
+	"category.forms": "Formlar",
+	"category.overlays": "Katmanlar",
+	"category.display": "Görüntüleme",
+	"status.inProgress": "Geliştiriliyor",
+
 	// Installation (redesigned page)
 	"install.metaTitle": "Kurulum",
 	"install.title": "Kurulum",
