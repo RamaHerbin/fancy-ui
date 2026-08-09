@@ -1,0 +1,121 @@
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import Toggle from "./Toggle.svelte";
+import Harness from "./ToggleHarness.test.svelte";
+
+function button(container: HTMLElement): HTMLButtonElement {
+	return container.querySelector("button") as HTMLButtonElement;
+}
+
+describe("Toggle", () => {
+	afterEach(cleanup);
+
+	it("renders a real button, unpressed by default", () => {
+		const { container } = render(Toggle, { props: {} });
+		const el = button(container);
+
+		expect(el.getAttribute("type")).toBe("button");
+		expect(el.getAttribute("aria-pressed")).toBe("false");
+	});
+
+	it("reflects a pressed prop through aria-pressed", () => {
+		const { container } = render(Toggle, { props: { pressed: true } });
+		expect(button(container).getAttribute("aria-pressed")).toBe("true");
+	});
+
+	it("flips the pressed state and calls onPressedChange exactly once with the new value", async () => {
+		const onPressedChange = vi.fn();
+		const { container } = render(Toggle, { props: { pressed: false, onPressedChange } });
+		const el = button(container);
+
+		await fireEvent.click(el);
+		expect(el.getAttribute("aria-pressed")).toBe("true");
+		expect(onPressedChange).toHaveBeenCalledTimes(1);
+		expect(onPressedChange).toHaveBeenCalledWith(true);
+
+		await fireEvent.click(el);
+		expect(el.getAttribute("aria-pressed")).toBe("false");
+		expect(onPressedChange).toHaveBeenCalledTimes(2);
+		expect(onPressedChange).toHaveBeenLastCalledWith(false);
+	});
+
+	it("works uncontrolled, with neither pressed nor onPressedChange passed in", async () => {
+		const { container } = render(Toggle, { props: {} });
+		const el = button(container);
+
+		expect(el.getAttribute("aria-pressed")).toBe("false");
+		await fireEvent.click(el);
+		expect(el.getAttribute("aria-pressed")).toBe("true");
+	});
+
+	it("blocks both the state change and the callback while disabled", async () => {
+		const onPressedChange = vi.fn();
+		const { container } = render(Toggle, {
+			props: { pressed: false, disabled: true, onPressedChange },
+		});
+		const el = button(container);
+
+		expect(el.disabled).toBe(true);
+		await fireEvent.click(el);
+
+		expect(el.getAttribute("aria-pressed")).toBe("false");
+		expect(onPressedChange).not.toHaveBeenCalled();
+	});
+
+	it("round-trips pressed through bind:pressed", async () => {
+		const { container, getByTestId } = render(Harness);
+		const el = button(container);
+
+		expect(getByTestId("bound-pressed").textContent).toBe("false");
+		await fireEvent.click(el);
+		expect(getByTestId("bound-pressed").textContent).toBe("true");
+		expect(el.getAttribute("aria-pressed")).toBe("true");
+	});
+
+	it.each([
+		["sm", "30px", "6px"],
+		["md", "36px", "8px"],
+		["lg", "42px", "10px"],
+	] as const)("sizes %s to a %s square with a %s radius", (size, boxSize, radius) => {
+		const { container } = render(Toggle, { props: { size } });
+		const el = button(container);
+
+		expect(el.className).toContain(`size-[${boxSize}]`);
+		expect(el.className).toContain(`rounded-[${radius}]`);
+	});
+
+	it("defaults to the ghost variant, with no border class", () => {
+		const { container } = render(Toggle, { props: {} });
+		expect(button(container).className).not.toContain("border-border");
+	});
+
+	it("applies a resting border for the outline variant", () => {
+		const { container } = render(Toggle, { props: { variant: "outline" } });
+		expect(button(container).className).toContain("border-border");
+	});
+
+	it("sets aria-label from the label prop, for icon-only content", () => {
+		const { container } = render(Toggle, { props: { label: "Bold" } });
+		expect(button(container).getAttribute("aria-label")).toBe("Bold");
+	});
+
+	it("omits aria-label when none is given, leaving the accessible name to the content", () => {
+		const { container } = render(Toggle, { props: {} });
+		expect(button(container).hasAttribute("aria-label")).toBe(false);
+	});
+
+	it("merges the class prop with the base classes", () => {
+		const { container } = render(Toggle, { props: { class: "mt-4" } });
+		const cls = button(container).className;
+
+		expect(cls).toContain("ft-toggle");
+		expect(cls).toContain("mt-4");
+	});
+
+	it("round-trips the button element through bind:ref", () => {
+		// The harness marks whatever comes out of the binding; finding the mark on
+		// the rendered button is what proves the two are the same element.
+		const { container } = render(Harness);
+		expect(button(container).getAttribute("data-bound-ref")).toBe("yes");
+	});
+});

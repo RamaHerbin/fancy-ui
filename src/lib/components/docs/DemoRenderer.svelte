@@ -32,6 +32,7 @@
 		"glowing-effect": { disabled: false },
 		"interactive-grid-pattern": { width: 60, height: 60 },
 		"interactive-hover-button": { text: "Hover Me" },
+		"copy-button": { value: "pnpm add fancy-ui-svelte" },
 	};
 
 	// Components that we skip direct render (need too much setup). Exported so the
@@ -92,6 +93,13 @@
 		"scroll-anchor",
 		"thread-list",
 		"chat-panel",
+		// Core / actions. Each of these is meaningless with no props: a link with no
+		// href, an icon button with no icon or label, and the two groups with no
+		// items. Their BasicUsage example is the honest preview.
+		"link",
+		"icon-button",
+		"button-group",
+		"toggle-group",
 	]);
 </script>
 
@@ -179,6 +187,11 @@
 
 	// Component name mapping (slug → export name)
 	const componentNames: Record<string, string> = {
+		// Core / actions. Only the three that preview standalone need a name here —
+		// the other four resolve through their BasicUsage example instead.
+		button: "Button",
+		toggle: "Toggle",
+		"copy-button": "CopyButton",
 		"apple-card-carousel": "AppleCardCarousel",
 		"animated-beam": "AnimatedBeam",
 		"animated-testimonials": "AnimatedTestimonials",
@@ -283,6 +296,10 @@
 			<Comp {...props}>Ripple Button</Comp>
 		{:else if slug === "gradient-button"}
 			<Comp {...props}>Gradient Button</Comp>
+		{:else if slug === "button"}
+			<Comp {...props}>Button</Comp>
+		{:else if slug === "toggle"}
+			<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
 		{:else if slug === "confetti"}
 			<Comp {...props}
 				><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
