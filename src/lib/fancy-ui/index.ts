@@ -105,6 +105,17 @@ export * from "./toggle/index.js";
 export * from "./toggle-group/index.js";
 export * from "./copy-button/index.js";
 
+// Core — forms
+export * from "./label/index.js";
+export * from "./form-field/index.js";
+export * from "./input/index.js";
+export * from "./textarea/index.js";
+export * from "./checkbox/index.js";
+export * from "./radio-group/index.js";
+export * from "./switch/index.js";
+export * from "./slider/index.js";
+export * from "./number-input/index.js";
+
 // =============================================================================
 // Registry
 // =============================================================================

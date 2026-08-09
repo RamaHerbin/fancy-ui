@@ -579,4 +579,158 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Four Button variants used as the idle skin.",
 		},
 	],
+
+	label: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Required",
+			title: "Required",
+			description: "The asterisk is decoration — the accessible cue is the control's own required.",
+		},
+		{
+			name: "WithFormField",
+			title: "With FormField",
+			description: "for and required resolve from context — nothing to wire by hand.",
+		},
+	],
+	"form-field": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A labelled field with help text underneath.",
+		},
+		{
+			name: "WithError",
+			title: "With Error",
+			description: "error replaces the help text and marks the field invalid.",
+		},
+		{
+			name: "Validated",
+			title: "Validated",
+			description: "valid's decorative checkmark, plus a control drawing its own success look.",
+		},
+		{
+			name: "Disabled",
+			title: "Disabled",
+			description: "disabled reaches the control through context.",
+		},
+	],
+	input: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A single email field with a bound value.",
+		},
+		{
+			name: "States",
+			title: "States",
+			description: "Resting, focus, error and disabled, side by side.",
+		},
+		{
+			name: "Types",
+			title: "Types",
+			description: "Every native input type the component accepts.",
+		},
+		{
+			name: "WithFormField",
+			title: "With FormField",
+			description: "Wrapped in FormField and Label — no id or invalid prop needed on Input itself.",
+		},
+	],
+	textarea: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A single multi-line message field with a bound value.",
+		},
+		{
+			name: "WithCounter",
+			title: "With Counter",
+			description: 'maxlength plus the live "n / max" counter.',
+		},
+		{
+			name: "AutoResize",
+			title: "Auto Resize",
+			description: "Grows with content instead of scrolling.",
+		},
+	],
+	checkbox: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A single checkbox with a bound checked state.",
+		},
+		{
+			name: "States",
+			title: "States",
+			description: "Unchecked, checked, indeterminate and disabled, side by side.",
+		},
+		{
+			name: "Indeterminate",
+			title: "Indeterminate",
+			description: "A parent checkbox reflecting a mixed selection of children.",
+		},
+		{
+			name: "WithFormField",
+			title: "With FormField",
+			description: "Wrapped in FormField — no id or invalid prop needed on Checkbox itself.",
+		},
+	],
+	"radio-group": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Three options, one selected by default.",
+		},
+		{
+			name: "Horizontal",
+			title: "Horizontal",
+			description: "The list laid out along a row instead of a column.",
+		},
+		{
+			name: "DisabledItems",
+			title: "Disabled Items",
+			description: "One option unavailable — skipped by the keyboard and never selectable.",
+		},
+		{
+			name: "WithFormField",
+			title: "With FormField",
+			description: "Wrapped in FormField — required and the error message driven by context.",
+		},
+	],
+	switch: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A single switch with a bound checked state and no visible label text.",
+		},
+		{
+			name: "Sizes",
+			title: "Sizes",
+			description: "The three available sizes, sm/md/lg.",
+		},
+		{
+			name: "WithLabel",
+			title: "With Label",
+			description: "Visible label text rendered beside the track via children.",
+		},
+	],
+	slider: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "WithBounds", title: "With Bounds", description: "Shows the min/max end labels." },
+		{ name: "Steps", title: "Steps", description: "A stepped 0–5 rating scale." },
+	],
+	"number-input": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithLimits",
+			title: "With Limits",
+			description: "Bounded 1–8 with the buttons disabling at the edges.",
+		},
+		{
+			name: "FractionalSteps",
+			title: "Fractional Steps",
+			description: "0.1 steps over a 0–1 range, without float drift.",
+		},
+	],
 };

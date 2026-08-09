@@ -33,6 +33,10 @@
 		"interactive-grid-pattern": { width: 60, height: 60 },
 		"interactive-hover-button": { text: "Hover Me" },
 		"copy-button": { value: "pnpm add fancy-ui-svelte" },
+		input: { label: "Email", placeholder: "name@example.com" },
+		textarea: { label: "Message", placeholder: "Tell us what you think…" },
+		slider: { label: "Volume", value: 60, showValue: true, showBounds: true },
+		"number-input": { label: "Quantity", value: 12, min: 0, max: 99 },
 	};
 
 	// Components that we skip direct render (need too much setup). Exported so the
@@ -100,6 +104,13 @@
 		"icon-button",
 		"button-group",
 		"toggle-group",
+		// Core / forms. Each is empty or unlabelled with no props: a field wrapper
+		// with no control, a radio group with no items, and a box or track with no
+		// text beside it. Their BasicUsage example is the honest preview.
+		"form-field",
+		"radio-group",
+		"checkbox",
+		"switch",
 	]);
 </script>
 
@@ -192,6 +203,12 @@
 		button: "Button",
 		toggle: "Toggle",
 		"copy-button": "CopyButton",
+		// Core / forms that stand on their own with no props.
+		label: "Label",
+		input: "Input",
+		textarea: "Textarea",
+		slider: "Slider",
+		"number-input": "NumberInput",
 		"apple-card-carousel": "AppleCardCarousel",
 		"animated-beam": "AnimatedBeam",
 		"animated-testimonials": "AnimatedTestimonials",
@@ -300,6 +317,8 @@
 			<Comp {...props}>Button</Comp>
 		{:else if slug === "toggle"}
 			<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
+		{:else if slug === "label"}
+			<Comp {...props}>Email address</Comp>
 		{:else if slug === "confetti"}
 			<Comp {...props}
 				><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
