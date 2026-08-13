@@ -1,0 +1,204 @@
+<script lang="ts" module>
+	import type { Snippet } from "svelte";
+	import type { Side, Align } from "../_internals/anchor-position.js";
+
+	export interface HoverCardProps {
+		/** Whether the card is open. Bindable. */
+		open?: boolean;
+		/** Fires whenever the open state changes, from any trigger — pointer, focus, Escape or an outside click. */
+		onOpenChange?: (open: boolean) => void;
+		/** Side of the trigger the card opens on. Flips to the opposite side when it would overflow the viewport. */
+		side?: Side;
+		/** Alignment along the trigger's cross axis. */
+		align?: Align;
+		/** Gap in pixels between the trigger and the card. */
+		offset?: number;
+		/** Delay in ms before the card opens after the pointer enters the trigger. Ignored for focus, which opens immediately. */
+		openDelay?: number;
+		/**
+		 * Delay in ms before the card closes after the pointer leaves the trigger
+		 * or the card. Gives the pointer time to travel from one to the other
+		 * without the card vanishing mid-trip. Ignored for blur, which closes
+		 * immediately.
+		 */
+		closeDelay?: number;
+		/**
+		 * The element that opens the card on hover or focus. Receives the
+		 * card's id (or `undefined` while closed) — put it on your own
+		 * trigger element's `aria-describedby` yourself. HoverCard cannot do
+		 * this for you: the wrapper it renders around this snippet has no
+		 * accessible role of its own, so an attribute set there would not be
+		 * picked up for whatever focusable element you render inside it.
+		 */
+		trigger?: Snippet<[descriptionId: string | undefined]>;
+		/**
+		 * The card's content. Supplementary only — nothing inside should be the
+		 * only way to reach information or an action. See the README before
+		 * putting links or buttons in here.
+		 */
+		children?: Snippet;
+		/** Additional classes for the card panel. */
+		class?: string;
+		/** Element reference for the trigger wrapper. */
+		ref?: HTMLDivElement | null;
+	}
+</script>
+
+<script lang="ts">
+	import { onMount } from "svelte";
+	import { cn } from "$lib/utils.js";
+	import { portal } from "../_internals/portal.js";
+	import { dismissable } from "../_internals/dismissable.js";
+	import { anchorPosition } from "../_internals/anchor-position.js";
+
+	let {
+		open = $bindable(false),
+		onOpenChange,
+		side = "bottom",
+		align = "center",
+		offset = 8,
+		openDelay = 300,
+		closeDelay = 150,
+		trigger,
+		children,
+		class: className,
+		ref = $bindable(null),
+	}: HoverCardProps = $props();
+
+	// One id, stable across SSR and hydration — `uid()` would throw on the
+	// server (see _internals/id.ts), and this needs to exist before the card
+	// ever opens so the trigger's aria-describedby always resolves to a real
+	// element the moment it points at one.
+	const panelId = $props.id();
+
+	let openTimer: ReturnType<typeof setTimeout> | undefined;
+	let closeTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function clearOpenTimer() {
+		if (openTimer !== undefined) {
+			clearTimeout(openTimer);
+			openTimer = undefined;
+		}
+	}
+
+	function clearCloseTimer() {
+		if (closeTimer !== undefined) {
+			clearTimeout(closeTimer);
+			closeTimer = undefined;
+		}
+	}
+
+	function setOpen(next: boolean) {
+		clearOpenTimer();
+		clearCloseTimer();
+		if (open === next) return;
+		open = next;
+		onOpenChange?.(next);
+	}
+
+	function scheduleOpen() {
+		// A pointer arriving back on the trigger while a close is pending (it
+		// travelled trigger → card → trigger) must cancel that close rather
+		// than restart the open delay — the card never actually closed.
+		clearCloseTimer();
+		if (open) return;
+		clearOpenTimer();
+		openTimer = setTimeout(() => setOpen(true), openDelay);
+	}
+
+	// Called when the pointer leaves the trigger AND when it leaves the card.
+	// The delay is what lets it cross the gap between the two: if it lands on
+	// the other one before this fires, that element's own pointerenter clears
+	// the timer first.
+	function scheduleClose() {
+		clearOpenTimer();
+		if (!open) return;
+		clearCloseTimer();
+		closeTimer = setTimeout(() => setOpen(false), closeDelay);
+	}
+
+	onMount(() => {
+		return () => {
+			clearOpenTimer();
+			clearCloseTimer();
+		};
+	});
+
+	let panelEl = $state<HTMLDivElement | null>(null);
+
+	// The documented contract is that nothing inside the card is interactive
+	// (see the README), so in the shape this component was designed for,
+	// focus never moves from the trigger into the card and this check never
+	// matters. It exists for the caller who ignores that contract anyway: an
+	// unconditional close-on-blur would unmount the card the instant Tab
+	// starts moving focus toward whatever they put inside it — vanishing out
+	// from under a keyboard user reaching for something a mouse user could
+	// already click freely, since a mouse click never routes through the
+	// trigger's focus at all. Checking `relatedTarget` against the panel is
+	// the standard trigger-to-content handoff: don't close if focus is
+	// headed into the very thing that would otherwise disappear.
+	function handleTriggerFocusOut(event: FocusEvent) {
+		const next = event.relatedTarget as Node | null;
+		if (next && panelEl?.contains(next)) return;
+		setOpen(false);
+	}
+
+	const classes = $derived(
+		cn(
+			"ft-hover-card-panel bg-popover text-popover-foreground border-border flex w-60 flex-col gap-2.5 rounded-xl border p-3.5 shadow-[0_12px_32px_rgba(0,0,0,.5)]",
+			className
+		)
+	);
+</script>
+
+<div
+	bind:this={ref}
+	class="ft-hover-card-trigger inline-block"
+	onpointerenter={scheduleOpen}
+	onpointerleave={scheduleClose}
+	onfocusin={() => setOpen(true)}
+	onfocusout={handleTriggerFocusOut}
+>
+	{@render trigger?.(open ? panelId : undefined)}
+</div>
+
+{#if open}
+	<div
+		bind:this={panelEl}
+		id={panelId}
+		class={classes}
+		data-state="open"
+		use:portal
+		use:anchorPosition={{ anchor: () => ref, side, align, offset }}
+		use:dismissable={{ onDismiss: () => setOpen(false), exclude: () => [ref] }}
+		onpointerenter={clearCloseTimer}
+		onpointerleave={scheduleClose}
+	>
+		{@render children?.()}
+	</div>
+{/if}
+
+<style>
+	/*
+	 * Reduced motion keeps the resting state (fully opaque, untransformed) as
+	 * the base, so a card that only ever becomes visible via this animation
+	 * still appears immediately when motion is off — the keyframe is added on
+	 * top, not required to reach the visible state.
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-hover-card-panel[data-state="open"] {
+			animation: ft-hover-card-in 150ms ease-out;
+		}
+	}
+
+	@keyframes ft-hover-card-in {
+		from {
+			opacity: 0;
+			transform: scale(0.96) translateY(4px);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1) translateY(0);
+		}
+	}
+</style>

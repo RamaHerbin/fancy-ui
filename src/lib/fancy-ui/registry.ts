@@ -5417,6 +5417,568 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	// =========================================================================
+	// Core — overlays
+	// =========================================================================
+
+	dialog: {
+		name: "Dialog",
+		slug: "dialog",
+		description:
+			"A modal panel with a title, description, body and free-form footer — portals out, traps focus, and locks the page's scroll while open",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["modal", "dialog", "overlay", "portal", "focus-trap"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the dialog is open; bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Fires whenever open changes, from any trigger",
+			},
+			{
+				name: "title",
+				type: "string",
+				description: "The heading. Omitted entirely (not just visually) when not given",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "The copy under the title. Same omission rule as title",
+			},
+			{
+				name: "dismissible",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether Escape and an outside click close the dialog; the close button always works",
+			},
+			{
+				name: "initialFocus",
+				type: "HTMLElement | null",
+				description:
+					"Element to focus once the dialog opens; defaults to the first focusable descendant",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The dialog's body" },
+			{
+				name: "footer",
+				description: "The action row under the body — free-form, callers build their own buttons",
+			},
+			{
+				name: "trigger",
+				description: "Optional trigger; renders in place and opens the dialog on activation",
+			},
+		],
+	},
+
+	"alert-dialog": {
+		name: "AlertDialog",
+		slug: "alert-dialog",
+		description:
+			"A confirmation dialog for consequential, hard-to-undo actions — fixed confirm/cancel actions, never dismissed by an outside click",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		dependencies: ["dialog", "button"],
+		tags: ["alert", "dialog", "confirm", "destructive", "overlay", "modal"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the alert dialog is open; bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Fires whenever open changes — Confirm, Cancel, or Escape",
+			},
+			{
+				name: "title",
+				type: "string",
+				description: "The heading. Omitted entirely (not just visually) when not given",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "The warning copy under the title. Same omission rule as title",
+			},
+			{
+				name: "confirmLabel",
+				type: "string",
+				default: '"Confirm"',
+				description: "Label of the destructive action",
+			},
+			{
+				name: "cancelLabel",
+				type: "string",
+				default: '"Cancel"',
+				description: "Label of the safe action",
+			},
+			{
+				name: "onConfirm",
+				type: "() => void",
+				description: "Called when the destructive action is activated, before the surface closes",
+			},
+			{
+				name: "onCancel",
+				type: "() => void",
+				description: "Called when the safe action is activated, and also when Escape closes it",
+			},
+			{
+				name: "initialFocus",
+				type: "HTMLElement | null",
+				description: "Element to focus once the surface opens; defaults to the Cancel button",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element",
+			},
+		],
+		slots: [
+			{
+				name: "trigger",
+				description: "Optional trigger; renders in place and opens the surface on activation",
+			},
+		],
+	},
+
+	sheet: {
+		name: "Sheet",
+		slug: "sheet",
+		description:
+			"A modal panel that slides in from an edge of the viewport, for settings, filters, or any focused task that doesn't need a full page",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "sheet", "panel", "modal", "side panel", "settings"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the sheet is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called with the new value whenever the sheet opens or closes",
+			},
+			{
+				name: "side",
+				type: '"left" | "right" | "top" | "bottom"',
+				default: '"right"',
+				description: "Edge of the viewport the panel slides in from",
+			},
+			{
+				name: "title",
+				type: "string",
+				description: "Heading rendered in the header and wired to aria-labelledby",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Supporting text under the title, wired to aria-describedby",
+			},
+			{
+				name: "dismissible",
+				type: "boolean",
+				default: "true",
+				description: "Whether Escape, the scrim and the close button can close the sheet",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Panel width (left/right sides) or height (top/bottom sides)",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes merged onto the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable element reference to the panel",
+			},
+		],
+		slots: [
+			{ name: "children", description: "Panel body content" },
+			{ name: "footer", description: "Content pinned below the body, e.g. actions" },
+		],
+	},
+
+	drawer: {
+		name: "Drawer",
+		slug: "drawer",
+		description:
+			"A modal bottom sheet with a grab handle, draggable shut with a downward swipe — for filters, quick actions, or any touch-first task",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "drawer", "bottom sheet", "modal", "swipe", "mobile"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the drawer is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called with the new value whenever the drawer opens or closes",
+			},
+			{
+				name: "title",
+				type: "string",
+				description: "Heading rendered in the header and wired to aria-labelledby",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Supporting text under the title, wired to aria-describedby",
+			},
+			{
+				name: "dismissible",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether Escape, the scrim, the close button and the swipe gesture can close the drawer",
+			},
+			{
+				name: "swipeToClose",
+				type: "boolean",
+				default: "true",
+				description: "Whether dragging the handle down past the threshold closes the drawer",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes merged onto the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable element reference to the panel",
+			},
+		],
+		slots: [
+			{ name: "children", description: "Panel body content" },
+			{ name: "footer", description: "Content pinned below the body, e.g. actions" },
+		],
+	},
+
+	popover: {
+		name: "Popover",
+		slug: "popover",
+		description:
+			"An anchored panel that opens next to a trigger and holds interactive content — quick settings, a small form, more than a tooltip can carry",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "popover", "anchored", "disclosure", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the panel is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description:
+					"Called with the new value whenever the panel opens or closes, however the change happened",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the trigger to place the panel on. Flips when it would overflow",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"center"',
+				description: "Alignment along the trigger's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "8",
+				description: "Gap in pixels between the trigger and the panel",
+			},
+			{
+				name: "dismissible",
+				type: "boolean",
+				default: "true",
+				description: "Whether Escape and an outside click close the panel",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element",
+			},
+		],
+		slots: [
+			{
+				name: "trigger",
+				description:
+					"The trigger's content, rendered inside the real <button> this component owns and wires up",
+			},
+			{ name: "children", description: "The panel's content" },
+		],
+	},
+
+	tooltip: {
+		name: "Tooltip",
+		slug: "tooltip",
+		description:
+			"A small anchored label that explains a control on hover or focus — plain text only, never interactive content",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "tooltip", "anchored", "accessibility"],
+		props: [
+			{
+				name: "content",
+				type: "string",
+				required: true,
+				description: "The tooltip's text",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"top"',
+				description: "Side of the trigger to place the tooltip on",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"center"',
+				description: "Alignment along the trigger's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "6",
+				description: "Gap in pixels between the trigger and the tooltip",
+			},
+			{
+				name: "openDelay",
+				type: "number",
+				default: "500",
+				description: "Delay in ms before a hover opens it. Never applied to a focus open",
+			},
+			{
+				name: "closeDelay",
+				type: "number",
+				default: "0",
+				description: "Delay in ms before it closes once neither hovered nor focused",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Suppresses it entirely — no open on hover or focus",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger wrapper element",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"The trigger. Must render exactly one focusable element — a button, link, or similar",
+			},
+		],
+	},
+
+	"hover-card": {
+		name: "HoverCard",
+		slug: "hover-card",
+		description:
+			"An anchored panel that opens on hover or focus with a short delay, for richer previews than a tooltip — a profile card, a link preview",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "hover", "card", "preview", "anchored", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the card is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Fires whenever the open state changes, from any trigger",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the trigger the card opens on. Flips when it would overflow",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"center"',
+				description: "Alignment along the trigger's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "8",
+				description: "Gap in pixels between the trigger and the card",
+			},
+			{
+				name: "openDelay",
+				type: "number",
+				default: "300",
+				description:
+					"Ms before the card opens after the pointer enters the trigger. Ignored for focus, which opens immediately",
+			},
+			{
+				name: "closeDelay",
+				type: "number",
+				default: "150",
+				description:
+					"Ms before the card closes after the pointer leaves. Lets it travel from the trigger to the card without the card vanishing mid-trip",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional classes for the card panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger wrapper",
+			},
+		],
+		slots: [
+			{
+				name: "trigger",
+				description:
+					"The element that opens the card on hover or focus. Receives the card's id (or undefined while closed) — put it on your own trigger element's aria-describedby",
+			},
+			{
+				name: "children",
+				description:
+					"The card's content. Supplementary only — see the README before adding links or buttons",
+			},
+		],
+	},
+
+	toast: {
+		name: "Toast",
+		slug: "toast",
+		description:
+			"A notification system: call toast() from anywhere to queue one, mount <Toaster /> once to render the stack — success, error, info and loading variants, an optional action, and accessible live-region announcements",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "toast", "notification", "snackbar", "live-region", "accessibility"],
+		props: [
+			{
+				name: "position",
+				type: '"top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right"',
+				default: '"bottom-right"',
+				description: "Corner (or edge-center) the <Toaster /> stack anchors to",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional classes for the viewport that stacks the toasts",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the <Toaster /> root node",
+			},
+			{
+				name: "toast().title",
+				type: "string",
+				required: true,
+				description: "Primary line of the toast raised by the toast() function",
+			},
+			{
+				name: "toast().description",
+				type: "string",
+				description: "Secondary line, shown under the title",
+			},
+			{
+				name: "toast().variant",
+				type: '"success" | "error" | "info" | "loading"',
+				default: '"info"',
+				description:
+					"Icon, accent colour, and the live region it announces through — error is assertive, everything else polite",
+			},
+			{
+				name: "toast().duration",
+				type: "number",
+				default: "5000",
+				description:
+					"Milliseconds before auto-dismiss; Infinity is sticky. Defaults to Infinity for the loading variant, which has no natural finish time",
+			},
+			{
+				name: "toast().action",
+				type: "{ label: string; onClick: () => void }",
+				description:
+					"A single action button. Auto-dismiss pauses on hover or focus for every toast, with or without one",
+			},
+		],
+	},
 };
 
 // =============================================================================

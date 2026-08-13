@@ -733,4 +733,127 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "0.1 steps over a 0–1 range, without float drift.",
 		},
 	],
+
+	dialog: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A trigger, title, description, body and footer.",
+		},
+		{
+			name: "ControlledOpen",
+			title: "Controlled Open",
+			description: "Non-bound open plus onOpenChange, no trigger snippet.",
+		},
+		{
+			name: "NotDismissible",
+			title: "Not Dismissible",
+			description: "dismissible={false} — Escape and outside click both disabled.",
+		},
+		{
+			name: "CustomInitialFocus",
+			title: "Custom Initial Focus",
+			description: "Sends focus to a specific field instead of the default close button.",
+		},
+	],
+	"alert-dialog": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A destructive delete confirmation with a trigger.",
+		},
+		{
+			name: "ControlledOpen",
+			title: "Controlled Open",
+			description: "Non-bound open plus onOpenChange, triggered from a list row.",
+		},
+		{
+			name: "CustomLabels",
+			title: "Custom Labels",
+			description: "A non-delete use case — signing out of every device.",
+		},
+	],
+	sheet: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{ name: "Sides", title: "Sides", description: "Slide in from any edge of the viewport." },
+		{ name: "WithFooter", title: "With Footer", description: "Pin actions below the body." },
+	],
+	drawer: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithForm",
+			title: "With Form",
+			description: "House form fields with a pinned footer.",
+		},
+		{ name: "NoSwipe", title: "No Swipe", description: "Disable the drag-to-close gesture." },
+	],
+	popover: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A Dimensions panel with two labelled fields, matching the mockup.",
+		},
+		{
+			name: "Sides",
+			title: "Sides",
+			description: "The panel placed on each of the four sides.",
+		},
+		{
+			name: "WithForm",
+			title: "With Form",
+			description:
+				"An interactive form inside the panel, closing itself on submit — bind:open plus focus-trapped input and button.",
+		},
+	],
+	tooltip: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A heart IconButton with a tooltip, matching the mockup.",
+		},
+		{
+			name: "Sides",
+			title: "Sides",
+			description: "The tooltip placed on each of the four sides.",
+		},
+		{
+			name: "Delays",
+			title: "Delays",
+			description: "openDelay and closeDelay tuned away from their defaults.",
+		},
+	],
+	"hover-card": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A profile preview that opens on hover or focus.",
+		},
+		{
+			name: "WithStats",
+			title: "With Stats",
+			description: "A richer card with a stats row, anchored above the trigger.",
+		},
+	],
+	toast: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Call toast() from a click handler; <Toaster /> renders the result.",
+		},
+		{
+			name: "Variants",
+			title: "Variants",
+			description: "Success, error, info and loading, side by side.",
+		},
+		{
+			name: "WithAction",
+			title: "With Action",
+			description: "An error toast carrying a Retry action.",
+		},
+		{
+			name: "Persistent",
+			title: "Persistent",
+			description: "duration: Infinity — dismissed only by the user, never automatically.",
+		},
+	],
 };

@@ -111,6 +111,17 @@
 		"radio-group",
 		"checkbox",
 		"switch",
+		// Core / overlays. Every one of these is invisible until something opens
+		// it, so a propless render shows an empty wrapper at best. Their
+		// BasicUsage example carries the trigger that makes them real.
+		"dialog",
+		"alert-dialog",
+		"sheet",
+		"drawer",
+		"popover",
+		"tooltip",
+		"hover-card",
+		"toast",
 	]);
 </script>
 

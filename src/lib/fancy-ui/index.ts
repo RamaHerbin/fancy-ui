@@ -116,6 +116,16 @@ export * from "./switch/index.js";
 export * from "./slider/index.js";
 export * from "./number-input/index.js";
 
+// Core — overlays
+export * from "./dialog/index.js";
+export * from "./alert-dialog/index.js";
+export * from "./sheet/index.js";
+export * from "./drawer/index.js";
+export * from "./popover/index.js";
+export * from "./tooltip/index.js";
+export * from "./hover-card/index.js";
+export * from "./toast/index.js";
+
 // =============================================================================
 // Registry
 // =============================================================================
