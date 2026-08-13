@@ -52,7 +52,8 @@
 			"svelte": "./dist/fancy-ui/index.js",
 			"default": "./dist/fancy-ui/index.js"
 		},
-		"./tailwind.css": "./dist/fancy-ui/tailwind.css"
+		"./tailwind.css": "./dist/fancy-ui/tailwind.css",
+		"./cameleon/*": "./dist/cameleon/*"
 	},
 	"scripts": {
 		"dev": "vite dev",
