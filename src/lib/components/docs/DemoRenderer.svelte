@@ -37,6 +37,10 @@
 		textarea: { label: "Message", placeholder: "Tell us what you think…" },
 		slider: { label: "Volume", value: 60, showValue: true, showBounds: true },
 		"number-input": { label: "Quantity", value: 12, min: 0, max: 99 },
+		"search-input": { label: "Search", placeholder: "Search components" },
+		"password-input": { label: "Password", showStrength: true },
+		"date-picker": { label: "Date", placeholder: "Pick a date" },
+		"time-picker": { label: "Time", placeholder: "Pick a time" },
 	};
 
 	// Components that we skip direct render (need too much setup). Exported so the
@@ -122,6 +126,13 @@
 		"tooltip",
 		"hover-card",
 		"toast",
+		// Core / forms with a floating surface. These four need a collection to
+		// show anything at all — options, suggestions, or dropped files — so a
+		// propless render is an empty trigger. Their BasicUsage supplies one.
+		"select",
+		"combobox",
+		"autocomplete",
+		"file-upload",
 	]);
 </script>
 
@@ -220,6 +231,10 @@
 		textarea: "Textarea",
 		slider: "Slider",
 		"number-input": "NumberInput",
+		"search-input": "SearchInput",
+		"password-input": "PasswordInput",
+		"date-picker": "DatePicker",
+		"time-picker": "TimePicker",
 		"apple-card-carousel": "AppleCardCarousel",
 		"animated-beam": "AnimatedBeam",
 		"animated-testimonials": "AnimatedTestimonials",

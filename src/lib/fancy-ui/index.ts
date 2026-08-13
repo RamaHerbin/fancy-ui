@@ -126,6 +126,16 @@ export * from "./tooltip/index.js";
 export * from "./hover-card/index.js";
 export * from "./toast/index.js";
 
+// Core — forms, floating surfaces
+export * from "./select/index.js";
+export * from "./combobox/index.js";
+export * from "./autocomplete/index.js";
+export * from "./search-input/index.js";
+export * from "./password-input/index.js";
+export * from "./file-upload/index.js";
+export * from "./date-picker/index.js";
+export * from "./time-picker/index.js";
+
 // =============================================================================
 // Registry
 // =============================================================================
