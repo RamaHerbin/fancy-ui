@@ -136,6 +136,18 @@ export * from "./file-upload/index.js";
 export * from "./date-picker/index.js";
 export * from "./time-picker/index.js";
 
+// Core — navigation
+export * from "./navbar/index.js";
+export * from "./sidebar/index.js";
+export * from "./tabs/index.js";
+export * from "./breadcrumb/index.js";
+export * from "./pagination/index.js";
+export * from "./stepper/index.js";
+export * from "./dropdown-menu/index.js";
+export * from "./context-menu/index.js";
+export * from "./command-menu/index.js";
+export * from "./navigation-menu/index.js";
+
 // =============================================================================
 // Registry
 // =============================================================================

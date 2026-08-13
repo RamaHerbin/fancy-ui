@@ -1,0 +1,547 @@
+<script lang="ts" module>
+	import type { Snippet } from "svelte";
+	import type { CommandItem } from "./types.js";
+
+	export type { CommandItem };
+
+	export interface CommandMenuProps {
+		/** Whether the menu is open. Bindable. */
+		open?: boolean;
+		/** Fires whenever `open` changes, from Escape, an outside click, or committing an item. */
+		onOpenChange?: (open: boolean) => void;
+		/** The full, unfiltered vocabulary. */
+		items: CommandItem[];
+		/** The current search text. Bindable. Reset to `""` every time the menu reopens. */
+		query?: string;
+		/** Fires whenever `query` changes. */
+		onQueryChange?: (query: string) => void;
+		/** Called with the committed item — Enter on the active row, or a click. Fires after the item's own `onSelect`. */
+		onSelect?: (item: CommandItem) => void;
+		/** Placeholder for the search field. */
+		placeholder?: string;
+		/** Shown in place of the list when nothing matches. */
+		emptyMessage?: string;
+		/** Accessible name for the dialog (and its search field — see the README). */
+		label?: string;
+		/** Matches an item against the current query. Default: case- and diacritic-insensitive substring match on `label` plus `keywords`. */
+		filter?: (item: CommandItem, query: string) => boolean;
+		/** Additional CSS classes for the panel. */
+		class?: string;
+		/** Bindable reference to the panel element. */
+		ref?: HTMLDivElement | null;
+		/** Rendered before each row's label, given that row's item. Treated as decorative — see the README. */
+		icon?: Snippet<[CommandItem]>;
+		/** Rendered in place of the list when nothing matches, instead of `emptyMessage`. */
+		empty?: Snippet;
+	}
+</script>
+
+<script lang="ts">
+	import { onDestroy, untrack } from "svelte";
+	import { cn } from "$lib/utils.js";
+	import { portal } from "../_internals/portal.js";
+	import { focusTrap } from "../_internals/focus-trap.js";
+	import { dismissable } from "../_internals/dismissable.js";
+	import { lockScroll } from "../_internals/scroll-lock.js";
+	import { createListbox } from "../_internals/listbox.svelte.js";
+	import { defaultFilter, getMatchRange } from "./match.js";
+
+	let {
+		open = $bindable(false),
+		onOpenChange,
+		items,
+		query = $bindable(""),
+		onQueryChange,
+		onSelect,
+		placeholder = "Search...",
+		emptyMessage = "No results",
+		label = "Command menu",
+		filter,
+		class: className,
+		ref = $bindable(null),
+		icon,
+		empty,
+	}: CommandMenuProps = $props();
+
+	// How long the query has to sit still before the live region reports a
+	// fresh count — announcing on every keystroke would turn fast typing
+	// into a screen reader narrating a number after every character. See
+	// the README for the exact contract this settles on.
+	const ANNOUNCE_DEBOUNCE_MS = 300;
+
+	// `$props.id()`, not `_internals/id.js`'s `uid()` (which throws outside
+	// the browser): row and list ids are needed at SSR render time, and this
+	// is the seed every other control in the library uses for that.
+	const uid = $props.id();
+	const listId = `${uid}-list`;
+	function optionId(index: number): string {
+		return `${uid}-option-${index}`;
+	}
+
+	let inputRef: HTMLInputElement | null = $state(null);
+	let listRef: HTMLDivElement | null = $state(null);
+
+	function matches(item: CommandItem, q: string): boolean {
+		return filter ? filter(item, q) : defaultFilter(item, q);
+	}
+
+	// A plain function, not only the `$derived` below, so it can also be
+	// called fresh from `handleInput` in the same pass that just wrote
+	// `query` — reading the memoized `filteredItems` there instead would be
+	// reading a derived in the same synchronous call that wrote its own
+	// dependency, which risks the pre-write list. Same pattern
+	// `combobox/Combobox.svelte`'s `computeFilteredOptions` uses.
+	function computeFilteredItems(q: string): CommandItem[] {
+		return items.filter((item) => matches(item, q));
+	}
+
+	const filteredItems = $derived(computeFilteredItems(query));
+
+	// Reorders the already-filtered items into the order they actually
+	// render in: every ungrouped item first, then each group's items, in
+	// the order that group name was first seen in `items` — never
+	// alphabetized, never reordered relative to how the caller listed
+	// things within a bucket. This is a *display* order, not `items`'s own
+	// order, and it matters beyond rendering: it is also the flat index
+	// space `optionId`, `aria-activedescendant`, and the listbox core all
+	// share below, so "first" (on open, on Home) and "next" (ArrowDown)
+	// mean the row that is visually first/next, not `items[0]`/`items[i+1]`
+	// — those two can disagree the moment an ungrouped item sits after a
+	// grouped one in `items`' own declaration order.
+	function computeDisplayItems(filtered: CommandItem[]): CommandItem[] {
+		const ungrouped: CommandItem[] = [];
+		const order: string[] = [];
+		const byName = new Map<string, CommandItem[]>();
+		for (const item of filtered) {
+			if (!item.group) {
+				ungrouped.push(item);
+				continue;
+			}
+			let bucket = byName.get(item.group);
+			if (!bucket) {
+				bucket = [];
+				byName.set(item.group, bucket);
+				order.push(item.group);
+			}
+			bucket.push(item);
+		}
+		return [...ungrouped, ...order.flatMap((name) => byName.get(name)!)];
+	}
+
+	const displayItems = $derived(computeDisplayItems(filteredItems));
+
+	interface GroupRow {
+		item: CommandItem;
+		index: number;
+	}
+	interface ItemGroup {
+		name: string | null;
+		rows: GroupRow[];
+	}
+
+	// `displayItems` is already ungrouped-first-then-grouped, so a single
+	// left-to-right pass finds each heading's boundary just by watching
+	// `item.group` change — no separate bucketing pass needed here, and
+	// each row's `index` is simply its position in `displayItems`, the
+	// same index space `optionId`/the listbox core use. A group only
+	// exists here if at least one of its items survived filtering, so an
+	// empty heading never renders.
+	function computeGroups(display: CommandItem[]): ItemGroup[] {
+		const groups: ItemGroup[] = [];
+		let current: ItemGroup | null = null;
+		display.forEach((item, index) => {
+			const name = item.group ?? null;
+			if (!current || current.name !== name) {
+				current = { name, rows: [] };
+				groups.push(current);
+			}
+			current.rows.push({ item, index });
+		});
+		return groups;
+	}
+
+	const groups = $derived(computeGroups(displayItems));
+
+	function handleActiveChange(index: number): void {
+		// `Element.prototype.scrollIntoView` does not exist in jsdom —
+		// optional-chaining the method itself (not just the element) makes
+		// this a silent no-op there instead of a thrown TypeError, while a
+		// real browser still scrolls the row into view exactly as intended.
+		const row = listRef?.querySelector<HTMLElement>(`#${CSS.escape(optionId(index))}`);
+		row?.scrollIntoView?.({ block: "nearest" });
+	}
+
+	const listbox = createListbox({
+		count: () => computeDisplayItems(computeFilteredItems(query)).length,
+		enabled: (i) => !computeDisplayItems(computeFilteredItems(query))[i]?.disabled,
+		loop: true,
+		onActiveChange: handleActiveChange,
+	});
+
+	onDestroy(() => listbox.destroy());
+
+	// Acquired the instant the panel opens, released the instant it closes
+	// or unmounts — reference-counted, so a Popover or another modal opened
+	// from inside this menu stacks its own lock on top rather than losing
+	// track of this one. Same effect shape `dialog/DialogSurface.svelte`
+	// uses.
+	$effect(() => {
+		if (!open) return;
+		return lockScroll();
+	});
+
+	// Whatever the very first paint's `query` was is worth keeping — a
+	// caller that mounts the menu already open with a prefilled query is
+	// seeding it on purpose. Only actual *reopenings* (closed, now open
+	// again) are what a stale query is about, so this flips true the first
+	// time this instance ever sees `open === true` and stays true forever
+	// after, exempting exactly that one first transition.
+	let hasOpenedBefore = false;
+
+	// The only *tracked* dependency here is `open` itself, read in the guard
+	// below, outside `untrack`. Everything inside `untrack` matters: without
+	// it, `listbox.moveToEdge("first")` reads `query` transitively (through
+	// the `count`/`enabled` callbacks passed to `createListbox` above, which
+	// close over `query`), and Svelte's dependency tracking follows reads
+	// through function calls, not just lexical mentions — so `query` would
+	// become a tracked dependency of this very effect. The next line then
+	// writes `query`, which is exactly "an effect reads and writes the same
+	// state": the write invalidates a dependency the effect itself just
+	// read, so the effect reruns, reads `query` again, writes it again, and
+	// so on — `effect_update_depth_exceeded`, reproduced by simply typing
+	// into the field once `hasOpenedBefore` is true. `untrack` keeps every
+	// read in here (of `query`, of `items`/`filter` through
+	// `computeFilteredItems`, of `listRef` through `handleActiveChange`)
+	// from registering as a dependency, so this effect really does re-fire
+	// on `open` alone — not on a keystroke, not on an `items` swap.
+	$effect(() => {
+		if (!open) return;
+		untrack(() => {
+			if (hasOpenedBefore) {
+				query = "";
+				onQueryChange?.("");
+			}
+			hasOpenedBefore = true;
+			listbox.setActive(-1);
+			listbox.moveToEdge("first");
+		});
+	});
+
+	// Debounced result-count announcement. Re-running this effect whenever
+	// `filteredItems.length` (or `open`) changes clears whatever timer the
+	// previous run scheduled — Svelte guarantees the cleanup below runs
+	// before the next run's body, exactly once per change — so a burst of
+	// keystrokes keeps pushing the announcement out rather than stacking up
+	// several, and the count that finally lands is always the latest one.
+	// `null`, not `0`, before anything has settled — the live region must
+	// stay silent while a debounce is pending, not flash a misleading
+	// "0 results" for the first `ANNOUNCE_DEBOUNCE_MS` even when the list
+	// is not actually empty.
+	let announcedCount: number | null = $state(null);
+	$effect(() => {
+		const count = filteredItems.length;
+		if (!open) return;
+		// Zero is announced immediately, not debounced like every other
+		// count. The empty state is already visible on screen the instant
+		// `count` hits zero (the list already shows `emptyMessage`) — waiting
+		// out the debounce here would leave the live region reporting a
+		// stale "N results" while the list a screen reader user cannot see
+		// already reads empty, which actively misleads rather than merely
+		// lagging. A nonzero count carries no equivalent urgency: it is
+		// never a contradiction of what's on screen, only a preview of it,
+		// so it keeps the debounce that avoids narrating every keystroke.
+		if (count === 0) {
+			announcedCount = 0;
+			return;
+		}
+		const timer = setTimeout(() => {
+			announcedCount = count;
+		}, ANNOUNCE_DEBOUNCE_MS);
+		return () => clearTimeout(timer);
+	});
+
+	const resultsMessage = $derived(
+		announcedCount === null ? "" : announcedCount === 1 ? "1 result" : `${announcedCount} results`
+	);
+
+	function setOpen(next: boolean): void {
+		if (open === next) return;
+		open = next;
+		onOpenChange?.(next);
+	}
+
+	function commitItem(item: CommandItem): void {
+		if (item.disabled) return;
+		item.onSelect?.();
+		onSelect?.(item);
+		setOpen(false);
+	}
+
+	function setQuery(next: string): void {
+		if (query === next) return;
+		query = next;
+		onQueryChange?.(next);
+	}
+
+	function handleInput(event: Event & { currentTarget: HTMLInputElement }): void {
+		setQuery(event.currentTarget.value);
+		// Re-activates the first (visually topmost) surviving match on every
+		// keystroke — calls the fresh function, not the `filteredItems`
+		// derived, since `query` was just written above in this same pass.
+		listbox.moveToEdge("first");
+	}
+
+	function handleKeydown(event: KeyboardEvent): void {
+		switch (event.key) {
+			case "ArrowDown":
+				event.preventDefault();
+				listbox.move(1);
+				break;
+			case "ArrowUp":
+				event.preventDefault();
+				listbox.move(-1);
+				break;
+			case "Home":
+				event.preventDefault();
+				listbox.moveToEdge("first");
+				break;
+			case "End":
+				event.preventDefault();
+				listbox.moveToEdge("last");
+				break;
+			case "Enter": {
+				// Safe to read the memoized `displayItems` here — unlike
+				// `handleInput`, this handler never writes `query` first. Reads
+				// `displayItems`, not `filteredItems`: `listbox.activeIndex` is
+				// an index into the display order (see `computeDisplayItems`),
+				// not into `items`' own filtered-but-unreordered order.
+				const active = displayItems[listbox.activeIndex];
+				if (active) {
+					event.preventDefault();
+					commitItem(active);
+				}
+				break;
+			}
+			// No Escape case here on purpose — the panel's own `dismissable`
+			// below already closes on Escape via its document-level
+			// listener; a second listener here would duplicate it.
+		}
+	}
+
+	const classes = $derived(
+		cn(
+			"ft-command-menu border-border bg-popover text-popover-foreground fixed top-[12vh] left-1/2 z-50 flex max-h-[70vh] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 flex-col overflow-hidden rounded-xl border shadow-2xl",
+			"focus-visible:outline-none",
+			className
+		)
+	);
+</script>
+
+{#if open}
+	<div
+		use:portal
+		class="ft-command-menu-scrim fixed inset-0 z-50 bg-black/60"
+		aria-hidden="true"
+	></div>
+	<!--
+		`use:portal` runs first and reparents this node to `document.body`
+		before `use:focusTrap` mounts — both actions live on this one element
+		specifically so their order is guaranteed by declaration order, not by
+		however the framework happens to schedule effects across a
+		parent/child pair. Getting this backwards (portal on an ancestor,
+		focus-trap on a descendant) would let the trap call `.focus()` on a
+		node not yet attached to `document` — a silent no-op everywhere,
+		jsdom included. `dialog/DialogSurface.svelte` is the reference this
+		follows.
+	-->
+	<div
+		bind:this={ref}
+		use:portal
+		use:focusTrap={{}}
+		use:dismissable={{ onDismiss: () => setOpen(false) }}
+		role="dialog"
+		aria-modal="true"
+		aria-label={label}
+		tabindex="-1"
+		class={classes}
+	>
+		<div class="border-border flex h-[42px] shrink-0 items-center gap-[10px] border-b px-[14px]">
+			<span aria-hidden="true" class="text-muted-foreground text-[13px]">⌕</span>
+			<input
+				bind:this={inputRef}
+				type="text"
+				role="combobox"
+				aria-label={label}
+				aria-haspopup="listbox"
+				aria-expanded="true"
+				aria-controls={listId}
+				aria-autocomplete="list"
+				aria-activedescendant={listbox.activeIndex >= 0 ? optionId(listbox.activeIndex) : undefined}
+				{placeholder}
+				value={query}
+				class="text-foreground placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+				oninput={handleInput}
+				onkeydown={handleKeydown}
+			/>
+			<kbd
+				aria-hidden="true"
+				class="text-muted-foreground border-border bg-accent ml-auto shrink-0 rounded-[4px] border px-[6px] py-[2px] font-mono text-[10px]"
+			>
+				esc
+			</kbd>
+		</div>
+
+		<div
+			bind:this={listRef}
+			id={listId}
+			role="listbox"
+			aria-label={label}
+			class="flex min-h-0 flex-col gap-[2px] overflow-y-auto p-[8px]"
+		>
+			{#if filteredItems.length === 0}
+				{#if empty}
+					{@render empty()}
+				{:else}
+					<div
+						role="presentation"
+						class="ft-command-menu-empty text-muted-foreground rounded-[8px] px-[12px] py-[8px] text-[13px]"
+					>
+						{emptyMessage}
+					</div>
+				{/if}
+			{:else}
+				{#each groups as group (group.name ?? "__ft_ungrouped__")}
+					{#if group.name}
+						<div
+							role="presentation"
+							class="ft-command-menu-heading text-muted-foreground/60 px-[12px] py-[4px] text-[10px] font-medium tracking-[.08em] uppercase"
+						>
+							{group.name}
+						</div>
+					{/if}
+					{#each group.rows as { item, index } (item.id)}
+						{@const range = getMatchRange(item.label, query)}
+						<!--
+							`onmousedown` defends against a real browser's
+							focus-follows-mousedown default action stealing focus
+							onto this row before its own `onclick` commits —
+							without it, that focus shift blurs the input first,
+							which nothing here reacts to directly, but the whole
+							point of this pattern (see requirement 2 in the brief)
+							is that focus never leaves the input at all. jsdom
+							implements no such default action to suppress, so no
+							test in this file can watch this guard prevent that
+							outcome — only that the call happens. Do not delete
+							this as dead code on the strength of a green suite;
+							same reasoning `combobox/ComboboxPanel.svelte` documents
+							for its own identical guard.
+						-->
+						<button
+							type="button"
+							id={optionId(index)}
+							role="option"
+							tabindex="-1"
+							disabled={item.disabled}
+							aria-selected={listbox.activeIndex === index}
+							aria-disabled={item.disabled ? "true" : undefined}
+							class={cn(
+								"ft-command-menu-row flex w-full items-center justify-between gap-3 rounded-[8px] px-[12px] py-[8px] text-left text-[13px]",
+								listbox.activeIndex === index && !item.disabled
+									? "bg-accent text-accent-foreground"
+									: "text-foreground",
+								item.disabled && "pointer-events-none opacity-50"
+							)}
+							onmousedown={(event) => event.preventDefault()}
+							onclick={() => commitItem(item)}
+						>
+							<span class="flex min-w-0 flex-1 items-center gap-2">
+								{#if icon}
+									<span aria-hidden="true" class="shrink-0">{@render icon(item)}</span>
+								{/if}
+								<span class="min-w-0 truncate">
+									{#if range}
+										{item.label.slice(0, range.start)}<mark
+											>{item.label.slice(range.start, range.end)}</mark
+										>{item.label.slice(range.end)}
+									{:else}
+										{item.label}
+									{/if}
+								</span>
+							</span>
+							{#if item.meta}
+								<span class="shrink-0 text-[11px] opacity-60">{item.meta}</span>
+							{/if}
+						</button>
+					{/each}
+				{/each}
+			{/if}
+		</div>
+
+		<!-- Always mounted while the panel is, whether or not the count has
+		     settled — an element that only appears at the same moment its own
+		     text does usually goes unread. Content is a debounced count,
+		     never the item list itself. No `open ? … : ""` guard needed here:
+		     this whole block only ever renders inside `{#if open}`, so the
+		     region unmounting on close (not a text change) is what clears it —
+		     see the "clears immediately on close" test. -->
+		<div class="sr-only" role="status" aria-live="polite">{resultsMessage}</div>
+	</div>
+{/if}
+
+<style>
+	/*
+	 * The nav accent has no semantic Tailwind token, so it is a scoped
+	 * custom property with a `light-dark()` fallback, declared once here on
+	 * the component root and read below via `var(--ft-nav-accent)`.
+	 * `--ft-accent` itself is deliberately never redeclared — doing so would
+	 * shadow whatever value a consumer set higher up the tree, the exact bug
+	 * an earlier wave shipped in `Link`.
+	 */
+	.ft-command-menu {
+		--ft-nav-accent: var(
+			--ft-accent,
+			light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+		);
+	}
+
+	.ft-command-menu mark {
+		background: transparent;
+		color: var(--ft-nav-accent);
+		font-weight: 600;
+	}
+
+	/*
+	 * No base `opacity: 0` outside the media query: the resting state is
+	 * always fully visible, so a visitor with motion reduced sees the panel
+	 * appear immediately rather than staying invisible for an animation that
+	 * never runs.
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-command-menu {
+			animation: ft-command-menu-in 0.15s ease-out;
+		}
+
+		.ft-command-menu-scrim {
+			animation: ft-command-menu-scrim-in 0.15s ease-out;
+		}
+	}
+
+	@keyframes ft-command-menu-scrim-in {
+		from {
+			opacity: 0;
+		}
+	}
+
+	/*
+	 * The panel's resting transform centers it horizontally
+	 * (`-translate-x-1/2` off `left-1/2`) — this keyframe's `from` keeps that
+	 * same translate and only animates opacity and scale on top of it, so
+	 * the panel eases in from a hair smaller without ever jumping position.
+	 */
+	@keyframes ft-command-menu-in {
+		from {
+			opacity: 0;
+			transform: translateX(-50%) scale(0.98);
+		}
+	}
+</style>
