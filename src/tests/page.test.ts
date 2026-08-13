@@ -5,26 +5,22 @@ import Page from "../routes/+page.svelte";
 describe("+page.svelte", () => {
 	afterEach(cleanup);
 
-	// Queried by accessible name, not textContent: the hero duplicates "tiful" in
-	// two aria-hidden layers to fake a glow, and those copies pollute textContent
-	// while correctly staying out of the accessibility tree.
+	// Queried by accessible name, not textContent: the hero splits the headline into
+	// one aria-hidden <span> per glyph so each can animate in separately, and the
+	// name comes from the sr-only copy that sits alongside them.
 	it("renders the heading", () => {
 		render(Page);
 		expect(
 			screen.getByRole("heading", {
 				level: 1,
-				name: /Build beautiful\s+interfaces effortlessly\./i,
+				name: /Build stunning interfaces, effortlessly\./i,
 			})
 		).toBeInTheDocument();
 	});
 
 	it("renders the tagline text", () => {
 		render(Page);
-		expect(
-			screen.getByText(
-				/FancyUI is a modern, animated and accessible component library for Svelte 5/i
-			)
-		).toBeInTheDocument();
+		expect(screen.getByText(/Fancy UI is a modern UI kit and design system/i)).toBeInTheDocument();
 	});
 
 	it("renders a link to the component list", () => {
