@@ -1,0 +1,66 @@
+/**
+ * Landing-page surface utilities.
+ *
+ * The page renders inside <FancyProvider>, so every colour must come from the
+ * active skin's tokens or it will not re-flow when the skin changes. Only the
+ * twelve variables that EVERY finished skin defines may be used here —
+ * page-bg/fg, font-sans/mono, card, surface, line, and the five accents.
+ * `--skin-ink`, `--skin-paper`, `--skin-desk` and `--skin-muted` exist on some
+ * skins only, so they are off limits; the muted text ramps below are derived
+ * from `--skin-page-fg` with color-mix instead.
+ *
+ * These live in a stylesheet rather than as Tailwind arbitrary values because
+ * `text-[color:color-mix(in_srgb,var(--skin-page-fg)_62%,transparent)]` at
+ * thirty call sites is not markup anyone can read.
+ */
+
+.lp-muted {
+	color: color-mix(in srgb, var(--skin-page-fg, #f8fafc) 64%, transparent);
+}
+
+.lp-dim {
+	color: color-mix(in srgb, var(--skin-page-fg, #f8fafc) 45%, transparent);
+}
+
+/* Muted until hovered. `.lp-muted` sets a colour, so a `hover:opacity-100`
+   utility would have nothing to act on — the hover has to restore the colour. */
+.lp-link {
+	color: color-mix(in srgb, var(--skin-page-fg, #f8fafc) 64%, transparent);
+	transition: color 0.2s ease;
+}
+
+.lp-link:hover {
+	color: var(--skin-page-fg, #f8fafc);
+}
+
+.lp-card {
+	background: var(--skin-card, #0d0d14);
+	border: 1px solid var(--skin-line, rgba(255, 255, 255, 0.1));
+}
+
+.lp-surface {
+	background: var(--skin-surface, #12121c);
+}
+
+.lp-line {
+	border-color: var(--skin-line, rgba(255, 255, 255, 0.1));
+}
+
+/* Hairline divider that reads on both light and dark skins. */
+.lp-hairline {
+	border-bottom: 1px solid var(--skin-line, rgba(255, 255, 255, 0.1));
+}
+
+.lp-accent {
+	color: var(--skin-purple, #8b7bff);
+}
+
+.lp-mono {
+	font-family: var(--skin-font-mono, ui-monospace, monospace);
+}
+
+/* The chrome bar behind the sticky header: the page background at 80% so the
+   backdrop blur has something to work with, whatever the skin's canvas is. */
+.lp-chrome {
+	background: color-mix(in srgb, var(--skin-page-bg, #050508) 82%, transparent);
+}

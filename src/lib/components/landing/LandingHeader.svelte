@@ -1,46 +1,48 @@
 <script lang="ts">
 	import Logo from "$lib/components/Logo.svelte";
+	import SkinLink from "./SkinLink.svelte";
+	import SkinSwitcher from "./SkinSwitcher.svelte";
+	import { GITHUB_URL } from "$lib/site.js";
+	import type { Skin } from "$lib/cameleon";
 
-	const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
+	interface Props {
+		skins: Skin[];
+		skin: Skin;
+	}
+
+	let { skins, skin = $bindable() }: Props = $props();
 
 	const navLinks: { label: string; href: string }[] = [
 		{ label: "Docs", href: "/docs/getting-started/introduction" },
 		{ label: "Components", href: "/docs/components" },
 		{ label: "Theming", href: "/docs/getting-started/theming" },
-		{ label: "Theme Generator", href: "/docs/getting-started/theme-generator" },
 	];
 </script>
 
-<header class="sticky top-0 z-50 border-b border-white/8 bg-[#050508]/80 backdrop-blur-md">
+<header class="lp-chrome lp-hairline sticky top-0 z-50 backdrop-blur-md">
 	<div
-		class="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-8 px-4 sm:px-8 lg:px-14"
+		class="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-6 px-4 sm:px-8 lg:px-14"
 	>
-		<a
-			href="/"
-			class="flex items-center gap-2.5 text-[19px] font-bold tracking-[-0.01em] text-white"
-		>
+		<a href="/" class="flex items-center gap-2.5 text-[19px] font-bold tracking-[-0.01em]">
 			<Logo size={26} animated />
-			<span>Fancy<span class="text-[#8b7bff]">UI</span></span>
+			<span>Fancy<span class="lp-accent">UI</span></span>
 		</a>
 
-		<nav class="hidden flex-1 items-center justify-center gap-2 text-[13px] md:flex">
+		<nav class="hidden flex-1 items-center justify-center gap-2 text-[13px] lg:flex">
 			{#each navLinks as link (link.href)}
-				<a
-					href={link.href}
-					class="rounded-lg px-3.5 py-[7px] text-[#c3cadf] transition-colors hover:text-white"
-				>
-					{link.label}
-				</a>
+				<a href={link.href} class="lp-link rounded-lg px-3.5 py-[7px]">{link.label}</a>
 			{/each}
 		</nav>
 
-		<div class="flex items-center gap-3.5">
+		<div class="flex items-center gap-3">
+			<SkinSwitcher {skins} bind:value={skin} />
+
 			<a
 				href={GITHUB_URL}
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="GitHub"
-				class="flex text-[#8fb8ff] transition-colors hover:text-white"
+				class="lp-link hidden sm:flex"
 			>
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
 					<path
@@ -48,14 +50,8 @@
 					/>
 				</svg>
 			</a>
-			<!-- Solid white, matching the hero's primary CTA: the two sit ~40px apart on
-			     load, and two different treatments of the same label read as a bug. -->
-			<a
-				href="/docs"
-				class="inline-flex items-center gap-2 rounded-[10px] bg-[#f8fafc] px-[18px] py-[9px] text-[13px] font-semibold text-[#0a0a0e] transition-opacity hover:opacity-90"
-			>
-				Get Started <span aria-hidden="true">→</span>
-			</a>
+
+			<SkinLink href="/docs" size="sm" class="hidden sm:inline-flex">Get Started</SkinLink>
 		</div>
 	</div>
 </header>

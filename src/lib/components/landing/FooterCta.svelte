@@ -2,8 +2,9 @@
 	import SynthwaveScene from "$lib/components/landing/synthwave/SynthwaveScene.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
 	import Logo from "$lib/components/Logo.svelte";
+	import SkinLink from "./SkinLink.svelte";
+	import { GITHUB_URL } from "$lib/site.js";
 
-	const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
 	const DEMO_URL = "/docs/components";
 	const DOCS_URL = "/docs";
 
@@ -45,14 +46,26 @@
 	Final CTA + footer, both sitting on the synthwave backdrop: the static
 	panorama is the backdrop for the whole block, so the grid runs behind the
 	link columns instead of stopping at the CTA. The section gradient starts at
-	the ValuesStrip's #08080d so the seam above is invisible.
+	#08080d so the seam against the block above is invisible.
+
+	This block deliberately does NOT re-skin. Everything above it is token-driven
+	and follows the active skin, but the backdrop here is a photograph, not a
+	surface: token-coloured type over a fixed neon panorama would put dark text
+	on a dark image the moment a light skin is chosen. It keeps its own dark art
+	direction and only the CTAs adopt the skin's button recipe.
 -->
 <!--
 	No overflow-hidden here: the scene's riser gradient reaches above the
-	section top, behind the ValuesStrip card, and the panorama clips its own
+	section top, behind the block above it, and the panorama clips its own
 	<img>.
 -->
-<section class="relative bg-gradient-to-b from-[#08080d] to-black">
+<!-- The top of the gradient is the *page* background, not a fixed near-black:
+     under a light skin a hard cut from cream paper straight into the neon
+     panorama reads as a broken layout. Starting from the skin's canvas lets the
+     block fade into its own art direction whatever that is. -->
+<section
+	class="relative bg-[linear-gradient(to_bottom,var(--skin-page-bg,#08080d),#08080d_120px,#000_100%)]"
+>
 	<SynthwaveScene />
 
 	<!--
@@ -84,21 +97,21 @@
 			<p class="text-sm text-white/60 sm:text-[14.5px]">
 				Join developers building beautiful apps with FancyUI.
 			</p>
+			<!--
+				The two CTAs wear the skin's button recipe; everything else in this
+				block keeps its fixed art direction (see the note above the section).
+			-->
 			<div class="mt-3 flex flex-wrap items-center justify-center gap-3.5">
-				<a
-					href={DOCS_URL}
-					class="inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] px-6.5 py-3.5 text-sm font-semibold text-white shadow-[0_8px_30px_rgba(91,140,255,.4)] transition-shadow hover:shadow-[0_8px_38px_rgba(91,140,255,.6)]"
-				>
-					Get Started <span aria-hidden="true">→</span>
-				</a>
-				<a
+				<SkinLink href={DOCS_URL} size="lg">Get Started →</SkinLink>
+				<SkinLink
 					href={GITHUB_URL}
+					size="lg"
+					variant="secondary"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="inline-flex items-center gap-2 rounded-xl border border-white/12 bg-[#13131a]/70 px-6.5 py-3.5 text-sm font-medium text-[#e6e9ef] transition-colors hover:border-white/25"
 				>
-					<span class="text-[#fbbf24]" aria-hidden="true">★</span> Star on GitHub
-				</a>
+					★ Star on GitHub
+				</SkinLink>
 			</div>
 		</div>
 	</div>
