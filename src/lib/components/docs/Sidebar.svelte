@@ -8,6 +8,7 @@
 	// `MessageKey` went with develop's `tCategory`, which now owns category labels.
 	import { t, tCategory, createSkinState } from "$lib/stores";
 	import { GITHUB_URL, PACKAGE_VERSION } from "$lib/site.js";
+	import Logo from "$lib/components/Logo.svelte";
 
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
@@ -72,9 +73,11 @@
 					<a href="/docs" class="retro-explorer-title" onclick={onclose}>{t("retro.explorer")}</a>
 				</div>
 			{:else if isBrutal}
-				<!-- Brutal brand block: ink FU tile + stacked mono sub-line. -->
+				<!-- Brutal brand block: ink tile carrying the mark + stacked mono
+				     sub-line. The halo is off here: the tile is only 34px, so the
+				     glow would spill past its edges instead of reading as light. -->
 				<a href="/docs" class="docs-brand" onclick={onclose}>
-					<span class="docs-brand-logo" aria-hidden="true">FU</span>
+					<span class="docs-brand-logo" aria-hidden="true"><Logo size={20} glow={false} /></span>
 					<span class="docs-brand-text">
 						<span class="docs-brand-name">FancyUI</span>
 						<span class="docs-brand-sub">{t("nav.docsSuffix")} · V{PACKAGE_VERSION}</span>
@@ -84,10 +87,17 @@
 				<div
 					class="border-sidebar-border flex h-14 shrink-0 items-center justify-between border-b px-4"
 				>
-					<a href="/docs" class="text-lg font-semibold tracking-tight" onclick={onclose}>
-						FancyUI <span class="text-muted-foreground text-xs font-normal"
-							>{t("nav.docsSuffix")}</span
-						>
+					<a
+						href="/docs"
+						class="flex items-center gap-2 text-lg font-semibold tracking-tight"
+						onclick={onclose}
+					>
+						<Logo size={22} />
+						<span>
+							FancyUI <span class="text-muted-foreground text-xs font-normal"
+								>{t("nav.docsSuffix")}</span
+							>
+						</span>
 					</a>
 				</div>
 			{/if}
