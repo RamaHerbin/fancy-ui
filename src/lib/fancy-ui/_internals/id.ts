@@ -26,7 +26,7 @@ let n = 0;
 export function uid(prefix = "fui"): string {
 	if (typeof window === "undefined") {
 		throw new Error(
-			"uid() is client-only and must not be called during SSR; use $props.id() for SSR-stable ids.",
+			"uid() is client-only and must not be called during SSR; use $props.id() for SSR-stable ids."
 		);
 	}
 

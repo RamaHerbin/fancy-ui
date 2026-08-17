@@ -10,7 +10,7 @@
 		[-1, 0],
 		[0, -1],
 		[1, 1],
-		[-1, 1]
+		[-1, 1],
 	];
 
 	type Blob = {
@@ -54,7 +54,7 @@
 				size: i === 0 ? CELL * 2 : CELL,
 				bg: i === 0 ? base : COLORS[(n + i) % 4],
 				dur: (0.7 + Math.random() * 0.5).toFixed(2),
-				delay: (i * 0.05).toFixed(2)
+				delay: (i * 0.05).toFixed(2),
 			};
 			items.push(blob);
 
