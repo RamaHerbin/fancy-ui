@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SynthwaveScene from "$lib/components/landing/synthwave/SynthwaveScene.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
+	import Logo from "$lib/components/Logo.svelte";
 
 	const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
 	const DEMO_URL = "/docs/components";
@@ -124,8 +125,10 @@
 				aria-hidden="true"
 			></div>
 			<div class="relative flex w-full flex-col gap-3.5 lg:w-[300px]">
-				<span class="text-lg font-bold text-white">Fancy<span class="text-[#8b7bff]">UI</span></span
-				>
+				<span class="flex items-center gap-2 text-lg font-bold text-white">
+					<Logo size={22} />
+					<span>Fancy<span class="text-[#8b7bff]">UI</span></span>
+				</span>
 				<span class="text-[13px] leading-relaxed text-[#9aa3b2]">
 					A modern component library for Svelte 5.
 				</span>

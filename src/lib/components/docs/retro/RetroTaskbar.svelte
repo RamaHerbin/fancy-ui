@@ -14,7 +14,9 @@
 	const time = $derived(
 		now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })
 	);
-	const date = $derived(now.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }));
+	const date = $derived(
+		now.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })
+	);
 </script>
 
 <div class="retro-taskbar" role="presentation">

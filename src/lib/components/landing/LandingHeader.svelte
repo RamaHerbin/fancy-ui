@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Logo from "$lib/components/Logo.svelte";
+
 	const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
 
 	const navLinks: { label: string; href: string }[] = [
@@ -13,8 +15,12 @@
 	<div
 		class="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-8 px-4 sm:px-8 lg:px-14"
 	>
-		<a href="/" class="text-[19px] font-bold tracking-[-0.01em] text-white">
-			Fancy<span class="text-[#8b7bff]">UI</span>
+		<a
+			href="/"
+			class="flex items-center gap-2.5 text-[19px] font-bold tracking-[-0.01em] text-white"
+		>
+			<Logo size={26} animated />
+			<span>Fancy<span class="text-[#8b7bff]">UI</span></span>
 		</a>
 
 		<nav class="hidden flex-1 items-center justify-center gap-2 text-[13px] md:flex">

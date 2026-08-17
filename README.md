@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/logo.png" alt="FancyUI" width="88" height="88" />
+</p>
+
 # fancy-ui
 
 Beautiful animation and UI components for **Svelte 5**.

@@ -1,51 +1,92 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <style>
-    .p1 { animation: float1 3s ease-in-out infinite; }
-    .p2 { animation: float2 3s ease-in-out infinite; }
-    .p3 { animation: float3 3s ease-in-out infinite; }
-    .p4 { animation: float4 3s ease-in-out infinite; }
-    .p5 { animation: float5 3s ease-in-out infinite; }
+    /* Rest is 0%/100% -- the raster pipeline strips this block and renders the
+       resting pose, so the collapsed state has to sit at 50%, never at the ends.
+       The swing is wide because the tab renders this at 16px, where a gentle
+       pulse is invisible. */
+    .mark { animation: twinkle 1.4s ease-in-out infinite; transform-origin: 16px 16px; }
 
-    @keyframes float1 {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(2px, -3px); }
-    }
-    @keyframes float2 {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(-3px, 2px); }
-    }
-    @keyframes float3 {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(3px, 3px); }
-    }
-    @keyframes float4 {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(-2px, -2px); }
-    }
-    @keyframes float5 {
-      0%, 100% { transform: translate(0, 0); opacity: 0.8; }
-      50% { transform: translate(1px, 2px); opacity: 1; }
+    @keyframes twinkle {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(0.6); opacity: 0.45; }
     }
   </style>
 
   <defs>
-    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#818cf8"/>
-      <stop offset="100%" stop-color="#c084fc"/>
+    <!-- Astroid: arms at r=13 from (16,16), quadratic controls pulled to within
+         0.7 of the centre so the waist sits at 0.39 of the arm length, matching
+         the source. The remaining 3 units of viewBox are the halo's room. -->
+    <path id="mk" d="M16 3Q16.7 15.3 29 16Q16.7 16.7 16 29Q15.3 16.7 3 16Q15.3 15.3 16 3Z"/>
+
+    <!-- Horizontal axis: hot pink at the left arm, violet through the core,
+         indigo then cyan at the right arm. Sampled off the source mark. -->
+    <linearGradient id="spark" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0" stop-color="#d22374"/>
+      <stop offset="0.25" stop-color="#fd4ba0"/>
+      <stop offset="0.375" stop-color="#c128c1"/>
+      <stop offset="0.44" stop-color="#9624dd"/>
+      <stop offset="0.5" stop-color="#6f27f7"/>
+      <stop offset="0.5625" stop-color="#512df7"/>
+      <stop offset="0.625" stop-color="#4537f7"/>
+      <stop offset="0.75" stop-color="#487df9"/>
+      <stop offset="0.875" stop-color="#71e8fc"/>
+      <stop offset="1" stop-color="#8ff0fe"/>
     </linearGradient>
-    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f472b6"/>
-      <stop offset="100%" stop-color="#fb923c"/>
+
+    <!-- Vertical axis: both the top and bottom arms run magenta in the source,
+         which no single linear ramp can express alongside the horizontal one.
+         Opaque at the two vertical arms, fully transparent across the middle
+         band, so it repaints only the arms it should. -->
+    <linearGradient id="verts" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#faebfd" stop-opacity="0.92"/>
+      <stop offset="0.125" stop-color="#fba4fb" stop-opacity="0.88"/>
+      <stop offset="0.27" stop-color="#cd50fb" stop-opacity="0.6"/>
+      <stop offset="0.4" stop-color="#912ffa" stop-opacity="0"/>
+      <stop offset="0.6" stop-color="#8322f8" stop-opacity="0"/>
+      <stop offset="0.73" stop-color="#bf2ffa" stop-opacity="0.6"/>
+      <stop offset="0.875" stop-color="#fc72fb" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="#fdd8fd" stop-opacity="0.92"/>
     </linearGradient>
-    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#34d399"/>
-      <stop offset="100%" stop-color="#22d3ee"/>
+
+    <!-- The source reads as an emissive shell, not a filled blob: a white-hot
+         rim traces the concave edges. It is not uniform -- the light comes from
+         the upper left, so the rim burns out toward the lower right. Running
+         that falloff on the gradient's own stop-opacity keeps it to one pass. -->
+    <linearGradient id="rim" x1="0.12" y1="0" x2="0.88" y2="1">
+      <stop offset="0" stop-color="#ffe2f2" stop-opacity="1"/>
+      <stop offset="0.3" stop-color="#ffffff" stop-opacity="0.92"/>
+      <stop offset="0.62" stop-color="#dcefff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#8fd9ff" stop-opacity="0.14"/>
     </linearGradient>
+
+    <!-- Tip bloom. In object-bounding-box units the four cusps sit at offset 1
+         and the concave waist at ~0.39, so this ramp whitens the arm tips on
+         all four arms while leaving the waist on the body gradient. -->
+    <radialGradient id="tips" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.8"/>
+    </radialGradient>
+
+    <!-- The default filter region (-10%/120%) clips blurs this wide, hence the
+         explicit -50%/200% box on all three. -->
+    <filter id="halo" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+    <filter id="bloom" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="0.8"/>
+    </filter>
+    <filter id="softRim" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="0.45"/>
+    </filter>
   </defs>
 
-  <circle class="p1" cx="8" cy="10" r="4" fill="url(#g1)"/>
-  <circle class="p2" cx="22" cy="8" r="3" fill="url(#g2)"/>
-  <circle class="p3" cx="16" cy="18" r="5" fill="url(#g3)"/>
-  <circle class="p4" cx="24" cy="22" r="3.5" fill="url(#g1)"/>
-  <circle class="p5" cx="10" cy="24" r="2.5" fill="url(#g2)"/>
+  <g class="mark">
+    <use href="#mk" fill="url(#spark)" filter="url(#halo)" opacity="0.8"/>
+    <use href="#mk" fill="url(#spark)" filter="url(#bloom)" opacity="0.85"/>
+    <use href="#mk" fill="url(#spark)"/>
+    <use href="#mk" fill="url(#verts)"/>
+    <use href="#mk" fill="url(#tips)"/>
+    <use href="#mk" fill="none" stroke="url(#rim)" stroke-width="1.2" opacity="0.55" filter="url(#softRim)"/>
+    <use href="#mk" fill="none" stroke="url(#rim)" stroke-width="0.28" opacity="0.72"/>
+  </g>
 </svg>

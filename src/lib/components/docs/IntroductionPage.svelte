@@ -19,9 +19,24 @@
 	   $derived so the labels re-localize on locale switch. */
 	const grouped = getComponentsGroupedByCategory();
 	const stats = $derived([
-		{ label: t("intro.category.buttons"), count: grouped["buttons"]?.length ?? 0, desc: t("intro.stats.buttons"), accent: 1 },
-		{ label: t("intro.category.cards"), count: grouped["cards"]?.length ?? 0, desc: t("intro.stats.cards"), accent: 2 },
-		{ label: t("intro.category.effects"), count: grouped["effects"]?.length ?? 0, desc: t("intro.stats.effects"), accent: 3 },
+		{
+			label: t("intro.category.buttons"),
+			count: grouped["buttons"]?.length ?? 0,
+			desc: t("intro.stats.buttons"),
+			accent: 1,
+		},
+		{
+			label: t("intro.category.cards"),
+			count: grouped["cards"]?.length ?? 0,
+			desc: t("intro.stats.cards"),
+			accent: 2,
+		},
+		{
+			label: t("intro.category.effects"),
+			count: grouped["effects"]?.length ?? 0,
+			desc: t("intro.stats.effects"),
+			accent: 3,
+		},
 	]);
 </script>
 
@@ -186,7 +201,9 @@
 
 	{#if isRetro}
 		<!-- Retro: the reference shows a prev/next pager on the Introduction page. -->
-		<PrevNextNav next={{ name: t("page.installation"), href: "/docs/getting-started/installation" }} />
+		<PrevNextNav
+			next={{ name: t("page.installation"), href: "/docs/getting-started/installation" }}
+		/>
 	{/if}
 </div>
 
