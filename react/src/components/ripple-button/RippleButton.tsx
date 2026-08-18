@@ -62,7 +62,7 @@ export const RippleButton = forwardRef<HTMLButtonElement, RippleButtonProps>(
 					assignRef(ref, node);
 				}}
 				className={cn(
-					"relative flex cursor-pointer items-center justify-center overflow-hidden",
+					"ripple-button relative flex cursor-pointer items-center justify-center overflow-hidden",
 					"bg-background text-primary rounded-lg border-2 px-4 py-2 text-center",
 					className
 				)}

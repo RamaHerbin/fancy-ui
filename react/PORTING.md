@@ -63,6 +63,13 @@ Every component folder gets a matching export block in `react/src/index.ts`.
    (e.g. `.rainbow-button`, `.fancy-marquee`) exactly as the source names it.
    `-global-` keyframe name prefixes in Svelte sources drop the prefix — that
    prefix is Svelte-compiler syntax, the emitted name is what you keep.
+   When the Svelte source has NO root class to anchor on, ADD one (the
+   component's slug, e.g. `fancy-marquee`) as the first token of the root
+   `cn()` call and anchor the rules under it. This is the one sanctioned
+   class-string addition: a compiler-scoped selector has no public identity in
+   the Svelte package, so anchoring costs nothing — leaking a generic name
+   like `.ripple-animation` into every consumer's page costs plenty. Leave a
+   comment in the `.css` marking the anchor as port-added.
 3. **CSS custom properties keep their local fallbacks.** Components must not
    depend on an app-level token existing (the Svelte contract; e.g.
    rainbow-button re-declares its `--rainbow-*` locally). Copy those blocks.

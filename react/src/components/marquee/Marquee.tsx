@@ -28,7 +28,7 @@ export function Marquee({
 	return (
 		<div
 			className={cn(
-				"group flex [gap:var(--gap)] overflow-hidden p-2 [--duration:40s] [--gap:1rem]",
+				"fancy-marquee group flex [gap:var(--gap)] overflow-hidden p-2 [--duration:40s] [--gap:1rem]",
 				vertical ? "flex-col" : "flex-row",
 				className
 			)}

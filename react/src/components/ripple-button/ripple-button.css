@@ -9,6 +9,9 @@
 	}
 }
 
-.ripple-animation {
+/* Anchored on the root class (added in the port — the Svelte compiler scoped
+   this rule; as plain CSS it would leak into any consumer element named
+   .ripple-animation). See PORTING.md, styling rule 2. */
+.ripple-button .ripple-animation {
 	animation: rippling var(--ripple-duration, 600ms) ease-out forwards;
 }
