@@ -1,0 +1,12 @@
+/*
+ * Tailwind v4 integration for fancy-ui-react consumers.
+ *
+ * Usage in the consuming app's CSS:
+ *   @import "tailwindcss";
+ *   @import "fancy-ui-react/tailwind.css";
+ *
+ * The @source directive points Tailwind at this package's shipped output so
+ * every utility class the components use is generated in the consumer's build.
+ * Mirrors fancy-ui-svelte/tailwind.css.
+ */
+@source "./dist";

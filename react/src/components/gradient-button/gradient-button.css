@@ -1,0 +1,31 @@
+.gradient-button {
+	padding: var(--gb-border-width);
+	border-radius: var(--gb-border-radius);
+	isolation: isolate;
+}
+
+/* Anchored on the root class: the Svelte compiler scoped these rules, plain CSS
+   would leak them into every consumer element sharing the class name. */
+.gradient-button .gradient-border {
+	content: "";
+	position: absolute;
+	inset: -200%;
+	z-index: -1;
+	background: conic-gradient(var(--gb-colors));
+	animation: rotate-gradient var(--gb-duration) linear infinite;
+	filter: blur(var(--gb-blur));
+}
+
+.gradient-button .gradient-content {
+	border-radius: var(--gb-border-radius);
+	background-color: var(--gb-bg-color);
+}
+
+@keyframes rotate-gradient {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}

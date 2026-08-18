@@ -1,0 +1,14 @@
+@keyframes rippling {
+	0% {
+		transform: scale(0);
+		opacity: 0.3;
+	}
+	100% {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+
+.ripple-animation {
+	animation: rippling var(--ripple-duration, 600ms) ease-out forwards;
+}

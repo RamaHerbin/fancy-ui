@@ -1,0 +1,24 @@
+.rainbow-button {
+	--rainbow-1: hsl(0 100% 63%);
+	--rainbow-2: hsl(270 100% 63%);
+	--rainbow-3: hsl(210 100% 63%);
+	--rainbow-4: hsl(195 100% 63%);
+	--rainbow-5: hsl(90 100% 63%);
+}
+
+@keyframes rainbow {
+	0% {
+		background-position: 0%;
+	}
+	100% {
+		background-position: 200%;
+	}
+}
+
+.animate-rainbow {
+	animation: rainbow var(--rainbow-speed, 2s) infinite linear;
+}
+
+.rainbow-button::before {
+	animation: rainbow var(--rainbow-speed, 2s) infinite linear;
+}

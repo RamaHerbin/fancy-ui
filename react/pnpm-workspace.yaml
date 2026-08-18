@@ -1,0 +1,12 @@
+# Two jobs, mirroring the repo-root file's role:
+# 1. Marks react/ as its own install root, so pnpm stops walking up and never
+#    tries to join the (non-)workspace at the repo root.
+# 2. Allows esbuild's postinstall build script (pnpm v10+ blocks it otherwise
+#    and vite ships a broken esbuild without it).
+# No `packages:` key — this is a standalone package, not a workspace.
+# If pnpm ever rewrites the allowBuilds line into a "set this to true or false"
+# placeholder (it has done so repeatedly on the root file), restore `true`.
+allowBuilds:
+  esbuild: true
+onlyBuiltDependencies:
+  - esbuild
