@@ -11,6 +11,7 @@
 		Slider,
 		Badge,
 		Tooltip,
+		auroraSkin,
 		brutalSkin,
 		glassSkin,
 		terminalSkin,
@@ -18,7 +19,7 @@
 	} from "$lib/cameleon";
 	import type { Skin } from "$lib/cameleon";
 
-	const skins: Skin[] = [brutalSkin, glassSkin, terminalSkin, retroOsSkin];
+	const skins: Skin[] = [auroraSkin, brutalSkin, glassSkin, terminalSkin, retroOsSkin];
 	let active = $state<Skin>(brutalSkin);
 
 	// A radius spec's `size` is a human-readable label ("8–10px", "8/4px",

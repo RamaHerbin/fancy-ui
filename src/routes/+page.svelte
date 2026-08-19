@@ -1,15 +1,12 @@
 <script lang="ts">
 	import LandingHeader from "$lib/components/landing/LandingHeader.svelte";
 	import HeroSection from "$lib/components/landing/HeroSection.svelte";
-	import FeatureChips from "$lib/components/landing/FeatureChips.svelte";
-	import ComponentsShowcase from "$lib/components/landing/ComponentsShowcase.svelte";
-	import IconStrip from "$lib/components/landing/IconStrip.svelte";
-	import InstallSection from "$lib/components/landing/InstallSection.svelte";
-	import ExamplesSection from "$lib/components/landing/ExamplesSection.svelte";
-	import ValuesStrip from "$lib/components/landing/ValuesStrip.svelte";
+	import SignatureGrid from "$lib/components/landing/SignatureGrid.svelte";
+	import PrimitivesRow from "$lib/components/landing/PrimitivesRow.svelte";
 	import FooterCta from "$lib/components/landing/FooterCta.svelte";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
+	import "$lib/components/landing/landing.css";
 	import {
 		COMPONENT_COUNT,
 		DEFAULT_OG_IMAGE,
@@ -65,16 +62,22 @@
 <Seo title="FancyUI — Animated components for Svelte 5" {description} path="/" />
 <JsonLd data={graph} />
 
-<div class="min-h-screen bg-[#050508] text-[#f8fafc]">
-	<LandingHeader />
-	<main>
-		<HeroSection />
-		<FeatureChips />
-		<ComponentsShowcase />
-		<IconStrip />
-		<InstallSection />
-		<ExamplesSection />
-		<ValuesStrip />
-		<FooterCta />
-	</main>
+<!--
+	The whole page above the footer is one bordered frame: nav, hero, signature
+	panels and the primitives row are rows of a single measured grid, drawn on
+	the fixed near-black "13a" art direction (see landing.css). The synthwave
+	footer keeps its own scene below the frame.
+-->
+<div class="lp-root">
+	<div class="p-3.5">
+		<div class="lp-line mx-auto flex max-w-[1536px] flex-col border lg:min-h-[calc(100vh-28px)]">
+			<LandingHeader />
+			<main class="flex min-h-0 flex-1 flex-col">
+				<HeroSection />
+				<SignatureGrid />
+				<PrimitivesRow />
+			</main>
+		</div>
+	</div>
+	<FooterCta />
 </div>
