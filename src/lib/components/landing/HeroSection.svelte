@@ -118,6 +118,17 @@
 	];
 </script>
 
+<svelte:head>
+	<!-- The serif headline line is landing-only, so its webfont loads here rather
+	     than through a skin's `fonts` list — it must survive every skin switch. -->
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+	<link
+		rel="stylesheet"
+		href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+	/>
+</svelte:head>
+
 <!-- pt clears the sticky header (h-[72px]); without it the headline is clipped on load.
      The min-height ramps up with the viewport: at 68vh on a phone the centred column
      would sit under ~300px of dead space, since the copy is a third of the height it
@@ -195,9 +206,7 @@
 				{#each HEADLINE_LINES as line (line.text)}
 					<span
 						aria-hidden="true"
-						class="block whitespace-nowrap {line.serif
-							? 'serif-line font-medium tracking-[-0.01em]'
-							: ''}"
+						class="block whitespace-nowrap {line.serif ? 'serif-line tracking-[-0.01em]' : ''}"
 					>
 						{#each line.glyphs as glyph, index (index)}
 							{#if glyph.char === " "}
@@ -235,8 +244,12 @@
 
 <style>
 	.serif-line {
-		font-family: Georgia, "Times New Roman", serif;
+		font-family: "Instrument Serif", Georgia, "Times New Roman", serif;
 		font-style: italic;
+		/* Instrument Serif ships a single 400 weight; anything heavier would be
+		   synthesized by the browser and muddy the letterforms. This also undoes
+		   the h1's font-bold for this line. */
+		font-weight: 400;
 	}
 
 	/* Global names: the animations are applied through inline `style` (each glyph
