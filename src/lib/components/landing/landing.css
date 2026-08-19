@@ -1,66 +1,124 @@
 /**
- * Landing-page surface utilities.
+ * Landing-page tokens and surface utilities — the "13a" art direction.
  *
- * The page renders inside <FancyProvider>, so every colour must come from the
- * active skin's tokens or it will not re-flow when the skin changes. Only the
- * twelve variables that EVERY finished skin defines may be used here —
- * page-bg/fg, font-sans/mono, card, surface, line, and the five accents.
- * `--skin-ink`, `--skin-paper`, `--skin-desk` and `--skin-muted` exist on some
- * skins only, so they are off limits; the muted text ramps below are derived
- * from `--skin-page-fg` with color-mix instead.
+ * The landing no longer re-skins: it wears one fixed technical-editorial look —
+ * near-black canvas, ivory ink, a single violet accent, and hairline borders
+ * that draw the page as a measured grid. Every colour on the page comes from
+ * these variables so the palette can be tuned in one place.
  *
  * These live in a stylesheet rather than as Tailwind arbitrary values because
- * `text-[color:color-mix(in_srgb,var(--skin-page-fg)_62%,transparent)]` at
- * thirty call sites is not markup anyone can read.
+ * `border-[rgba(242,241,236,.13)]` at sixty call sites is not markup anyone
+ * can read.
  */
 
-.lp-muted {
-	color: color-mix(in srgb, var(--skin-page-fg, #f8fafc) 64%, transparent);
-}
+.lp-root {
+	--lp-bg: #080808;
+	--lp-panel: #060606;
+	--lp-ink: #f2f1ec;
+	--lp-accent: #7357ff;
+	--lp-accent-hover: #8168ff;
+	--lp-line: rgba(242, 241, 236, 0.13);
+	--lp-line-strong: rgba(242, 241, 236, 0.25);
+	/* Grey ramp, brightest to dimmest: body copy → labels → hints → rulers. */
+	--lp-grey-1: #d8d7d2;
+	--lp-grey-2: #b3b2ad;
+	--lp-grey-3: #8f8e89;
+	--lp-grey-4: #6f6e69;
+	--lp-grey-5: #55544f;
+	--lp-font-sans: "Geist", -apple-system, "Segoe UI", system-ui, sans-serif;
+	--lp-font-mono: "Geist Mono", ui-monospace, Menlo, monospace;
+	--lp-font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
 
-.lp-dim {
-	color: color-mix(in srgb, var(--skin-page-fg, #f8fafc) 45%, transparent);
-}
-
-/* Muted until hovered. `.lp-muted` sets a colour, so a `hover:opacity-100`
-   utility would have nothing to act on — the hover has to restore the colour. */
-.lp-link {
-	color: color-mix(in srgb, var(--skin-page-fg, #f8fafc) 64%, transparent);
-	transition: color 0.2s ease;
-}
-
-.lp-link:hover {
-	color: var(--skin-page-fg, #f8fafc);
-}
-
-.lp-card {
-	background: var(--skin-card, #0d0d14);
-	border: 1px solid var(--skin-line, rgba(255, 255, 255, 0.1));
-}
-
-.lp-surface {
-	background: var(--skin-surface, #12121c);
-}
-
-.lp-line {
-	border-color: var(--skin-line, rgba(255, 255, 255, 0.1));
-}
-
-/* Hairline divider that reads on both light and dark skins. */
-.lp-hairline {
-	border-bottom: 1px solid var(--skin-line, rgba(255, 255, 255, 0.1));
-}
-
-.lp-accent {
-	color: var(--skin-purple, #8b7bff);
+	background: var(--lp-bg);
+	color: var(--lp-ink);
+	font-family: var(--lp-font-sans);
 }
 
 .lp-mono {
-	font-family: var(--skin-font-mono, ui-monospace, monospace);
+	font-family: var(--lp-font-mono);
 }
 
-/* The chrome bar behind the sticky header: the page background at 80% so the
-   backdrop blur has something to work with, whatever the skin's canvas is. */
-.lp-chrome {
-	background: color-mix(in srgb, var(--skin-page-bg, #050508) 82%, transparent);
+.lp-line {
+	border-color: var(--lp-line);
+}
+
+/* Header cell of a showcase panel: the 40px strip of bordered mono labels. */
+.lp-panel-head {
+	display: flex;
+	align-items: stretch;
+	height: 40px;
+	border-bottom: 1px solid var(--lp-line);
+	flex: none;
+	font-family: var(--lp-font-mono);
+	font-size: 10.5px;
+	letter-spacing: 0.1em;
+}
+
+/* Footer strip of a showcase panel: the 26px coordinate readout. */
+.lp-panel-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 26px;
+	border-top: 1px solid var(--lp-line);
+	padding: 0 12px;
+	font-family: var(--lp-font-mono);
+	font-size: 9.5px;
+	letter-spacing: 0.12em;
+	color: var(--lp-grey-5);
+	flex: none;
+	box-sizing: border-box;
+}
+
+/* Quiet chrome links (View docs, Copy, nav items): grey until hovered. A
+   `hover:opacity` utility would have nothing to act on since the base state
+   sets a colour, so the hover restores the colour instead. */
+.lp-link {
+	color: var(--lp-grey-2);
+	transition: color 0.15s ease;
+	cursor: pointer;
+}
+
+.lp-link:hover {
+	color: var(--lp-ink);
+}
+
+/* The one solid-violet action (Get Started, Explore components). */
+.lp-btn-accent {
+	background: var(--lp-accent);
+	color: #ffffff;
+	transition: background 0.15s ease;
+}
+
+.lp-btn-accent:hover {
+	background: var(--lp-accent-hover);
+}
+
+/* Its quiet sibling: an outlined action whose border wakes up on hover. */
+.lp-btn-outline {
+	border: 1px solid var(--lp-line-strong);
+	color: var(--lp-ink);
+	transition: border-color 0.15s ease;
+}
+
+.lp-btn-outline:hover {
+	border-color: rgba(242, 241, 236, 0.5);
+}
+
+/* Instructional overlay inside a live panel ("MOVE YOUR CURSOR HERE"): laid
+   over the demo, fades away as soon as the pointer enters the panel so the
+   component underneath gets the stage. Pure CSS — no state to hydrate. */
+.lp-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	transition: opacity 0.35s ease;
+}
+
+.lp-stage:hover .lp-overlay {
+	opacity: 0;
 }

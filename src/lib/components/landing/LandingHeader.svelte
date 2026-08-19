@@ -1,57 +1,69 @@
+<!--
+	Top strip of the 13a frame: every element sits in its own bordered cell so
+	the nav reads as the first row of the page's grid rather than floating
+	chrome. The search field is a link to the docs (there is no site-wide
+	search), and the star count is the live GitHub number.
+-->
 <script lang="ts">
 	import Logo from "$lib/components/Logo.svelte";
-	import SkinLink from "./SkinLink.svelte";
-	import SkinSwitcher from "./SkinSwitcher.svelte";
+	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
 	import { GITHUB_URL } from "$lib/site.js";
-	import type { Skin } from "$lib/cameleon";
-
-	interface Props {
-		skins: Skin[];
-		skin: Skin;
-	}
-
-	let { skins, skin = $bindable() }: Props = $props();
 
 	const navLinks: { label: string; href: string }[] = [
 		{ label: "Docs", href: "/docs/getting-started/introduction" },
 		{ label: "Components", href: "/docs/components" },
-		{ label: "Theming", href: "/docs/getting-started/theming" },
+		{ label: "Themes", href: "/docs/getting-started/theming" },
+		{ label: "Blog", href: "/docs/getting-started/changelog" },
 	];
 </script>
 
-<header class="lp-chrome lp-hairline sticky top-0 z-50 backdrop-blur-md">
-	<div
-		class="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-6 px-4 sm:px-8 lg:px-14"
+<header class="lp-line flex h-[54px] items-stretch border-b">
+	<a
+		href="/"
+		class="lp-line flex items-center gap-2.5 border-r px-5 text-[15px] font-semibold tracking-[-0.01em] sm:px-6"
 	>
-		<a href="/" class="flex items-center gap-2.5 text-[19px] font-bold tracking-[-0.01em]">
-			<Logo size={26} animated />
-			<span>Fancy<span class="lp-accent">UI</span></span>
-		</a>
+		<Logo size={18} animated />
+		Fancy UI
+	</a>
 
-		<nav class="hidden flex-1 items-center justify-center gap-2 text-[13px] lg:flex">
-			{#each navLinks as link (link.href)}
-				<a href={link.href} class="lp-link rounded-lg px-3.5 py-[7px]">{link.label}</a>
-			{/each}
-		</nav>
+	<nav class="hidden items-center gap-0.5 px-2.5 text-[13.5px] lg:flex">
+		{#each navLinks as link (link.href)}
+			<a href={link.href} class="lp-link px-3.5 py-2">{link.label}</a>
+		{/each}
+	</nav>
 
-		<div class="flex items-center gap-3">
-			<SkinSwitcher {skins} bind:value={skin} />
+	<span class="flex-1"></span>
 
-			<a
-				href={GITHUB_URL}
-				target="_blank"
-				rel="noopener noreferrer"
-				aria-label="GitHub"
-				class="lp-link hidden sm:flex"
+	<a
+		href="/docs/components"
+		class="lp-line hidden items-center border-l px-4 md:flex"
+		aria-label="Browse components"
+	>
+		<span
+			class="lp-line-strong flex w-[214px] items-center gap-2 rounded-[2px] border px-3 py-2 text-[12.5px]"
+			style="color:var(--lp-grey-4);border-color:rgba(242,241,236,.16)"
+		>
+			⌕ Search
+			<span
+				class="lp-mono ml-auto rounded-[2px] border px-[5px] text-[10.5px]"
+				style="border-color:rgba(242,241,236,.14)">⌘ K</span
 			>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-					<path
-						d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"
-					/>
-				</svg>
-			</a>
+		</span>
+	</a>
 
-			<SkinLink href="/docs" size="sm" class="hidden sm:inline-flex">Get Started</SkinLink>
-		</div>
-	</div>
+	<a
+		href={GITHUB_URL}
+		target="_blank"
+		rel="noopener noreferrer"
+		class="lp-link lp-line hidden items-center gap-2 border-l px-5 text-[13px] sm:flex"
+		style="color:var(--lp-grey-1)"
+	>
+		<GitHubStars class="lp-mono" />
+	</a>
+
+	<span class="lp-line flex items-center border-l px-3.5">
+		<a href="/docs" class="lp-btn-accent rounded-[2px] px-[18px] py-[9px] text-[13px] font-medium">
+			Get Started
+		</a>
+	</span>
 </header>

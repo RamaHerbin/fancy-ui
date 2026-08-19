@@ -2,7 +2,6 @@
 	import SynthwaveScene from "$lib/components/landing/synthwave/SynthwaveScene.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
 	import Logo from "$lib/components/Logo.svelte";
-	import SkinLink from "./SkinLink.svelte";
 	import { GITHUB_URL } from "$lib/site.js";
 
 	const DEMO_URL = "/docs/components";
@@ -45,26 +44,17 @@
 <!--
 	Final CTA + footer, both sitting on the synthwave backdrop: the static
 	panorama is the backdrop for the whole block, so the grid runs behind the
-	link columns instead of stopping at the CTA. The section gradient starts at
-	#08080d so the seam against the block above is invisible.
-
-	This block deliberately does NOT re-skin. Everything above it is token-driven
-	and follows the active skin, but the backdrop here is a photograph, not a
-	surface: token-coloured type over a fixed neon panorama would put dark text
-	on a dark image the moment a light skin is chosen. It keeps its own dark art
-	direction and only the CTAs adopt the skin's button recipe.
+	link columns instead of stopping at the CTA. The gradient starts from the
+	frame's canvas (--lp-bg) so the seam against the bordered frame above is
+	invisible.
 -->
 <!--
 	No overflow-hidden here: the scene's riser gradient reaches above the
 	section top, behind the block above it, and the panorama clips its own
 	<img>.
 -->
-<!-- The top of the gradient is the *page* background, not a fixed near-black:
-     under a light skin a hard cut from cream paper straight into the neon
-     panorama reads as a broken layout. Starting from the skin's canvas lets the
-     block fade into its own art direction whatever that is. -->
 <section
-	class="relative bg-[linear-gradient(to_bottom,var(--skin-page-bg,#08080d),#08080d_120px,#000_100%)]"
+	class="relative bg-[linear-gradient(to_bottom,var(--lp-bg,#08080d),#08080d_120px,#000_100%)]"
 >
 	<SynthwaveScene />
 
@@ -98,20 +88,25 @@
 				Join developers building beautiful apps with FancyUI.
 			</p>
 			<!--
-				The two CTAs wear the skin's button recipe; everything else in this
-				block keeps its fixed art direction (see the note above the section).
+				The CTAs share the frame's fixed art direction (lp-btn-* from
+				landing.css) — the landing no longer re-skins, so nothing here
+				needs a recipe.
 			-->
 			<div class="mt-3 flex flex-wrap items-center justify-center gap-3.5">
-				<SkinLink href={DOCS_URL} size="lg">Get Started →</SkinLink>
-				<SkinLink
+				<a
+					href={DOCS_URL}
+					class="lp-btn-accent inline-flex items-center rounded-[2px] px-6 py-3.5 text-[14.5px] font-medium"
+				>
+					Get Started →
+				</a>
+				<a
 					href={GITHUB_URL}
-					size="lg"
-					variant="secondary"
 					target="_blank"
 					rel="noopener noreferrer"
+					class="lp-btn-outline inline-flex items-center rounded-[2px] px-6 py-3.5 text-[14.5px] font-medium"
 				>
 					★ Star on GitHub
-				</SkinLink>
+				</a>
 			</div>
 		</div>
 	</div>
