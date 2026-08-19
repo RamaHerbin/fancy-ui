@@ -152,11 +152,9 @@ describe("LiquidText", () => {
 				pendingRafIds.add(id);
 				return id;
 			});
-			const cafSpy = vi
-				.spyOn(window, "cancelAnimationFrame")
-				.mockImplementation((id: number) => {
-					pendingRafIds.delete(id);
-				});
+			const cafSpy = vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id: number) => {
+				pendingRafIds.delete(id);
+			});
 
 			for (let i = 0; i < 5; i++) {
 				const { unmount } = render(LiquidText, { props: { text: `pass-${i}` } });

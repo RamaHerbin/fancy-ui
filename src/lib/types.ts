@@ -81,7 +81,13 @@ export type ComponentCategory =
 	| "data-display"
 	| "navigation"
 	| "media"
-	| "effects";
+	| "effects"
+	| "actions"
+	| "forms"
+	| "overlays"
+	| "display"
+	| "ai-chat"
+	| "ai-agents";
 
 /**
  * Component prop definition for documentation
@@ -123,6 +129,8 @@ export interface ComponentMeta {
 	description: string;
 	/** Component category */
 	category: ComponentCategory;
+	/** Component group: "core" = foundational primitives, "fancy" = animated showcase components */
+	group: "core" | "fancy";
 	/** Porting status */
 	status: ComponentStatus;
 	/** Dependencies on other fancy-ui components */

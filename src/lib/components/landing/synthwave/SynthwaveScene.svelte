@@ -13,7 +13,7 @@
 	Two boxes, both absolute, both outside the flow:
 
 	1. The riser (this element) — a pure gradient, so it has no edge to give
-	   away. It starts above the section, i.e. behind the ValuesStrip card, and
+	   away. It starts above the section, i.e. behind the block above it, and
 	   dies out around the card's mid-height; the card paints over it. Its job
 	   is the melt: the panorama's glow bleeds upward past the card instead of
 	   the artwork starting on a ruled line.

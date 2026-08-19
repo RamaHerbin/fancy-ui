@@ -1,17 +1,53 @@
 <script lang="ts">
-	import { t } from "$lib/stores";
+	import { t, createSkinState } from "$lib/stores";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
+	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
 	import { COMPONENT_COUNT } from "$lib/site.js";
+	import { getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
 
 	const importSnippet = "import { BorderBeam, Sparkles } from 'fancy-ui-svelte';";
 	const usageSnippet = `<div class="relative overflow-hidden rounded-xl border p-6">
 	<p>Your content here</p>
 	<BorderBeam />
 </div>`;
+
+	/* Retro "What's included" stat cards — real counts from the registry.
+	   $derived so the labels re-localize on locale switch. */
+	const grouped = getComponentsGroupedByCategory();
+	const stats = $derived([
+		{
+			label: t("intro.category.buttons"),
+			count: grouped["buttons"]?.length ?? 0,
+			desc: t("intro.stats.buttons"),
+			accent: 1,
+		},
+		{
+			label: t("intro.category.cards"),
+			count: grouped["cards"]?.length ?? 0,
+			desc: t("intro.stats.cards"),
+			accent: 2,
+		},
+		{
+			label: t("intro.category.effects"),
+			count: grouped["effects"]?.length ?? 0,
+			desc: t("intro.stats.effects"),
+			accent: 3,
+		},
+	]);
 </script>
 
 <div class="intro">
+	{#if isRetro}
+		<div class="intro-badges">
+			<span class="intro-badge intro-badge-a">{t("nav.gettingStarted")}</span>
+			<span class="intro-badge intro-badge-b">v1.0</span>
+		</div>
+	{/if}
+
 	<h1>{t("intro.title")}</h1>
 
 	<p class="lead">
@@ -24,48 +60,48 @@
 	</p>
 
 	<div class="pills">
-		<span class="pill"
+		<span class="pill" data-accent="1"
 			><span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.pill.svelte")}</span
 		>
-		<span class="pill"
+		<span class="pill" data-accent="2"
 			><span class="ic" style="color:#c084fc">✦</span>{t("intro.pill.animation")}</span
 		>
-		<span class="pill"
+		<span class="pill" data-accent="3"
 			><span class="ic" style="color:#34d399">⧉</span>{t("intro.pill.copyPaste")}</span
 		>
-		<span class="pill"
+		<span class="pill" data-accent="4"
 			><span class="ic" style="color:#38bdf8">〜</span>{t("intro.pill.tailwind")}</span
 		>
-		<span class="pill"><span class="ts">TS</span>{t("intro.pill.typescript")}</span>
+		<span class="pill" data-accent="5"><span class="ts">TS</span>{t("intro.pill.typescript")}</span>
 	</div>
 
 	<h2 id="philosophy">{t("intro.philosophy.heading")}</h2>
 	<div class="cards">
-		<div class="card">
+		<div class="card" data-accent="1" data-initial="S">
 			<div class="card-head">
 				<span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.philosophy.card1.title")}
 			</div>
 			<p class="card-desc">{t("intro.philosophy.card1.desc")}</p>
 		</div>
-		<div class="card">
+		<div class="card" data-accent="2" data-initial="A">
 			<div class="card-head">
 				<span class="ic" style="color:#c084fc">✦</span>{t("intro.philosophy.card2.title")}
 			</div>
 			<p class="card-desc">{t("intro.philosophy.card2.desc")}</p>
 		</div>
-		<div class="card">
+		<div class="card" data-accent="3" data-initial="C">
 			<div class="card-head">
 				<span class="ic" style="color:#34d399">⧉</span>{t("intro.philosophy.card3.title")}
 			</div>
 			<p class="card-desc">{t("intro.philosophy.card3.desc")}</p>
 		</div>
-		<div class="card">
+		<div class="card" data-accent="4" data-initial="T">
 			<div class="card-head">
 				<span class="ic" style="color:#38bdf8">〜</span>{t("intro.philosophy.card4.title")}
 			</div>
 			<p class="card-desc">{t("intro.philosophy.card4.desc")}</p>
 		</div>
-		<div class="card">
+		<div class="card" data-accent="5" data-initial="TS">
 			<div class="card-head">
 				<span class="ts">TS</span>{t("intro.philosophy.card5.title")}
 			</div>
@@ -102,21 +138,37 @@
 	</div>
 
 	<h2 id="whats-included">{t("intro.whatsIncluded.heading")}</h2>
-	<p class="section-body">
-		{t("intro.whatsIncluded.body").replace("{count}", String(COMPONENT_COUNT))}
-	</p>
-	<div class="cats">
-		<div class="cat">{t("intro.category.buttons")}</div>
-		<div class="cat">{t("intro.category.cards")}</div>
-		<div class="cat">{t("intro.category.text")}</div>
-		<div class="cat">{t("intro.category.backgrounds")}</div>
-		<div class="cat">{t("intro.category.effects")}</div>
-		<div class="cat">{t("intro.category.layout")}</div>
-		<div class="cat">{t("intro.category.navigation")}</div>
-		<div class="cat">{t("intro.category.dataDisplay")}</div>
-		<div class="cat">{t("intro.category.feedback")}</div>
-		<div class="cat">{t("intro.category.media")}</div>
-	</div>
+	{#if isRetro}
+		<!-- Retro: three stat cards (label / count / description), counts from the registry. -->
+		<div class="intro-stats">
+			{#each stats as stat}
+				<div class="intro-stat" data-accent={stat.accent}>
+					<div class="stat-head">
+						<span class="stat-square" aria-hidden="true"></span>
+						<span class="stat-label">{stat.label}</span>
+					</div>
+					<div class="stat-count">{stat.count}</div>
+					<div class="stat-desc">{stat.desc}</div>
+				</div>
+			{/each}
+		</div>
+	{:else}
+		<p class="section-body">
+			{t("intro.whatsIncluded.body").replace("{count}", String(COMPONENT_COUNT))}
+		</p>
+		<div class="cats">
+			<div class="cat">{t("intro.category.buttons")}</div>
+			<div class="cat">{t("intro.category.cards")}</div>
+			<div class="cat">{t("intro.category.text")}</div>
+			<div class="cat">{t("intro.category.backgrounds")}</div>
+			<div class="cat">{t("intro.category.effects")}</div>
+			<div class="cat">{t("intro.category.layout")}</div>
+			<div class="cat">{t("intro.category.navigation")}</div>
+			<div class="cat">{t("intro.category.dataDisplay")}</div>
+			<div class="cat">{t("intro.category.feedback")}</div>
+			<div class="cat">{t("intro.category.media")}</div>
+		</div>
+	{/if}
 
 	<h2 id="next-steps">{t("intro.nextSteps.heading")}</h2>
 	<div class="next">
@@ -142,8 +194,17 @@
 				<div class="cta-body">{@html t("intro.cta.body")}</div>
 			</div>
 		</div>
-		<a class="cta-btn" href="/docs/getting-started/theme-generator">{t("intro.cta.button")}</a>
+		<a class="cta-btn" href="/docs/getting-started/theme-generator"
+			>{t("intro.cta.button")}<span class="cta-arrow" aria-hidden="true">{" →"}</span></a
+		>
 	</div>
+
+	{#if isRetro}
+		<!-- Retro: the reference shows a prev/next pager on the Introduction page. -->
+		<PrevNextNav
+			next={{ name: t("page.installation"), href: "/docs/getting-started/installation" }}
+		/>
+	{/if}
 </div>
 
 <style>
@@ -459,6 +520,13 @@
 	.intro .cta-btn:hover {
 		background: var(--muted);
 		opacity: 1;
+	}
+
+	/* The trailing glyph lives in its own span so a skin can swap it for its own
+	   affordance; box-less by default, so the standard skin renders the label and
+	   the arrow as one uninterrupted run of text exactly as before. */
+	.cta-arrow {
+		display: contents;
 	}
 
 	@media (max-width: 640px) {

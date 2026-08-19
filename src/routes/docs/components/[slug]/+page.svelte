@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { t, tCategory, componentDocTitle } from "$lib/stores";
+	import { t, tCategory, componentDocTitle, createSkinState } from "$lib/stores";
+	// The group badge composes its key at runtime, so the cast needs the key union.
+	import type { MessageKey } from "$lib/i18n/messages/en.js";
 	import PropsTable from "$lib/components/docs/PropsTable.svelte";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
@@ -22,6 +24,10 @@
 	let { data }: { data: PageData } = $props();
 
 	let component = $derived(data.component);
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
+
 	let sourceUrl = $derived(
 		`https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
 	);
@@ -149,14 +155,30 @@
 
 	<!-- Header -->
 	<div class="mb-3 flex flex-wrap items-center gap-2">
-		<span class="bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium">
+		<span
+			class="retro-tag bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs font-medium"
+			data-category={component.category}
+		>
 			{tCategory(component.category)}
+		</span>
+		<span
+			class="rounded-full px-2.5 py-0.5 text-xs font-medium {component.group === 'core'
+				? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+				: 'bg-purple-500/10 text-purple-600 dark:text-purple-400'}"
+		>
+			{t(`group.${component.group}` as MessageKey)}
 		</span>
 		{#if component.status === "done"}
 			<span
-				class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+				class="retro-tag retro-tag-stable rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
 			>
 				{t("status.stable")}
+			</span>
+		{:else if component.status === "in-progress"}
+			<span
+				class="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400"
+			>
+				{t("status.inProgress")}
 			</span>
 		{/if}
 	</div>
@@ -167,42 +189,56 @@
 	<!-- ═══ PREVIEW ═══ -->
 	<section class="mb-10">
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="preview">{t("comp.preview")}</h2>
-		<div class="border-border overflow-hidden rounded-lg border">
-			<!-- Tabs -->
-			<div class="border-border flex items-center justify-between border-b px-1">
-				<div class="flex">
-					<button
-						onclick={() => (previewTab = "preview")}
-						class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'preview'
-							? 'border-foreground text-foreground border-b-2'
-							: 'text-muted-foreground hover:text-foreground'}"
-					>
-						{t("comp.preview")}
-					</button>
-					<button
-						onclick={() => (previewTab = "code")}
-						class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'code'
-							? 'border-foreground text-foreground border-b-2'
-							: 'text-muted-foreground hover:text-foreground'}"
-					>
-						{t("comp.code")}
-					</button>
+		<div class="retro-window-shadow">
+			<div class="retro-window border-border overflow-hidden rounded-lg border">
+				{#if isRetro}
+					<!-- Retro window titlebar -->
+					<div class="retro-preview-bar">
+						<span class="retro-pixel-logo" aria-hidden="true">
+							<span></span><span></span><span></span><span></span>
+						</span>
+						<span class="retro-preview-title">{t("comp.preview")} — {component.name}</span>
+						<span class="retro-winctl retro-winctl-min" aria-hidden="true"></span>
+						<span class="retro-winctl retro-winctl-max" aria-hidden="true"></span>
+						<span class="retro-winctl retro-winctl-close" aria-hidden="true"></span>
+					</div>
+				{/if}
+				<!-- Tabs -->
+				<div class="retro-tabbar border-border flex items-center justify-between border-b px-1">
+					<div class="flex">
+						<button
+							onclick={() => (previewTab = "preview")}
+							class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'preview'
+								? 'border-foreground text-foreground border-b-2'
+								: 'text-muted-foreground hover:text-foreground'}"
+						>
+							{t("comp.preview")}
+						</button>
+						<button
+							onclick={() => (previewTab = "code")}
+							class="px-4 py-2.5 text-sm font-medium transition-colors {previewTab === 'code'
+								? 'border-foreground text-foreground border-b-2'
+								: 'text-muted-foreground hover:text-foreground'}"
+						>
+							{t("comp.code")}
+						</button>
+					</div>
 				</div>
-			</div>
 
-			<!-- Content -->
-			{#if previewTab === "preview"}
-				<div
-					class="bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
-				>
-					<DemoRenderer slug={component.slug} />
+				<!-- Content -->
+				{#if previewTab === "preview"}
+					<div
+						class="retro-stage bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
+					>
+						<DemoRenderer slug={component.slug} />
+					</div>
+				{/if}
+				<!-- The code pane is always mounted, only hidden, so the usage snippet is in the
+				     prerendered HTML instead of appearing solely after a client-side tab switch.
+				     Highlighting still waits for the tab to be opened. -->
+				<div class="max-h-[500px] overflow-auto" hidden={previewTab !== "code"}>
+					<CodeBlock code={previewCode} lang="svelte" active={previewTab === "code"} />
 				</div>
-			{/if}
-			<!-- The code pane is always mounted, only hidden, so the usage snippet is in the
-			     prerendered HTML instead of appearing solely after a client-side tab switch.
-			     Highlighting still waits for the tab to be opened. -->
-			<div class="max-h-[500px] overflow-auto" hidden={previewTab !== "code"}>
-				<CodeBlock code={previewCode} lang="svelte" active={previewTab === "code"} />
 			</div>
 		</div>
 	</section>
@@ -228,7 +264,7 @@
 	{#if component.props && component.props.length > 0}
 		<section class="mb-10">
 			<h2 class="text-foreground mb-4 text-xl font-semibold" id="props">{t("comp.props")}</h2>
-			<div class="border-border overflow-hidden rounded-lg border">
+			<div class="retro-props border-border overflow-hidden rounded-lg border">
 				<PropsTable props={component.props} />
 			</div>
 		</section>
@@ -273,7 +309,7 @@
 				href={sourceUrl}
 				target="_blank"
 				rel="noopener noreferrer"
-				class="border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
+				class="retro-btn border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
 			>
 				<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
 					<path
@@ -289,7 +325,7 @@
 							href={credit.url}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
+							class="retro-btn border-border text-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium transition-colors"
 						>
 							{t("comp.inspiredBy")}
 							{credit.source}

@@ -32,6 +32,11 @@ export const en = {
 	"theme.heading": "Theme",
 	"theme.system": "System",
 	"language.heading": "Language",
+	"skin.heading": "Skin",
+	"skin.standard": "Standard",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Change skin",
 
 	// Command search
 	"search.placeholder": "Search components and pages...",
@@ -123,6 +128,8 @@ export const en = {
 	"category.navigation": "Navigation",
 	"category.media": "Media",
 	"category.effects": "Effects",
+	"category.ai-chat": "AI Chat",
+	"category.ai-agents": "AI Agents",
 
 	// Introduction page
 	"intro.title": "Introduction",
@@ -166,6 +173,14 @@ export const en = {
 	"intro.category.dataDisplay": "Data Display",
 	"intro.category.feedback": "Feedback",
 	"intro.category.media": "Media",
+	"intro.stats.buttons": "Rainbow, ripple, shimmer and friends. Buttons that beg to be clicked.",
+	"intro.stats.cards":
+		"Carousels, bento grids, 3D tilts. Ways to present content without boring anyone.",
+	"intro.stats.effects":
+		"Cursors, trails, animated text. The little touches that make the difference.",
+	"sidebar.starTitle": "Star on GitHub",
+	"sidebar.starBody": "If you like FancyUI, give it a star!",
+	"rail.nextPage": "Next page",
 	"intro.nextSteps.heading": "Next Steps",
 	"intro.nextSteps.installation": "Installation",
 	"intro.nextSteps.theming": "Theming",
@@ -173,7 +188,16 @@ export const en = {
 	"intro.cta.title": "New to FancyUI?",
 	"intro.cta.body":
 		"Check out the <strong>Theme Generator</strong> to customize colors and see components react in real time.",
-	"intro.cta.button": "Try Theme Generator →",
+	"intro.cta.button": "Try Theme Generator",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Actions",
+	"category.forms": "Forms",
+	"category.overlays": "Overlays",
+	"category.display": "Display",
+	"status.inProgress": "In progress",
 
 	// Installation page
 	"install.metaTitle": "Installation",
@@ -289,16 +313,17 @@ export const en = {
 	"changelog.major": "Major changes",
 	"changelog.minor": "Minor changes",
 	"changelog.patch": "Patch changes",
+	// Retro OS docs chrome
+	"retro.explorer": "Explorer",
+	"retro.start": "Start",
+	"retro.tagline": "Animated components for Svelte 5 — copy-paste friendly.",
 } as const;
-
 export type Messages = typeof en;
 export type MessageKey = keyof Messages;
-
 /**
  * Shape every translated catalog must satisfy: all of en's keys, string
  * values. `satisfies Catalog` on a catalog literal turns a missing, extra,
  * or typo'd key into a compile error (enforced by scripts/check-i18n.mjs).
  */
 export type Catalog = Record<MessageKey, string>;
-
 export default en;

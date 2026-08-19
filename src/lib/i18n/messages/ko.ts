@@ -117,6 +117,8 @@ export default {
 	"category.navigation": "내비게이션",
 	"category.media": "미디어",
 	"category.effects": "효과",
+	"category.ai-chat": "AI 채팅",
+	"category.ai-agents": "AI 에이전트",
 
 	// Introduction (redesigned page)
 	"intro.title": "소개",
@@ -160,6 +162,12 @@ export default {
 	"intro.category.dataDisplay": "데이터 표시",
 	"intro.category.feedback": "피드백",
 	"intro.category.media": "미디어",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer 등. 클릭하고 싶어지는 버튼들.",
+	"intro.stats.cards": "캐러셀, 벤토 그리드, 3D 효과. 지루하지 않게 콘텐츠를 보여주는 방법.",
+	"intro.stats.effects": "커서, 트레일, 애니메이션 텍스트. 차이를 만드는 작은 디테일.",
+	"sidebar.starTitle": "GitHub에 스타 남기기",
+	"sidebar.starBody": "FancyUI가 마음에 들면 스타를 남겨주세요!",
+	"rail.nextPage": "다음 페이지",
 	"intro.nextSteps.heading": "다음 단계",
 	"intro.nextSteps.installation": "설치",
 	"intro.nextSteps.theming": "테마 설정",
@@ -167,7 +175,16 @@ export default {
 	"intro.cta.title": "FancyUI가 처음이신가요?",
 	"intro.cta.body":
 		"색상을 사용자 지정하고 컴포넌트가 실시간으로 반응하는 모습을 확인하려면 <strong>테마 생성기</strong>를 확인해 보세요.",
-	"intro.cta.button": "테마 생성기 사용해보기 →",
+	"intro.cta.button": "테마 생성기 사용해보기",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "액션",
+	"category.forms": "폼",
+	"category.overlays": "오버레이",
+	"category.display": "표시",
+	"status.inProgress": "개발 중",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "설치",
@@ -284,4 +301,13 @@ export default {
 	"changelog.major": "메이저 변경",
 	"changelog.minor": "마이너 변경",
 	"changelog.patch": "패치 변경",
+	// Cameleon docs skins
+	"skin.heading": "스킨",
+	"skin.standard": "표준",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "스킨 변경",
+	"retro.explorer": "탐색기",
+	"retro.start": "시작",
+	"retro.tagline": "Svelte 5를 위한 애니메이션 컴포넌트 — 복사해서 바로 사용하세요.",
 } satisfies Catalog;

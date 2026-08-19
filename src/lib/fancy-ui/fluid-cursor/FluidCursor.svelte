@@ -49,6 +49,19 @@
 		hdr?: boolean;
 		hdrBoost?: number;
 		/**
+		 * Experimental: render the fluid as a retro ordered-dither bitmap.
+		 * The dye is snapped to a chunky pixel grid and each color channel is
+		 * quantized against a procedural 4x4 Bayer matrix, so dot density
+		 * encodes brightness while hues are preserved. Forces the WebGL
+		 * renderer (`hdr` is ignored while set). Applied at mount, like the
+		 * other simulation props.
+		 */
+		dither?: boolean;
+		/** Size of one dithered pixel in CSS pixels (minimum 1). */
+		ditherPixelSize?: number;
+		/** Color levels per channel in dither mode, clamped to [2, 16]. */
+		ditherLevels?: number;
+		/**
 		 * Called once the fluid engine is live, with an imperative handle to
 		 * drive the simulation programmatically (trace a path via
 		 * `moveTo`/`penUp`, fire a one-off `burst`) and read back the actual
@@ -86,11 +99,16 @@
 		contained = true,
 		hdr = false,
 		hdrBoost = 1.5,
+		dither = false,
+		ditherPixelSize = 3,
+		ditherLevels = 4,
 		onReady,
 	}: Props = $props();
 
 	const clampedColorIntensity = Math.max(0, Math.min(1, colorIntensity));
 	const clampedHdrBoost = Math.max(1, Math.min(4, hdrBoost));
+	const clampedDitherPixelSize = Math.max(1, ditherPixelSize);
+	const clampedDitherLevels = Math.max(2, Math.min(16, Math.floor(ditherLevels)));
 
 	const resolvedBackColor: ColorRGB =
 		typeof backColor === "string" ? hexToRgb(backColor) : backColor;
@@ -216,12 +234,15 @@
 			PAUSED: false,
 			BACK_COLOR: resolvedBackColor,
 			TRANSPARENT: transparent,
+			DITHER: dither,
+			DITHER_PIXEL_SIZE: clampedDitherPixelSize,
+			DITHER_LEVELS: clampedDitherLevels,
 		};
 
 		// HDR path: WebGPU engine (rgba16float backbuffer, display-p3,
 		// extended tone mapping). Falls back to the WebGL path below when
 		// WebGPU is unavailable or initialization fails.
-		if (hdr && typeof navigator !== "undefined" && "gpu" in navigator) {
+		if (hdr && !dither && typeof navigator !== "undefined" && "gpu" in navigator) {
 			let disposed = false;
 			let activeCleanup: (() => void) | null = null;
 			startWebGpuFluid(canvas, {
@@ -643,16 +664,49 @@
 			varying vec2 vT;
 			varying vec2 vB;
 			uniform sampler2D uTexture;
-			uniform sampler2D uDithering;
-			uniform vec2 ditherScale;
 			uniform vec2 texelSize;
+			#ifdef DITHERING
+			uniform float uDitherPixel;
+			uniform float uDitherLevels;
+			#endif
 
 			vec3 linearToGamma (vec3 color) {
 				color = max(color, vec3(0));
 				return max(1.055 * pow(color, vec3(0.416666667)) - 0.055, vec3(0));
 			}
 
+			#ifdef DITHERING
+			// Recursive ordered-dither thresholds (4x4 Bayer, 16 levels).
+			// GLSL ES 1.00-safe: floor/fract arithmetic only — no arrays,
+			// no integer ops, no dynamic indexing.
+			float bayer2 (vec2 a) {
+				a = floor(a);
+				return fract(a.x * 0.5 + a.y * a.y * 0.75);
+			}
+
+			float bayer4 (vec2 a) {
+				return bayer2(a * 0.5) * 0.25 + bayer2(a);
+			}
+			#endif
+
 			void main () {
+			#ifdef DITHERING
+				// One cell = one chunky pixel: every fragment in the cell samples
+				// the dye at the cell center and shares one Bayer threshold, so
+				// the cell renders as a solid square dot.
+				vec2 cell = floor(gl_FragCoord.xy / uDitherPixel);
+				vec2 uv = (cell + 0.5) * uDitherPixel * texelSize;
+				vec3 c = clamp(texture2D(uTexture, uv).rgb, 0.0, 1.0);
+
+				float steps = uDitherLevels - 1.0;
+				c = floor(c * steps + bayer4(cell)) / steps;
+
+				// Alpha from the quantized color: cells that quantize to black
+				// stay fully transparent, so dot density encodes brightness
+				// with no grey haze over the background.
+				float a = max(c.r, max(c.g, c.b));
+				gl_FragColor = vec4(c, a);
+			#else
 				vec3 c = texture2D(uTexture, vUv).rgb;
 				#ifdef SHADING
 					vec3 lc = texture2D(uTexture, vL).rgb;
@@ -672,6 +726,7 @@
 
 				float a = max(c.r, max(c.g, c.b));
 				gl_FragColor = vec4(c, a);
+			#endif
 			}
 		`;
 
@@ -1132,6 +1187,7 @@
 			function updateKeywords() {
 				const displayKeywords: string[] = [];
 				if (config.SHADING) displayKeywords.push("SHADING");
+				if (config.DITHER) displayKeywords.push("DITHERING");
 				displayMaterial.setKeywords(displayKeywords);
 			}
 
@@ -1397,11 +1453,22 @@
 				const width = target ? target.width : gl.drawingBufferWidth;
 				const height = target ? target.height : gl.drawingBufferHeight;
 				displayMaterial.bind();
-				if (config.SHADING && displayMaterial.uniforms.texelSize) {
+				if ((config.SHADING || config.DITHER) && displayMaterial.uniforms.texelSize) {
 					gl.uniform2f(displayMaterial.uniforms.texelSize, 1 / width, 1 / height);
 				}
 				if (displayMaterial.uniforms.uTexture) {
 					gl.uniform1i(displayMaterial.uniforms.uTexture, dye.read.attach(0));
+				}
+				if (config.DITHER) {
+					if (displayMaterial.uniforms.uDitherPixel) {
+						gl.uniform1f(
+							displayMaterial.uniforms.uDitherPixel,
+							config.DITHER_PIXEL_SIZE * (window.devicePixelRatio || 1)
+						);
+					}
+					if (displayMaterial.uniforms.uDitherLevels) {
+						gl.uniform1f(displayMaterial.uniforms.uDitherLevels, config.DITHER_LEVELS);
+					}
 				}
 				blit(target, false);
 			}

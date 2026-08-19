@@ -1,8 +1,9 @@
 <script lang="ts">
 	import SynthwaveScene from "$lib/components/landing/synthwave/SynthwaveScene.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
+	import Logo from "$lib/components/Logo.svelte";
+	import { GITHUB_URL } from "$lib/site.js";
 
-	const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
 	const DEMO_URL = "/docs/components";
 	const DOCS_URL = "/docs";
 
@@ -43,15 +44,18 @@
 <!--
 	Final CTA + footer, both sitting on the synthwave backdrop: the static
 	panorama is the backdrop for the whole block, so the grid runs behind the
-	link columns instead of stopping at the CTA. The section gradient starts at
-	the ValuesStrip's #08080d so the seam above is invisible.
+	link columns instead of stopping at the CTA. The gradient starts from the
+	frame's canvas (--lp-bg) so the seam against the bordered frame above is
+	invisible.
 -->
 <!--
 	No overflow-hidden here: the scene's riser gradient reaches above the
-	section top, behind the ValuesStrip card, and the panorama clips its own
+	section top, behind the block above it, and the panorama clips its own
 	<img>.
 -->
-<section class="relative bg-gradient-to-b from-[#08080d] to-black">
+<section
+	class="relative bg-[linear-gradient(to_bottom,var(--lp-bg,#08080d),#08080d_120px,#000_100%)]"
+>
 	<SynthwaveScene />
 
 	<!--
@@ -83,20 +87,25 @@
 			<p class="text-sm text-white/60 sm:text-[14.5px]">
 				Join developers building beautiful apps with FancyUI.
 			</p>
+			<!--
+				The CTAs share the frame's fixed art direction (lp-btn-* from
+				landing.css) — the landing no longer re-skins, so nothing here
+				needs a recipe.
+			-->
 			<div class="mt-3 flex flex-wrap items-center justify-center gap-3.5">
 				<a
 					href={DOCS_URL}
-					class="inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] px-6.5 py-3.5 text-sm font-semibold text-white shadow-[0_8px_30px_rgba(91,140,255,.4)] transition-shadow hover:shadow-[0_8px_38px_rgba(91,140,255,.6)]"
+					class="lp-btn-accent inline-flex items-center rounded-[2px] px-6 py-3.5 text-[14.5px] font-medium"
 				>
-					Get Started <span aria-hidden="true">→</span>
+					Get Started →
 				</a>
 				<a
 					href={GITHUB_URL}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="inline-flex items-center gap-2 rounded-xl border border-white/12 bg-[#13131a]/70 px-6.5 py-3.5 text-sm font-medium text-[#e6e9ef] transition-colors hover:border-white/25"
+					class="lp-btn-outline inline-flex items-center rounded-[2px] px-6 py-3.5 text-[14.5px] font-medium"
 				>
-					<span class="text-[#fbbf24]" aria-hidden="true">★</span> Star on GitHub
+					★ Star on GitHub
 				</a>
 			</div>
 		</div>
@@ -124,8 +133,10 @@
 				aria-hidden="true"
 			></div>
 			<div class="relative flex w-full flex-col gap-3.5 lg:w-[300px]">
-				<span class="text-lg font-bold text-white">Fancy<span class="text-[#8b7bff]">UI</span></span
-				>
+				<span class="flex items-center gap-2 text-lg font-bold text-white">
+					<Logo size={22} />
+					<span>Fancy<span class="text-[#8b7bff]">UI</span></span>
+				</span>
 				<span class="text-[13px] leading-relaxed text-[#9aa3b2]">
 					A modern component library for Svelte 5.
 				</span>

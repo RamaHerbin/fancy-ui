@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navigasi",
 	"category.media": "Media",
 	"category.effects": "Efek",
+	"category.ai-chat": "Obrolan AI",
+	"category.ai-agents": "Agen AI",
 
 	// Introduction (redesigned page)
 	"intro.title": "Pengantar",
@@ -161,6 +163,13 @@ export default {
 	"intro.category.dataDisplay": "Tampilan Data",
 	"intro.category.feedback": "Umpan Balik",
 	"intro.category.media": "Media",
+	"intro.stats.buttons":
+		"Rainbow, Ripple, Shimmer, dan kawan-kawan. Tombol yang bikin ingin diklik.",
+	"intro.stats.cards": "Karusel, kisi bento, efek 3D. Cara menyajikan konten tanpa membosankan.",
+	"intro.stats.effects": "Kursor, jejak, teks animasi. Sentuhan kecil yang membuat perbedaan.",
+	"sidebar.starTitle": "Bintang di GitHub",
+	"sidebar.starBody": "Jika suka FancyUI, beri bintang!",
+	"rail.nextPage": "Halaman berikutnya",
 	"intro.nextSteps.heading": "Langkah Selanjutnya",
 	"intro.nextSteps.installation": "Instalasi",
 	"intro.nextSteps.theming": "Tema",
@@ -168,7 +177,16 @@ export default {
 	"intro.cta.title": "Baru Mengenal FancyUI?",
 	"intro.cta.body":
 		"Lihat <strong>Generator Tema</strong> untuk menyesuaikan warna dan melihat komponen bereaksi secara real-time.",
-	"intro.cta.button": "Coba Generator Tema →",
+	"intro.cta.button": "Coba Generator Tema",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Aksi",
+	"category.forms": "Formulir",
+	"category.overlays": "Overlay",
+	"category.display": "Tampilan",
+	"status.inProgress": "Dalam Pengerjaan",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalasi",
@@ -287,4 +305,13 @@ export default {
 	"changelog.major": "Perubahan besar",
 	"changelog.minor": "Perubahan kecil",
 	"changelog.patch": "Perubahan patch",
+	// Cameleon docs skins
+	"skin.heading": "Skin",
+	"skin.standard": "Standar",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Ganti skin",
+	"retro.explorer": "Penjelajah",
+	"retro.start": "Mulai",
+	"retro.tagline": "Komponen beranimasi untuk Svelte 5 — siap disalin-tempel.",
 } satisfies Catalog;

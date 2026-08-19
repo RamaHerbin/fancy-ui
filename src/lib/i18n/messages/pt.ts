@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navegação",
 	"category.media": "Mídia",
 	"category.effects": "Efeitos",
+	"category.ai-chat": "Chat com IA",
+	"category.ai-agents": "Agentes de IA",
 
 	// Introduction (redesigned page)
 	"intro.title": "Introdução",
@@ -162,6 +164,14 @@ export default {
 	"intro.category.dataDisplay": "Exibição de dados",
 	"intro.category.feedback": "Feedback",
 	"intro.category.media": "Mídia",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer e companhia. Botões que dão vontade de clicar.",
+	"intro.stats.cards":
+		"Carrosséis, grades bento, efeitos 3D. Formas de apresentar conteúdo sem entediar.",
+	"intro.stats.effects":
+		"Cursores, rastros, textos animados. Os pequenos toques que fazem a diferença.",
+	"sidebar.starTitle": "Estrela no GitHub",
+	"sidebar.starBody": "Se você gosta do FancyUI, deixe uma estrela!",
+	"rail.nextPage": "Próxima página",
 	"intro.nextSteps.heading": "Próximos passos",
 	"intro.nextSteps.installation": "Instalação",
 	"intro.nextSteps.theming": "Personalização de tema",
@@ -169,7 +179,16 @@ export default {
 	"intro.cta.title": "Novo no FancyUI?",
 	"intro.cta.body":
 		"Confira o <strong>Gerador de tema</strong> para personalizar as cores e ver os componentes reagirem em tempo real.",
-	"intro.cta.button": "Experimentar o Gerador de tema →",
+	"intro.cta.button": "Experimentar o Gerador de tema",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Ações",
+	"category.forms": "Formulários",
+	"category.overlays": "Sobreposições",
+	"category.display": "Exibição",
+	"status.inProgress": "Em construção",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalação",
@@ -288,4 +307,13 @@ export default {
 	"changelog.major": "Alterações principais",
 	"changelog.minor": "Alterações secundárias",
 	"changelog.patch": "Correções",
+	// Cameleon docs skins
+	"skin.heading": "Skin",
+	"skin.standard": "Padrão",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Mudar de skin",
+	"retro.explorer": "Explorador",
+	"retro.start": "Iniciar",
+	"retro.tagline": "Componentes animados para Svelte 5 — prontos para copiar e colar.",
 } satisfies Catalog;

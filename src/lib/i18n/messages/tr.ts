@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Gezinme",
 	"category.media": "Medya",
 	"category.effects": "Efektler",
+	"category.ai-chat": "Yapay Zekâ Sohbeti",
+	"category.ai-agents": "Yapay Zekâ Ajanları",
 
 	// Introduction (redesigned page)
 	"intro.title": "Giriş",
@@ -163,6 +165,13 @@ export default {
 	"intro.category.dataDisplay": "Veri Görüntüleme",
 	"intro.category.feedback": "Geri Bildirim",
 	"intro.category.media": "Medya",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer ve arkadaşları. Tıklanmak isteyen düğmeler.",
+	"intro.stats.cards":
+		"Karuseller, bento ızgaralar, 3D efektler. İçeriği sıkmadan sunmanın yolları.",
+	"intro.stats.effects": "İmleçler, izler, animasyonlu metinler. Farkı yaratan küçük dokunuşlar.",
+	"sidebar.starTitle": "GitHub'da yıldızla",
+	"sidebar.starBody": "FancyUI'ı beğendiyseniz bir yıldız bırakın!",
+	"rail.nextPage": "Sonraki sayfa",
 	"intro.nextSteps.heading": "Sonraki Adımlar",
 	"intro.nextSteps.installation": "Kurulum",
 	"intro.nextSteps.theming": "Tema",
@@ -170,7 +179,16 @@ export default {
 	"intro.cta.title": "FancyUI'de yeni misiniz?",
 	"intro.cta.body":
 		"Renkleri özelleştirmek ve bileşenlerin gerçek zamanlı nasıl tepki verdiğini görmek için <strong>Tema Oluşturucu</strong>'yu inceleyin.",
-	"intro.cta.button": "Tema Oluşturucu'yu Dene →",
+	"intro.cta.button": "Tema Oluşturucu'yu Dene",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Eylemler",
+	"category.forms": "Formlar",
+	"category.overlays": "Katmanlar",
+	"category.display": "Görüntüleme",
+	"status.inProgress": "Geliştiriliyor",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Kurulum",
@@ -291,4 +309,13 @@ export default {
 	"changelog.major": "Büyük değişiklikler",
 	"changelog.minor": "Küçük değişiklikler",
 	"changelog.patch": "Yama değişiklikleri",
+	// Cameleon docs skins
+	"skin.heading": "Görünüm",
+	"skin.standard": "Standart",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Görünümü değiştir",
+	"retro.explorer": "Gezgin",
+	"retro.start": "Başlat",
+	"retro.tagline": "Svelte 5 için animasyonlu bileşenler — kopyalayıp yapıştırmaya hazır.",
 } satisfies Catalog;

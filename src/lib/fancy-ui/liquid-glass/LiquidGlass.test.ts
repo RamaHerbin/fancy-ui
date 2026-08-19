@@ -59,9 +59,7 @@ describe("LiquidGlass", () => {
 
 	it("exposes Safari fallback CSS variables from props", () => {
 		const { container: defaultContainer } = render(LiquidGlass);
-		const defaultWrapper = defaultContainer.querySelector(
-			".liquid-glass-effect"
-		) as HTMLElement;
+		const defaultWrapper = defaultContainer.querySelector(".liquid-glass-effect") as HTMLElement;
 		const defaultStyle = defaultWrapper.getAttribute("style") ?? "";
 		expect(defaultStyle).toMatch(/--lg-fallback-blur:\s*20px/);
 		expect(defaultStyle).toMatch(/--lg-fallback-saturation:\s*180%/);
@@ -69,9 +67,7 @@ describe("LiquidGlass", () => {
 		const { container: customContainer } = render(LiquidGlass, {
 			props: { fallbackBlur: 8, fallbackSaturation: 120 },
 		});
-		const customWrapper = customContainer.querySelector(
-			".liquid-glass-effect"
-		) as HTMLElement;
+		const customWrapper = customContainer.querySelector(".liquid-glass-effect") as HTMLElement;
 		const customStyle = customWrapper.getAttribute("style") ?? "";
 		expect(customStyle).toMatch(/--lg-fallback-blur:\s*8px/);
 		expect(customStyle).toMatch(/--lg-fallback-saturation:\s*120%/);

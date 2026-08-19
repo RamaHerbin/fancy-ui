@@ -1,0 +1,687 @@
+/* Brutal docs skin — content region. Scope every rule under .docs-skin[data-skin="brutal"].
+
+   Restyles the shared IntroductionPage markup, the table of contents and the
+   right rail into the reference's paper layout. Every value comes from
+   vendor/design-refs/brutal/FancyUI-Intro-CV-Style.dc.html.
+
+   Two conventions used throughout:
+   - The reference document ships no CSS reset, so its markers and tiles are
+     content-box (the 1.5px ink border sits OUTSIDE the declared size). Tailwind
+     preflight makes everything border-box here, so those elements restate
+     `box-sizing: content-box` to keep the rendered geometry identical. Where
+     the reference itself declared `box-sizing: border-box` (step badge,
+     inactive TOC marker) the rule keeps border-box.
+   - Hard offset shadows and lift transforms go through the --brutal-* tokens
+     declared in page.css, which mirrors them under [dir="rtl"]. */
+
+/* ---- R13 — H1, lede, colored spans ------------------------------------------ */
+.docs-skin[data-skin="brutal"] .intro h1 {
+	margin: 6px 0 0;
+	font-size: clamp(38px, 5vw, 56px);
+	font-weight: 900;
+	letter-spacing: -0.035em;
+	line-height: 0.98;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .intro .lead {
+	margin: 14px 0 0;
+	max-width: 56ch;
+	font-size: clamp(15px, 1.4vw, 18px);
+	font-weight: 500;
+	line-height: 1.55;
+	text-wrap: pretty;
+	/* Full ink, not the muted foreground the standard skin uses. */
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .intro .lead strong {
+	font-weight: 800;
+	color: inherit;
+}
+/* D16/D17 — the clipped blue→purple gradient becomes two flat accents. */
+.docs-skin[data-skin="brutal"] .intro .grad {
+	background: none;
+	-webkit-background-clip: border-box;
+	background-clip: border-box;
+	-webkit-text-fill-color: currentColor;
+	color: var(--skin-blue);
+	font-weight: 800;
+}
+.docs-skin[data-skin="brutal"] .intro .solid {
+	color: var(--skin-purple);
+	font-weight: 800;
+}
+
+/* ---- R14 — feature pill row -------------------------------------------------- */
+.docs-skin[data-skin="brutal"] .intro .pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 20px 0 0;
+}
+.docs-skin[data-skin="brutal"] .intro .pill {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 6px 13px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 999px;
+	background: var(--skin-card);
+	font-size: 12.5px;
+	font-weight: 700;
+	/* The reference declares no line-height here, so the pill is 14 + 6 + 6 + 1 +
+	   1 = 28px tall. Tailwind's `html { line-height: 1.5 }` would inflate it. */
+	line-height: normal;
+	color: var(--skin-ink);
+}
+/* D18/D19 — the emoji glyph and the TS badge both become 8×8 bordered squares. */
+.docs-skin[data-skin="brutal"] .intro .pill .ic,
+.docs-skin[data-skin="brutal"] .intro .pill .ts {
+	box-sizing: content-box;
+	display: block;
+	width: 8px;
+	height: 8px;
+	flex: none;
+	padding: 0;
+	border: 1px solid var(--skin-line);
+	border-radius: 0;
+	background: var(--skin-red);
+	color: transparent;
+	font-size: 0;
+	line-height: 0;
+	overflow: hidden;
+}
+.docs-skin[data-skin="brutal"] .intro .pill[data-accent="1"] .ic {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="brutal"] .intro .pill[data-accent="2"] .ic {
+	background: var(--skin-purple);
+}
+.docs-skin[data-skin="brutal"] .intro .pill[data-accent="3"] .ic {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="brutal"] .intro .pill[data-accent="4"] .ic {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="brutal"] .intro .pill[data-accent="5"] .ts {
+	background: var(--skin-yellow);
+}
+
+/* ---- R15 — section headings (colored square + h2) ---------------------------- */
+/* The square rides on ::before so it stays out of the h2 textContent the table
+   of contents reads. The doc-prose underline and padding are removed here. */
+.docs-skin[data-skin="brutal"] .intro h2 {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 40px 0 0;
+	padding: 0;
+	border: none;
+	font-size: clamp(19px, 2vw, 23px);
+	font-weight: 850;
+	letter-spacing: -0.015em;
+	line-height: normal;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .intro h2#philosophy {
+	margin-top: 38px;
+}
+.docs-skin[data-skin="brutal"] .intro h2::before {
+	content: "";
+	box-sizing: content-box;
+	width: 11px;
+	height: 11px;
+	flex: none;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 3px;
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="brutal"] .intro h2#philosophy::before {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="brutal"] .intro h2#quick-start::before {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="brutal"] .intro h2#whats-included::before {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="brutal"] .intro h2#next-steps::before {
+	background: var(--skin-yellow);
+}
+
+/* ---- R16 — philosophy cards -------------------------------------------------- */
+.docs-skin[data-skin="brutal"] .intro .cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+	gap: 12px;
+	margin-top: 14px;
+}
+/* Two-column grid so the letter tile (::before, fed by data-initial) sits in
+   the head row and the body copy spans the full card width underneath. */
+.docs-skin[data-skin="brutal"] .intro .card {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	align-items: center;
+	/* The reference card is a plain block: its head and body stay flush to the
+	   top and the row's leftover height falls to the bottom. Without this the
+	   stretched grid item hands its slack to the two auto rows and
+	   `align-items: center` drifts short cards down. */
+	align-content: start;
+	gap: 0 9px;
+	padding: 16px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 12px;
+	background: var(--skin-card);
+	box-shadow: var(--brutal-ambient-md);
+	outline: none;
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
+}
+.docs-skin[data-skin="brutal"] .intro .card:hover {
+	transform: var(--brutal-lift);
+	box-shadow: var(--brutal-shadow-hard-lg);
+}
+.docs-skin[data-skin="brutal"] .intro .card:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: var(--brutal-focus-ring);
+}
+.docs-skin[data-skin="brutal"] .intro .card::before {
+	content: attr(data-initial);
+	box-sizing: content-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	flex: none;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 7px;
+	background: var(--skin-red);
+	color: #ffffff;
+	font-family: var(--skin-font-mono);
+	font-size: 11px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="brutal"] .intro .card[data-accent="1"]::before {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="brutal"] .intro .card[data-accent="2"]::before {
+	background: var(--skin-purple);
+}
+.docs-skin[data-skin="brutal"] .intro .card[data-accent="3"]::before {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="brutal"] .intro .card[data-accent="4"]::before {
+	background: var(--skin-blue);
+}
+/* Two glyphs, so the yellow tile drops to 10px and paints ink on yellow. */
+.docs-skin[data-skin="brutal"] .intro .card[data-accent="5"]::before {
+	background: var(--skin-yellow);
+	color: var(--skin-ink);
+	font-size: 10px;
+}
+.docs-skin[data-skin="brutal"] .intro .card-head {
+	display: flex;
+	align-items: center;
+	gap: 0;
+	font-size: 14.5px;
+	font-weight: 800;
+	color: var(--skin-ink);
+}
+/* The emoji / TS badge is replaced by the ::before letter tile. */
+.docs-skin[data-skin="brutal"] .intro .card-head .ic,
+.docs-skin[data-skin="brutal"] .intro .card-head .ts {
+	display: none;
+}
+.docs-skin[data-skin="brutal"] .intro .card-desc {
+	grid-column: 1 / -1;
+	margin: 9px 0 0;
+	font-size: 12.5px;
+	font-weight: 500;
+	line-height: 1.55;
+	opacity: 0.85;
+	color: var(--skin-ink);
+}
+/* Inline <code> chips inside card copy. */
+.docs-skin[data-skin="brutal"] .intro :not(pre) > code {
+	padding: 1px 5px;
+	border: 1.3px solid var(--skin-line);
+	border-radius: 5px;
+	background: var(--skin-surface);
+	color: var(--skin-ink);
+	font-family: var(--skin-font-mono);
+	font-size: 10.5px;
+}
+
+/* ---- R17 — quick-start numbered timeline ------------------------------------ */
+.docs-skin[data-skin="brutal"] .intro .steps {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	margin-top: 16px;
+}
+/* Vertical rule behind the badges: 13px centers 1.5px under a 27px badge
+   sitting in the 28px column — (27 / 2) − (1.5 / 2) = 12.75. */
+.docs-skin[data-skin="brutal"] .intro .steps::before {
+	content: "";
+	position: absolute;
+	inset-inline-start: 13px;
+	top: 14px;
+	bottom: 14px;
+	width: 1.5px;
+	background: rgba(20, 20, 20, 0.25);
+}
+.docs-skin[data-skin="brutal"] .intro .step {
+	position: relative;
+	display: grid;
+	grid-template-columns: 28px 1fr;
+	gap: 0 14px;
+}
+.docs-skin[data-skin="brutal"] .intro .num {
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 27px;
+	height: 27px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 50%;
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="brutal"] .intro .num-1 {
+	background: var(--skin-blue);
+	color: #ffffff;
+}
+.docs-skin[data-skin="brutal"] .intro .num-2 {
+	background: var(--skin-red);
+	color: #ffffff;
+}
+.docs-skin[data-skin="brutal"] .intro .num-3 {
+	background: var(--skin-yellow);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .intro .step-body {
+	display: block;
+	min-width: 0;
+}
+.docs-skin[data-skin="brutal"] .intro .step-title {
+	font-size: 15px;
+	font-weight: 800;
+	/* Matches the 27px badge so the two optically align. */
+	line-height: 27px;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .intro .step-desc {
+	margin: 0;
+	font-size: 12.5px;
+	font-weight: 500;
+	opacity: 0.75;
+	color: var(--skin-ink);
+}
+/* The code surface itself is the R18 region; this is only the step's rhythm. */
+.docs-skin[data-skin="brutal"] .intro .step-body > :is(.docs-install, .docs-code) {
+	margin-top: 9px;
+}
+
+/* ---- D21 — What's included (repo-only section) ------------------------------- */
+.docs-skin[data-skin="brutal"] .intro .section-body {
+	margin: 14px 0 0;
+	font-size: 12.5px;
+	font-weight: 500;
+	line-height: 1.55;
+	opacity: 0.85;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .intro .cats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+	gap: 12px;
+	margin-top: 14px;
+}
+.docs-skin[data-skin="brutal"] .intro .cat {
+	padding: 10px 14px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 12px;
+	background: var(--skin-card);
+	box-shadow: var(--brutal-ambient-md);
+	font-size: 12.5px;
+	font-weight: 700;
+	color: var(--skin-ink);
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
+}
+.docs-skin[data-skin="brutal"] .intro .cat:hover {
+	transform: var(--brutal-lift);
+	box-shadow: var(--brutal-shadow-hard-lg);
+}
+
+/* ---- D21 — Next steps (repo-only section) ------------------------------------ */
+.docs-skin[data-skin="brutal"] .intro .next {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 14px;
+}
+.docs-skin[data-skin="brutal"] .intro .next-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 11px 13px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 12px;
+	background: var(--skin-card);
+	box-shadow: var(--brutal-ambient-md);
+	font-size: 12.5px;
+	font-weight: 800;
+	color: var(--skin-ink);
+	text-decoration: none;
+	outline: none;
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
+}
+.docs-skin[data-skin="brutal"] .intro .next-row:hover {
+	transform: var(--brutal-lift);
+	box-shadow: var(--brutal-shadow-hard-lg);
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	opacity: 1;
+}
+.docs-skin[data-skin="brutal"] .intro .next-row:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: var(--brutal-focus-ring);
+}
+.docs-skin[data-skin="brutal"] .intro .next-row .arrow {
+	display: block;
+	width: 11px;
+	height: 11px;
+	flex: none;
+	background: currentColor;
+	color: var(--skin-ink);
+	font-size: 0;
+	-webkit-mask: var(--brutal-arrow-ne) center / 11px 11px no-repeat;
+	mask: var(--brutal-arrow-ne) center / 11px 11px no-repeat;
+}
+
+/* ---- R19 — yellow CTA banner ------------------------------------------------- */
+.docs-skin[data-skin="brutal"] .intro .cta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 12px;
+	margin-top: 32px;
+	padding: 12px 16px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 12px;
+	background: var(--skin-yellow);
+	box-shadow: var(--brutal-ambient-lg);
+}
+/* The reference has no wrapper: marker, text block and button are siblings. */
+.docs-skin[data-skin="brutal"] .intro .cta-left {
+	display: contents;
+}
+.docs-skin[data-skin="brutal"] .intro .cta-ic {
+	box-sizing: border-box;
+	display: block;
+	width: 9px;
+	height: 9px;
+	flex: none;
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	background: var(--skin-ink);
+	color: transparent;
+	font-size: 0;
+	line-height: 0;
+	overflow: hidden;
+	transform: rotate(45deg);
+}
+.docs-skin[data-skin="brutal"] .intro .cta-text {
+	min-width: 0;
+	flex: 1;
+}
+/* The banner is 58px tall only because the reference leaves line-height at
+   `normal` on all three of title, body and button — Tailwind's inherited 1.5
+   would add 7px. */
+.docs-skin[data-skin="brutal"] .intro .cta-title {
+	font-size: 13.5px;
+	font-weight: 800;
+	line-height: normal;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .intro .cta-body {
+	margin-top: 1px;
+	font-size: 12px;
+	font-weight: 550;
+	line-height: normal;
+	opacity: 0.8;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .intro .cta-btn {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	flex: none;
+	padding: 8px 16px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 999px;
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	font-family: var(--skin-font-sans);
+	font-size: 12px;
+	font-weight: 750;
+	line-height: normal;
+	text-decoration: none;
+	outline: none;
+	transition:
+		transform 0.12s ease,
+		box-shadow 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] .intro .cta-btn:hover {
+	transform: var(--brutal-lift);
+	box-shadow: var(--brutal-shadow-hard-dark-lg);
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	opacity: 1;
+}
+.docs-skin[data-skin="brutal"] .intro .cta-btn:active {
+	transform: none;
+	box-shadow: none;
+}
+.docs-skin[data-skin="brutal"] .intro .cta-btn:focus-visible {
+	box-shadow: var(--brutal-focus-ring-dark);
+}
+/* R19 button icon — the localized label ships the glyph in its own span (which
+   is `display: contents` by default), so brutal can swap the text arrow for the
+   reference's 11×11 ↗ painted in paper. */
+.docs-skin[data-skin="brutal"] .intro .cta-btn .cta-arrow {
+	display: block;
+	width: 11px;
+	height: 11px;
+	flex: none;
+	font-size: 0;
+	background: var(--skin-paper);
+	-webkit-mask: var(--brutal-arrow-ne) center / 11px 11px no-repeat;
+	mask: var(--brutal-arrow-ne) center / 11px 11px no-repeat;
+}
+
+/* ---- R20 — right rail: "ON THIS PAGE" card ---------------------------------- */
+/* The rail itself is the sticky element (200px), so the card inside goes back
+   to static flow. */
+.docs-skin[data-skin="brutal"] .docs-rail {
+	width: 200px;
+	flex: none;
+	align-self: flex-start;
+	position: sticky;
+	top: 88px;
+}
+.docs-skin[data-skin="brutal"] .docs-toc {
+	position: static;
+	top: auto;
+	padding: 14px 15px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 12px;
+	background: var(--skin-card);
+	box-shadow: var(--brutal-ambient-md);
+}
+.docs-skin[data-skin="brutal"] .docs-toc-title {
+	margin: 0 0 10px;
+	font-family: var(--skin-font-mono);
+	font-size: 8.5px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	opacity: 0.6;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .docs-toc-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.docs-skin[data-skin="brutal"] .docs-toc-list li {
+	margin: 0;
+	/* Beats the inline `style:padding-left` the component sets per heading
+	   level — the reference list is flat. */
+	padding-left: 0 !important;
+}
+.docs-skin[data-skin="brutal"] .docs-toc-list li a {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 8px;
+	border: 1.5px solid transparent;
+	border-radius: 7px;
+	font-size: 12.5px;
+	font-weight: 600;
+	/* No line-height in the reference: 14 + 5 + 5 + 1.5 + 1.5 = 26px per item. */
+	line-height: normal;
+	color: var(--skin-ink);
+	text-decoration: none;
+	opacity: 0.7;
+	outline: none;
+	transition: opacity 0.12s ease;
+}
+.docs-skin[data-skin="brutal"] .docs-toc-list li a::before {
+	content: "";
+	box-sizing: border-box;
+	width: 6px;
+	height: 6px;
+	flex: none;
+	border: 1.3px solid var(--skin-line);
+}
+.docs-skin[data-skin="brutal"] .docs-toc-list li a:hover {
+	border-color: var(--skin-line);
+	color: var(--skin-ink);
+	opacity: 1;
+}
+.docs-skin[data-skin="brutal"] .docs-toc-list li a:focus-visible {
+	box-shadow: var(--brutal-focus-ring);
+	opacity: 1;
+}
+/* D37 — the active entry is a filled blue chip with a solid white marker. */
+.docs-skin[data-skin="brutal"] .docs-toc-list li a.text-foreground {
+	border-color: var(--skin-line);
+	background: var(--skin-blue);
+	color: #ffffff;
+	font-weight: 750;
+	opacity: 1;
+}
+.docs-skin[data-skin="brutal"] .docs-toc-list li a.text-foreground::before {
+	border: none;
+	background: #ffffff;
+}
+
+/* ---- R21 — right rail: "NEXT PAGE" card ------------------------------------- */
+.docs-skin[data-skin="brutal"] .docs-rail-next {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 10px;
+	padding: 11px 13px;
+	border: 1.5px solid var(--skin-line);
+	border-radius: 12px;
+	background: var(--skin-card);
+	box-shadow: var(--brutal-ambient-md);
+	color: var(--skin-ink);
+	text-decoration: none;
+	outline: none;
+	transition:
+		transform 0.15s ease,
+		box-shadow 0.15s ease;
+}
+/* Cancels the global link hover blue. */
+.docs-skin[data-skin="brutal"] .docs-rail-next:hover {
+	transform: var(--brutal-lift);
+	box-shadow: var(--brutal-shadow-hard-lg);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="brutal"] .docs-rail-next:focus-visible {
+	border-color: var(--skin-blue);
+	box-shadow: var(--brutal-focus-ring);
+}
+.docs-skin[data-skin="brutal"] .docs-rail-next-marker {
+	box-sizing: content-box;
+	display: block;
+	width: 8px;
+	height: 8px;
+	flex: none;
+	border: 1px solid var(--skin-line);
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="brutal"] .docs-rail-next-text {
+	display: block;
+	min-width: 0;
+}
+.docs-skin[data-skin="brutal"] .docs-rail-next-eyebrow {
+	display: block;
+	font-family: var(--skin-font-mono);
+	font-size: 7.5px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	line-height: normal;
+	text-transform: uppercase;
+	opacity: 0.55;
+}
+.docs-skin[data-skin="brutal"] .docs-rail-next-name {
+	display: block;
+	margin-top: 1px;
+	font-size: 12.5px;
+	font-weight: 800;
+	line-height: normal;
+}
+/* `margin-inline-start: auto` stands in for the reference's flex:1 spacer. */
+.docs-skin[data-skin="brutal"] .docs-rail-next-arrow {
+	flex: none;
+	margin-inline-start: auto;
+	color: var(--skin-ink);
+}
+
+/* ---- R22 — right rail: footer stamp ----------------------------------------- */
+.docs-skin[data-skin="brutal"] .docs-rail-stamp {
+	margin-top: 10px;
+	font-family: var(--skin-font-mono);
+	font-size: 8px;
+	letter-spacing: 0.1em;
+	text-align: center;
+	opacity: 0.4;
+	color: var(--skin-ink);
+}
+
+/* ---- RTL ---- */
+/* Hard offsets and lifts mirror through the page.css token redefinition; only
+   the direction-carrying glyphs need flipping here. */
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] .intro .cta-btn .cta-arrow,
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] .intro .next-row .arrow,
+:where([dir="rtl"]) .docs-skin[data-skin="brutal"] .docs-rail-next-arrow {
+	transform: scaleX(-1);
+}

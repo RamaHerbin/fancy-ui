@@ -32,6 +32,15 @@
 		"glowing-effect": { disabled: false },
 		"interactive-grid-pattern": { width: 60, height: 60 },
 		"interactive-hover-button": { text: "Hover Me" },
+		"copy-button": { value: "pnpm add fancy-ui-svelte" },
+		input: { label: "Email", placeholder: "name@example.com" },
+		textarea: { label: "Message", placeholder: "Tell us what you think…" },
+		slider: { label: "Volume", value: 60, showValue: true, showBounds: true },
+		"number-input": { label: "Quantity", value: 12, min: 0, max: 99 },
+		"search-input": { label: "Search", placeholder: "Search components" },
+		"password-input": { label: "Password", showStrength: true },
+		"date-picker": { label: "Date", placeholder: "Pick a date" },
+		"time-picker": { label: "Time", placeholder: "Pick a time" },
 	};
 
 	// Components that we skip direct render (need too much setup). Exported so the
@@ -64,15 +73,98 @@
 		"editorial-engine",
 		"frosted-glass",
 		"liquid-text",
+		"pixel-loader",
+		"typing-indicator",
+		"thinking-indicator",
+		"streaming-text",
+		"reasoning-panel",
+		"chat-message",
+		"prompt-suggestions",
+		"chat-error",
+		"tool-call",
+		"tool-timeline",
+		"terminal-block",
+		"code-diff",
+		"sources",
+		"inline-citation",
+		"web-search",
+		"image-generation",
+		"agent-plan",
+		"subagent-list",
+		"approval-card",
+		"recommendation-card",
+		"artifact-card",
+		"ai-data-table",
+		"composer",
+		"voice-input",
+		"context-ring",
+		"scroll-anchor",
+		"thread-list",
+		"chat-panel",
+		// Core / actions. Each of these is meaningless with no props: a link with no
+		// href, an icon button with no icon or label, and the two groups with no
+		// items. Their BasicUsage example is the honest preview.
+		"link",
+		"icon-button",
+		"button-group",
+		"toggle-group",
+		// Core / forms. Each is empty or unlabelled with no props: a field wrapper
+		// with no control, a radio group with no items, and a box or track with no
+		// text beside it. Their BasicUsage example is the honest preview.
+		"form-field",
+		"radio-group",
+		"checkbox",
+		"switch",
+		// Core / overlays. Every one of these is invisible until something opens
+		// it, so a propless render shows an empty wrapper at best. Their
+		// BasicUsage example carries the trigger that makes them real.
+		"dialog",
+		"alert-dialog",
+		"sheet",
+		"drawer",
+		"popover",
+		"tooltip",
+		"hover-card",
+		"toast",
+		// Core / forms with a floating surface. These four need a collection to
+		// show anything at all — options, suggestions, or dropped files — so a
+		// propless render is an empty trigger. Their BasicUsage supplies one.
+		"select",
+		"combobox",
+		"autocomplete",
+		"file-upload",
+		// Core / navigation. Every one of these is either a compound whose
+		// children carry the whole component (Tabs, Stepper, the three menus,
+		// Navbar, Sidebar) or is driven by a required collection prop
+		// (Breadcrumb's items, Pagination's count, CommandMenu's items), so a
+		// propless direct render is an empty shell. Their BasicUsage supplies
+		// the composition or the data.
+		"navbar",
+		"sidebar",
+		"tabs",
+		"breadcrumb",
+		"pagination",
+		"stepper",
+		"dropdown-menu",
+		"context-menu",
+		"command-menu",
+		"navigation-menu",
 	]);
 </script>
 
 <script lang="ts">
+	import { createSkinState } from "$lib/stores";
+	import RetroCarouselNav from "$lib/components/docs/retro/RetroCarouselNav.svelte";
+
 	interface Props {
 		slug: string;
 	}
 
 	let { slug }: Props = $props();
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
+	let carouselWrap = $state<HTMLDivElement | null>(null);
 
 	let ComponentModule = $state<any>(null);
 	let ExampleComponent = $state<any>(null);
@@ -82,17 +174,23 @@
 	const modules = import.meta.glob("$lib/fancy-ui/*/index.ts");
 	const exampleModules = import.meta.glob("$lib/components/docs/examples/**/*.svelte");
 
+	// Per-skin preview overrides: when the docs skin matches, these slugs preview a different example
+	const SKIN_PREVIEW: Record<string, Record<string, string>> = {
+		"retro-os": { "fluid-cursor": "RetroPixel" },
+	};
+
 	$effect(() => {
 		const currentSlug = slug;
+		const exampleName =
+			SKIN_PREVIEW[skinState.skin]?.[currentSlug] ?? PREVIEW_EXAMPLE[currentSlug] ?? "BasicUsage";
 		ComponentModule = null;
 		ExampleComponent = null;
 		loading = true;
 		error = "";
 
 		if (skipDirectRender.has(currentSlug)) {
-			// Load the preview example (BasicUsage, unless overridden per-slug)
-			const previewExample = PREVIEW_EXAMPLE[currentSlug] ?? "BasicUsage";
-			const exPath = `/src/lib/components/docs/examples/${currentSlug}/${previewExample}.svelte`;
+			// Load the skin/slug preview override (if any), else BasicUsage
+			const exPath = `/src/lib/components/docs/examples/${currentSlug}/${exampleName}.svelte`;
 			const exLoader = exampleModules[exPath];
 			if (exLoader) {
 				exLoader()
@@ -138,6 +236,21 @@
 
 	// Component name mapping (slug → export name)
 	const componentNames: Record<string, string> = {
+		// Core / actions. Only the three that preview standalone need a name here —
+		// the other four resolve through their BasicUsage example instead.
+		button: "Button",
+		toggle: "Toggle",
+		"copy-button": "CopyButton",
+		// Core / forms that stand on their own with no props.
+		label: "Label",
+		input: "Input",
+		textarea: "Textarea",
+		slider: "Slider",
+		"number-input": "NumberInput",
+		"search-input": "SearchInput",
+		"password-input": "PasswordInput",
+		"date-picker": "DatePicker",
+		"time-picker": "TimePicker",
 		"apple-card-carousel": "AppleCardCarousel",
 		"animated-beam": "AnimatedBeam",
 		"animated-testimonials": "AnimatedTestimonials",
@@ -216,7 +329,14 @@
 	</div>
 {:else if skipDirectRender.has(slug)}
 	{#if ExampleComponent}
-		<ExampleComponent />
+		{#if isRetro && slug === "apple-card-carousel"}
+			<div class="relative w-full" bind:this={carouselWrap}>
+				<ExampleComponent />
+				<RetroCarouselNav target={() => carouselWrap?.querySelector(".overflow-x-auto") ?? null} />
+			</div>
+		{:else}
+			<ExampleComponent />
+		{/if}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
 			No preview available
@@ -235,6 +355,12 @@
 			<Comp {...props}>Ripple Button</Comp>
 		{:else if slug === "gradient-button"}
 			<Comp {...props}>Gradient Button</Comp>
+		{:else if slug === "button"}
+			<Comp {...props}>Button</Comp>
+		{:else if slug === "toggle"}
+			<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
+		{:else if slug === "label"}
+			<Comp {...props}>Email address</Comp>
 		{:else if slug === "confetti"}
 			<Comp {...props}
 				><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
@@ -251,7 +377,7 @@
 				<p class="text-muted-foreground">Content fades in from blur as you scroll.</p>
 			</Comp>
 		{:else if slug === "card-spotlight"}
-			<Comp class="h-64 w-80">
+			<Comp class="h-64 w-80" gradientColor={isRetro ? "rgba(236,215,127,0.5)" : "#262626"}>
 				<div class="relative z-20 p-6">
 					<h3 class="text-foreground text-lg font-bold">Card Spotlight</h3>
 					<p class="text-muted-foreground mt-2 text-sm">Mouse-following radial gradient effect.</p>

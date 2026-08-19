@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navigation",
 	"category.media": "Medien",
 	"category.effects": "Effekte",
+	"category.ai-chat": "KI-Chat",
+	"category.ai-agents": "KI-Agenten",
 
 	// Introduction (redesigned page)
 	"intro.title": "Einführung",
@@ -162,6 +164,14 @@ export default {
 	"intro.category.dataDisplay": "Datenanzeige",
 	"intro.category.feedback": "Feedback",
 	"intro.category.media": "Medien",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer und Co. Buttons, die zum Klicken einladen.",
+	"intro.stats.cards":
+		"Karussells, Bento-Raster, 3D-Effekte. Inhalte präsentieren, ohne zu langweilen.",
+	"intro.stats.effects":
+		"Cursor, Spuren, animierte Texte. Die kleinen Details, die den Unterschied machen.",
+	"sidebar.starTitle": "Stern auf GitHub",
+	"sidebar.starBody": "Wenn dir FancyUI gefällt, gib einen Stern!",
+	"rail.nextPage": "Nächste Seite",
 	"intro.nextSteps.heading": "Nächste Schritte",
 	"intro.nextSteps.installation": "Installation",
 	"intro.nextSteps.theming": "Themes",
@@ -169,7 +179,16 @@ export default {
 	"intro.cta.title": "Neu bei FancyUI?",
 	"intro.cta.body":
 		"Schau dir den <strong>Theme-Generator</strong> an, um Farben anzupassen und zu sehen, wie Komponenten in Echtzeit reagieren.",
-	"intro.cta.button": "Theme-Generator ausprobieren →",
+	"intro.cta.button": "Theme-Generator ausprobieren",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Aktionen",
+	"category.forms": "Formulare",
+	"category.overlays": "Overlays",
+	"category.display": "Anzeige",
+	"status.inProgress": "In Arbeit",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Installation",
@@ -290,4 +309,13 @@ export default {
 	"changelog.major": "Größere Änderungen",
 	"changelog.minor": "Kleinere Änderungen",
 	"changelog.patch": "Patch-Änderungen",
+	// Cameleon docs skins
+	"skin.heading": "Skin",
+	"skin.standard": "Standard",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Skin wechseln",
+	"retro.explorer": "Explorer",
+	"retro.start": "Start",
+	"retro.tagline": "Animierte Komponenten für Svelte 5 — zum Kopieren und Einfügen.",
 } satisfies Catalog;

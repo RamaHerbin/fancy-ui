@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/logo.png" alt="FancyUI" width="88" height="88" />
+</p>
+
 # fancy-ui
 
 Beautiful animation and UI components for **Svelte 5**.
@@ -5,7 +9,7 @@ Beautiful animation and UI components for **Svelte 5**.
 ![Svelte 5](https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-61-8B5CF6)
+![Components](https://img.shields.io/badge/Components-132-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -32,107 +36,9 @@ Beautiful animation and UI components for **Svelte 5**.
 - **Svelte 5 Runes** &mdash; Built with `$state`, `$derived`, `$effect`, and `$props`
 - **Tailwind CSS 4** &mdash; Utility-first styling with theme tokens
 - **TypeScript** &mdash; Fully typed props and events
-- **61 Components** &mdash; Buttons, text animations, backgrounds, effects, and more
+- **132 Components** &mdash; Core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds and effects
 - **Dark Mode** &mdash; All components support light and dark themes
-- **Tested** &mdash; 600+ unit tests with Vitest and Testing Library
-
-## Components
-
-### Buttons
-
-| Component              | Description                              | Demo                                                                       |
-| ---------------------- | ---------------------------------------- | -------------------------------------------------------------------------- |
-| RainbowButton          | Animated rainbow gradient border effect  | [Demo](https://fancy-ui.rama.app/docs/components/rainbow-button)           |
-| RippleButton           | Ripple click effect                      | [Demo](https://fancy-ui.rama.app/docs/components/ripple-button)            |
-| ShimmerButton          | Rotating conic-gradient shimmer border   | [Demo](https://fancy-ui.rama.app/docs/components/shimmer-button)           |
-| GradientButton         | Rotating conic-gradient rainbow border   | [Demo](https://fancy-ui.rama.app/docs/components/gradient-button)          |
-| InteractiveHoverButton | Hover effect revealing alternate content | [Demo](https://fancy-ui.rama.app/docs/components/interactive-hover-button) |
-
-### Cards
-
-| Component           | Description                                                         | Demo                                                                    |
-| ------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| AppleCardCarousel   | Horizontal card carousel with spring-animated full-screen expansion | [Demo](https://fancy-ui.rama.app/docs/components/apple-card-carousel)   |
-| Card3D              | 3D tilt card with mouse tracking                                    | [Demo](https://fancy-ui.rama.app/docs/components/card-3d)               |
-| CardSpotlight       | Spotlight effect following mouse                                    | [Demo](https://fancy-ui.rama.app/docs/components/card-spotlight)        |
-| DirectionAwareHover | Overlay slides in from mouse entry direction                        | [Demo](https://fancy-ui.rama.app/docs/components/direction-aware-hover) |
-| FlipCard            | Two-sided card with flip animation                                  | [Demo](https://fancy-ui.rama.app/docs/components/flip-card)             |
-| GlareCard           | Glare reflection effect on hover                                    | [Demo](https://fancy-ui.rama.app/docs/components/glare-card)            |
-| TextRevealCard      | Text reveal on hover                                                | [Demo](https://fancy-ui.rama.app/docs/components/text-reveal-card)      |
-
-### Text & Typography
-
-| Component          | Description                                                                    | Demo                                                                   |
-| ------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| BlurReveal         | Scroll-triggered blur-to-clear reveal                                          | [Demo](https://fancy-ui.rama.app/docs/components/blur-reveal)          |
-| BoxReveal          | Sliding colored box reveal animation                                           | [Demo](https://fancy-ui.rama.app/docs/components/box-reveal)           |
-| ColourfulText      | Per-character color animation                                                  | [Demo](https://fancy-ui.rama.app/docs/components/colourful-text)       |
-| ContainerTextFlip  | Text flipping inside a container                                               | [Demo](https://fancy-ui.rama.app/docs/components/container-text-flip)  |
-| DisplacementText   | 3D text with WebGL displacement that follows the cursor using Three.js shaders | [Demo](https://fancy-ui.rama.app/docs/components/displacement-text)    |
-| EditorialEngine    | Live magazine layout with multi-column text flowing around draggable orbs      | [Demo](https://fancy-ui.rama.app/docs/components/editorial-engine)     |
-| FlipWords          | Cycling word animation with per-letter effects                                 | [Demo](https://fancy-ui.rama.app/docs/components/flip-words)           |
-| HyperText          | Character scramble on hover                                                    | [Demo](https://fancy-ui.rama.app/docs/components/hyper-text)           |
-| LetterPullup       | Staggered letter pull-up animation                                             | [Demo](https://fancy-ui.rama.app/docs/components/letter-pullup)        |
-| LineReveal         | Staggered line-by-line text reveal                                             | [Demo](https://fancy-ui.rama.app/docs/components/line-reveal)          |
-| LineShadowText     | Text with animated line shadow                                                 | [Demo](https://fancy-ui.rama.app/docs/components/line-shadow-text)     |
-| LiquidText         | Big text that liquefies along the cursor's path via a WebGL fluid solver       | [Demo](https://fancy-ui.rama.app/docs/components/liquid-text)          |
-| NumberTicker       | Animated number counter with easing                                            | [Demo](https://fancy-ui.rama.app/docs/components/number-ticker)        |
-| SparklesText       | Animated SVG sparkle stars overlay                                             | [Demo](https://fancy-ui.rama.app/docs/components/sparkles-text)        |
-| TerminalText       | Terminal-style text streamer with blinking cursor and glitch effect            | [Demo](https://fancy-ui.rama.app/docs/components/terminal-text)        |
-| TextGenerateEffect | Word-by-word text generation effect                                            | [Demo](https://fancy-ui.rama.app/docs/components/text-generate-effect) |
-
-### Backgrounds
-
-| Component              | Description                                                                 | Demo                                                                       |
-| ---------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| FallingStarsBg         | Canvas 3D starfield with motion trails                                      | [Demo](https://fancy-ui.rama.app/docs/components/bg-falling-stars)         |
-| FlickeringGrid         | Canvas grid with flickering opacity                                         | [Demo](https://fancy-ui.rama.app/docs/components/flickering-grid)          |
-| InteractiveGridPattern | SVG grid with hover highlights                                              | [Demo](https://fancy-ui.rama.app/docs/components/interactive-grid-pattern) |
-| MatrixRain             | Canvas-based falling glyph rain with configurable color, speed, and density | [Demo](https://fancy-ui.rama.app/docs/components/matrix-rain)              |
-| StarsBackground        | Starfield with parallax mouse tracking                                      | [Demo](https://fancy-ui.rama.app/docs/components/bg-stars)                 |
-
-### Effects & Animations
-
-| Component        | Description                                                    | Demo                                                                 |
-| ---------------- | -------------------------------------------------------------- | -------------------------------------------------------------------- |
-| AnimatedBeam     | SVG beams connecting elements                                  | [Demo](https://fancy-ui.rama.app/docs/components/animated-beam)      |
-| BorderBeam       | Beam effect traveling around borders                           | [Demo](https://fancy-ui.rama.app/docs/components/border-beam)        |
-| Confetti         | Configurable confetti burst                                    | [Demo](https://fancy-ui.rama.app/docs/components/confetti)           |
-| FluidCursor      | WebGL fluid simulation following cursor                        | [Demo](https://fancy-ui.rama.app/docs/components/fluid-cursor)       |
-| FrostedGlass     | Frosted glass surface with organic turbulence-noise refraction | [Demo](https://fancy-ui.rama.app/docs/components/frosted-glass)      |
-| GlowBorder       | Animated glowing border with gradients                         | [Demo](https://fancy-ui.rama.app/docs/components/glow-border)        |
-| GlowingEffect    | Glowing highlight on hover                                     | [Demo](https://fancy-ui.rama.app/docs/components/glowing-effect)     |
-| ImageTrailCursor | Cursor-following image trail (8 variants)                      | [Demo](https://fancy-ui.rama.app/docs/components/image-trail-cursor) |
-| LiquidGlass      | Liquid glass morphism effect                                   | [Demo](https://fancy-ui.rama.app/docs/components/liquid-glass)       |
-| Meteors          | Animated meteor shower effect                                  | [Demo](https://fancy-ui.rama.app/docs/components/meteors)            |
-| NeonBorder       | Dual-color neon glow border                                    | [Demo](https://fancy-ui.rama.app/docs/components/neon-border)        |
-| Ripple           | Expanding ripple rings                                         | [Demo](https://fancy-ui.rama.app/docs/components/ripple)             |
-| SmoothCursor     | Smooth lagging cursor follower                                 | [Demo](https://fancy-ui.rama.app/docs/components/smooth-cursor)      |
-| Sparkles         | Particle sparkle canvas                                        | [Demo](https://fancy-ui.rama.app/docs/components/sparkles)           |
-| TracingBeam      | Scroll-driven tracing beam                                     | [Demo](https://fancy-ui.rama.app/docs/components/tracing-beam)       |
-
-### Layout
-
-| Component       | Description                                   | Demo                                                               |
-| --------------- | --------------------------------------------- | ------------------------------------------------------------------ |
-| BentoGrid       | Bento-style responsive grid layout            | [Demo](https://fancy-ui.rama.app/docs/components/bento-grid)       |
-| Book            | 3D book flip animation                        | [Demo](https://fancy-ui.rama.app/docs/components/book)             |
-| ContainerScroll | 3D scroll perspective container               | [Demo](https://fancy-ui.rama.app/docs/components/container-scroll) |
-| Focus           | Focus-expand card layout                      | [Demo](https://fancy-ui.rama.app/docs/components/focus)            |
-| Marquee         | Infinite scrolling for text, images, or cards | [Demo](https://fancy-ui.rama.app/docs/components/marquee)          |
-
-### Navigation & Display
-
-| Component            | Description                                                             | Demo                                                                    |
-| -------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| AnimatedTestimonials | Testimonial carousel with smooth slide animations and optional autoplay | [Demo](https://fancy-ui.rama.app/docs/components/animated-testimonials) |
-| AnimatedTooltip      | Avatar row with mouse-following tooltips                                | [Demo](https://fancy-ui.rama.app/docs/components/animated-tooltip)      |
-| Compare              | Before/after image comparison slider                                    | [Demo](https://fancy-ui.rama.app/docs/components/compare)               |
-| Dock                 | Icon dock where items magnify as the cursor approaches                  | [Demo](https://fancy-ui.rama.app/docs/components/dock)                  |
-| LineHoverLink        | Link with 11 animated underline hover effects, pure CSS                 | [Demo](https://fancy-ui.rama.app/docs/components/line-hover-link)       |
-| LogoCloud            | Marquee, grid, and icon logo layouts                                    | [Demo](https://fancy-ui.rama.app/docs/components/logo-cloud)            |
-| NoiseReveal          | WebGL image reveal with a Perlin-noise dissolve mask                    | [Demo](https://fancy-ui.rama.app/docs/components/noise-reveal)          |
-| Timeline             | Vertical timeline with scroll-driven progress                           | [Demo](https://fancy-ui.rama.app/docs/components/timeline)              |
+- **Tested** &mdash; 2,900+ unit tests with Vitest and Testing Library
 
 ## Quick Start
 
@@ -245,7 +151,7 @@ Component tests are colocated with their component (see `RainbowButton.test.ts` 
 
 ## Contributing
 
-Contributions are welcome! 61 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
+Contributions are welcome! 132 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
 
 ### Adding a new component
 

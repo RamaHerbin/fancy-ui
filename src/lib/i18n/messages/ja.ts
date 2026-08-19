@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "ナビゲーション",
 	"category.media": "メディア",
 	"category.effects": "エフェクト",
+	"category.ai-chat": "AI チャット",
+	"category.ai-agents": "AI エージェント",
 
 	// Introduction (redesigned page)
 	"intro.title": "はじめに",
@@ -164,6 +166,12 @@ export default {
 	"intro.category.dataDisplay": "データ表示",
 	"intro.category.feedback": "フィードバック",
 	"intro.category.media": "メディア",
+	"intro.stats.buttons": "Rainbow、Ripple、Shimmer など。思わずクリックしたくなるボタン。",
+	"intro.stats.cards": "カルーセル、ベントーグリッド、3D 効果。飽きさせないコンテンツ表現。",
+	"intro.stats.effects": "カーソル、軌跡、アニメーションテキスト。違いを生む小さな演出。",
+	"sidebar.starTitle": "GitHub でスターを",
+	"sidebar.starBody": "FancyUI が気に入ったらスターをお願いします!",
+	"rail.nextPage": "次のページ",
 	"intro.nextSteps.heading": "次のステップ",
 	"intro.nextSteps.installation": "インストール",
 	"intro.nextSteps.theming": "テーマ設定",
@@ -171,7 +179,16 @@ export default {
 	"intro.cta.title": "FancyUI は初めてですか？",
 	"intro.cta.body":
 		"<strong>テーマジェネレーター</strong> をチェックして、色をカスタマイズしたり、コンポーネントがリアルタイムに反応する様子を確認したりしましょう。",
-	"intro.cta.button": "テーマジェネレーターを試す →",
+	"intro.cta.button": "テーマジェネレーターを試す",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "アクション",
+	"category.forms": "フォーム",
+	"category.overlays": "オーバーレイ",
+	"category.display": "表示",
+	"status.inProgress": "開発中",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "インストール",
@@ -292,4 +309,13 @@ export default {
 	"changelog.major": "メジャー変更",
 	"changelog.minor": "マイナー変更",
 	"changelog.patch": "パッチ変更",
+	// Cameleon docs skins
+	"skin.heading": "スキン",
+	"skin.standard": "スタンダード",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "スキンを変更",
+	"retro.explorer": "エクスプローラー",
+	"retro.start": "スタート",
+	"retro.tagline": "Svelte 5 のためのアニメーションコンポーネント — コピペしてすぐ使えます。",
 } satisfies Catalog;

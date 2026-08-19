@@ -4,6 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+	/* Resolves light-dark() tokens (e.g. the library's --ft-status-* fallbacks)
+	   and native form/scrollbar chrome against the active theme. */
+	color-scheme: light;
+
 	/* Layout */
 	--radius: 0.625rem;
 
@@ -71,9 +75,20 @@
 	--sidebar-accent-foreground: oklch(0.208 0.042 265.755);
 	--sidebar-border: oklch(0.929 0.013 255.508);
 	--sidebar-ring: oklch(0.704 0.04 256.788);
+
+	/* Code surfaces — consumed by docs code blocks; overridden by the Brutal docs skin. */
+	--code-bg: #0d1117;
+	--code-border: rgba(255, 255, 255, 0.1);
+	--code-fg: rgba(255, 255, 255, 0.85);
+	--code-fg-muted: rgba(255, 255, 255, 0.4);
+	--code-chip-bg: rgba(255, 255, 255, 0.1);
+	--code-kw: #c084fc;
+	--code-str: #fcd34d;
+	--code-cmd: #34d399;
 }
 
 .dark {
+	color-scheme: dark;
 	--background: oklch(0.05 0 0);
 	--foreground: oklch(0.984 0.003 247.858);
 	--card: oklch(0.1 0.005 265);

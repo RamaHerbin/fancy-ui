@@ -5,7 +5,7 @@
  * Consumed as `og:image` at `/og/<slug>.jpg` by the component doc pages. The
  * frame reuses the brand language of `static/og.png` (see
  * scripts/build-brand-assets.mjs): #050508 field, faint violet grid, two
- * blurred violet/blue glows, the five-circle mark from `static/favicon.svg`,
+ * blurred violet/blue glows, the sparkle mark from `static/favicon.svg`,
  * and a white->gray gradient wordmark. Where og.png centers the wordmark,
  * these cards demote it to a top-left lockup and give the stage to the
  * component name so the card stays readable at feed-thumbnail scale.
@@ -59,8 +59,8 @@ const NAME_SIZE_STEP = 2;
 
 function loadStaticMark() {
 	const raw = readFileSync(join(staticDir, "favicon.svg"), "utf8");
-	// Same strip as the brand-asset pipeline: every keyframe's 0%/100% state is
-	// the rest pose, so removing the animation freezes the mark deterministically.
+	// Same strip as the brand-asset pipeline: the twinkle's 0%/100% state is the
+	// rest pose, so removing the animation freezes the mark deterministically.
 	const stripped = raw.replace(/<style>[\s\S]*?<\/style>\s*/, "");
 	if (stripped === raw) {
 		throw new Error(

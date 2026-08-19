@@ -104,6 +104,8 @@ export default {
 	"category.navigation": "导航",
 	"category.media": "媒体",
 	"category.effects": "特效",
+	"category.ai-chat": "AI 聊天",
+	"category.ai-agents": "AI 智能体",
 
 	// Introduction (redesigned page)
 	"intro.title": "简介",
@@ -147,13 +149,28 @@ export default {
 	"intro.category.dataDisplay": "数据展示",
 	"intro.category.feedback": "反馈",
 	"intro.category.media": "媒体",
+	"intro.stats.buttons": "Rainbow、Ripple、Shimmer 等。让人忍不住点击的按钮。",
+	"intro.stats.cards": "轮播、便当网格、3D 效果。让内容展示不再乏味。",
+	"intro.stats.effects": "光标、拖尾、动画文字。决定成败的小细节。",
+	"sidebar.starTitle": "在 GitHub 点个星",
+	"sidebar.starBody": "喜欢 FancyUI 的话,请点个星!",
+	"rail.nextPage": "下一页",
 	"intro.nextSteps.heading": "下一步",
 	"intro.nextSteps.installation": "安装",
 	"intro.nextSteps.theming": "主题",
 	"intro.nextSteps.components": "浏览组件",
 	"intro.cta.title": "刚接触 FancyUI？",
 	"intro.cta.body": "查看<strong>主题生成器</strong>，自定义颜色并实时查看组件的变化。",
-	"intro.cta.button": "试用主题生成器 →",
+	"intro.cta.button": "试用主题生成器",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "操作",
+	"category.forms": "表单",
+	"category.overlays": "浮层",
+	"category.display": "展示",
+	"status.inProgress": "开发中",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "安装",
@@ -253,4 +270,13 @@ export default {
 	"changelog.major": "重大变更",
 	"changelog.minor": "次要变更",
 	"changelog.patch": "补丁变更",
+	// Cameleon docs skins
+	"skin.heading": "皮肤",
+	"skin.standard": "标准",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "切换皮肤",
+	"retro.explorer": "资源管理器",
+	"retro.start": "开始",
+	"retro.tagline": "面向 Svelte 5 的动效组件 — 复制粘贴即可使用。",
 } satisfies Catalog;

@@ -108,3 +108,30 @@ Notes:
   On SDR displays HDR mode is still safe, just clamped.
 - With `hdr={false}` (the default) the WebGPU code path is never taken and
   rendering is identical to previous versions.
+
+## Bitmap Dithering (experimental)
+
+```svelte
+<FluidCursor dither ditherPixelSize={3} ditherLevels={4} fluidColors={["#a142ff", "#42cfff"]} />
+```
+
+With `dither` enabled the display pass renders the fluid as a retro ordered-dither
+bitmap: the dye is snapped to a chunky pixel grid (each cell samples the dye at its
+center, so cells render as solid square dots) and each color channel is quantized
+against a procedural 4×4 Bayer matrix. Dot density encodes brightness while hues
+are preserved. Cells that quantize to black stay fully transparent, so the effect
+composites cleanly over any background.
+
+| Prop              | Type      | Default | Description                                                            |
+| ----------------- | --------- | ------- | ---------------------------------------------------------------------- |
+| `dither`          | `boolean` | `false` | Enable the ordered-dither display pass. Forces the WebGL renderer.     |
+| `ditherPixelSize` | `number`  | `3`     | Size of one dithered pixel in CSS pixels, minimum `1`.                 |
+| `ditherLevels`    | `number`  | `4`     | Color levels per channel, clamped to `[2, 16]`. Lower = more dithered. |
+
+Notes:
+
+- `dither` forces the WebGL renderer — `hdr` is ignored while it is set.
+- Like the other simulation props, dither props are applied at mount; re-key the
+  component to change them at runtime.
+- Raise `colorIntensity` (≈ `0.4`+) so the dye reliably crosses the first
+  quantization step; at the default `0.15` dots stay sparse.

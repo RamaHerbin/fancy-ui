@@ -76,7 +76,7 @@
 		aria-label={t("a11y.changeTheme")}
 		aria-haspopup="menu"
 		aria-expanded={open}
-		class="border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring flex h-9 items-center gap-1.5 rounded-md border px-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+		class="docs-theme-btn border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring flex h-9 items-center gap-1.5 rounded-md border px-2 transition-colors focus-visible:ring-2 focus-visible:outline-none"
 	>
 		<span class="grid grid-cols-2 gap-0.5" aria-hidden="true">
 			{#each activeSwatch as c}

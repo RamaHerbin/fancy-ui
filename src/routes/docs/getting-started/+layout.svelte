@@ -92,8 +92,8 @@
 	}
 
 	.doc-prose :global(pre) {
-		background: #0d1117;
-		border: 1px solid rgba(255, 255, 255, 0.1);
+		background: var(--code-bg);
+		border: 1px solid var(--code-border);
 		border-radius: 0.75rem;
 		padding: 1rem 1.25rem;
 		overflow-x: auto;
@@ -106,7 +106,7 @@
 		background: transparent;
 		padding: 0;
 		border-radius: 0;
-		color: rgba(255, 255, 255, 0.85);
+		color: var(--code-fg);
 		font-size: inherit;
 	}
 

@@ -1,0 +1,909 @@
+/* ===========================================================================
+   Retro OS — preview window, code surfaces, props grid, taskbar
+   ===========================================================================
+   Regions R8 (code surfaces), R12 (taskbar), R13 (page tags), R14 (preview
+   window), R15 (install block), R16 (props grid), R17 (stage recipes).
+   Every value is transcribed from vendor/design-refs/retro-os/
+   FancyUI-Docs-Retro.dc.html. The light gold #ECD77F, the muted paper #B8AC8C,
+   the tint #F7EFD2 and the terminal green #B5DCB2 have no --skin-* token, so
+   they are used as literals here (same precedent as the rest of the skin). */
+
+/* ---- R14 Preview window ----------------------------------------------------
+   Reference l.220-235: a `filter: drop-shadow(3px 3px 0)` wrapper around an ink
+   layer (background #191308, padding 2.5px, pixel-corner clip-path) around a
+   paper layer carrying the same clip-path. `.retro-window` is a single element,
+   so it plays the ink layer (background + 2.5px padding + clip-path) and its
+   children play the paper layer. Two consequences, both deliberate:
+   · the drop shadow lives on the `.retro-window-shadow` wrapper the two call
+     sites (ComponentPreview.svelte, [slug]/+page.svelte) put around the window —
+     `clip-path` clips `filter` output on the same element, which is exactly why
+     the reference uses a separate wrapper div. The wrapper is a plain block, so
+     it inherits the window's width and adds no geometry of its own.
+   · the stair-step ink outline is re-cut into the first and last child so the
+     ring closes at the corners; the polygons overshoot the block axis (±4px) so
+     the tab strip's 2px overlap is not sliced off. When the last child is the
+     `hidden` code pane the bottom corners fall back to a plain cut. */
+.docs-skin[data-skin="retro-os"] .retro-window-shadow {
+	filter: drop-shadow(3px 3px 0 var(--skin-ink));
+}
+.docs-skin[data-skin="retro-os"] .retro-window {
+	border: 0;
+	border-radius: 0;
+	padding: 2.5px;
+	background: var(--skin-ink);
+	box-shadow: none;
+	clip-path: polygon(
+		8px 0,
+		calc(100% - 8px) 0,
+		calc(100% - 8px) 4px,
+		calc(100% - 4px) 4px,
+		calc(100% - 4px) 8px,
+		100% 8px,
+		100% calc(100% - 8px),
+		calc(100% - 4px) calc(100% - 8px),
+		calc(100% - 4px) calc(100% - 4px),
+		calc(100% - 8px) calc(100% - 4px),
+		calc(100% - 8px) 100%,
+		8px 100%,
+		8px calc(100% - 4px),
+		4px calc(100% - 4px),
+		4px calc(100% - 8px),
+		0 calc(100% - 8px),
+		0 8px,
+		4px 8px,
+		4px 4px,
+		8px 4px
+	);
+}
+.docs-skin[data-skin="retro-os"] .retro-window > :first-child {
+	clip-path: polygon(
+		8px 0,
+		calc(100% - 8px) 0,
+		calc(100% - 8px) 4px,
+		calc(100% - 4px) 4px,
+		calc(100% - 4px) 8px,
+		100% 8px,
+		100% calc(100% + 4px),
+		0 calc(100% + 4px),
+		0 8px,
+		4px 8px,
+		4px 4px,
+		8px 4px
+	);
+}
+.docs-skin[data-skin="retro-os"] .retro-window > :last-child {
+	clip-path: polygon(
+		0 -4px,
+		100% -4px,
+		100% calc(100% - 8px),
+		calc(100% - 4px) calc(100% - 8px),
+		calc(100% - 4px) calc(100% - 4px),
+		calc(100% - 8px) calc(100% - 4px),
+		calc(100% - 8px) 100%,
+		8px 100%,
+		8px calc(100% - 4px),
+		4px calc(100% - 4px),
+		4px calc(100% - 8px),
+		0 calc(100% - 8px)
+	);
+}
+.docs-skin[data-skin="retro-os"] .retro-preview-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 12px;
+	border-bottom: 2px solid var(--skin-line);
+	background: var(--skin-yellow);
+	color: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-preview-title {
+	flex: 1;
+	min-width: 0;
+	font-family: var(--skin-font-pixel);
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+/* Window controls — the only border-radius in the whole reference (4px). */
+.docs-skin[data-skin="retro-os"] .retro-winctl {
+	position: relative;
+	display: inline-flex;
+	width: 22px;
+	height: 22px;
+	flex: none;
+	box-sizing: border-box;
+	align-items: center;
+	justify-content: center;
+	border: 2px solid var(--skin-line);
+	border-radius: 4px;
+	background: var(--skin-card);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl:hover {
+	background: var(--skin-ink);
+	color: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-min {
+	align-items: flex-end;
+	padding-bottom: 3px;
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-min::after {
+	content: "";
+	width: 10px;
+	height: 2.5px;
+	background: currentColor;
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-max::after {
+	content: "";
+	width: 10px;
+	height: 10px;
+	box-sizing: border-box;
+	border: 2.5px solid currentColor;
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-close::before,
+.docs-skin[data-skin="retro-os"] .retro-winctl-close::after {
+	content: "";
+	position: absolute;
+	width: 12px;
+	height: 2.5px;
+	background: currentColor;
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-close::before {
+	transform: rotate(45deg);
+}
+.docs-skin[data-skin="retro-os"] .retro-winctl-close::after {
+	transform: rotate(-45deg);
+}
+
+/* Preview/Code tab strip — folder tabs that sit ON the 2px rule: each tab is a
+   bordered box with no bottom edge, pushed 2px down so its fill covers the rule
+   (z-index 1); CODE overlaps PREVIEW by its own 2px border. */
+.docs-skin[data-skin="retro-os"] .retro-tabbar {
+	align-items: flex-end;
+	padding: 12px 16px 0;
+	border-bottom: 2px solid var(--skin-line);
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-tabbar button {
+	position: relative;
+	top: 2px;
+	z-index: 1;
+	border: 2px solid var(--skin-line);
+	border-bottom: none;
+	border-radius: 0;
+	padding: 8px 16px 10px;
+	background: var(--skin-desk);
+	color: var(--skin-muted);
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+.docs-skin[data-skin="retro-os"] .retro-tabbar button + button {
+	margin-left: -2px;
+}
+.docs-skin[data-skin="retro-os"] .retro-tabbar button:first-child.border-b-2 {
+	background: var(--skin-surface);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-tabbar button:nth-child(2).border-b-2 {
+	background: var(--skin-ink);
+	color: var(--skin-card);
+}
+/* Stage body — the reference preview pane is the surface paper, not the page. */
+.docs-skin[data-skin="retro-os"] .retro-stage {
+	background: var(--skin-surface);
+}
+
+/* ---- R8 Code surfaces ------------------------------------------------------
+   Reference l.128/l.140/l.152: one ink slab framed by 2px ink, mono 12.5px text
+   at 11px/14px, and a 34px full-height copy gutter split off by a 2px #5C5340
+   rule. CodeBlock's tools row is absolutely positioned, so the gutter is rebuilt
+   out of it: the row spans the block's full height and the copy button fills it,
+   while the surface keeps a 34px right margin so long lines never slide under
+   the gutter (`.docs-code`'s own ink paints behind it).
+   Glyph: the reference swaps ▣ → ✓ on copy. The button's label is a localized
+   word, so it is collapsed with font-size:0 and the ▣ comes from ::before. The
+   ✓ state is NOT reachable from CSS — CodeBlock exposes no copied hook (adding
+   `data-copied={copied}` on the button would be the one-line fix); the label
+   swap stays available to assistive tech. */
+.docs-skin[data-skin="retro-os"] .docs-code {
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	background: var(--code-bg);
+}
+/* Inside the preview window the pane is already framed by the window ring. */
+.docs-skin[data-skin="retro-os"] .retro-window .docs-code {
+	border: 0;
+}
+.docs-skin[data-skin="retro-os"] .docs-code-surface {
+	margin-right: 34px;
+	border: 0;
+	border-radius: 0;
+	font-size: 12.5px;
+	line-height: 1.7;
+}
+/* The `<pre>` carries the base docs typography (14px / 1.6 / ui-monospace) and
+   a 12px radius of its own, so the metrics authored on `.docs-code-surface`
+   above never reach the code text — they have to be restated on the element
+   that actually paints it. */
+.docs-skin[data-skin="retro-os"] pre.docs-code-surface,
+.docs-skin[data-skin="retro-os"] .docs-code-surface pre {
+	padding: 11px 14px;
+	border-radius: 0;
+	font-family: var(--skin-font-mono);
+	font-size: 12.5px;
+	line-height: 1.7;
+}
+.docs-skin[data-skin="retro-os"] .retro-code-lang {
+	display: none;
+}
+.docs-skin[data-skin="retro-os"] .docs-code-tools {
+	top: 0;
+	right: 0;
+	bottom: 0;
+	align-items: stretch;
+	gap: 0;
+}
+.docs-skin[data-skin="retro-os"] .docs-code .docs-copy {
+	display: inline-flex;
+	width: 34px;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 0;
+	border-left: 2px solid var(--skin-muted);
+	border-radius: 0;
+	background: transparent;
+	color: #b8ac8c;
+	font-size: 0;
+	opacity: 1;
+}
+.docs-skin[data-skin="retro-os"] .docs-code .docs-copy::before {
+	content: "▣";
+	font-size: 13px;
+	line-height: 1;
+}
+.docs-skin[data-skin="retro-os"] .docs-code .docs-copy:hover {
+	background: var(--skin-card);
+	color: var(--skin-ink);
+}
+
+/* ---- R15 Install block -----------------------------------------------------
+   Reference l.594-604: surface-paper frame, a paper tab row of mono 11.5px/700
+   tabs each closed by a 2px ink rule, a Silkscreen COPIER chip flush to the
+   right edge, and an ink terminal pane with a gold `C:\rama>` prompt and a block
+   caret. The import row has no reference counterpart; it continues the terminal
+   (ink) so the --code-kw / --code-str colors stay legible once the code tokens
+   flip dark. */
+.docs-skin[data-skin="retro-os"] .docs-install {
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	background: var(--skin-surface);
+}
+.docs-skin[data-skin="retro-os"] .retro-pmtabs {
+	align-items: center;
+	border-bottom: 2px solid var(--skin-line);
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-pmtabs > button {
+	border: 0;
+	border-right: 2px solid var(--skin-line);
+	border-radius: 0;
+	padding: 8px 16px;
+	background: var(--skin-card);
+	color: var(--skin-muted);
+	font-family: var(--skin-font-mono);
+	font-size: 11.5px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-pmtabs > button:hover {
+	background: #f7efd2;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-pmtabs > button.border-b-2 {
+	background: var(--skin-ink);
+	color: var(--skin-card);
+}
+/* The copy button's flex wrapper pushes it right; strip its padding so the
+   chip's border-left lands on the strip's edge like the reference span. */
+.docs-skin[data-skin="retro-os"] .retro-pmtabs > div {
+	padding: 0;
+}
+.docs-skin[data-skin="retro-os"] .retro-pmtabs .retro-copy {
+	border: 0;
+	border-left: 2px solid var(--skin-line);
+	border-radius: 0;
+	padding: 9px 14px;
+	background: #ecd77f;
+	color: var(--skin-ink);
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+.docs-skin[data-skin="retro-os"] .retro-pmtabs .retro-copy:hover {
+	background: var(--skin-ink);
+	color: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .docs-install-cmd {
+	padding: 14px 18px;
+	background: var(--skin-ink);
+	font-family: var(--skin-font-mono);
+	font-size: 12.5px;
+	line-height: 1.7;
+}
+.docs-skin[data-skin="retro-os"] .docs-install-cmd::before {
+	content: "C:\\rama> ";
+	color: #ecd77f;
+}
+.docs-skin[data-skin="retro-os"] .docs-install-cmd::after {
+	content: "";
+	display: inline-block;
+	width: 8px;
+	height: 13px;
+	margin-left: 4px;
+	background: #b5dcb2;
+	vertical-align: text-bottom;
+}
+.docs-skin[data-skin="retro-os"] .docs-install-cmd + div {
+	padding: 14px 18px;
+	border-top: 2px solid var(--skin-muted);
+	background: var(--skin-ink);
+	font-size: 12.5px;
+	line-height: 1.7;
+}
+
+/* Buttons — one pixel-press grammar for the docs' own controls (Claude Design).
+   Scoped to the tab bars / hooks below so it NEVER reaches the real components
+   rendered inside a preview body. */
+
+/* Button components rendered inside a preview → pixel-retro (Claude Design).
+   Deliberate, scoped to .retro-stage (the preview body) so it styles the demoed
+   button and its parts only; the published components are never modified. The
+   signature borders are recolored to the retro palette via their own CSS vars. */
+.docs-skin[data-skin="retro-os"] .retro-stage button,
+.docs-skin[data-skin="retro-os"] .retro-stage button * {
+	border-radius: 0 !important;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage button {
+	font-family: var(--skin-font-pixel);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	box-shadow: 4px 4px 0 var(--skin-line);
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+	/* Rainbow / gradient / shimmer accents → retro palette */
+	--rainbow-1: #a0442f;
+	--rainbow-2: #7d6414;
+	--rainbow-3: #3f62a7;
+	--rainbow-4: #3a6b42;
+	--rainbow-5: #b8912b;
+	--gb-colors: #a0442f, #b8912b, #3a6b42, #3f62a7, #a0442f;
+	--shimmer-color: #ecd77f;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage button:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 5px 5px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage button:active {
+	transform: translate(3px, 3px);
+	box-shadow: none;
+}
+/* RippleButton → solid ink block (no stable class; keyed on its --ripple-duration
+   inline var). Its bg-background/text-primary are overridden to ink/paper. */
+.docs-skin[data-skin="retro-os"] .retro-stage button[style*="--ripple-duration"] {
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	border: 2px solid var(--skin-line);
+	padding: 14px 28px;
+}
+
+/* AppleCardCarousel previews → retro pixel cards (square, ink border, hard
+   shadow, solid colored footer bar per card + Silkscreen category). Keeps the
+   real card image; keyed on the card's .snap-start class + footer :last-child. */
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start {
+	border-radius: 0 !important;
+	border: 2px solid var(--skin-line);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start > div:last-child {
+	right: 0;
+	border-top: 2px solid var(--skin-line);
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start:nth-child(4n + 2) > div:last-child {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start:nth-child(4n + 3) > div:last-child {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start:nth-child(4n) > div:last-child {
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start > div:last-child p {
+	font-family: var(--skin-font-pixel);
+	font-size: 8px;
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage .snap-start > div:last-child h3 {
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"]
+	.retro-stage
+	.snap-start:nth-child(4n)
+	> div:last-child
+	:is(p, h3) {
+	color: var(--skin-ink);
+}
+
+/* DirectionAwareHover → retro framed image + ink slide-in overlay. Keeps the real
+   image; keyed on the component's group/card root, its bg-black/40 overlay and its
+   z-40 caption layer. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="bg-black/40"] {
+	background: rgba(25, 19, 8, 0.88);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="z-40"] p:first-child {
+	font-size: 20px;
+	font-weight: 900;
+	letter-spacing: -0.01em;
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="z-40"] p:nth-child(2) {
+	color: #b8ac8c;
+}
+
+/* Card3D (CardContainer) → retro paper card. Shares the group/card frame above
+   (square + ink border + hard shadow); here: paper fill, squared image, ink/muted
+   text, gold underline link and a mustard pixel Sign-up button. Inert for
+   DirectionAwareHover (it has no neutral-text / <a> / <button> children). */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] {
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] img {
+	border-radius: 0;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="text-neutral-600"] {
+	color: var(--skin-ink);
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] [class~="text-neutral-500"] {
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] a {
+	border-radius: 0;
+	padding: 0;
+	color: var(--skin-purple);
+	font-family: var(--skin-font-mono);
+	text-decoration: underline;
+	text-transform: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/card"] button {
+	background: #ecd77f;
+	color: var(--skin-ink);
+	border: 2px solid var(--skin-line);
+	box-shadow: 2px 2px 0 var(--skin-line);
+}
+
+/* CardSpotlight → ink card with a gold pixel halo. The halo color is passed as a
+   prop in DemoRenderer under retro; here the card frame + text go ink/paper/muted.
+   Keyed on the component's bg-neutral-100 root. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-neutral-100"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-neutral-100"] [class~="rounded-xl"] {
+	border-radius: 0;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-neutral-100"] [class~="text-foreground"] {
+	color: var(--skin-paper);
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"]
+	.retro-stage
+	[class~="bg-neutral-100"]
+	[class~="text-muted-foreground"] {
+	color: #b8ac8c;
+}
+
+/* BentoGrid (BentoGridItem) → retro paper cards with a solid colored header block
+   and hover lift. Keyed on the item's group/bento root; header is its first child
+   (the gradient block), recolored to a retro accent cycled per card. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"]:hover {
+	transform: translate(-2px, -2px);
+	box-shadow: 5px 5px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"] > :first-child {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"]
+	.retro-stage
+	[class~="group/bento"]:nth-child(4n + 2)
+	> :first-child {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"]
+	.retro-stage
+	[class~="group/bento"]:nth-child(4n + 3)
+	> :first-child {
+	background: var(--skin-yellow);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"]:nth-child(4n) > :first-child {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"] [class~="font-bold"] {
+	color: var(--skin-ink);
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="group/bento"] [class~="text-xs"] {
+	color: var(--skin-muted);
+}
+
+/* FlipCard → retro faces (square, ink border, hard shadow). The front content
+   becomes a cream hatch with ink text; the back face is a solid ink panel with
+   paper/muted text. Keyed on the arbitrary [backface-visibility] class. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"][class~="bg-black/80"] {
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] [class~="bg-gradient-to-br"] {
+	background: repeating-linear-gradient(45deg, #f7efd2 0 10px, #faf5e6 10px 20px);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] [class~="text-white"] {
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] [class~="font-semibold"] {
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class*="backface"] [class~="text-slate-400"] {
+	color: #b8ac8c;
+}
+
+/* Book → retro blue cover (square, ink border, hard shadow) with a Silkscreen
+   badge and a bold paper title. Keyed on the cover's bg-gradient-to-tr faces; the
+   box-shadow override needs !important to beat the component's inline shadow. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-gradient-to-tr"] {
+	background: var(--skin-blue);
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	box-shadow: 4px 4px 0 var(--skin-line) !important;
+	color: var(--skin-paper);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-gradient-to-tr"] h1 {
+	font-weight: 900;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-white/20"] {
+	border-radius: 0;
+	background: var(--skin-paper);
+	color: var(--skin-ink);
+	font-family: var(--skin-font-pixel);
+	font-size: 8px;
+}
+
+/* Timeline → square accent dots, ink-bordered paper step cards, muted step label,
+   gold progress line. Keyed on the component's inner dot (bg-neutral-200), its ring
+   (size-10 rounded-full), the step label (text-neutral-500), the card (bg-card) and
+   the progress line (bg-gradient-to-t). */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="size-10"][class~="rounded-full"] {
+	border-radius: 0;
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-neutral-200"] {
+	border-radius: 0;
+	background: var(--skin-blue);
+	border: 2px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="text-neutral-500"] {
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-card"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="bg-gradient-to-t"] {
+	background: var(--skin-yellow) !important;
+}
+
+/* Compare → retro framed slider: ink border + hard shadow, a solid ink divider
+   and a square pixel handle; the neon glow / starfield decorations are hidden.
+   Keeps the real images. */
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="w-[400px]"] {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="via-indigo-500"] {
+	width: 4px;
+	background: var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="from-indigo-400"],
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="from-cyan-400"],
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="-right-10"] {
+	display: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-stage [class~="-right-2.5"] {
+	width: 26px;
+	height: 26px;
+	border-radius: 0;
+	background: var(--skin-paper);
+	border: 2px solid var(--skin-line);
+	box-shadow: 2px 2px 0 var(--skin-line);
+}
+
+/* Carousel ← → nav arrows (retro-only, docs). Overrides the generic stage-button
+   rule so the arrow glyphs render (Silkscreen has no arrows). */
+.docs-skin[data-skin="retro-os"] .retro-carousel-nav {
+	display: flex;
+	gap: 8px;
+	margin-top: 14px;
+}
+.docs-skin[data-skin="retro-os"] .retro-carousel-nav button {
+	width: 32px;
+	height: 32px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	font-family: var(--skin-font-mono);
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0;
+	text-transform: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-carousel-nav button:hover {
+	background: var(--skin-ink);
+	color: var(--skin-paper);
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-carousel-nav button:active {
+	transform: translate(2px, 2px);
+	box-shadow: none;
+}
+
+/* Link buttons (Source Code / Inspired by) → pixel press button */
+.docs-skin[data-skin="retro-os"] .retro-btn {
+	border-radius: 0;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	text-transform: uppercase;
+	transition:
+		transform 0.12s,
+		box-shadow 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .retro-btn:hover {
+	background: var(--skin-card);
+	transform: translate(-1px, -1px);
+	box-shadow: 4px 4px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-btn:active {
+	transform: translate(2px, 2px);
+	box-shadow: none;
+}
+
+/* ---- R16 Props grid --------------------------------------------------------
+   Reference l.614-625: surface-paper frame, ink Silkscreen header, 1.5px #B8AC8C
+   row rules (every row, including the last), #FDFAF0/#FAF5E6 zebra from the top
+   row down and a #F7EFD2 hover. The 1fr/1.2fr/0.8fr/1.6fr column ratio is left
+   to the table's auto layout so the description column keeps breathing. */
+.docs-skin[data-skin="retro-os"] .retro-props {
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	background: var(--skin-surface);
+}
+.docs-skin[data-skin="retro-os"] .retro-props thead tr {
+	background: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-props thead th {
+	padding: 8px 12px;
+	color: var(--skin-card);
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0;
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody tr {
+	border-bottom: 1.5px solid #b8ac8c;
+	background: var(--skin-surface);
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody tr:nth-child(even) {
+	background: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody tr:hover {
+	background: #f7efd2;
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody td {
+	padding: 9px 12px;
+	font-size: 12.5px;
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody td:nth-child(2),
+.docs-skin[data-skin="retro-os"] .retro-props tbody td:nth-child(3) {
+	font-family: var(--skin-font-mono);
+	font-size: 11.5px;
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody td:nth-child(3) {
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody td code {
+	background: transparent;
+	border-radius: 0;
+	color: var(--skin-purple);
+	font-family: var(--skin-font-mono);
+	font-size: 11.5px;
+}
+.docs-skin[data-skin="retro-os"] .retro-props tbody td:first-child code {
+	font-weight: 700;
+}
+
+/* ---- R13 Component page tags ------------------------------------------------
+   Reference l.212-213: mono 10.5px/700, 2px ink frame, 1px 7px, paper text on a
+   per-category fill (`catBg`). The tag span carries `data-category` (set in
+   routes/docs/components/[slug]/+page.svelte), which the map below keys on.
+   `text` and `backgrounds` have no reference counterpart and keep the gold
+   default set in content.css. */
+.docs-skin[data-skin="retro-os"] .retro-tag {
+	padding: 1px 7px;
+	font-size: 10.5px;
+	color: var(--skin-card);
+}
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="buttons"],
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="data-display"] {
+	background: var(--skin-blue);
+}
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="cards"],
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="navigation"] {
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="media"],
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="layout"] {
+	background: var(--skin-purple);
+}
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="feedback"],
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="effects"] {
+	background: var(--skin-red);
+}
+.docs-skin[data-skin="retro-os"] .retro-tag[data-category="getting-started"] {
+	background: var(--skin-yellow);
+}
+
+/* ---- R12 Taskbar -----------------------------------------------------------
+   Reference l.659-662: in flow at the bottom edge of the window (the .retro-frame
+   is the last thing it belongs to), never viewport-fixed — the frame owns the
+   scroll, so no fixed offsets and no lg: sidebar compensation. */
+.docs-skin[data-skin="retro-os"] .retro-taskbar {
+	position: static;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 16px;
+	border-top: 3px solid var(--skin-line);
+	background: var(--skin-card);
+	font-family: var(--skin-font-mono);
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-start {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 14px;
+	border: 2px solid var(--skin-line);
+	background: #ecd77f;
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	font-family: var(--skin-font-pixel);
+	font-size: 11px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-start:hover {
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+/* Start button logo — the 6px/1.5px variant of the menubar pixel logo. */
+.docs-skin[data-skin="retro-os"] .retro-pixel-logo-sm {
+	grid-template-columns: 6px 6px;
+	grid-template-rows: 6px 6px;
+	gap: 1.5px;
+	padding: 1.5px;
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-status {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 6px 12px;
+	border: 2px solid var(--skin-line);
+	background: #f7efd2;
+	font-size: 12px;
+	line-height: normal;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-led {
+	width: 9px;
+	height: 9px;
+	flex: none;
+	border-radius: 50%;
+	background: var(--skin-green);
+}
+.docs-skin[data-skin="retro-os"] .retro-taskbar-clock {
+	font-size: 12px;
+	font-weight: 600;
+	text-align: right;
+	line-height: 1.3;
+	white-space: nowrap;
+}
+
+/* ---- RTL ------------------------------------------------------------------
+   Hard offset shadows and the press lift point away from the reading direction:
+   mirror the X axis. :where() keeps specificity identical to the rules above, so
+   source order wins. The copy gutter stays on the physical right — CodeBlock
+   forces dir="ltr" on the code surface itself. */
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-window-shadow {
+	filter: drop-shadow(-3px 3px 0 var(--skin-ink));
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-taskbar-start {
+	box-shadow: -2px 2px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-taskbar-start:hover {
+	box-shadow: -3px 3px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-btn {
+	box-shadow: -3px 3px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-btn:hover {
+	transform: translate(1px, -1px);
+	box-shadow: -4px 4px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-btn:active {
+	transform: translate(-2px, 2px);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-carousel-nav button {
+	box-shadow: -2px 2px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-carousel-nav button:hover {
+	transform: translate(1px, -1px);
+	box-shadow: -3px 3px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-carousel-nav button:active {
+	transform: translate(-2px, 2px);
+}
+/* Preview/Code tabs read right-to-left, so CODE overlaps on the other side. */
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-tabbar button + button {
+	margin-left: 0;
+	margin-right: -2px;
+}

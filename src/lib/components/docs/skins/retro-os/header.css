@@ -1,0 +1,416 @@
+/* Retro OS docs skin — R2 · menubar (DocHeader).
+
+   Every value is transcribed from the in-repo design reference
+   (vendor/design-refs/retro-os/FancyUI-Docs-Retro.dc.html l.29-43) — do not
+   eyeball or round them. Scope every rule under .docs-skin[data-skin="retro-os"]
+   so the standard skin and the /skins page (data-skin without .docs-skin) stay
+   untouched.
+
+   Height note: the reference menubar has NO fixed height. `padding:10px 16px`
+   plus the tallest control drives it, and that control is the 31px search field
+   (2px border + 6px/6px label padding + a 15px mono line box) — the rendered
+   reference measures 51px of content plus the 3px bottom border. The repo's
+   `h-14` (56px) is therefore dropped in favour of `height:auto`, and every line
+   box below is pinned to its reference metric so the 51px falls out
+   deterministically even before the webfonts land. */
+
+/* ---- R2 · Menubar shell ---------------------------------------------------- */
+.docs-skin[data-skin="retro-os"] header {
+	height: auto;
+	min-height: 0;
+	align-items: center;
+	gap: 14px;
+	padding: 10px 16px;
+	border-bottom: 3px solid var(--skin-line);
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	/* Opaque paper — the reference window has no translucency. */
+	backdrop-filter: none;
+}
+/* The markup carries Tailwind's `border-b`, and skin-base.css re-declares
+   `.border-b { border-bottom-width: 2px }` at (0,3,0) — one class more specific
+   than the shell block above, so the 3px shorthand loses. Re-assert the width on
+   the same element with the class in the selector: the menubar's bottom rule is
+   the §1.3 heavy weight, identical to the window frame and the taskbar top. */
+.docs-skin[data-skin="retro-os"] header.border-b {
+	border-bottom-width: 3px;
+}
+/* The reference gives `flex:1` to the breadcrumb bar and lets the controls sit
+   at their intrinsic width; the repo does the opposite, so the roles are swapped
+   here. The 14px gutter is the menubar's own gap. */
+.docs-skin[data-skin="retro-os"] header > .flex-1 {
+	flex: none;
+	gap: 14px;
+}
+
+/* ---- R2 · Mobile hamburger ------------------------------------------------- */
+/* No counterpart in the reference (a fixed 1600px canvas); rendered below `lg`,
+   so it is authored as the small-control rung of the §1.3 ladder. `display` is
+   never declared, so Tailwind's `lg:hidden` keeps hiding it on desktop. */
+.docs-skin[data-skin="retro-os"] header > button {
+	width: 30px;
+	height: 30px;
+	flex: none;
+	box-sizing: border-box;
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	background: var(--skin-surface);
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	transition:
+		transform 0.1s,
+		box-shadow 0.1s;
+}
+.docs-skin[data-skin="retro-os"] header > button:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] header > button:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0 0 0 var(--skin-line);
+}
+
+/* ---- R2 · Brand ------------------------------------------------------------ */
+/* Reference l.30-31: pixel logo, then `FANCYUI` in Silkscreen 12/700 with a
+   muted ` — DOCS.EXE` suffix. The 14px gutter between the logo and the wordmark
+   is the menubar gap; the repo wraps both in .retro-brand, so it repeats it.
+   Hidden below 640px, where the breadcrumb owns the row. */
+.docs-skin[data-skin="retro-os"] .retro-brand {
+	display: none;
+	align-items: center;
+	gap: 14px;
+	flex: none;
+}
+@media (min-width: 640px) {
+	.docs-skin[data-skin="retro-os"] .retro-brand {
+		display: inline-flex;
+	}
+}
+.docs-skin[data-skin="retro-os"] .retro-brand-name {
+	font-family: var(--skin-font-pixel);
+	font-size: 12px;
+	font-weight: 700;
+	/* Silkscreen is never letter-spaced in the reference. */
+	letter-spacing: normal;
+	white-space: nowrap;
+}
+.docs-skin[data-skin="retro-os"] .retro-brand-ext {
+	color: var(--skin-muted);
+}
+/* The suffix is authored as ` — DOCS.EXE`, but Svelte trims the leading
+   whitespace of the text node, welding it onto the wordmark. Re-insert the
+   reference's single space as a non-breaking one so it survives compilation. */
+.docs-skin[data-skin="retro-os"] .retro-brand-ext::before {
+	content: "\00a0";
+}
+
+/* ---- R2 · Breadcrumb ------------------------------------------------------- */
+/* Reference l.32: `flex:1; gap:8px; margin-left:16px`, IBM Plex Mono 12px (the
+   mono family comes from skin-base.css). Links are dark gold + underlined, the
+   current crumb is bold ink, the separator is a muted `>` — not the repo's `/`.
+   `line-height:normal` restores the reference metric over the markup's `text-sm`
+   (20px). The reference is a fixed 1600px canvas with no overflow rule; the docs
+   site is fluid, so the trail clips instead of colliding with the controls, and
+   the 3px block padding keeps that clip clear of the links' underline. */
+.docs-skin[data-skin="retro-os"] header nav {
+	flex: 1;
+	min-width: 0;
+	gap: 8px;
+	margin-inline-start: 16px;
+	padding-block: 3px;
+	font-size: 12px;
+	line-height: normal;
+	white-space: nowrap;
+	overflow: hidden;
+}
+.docs-skin[data-skin="retro-os"] header nav a {
+	color: var(--skin-purple);
+	text-decoration: underline;
+}
+.docs-skin[data-skin="retro-os"] header nav a:hover {
+	color: var(--skin-ink);
+}
+/* The current crumb is the only non-separator span in the trail. */
+.docs-skin[data-skin="retro-os"] header nav > span {
+	color: var(--skin-ink);
+	font-weight: 700;
+	text-decoration: none;
+}
+/* Glyph swap: zero out the `/` text node and paint the reference's `>`. */
+.docs-skin[data-skin="retro-os"] header nav > span.retro-crumb-sep {
+	color: var(--skin-muted);
+	font-weight: 400;
+	font-size: 0;
+}
+.docs-skin[data-skin="retro-os"] header nav > span.retro-crumb-sep::before {
+	content: ">";
+	font-size: 12px;
+}
+
+/* ---- R2 · Search field + ⌘K key -------------------------------------------- */
+/* Reference l.39-41: a 250px iconless field — the padding lives on the label,
+   not on the box, so the field is exactly 2 + 6 + 15 + 6 + 2 = 31px tall.
+   `display` is never declared, so the markup's `hidden sm:flex` keeps owning the
+   breakpoint at which the field appears. */
+.docs-skin[data-skin="retro-os"] .retro-search {
+	width: 250px;
+	flex: none;
+	box-sizing: border-box;
+	align-items: center;
+	gap: 0;
+	padding: 0;
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	background: var(--skin-surface);
+	color: var(--skin-muted);
+	font-family: var(--skin-font-mono);
+	transition: background-color 0.12s;
+}
+.docs-skin[data-skin="retro-os"] .retro-search:hover {
+	background: #f7efd2;
+}
+/* The reference field carries no magnifier. */
+.docs-skin[data-skin="retro-os"] .retro-search-icon {
+	display: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-search-label {
+	flex: 1;
+	min-width: 0;
+	padding: 6px 10px;
+	font-size: 12px;
+	line-height: 1.25;
+	color: var(--skin-muted);
+	text-align: start;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+/* Keycap: 1.5px ring with a 3px bottom edge — the whole depth cue of the skin. */
+.docs-skin[data-skin="retro-os"] .retro-search kbd {
+	flex: none;
+	margin-inline-end: 6px;
+	padding: 1px 6px;
+	border: 1.5px solid var(--skin-line);
+	border-bottom-width: 3px;
+	border-radius: 0;
+	background: var(--skin-card);
+	color: var(--skin-ink);
+	font-family: var(--skin-font-mono);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1.25;
+}
+
+/* ---- R2 · GITHUB button ---------------------------------------------------- */
+/* Reference l.43: a bare Silkscreen 10/700 label on the gold fill tint, 2px ink
+   ring, 2px hard shadow, small-control press.
+
+   Icon + star count decision: the reference button is label-only, and the repo's
+   anchor holds no text node at all (an aria-label, the GitHub mark and a live
+   star count). Both children are hidden and the label is painted as generated
+   content, which matches the reference exactly AND makes the button legible when
+   the stars fetch is rate-limited or offline (it would otherwise render a lone
+   icon). The accessible name still comes from the anchor's aria-label, and the
+   star count keeps rendering under the standard and brutal skins. */
+.docs-skin[data-skin="retro-os"] .retro-gh {
+	width: auto;
+	height: auto;
+	flex: none;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px;
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	background: #ecd77f;
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	font-family: var(--skin-font-pixel);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: normal;
+	text-decoration: none;
+	white-space: nowrap;
+	transition:
+		transform 0.1s,
+		box-shadow 0.1s;
+}
+.docs-skin[data-skin="retro-os"] .retro-gh::after {
+	content: "GITHUB";
+}
+.docs-skin[data-skin="retro-os"] .retro-gh-icon,
+.docs-skin[data-skin="retro-os"] .retro-gh > span {
+	display: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-gh:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-gh:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0 0 0 var(--skin-line);
+}
+
+/* ---- R2 · Menubar tools (language · skin · theme) -------------------------- */
+/* The reference menubar has no counterpart for these three controls, but they
+   must stay (the skin switcher is how a user leaves this skin), so they are
+   authored in the grammar: one grouped cluster of pixel chips on the small-
+   control rung. .retro-menubar-tools is display:contents by default (component
+   style, specificity 0,2,0) — the .docs-skin prefix reclaims it. */
+.docs-skin[data-skin="retro-os"] .retro-menubar-tools {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex: none;
+}
+.docs-skin[data-skin="retro-os"] header [data-language-switcher] > button,
+.docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button,
+.docs-skin[data-skin="retro-os"] header .docs-theme-btn {
+	height: auto;
+	gap: 6px;
+	padding: 6px 8px;
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	background: var(--skin-surface);
+	color: var(--skin-ink);
+	box-shadow: 2px 2px 0 var(--skin-line);
+	font-family: var(--skin-font-mono);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1.25;
+	transition:
+		transform 0.1s,
+		box-shadow 0.1s;
+}
+.docs-skin[data-skin="retro-os"] header [data-language-switcher] > button:hover,
+.docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:hover,
+.docs-skin[data-skin="retro-os"] header .docs-theme-btn:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	background: #f7efd2;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] header [data-language-switcher] > button:active,
+.docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:active,
+.docs-skin[data-skin="retro-os"] header .docs-theme-btn:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0 0 0 var(--skin-line);
+}
+/* Language: the globe reads as a soft vector next to Silkscreen/mono chrome, so
+   it gives way to the mono locale code the component already ships hidden. */
+.docs-skin[data-skin="retro-os"] header [data-language-switcher] > button > svg:first-of-type {
+	display: none;
+}
+.docs-skin[data-skin="retro-os"] header [data-language-switcher] .docs-lang-badge {
+	display: inline-block;
+	font-family: var(--skin-font-mono);
+	font-size: 10px;
+	font-weight: 700;
+	color: var(--skin-ink);
+}
+/* Radius 0 everywhere (spec §1.3): the theme chip's four preview dots included. */
+.docs-skin[data-skin="retro-os"] header .docs-theme-btn span > span {
+	border-radius: 0;
+}
+
+/* Dropdowns: the reference has none, so they inherit the panel grammar —
+   square, 2px ink ring, 3px hard shadow, Silkscreen group label. */
+.docs-skin[data-skin="retro-os"] .retro-menubar-tools [role="menu"] {
+	border: 2px solid var(--skin-line);
+	border-radius: 0;
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-menubar-tools [role="menu"] p {
+	font-family: var(--skin-font-pixel);
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: normal;
+	color: var(--skin-muted);
+}
+.docs-skin[data-skin="retro-os"] .retro-menubar-tools [role="menu"] button {
+	border-radius: 0;
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+}
+.docs-skin[data-skin="retro-os"] .retro-menubar-tools [role="menu"] button span {
+	border-radius: 0;
+}
+
+/* ---- R2 · Focus (spec §1.4) ------------------------------------------------ */
+/* The reference declares no focus state at all; this is the authored one. No
+   hard shadow → a 2px blue ring at 2px offset. Hard shadow → keep it and stack
+   the ring inside the same box-shadow list. :focus-visible only. */
+.docs-skin[data-skin="retro-os"] .retro-search:focus-visible,
+.docs-skin[data-skin="retro-os"] header nav a:focus-visible {
+	outline: 2px solid var(--skin-blue);
+	outline-offset: 2px;
+	border-radius: 0;
+}
+.docs-skin[data-skin="retro-os"] header > button:focus-visible,
+.docs-skin[data-skin="retro-os"] .retro-gh:focus-visible,
+.docs-skin[data-skin="retro-os"] header [data-language-switcher] > button:focus-visible,
+.docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:focus-visible,
+.docs-skin[data-skin="retro-os"] header .docs-theme-btn:focus-visible {
+	outline: none;
+	box-shadow:
+		2px 2px 0 var(--skin-line),
+		0 0 0 2px var(--skin-blue);
+}
+
+/* ---- RTL ------------------------------------------------------------------- */
+/* Hard offset shadows point away from the reading direction, and the press lift
+   follows them: mirror the X sign of both. `:where()` keeps specificity identical
+   to the rules above, so source order wins. The breadcrumb chevron mirrors too —
+   in ar/fa the trail reads right-to-left, so the next level sits to the left. */
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header nav > span.retro-crumb-sep::before {
+	content: "<";
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header > button,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-gh,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-language-switcher] > button,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header .docs-theme-btn {
+	box-shadow: -2px 2px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header > button:hover,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-gh:hover,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-language-switcher] > button:hover,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:hover,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header .docs-theme-btn:hover {
+	transform: translate(1px, -1px);
+	box-shadow: -3px 3px 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header > button:active,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-gh:active,
+:where([dir="rtl"])
+	.docs-skin[data-skin="retro-os"]
+	header
+	[data-language-switcher]
+	> button:active,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:active,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header .docs-theme-btn:active {
+	transform: translate(-2px, 2px);
+	box-shadow: 0 0 0 var(--skin-line);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header > button:focus-visible,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-gh:focus-visible,
+:where([dir="rtl"])
+	.docs-skin[data-skin="retro-os"]
+	header
+	[data-language-switcher]
+	> button:focus-visible,
+:where([dir="rtl"])
+	.docs-skin[data-skin="retro-os"]
+	header
+	[data-skin-switcher]
+	> button:focus-visible,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header .docs-theme-btn:focus-visible {
+	box-shadow:
+		-2px 2px 0 var(--skin-line),
+		0 0 0 2px var(--skin-blue);
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-menubar-tools [role="menu"] {
+	box-shadow: -3px 3px 0 var(--skin-line);
+}

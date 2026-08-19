@@ -25,6 +25,12 @@ export const categoryLabels: Record<ComponentCategory, string> = {
 	navigation: "Navigation",
 	media: "Media",
 	effects: "Effects",
+	"ai-chat": "AI Chat",
+	"ai-agents": "AI Agents",
+	actions: "Actions",
+	forms: "Forms",
+	overlays: "Overlays",
+	display: "Display",
 };
 
 /**
@@ -41,12 +47,18 @@ export const categoryDescriptions: Record<ComponentCategory, string> = {
 	navigation: "Navigation menus, tabs, and wayfinding components",
 	media: "Image, video, and media display components",
 	effects: "Visual effects, animations, and decorative elements",
+	"ai-chat": "Conversation surfaces: messages, composers, threads, and streaming text",
+	"ai-agents": "Agent activity: reasoning, tool use, plans, and human-in-the-loop cards",
+	actions: "Interactive action primitives like buttons, toggles, and triggers",
+	forms: "Form primitives for capturing and validating user input",
+	overlays: "Overlay primitives like dialogs, popovers, and menus",
+	display: "Primitives for displaying data, status, and content",
 };
 
 /**
- * All available categories in display order
+ * "Fancy" categories in display order (animated showcase components)
  */
-export const categories: ComponentCategory[] = [
+export const fancyCategories: ComponentCategory[] = [
 	"buttons",
 	"cards",
 	"text",
@@ -57,6 +69,31 @@ export const categories: ComponentCategory[] = [
 	"data-display",
 	"feedback",
 	"media",
+	"ai-chat",
+	"ai-agents",
+];
+
+/**
+ * "Core" categories in display order (foundational primitives)
+ */
+export const coreCategories: ComponentCategory[] = [
+	"actions",
+	"forms",
+	"navigation",
+	"overlays",
+	"display",
+	"feedback",
+	"media",
+	"layout",
+];
+
+/**
+ * All available categories in display order (fancy categories first, then any
+ * core-only categories not already covered). Kept for backwards compatibility.
+ */
+export const categories: ComponentCategory[] = [
+	...fancyCategories,
+	...coreCategories.filter((category) => !fancyCategories.includes(category)),
 ];
 
 // =============================================================================
@@ -80,6 +117,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Horizontal card carousel where the focused card expands into a spring-animated full-screen view",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{
@@ -103,6 +141,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "animated-beam",
 		description: "Animated SVG beams connecting elements with smooth gradients",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/animated-beam" }],
 		tags: ["animation", "svg", "beam", "gradient", "connection"],
@@ -201,6 +240,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "animated-testimonials",
 		description: "Testimonial carousel with smooth slide animations and optional autoplay",
 		category: "data-display",
+		group: "fancy",
 		status: "done",
 		tags: ["testimonials", "carousel", "animation", "social-proof"],
 		props: [
@@ -230,6 +270,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "bg-falling-stars",
 		description: "Canvas-based 3D starfield with perspective projection, motion trails, and glow",
 		category: "backgrounds",
+		group: "fancy",
 		status: "done",
 		tags: ["background", "stars", "canvas", "animation", "3d", "space"],
 		props: [
@@ -243,6 +284,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "animated-tooltip",
 		description: "Avatar row with animated tooltips that follow mouse movement",
 		category: "feedback",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/animated-tooltip" },
@@ -264,6 +306,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Scroll-triggered reveal that unblurs and slides each direct child into place as the container enters the viewport, staggering up to 10 children via CSS nth-child delays and respecting reduced motion",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/blur-fade" }],
 		tags: ["animation", "reveal", "blur", "scroll", "stagger"],
@@ -304,6 +347,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Gradient beam that races around a container's border using a CSS offset-path animation, masked so only the border ring is painted, with configurable size, speed, anchor position, and gradient colors",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/border-beam" }],
 		tags: ["animation", "border", "gradient", "beam"],
@@ -338,6 +382,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "compare",
 		description: "Before/after image comparison slider with hover and drag modes",
 		category: "media",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/compare" }],
 		tags: ["media", "image", "slider", "comparison", "before-after", "interactive"],
@@ -428,6 +473,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 8 selectable variants spanning simple fades, momentum drift, rotation flings, and 3D perspective tilt",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		tags: ["cursor", "animation", "images", "trail", "interactive"],
 		props: [
@@ -451,6 +497,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "interactive-grid-pattern",
 		description: "SVG grid of squares that highlight on hover with smooth fade transitions",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{
@@ -492,6 +539,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Link component with 11 animated underline hover effects — pure CSS, no JS on hover",
 		category: "navigation",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "VengenceUI", url: "https://www.vengence-ui.com/docs/line-hover-link" }],
 		tags: ["link", "navigation", "hover", "animation", "underline", "css"],
@@ -516,6 +564,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Staggered line-by-line text reveal with lines computed by pretext instead of DOM splitting",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "pretext", url: "https://github.com/chenglou/pretext" }],
 		tags: ["text", "animation", "reveal", "stagger", "pretext", "typography"],
@@ -562,6 +611,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Live magazine layout: multi-column text flowing around draggable orbs with zero DOM reads, powered by pretext",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "pretext editorial engine", url: "https://chenglou.me/pretext/editorial-engine/" },
@@ -601,6 +651,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "logo-cloud",
 		description: "Logo display with animated marquee, static grid, and icon variants",
 		category: "data-display",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/marquee" }],
 		tags: ["logos", "marquee", "brands", "animation", "scrolling"],
@@ -620,6 +671,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "direction-aware-hover",
 		description: "Image card with overlay that slides in from the mouse entry direction",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{
@@ -662,6 +714,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "rainbow-button",
 		description: "Animated button with a rainbow gradient border effect",
 		category: "buttons",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/rainbow-button" }],
 		tags: ["button", "animation", "rainbow", "gradient", "cta"],
@@ -678,6 +731,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Button that spawns an expanding, fading ripple circle centered on the click point, with configurable color and duration",
 		category: "buttons",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/ripple-button" }],
 		tags: ["button", "ripple", "click", "animation", "material"],
@@ -703,6 +757,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "shimmer-button",
 		description: "Button with a rotating conic-gradient shimmer border effect",
 		category: "buttons",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/shimmer-button" }],
 		tags: ["button", "shimmer", "gradient", "animation", "cta"],
@@ -746,6 +801,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "timeline",
 		description: "Vertical timeline with scroll-driven progress line and sticky labels",
 		category: "navigation",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/timeline" }],
 		tags: ["timeline", "scroll", "navigation", "progress", "vertical"],
@@ -773,6 +829,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Three-layer starfield background that scrolls continuously while parallax-shifting in response to cursor movement via spring physics, with stars rendered as box-shadow dots across near, mid, and far depth layers",
 		category: "backgrounds",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/stars-background" },
@@ -814,6 +871,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Icon dock where each item magnifies smoothly as the cursor approaches, sharing pointer position via Svelte context so every DockIcon scales by proximity within a configurable magnification and distance range",
 		category: "navigation",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/dock" }],
 		tags: ["dock", "navigation", "launcher", "magnification", "hover"],
@@ -852,6 +910,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"GPU fireworks background with a deterministic, DOM-free physics core (rockets, peony/willow/ring/glyph shells, sparks, embers, smoke) rendered by a WebGPU engine into a wide-gamut, extended-tone-mapping canvas so bursts and comet trails burn brighter than SDR white on HDR displays, degrading silently through a WebGL2 fallback and a soft-knee SDR path everywhere else",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		tags: ["hdr", "webgpu", "particles", "fireworks", "background"],
 		props: [
@@ -938,6 +997,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Full Navier-Stokes fluid simulation that swirls color in response to cursor and touch movement, running on WebGL2 with a WebGL1 fallback and an optional WebGPU HDR path for wide-gamut, brighter-than-white glow",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/fluid-cursor" },
@@ -1075,6 +1135,25 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "1.5",
 				description: "Display exposure multiplier in HDR mode, clamped to [1, 4]",
 			},
+			{
+				name: "dither",
+				type: "boolean",
+				default: "false",
+				description:
+					"Experimental retro bitmap dithering — pixelates the fluid to a chunky grid and quantizes color with an ordered 4x4 Bayer threshold. Forces the WebGL renderer; hdr is ignored while set",
+			},
+			{
+				name: "ditherPixelSize",
+				type: "number",
+				default: "3",
+				description: "Size of one dithered pixel in CSS pixels, minimum 1",
+			},
+			{
+				name: "ditherLevels",
+				type: "number",
+				default: "4",
+				description: "Color levels per channel in dither mode, clamped to [2, 16]",
+			},
 		],
 	},
 
@@ -1084,6 +1163,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Glowing ring that animates around a container's edge by sweeping a radial gradient's position, masked with CSS mask-composite so only the border ring is painted, supporting single or multi-color gradients",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/background-gradient" },
@@ -1117,6 +1197,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "gradient-button",
 		description: "Button with a rotating conic-gradient rainbow border effect",
 		category: "buttons",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/buttons/gradient-button" },
@@ -1164,6 +1245,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "interactive-hover-button",
 		description: "Button with interactive hover effect revealing alternate content",
 		category: "buttons",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{
@@ -1188,6 +1270,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "marquee",
 		description: "Infinite scrolling component for text, images, or cards",
 		category: "layout",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/marquee" }],
 		tags: ["marquee", "scrolling", "animation", "layout", "infinite"],
@@ -1225,6 +1308,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "meteors",
 		description: "Animated meteor shower effect with randomized positions and delays",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/meteors" }],
 		tags: ["animation", "meteors", "particles", "decoration", "space"],
@@ -1239,6 +1323,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Canvas grid of squares that flicker in and out of opacity at random each frame, pausing automatically via IntersectionObserver when scrolled off-screen and resizing to fit its container via ResizeObserver",
 		category: "backgrounds",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Magic UI", url: "https://magicui.design/docs/components/flickering-grid" },
@@ -1293,6 +1378,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "neon-border",
 		description: "Dual-color neon glow border effect with optional rotation animation",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Magic UI", url: "https://magicui.design/docs/components/neon-gradient-card" },
@@ -1325,6 +1411,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Per-character text animation where each glyph transitions to a new color from a shuffled palette, staggered across characters and reshuffling automatically every 5 seconds using pure CSS transitions",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/colourful-text" },
@@ -1358,6 +1445,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "flip-words",
 		description: "Cycling word animation with per-letter fade-in and blur effects",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/flip-words" }],
 		tags: ["text", "animation", "words", "cycling", "typography", "blur"],
@@ -1383,6 +1471,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Text that scrambles into random uppercase letters and resolves character-by-character back to the original on hover, with a staggered per-letter reveal and an optional animate-on-load mode",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/hyper-text" }],
 		tags: ["text", "animation", "scramble", "hover", "glitch", "typography"],
@@ -1408,6 +1497,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "letter-pullup",
 		description: "Staggered letter pull-up animation with wave entrance effect",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/letter-pullup" }],
 		tags: ["text", "animation", "letters", "stagger", "entrance", "typography"],
@@ -1432,6 +1522,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "number-ticker",
 		description: "Animated number counter with easing, triggered on viewport entry",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/number-ticker" }],
 		tags: ["text", "counter", "animation", "number", "scroll", "statistics"],
@@ -1470,6 +1561,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Text overlaid with small SVG star sparkles that scale, rotate, and fade in a continuous loop, each one regenerating at a random position once its lifespan expires, cycling between two configurable colors",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/sparkles" }],
 		tags: ["text", "sparkles", "animation", "stars", "decoration", "typography"],
@@ -1496,6 +1588,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Reveal animation where a solid color box slides left to right across content on viewport entry, unveiling it as it fades up into place underneath, triggered once via IntersectionObserver",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/box-reveal" }],
 		tags: ["text", "animation", "reveal", "scroll", "entrance"],
@@ -1527,6 +1620,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "card-3d",
 		description: "Interactive 3D perspective card with depth effects on child elements",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/3d-card-effect" },
@@ -1549,6 +1643,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Card whose radial-gradient spotlight tracks the cursor as it moves inside, fading in on hover and parking itself off-canvas when the pointer leaves, with configurable gradient size, color, and opacity",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/card-spotlight" },
@@ -1588,6 +1683,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "bento-grid",
 		description: "Bento-style grid layout with slot-based and props-based card variants",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/bento-grid" }],
 		tags: ["grid", "layout", "bento", "cards", "dashboard"],
@@ -1599,6 +1695,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "flip-card",
 		description: "Card that flips to reveal back content on hover using CSS 3D transforms",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		tags: ["card", "flip", "3d", "hover", "animation", "interactive"],
 		props: [
@@ -1620,6 +1717,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "book",
 		description: "3D book component with cover, spine, and back face that opens on hover",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/cards/book" }],
 		tags: ["card", "book", "3d", "hover", "animation"],
@@ -1659,6 +1757,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "glare-card",
 		description: "Holographic trading card effect with mouse-tracking glare and rainbow foil",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/glare-card" }],
 		tags: ["card", "glare", "holographic", "mouse", "3d", "foil", "interactive"],
@@ -1672,6 +1771,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "text-reveal-card",
 		description: "Card that reveals text on horizontal mouse drag with animated star particles",
 		category: "cards",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-reveal-card" },
@@ -1703,6 +1803,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "container-scroll",
 		description: "Scroll-driven animation that rotates and scales a card from tilted to flat",
 		category: "layout",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{
@@ -1728,6 +1829,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "container-text-flip",
 		description: "Text container that cycles through words with per-character blur animation",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Inspira UI", url: "https://inspira-ui.com/components/text/text-flip" }],
 		tags: ["text", "animation", "words", "cycling", "blur", "typography"],
@@ -1764,6 +1866,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "focus",
 		description: "Text component that cycles focus through words with blur and corner frame",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/focus-cards" }],
 		tags: ["text", "animation", "focus", "blur", "words", "typography"],
@@ -1813,6 +1916,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Frosted glass surface with organic turbulence-noise refraction, an alternative to LiquidGlass",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		tags: ["glass", "effect", "svg", "filter", "turbulence", "displacement", "blur", "navbar"],
 		props: [
@@ -1882,6 +1986,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "liquid-glass",
 		description: "Glass-like visual effect using SVG filters for chromatic displacement",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{
@@ -1981,6 +2086,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "smooth-cursor",
 		description: "Physics-based smooth cursor with spring animations and rotation effects",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/smooth-cursor" },
@@ -2002,6 +2108,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "glowing-effect",
 		description: "Mouse-proximity based glowing border effect with animated conic gradient",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/glowing-effect" }],
 		tags: ["border", "glow", "mouse", "gradient", "conic", "animation"],
@@ -2064,6 +2171,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Canvas-based floating particle sparkle effect with configurable density and colors",
 		category: "backgrounds",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/sparkles" }],
 		tags: ["background", "particles", "canvas", "animation", "sparkles"],
@@ -2108,6 +2216,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Confetti celebration effect powered by canvas-confetti with button trigger support",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/confetti" }],
 		tags: ["confetti", "celebration", "animation", "canvas", "particles"],
@@ -2140,6 +2249,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Set of concentric circles that pulse in a staggered wave, each ring larger, more transparent, and more delayed than the last, with the outermost ring rendered dashed to suggest a fading signal",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/ripple" }],
 		tags: ["animation", "ripple", "circles", "decoration", "pulse"],
@@ -2194,6 +2304,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "text-generate-effect",
 		description: "Typewriter-style text reveal that fades in words one by one with optional blur",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/text-generate-effect" },
@@ -2233,6 +2344,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "line-shadow-text",
 		description: "Text with animated diagonal line shadow pattern that scrolls continuously",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Magic UI", url: "https://magicui.design/docs/components/line-shadow-text" },
@@ -2260,6 +2372,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "tracing-beam",
 		description: "Vertical SVG beam that highlights scroll progress alongside content",
 		category: "effects",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/tracing-beam" },
@@ -2274,6 +2387,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "displacement-text",
 		description: "3D text with WebGL displacement that follows the cursor using Three.js shaders",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [{ source: "VengenceUI", url: "https://vengenceui.com/docs/liquid-text" }],
 		tags: ["text", "webgl", "3d", "displacement", "cursor", "shader", "threejs"],
@@ -2302,6 +2416,7 @@ export const registry: Record<string, ComponentMeta> = {
 		slug: "matrix-rain",
 		description: "Canvas-based falling glyph rain with configurable color, speed, and density",
 		category: "backgrounds",
+		group: "fancy",
 		status: "done",
 		tags: ["background", "matrix", "canvas", "animation", "glyphs", "cyberpunk"],
 		props: [
@@ -2339,6 +2454,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Terminal-style text streamer with per-character animation, blinking cursor, and glitch effect",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		tags: ["text", "terminal", "animation", "typewriter", "glitch", "code"],
 		props: [
@@ -2387,6 +2503,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"WebGL image reveal with a Perlin-noise dissolve mask, contracting radial gradient, and wave displacement",
 		category: "media",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{
@@ -2435,6 +2552,7 @@ export const registry: Record<string, ComponentMeta> = {
 		description:
 			"Big text that liquefies along the cursor's path via a raw-WebGL fluid solver, with chromatic-aberration fringing that relaxes back over time",
 		category: "text",
+		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Inspired by ryanritzenthaler.com (behavioral study)" },
@@ -2531,6 +2649,4957 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	// =========================================================================
+	// AI — chat & agent surfaces
+	// =========================================================================
+	"pixel-loader": {
+		name: "PixelLoader",
+		slug: "pixel-loader",
+		description:
+			"Grid of pixels pulsing in a diagonal wave as a pre-token loading indicator for AI responses",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "reasoning", "loading", "indicator"],
+		props: [
+			{ name: "cols", type: "number", default: "5", description: "Number of pixel columns" },
+			{ name: "rows", type: "number", default: "5", description: "Number of pixel rows" },
+			{
+				name: "cellSize",
+				type: "number",
+				default: "6",
+				description: "Size of a single pixel in px",
+			},
+			{ name: "gap", type: "number", default: "2", description: "Space between pixels in px" },
+			{
+				name: "color",
+				type: "string",
+				default: '"var(--ft-pixel-color, currentColor)"',
+				description: "Pixel colour, any CSS colour value",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1.6",
+				description: "Duration of one full pulse cycle in seconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Loading"',
+				description: "Accessible label announced by assistive tech",
+			},
+		],
+	},
+	"typing-indicator": {
+		name: "TypingIndicator",
+		slug: "typing-indicator",
+		description:
+			"Animated three-dot presence indicator with a staggered CSS wave, tuned to signal activity without pulling focus",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "indicator", "presence"],
+		props: [
+			{ name: "size", type: "number", default: "6", description: "Dot diameter in pixels" },
+			{
+				name: "color",
+				type: "string",
+				default: '"var(--ft-typing-color, currentColor)"',
+				description: "Dot color; any CSS color or custom property expression",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1.2",
+				description: "Duration of one full animation cycle in seconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Typing"',
+				description: "Visually hidden text announced to assistive technology",
+			},
+		],
+	},
+	"thinking-indicator": {
+		name: "ThinkingIndicator",
+		slug: "thinking-indicator",
+		description:
+			"Live agent status line with a shimmering activity label and an elapsed timer, as a bare inline row or a bordered status pill",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "reasoning", "status", "indicator"],
+		props: [
+			{
+				name: "status",
+				type: "string",
+				description: 'What the agent is doing right now, e.g. "Reading files"',
+				required: true,
+			},
+			{
+				name: "running",
+				type: "boolean",
+				default: "true",
+				description: "Whether the activity is in flight: drives the shimmer and the live timer",
+			},
+			{
+				name: "variant",
+				type: '"inline" | "pill"',
+				default: '"inline"',
+				description: "Bare text row, or a bordered chip with a leading pulse dot",
+			},
+			{
+				name: "since",
+				type: "number",
+				description: "Epoch ms the activity started; the internal stopwatch ticks from it",
+			},
+			{
+				name: "elapsedMs",
+				type: "number",
+				description: "Externally-driven elapsed time in ms; overrides the internal stopwatch",
+			},
+			{
+				name: "showElapsed",
+				type: "boolean",
+				default: "true",
+				description: "Show the elapsed duration alongside the status",
+			},
+		],
+		slots: [
+			{
+				name: "done",
+				description: "Rendered instead of the status label once running is false",
+			},
+		],
+	},
+	"streaming-text": {
+		name: "StreamingText",
+		slug: "streaming-text",
+		description:
+			"Renders a growing string as a live token stream: the appended delta lands tinted and settles, with an optional block cursor while the response is in flight",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "streaming", "text", "reasoning"],
+		props: [
+			{
+				name: "text",
+				type: "string",
+				description: "The accumulated text so far, not the latest delta; reassign as chunks arrive",
+				required: true,
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description: "Show a soft block cursor after the last character",
+			},
+			{
+				name: "markdown",
+				type: "boolean",
+				default: "false",
+				description:
+					"Render as markdown instead of the tinted plain-text stream; disables the delta tint",
+			},
+			{
+				name: "settleMs",
+				type: "number",
+				default: "350",
+				description: "How long a newly arrived chunk stays tinted in ms, plain mode only",
+			},
+			{
+				name: "tintColor",
+				type: "string",
+				description: "Colour a chunk fades from, and the cursor's fill; sets --ft-tint-color",
+			},
+			{
+				name: "onComplete",
+				type: "() => void",
+				description: "Called once when streaming goes from true to false",
+			},
+		],
+	},
+	"reasoning-panel": {
+		name: "ReasoningPanel",
+		slug: "reasoning-panel",
+		description:
+			"Collapsible reasoning trace that streams while the model thinks, then folds itself into a one-line summary",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "reasoning", "disclosure", "streaming"],
+		props: [
+			{
+				name: "text",
+				type: "string",
+				description: "The reasoning trace so far; hand over a longer string to stream more in",
+				required: true,
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the trace is still growing; drives the timer, shimmer, and autoscroll",
+			},
+			{
+				name: "open",
+				type: "boolean",
+				description:
+					"Expanded state (bindable). Left undefined, the panel opens while streaming and collapses 600ms after it ends, until the reader toggles it by hand",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Reasoning"',
+				description: "Header text",
+			},
+			{
+				name: "since",
+				type: "number",
+				description: "Epoch ms the current burst started at; pins the live timer's origin",
+			},
+			{
+				name: "durationMs",
+				type: "number",
+				description:
+					"Final duration for the summary line; falls back to the duration the panel measured itself",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"12rem"',
+				description: "Scroll height of the trace once expanded",
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description: "Called on every open/close, by click or on the panel's own initiative",
+			},
+		],
+	},
+	"chat-message": {
+		name: "ChatMessage",
+		slug: "chat-message",
+		description:
+			"One conversation turn, aligned and dressed by its role, streaming its body while the answer arrives, with an action rail that fades in on hover and a version navigator underneath",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		dependencies: ["streaming-text"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "message", "compound", "streaming"],
+		props: [
+			{
+				name: "role",
+				type: '"user" | "assistant" | "system"',
+				default: '"assistant"',
+				description: "Who produced the turn; drives alignment, chrome, and the accessible name",
+			},
+			{
+				name: "content",
+				type: "string",
+				default: '""',
+				description:
+					"The body so far, not the latest delta; reassign with a longer string as chunks arrive",
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description: "Whether content is still growing; shows the trailing cursor",
+			},
+			{
+				name: "markdown",
+				type: "boolean",
+				default: "false",
+				description: "Render the body as markdown instead of a tinted plain-text stream",
+			},
+			{
+				name: "timestamp",
+				type: "Date | number",
+				description:
+					"When the turn was produced; rendered relative, with the exact time as its tooltip",
+			},
+		],
+		slots: [
+			{ name: "avatar", description: "Rendered beside the body: an image, initials, an icon" },
+			{
+				name: "children",
+				description: "Replaces the default body rendering entirely; content is then ignored",
+			},
+			{
+				name: "actions",
+				description: "The action rail — put ChatMessageActions here; fades in on hover or focus",
+			},
+			{
+				name: "footer",
+				description: "Rendered under the body — where ChatMessageBranches belongs",
+			},
+		],
+	},
+	"prompt-suggestions": {
+		name: "PromptSuggestions",
+		slug: "prompt-suggestions",
+		description:
+			"Row of prompt pills that cascade in after a reply lands, offering the user a next turn without composing one",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "suggestions", "pills"],
+		props: [
+			{
+				name: "suggestions",
+				type: "string[]",
+				description: "Prompt texts offered to the user, in display order",
+				required: true,
+			},
+			{
+				name: "onSelect",
+				type: "(suggestion: string, index: number) => void",
+				description: "Called with the chosen prompt and its index when a pill is activated",
+			},
+			{
+				name: "visible",
+				type: "boolean",
+				default: "true",
+				description: "Whether the pills are shown; flipping this to true replays the entrance",
+			},
+			{
+				name: "staggerMs",
+				type: "number",
+				default: "60",
+				description: "Delay between two consecutive pills entering, in milliseconds",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Suggestions"',
+				description: "Accessible name of the group wrapping the pills",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Custom pill content, receiving the suggestion and its index",
+			},
+		],
+	},
+	"chat-error": {
+		name: "ChatError",
+		slug: "chat-error",
+		description:
+			"Quiet inline failure banner for a chat turn: the error, an optional detail line, and a retry button that disables itself while the retry is in flight",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "error", "feedback", "retry"],
+		props: [
+			{
+				name: "message",
+				type: "string",
+				default: '"Something went wrong"',
+				description: "The failure line",
+			},
+			{
+				name: "detail",
+				type: "string",
+				description: "Secondary muted line under the message, e.g. the error code",
+			},
+			{
+				name: "onRetry",
+				type: "() => void",
+				description: "Pressing retry calls this; the retry button only exists when it is set",
+			},
+			{
+				name: "retryLabel",
+				type: "string",
+				default: '"Retry"',
+				description: "Label for the retry button",
+			},
+			{
+				name: "retrying",
+				type: "boolean",
+				default: "false",
+				description: "Whether a retry is in flight: disables the button and marks the row busy",
+			},
+		],
+		slots: [
+			{
+				name: "icon",
+				description: "Leading icon, replacing the default warning triangle",
+			},
+			{
+				name: "children",
+				description: "Rendered instead of the message and detail block",
+			},
+		],
+	},
+	"tool-call": {
+		name: "ToolCall",
+		slug: "tool-call",
+		description:
+			"One tool invocation in a disclosure card: status dot, tool name, duration, and the request and result payloads pretty-printed on expand",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "tool", "disclosure"],
+		props: [
+			{
+				name: "call",
+				type: "ToolCallData",
+				description:
+					"The invocation to render: id, name, status, and whatever payloads exist so far",
+				required: true,
+			},
+			{
+				name: "open",
+				type: "boolean",
+				description:
+					'Expanded state (bindable). Left undefined the card stays collapsed, except that a call with status "error" opens itself — until the reader toggles it by hand',
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description: "Called on every open/close, by click or on the card's own initiative",
+			},
+		],
+		slots: [
+			{ name: "input", description: "Replaces the default request rendering; receives call.input" },
+			{
+				name: "output",
+				description: "Replaces the default result rendering; receives call.output",
+			},
+			{ name: "icon", description: "Leading icon, replacing the default wrench" },
+		],
+	},
+	"tool-timeline": {
+		name: "ToolTimeline",
+		slug: "tool-timeline",
+		description:
+			"Compact session summary of an agent's tool calls: one row per action on a vertical rail, with the target it touched, its diff stats, and when it ran",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "tool", "timeline", "activity"],
+		props: [
+			{
+				name: "items",
+				type: "ToolTimelineItemData[]",
+				description: "The agent's activity log, oldest first",
+				required: true,
+			},
+			{
+				name: "onSelect",
+				type: "(item: ToolTimelineItemData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "compact",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows with the detail line dropped",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Activity"',
+				description: "Accessible name for the list",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the rail and its dot",
+			},
+		],
+	},
+	"terminal-block": {
+		name: "TerminalBlock",
+		slug: "terminal-block",
+		description:
+			"Live command transcript: the prompt line, output as it streams in with its ANSI colours read, a block cursor while it runs, and an exit-status footer when it stops",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "terminal", "streaming", "output"],
+		props: [
+			{
+				name: "output",
+				type: "string",
+				description:
+					"Everything the command has printed so far, not the latest chunk; reassign as lines arrive",
+				required: true,
+			},
+			{
+				name: "command",
+				type: "string",
+				description: "The command that produced the output, shown after the prompt glyph",
+			},
+			{
+				name: "prompt",
+				type: "string",
+				default: '"$"',
+				description: "Prompt glyph in front of the command",
+			},
+			{
+				name: "running",
+				type: "boolean",
+				default: "false",
+				description: "Whether the command is still running: shows the cursor, pins the scroll",
+			},
+			{
+				name: "exitCode",
+				type: "number | null",
+				default: "null",
+				description: "Anything other than null ends the run and shows the status footer",
+			},
+			{
+				name: "durationMs",
+				type: "number",
+				description: "How long the run took, shown next to the exit status",
+			},
+			{
+				name: "ansi",
+				type: "boolean",
+				default: "true",
+				description:
+					"Read the SGR subset and colour the output; false still strips the escapes, it just paints nothing",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"20rem"',
+				description: "Height at which the output starts scrolling",
+			},
+		],
+		slots: [
+			{
+				name: "header",
+				description: "Title bar above the output — window dots, a file name, a copy button",
+			},
+		],
+	},
+	"code-diff": {
+		name: "CodeDiff",
+		slug: "code-diff",
+		description:
+			"Unified diff tuned for chat width: one foldable card per file, tinted add/delete rows, and a copy-safe gutter",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "diff", "code", "review"],
+		props: [
+			{
+				name: "diff",
+				type: "string",
+				description:
+					"Raw unified diff text, headers and all; parsed on every change, so a patch still arriving can be handed over as it grows",
+				required: true,
+			},
+			{
+				name: "filename",
+				type: "string",
+				description: "Header label when the patch names no file, or names exactly one",
+			},
+			{
+				name: "lineNumbers",
+				type: "boolean",
+				default: "true",
+				description: "Whether to show the old/new line-number gutters",
+			},
+			{
+				name: "collapsed",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the bodies are folded away (bindable). Set it and the whole patch folds; a click folds one file and writes back whether anything is left open",
+			},
+			{
+				name: "maxLines",
+				type: "number",
+				default: "0",
+				description:
+					'Lines shown per file before the rest hide behind a "Show N more lines" button; 0 shows everything',
+			},
+			{
+				name: "wrap",
+				type: "boolean",
+				default: "false",
+				description: "Whether long lines wrap instead of scrolling sideways",
+			},
+		],
+	},
+	sources: {
+		name: "Sources",
+		slug: "sources",
+		description:
+			"The citations under an answer: a pill carrying a stack of domain monograms and a count, expanding into scannable source cards with title, host, and the line worth reading",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "citations", "sources", "compound"],
+		props: [
+			{
+				name: "sources",
+				type: "SourceData[]",
+				description: "The documents backing the answer, in reading order",
+				required: true,
+			},
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the list is expanded; bindable",
+			},
+			{
+				name: "onToggle",
+				type: "(open: boolean) => void",
+				description:
+					"Called when the pill is clicked, with the state it moved to; driving open yourself does not fire it",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Replaces the default trigger-and-list composition entirely; omit it and the root renders both",
+			},
+			{
+				name: "item",
+				description:
+					"On SourcesList — replaces the default card; receives the source and its index",
+			},
+			{
+				name: "icon",
+				description: "On SourceCard — replaces the monogram: a favicon you host, a logo",
+			},
+		],
+	},
+	"inline-citation": {
+		name: "InlineCitation",
+		slug: "inline-citation",
+		description:
+			"A numbered reference that sits inside a sentence and reveals the document behind it — title, domain and snippet — in a floating card on hover or focus",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		dependencies: ["sources"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "citations", "tooltip"],
+		props: [
+			{
+				name: "source",
+				type: "SourceData",
+				description: "The document being cited; its title, domain and snippet fill the card",
+				required: true,
+			},
+			{
+				name: "index",
+				type: "number",
+				description: "The reference number shown in the marker, e.g. 3 renders [3]",
+				required: true,
+			},
+			{
+				name: "href",
+				type: "string",
+				default: "source.url",
+				description:
+					"Link target; an explicit empty string renders an unlinked marker that only reveals the card",
+			},
+			{
+				name: "onOpen",
+				type: "() => void",
+				description: "Called each time the card appears, once per appearance rather than per hover",
+			},
+		],
+		slots: [
+			{
+				name: "preview",
+				description: "Replaces the default card body; receives the source",
+			},
+		],
+	},
+	"web-search": {
+		name: "WebSearch",
+		slug: "web-search",
+		description:
+			"A search the agent ran: the query in a search-bar header, an indeterminate scanning bar while it runs, and results that land one row at a time",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "search", "results", "knowledge"],
+		props: [
+			{
+				name: "query",
+				type: "string",
+				description: "What the agent looked up, shown in the search-bar header",
+				required: true,
+			},
+			{
+				name: "results",
+				type: "SearchResultData[]",
+				description: "Hits found so far, oldest first; appending to it lands a new row",
+				required: true,
+			},
+			{
+				name: "searching",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the lookup is still running: drives the scanning bar and the waiting state",
+			},
+			{
+				name: "onSelect",
+				type: "(result: SearchResultData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "maxVisible",
+				type: "number",
+				default: "0",
+				description: "Rows shown before the expander takes over; 0 shows every result",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Web search"',
+				description: "Accessible name for the whole block",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the row element and its behaviour",
+			},
+		],
+	},
+	"image-generation": {
+		name: "ImageGeneration",
+		slug: "image-generation",
+		description:
+			"Fixed frame that holds its place while a model draws: an empty outline, then a pixel grid working over a drifting dot field, then the finished image easing out of a blur",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		dependencies: ["pixel-loader"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "image", "generation", "media"],
+		props: [
+			{
+				name: "status",
+				type: '"idle" | "generating" | "done" | "error"',
+				description: "Which stage of the generation to render",
+				required: true,
+			},
+			{
+				name: "src",
+				type: "string | null",
+				description: 'The generated image, shown once status is "done"',
+			},
+			{
+				name: "alt",
+				type: "string",
+				description: "Describes the image to assistive tech — typically the prompt",
+				required: true,
+			},
+			{
+				name: "aspectRatio",
+				type: "string",
+				default: '"1 / 1"',
+				description: "CSS aspect-ratio of the frame, holding the layout across every state",
+			},
+			{
+				name: "prompt",
+				type: "string",
+				description: "Muted caption line under the frame",
+			},
+			{
+				name: "errorText",
+				type: "string",
+				default: '"Generation failed"',
+				description: "The failure line shown in the error state",
+			},
+			{
+				name: "onRetry",
+				type: "() => void",
+				description: "Pressing retry calls this; the retry button only exists when it is set",
+			},
+			{
+				name: "onLoad",
+				type: "() => void",
+				description: "Called once the generated image has finished loading",
+			},
+		],
+	},
+	"agent-plan": {
+		name: "AgentPlan",
+		slug: "agent-plan",
+		description:
+			"Glanceable checklist of an agent's plan: a done/total count and completion bar over one row per step, with a status glyph, an optional detail line, and substeps indented under a rail",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "plan", "checklist", "progress"],
+		props: [
+			{
+				name: "steps",
+				type: "PlanStepData[]",
+				description:
+					"The plan, in the order the agent means to work through it; nests one level via substeps",
+				required: true,
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Plan"',
+				description: "Header text, sitting beside the done/total count",
+			},
+			{
+				name: "showProgress",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the thin completion bar shows under the header; its fraction counts substeps as steps",
+			},
+			{
+				name: "onSelect",
+				type: "(step: PlanStepData) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Replaces the built-in row body, keeping the glyph and the indent; receives the step and its position in visual order",
+			},
+		],
+	},
+	"subagent-list": {
+		name: "SubagentList",
+		slug: "subagent-list",
+		description:
+			"Fan-out panel for parallel workers: one row per delegated agent with its status dot, model badge, task, and its own progress bar",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "parallel", "progress", "workers"],
+		props: [
+			{
+				name: "agents",
+				type: "SubagentData[]",
+				description:
+					"The delegated workers, in the order they were spawned: id, name, task, status, and optionally progress and model",
+				required: true,
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					'Accessible name for the list. Left unset it is derived from the statuses — "2 agents running" while anything runs, "3 agents finished" once the last one lands',
+			},
+			{
+				name: "onSelect",
+				type: "(agent: SubagentData, index: number) => void",
+				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "compact",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows with the task line dropped",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description: "Replaces the built-in row body, keeping the status dot",
+			},
+		],
+	},
+	"approval-card": {
+		name: "ApprovalCard",
+		slug: "approval-card",
+		description:
+			"A human-in-the-loop gate before a side effect: the agent states what it is about to do, and the footer swaps its approve and deny buttons for a one-line verdict once someone decides",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "approval", "human-in-the-loop", "gate"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: 'What permission is being asked for, e.g. "Run database migration"',
+				required: true,
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Muted second line under the title — the consequence, the blast radius",
+			},
+			{
+				name: "state",
+				type: '"pending" | "approved" | "denied"',
+				default: '"pending"',
+				description:
+					"Which side of the gate we are on (bindable). Buttons exist only while pending; writing a resolved value from outside settles the card without firing a callback",
+			},
+			{
+				name: "destructive",
+				type: "boolean",
+				default: "false",
+				description:
+					"Marks the action as irreversible: red approve button, a warning tint on the card, and an alert mark on the shield so the warning is not carried by colour alone",
+			},
+			{
+				name: "approveLabel",
+				type: "string",
+				default: '"Approve"',
+				description: "Label for the approve button",
+			},
+			{
+				name: "denyLabel",
+				type: "string",
+				default: '"Deny"',
+				description: "Label for the deny button",
+			},
+			{
+				name: "onApprove",
+				type: "() => void",
+				description: "Called when approve is pressed, after state has been written",
+			},
+			{
+				name: "onDeny",
+				type: "() => void",
+				description: "Called when deny is pressed, after state has been written",
+			},
+			{
+				name: "busy",
+				type: "boolean",
+				default: "false",
+				description:
+					"The consumer is executing the decision: both buttons go disabled and the card is marked aria-busy",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Detail region between the header and the footer — a diff, a command preview, the payload about to be posted",
+			},
+		],
+	},
+	"recommendation-card": {
+		name: "RecommendationCard",
+		slug: "recommendation-card",
+		description:
+			"An agent's proposal awaiting an answer: a kicker, the recommendation, a confidence figure counted up beside a ring that fills to match, and two buttons that collapse into one quiet resolved line",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		dependencies: ["number-ticker"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "recommendation", "confidence"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: 'What the agent is proposing, e.g. "Add an index on orders.customer_id"',
+				required: true,
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Secondary muted line under the title — the reasoning, the expected effect",
+			},
+			{
+				name: "confidence",
+				type: "number",
+				description:
+					"How sure the agent is, from 0 to 1. Omitted, the whole confidence block disappears rather than reading as zero; out-of-range numbers are clamped and the band shifts colour at 0.75 and 0.5",
+			},
+			{
+				name: "acceptLabel",
+				type: "string",
+				default: '"Apply"',
+				description: "Label for the confirm button",
+			},
+			{
+				name: "dismissLabel",
+				type: "string",
+				default: '"Dismiss"',
+				description: "Label for the decline button",
+			},
+			{
+				name: "onAccept",
+				type: "() => void",
+				description: "Called when the recommendation is accepted, after `state` has been written",
+			},
+			{
+				name: "onDismiss",
+				type: "() => void",
+				description: "Called when the recommendation is dismissed, after `state` has been written",
+			},
+			{
+				name: "state",
+				type: '"open" | "accepted" | "dismissed"',
+				default: '"open"',
+				description:
+					"Where the recommendation stands (bindable). Resolving swaps the buttons for a quiet line inside a polite live region; a resolved card refuses to resolve again",
+			},
+			{
+				name: "badge",
+				type: "string",
+				description: 'Small kicker above the title, e.g. "Suggestion"',
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"The detail region between the header and the footer — a snippet of the change being proposed",
+			},
+		],
+	},
+	"artifact-card": {
+		name: "ArtifactCard",
+		slug: "artifact-card",
+		description:
+			"A generated document as a tangible object: title, kind, a version navigator, and the first six lines of the text itself streaming in behind a fade",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		dependencies: ["streaming-text"],
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "artifact", "document", "versioned", "streaming"],
+		props: [
+			{
+				name: "title",
+				type: "string",
+				description: "What the document is called",
+				required: true,
+			},
+			{
+				name: "kind",
+				type: "string",
+				default: '"Document"',
+				description: "The kind of thing it is, on the muted line under the title",
+			},
+			{
+				name: "version",
+				type: "number",
+				description: "Which revision is on screen, 1-based; rendered as v3",
+			},
+			{
+				name: "versionCount",
+				type: "number",
+				description: "How many revisions exist; with version the badge reads v3/5",
+			},
+			{
+				name: "onVersionChange",
+				type: "(version: number) => void",
+				description:
+					"Asked for another revision by 1-based number, never one outside its bounds; supplying it turns the badge into a navigator",
+			},
+			{
+				name: "status",
+				type: '"idle" | "streaming" | "done" | "error"',
+				default: '"done"',
+				description:
+					"Where the document is in its life; streaming sweeps the top edge and trails a cursor, error grows a tinted footer",
+			},
+			{
+				name: "preview",
+				type: "string",
+				description:
+					"The text so far, not the latest delta; clamped to roughly six lines behind a bottom fade",
+			},
+			{
+				name: "onOpen",
+				type: "() => void",
+				description:
+					"Asked to open the document; supplying it makes the whole card activatable by click, Enter, or Space",
+			},
+		],
+		slots: [
+			{
+				name: "actions",
+				description:
+					"Buttons for the top-right rail; each keeps its own click, without opening the card",
+			},
+		],
+	},
+	"ai-data-table": {
+		name: "AiDataTable",
+		slug: "ai-data-table",
+		description:
+			"Compact comparison table for a model's structured answer: real table semantics, tabular numeric columns, check-or-dash booleans, and one tintable column — rendered in the order it arrived, with no sorting",
+		category: "ai-agents",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "agents", "table", "comparison", "structured-output"],
+		props: [
+			{
+				name: "columns",
+				type: "AiDataTableColumn[]",
+				description:
+					"Columns in render order: key, label, and optional align / numeric. A numeric column gets tabular figures and right alignment",
+				required: true,
+			},
+			{
+				name: "rows",
+				type: "AiDataTableRow[]",
+				description:
+					"Rows keyed by column key, in the order the model produced them; a missing key renders as empty",
+				required: true,
+			},
+			{
+				name: "caption",
+				type: "string",
+				description:
+					"Names the table for assistive tech; rendered in a visually-hidden <caption> unless captionVisible",
+			},
+			{
+				name: "captionVisible",
+				type: "boolean",
+				default: "false",
+				description: "Also shows the caption, as a muted line above the table",
+			},
+			{
+				name: "dense",
+				type: "boolean",
+				default: "false",
+				description: "Tighter rows, for a table read at a glance rather than studied",
+			},
+			{
+				name: "highlightColumn",
+				type: "string",
+				description:
+					"Key of the column to tint — the recommendation, or whichever criterion decided it",
+			},
+		],
+		slots: [
+			{
+				name: "cell",
+				description:
+					"Replaces the default rendering of every cell; receives the raw value and { row, key }",
+			},
+		],
+	},
+	composer: {
+		name: "Composer",
+		slug: "composer",
+		description:
+			"The input at the bottom of a chat, taken apart: a root that owns the draft and eight parts that read it — a growing textarea, a send button that becomes a stop button, a toolbar, a model picker, an attachment row with its chips, and a completion menu you can mount twice on the same draft for / commands and @ mentions",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "composer", "input", "compound"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description:
+					"The draft text, bindable. Cleared by a successful submit; the attachments are not, since only the consumer knows whether an upload is still in flight",
+			},
+			{
+				name: "attachments",
+				type: "AttachmentData[]",
+				default: "[]",
+				description:
+					"Files riding along with the draft, bindable. The consumer owns uploading them and pushing the results here",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks typing, sending, and attaching. Every part reads it off the context, so one flag takes the whole composition inert",
+			},
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description:
+					"A response is arriving: the send button becomes a stop button, the textarea goes readonly rather than disabled, and a submit is refused whatever triggered it",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description:
+					"Placeholder for the default input. Ignored once children replaces the composition — the ComposerInput inside it carries its own",
+			},
+			{
+				name: "onSubmit",
+				type: "(payload: { text: string; attachments: AttachmentData[] }) => void",
+				description:
+					"Called with the trimmed draft and a snapshot of the attachments. Never fires on an empty draft that carries no files",
+			},
+			{
+				name: "onStop",
+				type: "() => void",
+				description: "Called when the stop button is pressed while streaming",
+			},
+			{
+				name: "onAttach",
+				type: "(files: File[]) => void",
+				description:
+					"Called with the files handed to the picker. Upload them, then push the results onto attachments — the composer never uploads anything itself",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Replaces the default input-and-send-row composition entirely: mount the parts in whatever order the layout needs",
+			},
+			{
+				name: "accessory",
+				description:
+					"An overlay covering the composer — a voice panel, a drop target, a confirmation. It sits above the composition rather than replacing it, so the draft is still there when it lifts",
+			},
+		],
+	},
+	"voice-input": {
+		name: "VoiceInput",
+		slug: "voice-input",
+		description:
+			"A mic button that opens into a recording panel: a live waveform painted from amplitude levels you supply, a stopwatch, the transcript as it arrives, and a cross and a check to throw it away or keep it",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "voice", "waveform", "input"],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether a recording is in progress (bindable). Every button writes through it; setting it from outside opens or closes the panel without firing a callback",
+			},
+			{
+				name: "transcript",
+				type: "string",
+				default: '""',
+				description:
+					"Live text pushed by the consumer as their recogniser produces it, rendered muted under the waveform; a growing string grows in place",
+			},
+			{
+				name: "samples",
+				type: "ArrayLike<number>",
+				description:
+					"Amplitude levels in 0..1 bridged from your own audio pipeline, one entry per bar. The component never opens a microphone itself",
+			},
+			{
+				name: "demo",
+				type: "boolean",
+				default: "false",
+				description:
+					"Draw a deterministic synthetic wave when no samples arrive, so the panel is legible on a page with no audio behind it. Real samples always win",
+			},
+			{
+				name: "onStart",
+				type: "() => void",
+				description: "Called when the mic button starts a recording",
+			},
+			{
+				name: "onStop",
+				type: "() => void",
+				description: "Called when the check ends the recording and keeps the transcript",
+			},
+			{
+				name: "onCancel",
+				type: "() => void",
+				description: "Called when the cross abandons the recording",
+			},
+			{
+				name: "height",
+				type: "number",
+				default: "48",
+				description: "Waveform height in CSS pixels, clamped to 16..240",
+			},
+			{
+				name: "color",
+				type: "string",
+				default: "var(--ft-voice-color, currentColor)",
+				description:
+					"Any CSS colour for the bars, including a var() or currentColor — written onto the canvas as its CSS color and read back resolved, because a 2D context understands neither",
+			},
+		],
+	},
+	"context-ring": {
+		name: "ContextRing",
+		slug: "context-ring",
+		description:
+			"How much of the context window is gone, in the space of a favicon: a donut that fills as the conversation grows, the compact count beside it, and an optional popover breaking the total down by what is holding it",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "tokens", "context", "indicator"],
+		props: [
+			{
+				name: "usage",
+				type: "TokenUsageData",
+				description:
+					"Context-window consumption: tokens used, out of how many, and optionally the breakdown rows the popover lists",
+				required: true,
+			},
+			{
+				name: "size",
+				type: "number",
+				default: "28",
+				description: "Outer diameter of the ring, in pixels; drives the viewBox and the radius",
+			},
+			{
+				name: "strokeWidth",
+				type: "number",
+				default: "3",
+				description:
+					"Thickness of the track and the arc, in pixels; clamped to the radius so a thick ring cannot eat its own centre",
+			},
+			{
+				name: "showLabel",
+				type: "boolean",
+				default: "true",
+				description:
+					'Whether the compact "12.4k / 200k" figure is shown beside the ring — exact under a thousand, one decimal under 100k, rounded above',
+			},
+			{
+				name: "warnAt",
+				type: "number",
+				default: "0.75",
+				description:
+					"Fraction at which the ring leaves the quiet band and takes the running colour",
+			},
+			{
+				name: "criticalAt",
+				type: "number",
+				default: "0.9",
+				description:
+					"Fraction at which the ring takes the error colour. Floored at warnAt, so a threshold set below the warning cannot create a band that never wins",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Context usage"',
+				description:
+					"Accessible name for the meter, and — when expandable — for the button that contains it",
+			},
+			{
+				name: "expandable",
+				type: "boolean",
+				default: "false",
+				description:
+					"Turns the ring into a button that toggles a popover listing usage.breakdown; closes on Escape, on a click outside, or on a second press",
+			},
+		],
+	},
+	"scroll-anchor": {
+		name: "ScrollAnchor",
+		slug: "scroll-anchor",
+		description:
+			"A scroll region that stays pinned to its last line while content streams in, lets go when the reader scrolls up, and floats a pill offering the way back down",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "scroll", "streaming", "utility"],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the region pins itself to the bottom as content arrives — bind it to your streaming flag. False leaves an ordinary scroll box, and hides the return button with it",
+			},
+			{
+				name: "bottomThreshold",
+				type: "number",
+				default: "40",
+				description: "How close to the bottom (px) still counts as pinned",
+			},
+			{
+				name: "returnLabel",
+				type: "string",
+				default: '"Jump to latest"',
+				description: "Label on the floating return button, and its accessible name",
+			},
+			{
+				name: "showReturn",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the floating return button appears once the reader scrolls away from the bottom",
+			},
+			{
+				name: "maxHeight",
+				type: "string",
+				default: '"100%"',
+				description: "Height cap on the scrolling region — any CSS length",
+			},
+			{
+				name: "onStickChange",
+				type: "(stuck: boolean) => void",
+				description: "Called when the region pins itself or lets go, never on every scroll",
+			},
+		],
+		slots: [{ name: "children", description: "The scrolling content" }],
+	},
+	"thread-list": {
+		name: "ThreadList",
+		slug: "thread-list",
+		description:
+			"Conversation history for a chat sidebar: one row per thread with an unread dot, its last message, and a relative timestamp, plus selection and per-row delete",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "threads", "history", "navigation"],
+		props: [
+			{
+				name: "threads",
+				type: "ThreadData[]",
+				description: "The conversations to list, in the order they should appear",
+				required: true,
+			},
+			{
+				name: "activeId",
+				type: "string",
+				description:
+					"Id of the selected conversation (bindable). A click writes the new id back whether or not onSelect is supplied",
+			},
+			{
+				name: "onSelect",
+				type: "(thread: ThreadData) => void",
+				description: "Called with the conversation the reader picked",
+			},
+			{
+				name: "onDelete",
+				type: "(thread: ThreadData) => void",
+				description: "Supplying it puts a delete button on every row, revealed on hover or focus",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Conversations"',
+				description: "Accessible name for the list",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Replaces the built-in row body; receives the thread and whether it is the active one",
+			},
+			{
+				name: "empty",
+				description: 'Replaces the built-in "No conversations yet" line',
+			},
+		],
+	},
+	"chat-panel": {
+		name: "ChatPanel",
+		slug: "chat-panel",
+		description:
+			"The shell a conversation lives in: a sticky header, a transcript that pins itself to the bottom while an answer arrives and offers the way back once you scroll up, and a sticky composer row",
+		category: "ai-chat",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "assistant-ui", url: "https://www.assistant-ui.com/elements" }],
+		tags: ["ai", "chat", "panel", "shell", "compound"],
+		props: [
+			{
+				name: "streaming",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether a reply is still arriving; pins the transcript to its bottom until the reader scrolls up",
+			},
+			{
+				name: "empty",
+				type: "boolean",
+				default: "false",
+				description: "Renders the emptyState snippet in place of the message stream",
+			},
+			{
+				name: "returnLabel",
+				type: "string",
+				default: '"Jump to latest"',
+				description: "Label on the pill offered once the reader scrolls away from the bottom",
+			},
+		],
+		slots: [
+			{ name: "header", description: "Sticky top region: a title, a model name, a close button" },
+			{ name: "children", description: "The message stream, filling the scroll region" },
+			{ name: "composer", description: "Sticky bottom region — where Composer belongs" },
+			{
+				name: "emptyState",
+				description: "Rendered instead of children while empty — where ChatEmptyState belongs",
+			},
+		],
+	},
+
+	// =========================================================================
+	// Core — actions
+	// =========================================================================
+
+	button: {
+		name: "Button",
+		slug: "button",
+		description:
+			"The foundational push-button: six variants, three sizes, a loading state, and a polymorphic href/anchor mode",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["button", "cta", "actions", "form", "link", "loading", "icon"],
+		props: [
+			{
+				name: "variant",
+				type: '"primary" | "secondary" | "outline" | "ghost" | "accent" | "destructive"',
+				default: '"primary"',
+				description: "Visual treatment",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Padding / font-size / radius scale",
+			},
+			{
+				name: "type",
+				type: '"button" | "submit" | "reset"',
+				default: '"button"',
+				description: "Native type; ignored once href renders an anchor instead",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Greys the button out and blocks activation",
+			},
+			{
+				name: "loading",
+				type: "boolean",
+				default: "false",
+				description:
+					"Spinner in place of iconStart, aria-busy, inert to activation on both the button and anchor branch — does not dim the button",
+			},
+			{
+				name: "href",
+				type: "string",
+				description: "Renders an <a> instead of a <button> when set",
+			},
+			{
+				name: "target",
+				type: "string",
+				description: 'Anchor target. "_blank" forces a safe rel',
+			},
+			{
+				name: "rel",
+				type: "string",
+				description: 'Anchor rel, widened rather than replaced when target="_blank"',
+			},
+			{
+				name: "fullWidth",
+				type: "boolean",
+				default: "false",
+				description: "Stretches the button to its container's width",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name for a button whose content is icon-only",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Fires on activation; never called while disabled or loading",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The button's label / content" },
+			{
+				name: "iconStart",
+				description: "Rendered before the label; replaced by the spinner while loading",
+			},
+			{ name: "iconEnd", description: "Rendered after the label" },
+		],
+	},
+
+	"icon-button": {
+		name: "IconButton",
+		slug: "icon-button",
+		description:
+			"Square or circular icon-only button built on Button, with a required accessible label",
+		category: "actions",
+		group: "core",
+		status: "done",
+		dependencies: ["button"],
+		tags: ["button", "icon", "action", "accessibility"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name. Required — there is no visible text to fall back on",
+				required: true,
+			},
+			{
+				name: "variant",
+				type: '"primary" | "secondary" | "outline" | "ghost" | "accent" | "destructive"',
+				default: '"outline"',
+				description: "Visual treatment, forwarded to the underlying Button",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Square footprint (30 / 36 / 42px) and resting radius",
+			},
+			{
+				name: "shape",
+				type: '"square" | "circle"',
+				default: '"square"',
+				description: "Square keeps the size's own radius; circle rounds it fully",
+			},
+			{
+				name: "type",
+				type: '"button" | "submit" | "reset"',
+				default: '"button"',
+				description: "Native type; ignored once href renders an anchor instead",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Greys the control out and blocks activation",
+			},
+			{
+				name: "loading",
+				type: "boolean",
+				default: "false",
+				description: "Spinner in place of the icon, aria-busy, blocks activation",
+			},
+			{
+				name: "href",
+				type: "string",
+				description: "Renders an <a> instead of a <button> when set",
+			},
+			{ name: "target", type: "string", description: 'Anchor target. "_blank" forces a safe rel' },
+			{
+				name: "rel",
+				type: "string",
+				description: 'Anchor rel, widened rather than replaced when target="_blank"',
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Fires on activation; never called while disabled or loading",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+			{
+				name: "ref",
+				type: "HTMLButtonElement | HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [{ name: "children", description: "The icon, rendered centred" }],
+	},
+
+	"button-group": {
+		name: "ButtonGroup",
+		slug: "button-group",
+		description:
+			"Joins a row of adjacent actions into one seamless control — one border, one divider, no doubled edges",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["button", "group", "segmented", "split button", "toolbar", "actions"],
+		props: [
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "Stacking axis for the joined items",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name for the group, exposed as aria-label",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root <div>",
+			},
+		],
+		slots: [{ name: "children", description: "The adjacent actions to join" }],
+	},
+
+	link: {
+		name: "Link",
+		slug: "link",
+		description:
+			"Inline text link with a muted variant, configurable underline, and a safe external-link mode with a new-tab arrow",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["link", "anchor", "external", "underline", "typography"],
+		props: [
+			{
+				name: "href",
+				type: "string",
+				description: "Destination URL",
+				required: true,
+			},
+			{
+				name: "variant",
+				type: '"default" | "muted"',
+				default: '"default"',
+				description:
+					"default reads as inline copy; muted recedes into supporting text at a smaller size",
+			},
+			{
+				name: "external",
+				type: "boolean",
+				default: "false",
+				description: "Appends an arrow glyph, defaults target to _blank, and guarantees a safe rel",
+			},
+			{
+				name: "underline",
+				type: '"hover" | "always" | "none"',
+				default: '"hover"',
+				description: "When the underline shows",
+			},
+			{
+				name: "target",
+				type: "string",
+				description: "Anchor target; external fills this in as _blank when left unset",
+			},
+			{
+				name: "rel",
+				type: "string",
+				description:
+					"Anchor rel; merged with noopener noreferrer whenever the link opens a new tab",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Native click handler",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [{ name: "children", description: "The link's text or content" }],
+	},
+
+	toggle: {
+		name: "Toggle",
+		slug: "toggle",
+		description:
+			"Two-state button carrying aria-pressed, for a single on/off option like a formatting mark or a filter",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["toggle", "button", "pressed", "formatting", "switch"],
+		props: [
+			{
+				name: "pressed",
+				type: "boolean",
+				default: "false",
+				description: "Whether the toggle is currently pressed (active); bindable",
+			},
+			{
+				name: "onPressedChange",
+				type: "(pressed: boolean) => void",
+				description: "Called with the new pressed state whenever the toggle is activated",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the toggle; blocks both the state change and the callback",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Visual size of the control",
+			},
+			{
+				name: "variant",
+				type: '"ghost" | "outline"',
+				default: '"ghost"',
+				description: '"ghost" has no resting border, "outline" keeps one at rest',
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — required when children is icon-only",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Toggle content, typically a single glyph or a short label",
+			},
+		],
+	},
+
+	"toggle-group": {
+		name: "ToggleGroup",
+		slug: "toggle-group",
+		description:
+			"A segmented row of toggle buttons with roving-tabindex keyboard navigation and single or multiple selection.",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["toggle", "segmented-control", "roving-tabindex", "compound", "selection", "toolbar"],
+		props: [
+			{
+				name: "type",
+				type: '"single" | "multiple"',
+				default: '"single"',
+				description: "Whether one item can be active at a time, or several.",
+			},
+			{
+				name: "value",
+				type: "string | string[]",
+				default: '""',
+				description:
+					'The active value(s), bindable — a string when type="single", an array of strings when type="multiple".',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string | string[]) => void",
+				description:
+					"Called with the new value, shaped to match `type`, whenever the selection changes.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables every item in the group.",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Sizes every item.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "The rail's stacking axis; both arrow-key pairs work either way.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name for the group.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "ToggleGroupItem.value",
+				type: "string",
+				required: true,
+				description: "The item's value — what gets added to or removed from the group's selection.",
+			},
+			{
+				name: "ToggleGroupItem.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this item, independent of the group's own `disabled`.",
+			},
+			{
+				name: "ToggleGroupItem.label",
+				type: "string",
+				description: "Accessible name for icon-only content on this item. Also the text fallback.",
+			},
+			{
+				name: "ToggleGroupItem.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the item's button.",
+			},
+			{
+				name: "ToggleGroupItem.ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the item's button element.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The ToggleGroup's content — the ToggleGroupItems." },
+			{
+				name: "ToggleGroupItem.children",
+				description: "The item's content, typically a glyph or a short label.",
+			},
+		],
+	},
+
+	"copy-button": {
+		name: "CopyButton",
+		slug: "copy-button",
+		description:
+			"Button preset wired to the clipboard, swapping its icon and label to a success skin for a moment after a successful copy",
+		category: "actions",
+		group: "core",
+		status: "done",
+		dependencies: ["button"],
+		tags: ["copy", "clipboard", "button", "success"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				description: "The text written to the clipboard on activation",
+				required: true,
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Copy"',
+				description: "Idle label",
+			},
+			{
+				name: "copiedLabel",
+				type: "string",
+				default: '"Copied"',
+				description: "Label shown for resetMs after a successful copy",
+			},
+			{
+				name: "resetMs",
+				type: "number",
+				default: "2000",
+				description: "How long the copied state holds before reverting, in milliseconds",
+			},
+			{
+				name: "variant",
+				type: "ButtonVariant",
+				default: '"outline"',
+				description: "Passed straight through to the underlying Button",
+			},
+			{
+				name: "size",
+				type: "ButtonSize",
+				default: '"md"',
+				description: "Passed straight through to the underlying Button",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the button and blocks the copy",
+			},
+			{
+				name: "iconOnly",
+				type: "boolean",
+				default: "false",
+				description: "Drops the visible label, moving it to aria-label instead",
+			},
+			{
+				name: "onCopy",
+				type: "(value: string, ok: boolean) => void",
+				description: "Called with the value and whether the write actually succeeded",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference, matching Button's own ref type",
+			},
+		],
+		slots: [{ name: "children", description: "Overrides the default icon + label content" }],
+	},
+
+	// =========================================================================
+	// Core — forms
+	// =========================================================================
+
+	label: {
+		name: "Label",
+		slug: "label",
+		description:
+			"A form label with a decorative required asterisk, wired to a FormField's context when it has one",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["label", "form", "accessibility"],
+		props: [
+			{
+				name: "for",
+				type: "string",
+				description: "Explicit target id. Inside a FormField, the field's own control id wins",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description:
+					"Renders the required asterisk. Inside a FormField, the field's own `required` wins",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLLabelElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+		slots: [{ name: "children", description: "The label text/content" }],
+	},
+
+	"form-field": {
+		name: "FormField",
+		slug: "form-field",
+		description:
+			"Wraps a control with a label, help/error text and id wiring, so a screen reader gets the full picture without manual aria plumbing",
+		category: "forms",
+		group: "core",
+		status: "done",
+		dependencies: ["label"],
+		tags: ["form", "field", "label", "validation", "accessibility", "compound"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				description:
+					"Label text — the common case. For custom label markup, render a Label in children instead",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Help text under the control, replaced by error while the field is invalid",
+			},
+			{
+				name: "error",
+				type: "string",
+				description: "Error text. Setting it marks the field invalid and replaces the help text",
+			},
+			{
+				name: "valid",
+				type: "boolean",
+				default: "false",
+				description:
+					"Decorative checkmark next to the help text; error always wins if both are set",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description:
+					"Marks the field required: the label gets an asterisk, the control gets aria-required",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the field: reaches the wrapped control through context",
+			},
+			{
+				name: "id",
+				type: "string",
+				description:
+					"Opts out of the generated id. description/error ids are suffixes of this same value",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [{ name: "children", description: "The control" }],
+	},
+
+	input: {
+		name: "Input",
+		slug: "input",
+		description:
+			"A single-line text field with resting, focus, error and disabled looks, built on a native input",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["input", "text-field", "form", "validation"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "Current value; bindable",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every input event",
+			},
+			{
+				name: "type",
+				type: '"text" | "email" | "url" | "tel" | "password" | "search" | "number"',
+				default: '"text"',
+				description: "Native input type",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description: "Blocks typing but stays focusable and is still submitted, unlike disabled",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "autocomplete",
+				type: "FullAutoFill",
+				description:
+					"Native autocomplete hint; the union from svelte/elements, not an arbitrary string",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+	},
+
+	textarea: {
+		name: "Textarea",
+		slug: "textarea",
+		description:
+			"A multi-line text field with an optional live character counter and auto-growing height, built on a native textarea",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["textarea", "text-field", "form", "validation", "counter", "auto-resize"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "Current value; bindable",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every input event",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description: "Blocks typing but stays focusable and is still submitted, unlike disabled",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "autocomplete",
+				type: "FullAutoFill",
+				description:
+					"Native autocomplete hint; the union from svelte/elements, not an arbitrary string",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "rows",
+				type: "number",
+				default: "3",
+				description: "Visible height in text rows before anything grows it; also the no-JS height",
+			},
+			{
+				name: "maxlength",
+				type: "number",
+				description: "Native character ceiling; also the counter's denominator",
+			},
+			{
+				name: "showCount",
+				type: "boolean",
+				default: "false",
+				description: 'Renders the live "n / max" counter under the field',
+			},
+			{
+				name: "autoResize",
+				type: "boolean",
+				default: "false",
+				description: "Grows to fit content instead of scrolling; disables manual resize",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes — applied to the textarea itself, not the wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLTextAreaElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+	},
+
+	checkbox: {
+		name: "Checkbox",
+		slug: "checkbox",
+		description:
+			"A tri-look checkbox — unchecked, checked, indeterminate and disabled — built on a native checkbox input",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["checkbox", "form", "indeterminate", "validation"],
+		props: [
+			{
+				name: "checked",
+				type: "boolean",
+				default: "false",
+				description: "Whether the box is checked; bindable",
+			},
+			{
+				name: "indeterminate",
+				type: "boolean",
+				default: "false",
+				description: "Mixed/dash visual state; bindable",
+			},
+			{
+				name: "onCheckedChange",
+				type: "(checked: boolean) => void",
+				description: "Called with the new checked value whenever the box is activated",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks interaction; excluded from form submission",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "value",
+				type: "string",
+				description: "Form value submitted while checked",
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					"Accessible name, rendered as aria-label; skip it when children already supplies the visible label text",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the wrapping label",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference to the native input",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Visible label text, rendered beside the box",
+			},
+		],
+	},
+
+	"radio-group": {
+		name: "RadioGroup",
+		slug: "radio-group",
+		description:
+			"A set of mutually exclusive options, built on real input type=radio elements sharing one name so the browser gives the roving tab stop and keyboard navigation for free.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["radio", "form", "selection", "compound", "validation"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: 'The selected value, bindable — "" means nothing is selected.',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value whenever the selection changes.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description:
+					"Shared name for the native radios. Generated per instance when omitted, so two groups on the same page never fight over each other's selection.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables every item in the group.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Marks the group required for native form validation.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Marks the group invalid — sets aria-invalid.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"vertical"',
+				description: "The list's stacking axis.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					"Accessible name, standalone. Inside a FormField that rendered its own label, its labelId wins instead; a FormField with no label of its own falls back to this.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "RadioGroupItem.value",
+				type: "string",
+				required: true,
+				description: "This item's value — what the group's value becomes when it is picked.",
+			},
+			{
+				name: "RadioGroupItem.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this item, independent of the group's own disabled.",
+			},
+			{
+				name: "RadioGroupItem.label",
+				type: "string",
+				description: "Visible label text. Also the fallback content, and the fallback name.",
+			},
+			{
+				name: "RadioGroupItem.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the wrapping label.",
+			},
+			{
+				name: "RadioGroupItem.ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable reference to the item's native input.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The RadioGroup's content — the RadioGroupItems." },
+			{
+				name: "RadioGroupItem.children",
+				description: "Custom content rendered in place of the item's label.",
+			},
+		],
+	},
+
+	switch: {
+		name: "Switch",
+		slug: "switch",
+		description:
+			"A sliding on/off control that takes effect immediately, built on a native checkbox input",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["switch", "toggle", "form", "settings"],
+		props: [
+			{
+				name: "checked",
+				type: "boolean",
+				default: "false",
+				description: "Whether the switch is on; bindable",
+			},
+			{
+				name: "onCheckedChange",
+				type: "(checked: boolean) => void",
+				description: "Called with the new value whenever the switch is activated",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks interaction; excluded from form submission",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "value",
+				type: "string",
+				description: "Form value submitted while on",
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					"Accessible name, rendered as aria-label; skip it when children already supplies the visible label text",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Track/knob size",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the wrapping label",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference to the native input",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Visible label text, rendered beside the track",
+			},
+		],
+	},
+
+	slider: {
+		name: "Slider",
+		slug: "slider",
+		description:
+			"Restyled native range input with a purple-to-cyan gradient fill that tracks the current value and a glowing thumb",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["slider", "range", "form", "input"],
+		props: [
+			{ name: "value", type: "number", default: "0", description: "Current value; bindable" },
+			{
+				name: "onValueChange",
+				type: "(value: number) => void",
+				description: "Called with the new value on every input event",
+			},
+			{ name: "min", type: "number", default: "0", description: "Lower bound" },
+			{ name: "max", type: "number", default: "100", description: "Upper bound" },
+			{
+				name: "step",
+				type: "number",
+				default: "1",
+				description: "Increment size, including fractional steps",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks dragging and keyboard interaction. Overridden by a surrounding FormField",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id. Overridden by a surrounding FormField's own controlId",
+			},
+			{ name: "name", type: "string", description: "Native name, read on form submission" },
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "showValue",
+				type: "boolean",
+				default: "false",
+				description: "Shows the current value in a bubble that tracks the thumb",
+			},
+			{
+				name: "showBounds",
+				type: "boolean",
+				default: "false",
+				description: "Shows min and max as end labels below the track",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, applied to the outer wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Reference to the underlying input type=range",
+			},
+		],
+	},
+
+	"number-input": {
+		name: "NumberInput",
+		slug: "number-input",
+		description:
+			"Numeric field with decrement/increment buttons that clamp to min/max, disable themselves at the bounds, and step fractional values without float drift",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["number", "stepper", "form", "input", "quantity"],
+		props: [
+			{
+				name: "value",
+				type: "number | null",
+				default: "null",
+				description: "Current value; bindable. null when the field is empty",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: number | null) => void",
+				description: "Called with the new value on every change, including a clear to null",
+			},
+			{ name: "min", type: "number", description: "Lower bound. Leave unset for no lower bound" },
+			{ name: "max", type: "number", description: "Upper bound. Leave unset for no upper bound" },
+			{
+				name: "step",
+				type: "number",
+				default: "1",
+				description: "Increment size, including fractional steps",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks focus, typing and the step buttons; excluded from form submission. Overridden by a surrounding FormField",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description:
+					"Blocks typing and the step buttons but stays focusable and is still submitted, unlike disabled",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required. Overridden by a surrounding FormField",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description:
+					"Drives the error border and aria-invalid. Overridden by a surrounding FormField",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id. Overridden by a surrounding FormField's own controlId",
+			},
+			{ name: "name", type: "string", description: "Native name, read on form submission" },
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, applied to the outer bordered wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Reference to the underlying input type=number",
+			},
+		],
+	},
+
+	// =========================================================================
+	// Core — overlays
+	// =========================================================================
+
+	dialog: {
+		name: "Dialog",
+		slug: "dialog",
+		description:
+			"A modal panel with a title, description, body and free-form footer — portals out, traps focus, and locks the page's scroll while open",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["modal", "dialog", "overlay", "portal", "focus-trap"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the dialog is open; bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Fires whenever open changes, from any trigger",
+			},
+			{
+				name: "title",
+				type: "string",
+				description: "The heading. Omitted entirely (not just visually) when not given",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "The copy under the title. Same omission rule as title",
+			},
+			{
+				name: "dismissible",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether Escape and an outside click close the dialog; the close button always works",
+			},
+			{
+				name: "initialFocus",
+				type: "HTMLElement | null",
+				description:
+					"Element to focus once the dialog opens; defaults to the first focusable descendant",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The dialog's body" },
+			{
+				name: "footer",
+				description: "The action row under the body — free-form, callers build their own buttons",
+			},
+			{
+				name: "trigger",
+				description: "Optional trigger; renders in place and opens the dialog on activation",
+			},
+		],
+	},
+
+	"alert-dialog": {
+		name: "AlertDialog",
+		slug: "alert-dialog",
+		description:
+			"A confirmation dialog for consequential, hard-to-undo actions — fixed confirm/cancel actions, never dismissed by an outside click",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		dependencies: ["dialog", "button"],
+		tags: ["alert", "dialog", "confirm", "destructive", "overlay", "modal"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the alert dialog is open; bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Fires whenever open changes — Confirm, Cancel, or Escape",
+			},
+			{
+				name: "title",
+				type: "string",
+				description: "The heading. Omitted entirely (not just visually) when not given",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "The warning copy under the title. Same omission rule as title",
+			},
+			{
+				name: "confirmLabel",
+				type: "string",
+				default: '"Confirm"',
+				description: "Label of the destructive action",
+			},
+			{
+				name: "cancelLabel",
+				type: "string",
+				default: '"Cancel"',
+				description: "Label of the safe action",
+			},
+			{
+				name: "onConfirm",
+				type: "() => void",
+				description: "Called when the destructive action is activated, before the surface closes",
+			},
+			{
+				name: "onCancel",
+				type: "() => void",
+				description: "Called when the safe action is activated, and also when Escape closes it",
+			},
+			{
+				name: "initialFocus",
+				type: "HTMLElement | null",
+				description: "Element to focus once the surface opens; defaults to the Cancel button",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element",
+			},
+		],
+		slots: [
+			{
+				name: "trigger",
+				description: "Optional trigger; renders in place and opens the surface on activation",
+			},
+		],
+	},
+
+	sheet: {
+		name: "Sheet",
+		slug: "sheet",
+		description:
+			"A modal panel that slides in from an edge of the viewport, for settings, filters, or any focused task that doesn't need a full page",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "sheet", "panel", "modal", "side panel", "settings"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the sheet is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called with the new value whenever the sheet opens or closes",
+			},
+			{
+				name: "side",
+				type: '"left" | "right" | "top" | "bottom"',
+				default: '"right"',
+				description: "Edge of the viewport the panel slides in from",
+			},
+			{
+				name: "title",
+				type: "string",
+				description: "Heading rendered in the header and wired to aria-labelledby",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Supporting text under the title, wired to aria-describedby",
+			},
+			{
+				name: "dismissible",
+				type: "boolean",
+				default: "true",
+				description: "Whether Escape, the scrim and the close button can close the sheet",
+			},
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Panel width (left/right sides) or height (top/bottom sides)",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes merged onto the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable element reference to the panel",
+			},
+		],
+		slots: [
+			{ name: "children", description: "Panel body content" },
+			{ name: "footer", description: "Content pinned below the body, e.g. actions" },
+		],
+	},
+
+	drawer: {
+		name: "Drawer",
+		slug: "drawer",
+		description:
+			"A modal bottom sheet with a grab handle, draggable shut with a downward swipe — for filters, quick actions, or any touch-first task",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "drawer", "bottom sheet", "modal", "swipe", "mobile"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the drawer is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called with the new value whenever the drawer opens or closes",
+			},
+			{
+				name: "title",
+				type: "string",
+				description: "Heading rendered in the header and wired to aria-labelledby",
+			},
+			{
+				name: "description",
+				type: "string",
+				description: "Supporting text under the title, wired to aria-describedby",
+			},
+			{
+				name: "dismissible",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether Escape, the scrim, the close button and the swipe gesture can close the drawer",
+			},
+			{
+				name: "swipeToClose",
+				type: "boolean",
+				default: "true",
+				description: "Whether dragging the handle down past the threshold closes the drawer",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes merged onto the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable element reference to the panel",
+			},
+		],
+		slots: [
+			{ name: "children", description: "Panel body content" },
+			{ name: "footer", description: "Content pinned below the body, e.g. actions" },
+		],
+	},
+
+	popover: {
+		name: "Popover",
+		slug: "popover",
+		description:
+			"An anchored panel that opens next to a trigger and holds interactive content — quick settings, a small form, more than a tooltip can carry",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "popover", "anchored", "disclosure", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the panel is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description:
+					"Called with the new value whenever the panel opens or closes, however the change happened",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the trigger to place the panel on. Flips when it would overflow",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"center"',
+				description: "Alignment along the trigger's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "8",
+				description: "Gap in pixels between the trigger and the panel",
+			},
+			{
+				name: "dismissible",
+				type: "boolean",
+				default: "true",
+				description: "Whether Escape and an outside click close the panel",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element",
+			},
+		],
+		slots: [
+			{
+				name: "trigger",
+				description:
+					"The trigger's content, rendered inside the real <button> this component owns and wires up",
+			},
+			{ name: "children", description: "The panel's content" },
+		],
+	},
+
+	tooltip: {
+		name: "Tooltip",
+		slug: "tooltip",
+		description:
+			"A small anchored label that explains a control on hover or focus — plain text only, never interactive content",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "tooltip", "anchored", "accessibility"],
+		props: [
+			{
+				name: "content",
+				type: "string",
+				required: true,
+				description: "The tooltip's text",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"top"',
+				description: "Side of the trigger to place the tooltip on",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"center"',
+				description: "Alignment along the trigger's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "6",
+				description: "Gap in pixels between the trigger and the tooltip",
+			},
+			{
+				name: "openDelay",
+				type: "number",
+				default: "500",
+				description: "Delay in ms before a hover opens it. Never applied to a focus open",
+			},
+			{
+				name: "closeDelay",
+				type: "number",
+				default: "0",
+				description: "Delay in ms before it closes once neither hovered nor focused",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Suppresses it entirely — no open on hover or focus",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger wrapper element",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"The trigger. Must render exactly one focusable element — a button, link, or similar",
+			},
+		],
+	},
+
+	"hover-card": {
+		name: "HoverCard",
+		slug: "hover-card",
+		description:
+			"An anchored panel that opens on hover or focus with a short delay, for richer previews than a tooltip — a profile card, a link preview",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "hover", "card", "preview", "anchored", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the card is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Fires whenever the open state changes, from any trigger",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the trigger the card opens on. Flips when it would overflow",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"center"',
+				description: "Alignment along the trigger's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "8",
+				description: "Gap in pixels between the trigger and the card",
+			},
+			{
+				name: "openDelay",
+				type: "number",
+				default: "300",
+				description:
+					"Ms before the card opens after the pointer enters the trigger. Ignored for focus, which opens immediately",
+			},
+			{
+				name: "closeDelay",
+				type: "number",
+				default: "150",
+				description:
+					"Ms before the card closes after the pointer leaves. Lets it travel from the trigger to the card without the card vanishing mid-trip",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional classes for the card panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger wrapper",
+			},
+		],
+		slots: [
+			{
+				name: "trigger",
+				description:
+					"The element that opens the card on hover or focus. Receives the card's id (or undefined while closed) — put it on your own trigger element's aria-describedby",
+			},
+			{
+				name: "children",
+				description:
+					"The card's content. Supplementary only — see the README before adding links or buttons",
+			},
+		],
+	},
+
+	toast: {
+		name: "Toast",
+		slug: "toast",
+		description:
+			"A notification system: call toast() from anywhere to queue one, mount <Toaster /> once to render the stack — success, error, info and loading variants, an optional action, and accessible live-region announcements",
+		category: "overlays",
+		group: "core",
+		status: "done",
+		tags: ["overlay", "toast", "notification", "snackbar", "live-region", "accessibility"],
+		props: [
+			{
+				name: "position",
+				type: '"top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right"',
+				default: '"bottom-right"',
+				description: "Corner (or edge-center) the <Toaster /> stack anchors to",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional classes for the viewport that stacks the toasts",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the <Toaster /> root node",
+			},
+			{
+				name: "toast().title",
+				type: "string",
+				required: true,
+				description: "Primary line of the toast raised by the toast() function",
+			},
+			{
+				name: "toast().description",
+				type: "string",
+				description: "Secondary line, shown under the title",
+			},
+			{
+				name: "toast().variant",
+				type: '"success" | "error" | "info" | "loading"',
+				default: '"info"',
+				description:
+					"Icon, accent colour, and the live region it announces through — error is assertive, everything else polite",
+			},
+			{
+				name: "toast().duration",
+				type: "number",
+				default: "5000",
+				description:
+					"Milliseconds before auto-dismiss; Infinity is sticky. Defaults to Infinity for the loading variant, which has no natural finish time",
+			},
+			{
+				name: "toast().action",
+				type: "{ label: string; onClick: () => void }",
+				description:
+					"A single action button. Auto-dismiss pauses on hover or focus for every toast, with or without one",
+			},
+		],
+	},
+
+	// =========================================================================
+	// Core — forms, floating surfaces
+	// =========================================================================
+
+	select: {
+		name: "Select",
+		slug: "select",
+		description:
+			"A single-choice dropdown built on a real button and a portalled listbox panel, with full keyboard navigation, typeahead and focus that never leaves the trigger.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["select", "dropdown", "listbox", "combobox", "form", "compound", "accessibility"],
+		props: [
+			{
+				name: "options",
+				type: "SelectOption[]",
+				required: true,
+				description: "The choices, in order — { value, label, disabled? }.",
+			},
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: 'The selected value, bindable — "" means nothing is selected.',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value whenever the selection changes.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown in the trigger while nothing is selected.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks opening; excludes the control from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description:
+					"Marks the control required (aria-required). No native form-validation enforcement — see the README.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name. When set, a hidden input carries the value into the form.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the trigger to place the panel on. Flips when it would overflow.",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"start"',
+				description: "Alignment along the trigger's cross axis.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger.",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger button.",
+			},
+		],
+	},
+
+	combobox: {
+		name: "Combobox",
+		slug: "combobox",
+		description:
+			"A single-choice text field over a closed set of options — typing filters a portalled listbox, and a value outside the list can never be selected.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["combobox", "dropdown", "listbox", "filter", "form", "compound", "accessibility"],
+		props: [
+			{
+				name: "options",
+				type: "ComboboxOption[]",
+				required: true,
+				description: "The closed set of selectable options.",
+			},
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: 'The selected option\'s value, bindable — "" means nothing is selected.',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called whenever the selection commits.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty and nothing is selected.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required, on the visible field.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description:
+					"Native name — submitted via a hidden input carrying value, not the visible label.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "filter",
+				type: "(option: ComboboxOption, query: string) => boolean",
+				description:
+					"Matches an option against the current query. Default: case-insensitive substring on label.",
+			},
+			{
+				name: "emptyMessage",
+				type: "string",
+				default: '"No results"',
+				description: "Shown in the panel when no option matches the current query.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes.",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable reference to the input element.",
+			},
+		],
+	},
+
+	autocomplete: {
+		name: "Autocomplete",
+		slug: "autocomplete",
+		description:
+			"A free-text field with a portalled panel of matching suggestions — any typed value is valid; the panel only ever helps finish it faster.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: [
+			"autocomplete",
+			"suggestions",
+			"typeahead",
+			"listbox",
+			"form",
+			"compound",
+			"accessibility",
+		],
+		props: [
+			{
+				name: "suggestions",
+				type: "string[]",
+				required: true,
+				description: "Candidate strings offered as the user types.",
+			},
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "The free-text value, bindable.",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every keystroke.",
+			},
+			{
+				name: "onSelect",
+				type: "(suggestion: string) => void",
+				description:
+					"Called only when a suggestion is committed via click or Enter — never from plain typing.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "minLength",
+				type: "number",
+				default: "1",
+				description: "Characters required before suggestions appear.",
+			},
+			{
+				name: "maxSuggestions",
+				type: "number",
+				default: "8",
+				description: "Maximum number of suggestions shown at once.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes.",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable reference to the input element.",
+			},
+		],
+	},
+
+	"search-input": {
+		name: "SearchInput",
+		slug: "search-input",
+		description:
+			"A pill-shaped search field with a leading icon, a clear button once there's something to clear, and optional debounced search",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["search", "input", "form", "debounce", "filter"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "Current value; bindable",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every input event",
+			},
+			{
+				name: "onSearch",
+				type: "(value: string) => void",
+				description: "Fired on Enter, and on debounced settle when debounceMs is set",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Search"',
+				description: "Shown while the field is empty",
+			},
+			{
+				name: "debounceMs",
+				type: "number",
+				default: "0",
+				description:
+					"Delay before a settled value fires onSearch on its own; 0 disables debouncing",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description: "Blocks typing and clearing but stays focusable and is still submitted",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "clearable",
+				type: "boolean",
+				default: "true",
+				description: "Renders a clear button once there is something to clear",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the field surface",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+	},
+
+	"password-input": {
+		name: "PasswordInput",
+		slug: "password-input",
+		description:
+			"A password field with a show/hide reveal toggle and an optional strength meter that never relies on colour alone",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["password", "input", "form", "strength", "reveal"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "Current value; bindable",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value on every input event",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				description: "Shown while the field is empty",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks focus and typing; excluded from form submission",
+			},
+			{
+				name: "readonly",
+				type: "boolean",
+				default: "false",
+				description: "Blocks typing but stays focusable and is still submitted",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name, read on form submission",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "autocomplete",
+				type: '"current-password" | "new-password" | "off"',
+				default: '"current-password"',
+				description: "new-password opts a password manager into offering to generate one",
+			},
+			{
+				name: "showToggle",
+				type: "boolean",
+				default: "true",
+				description: "Renders the show/hide reveal button",
+			},
+			{
+				name: "showStrength",
+				type: "boolean",
+				default: "false",
+				description: "Renders the strength meter and label once there's a value",
+			},
+			{
+				name: "strength",
+				type: "(value: string) => { score: 0 | 1 | 2 | 3 | 4; label: string }",
+				description:
+					"Overrides the built-in heuristic scorer — see README before trusting the default",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the field surface",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable element reference",
+			},
+		],
+	},
+
+	"file-upload": {
+		name: "FileUpload",
+		slug: "file-upload",
+		description:
+			"A drop zone backed by a native file input, with per-file progress, JS-side validation and a removable file list",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["file-upload", "upload", "drag-and-drop", "form", "validation", "progress"],
+		props: [
+			{
+				name: "files",
+				type: "UploadFile[]",
+				default: "[]",
+				description: "Selected files; bindable",
+			},
+			{
+				name: "onFilesChange",
+				type: "(files: UploadFile[]) => void",
+				description: "Called with the new list on every change — a selection, a drop, or a removal",
+			},
+			{
+				name: "accept",
+				type: "string",
+				description:
+					"The input's native accept attribute; also enforced in JS since a dropped file bypasses it",
+			},
+			{
+				name: "multiple",
+				type: "boolean",
+				default: "false",
+				description: "Allows more than one file per selection or drop",
+			},
+			{
+				name: "maxSize",
+				type: "number",
+				description: 'Maximum size per file, in bytes. A larger file is added with status "error"',
+			},
+			{
+				name: "maxFiles",
+				type: "number",
+				description:
+					"Maximum number of files the list may hold. Extra files are rejected, not added",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks selecting, dropping and removing files",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Native required on the underlying input",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id, applied to the underlying file input",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name on the underlying input",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it",
+			},
+			{
+				name: "hint",
+				type: "string",
+				description: 'Constraint text under the drop zone, e.g. "PNG, SVG — 4 MB max"',
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLInputElement | null",
+				default: "null",
+				description: "Bindable reference to the underlying file input",
+			},
+		],
+	},
+
+	"date-picker": {
+		name: "DatePicker",
+		slug: "date-picker",
+		description:
+			"A field that opens a floating month grid, with full keyboard navigation (arrow keys across days, Page Up/Down across months, Shift for years), min/max and per-day disabling, and a fully localized accessible name on every day cell.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["date-picker", "calendar", "grid", "form", "date", "accessibility"],
+		props: [
+			{
+				name: "value",
+				type: "Date | null",
+				default: "null",
+				description:
+					"The selected date; bindable. Always a local-midnight Date — see the README's time-zone note.",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: Date | null) => void",
+				description: "Called with the new value whenever a day is picked.",
+			},
+			{
+				name: "min",
+				type: "Date",
+				description: "Earliest selectable day (inclusive), compared at day granularity.",
+			},
+			{
+				name: "max",
+				type: "Date",
+				description: "Latest selectable day (inclusive), compared at day granularity.",
+			},
+			{
+				name: "weekStartsOn",
+				type: "0 | 1",
+				default: "1",
+				description: "0 for Sunday, 1 for Monday.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks opening the panel; excludes the control from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Marks the field required for the surrounding form.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name. When set, a hidden input carries the value as YYYY-MM-DD.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Pick a date"',
+				description: "Shown in the trigger while no day is selected.",
+			},
+			{
+				name: "locale",
+				type: "string",
+				description: "BCP 47 locale for month, weekday, day and trigger-label formatting.",
+			},
+			{
+				name: "isDateDisabled",
+				type: "(date: Date) => boolean",
+				description: "Rejects individual days beyond min/max — e.g. weekends, holidays.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger button.",
+			},
+		],
+	},
+
+	"time-picker": {
+		name: "TimePicker",
+		slug: "time-picker",
+		description:
+			"A field that opens a floating listbox of time slots generated at a configurable step, fully keyboard-navigable, with the highlighted slot always scrolled into view.",
+		category: "forms",
+		group: "core",
+		status: "done",
+		tags: ["time-picker", "listbox", "combobox", "form", "time", "accessibility"],
+		props: [
+			{
+				name: "value",
+				type: "string | null",
+				default: "null",
+				description: 'The selected time, "HH:mm" 24-hour; bindable. hour12 changes display only.',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string | null) => void",
+				description: "Called with the new value whenever a slot is picked.",
+			},
+			{
+				name: "step",
+				type: "number",
+				default: "30",
+				description: "Minutes between generated slots.",
+			},
+			{
+				name: "min",
+				type: "string",
+				description: 'Earliest selectable slot ("HH:mm", inclusive).',
+			},
+			{
+				name: "max",
+				type: "string",
+				description: 'Latest selectable slot ("HH:mm", inclusive).',
+			},
+			{
+				name: "hour12",
+				type: "boolean",
+				default: "false",
+				description: "Display only — 12-hour clock with AM/PM. The value stays HH:mm either way.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Blocks opening the panel; excludes the control from form submission.",
+			},
+			{
+				name: "required",
+				type: "boolean",
+				default: "false",
+				description: "Marks the field required for the surrounding form.",
+			},
+			{
+				name: "invalid",
+				type: "boolean",
+				default: "false",
+				description: "Drives the error border and aria-invalid.",
+			},
+			{
+				name: "id",
+				type: "string",
+				description: "Element id.",
+			},
+			{
+				name: "name",
+				type: "string",
+				description: "Native name. When set, a hidden input carries the HH:mm value.",
+			},
+			{
+				name: "label",
+				type: "string",
+				description: "Accessible name — for a control with no visible Label next to it.",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Select a time"',
+				description: "Shown in the trigger while no time is selected.",
+			},
+			{
+				name: "locale",
+				type: "string",
+				description: "BCP 47 locale for slot and trigger-label formatting.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger button.",
+			},
+		],
+	},
+
+	// =========================================================================
+	// Core — navigation
+	// =========================================================================
+
+	navbar: {
+		name: "Navbar",
+		slug: "navbar",
+		description:
+			"A horizontal top-of-page bar with a brand mark, navigation links, and actions on the right.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["nav", "header", "top-bar", "links", "sticky"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				default: '"Main"',
+				description: "Accessible name for the nav landmark.",
+			},
+			{
+				name: "sticky",
+				type: "boolean",
+				default: "false",
+				description:
+					"Pins the bar to the top with `position: sticky` and a translucent, blurred background.",
+			},
+			{
+				name: "bordered",
+				type: "boolean",
+				default: "true",
+				description: "Draws a 1px hairline along the bottom edge.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the root nav element.",
+			},
+			{
+				name: "NavbarLink.href",
+				type: "string",
+				required: true,
+				description: "Destination URL.",
+			},
+			{
+				name: "NavbarLink.current",
+				type: "boolean",
+				default: "false",
+				description:
+					'Marks this as the current page — aria-current="page" plus a visible weight/colour change.',
+			},
+			{
+				name: "NavbarLink.external",
+				type: "boolean",
+				default: "false",
+				description: "Opens in a new tab with a safe rel, and notes it for assistive tech.",
+			},
+			{
+				name: "NavbarLink.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Strips the link out of the click and keyboard-activation paths.",
+			},
+			{
+				name: "NavbarLink.onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Native click handler. Never called while disabled.",
+			},
+			{
+				name: "NavbarLink.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the anchor.",
+			},
+			{
+				name: "NavbarLink.ref",
+				type: "HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable reference to the anchor element.",
+			},
+		],
+		slots: [
+			{ name: "brand", description: "The brand mark / wordmark, on the left." },
+			{ name: "children", description: "The navigation links, between the brand and the actions." },
+			{ name: "actions", description: "Actions on the right — search, sign-in, a theme switch." },
+			{ name: "NavbarLink.children", description: "The link's label." },
+		],
+	},
+
+	sidebar: {
+		name: "Sidebar",
+		slug: "sidebar",
+		description:
+			"A collapsible, grouped navigation rail with labelled sections, a current-item accent, and badges folded into each item's accessible name.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["sidebar", "nav", "rail", "collapsible", "compound", "badge"],
+		props: [
+			{
+				name: "label",
+				type: "string",
+				default: '"Sidebar"',
+				description: "Accessible name for the nav landmark.",
+			},
+			{
+				name: "collapsed",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the sidebar is collapsed to an icon-only rail. Plain, not bindable — nothing inside the compound ever changes it itself.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the root nav element.",
+			},
+			{
+				name: "SidebarGroup.label",
+				type: "string",
+				required: true,
+				description: 'The section heading, e.g. "General".',
+			},
+			{
+				name: "SidebarGroup.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the group.",
+			},
+			{
+				name: "SidebarItem.href",
+				type: "string",
+				description: 'Renders an <a> when set; a <button type="button"> otherwise.',
+			},
+			{
+				name: "SidebarItem.current",
+				type: "boolean",
+				default: "false",
+				description:
+					'Marks this as the current item — aria-current="page" plus the accent left bar.',
+			},
+			{
+				name: "SidebarItem.badge",
+				type: "string | number",
+				description: "A count or short flag, e.g. 4, rendered as a pill.",
+			},
+			{
+				name: "SidebarItem.badgeLabel",
+				type: "string",
+				description:
+					"What the badge means, folded into the accessible name. Defaults to just the badge value.",
+			},
+			{
+				name: "SidebarItem.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables both the click and keyboard-activation paths.",
+			},
+			{
+				name: "SidebarItem.onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Native click handler, for the button branch. Never called while disabled.",
+			},
+			{
+				name: "SidebarItem.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the item.",
+			},
+			{
+				name: "SidebarItem.ref",
+				type: "HTMLAnchorElement | HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the item's interactive element.",
+			},
+			{
+				name: "SidebarSeparator.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the hairline.",
+			},
+			{
+				name: "SidebarSeparator.ref",
+				type: "HTMLHRElement | null",
+				default: "null",
+				description: "Bindable reference to the <hr> element.",
+			},
+			{
+				name: "SidebarFooter.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the footer row.",
+			},
+			{
+				name: "SidebarFooter.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the footer's root element.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "SidebarGroup, SidebarSeparator and SidebarFooter." },
+			{ name: "SidebarGroup.children", description: "The SidebarItems in this section." },
+			{
+				name: "SidebarItem.icon",
+				description: "A decorative glyph or icon, shown even while the sidebar is collapsed.",
+			},
+			{
+				name: "SidebarItem.children",
+				description: "The item's label. Moves to sr-only text while collapsed — never removed.",
+			},
+			{
+				name: "SidebarFooter.avatar",
+				description: "A decorative avatar, shown even while the sidebar is collapsed.",
+			},
+			{
+				name: "SidebarFooter.children",
+				description: "The name / text next to the avatar. sr-only while collapsed.",
+			},
+		],
+	},
+
+	tabs: {
+		name: "Tabs",
+		slug: "tabs",
+		description:
+			"A tablist compound with roving-tabindex keyboard navigation, automatic or manual activation, and an accent-underline or segmented visual style.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["tabs", "tablist", "roving-tabindex", "compound", "navigation"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "The active tab's value, bindable.",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called with the new value whenever the active tab changes.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "The tablist's stacking axis and which arrow-key pair moves it.",
+			},
+			{
+				name: "activation",
+				type: '"automatic" | "manual"',
+				default: '"automatic"',
+				description: "Whether arrowing to a trigger selects it immediately, or only moves focus.",
+			},
+			{
+				name: "variant",
+				type: '"underline" | "segmented"',
+				default: '"underline"',
+				description: "Accent underline, or a segmented pill rail.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "TabsList.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the tablist.",
+			},
+			{
+				name: "TabsList.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the tablist element.",
+			},
+			{
+				name: "TabsTrigger.value",
+				type: "string",
+				required: true,
+				description: "This trigger's value — which TabsContent it activates.",
+			},
+			{
+				name: "TabsTrigger.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this trigger; it is skipped by the arrows and Home/End.",
+			},
+			{
+				name: "TabsTrigger.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "TabsTrigger.ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger's button element.",
+			},
+			{
+				name: "TabsContent.value",
+				type: "string",
+				required: true,
+				description: "Which TabsTrigger shows this panel.",
+			},
+			{
+				name: "TabsContent.forceMount",
+				type: "boolean",
+				default: "false",
+				description:
+					"Keeps this panel mounted (with hidden) even while inactive, instead of unmounting it entirely.",
+			},
+			{
+				name: "TabsContent.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the panel.",
+			},
+			{
+				name: "TabsContent.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "A TabsList and one or more TabsContents." },
+			{ name: "TabsList.children", description: "The TabsTriggers." },
+			{
+				name: "TabsTrigger.children",
+				description: "The trigger's content, typically the tab's label.",
+			},
+			{ name: "TabsContent.children", description: "The panel's content." },
+		],
+	},
+
+	breadcrumb: {
+		name: "Breadcrumb",
+		slug: "breadcrumb",
+		description:
+			"A data-driven trail of links with automatic truncation, a decorative separator, and the current page marked for assistive tech.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["breadcrumb", "trail", "navigation", "truncation"],
+		props: [
+			{
+				name: "items",
+				type: "BreadcrumbItem[]",
+				required: true,
+				description: "The full trail, first to last. The last entry is always the current page.",
+			},
+			{
+				name: "maxItems",
+				type: "number",
+				default: "0",
+				description:
+					"Collapse the trail once it holds more than this many items. 0 never collapses.",
+			},
+			{
+				name: "itemsBeforeCollapse",
+				type: "number",
+				default: "1",
+				description: "How many leading items stay visible once collapsed.",
+			},
+			{
+				name: "itemsAfterCollapse",
+				type: "number",
+				default: "1",
+				description:
+					"How many trailing items stay visible once collapsed. Floored at 1 — the current page is never hidden.",
+			},
+			{
+				name: "separator",
+				type: "string",
+				default: '"/"',
+				description:
+					"Separator glyph rendered between crumbs. Decorative — never read by a screen reader.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Breadcrumb"',
+				description: "Accessible name for the nav.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the nav.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the nav element.",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Custom rendering for one crumb, given the item and its index in items (Snippet<[BreadcrumbItem, number]>). Optional — fully replaces the default link/current-page rendering, including aria-current, once supplied.",
+			},
+		],
+	},
+
+	pagination: {
+		name: "Pagination",
+		slug: "pagination",
+		description:
+			"A page-number control with Previous/Next, ellipsis collapsing for long runs, and optional First/Last jump buttons.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["pagination", "pager", "page-numbers", "navigation"],
+		props: [
+			{
+				name: "page",
+				type: "number",
+				default: "1",
+				description: "Current page, 1-based. Bindable.",
+			},
+			{
+				name: "count",
+				type: "number",
+				required: true,
+				description: "Total number of pages.",
+			},
+			{
+				name: "onPageChange",
+				type: "(page: number) => void",
+				description: "Called with the new page whenever it changes, however the change happened.",
+			},
+			{
+				name: "siblingCount",
+				type: "number",
+				default: "1",
+				description: "Pages shown on each side of the current page.",
+			},
+			{
+				name: "boundaryCount",
+				type: "number",
+				default: "1",
+				description: "Pages always shown at each end of the run.",
+			},
+			{
+				name: "showEdges",
+				type: "boolean",
+				default: "false",
+				description: "Shows First/Last jump buttons alongside Previous/Next.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables every control in the nav.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Pagination"',
+				description: "Accessible name for the nav landmark.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the nav element.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the nav element.",
+			},
+		],
+		slots: [
+			{ name: "previousLabel", description: "Overrides the Previous button's content." },
+			{ name: "nextLabel", description: "Overrides the Next button's content." },
+		],
+	},
+
+	stepper: {
+		name: "Stepper",
+		slug: "stepper",
+		description:
+			"A multi-step progress indicator where each step derives its own number and status — done, current, or upcoming — from its position in the sequence.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["stepper", "steps", "wizard", "progress", "compound", "navigation"],
+		props: [
+			{
+				name: "current",
+				type: "number",
+				default: "0",
+				description: "The active step's 0-based index. Bindable.",
+			},
+			{
+				name: "onCurrentChange",
+				type: "(current: number) => void",
+				description: "Called with the new index whenever it changes, however the change happened.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"horizontal"',
+				description: "The rail's stacking axis.",
+			},
+			{
+				name: "clickable",
+				type: "boolean",
+				default: "false",
+				description: "Whether steps render as buttons a reader can click to jump between them.",
+			},
+			{
+				name: "onStepClick",
+				type: "(index: number) => void",
+				description:
+					"Called with a step's index when it's activated by a click. Only fires when clickable.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLOListElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "Step.label",
+				type: "string",
+				required: true,
+				description: "The step's primary label.",
+			},
+			{
+				name: "Step.description",
+				type: "string",
+				description: "Optional secondary line shown under the label.",
+			},
+			{
+				name: "Step.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the step's li.",
+			},
+			{
+				name: "Step.ref",
+				type: "HTMLLIElement | null",
+				default: "null",
+				description: "Bindable reference to the step's li element.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The Steps." },
+			{
+				name: "Step.children",
+				description: "Overrides the bullet's default content (checkmark / number / outline).",
+			},
+		],
+	},
+
+	"dropdown-menu": {
+		name: "DropdownMenu",
+		slug: "dropdown-menu",
+		description:
+			"A menu of actions or options that opens from a trigger button, with full keyboard navigation, submenus and real DOM focus on every item.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["menu", "dropdown", "actions", "compound", "submenu", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the menu is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called whenever the menu opens or closes, however it happened",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the trigger to place the menu on. Flips when it would overflow",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"start"',
+				description: "Alignment along the trigger's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "4",
+				description: "Gap in pixels between the trigger and the menu",
+			},
+			{
+				name: "loop",
+				type: "boolean",
+				default: "true",
+				description: "Whether arrow-key navigation wraps at the ends",
+			},
+		],
+		slots: [{ name: "children", description: "The DropdownMenuTrigger and DropdownMenuContent" }],
+	},
+
+	"context-menu": {
+		name: "ContextMenu",
+		slug: "context-menu",
+		description:
+			"A menu that opens at the pointer on right-click, sharing DropdownMenu's item, submenu and keyboard behaviour but anchored to a virtual point instead of a trigger element.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		dependencies: ["dropdown-menu"],
+		tags: ["menu", "context-menu", "right-click", "compound", "submenu", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the menu is open. Bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called whenever the menu opens or closes, however it happened",
+			},
+			{
+				name: "side",
+				type: '"top" | "bottom" | "left" | "right"',
+				default: '"bottom"',
+				description: "Side of the pointer to place the menu on. Flips when it would overflow",
+			},
+			{
+				name: "align",
+				type: '"start" | "center" | "end"',
+				default: '"start"',
+				description: "Alignment along the pointer's cross axis",
+			},
+			{
+				name: "offset",
+				type: "number",
+				default: "2",
+				description: "Gap in pixels between the pointer and the menu",
+			},
+			{
+				name: "loop",
+				type: "boolean",
+				default: "true",
+				description: "Whether arrow-key navigation wraps at the ends",
+			},
+		],
+		slots: [{ name: "children", description: "The ContextMenuTrigger and ContextMenuContent" }],
+	},
+
+	"command-menu": {
+		name: "CommandMenu",
+		slug: "command-menu",
+		description:
+			"A modal search palette over a flat vocabulary of items — grouped results, diacritic-insensitive filtering, match highlighting, and full keyboard navigation with focus that never leaves the search field.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["command", "palette", "search", "modal", "listbox", "accessibility"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the menu is open; bindable",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description:
+					"Fires whenever open changes — Escape, an outside click, or committing an item",
+			},
+			{
+				name: "items",
+				type: "CommandItem[]",
+				required: true,
+				description: "The full, unfiltered vocabulary",
+			},
+			{
+				name: "query",
+				type: "string",
+				default: '""',
+				description: "The current search text; bindable. Reset every time the menu reopens",
+			},
+			{
+				name: "onQueryChange",
+				type: "(query: string) => void",
+				description: "Fires whenever query changes",
+			},
+			{
+				name: "onSelect",
+				type: "(item: CommandItem) => void",
+				description: "Called with the committed item, after that item's own onSelect",
+			},
+			{
+				name: "placeholder",
+				type: "string",
+				default: '"Search..."',
+				description: "Placeholder for the search field",
+			},
+			{
+				name: "emptyMessage",
+				type: "string",
+				default: '"No results"',
+				description: "Shown in place of the list when nothing matches",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Command menu"',
+				description: "Accessible name for the dialog and the search field",
+			},
+			{
+				name: "filter",
+				type: "(item: CommandItem, query: string) => boolean",
+				description:
+					"Overrides the default case- and diacritic-insensitive substring filter entirely",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the panel",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the panel element.",
+			},
+		],
+		slots: [
+			{
+				name: "icon",
+				description:
+					"Rendered before each row's label, given that row's item. Treated as decorative",
+			},
+			{
+				name: "empty",
+				description: "Rendered in place of the list when nothing matches, instead of emptyMessage",
+			},
+		],
+	},
+
+	"navigation-menu": {
+		name: "NavigationMenu",
+		slug: "navigation-menu",
+		description:
+			"A horizontal row of triggers that each open a rich, multi-column panel below the row — disclosure-pattern site navigation, not an application menu.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["navigation", "menu", "disclosure", "mega menu", "dropdown", "header"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				default: '""',
+				description: "The open item's value, bindable. Empty string when every panel is closed.",
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string) => void",
+				description: "Called whenever the open item changes, from any trigger.",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Main"',
+				description: "Accessible name for the nav landmark.",
+			},
+			{
+				name: "openDelay",
+				type: "number",
+				default: "150",
+				description: "Delay in ms before a hovered trigger opens its panel.",
+			},
+			{
+				name: "closeDelay",
+				type: "number",
+				default: "200",
+				description:
+					"Delay in ms before a panel closes after the pointer leaves it and its trigger.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the nav.",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the nav element.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Typically a single NavigationMenuList. Snippet<[]> — the compound's own sub-components (NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent, NavigationMenuLink) are exported from the same module and used inside it.",
+			},
+		],
+	},
 };
 
 // =============================================================================
@@ -2577,6 +7646,27 @@ export function getComponentsGroupedByCategory(): Record<ComponentCategory, Comp
 
 	for (const component of Object.values(registry)) {
 		grouped[component.category].push(component);
+	}
+
+	return grouped;
+}
+
+/**
+ * Get components grouped by category, filtered to a single group ("core" or "fancy")
+ */
+export function getComponentsGroupedByCategoryForGroup(
+	group: "core" | "fancy"
+): Record<ComponentCategory, ComponentMeta[]> {
+	const grouped = {} as Record<ComponentCategory, ComponentMeta[]>;
+
+	for (const category of categories) {
+		grouped[category] = [];
+	}
+
+	for (const component of Object.values(registry)) {
+		if (component.group === group) {
+			grouped[component.category].push(component);
+		}
 	}
 
 	return grouped;

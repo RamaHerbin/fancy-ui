@@ -1,0 +1,43 @@
+/**
+ * The contract between the Combobox root and its portalled listbox panel.
+ *
+ * Combobox is a **closed set**: `options` is the only vocabulary of valid
+ * values, and the root owns everything that decides which of them are
+ * currently visible, which is active for keyboard navigation, and how a
+ * click or Enter on a row resolves back into `value`. The panel only ever
+ * reads this and calls back into it — it never touches `value` or `query`
+ * directly, the same division `PopoverContext` draws between a root and its
+ * content.
+ */
+
+/** One selectable option. `value` is what `Combobox` reads and writes; `label` is what a person sees and types against. */
+export interface ComboboxOption {
+	value: string;
+	label: string;
+	disabled?: boolean;
+}
+
+export interface ComboboxContext {
+	/** The panel's own id — also what the input's `aria-controls` points at while open. */
+	readonly panelId: string;
+	/** The real input element, once mounted — what the panel anchors against and excludes from outside-click dismissal. */
+	readonly inputRef: HTMLInputElement | null;
+	/** The options currently visible in the panel, already filtered by the current query. */
+	readonly options: ComboboxOption[];
+	/** The current query text, for computing each row's highlighted span. */
+	readonly query: string;
+	/** Index of the keyboard-active row within `options`, or -1 when none is active. */
+	readonly activeIndex: number;
+	/** Shown in place of the option list when `options` is empty. */
+	readonly emptyMessage: string;
+	/** The dom id a row at this index must carry, so `aria-activedescendant` can point at it. */
+	optionId(index: number): string;
+	/** Whether the row at this index is the keyboard-active one. */
+	isActive(index: number): boolean;
+	/** Commits `option` as the selection and closes the panel. No-ops for a disabled option. */
+	selectOption(option: ComboboxOption): void;
+	/** Closes the panel, resolving the query back to the current value's label (or clearing it). Routes Escape, outside click, and blur through the same rule. */
+	close(): void;
+}
+
+export const COMBOBOX_KEY: unique symbol = Symbol("combobox-context");

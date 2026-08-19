@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navigace",
 	"category.media": "Média",
 	"category.effects": "Efekty",
+	"category.ai-chat": "AI chat",
+	"category.ai-agents": "AI agenti",
 
 	// Introduction (redesigned page)
 	"intro.title": "Úvod",
@@ -161,6 +163,12 @@ export default {
 	"intro.category.dataDisplay": "Zobrazení dat",
 	"intro.category.feedback": "Zpětná vazba",
 	"intro.category.media": "Média",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer a spol. Tlačítka, na která chcete kliknout.",
+	"intro.stats.cards": "Karusely, bento mřížky, 3D efekty. Jak prezentovat obsah, aniž by nudil.",
+	"intro.stats.effects": "Kurzory, stopy, animované texty. Drobné detaily, které dělají rozdíl.",
+	"sidebar.starTitle": "Hvězdička na GitHubu",
+	"sidebar.starBody": "Pokud se vám FancyUI líbí, dejte mu hvězdičku!",
+	"rail.nextPage": "Další stránka",
 	"intro.nextSteps.heading": "Další kroky",
 	"intro.nextSteps.installation": "Instalace",
 	"intro.nextSteps.theming": "Vzhled",
@@ -168,7 +176,16 @@ export default {
 	"intro.cta.title": "Začínáte s FancyUI?",
 	"intro.cta.body":
 		"Podívejte se na <strong>Generátor motivů</strong>, přizpůsobte si barvy a sledujte, jak komponenty reagují v reálném čase.",
-	"intro.cta.button": "Vyzkoušet Generátor motivů →",
+	"intro.cta.button": "Vyzkoušet Generátor motivů",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Akce",
+	"category.forms": "Formuláře",
+	"category.overlays": "Překryvy",
+	"category.display": "Zobrazení",
+	"status.inProgress": "Ve vývoji",
 
 	// Installation (redesigned page)
 	"install.metaTitle": "Instalace",
@@ -286,4 +303,13 @@ export default {
 	"changelog.major": "Velké změny",
 	"changelog.minor": "Menší změny",
 	"changelog.patch": "Opravy",
+	// Cameleon docs skins
+	"skin.heading": "Vzhled",
+	"skin.standard": "Standardní",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Změnit vzhled",
+	"retro.explorer": "Průzkumník",
+	"retro.start": "Start",
+	"retro.tagline": "Animované komponenty pro Svelte 5 — připravené ke zkopírování.",
 } satisfies Catalog;

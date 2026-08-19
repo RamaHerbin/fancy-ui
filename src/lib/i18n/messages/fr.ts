@@ -118,6 +118,8 @@ export default {
 	"category.navigation": "Navigation",
 	"category.media": "Médias",
 	"category.effects": "Effets",
+	"category.ai-chat": "Chat IA",
+	"category.ai-agents": "Agents IA",
 
 	// Introduction (redesigned page)
 	"intro.title": "Introduction",
@@ -164,6 +166,15 @@ export default {
 	"intro.category.dataDisplay": "Affichage de données",
 	"intro.category.feedback": "Retour d'information",
 	"intro.category.media": "Médias",
+	"intro.stats.buttons":
+		"Rainbow, Ripple, Shimmer et compagnie. Des boutons qui donnent envie de cliquer.",
+	"intro.stats.cards":
+		"Carrousels, grilles bento, effets 3D. De quoi présenter du contenu sans l'ennuyer.",
+	"intro.stats.effects":
+		"Curseurs, traînées, textes animés. Les petites touches qui font la différence.",
+	"sidebar.starTitle": "Star sur GitHub",
+	"sidebar.starBody": "Si FancyUI vous plaît, laissez une étoile !",
+	"rail.nextPage": "Page suivante",
 	"intro.nextSteps.heading": "Étapes suivantes",
 	"intro.nextSteps.installation": "Installation",
 	"intro.nextSteps.theming": "Personnalisation du thème",
@@ -171,7 +182,16 @@ export default {
 	"intro.cta.title": "Nouveau sur FancyUI ?",
 	"intro.cta.body":
 		"Découvrez le <strong>Générateur de thème</strong> pour personnaliser les couleurs et voir les composants réagir en temps réel.",
-	"intro.cta.button": "Essayer le Générateur de thème →",
+	"intro.cta.button": "Essayer le Générateur de thème",
+
+	// Core components workspace (sidebar groups, categories, status)
+	"group.core": "Core",
+	"group.fancy": "Fancy",
+	"category.actions": "Actions",
+	"category.forms": "Formulaires",
+	"category.overlays": "Superpositions",
+	"category.display": "Affichage",
+	"status.inProgress": "En construction",
 
 	// Installation page
 	"install.metaTitle": "Installation",
@@ -294,4 +314,14 @@ export default {
 	"changelog.major": "Changements majeurs",
 	"changelog.minor": "Changements mineurs",
 	"changelog.patch": "Correctifs",
+	// Cameleon docs skins
+	"skin.heading": "Skin",
+	"skin.standard": "Standard",
+	"skin.brutal": "Brutal",
+	"skin.retroOs": "Retro OS",
+	"a11y.changeSkin": "Changer de skin",
+	// Retro OS docs chrome
+	"retro.explorer": "Explorateur",
+	"retro.start": "Démarrer",
+	"retro.tagline": "Composants animés pour Svelte 5 — prêts à copier-coller.",
 } satisfies Catalog;

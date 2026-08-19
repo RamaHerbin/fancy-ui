@@ -2,7 +2,7 @@
 	"name": "fancy-ui-svelte",
 	"private": false,
 	"version": "0.9.1",
-	"description": "61 animated UI components for Svelte 5 — WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
+	"description": "132 UI components for Svelte 5 — core primitives plus WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"author": "Rama Herbin",
 	"funding": "https://github.com/sponsors/RamaHerbin",
 	"type": "module",
@@ -52,7 +52,8 @@
 			"svelte": "./dist/fancy-ui/index.js",
 			"default": "./dist/fancy-ui/index.js"
 		},
-		"./tailwind.css": "./dist/fancy-ui/tailwind.css"
+		"./tailwind.css": "./dist/fancy-ui/tailwind.css",
+		"./cameleon/*": "./dist/cameleon/*"
 	},
 	"scripts": {
 		"dev": "vite dev",
@@ -64,6 +65,7 @@
 		"check:registry": "node scripts/check-registry.mjs",
 		"check:i18n": "node scripts/check-i18n.mjs",
 		"build:assets": "node scripts/build-synthwave-assets.mjs",
+		"build:brand-assets": "node scripts/build-brand-assets.mjs",
 		"build:og": "node scripts/build-og-images.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",

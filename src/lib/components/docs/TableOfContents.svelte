@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { t, getLocale } from "$lib/stores";
+	import { t, getLocale, createSkinState } from "$lib/stores";
+
+	const skinState = createSkinState();
+	const isRetro = $derived(skinState.skin === "retro-os");
 
 	interface Heading {
 		id: string;
@@ -63,11 +66,17 @@
 
 {#if headings.length > 0}
 	<nav class="hidden xl:block">
-		<div class="sticky top-20">
-			<h4 class="text-foreground mb-3 text-xs font-semibold tracking-wider uppercase">
-				{t("toc.onThisPage")}
-			</h4>
-			<ul class="space-y-1">
+		<div class="docs-toc sticky top-20" class:retro-toc={isRetro}>
+			{#if isRetro}
+				<div class="retro-toc-title">{t("toc.onThisPage")}</div>
+			{:else}
+				<h4
+					class="docs-toc-title text-foreground mb-3 text-xs font-semibold tracking-wider uppercase"
+				>
+					{t("toc.onThisPage")}
+				</h4>
+			{/if}
+			<ul class="docs-toc-list space-y-1" class:retro-toc-list={isRetro}>
 				{#each headings as heading}
 					<li style:padding-left="{(heading.level - 2) * 12}px">
 						<a

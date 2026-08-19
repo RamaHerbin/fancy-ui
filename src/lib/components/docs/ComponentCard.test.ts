@@ -9,6 +9,7 @@ const component: ComponentMeta = {
 	name: "RainbowButton",
 	description: "Animated rainbow gradient border effect",
 	category: "buttons",
+	group: "fancy",
 	status: "done",
 };
 
