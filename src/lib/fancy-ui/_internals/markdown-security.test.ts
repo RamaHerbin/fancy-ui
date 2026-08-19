@@ -72,6 +72,16 @@ function timeBaselineStream(length: number): number {
 describe("DoS: adversarial parse cost stays bounded", () => {
 	const BUDGET_MS = 250;
 
+	/**
+	 * The streaming tests measure ~24k parses each (3 runs × every prefix,
+	 * plus the same again for the baseline). The ratio assertion is
+	 * machine-independent, but the measurement itself is not — on a loaded CI
+	 * runner it can outlast vitest's default 5s test timeout, which fails the
+	 * test without ever reaching the assertion. Slow measurement is not a
+	 * finding; only the ratio is.
+	 */
+	const STREAM_MEASURE_TIMEOUT = { timeout: 60_000 };
+
 	it("unclosed bracket run", () => {
 		expect(timeParse("[".repeat(80_000))).toBeLessThan(BUDGET_MS);
 	});
@@ -104,7 +114,7 @@ describe("DoS: adversarial parse cost stays bounded", () => {
 		expect(timeParse(src)).toBeLessThan(BUDGET_MS);
 	});
 
-	it("streaming re-parse of an emphasis run", () => {
+	it("streaming re-parse of an emphasis run", STREAM_MEASURE_TIMEOUT, () => {
 		const full = "x" + "*".repeat(4_000);
 		const ratio = timeStream(full) / timeBaselineStream(full.length);
 		expect(ratio).toBeLessThan(MAX_STREAM_RATIO);
@@ -119,13 +129,13 @@ describe("DoS: adversarial parse cost stays bounded", () => {
 		expect(blocks.length).toBeLessThanOrEqual(50_001);
 	});
 
-	it("streaming re-parse of a bracket run (what a chat surface actually does)", () => {
+	it("streaming re-parse of a bracket run (what a chat surface actually does)", STREAM_MEASURE_TIMEOUT, () => {
 		const full = "[".repeat(4_000);
 		const ratio = timeStream(full) / timeBaselineStream(full.length);
 		expect(ratio).toBeLessThan(MAX_STREAM_RATIO);
 	});
 
-	it("streaming re-parse of an ordinary-sized link-opener message", () => {
+	it("streaming re-parse of an ordinary-sized link-opener message", STREAM_MEASURE_TIMEOUT, () => {
 		// 2KB of "[a](" looks like a benign reply; unbounded destination scans
 		// made this exact replay block the main thread for over a second.
 		const full = "[a](".repeat(500);
