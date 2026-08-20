@@ -1,0 +1,247 @@
+/* =============================================================================
+   kit.css — the Retro-OS kit's token and recipe layer
+   =============================================================================
+
+   The retro-os KIT (RetroButton, Chip, Led, …) paints roughly a dozen values
+   over and over: a 2px ink border, a hard `Npx Npx 0` shadow, 36px graph
+   paper, two typefaces. They live here once, as `.r-*` recipe classes, so the
+   shapes of the design are named and the components only choose between them.
+
+   TOKENS
+   The `--r-*` vocabulary is declared below, scoped to `[data-skin="retro-os"]`
+   — the attribute FancyProvider stamps on its root. Most values alias the
+   skin's `--skin-*` tokens so the kit follows any token retune; the literals
+   (the button tint, the four pale washes, the prose ink) are kit-only colors
+   that deliberately do NOT exist at token level: `--r-btn` is a fill tint,
+   not an accent, and must not be conflated with `--skin-yellow`.
+
+   The scoping is also the safety: outside a retro-os provider none of these
+   variables exist, so a kit component rendered under another skin shows up
+   visibly unpainted instead of silently wrong.
+
+   WHERE IT IS IMPORTED
+   Once, from `kit/index.ts`, so it arrives with the kit barrel and cannot be
+   forgotten — and so a consumer who uses the retro-os SKIN without the kit
+   never downloads it.
+
+   CASCADE NOTE
+   This file is unlayered, while Tailwind parks its utilities in
+   `@layer utilities`. Unlayered declarations beat every layered one regardless
+   of specificity, so `.r-border` wins over a Tailwind `border-*` utility on
+   the same element no matter the source order. That is intended — the recipe
+   is the authority — but it means "override the recipe with a Tailwind class"
+   does not work. Override with the class the recipe itself provides (see the
+   shadow ladder), or with an inline `style`.
+
+   HOUSE RULE THE KIT COMPONENTS FOLLOW
+   Tailwind for LAYOUT and SIZE (flex/grid/gap/padding/font-size). Color,
+   font-family, border and shadow only ever come from `--r-*` vars or the
+   `.r-*` classes below.
+   ============================================================================= */
+
+[data-skin="retro-os"] {
+	--r-canvas: var(--skin-page-bg, #f1e9d4);
+	--r-paper: var(--skin-card, #faf5e6);
+	--r-ink: var(--skin-ink, #191308);
+	--r-muted: var(--skin-muted, #5c5340);
+	/* Body-copy ink: --r-ink is too heavy and --r-muted too light at 13.5px. */
+	--r-prose: #3d3629;
+	/* The gold KEY fill. A fill tint, not an accent — never --skin-yellow. */
+	--r-btn: #ecd77f;
+	--r-blue: var(--skin-blue, #3f62a7);
+	--r-rust: var(--skin-red, #a0442f);
+	--r-gold: var(--skin-yellow, #b8912b);
+	--r-green: var(--skin-green, #3a6b42);
+	/* The pale washes paired 1:1 with the four accents (see kit/accents.ts). */
+	--r-tint-gold: #f7efd2;
+	--r-tint-blue: #e8edf6;
+	--r-tint-green: #eaf2e4;
+	--r-tint-rust: #f8e8dc;
+	--r-font-pixel: var(--skin-font-pixel, "Silkscreen", "IBM Plex Mono", monospace);
+}
+
+/* -----------------------------------------------------------------------------
+   Shadow ladder
+   -----------------------------------------------------------------------------
+   The hard shadow is not a glow, it is a GAP: the object is a slab of paper
+   floating N pixels above the page and the offset is how far. The rungs are a
+   depth ordering, not a style palette — 2px small keys, 3px cards, 4px section
+   windows, 5px (as a drop-shadow, on the notched frame) the one thing that
+   floats above everything.
+
+   ORDER IS AN API. The rungs are declared ascending, so a component that needs
+   a taller rest shadow may add the taller class ALONGSIDE the shorter one:
+   equal specificity, later declaration wins. The pressable hover ladder below
+   is declared in the same order for the same reason.
+
+   `soft` is the one non-ink shadow: translucent ink for objects meant to read
+   as unselected/at rest among peers. rgba(), not a var(): a color token cannot
+   be given an alpha inside this shorthand without color-mix(), and the literal
+   keeps the value readable.
+   -------------------------------------------------------------------------- */
+
+.r-shadow-2 {
+	box-shadow: 2px 2px 0 var(--r-ink);
+}
+
+.r-shadow-3 {
+	box-shadow: 3px 3px 0 var(--r-ink);
+}
+
+.r-shadow-4 {
+	box-shadow: 4px 4px 0 var(--r-ink);
+}
+
+.r-shadow-soft-3 {
+	box-shadow: 3px 3px 0 rgba(25, 19, 8, 0.35);
+}
+
+.r-shadow-soft-3-weak {
+	box-shadow: 3px 3px 0 rgba(25, 19, 8, 0.25);
+}
+
+/* -----------------------------------------------------------------------------
+   .r-pressable — the press physics
+   -----------------------------------------------------------------------------
+   Every retro affordance behaves like a key on a beige keyboard; the two states
+   are the same object at two heights, not two decorations:
+
+     :hover  → the slab RISES 1px: translate(-1px,-1px), and the shadow grows
+               by 1px because the gap between slab and page just widened.
+     :active → the slab is PRESSED FLAT: translate(2px,2px) with no shadow, so
+               the silhouette lands exactly where its shadow used to be. 2px
+               (not 1px) is what makes it land, given the -1px hover offset.
+
+   The hover shadow is a function of the RESTING shadow, which `.r-pressable`
+   cannot read off the element — so it is spelled out once per rung: 2→3, 3→4,
+   4→5, soft→4 (hovering is what selects the card, so the soft ink hardens).
+   `:active` needs no ladder: one rule at higher specificity than every
+   `.r-shadow-*`, and the pressed value is 0 whatever the rest height was.
+
+   WHY @media (hover: hover): on a touchscreen `:hover` sticks after a tap —
+   the key would stay raised until something else was tapped. Behind the query,
+   a tap gets `:active` only: press, release, done. The `:active` rule is
+   deliberately OUTSIDE the query for exactly that reason.
+
+   Nothing here transitions: the design snaps between states, and that
+   instantaneous 1px jump is the retro feel. A state change with zero duration
+   is not motion, so there is no prefers-reduced-motion escape hatch to write.
+   -------------------------------------------------------------------------- */
+
+.r-pressable {
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.r-pressable:hover {
+		transform: translate(-1px, -1px);
+	}
+
+	.r-pressable.r-shadow-2:hover {
+		box-shadow: 3px 3px 0 var(--r-ink);
+	}
+
+	.r-pressable.r-shadow-3:hover {
+		box-shadow: 4px 4px 0 var(--r-ink);
+	}
+
+	.r-pressable.r-shadow-4:hover {
+		box-shadow: 5px 5px 0 var(--r-ink);
+	}
+
+	.r-pressable.r-shadow-soft-3:hover,
+	.r-pressable.r-shadow-soft-3-weak:hover {
+		box-shadow: 4px 4px 0 var(--r-ink);
+	}
+}
+
+.r-pressable:active {
+	transform: translate(2px, 2px);
+	box-shadow: 0 0 0 var(--r-ink);
+}
+
+/* -----------------------------------------------------------------------------
+   Structure — borders and rules
+   -------------------------------------------------------------------------- */
+
+/* The single most repeated declaration in the design. It never scales with the
+   viewport: at 2px it is a drawn line, not a proportion of anything. */
+.r-border {
+	border: 2px solid var(--r-ink);
+}
+
+/* Section-internal divider: a dashed rule above a footnote/credits row. */
+.r-dashed-top {
+	border-top: 2px dashed var(--r-ink);
+}
+
+/* -----------------------------------------------------------------------------
+   Surfaces
+   -------------------------------------------------------------------------- */
+
+/* 36px graph paper. Two repeating gradients, one per axis, each drawing a 1px
+   line then 35px of nothing. The ink is inlined as rgba() because a color
+   token cannot take an alpha inside a gradient stop, and 0.05 ink on cream is
+   the whole point of the effect. */
+.r-grid-bg {
+	background-image:
+		repeating-linear-gradient(0deg, rgba(25, 19, 8, 0.05) 0 1px, transparent 1px 36px),
+		repeating-linear-gradient(90deg, rgba(25, 19, 8, 0.05) 0 1px, transparent 1px 36px);
+}
+
+/* -----------------------------------------------------------------------------
+   Type
+   -----------------------------------------------------------------------------
+   Two families do all the work; body copy is the skin's own --skin-font-sans,
+   so there is no `.r-sans` — not needing a class is the point.
+
+   `.r-pixel` PINS font-weight:700: Silkscreen only ships 400 and 700 and every
+   pixel label in the design is the bold one, so the weight is part of the
+   recipe rather than a separate decision.
+   -------------------------------------------------------------------------- */
+
+.r-pixel {
+	font-family: var(--r-font-pixel);
+	font-weight: 700;
+}
+
+.r-mono {
+	font-family: var(--skin-font-mono, "IBM Plex Mono", monospace);
+}
+
+/* -----------------------------------------------------------------------------
+   Motion
+   -----------------------------------------------------------------------------
+   One animation exists in the whole kit: the status LED. `steps(1)` and the
+   60/61% split are what make it a hard blink (on, off) rather than a pulse —
+   a CRT indicator, not a breathing dot.
+
+   `.r-blink` is a class rather than an inline `animation:` on the component,
+   precisely so the reduced-motion override can reach it: an inline animation
+   could only be cancelled with !important.
+   -------------------------------------------------------------------------- */
+
+@keyframes r-blink {
+	0%,
+	60% {
+		opacity: 1;
+	}
+
+	61%,
+	100% {
+		opacity: 0.25;
+	}
+}
+
+.r-blink {
+	animation: r-blink 1.6s steps(1) infinite;
+}
+
+/* Reduced motion: the LED stays lit. Not dimmed and not hidden — it is a
+   status indicator, and lit is the state it is reporting. */
+@media (prefers-reduced-motion: reduce) {
+	.r-blink {
+		animation: none;
+		opacity: 1;
+	}
+}

@@ -1,11 +1,14 @@
 /**
  * Cameleon Engine — multi-skin UI primitives for fancy-ui.
  *
- * Same component API, radically different art directions ("skins"). Internal /
- * not published yet: this compiles to dist/cameleon but is not in package.json
- * `files`, so it stays a docs-site subsystem until deliberately promoted.
+ * Same component API, radically different art directions ("skins"): each skin
+ * carries tokens (CSS custom properties), recipes (pure functions returning
+ * class strings per primitive), optional ornaments and per-skin CSS.
  *
- *   import { FancyProvider, Button, brutalSkin } from "$lib/cameleon";
+ * Published as `fancy-ui-svelte/cameleon` (with the retro-os component kit at
+ * `fancy-ui-svelte/cameleon/retro-kit`). Consumers wrap a subtree:
+ *
+ *   import { FancyProvider, Button, brutalSkin } from "fancy-ui-svelte/cameleon";
  *   <FancyProvider skin={brutalSkin}> ... </FancyProvider>
  */
 export { default as FancyProvider, type FancyProviderProps } from "./FancyProvider.svelte";

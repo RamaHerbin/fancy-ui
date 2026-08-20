@@ -37,6 +37,7 @@
 	],
 	"files": [
 		"dist/fancy-ui",
+		"dist/cameleon",
 		"dist/utils",
 		"dist/utils.js",
 		"dist/utils.d.ts",
@@ -53,6 +54,16 @@
 			"default": "./dist/fancy-ui/index.js"
 		},
 		"./tailwind.css": "./dist/fancy-ui/tailwind.css",
+		"./cameleon": {
+			"types": "./dist/cameleon/index.d.ts",
+			"svelte": "./dist/cameleon/index.js",
+			"default": "./dist/cameleon/index.js"
+		},
+		"./cameleon/retro-kit": {
+			"types": "./dist/cameleon/skins/retro-os/kit/index.d.ts",
+			"svelte": "./dist/cameleon/skins/retro-os/kit/index.js",
+			"default": "./dist/cameleon/skins/retro-os/kit/index.js"
+		},
 		"./cameleon/*": "./dist/cameleon/*"
 	},
 	"scripts": {
