@@ -63,4 +63,19 @@ describe("LineHoverLink", () => {
 		});
 		expect(container.querySelector("a.text-xl")).toBeTruthy();
 	});
+
+	it("applies the ink variant class", () => {
+		const { container } = render(LineHoverLink, { props: { variant: "ink", href: "#" } });
+		expect(container.querySelector("a.link-hover--ink")).toBeTruthy();
+	});
+
+	it("does not wrap children in a span for the ink variant", () => {
+		const { container } = render(LineHoverLink, { props: { variant: "ink", href: "#" } });
+		expect(container.querySelector("a.link-hover--ink span")).toBeNull();
+	});
+
+	it("does not render an SVG for the ink variant", () => {
+		const { container } = render(LineHoverLink, { props: { variant: "ink", href: "#" } });
+		expect(container.querySelector("svg")).toBeNull();
+	});
 });
