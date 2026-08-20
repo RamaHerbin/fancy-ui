@@ -11,25 +11,36 @@ A scroll-triggered reveal animation that transitions children from blurred and o
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `duration` | `number` | `1` | Animation duration in seconds |
-| `delay` | `number` | `0.2` | Stagger delay between children in seconds |
-| `blur` | `string` | `'20px'` | Initial blur amount (CSS value) |
-| `yOffset` | `number` | `20` | Initial vertical offset in pixels |
-| `class` | `string` | `''` | Additional CSS classes for the container |
+| Prop       | Type               | Default  | Description                                                                                    |
+| ---------- | ------------------ | -------- | ---------------------------------------------------------------------------------------------- |
+| `duration` | `number`           | `1`      | Animation duration in seconds                                                                  |
+| `delay`    | `number`           | `0.2`    | Stagger delay between children in seconds                                                      |
+| `blur`     | `string`           | `'20px'` | Initial blur amount (CSS value)                                                                |
+| `yOffset`  | `number`           | `20`     | Initial vertical offset in pixels                                                              |
+| `class`    | `string`           | `''`     | Additional CSS classes for the container                                                       |
+| `mode`     | `'blur' \| 'hard'` | `'blur'` | Reveal style — `blur` softens in with blur + translate, `hard` snaps opacity in with no easing |
+
+## Hard mode
+
+`mode="hard"` drops the filter/blur and translate softening entirely — children appear with a stepped opacity snap (`transition-timing-function: steps(2, jump-none)`, so opacity jumps from 0 to 1 partway through the duration instead of easing). The scroll trigger and stagger delays are unchanged, for hard-edge art directions where a soft blur-in reads as off-brand:
+
+```svelte
+<BlurReveal mode="hard">
+	<h1>Snaps into place</h1>
+</BlurReveal>
+```
 
 ## Usage
 
 ```svelte
 <script>
-  import { BlurReveal } from '$lib/fancy-ui/blur-reveal';
+	import { BlurReveal } from "$lib/fancy-ui/blur-reveal";
 </script>
 
 <BlurReveal>
-  <h1>This fades in first</h1>
-  <p>This fades in second</p>
-  <p>This fades in third</p>
+	<h1>This fades in first</h1>
+	<p>This fades in second</p>
+	<p>This fades in third</p>
 </BlurReveal>
 ```
 
