@@ -22,13 +22,7 @@
 
 import "./kit.css";
 
-export {
-	ACCENT_TINT,
-	ACCENT_VAR,
-	accentTint,
-	accentVar,
-	type Accent,
-} from "./accents.js";
+export { ACCENT_TINT, ACCENT_VAR, accentTint, accentVar, type Accent } from "./accents.js";
 
 export { default as RetroButton, type RetroButtonProps } from "./RetroButton.svelte";
 export { default as Chip, type ChipProps } from "./Chip.svelte";
@@ -40,3 +34,14 @@ export { default as InlineIndexLabel, type InlineIndexLabelProps } from "./Inlin
 export { default as PixelGlyph, type PixelGlyphProps } from "./PixelGlyph.svelte";
 export { default as Led, type LedProps } from "./Led.svelte";
 export { default as Swatches, type SwatchesProps } from "./Swatches.svelte";
+
+export { default as SectionWindow, type SectionWindowProps } from "./SectionWindow.svelte";
+export { default as AppWindow, type AppWindowProps } from "./AppWindow.svelte";
+export { default as NotchedFrame, type NotchedFrameProps } from "./NotchedFrame.svelte";
+export { default as RetroCard, type RetroCardProps } from "./RetroCard.svelte";
+
+export { default as VideoFrame, type VideoFrameProps } from "./VideoFrame.svelte";
+export { default as PlayBadge, type PlayBadgeProps } from "./PlayBadge.svelte";
+export { default as EmptyMediaFrame, type EmptyMediaFrameProps } from "./EmptyMediaFrame.svelte";
+
+export { default as HeaderBar, type HeaderBarProps } from "./HeaderBar.svelte";
