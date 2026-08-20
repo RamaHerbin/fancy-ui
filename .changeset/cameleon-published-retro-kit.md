@@ -14,3 +14,13 @@ it stays lit — and `Swatches`), and the shared accent vocabulary
 `--r-*` tokens load with the kit barrel and scope to `[data-skin="retro-os"]`,
 so a kit component outside a retro-os provider is visibly unpainted rather
 than silently wrong.
+
+The kit also grows its windows, media and chrome vocabulary, ported from the
+reference portfolio implementation that grew the retro-os language in the
+first place: `SectionWindow` and `AppWindow` (the two DOS-titlebar window
+grammars), `NotchedFrame` (the three-layer chamfered-corner hero frame) and
+`RetroCard` (the accent-aware hover card); `VideoFrame`, `PlayBadge` and
+`EmptyMediaFrame` for poster-and-play video staging with a dashed-border
+placeholder for demos not yet recorded; and `HeaderBar`, the page-header
+shell — ink tile, clamp()'d title/subtitle, and a slot on the right for a
+consumer's own navigation or skin controls.
