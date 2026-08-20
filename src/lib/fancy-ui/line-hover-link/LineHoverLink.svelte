@@ -15,6 +15,7 @@
 	 * bounce   - Bouncy squish animation
 	 * arc      - SVG arc stroke draws in
 	 * scribble - SVG scribble stroke draws in
+	 * ink      - Constant underline; whole link snaps (-1px,-1px) on hover
 	 */
 	export type LineHoverVariant =
 		| "slide"
@@ -27,7 +28,8 @@
 		| "sweep"
 		| "bounce"
 		| "arc"
-		| "scribble";
+		| "scribble"
+		| "ink";
 
 	export interface LineHoverLinkProps {
 		/** The animation variant */
@@ -446,5 +448,20 @@
 	.link-hover:is(:hover, :focus-visible) .link-hover__graphic--scribble :global(path) {
 		transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
 		transition-duration: 0.3s;
+	}
+
+	/* Ink */
+	.link-hover--ink::before {
+		height: 2px;
+	}
+
+	.link-hover--ink:focus-visible {
+		transform: translate3d(-1px, -1px, 0);
+	}
+
+	@media (hover: hover) {
+		.link-hover--ink:hover {
+			transform: translate3d(-1px, -1px, 0);
+		}
 	}
 </style>

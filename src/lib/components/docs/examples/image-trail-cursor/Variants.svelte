@@ -20,6 +20,7 @@
 		{ type: "type6", label: "Speed-reactive" },
 		{ type: "type7", label: "Stacking" },
 		{ type: "type8", label: "3D Perspective" },
+		{ type: "pixelated", label: "Pixelated" },
 	];
 
 	let selectedVariant: VariantType = $state("type1");
