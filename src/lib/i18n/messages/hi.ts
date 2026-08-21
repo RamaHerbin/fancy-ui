@@ -309,6 +309,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "स्किन बदलें",
+	"a11y.sound": "ध्वनि",
 	"retro.explorer": "एक्सप्लोरर",
 	"retro.start": "स्टार्ट",
 	"retro.tagline": "Svelte 5 के लिए एनिमेटेड कंपोनेंट — कॉपी-पेस्ट के लिए तैयार।",

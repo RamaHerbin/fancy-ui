@@ -311,6 +311,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "Ganti skin",
+	"a11y.sound": "Suara",
 	"retro.explorer": "Penjelajah",
 	"retro.start": "Mulai",
 	"retro.tagline": "Komponen beranimasi untuk Svelte 5 — siap disalin-tempel.",

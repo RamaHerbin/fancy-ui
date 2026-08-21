@@ -148,6 +148,9 @@ export * from "./context-menu/index.js";
 export * from "./command-menu/index.js";
 export * from "./navigation-menu/index.js";
 
+// Core — actions (sound)
+export * from "./sound/index.js";
+
 // =============================================================================
 // Registry
 // =============================================================================

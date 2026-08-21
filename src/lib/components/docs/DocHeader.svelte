@@ -5,6 +5,7 @@
 	import SkinSwitcher from "$lib/components/docs/SkinSwitcher.svelte";
 	import LanguageSwitcher from "$lib/components/docs/LanguageSwitcher.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
+	import { SoundToggle } from "$lib/fancy-ui/sound/index.js";
 
 	interface Props {
 		onMenuClick?: () => void;
@@ -124,6 +125,8 @@
 
 		<!-- display:contents wrapper — a grouping hook for the retro-os menubar. -->
 		<div class="retro-menubar-tools">
+			<!-- Sound is opt-in: this switch is the only way the docs ever make a sound. -->
+			<SoundToggle label={t("a11y.sound")} class="hidden sm:inline-flex" />
 			<LanguageSwitcher />
 			<SkinSwitcher />
 			<ThemeSwitcher />

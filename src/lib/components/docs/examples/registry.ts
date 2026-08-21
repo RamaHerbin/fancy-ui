@@ -1168,4 +1168,40 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "A panel where one link is marked as the current page.",
 		},
 	],
+	sound: [
+		{
+			name: "BasicUsage",
+			title: "Sound Lab",
+			description:
+				"Every cue, its volume, and when to reach for it. Nothing plays until you switch sound on.",
+		},
+		{
+			name: "ProgrammaticPlay",
+			title: "Programmatic Play",
+			description:
+				"sound.play() from an async handler — a no-op while sound is off, so call sites never branch on it.",
+		},
+		{
+			name: "SoundFeedbackAction",
+			title: "The soundFeedback Action",
+			description:
+				"use:soundFeedback on any element, with cues swapped at runtime through the action's update path.",
+		},
+		{
+			name: "WithButtons",
+			title: "With Buttons",
+			description:
+				"Button and CopyButton playing their own press and copy cues through the opt-in prop.",
+		},
+		{
+			name: "WithFormControls",
+			title: "With Form Controls",
+			description: "Checkbox, Switch and RadioGroup — toggle-on, toggle-off and select.",
+		},
+		{
+			name: "WithMenus",
+			title: "With Menus",
+			description: "Select and DropdownMenu — open, close and select, one cue per interaction.",
+		},
+	],
 };

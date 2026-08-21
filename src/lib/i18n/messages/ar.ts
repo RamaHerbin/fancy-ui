@@ -303,6 +303,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "تغيير المظهر",
+	"a11y.sound": "الصوت",
 	"retro.explorer": "المستكشف",
 	"retro.start": "ابدأ",
 	"retro.tagline": "مكوّنات متحركة لـ Svelte 5 — جاهزة للنسخ واللصق.",

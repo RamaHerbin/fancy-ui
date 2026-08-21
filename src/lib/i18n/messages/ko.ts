@@ -307,6 +307,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "스킨 변경",
+	"a11y.sound": "사운드",
 	"retro.explorer": "탐색기",
 	"retro.start": "시작",
 	"retro.tagline": "Svelte 5를 위한 애니메이션 컴포넌트 — 복사해서 바로 사용하세요.",
