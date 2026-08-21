@@ -15,19 +15,23 @@ global.IntersectionObserver = class IntersectionObserver {
 } as unknown as typeof IntersectionObserver;
 
 // Mock HTMLCanvasElement.getContext (not available in jsdom without canvas package)
-HTMLCanvasElement.prototype.getContext = () => null;
+// and window.matchMedia (not available in jsdom). Guarded: `setupFiles` also runs
+// for `@vitest-environment node` suites (the SSR safety net), where neither
+// global exists.
+if (typeof window !== "undefined") {
+	HTMLCanvasElement.prototype.getContext = () => null;
 
-// Mock window.matchMedia (not available in jsdom)
-Object.defineProperty(window, "matchMedia", {
-	writable: true,
-	value: (query: string) => ({
-		matches: false,
-		media: query,
-		onchange: null,
-		addEventListener: () => {},
-		removeEventListener: () => {},
-		dispatchEvent: () => false,
-		addListener: () => {},
-		removeListener: () => {},
-	}),
-});
+	Object.defineProperty(window, "matchMedia", {
+		writable: true,
+		value: (query: string) => ({
+			matches: false,
+			media: query,
+			onchange: null,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		}),
+	});
+}
