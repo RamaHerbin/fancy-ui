@@ -5,6 +5,7 @@ import Switch from "./Switch.svelte";
 import ValueHarness from "./SwitchHarness.test.svelte";
 import FieldHarness from "./SwitchFieldHarness.test.svelte";
 import type { SwitchSize } from "./Switch.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -240,5 +241,108 @@ describe("Switch", () => {
 		expect(el.getAttribute("aria-invalid")).toBe("true");
 		expect(el.required).toBe(true);
 		expect(el.disabled).toBe(true);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays toggle-on exactly once when switched on via a click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Switch, { props: { sound: true, label: "Notifications" } });
+			const el = toggle(container);
+
+			await fireEvent.click(el);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays toggle-off exactly once when switched off via a click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Switch, {
+				props: { sound: true, checked: true, label: "Notifications" },
+			});
+			const el = toggle(container);
+
+			await fireEvent.click(el);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Switch, { props: { label: "Notifications" } });
+			const el = toggle(container);
+
+			await fireEvent.click(el);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when disabled via its own prop, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Switch, {
+				props: { sound: true, disabled: true, label: "Notifications" },
+			});
+			const el = toggle(container);
+
+			await fireEvent.change(el, { target: { checked: true } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when disabled through a surrounding FormField, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const context = {
+				controlId: "ctx-id-2",
+				describedBy: undefined,
+				invalid: false,
+				valid: true,
+				required: false,
+				disabled: true,
+			};
+			// FieldHarness renders <Switch> with no `sound` prop of its own, so
+			// this proves the disabled guard specifically.
+			render(FieldHarness, { props: { context } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays exactly one cue for a label click, not two (label click double-dispatches click but change fires once)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Switch, { props: { sound: true, label: "Notifications" } });
+			const label = wrapper(container);
+
+			await fireEvent.click(label);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays exactly one cue for a keyboard Space activation on the input", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Switch, { props: { sound: true, label: "Notifications" } });
+			const el = toggle(container);
+			el.focus();
+
+			// jsdom does not implement the native Space-activates-checkbox
+			// behaviour; a real browser's default action for Space fires exactly
+			// one click, which is simulated directly here.
+			await fireEvent.keyDown(el, { key: " " });
+			await fireEvent.click(el);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("does not leak the sound prop onto the DOM input", () => {
+			const { container } = render(Switch, { props: { sound: true, label: "Notifications" } });
+			const el = toggle(container);
+
+			expect(el.hasAttribute("sound")).toBe(false);
+		});
 	});
 });

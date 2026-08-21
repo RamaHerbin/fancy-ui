@@ -69,6 +69,7 @@ The library's foundational push-button: six variants, three sizes, a loading sta
 | `children`  | `Snippet`                                                                       | —           | The button's label / content                                                   |
 | `class`     | `string`                                                                        | —           | Additional CSS classes                                                         |
 | `ref`       | `HTMLButtonElement \| HTMLAnchorElement \| null`                                | `null`      | Bindable element reference                                                     |
+| `sound`     | `boolean`                                                                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound           |
 
 ## Theming
 
@@ -81,6 +82,16 @@ Five of the six variants read the theme's own `primary` / `secondary` / `border`
 ```
 
 `--ft-accent-foreground` (default `oklch(1 0 0)`, plain white) colours its label the same way. Both are inherited, so setting either anywhere up the tree — a wrapper's `style`, a theme class, `:root` — retints every accent button below it, and the same `--ft-accent` also colours every button's focus ring, whatever its variant.
+
+## Sound
+
+Set `sound` to play the `press` cue on activation, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Button sound onclick={save}>Save changes</Button>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the button **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` and `loading` block the cue exactly like they block `onclick` — nothing plays for a click that never fires the callback either.
 
 ## Implementation notes
 

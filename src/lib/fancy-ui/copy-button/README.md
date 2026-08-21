@@ -39,20 +39,21 @@ React to the outcome instead of trusting the label alone:
 
 ## Props
 
-| Prop          | Type                                             | Default     | Description                                                       |
-| ------------- | ------------------------------------------------ | ----------- | ----------------------------------------------------------------- |
-| `value`       | `string`                                         | —           | The text written to the clipboard on activation (required)        |
-| `label`       | `string`                                         | `"Copy"`    | Idle label                                                        |
-| `copiedLabel` | `string`                                         | `"Copied"`  | Label shown for `resetMs` after a successful copy                 |
-| `resetMs`     | `number`                                         | `2000`      | How long the copied state holds before reverting, in milliseconds |
-| `variant`     | `ButtonVariant`                                  | `"outline"` | Passed straight through to the underlying `Button`                |
-| `size`        | `ButtonSize`                                     | `"md"`      | Passed straight through to the underlying `Button`                |
-| `disabled`    | `boolean`                                        | `false`     | Disables the button and blocks the copy                           |
-| `iconOnly`    | `boolean`                                        | `false`     | Drops the visible label, moving it to `aria-label` instead        |
-| `onCopy`      | `(value: string, ok: boolean) => void`           | —           | Called with the value and whether the write actually succeeded    |
-| `children`    | `Snippet`                                        | —           | Overrides the default icon + label content                        |
-| `class`       | `string`                                         | —           | Additional CSS classes                                            |
-| `ref`         | `HTMLButtonElement \| HTMLAnchorElement \| null` | `null`      | Bindable element reference — matches `Button`'s own ref type      |
+| Prop          | Type                                             | Default     | Description                                                               |
+| ------------- | ------------------------------------------------ | ----------- | ------------------------------------------------------------------------- |
+| `value`       | `string`                                         | —           | The text written to the clipboard on activation (required)                |
+| `label`       | `string`                                         | `"Copy"`    | Idle label                                                                |
+| `copiedLabel` | `string`                                         | `"Copied"`  | Label shown for `resetMs` after a successful copy                         |
+| `resetMs`     | `number`                                         | `2000`      | How long the copied state holds before reverting, in milliseconds         |
+| `variant`     | `ButtonVariant`                                  | `"outline"` | Passed straight through to the underlying `Button`                        |
+| `size`        | `ButtonSize`                                     | `"md"`      | Passed straight through to the underlying `Button`                        |
+| `disabled`    | `boolean`                                        | `false`     | Disables the button and blocks the copy                                   |
+| `iconOnly`    | `boolean`                                        | `false`     | Drops the visible label, moving it to `aria-label` instead                |
+| `onCopy`      | `(value: string, ok: boolean) => void`           | —           | Called with the value and whether the write actually succeeded            |
+| `children`    | `Snippet`                                        | —           | Overrides the default icon + label content                                |
+| `class`       | `string`                                         | —           | Additional CSS classes                                                    |
+| `ref`         | `HTMLButtonElement \| HTMLAnchorElement \| null` | `null`      | Bindable element reference — matches `Button`'s own ref type              |
+| `sound`       | `boolean`                                        | `false`     | Plays `copy`/`error` on the copy outcome, once the user has enabled sound |
 
 ## Theming
 
@@ -77,6 +78,16 @@ Its own default is a `light-dark()` pair, so **your theme must declare
 	color-scheme: light dark;
 }
 ```
+
+## Sound
+
+Set `sound` to play a cue on the copy outcome, through the shared sound controller (see [`sound/README.md`](../sound/README.md)): `copy` when the write succeeds, `error` when it does not.
+
+```svelte
+<CopyButton value="npm install fancy-ui-svelte" sound />
+```
+
+It is opt-in and silent by default, and it is not simply forwarded to the inner `Button` — the inner button stays quiet so a click only ever plays one cue, not `press` followed by `copy`/`error`.
 
 ## Implementation Notes
 

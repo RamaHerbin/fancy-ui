@@ -39,6 +39,7 @@
 		label?: string;
 		/** Omit to render with no FormField provider above it at all. */
 		field?: FieldContext;
+		sound?: boolean;
 	}
 
 	let {
@@ -52,6 +53,7 @@
 		orientation = "vertical",
 		label = "Test group",
 		field,
+		sound = false,
 	}: Props = $props();
 
 	// Must run synchronously during this component's own initialization,
@@ -60,7 +62,17 @@
 	setContext(FIELD_KEY, field);
 </script>
 
-<RadioGroup {name} bind:value {onValueChange} {disabled} {required} {invalid} {orientation} {label}>
+<RadioGroup
+	{name}
+	bind:value
+	{onValueChange}
+	{disabled}
+	{required}
+	{invalid}
+	{orientation}
+	{label}
+	{sound}
+>
 	{#each items as item (item.value)}
 		<RadioGroupItem value={item.value} disabled={item.disabled} label={item.label} />
 	{/each}

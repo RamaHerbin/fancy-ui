@@ -32,6 +32,11 @@
 		class?: string;
 		/** Element reference. Matches Button's own ref type, since CopyButton forwards it there. */
 		ref?: HTMLButtonElement | HTMLAnchorElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -40,6 +45,7 @@
 	import { cn } from "$lib/utils.js";
 	import Button from "../button/Button.svelte";
 	import { createCopy } from "../_internals/clipboard.svelte.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value,
@@ -54,6 +60,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: CopyButtonProps = $props();
 
 	// Read once, on purpose: `createCopy` takes its reset delay as a constructor
@@ -76,6 +83,7 @@
 		// missing clipboard API — that outcome is reported to the caller honestly,
 		// not swallowed into a silent no-op.
 		const ok = await copyState.copy(value);
+		if (sound) soundFx.play(ok ? "copy" : "error");
 		onCopy?.(value, ok);
 	}
 </script>

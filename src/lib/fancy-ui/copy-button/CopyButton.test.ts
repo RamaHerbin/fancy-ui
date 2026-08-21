@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CopyButton from "./CopyButton.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 /** jsdom ships no navigator.clipboard, so every test installs its own. */
 function stubClipboard(writeText: unknown) {
@@ -223,5 +224,73 @@ describe("CopyButton", () => {
 		// The original 500ms window is what actually governs the revert.
 		await vi.advanceTimersByTimeAsync(450);
 		expect(liveLabel(container).textContent).toBe("Copy");
+	});
+
+	describe("sound", () => {
+		const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+
+		afterEach(() => {
+			play.mockClear();
+		});
+
+		it("plays the copy cue exactly once after a successful copy, with sound enabled", async () => {
+			stubClipboard(vi.fn().mockResolvedValue(undefined));
+			const { container } = render(CopyButton, { props: { value: "hello", sound: true } });
+
+			await fireEvent.click(button(container));
+			await flush();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("copy");
+		});
+
+		it("plays the error cue instead, when the write fails, with sound enabled", async () => {
+			stubClipboard(vi.fn().mockRejectedValue(new Error("denied")));
+			const { container } = render(CopyButton, { props: { value: "hello", sound: true } });
+
+			await fireEvent.click(button(container));
+			await flush();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("error");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			stubClipboard(vi.fn().mockResolvedValue(undefined));
+			const { container } = render(CopyButton, { props: { value: "hello" } });
+
+			await fireEvent.click(button(container));
+			await flush();
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", async () => {
+			const writeText = vi.fn().mockResolvedValue(undefined);
+			stubClipboard(writeText);
+			const { container } = render(CopyButton, {
+				props: { value: "hello", sound: true, disabled: true },
+			});
+
+			button(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			await flush();
+
+			expect(writeText).not.toHaveBeenCalled();
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not forward the sound prop to the inner Button — the inner Button plays nothing itself", async () => {
+			// If `sound` leaked through to the inner `<Button>`, its own `press` cue
+			// would fire on top of CopyButton's own `copy`/`error` cue, doubling the
+			// sound for a single click.
+			stubClipboard(vi.fn().mockResolvedValue(undefined));
+			const { container } = render(CopyButton, { props: { value: "hello", sound: true } });
+
+			await fireEvent.click(button(container));
+			await flush();
+
+			expect(play).not.toHaveBeenCalledWith("press");
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

@@ -89,6 +89,7 @@ Give it a `name` to make it participate in a real form:
 | `align`         | `"start" \| "center" \| "end"`           | `"start"`  | Alignment along the trigger's cross axis                                          |
 | `class`         | `string`                                 | —          | Additional CSS classes, merged onto the trigger                                   |
 | `ref`           | `HTMLButtonElement \| null`              | `null`     | Bindable reference to the trigger button                                          |
+| `sound`         | `boolean`                                | `false`    | Plays `open`/`select` cues — see [Sound](#sound) below                            |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context — see Implementation
@@ -131,6 +132,24 @@ alternative, closing without committing, would silently discard a highlight
 the user very likely meant to pick the moment they looked away from the
 control. If a caller genuinely wants "leaving without picking" to be
 possible, `Escape` already does exactly that.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<Select options={frameworks} bind:value={framework} sound />
+```
+
+`open` plays when the panel opens; `select` plays once a choice commits —
+by a click, Enter/Space, Tab, or typing a match while closed. Escape and an
+outside click play `close` instead, and never both: a commit is one cue, a
+dismiss is the other, never `select` followed by `close` for the same
+interaction. Re-picking the already-selected option changes nothing, so it
+plays no `select` — the same silent early return `onValueChange` gets — and
+the panel closes as a dismissal, with `close`, rather than in silence.
+Toggling the trigger shut with nothing highlighted stays a `close`.
 
 ## Implementation Notes
 
