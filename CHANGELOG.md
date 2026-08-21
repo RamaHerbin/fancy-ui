@@ -1,5 +1,178 @@
 # Changelog
 
+## 0.10.0
+
+### Minor Changes
+
+- 09b0f81: Add the agent-activity and structured-output surfaces of the AI/chat family: `AgentPlan` (glanceable checklist with done/total count, completion bar, status glyphs, and one level of substeps), `SubagentList` (fan-out panel for parallel workers with per-row status dots, model badges, and progress bars under a self-deriving label), `ApprovalCard` (human-in-the-loop gate whose approve/deny footer swaps for a politely announced verdict line, with a destructive variant), `RecommendationCard` (an agent's proposal with a counted-up confidence figure beside a filling ring, banded by certainty), `ArtifactCard` (a generated document as a tangible object — version navigator, streaming preview behind a fade, and a real Open button), and `AiDataTable` (compact comparison table for structured model output with real table semantics, keyboard-scrollable overflow, and no client-side sorting by design). All six render duplicate model-supplied ids without crashing, follow the shared `--ft-status-*` tokens, and ship with colocated tests, docs examples, and stories.
+- de5f712: Add the knowledge surfaces of the AI/chat family: the `Sources` compound (`Sources`, `SourcesTrigger`, `SourcesList`, `SourceCard`, plus the exported `SOURCES_CONTEXT_KEY`/`SourcesContext` contract) rendering an answer's citations as a monogram-stack pill that expands into scannable source cards; `InlineCitation` (a numbered in-sentence reference revealing a `SourceCard` preview in a floating card on hover or focus, tooltip-pattern accessible); `WebSearch` (a search the agent ran — query header, indeterminate scanning bar, results landing row by row without re-keying settled entries); and `ImageGeneration` (a fixed-aspect frame that holds layout while a model draws — pixel-grid generating state, blur-to-sharp reveal that can never strand a server-rendered image blurred, and an error state with retry). Shared host/monogram helpers land in the internals layer used across the three citation-bearing components.
+- d3d1261: Add the input layer of the AI/chat family: the `Composer` compound — a root that owns the draft plus seven parts reading it through a shared context (`ComposerInput` with auto-grow and Enter/Shift+Enter, `ComposerSubmit` that becomes a stop button while streaming, `ComposerToolbar`, `ComposerModelPicker`, `ComposerAttachments`/`ComposerAttachment` chips with upload progress, and `ComposerCommandMenu`, one caret-anchored completion primitive mountable twice for slash commands and @ mentions, with a single source of truth for trigger-token arithmetic) — alongside `VoiceInput` (a mic button opening into a canvas waveform panel fed by consumer-supplied amplitude levels, never touching the microphone itself) and `ContextRing` (context-window usage as a compact donut with warn/critical bands and an optional breakdown popover). The internals `float` action now goes out of flow before measuring its anchor, fixing sibling-anchored popover placement everywhere it is used.
+- af9ee05: Add the shared foundations for an upcoming AI/chat component family. A new dependency-free, SSR-safe `_internals` module set ships inside the package: a hardened markdown mini-renderer (token-tree rendering with zero raw-HTML sinks, allowlisted link schemes, and linear-time parsing under adversarial input, with a dedicated security regression suite), a streaming-text primitive that animates appended deltas then settles, a unified-diff parser, floating-menu positioning with viewport flip/clamp, a chat autoscroll action with stick-to-bottom detection, elapsed/relative time helpers, copy-to-clipboard state, and a waveform draw core. Shared AI data types (`ChatMessageData`, `ToolCallData`, `SourceData`, `PlanStepData`, `ThreadData`, …) are exported from the package barrel, and two new registry categories (`ai-chat`, `ai-agents`) land with labels translated across all 16 docs locales.
+- 9eb4cf6: Add the message surfaces of the AI/chat family: the `ChatMessage` compound (`ChatMessage`, `ChatMessageActions`, `ChatMessageAction`, `ChatMessageBranches`, plus its context contract) rendering one conversation turn aligned and dressed by its role — streaming body via the growing-string contract, hover-revealed action rail with confirm-state buttons, and a keyboard-accessible response-version navigator — alongside `PromptSuggestions` (staggered prompt pills that cascade in after a reply and replay on re-show) and `ChatError` (quiet inline failure banner with a self-disabling retry). All SSR-safe, reduced-motion aware, themable via `--ft-*` hooks, with colocated tests, docs examples, and stories.
+- ff29f18: Add the first five AI/chat components: `PixelLoader` (pixel-matrix pre-token loading state with a deterministic diagonal wave), `TypingIndicator` (staggered three-dot presence indicator), `ThinkingIndicator` (live agent status with shimmering activity label and elapsed stopwatch, inline or pill variant, with a `done` snippet), `StreamingText` (renders a growing string as a live token stream — appended deltas land tinted and settle, optional block cursor and markdown mode), and `ReasoningPanel` (collapsible reasoning trace that streams, autoscrolls, and folds itself into a "Thought for Ns" summary once done). All five are SSR-safe, honor `prefers-reduced-motion`, expose `--ft-*` theming hooks, and ship with colocated tests, docs examples, and stories.
+- 546bfe2: Complete the AI/chat family with its thread layer: `ScrollAnchor` (a scroll region that pins to its last line while content streams, releases when the reader scrolls up, and floats a "Jump to latest" pill that respects reduced motion and hands focus back), `ThreadList` (conversation history with unread dots, one shared relative-time clock for the whole list, selection, and per-row delete as a true sibling control), and `ChatPanel` with `ChatEmptyState` (the conversation shell — sticky header and composer rows around a transcript that opens at its latest turn and tracks content growth without scroll events). The internals autoscroll action now re-reads its container on reconnect, and list keys across the family are identity-stable under both duplicates and reorders. The docs gain a Full Conversation capstone demo composing fourteen components of the family end to end, social cards for all twenty-eight new components, and updated component counts.
+- 7469197: Add the tool-use surfaces of the AI/chat family: `ToolCall` (one invocation in a disclosure card — status dot, duration, pretty-printed request/result with cycle-safe JSON rendering, error calls auto-open), `ToolTimeline` (compact session summary on a vertical rail with verbs, targets, diff stats, and relative timestamps), `TerminalBlock` (live append-only command transcript with a hand-rolled ANSI SGR subset, stick-to-bottom autoscroll, running cursor, and exit-status footer), and `CodeDiff` (unified diff tuned for chat width — foldable per-file cards, tinted add/delete rows, copy-safe gutters, soft line clamping — driven by the internal diff parser). Introduces the shared `--ft-status-*` color tokens with `light-dark()` fallbacks used across the family for run-status semantics.
+- 2c62338: First Core primitives: the Actions group. `Button` (six variants, three sizes, a
+  loading state, and a polymorphic anchor mode), `IconButton`, `ButtonGroup`,
+  `Link`, `Toggle`, `ToggleGroup` and `CopyButton`.
+
+  These are the first components that dress themselves entirely in the theme's
+  semantic tokens rather than fixed colours, so they follow the light/dark switch,
+  the theme generator and the docs skins without per-skin overrides. The one colour
+  with no semantic token — the brand accent used by the accent variant and the
+  focus ring — resolves through `--ft-accent`, with a `light-dark()` fallback, and
+  can be retuned from anywhere up the tree.
+
+- 0838144: Core form primitives: `FormField`, `Label`, `Input`, `Textarea`, `Checkbox`,
+  `RadioGroup`, `Switch`, `Slider` and `NumberInput`.
+
+  `FormField` owns the wiring these controls otherwise make every caller repeat.
+  It generates the control's id, tracks which of the help and error text are
+  actually rendered, and publishes `aria-describedby`, `aria-invalid`, `required`
+  and `disabled` through context — so a control inside one needs no manual id
+  plumbing, and the same control outside one still works from its own props.
+
+  Every control is built on its native element rather than a restyled `div`, so
+  the browser supplies focus, keyboard behaviour and form submission: `RadioGroup`
+  inherits the platform's own roving tab stop from a shared `name`, and `Slider`
+  delegates its entire keyboard model to `input[type=range]`.
+
+  The context carries two labelling ids rather than one. A control whose root is a
+  labelable element is labelled through `controlId` and `<label for>`; a control
+  whose root is not — `RadioGroup`'s `div[role=radiogroup]` — points
+  `aria-labelledby` at `labelId` instead. `<label for>` only associates with
+  button, input, meter, output, progress, select and textarea, and an ARIA role
+  does not extend that list, so the group had no accessible name until this split
+  existed.
+
+- 7fa1ad0: The Core form controls that open a floating surface: `Select`, `Combobox`,
+  `Autocomplete`, `SearchInput`, `PasswordInput`, `FileUpload`, `DatePicker` and
+  `TimePicker`, plus `_internals/listbox`.
+
+  The listbox core gets two behaviours right once for the four components that
+  navigate a list, rather than four times: a run of consecutive disabled options is
+  skipped as a block, terminating rather than looping when every option is
+  disabled; and typeahead accumulates within a short window, with a repeated
+  character cycling through its matches the way a native select does.
+
+  `Combobox` and `Autocomplete` look alike and are not. `Combobox` is a closed set —
+  the value must be one of the options, and blur, Escape and outside click all
+  revert to the last valid selection. `Autocomplete` is an open field where any
+  text is valid, so arrowing only highlights rows and never writes into the input,
+  leaving Escape nothing to restore.
+
+  `DatePicker` builds on the calendar core rather than reimplementing month
+  arithmetic, keeps every date in local time end to end so no timestamp round trip
+  can shift the day, and derives every day cell's accessible name from `Intl` with
+  the caller's locale — a hardcoded month table is a bug in a library whose docs
+  ship sixteen languages. `TimePicker`'s value is always `"HH:mm"` in 24-hour form;
+  `hour12` changes the display only.
+
+  `FileUpload` validates `accept`, `maxSize` and `maxFiles` itself, because a
+  dropped file never passes through the input's own filter. Every rejection —
+  including files past the first on a single-file drop — is announced rather than
+  silently discarded.
+
+- 9620c97: Groundwork for the upcoming Core component family: every component now carries a
+  `group` ("core" | "fancy") in its registry metadata, the category union gains
+  `actions`, `forms`, `overlays` and `display`, and shared internal utilities
+  (portal, focus trap, dismissable layers, anchor positioning, calendar core, ids)
+  land under `_internals` for the primitives to build on. The docs sidebar and
+  gallery now group and filter components by Core/Fancy.
+- bb52fc2: The Core navigation family: `Navbar`, `Sidebar`, `Tabs`, `Breadcrumb`, `Pagination`,
+  `Stepper`, `DropdownMenu`, `ContextMenu`, `CommandMenu` and `NavigationMenu`, plus
+  `_internals/menu`.
+
+  `NavigationMenu` is deliberately not a menu. `role="menu"` describes an application menu of
+  commands, and marking site navigation that way makes assistive technology announce a
+  command menu that behaves nothing like one — so it implements the disclosure-navigation
+  pattern instead: a `<nav>` of buttons carrying `aria-expanded` and `aria-controls`. The
+  menus that genuinely are menus — `DropdownMenu` and `ContextMenu` — share one
+  implementation of their items, keyboard handling and submenus rather than carrying two
+  copies that drift, and move real DOM focus rather than pointing at rows with
+  `aria-activedescendant`, because that is what `role="menu"` promises a screen reader.
+
+  `_internals/menu` gets three behaviours right once for every menu surface: items navigate
+  in document order rather than the order they happened to register, which diverge whenever a
+  conditional block or a reordering list is involved; a run of disabled items is skipped as a
+  block, terminating rather than spinning when every item is disabled; and typeahead matches
+  an item's _visible_ text, excluding `aria-hidden` icons and shortcut hints, so pressing "r"
+  finds a row labelled "Rename" that renders a decorative glyph before it.
+
+  `CommandMenu` keeps focus in its input and highlights the matched substring by splitting the
+  label into rendered segments — never `{@html}` — locating the match in the original label
+  rather than the accent-folded one, since stripping combining marks shifts every index after
+  them.
+
+  `Breadcrumb` will not collapse the current page: `itemsAfterCollapse` has a floor of 1,
+  because a breadcrumb whose last item is hidden is a navigation landmark that no longer says
+  where you are. `Pagination` derives its page window from a pure, separately tested function
+  and floors its inputs, so a `count` computed by division rather than `Math.ceil` cannot
+  silently drop pages.
+
+  Every component here dresses in the theme's semantic tokens, so light mode, the theme
+  generator and the skins all keep working; the brand accent sits behind `--ft-nav-accent`,
+  declared with its fallback on each element that reads it — including every portalled panel,
+  which inherits nothing from the component it belongs to.
+
+- 19d0996: Core overlay primitives: `Dialog`, `AlertDialog`, `Sheet`, `Drawer`, `Popover`,
+  `Tooltip`, `HoverCard` and a `Toast` system, plus `_internals/scroll-lock`.
+
+  Scroll locking is reference-counted, so nesting an overlay inside another and
+  closing the inner one leaves the page locked; it restores the scroll position
+  exactly and compensates for the scrollbar gutter so nothing shifts sideways.
+  Dismissal runs through the existing layer stack, so one Escape closes one
+  layer — including `Tooltip`, which now participates in that stack rather than
+  carrying its own listener.
+
+  `AlertDialog` deliberately cannot be dismissed by clicking outside it, with no
+  prop to re-enable that: a destructive confirmation a user can dismiss by missing
+  is not a confirmation. Escape does close it, routed through the same cancel path
+  as the Cancel button, so a keyboard gesture can never become a path to Confirm.
+  Cancel is focused first.
+
+  Every surface that opens must be reachable by keyboard, so `Tooltip` and
+  `HoverCard` open on focus and not only on hover, and `Tooltip` warns in
+  development when its trigger is not focusable rather than failing silently.
+  `Toast` announces through live regions that exist from mount and only change
+  content, with `assertive` reserved for errors, and pauses its auto-dismiss on
+  hover or focus for every toast rather than only actionable ones.
+
+- 81a3487: FluidCursor: experimental bitmap dithering mode. The new `dither` prop renders the fluid as a retro ordered-dither bitmap — dye is snapped to a chunky pixel grid and each color channel is quantized against a procedural 4x4 Bayer matrix, so dot density encodes brightness while hues are preserved. Tune with `ditherPixelSize` (CSS px per dot, default 3) and `ditherLevels` (color levels per channel, default 4). Dither forces the WebGL renderer; `hdr` is ignored while it is set.
+
+### Patch Changes
+
+- 3ed945b: New brand mark: a four-pointed sparkle running pink through violet to cyan under
+  an emissive rim, replacing the five floating circles.
+
+  `static/favicon.svg` holds the geometry, so every generated raster — favicon,
+  touch icon, PWA icons, the social card and all 106 per-component cards — now
+  carries it. A site-side `Logo.svelte` renders the same mark inline with `size`,
+  `glow` and `animated` props, unique per-instance gradient ids so several can
+  share a page, and a twinkle that stands down under `prefers-reduced-motion`. It
+  sits beside the wordmark in the landing header, the landing footer and the docs
+  sidebar; the retro-os skin keeps its own pixel logo.
+
+  The brand-asset script gained the `pnpm build:brand-assets` entry its own
+  docstring already advertised, reads the component count off the registry instead
+  of a hardcoded number that had drifted to 61, and emits the README raster.
+
+- f9964ea: Add the Cameleon Engine — a multi-skin UI system where the same headless component API (Button, Input, Textarea, Select, Checkbox, Radio, Switch, Slider, Badge, Tooltip) renders in radically different art directions ("skins": Brutal, Glass, Terminal), driven by a `<FancyProvider skin={...}>` context provider, scoped design tokens, and per-skin recipes. Includes a `/skins` documentation page that reproduces a full design-system layout (color tokens, type scale, grid, components, responsive, and a 10-control × 6-state matrix) and re-skins the whole page live. Docs-site only — the engine lives under `src/lib/cameleon/` and is not part of the published component surface.
+- f9964ea: Docs: add a Brutal skin switcher to the documentation header — toggles the whole docs site to the Cameleon Brutal art direction (paper palette, ink borders, hard shadows, Archivo/Space Mono, light code blocks).
+- f9964ea: docs(skins): calibrate the Brutal and Retro OS docs skins to their reference art direction — window-frame desktop layout, explorer window and taskbar for Retro OS; paper chrome, rail cards and dark code surfaces for Brutal; docs-site only, no component API changes
+- 25014c4: The landing page is rebuilt as a bordered live-specimen grid: one fixed
+  technical-editorial art direction — near-black canvas, ivory ink, a single
+  violet accent, hairline borders drawing the page as a measured frame. Every
+  showcased demo is the real library component running live: the fluid cursor
+  as panel 01 beside the hero copy, a signature row with the image-trail
+  cursor, LiquidGlass and the rainbow button, and a closing row of form
+  primitives (Input, Select, Slider, Switch, Tabs) exactly as they ship.
+
+  Adds a fifth skin to the cameleon engine, `aurora` — the library's own
+  near-black canvas and violet→blue sweep. It implements the full twelve-token
+  contract and all ten recipes, so it stands alongside brutal, glass, terminal
+  and retro-os on the `/skins` page.
+
 ## 0.9.1
 
 ### Patch Changes
