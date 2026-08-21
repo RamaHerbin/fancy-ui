@@ -272,10 +272,12 @@ export const sound: SoundController = {
 			return;
 		}
 		// Not scheduled. If that is because the context is still idle (first
-		// cue after a cold load) or suspended (browser paused it), unlock inside
-		// this same gesture and replay exactly this one cue once running. Any
-		// other reason (disabled, rate-limited, voice cap) stays dropped.
-		if (eng.state !== "idle" && eng.state !== "suspended") return;
+		// cue after a cold load), suspended (browser paused it), or blocked (an
+		// earlier resume() was rejected outside a gesture — this call comes from
+		// one, so it can still recover), unlock inside this same gesture and
+		// replay exactly this one cue once running. Any other reason
+		// (unsupported, rate-limited, voice cap) stays dropped.
+		if (eng.state !== "idle" && eng.state !== "suspended" && eng.state !== "blocked") return;
 		pending = { cue, options };
 		if (unlocking) return;
 		unlocking = true;

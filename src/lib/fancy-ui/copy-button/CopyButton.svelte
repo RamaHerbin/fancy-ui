@@ -79,6 +79,11 @@
 	);
 
 	async function handleClick() {
+		// This click is the only user gesture in the interaction, and the outcome
+		// cue below plays after an await: on a reload with sound already enabled
+		// no AudioContext exists yet, and by then the transient activation may be
+		// gone. Creating/resuming it here, synchronously, keeps that cue audible.
+		if (sound && soundFx.enabled) void soundFx.unlock();
 		// `copy()` resolves false instead of throwing on a denied permission or a
 		// missing clipboard API — that outcome is reported to the caller honestly,
 		// not swallowed into a silent no-op.

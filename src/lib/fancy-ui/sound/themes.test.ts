@@ -159,14 +159,52 @@ describe("validateSoundTheme", () => {
 		const theme = cloneTheme();
 		(theme.cues.hover.layers[0] as { frequency: number }).frequency = 0;
 		const problems = validateSoundTheme(theme);
-		expect(problems.some((p) => p.includes("frequency must be > 0"))).toBe(true);
+		expect(problems.some((p) => p.includes("frequency must be a finite number > 0"))).toBe(true);
 	});
 
 	it("reports a non-positive filter frequency", () => {
 		const theme = cloneTheme();
 		theme.cues.press.layers[1].filter = { type: "bandpass", frequency: 0 };
 		const problems = validateSoundTheme(theme);
-		expect(problems.some((p) => p.includes("filter frequency must be > 0"))).toBe(true);
+		expect(problems.some((p) => p.includes("filter frequency must be a finite number > 0"))).toBe(
+			true
+		);
+	});
+
+	// Infinity survives every `> 0` check but breaks the AudioParam assignment in
+	// the engine, where the cue is dropped without a word. It has to fail here.
+	it("reports a non-finite oscillator frequency, frequencyEnd and detune", () => {
+		const theme = cloneTheme();
+		const layer = theme.cues.hover.layers[0] as {
+			frequency: number;
+			frequencyEnd?: number;
+			detune?: number;
+		};
+		layer.frequency = Number.POSITIVE_INFINITY;
+		layer.frequencyEnd = Number.NaN;
+		layer.detune = Number.POSITIVE_INFINITY;
+		const problems = validateSoundTheme(theme);
+		expect(problems.some((p) => p.includes("frequency must be a finite number > 0"))).toBe(true);
+		expect(problems.some((p) => p.includes("frequencyEnd must be a finite number > 0"))).toBe(true);
+		expect(problems.some((p) => p.includes("detune must be a finite number"))).toBe(true);
+	});
+
+	it("reports a non-finite filter frequency, frequencyEnd and q", () => {
+		const theme = cloneTheme();
+		theme.cues.press.layers[1].filter = {
+			type: "bandpass",
+			frequency: Number.POSITIVE_INFINITY,
+			frequencyEnd: Number.POSITIVE_INFINITY,
+			q: Number.NaN,
+		};
+		const problems = validateSoundTheme(theme);
+		expect(problems.some((p) => p.includes("filter frequency must be a finite number > 0"))).toBe(
+			true
+		);
+		expect(
+			problems.some((p) => p.includes("filter frequencyEnd must be a finite number > 0"))
+		).toBe(true);
+		expect(problems.some((p) => p.includes("filter q must be a finite number"))).toBe(true);
 	});
 
 	it("returns [] for a minimal valid theme", () => {

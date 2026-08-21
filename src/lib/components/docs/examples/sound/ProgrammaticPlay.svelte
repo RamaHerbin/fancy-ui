@@ -9,6 +9,11 @@
 	async function save() {
 		saving = true;
 		outcome = "idle";
+		// The outcome cue plays after an await, so unlock here — inside the click
+		// that started the work. On a reload with sound already enabled there is
+		// no AudioContext yet, and the transient user activation that lets one be
+		// created may be gone by the time the promise settles.
+		if (sound.enabled) void sound.unlock();
 		await new Promise((resolve) => setTimeout(resolve, 600));
 		attempts += 1;
 		const ok = attempts % 2 === 1;

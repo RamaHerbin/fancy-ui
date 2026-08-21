@@ -43,10 +43,10 @@ switches itself on for them:
   the click is the gesture, nothing is speculative. `play()` itself only
   reaches the audio context from inside a user activation.
 - **At most one cue waits for the context; bursts are never queued.** If the
-  context is still idle or suspended when a cue arrives (the first click
-  after a cold load, a backgrounded tab, iOS Safari's own rules), `play()`
-  unlocks inside that same gesture and replays exactly that one cue — the
-  newest one — once the context runs. Cues dropped for any other reason
+  context is still idle, suspended, or blocked by an earlier rejected resume
+  when a cue arrives (the first click after a cold load, a backgrounded tab,
+  iOS Safari's own rules), `play()` unlocks inside that same gesture and
+  replays exactly that one cue — the newest one — once the context runs. Cues dropped for any other reason
   (rate limit, voice cap, sound off) stay dropped, so there is never a
   backlog of silenced cues firing at once.
 - **Every cue is rate-limited per cue, independent of the action layer's own

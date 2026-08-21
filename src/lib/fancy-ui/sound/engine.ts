@@ -149,6 +149,9 @@ export function createSoundEngine(options: SoundEngineOptions = {}): SoundEngine
 	let statechangeListener: (() => void) | null = null;
 	let noiseBuffer: AudioBuffer | null = null;
 	let resumePromise: Promise<void> | null = null;
+	// Bumped by dispose(). Async continuations captured before a teardown compare
+	// against it and stay silent when they belong to a previous life.
+	let disposeGeneration = 0;
 	let state: SoundEngineState = "idle";
 	let lastError: string | null = null;
 	let voiceCount = 0;
@@ -224,16 +227,25 @@ export function createSoundEngine(options: SoundEngineOptions = {}): SoundEngine
 
 	function kickResume(context: AudioContext): Promise<void> {
 		if (resumePromise) return resumePromise;
+		// dispose() can land while resume() is still pending. The continuations
+		// below then hold a context this engine no longer owns, so they may only
+		// touch state while that context is still the current one — otherwise a
+		// disposed engine would report itself ready/blocked again and call its
+		// state callback from an obsolete context.
+		const generation = disposeGeneration;
+		const isCurrent = () => generation === disposeGeneration && ctx === context;
 		resumePromise = context
 			.resume()
 			.then(() => {
-				syncFromContextState(context.state);
+				if (isCurrent()) syncFromContextState(context.state);
 			})
 			.catch((err: unknown) => {
-				setState("blocked", errorMessage(err));
+				if (isCurrent()) setState("blocked", errorMessage(err));
 			})
 			.finally(() => {
-				resumePromise = null;
+				// A dispose() already cleared this slot (and a later kickResume may
+				// own it now); only the current generation may null it out.
+				if (generation === disposeGeneration) resumePromise = null;
 			});
 		return resumePromise;
 	}
@@ -455,6 +467,8 @@ export function createSoundEngine(options: SoundEngineOptions = {}): SoundEngine
 		},
 
 		dispose(): void {
+			// Invalidates every async continuation captured before this point.
+			disposeGeneration += 1;
 			// A hard stop by design: dispose() tears the graph down synchronously
 			// (the context is closed right after), so a fade scheduled here could
 			// never render. Voices are ≤ 300 ms and dispose() is not a user path.

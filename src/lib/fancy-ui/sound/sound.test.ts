@@ -321,7 +321,32 @@ describe("sound controller", () => {
 		engineSpy.state = "idle";
 	});
 
-	it("does not retry a cue the engine dropped for any reason other than an idle/suspended context", () => {
+	// A resume() rejected outside a gesture leaves the engine "blocked". The next
+	// cue does come from a gesture, so it is retryable — dropping it would cost
+	// the user a second click on the same control.
+	it("retains and replays a cue dropped while the engine is blocked", async () => {
+		sound.setEnabled(true);
+		vi.clearAllMocks();
+		engineSpy.state = "blocked";
+		engineSpy.play.mockReturnValue(false);
+		engineSpy.unlock.mockImplementation(() => {
+			engineSpy.state = "ready";
+			engineSpy.play.mockReturnValue(true);
+			return Promise.resolve(true);
+		});
+
+		sound.play("press");
+		expect(engineSpy.unlock).toHaveBeenCalledTimes(1);
+		await Promise.resolve();
+		await Promise.resolve();
+
+		expect(engineSpy.play).toHaveBeenCalledTimes(2);
+		expect(engineSpy.play).toHaveBeenLastCalledWith("press", undefined);
+		expect(sound.status.lastCue).toBe("press");
+		engineSpy.state = "idle";
+	});
+
+	it("does not retry a cue the engine dropped for any reason other than an idle/suspended/blocked context", () => {
 		sound.setEnabled(true);
 		vi.clearAllMocks();
 		engineSpy.state = "ready";

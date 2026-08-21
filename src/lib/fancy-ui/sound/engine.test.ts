@@ -588,6 +588,58 @@ describe("dispose()", () => {
 		expect(() => engine.dispose()).not.toThrow();
 		expect(engine.state).toBe("idle");
 	});
+
+	// A resume() still in flight at teardown must not resurrect the engine: its
+	// continuation holds a context dispose() already closed and disowned.
+	it("ignores a resume that resolves after dispose()", async () => {
+		const fake = new FakeAudioContext({ initialState: "suspended" });
+		let settle!: () => void;
+		fake.resume = () =>
+			new Promise<void>((resolve) => {
+				settle = () => {
+					fake.state = "running";
+					resolve();
+				};
+			});
+		const onStateChange = vi.fn();
+		const engine = createSoundEngine({
+			getContext: () => fake as unknown as AudioContext,
+			canCreateContext: () => true,
+			onStateChange,
+		});
+		const unlocking = engine.unlock();
+		engine.dispose();
+		onStateChange.mockClear();
+		settle();
+		await unlocking;
+
+		expect(engine.state).toBe("idle");
+		expect(onStateChange).not.toHaveBeenCalled();
+	});
+
+	it("ignores a resume that rejects after dispose()", async () => {
+		const fake = new FakeAudioContext({ initialState: "suspended" });
+		let fail!: () => void;
+		fake.resume = () =>
+			new Promise<void>((_resolve, reject) => {
+				fail = () => reject(new Error("resume rejected"));
+			});
+		const onStateChange = vi.fn();
+		const engine = createSoundEngine({
+			getContext: () => fake as unknown as AudioContext,
+			canCreateContext: () => true,
+			onStateChange,
+		});
+		const unlocking = engine.unlock();
+		engine.dispose();
+		onStateChange.mockClear();
+		fail();
+		await unlocking;
+
+		expect(engine.state).toBe("idle");
+		expect(engine.lastError).toBeNull();
+		expect(onStateChange).not.toHaveBeenCalled();
+	});
 });
 
 describe("onStateChange", () => {

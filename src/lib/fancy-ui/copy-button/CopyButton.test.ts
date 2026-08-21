@@ -279,6 +279,39 @@ describe("CopyButton", () => {
 			expect(play).not.toHaveBeenCalled();
 		});
 
+		// The cue plays after the clipboard promise, by which time the transient
+		// user activation may be gone and no context could be created any more.
+		it("unlocks the context inside the click, before awaiting the clipboard", async () => {
+			const unlock = vi.spyOn(sound, "unlock").mockResolvedValue(true);
+			const enabled = vi.spyOn(sound, "enabled", "get").mockReturnValue(true);
+			let resolveWrite!: () => void;
+			stubClipboard(vi.fn(() => new Promise<void>((resolve) => (resolveWrite = resolve))));
+			const { container } = render(CopyButton, { props: { value: "hello", sound: true } });
+
+			await fireEvent.click(button(container));
+			expect(unlock).toHaveBeenCalledTimes(1); // before the write settles
+			expect(play).not.toHaveBeenCalled();
+
+			resolveWrite();
+			await flush();
+			expect(play).toHaveBeenCalledWith("copy");
+
+			unlock.mockRestore();
+			enabled.mockRestore();
+		});
+
+		it("does not unlock anything while the user has sound off", async () => {
+			const unlock = vi.spyOn(sound, "unlock").mockResolvedValue(true);
+			stubClipboard(vi.fn().mockResolvedValue(undefined));
+			const { container } = render(CopyButton, { props: { value: "hello", sound: true } });
+
+			await fireEvent.click(button(container));
+			await flush();
+
+			expect(unlock).not.toHaveBeenCalled();
+			unlock.mockRestore();
+		});
+
 		it("does not forward the sound prop to the inner Button — the inner Button plays nothing itself", async () => {
 			// If `sound` leaked through to the inner `<Button>`, its own `press` cue
 			// would fire on top of CopyButton's own `copy`/`error` cue, doubling the

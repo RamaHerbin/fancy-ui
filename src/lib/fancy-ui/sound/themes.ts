@@ -354,11 +354,17 @@ export function validateSoundTheme(theme: SoundThemeDefinition): string[] {
 				if (!VALID_WAVES.has(layer.wave)) {
 					problems.push(`${label}: invalid wave "${layer.wave}"`);
 				}
-				if (!(layer.frequency > 0)) {
-					problems.push(`${label}: frequency must be > 0`);
+				if (!Number.isFinite(layer.frequency) || layer.frequency <= 0) {
+					problems.push(`${label}: frequency must be a finite number > 0`);
 				}
-				if (layer.frequencyEnd != null && !(layer.frequencyEnd > 0)) {
-					problems.push(`${label}: frequencyEnd must be > 0`);
+				if (
+					layer.frequencyEnd != null &&
+					(!Number.isFinite(layer.frequencyEnd) || layer.frequencyEnd <= 0)
+				) {
+					problems.push(`${label}: frequencyEnd must be a finite number > 0`);
+				}
+				if (layer.detune != null && !Number.isFinite(layer.detune)) {
+					problems.push(`${label}: detune must be a finite number`);
 				}
 			}
 
@@ -366,11 +372,17 @@ export function validateSoundTheme(theme: SoundThemeDefinition): string[] {
 				if (!VALID_FILTERS.has(layer.filter.type)) {
 					problems.push(`${label}: invalid filter type "${layer.filter.type}"`);
 				}
-				if (!(layer.filter.frequency > 0)) {
-					problems.push(`${label}: filter frequency must be > 0`);
+				if (!Number.isFinite(layer.filter.frequency) || layer.filter.frequency <= 0) {
+					problems.push(`${label}: filter frequency must be a finite number > 0`);
 				}
-				if (layer.filter.frequencyEnd != null && !(layer.filter.frequencyEnd > 0)) {
-					problems.push(`${label}: filter frequencyEnd must be > 0`);
+				if (
+					layer.filter.frequencyEnd != null &&
+					(!Number.isFinite(layer.filter.frequencyEnd) || layer.filter.frequencyEnd <= 0)
+				) {
+					problems.push(`${label}: filter frequencyEnd must be a finite number > 0`);
+				}
+				if (layer.filter.q != null && !Number.isFinite(layer.filter.q)) {
+					problems.push(`${label}: filter q must be a finite number`);
 				}
 			}
 
