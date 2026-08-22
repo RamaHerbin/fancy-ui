@@ -1398,6 +1398,111 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"mosaic-glow": {
+		name: "MosaicGlow",
+		slug: "mosaic-glow",
+		description:
+			"Canvas mosaic of small tiles on a dark surface where a soft halo follows the cursor with a lag, lighting tiles to random gold intensities that decay into a comet trail, with an additive bloom over the gaps, a glassy per-tile highlight, ambient flicker and an autonomous drift when idle",
+		category: "backgrounds",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"canvas",
+			"grid",
+			"mosaic",
+			"glow",
+			"cursor",
+			"halo",
+			"trail",
+			"background",
+			"interactive",
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Content rendered above the canvas; give the host a height",
+			},
+		],
+		props: [
+			{ name: "tileSize", type: "number", default: "18", description: "Tile edge in CSS px" },
+			{ name: "gap", type: "number", default: "2", description: "Gap between tiles in CSS px" },
+			{
+				name: "color",
+				type: "string",
+				default: '"#f2c318"',
+				description: "Halo and tile colour, hex or rgb()",
+			},
+			{
+				name: "background",
+				type: "string",
+				default: '"#0a0a0a"',
+				description: "Surface colour behind the tiles, hex or rgb()",
+			},
+			{ name: "radius", type: "number", default: "170", description: "Halo radius in CSS px" },
+			{
+				name: "intensity",
+				type: "number",
+				default: "1",
+				description: "Overall brightness of lit tiles, 0 to 1",
+			},
+			{
+				name: "trail",
+				type: "number",
+				default: "0.6",
+				description: "How long lit tiles linger after the halo moves on, 0 to 1",
+			},
+			{
+				name: "smoothing",
+				type: "number",
+				default: "0.15",
+				description: "Pointer lag, 0 (instant) to 1 (very laggy)",
+			},
+			{
+				name: "noise",
+				type: "number",
+				default: "0.7",
+				description: "Spread of per-tile random brightness inside the halo, 0 to 1",
+			},
+			{
+				name: "ambient",
+				type: "number",
+				default: "0.35",
+				description: "Visibility of the random faint tiles outside the halo, 0 to 1",
+			},
+			{
+				name: "flicker",
+				type: "boolean",
+				default: "true",
+				description: "Slowly re-roll the faint tiles over time",
+			},
+			{
+				name: "idle",
+				type: '"drift" | "none"',
+				default: '"drift"',
+				description:
+					"With no pointer for 1.5s: drift wanders the halo on a slow path, none switches it off",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "Follow the pointer. Off leaves only the idle behaviour",
+			},
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description: "Seed for the per-tile randomness; same seed, same mosaic",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable host element",
+			},
+			{ name: "class", type: "string", description: "Additional classes on the host" },
+		],
+	},
 
 	"neon-border": {
 		name: "NeonBorder",
