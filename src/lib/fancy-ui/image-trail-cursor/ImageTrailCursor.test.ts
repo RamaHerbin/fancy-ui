@@ -66,4 +66,23 @@ describe("ImageTrailCursor", () => {
 		expect(img?.className).toContain("sm:w-[190px]");
 		expect(img?.className).toContain("sm:rounded-[15px]");
 	});
+
+	it("mounts without throwing when variant is pixelated", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { images: ["/a.jpg", "/b.jpg"], variant: "pixelated" },
+		});
+		const imgs = container.querySelectorAll(".content__img");
+		expect(imgs.length).toBe(2);
+	});
+
+	it("applies pixelated image-rendering and border on mount for the pixelated variant", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { images: ["/a.jpg"], variant: "pixelated" },
+		});
+		const img = container.querySelector(".content__img") as HTMLElement;
+		expect(img.style.imageRendering).toBe("pixelated");
+		expect(img.style.borderWidth).toBe("2px");
+		expect(img.style.borderStyle).toBe("solid");
+		expect(img.style.borderColor).toBe("rgb(25, 19, 8)"); // #191308
+	});
 });

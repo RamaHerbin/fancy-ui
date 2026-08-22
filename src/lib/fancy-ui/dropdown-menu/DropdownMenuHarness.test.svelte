@@ -40,6 +40,7 @@
 		withSubmenu?: boolean;
 		subItems?: ItemSpec[];
 		subTriggerDisabled?: boolean;
+		sound?: boolean;
 	}
 
 	let {
@@ -54,10 +55,11 @@
 		withSubmenu = false,
 		subItems = [],
 		subTriggerDisabled = false,
+		sound = false,
 	}: Props = $props();
 </script>
 
-<DropdownMenu bind:open {onOpenChange} {loop}>
+<DropdownMenu bind:open {onOpenChange} {loop} {sound}>
 	<DropdownMenuTrigger disabled={triggerDisabled}>Open menu</DropdownMenuTrigger>
 	<DropdownMenuContent>
 		{#if labelText}

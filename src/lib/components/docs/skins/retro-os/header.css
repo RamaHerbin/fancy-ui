@@ -266,6 +266,7 @@
 }
 .docs-skin[data-skin="retro-os"] header [data-language-switcher] > button,
 .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button,
+.docs-skin[data-skin="retro-os"] header [data-sound-toggle],
 .docs-skin[data-skin="retro-os"] header .docs-theme-btn {
 	height: auto;
 	gap: 6px;
@@ -285,6 +286,7 @@
 }
 .docs-skin[data-skin="retro-os"] header [data-language-switcher] > button:hover,
 .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:hover,
+.docs-skin[data-skin="retro-os"] header [data-sound-toggle]:hover,
 .docs-skin[data-skin="retro-os"] header .docs-theme-btn:hover {
 	transform: translate(-1px, -1px);
 	box-shadow: 3px 3px 0 var(--skin-line);
@@ -293,6 +295,7 @@
 }
 .docs-skin[data-skin="retro-os"] header [data-language-switcher] > button:active,
 .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:active,
+.docs-skin[data-skin="retro-os"] header [data-sound-toggle]:active,
 .docs-skin[data-skin="retro-os"] header .docs-theme-btn:active {
 	transform: translate(2px, 2px);
 	box-shadow: 0 0 0 var(--skin-line);
@@ -352,6 +355,7 @@
 .docs-skin[data-skin="retro-os"] .retro-gh:focus-visible,
 .docs-skin[data-skin="retro-os"] header [data-language-switcher] > button:focus-visible,
 .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:focus-visible,
+.docs-skin[data-skin="retro-os"] header [data-sound-toggle]:focus-visible,
 .docs-skin[data-skin="retro-os"] header .docs-theme-btn:focus-visible {
 	outline: none;
 	box-shadow:
@@ -371,6 +375,7 @@
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-gh,
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-language-switcher] > button,
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-sound-toggle],
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header .docs-theme-btn {
 	box-shadow: -2px 2px 0 var(--skin-line);
 }
@@ -378,6 +383,7 @@
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-gh:hover,
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-language-switcher] > button:hover,
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:hover,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-sound-toggle]:hover,
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header .docs-theme-btn:hover {
 	transform: translate(1px, -1px);
 	box-shadow: -3px 3px 0 var(--skin-line);
@@ -390,6 +396,7 @@
 	[data-language-switcher]
 	> button:active,
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-skin-switcher] > button:active,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-sound-toggle]:active,
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header .docs-theme-btn:active {
 	transform: translate(-2px, 2px);
 	box-shadow: 0 0 0 var(--skin-line);
@@ -406,6 +413,7 @@
 	header
 	[data-skin-switcher]
 	> button:focus-visible,
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header [data-sound-toggle]:focus-visible,
 :where([dir="rtl"]) .docs-skin[data-skin="retro-os"] header .docs-theme-btn:focus-visible {
 	box-shadow:
 		-2px 2px 0 var(--skin-line),

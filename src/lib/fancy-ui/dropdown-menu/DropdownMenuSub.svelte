@@ -11,6 +11,7 @@
 	import { getContext, setContext } from "svelte";
 	import type { Side } from "../_internals/anchor-position.js";
 	import { MENU_KEY, SUB_KEY, type MenuContext, type SubContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let { children }: DropdownMenuSubProps = $props();
 
@@ -48,17 +49,24 @@
 		if (triggerRef) parentMenu.closeSiblingSubs(triggerRef);
 		open = true;
 		if (triggerRef) {
-			unregisterOpenSub = parentMenu.registerOpenSub(triggerRef, () => closeSub(false));
+			// A close driven by the parent — the whole tree closing after a
+			// selection or Escape, or a sibling submenu opening — is silent: the
+			// root's own cue (or the sibling's `open`) already told the story.
+			unregisterOpenSub = parentMenu.registerOpenSub(triggerRef, () => closeSub(false, true));
 		}
+		// A submenu is a real panel opening; it sounds like one. Inherited from
+		// the root's `sound` prop through the parent level's context.
+		if (parentMenu.sound) soundFx.play("open");
 	}
 
-	function closeSub(returnFocus: boolean): void {
+	function closeSub(returnFocus: boolean, silent = false): void {
 		clearCloseTimer();
 		if (!open) return;
 		open = false;
 		unregisterOpenSub?.();
 		unregisterOpenSub = null;
 		if (returnFocus) triggerRef?.focus();
+		if (!silent && parentMenu.sound) soundFx.play("close");
 	}
 
 	function keepOpen(): void {

@@ -276,6 +276,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "切换皮肤",
+	"a11y.sound": "声音",
 	"retro.explorer": "资源管理器",
 	"retro.start": "开始",
 	"retro.tagline": "面向 Svelte 5 的动效组件 — 复制粘贴即可使用。",

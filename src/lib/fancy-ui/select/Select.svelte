@@ -33,6 +33,11 @@
 		class?: string;
 		/** Bindable reference to the trigger button. */
 		ref?: HTMLButtonElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -43,6 +48,7 @@
 	import { createListbox } from "../_internals/listbox.svelte.js";
 	import { SELECT_KEY, type SelectContext } from "./types.js";
 	import SelectPanel from "./SelectPanel.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		options,
@@ -59,6 +65,7 @@
 		align = "start",
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: SelectProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -99,16 +106,19 @@
 	// onValueChange) — a plain function, not an `$effect`, so it never reads
 	// and writes `value` in the same reactive pass and never fights a
 	// caller's own `bind:value` write.
-	function setValue(next: string): void {
-		if (value === next) return;
+	/** Returns true when the value actually changed (and a `select` cue played). */
+	function setValue(next: string): boolean {
+		if (value === next) return false;
 		value = next;
+		if (sound) soundFx.play("select");
 		onValueChange?.(next);
+		return true;
 	}
 
-	function commitIndex(index: number): void {
+	function commitIndex(index: number): boolean {
 		const option = options[index];
-		if (!option || option.disabled) return;
-		setValue(option.value);
+		if (!option || option.disabled) return false;
+		return setValue(option.value);
 	}
 
 	// The single hook the listbox core calls whenever the active index moves,
@@ -154,6 +164,7 @@
 	function openPanel(fallbackEdge: "first" | "last"): void {
 		if (effectiveDisabled) return;
 		open = true;
+		if (sound) soundFx.play("open");
 		if (selectedIndex !== -1 && isOptionEnabled(selectedIndex)) {
 			listbox.setActive(selectedIndex);
 		} else {
@@ -161,13 +172,23 @@
 		}
 	}
 
-	function closePanel(): void {
+	// `reason` distinguishes a commit-flavoured close (a value was just
+	// picked — by click, Enter/Space, Tab, or closed-state typeahead) from a
+	// plain dismiss (Escape, an outside click, or the trigger toggling the
+	// panel shut with nothing highlighted). Only a dismiss plays the `close`
+	// cue — a commit already played `select` inside `setValue`/`commitIndex`
+	// above, and the contract is one cue per interaction, never both.
+	function closePanel(reason: "commit" | "dismiss" = "dismiss"): void {
 		open = false;
+		if (sound && reason === "dismiss") soundFx.play("close");
 	}
 
 	function commitActiveAndClose(): void {
-		if (listbox.activeIndex !== -1) commitIndex(listbox.activeIndex);
-		closePanel();
+		// The close reason follows the ACTUAL outcome: re-committing the value
+		// that is already selected changes nothing, so it closes like a dismiss
+		// and is not swallowed into silence.
+		const committed = listbox.activeIndex !== -1 && commitIndex(listbox.activeIndex);
+		closePanel(committed ? "commit" : "dismiss");
 	}
 
 	function handleTriggerClick(): void {
@@ -297,10 +318,11 @@
 			listbox.setActive(index);
 		},
 		commit(index: number) {
-			commitIndex(index);
-			closePanel();
+			const committed = commitIndex(index);
+			closePanel(committed ? "commit" : "dismiss");
 		},
-		close: closePanel,
+		// Wrapped so a caller passing an event object can never leak it in as `reason`.
+		close: () => closePanel("dismiss"),
 	};
 	setContext(SELECT_KEY, context);
 

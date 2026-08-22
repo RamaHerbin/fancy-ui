@@ -149,6 +149,9 @@
 		"context-menu",
 		"command-menu",
 		"navigation-menu",
+		// Core / actions. A propless SoundToggle is one mute icon; the page's
+		// BasicUsage is the Sound Lab, which is the honest preview.
+		"sound",
 	]);
 </script>
 

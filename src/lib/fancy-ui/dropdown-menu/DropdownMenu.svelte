@@ -17,12 +17,22 @@
 		loop?: boolean;
 		/** The `DropdownMenuTrigger` and `DropdownMenuContent`. */
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { setContext } from "svelte";
-	import { DROPDOWN_MENU_KEY, type DropdownMenuRootContext } from "./types.js";
+	import {
+		DROPDOWN_MENU_KEY,
+		type DropdownMenuRootContext,
+		type MenuCloseOptions,
+	} from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -32,6 +42,7 @@
 		offset = 4,
 		loop = true,
 		children,
+		sound = false,
 	}: DropdownMenuProps = $props();
 
 	// `$props.id()`, not `_internals/id.js`'s `uid()` — the trigger renders
@@ -54,10 +65,11 @@
 	// routed through the same `dismissable` callback, on purpose — a second
 	// Escape listener is exactly what a previous wave had to remove) both
 	// take this path by default, and why Tab does not.
-	function setOpen(next: boolean, options: { returnFocus?: boolean } = {}): void {
+	function setOpen(next: boolean, options: MenuCloseOptions = {}): void {
 		if (open === next) return;
 		open = next;
 		onOpenChange?.(next);
+		if (sound && !options.silent) soundFx.play(next ? "open" : "close");
 		// `triggerRef?.isConnected` is checked explicitly, not left to
 		// `.focus()`'s own silent no-op on a detached element (which would
 		// behave identically either way) — stating the intent in code, the
@@ -79,7 +91,7 @@
 		setOpen(true);
 	}
 
-	function close(options: { returnFocus?: boolean } = {}): void {
+	function close(options: MenuCloseOptions = {}): void {
 		setOpen(false, options);
 	}
 
@@ -110,6 +122,9 @@
 		},
 		get triggerRef() {
 			return triggerRef;
+		},
+		get sound() {
+			return sound;
 		},
 		setTriggerRef(el) {
 			triggerRef = el;
