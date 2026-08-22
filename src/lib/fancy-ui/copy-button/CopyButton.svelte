@@ -9,6 +9,8 @@
 		label?: string;
 		/** Label shown for `resetMs` after a successful copy */
 		copiedLabel?: string;
+		/** Label and announcement shown for `resetMs` after a failed copy */
+		errorLabel?: string;
 		/** How long the copied state holds before reverting, in milliseconds */
 		resetMs?: number;
 		/** Passed straight through to the underlying Button */
@@ -22,10 +24,10 @@
 		/** Called with the value and whether the write actually succeeded */
 		onCopy?: (value: string, ok: boolean) => void;
 		/**
-		 * Overrides the default icon + label content. The success skin (border,
-		 * background, text colour) and the disabled/copy wiring still apply — set
-		 * `iconOnly` too if the custom content has no readable text, so the button
-		 * keeps an accessible name.
+		 * Overrides the default icon + label content. The success/failure skins
+		 * (border, background, text colour) and the disabled/copy wiring still
+		 * apply — set `iconOnly` too if the custom content has no readable text,
+		 * so the button keeps an accessible name.
 		 */
 		children?: Snippet;
 		/** Additional CSS classes */
@@ -44,6 +46,8 @@
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import Button from "../button/Button.svelte";
+	import StatusMorph from "../status-morph/StatusMorph.svelte";
+	import type { StatusMorphState } from "../status-morph/StatusMorph.svelte";
 	import { createCopy } from "../_internals/clipboard.svelte.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 
@@ -51,6 +55,7 @@
 		value,
 		label = "Copy",
 		copiedLabel = "Copied",
+		errorLabel = "Copy failed",
 		resetMs = 2000,
 		variant = "outline",
 		size = "md",
@@ -66,16 +71,43 @@
 	// Read once, on purpose: `createCopy` takes its reset delay as a constructor
 	// argument, not a reactive input, so `resetMs` is not meant to be retuned
 	// after the button has mounted. `untrack` says so rather than leaving a
-	// compiler hint behind.
-	const copyState = createCopy(untrack(() => resetMs));
+	// compiler hint behind. The same frozen value is handed to StatusMorph
+	// below — a reactive `resetAfter` there would let a post-mount `resetMs`
+	// retime the glyph without retiming the skin, and the two would then
+	// disagree for exactly the difference between them.
+	const resetWindow = untrack(() => resetMs);
+	const copyState = createCopy(resetWindow);
 
 	// Reads nothing, so it runs once and its teardown is the unmount cleanup.
 	$effect(() => copyState.destroy);
 
-	const currentLabel = $derived(copyState.copied ? copiedLabel : label);
+	// The glyph's own state, two-way bound so StatusMorph's own `resetAfter`
+	// timer writes it back to "idle". Deliberately not a second authority for
+	// the success window: `createCopy` still owns `copyState.copied` (the skin
+	// and the visible label), and both windows are armed in the same tick with
+	// the same duration, so no synchronisation code is needed — `handleClick`
+	// only has to make sure a repeat click re-arms both rather than one.
+	let morphState = $state<StatusMorphState>("idle");
 
+	const currentLabel = $derived(
+		morphState === "error" ? errorLabel : copyState.copied ? copiedLabel : label
+	);
+
+	// One attempt, one skin. The success class is gated on the ABSENCE of an
+	// error, not merely on `copyState.copied`: `createCopy.copy()` returns from
+	// its `catch` before it touches that flag, so a failure landing inside a
+	// standing success window leaves `copied` true while the glyph is already
+	// on "error". Without the guard the button would carry both skins at once
+	// and which red-or-green actually painted would come down to the order the
+	// compiler happened to emit the two rules in — a coin toss, and a public
+	// class list claiming two contradictory outcomes.
 	const classes = $derived(
-		cn("ft-copybtn", copyState.copied && "ft-copybtn--copied border", className)
+		cn(
+			"ft-copybtn",
+			copyState.copied && morphState !== "error" && "ft-copybtn--copied border",
+			morphState === "error" && "ft-copybtn--failed border",
+			className
+		)
 	);
 
 	async function handleClick() {
@@ -84,10 +116,19 @@
 		// no AudioContext exists yet, and by then the transient activation may be
 		// gone. Creating/resuming it here, synchronously, keeps that cue audible.
 		if (sound && soundFx.enabled) void soundFx.unlock();
+		// Clears any standing outcome before the new attempt, for two reasons: the
+		// previous confirmation is stale the moment a fresh copy is in flight, and
+		// StatusMorph re-arms its reset timer on a state CHANGE only — writing
+		// "success" over "success" would leave the glyph on the first click's
+		// deadline while `createCopy` restarts the skin's. The await between the
+		// two writes is what makes this a real change rather than a no-op
+		// collapsed inside a single flush.
+		morphState = "idle";
 		// `copy()` resolves false instead of throwing on a denied permission or a
 		// missing clipboard API — that outcome is reported to the caller honestly,
-		// not swallowed into a silent no-op.
+		// not swallowed into a silent no-op, and is now shown and announced too.
 		const ok = await copyState.copy(value);
+		morphState = ok ? "success" : "error";
 		if (sound) soundFx.play(ok ? "copy" : "error");
 		onCopy?.(value, ok);
 	}
@@ -95,7 +136,7 @@
 
 {#snippet copyIcon()}
 	<svg
-		class="size-4"
+		class="size-full"
 		viewBox="0 0 24 24"
 		fill="none"
 		stroke="currentColor"
@@ -109,19 +150,42 @@
 	</svg>
 {/snippet}
 
-{#snippet checkIcon()}
-	<svg
-		class="size-4"
-		viewBox="0 0 24 24"
-		fill="none"
-		stroke="currentColor"
-		stroke-width="2"
-		stroke-linecap="round"
-		stroke-linejoin="round"
-		aria-hidden="true"
-	>
-		<polyline points="20 6 9 17 4 12" />
-	</svg>
+<!--
+	The inline `style` rides StatusMorph's `{...restProps}` and lands as an
+	attribute, which beats its own scoped `.ft-statusmorph { width: calc(1em +
+	1px) }` — a `class="size-4"` would lose here, because Tailwind utilities are
+	layered and StatusMorph's scoped rule is not. `font-size` is set alongside
+	it so StatusMorph's INNER `calc(1em + 1px)` (the SVG, which the outer width
+	does not reach) resolves to the same `1rem`: the glyph then fills the box
+	exactly, holding the 16px footprint the copy icon has today instead of
+	sitting 2px short of it in the top-left corner.
+
+	`--ft-statusmorph-error` is set to the SAME chain the failure skin below
+	resolves, because the two fallbacks in the family disagree: StatusMorph's
+	own last-resort red is `oklch(0.5 0.19 25)` / `oklch(0.7 0.18 25)` and the
+	skin's is Toast's `oklch(0.577 0.245 27.325)` / `oklch(0.704 0.191 22.216)`.
+	The package ships no stylesheet, so "neither token declared" is the
+	out-of-the-box case — and there a 16px cross would sit inside a label and a
+	border painted a visibly different red. Reading `--ft-status-error` first
+	keeps a theme that sets it winning on both surfaces, exactly as before;
+	setting neither now yields one red instead of two. The success pair needs no
+	equivalent: both `--ft-status-done` fallbacks are already character-identical.
+
+	`resetAfter` is clamped away from 0 for a vocabulary clash, not a whim: to
+	`createCopy` a 0 window means "revert on the next tick", to StatusMorph it
+	means "no timer at all, manual reset only". 1ms makes both read the prop the
+	same way, so `resetMs={0}` reverts glyph and label together the way it did
+	before the glyph existed, instead of stranding the cross on screen forever.
+-->
+{#snippet statusIcon()}
+	<StatusMorph
+		bind:state={morphState}
+		tone="semantic"
+		resetAfter={resetWindow > 0 ? resetWindow : 1}
+		labels={{ success: copiedLabel, error: errorLabel }}
+		idle={copyIcon}
+		style="width: 1rem; height: 1rem; font-size: calc(1rem - 1px); --ft-statusmorph-error: var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216)))"
+	/>
 {/snippet}
 
 <Button
@@ -131,52 +195,75 @@
 	{disabled}
 	label={iconOnly ? currentLabel : undefined}
 	class={classes}
-	iconStart={children ? undefined : copyState.copied ? checkIcon : copyIcon}
+	iconStart={children ? undefined : statusIcon}
 	onclick={handleClick}
 >
 	{#if children}
 		{@render children()}
 	{/if}
-	<!-- `aria-live` carries the announcement; `aria-label` on the button (set
-	     above when icon-only) covers assistive tech that only reads the name
-	     once. Mounted unconditionally, even when `children` replaces the visible
-	     content — a custom `children` snippet has no way of its own to say the
-	     copy landed, and colour alone is a sighted-only signal. Hidden whenever
-	     something else already owns the visible label (icon-only, or a custom
-	     `children`); otherwise this span *is* the visible label. -->
-	<span aria-live="polite" class={iconOnly || children ? "sr-only" : undefined}>{currentLabel}</span
+	<!-- Purely the visible label: the announcement is StatusMorph's job, through
+	     the `role="status"` region it portals to `document.body` (which is also
+	     why it never joins this button's accessible name), and two live regions
+	     would double-announce every copy. The one case with no StatusMorph at
+	     all is a custom `children`, which replaces `iconStart` — there this span
+	     keeps the announcement, because a custom snippet has no way of its own
+	     to say the copy landed and colour alone is a sighted-only signal. Hidden
+	     whenever something else already owns the visible label (icon-only, or a
+	     custom `children`); otherwise this span *is* the visible label. -->
+	<span
+		aria-live={children ? (morphState === "error" ? "assertive" : "polite") : undefined}
+		class={iconOnly || children ? "sr-only" : undefined}>{currentLabel}</span
 	>
 </Button>
 
 <style>
 	/*
-	 * `--ft-status-done` is the family's actual "operation landed" vocabulary —
-	 * the same token ToolCall, ToolTimeline, AgentPlan, SubagentList, CodeDiff,
-	 * ApprovalCard, AiDataTable, TerminalBlock, ContextRing and RecommendationCard
-	 * all read. Reusing it (fallback hue included, not the mockup's) means a
-	 * copy confirmation sitting next to a tool-call or plan success indicator on
-	 * the same page reads as one palette, and retinting the token once moves
-	 * every success surface in the library together, this one included.
+	 * `--ft-status-done` / `--ft-status-error` are the family's actual
+	 * "operation landed" and "operation failed" vocabulary — the same tokens
+	 * ToolCall, ToolTimeline, AgentPlan, SubagentList, CodeDiff, ApprovalCard,
+	 * AiDataTable, TerminalBlock, ContextRing, RecommendationCard and Toast all
+	 * read. Reusing them (fallback hues included, not a mockup's) means a copy
+	 * outcome sitting next to a tool-call or a toast on the same page reads as
+	 * one palette, and retinting a token once moves every success — or every
+	 * failure — surface in the library together, this one included. The error
+	 * fallback pair is Toast's, character for character, so the two failure
+	 * surfaces stay one colour even in a theme that declares neither token.
 	 *
 	 * `:global()` is required, not stylistic: the classes below land on the
 	 * `<button>`/`<a>` that Button.svelte renders inside its own template, which
 	 * is outside this component's scoped tree, so a normal scoped selector would
 	 * never match it.
+	 *
+	 * Unlayered author CSS beats Tailwind's `@layer utilities` regardless of
+	 * selector order or the `:hover` state Button's own variant classes add, so
+	 * neither skin needs a separate hover rule to keep it from flickering back
+	 * to the idle variant's colours on pointer-over.
 	 */
-	:global(.ft-copybtn) {
-		--ft-copybtn-success: var(
-			--ft-status-done,
-			light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145))
+	:global(.ft-copybtn--copied) {
+		border-color: color-mix(
+			in oklab,
+			var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145))) 35%,
+			transparent
 		);
+		background-color: color-mix(
+			in oklab,
+			var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145))) 10%,
+			transparent
+		);
+		color: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
 	}
 
-	/* Unlayered author CSS beats Tailwind's `@layer utilities` regardless of
-	   selector order or the `:hover` state Button's own variant classes add, so
-	   there is no need for a separate hover rule to keep the success skin from
-	   flickering back to the idle variant's colours on pointer-over. */
-	:global(.ft-copybtn--copied) {
-		border-color: color-mix(in oklab, var(--ft-copybtn-success) 35%, transparent);
-		background-color: color-mix(in oklab, var(--ft-copybtn-success) 10%, transparent);
-		color: var(--ft-copybtn-success);
+	:global(.ft-copybtn--failed) {
+		border-color: color-mix(
+			in oklab,
+			var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216))) 35%,
+			transparent
+		);
+		background-color: color-mix(
+			in oklab,
+			var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216))) 10%,
+			transparent
+		);
+		color: var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216)));
 	}
 </style>
