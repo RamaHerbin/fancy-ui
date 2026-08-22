@@ -1168,4 +1168,98 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "A panel where one link is marked as the current page.",
 		},
 	],
+
+	// Micro-interactions
+	reveal: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Stagger",
+			title: "Stagger",
+			description: "Cascading reveal timed from the center outward.",
+		},
+		{
+			name: "ManualTrigger",
+			title: "Manual Trigger",
+			description: "Drive the reveal from any external boolean, not the viewport.",
+		},
+	],
+	presence: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Presets",
+			title: "Presets",
+			description: "Switch between the entrance/exit looks.",
+		},
+	],
+	magnetic: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A single outlined button that leans toward the cursor.",
+		},
+		{
+			name: "Strength",
+			title: "Strength",
+			description: "The same button at three pull strengths, side by side.",
+		},
+	],
+	pressable: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithHaptics",
+			title: "With Haptics",
+			description: "Touch-only vibration patterns alongside the press scale.",
+		},
+	],
+	"scroll-progress": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Labelled",
+			title: "Labelled",
+			description: 'Accessible role="progressbar" with a live percentage readout.',
+		},
+	],
+	skeleton: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Variants",
+			title: "Variants",
+			description: "Rect, text, and circle bones across all three animations.",
+		},
+		{
+			name: "WithChildren",
+			title: "With Children",
+			description: "Wrapping mode: real content swaps in once loading is false.",
+		},
+	],
+	"status-morph": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Standalone",
+			title: "Standalone",
+			description: "The full ring → check/cross morph, outside the Button composition.",
+		},
+		{
+			name: "ToneSemantic",
+			title: "Semantic Tone",
+			description: 'tone="semantic" reads the shared status colors.',
+		},
+	],
+	"text-roll": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "AutoTicker",
+			title: "Auto Ticker",
+			description: "An auto-incrementing counter, only the changed digits roll.",
+		},
+	],
+	"sticky-scroll": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"dim-siblings": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithBlur",
+			title: "With Blur",
+			description: "Blur non-active siblings in addition to dimming them.",
+		},
+	],
 };
