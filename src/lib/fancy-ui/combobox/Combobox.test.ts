@@ -522,4 +522,61 @@ describe("Combobox", () => {
 		options()[0].dispatchEvent(event);
 		expect(event.defaultPrevented).toBe(true);
 	});
+
+	// This panel had no entrance until the core motion pass; it now uses the
+	// shared `anchored` transition, whose growth origin follows the side the
+	// panel was ACTUALLY placed on. jsdom makes that deterministic: every
+	// rect measures 0×0, so the requested `bottom` never overflows the
+	// 768px-tall default viewport and never flips.
+	describe("entrance", () => {
+		function stubReducedMotion(): void {
+			vi.stubGlobal("matchMedia", (query: string) => ({
+				matches: true,
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				dispatchEvent: () => false,
+				addListener: () => {},
+				removeListener: () => {},
+			}));
+		}
+
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("publishes the resolved placement as data-side/data-align and grows from the matching origin", async () => {
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Combobox, { props: { options: OPTIONS } });
+
+			await fireEvent.focus(input(container));
+			await tick();
+
+			const el = panel() as HTMLElement;
+			expect(el.getAttribute("data-side")).toBe("bottom");
+			expect(el.getAttribute("data-align")).toBe("start");
+			expect(el.style.getPropertyValue("transform-origin")).toBe("left top");
+			// Pins the positive case too: without it the reduced-motion test
+			// below would pass for the wrong reason — an entrance that never
+			// runs at all under any preference.
+			expect(animate).toHaveBeenCalled();
+		});
+
+		it("runs no animation at all under prefers-reduced-motion, and the panel still appears", async () => {
+			stubReducedMotion();
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Combobox, { props: { options: OPTIONS } });
+
+			await fireEvent.focus(input(container));
+			await tick();
+
+			// A zero duration makes Svelte skip `element.animate()` outright
+			// instead of running a zero-length animation, and the panel's
+			// visibility never depended on the entrance in the first place.
+			expect(animate).not.toHaveBeenCalled();
+			expect(panel()).not.toBeNull();
+		});
+	});
 });

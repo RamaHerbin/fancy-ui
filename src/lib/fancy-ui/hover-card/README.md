@@ -63,3 +63,32 @@ closes it and an outside click closes it too (both via the shared
 See `HoverCardProps` in `HoverCard.svelte` for the full, documented list:
 `open` (bindable) + `onOpenChange`, `side`, `align`, `offset`, `openDelay`,
 `closeDelay`, `trigger`, `children`, `class`, `ref`.
+
+## Motion
+
+The card enters with a 150 ms opacity + scale rise on the shared arrival curve
+(`DURATIONS.fast` and `JS_EASINGS.out` from the motion foundation), growing
+from a `0.92` floor. The growth origin follows the side the card was actually
+placed on — flipped placements included — so it always appears to come out of
+the trigger rather than out of its own centre. The resolved placement is
+exposed as `data-side` / `data-align` for consumers that want to key their own
+styling off it.
+
+The card used to slide 4px on top of a shallower `0.96` scale. Both are gone:
+the travel now lives in the growth origin, which says "this came out of that"
+far more clearly than four pixels of movement ever did, and the floor is the
+one the whole floating-panel family shares.
+
+The entrance is a JS transition, not a CSS animation, so there is no `--ft-*`
+variable to override here; the timing comes from the shared token ladder and
+moves with it. `openDelay` is a scheduling delay, not part of the entrance —
+nothing is mounted while it runs.
+
+- **Reduced motion** — no entrance animation at all; the card simply appears.
+  Its visibility never depended on the animation, so nothing is reachable only
+  through motion.
+- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated.
+- Closing is instant. `closeDelay` already owns the grace period the pointer
+  needs to cross from the trigger to the card, and it spends it _before_ the
+  card leaves; the entrance is declared with `in:`, never `transition:`, so it
+  can never stack a second wait on top of that.

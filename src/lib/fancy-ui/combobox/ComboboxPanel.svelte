@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { getMatchRange } from "./match.js";
 	import { COMBOBOX_KEY, type ComboboxContext } from "./types.js";
 
@@ -11,6 +12,14 @@
 	// so the context is always present by the time this runs — no
 	// standalone-usage fallback to design for, same as `PopoverContent`.
 	const ctx = getContext<ComboboxContext>(COMBOBOX_KEY);
+
+	// The side the panel was ACTUALLY placed on. This panel always asks for
+	// `"bottom"`, but a combobox sitting low in the viewport flips to `"top"`
+	// routinely, and the entrance origin has to follow it — a panel that
+	// grows downward out of its own top edge while hanging above the input
+	// reads as coming from nowhere. Seeded with the requested side so the
+	// un-flipped case never depends on `onPlacement` having fired first.
+	let resolvedSide = $state<Side>("bottom");
 </script>
 
 <!--
@@ -28,14 +37,30 @@
 	`onclick` runs, the same guard `ComposerCommandMenu`'s rows use for the
 	identical reason: without it, clicking a row would blur the input a beat
 	before selecting anything.
+
+	This panel had no entrance at all until now — it appeared fully formed on
+	the first frame while every sibling surface rose into place. `in:` and not
+	`transition:`, deliberately: an entrance-only directive leaves teardown
+	synchronous, so closing still removes the panel in the same tick that
+	`open` flips false.
 -->
 <div
 	id={ctx.panelId}
 	role="listbox"
 	class="ft-combobox-panel border-border bg-popover text-popover-foreground flex max-h-[260px] w-max min-w-[220px] flex-col gap-[1px] overflow-auto rounded-[10px] border p-[5px] text-[13px] shadow-lg outline-none"
 	use:portal
-	use:anchorPosition={{ anchor: () => ctx.inputRef, side: "bottom", align: "start", offset: 4 }}
+	use:anchorPosition={{
+		anchor: () => ctx.inputRef,
+		side: "bottom",
+		align: "start",
+		offset: 4,
+		onPlacement: (side) => (resolvedSide = side),
+	}}
 	use:dismissable={{ onDismiss: ctx.close, exclude: () => [ctx.inputRef] }}
+	in:anchored={{ side: resolvedSide }}
+	data-side={resolvedSide}
+	data-align="start"
+	style:transform-origin={originFor(resolvedSide, "start")}
 >
 	{#if ctx.options.length === 0}
 		<div

@@ -83,6 +83,23 @@ function subTriggerEl(root: HTMLElement | null): HTMLElement | undefined {
 	return root?.querySelector<HTMLElement>('[aria-haspopup="menu"]') ?? undefined;
 }
 
+// Replaces `window.matchMedia` wholesale, the pattern the rest of the repo
+// uses. `anchored()` resolves it fresh every time a transition starts, so an
+// override installed before the panel opens is the one that decides whether
+// the entrance runs at all.
+function stubMatchMedia(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
 describe("DropdownMenu", () => {
 	afterEach(() => {
 		cleanup();
@@ -836,6 +853,138 @@ describe("DropdownMenu", () => {
 			await fireEvent.click(itemByLabel(subMenu(), "Screenshot")!);
 			await waitFor(() => expect(rootMenu()).toBeNull());
 			expect(play.mock.calls).toEqual([["select"]]);
+		});
+	});
+
+	// The entrance itself lives in `_internals/motion/anchored.ts` and is
+	// tested there. What is component-specific — and so what these cover — is
+	// the plumbing: which side the panel asked for, which side it was told it
+	// actually got, and the growth origin that follows from the pair.
+	describe("anchored entrance", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("publishes its resolved placement and grows from the panel edge nearest the trigger", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+
+			// Svelte samples the transition's `css(t, u)` into a plain
+			// `Keyframe[]` and hands it straight to `element.animate()`, so the
+			// spy's own arguments are a readable record of what the entrance
+			// animates: opacity and transform, nothing else, from the shared
+			// `0.92` floor. This doubles as the positive control for the
+			// reduced-motion test at the bottom of this block — without it,
+			// `not.toHaveBeenCalled()` down there could be measuring a jsdom
+			// quirk rather than the preference.
+			expect(animateSpy).toHaveBeenCalled();
+			const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+			expect(keyframes[0]).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
+
+			// jsdom reports every rect as zeroes, so `computePosition` never
+			// overflows and never flips — which makes the un-flipped case the
+			// deterministic one to assert here, precisely because there is no
+			// layout engine to disagree with it.
+			const panel = rootMenu()!;
+			expect(panel.getAttribute("data-side")).toBe("bottom");
+			expect(panel.getAttribute("data-align")).toBe("start");
+			// `bottom` + `start`: the panel's own top-left corner, the one
+			// touching the trigger it drops out of.
+			expect(panel.style.transformOrigin).toBe("left top");
+		});
+
+		it("moves the growth origin to the other edge when the placement flips", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+
+			// Same technique as the submenu caret test above: `anchorPosition`
+			// ran for real (it is spied on, not replaced), so this drives its
+			// own `onPlacement` callback directly — jsdom's zeroed rects can
+			// never produce a genuine flip.
+			const call = vi.mocked(anchorPosition).mock.calls.find(([, opts]) => opts.side === "bottom");
+			expect(call).toBeTruthy();
+			call![1].onPlacement?.("top");
+			await tick();
+
+			const panel = rootMenu()!;
+			expect(panel.getAttribute("data-side")).toBe("top");
+			// A panel that flipped above its trigger has to grow downwards
+			// out of its own bottom edge, or it would appear to come from the
+			// wrong direction entirely.
+			expect(panel.style.transformOrigin).toBe("left bottom");
+		});
+
+		it("gives the submenu's caret, data-side and growth origin one single source of truth", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			const subBtn = subTriggerEl(rootMenu())!;
+			const beforeSubOpened = animateSpy.mock.calls.length;
+			await fireEvent.click(subBtn);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			// The submenu's own positive control, and the reason it lives here
+			// rather than in a test of its own: everything else this test
+			// reads — `data-side`, `data-align`, `transform-origin`, the caret
+			// — comes off `SubContext.resolvedSide`, so all of it would still
+			// be correct if `in:anchored` were dropped from
+			// `DropdownMenuSubContent` entirely, and the reduced-motion test
+			// below only asserts an absence. Counting the call that opening
+			// the submenu added, checking it was made on the submenu panel
+			// itself, and reading its keyframes is what actually pins the
+			// entrance to this component.
+			expect(animateSpy.mock.calls.length).toBeGreaterThan(beforeSubOpened);
+			expect(animateSpy.mock.contexts.at(-1)).toBe(subMenu());
+			const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+			expect(keyframes[0]).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
+
+			expect(subMenu()!.getAttribute("data-side")).toBe("right");
+			expect(subMenu()!.getAttribute("data-align")).toBe("start");
+			expect(subMenu()!.style.transformOrigin).toBe("left top");
+			expect(subBtn.textContent).toContain("›");
+
+			// `SubContext.resolvedSide` feeds the caret glyph AND the panel's
+			// origin — one flip has to move both, which is why this panel
+			// keeps no local placement state of its own.
+			const call = vi.mocked(anchorPosition).mock.calls.find(([, opts]) => opts.side === "right");
+			call![1].onPlacement?.("left");
+			await tick();
+
+			expect(subBtn.textContent).toContain("‹");
+			expect(subMenu()!.getAttribute("data-side")).toBe("left");
+			expect(subMenu()!.style.transformOrigin).toBe("right top");
+		});
+
+		it("runs no animation at all under reduced motion, and both panels are there in the same tick", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems },
+			});
+
+			await fireEvent.click(trigger(container));
+			await tick();
+			expect(rootMenu()).not.toBeNull();
+
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await tick();
+			expect(subMenu()).not.toBeNull();
+
+			// A zero duration makes Svelte skip `element.animate()` outright
+			// rather than run a zero-length animation, so the absence of any
+			// call is the honest proof that nothing was scheduled.
+			expect(animateSpy).not.toHaveBeenCalled();
 		});
 	});
 });

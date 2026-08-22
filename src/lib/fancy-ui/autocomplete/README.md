@@ -109,6 +109,31 @@ Set `--ft-accent` higher up the tree to retint the focus ring on every
 the active row uses `bg-accent` / `text-accent-foreground` — no
 component-local tokens of its own.
 
+## Motion
+
+The suggestion list enters with a 150 ms opacity + scale rise
+(the shared `fast` rung and out-curve, applied in JS — there is no `--ft-*`
+variable to override for this entrance), growing from a `0.92` floor — the same
+entrance every floating surface in the library uses. The growth origin follows
+the side the panel was **actually** placed on, so a list that flips above the
+input when the input sits low in the viewport grows from its bottom edge rather
+than its top, and always appears to come out of the field.
+
+The entrance plays when the list opens, not on every keystroke: while it stays
+open, refiltering only swaps rows. A query that stops matching does close the
+list, though, so the next keystroke that matches again is a fresh open — and a
+fresh entrance.
+
+The resolved placement is published on the panel as `data-side` and
+`data-align`, for consumers that want to key their own styling off where it
+landed.
+
+- **Reduced motion** — no entrance animation at all; the list simply appears.
+  Its visibility never depended on the animation, so nothing is lost.
+- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated
+  and plays identically on touch.
+- Closing is currently instant.
+
 ## Implementation Notes
 
 - **Arrowing highlights a row; it does not preview into the field.** This

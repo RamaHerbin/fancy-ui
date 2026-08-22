@@ -258,6 +258,34 @@ Everything else — the panel's `bg-popover`/`border-border`, the active
 trigger's `bg-accent`, a current link's `bg-accent` — reads this app's
 ordinary semantic tokens and needs no local fallback.
 
+## Motion
+
+The panel enters with a 150 ms opacity + scale rise (`DURATIONS.fast` and
+`JS_EASINGS.out`, the shared rung every floating surface in the library is
+on), growing from a `0.92` floor. The growth origin follows the side the panel
+was actually placed on — flipped placements included — so it always appears to
+come out of the menu bar rather than out of its own centre. Exposed as
+`data-side` / `data-align` for consumers that want to key their own styling
+off the resolved placement, alongside the existing `data-state`.
+
+The entrance is a Svelte transition rather than a keyframe, so there is no
+`--ft-*` variable on the panel to retime it; reduced motion is the one switch.
+
+- The panel used to slide four pixels down as it faded in. That travel is
+  gone: `anchorPosition` owns `left`/`top` on this same element, so a panel
+  can only ever fake vertical movement, and growing from the edge nearest the
+  list says "this came out of that bar" more plainly than four pixels did.
+- Only `opacity` and `transform` animate, and only on the panel itself.
+- **Focus is never animated.** A keyboard-opened panel focuses its first link
+  in the same tick it mounts, entrance running or not.
+- **Reduced motion** — no entrance animation at all; the panel simply appears.
+  Visibility never depended on the animation: `{#if isOpen}` owns the panel's
+  DOM existence, and the entrance is layered on top of that.
+- **Touch and coarse pointers** — unchanged; the entrance is not
+  pointer-gated. It plays identically for a tap-opened panel, which never
+  goes through the hover-intent delays at all.
+- Closing is instant.
+
 ## Implementation notes
 
 - **Two contexts, not one.** The root context (`NavigationMenuContext`,

@@ -41,9 +41,10 @@
 	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import {
 		getMonthGrid,
 		addMonths,
@@ -99,6 +100,14 @@
 
 	let open = $state(false);
 	let panelRef: HTMLDivElement | null = $state(null);
+
+	// The side the panel was ACTUALLY placed on, which `anchorPosition` reports
+	// through `onPlacement` and which differs from the requested one whenever a
+	// flip avoided the viewport edge. Seeded with the requested side rather than
+	// left undefined so an un-flipped panel never depends on directive ordering:
+	// the growth origin is already right on the first frame, and `onPlacement`
+	// only ever has to correct a real flip.
+	let resolvedSide = $state<Side>("bottom");
 
 	// The displayed month (only year/month are read off this) and the day
 	// currently carrying the grid's one `tabindex="0"` — the roving-focus
@@ -299,8 +308,18 @@
 		id={panelId}
 		class="ft-date-picker-panel border-border bg-popover text-popover-foreground flex w-max flex-col gap-2 rounded-[10px] border p-[12px] shadow-lg outline-none"
 		use:portal
-		use:anchorPosition={{ anchor: () => ref, side: "bottom", align: "start", offset: 8 }}
+		use:anchorPosition={{
+			anchor: () => ref,
+			side: "bottom",
+			align: "start",
+			offset: 8,
+			onPlacement: (side) => (resolvedSide = side),
+		}}
 		use:dismissable={{ onDismiss: closePanel, exclude: () => [ref] }}
+		in:anchored={{ side: resolvedSide }}
+		data-side={resolvedSide}
+		data-align="start"
+		style:transform-origin={originFor(resolvedSide, "start")}
 	>
 		<div class="flex items-center justify-between gap-2 text-[12px] font-semibold">
 			<button
@@ -400,22 +419,5 @@
 	.ft-date-picker-nav:focus-visible {
 		outline: none;
 		box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-date-picker-accent) 35%, transparent);
-	}
-
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-date-picker-panel {
-			animation: ft-date-picker-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-date-picker-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
 	}
 </style>

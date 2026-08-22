@@ -543,6 +543,73 @@ describe("NavigationMenu", () => {
 		);
 		expect(link?.getAttribute("href")).toBe("/pricing");
 	});
+
+	// The entrance itself lives in `_internals/motion/anchored.ts` and is
+	// tested there. What is component-specific is the plumbing: the panel is
+	// anchored to the whole list rather than to one trigger, and the growth
+	// origin has to follow the side `anchorPosition` actually resolved.
+	describe("anchored entrance", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("publishes its resolved placement and grows from the edge nearest the list", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: TWO_ITEMS } });
+
+			await fireEvent.click(triggerByLabel(container, "Products"));
+			expect(panel()).not.toBeNull();
+
+			// jsdom has no layout engine — every rect reads as zeroes — so
+			// `computePosition` never overflows and never flips. That makes
+			// the un-flipped case the deterministic one to assert here.
+			expect(panel()!.getAttribute("data-side")).toBe("bottom");
+			expect(panel()!.getAttribute("data-align")).toBe("start");
+			// `bottom` + `start`: the panel's own top-left corner, the one
+			// touching the list it drops out of. `data-state="open"` is
+			// untouched by any of this.
+			expect(panel()!.style.transformOrigin).toBe("left top");
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+
+			// Svelte samples the transition's `css(t, u)` into a plain
+			// `Keyframe[]` and hands it straight to `element.animate()`, so the
+			// spy's own arguments say exactly what moves. Two things this
+			// pins: the rise starts at the shared `0.92` floor, and the four
+			// pixels of `translateY` this panel used to slide are gone for
+			// good. It is also the positive control for the reduced-motion
+			// case below.
+			expect(animateSpy).toHaveBeenCalled();
+			const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+			expect(keyframes[0]).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
+			expect(keyframes.some((frame) => String(frame.transform).includes("translate"))).toBe(false);
+		});
+
+		it("runs no animation at all under reduced motion, and the panel is there in the same tick", async () => {
+			vi.stubGlobal("matchMedia", (query: string) => ({
+				matches: true,
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				dispatchEvent: () => false,
+				addListener: () => {},
+				removeListener: () => {},
+			}));
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: TWO_ITEMS } });
+
+			await fireEvent.click(triggerByLabel(container, "Products"));
+			await tick();
+			expect(panel()).not.toBeNull();
+
+			// A zero duration makes Svelte skip `element.animate()` outright
+			// rather than run a zero-length animation, so no call at all is
+			// the honest proof that nothing was scheduled.
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
 });
 
 describe("NavigationMenuLink", () => {

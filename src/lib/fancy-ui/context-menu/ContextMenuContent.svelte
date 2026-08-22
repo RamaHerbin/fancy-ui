@@ -14,9 +14,10 @@
 <script lang="ts">
 	import { setContext, getContext, tick } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { createMenuFocus } from "../_internals/menu.svelte.js";
 	import { handleMenuContentKeydown, createOpenSubRegistry } from "../dropdown-menu/menu-shared.js";
 	import {
@@ -29,6 +30,15 @@
 	let { children, class: className, ref = $bindable(null) }: ContextMenuContentProps = $props();
 
 	const root = getContext<ContextMenuRootContext>(CONTEXT_MENU_KEY);
+
+	// The side the panel was ACTUALLY placed on, seeded with the requested one
+	// so an un-flipped open never depends on `onPlacement` having fired first.
+	// This is the panel where a flip is routine rather than exceptional: the
+	// anchor is a point at the pointer, and a right-click anywhere in the
+	// lower or right band of the viewport flips it. Growing from the corner
+	// nearest that point is what keeps the menu feeling attached to the click
+	// instead of erupting from its own middle.
+	let resolvedSide = $state<Side>(root.side);
 
 	const focus = createMenuFocus({
 		get loop() {
@@ -85,7 +95,14 @@
 	last right-click's coordinates — instead of a real trigger element, but
 	`anchorPosition`'s flip/clamp behaviour needs nothing different for that:
 	a zero-size `DOMRect` at the pointer flips and clamps at the viewport
-	edges exactly the same way a real element's rect does.
+	edges exactly the same way a real element's rect does — and the entrance
+	origin below follows that same resolved side, so a menu that flipped to
+	sit *above* a click near the bottom of the viewport grows out of its own
+	bottom edge, the one still touching the pointer, instead of its top.
+
+	`in:`, never `transition:`: an intro never delays unmount, so closing is
+	as instant as it has always been. Only `opacity` and `transform` animate;
+	focus still lands on the first item in the same tick it always did.
 -->
 {#if root.open}
 	<div
@@ -100,31 +117,17 @@
 			side: root.side,
 			align: root.align,
 			offset: root.offset,
+			onPlacement: (side) => (resolvedSide = side),
 		}}
 		use:dismissable={{
 			onDismiss: () => root.close(),
 		}}
+		in:anchored={{ side: resolvedSide }}
+		data-side={resolvedSide}
+		data-align={root.align}
+		style:transform-origin={originFor(resolvedSide, root.align)}
 		onkeydown={handleKeydown}
 	>
 		{@render children?.()}
 	</div>
 {/if}
-
-<style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-context-menu-content {
-			animation: ft-context-menu-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-context-menu-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-</style>

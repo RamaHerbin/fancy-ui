@@ -34,11 +34,63 @@ function panel(container: HTMLElement): HTMLElement | null {
 	return document.querySelector(".ft-popover-content");
 }
 
+/** Replaces `window.matchMedia` wholesale, the pattern `media-query.svelte.ts`
+ * documents and `_internals/motion/anchored.test.ts` already uses — the
+ * transition resolves it fresh on every call, so an override installed before
+ * the panel opens is what the entrance reads. */
+function stubMatchMedia(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** Pins every element's rect flush against the bottom edge of the viewport,
+ * which is the one condition `computePosition` needs to flip a `side: "bottom"`
+ * request to `"top"` (`anchor.bottom + offset + floating.height > viewport.height`).
+ * jsdom reports all-zero rects otherwise, so without this stub nothing in the
+ * suite ever exercises a flip — and a flip is the only case where the resolved
+ * side differs from the requested one the panel seeds itself with.
+ *
+ * The rect is internally consistent (`top = bottom - height`) because the same
+ * value is read twice: once as the anchor and once as the floating element.
+ * `bottom` is read from `window.innerHeight` rather than hardcoded to jsdom's
+ * 768 so the overflow stays true whatever viewport the runner defaults to. The
+ * opposite side deliberately still fits (`top - height - offset > 0`), so the
+ * flip lands somewhere real instead of picking the lesser of two overflows.
+ * `vi.restoreAllMocks()` in `afterEach` removes it. */
+function pinRectsToViewportBottom() {
+	const bottom = window.innerHeight;
+	vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({
+		top: bottom - 200,
+		bottom,
+		left: 0,
+		right: 100,
+		width: 100,
+		height: 200,
+		x: 0,
+		y: bottom - 200,
+		toJSON: () => ({}),
+	} as DOMRect);
+}
+
 describe("Popover", () => {
 	afterEach(() => {
 		cleanup();
 		document.body.querySelectorAll(".ft-popover-content").forEach((el) => el.remove());
 		vi.mocked(anchorPosition).mockClear();
+		vi.unstubAllGlobals();
+		// `vi.spyOn` on an already-mocked property reuses the existing mock
+		// rather than layering a new one, so without this a later
+		// `expect(animateSpy).not.toHaveBeenCalled()` would see an earlier
+		// test's calls too.
+		vi.restoreAllMocks();
 	});
 
 	it("renders closed by default, with aria-expanded false", () => {
@@ -257,6 +309,103 @@ describe("Popover", () => {
 
 		await fireEvent.click(btn);
 		await waitFor(() => expect(document.activeElement).toBe(btn));
+	});
+
+	it("publishes the resolved placement as data-side/data-align, with the matching growth origin", async () => {
+		const { container } = render(Popover, {
+			props: {
+				trigger: textSnippet("Options"),
+				children: panelSnippet(),
+				side: "right",
+				align: "start",
+			},
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+
+		// jsdom reports every rect as zeroes, so `computePosition` never
+		// overflows and never flips — this pins the un-flipped path
+		// deterministically. `right` + `start` puts the origin on the panel's
+		// left-top corner, the corner touching the trigger.
+		const content = panel(container)!;
+		expect(content.getAttribute("data-side")).toBe("right");
+		expect(content.getAttribute("data-align")).toBe("start");
+		expect(content.style.transformOrigin).toBe("left top");
+	});
+
+	it("follows a flip: the resolved side wins over the requested one, and the origin moves with it", async () => {
+		pinRectsToViewportBottom();
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet(), side: "bottom" },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+
+		// The panel seeds `resolvedSide` from the REQUESTED side, so this is
+		// the only assertion in the file that fails if `onPlacement` is
+		// deleted: the request was `bottom`, the panel could not fit there,
+		// and everything the caller can see must report where it actually
+		// landed. `top` grows out of the panel's own bottom edge — the edge
+		// touching the trigger below it — the mirror image of the default.
+		const content = panel(container)!;
+		expect(content.getAttribute("data-side")).toBe("top");
+		expect(content.style.transformOrigin).toBe("center bottom");
+	});
+
+	it("defaults to a bottom-centre placement, growing from the panel's top edge", async () => {
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+
+		const content = panel(container)!;
+		expect(content.getAttribute("data-side")).toBe("bottom");
+		expect(content.style.transformOrigin).toBe("center top");
+	});
+
+	it("rises from the shared scale floor even though the panel is a separate child component", async () => {
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+
+		// The positive control for the reduced-motion test below, and the
+		// proof of the one thing about this call site that is not obvious: the
+		// `in:` lives on `PopoverContent`'s root element, but the `{#if open}`
+		// that mounts it lives in `Popover`. A statically-known child compiles
+		// to a plain call inside its parent's branch, so the intro is a real
+		// (non-first-mount) one and does play. Svelte samples the transition's
+		// `css(t, u)` into these keyframes, so they are the direct evidence of
+		// what animates: opacity and scale, nothing else.
+		expect(animateSpy).toHaveBeenCalled();
+		const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+		expect(keyframes.at(0)).toMatchObject({ opacity: "0", transform: "scale(0.92)" });
+		expect(keyframes.at(-1)).toMatchObject({ opacity: "1", transform: "scale(1)" });
+	});
+
+	it("plays no entrance at all when the user asked for reduced motion", async () => {
+		stubMatchMedia(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+
+		// `anchored` collapses the duration to 0, and Svelte's own
+		// falsy-duration fast path then skips `element.animate()` entirely —
+		// the panel is simply there, in the frame it mounted. Its visibility
+		// never depended on the animation; `{#if open}` alone decides that.
+		expect(animateSpy).not.toHaveBeenCalled();
+		expect(panel(container)).not.toBeNull();
 	});
 
 	it("merges the class prop onto the panel", async () => {

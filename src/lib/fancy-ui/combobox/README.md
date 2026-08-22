@@ -111,6 +111,25 @@ Set `--ft-accent` higher up the tree to retint the focus ring on every
 the active row uses `bg-accent` / `text-accent-foreground` — no
 component-local tokens of its own.
 
+## Motion
+
+The panel enters with a 150 ms opacity + scale rise (the shared `fast` rung and out-curve, applied in JS — there is no `--ft-*`
+variable to override for this entrance), growing from a `0.92` floor — the same entrance every
+floating surface in the library uses. The growth origin follows the side the
+panel was **actually** placed on, so a list that flips above the input when the
+input sits low in the viewport grows from its bottom edge rather than its top,
+and always appears to come out of the field.
+
+The resolved placement is published on the panel as `data-side` and
+`data-align`, for consumers that want to key their own styling off where it
+landed.
+
+- **Reduced motion** — no entrance animation at all; the panel simply appears.
+  Its visibility never depended on the animation, so nothing is lost.
+- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated
+  and plays identically on touch.
+- Closing is currently instant.
+
 ## Implementation Notes
 
 - **On focus, the panel shows the whole list.** While the visible text still

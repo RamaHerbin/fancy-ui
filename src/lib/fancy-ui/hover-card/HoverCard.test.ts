@@ -31,6 +31,52 @@ function panel(): HTMLElement | null {
 	return document.body.querySelector(".ft-hover-card-panel");
 }
 
+/** Replaces `window.matchMedia` wholesale, the pattern `media-query.svelte.ts`
+ * documents and `_internals/motion/anchored.test.ts` already uses — the
+ * transition resolves it fresh on every call, so an override installed before
+ * the card opens is what the entrance reads. */
+function stubMatchMedia(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** Pins every element's rect flush against the bottom edge of the viewport,
+ * which is the one condition `computePosition` needs to flip a `side: "bottom"`
+ * request to `"top"` (`anchor.bottom + offset + floating.height > viewport.height`).
+ * jsdom reports all-zero rects otherwise, so without this stub nothing in the
+ * suite ever exercises a flip — and a flip is the only case where the resolved
+ * side differs from the requested one the card seeds itself with.
+ *
+ * The rect is internally consistent (`top = bottom - height`) because the same
+ * value is read twice: once as the anchor and once as the floating element.
+ * `bottom` is read from `window.innerHeight` rather than hardcoded to jsdom's
+ * 768 so the overflow stays true whatever viewport the runner defaults to. The
+ * opposite side deliberately still fits (`top - height - offset > 0`), so the
+ * flip lands somewhere real instead of picking the lesser of two overflows.
+ * `vi.restoreAllMocks()` in `afterEach` removes it. */
+function pinRectsToViewportBottom() {
+	const bottom = window.innerHeight;
+	vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({
+		top: bottom - 200,
+		bottom,
+		left: 0,
+		right: 100,
+		width: 100,
+		height: 200,
+		x: 0,
+		y: bottom - 200,
+		toJSON: () => ({}),
+	} as DOMRect);
+}
+
 const trigger = () => snippet('<button type="button">@handle</button>');
 const content = () => snippet("<p>Rama Herbin — 1.2k followers</p>");
 
@@ -43,6 +89,12 @@ describe("HoverCard", () => {
 		cleanup();
 		document.body.innerHTML = "";
 		vi.useRealTimers();
+		vi.unstubAllGlobals();
+		// `vi.spyOn` on an already-mocked property reuses the existing mock
+		// rather than layering a new one, so without this a later
+		// `expect(animateSpy).not.toHaveBeenCalled()` would see an earlier
+		// test's calls too.
+		vi.restoreAllMocks();
 	});
 
 	it("renders the trigger and stays closed until interaction", () => {
@@ -282,6 +334,81 @@ describe("HoverCard", () => {
 		pointerEnter(triggerWrapper());
 		await vi.advanceTimersByTimeAsync(300);
 
+		expect(panel()).not.toBeNull();
+	});
+
+	it("publishes the resolved placement as data-side/data-align, with the matching growth origin", async () => {
+		render(HoverCard, {
+			props: { open: true, side: "right", align: "start", trigger: trigger(), children: content() },
+		});
+		await vi.advanceTimersByTimeAsync(0);
+
+		// jsdom reports every rect as zeroes, so `computePosition` never
+		// overflows and never flips — this pins the un-flipped path
+		// deterministically. `right` + `start` puts the origin on the card's
+		// left-top corner, the corner touching the trigger.
+		const el = panel()!;
+		expect(el.getAttribute("data-side")).toBe("right");
+		expect(el.getAttribute("data-align")).toBe("start");
+		expect(el.style.transformOrigin).toBe("left top");
+	});
+
+	it("follows a flip: the resolved side wins over the requested one, and the origin moves with it", async () => {
+		pinRectsToViewportBottom();
+		render(HoverCard, {
+			props: { openDelay: 300, side: "bottom", trigger: trigger(), children: content() },
+		});
+
+		// Opened through the real pointer path rather than `open: true`, so the
+		// card mounts into an already-running block: `anchorPosition`'s user
+		// effect reports the flip, and the render effect behind `data-side` /
+		// `style:transform-origin` has to correct the seeded value in the same
+		// flush. That ordering is the only reason the seed is safe.
+		pointerEnter(triggerWrapper());
+		await vi.advanceTimersByTimeAsync(300);
+
+		// The card seeds `resolvedSide` from the REQUESTED side, so this is the
+		// only assertion in the file that fails if `onPlacement` is deleted:
+		// the request was `bottom`, the card could not fit there, and it now
+		// grows out of its own bottom edge — the edge touching the trigger
+		// below it — instead of the top edge the request implied.
+		const el = panel()!;
+		expect(el.getAttribute("data-side")).toBe("top");
+		expect(el.style.transformOrigin).toBe("center bottom");
+	});
+
+	it("rises from the shared scale floor, with no travel of its own", async () => {
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(HoverCard, { props: { openDelay: 300, trigger: trigger(), children: content() } });
+
+		pointerEnter(triggerWrapper());
+		await vi.advanceTimersByTimeAsync(300);
+
+		// Svelte samples the transition's `css(t, u)` into WAAPI keyframes, so
+		// these are the direct evidence of what the entrance animates. The
+		// card used to add 4px of `translateY` on top of a `0.96` scale; both
+		// are gone on purpose — the travel now lives in the growth origin
+		// asserted above, and the floor is the one shared `0.92`.
+		expect(animateSpy).toHaveBeenCalled();
+		const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+		expect(keyframes.at(0)).toMatchObject({ opacity: "0", transform: "scale(0.92)" });
+		expect(keyframes.at(-1)).toMatchObject({ opacity: "1", transform: "scale(1)" });
+		expect(keyframes.every((frame) => !String(frame.transform).includes("translate"))).toBe(true);
+	});
+
+	it("plays no entrance at all when the user asked for reduced motion", async () => {
+		stubMatchMedia(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(HoverCard, { props: { openDelay: 300, trigger: trigger(), children: content() } });
+
+		pointerEnter(triggerWrapper());
+		await vi.advanceTimersByTimeAsync(300);
+
+		// `anchored` collapses the duration to 0, and Svelte's own
+		// falsy-duration fast path then skips `element.animate()` entirely —
+		// the card is simply there, in the frame it mounted. Its visibility
+		// never depended on the animation; `{#if open}` alone decides that.
+		expect(animateSpy).not.toHaveBeenCalled();
 		expect(panel()).not.toBeNull();
 	});
 

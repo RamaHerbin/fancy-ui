@@ -15,6 +15,8 @@
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { anchorPosition } from "../_internals/anchor-position.js";
+	import type { Side } from "../_internals/anchor-position.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { portal } from "../_internals/portal.js";
 	import { focusTrap } from "../_internals/focus-trap.js";
 	import { dismissable } from "../_internals/dismissable.js";
@@ -26,6 +28,13 @@
 	// so the context is always present by the time this runs — there is no
 	// standalone-usage fallback to design for, unlike RadioGroupItem's.
 	const ctx = getContext<PopoverContext>(POPOVER_KEY);
+
+	// Seeded with the REQUESTED side rather than a hardcoded `"bottom"`, so a
+	// panel that never flips reads the right growth origin without depending
+	// on whether `anchorPosition`'s `onPlacement` has run yet. The action
+	// overwrites it with the resolved side on its first placement, and again
+	// only when a later scroll or resize genuinely flips it.
+	let resolvedSide = $state<Side>(ctx.side);
 
 	const classes = $derived(
 		cn(
@@ -42,6 +51,13 @@
 	without an accessible name is worse than no role at all. Reachability
 	comes from `focusTrap` (moves focus in, returns it to the trigger on
 	destroy) and `dismissable`, not from a landmark role.
+
+	`in:` and never `transition:`: an entrance must not delay the unmount. The
+	panel leaves the DOM the instant `open` flips false, which is what keeps
+	`focusTrap`'s return-focus and every dismissal assertion synchronous.
+	`focusTrap` moving focus into a node that is mid-entrance is fine — it
+	calls `.focus()`, which is instant and untouched by an opacity/scale
+	transition; nothing here animates focus itself.
 -->
 <div
 	bind:this={ref}
@@ -53,6 +69,7 @@
 		side: ctx.side,
 		align: ctx.align,
 		offset: ctx.offset,
+		onPlacement: (side) => (resolvedSide = side),
 	}}
 	use:focusTrap={{ returnFocus: true }}
 	use:dismissable={{
@@ -61,25 +78,10 @@
 		outsideClick: ctx.dismissible,
 		exclude: () => [ctx.triggerRef],
 	}}
+	in:anchored={{ side: resolvedSide }}
+	data-side={resolvedSide}
+	data-align={ctx.align}
+	style:transform-origin={originFor(resolvedSide, ctx.align)}
 >
 	{@render children?.()}
 </div>
-
-<style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-popover-content {
-			animation: ft-popover-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-popover-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-</style>

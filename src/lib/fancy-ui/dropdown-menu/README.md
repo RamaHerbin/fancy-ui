@@ -347,6 +347,35 @@ panel, `bg-accent`/`text-accent-foreground` for the hovered/focused row,
 `text-destructive` for the destructive variant, `text-muted-foreground` for
 shortcuts/carets/group labels.
 
+## Motion
+
+The panel enters with a 150 ms opacity + scale rise (`DURATIONS.fast` and
+`JS_EASINGS.out`, the shared rung every floating surface in the library is
+on), growing from a `0.92` floor. The growth origin follows the side the panel
+was actually placed on — flipped placements included — so it always appears to
+come out of the trigger rather than out of its own centre. Exposed as
+`data-side` / `data-align` for consumers that want to key their own styling
+off the resolved placement.
+
+The entrance is a Svelte transition rather than a keyframe, so there is no
+`--ft-*` variable on the panel to retime it; reduced motion is the one switch.
+
+- A submenu grows from the edge nearest the row that opened it, and that edge
+  and the row's caret glyph read the one same `SubContext.resolvedSide`
+  value: a submenu that flips to the left of its trigger turns the caret and
+  moves the origin in the same update, never one without the other.
+- Only `opacity` and `transform` animate, and only on the panel itself.
+- **Focus is never animated.** Roving focus lands on the first (or last) item
+  in the same tick the panel mounts, entrance running or not, so keyboard
+  navigation is never waiting on a rise to finish.
+- **Reduced motion** — no entrance animation at all; the panel simply appears.
+  Visibility never depended on the animation: `{#if root.open}` /
+  `{#if sub.open}` own the panel's DOM existence, and the entrance is layered
+  on top of that.
+- **Touch and coarse pointers** — unchanged; the entrance is not
+  pointer-gated.
+- Closing is instant.
+
 ## Implementation notes
 
 - `computePosition`/the `anchorPosition` action (`_internals/anchor-position.js`)
@@ -396,11 +425,12 @@ shortcuts/carets/group labels.
   word). Since these two components already satisfy the convention the
   fallback relies on, they don't set it.
 - `{#if root.open}`/`{#if sub.open}` gate every panel's entire DOM
-  existence, not just its visual appearance — the `@media
-(prefers-reduced-motion: no-preference)` entrance animation is layered on
-  top of that, so a panel that would only ever _appear_ via a transition
-  still exists (and is reachable) under reduced motion; it just doesn't
-  animate in.
+  existence, not just its visual appearance — the shared entrance
+  (`_internals/motion/anchored.js`, applied as an `in:` transition) is
+  layered on top of that, so a panel that would only ever _appear_ via a
+  transition still exists (and is reachable) under reduced motion; it just
+  doesn't animate in. `in:` rather than `transition:` is deliberate too: an
+  intro never delays unmount, so closing stays synchronous.
 - `{#each}` blocks in this family's own examples key on each item's own
   identity (a label, a value), never a positional index — a reordering or a
   duplicate-looking label stays correct.

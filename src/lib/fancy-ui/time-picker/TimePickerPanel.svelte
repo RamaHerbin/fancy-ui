@@ -10,9 +10,10 @@
 <script lang="ts">
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { TIME_PICKER_KEY, type TimePickerContext } from "./types.js";
 
 	let { class: className, ref = $bindable(null) }: TimePickerPanelProps = $props();
@@ -21,6 +22,14 @@
 	// so the context is always present by the time this runs — there is no
 	// standalone-usage fallback to design for, the same as SelectPanel.
 	const ctx = getContext<TimePickerContext>(TIME_PICKER_KEY);
+
+	// The side the panel was ACTUALLY placed on, which `anchorPosition` reports
+	// through `onPlacement` and which differs from the requested one whenever a
+	// flip avoided the viewport edge. Seeded with the requested side rather than
+	// left undefined so an un-flipped panel never depends on directive ordering:
+	// the growth origin is already right on the first frame, and `onPlacement`
+	// only ever has to correct a real flip.
+	let resolvedSide = $state<Side>("bottom");
 
 	function rowClasses(index: number): string {
 		return cn(
@@ -46,8 +55,18 @@
 		className
 	)}
 	use:portal
-	use:anchorPosition={{ anchor: () => ctx.triggerRef, side: "bottom", align: "start", offset: 4 }}
+	use:anchorPosition={{
+		anchor: () => ctx.triggerRef,
+		side: "bottom",
+		align: "start",
+		offset: 4,
+		onPlacement: (side) => (resolvedSide = side),
+	}}
 	use:dismissable={{ onDismiss: ctx.close, exclude: () => [ctx.triggerRef] }}
+	in:anchored={{ side: resolvedSide }}
+	data-side={resolvedSide}
+	data-align="start"
+	style:transform-origin={originFor(resolvedSide, "start")}
 >
 	{#if ctx.slots.length === 0}
 		<!-- Reachable when `min`/`max` exclude every generated slot — see the
@@ -83,23 +102,6 @@
 </div>
 
 <style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-time-picker-panel {
-			animation: ft-time-picker-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-time-picker-in {
-		from {
-			opacity: 0;
-			transform: scale(0.97);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-
 	.ft-time-picker-option {
 		--ft-field-accent: var(
 			--ft-accent,

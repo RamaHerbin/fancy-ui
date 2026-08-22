@@ -95,6 +95,20 @@ pair local to the component:
 Set `--ft-accent` higher up the tree to retint the trigger's focus ring and
 the selected row's checkmark.
 
+## Motion
+
+The panel enters with a 150 ms opacity + scale rise (the shared `fast` rung and out-curve, applied in JS — there is no `--ft-*`
+variable to override for this entrance), growing from a `0.92` floor. The growth origin follows the side
+the panel was actually placed on — flipped placements included — so it always
+appears to come out of the trigger rather than out of its own centre. Exposed as
+`data-side` / `data-align` for consumers that want to key their own styling off the
+resolved placement.
+
+- **Reduced motion** — no entrance animation at all; the panel simply appears.
+  Visibility never depended on the animation.
+- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated.
+- Closing is currently instant.
+
 ## Implementation Notes
 
 - **The value contract is `"HH:mm"`, 24-hour, always** — regardless of

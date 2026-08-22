@@ -696,4 +696,80 @@ describe("Select", () => {
 			expect(play).not.toHaveBeenCalled();
 		});
 	});
+
+	// The panel's entrance is the shared `anchored` transition, and its growth
+	// origin follows the side the panel was ACTUALLY placed on rather than the
+	// side it asked for. jsdom makes that deterministic: every rect measures
+	// 0×0, so a requested `bottom` never overflows the 768px-tall default
+	// viewport and never flips, while a requested `top` always overflows
+	// (`anchor.top - height - offset` is `-4`) and always does.
+	describe("entrance", () => {
+		function stubReducedMotion(): void {
+			vi.stubGlobal("matchMedia", (query: string) => ({
+				matches: true,
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				dispatchEvent: () => false,
+				addListener: () => {},
+				removeListener: () => {},
+			}));
+		}
+
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("publishes the resolved placement as data-side/data-align and grows from the matching origin", async () => {
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Select, { props: { options: OPTIONS } });
+
+			await fireEvent.click(trigger(container));
+			await tick();
+
+			const el = panel() as HTMLElement;
+			expect(el.getAttribute("data-side")).toBe("bottom");
+			expect(el.getAttribute("data-align")).toBe("start");
+			expect(el.style.getPropertyValue("transform-origin")).toBe("left top");
+			// Pins the positive case too: without it the reduced-motion test
+			// below would pass for the wrong reason — an entrance that never
+			// runs at all under any preference.
+			expect(animate).toHaveBeenCalled();
+		});
+
+		it("follows a flipped placement rather than the requested side", async () => {
+			const { container } = render(Select, {
+				props: { options: OPTIONS, side: "top", align: "end" },
+			});
+
+			await fireEvent.click(trigger(container));
+			await tick();
+
+			// Asked for `top`, placed on `bottom`: the panel now hangs below
+			// the trigger, so it has to grow out of its own top edge. Reading
+			// the requested side here would point the origin at the bottom
+			// edge and the panel would appear to fall upward into place.
+			const el = panel() as HTMLElement;
+			expect(el.getAttribute("data-side")).toBe("bottom");
+			expect(el.getAttribute("data-align")).toBe("end");
+			expect(el.style.getPropertyValue("transform-origin")).toBe("right top");
+		});
+
+		it("runs no animation at all under prefers-reduced-motion, and the panel still appears", async () => {
+			stubReducedMotion();
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Select, { props: { options: OPTIONS } });
+
+			await fireEvent.click(trigger(container));
+			await tick();
+
+			// A zero duration makes Svelte skip `element.animate()` outright
+			// instead of running a zero-length animation, and the panel's
+			// visibility never depended on the entrance in the first place.
+			expect(animate).not.toHaveBeenCalled();
+			expect(panel()).not.toBeNull();
+		});
+	});
 });
