@@ -2199,7 +2199,6 @@ export const registry: Record<string, ComponentMeta> = {
 		category: "effects",
 		group: "fancy",
 		status: "done",
-		credits: [{ source: "Border Beam", url: "https://beam.jakubantalik.com" }],
 		tags: ["border", "glow", "pulse", "gradient", "mask", "animation", "ai", "loading"],
 		slots: [
 			{
