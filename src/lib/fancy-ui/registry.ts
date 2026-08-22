@@ -4278,6 +4278,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{ name: "children", description: "The button's label / content" },
@@ -4711,6 +4717,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference, matching Button's own ref type",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the copy cue on a successful copy and error on a failed one, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "Overrides the default icon + label content" }],
 	},
@@ -5100,6 +5113,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference to the native input",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on or toggle-off on each change, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -5205,6 +5225,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the item's native input.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays a select cue when the selection actually changes, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{ name: "children", description: "The RadioGroup's content — the RadioGroupItems." },
@@ -5285,6 +5312,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLInputElement | null",
 				default: "null",
 				description: "Bindable element reference to the native input",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on or toggle-off on each change, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -6098,6 +6132,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLButtonElement | null",
 				default: "null",
 				description: "Bindable reference to the trigger button.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on opening, select on a committed choice and close on a dismissal, once the user has enabled sound",
 			},
 		],
 	},
@@ -7419,6 +7460,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "true",
 				description: "Whether arrow-key navigation wraps at the ends",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open and close on the trigger and submenus, and select on an item — one cue per interaction — once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The DropdownMenuTrigger and DropdownMenuContent" }],
 	},
@@ -7623,6 +7671,124 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "children",
 				description:
 					"Typically a single NavigationMenuList. Snippet<[]> — the compound's own sub-components (NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent, NavigationMenuLink) are exported from the same module and used inside it.",
+			},
+		],
+	},
+
+	// =========================================================================
+	// Core — actions (sound)
+	// =========================================================================
+
+	// `name` is "SoundToggle", not "Sound", on purpose: llms.ts only emits a
+	// single-name import when the barrel actually exports `component.name`.
+	// With "Sound" the fallback fires and /llms-full.txt would list every export.
+	sound: {
+		name: "SoundToggle",
+		slug: "sound",
+		description:
+			"Opt-in interface sound: a `sound` controller that synthesises eleven short cues (hover, press, toggle-on, toggle-off, open, close, select, success, error, tick, copy) with the Web Audio API, a SoundToggle switch that keeps the preference and volume, and a soundFeedback action that wires cues to any element — silent until the user switches it on, nothing on import, mount, navigation or scroll",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["sound", "audio", "feedback", "web-audio", "cues", "toggle", "accessibility", "opt-in"],
+		props: [
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Height of the control — md matches the other header-style triggers",
+			},
+			{
+				name: "variant",
+				type: '"outline" | "ghost"',
+				default: '"outline"',
+				description: "Outline keeps a resting border; ghost shows one only on hover",
+			},
+			{
+				name: "showLabel",
+				type: "boolean",
+				default: "false",
+				description:
+					"Renders the label and the On/Off word beside the icon; icon-only otherwise, with the label as the accessible name",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Sound"',
+				description:
+					"Accessible name of the switch. Stays constant — the on/off state is announced through aria-checked",
+			},
+			{
+				name: "labelOn",
+				type: "string",
+				default: '"On"',
+				description: "Visible state word when showLabel is set",
+			},
+			{
+				name: "labelOff",
+				type: "string",
+				default: '"Off"',
+				description: "Visible state word when showLabel is set",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Disables the control. A browser with no Web Audio also disables it, but only while sound is off, so a stored on preference can always be undone",
+			},
+			{
+				name: "onEnabledChange",
+				type: "(enabled: boolean) => void",
+				description: "Called after the preference flips, with the new value",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes for the button" },
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the button",
+			},
+			{
+				name: "sound.play(cue, options?)",
+				type: "(cue: SoundCue, options?: SoundPlayOptions) => void",
+				description:
+					"Plays one cue. A no-op while sound is off or unsupported, so call sites never branch; options carry volume, pitch and playbackRate",
+			},
+			{
+				name: "sound.enable() / disable() / toggle()",
+				type: "() => void | boolean",
+				description:
+					"Flip the preference. Enabling creates and resumes the audio context inside the calling user gesture",
+			},
+			{
+				name: "sound.setVolume(v)",
+				type: "(v: number) => void",
+				description: "Master volume, 0 to 1, persisted with the preference",
+			},
+			{
+				name: "sound.enabled / volume / status",
+				type: "boolean / number / SoundStatus",
+				description:
+					"Reactive preference and engine state (supported, engine, storage, lastCue, lastError) for your own UI",
+			},
+			{
+				name: "sound.subscribe(run)",
+				type: "(run: (prefs: SoundPreferences) => void) => () => void",
+				description: "Store contract for non-rune consumers; sound.enabled is the idiomatic path",
+			},
+			{
+				name: "use:soundFeedback",
+				type: "SoundFeedbackOptions",
+				description:
+					"Action mapping element events to cues — defaults to click → press; add pointerenter → hover to opt in. Rebinds on update and unwires on destroy",
+			},
+			{
+				name: "sound (on Button, CopyButton, Checkbox, Switch, RadioGroup, Select, DropdownMenu)",
+				type: "boolean",
+				default: "false",
+				description:
+					"Per-instance opt-in: the component plays its own matching cue (press, copy/error, toggle-on/off, select, open/close) once the user has enabled sound",
 			},
 		],
 	},

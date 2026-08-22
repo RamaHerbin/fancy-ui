@@ -44,6 +44,11 @@
 		children?: Snippet;
 		/** Additional CSS classes, merged onto the wrapping `<label>`. */
 		class?: string;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off
+		 * by default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 		/** Element reference to the native `<input>`. */
 		ref?: HTMLInputElement | null;
 	}
@@ -52,6 +57,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		checked = $bindable(false),
@@ -66,6 +72,7 @@
 		label,
 		children,
 		class: className,
+		sound = false,
 		ref = $bindable(null),
 	}: CheckboxProps = $props();
 
@@ -110,6 +117,7 @@
 		const next = event.currentTarget.checked;
 		checked = next;
 		indeterminate = false;
+		if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 		onCheckedChange?.(next);
 	}
 

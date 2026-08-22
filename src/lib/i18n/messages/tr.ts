@@ -315,6 +315,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "Görünümü değiştir",
+	"a11y.sound": "Ses",
 	"retro.explorer": "Gezgin",
 	"retro.start": "Başlat",
 	"retro.tagline": "Svelte 5 için animasyonlu bileşenler — kopyalayıp yapıştırmaya hazır.",

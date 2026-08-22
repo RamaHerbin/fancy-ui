@@ -4,6 +4,7 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import Checkbox from "./Checkbox.svelte";
 import ValueHarness from "./CheckboxHarness.test.svelte";
 import FieldHarness from "./CheckboxFieldHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -283,5 +284,124 @@ describe("Checkbox", () => {
 		expect(el.getAttribute("aria-invalid")).toBe("true");
 		expect(el.required).toBe(true);
 		expect(el.disabled).toBe(true);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays toggle-on exactly once when checked via a click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Checkbox, { props: { sound: true, label: "Agree" } });
+			const el = checkbox(container);
+
+			await fireEvent.click(el);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays toggle-off exactly once when unchecked via a click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Checkbox, {
+				props: { sound: true, checked: true, label: "Agree" },
+			});
+			const el = checkbox(container);
+
+			await fireEvent.click(el);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Checkbox, { props: { label: "Agree" } });
+			const el = checkbox(container);
+
+			await fireEvent.click(el);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when disabled via its own prop, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Checkbox, {
+				props: { sound: true, disabled: true, label: "Agree" },
+			});
+			const el = checkbox(container);
+
+			await fireEvent.change(el, { target: { checked: true } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when disabled through a surrounding FormField, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const context = {
+				controlId: "ctx-id-2",
+				describedBy: undefined,
+				invalid: false,
+				valid: true,
+				required: false,
+				disabled: true,
+			};
+			const { container } = render(FieldHarness, { props: { context, sound: true } });
+			const el = checkbox(container);
+
+			await fireEvent.click(el);
+			await fireEvent.change(el, { target: { checked: true } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("resolves an indeterminate box to a boolean before playing its cue", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Checkbox, {
+				props: { sound: true, checked: false, indeterminate: true, label: "Agree" },
+			});
+			const el = checkbox(container);
+
+			await fireEvent.click(el);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays exactly one cue for a label click, not two (label click double-dispatches click but change fires once)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Checkbox, { props: { sound: true, label: "Agree" } });
+			const label = wrapper(container);
+
+			await fireEvent.click(label);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays exactly one cue for a keyboard Space activation on the input", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Checkbox, { props: { sound: true, label: "Agree" } });
+			const el = checkbox(container);
+			el.focus();
+
+			// jsdom does not implement the native Space-activates-checkbox
+			// behaviour, so the click it produces is simulated the same way a
+			// real browser's default action would: toggling checked, then
+			// dispatching change, exactly as a real Space press does exactly once.
+			await fireEvent.keyDown(el, { key: " " });
+			await fireEvent.click(el);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("does not leak the sound prop onto the DOM input", () => {
+			const { container } = render(Checkbox, { props: { sound: true, label: "Agree" } });
+			const el = checkbox(container);
+
+			expect(el.hasAttribute("sound")).toBe(false);
+		});
 	});
 });

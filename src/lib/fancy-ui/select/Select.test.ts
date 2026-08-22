@@ -5,6 +5,7 @@ import Select from "./Select.svelte";
 import Harness from "./SelectHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
 import type { SelectOption } from "./types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 const OPTIONS: SelectOption[] = [
 	{ value: "svelte", label: "Svelte 5" },
@@ -549,6 +550,150 @@ describe("Select", () => {
 			expect(btn.disabled).toBe(true);
 			expect(btn.getAttribute("aria-required")).toBe("true");
 			expect(btn.getAttribute("aria-invalid")).toBe("true");
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when opened by a trigger click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, { props: { options: OPTIONS, sound: true } });
+
+			await fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("Enter commit plays select exactly once and never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, { props: { options: OPTIONS, sound: true } });
+			const btn = trigger(container);
+
+			await fireEvent.keyDown(btn, { key: "ArrowDown" }); // opens, activates Svelte 5
+			await fireEvent.keyDown(btn, { key: "ArrowDown" }); // moves to React
+			play.mockClear();
+			await fireEvent.keyDown(btn, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("re-committing the already-selected value plays close (a dismiss), never silence", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, {
+				props: { options: OPTIONS, value: "svelte", sound: true },
+			});
+			const btn = trigger(container);
+
+			await fireEvent.keyDown(btn, { key: "ArrowDown" }); // opens on the selected option
+			play.mockClear();
+			await fireEvent.keyDown(btn, { key: "Enter" }); // commits nothing new
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("a click commit plays select exactly once and never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, { props: { options: OPTIONS, sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.click(optionByLabel("React"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("Tab commit plays select exactly once and never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, { props: { options: OPTIONS, sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn); // opens
+			play.mockClear();
+
+			await fireEvent.keyDown(btn, { key: "Tab", cancelable: true });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("Escape plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, {
+				props: { options: OPTIONS, value: "svelte", sound: true },
+			});
+			const btn = trigger(container);
+			await fireEvent.click(btn);
+			await fireEvent.keyDown(btn, { key: "ArrowDown" }); // highlight a different option
+			play.mockClear();
+
+			await fireEvent.keyDown(document, { key: "Escape" });
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("an outside click plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(Select, { props: { options: OPTIONS, sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.pointerDown(outside);
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			outside.remove();
+		});
+
+		it("closed typeahead commits and plays select once; repeating the same letter that keeps the same match stays silent", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, { props: { options: OPTIONS, sound: true } });
+			const btn = trigger(container);
+
+			await fireEvent.keyDown(btn, { key: "v" });
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+
+			// Same value re-committed: the same-value early return in setValue
+			// stays silent, per contract.
+			play.mockClear();
+			await fireEvent.keyDown(btn, { key: "v" });
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, { props: { options: OPTIONS } });
+			const btn = trigger(container);
+
+			await fireEvent.click(btn);
+			await fireEvent.click(optionByLabel("React"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Select, {
+				props: { options: OPTIONS, disabled: true, sound: true },
+			});
+			const btn = trigger(container);
+
+			await fireEvent.click(btn);
+			await fireEvent.keyDown(btn, { key: "ArrowDown" });
+			await fireEvent.keyDown(btn, { key: "a" });
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

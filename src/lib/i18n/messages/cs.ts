@@ -309,6 +309,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "Změnit vzhled",
+	"a11y.sound": "Zvuk",
 	"retro.explorer": "Průzkumník",
 	"retro.start": "Start",
 	"retro.tagline": "Animované komponenty pro Svelte 5 — připravené ke zkopírování.",

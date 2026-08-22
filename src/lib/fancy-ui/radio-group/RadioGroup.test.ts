@@ -5,6 +5,7 @@ import RadioGroup from "./RadioGroup.svelte";
 import RadioGroupItem from "./RadioGroupItem.svelte";
 import Harness from "./RadioGroupHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
+import { sound } from "../sound/sound.svelte.js";
 
 interface Item {
 	value: string;
@@ -416,5 +417,92 @@ describe("RadioGroup", () => {
 		});
 
 		expect(ref).toBe(group(container));
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when a new item is picked, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+
+			await fireEvent.click(byLabel(container, "Option A"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			await fireEvent.click(byLabel(container, "Option A"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the group itself is disabled, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, {
+				props: { items: ITEMS, sound: true, disabled: true },
+			});
+
+			await fireEvent.change(byLabel(container, "Option A"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when disabled through a surrounding FormField, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const field: FieldContext = {
+				controlId: "field-sound-1",
+				describedBy: undefined,
+				invalid: false,
+				required: false,
+				disabled: true,
+			};
+			const { container } = render(Harness, {
+				props: { items: ITEMS, sound: true, field },
+			});
+			await tick();
+
+			await fireEvent.change(byLabel(container, "Option A"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when clicking the already-selected item", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, {
+				props: { items: ITEMS, sound: true, value: "b" },
+			});
+
+			await fireEvent.click(byLabel(container, "Option B"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays exactly one select cue per change during arrow-key traversal", async () => {
+			// jsdom does not implement the browser's native arrow-key roving
+			// selection for radio groups, so the traversal is simulated the way
+			// the browser's own default action would: each arrow step moves
+			// focus to the next radio and fires a real selection change on it,
+			// exactly like a real ArrowDown press does.
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, {
+				props: { items: ITEMS, sound: true, value: "a" },
+			});
+
+			await fireEvent.click(byLabel(container, "Option B"));
+			expect(play).toHaveBeenCalledTimes(1);
+
+			await fireEvent.click(byLabel(container, "Option C"));
+			expect(play).toHaveBeenCalledTimes(2);
+
+			expect(play).toHaveBeenNthCalledWith(1, "select");
+			expect(play).toHaveBeenNthCalledWith(2, "select");
+		});
 	});
 });

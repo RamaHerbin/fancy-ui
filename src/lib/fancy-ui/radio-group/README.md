@@ -217,3 +217,12 @@ define.
   no benefit. `field?.labelId` alone decides which one applies; see
   "Standalone or inside a FormField" above for why `controlId` cannot do
   this job here the way it does for a plain `<input>`.
+
+## Sound
+
+`sound?: boolean` (default `false`, set on the group, not on individual
+items) plays a `select` cue whenever the selection actually changes to a
+different item. Clicking the already-selected item, or selecting while the
+group is `disabled` (own prop or a surrounding `FormField`), plays nothing.
+Off by default; the cue is only audible once the user has separately turned
+sound on. See `sound/README.md` for how the preference and playback work.

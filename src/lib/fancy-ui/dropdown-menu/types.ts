@@ -16,6 +16,23 @@ import type { Side, Align } from "../_internals/anchor-position.js";
  * subtree, so `*Item`/`*Separator`/`*Label` never need to know which level
  * they are at.
  */
+/**
+ * Options accepted by a menu's own `close`/`closeAll`, shared across every
+ * level (root, item, sub) so one call site's options object works
+ * everywhere it's forwarded to.
+ */
+export interface MenuCloseOptions {
+	/** Whether closing returns DOM focus to the trigger. Defaults to `true` wherever it's read. */
+	returnFocus?: boolean;
+	/**
+	 * Suppresses the `close` sound cue for this particular close call —
+	 * used when the caller is about to play its own cue instead (an item's
+	 * `select`), so exactly one cue fires per interaction, never both.
+	 * Has no effect when the root's own `sound` prop is off.
+	 */
+	silent?: boolean;
+}
+
 export interface MenuContext {
 	/** The menu-focus core for this level's own items — not a nested submenu's, which has its own. */
 	readonly focus: MenuFocusState;
@@ -35,8 +52,16 @@ export interface MenuContext {
 	 * field crosses the same gap CSS can't.
 	 */
 	readonly itemTextClass: string;
+	/**
+	 * Whether this menu family plays sound cues — forwarded from the root's
+	 * own `sound` prop. Optional so `ContextMenu`, which builds its own
+	 * `MenuContext` without this field, keeps compiling unchanged; reads as
+	 * falsy there, which is the correct "no sound" behaviour for a family
+	 * that has no `sound` prop of its own (yet).
+	 */
+	readonly sound?: boolean;
 	/** Closes the whole menu, root included. What selecting an item and pressing Tab both do. */
-	closeAll(options?: { returnFocus?: boolean }): void;
+	closeAll(options?: MenuCloseOptions): void;
 	/** Registers a currently-open submenu at this level, keyed by its trigger element. Returns an unregister function. */
 	registerOpenSub(triggerEl: HTMLElement, close: () => void): () => void;
 	/** Closes every open submenu at this level except the one whose trigger is `exceptTriggerEl` — only one submenu open per level, like a native menu bar. */
@@ -67,7 +92,8 @@ export interface SubContext {
 	/** Opens the submenu. Idempotent — does nothing if already open. */
 	openSub(): void;
 	/** Closes the submenu, optionally returning DOM focus to its trigger. */
-	closeSub(returnFocus: boolean): void;
+	/** `silent` suppresses the submenu's `close` cue (parent-driven closes). */
+	closeSub(returnFocus: boolean, silent?: boolean): void;
 	/** Cancels a pending close-intent timer. Called when the pointer enters the trigger or the content. */
 	keepOpen(): void;
 	/** Starts the close-intent timer. Called when the pointer leaves the trigger or the content. */
@@ -87,10 +113,12 @@ export interface DropdownMenuRootContext {
 	/** Which end to focus once the content mounts — set by whichever key opened the trigger. */
 	readonly focusEdge: "first" | "last";
 	readonly triggerRef: HTMLElement | null;
+	/** Whether this menu plays sound cues — mirrors `DropdownMenuProps.sound`. */
+	readonly sound: boolean;
 	setTriggerRef(el: HTMLElement | null): void;
 	/** Opens the menu (if not already open) and requests that its content focus `edge` once mounted. */
 	openWithFocus(edge: "first" | "last"): void;
 	/** Closes the menu. Returns focus to the trigger by default. */
-	close(options?: { returnFocus?: boolean }): void;
+	close(options?: MenuCloseOptions): void;
 }
 export const DROPDOWN_MENU_KEY: unique symbol = Symbol("dropdown-menu-root-context");

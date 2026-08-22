@@ -37,6 +37,7 @@ export {
 export {
 	MENU_KEY,
 	type MenuContext,
+	type MenuCloseOptions,
 	SUB_KEY,
 	type SubContext,
 	DROPDOWN_MENU_KEY,

@@ -315,6 +315,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "スキンを変更",
+	"a11y.sound": "サウンド",
 	"retro.explorer": "エクスプローラー",
 	"retro.start": "スタート",
 	"retro.tagline": "Svelte 5 のためのアニメーションコンポーネント — コピペしてすぐ使えます。",

@@ -37,6 +37,7 @@ export const en = {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "Change skin",
+	"a11y.sound": "Sound",
 
 	// Command search
 	"search.placeholder": "Search components and pages...",

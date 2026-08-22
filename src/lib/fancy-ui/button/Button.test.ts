@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import Button from "./Button.svelte";
 import type { ButtonSize, ButtonVariant } from "./types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -269,5 +270,84 @@ describe("Button", () => {
 		// part. `hover:bg-primary/90` is a different variant group, so it is left
 		// alone; only the base `bg-primary` is a real conflict with `bg-red-500`.
 		expect(classList).not.toContain("bg-primary");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", async () => {
+			const { container } = render(Button, {
+				props: { sound: true, children: snippet("<span>Go</span>") },
+			});
+
+			await fireEvent.click(root(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Button, {
+				props: { children: snippet("<span>Go</span>") },
+			});
+
+			await fireEvent.click(root(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const { container } = render(Button, {
+				props: { sound: true, disabled: true, children: snippet("<span>Go</span>") },
+			});
+
+			root(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while loading, even with sound enabled", () => {
+			const { container } = render(Button, {
+				props: { sound: true, loading: true, children: snippet("<span>Go</span>") },
+			});
+
+			root(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire on keyboard activation — a single click, however triggered, plays one cue", async () => {
+			const onclick = vi.fn();
+			const { container } = render(Button, {
+				props: { sound: true, onclick, children: snippet("<span>Go</span>") },
+			});
+			const el = root(container);
+
+			// jsdom does not synthesize a click from a real keydown on <button>;
+			// this proves the cue is wired to the shared click handler alone, not
+			// duplicated onto a keydown listener as well.
+			await fireEvent.keyDown(el, { key: "Enter" });
+			await fireEvent.click(el);
+
+			expect(onclick).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("does not leak the sound prop into the DOM attributes", () => {
+			const { container } = render(Button, {
+				props: { sound: true, children: snippet("<span>Go</span>") },
+			});
+
+			expect(root(container).hasAttribute("sound")).toBe(false);
+		});
 	});
 });

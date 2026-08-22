@@ -148,3 +148,13 @@ Set `--ft-accent` higher up the tree to retint every `Checkbox` beneath it.
 - `class` merges onto the wrapping `<label>`, not the input itself — the
   input's own geometry classes are fixed so a consumer's class never
   accidentally fights the box's shape.
+
+## Sound
+
+`sound?: boolean` (default `false`) plays a short confirmation cue through the
+sound controller whenever the box actually toggles — `toggle-on` when it
+becomes checked, `toggle-off` when it becomes unchecked. Nothing plays while
+`disabled` (own prop or a surrounding `FormField`), and an indeterminate box
+still resolves to a real boolean before the cue is chosen. Off by default;
+the cue is only audible once the user has separately turned sound on. See
+`sound/README.md` for how the preference and playback work.
