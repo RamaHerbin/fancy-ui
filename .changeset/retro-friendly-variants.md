@@ -1,5 +1,0 @@
----
-"fancy-ui-svelte": minor
----
-
-Add five hard-edge, additive options for existing components — all defaults unchanged, no behavior or visuals change for existing consumers. `InteractiveGridPattern` gains an `interactive` prop (`false` renders a static graph-paper grid with zero per-rect mouse listeners) and a `strokeClassName` prop to recolor the grid lines without overriding the fill logic in `squaresClassName`. `BlurReveal` gains a `mode` prop (`"hard"` drops the blur/translate softening entirely and snaps opacity in via a stepped CSS timing function, keeping the same scroll trigger and stagger). `StaticLogoCloud` gains a `wordmarks` prop that renders a static typographic row of styled text instead of image logos, for brand rows with no logo assets. `LineHoverLink` gains a 12th variant, `"ink"`: a constant underline with the whole link snapping `-1px,-1px` on hover/focus instead of animating the underline in. `ImageTrailCursor` gains a `"pixelated"` trail variant: images pop in and out with no easing tails, styled with `image-rendering: pixelated` and a solid pixel-art border.
