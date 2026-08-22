@@ -2,8 +2,30 @@
 	import { setContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { FIELD_KEY, createFieldState } from "../_internals/field.svelte.js";
+	import { preset } from "../_internals/motion/transitions.js";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
 	import Label from "../label/Label.svelte";
 	import type { FormFieldProps } from "./types.js";
+
+	// Both message paragraphs and the valid glyph arrive the same way: a small
+	// grow-and-fade, so a message that appears under a field the user is
+	// typing in reads as "this just changed" instead of as a layout jolt.
+	//
+	// `in:` on every one of them, never `transition:`. The error and the
+	// description are the two branches of ONE `{#if}`, and each carries the id
+	// that `aria-describedby` points at — an outro would leave a paragraph on
+	// screen for 150ms after the control had already stopped describing it,
+	// which is an accessibility hazard rather than a nicety. With `in:` only,
+	// the outgoing branch is gone in the same tick the incoming one mounts, so
+	// the id wiring and the pixels never disagree.
+	//
+	// `prefersReducedMotion()` is called from each params expression at the
+	// call site rather than stored here: Svelte re-evaluates a directive's
+	// params on every invocation, so the preference is read at the instant the
+	// transition starts, never at construction and never during SSR.
+	// `duration: 0` makes Svelte skip `element.animate()` outright.
+	const pop = preset("scale");
 
 	let {
 		label,
@@ -86,6 +108,7 @@
 		<p
 			id={errorId}
 			class="ft-form-field-message text-destructive flex items-center gap-1.5 text-[12px]"
+			in:pop={{ duration: prefersReducedMotion() ? 0 : DURATIONS.fast }}
 		>
 			<span aria-hidden="true">✕</span>
 			{error}
@@ -94,12 +117,25 @@
 		<p
 			class="ft-form-field-message text-muted-foreground flex items-center gap-1.5 text-[12px]"
 			id={descriptionId}
+			in:pop={{ duration: prefersReducedMotion() ? 0 : DURATIONS.fast }}
 		>
 			{#if showValid}
 				<!-- Decorative reinforcement of the help text next to it, not a
 				     replacement for it — see the README for why this doesn't grow
-				     its own message the way the error state does. -->
-				<span aria-hidden="true" class="ft-form-field-valid-glyph">✓</span>
+				     its own message the way the error state does.
+
+				     A glyph-scale beat, not a message-scale one: it is one
+				     character wide, so it gets `micro` (80ms) rather than the
+				     paragraph's 150ms. It also only animates when `valid` flips
+				     while the help text is ALREADY on screen — mounted together
+				     with its paragraph, this `{#if}` is running for the first
+				     time and Svelte skips a local intro, which is exactly right
+				     for a field that renders already-valid. -->
+				<span
+					aria-hidden="true"
+					class="ft-form-field-valid-glyph"
+					in:pop={{ duration: prefersReducedMotion() ? 0 : DURATIONS.micro }}>✓</span
+				>
 			{/if}
 			{description}
 		</p>

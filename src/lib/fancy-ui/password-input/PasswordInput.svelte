@@ -47,6 +47,28 @@
 	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { preset } from "../_internals/motion/transitions.js";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
+
+	// The reveal toggle swaps one 16px glyph for another in place. A hard cut
+	// at that scale reads as a flicker, so the two icons cross-fade over
+	// `micro` (80ms) — a beat that only registers as a beat.
+	//
+	// This is the one bidirectional `transition:` in this pass, and it earns it:
+	// a cross-fade needs both layers mounted at once, which an `in:`-only
+	// directive cannot give. It is safe because nothing observes the icon's
+	// unmount — `aria-label` and `aria-pressed` live on the <button> and flip
+	// synchronously, and both glyphs are `aria-hidden`, so a screen reader
+	// never sees the overlap. The two-layer grid stack below is what keeps the
+	// overlap free of layout impact.
+	//
+	// `prefersReducedMotion()` is called from the params expression at the call
+	// site rather than stored here: Svelte re-evaluates a directive's params on
+	// every invocation, so the preference is read at the instant the transition
+	// starts, never at construction and never during SSR. `duration: 0` makes
+	// Svelte skip `element.animate()` outright.
+	const iconFade = preset("fade");
 
 	let {
 		value = $bindable(""),
@@ -257,24 +279,55 @@
 				onmousedown={preventFocusSteal}
 				onclick={toggleReveal}
 			>
-				{#if revealed}
-					{@render eyeOffIcon()}
-				{:else}
-					{@render eyeIcon()}
-				{/if}
+				<span class="ft-password-input-eye">
+					{#if revealed}
+						<span
+							class="ft-password-input-eye-layer"
+							transition:iconFade={{ duration: prefersReducedMotion() ? 0 : DURATIONS.micro }}
+						>
+							{@render eyeOffIcon()}
+						</span>
+					{:else}
+						<span
+							class="ft-password-input-eye-layer"
+							transition:iconFade={{ duration: prefersReducedMotion() ? 0 : DURATIONS.micro }}
+						>
+							{@render eyeIcon()}
+						</span>
+					{/if}
+				</span>
 			</button>
 		{/if}
 	</div>
 	{#if result}
 		<div class="ft-password-strength flex flex-col gap-1">
+			<!-- `ft-password-strength-bar` is a styling hook, not a state class:
+			     every segment carries it at every tier, so the colour transition
+			     below has one selector to attach to instead of four. -->
 			<div class="flex gap-1" aria-hidden="true">
-				<span class={cn("h-1 flex-1 rounded-full", result.score >= 1 ? tierClass : "bg-border")}
+				<span
+					class={cn(
+						"ft-password-strength-bar h-1 flex-1 rounded-full",
+						result.score >= 1 ? tierClass : "bg-border"
+					)}
 				></span>
-				<span class={cn("h-1 flex-1 rounded-full", result.score >= 2 ? tierClass : "bg-border")}
+				<span
+					class={cn(
+						"ft-password-strength-bar h-1 flex-1 rounded-full",
+						result.score >= 2 ? tierClass : "bg-border"
+					)}
 				></span>
-				<span class={cn("h-1 flex-1 rounded-full", result.score >= 3 ? tierClass : "bg-border")}
+				<span
+					class={cn(
+						"ft-password-strength-bar h-1 flex-1 rounded-full",
+						result.score >= 3 ? tierClass : "bg-border"
+					)}
 				></span>
-				<span class={cn("h-1 flex-1 rounded-full", result.score >= 4 ? tierClass : "bg-border")}
+				<span
+					class={cn(
+						"ft-password-strength-bar h-1 flex-1 rounded-full",
+						result.score >= 4 ? tierClass : "bg-border"
+					)}
 				></span>
 			</div>
 			<span id={strengthId} class="text-[11px]">
@@ -310,5 +363,44 @@
 	 */
 	.ft-password-strength-bar--strong {
 		background: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
+	}
+
+	/*
+	 * Deliberately NOT inside `@media (prefers-reduced-motion: no-preference)`:
+	 * a colour change is not motion, nothing here travels or scales, and gating
+	 * it would make a tier change snap for exactly the users who asked for a
+	 * calmer interface. The meter is the one part of this component that
+	 * restates itself on every keystroke, so easing the colour is what keeps a
+	 * password crossing a tier boundary from reading as a flash.
+	 *
+	 * `background-color`, not `width` or `scaleX`: the bars are a four-segment
+	 * meter, and growing them would read as a progress bar filling rather than
+	 * a tier changing.
+	 *
+	 * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) =
+	 * tokens.EASINGS.inout — a reversible state flip, since a tier can go back
+	 * down as easily as up.
+	 */
+	.ft-password-strength-bar {
+		transition: background-color
+			var(--ft-password-strength-duration, var(--ft-duration-fast, 150ms))
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+	}
+
+	/*
+	 * The reveal toggle's two icon layers share one grid cell, so both can be
+	 * mounted during the cross-fade without either one moving the other or
+	 * changing the button's width mid-swap. `grid-area: 1 / 1` is what makes
+	 * the overlap free: the wrapper sizes to the larger of the two glyphs (they
+	 * are the same 16px box) and stays that size whether one layer is mounted
+	 * or two.
+	 */
+	.ft-password-input-eye {
+		display: grid;
+	}
+
+	.ft-password-input-eye-layer {
+		grid-area: 1 / 1;
+		display: inline-flex;
 	}
 </style>

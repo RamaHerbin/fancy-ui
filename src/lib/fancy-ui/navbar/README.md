@@ -119,6 +119,31 @@ itself:
 }
 ```
 
+One optional variable tunes the motion. It falls back to the library-wide
+token, which falls back to a literal, so leaving it unset is the supported
+default:
+
+| Variable                      | Default                          | What it controls                                      |
+| ----------------------------- | -------------------------------- | ----------------------------------------------------- |
+| `--ft-navbar-signal-duration` | `var(--ft-duration-fast, 150ms)` | How long the current link's underline takes to arrive |
+
+## Motion
+
+- The current link's accent underline grows from `scaleX(0.4)` to full width
+  and fades in over 150 ms, on the same easing as the colour change beside
+  it, instead of appearing a frame ahead of it. It grows from its centre
+  rather than from a leading edge: this bar never travels between links, and
+  a centred origin reads the same in both writing directions.
+- The underline is painted by a `::before` pseudo-element rather than by the
+  anchor's own `box-shadow`. That leaves the anchor's shadow free to be its
+  focus ring — a focus ring must never animate, and until this change the
+  current link's own underline was suppressing its focus ring entirely.
+- **Reduced motion.** The growth is declared inside
+  `@media (prefers-reduced-motion: no-preference)`. Without that preference
+  the underline simply appears at full width. Nothing is hidden.
+- **Touch and coarse pointers.** The underline follows `current`, never the
+  pointer, so a coarse pointer needs no special handling.
+
 ## Implementation Notes
 
 - `brand`, `children` and `actions` are each optional and independently

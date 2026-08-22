@@ -28,6 +28,29 @@ Children (slot content) are the link's visible text/label.
 
 `LineHoverVariant` is one of: `"slide" | "double" | "grow" | "strike" | "fade" | "pulse" | "swap" | "sweep" | "bounce" | "arc" | "scribble" | "ink"`.
 
+## Motion
+
+- Each variant has its own choreography — eleven bespoke `cubic-bezier`
+  curves across durations of `0.2s`, `0.3s`, `0.4s` and `0.6s`. These are
+  deliberately **not** retokenised onto the library's four house curves:
+  flattening them would make twelve distinct variants read as one.
+- **Reduced motion.** Every `transition` and `animation` declaration in the
+  component lives inside `@media (prefers-reduced-motion: no-preference)`,
+  and nothing else does. The resting and hover states themselves stay
+  outside it, so a visitor who asked for less motion still gets the full
+  underline, cover or stroke — it appears instead of travelling. Nothing goes
+  invisible: `pulse` and `sweep` reach their visible state through their
+  keyframes' `forwards` fill, so their `opacity: 1` is declared outside the
+  guard on purpose, and `arc`/`scribble` snap from `stroke-dashoffset: 1` to
+  `0` rather than drawing.
+- Each variant keeps its own guard block next to its own rules rather than
+  pooling them at the end of the file, so the shape is obvious to whoever
+  adds variant thirteen.
+- **Touch and coarse pointers.** Every variant answers to both `:hover` and
+  `:focus-visible`, so the effect is keyboard-reachable. `ink` is the one
+  variant whose translate could stick on a synthesised hover, and its hover
+  half is gated behind `@media (hover: hover)` for exactly that reason.
+
 ## Implementation notes
 
 - The component has no `<script>`-side reactive state beyond two `$derived` values — everything visual is CSS selected by a `link-hover--<variant>` class.

@@ -119,6 +119,31 @@ Both defaults are `light-dark()` pairs, so **your theme must declare
 }
 ```
 
+One optional variable tunes the motion. It falls back to the library-wide
+token, which falls back to a literal, so leaving it unset is the supported
+default:
+
+| Variable                    | Default                          | What it controls                                     |
+| --------------------------- | -------------------------------- | ---------------------------------------------------- |
+| `--ft-step-signal-duration` | `var(--ft-duration-fast, 150ms)` | How long a step's colour and halo take to cross-fade |
+
+## Motion
+
+- A step's whole visible state — the bullet's fill, its label colour, the
+  halo around the current bullet, and the connector segment behind it — now
+  cross-fades over 150 ms instead of arriving in a single frame. This is the
+  component's first motion of any kind.
+- **Reduced motion.** This transition is deliberately **not** gated behind
+  `prefers-reduced-motion`. None of the three properties moves anything: a
+  colour that cross-fades and a static halo that appears are state changes,
+  not travel, and suppressing them would make an advancing stepper flicker
+  rather than settle.
+- The focus ring is untouched by this, because it lives on a different
+  element (`.ft-step-trigger`) from every signal. No focus indicator is ever
+  animated.
+- **Touch and coarse pointers.** Nothing here is pointer-driven — the whole
+  effect follows `current` — so a coarse pointer needs no special handling.
+
 ## Implementation Notes
 
 - `Stepper` and `Step` share a `Symbol`-keyed context (`STEPPER_KEY` /

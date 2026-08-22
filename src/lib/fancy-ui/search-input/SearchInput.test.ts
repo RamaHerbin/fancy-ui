@@ -13,6 +13,25 @@ function clearButton(container: HTMLElement): HTMLButtonElement | null {
 	return container.querySelector("button");
 }
 
+/**
+ * jsdom has no `matchMedia`; `src/test-setup.ts` installs one that answers
+ * `matches: false` to everything, which is the "full motion" branch. This
+ * swaps in a stub that discriminates on the query string, so a test can pick
+ * the branch it means rather than turning every media query true at once.
+ */
+function stubReducedMotion(reduce: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: reduce && query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
 describe("SearchInput", () => {
 	afterEach(cleanup);
 
@@ -231,6 +250,71 @@ describe("SearchInput", () => {
 		it("stays hidden while readonly", () => {
 			const { container } = render(SearchInput, { props: { value: "svelte", readonly: true } });
 			expect(clearButton(container)).toBeNull();
+		});
+
+		it("leaves the DOM in the same tick as the focus handoff, with no outro holding it there", async () => {
+			// The reason the clear button animates in but not out: `clearValue()`
+			// calls `ref?.focus()` synchronously right after emptying the field,
+			// and an outro would keep a button that is already logically gone
+			// mounted (and focusable) across that handoff. This pins the
+			// ordering, not the pixels.
+			const { container } = render(SearchInput, { props: { value: "svelte" } });
+			const el = input(container);
+
+			await fireEvent.click(clearButton(container)!);
+
+			expect(clearButton(container)).toBeNull();
+			expect(document.activeElement).toBe(el);
+		});
+	});
+
+	describe("motion", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
+		it("animates the clear button in when it appears mid-typing", async () => {
+			// A button already present on first render never animates — Svelte
+			// skips a local intro on a block's first run — so the value has to
+			// arrive through a real input event for the transition to exist at
+			// all. That is also the only moment a user ever sees it appear.
+			stubReducedMotion(false);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(SearchInput, { props: { value: "" } });
+				expect(clearButton(container)).toBeNull();
+
+				await fireEvent.input(input(container), { target: { value: "s" } });
+
+				await vi.waitFor(() => {
+					expect(clearButton(container)).not.toBeNull();
+				});
+				expect(animateSpy).toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("with prefers-reduced-motion: reduce, the clear button still appears — it just never animates", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(SearchInput, { props: { value: "" } });
+
+				await fireEvent.input(input(container), { target: { value: "s" } });
+
+				// Present and usable: the affordance is never what gets dropped,
+				// only its travel. `duration: 0` is what makes Svelte take its own
+				// synchronous fast path instead of calling into the WAAPI.
+				const btn = clearButton(container);
+				expect(btn).not.toBeNull();
+				expect(btn?.getAttribute("aria-label")).toBe("Clear search");
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
 		});
 	});
 

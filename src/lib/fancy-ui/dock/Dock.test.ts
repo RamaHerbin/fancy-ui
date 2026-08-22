@@ -1,6 +1,56 @@
-import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { tick } from "svelte";
 import Dock from "./Dock.svelte";
+import Harness from "./DockHarness.test.svelte";
+
+const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
+const COARSE_QUERY = "(hover: none)";
+
+/**
+ * A `matchMedia` stub that answers per query rather than for every query at
+ * once. Dock asks two independent questions — "did this visitor ask for less
+ * motion?" and "is there a real pointer here?" — and a stub that returned
+ * `true` for anything would make a test for one branch silently exercise the
+ * other as well. It also records which queries had a listener attached and
+ * detached, which is how the unmount test proves both are cleaned up.
+ */
+function stubMatchMedia(matchingQueries: string[]) {
+	const added: string[] = [];
+	const removed: string[] = [];
+
+	Object.defineProperty(window, "matchMedia", {
+		writable: true,
+		configurable: true,
+		value: (query: string) => ({
+			matches: matchingQueries.includes(query),
+			media: query,
+			onchange: null,
+			addEventListener: () => added.push(query),
+			removeEventListener: () => removed.push(query),
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		}),
+	});
+
+	return { added, removed };
+}
+
+function icons(container: HTMLElement): HTMLElement[] {
+	return Array.from(container.querySelectorAll<HTMLElement>(".first-icon, .second-icon"));
+}
+
+/** Moves the pointer across the dock and lets the one queued frame run.
+ * `Dock` defers every position write to `requestAnimationFrame`, so without
+ * advancing a frame nothing would have been written yet and every assertion
+ * below would pass for the wrong reason. */
+async function movePointerTo(container: HTMLElement, x: number) {
+	const dock = container.querySelector('[role="toolbar"]') as HTMLElement;
+	await fireEvent.mouseMove(dock, { clientX: x, clientY: x, pageX: x, pageY: x });
+	vi.advanceTimersToNextFrame();
+	await tick();
+}
 
 describe("Dock", () => {
 	afterEach(cleanup);
@@ -57,5 +107,73 @@ describe("Dock", () => {
 		const { container } = render(Dock);
 		const toolbar = container.querySelector('[role="toolbar"]') as HTMLElement;
 		expect(toolbar?.className).toContain("flex");
+	});
+
+	// The magnification is a JS-written inline `width`/`height`, so no CSS media
+	// query can stop it — the driver is what has to be gated, and these tests
+	// are the only place that fact is pinned.
+	describe("magnification guards", () => {
+		let realMatchMedia: typeof window.matchMedia;
+
+		beforeEach(() => {
+			realMatchMedia = window.matchMedia;
+			vi.useFakeTimers({ toFake: ["requestAnimationFrame"] });
+		});
+
+		afterEach(() => {
+			vi.useRealTimers();
+			Object.defineProperty(window, "matchMedia", {
+				writable: true,
+				configurable: true,
+				value: realMatchMedia,
+			});
+		});
+
+		// The control. Without this the two guard tests below would pass even if
+		// the magnification had been deleted outright.
+		it("magnifies the icon nearest the pointer when neither guard applies", async () => {
+			stubMatchMedia([]);
+			const { container } = render(Harness);
+
+			await movePointerTo(container, 20);
+
+			expect(icons(container)[0].style.width).not.toBe("40px");
+		});
+
+		it("leaves every icon at its resting size under reduced motion", async () => {
+			stubMatchMedia([REDUCED_QUERY]);
+			const { container } = render(Harness);
+
+			await movePointerTo(container, 20);
+
+			for (const icon of icons(container)) {
+				expect(icon.style.width).toBe("40px");
+				expect(icon.style.height).toBe("40px");
+			}
+		});
+
+		it("leaves every icon at its resting size on a device with no real pointer", async () => {
+			stubMatchMedia([COARSE_QUERY]);
+			const { container } = render(Harness);
+
+			await movePointerTo(container, 20);
+
+			for (const icon of icons(container)) {
+				expect(icon.style.width).toBe("40px");
+				expect(icon.style.height).toBe("40px");
+			}
+		});
+
+		it("detaches both media-query listeners on unmount", () => {
+			const { added, removed } = stubMatchMedia([]);
+			const { unmount } = render(Harness);
+
+			expect(added).toEqual(expect.arrayContaining([REDUCED_QUERY, COARSE_QUERY]));
+			expect(removed).toEqual([]);
+
+			unmount();
+
+			expect(removed).toEqual(expect.arrayContaining([REDUCED_QUERY, COARSE_QUERY]));
+		});
 	});
 });

@@ -112,6 +112,53 @@ describe("Toggle", () => {
 		expect(cls).toContain("mt-4");
 	});
 
+	// The pressed ring moved from the button's own `box-shadow` to a `::before`
+	// pseudo so the button's shadow can stay the untransitioned focus ring.
+	// jsdom computes neither pseudo-elements nor `@media` blocks, so what a test
+	// can pin is the state contract that drives them: `aria-pressed` is still
+	// the only hook the CSS selects on, and it still flips exactly when it did.
+	it("keeps aria-pressed as the sole hook for the pressed ring", async () => {
+		const { container } = render(Toggle, { props: { pressed: false } });
+		const el = button(container);
+
+		expect(el.getAttribute("aria-pressed")).toBe("false");
+		await fireEvent.click(el);
+		expect(el.getAttribute("aria-pressed")).toBe("true");
+	});
+
+	// The scoped `<style>` now declares a `transition` shorthand on this same
+	// element. Svelte's scoped CSS is unlayered and Tailwind's utilities sit in
+	// `@layer utilities`, so leaving `transition-colors` on the class string
+	// would read as a colour transition that silently never ran.
+	it("drops the transition-colors utility in favour of the hand-written channel", () => {
+		const { container } = render(Toggle, { props: {} });
+		expect(button(container).className).not.toContain("transition-colors");
+	});
+
+	it("reduced motion: the press and pressed-state contract is unchanged", async () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			const onPressedChange = vi.fn();
+			const { container } = render(Toggle, { props: { pressed: false, onPressedChange } });
+			const el = button(container);
+
+			// The press scale is declared only inside `no-preference`; the
+			// opacity fallback outside it still fires. Neither is observable in
+			// jsdom — what is observable is that the state change itself is not
+			// gated on the preference in any way.
+			await fireEvent.click(el);
+			expect(el.getAttribute("aria-pressed")).toBe("true");
+			expect(onPressedChange).toHaveBeenCalledWith(true);
+		} finally {
+			window.matchMedia = real;
+		}
+	});
+
 	it("round-trips the button element through bind:ref", () => {
 		// The harness marks whatever comes out of the binding; finding the mark on
 		// the rendered button is what proves the two are the same element.

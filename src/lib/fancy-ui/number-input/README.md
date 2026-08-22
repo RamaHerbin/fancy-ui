@@ -139,3 +139,35 @@ and can be retinted from anywhere up the tree:
 Everything else — the field fill, the border, the disabled dimming, the step
 buttons — uses the theme's own semantic tokens, so it follows the light/dark
 switch and the theme generator with no per-theme overrides.
+
+Two optional variables tune the step buttons' press feedback. Both have a
+literal default, so setting neither is the supported default:
+
+| Variable                          | Default | What it controls                                    |
+| --------------------------------- | ------- | --------------------------------------------------- |
+| `--ft-number-input-press-scale`   | `0.97`  | How far a step button shrinks while held down       |
+| `--ft-number-input-press-opacity` | `0.85`  | The pressed fade used instead, under reduced motion |
+
+## Motion
+
+- Holding either step button scales it to `0.97` for as long as it is held, in
+  150 ms (`--ft-duration-fast`) on `--ft-ease-inout`. That is the whole of the
+  press feedback: repeating a step should feel like pressing a key, not like
+  starting an animation.
+- The hover colour change on those buttons runs on the same 150 ms clock. It is
+  written by hand in the component's scoped stylesheet rather than by the
+  `transition-colors` utility, which the scoped `transition` shorthand on the
+  same element would have replaced silently.
+- **The value itself never animates.** Typing, arrow-key stepping and a button
+  press all land the new number instantly — a digit that pops on every
+  keystroke fights the typing instead of acknowledging it.
+- **Reduced motion.** The press scale is declared inside
+  `@media (prefers-reduced-motion: no-preference)`. Without the preference the
+  press is acknowledged with an `opacity: 0.85` fade instead — never both at
+  once — and that fade is declared outside the query, so a browser that
+  supports neither still shows a pressed state.
+- **Touch and coarse pointers.** `:active` is exactly the affordance a finger
+  gets, so the press feedback is not suppressed on touch. Both buttons carry
+  `touch-action: manipulation`, which removes the browser's ~300 ms tap delay
+  without blocking scrolling — stepping a value is the one interaction here a
+  finger repeats, so that delay is felt.

@@ -92,6 +92,30 @@ component:
 
 Set `--ft-accent` higher up the tree to retint every `Switch` beneath it.
 
+The timing is not a per-component variable: the knob's slide and both colour cross-fades
+read the library-wide `--ft-duration-fast` (150 ms) and `--ft-ease-inout`, so setting
+either higher up the tree retimes every `Switch` beneath it along with everything else on
+that rung. The component's own `--ft-switch-motion` is an internal alias so the pair is
+typed once instead of four times — it is declared on the control itself, which means a
+value inherited from an ancestor never reaches it.
+
+## Motion
+
+- The knob slides across the track in 150 ms (`--ft-duration-fast`) on
+  `--ft-ease-inout` — the reversible curve, not an arrival curve, because a
+  switch travels the same way in both directions.
+- The track fill and the knob fill cross-fade on that same clock, so the colour
+  and the movement land together instead of one chasing the other.
+- **Reduced motion.** Only the transition is declared inside
+  `@media (prefers-reduced-motion: no-preference)`; the knob's end position is
+  declared outside it. Without the preference the knob still lands in exactly
+  the right place, it just snaps instead of sliding. The colour change is not
+  gated — a colour is a state, not motion — matching `Toggle`'s and `Input`'s
+  own hover and focus colour transitions.
+- **Touch and coarse pointers.** Nothing here is pointer-gated: the slide plays
+  identically for a tap and for a click, and there is no hover-only affordance
+  to suppress.
+
 ## Implementation Notes
 
 - **A switch takes effect immediately**, unlike a checkbox in a form that
@@ -110,12 +134,9 @@ Set `--ft-accent` higher up the tree to retint every `Switch` beneath it.
   is the primary cue at every size, and the knob itself swaps between a muted
   grey (off) and white (on) — never colour alone, and never dependent on
   hue discrimination.
-- The knob's slide is the only animation in this component. It lives behind
-  `@media (prefers-reduced-motion: no-preference)`; under reduced motion the
-  knob still lands in the correct position, it just snaps instead of sliding.
-  Colour changes (track and knob fill) are not gated the same way, matching
-  `Toggle`'s and `Input`'s own hover/pressed/focus colour transitions — only
-  actual movement is treated as motion to opt out of.
+- The knob's slide is the only animation in this component — see Motion above
+  for its timing and its reduced-motion behaviour. Only actual movement is
+  treated as motion to opt out of; colour is not.
 - Track/knob geometry is exact pixel values per size (`32×18`/`40×22`/`48×26`
   tracks with `12`/`16`/`20` px knobs), not the closest Tailwind scale step,
   so the three sizes stay proportioned to each other and the knob's travel

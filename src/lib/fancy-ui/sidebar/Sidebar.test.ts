@@ -175,6 +175,51 @@ describe("SidebarItem", () => {
 		expect(link.className).not.toContain("ft-sidebar-item--current");
 	});
 
+	// The accent bar moved from `.ft-sidebar-item--current`'s own `box-shadow`
+	// to a `::before` pseudo-element. That is a bug fix riding along inside a
+	// motion change: the item's `box-shadow` is what `focus-visible:ring-2`
+	// compiles to, and Svelte's unlayered scoped CSS was overwriting it, so
+	// until now the current item had no visible focus ring at all. jsdom
+	// computes neither pseudo-elements nor cascade layers, so what a test can
+	// pin is that both hooks still sit on the same element.
+	it("keeps the focus-ring utility on the current item alongside the accent class", () => {
+		const { container } = render(SidebarItem, {
+			props: { href: "/dashboard", current: true, children: snippet("<span>Dashboard</span>") },
+		});
+		const link = container.querySelector("a") as HTMLElement;
+
+		expect(link.className).toContain("ft-sidebar-item--current");
+		expect(link.className).toContain("focus-visible:ring-2");
+	});
+
+	it("reduced motion: the current marker still arrives, it just does not grow", () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			// The bar's `scaleY` growth and the sidebar's own width transition are
+			// both declared only inside `no-preference`. Neither is observable in
+			// jsdom; what is observable is that nothing about the state contract —
+			// the accent class, `aria-current`, the collapsed width — is gated on
+			// the preference.
+			const { container } = render(SidebarItem, {
+				props: { href: "/dashboard", current: true, children: snippet("<span>Dashboard</span>") },
+			});
+			const link = container.querySelector("a") as HTMLElement;
+
+			expect(link.getAttribute("aria-current")).toBe("page");
+			expect(link.className).toContain("ft-sidebar-item--current");
+
+			const { container: railContainer } = render(Sidebar, { props: { collapsed: true } });
+			expect(nav(railContainer).className).toContain("w-[64px]");
+		} finally {
+			window.matchMedia = real;
+		}
+	});
+
 	it("renders the badge value and folds badgeLabel into a hidden note", () => {
 		const { container } = render(SidebarItem, {
 			props: { badge: 4, badgeLabel: "unread", children: snippet("<span>Inbox</span>") },

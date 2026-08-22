@@ -457,6 +457,49 @@ describe("ToggleGroup", () => {
 		expect(container.querySelector('[data-testid="glyph"]')).toBeTruthy();
 	});
 
+	// The scoped `<style>` now declares a `transition` shorthand on the item.
+	// Svelte's scoped CSS is unlayered and Tailwind's utilities sit in
+	// `@layer utilities`, so leaving `transition-colors` on the class string
+	// would read as a colour transition that silently never ran.
+	it("drops the transition-colors utility from the item in favour of the hand-written channel", () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		expect(byLabel(container, "Left").className).not.toContain("transition-colors");
+		expect(byLabel(container, "Left").className).toContain("ft-toggle-group-item");
+	});
+
+	// The press feedback is a `:active` rule keyed on `.ft-toggle-group-item`.
+	// jsdom computes neither `:active` nor `@media`, so what a test can pin is
+	// that the class the CSS hangs off is on every item, selected or not.
+	it("keeps the press-feedback class hook on every item regardless of selection", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS, value: "left" } });
+
+		for (const el of buttons(container)) {
+			expect(el.className).toContain("ft-toggle-group-item");
+		}
+	});
+
+	it("reduced motion: selection still round-trips through aria-pressed", async () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			const left = byLabel(container, "Left");
+
+			// Reduced motion swaps the press scale for an opacity fade; neither is
+			// observable in jsdom. What is observable is that nothing about the
+			// state contract is gated on the preference.
+			expect(left.getAttribute("aria-pressed")).toBe("false");
+			await fireEvent.click(left);
+			expect(left.getAttribute("aria-pressed")).toBe("true");
+		} finally {
+			window.matchMedia = real;
+		}
+	});
+
 	it("renders an item outside a group harmlessly, unselected and without a roving tabindex", async () => {
 		const { container } = render(ToggleGroupItem, { props: { value: "solo", label: "Solo" } });
 		const el = container.querySelector("button") as HTMLButtonElement;
