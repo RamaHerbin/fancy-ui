@@ -47,6 +47,7 @@
 	// component page knows when to source the Code tab from BasicUsage.svelte instead
 	// of the generic single-tag usage.
 	export const skipDirectRender = new Set([
+		"pulse-beam",
 		"animated-beam",
 		"apple-card-carousel",
 		"animated-testimonials",
