@@ -97,6 +97,16 @@ describe("PulseBeam", () => {
 		expect(container.querySelector(".pulse-beam__bloom")).toBeTruthy();
 	});
 
+	it("keeps its own variant and state when matching attributes are forwarded", async () => {
+		const { container } = render(PulseBeam, {
+			props: { variant: "outside", "data-variant": "inner", "data-state": "loading" } as never,
+		});
+		await tick();
+		const host = getHost(container);
+		expect(host.getAttribute("data-variant")).toBe("outside");
+		expect(host.getAttribute("data-state")).toBe("active");
+	});
+
 	it("exposes clamped strength, radius and mono-halved opacities as custom properties", () => {
 		const { container } = render(PulseBeam, { props: { strength: 2, radius: 24 } });
 		const host = getHost(container);
@@ -189,6 +199,18 @@ describe("PulseBeam", () => {
 		await tick();
 		frame(200);
 		expect(getHost(noHue.container).style.getPropertyValue("--pb-hue")).toBe("");
+	});
+
+	it("clears the hue rotation when hue drift is switched off", async () => {
+		const { container, rerender } = render(PulseBeam, { props: { hueShift: true } });
+		await tick();
+		const host = getHost(container);
+		frame(100);
+		expect(host.style.getPropertyValue("--pb-hue")).toMatch(/deg$/);
+
+		await rerender({ hueShift: false });
+		await tick();
+		expect(host.style.getPropertyValue("--pb-hue")).toBe("");
 	});
 
 	it("fades out on transitionend and fires onfadeout exactly once", async () => {

@@ -335,6 +335,8 @@ export function buildOscillators(m: MotionPreset): Oscillator[] {
 
 const HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 const RGB_RE = /^rgba?\(\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})/i;
+const RGB_ALPHA_RE =
+	/^rgba?\(\s*\d{1,3}\s*[, ]\s*\d{1,3}\s*[, ]\s*\d{1,3}\s*[,/]\s*([0-9]*\.?[0-9]+)(%?)\s*\)$/i;
 
 /** Parse `#rgb`, `#rrggbb`, `rgb()` / `rgba()` to a triplet; anything else → null. */
 export function parseRgb(input: string): Rgb | null {
@@ -354,11 +356,26 @@ export function parseRgb(input: string): Rgb | null {
 	return null;
 }
 
+/** Alpha carried by an `rgba()` string, 0–1; null when the colour has none. */
+function parseRgbAlpha(input: string): number | null {
+	const m = RGB_ALPHA_RE.exec(input.trim());
+	if (!m) return null;
+	const n = Number(m[1]);
+	if (!Number.isFinite(n)) return null;
+	return Math.min(1, Math.max(0, m[2] ? n / 100 : n));
+}
+
 /** Colour with a `var()`-driven alpha. Falls back to `color-mix()` for opaque tokens. */
 function withAlpha(color: Rgb | string, alpha: string): string {
 	if (typeof color !== "string") return `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
 	const rgb = parseRgb(color);
-	if (rgb) return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+	if (rgb) {
+		// An `rgba()` override keeps its own alpha: multiply it into the animated one
+		// instead of dropping it, so a translucent colour stays translucent.
+		const own = parseRgbAlpha(color);
+		const a = own === null || own === 1 ? alpha : `calc(${alpha} * ${own})`;
+		return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`;
+	}
 	return `color-mix(in srgb, ${color} calc(${alpha} * 100%), transparent)`;
 }
 

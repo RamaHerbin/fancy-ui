@@ -159,6 +159,18 @@ describe("buildLayerBackgrounds", () => {
 		expect(count(custom.stroke, "rgba(255, 0, 0")).toBe(5);
 	});
 
+	it("keeps the alpha of an rgba() override", () => {
+		const custom = buildLayerBackgrounds({
+			variant: "inner",
+			palette: "colorful",
+			colors: ["rgba(255, 0, 0, 0.1)"],
+			tone: "dark",
+			op: 0.48,
+		});
+		expect(custom.stroke).toContain("rgba(255, 0, 0, calc(var(--pb-op-tl, 1) * 0.1))");
+		expect(custom.bloom).toContain("rgba(255, 0, 0, calc(0.76 * 0.1))");
+	});
+
 	it("presets exist for every variant and tone", () => {
 		for (const v of ["inner", "outside"] as const) {
 			for (const t of ["dark", "light"] as const) {

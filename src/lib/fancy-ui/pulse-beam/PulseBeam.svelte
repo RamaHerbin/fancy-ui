@@ -180,7 +180,11 @@
 		const host = ref;
 		const config = oscillators;
 		const hue = hueEnabled ? { period: motion.huePeriod } : null;
-		if (!host || !running || reducedMotion) return;
+		if (!host) return;
+		// Turning hue drift off must drop the rotation the loop last wrote, otherwise
+		// the palette stays frozen at an arbitrary angle.
+		if (!hue) host.style.removeProperty("--pb-hue");
+		if (!running || reducedMotion) return;
 
 		const handle = registerPulse(host, config, hue);
 		let io: IntersectionObserver | undefined;
@@ -230,8 +234,6 @@
 <div
 	bind:this={ref}
 	class={cn("pulse-beam", className)}
-	data-variant={variant}
-	data-state={phase}
 	style:--pb-strength={clampedStrength}
 	style:--pb-radius="{radius}px"
 	style:--pb-o-stroke={preset.stroke * monoFactor}
@@ -242,6 +244,8 @@
 	style:--pb-glow-blur="{preset.glowBlur}px"
 	style:--pb-bloom-blur="{preset.bloomBlur}px"
 	{...restProps}
+	data-variant={variant}
+	data-state={phase}
 >
 	{@render children?.()}
 	<div class="pulse-beam__layer pulse-beam__glow" style:background={backgrounds.glow}></div>
