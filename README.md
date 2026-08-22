@@ -9,7 +9,7 @@ Beautiful animation and UI components for **Svelte 5**.
 ![Svelte 5](https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-132-8B5CF6)
+![Components](https://img.shields.io/badge/Components-142-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -36,9 +36,9 @@ Beautiful animation and UI components for **Svelte 5**.
 - **Svelte 5 Runes** &mdash; Built with `$state`, `$derived`, `$effect`, and `$props`
 - **Tailwind CSS 4** &mdash; Utility-first styling with theme tokens
 - **TypeScript** &mdash; Fully typed props and events
-- **132 Components** &mdash; Core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds and effects
+- **142 Components** &mdash; Core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, effects and a micro-interactions collection
 - **Dark Mode** &mdash; All components support light and dark themes
-- **Tested** &mdash; 2,900+ unit tests with Vitest and Testing Library
+- **Tested** &mdash; 3,300+ unit tests with Vitest and Testing Library
 
 ## Quick Start
 
@@ -151,7 +151,7 @@ Component tests are colocated with their component (see `RainbowButton.test.ts` 
 
 ## Contributing
 
-Contributions are welcome! 132 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
+Contributions are welcome! 142 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
 
 ### Adding a new component
 
