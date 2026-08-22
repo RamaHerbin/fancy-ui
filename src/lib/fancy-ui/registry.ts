@@ -7600,6 +7600,689 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	// ===========================================================================
+	// Micro-interactions — small composable motion primitives sharing the
+	// `_internals/motion` foundation (one timing scale, four easing tokens,
+	// reduced-motion gating by CSS, touch-aware pointer handling).
+	// ===========================================================================
+
+	reveal: {
+		name: "Reveal",
+		slug: "reveal",
+		description:
+			"Content-agnostic entrance animation triggered by scroll, mount, or a manual switch, with six directional/scale presets and an arbitrary-length JS-computed stagger for direct children",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["animation", "reveal", "scroll", "stagger", "entrance", "micro-interaction"],
+		props: [
+			{
+				name: "preset",
+				type: '"fade" | "fade-up" | "fade-down" | "fade-left" | "fade-right" | "scale"',
+				default: '"fade-up"',
+				description: "Which directional/scale look to animate with",
+			},
+			{
+				name: "trigger",
+				type: '"view" | "mount" | "manual"',
+				default: '"view"',
+				description:
+					"What starts the reveal — viewport, next frame after mount, or the active prop",
+			},
+			{
+				name: "active",
+				type: "boolean",
+				default: "false",
+				description: 'Read only when trigger="manual" — true reveals, false re-arms',
+			},
+			{
+				name: "once",
+				type: "boolean",
+				default: "true",
+				description:
+					'Disconnects the observer after the first reveal; false re-arms on leaving the viewport (trigger="view" only)',
+			},
+			{
+				name: "threshold",
+				type: "number",
+				default: "0.1",
+				description: 'IntersectionObserver threshold (trigger="view" only)',
+			},
+			{
+				name: "rootMargin",
+				type: "string",
+				default: '"0px 0px -10% 0px"',
+				description: 'IntersectionObserver rootMargin (trigger="view" only)',
+			},
+			{ name: "duration", type: "number", default: "600", description: "Entrance duration in ms" },
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: "Delay before the entrance starts, in ms",
+			},
+			{
+				name: "easing",
+				type: "string",
+				default: '"cubic-bezier(0.16, 1, 0.3, 1)"',
+				description: "CSS easing for the entrance",
+			},
+			{
+				name: "distance",
+				type: "number",
+				default: "16",
+				description: "Travel distance in px for the four directional presets — ignored by scale",
+			},
+			{
+				name: "stagger",
+				type: "number",
+				default: "0",
+				description:
+					"Milliseconds per stagger step; 0 animates the root, any positive value animates direct element children instead",
+			},
+			{
+				name: "from",
+				type: '"first" | "last" | "center" | number',
+				default: '"first"',
+				description:
+					"Where the stagger counts distance from — only meaningful when stagger is greater than 0",
+			},
+			{
+				name: "initial",
+				type: '"hidden" | "visible"',
+				default: '"hidden"',
+				description:
+					'Server-rendered starting state: "hidden" paints the content hidden until it reveals (no flash); "visible" paints it visible and hides it on mount, accepting a flash in exchange for no-JS and non-hydrated safety',
+			},
+			{
+				name: "as",
+				type: "keyof HTMLElementTagNameMap",
+				default: '"div"',
+				description: "The element tag Reveal renders as, via <svelte:element>",
+			},
+			{
+				name: "onReveal",
+				type: "() => void",
+				description:
+					"Fires once per reveal, the moment the state reaches visible — every re-reveal when once is false",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [{ name: "children", description: "Content to reveal" }],
+	},
+
+	presence: {
+		name: "Presence",
+		slug: "presence",
+		description:
+			"Mounts and unmounts content with a real entrance and exit through one direction-aware Svelte transition, tracking opening/open/closing state, marking the panel inert while it closes, and firing lifecycle callbacks",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["animation", "presence", "transition", "mount", "exit", "micro-interaction"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				required: true,
+				description: "Whether the content is mounted and, once the entrance settles, visible",
+			},
+			{
+				name: "preset",
+				type: '"fade" | "fade-up" | "fade-down" | "fade-left" | "fade-right" | "scale" | "blur" | "zoom"',
+				default: '"fade"',
+				description: "The entrance/exit look",
+			},
+			{ name: "duration", type: "number", default: "300", description: "Entrance duration in ms" },
+			{
+				name: "exitDuration",
+				type: "number",
+				default: "200",
+				description:
+					"Exit duration in ms — shorter than the entrance by default; leaving reads faster than arriving",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: "Delay in ms before the entrance starts; applied to the exit too",
+			},
+			{
+				name: "distance",
+				type: "number",
+				default: "16",
+				description:
+					"Entrance travel distance in px for the four directional presets — the exit travels half as far",
+			},
+			{
+				name: "inert",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the panel is inert while closing (Svelte already does this natively for any transitioning element — false is an explicit opt-out)",
+			},
+			{
+				name: "onEnterEnd",
+				type: "() => void",
+				description: "Fires once the entrance transition settles (onintroend)",
+			},
+			{
+				name: "onExitEnd",
+				type: "() => void",
+				description:
+					"Fires once the exit transition settles (onoutroend) — not guaranteed if the component is destroyed mid-exit",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element — null while closed",
+			},
+		],
+		slots: [{ name: "children", description: "Panel content" }],
+	},
+
+	magnetic: {
+		name: "Magnetic",
+		slug: "magnetic",
+		description:
+			"A generic wrapper that pulls its child toward the pointer once it enters an activation field larger than the child's own box, and springs back to rest the instant the pointer leaves — a fine-pointer affordance with no touch or keyboard equivalent",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["pointer", "hover", "cursor", "magnetic", "micro-interaction"],
+		props: [
+			{
+				name: "strength",
+				type: "number",
+				default: "0.35",
+				description: "Pull multiplier applied to the pointer's offset from the child's centre.",
+			},
+			{
+				name: "radius",
+				type: "number",
+				default: "40",
+				description:
+					"Pixels the activation field extends beyond the outer element's own box, on every side. Also sizes the (transparent by default) `::before` halo.",
+			},
+			{
+				name: "max",
+				type: "number",
+				default: "24",
+				description:
+					"Per-axis clamp (px) on the translated offset — a hard travel cap independent of element geometry, radius, or strength.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Disables the pull: no listeners are attached at all, and both translation vars are pinned at `0px`. Never touches the wrapped child's own `disabled` state.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the static outer wrapper.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the outer (static, untransformed) wrapper element.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "The single wrapped element — a button, icon link, or card.",
+			},
+		],
+	},
+
+	pressable: {
+		name: "Pressable",
+		slug: "pressable",
+		description:
+			"A wrapper that gives any interactive child a consistent, cross-browser press animation — scale down on pointerdown/keydown, back to rest on release, with a static opacity fallback under reduced motion",
+		category: "buttons",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["press", "tap", "scale", "haptic", "animation", "micro-interaction"],
+		props: [
+			{
+				name: "scale",
+				type: "number",
+				default: "0.97",
+				description: "Target scale() factor while pressed",
+			},
+			{
+				name: "haptic",
+				type: 'false | "light" | "medium" | "heavy" | "success" | "error"',
+				default: "false",
+				description: "Touch-only vibration pattern fired on pointerdown; false never vibrates",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Suppresses every listener; data-pressed never appears",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the wrapper element",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Exactly one interactive child (documented, not enforced at runtime)",
+			},
+		],
+	},
+
+	"dim-siblings": {
+		name: "DimSiblings",
+		slug: "dim-siblings",
+		description:
+			"Wraps a group of cards, links, or list items so hovering or keyboard-focusing one dims (or blurs) every other one — a pure CSS :has() affordance with zero pointer-tracking JavaScript",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["hover", "focus", "dim", "blur", "has-selector", "css-only", "micro-interaction"],
+		props: [
+			{
+				name: "effect",
+				type: '"dim" | "blur" | "both"',
+				default: '"dim"',
+				description: "Which visual property the non-active siblings lose",
+			},
+			{
+				name: "opacity",
+				type: "number",
+				default: "0.4",
+				description: "Opacity the non-active siblings settle to — a floor, not zero",
+			},
+			{
+				name: "blur",
+				type: "number",
+				default: "2",
+				description: "Blur radius in px, applied only when effect includes blur",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "150",
+				description: "Transition duration in ms for the opacity/blur change",
+			},
+			{
+				name: "as",
+				type: "keyof HTMLElementTagNameMap",
+				default: '"div"',
+				description:
+					'The rendered root element — "ul"/"ol" for a list whose CSS list semantics need to survive the wrapper',
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The sibling group — every direct child participates" },
+		],
+	},
+
+	"scroll-progress": {
+		name: "ScrollProgress",
+		slug: "scroll-progress",
+		description:
+			"Thin reading-progress bar that fills as the page — or a target element — scrolls, driven by a zero-JS CSS scroll-timeline where supported and a throttled scroll listener everywhere else, with an optional accessible progressbar label",
+		category: "navigation",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: [
+			"scroll",
+			"progress",
+			"reading-progress",
+			"navigation",
+			"scroll-timeline",
+			"micro-interaction",
+		],
+		props: [
+			{
+				name: "target",
+				type: "HTMLElement | null",
+				default: "null",
+				description:
+					"An element to track instead of the document. Forces JS mode — reactively, so a target that only becomes available after mount is still picked up correctly.",
+			},
+			{
+				name: "position",
+				type: '"top" | "bottom" | "inline"',
+				default: '"top"',
+				description:
+					'"top"/"bottom" pin the bar to that viewport edge (position: fixed); "inline" renders it in normal flow.',
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					'Announces the bar as role="progressbar" with this accessible name. Forces JS mode; omitted, the bar is aria-hidden.',
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+	},
+
+	"sticky-scroll": {
+		name: "StickyScroll",
+		slug: "sticky-scroll",
+		description:
+			"Two-column scroll narrative with a scrolling item list and a sticky panel that swaps its content to the item centred in view, stacking to a single top-sticky panel over the items on narrow containers",
+		category: "layout",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["scroll", "layout", "sticky", "narrative", "scrollytelling", "micro-interaction"],
+		props: [
+			{
+				name: "items",
+				type: "T[]",
+				description: "Required. The items rendered down the scrolling column.",
+				required: true,
+			},
+			{
+				name: "activeIndex",
+				type: "number",
+				default: "0",
+				description:
+					"Bindable. The active item's index. Holds its last value when nothing intersects the centre line.",
+			},
+			{
+				name: "panelSide",
+				type: '"start" | "end"',
+				default: '"end"',
+				description: 'Which logical side the panel sits on. Flips physically under dir="rtl".',
+			},
+			{
+				name: "crossfade",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the panel crossfades between items. Effective value is always false under reduced motion.",
+			},
+			{
+				name: "panelClass",
+				type: "string",
+				description: "Additional CSS classes for the sticky panel wrapper.",
+			},
+			{
+				name: "panelHidden",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the panel is aria-hidden. Set false when the panel holds content found nowhere else.",
+			},
+			{
+				name: "onChange",
+				type: "(index: number, item: T) => void",
+				description: "Called only when the active index actually changes.",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes for the root" },
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Renders one row, given the item, its index, and whether it's the active one: (item, index, active). (Snippet<[T, number, boolean]>)",
+			},
+			{
+				name: "panel",
+				description:
+					"Renders the sticky panel's content for the active item: (item, index). (Snippet<[T, number]>)",
+			},
+		],
+	},
+
+	skeleton: {
+		name: "Skeleton",
+		slug: "skeleton",
+		description:
+			"Placeholder bones — a block, one or more text lines, or a circular avatar — with a phase-synced shimmer sweep or opacity pulse, that swaps to real content once loading finishes while keeping aria-busy semantics correct throughout",
+		category: "feedback",
+		group: "core",
+		status: "done",
+		tags: ["skeleton", "loading", "placeholder", "shimmer", "pulse", "micro-interaction"],
+		props: [
+			{
+				name: "variant",
+				type: '"rect" | "text" | "circle"',
+				default: '"rect"',
+				description: "Bone shape: a block, one or more text lines, or a circular avatar",
+			},
+			{
+				name: "lines",
+				type: "number",
+				default: "1",
+				description:
+					'Number of text lines to render; only read when variant is "text". The last line renders at 60% width so a paragraph placeholder doesn\'t read as a perfect rectangle',
+			},
+			{
+				name: "animation",
+				type: '"shimmer" | "pulse" | "none"',
+				default: '"shimmer"',
+				description:
+					"Shimmer sweep, opacity pulse, or a static muted bone (still a valid loading cue on its own)",
+			},
+			{
+				name: "loading",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the placeholder is currently showing. In wrapping mode (children supplied) drives the swap to real content; in standalone mode drives whether anything renders at all",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Loading"',
+				description: 'The one screen-reader announcement. Pass "" to silence it entirely',
+			},
+			{
+				name: "class",
+				type: "string",
+				description:
+					"Additional CSS classes; also the sizing hook, since rect/text bones have no intrinsic size",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element; null whenever nothing is rendered",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Real content to reveal once loading is false. Its mere presence (not its value) switches Skeleton from standalone to wrapping mode",
+			},
+		],
+	},
+
+	"status-morph": {
+		name: "StatusMorph",
+		slug: "status-morph",
+		description:
+			"A 1em SVG status icon that morphs between idle, loading, success, and error, closing its spinning ring into a drawn check or cross with a portalled live region announcing each state",
+		category: "feedback",
+		group: "fancy",
+		status: "done",
+		tags: ["status", "icon", "loading", "success", "error", "morph", "micro-interaction"],
+		props: [
+			{
+				name: "state",
+				type: '"idle" | "loading" | "success" | "error"',
+				default: '"idle"',
+				description:
+					'Current state, two-way bound. The component only ever writes it back to "idle" itself, when resetAfter fires — every other write is the caller\'s, and is always honoured',
+			},
+			{
+				name: "resetAfter",
+				type: "number",
+				default: "1800",
+				description:
+					'Milliseconds until an automatic reset to "idle" after "success" or "error". 0 disables the timer entirely (manual reset only)',
+			},
+			{
+				name: "labels",
+				type: "{ loading?: string; success?: string; error?: string }",
+				default: '{ loading: "Loading", success: "Done", error: "Failed" }',
+				description: "Live-region text per state; unset keys fall back to the defaults",
+			},
+			{
+				name: "tone",
+				type: '"current" | "semantic"',
+				default: '"current"',
+				description:
+					'"current" paints every glyph in currentColor; "semantic" reads the shared --ft-status-running/-done/-error vocabulary instead',
+			},
+			{
+				name: "haptic",
+				type: "boolean",
+				default: "false",
+				description:
+					"Best-effort tactile feedback (the success/error haptic patterns) on entering those states; silently a no-op wherever the Vibration API is unsupported or refused",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLSpanElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [
+			{
+				name: "idle",
+				description:
+					"Custom idle content, rendered in the same calc(1em + 1px) footprint instead of the default transparent scaffold, so swapping to it never shifts layout",
+			},
+		],
+	},
+
+	"text-roll": {
+		name: "TextRoll",
+		slug: "text-roll",
+		description:
+			"Single-line text that rolls to its new value per grapheme, odometer-style, whenever the value prop changes — while the real, unsplit text stays selectable and readable",
+		category: "text",
+		group: "fancy",
+		status: "done",
+		tags: ["text", "animation", "roll", "counter", "micro-interaction"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				description:
+					"The text to display; a change after mount triggers a per-grapheme roll to the new value",
+				required: true,
+			},
+			{
+				name: "direction",
+				type: '"auto" | "up" | "down"',
+				default: '"auto"',
+				description:
+					'Which way the cells travel; "auto" compares the trimmed old and new values as numbers and falls back to "up" for a tie, a non-numeric change, or an empty side',
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "300",
+				description: "Roll duration in ms, collapsed to 0 under reduced motion",
+			},
+			{
+				name: "stagger",
+				type: "number",
+				default: "15",
+				description: "Per-cell stagger step in ms, compressed to a 200ms total spread",
+			},
+			{
+				name: "from",
+				type: '"first" | "last" | "center" | number',
+				default: '"first"',
+				description: "Stagger origin",
+			},
+			{
+				name: "tabular",
+				type: "boolean",
+				default: "false",
+				description:
+					"font-variant-numeric: tabular-nums on both layers, to keep digit width locked",
+			},
+			{
+				name: "live",
+				type: '"off" | "polite" | "assertive"',
+				default: '"off"',
+				description: "Live-region role/aria-live pair on the real text layer; off by default",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+			{
+				name: "ref",
+				type: "HTMLSpanElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+	},
 };
 
 // =============================================================================

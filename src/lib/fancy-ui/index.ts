@@ -148,6 +148,20 @@ export * from "./context-menu/index.js";
 export * from "./command-menu/index.js";
 export * from "./navigation-menu/index.js";
 
+// Core — feedback
+export * from "./skeleton/index.js";
+
+// Micro-interactions (share the `_internals/motion` foundation)
+export * from "./reveal/index.js";
+export * from "./presence/index.js";
+export * from "./magnetic/index.js";
+export * from "./pressable/index.js";
+export * from "./scroll-progress/index.js";
+export * from "./status-morph/index.js";
+export * from "./text-roll/index.js";
+export * from "./sticky-scroll/index.js";
+export * from "./dim-siblings/index.js";
+
 // =============================================================================
 // Registry
 // =============================================================================
@@ -173,3 +187,6 @@ export {
 
 // Shared AI/chat data types (type-only; _internals is not a component folder)
 export type * from "./_internals/ai-types.js";
+
+// Shared motion unions (type-only; `_internals/motion` itself stays internal)
+export type * from "./_internals/motion/types.js";
