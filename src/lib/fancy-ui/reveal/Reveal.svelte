@@ -200,13 +200,22 @@
 	// MutationObserver — a static :nth-child sheet (see blur-reveal, this
 	// component's predecessor) can never do this for an arbitrary/changing
 	// child count.
+	//
+	// `SVGElement` is accepted alongside `HTMLElement` because the stagger CSS
+	// below targets EVERY direct element child (`> *`): a row of bare `<svg>`
+	// icons is a real, common case, and an `instanceof HTMLElement`-only walk
+	// would animate each icon (the CSS matched) while leaving every one of
+	// them on the 0ms fallback delay — the whole row arriving at once. Both
+	// interfaces expose `style`, which is all this needs.
 	$effect(() => {
 		if (stagger <= 0 || !ref) return;
 		const root = ref;
 
 		function apply() {
 			const kids = Array.from(root.children).filter(
-				(el): el is HTMLElement => el instanceof HTMLElement && !el.hasAttribute("data-reveal-skip")
+				(el): el is HTMLElement | SVGElement =>
+					(el instanceof HTMLElement || el instanceof SVGElement) &&
+					!el.hasAttribute("data-reveal-skip")
 			);
 			for (let i = 0; i < kids.length; i++) {
 				const ms = staggerDelay(i, kids.length, stagger, from, STAGGER_CAPS.item);
@@ -224,7 +233,9 @@
 			// reads it under `[data-stagger]`), but it's state this component
 			// wrote and no longer owns once the effect that set it tears down.
 			for (const el of Array.from(root.children)) {
-				if (el instanceof HTMLElement) el.style.removeProperty("--ft-reveal-child-delay");
+				if (el instanceof HTMLElement || el instanceof SVGElement) {
+					el.style.removeProperty("--ft-reveal-child-delay");
+				}
 			}
 		};
 	});
