@@ -51,4 +51,21 @@ describe("BlurReveal", () => {
 		const wrapper = container.querySelector(".blur-reveal-wrapper");
 		expect(wrapper).not.toBeInTheDocument();
 	});
+
+	it("does not apply mode-hard class by default", () => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const { container } = render(BlurReveal, { props: { children: (() => {}) as any } });
+		const wrapper = container.querySelector(".blur-reveal-wrapper");
+		expect(wrapper).toBeTruthy();
+		expect(wrapper?.classList.contains("mode-hard")).toBe(false);
+	});
+
+	it('applies mode-hard class when mode="hard"', () => {
+		const { container } = render(BlurReveal, {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			props: { mode: "hard", children: (() => {}) as any },
+		});
+		const wrapper = container.querySelector(".blur-reveal-wrapper");
+		expect(wrapper?.classList.contains("mode-hard")).toBe(true);
+	});
 });

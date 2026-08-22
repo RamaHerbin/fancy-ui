@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { sound } from "../sound/sound.svelte.js";
 
 // Spies on the real `anchorPosition` action instead of replacing it, so
 // positioning assertions check what a submenu asked for while the action
@@ -607,6 +608,234 @@ describe("DropdownMenu", () => {
 			unmount();
 			expect(clearSpy).toHaveBeenCalled();
 			clearSpy.mockRestore();
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("trigger click plays open exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		// Enter on the trigger opens through the very same `setOpen`
+		// (`openWithFocus` → `setOpen`) as a click does, guarded by its own
+		// `open === next` early return — so even if a real browser also fired
+		// a native click from the same Enter keypress, the second call would
+		// see `open` already `true` and play nothing. Nothing here can drive
+		// two separate opens in this environment, so this proves the single
+		// path fires exactly once.
+		it("keyboard Enter on the trigger opens with exactly one cue, no synthetic double", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+
+			await fireEvent.keyDown(trigger(container), { key: "Enter" });
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("trigger click to close plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn);
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(btn);
+			await waitFor(() => expect(rootMenu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("Escape plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn);
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.keyDown(document, { key: "Escape" });
+			await waitFor(() => expect(rootMenu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("item activation by click plays select exactly once, never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(rootMenu(), "Duplicate")!);
+			await waitFor(() => expect(rootMenu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		// A native button also fires a real `click` event for a real Enter
+		// keypress while it holds focus — the same activation `handleClick`
+		// already handles for a pointer click, with no separate keydown path
+		// of its own to double it. Documented (rather than left implicit)
+		// because there is no jsdom-simulable difference between "click" and
+		// "Enter while a button holds focus" to assert on directly here — see
+		// the analogous note on the existing keyboard-activation tests above.
+		it("item activation by keyboard (Enter) plays select exactly once, never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(document.activeElement).toBe(itemByLabel(rootMenu(), "Rename")));
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(rootMenu(), "Rename")!);
+			await waitFor(() => expect(rootMenu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("closeOnSelect: false still plays select and nothing else", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const pinnedItems: ItemSpec[] = [{ label: "Keep open", closeOnSelect: false }];
+			const { container } = render(Harness, { props: { items: pinnedItems, sound: true } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(rootMenu(), "Keep open")!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+			expect(rootMenu()).not.toBeNull();
+		});
+
+		it("a disabled item plays nothing", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const withDisabled: ItemSpec[] = [{ label: "Locked", disabled: true }];
+			const { container } = render(Harness, { props: { items: withDisabled, sound: true } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(rootMenu(), "Locked")!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			const btn = trigger(container);
+
+			await fireEvent.click(btn);
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			await fireEvent.click(itemByLabel(rootMenu(), "Duplicate")!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("a submenu item inherits sound: select plays once, closes the whole tree silently", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems, sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await waitFor(() =>
+				expect(document.activeElement).toBe(itemByLabel(subMenu(), "Screenshot"))
+			);
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(subMenu(), "Screenshot")!);
+			await waitFor(() => expect(rootMenu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("opening a submenu plays open once; ArrowLeft back out plays close once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems, sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await waitFor(() =>
+				expect(document.activeElement).toBe(itemByLabel(subMenu(), "Screenshot"))
+			);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+
+			play.mockClear();
+			await fireEvent.keyDown(itemByLabel(subMenu(), "Screenshot")!, { key: "ArrowLeft" });
+			await waitFor(() => expect(subMenu()).toBeNull());
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("Escape closes one layer at a time, each with exactly one close cue", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems, sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await waitFor(() =>
+				expect(document.activeElement).toBe(itemByLabel(subMenu(), "Screenshot"))
+			);
+			play.mockClear();
+
+			await fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+			await waitFor(() => expect(subMenu()).toBeNull());
+			expect(play.mock.calls).toEqual([["close"]]);
+
+			play.mockClear();
+			await fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+			await waitFor(() => expect(rootMenu()).toBeNull());
+			expect(play.mock.calls).toEqual([["close"]]);
+		});
+
+		it("selecting inside a submenu closes the whole tree with select only — no close from any level", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems, sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await waitFor(() =>
+				expect(document.activeElement).toBe(itemByLabel(subMenu(), "Screenshot"))
+			);
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(subMenu(), "Screenshot")!);
+			await waitFor(() => expect(rootMenu()).toBeNull());
+			expect(play.mock.calls).toEqual([["select"]]);
 		});
 	});
 });

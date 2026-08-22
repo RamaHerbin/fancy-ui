@@ -39,11 +39,17 @@
 		class?: string;
 		/** Element reference. */
 		ref?: HTMLButtonElement | HTMLAnchorElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		variant = "primary",
@@ -62,6 +68,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ButtonProps = $props();
 
 	const SIZE_CLASSES: Record<ButtonSize, string> = {
@@ -134,6 +141,7 @@
 			event.preventDefault();
 			return;
 		}
+		if (sound) soundFx.play("press");
 		onclick?.(event);
 	}
 </script>

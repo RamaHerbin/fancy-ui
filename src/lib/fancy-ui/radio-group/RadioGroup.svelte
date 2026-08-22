@@ -34,6 +34,11 @@
 		children?: Snippet;
 		/** Additional CSS classes. */
 		class?: string;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off
+		 * by default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 		/** Element reference. */
 		ref?: HTMLDivElement | null;
 	}
@@ -43,6 +48,7 @@
 	import { setContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { RADIO_GROUP_KEY, type RadioGroupContext } from "./types.js";
 
 	let {
@@ -56,6 +62,7 @@
 		label,
 		children,
 		class: className,
+		sound = false,
 		ref = $bindable(null),
 	}: RadioGroupProps = $props();
 
@@ -87,7 +94,9 @@
 	// caller's own `bind:value` write.
 	function select(itemValue: string) {
 		if (effectiveDisabled) return;
+		const changed = value !== itemValue;
 		value = itemValue;
+		if (sound && changed) soundFx.play("select");
 		onValueChange?.(itemValue);
 	}
 

@@ -161,6 +161,8 @@ export * from "./status-morph/index.js";
 export * from "./text-roll/index.js";
 export * from "./sticky-scroll/index.js";
 export * from "./dim-siblings/index.js";
+// Core — actions (sound)
+export * from "./sound/index.js";
 
 // =============================================================================
 // Registry

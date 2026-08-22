@@ -46,6 +46,12 @@
 		get itemTextClass() {
 			return parentMenu.itemTextClass;
 		},
+		// Copied from the parent level for the same reason as `itemTextClass`
+		// just above: a submenu's own sound behaviour follows whatever the
+		// root resolved, all the way down through nested submenus.
+		get sound() {
+			return parentMenu.sound;
+		},
 		closeAll(options) {
 			parentMenu.closeAll(options);
 		},

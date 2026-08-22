@@ -335,6 +335,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "20",
 				description: "Initial vertical offset in pixels",
 			},
+			{
+				name: "mode",
+				type: '"blur" | "hard"',
+				default: '"blur"',
+				description:
+					"Reveal style: blur softens in with blur/translate, hard snaps opacity with no easing",
+			},
 		],
 		slots: [
 			{ name: "children", description: "Content elements to reveal with staggered animation" },
@@ -471,7 +478,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "ImageTrailCursor",
 		slug: "image-trail-cursor",
 		description:
-			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 8 selectable variants spanning simple fades, momentum drift, rotation flings, and 3D perspective tilt",
+			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 9 selectable variants spanning simple fades, momentum drift, rotation flings, 3D perspective tilt, and a hard-edge pixelated snap",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -485,7 +492,7 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 			{
 				name: "variant",
-				type: '"type1" | "type2" | ... | "type8"',
+				type: '"type1" | "type2" | ... | "type8" | "pixelated"',
 				default: '"type1"',
 				description: "Animation variant controlling how images appear and move",
 			},
@@ -513,6 +520,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Additional CSS classes for individual squares",
 			},
 			{
+				name: "strokeClassName",
+				type: "string",
+				default: '"stroke-gray-400/30"',
+				description: "Additional CSS classes controlling the square outline color",
+			},
+			{
 				name: "width",
 				type: "number",
 				default: "40",
@@ -530,6 +543,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "[24, 24]",
 				description: "Grid dimensions as [columns, rows]",
 			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether squares respond to hover; when false, renders a static graph-paper grid with no per-rect listeners",
+			},
 		],
 	},
 
@@ -537,7 +557,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "LineHoverLink",
 		slug: "line-hover-link",
 		description:
-			"Link component with 11 animated underline hover effects — pure CSS, no JS on hover",
+			"Link component with 12 animated underline hover effects — pure CSS, no JS on hover",
 		category: "navigation",
 		group: "fancy",
 		status: "done",
@@ -546,7 +566,7 @@ export const registry: Record<string, ComponentMeta> = {
 		props: [
 			{
 				name: "variant",
-				type: '"slide" | "double" | "grow" | "strike" | "fade" | "pulse" | "swap" | "sweep" | "bounce" | "arc" | "scribble"',
+				type: '"slide" | "double" | "grow" | "strike" | "fade" | "pulse" | "swap" | "sweep" | "bounce" | "arc" | "scribble" | "ink"',
 				default: '"slide"',
 				description: "The animation variant",
 			},
@@ -662,6 +682,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "Logo[]",
 				default: "[]",
 				description: "Array of logos with name and image path",
+			},
+			{
+				name: "wordmarks",
+				type: "Wordmark[]",
+				description:
+					"StaticLogoCloud only: when provided, renders a static typographic row of wordmarks instead of image logos",
 			},
 		],
 	},
@@ -4252,6 +4278,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{ name: "children", description: "The button's label / content" },
@@ -4685,6 +4717,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference, matching Button's own ref type",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the copy cue on a successful copy and error on a failed one, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "Overrides the default icon + label content" }],
 	},
@@ -5074,6 +5113,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference to the native input",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on or toggle-off on each change, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -5179,6 +5225,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the item's native input.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays a select cue when the selection actually changes, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{ name: "children", description: "The RadioGroup's content — the RadioGroupItems." },
@@ -5259,6 +5312,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLInputElement | null",
 				default: "null",
 				description: "Bindable element reference to the native input",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on or toggle-off on each change, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -6072,6 +6132,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLButtonElement | null",
 				default: "null",
 				description: "Bindable reference to the trigger button.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on opening, select on a committed choice and close on a dismissal, once the user has enabled sound",
 			},
 		],
 	},
@@ -7393,6 +7460,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "true",
 				description: "Whether arrow-key navigation wraps at the ends",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open and close on the trigger and submenus, and select on an item — one cue per interaction — once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The DropdownMenuTrigger and DropdownMenuContent" }],
 	},
@@ -7597,6 +7671,124 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "children",
 				description:
 					"Typically a single NavigationMenuList. Snippet<[]> — the compound's own sub-components (NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger, NavigationMenuContent, NavigationMenuLink) are exported from the same module and used inside it.",
+			},
+		],
+	},
+
+	// =========================================================================
+	// Core — actions (sound)
+	// =========================================================================
+
+	// `name` is "SoundToggle", not "Sound", on purpose: llms.ts only emits a
+	// single-name import when the barrel actually exports `component.name`.
+	// With "Sound" the fallback fires and /llms-full.txt would list every export.
+	sound: {
+		name: "SoundToggle",
+		slug: "sound",
+		description:
+			"Opt-in interface sound: a `sound` controller that synthesises eleven short cues (hover, press, toggle-on, toggle-off, open, close, select, success, error, tick, copy) with the Web Audio API, a SoundToggle switch that keeps the preference and volume, and a soundFeedback action that wires cues to any element — silent until the user switches it on, nothing on import, mount, navigation or scroll",
+		category: "actions",
+		group: "core",
+		status: "done",
+		tags: ["sound", "audio", "feedback", "web-audio", "cues", "toggle", "accessibility", "opt-in"],
+		props: [
+			{
+				name: "size",
+				type: '"sm" | "md" | "lg"',
+				default: '"md"',
+				description: "Height of the control — md matches the other header-style triggers",
+			},
+			{
+				name: "variant",
+				type: '"outline" | "ghost"',
+				default: '"outline"',
+				description: "Outline keeps a resting border; ghost shows one only on hover",
+			},
+			{
+				name: "showLabel",
+				type: "boolean",
+				default: "false",
+				description:
+					"Renders the label and the On/Off word beside the icon; icon-only otherwise, with the label as the accessible name",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Sound"',
+				description:
+					"Accessible name of the switch. Stays constant — the on/off state is announced through aria-checked",
+			},
+			{
+				name: "labelOn",
+				type: "string",
+				default: '"On"',
+				description: "Visible state word when showLabel is set",
+			},
+			{
+				name: "labelOff",
+				type: "string",
+				default: '"Off"',
+				description: "Visible state word when showLabel is set",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Disables the control. A browser with no Web Audio also disables it, but only while sound is off, so a stored on preference can always be undone",
+			},
+			{
+				name: "onEnabledChange",
+				type: "(enabled: boolean) => void",
+				description: "Called after the preference flips, with the new value",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes for the button" },
+			{
+				name: "ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the button",
+			},
+			{
+				name: "sound.play(cue, options?)",
+				type: "(cue: SoundCue, options?: SoundPlayOptions) => void",
+				description:
+					"Plays one cue. A no-op while sound is off or unsupported, so call sites never branch; options carry volume, pitch and playbackRate",
+			},
+			{
+				name: "sound.enable() / disable() / toggle()",
+				type: "() => void | boolean",
+				description:
+					"Flip the preference. Enabling creates and resumes the audio context inside the calling user gesture",
+			},
+			{
+				name: "sound.setVolume(v)",
+				type: "(v: number) => void",
+				description: "Master volume, 0 to 1, persisted with the preference",
+			},
+			{
+				name: "sound.enabled / volume / status",
+				type: "boolean / number / SoundStatus",
+				description:
+					"Reactive preference and engine state (supported, engine, storage, lastCue, lastError) for your own UI",
+			},
+			{
+				name: "sound.subscribe(run)",
+				type: "(run: (prefs: SoundPreferences) => void) => () => void",
+				description: "Store contract for non-rune consumers; sound.enabled is the idiomatic path",
+			},
+			{
+				name: "use:soundFeedback",
+				type: "SoundFeedbackOptions",
+				description:
+					"Action mapping element events to cues — defaults to click → press; add pointerenter → hover to opt in. Rebinds on update and unwires on destroy",
+			},
+			{
+				name: "sound (on Button, CopyButton, Checkbox, Switch, RadioGroup, Select, DropdownMenu)",
+				type: "boolean",
+				default: "false",
+				description:
+					"Per-instance opt-in: the component plays its own matching cue (press, copy/error, toggle-on/off, select, open/close) once the user has enabled sound",
 			},
 		],
 	},

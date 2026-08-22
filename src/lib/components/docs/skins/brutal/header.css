@@ -182,6 +182,7 @@
 /* ---- R10 · Square icon buttons (GitHub · language · skin) ------------------- */
 .docs-skin[data-skin="brutal"] .docs-gh,
 .docs-skin[data-skin="brutal"] header [data-language-switcher] > button,
+.docs-skin[data-skin="brutal"] header [data-sound-toggle],
 .docs-skin[data-skin="brutal"] header [data-skin-switcher] > button {
 	height: 34px;
 	flex: none;
@@ -201,6 +202,7 @@
 }
 .docs-skin[data-skin="brutal"] .docs-gh:hover,
 .docs-skin[data-skin="brutal"] header [data-language-switcher] > button:hover,
+.docs-skin[data-skin="brutal"] header [data-sound-toggle]:hover,
 .docs-skin[data-skin="brutal"] header [data-skin-switcher] > button:hover {
 	transform: translate(-1px, -1px);
 	box-shadow: 3px 3px 0 var(--skin-line);
@@ -209,6 +211,7 @@
 }
 .docs-skin[data-skin="brutal"] .docs-gh:active,
 .docs-skin[data-skin="brutal"] header [data-language-switcher] > button:active,
+.docs-skin[data-skin="brutal"] header [data-sound-toggle]:active,
 .docs-skin[data-skin="brutal"] header [data-skin-switcher] > button:active {
 	transform: none;
 	box-shadow: none;
@@ -216,6 +219,7 @@
 }
 .docs-skin[data-skin="brutal"] .docs-gh:focus-visible,
 .docs-skin[data-skin="brutal"] header [data-language-switcher] > button:focus-visible,
+.docs-skin[data-skin="brutal"] header [data-sound-toggle]:focus-visible,
 .docs-skin[data-skin="brutal"] header [data-skin-switcher] > button:focus-visible {
 	border-color: var(--skin-blue);
 	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.3);
@@ -269,6 +273,7 @@
 
 /* Skin switcher: absent from the reference, so it inherits the R10 grammar and
    the language button's mono label (it is the control that selects this skin). */
+.docs-skin[data-skin="brutal"] header [data-sound-toggle],
 .docs-skin[data-skin="brutal"] header [data-skin-switcher] > button {
 	justify-content: flex-start;
 	gap: 5px;
@@ -379,6 +384,7 @@
 }
 [dir="rtl"] .docs-skin[data-skin="brutal"] .docs-gh:hover,
 [dir="rtl"] .docs-skin[data-skin="brutal"] header [data-language-switcher] > button:hover,
+[dir="rtl"] .docs-skin[data-skin="brutal"] header [data-sound-toggle]:hover,
 [dir="rtl"] .docs-skin[data-skin="brutal"] header [data-skin-switcher] > button:hover {
 	transform: translate(1px, -1px);
 	box-shadow: -3px 3px 0 var(--skin-line);

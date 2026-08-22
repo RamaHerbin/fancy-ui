@@ -46,6 +46,9 @@
 			return focus;
 		},
 		itemTextClass: "text-[13px]",
+		get sound() {
+			return root.sound;
+		},
 		closeAll(options) {
 			// Closing the root unmounts this whole subtree — every nested
 			// `DropdownMenuSub`/`DropdownMenuSubContent` goes with it, so there

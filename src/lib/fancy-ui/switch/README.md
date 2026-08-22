@@ -141,3 +141,12 @@ Set `--ft-accent` higher up the tree to retint every `Switch` beneath it.
 - `class` merges onto the wrapping `<label>`, not the input itself — the
   input's own geometry classes are fixed so a consumer's class never
   accidentally fights the track's shape.
+
+## Sound
+
+`sound?: boolean` (default `false`) plays a short confirmation cue through the
+sound controller whenever the switch actually flips — `toggle-on` turning it
+on, `toggle-off` turning it off. Nothing plays while `disabled` (own prop or
+a surrounding `FormField`). Off by default; the cue is only audible once the
+user has separately turned sound on. See `sound/README.md` for how the
+preference and playback work.

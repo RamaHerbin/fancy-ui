@@ -1,5 +1,0 @@
----
-"fancy-ui-svelte": minor
----
-
-Add the input layer of the AI/chat family: the `Composer` compound — a root that owns the draft plus seven parts reading it through a shared context (`ComposerInput` with auto-grow and Enter/Shift+Enter, `ComposerSubmit` that becomes a stop button while streaming, `ComposerToolbar`, `ComposerModelPicker`, `ComposerAttachments`/`ComposerAttachment` chips with upload progress, and `ComposerCommandMenu`, one caret-anchored completion primitive mountable twice for slash commands and @ mentions, with a single source of truth for trigger-token arithmetic) — alongside `VoiceInput` (a mic button opening into a canvas waveform panel fed by consumer-supplied amplitude levels, never touching the microphone itself) and `ContextRing` (context-window usage as a compact donut with warn/critical bands and an optional breakdown popover). The internals `float` action now goes out of flow before measuring its anchor, fixing sibling-anchored popover placement everywhere it is used.

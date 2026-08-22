@@ -14,6 +14,7 @@
 		{ variant: "bounce", label: "Bounce" },
 		{ variant: "arc", label: "Arc" },
 		{ variant: "scribble", label: "Scribble" },
+		{ variant: "ink", label: "Ink" },
 	];
 </script>
 

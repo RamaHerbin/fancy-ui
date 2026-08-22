@@ -320,6 +320,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "Changer de skin",
+	"a11y.sound": "Son",
 	// Retro OS docs chrome
 	"retro.explorer": "Explorateur",
 	"retro.start": "Démarrer",

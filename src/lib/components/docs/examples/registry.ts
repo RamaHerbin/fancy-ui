@@ -153,6 +153,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Staggered Cards",
 			description: "Multiple items with stagger.",
 		},
+		{
+			name: "HardSnap",
+			title: "Hard Snap",
+			description: 'mode="hard": no blur or easing, opacity snaps in stepped.',
+		},
 	],
 	focus: [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -288,6 +293,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "IconGrid", title: "Icon Grid" },
 		{ name: "StaticGrid", title: "Static Grid" },
+		{
+			name: "Wordmarks",
+			title: "Wordmarks",
+			description: "Static typographic row instead of image logos — no logo assets needed.",
+		},
 	],
 	"container-scroll": [{ name: "BasicUsage", title: "Basic Usage" }],
 	"bento-grid": [
@@ -367,15 +377,20 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{
 			name: "Variants",
 			title: "Animation Variants",
-			description: "8 different trail animation styles.",
+			description: "9 different trail animation styles, including a hard-edge pixelated snap.",
 		},
 	],
 	"interactive-grid-pattern": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "Colored", title: "Colored Variant", description: "Custom hover color." },
+		{
+			name: "StaticGraphPaper",
+			title: "Static Graph Paper",
+			description: "Non-interactive grid with no per-rect listeners, for hard-edge art directions.",
+		},
 	],
 	"line-hover-link": [
-		{ name: "AllVariants", title: "All Variants", description: "11 animated underline effects." },
+		{ name: "AllVariants", title: "All Variants", description: "12 animated underline effects." },
 		{ name: "Navigation", title: "Navigation Example" },
 	],
 	"displacement-text": [
@@ -1166,6 +1181,42 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			name: "WithCurrentPage",
 			title: "With Current Page",
 			description: "A panel where one link is marked as the current page.",
+		},
+	],
+	sound: [
+		{
+			name: "BasicUsage",
+			title: "Sound Lab",
+			description:
+				"Every cue, its volume, and when to reach for it. Nothing plays until you switch sound on.",
+		},
+		{
+			name: "ProgrammaticPlay",
+			title: "Programmatic Play",
+			description:
+				"sound.play() from an async handler — a no-op while sound is off, so call sites never branch on it.",
+		},
+		{
+			name: "SoundFeedbackAction",
+			title: "The soundFeedback Action",
+			description:
+				"use:soundFeedback on any element, with cues swapped at runtime through the action's update path.",
+		},
+		{
+			name: "WithButtons",
+			title: "With Buttons",
+			description:
+				"Button and CopyButton playing their own press and copy cues through the opt-in prop.",
+		},
+		{
+			name: "WithFormControls",
+			title: "With Form Controls",
+			description: "Checkbox, Switch and RadioGroup — toggle-on, toggle-off and select.",
+		},
+		{
+			name: "WithMenus",
+			title: "With Menus",
+			description: "Select and DropdownMenu — open, close and select, one cue per interaction.",
 		},
 	],
 

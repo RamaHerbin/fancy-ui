@@ -221,6 +221,7 @@ action_ rather than only via the explicit `onmouseenter` handler.
 | `offset`       | `number`                                 | `4`        | Gap in pixels between the trigger and the menu                         |
 | `loop`         | `boolean`                                | `true`     | Whether arrow-key navigation wraps at the ends                         |
 | `children`     | `Snippet`                                | —          | The `DropdownMenuTrigger` and `DropdownMenuContent`                    |
+| `sound`        | `boolean`                                | `false`    | Plays `open`/`close`/`select` cues — see [Sound](#sound) below         |
 
 ### DropdownMenuTrigger
 
@@ -274,6 +275,31 @@ Both take `class?: string`; `DropdownMenuLabel` also takes `children?: Snippet` 
 ### DropdownMenuSubContent
 
 Same shape as `DropdownMenuContent` (`children`, `class`, `ref`).
+
+## Sound
+
+Set `sound` on the root to opt into interface cues, off by default and
+silent until the user has enabled sound in their own preferences:
+
+```svelte
+<DropdownMenu sound>
+	<DropdownMenuTrigger>Options</DropdownMenuTrigger>
+	<DropdownMenuContent>...</DropdownMenuContent>
+</DropdownMenu>
+```
+
+`open`/`close` play when the trigger opens/closes the menu — by click,
+keyboard, Escape, or an outside click. Selecting an item plays `select`
+instead of `close`, never both: the item's own click handler plays `select`
+first, then closes the menu silently (`{ silent: true }`), so one activation
+is always exactly one cue. A submenu inherits the root's `sound` setting and
+sounds like the panel it is: opening it plays `open`, closing it yourself
+(ArrowLeft, Escape, the pointer leaving) plays `close`. Closes driven by the
+parent stay silent — a selection several levels deep still plays a single
+`select` while the whole tree closes in one hop, and a sibling submenu
+opening closes this one without a cue of its own. `ContextMenu` has no `sound`
+prop of its own yet; its shared items simply read `ctx.sound` as `undefined`
+and stay silent.
 
 ## Theming
 

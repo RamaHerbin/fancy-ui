@@ -312,6 +312,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "تغییر پوسته",
+	"a11y.sound": "صدا",
 	"retro.explorer": "کاوشگر",
 	"retro.start": "شروع",
 	"retro.tagline": "کامپوننت‌های متحرک برای Svelte 5 — آماده کپی و چسباندن.",

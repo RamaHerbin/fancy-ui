@@ -313,6 +313,7 @@ export default {
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"a11y.changeSkin": "Mudar de skin",
+	"a11y.sound": "Som",
 	"retro.explorer": "Explorador",
 	"retro.start": "Iniciar",
 	"retro.tagline": "Componentes animados para Svelte 5 — prontos para copiar e colar.",

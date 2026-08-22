@@ -25,6 +25,7 @@
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { MENU_KEY, type MenuContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		onSelect,
@@ -72,6 +73,7 @@
 	// trusting the attribute alone.
 	function handleClick(): void {
 		if (disabled) return;
+		if (ctx.sound) soundFx.play("select");
 		// Mouse hover already syncs the menu core's tracked focus position
 		// (see `handleMouseEnter` below), and the common `closeOnSelect`
 		// path makes this redundant too — closing moves focus back to the
@@ -84,7 +86,10 @@
 		// its own click for the same reason.
 		if (itemRef) ctx.focus.focusItem(itemRef);
 		onSelect?.();
-		if (closeOnSelect) ctx.closeAll();
+		// `silent: true` — this click already played `select` above; closing
+		// the menu on top of it must never also play `close`, or one item
+		// activation would yield two cues instead of one.
+		if (closeOnSelect) ctx.closeAll({ silent: true });
 	}
 
 	// Real DOM focus IS the highlight in a `role="menu"` built on

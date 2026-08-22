@@ -2,7 +2,10 @@ import AnimatedLogoCloud, {
 	type AnimatedLogoCloudProps,
 	type Logo,
 } from "./AnimatedLogoCloud.svelte";
-import StaticLogoCloud, { type StaticLogoCloudProps } from "./StaticLogoCloud.svelte";
+import StaticLogoCloud, {
+	type StaticLogoCloudProps,
+	type Wordmark,
+} from "./StaticLogoCloud.svelte";
 import IconLogoCloud, { type IconLogoCloudProps } from "./IconLogoCloud.svelte";
 
 export {
@@ -13,4 +16,5 @@ export {
 	type StaticLogoCloudProps,
 	type IconLogoCloudProps,
 	type Logo,
+	type Wordmark,
 };

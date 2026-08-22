@@ -14,24 +14,6 @@ global.IntersectionObserver = class IntersectionObserver {
 	disconnect() {}
 } as unknown as typeof IntersectionObserver;
 
-// Mock HTMLCanvasElement.getContext (not available in jsdom without canvas package)
-HTMLCanvasElement.prototype.getContext = () => null;
-
-// Mock window.matchMedia (not available in jsdom)
-Object.defineProperty(window, "matchMedia", {
-	writable: true,
-	value: (query: string) => ({
-		matches: false,
-		media: query,
-		onchange: null,
-		addEventListener: () => {},
-		removeEventListener: () => {},
-		dispatchEvent: () => false,
-		addListener: () => {},
-		removeListener: () => {},
-	}),
-});
-
 // Mock the Web Animations API (not available in jsdom). Svelte 5 runs every
 // CSS `transition:` / `in:` / `out:` through `element.animate()`, so without
 // this a component that animates on open throws
@@ -71,15 +53,37 @@ class FakeAnimation {
 	removeEventListener() {}
 }
 
-// The DOM lib types declare `animate()` as always present, so the guard's
-// negative branch narrows to `never`; cast through `unknown` like the
-// getAnimations shim below.
-if (!("animate" in Element.prototype)) {
-	(Element.prototype as unknown as { animate: () => Animation }).animate = function animate() {
-		return new FakeAnimation() as unknown as Animation;
-	};
-}
+// Mock HTMLCanvasElement.getContext (not available in jsdom without canvas package)
+// and window.matchMedia (not available in jsdom). Guarded: `setupFiles` also runs
+// for `@vitest-environment node` suites (the SSR safety net), where neither
+// global exists.
+if (typeof window !== "undefined") {
+	HTMLCanvasElement.prototype.getContext = () => null;
 
-if (!("getAnimations" in Element.prototype)) {
-	(Element.prototype as unknown as { getAnimations: () => Animation[] }).getAnimations = () => [];
+	Object.defineProperty(window, "matchMedia", {
+		writable: true,
+		value: (query: string) => ({
+			matches: false,
+			media: query,
+			onchange: null,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		}),
+	});
+
+	// The DOM lib types declare `animate()` as always present, so the guard's
+	// negative branch narrows to `never`; cast through `unknown` like the
+	// getAnimations shim below.
+	if (!("animate" in Element.prototype)) {
+		(Element.prototype as unknown as { animate: () => Animation }).animate = function animate() {
+			return new FakeAnimation() as unknown as Animation;
+		};
+	}
+
+	if (!("getAnimations" in Element.prototype)) {
+		(Element.prototype as unknown as { getAnimations: () => Animation[] }).getAnimations = () => [];
+	}
 }
