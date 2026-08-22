@@ -37,6 +37,7 @@
 	],
 	"files": [
 		"dist/fancy-ui",
+		"dist/cameleon",
 		"dist/utils",
 		"dist/utils.js",
 		"dist/utils.d.ts",
