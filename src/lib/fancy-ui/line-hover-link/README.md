@@ -1,6 +1,6 @@
 # LineHoverLink
 
-An anchor with a pure-CSS underline hover effect, selectable from 11 variants. No JavaScript runs on hover — every variant is `::before`/`::after` pseudo-elements or an inline SVG stroke animated with CSS `transition`/`transform`/`stroke-dashoffset`, triggered by `:hover`/`:focus-visible`.
+An anchor with a pure-CSS underline hover effect, selectable from 12 variants. No JavaScript runs on hover — every variant is `::before`/`::after` pseudo-elements or an inline SVG stroke animated with CSS `transition`/`transform`/`stroke-dashoffset`, triggered by `:hover`/`:focus-visible`.
 
 ## Usage
 
@@ -26,12 +26,13 @@ An anchor with a pure-CSS underline hover effect, selectable from 11 variants. N
 
 Children (slot content) are the link's visible text/label.
 
-`LineHoverVariant` is one of: `"slide" | "double" | "grow" | "strike" | "fade" | "pulse" | "swap" | "sweep" | "bounce" | "arc" | "scribble"`.
+`LineHoverVariant` is one of: `"slide" | "double" | "grow" | "strike" | "fade" | "pulse" | "swap" | "sweep" | "bounce" | "arc" | "scribble" | "ink"`.
 
 ## Implementation notes
 
 - The component has no `<script>`-side reactive state beyond two `$derived` values — everything visual is CSS selected by a `link-hover--<variant>` class.
 - `arc` and `scribble` render an inline `<svg>` with a single `<path pathLength="1">` instead of a pseudo-element underline; both use the same technique (`stroke-dasharray: 1; stroke-dashoffset: 1` at rest, animated to `0` on hover/focus via `transition: stroke-dashoffset`).
 - `strike`, `bounce`, `arc`, and `scribble` wrap the link text in an inner `<span>` (via the `needsSpan` derived flag) because those variants also transform the text itself (scale for `strike`, translate for `bounce`) independently of the underline graphic.
+- `ink` is the odd one out: the underline is a constant 2px `::before` — not animated in — and instead the whole link snaps `translate3d(-1px, -1px, 0)` on interaction, for a hard-edge, ink-stamp feel. The hover half of the rule is gated behind `@media (hover: hover)` so touch devices don't get a stuck translated state; `:focus-visible` still applies unconditionally for keyboard users.
 - `rel` defaults to `"noopener noreferrer"` automatically when `target="_blank"` and no explicit `rel` was passed, via the `relValue` derived value — an explicit `rel` prop is never overridden.
 - All variants respond to both `:hover` and `:focus-visible`, so the effect is keyboard-navigable, not mouse-only.

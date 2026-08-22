@@ -4,12 +4,16 @@
 		class?: string;
 		/** Additional CSS classes for individual squares */
 		squaresClassName?: string;
+		/** Additional CSS classes controlling the square outline color */
+		strokeClassName?: string;
 		/** Width of each square in pixels */
 		width?: number;
 		/** Height of each square in pixels */
 		height?: number;
 		/** Grid dimensions [columns, rows] */
 		squares?: [number, number];
+		/** Whether squares respond to hover. When false, renders a static graph-paper grid with no listeners */
+		interactive?: boolean;
 	}
 </script>
 
@@ -19,9 +23,11 @@
 	let {
 		class: className,
 		squaresClassName,
+		strokeClassName = "stroke-gray-400/30",
 		width = 40,
 		height = 40,
 		squares = [24, 24] as [number, number],
+		interactive = true,
 	}: InteractiveGridPatternProps = $props();
 
 	let hoveredSquare: number | null = $state(null);
@@ -54,12 +60,13 @@
 			{width}
 			{height}
 			class={cn(
-				"interactive-grid-square stroke-gray-400/30 transition-all duration-100 ease-in-out",
+				"interactive-grid-square transition-all duration-100 ease-in-out",
+				strokeClassName,
 				hoveredSquare === index ? "fill-gray-300/30" : "fill-transparent",
 				squaresClassName
 			)}
-			onmouseenter={() => (hoveredSquare = index)}
-			onmouseleave={() => (hoveredSquare = null)}
+			onmouseenter={interactive ? () => (hoveredSquare = index) : undefined}
+			onmouseleave={interactive ? () => (hoveredSquare = null) : undefined}
 		/>
 	{/each}
 </svg>

@@ -335,6 +335,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "20",
 				description: "Initial vertical offset in pixels",
 			},
+			{
+				name: "mode",
+				type: '"blur" | "hard"',
+				default: '"blur"',
+				description:
+					"Reveal style: blur softens in with blur/translate, hard snaps opacity with no easing",
+			},
 		],
 		slots: [
 			{ name: "children", description: "Content elements to reveal with staggered animation" },
@@ -471,7 +478,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "ImageTrailCursor",
 		slug: "image-trail-cursor",
 		description:
-			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 8 selectable variants spanning simple fades, momentum drift, rotation flings, and 3D perspective tilt",
+			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 9 selectable variants spanning simple fades, momentum drift, rotation flings, 3D perspective tilt, and a hard-edge pixelated snap",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -485,7 +492,7 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 			{
 				name: "variant",
-				type: '"type1" | "type2" | ... | "type8"',
+				type: '"type1" | "type2" | ... | "type8" | "pixelated"',
 				default: '"type1"',
 				description: "Animation variant controlling how images appear and move",
 			},
@@ -513,6 +520,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Additional CSS classes for individual squares",
 			},
 			{
+				name: "strokeClassName",
+				type: "string",
+				default: '"stroke-gray-400/30"',
+				description: "Additional CSS classes controlling the square outline color",
+			},
+			{
 				name: "width",
 				type: "number",
 				default: "40",
@@ -530,6 +543,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "[24, 24]",
 				description: "Grid dimensions as [columns, rows]",
 			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether squares respond to hover; when false, renders a static graph-paper grid with no per-rect listeners",
+			},
 		],
 	},
 
@@ -537,7 +557,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "LineHoverLink",
 		slug: "line-hover-link",
 		description:
-			"Link component with 11 animated underline hover effects — pure CSS, no JS on hover",
+			"Link component with 12 animated underline hover effects — pure CSS, no JS on hover",
 		category: "navigation",
 		group: "fancy",
 		status: "done",
@@ -546,7 +566,7 @@ export const registry: Record<string, ComponentMeta> = {
 		props: [
 			{
 				name: "variant",
-				type: '"slide" | "double" | "grow" | "strike" | "fade" | "pulse" | "swap" | "sweep" | "bounce" | "arc" | "scribble"',
+				type: '"slide" | "double" | "grow" | "strike" | "fade" | "pulse" | "swap" | "sweep" | "bounce" | "arc" | "scribble" | "ink"',
 				default: '"slide"',
 				description: "The animation variant",
 			},
@@ -662,6 +682,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "Logo[]",
 				default: "[]",
 				description: "Array of logos with name and image path",
+			},
+			{
+				name: "wordmarks",
+				type: "Wordmark[]",
+				description:
+					"StaticLogoCloud only: when provided, renders a static typographic row of wordmarks instead of image logos",
 			},
 		],
 	},

@@ -1,7 +1,7 @@
 {
 	"name": "fancy-ui-svelte",
 	"private": false,
-	"version": "0.9.1",
+	"version": "0.10.0",
 	"description": "133 UI components for Svelte 5 — core primitives plus WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"author": "Rama Herbin",
 	"funding": "https://github.com/sponsors/RamaHerbin",
@@ -37,6 +37,7 @@
 	],
 	"files": [
 		"dist/fancy-ui",
+		"dist/cameleon",
 		"dist/utils",
 		"dist/utils.js",
 		"dist/utils.d.ts",
@@ -53,6 +54,16 @@
 			"default": "./dist/fancy-ui/index.js"
 		},
 		"./tailwind.css": "./dist/fancy-ui/tailwind.css",
+		"./cameleon": {
+			"types": "./dist/cameleon/index.d.ts",
+			"svelte": "./dist/cameleon/index.js",
+			"default": "./dist/cameleon/index.js"
+		},
+		"./cameleon/retro-kit": {
+			"types": "./dist/cameleon/skins/retro-os/kit/index.d.ts",
+			"svelte": "./dist/cameleon/skins/retro-os/kit/index.js",
+			"default": "./dist/cameleon/skins/retro-os/kit/index.js"
+		},
 		"./cameleon/*": "./dist/cameleon/*"
 	},
 	"scripts": {

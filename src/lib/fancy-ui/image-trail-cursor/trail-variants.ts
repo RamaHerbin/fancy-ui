@@ -12,7 +12,8 @@ export type VariantType =
 	| "type5"
 	| "type6"
 	| "type7"
-	| "type8";
+	| "type8"
+	| "pixelated";
 
 export interface ImageTrailVariant {
 	destroy(): void;
@@ -883,6 +884,47 @@ export class ImageTrailVariant8 extends BaseVariant {
 }
 
 // =============================================================================
+// Variant Pixelated — hard-snap pop-in/pop-out, pixelated + bordered images
+// =============================================================================
+
+export class ImageTrailVariantPixelated extends BaseVariant {
+	private static readonly HOLD = 0.15; // seconds the image stays visible before snapping out
+
+	constructor(container: HTMLDivElement) {
+		super(container);
+		for (const img of this.images) {
+			img.DOM.el.style.imageRendering = "pixelated";
+			img.DOM.el.style.border = "2px solid #191308";
+		}
+	}
+
+	protected showNextImage() {
+		++this.zIndexVal;
+		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		const img = this.images[this.imgPosition];
+
+		gsap.killTweensOf(img.DOM.el);
+		gsap
+			.timeline({
+				onStart: () => this.onImageActivated(),
+				onComplete: () => this.onImageDeactivated(),
+			})
+			.set(
+				img.DOM.el,
+				{
+					opacity: 1,
+					scale: 1,
+					zIndex: this.zIndexVal,
+					x: this.mousePos.x - (img.rect?.width ?? 0) / 2,
+					y: this.mousePos.y - (img.rect?.height ?? 0) / 2,
+				},
+				0
+			)
+			.set(img.DOM.el, { opacity: 0, scale: 0.2 }, ImageTrailVariantPixelated.HOLD);
+	}
+}
+
+// =============================================================================
 // Variant Map
 // =============================================================================
 
@@ -896,4 +938,5 @@ export const variantMap: Record<VariantType, new (container: HTMLDivElement) => 
 		type6: ImageTrailVariant6,
 		type7: ImageTrailVariant7,
 		type8: ImageTrailVariant8,
+		pixelated: ImageTrailVariantPixelated,
 	};

@@ -12,6 +12,8 @@
 		yOffset?: number;
 		/** Additional CSS classes for the container */
 		class?: string;
+		/** Reveal style: "blur" softens in with blur/translate, "hard" snaps opacity with no easing */
+		mode?: "blur" | "hard";
 		/** Content to reveal */
 		children?: Snippet;
 	}
@@ -27,6 +29,7 @@
 		blur = "20px",
 		yOffset = 20,
 		class: className,
+		mode = "blur",
 		children,
 	}: BlurRevealProps = $props();
 
@@ -61,7 +64,7 @@
 	style:--blur-reveal-y="{yOffset}px"
 >
 	{#if children}
-		<div class="blur-reveal-wrapper" class:is-visible={isInView}>
+		<div class="blur-reveal-wrapper" class:is-visible={isInView} class:mode-hard={mode === "hard"}>
 			{@render children()}
 		</div>
 	{/if}
@@ -114,6 +117,18 @@
 	}
 	.blur-reveal-wrapper.is-visible > :global(:nth-child(10)) {
 		transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 9);
+	}
+
+	/* Hard mode: no blur/translate softening, opacity snaps in via a stepped timing function */
+	.blur-reveal-wrapper.mode-hard > :global(*) {
+		opacity: 0;
+		filter: none;
+		transform: none;
+		transition: opacity var(--blur-reveal-duration, 1s) steps(2, jump-none);
+	}
+
+	.blur-reveal-wrapper.mode-hard.is-visible > :global(*) {
+		opacity: 1;
 	}
 
 	/* Respect reduced motion */
