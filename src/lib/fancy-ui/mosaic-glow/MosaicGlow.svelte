@@ -148,13 +148,18 @@
 
 	// --- setup -------------------------------------------------------------------
 
+	/** Backing-store scale, capped so dense displays do not blow up the fill rate. */
+	function currentDpr() {
+		return Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+	}
+
 	function resize() {
 		const host = ref;
 		const canvas = canvasEl;
 		if (!host || !canvas || !ctx) return;
 		cssW = host.clientWidth;
 		cssH = host.clientHeight;
-		dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+		dpr = currentDpr();
 		w = Math.max(1, Math.round(cssW * dpr));
 		h = Math.max(1, Math.round(cssH * dpr));
 		canvas.width = w;
@@ -377,7 +382,8 @@
 		let ro: ResizeObserver | undefined;
 		if (typeof ResizeObserver !== "undefined") {
 			ro = new ResizeObserver(() => {
-				if (host.clientWidth === cssW && host.clientHeight === cssH) return;
+				// Zoom and display moves can change the pixel ratio at a constant CSS size.
+				if (host.clientWidth === cssW && host.clientHeight === cssH && currentDpr() === dpr) return;
 				resize();
 			});
 			ro.observe(host);
@@ -434,6 +440,26 @@
 			dirty = true;
 			if (!ctx) return;
 			if (reducedMotion) drawStatic(haloFade > 0 ? { x: sx, y: sy, r: radiusC * dpr } : null);
+			else requestFrame();
+		});
+	});
+
+	// Loop- and paint-affecting props: restart a stopped loop, repaint a static frame.
+	let visualInit = false;
+	$effect(() => {
+		void idle;
+		void flicker;
+		void radiusC;
+		void intensityC;
+		if (!visualInit) {
+			visualInit = true;
+			return;
+		}
+		untrack(() => {
+			if (!ctx) return;
+			dirty = true;
+			if (reducedMotion)
+				drawStatic(pointerOver ? { x: sx, y: sy, r: radiusC * dpr } : initialHalo());
 			else requestFrame();
 		});
 	});

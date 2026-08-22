@@ -33,12 +33,17 @@ class MockIO {
 
 class MockRO {
 	static instances: MockRO[] = [];
-	constructor(_cb: ResizeObserverCallback) {
+	cb: ResizeObserverCallback;
+	constructor(cb: ResizeObserverCallback) {
+		this.cb = cb;
 		MockRO.instances.push(this);
 	}
 	observe = vi.fn();
 	disconnect = vi.fn();
 	unobserve = vi.fn();
+	trigger() {
+		this.cb([], this as unknown as ResizeObserver);
+	}
 }
 
 const originalMatchMedia = window.matchMedia;
@@ -307,5 +312,52 @@ describe("MosaicGlow", () => {
 		);
 		expect(after.length).toBeGreaterThan(0);
 		expect(after.some((s) => !before.has(s))).toBe(true);
+	});
+
+	it("restarts a stopped loop when idle turns on", async () => {
+		withCanvas();
+		const { rerender } = render(MosaicGlow, { props: { idle: "none", flicker: false } });
+		frame(16);
+		expect(rafCallbacks.length).toBe(0);
+		await rerender({ idle: "drift", flicker: false });
+		expect(rafCallbacks.length).toBe(1);
+	});
+
+	it("restarts a stopped loop when flicker turns on", async () => {
+		withCanvas();
+		const { rerender } = render(MosaicGlow, { props: { idle: "none", flicker: false } });
+		frame(16);
+		expect(rafCallbacks.length).toBe(0);
+		await rerender({ idle: "none", flicker: true });
+		expect(rafCallbacks.length).toBe(1);
+	});
+
+	it("repaints the static frame when radius or intensity changes under reduced motion", async () => {
+		const ctx = withCanvas();
+		stubReducedMotion(true);
+		const { rerender } = render(MosaicGlow, { props: { radius: 100 } });
+		const painted = ctx.fillRect.mock.calls.length;
+		expect(painted).toBeGreaterThan(0);
+		await rerender({ radius: 300 });
+		expect(ctx.fillRect.mock.calls.length).toBeGreaterThan(painted);
+		const afterRadius = ctx.fillRect.mock.calls.length;
+		await rerender({ radius: 300, intensity: 0.4 });
+		expect(ctx.fillRect.mock.calls.length).toBeGreaterThan(afterRadius);
+		expect(raf).not.toHaveBeenCalled();
+	});
+
+	it("rebuilds the backing store when the device pixel ratio changes at a constant size", () => {
+		withCanvas();
+		const { container } = render(MosaicGlow, { props: { idle: "none", flicker: false } });
+		frame(16);
+		const canvas = getHost(container).querySelector("canvas") as HTMLCanvasElement;
+		const before = canvas.width;
+		expect(before).toBeGreaterThan(0);
+		const ro = MockRO.instances[0];
+		ro.trigger();
+		expect(canvas.width).toBe(before); // same size, same ratio → no rebuild
+		vi.stubGlobal("devicePixelRatio", 2);
+		ro.trigger();
+		expect(canvas.width).toBe(before * 2);
 	});
 });
