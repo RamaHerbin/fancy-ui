@@ -46,6 +46,17 @@
 	// Geometry, not just colour, branches on variant: the mockup gives the
 	// segmented pill a tighter box than the underline tab — 6px/12px versus
 	// 8px/13px — not merely a different background.
+	//
+	// Neither branch paints the selection's *shape* any more: the segmented
+	// pill's fill and the underline bar are both drawn by `TabsList`'s single
+	// sliding indicator, which can travel between triggers in a way a
+	// per-trigger background never could. What stays here is the part a
+	// screen reader and a forced-colors user rely on — `aria-selected` below,
+	// and the selected trigger's own foreground colour.
+	//
+	// `ft-tabs-trigger-selected` carries no rules of its own now. It stays in
+	// the class string because it is a published styling hook, and dropping it
+	// would silently break any consumer targeting it.
 	const classes = $derived(
 		cn(
 			"ft-tabs-trigger inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap px-[14px] font-medium transition-colors",
@@ -54,9 +65,7 @@
 			variant === "segmented"
 				? cn(
 						"rounded-md py-[6px] text-[12px]",
-						isSelected
-							? "bg-accent text-accent-foreground"
-							: "text-muted-foreground hover:text-foreground"
+						isSelected ? "text-accent-foreground" : "text-muted-foreground hover:text-foreground"
 					)
 				: cn(
 						"py-2 text-[13px]",
@@ -198,6 +207,7 @@
 	data-ft-tabs-trigger=""
 	data-value={value}
 	data-orientation={orientation}
+	data-variant={variant}
 	id={context?.triggerId(value)}
 	class={classes}
 	disabled={isDisabled}
@@ -214,33 +224,46 @@
 </button>
 
 <style>
-	.ft-tabs-trigger-selected {
-		box-shadow: inset 0 -2px 0 var(--ft-nav-accent);
+	/*
+	 * Lifts every trigger above `TabsList`'s indicator, which sits at
+	 * `z-index: 0` in the same stacking context. Only the segmented variant
+	 * actually overlaps — the pill is painted under the label it belongs to —
+	 * but the rule is unconditional so a consumer restyling the underline
+	 * variant into something that overlaps cannot fall through the floor.
+	 */
+	.ft-tabs-trigger {
+		position: relative;
+		z-index: 1;
 	}
 
-	.ft-tabs-trigger-selected[data-orientation="vertical"] {
-		box-shadow: inset 2px 0 0 var(--ft-nav-accent);
-	}
-
+	/*
+	 * The only `box-shadow` left on this element. It used to have to be
+	 * composited with an `inset` accent bar, because two `box-shadow` rules on
+	 * one element cannot both apply — the more specific simply wins and the
+	 * other disappears. The bar now lives on `TabsList`'s indicator, so the
+	 * focus ring stands alone and is never part of any transition: R13, no
+	 * animated focus.
+	 */
 	.ft-tabs-trigger:focus-visible {
 		box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-nav-accent) 35%, transparent);
 	}
 
 	/*
-	 * The underline and the focus ring are both `box-shadow`, so a selected
-	 * trigger that is also keyboard-focused needs the two composited into
-	 * one declaration rather than letting the plain `:focus-visible` rule
-	 * above silently replace the accent bar underneath it.
+	 * The segmented variant's selection is now painted by `TabsList`'s
+	 * indicator, which repaints as `Highlight` in a forced-colors palette and
+	 * sits *under* this label — whose own colour that same palette forces
+	 * independently, to `ButtonText`. `HighlightText` is the partner the
+	 * palette guarantees contrast against, and a system-colour keyword
+	 * declared inside the query is honoured rather than re-forced, which is
+	 * what makes re-stating it work at all (same mechanism as the indicator's
+	 * own fill, and as `Skeleton`/`TextRoll` elsewhere in the library).
+	 *
+	 * The underline variant needs nothing here: its bar sits on the list's
+	 * edge, not under the label, so the forced `ButtonText` stays legible.
 	 */
-	.ft-tabs-trigger-selected:focus-visible {
-		box-shadow:
-			inset 0 -2px 0 var(--ft-nav-accent),
-			0 0 0 3px color-mix(in oklab, var(--ft-nav-accent) 35%, transparent);
-	}
-
-	.ft-tabs-trigger-selected[data-orientation="vertical"]:focus-visible {
-		box-shadow:
-			inset 2px 0 0 var(--ft-nav-accent),
-			0 0 0 3px color-mix(in oklab, var(--ft-nav-accent) 35%, transparent);
+	@media (forced-colors: active) {
+		.ft-tabs-trigger[data-variant="segmented"][aria-selected="true"] {
+			color: HighlightText;
+		}
 	}
 </style>
