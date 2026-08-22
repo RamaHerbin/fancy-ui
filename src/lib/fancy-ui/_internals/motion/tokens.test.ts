@@ -3,7 +3,7 @@ import { DURATIONS, EASINGS, JS_EASINGS, STAGGER_CAPS, STAGGERS } from "./tokens
 
 describe("tokens", () => {
 	it("DURATIONS matches the frozen ladder (ms)", () => {
-		expect(DURATIONS).toEqual({ fast: 150, base: 300, exit: 200, entrance: 600 });
+		expect(DURATIONS).toEqual({ micro: 80, fast: 150, base: 300, exit: 200, entrance: 600 });
 	});
 
 	it("EASINGS are the frozen cubic-bezier strings", () => {

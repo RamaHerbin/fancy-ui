@@ -20,15 +20,35 @@
  * `JS_EASINGS` below) so a component that needs the SAME curve as both a CSS
  * string (`transition-timing-function`) and a JS easing function (a Svelte
  * transition's `easing` field) never has two numbers to keep in sync.
+ *
+ * One rule about WHERE a consumer may spend these numbers, written down here
+ * rather than left as tribal knowledge held by whichever component happened
+ * to get it right first: colour-only transitions (`color`,
+ * `background-color`, `border-color`) are exempt from
+ * `prefers-reduced-motion` gating — a colour change is not motion, and gating
+ * it only makes a theme flip look broken for the users who asked for less
+ * movement. `transform` / `opacity` / `filter` are NOT exempt and are always
+ * declared inside `@media (prefers-reduced-motion: no-preference)`, with the
+ * resting state as the ungated fallback.
  */
 
 import { expoIn, expoOut } from "svelte/easing";
 
-/** Milliseconds. `fast` = a reversible state flip (press, dim). `base` =
- * the default entrance. `exit` = the default exit (shorter than an
- * entrance — leaving reads faster than arriving). `entrance` = a slower,
- * deliberate reveal (Reveal's default). */
+/** Milliseconds. `micro` = a glyph-scale beat that only reads as a beat (a
+ * stroke draw's lead-in, an icon cross-fade). `fast` = a reversible state
+ * flip (press, dim). `base` = the default entrance. `exit` = the default
+ * exit (shorter than an entrance — leaving reads faster than arriving).
+ * `entrance` = a slower, deliberate reveal (Reveal's default).
+ *
+ * `micro` is deliberately the one rung with no JS consumer: its consumer is
+ * the CSS mirror `--ft-duration-micro: 80ms`, spent by StatusMorph's check
+ * and cross-stroke delays. It is listed here anyway because this file is the
+ * source of truth a component author copies FROM — a rung that exists only
+ * in CSS fallbacks would be exactly the drift this table is meant to stop.
+ * There is one rung at this scale, not two: StatusMorph's paired `160ms` is
+ * written as a literal on purpose rather than tokenised as a second rung. */
 export const DURATIONS = {
+	micro: 80,
 	fast: 150,
 	base: 300,
 	exit: 200,
