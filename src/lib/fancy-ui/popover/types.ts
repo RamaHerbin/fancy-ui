@@ -22,6 +22,17 @@ export interface PopoverContext {
 	readonly dismissible: boolean;
 	/** The real trigger button, once mounted — what the panel anchors against. */
 	readonly triggerRef: HTMLElement | null;
+	/**
+	 * Whether the panel is open. Read by the panel's own exit transition to
+	 * tell an entrance from a departure — Svelte reports `direction: "both"`
+	 * for a single bidirectional `transition:` and cannot distinguish them —
+	 * and by `dismissable`'s `active` gate, so a panel that is already fading
+	 * stops answering Escape and stops counting as the top layer.
+	 *
+	 * The panel still never *writes* this: it closes through `close()`, which
+	 * routes back through the root so `onOpenChange` fires exactly once.
+	 */
+	readonly open: boolean;
 	/** Closes the panel, going through the root's own `open` state so `onOpenChange` fires. */
 	close(): void;
 }

@@ -95,6 +95,15 @@
 		get triggerRef() {
 			return triggerRef;
 		},
+		// A getter, and read at the moment each direction of the panel's
+		// transition starts — not a value copied into the context once. The
+		// panel is mid-exit for 150 ms after `open` flips false, and during
+		// that window Svelte has marked the branch inert and stopped running
+		// its effects, so nothing reactive inside the panel would ever see a
+		// new value. Reading through this getter always does.
+		get open() {
+			return open;
+		},
 		close,
 	};
 	setContext(POPOVER_KEY, context);

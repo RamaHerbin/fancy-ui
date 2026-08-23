@@ -1,5 +1,5 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
-import { createRawSnippet, tick } from "svelte";
+import { createRawSnippet, flushSync, tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import Popover from "./Popover.svelte";
 
@@ -32,6 +32,16 @@ function triggerButton(container: HTMLElement): HTMLButtonElement {
 function panel(container: HTMLElement): HTMLElement | null {
 	// Portalled to document.body, not inside `container`.
 	return document.querySelector(".ft-popover-content");
+}
+
+/** Dispatched raw and NOT awaited, unlike `fireEvent.keyDown`. The exit window
+ * is 150 ms in a browser and a couple of microtasks under the WAAPI stub, so a
+ * helper that awaits a tick of its own would drain it and every assertion about
+ * what is true *during* the fade would silently test nothing. */
+function pressEscape() {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
 }
 
 /** Replaces `window.matchMedia` wholesale, the pattern `media-query.svelte.ts`
@@ -114,8 +124,11 @@ describe("Popover", () => {
 		expect(panel(container)).not.toBeNull();
 
 		await fireEvent.click(btn);
+		// `aria-expanded` still flips synchronously — `open` is unchanged in
+		// that respect — but the panel now outlives it by the length of the
+		// fade, so its removal is the one half that has to be awaited.
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
-		expect(panel(container)).toBeNull();
+		await waitFor(() => expect(panel(container)).toBeNull());
 	});
 
 	it("aria-controls is absent while closed and points at the panel's real id once open", async () => {
@@ -406,6 +419,175 @@ describe("Popover", () => {
 		// never depended on the animation; `{#if open}` alone decides that.
 		expect(animateSpy).not.toHaveBeenCalled();
 		expect(panel(container)).not.toBeNull();
+	});
+
+	// The exit's own regression guards. Between the dismiss and the unmount
+	// there is now a window — 150 ms in a browser, a couple of microtasks
+	// under the WAAPI stub — and these pin what must be true inside it.
+	it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+		expect(panel(container)!.getAttribute("data-state")).toBe("open");
+
+		pressEscape();
+		await tick();
+
+		const closing = panel(container);
+		expect(closing).toBeTruthy();
+		// Written imperatively from `onoutrostart`. A reactive `data-state`
+		// would never reach the DOM: Svelte marks the branch inert before it
+		// plays the outro and the scheduler skips inert effects.
+		expect(closing!.getAttribute("data-state")).toBe("closing");
+		// Svelte sets this itself on any element carrying a `transition:`, for
+		// the whole exit. Asserted here so nobody drops the transition without
+		// noticing that a fading panel would go clickable again on its way out.
+		expect(closing!.inert).toBe(true);
+
+		await waitFor(() => expect(panel(container)).toBeNull());
+	});
+
+	it("leaves on the exit rung: the departure curve, half the entrance's scale delta", async () => {
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+		animateSpy.mockClear();
+
+		pressEscape();
+		await waitFor(() => expect(panel(container)).toBeNull());
+
+		// Svelte samples the transition's `css(t, u)` into these keyframes, so
+		// they are the direct evidence of what the exit animates: from resting
+		// to the `0.96` floor, which is HALF the entrance's delta off `0.92` —
+		// leaving is a smaller gesture than arriving. `duration` is the shared
+		// `DURATIONS.fast`, the same 150 ms the entrance takes, which is the
+		// whole of this rung's timing: an anchored surface passes no timing
+		// params at all.
+		const call = animateSpy.mock.calls.at(-1)!;
+		const keyframes = call[0] as Keyframe[];
+		const options = call[1] as KeyframeAnimationOptions;
+		expect(options.duration).toBe(150);
+		expect(keyframes.at(0)).toMatchObject({ opacity: "1", transform: "scale(1)" });
+		expect(keyframes.at(-1)).toMatchObject({ opacity: "0", transform: "scale(0.96)" });
+	});
+
+	// The a11y contract, and deliberately NOT wrapped in `waitFor`: focus has
+	// to be back on the trigger in the same tick as the dismiss, not when the
+	// fade ends. Svelte sets `inert` on the panel the instant the exit starts,
+	// which drops focus to `<body>` for that whole window unless the trap's
+	// eager-return handle has already moved it.
+	it("returns focus to the trigger at the dismiss instant, while the panel is still fading", async () => {
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+		const btn = triggerButton(container);
+
+		btn.focus();
+		await fireEvent.click(btn);
+		await waitFor(() => {
+			expect(document.activeElement).toBe(document.querySelector('[data-testid="panel-input"]'));
+		});
+
+		pressEscape();
+		await tick();
+
+		expect(panel(container)).not.toBeNull(); // still on screen, fading
+		expect(document.activeElement).toBe(btn);
+	});
+
+	it("swallows a second Escape during the exit — onOpenChange fires exactly once", async () => {
+		const onOpenChange = vi.fn();
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet(), onOpenChange },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+		onOpenChange.mockClear();
+
+		pressEscape();
+		await tick();
+		expect(panel(container)).not.toBeNull(); // still fading
+
+		pressEscape();
+		pressEscape();
+		await tick();
+
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+	});
+
+	// A reopen inside the exit window reverses the outro instead of
+	// remounting, so `use:focusTrap` is never re-created: its initial focus
+	// move does not re-run and its "focus already returned" latch is still
+	// set. Left alone that gives back an interactive panel with focus on the
+	// trigger BEHIND it — untrapped, since the Tab handler is bound to the
+	// panel — and permanently spends the eager return, so no later close of
+	// this instance returns focus at all.
+	it("re-arms the focus trap when the popover is reopened during its exit", async () => {
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+		const btn = triggerButton(container);
+
+		btn.focus();
+		await fireEvent.click(btn);
+		await tick();
+		expect(panel(container)).not.toBeNull();
+
+		pressEscape();
+		await tick();
+		expect(panel(container)).not.toBeNull();
+		expect(document.activeElement).toBe(btn);
+
+		// Reopened SYNCHRONOUSLY on purpose. Under the WAAPI stub the exit
+		// window is two microtasks, and any awaited helper (`fireEvent`,
+		// `tick`) drains them — the branch is then destroyed and re-created,
+		// which mounts a brand-new `focusTrap` and quietly tests nothing.
+		// `flushSync` resumes the same branch, which is the reversal this pins.
+		btn.click();
+		flushSync();
+
+		const reopened = panel(container);
+		expect(reopened).toBeTruthy();
+		expect(reopened!.getAttribute("data-state")).toBe("open");
+		expect(reopened!.contains(document.activeElement)).toBe(true);
+
+		// And the next genuine dismiss still returns focus, rather than
+		// stranding it on a node about to be removed.
+		pressEscape();
+		await tick();
+		expect(document.activeElement).toBe(btn);
+	});
+
+	// `anchored` collapses the duration to 0 under reduced motion, and
+	// Svelte's own falsy-duration fast path then calls `on_finish()`
+	// synchronously and never touches `element.animate()` — so a visitor who
+	// asked for less motion gets exactly the synchronous close this component
+	// had before the exit existed.
+	it("closes synchronously and never animates when the user asked for reduced motion", async () => {
+		stubMatchMedia(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		const { container } = render(Popover, {
+			props: { trigger: textSnippet("Options"), children: panelSnippet() },
+		});
+
+		await fireEvent.click(triggerButton(container));
+		await tick();
+		expect(panel(container)).not.toBeNull();
+
+		pressEscape();
+		await tick();
+
+		expect(panel(container)).toBeNull();
+		expect(animateSpy).not.toHaveBeenCalled();
 	});
 
 	it("merges the class prop onto the panel", async () => {

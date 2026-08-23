@@ -123,17 +123,39 @@ out of the trigger rather than out of its own centre. The resolved placement is
 exposed as `data-side` / `data-align` for consumers that want to key their own
 styling off it.
 
-The entrance is a JS transition, not a CSS animation, so there is no
+It leaves the same way in reverse: 150 ms again, on the departure curve
+(`JS_EASINGS.in`), collapsing to a `0.96` floor — half the entrance's delta,
+because leaving is a smaller gesture than arriving and a full-depth collapse
+reads as the panel being sucked away rather than simply closing. Both
+directions come from a single bidirectional `transition:`, so a popover
+reopened mid-fade continues from wherever it had got to instead of snapping to
+invisible and starting again.
+
+The panel therefore outlives `open` by the length of that fade, and three
+things deliberately do **not** wait for it:
+
+- `open` still flips synchronously, so `bind:open` and `onOpenChange` are
+  unchanged — a second Escape while the panel is fading is swallowed rather
+  than firing the callback twice, and it reaches whatever dismissable layer is
+  underneath instead.
+- Focus returns to the trigger at the dismiss instant, not when the fade ends.
+- The fading panel is `inert` for the whole exit, so it cannot be clicked or
+  tabbed into on its way out.
+
+While it is leaving, the panel carries `data-state="closing"` (it is
+`data-state="open"` the rest of the time) — the hook for a consumer that wants
+to key its own styling off the exit.
+
+Both directions are JS transitions, not CSS animations, so there is no
 `--ft-*` variable to override here; the timing comes from the shared token
 ladder and moves with it.
 
-- **Reduced motion** — no entrance animation at all; the panel simply appears.
-  Its visibility never depended on the animation, so nothing is reachable only
+- **Reduced motion** — no animation in either direction; the panel appears and
+  disappears instantly, and the close is fully synchronous again. Its
+  visibility never depended on the animation, so nothing is reachable only
   through motion.
-- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated.
-- Closing is instant. The entrance is declared with `in:`, never `transition:`,
-  so it can never delay the unmount — which is what keeps the focus trap's
-  return-focus and every dismissal path synchronous.
+- **Touch and coarse pointers** — unchanged; neither direction is
+  pointer-gated.
 
 ## Implementation Notes
 

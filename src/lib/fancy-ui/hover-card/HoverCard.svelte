@@ -50,7 +50,7 @@
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
 	import { anchorPosition } from "../_internals/anchor-position.js";
-	import { anchored, originFor } from "../_internals/motion/anchored.js";
+	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 
 	let {
 		open = $bindable(false),
@@ -174,18 +174,39 @@
 </div>
 
 <!--
-	`in:` and never `transition:`: an entrance must not delay the unmount.
-	`closeDelay` already owns the grace period a pointer needs to travel
-	between the trigger and the card, and it does so *before* the card leaves —
-	stacking an outro on top of it would mean the card is gone from the
-	pointer's point of view while still occupying the DOM, and would make
-	`onOpenChange(false)` and the removal fall out of step.
+	ONE bidirectional `transition:` directive, never a split `in:`/`out:` pair.
+	This is the directive that earns its keep most on a hover surface: pointers
+	change their mind, and a bidirectional directive passes the in-flight
+	counterpart's current position into the fresh call, so a card the pointer
+	comes back to mid-fade continues from where it is instead of snapping to
+	invisible and starting the entrance over. `entering: open` is what tells
+	the transition which way it is going — Svelte reports `direction: "both"`
+	for a bidirectional directive and cannot tell the two apart on its own —
+	and the params are read fresh, outside any reactive context, at the moment
+	each direction starts.
 
-	Reduced motion needs no rule of its own any more: `anchored` collapses the
-	duration to 0, Svelte's own falsy-duration fast path then skips
-	`element.animate()` entirely, and the card appears in the frame it mounts.
-	Its visibility never depended on the animation — `{#if open}` alone decides
-	that — so nothing is reachable only through motion.
+	`closeDelay` and the exit are two different waits and both are wanted.
+	`closeDelay` is the grace period the pointer gets to travel from the
+	trigger to the card, spent BEFORE anything visible happens; the exit is the
+	card leaving, spent after. `open` still flips at the end of the delay, so
+	`onOpenChange(false)` and the caller's `bind:open` are exactly where they
+	were — only the removal now trails it by 150 ms, during which Svelte marks
+	this node `inert` so the card the pointer has already abandoned cannot be
+	interacted with on its way out. `dismissable` is disarmed at that same
+	instant through `active`, so an Escape during the fade reaches whatever
+	layer is underneath rather than being swallowed by a card that is leaving.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays the
+	outro and the scheduler skips inert effects, so a reactive `data-state={…}`
+	would never reach the DOM on a real close.
+
+	Reduced motion needs no rule of its own: `anchored` collapses the duration
+	to 0, Svelte's own falsy-duration fast path then skips `element.animate()`
+	entirely, and the card appears and disappears in the frame it mounts and
+	unmounts — the close is fully synchronous again. Its visibility never
+	depended on the animation — `{#if open}` alone decides that — so nothing is
+	reachable only through motion.
 -->
 {#if open}
 	<div
@@ -200,14 +221,20 @@
 			offset,
 			onPlacement: (placed) => (resolvedSide = placed),
 		}}
-		use:dismissable={{ onDismiss: () => setOpen(false), exclude: () => [ref] }}
-		in:anchored={{ side: resolvedSide }}
+		use:dismissable={{
+			onDismiss: () => setOpen(false),
+			exclude: () => [ref],
+			active: () => open,
+		}}
+		transition:anchored={{ side: resolvedSide, entering: open }}
 		data-state="open"
 		data-side={resolvedSide}
 		data-align={align}
 		style:transform-origin={originFor(resolvedSide, align)}
 		onpointerenter={clearCloseTimer}
 		onpointerleave={scheduleClose}
+		onintrostart={(e) => markSurfaceState(e, "open")}
+		onoutrostart={(e) => markSurfaceState(e, "closing")}
 	>
 		{@render children?.()}
 	</div>
