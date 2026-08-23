@@ -1,7 +1,8 @@
-import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { createRawSnippet } from "svelte";
+import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
+import { createRawSnippet, tick } from "svelte";
 import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import Button from "./Button.svelte";
+import LeadHarness from "./ButtonLeadHarness.test.svelte";
 import type { ButtonSize, ButtonVariant } from "./types.js";
 import { sound } from "../sound/sound.svelte.js";
 
@@ -13,8 +14,28 @@ function root(container: HTMLElement) {
 	return container.firstElementChild as HTMLElement;
 }
 
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh on every call, and the
+ * lead fade reads it from its transition params thunk, so an override
+ * installed before a render is visible to the very next swap. */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
 describe("Button", () => {
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
 	it("renders a real button with children as its label", () => {
 		const { container } = render(Button, { props: { children: snippet("<span>Save</span>") } });
@@ -270,6 +291,124 @@ describe("Button", () => {
 		// part. `hover:bg-primary/90` is a different variant group, so it is left
 		// alone; only the base `bg-primary` is a real conflict with `bg-red-500`.
 		expect(classList).not.toContain("bg-primary");
+	});
+
+	// The scoped `<style>` now declares a `transition` shorthand on this same
+	// element, so the press scale can join the colour channel under
+	// `prefers-reduced-motion: no-preference`. Svelte's scoped CSS is unlayered
+	// and Tailwind's utilities sit in `@layer utilities`, so leaving
+	// `transition-colors` on the class string would read as a colour transition
+	// that silently never ran.
+	it("drops the transition-colors utility in favour of the hand-written channel", () => {
+		const { container } = render(Button, { props: { children: snippet("<span>Go</span>") } });
+		expect(root(container).className).not.toContain("transition-colors");
+	});
+
+	describe("lead slot", () => {
+		const leadProps = {
+			iconStart: snippet('<span class="my-icon-start">+</span>'),
+			children: snippet("<span>Save</span>"),
+		};
+
+		function toggleOf(container: HTMLElement) {
+			return container.querySelector<HTMLButtonElement>('[data-testid="toggle"]')!;
+		}
+
+		it("wraps iconStart in the shared lead cell, exposed to assistive tech", () => {
+			const { container } = render(Button, { props: leadProps });
+			const lead = container.querySelector(".ft-btn-lead");
+
+			expect(lead).toBeTruthy();
+			expect(lead?.querySelector(".my-icon-start")).toBeTruthy();
+			// Not loading: nothing here is decorative, so the caller's own icon
+			// markup keeps whatever accessible treatment the caller gave it.
+			expect(lead?.hasAttribute("aria-hidden")).toBe(false);
+		});
+
+		it("renders no lead cell at all when there is neither a spinner nor an iconStart", () => {
+			const { container } = render(Button, {
+				props: { children: snippet("<span>Save</span>") },
+			});
+			expect(container.querySelector(".ft-btn-lead")).toBeNull();
+		});
+
+		it("keeps aria-busy on the control and aria-hidden on the cell, never the other way round", () => {
+			const { container } = render(Button, { props: { ...leadProps, loading: true } });
+			const el = root(container);
+			const lead = container.querySelector(".ft-btn-lead")!;
+
+			expect(el.getAttribute("aria-busy")).toBe("true");
+			expect(el.hasAttribute("aria-hidden")).toBe(false);
+			expect(lead.getAttribute("aria-hidden")).toBe("true");
+			expect(lead.hasAttribute("aria-busy")).toBe(false);
+		});
+
+		it("renders the same lead cell on the anchor branch", () => {
+			const { container } = render(Button, {
+				props: { ...leadProps, href: "https://example.com" },
+			});
+			const lead = container.querySelector(".ft-btn-lead");
+
+			expect(root(container).tagName).toBe("A");
+			expect(lead?.querySelector(".my-icon-start")).toBeTruthy();
+		});
+
+		// The proof the cross-fade exists at all. Every static-render assertion
+		// above and at `:101` stays green whether or not the fade was ever wired
+		// up, because a local transition never plays on the initial render of the
+		// block that owns it — only a live toggle can tell the two apart.
+		it("holds the icon and the spinner in the DOM together for the length of the cross-fade", async () => {
+			const { container } = render(LeadHarness);
+			const toggle = toggleOf(container);
+
+			expect(container.querySelector(".my-icon-start")).toBeTruthy();
+			expect(container.querySelector(".ft-btn-spinner")).toBeNull();
+
+			toggle.click();
+			await tick();
+
+			// Both mounted, sharing the one grid cell: that overlap IS the fade.
+			// Without it the icon would already be gone in this same flush.
+			expect(container.querySelector(".ft-btn-spinner")).toBeTruthy();
+			expect(container.querySelector(".my-icon-start")).toBeTruthy();
+
+			// And it settles on the spinner alone once the fade finishes.
+			await waitFor(() => expect(container.querySelector(".my-icon-start")).toBeNull());
+			expect(container.querySelector(".ft-btn-spinner")).toBeTruthy();
+		});
+
+		it("cross-fades back the other way when loading clears", async () => {
+			const { container } = render(LeadHarness);
+			const toggle = toggleOf(container);
+
+			toggle.click();
+			await waitFor(() => expect(container.querySelector(".my-icon-start")).toBeNull());
+
+			toggle.click();
+			await tick();
+
+			expect(container.querySelector(".my-icon-start")).toBeTruthy();
+			expect(container.querySelector(".ft-btn-spinner")).toBeTruthy();
+
+			await waitFor(() => expect(container.querySelector(".ft-btn-spinner")).toBeNull());
+			expect(container.querySelector(".my-icon-start")).toBeTruthy();
+		});
+
+		it("reduced motion: the swap is synchronous, with no window where both are mounted", async () => {
+			stubReducedMotion(true);
+
+			const { container } = render(LeadHarness);
+			const toggle = toggleOf(container);
+
+			toggle.click();
+			await tick();
+
+			// Duration 0 makes Svelte skip `element.animate()` entirely, so the
+			// outgoing icon is gone in the same flush that mounts the spinner —
+			// exactly the behaviour this button had before the fade existed.
+			expect(container.querySelector(".ft-btn-spinner")).toBeTruthy();
+			expect(container.querySelector(".my-icon-start")).toBeNull();
+		});
 	});
 
 	describe("sound", () => {
