@@ -1,4 +1,5 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import FileUpload from "./FileUpload.svelte";
 import ValueHarness from "./FileUploadHarness.test.svelte";
@@ -26,8 +27,99 @@ function removeButtons(container: HTMLElement): NodeListOf<HTMLButtonElement> {
 	return container.querySelectorAll("[data-file-remove]");
 }
 
+function progressFill(container: HTMLElement): HTMLElement {
+	return container.querySelector(".ft-file-upload-progress-fill") as HTMLElement;
+}
+
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh every time a transition
+ * starts, so an override installed before a click is visible to that click. */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: matches && query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/**
+ * Parks every real transition animation so an exit window stays open for as
+ * long as a test wants it. `src/test-setup.ts`'s stub resolves `onfinish` on a
+ * microtask, which is right for suites that just want the DOM to settle but
+ * wrong here: it compresses a 200 ms exit into less than one tick, so the state
+ * a browser actually spends that 200 ms in — leaving row still mounted, still
+ * `inert` — is never observable.
+ *
+ * Svelte issues two `animate()` calls per transition (see
+ * `svelte/src/internal/client/dom/elements/transitions.js`): a zero-length dummy
+ * whose `onfinish` builds the real keyframes, then the real one. The dummy still
+ * resolves on a microtask; only the real one is held. Returns a `release()` that
+ * finishes everything held so far.
+ */
+function holdExits() {
+	const parked: Array<() => void> = [];
+	const spy = vi.spyOn(Element.prototype, "animate").mockImplementation((_keyframes, options) => {
+		const animation = {
+			playState: "running",
+			currentTime: 0,
+			startTime: 0,
+			effect: null as unknown,
+			onfinish: null as (() => void) | null,
+			oncancel: null as (() => void) | null,
+			cancelled: false,
+			cancel() {
+				this.cancelled = true;
+				this.playState = "idle";
+			},
+			finish() {},
+			play() {},
+			pause() {},
+			reverse() {},
+			updatePlaybackRate() {},
+			commitStyles() {},
+			persist() {},
+			addEventListener() {},
+			removeEventListener() {},
+		};
+		const fire = () => {
+			if (animation.cancelled) return;
+			animation.playState = "finished";
+			animation.onfinish?.();
+		};
+		if (
+			typeof options === "object" &&
+			options &&
+			typeof options.duration === "number" &&
+			options.duration > 0
+		) {
+			parked.push(fire);
+		} else {
+			queueMicrotask(fire);
+		}
+		return animation as unknown as Animation;
+	});
+
+	return {
+		release() {
+			const pending = parked.splice(0);
+			for (const fire of pending) fire();
+		},
+		restore() {
+			spy.mockRestore();
+		},
+	};
+}
+
 describe("FileUpload", () => {
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
 	it("renders a real file input behind the drop zone, plus the prompt and hint", () => {
 		const { container } = render(FileUpload, { props: { hint: "PNG, SVG — 4 MB max" } });
@@ -232,6 +324,121 @@ describe("FileUpload", () => {
 		expect(bar.hasAttribute("aria-valuenow")).toBe(false);
 		expect(bar.getAttribute("aria-valuemin")).toBe("0");
 		expect(bar.getAttribute("aria-valuemax")).toBe("100");
+	});
+
+	// The determinate bar is driven by `transform: scaleX(var(...))`, so the
+	// value has to reach CSS as a 0–1 ratio on a custom property rather than as
+	// an inline `width` percentage. Asserting on the property is the only way to
+	// catch a regression back to `width`: jsdom computes no transform, so the
+	// rendered geometry proves nothing either way.
+	it("carries determinate progress as a 0–1 ratio on a custom property, never as an inline width", () => {
+		const entry: UploadFile = {
+			id: "1",
+			file: makeFile("logo.svg"),
+			progress: 70,
+			status: "uploading",
+		};
+		const { container } = render(FileUpload, { props: { files: [entry] } });
+		const fill = progressFill(container);
+
+		expect(fill.style.getPropertyValue("--ft-fileupload-progress")).toBe("0.7");
+		expect(fill.style.width).toBe("");
+	});
+
+	it("omits the progress custom property entirely while progress is null", () => {
+		const entry: UploadFile = {
+			id: "1",
+			file: makeFile("logo.svg"),
+			progress: null,
+			status: "uploading",
+		};
+		const { container } = render(FileUpload, { props: { files: [entry] } });
+		const fill = progressFill(container);
+
+		// `null`, not `""`, is what the `style:` directive treats as "omit" — an
+		// empty string would write the property with no value and leave the
+		// indeterminate block sitting at `scaleX()` of nothing.
+		expect(fill.style.getPropertyValue("--ft-fileupload-progress")).toBe("");
+		expect(fill.classList.contains("ft-file-upload-progress-indeterminate")).toBe(true);
+	});
+
+	// A row leaves through an `out:` transition now, so `open`-flips-then-node-
+	// goes stops being one step. The row must still be in the DOM while it fades,
+	// and Svelte must have marked it `inert` for the whole of it — a closing row
+	// is not something a pointer or a screen reader should be able to reach.
+	it("keeps a removed row mounted and inert for the length of its exit, then drops it", async () => {
+		const held = holdExits();
+		try {
+			const entries: UploadFile[] = [
+				{ id: "1", file: makeFile("a.txt"), progress: null, status: "pending" },
+				{ id: "2", file: makeFile("b.txt"), progress: null, status: "pending" },
+			];
+			const { container } = render(FileUpload, { props: { files: entries } });
+			expect(rows(container)).toHaveLength(2);
+
+			removeButtons(container)[0].click();
+			await tick();
+
+			// Still two rows: the first one is on its way out, not gone.
+			expect(rows(container)).toHaveLength(2);
+			expect(rows(container)[0].inert).toBe(true);
+			expect(rows(container)[0].textContent).toContain("a.txt");
+
+			held.release();
+			await waitFor(() => expect(rows(container)).toHaveLength(1));
+			expect(container.textContent).not.toContain("a.txt");
+		} finally {
+			held.restore();
+		}
+	});
+
+	// The regression the id-based lookup in `removeFile` exists to stop: while the
+	// removed row is still animating out it is still in the DOM AND `inert`, so a
+	// DOM-order lookup would hand focus to the button that is leaving — which a
+	// real browser refuses to focus, dropping focus onto <body>, exactly where
+	// that code exists to stop it landing.
+	it("moves focus to the surviving row while the removed one is still leaving", async () => {
+		const held = holdExits();
+		try {
+			const entries: UploadFile[] = [
+				{ id: "1", file: makeFile("a.txt"), progress: null, status: "pending" },
+				{ id: "2", file: makeFile("b.txt"), progress: null, status: "pending" },
+			];
+			const { container } = render(FileUpload, { props: { files: entries } });
+
+			removeButtons(container)[0].click();
+			await tick();
+			await tick();
+
+			expect(rows(container)).toHaveLength(2);
+			expect((document.activeElement as HTMLElement)?.getAttribute("aria-label")).toBe(
+				"Remove b.txt"
+			);
+		} finally {
+			held.restore();
+		}
+	});
+
+	// The §1.2 fast path: `duration: 0` makes Svelte call `on_finish()`
+	// synchronously and never touch `element.animate()`, so a visitor who asked
+	// for less motion gets exactly the synchronous removal this list had before
+	// the exit existed.
+	it("removes a row synchronously and never animates when the user asked for reduced motion", async () => {
+		stubReducedMotion(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		const entries: UploadFile[] = [
+			{ id: "1", file: makeFile("a.txt"), progress: null, status: "pending" },
+			{ id: "2", file: makeFile("b.txt"), progress: null, status: "pending" },
+		];
+		const { container } = render(FileUpload, { props: { files: entries } });
+
+		removeButtons(container)[0].click();
+		await tick();
+
+		expect(rows(container)).toHaveLength(1);
+		expect(container.textContent).not.toContain("a.txt");
+		expect(animateSpy).not.toHaveBeenCalled();
+		animateSpy.mockRestore();
 	});
 
 	it("removing a row drops it from the list and moves focus to the row that took its place", async () => {
