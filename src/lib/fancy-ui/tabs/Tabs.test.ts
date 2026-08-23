@@ -217,6 +217,58 @@ describe("Tabs", () => {
 		expect(panels(container)[0].getAttribute("tabindex")).toBe("0");
 	});
 
+	// The panel entrance is `in:` only, deliberately: an outgoing panel has
+	// nowhere to be stacked (these are siblings the caller places by hand), so
+	// it cuts away exactly as it always did while the arriving one fades in.
+	// That is also why not one assertion above had to learn to wait — `in:`
+	// never delays an unmount.
+	describe("panel entrance", () => {
+		it("fades the arriving panel in, and leaves the first render alone", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				await tick();
+				// A panel that starts selected simply appears: a local `in:`
+				// runs only once the block that owns it has already run.
+				expect(animateSpy).not.toHaveBeenCalled();
+
+				// A raw click, then ONE tick: `fireEvent` awaits a tick of its
+				// own, which is enough for the stubbed Web Animations API to
+				// resolve and for the assertion below to miss the window.
+				byLabel(container, "Security").click();
+				await tick();
+
+				const arrived = panels(container);
+				// The panel being left is gone in the same tick, not lingering
+				// behind the new one for the length of the fade.
+				expect(arrived).toHaveLength(1);
+				expect(arrived[0].textContent).toBe("Panel Security");
+				expect(animateSpy.mock.contexts).toContain(arrived[0]);
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("reduced motion: the arriving panel is swapped in without animating at all", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				await tick();
+
+				byLabel(container, "Security").click();
+				await tick();
+
+				expect(panels(container)[0].textContent).toBe("Panel Security");
+				// `duration: 0` makes Svelte call its own finish callback
+				// synchronously and never touch `element.animate()`.
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+	});
+
 	it("selects on click and moves both the roving tabindex and DOM focus there", async () => {
 		const onValueChange = vi.fn();
 		const { container } = render(Harness, {

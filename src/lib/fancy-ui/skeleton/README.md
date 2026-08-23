@@ -45,8 +45,17 @@ line's width and keeps the announcement to a single region.
 becomes the real content container once loading flips false — in that mode,
 prefer `variant="text"` (bones bring their own `0.85em` height) and set width
 only; a `rect`-variant wrapper needs its own `h-*` class or the bone falls
-back to a `0.85em` minimum, which may not match what the swapped-in content
-needs.
+back to a `0.85em` minimum.
+
+**Bones and content are rarely the same height, and the reveal is built around
+that rather than against it.** When `loading` flips false the real content
+takes its final place immediately and the outgoing bones become an
+out-of-flow overlay that fades out over it (see [Motion](#motion)). So the
+content is what sizes the container from the first frame — it never overshoots
+to whichever layer is taller and then settles — and any difference between the
+two heights shows as bones dissolving over content, not as a jump. Sizing the
+wrapper for the bones alone still matters for the loading state itself, which
+is the whole time before the swap.
 
 ## Theming
 
@@ -80,12 +89,24 @@ against both white and near-black. Which half applies is decided by
 
 ## Motion
 
+- **The reveal.** In wrapping mode the bones do not cut to the content, they
+  fade out on top of it. The instant `loading` goes false the real content is
+  rendered in its final, unwrapped position and the bones are re-parented into
+  an `aria-hidden`, `pointer-events: none` overlay pinned over the root, which
+  fades to nothing over `200ms` (`DURATIONS.exit`) on the `JS_EASINGS.in`
+  curve — opacity only, no transform. The content is queryable and clickable
+  from the first frame; nothing waits for the fade. Standalone mode (no
+  `children`) has nothing to reveal — `loading={false}` renders nothing at all
+  — so it gets no fade, by design.
 - **Reduced motion.** The shimmer and pulse `@keyframes` live entirely inside
   `@media (prefers-reduced-motion: no-preference)`. With the preference set,
   every bone holds its flat rest colour — still a legible loading cue, just
-  static.
-- **Touch and coarse pointers.** Nothing here is pointer-driven; the shimmer and
-  pulse run identically regardless of input type.
+  static. The reveal collapses to `duration: 0`, which makes Svelte skip
+  `element.animate()` outright and remove the overlay in the same tick: an
+  instant swap, exactly the behaviour this component had before the fade
+  existed.
+- **Touch and coarse pointers.** Nothing here is pointer-driven; the shimmer,
+  the pulse and the reveal run identically regardless of input type.
 - **Timing.** Shimmer and pulse both run a `1.6s` `linear` / `ease-in-out` loop.
   The shimmer is a `::after` overlay animated with `transform: translateX()`
   only (never `background-position`), so it stays compositor-only. `:dir(rtl)`
@@ -108,12 +129,25 @@ aria-live="polite"`, with every bone `aria-hidden="true"` and one
   primary, reliable machine-readable signal here; the inner status span is a
   best-effort announcement that some assistive tech may suppress while its
   own ancestor subtree is marked busy.
+- **Nothing lingers into the fade except pixels.** `aria-busy`, `data-loading`
+  and the `role="status"` span are all dropped in the same update `loading`
+  flips in — a live region that outlived its own announcement would be exactly
+  the bug the mode is shaped to avoid. What stays on screen for the length of
+  the fade is the bones overlay alone, and it is `aria-hidden="true"` and
+  `pointer-events: none`, so neither a screen reader nor a pointer can reach
+  it.
 
 ## Implementation notes
 
-- **Cleanup.** No listener, observer, or timer to tear down — motion is fully
-  CSS-gated, and the only effect (phase sync) reads `document.timeline` once
-  per mount with no subscription.
+- **Cleanup.** No listener, observer, or timer to tear down — the shimmer and
+  pulse are fully CSS-gated, the reveal is a Svelte transition Svelte tears
+  down itself, and the two effects (phase sync, and arming the reveal) hold no
+  subscription.
+- **The root is a containing block.** `.ft-skeleton` carries
+  `position: relative`, so the bones overlay can pin itself to the root while
+  it fades. `display: block` is unchanged. This only matters to a consumer who
+  was relying on the skeleton root _not_ being the containing block for an
+  absolutely positioned descendant of their own content.
 - **SSR.** Server HTML renders the complete bones/label markup with JS off;
   `--ft-skeleton-phase` is added client-side only, after the mount effect reads
   `document.timeline` — its absence never blocks the shimmer, which just falls

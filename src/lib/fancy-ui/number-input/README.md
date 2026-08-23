@@ -123,6 +123,9 @@ the surrounding field supplies `controlId`, `aria-describedby`,
 - Typing is not clamped keystroke-by-keystroke — that would make it
   impossible to type "50" past a lower number without every intermediate
   digit getting clipped. Clamping happens on blur instead.
+- **The one timer.** Stepping raises `data-stepping` for 80 ms (see
+  [Motion](#motion)) through a single `setTimeout` that is re-armed rather
+  than stacked, and cleared on unmount. Nothing else here schedules anything.
 
 ## Theming
 
@@ -154,6 +157,16 @@ literal default, so setting neither is the supported default:
   150 ms (`--ft-duration-fast`) on `--ft-ease-inout`. That is the whole of the
   press feedback: repeating a step should feel like pressing a key, not like
   starting an animation.
+- **The arrow keys get the same feedback, from the same rule.** A pointer press
+  paints itself through `:active`; a key press has no `:active` to paint, so
+  stepping with ArrowUp/ArrowDown raises `data-stepping="true"` on the matching
+  button for 80 ms (`DURATIONS.micro`) and the stylesheet extends the `:active`
+  selector to cover it. One shared visual answer to "that stepper just fired",
+  whichever device fired it — no second keyframe, and so nothing to restart
+  when a held key repeats. A held key re-arms the same timer rather than
+  stacking new ones, so the feedback holds for the whole repeat instead of
+  dropping out inside it. Typing never raises it: the flag is set on an actual
+  step and nowhere else.
 - The hover colour change on those buttons runs on the same 150 ms clock. It is
   written by hand in the component's scoped stylesheet rather than by the
   `transition-colors` utility, which the scoped `transition` shorthand on the
@@ -162,10 +175,12 @@ literal default, so setting neither is the supported default:
   press all land the new number instantly — a digit that pops on every
   keystroke fights the typing instead of acknowledging it.
 - **Reduced motion.** The press scale is declared inside
-  `@media (prefers-reduced-motion: no-preference)`. Without the preference the
+  `@media (prefers-reduced-motion: no-preference)`. With the preference set the
   press is acknowledged with an `opacity: 0.85` fade instead — never both at
   once — and that fade is declared outside the query, so a browser that
-  supports neither still shows a pressed state.
+  supports neither still shows a pressed state. `data-stepping` is a state
+  flag, not motion, so it is raised either way; the query only decides which of
+  those two declarations it drives.
 - **Touch and coarse pointers.** `:active` is exactly the affordance a finger
   gets, so the press feedback is not suppressed on touch. Both buttons carry
   `touch-action: manipulation`, which removes the browser's ~300 ms tap delay
