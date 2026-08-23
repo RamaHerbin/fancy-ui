@@ -196,34 +196,52 @@ reasoning if you add a portalled read of the accent to either later.
 
 ## Motion
 
-The panel enters with a 150 ms opacity + scale rise (`DURATIONS.fast` and
-`JS_EASINGS.out`, the shared rung every floating surface in the library is
-on), growing from a `0.92` floor. The growth origin follows the side the panel
-was actually placed on — flipped placements included — so it always appears to
-come out of the click rather than out of its own centre. Exposed as
-`data-side` / `data-align` for consumers that want to key their own styling
-off the resolved placement.
+The panel rises over 150 ms on the shared arrival curve (`DURATIONS.fast` and
+`JS_EASINGS.out`, the rung every floating surface in the library is on),
+growing from a `0.92` floor, and reverses over the same 150 ms on the
+departure curve (`JS_EASINGS.in`) — collapsing only to `0.96`, half the depth,
+because leaving is a smaller gesture than arriving. The growth origin follows
+the side the panel was actually placed on — flipped placements included — so
+it appears to come out of the click, and to fold back into it, rather than out
+of its own centre. Exposed as `data-side` / `data-align` for consumers that
+want to key their own styling off the resolved placement.
 
-The entrance is a Svelte transition rather than a keyframe, so there is no
-`--ft-*` variable on the panel to retime it; reduced motion is the one switch.
+One bidirectional Svelte transition drives both directions, not a keyframe, so
+there is no `--ft-*` variable on the panel to retime it; reduced motion is the
+one switch.
 
 - This is the panel where the origin earns its keep. The anchor is a
   zero-size point at the pointer, so a right-click low in the viewport, or
   far to the right of it, flips the placement as a matter of routine — and
-  the corner the menu grows from flips with it.
+  the corner the menu grows from, and collapses back into, flips with it.
 - Only `opacity` and `transform` animate, and only on the panel itself.
 - A submenu opened from here is `dropdown-menu`'s `SubContent` (see "Shared
-  implementation"), so it gets exactly the same entrance, growing from the
-  edge nearest the row that opened it.
-- **Focus is never animated.** The first item is focused in the same tick the
-  panel mounts, entrance running or not.
-- **Reduced motion** — no entrance animation at all; the panel simply appears.
-  Visibility never depended on the animation: `{#if root.open}` owns the
-  panel's DOM existence, and the entrance is layered on top of that.
-- **Touch and coarse pointers** — unchanged; the entrance is not
+  implementation"), so it gets exactly the same motion, growing from the edge
+  nearest the row that opened it and leaving on the same clock as the panel
+  that owns it.
+- **The close is not deferred, only the removal is.** `open` still flips the
+  instant you dismiss, and `onOpenChange` fires once and immediately. What
+  waits is the panel leaving the DOM.
+- **Focus is never animated, and never waits.** The first item is focused in
+  the same tick the panel mounts; on the way out, whatever had focus before
+  the right-click gets it back at the dismiss instant rather than at the end
+  of the fade — `ContextMenu`'s own `setOpen` does that, so this surface needs
+  no focus trap. `data-state="closing"` is set on the panel for the length of
+  the exit, and the framework marks it `inert` for the same window, so a menu
+  on its way out cannot take a click.
+- **A second Escape during the fade reaches whatever is underneath.** The
+  dismiss layer stops answering the moment `open` is false, so it neither
+  fires again nor swallows the key on its way to the surface below. A second
+  right-click mid-fade reopens the same panel by reversing the exit, rather
+  than stacking another one on top of it.
+- **Reduced motion** — no animation at all in either direction; the panel
+  simply appears and disappears, and the close is fully synchronous again,
+  exactly as it was before this component animated out. Visibility never
+  depended on the animation: `{#if root.open}` owns the panel's DOM existence,
+  and the motion is layered on top of that.
+- **Touch and coarse pointers** — unchanged; neither direction is
   pointer-gated. A long-press-driven `contextmenu` event opens exactly as a
   right-click does.
-- Closing is instant.
 
 ## Implementation notes
 
@@ -247,9 +265,12 @@ The entrance is a Svelte transition rather than a keyframe, so there is no
 - `ContextMenuContent` carries no `focusTrap`/`lockScroll`, same as
   `DropdownMenuContent` — not modal, the rest of the page stays reachable.
 - `{#if root.open}` gates the panel's entire DOM existence, same reasoning
-  as `DropdownMenuContent` — the shared entrance (`in:anchored`, from
-  `_internals/motion/anchored.js`) is layered on top, not load-bearing for
-  whether the panel exists at all.
+  as `DropdownMenuContent` — the shared motion (one bidirectional
+  `transition:anchored`, from `_internals/motion/anchored.js`) is layered
+  on top, not load-bearing for whether the panel exists at all. The one
+  thing the exit changes is _when_ the panel leaves: `root.open` still
+  flips at the dismiss instant, but the node stays mounted (and `inert`)
+  until the fade finishes.
 - Item font-size lives on `ContextMenuContent` (`text-[12px]`, this
   family's own density), not on the shared item components — see
   `dropdown-menu/README.md`'s Implementation notes for the full reasoning,

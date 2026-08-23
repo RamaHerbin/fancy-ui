@@ -1,4 +1,4 @@
-import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import NavigationMenu from "./NavigationMenu.svelte";
@@ -178,8 +178,11 @@ describe("NavigationMenu", () => {
 		expect(panel()).not.toBeNull();
 
 		await fireEvent.click(trigger);
-		expect(panel()).toBeNull();
+		// `aria-expanded` flips synchronously — nothing a consumer can observe
+		// waits for the fade. Only the panel's DOM removal is deferred, so
+		// only that assertion waits.
 		expect(trigger.getAttribute("aria-expanded")).toBe("false");
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("switches to a different trigger on click immediately, with no delay", async () => {
@@ -212,7 +215,7 @@ describe("NavigationMenu", () => {
 		expect(panel()).not.toBeNull();
 
 		await fireEvent.pointerDown(document.body);
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("opens after openDelay on pointerenter, not a moment before", async () => {
@@ -240,7 +243,7 @@ describe("NavigationMenu", () => {
 		pointerLeave(trigger);
 		await vi.advanceTimersByTimeAsync(1000);
 
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("closes after closeDelay once the pointer leaves the trigger without reaching the panel", async () => {
@@ -256,7 +259,7 @@ describe("NavigationMenu", () => {
 		expect(panel()).not.toBeNull();
 
 		await vi.advanceTimersByTimeAsync(1);
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("stays open when the pointer travels from the trigger into the panel before closeDelay elapses", async () => {
@@ -289,7 +292,7 @@ describe("NavigationMenu", () => {
 		expect(panel()).not.toBeNull();
 
 		await vi.advanceTimersByTimeAsync(1);
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("switches to a different trigger on hover immediately, with no re-delay, once something is already open", async () => {
@@ -339,13 +342,13 @@ describe("NavigationMenu", () => {
 
 		trigger.focus();
 		await tick();
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 
 		// Give a delayed, focus-triggered open every chance to fire too — a
 		// handler that schedules through the same hover-intent timer instead
 		// of opening synchronously would slip past the assertion above.
 		await vi.advanceTimersByTimeAsync(1000);
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("closes on Escape and returns focus to the trigger", async () => {
@@ -358,8 +361,13 @@ describe("NavigationMenu", () => {
 		pressEscape();
 		await tick();
 
-		expect(panel()).toBeNull();
+		// Deliberately asserted BEFORE the panel is gone, and deliberately
+		// unwrapped: the focus return is `NavigationMenu`'s own `close()`,
+		// a plain function outside the `{#if}`, so it lands at the dismiss
+		// instant rather than at the end of the fade. Wrapping this in
+		// `waitFor` would silently delete that requirement.
 		expect(document.activeElement).toBe(trigger);
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	// The failure this pins down: HoverCard-style surfaces that also open on
@@ -380,13 +388,15 @@ describe("NavigationMenu", () => {
 
 		pressEscape();
 		await tick();
-		expect(panel()).toBeNull();
+		// Unwrapped for the same reason as the test above: the return is
+		// eager, not deferred to the end of the exit.
 		expect(document.activeElement).toBe(trigger);
+		await waitFor(() => expect(panel()).toBeNull());
 
 		// No new pointerenter is dispatched — the pointer never left, so a
 		// real one never fires again either. Only a bug would reopen from here.
 		await vi.advanceTimersByTimeAsync(1000);
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("gives exactly one trigger tabindex 0, defaulting to the first", () => {
@@ -469,10 +479,10 @@ describe("NavigationMenu", () => {
 		elsewhere.focus();
 		await tick();
 
-		expect(panel()).toBeNull();
 		// Focus lands wherever the browser actually put it — nothing here
 		// forces it back onto the trigger the way Escape's `close()` does.
 		expect(document.activeElement).toBe(elsewhere);
+		await waitFor(() => expect(panel()).toBeNull());
 		elsewhere.remove();
 	});
 
@@ -607,6 +617,89 @@ describe("NavigationMenu", () => {
 			// A zero duration makes Svelte skip `element.animate()` outright
 			// rather than run a zero-length animation, so no call at all is
 			// the honest proof that nothing was scheduled.
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	// The exit is new, and with it a window between the dismiss and the
+	// unmount — 150 ms in a browser, a couple of microtasks under the WAAPI
+	// stub. These pin what has to be true inside it. Nothing a consumer can
+	// observe waits for it: `value` still flips at the dismiss instant, so do
+	// the triggers' `aria-expanded`, and so does the focus return, which
+	// `NavigationMenu`'s own `close()` does from a plain function outside the
+	// `{#if}`.
+	describe("animated exit", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(Harness, { props: { items: TWO_ITEMS } });
+			await fireEvent.click(triggerByLabel(container, "Products"));
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = panel();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`: a reactive
+			// `data-state` would never reach the DOM, because Svelte marks
+			// the branch inert before it plays the outro.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a
+			// `transition:`, for the whole exit — a panel on its way out must
+			// not still be handing out clickable links.
+			expect(closing!.inert).toBe(true);
+
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		it("swallows a second Escape during the exit — onValueChange fires exactly once", async () => {
+			const onValueChange = vi.fn();
+			const { container } = render(Harness, { props: { items: TWO_ITEMS, onValueChange } });
+			await fireEvent.click(triggerByLabel(container, "Products"));
+			onValueChange.mockClear();
+
+			pressEscape();
+			await tick();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("");
+		});
+
+		it("removes the panel in the same tick again under reduced motion", async () => {
+			vi.stubGlobal("matchMedia", (query: string) => ({
+				matches: true,
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				dispatchEvent: () => false,
+				addListener: () => {},
+				removeListener: () => {},
+			}));
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: TWO_ITEMS } });
+
+			await fireEvent.click(triggerByLabel(container, "Products"));
+			await tick();
+			expect(panel()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			// A zero duration makes Svelte call the transition's `on_finish`
+			// synchronously and never touch `element.animate()`, so the close
+			// is exactly as instant as it was before this panel animated out
+			// at all — no `waitFor` needed, and none allowed here.
+			expect(panel()).toBeNull();
 			expect(animateSpy).not.toHaveBeenCalled();
 		});
 	});

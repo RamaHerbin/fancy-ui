@@ -56,6 +56,44 @@ function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
 }
 
+// The last REAL `element.animate` call made on a given node. Svelte issues two
+// per transition: a zero-length dummy that exists only to defer the CSS
+// keyframes past the DOM update, then the animation that actually runs. Both
+// land on the same element, and the real one is always the later of the two,
+// so walking back from the end and matching on the spy's recorded `this` is
+// what separates the panel's animation from the scrim's.
+function lastAnimateOn(
+	// Structural type: the DOM lib in this config strips `animate` from
+	// `Element` (jsdom has none; test-setup stubs it), so the spy cannot be
+	// named via `vi.spyOn<Element, "animate">`.
+	spy: { mock: { calls: unknown[][]; contexts: unknown[] } },
+	node: Element
+): [Keyframe[], KeyframeAnimationOptions] | undefined {
+	for (let i = spy.mock.calls.length - 1; i >= 0; i -= 1) {
+		if (spy.mock.contexts[i] === node) {
+			return spy.mock.calls[i] as [Keyframe[], KeyframeAnimationOptions];
+		}
+	}
+	return undefined;
+}
+
+// Replaces `window.matchMedia` wholesale, the pattern the rest of the repo
+// uses. The transition resolves it fresh the instant it starts, so an
+// override installed before the menu opens is the one that decides whether
+// the motion runs at all — in either direction.
+function stubMatchMedia(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
 describe("CommandMenu", () => {
 	afterEach(() => {
 		cleanup();
@@ -103,11 +141,16 @@ describe("CommandMenu", () => {
 	it("locks the page scroll while open and releases it on close", async () => {
 		const { rerender } = render(CommandMenu, { props: { items: ITEMS, open: true } });
 		await tick();
+		// Stays synchronous: `use:scrollLock` acquires at mount, so the lock is
+		// in place by the time the panel is on screen. Wrapping this would
+		// silently delete that requirement.
 		expect(document.body.style.position).toBe("fixed");
 
 		await rerender({ items: ITEMS, open: false });
-		await tick();
-		expect(document.body.style.position).toBe("");
+		// The release is deliberately NOT synchronous any more: the action's
+		// `destroy()` is delayed by the exit transition, which is what keeps
+		// the page locked until the scrim has actually finished fading.
+		await waitFor(() => expect(document.body.style.position).toBe(""));
 	});
 
 	it("returns focus to whatever was focused before opening, once it closes", async () => {
@@ -638,6 +681,128 @@ describe("CommandMenu", () => {
 		expect(ref).toBe(panel());
 	});
 
+	// The command menu is a centred, scrim-backed, focus-trapped, scroll-
+	// locking surface, so it is on the MODAL rung with `Dialog` — 300 ms in,
+	// 200 ms out — rather than on the 150 ms anchored rung the dropdown and
+	// context menus use. These pin the rung, the geometry, and what has to be
+	// true in the window between the dismiss and the unmount.
+	describe("modal-rung motion", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("arrives over 300 ms and leaves over 200 ms, scaling about its own centre", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			// Opened from CLOSED, not mounted already open: a local
+			// transition does not play on its block's first render, so a
+			// component rendered `open` has no entrance to measure.
+			const { rerender } = render(CommandMenu, { props: { items: ITEMS, open: false } });
+			await rerender({ items: ITEMS, open: true });
+			await tick();
+
+			const el = panel()!;
+			const [inFrames, inOptions] = lastAnimateOn(animateSpy, el)!;
+			expect(inOptions.duration).toBe(300);
+			expect(inFrames[0]).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(inFrames.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
+			// The bug the old keyframes carried: they restated
+			// `translateX(-50%)` as a `transform` on a node whose centring
+			// comes from Tailwind v4's separate `translate` property, so the
+			// two composed and the panel drifted in from half its own width
+			// to the left. A `transform` that is scale and nothing else
+			// composes after `translate` and leaves the centring alone.
+			expect(inFrames.some((frame) => String(frame.transform).includes("translate"))).toBe(false);
+
+			pressEscape();
+			await tick();
+
+			const [outFrames, outOptions] = lastAnimateOn(animateSpy, el)!;
+			expect(outOptions.duration).toBe(200);
+			// Half the depth of the entrance: leaving is a smaller gesture
+			// than arriving.
+			expect(outFrames.at(-1)).toEqual({ opacity: "0", transform: "scale(0.96)" });
+			expect(outFrames.some((frame) => String(frame.transform).includes("translate"))).toBe(false);
+		});
+
+		it("fades the scrim on opacity alone, on the panel's own clock", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { rerender } = render(CommandMenu, { props: { items: ITEMS, open: false } });
+			await rerender({ items: ITEMS, open: true });
+			await tick();
+
+			const [frames, options] = lastAnimateOn(animateSpy, scrim()!)!;
+			expect(options.duration).toBe(300);
+			// `scale: false` keeps a full-viewport fixed element from
+			// acquiring a compositing layer for a transform it never uses.
+			expect(frames[0]).toEqual({ opacity: "0" });
+			expect(frames.at(-1)).toEqual({ opacity: "1" });
+		});
+
+		it("keeps the panel and its scrim mounted, inert and marked closing for the length of the exit", async () => {
+			render(CommandMenu, { props: { items: ITEMS, open: true } });
+			await tick();
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = panel();
+			expect(closing).toBeTruthy();
+			expect(scrim()).toBeTruthy();
+			// Written imperatively from `onoutrostart`: a reactive
+			// `data-state` would never reach the DOM, because Svelte marks
+			// the branch inert before it plays the outro.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a
+			// `transition:`, for the whole exit. A closing modal must never
+			// be interactive — and this is also what takes the live region
+			// below out of the accessibility tree on the way out.
+			expect(closing!.inert).toBe(true);
+
+			await waitFor(() => expect(panel()).toBeNull());
+			expect(scrim()).toBeNull();
+		});
+
+		it("swallows a second Escape during the exit — onOpenChange fires exactly once", async () => {
+			const onOpenChange = vi.fn();
+			render(CommandMenu, { props: { items: ITEMS, open: true, onOpenChange } });
+			await tick();
+
+			pressEscape();
+			await tick();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(onOpenChange).toHaveBeenCalledTimes(1);
+			expect(onOpenChange).toHaveBeenCalledWith(false);
+		});
+
+		it("removes the panel in the same tick again under reduced motion", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			render(CommandMenu, { props: { items: ITEMS, open: true } });
+			await tick();
+			expect(panel()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			// A zero duration makes Svelte call the transition's `on_finish`
+			// synchronously and never touch `element.animate()`, so the close
+			// is exactly as instant as it was before this surface animated
+			// out at all — no `waitFor` needed, and none allowed here. The
+			// scroll lock comes back with it, in the same tick.
+			expect(panel()).toBeNull();
+			expect(scrim()).toBeNull();
+			expect(document.body.style.position).toBe("");
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
 	describe("debounced result-count announcement", () => {
 		beforeEach(() => {
 			vi.useFakeTimers();
@@ -701,14 +866,23 @@ describe("CommandMenu", () => {
 			expect(region.textContent).toBe("0 results");
 		});
 
-		it("clears immediately on close, without waiting for the debounce", async () => {
+		it("clears on close, without waiting for the debounce", async () => {
 			render(CommandMenu, { props: { items: ITEMS, open: true } });
 			await vi.advanceTimersByTimeAsync(300);
 			expect(liveRegion()!.textContent).toBe(`${ITEMS.length} results`);
 
 			pressEscape();
 			await tick();
-			expect(liveRegion()).toBeNull();
+			// The region goes with the panel, and the panel now fades out
+			// rather than vanishing — so this waits out the exit instead of
+			// asserting in the same tick. It is not a hole in the a11y
+			// behaviour: the closing panel is `inert` for that whole window,
+			// which takes it and its live region out of the accessibility
+			// tree, so the stale count is never announced on the way out.
+			// What still matters, and is what this pins, is that nothing
+			// re-announces and the region is gone by the time the debounce
+			// it would have used could have fired.
+			await waitFor(() => expect(liveRegion()).toBeNull());
 		});
 	});
 });

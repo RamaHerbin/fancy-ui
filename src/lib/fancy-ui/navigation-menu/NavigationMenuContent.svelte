@@ -17,7 +17,7 @@
 	import { portal } from "../_internals/portal.js";
 	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { anchored, originFor } from "../_internals/motion/anchored.js";
+	import { anchored, originFor, markSurfaceState } from "../_internals/motion/anchored.js";
 	import { NAVIGATION_MENU_KEY, type NavigationMenuContext } from "./types.js";
 	import { NAVIGATION_MENU_ITEM_KEY, type NavigationMenuItemContext } from "./types.js";
 
@@ -75,14 +75,41 @@
 	NavigationMenu panel is not modal (see the README's "why not role=menu"
 	section), so Tab must be free to walk out of it into the rest of the page.
 
-	The entrance moved out of a hand-written `@keyframes` in this file's own
+	The motion moved out of a hand-written `@keyframes` in this file's own
 	`<style>` and into `_internals/motion/anchored.js`, shared with every other
 	floating surface. Two deliberate consequences: the four pixels of
 	`translateY` are gone — travel a panel can only fake, since
 	`anchorPosition` owns `left`/`top` on this same element — and the rise now
 	grows from the panel edge nearest the list rather than from its own
 	centre. Visibility still never depends on any of it: `{#if isOpen}` gates
-	the DOM, and under reduced motion the panel simply appears.
+	the DOM, and under reduced motion the panel simply appears and disappears.
+
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair, with
+	`entering: isOpen` as the direction signal — Svelte reports
+	`direction: "both"` for a bidirectional directive and cannot tell an
+	arrival from a departure on its own, and a bidirectional call gets the
+	in-flight counterpart's position handed to it, so a panel re-opened
+	inside its own fade continues from where it is instead of snapping. That
+	matters more here than on a click-only surface: this one closes on a
+	hover-intent timer, and a pointer that wanders back onto the bar
+	mid-close is ordinary rather than exceptional.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below: Svelte marks this branch inert before it plays
+	the outro and the scheduler skips inert effects, so a reactive
+	`data-state={…}` would never reach the DOM on a real close. `inert`
+	itself is never written by hand — Svelte sets it on any element carrying
+	a `transition:` for the whole exit, which keeps a panel on its way out
+	from taking a click on one of its links.
+
+	`active: () => isOpen` disarms the dismiss layer the instant the panel
+	stops being the open one, so a second Escape during the fade is neither
+	answered again nor swallowed on its way to whatever sits underneath.
+
+	Focus needs nothing: `NavigationMenu`'s own `close()` refocuses the
+	trigger from a plain function outside this `{#if}`, so the return lands
+	at the dismiss instant rather than at unmount — no `focusTrap` handle,
+	because there is no focus trap here at all (see the README).
 -->
 {#if isOpen}
 	<div
@@ -91,7 +118,6 @@
 		aria-labelledby={item.triggerId}
 		tabindex="-1"
 		class={classes}
-		data-state="open"
 		use:portal
 		use:anchorPosition={{
 			anchor: () => root.listRef,
@@ -100,14 +126,21 @@
 			offset: 6,
 			onPlacement: (side) => (resolvedSide = side),
 		}}
-		use:dismissable={{ onDismiss: root.close, exclude: () => [root.getTriggerElement(item.value)] }}
-		in:anchored={{ side: resolvedSide }}
+		use:dismissable={{
+			onDismiss: root.close,
+			exclude: () => [root.getTriggerElement(item.value)],
+			active: () => isOpen,
+		}}
+		transition:anchored={{ side: resolvedSide, entering: isOpen }}
+		data-state="open"
 		data-side={resolvedSide}
 		data-align="start"
 		style:transform-origin={originFor(resolvedSide, "start")}
 		onpointerenter={root.cancelClose}
 		onpointerleave={root.scheduleClose}
 		onfocusout={handleFocusOut}
+		onintrostart={(e) => markSurfaceState(e, "open")}
+		onoutrostart={(e) => markSurfaceState(e, "closing")}
 	>
 		{@render children?.()}
 	</div>

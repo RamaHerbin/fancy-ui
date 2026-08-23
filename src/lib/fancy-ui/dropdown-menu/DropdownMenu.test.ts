@@ -83,10 +83,21 @@ function subTriggerEl(root: HTMLElement | null): HTMLElement | undefined {
 	return root?.querySelector<HTMLElement>('[aria-haspopup="menu"]') ?? undefined;
 }
 
+// Dispatched synchronously, never through `fireEvent` — `fireEvent` awaits a
+// tick of its own, which under the WAAPI stub is enough to drain the whole
+// exit and leave a test that means to look inside the fade looking at an
+// empty document instead. A raw dispatch plus ONE `await tick()` lands in the
+// window.
+function pressEscape() {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
+}
+
 // Replaces `window.matchMedia` wholesale, the pattern the rest of the repo
 // uses. `anchored()` resolves it fresh every time a transition starts, so an
 // override installed before the panel opens is the one that decides whether
-// the entrance runs at all.
+// the motion runs at all — entrance and exit alike.
 function stubMatchMedia(matches: boolean): void {
 	vi.stubGlobal("matchMedia", (query: string) => ({
 		matches,
@@ -528,7 +539,12 @@ describe("DropdownMenu", () => {
 			await fireEvent.click(itemByLabel(subMenu(), "Screenshot")!);
 			expect(onSelect).toHaveBeenCalledWith("Screenshot");
 			await waitFor(() => expect(subMenu()).toBeNull());
-			expect(rootMenu()).toBeNull();
+			// Both levels fade on the same clock and the branch is destroyed
+			// only once the LAST transition in it finishes, so the root's
+			// removal is not guaranteed to have landed by the time the
+			// submenu's has — this waits for it rather than relying on the
+			// order two exits happen to resolve in.
+			await waitFor(() => expect(rootMenu()).toBeNull());
 		});
 
 		it("a disabled submenu trigger does not open on click or ArrowRight", async () => {
@@ -936,7 +952,7 @@ describe("DropdownMenu", () => {
 			// rather than in a test of its own: everything else this test
 			// reads — `data-side`, `data-align`, `transform-origin`, the caret
 			// — comes off `SubContext.resolvedSide`, so all of it would still
-			// be correct if `in:anchored` were dropped from
+			// be correct if `transition:anchored` were dropped from
 			// `DropdownMenuSubContent` entirely, and the reduced-motion test
 			// below only asserts an absence. Counting the call that opening
 			// the submenu added, checking it was made on the submenu panel
@@ -984,6 +1000,109 @@ describe("DropdownMenu", () => {
 			// A zero duration makes Svelte skip `element.animate()` outright
 			// rather than run a zero-length animation, so the absence of any
 			// call is the honest proof that nothing was scheduled.
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	// The exit is new, and with it a window between the dismiss and the
+	// unmount — 150 ms in a browser, a couple of microtasks under the WAAPI
+	// stub. These pin what has to be true inside it. Everything a consumer
+	// can observe still flips at the dismiss instant: `open`, the trigger's
+	// `aria-expanded`, and the focus return (which this family does from
+	// `DropdownMenu`'s own `setOpen`, outside the `{#if}`, and so needs no
+	// eager-return handle of its own — see §3.2 of the motion contract).
+	describe("animated exit", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			expect(rootMenu()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = rootMenu();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`: a reactive
+			// `data-state` would never reach the DOM, because Svelte marks
+			// the branch inert before it plays the outro.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a
+			// `transition:`, for the whole exit. Asserted here so nobody
+			// removes the transition without noticing that a menu on its way
+			// out would start taking clicks again.
+			expect(closing!.inert).toBe(true);
+
+			await waitFor(() => expect(rootMenu()).toBeNull());
+		});
+
+		it("fades both levels of a nested menu together, neither blinking out ahead of the other", async () => {
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			// Closing the root unmounts the submenu's block with it, and a
+			// branch is destroyed only once its LAST transition finishes — so
+			// both panels are still on screen, both marked closing, for the
+			// same window.
+			// Raw `.click()`, not `fireEvent.click`, for the same reason
+			// `pressEscape` exists: an awaited helper drains the stub's exit
+			// and there would be nothing left to look at.
+			itemByLabel(rootMenu(), "Rename")!.click();
+			await tick();
+
+			expect(rootMenu()!.getAttribute("data-state")).toBe("closing");
+			expect(subMenu()!.getAttribute("data-state")).toBe("closing");
+
+			await waitFor(() => expect(rootMenu()).toBeNull());
+			await waitFor(() => expect(subMenu()).toBeNull());
+		});
+
+		it("swallows a second Escape during the exit — onOpenChange fires exactly once", async () => {
+			const onOpenChange = vi.fn();
+			const { container } = render(Harness, { props: { items: ITEMS, onOpenChange } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			onOpenChange.mockClear();
+
+			pressEscape();
+			await tick();
+			expect(rootMenu()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(onOpenChange).toHaveBeenCalledTimes(1);
+			expect(onOpenChange).toHaveBeenCalledWith(false);
+		});
+
+		it("removes the panel in the same tick again under reduced motion", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.click(trigger(container));
+			await tick();
+			expect(rootMenu()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			// A zero duration makes Svelte call the transition's `on_finish`
+			// synchronously and never touch `element.animate()`, so the close
+			// is exactly as instant as it was before this component animated
+			// out at all — no `waitFor` needed, and none allowed here.
+			expect(rootMenu()).toBeNull();
 			expect(animateSpy).not.toHaveBeenCalled();
 		});
 	});

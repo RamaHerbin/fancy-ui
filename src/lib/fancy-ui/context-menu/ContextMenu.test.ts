@@ -31,10 +31,34 @@ function itemByLabel(root: HTMLElement | null, label: string): HTMLElement | und
 	return itemsIn(root).find((el) => el.textContent?.trim().startsWith(label));
 }
 
+// Dispatched synchronously, never through `fireEvent` — `fireEvent` awaits a
+// tick of its own, which under the WAAPI stub is enough to drain the whole
+// exit and leave a test that means to look inside the fade looking at an
+// empty document instead. A raw dispatch plus ONE `await tick()` lands in the
+// window.
+function pressEscape() {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
+}
+
+// Opens the menu without awaiting anything, for the same reason.
+function rightClick(target: HTMLElement) {
+	target.dispatchEvent(
+		new MouseEvent("contextmenu", {
+			bubbles: true,
+			cancelable: true,
+			button: 2,
+			clientX: 50,
+			clientY: 50,
+		})
+	);
+}
+
 // Replaces `window.matchMedia` wholesale, the pattern the rest of the repo
-// uses. The entrance resolves it fresh the instant it starts, so an override
-// installed before the right-click is the one that decides whether the panel
-// animates at all.
+// uses. The transition resolves it fresh the instant it starts, so an
+// override installed before the right-click is the one that decides whether
+// the panel animates at all — in either direction.
 function stubMatchMedia(matches: boolean): void {
 	vi.stubGlobal("matchMedia", (query: string) => ({
 		matches,
@@ -442,6 +466,81 @@ describe("ContextMenu", () => {
 			// A zero duration makes Svelte skip `element.animate()` outright
 			// rather than run a zero-length animation, so no call at all is
 			// the honest proof that nothing was scheduled.
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	// The exit is new, and with it a window between the dismiss and the
+	// unmount — 150 ms in a browser, a couple of microtasks under the WAAPI
+	// stub. These pin what has to be true inside it. Nothing a consumer can
+	// observe waits for it: `open` still flips at the dismiss instant, and so
+	// does the focus return, which `ContextMenu`'s own `setOpen` does from a
+	// plain function outside the `{#if}`.
+	describe("animated exit", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			expect(menu()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = menu();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`: a reactive
+			// `data-state` would never reach the DOM, because Svelte marks
+			// the branch inert before it plays the outro.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a
+			// `transition:`, for the whole exit — a menu on its way out must
+			// not start taking clicks again.
+			expect(closing!.inert).toBe(true);
+
+			await waitFor(() => expect(menu()).toBeNull());
+		});
+
+		it("swallows a second Escape during the exit — onOpenChange fires exactly once", async () => {
+			const onOpenChange = vi.fn();
+			const { container } = render(Harness, { props: { items: ITEMS, onOpenChange } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			onOpenChange.mockClear();
+
+			pressEscape();
+			await tick();
+			expect(menu()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(onOpenChange).toHaveBeenCalledTimes(1);
+			expect(onOpenChange).toHaveBeenCalledWith(false);
+		});
+
+		it("removes the panel in the same tick again under reduced motion", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			rightClick(region(container));
+			await tick();
+			expect(menu()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			// A zero duration makes Svelte call the transition's `on_finish`
+			// synchronously and never touch `element.animate()`, so the close
+			// is exactly as instant as it was before this panel animated out
+			// at all — no `waitFor` needed, and none allowed here.
+			expect(menu()).toBeNull();
 			expect(animateSpy).not.toHaveBeenCalled();
 		});
 	});
