@@ -48,8 +48,11 @@
 </script>
 
 <script lang="ts">
+	import { fade } from "svelte/transition";
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
 
 	let {
 		variant = "primary",
@@ -93,7 +96,14 @@
 		cn(
 			"ft-btn",
 			"inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium",
-			"cursor-pointer transition-colors",
+			// No `transition-colors` here: the scoped style block below declares a
+			// `transition` shorthand on this same element (it has to, so the press
+			// scale can join the colour channel under `prefers-reduced-motion:
+			// no-preference`), and Svelte's scoped CSS is unlayered while Tailwind's
+			// utilities sit in `@layer utilities` — the utility would lose silently
+			// and read as a colour transition that never ran. The colour channel is
+			// re-declared by hand at exactly the values it resolved to.
+			"cursor-pointer",
 			"focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--ft-btn-accent)]/35",
 			// `data-disabled` covers the anchor branch, which has no native `:disabled`
 			// pseudo-class to hang the same dimmed treatment off. It tracks `disabled`
@@ -132,6 +142,21 @@
 	// can't drift out of sync with each other.
 	const anchorInert = $derived(disabled || loading);
 
+	// The one duration the lead slot's cross-fade runs on: `DURATIONS.micro`, the
+	// glyph-scale rung, collapsed to 0 when the user has asked for less motion —
+	// at 0 Svelte skips `element.animate()` entirely and the swap is synchronous,
+	// which is the same behaviour this button had before the fade existed.
+	//
+	// Deliberately a plain function, never a `$derived`: `prefersReducedMotion()`
+	// resolves `window.matchMedia` fresh on every call and its own contract
+	// (`_internals/motion/anchored.ts`) forbids reading it from a `$derived`,
+	// where the answer would be computed once and then never revisited. A
+	// transition's params thunk runs once per transition, at the instant that
+	// transition starts — exactly the call site that contract sanctions.
+	function leadFade() {
+		return prefersReducedMotion() ? 0 : DURATIONS.micro;
+	}
+
 	// The single guard both branches funnel through. A native `disabled` button
 	// already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 	// an anchor, which has no disabled state at all) walks straight past that —
@@ -160,10 +185,29 @@
 		tabindex={anchorInert ? -1 : undefined}
 		onclick={handleClick}
 	>
-		{#if loading}
-			<span class="ft-btn-spinner" aria-hidden="true"></span>
-		{:else if iconStart}
-			{@render iconStart()}
+		<!--
+			The lead slot. Both branches of this component render it identically —
+			see the button branch below for why the split `in:` / `out:` pair is
+			the right shape here rather than one bidirectional `transition:`.
+		-->
+		{#if loading || iconStart}
+			<span class="ft-btn-lead" aria-hidden={loading ? "true" : undefined}>
+				{#if loading}
+					<span
+						class="ft-btn-spinner"
+						in:fade={{ duration: leadFade() }}
+						out:fade={{ duration: leadFade() }}
+					></span>
+				{:else}
+					<span
+						class="ft-btn-lead-icon"
+						in:fade={{ duration: leadFade() }}
+						out:fade={{ duration: leadFade() }}
+					>
+						{@render iconStart?.()}
+					</span>
+				{/if}
+			</span>
 		{/if}
 		{@render children?.()}
 		{#if iconEnd}
@@ -180,10 +224,46 @@
 		aria-busy={loading ? "true" : undefined}
 		onclick={handleClick}
 	>
-		{#if loading}
-			<span class="ft-btn-spinner" aria-hidden="true"></span>
-		{:else if iconStart}
-			{@render iconStart()}
+		<!--
+			The lead slot: one fixed-size cell that holds the spinner and
+			`iconStart` at the same time, so `loading` swaps them by cross-fading
+			in place instead of cutting, and the label beside it never shifts.
+
+			A split `in:` / `out:` pair rather than one bidirectional
+			`transition:`, which is the shape the rest of this campaign uses. Two
+			reasons, both structural: the spinner and the icon are DIFFERENT
+			elements, so there is no single node whose transition could be
+			bidirectional; and a cross-fade wants both halves running at once
+			rather than one after the other. The outer `{#if loading || iconStart}`
+			keeps a button with neither from paying for an empty grid cell — and,
+			because a local transition never plays on the initial render of the
+			block that owns it, a button that starts out `loading` still renders
+			its spinner instantly, with no fade in from nothing.
+
+			`aria-hidden` sits on the slot rather than on the spinner so that it
+			covers the whole cell for the length of the fade: mid-swap the
+			outgoing icon is still mounted, and a screen reader has no business
+			reading a glyph that is on its way out of a control already marked
+			`aria-busy`.
+		-->
+		{#if loading || iconStart}
+			<span class="ft-btn-lead" aria-hidden={loading ? "true" : undefined}>
+				{#if loading}
+					<span
+						class="ft-btn-spinner"
+						in:fade={{ duration: leadFade() }}
+						out:fade={{ duration: leadFade() }}
+					></span>
+				{:else}
+					<span
+						class="ft-btn-lead-icon"
+						in:fade={{ duration: leadFade() }}
+						out:fade={{ duration: leadFade() }}
+					>
+						{@render iconStart?.()}
+					</span>
+				{/if}
+			</span>
 		{/if}
 		{@render children?.()}
 		{#if iconEnd}
@@ -198,6 +278,91 @@
 			--ft-accent,
 			light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
 		);
+		/* 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) =
+		   tokens.EASINGS.inout — the reversible-state pair, because a press
+		   resolves either way (released, or the interaction carries on). */
+		--ft-btn-motion: var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+		/*
+		 * Replaces the `transition-colors` utility removed from the class string
+		 * above, at exactly the values that utility already resolved to. Colour is
+		 * a state change, not motion, so it stays OUTSIDE the reduced-motion query
+		 * — gating it would only make a theme flip look broken for the people who
+		 * asked for less movement.
+		 *
+		 * `box-shadow` is deliberately absent, and must stay absent: this button's
+		 * focus ring is `focus-visible:ring-*`, which compiles to a `box-shadow`,
+		 * and a focus ring must never animate. `text-decoration-color`, `fill` and
+		 * `stroke` never change on this control, so the three listed here are the
+		 * faithful subset of what the utility covered.
+		 */
+		transition:
+			color var(--ft-btn-motion),
+			background-color var(--ft-btn-motion),
+			border-color var(--ft-btn-motion);
+		/* Kills the ~300ms tap delay without blocking scroll — the same rule, for
+		   the same reason, as `.ft-pressable` and `.ft-toggle`. A press that
+		   answers a third of a second late is not press feedback. */
+		touch-action: manipulation;
+	}
+
+	/*
+	 * The press. Pressable's contract inlined as a plain rule on the native
+	 * control rather than wrapping a `<button>` in a `<Pressable>` div — same
+	 * `0.97`, same clock, one element instead of two.
+	 *
+	 * Only the property list is re-declared in here: `transform` joins the colour
+	 * channel under `no-preference` and nowhere else, so with motion reduced the
+	 * colours still cross and the button simply does not move. The resting state
+	 * (no `transform` at all) is the ungated fallback.
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-btn {
+			transition:
+				color var(--ft-btn-motion),
+				background-color var(--ft-btn-motion),
+				border-color var(--ft-btn-motion),
+				transform var(--ft-btn-motion);
+		}
+
+		/* Both inert states are excluded so a press that does nothing does not
+		   pretend to. `[data-disabled]` is the anchor branch, which has no native
+		   `:disabled` to hang this off; `[aria-busy]` is the loading one, on both
+		   branches. A native disabled `<button>` never matches `:active` anyway —
+		   the attribute selectors are what make the anchor behave like it. */
+		.ft-btn:not([data-disabled="true"]):not([aria-busy="true"]):active {
+			transform: scale(0.97);
+		}
+	}
+
+	/*
+	 * The lead slot: one fixed cell the spinner and `iconStart` share, sized
+	 * exactly like the spinner it holds (`calc(1em + 1px)`, read from the
+	 * button's own font-size, so it follows the size variant for free). Fixed
+	 * rather than content-sized on purpose — a slot that measured whichever
+	 * child happened to be mounted would grow while both are cross-fading and
+	 * snap back the frame the fade ended, moving the label twice for one swap.
+	 */
+	.ft-btn-lead {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: calc(1em + 1px);
+		height: calc(1em + 1px);
+	}
+
+	/* Both children occupy the one cell at once — that overlap IS the
+	   cross-fade. Named rather than `> *` so a caller's own `iconStart` markup,
+	   which is one level further down, is never caught by it. */
+	.ft-btn-lead > .ft-btn-spinner,
+	.ft-btn-lead > .ft-btn-lead-icon {
+		grid-area: 1 / 1;
+	}
+
+	.ft-btn-lead-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.ft-btn--accent {
