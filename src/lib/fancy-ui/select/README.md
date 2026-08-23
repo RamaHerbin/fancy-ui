@@ -153,22 +153,35 @@ Toggling the trigger shut with nothing highlighted stays a `close`.
 
 ## Motion
 
-The panel enters with a 150 ms opacity + scale rise (the shared `fast` rung and out-curve, applied in JS — there is no `--ft-*`
-variable to override for this entrance), growing from a `0.92` floor. The growth origin follows the
-side the panel was **actually** placed on — flipped placements included — so it
-always appears to come out of the trigger rather than out of its own centre. A
-panel that asked for `side="top"` but had to flip below the trigger grows from
-its top edge, not the bottom edge it requested.
+The panel arrives and leaves on one bidirectional transition — the shared `fast`
+rung, 150 ms in each direction, applied in JS (there is no `--ft-*` variable to
+override it). It rises from a `0.92` scale floor on the out-curve and collapses
+to `0.96` on the in-curve: leaving is a smaller gesture than arriving, and a
+full-depth collapse on dismiss reads as the panel being sucked away rather than
+simply closing.
+
+The growth origin follows the side the panel was **actually** placed on —
+flipped placements included — so it always appears to come out of the trigger
+rather than out of its own centre, and to go back into it. A panel that asked
+for `side="top"` but had to flip below the trigger grows from its top edge, not
+the bottom edge it requested.
 
 The resolved placement is published on the panel as `data-side` and
 `data-align`, for consumers that want to key their own styling off where it
-landed.
+landed. While the panel is on screen it carries `data-state="open"`; for the
+length of the exit it carries `data-state="closing"` and is `inert`, so a row
+cannot be clicked on its way out.
 
-- **Reduced motion** — no entrance animation at all; the panel simply appears.
-  Its visibility never depended on the animation, so nothing is lost.
-- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated
-  and plays identically on touch.
-- Closing is currently instant.
+- **Reduced motion** — no animation in either direction; the panel appears and
+  disappears instantly and the close is synchronous again. Its visibility never
+  depended on the animation, so nothing is lost.
+- **Touch and coarse pointers** — unchanged; neither direction is pointer-gated
+  and both play identically on touch.
+- **Dismissing is still immediate.** `value`, `onValueChange` and
+  `aria-expanded` all settle in the tick you act; only the panel's removal from
+  the DOM waits for the fade. A second Escape inside that window is not
+  swallowed by the panel already leaving — it reaches whatever sits underneath.
+  Reopening mid-fade reverses the exit rather than starting over.
 
 ## Implementation Notes
 

@@ -28,6 +28,14 @@ export interface SelectOption {
  * a selection can be made (Enter, Tab, closed-state typeahead).
  */
 export interface SelectContext {
+	/** Whether the panel is open. Read by the panel's own exit transition to
+	 *  tell an entrance from a departure — Svelte reports `direction: "both"`
+	 *  for a single bidirectional `transition:` and cannot distinguish them.
+	 *  Also the panel's dismissable `active` gate: the instant this flips
+	 *  false the layer stops answering Escape, so a second Escape during the
+	 *  fade reaches whatever is underneath instead of being swallowed by a
+	 *  panel that is already leaving. */
+	readonly open: boolean;
 	/** The panel's own id — also what the trigger's `aria-controls` points at while open. */
 	readonly panelId: string;
 	/** The options to render as rows, in order. */

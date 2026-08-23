@@ -44,7 +44,7 @@
 	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { anchored, originFor } from "../_internals/motion/anchored.js";
+	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 	import {
 		getMonthGrid,
 		addMonths,
@@ -302,6 +302,23 @@
 	/>
 {/if}
 
+<!--
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair: a
+	bidirectional directive hands the in-flight counterpart's current position
+	to the fresh call, so a calendar reopened mid-exit continues from where it
+	is instead of snapping to invisible first. `entering: open` is what tells it
+	which way it is going — Svelte reports `direction: "both"` for one
+	bidirectional directive and cannot tell the two apart on its own. Unlike its
+	four sibling panels this one lives in the same file as its own `{#if}`, so
+	it reads `open` directly rather than through a context.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays the
+	outro and the scheduler skips inert effects, so a reactive `data-state={…}`
+	would never reach the DOM on a real close. `inert` itself is never written
+	by hand: Svelte sets it on any element carrying a `transition:` for the
+	whole exit, which is what stops a day cell taking a click on its way out.
+-->
 {#if open}
 	<div
 		bind:this={panelRef}
@@ -315,11 +332,14 @@
 			offset: 8,
 			onPlacement: (side) => (resolvedSide = side),
 		}}
-		use:dismissable={{ onDismiss: closePanel, exclude: () => [ref] }}
-		in:anchored={{ side: resolvedSide }}
+		use:dismissable={{ onDismiss: closePanel, exclude: () => [ref], active: () => open }}
+		transition:anchored={{ side: resolvedSide, entering: open }}
+		data-state="open"
 		data-side={resolvedSide}
 		data-align="start"
 		style:transform-origin={originFor(resolvedSide, "start")}
+		onintrostart={(e) => markSurfaceState(e, "open")}
+		onoutrostart={(e) => markSurfaceState(e, "closing")}
 	>
 		<div class="flex items-center justify-between gap-2 text-[12px] font-semibold">
 			<button

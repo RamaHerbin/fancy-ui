@@ -97,17 +97,30 @@ the selected row's checkmark.
 
 ## Motion
 
-The panel enters with a 150 ms opacity + scale rise (the shared `fast` rung and out-curve, applied in JS — there is no `--ft-*`
-variable to override for this entrance), growing from a `0.92` floor. The growth origin follows the side
-the panel was actually placed on — flipped placements included — so it always
-appears to come out of the trigger rather than out of its own centre. Exposed as
-`data-side` / `data-align` for consumers that want to key their own styling off the
-resolved placement.
+The panel arrives and leaves on one bidirectional transition — the shared `fast`
+rung, 150 ms in each direction, applied in JS (there is no `--ft-*` variable to
+override it). It rises from a `0.92` scale floor on the out-curve and collapses
+to `0.96` on the in-curve: leaving is a smaller gesture than arriving, and a
+full-depth collapse on dismiss reads as the panel being sucked away rather than
+simply closing.
 
-- **Reduced motion** — no entrance animation at all; the panel simply appears.
-  Visibility never depended on the animation.
-- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated.
-- Closing is currently instant.
+The growth origin follows the side the panel was actually placed on — flipped
+placements included — so it always appears to come out of the trigger rather
+than out of its own centre, and to go back into it. Exposed as `data-side` /
+`data-align` for consumers that want to key their own styling off the resolved
+placement. While the panel is on screen it also carries `data-state="open"`; for
+the length of the exit it carries `data-state="closing"` and is `inert`, so a
+row cannot be clicked on its way out.
+
+- **Reduced motion** — no animation in either direction; the panel appears and
+  disappears instantly and the close is synchronous again. Visibility never
+  depended on the animation.
+- **Touch and coarse pointers** — unchanged; neither direction is pointer-gated.
+- **Committing or dismissing is still immediate.** `value`, `onValueChange` and
+  `aria-expanded` all settle in the tick you act; only the panel's removal from
+  the DOM waits for the fade. A second Escape inside that window is not
+  swallowed by the panel already leaving — it reaches whatever sits underneath.
+  Reopening mid-fade reverses the exit rather than starting over.
 
 ## Implementation Notes
 

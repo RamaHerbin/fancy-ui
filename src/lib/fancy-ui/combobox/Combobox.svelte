@@ -229,6 +229,9 @@
 	}
 
 	const context: ComboboxContext = {
+		get open() {
+			return open;
+		},
 		get panelId() {
 			return panelId;
 		},

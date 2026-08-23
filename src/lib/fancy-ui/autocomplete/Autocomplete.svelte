@@ -179,6 +179,9 @@
 	}
 
 	const context: AutocompleteContext = {
+		get open() {
+			return open;
+		},
 		get panelId() {
 			return panelId;
 		},

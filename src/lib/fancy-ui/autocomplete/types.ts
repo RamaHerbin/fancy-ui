@@ -10,6 +10,14 @@
  * a row does to `value`; the panel only reads this and calls back into it.
  */
 export interface AutocompleteContext {
+	/** Whether the panel is open. Read by the panel's own exit transition to
+	 *  tell an entrance from a departure — Svelte reports `direction: "both"`
+	 *  for a single bidirectional `transition:` and cannot distinguish them.
+	 *  Also the panel's dismissable `active` gate: the instant this flips
+	 *  false the layer stops answering Escape, so a second Escape during the
+	 *  fade reaches whatever is underneath instead of being swallowed by a
+	 *  panel that is already leaving. */
+	readonly open: boolean;
 	/** The panel's own id — also what the input's `aria-controls` points at while open. */
 	readonly panelId: string;
 	/** The real input element, once mounted — what the panel anchors against and excludes from outside-click dismissal. */

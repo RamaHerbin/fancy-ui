@@ -5,6 +5,7 @@ import Select from "./Select.svelte";
 import Harness from "./SelectHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
 import type { SelectOption } from "./types.js";
+import { dismissable } from "../_internals/dismissable.js";
 import { sound } from "../sound/sound.svelte.js";
 
 const OPTIONS: SelectOption[] = [
@@ -28,6 +29,32 @@ function optionRows(): HTMLElement[] {
 
 function optionByLabel(label: string): HTMLElement {
 	return optionRows().find((el) => el.textContent?.trim().startsWith(label)) as HTMLElement;
+}
+
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh on every call, so an
+ * override installed before a render is visible to the very next read. */
+function stubReducedMotion(matches = true): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** Dispatches Escape SYNCHRONOUSLY, unlike `fireEvent.keyDown`, which awaits a
+ * tick of its own. The exit window is two microtasks under the WAAPI stub, so
+ * anything awaited between the dismiss and the assertion has already drained
+ * it and the test would pass for the wrong reason. */
+function pressEscape(): void {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
 }
 
 describe("Select", () => {
@@ -82,8 +109,10 @@ describe("Select", () => {
 		expect(panel()).not.toBeNull();
 
 		await fireEvent.click(btn);
+		// `aria-expanded` is synchronous — `open` still flips in the same tick.
+		// The panel's REMOVAL is not: it plays a 150 ms exit first.
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("renders every option as role=option with the right label, inside role=listbox", async () => {
@@ -117,8 +146,8 @@ describe("Select", () => {
 		await fireEvent.click(optionByLabel("React"));
 
 		expect(onValueChange).toHaveBeenCalledWith("react");
-		expect(panel()).toBeNull();
 		expect(trigger(container).getAttribute("aria-expanded")).toBe("false");
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	// A real mousedown on any element carrying a `tabindex` attribute — `-1`
@@ -266,7 +295,7 @@ describe("Select", () => {
 		await fireEvent.keyDown(btn, { key: "Enter" });
 
 		expect(onValueChange).toHaveBeenCalledWith("react");
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("Home/End jump to the first/last option while open", async () => {
@@ -314,8 +343,8 @@ describe("Select", () => {
 		const event = await fireEvent.keyDown(btn, { key: "Tab", cancelable: true });
 
 		expect(onValueChange).toHaveBeenCalledWith("react");
-		expect(panel()).toBeNull();
 		expect(event).toBe(true); // fireEvent returns false when preventDefault was called
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("typing while closed selects by typeahead without opening the panel", async () => {
@@ -704,19 +733,6 @@ describe("Select", () => {
 	// viewport and never flips, while a requested `top` always overflows
 	// (`anchor.top - height - offset` is `-4`) and always does.
 	describe("entrance", () => {
-		function stubReducedMotion(): void {
-			vi.stubGlobal("matchMedia", (query: string) => ({
-				matches: true,
-				media: query,
-				onchange: null,
-				addEventListener: () => {},
-				removeEventListener: () => {},
-				dispatchEvent: () => false,
-				addListener: () => {},
-				removeListener: () => {},
-			}));
-		}
-
 		afterEach(() => {
 			vi.unstubAllGlobals();
 			vi.restoreAllMocks();
@@ -770,6 +786,91 @@ describe("Select", () => {
 			// visibility never depended on the entrance in the first place.
 			expect(animate).not.toHaveBeenCalled();
 			expect(panel()).not.toBeNull();
+		});
+	});
+
+	// The panel now leaves on the same shared transition it arrives on, so
+	// between the dismiss and the unmount there is a window — 150 ms in a
+	// browser, a couple of microtasks under the WAAPI stub. These pin what
+	// must be true inside it. `open` itself still flips synchronously, which
+	// is why every `aria-expanded` assertion above stayed unwrapped.
+	describe("exit", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(Select, { props: { options: OPTIONS } });
+			const btn = trigger(container);
+			await fireEvent.click(btn);
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = panel();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`. A reactive
+			// `data-state={…}` would never reach the DOM: Svelte marks the
+			// branch inert before it plays the outro and the scheduler skips
+			// inert effects.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a `transition:`,
+			// for the whole exit. Asserted so nobody drops the transition
+			// without noticing that a leaving listbox would keep taking clicks
+			// on its rows.
+			expect(closing!.inert).toBe(true);
+			// The trigger has already been told the panel is gone.
+			expect(btn.getAttribute("aria-expanded")).toBe("false");
+
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The `active: () => ctx.open` gate. A layer on its way out must not
+		// swallow the key: the dismiss stack scans past it and hands Escape to
+		// whatever is underneath.
+		it("lets an Escape during the exit reach the layer underneath instead of swallowing it", async () => {
+			// Registered BEFORE the select, so the panel sits above it on the
+			// shared layer stack — the shape of a select opened inside another
+			// dismissable surface.
+			const beneath = document.createElement("div");
+			document.body.appendChild(beneath);
+			const onBeneath = vi.fn();
+			const beneathAction = dismissable(beneath, { onDismiss: onBeneath });
+
+			const { container } = render(Select, { props: { options: OPTIONS } });
+			await fireEvent.click(trigger(container));
+
+			pressEscape(); // the panel is the top LIVE layer and takes this one
+			await tick();
+			expect(onBeneath).not.toHaveBeenCalled();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape(); // the panel is inactive now, so this falls through
+			expect(onBeneath).toHaveBeenCalledTimes(1);
+
+			beneathAction?.destroy?.();
+			beneath.remove();
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The reduced-motion fast path: a zero duration makes Svelte call
+		// `on_finish()` synchronously and never touch `element.animate()`, so
+		// a visitor who asked for less motion gets exactly the synchronous
+		// close this panel had before the exit existed.
+		it("closes synchronously and never animates under prefers-reduced-motion", async () => {
+			stubReducedMotion();
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Select, { props: { options: OPTIONS } });
+			await fireEvent.click(trigger(container));
+			expect(panel()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			expect(panel()).toBeNull();
+			expect(animate).not.toHaveBeenCalled();
 		});
 	});
 });

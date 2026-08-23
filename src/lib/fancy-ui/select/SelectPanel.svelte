@@ -13,7 +13,7 @@
 	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { anchored, originFor } from "../_internals/motion/anchored.js";
+	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 	import { SELECT_KEY, type SelectContext, type SelectOption } from "./types.js";
 
 	let { class: className, ref = $bindable(null) }: SelectPanelProps = $props();
@@ -73,16 +73,30 @@
 	specifically depends on `preventFocusSteal` below, not merely on this
 	component never calling `.focus()` — see its own comment.
 
-	`in:` and not `transition:`, deliberately: an entrance-only directive
-	leaves teardown synchronous, so closing the panel still removes it from
-	the DOM in the same tick that `open` flips false. An exit is PR-scoped
-	work of its own, not something to smuggle in behind an entrance.
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair: a
+	bidirectional directive hands the in-flight counterpart's current position
+	to the fresh call, so a panel reopened mid-exit continues from where it is
+	instead of snapping to invisible first. `entering: ctx.open` is what tells
+	it which way it is going — Svelte reports `direction: "both"` for one
+	bidirectional directive and cannot tell the two apart on its own. The
+	`{#if}` that mounts this component lives in `Select`, one level up, which
+	is why `open` has to arrive through the context at all: a local transition
+	on a child component's root element IS collected by the parent's branch,
+	but the child still cannot see the flag the parent flipped.
 
-	That entrance used to live in this file's `<style>` as a hand-rolled
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays the
+	outro and the scheduler skips inert effects, so a reactive `data-state={…}`
+	would never reach the DOM on a real close. `inert` itself is never written
+	by hand: Svelte sets it on any element carrying a `transition:` for the
+	whole exit, which is exactly what a closing listbox wants — the rows stop
+	taking clicks the instant the panel starts leaving.
+
+	The entrance used to live in this file's `<style>` as a hand-rolled
 	keyframe, on a duration and a scale floor the panel invented for itself.
-	It is now the shared `anchored` transition below, which every floating
-	surface in the library uses — one rung, one curve, one floor, and a
-	growth origin that follows a flipped placement instead of ignoring it.
+	Both directions are now the shared `anchored` transition below, which every
+	floating surface in the library uses — one rung, one curve, one floor, and
+	a growth origin that follows a flipped placement instead of ignoring it.
 -->
 <div
 	bind:this={ref}
@@ -103,11 +117,15 @@
 	use:dismissable={{
 		onDismiss: ctx.close,
 		exclude: () => [ctx.triggerRef],
+		active: () => ctx.open,
 	}}
-	in:anchored={{ side: resolvedSide }}
+	transition:anchored={{ side: resolvedSide, entering: ctx.open }}
+	data-state="open"
 	data-side={resolvedSide}
 	data-align={ctx.align}
 	style:transform-origin={originFor(resolvedSide, ctx.align)}
+	onintrostart={(e) => markSurfaceState(e, "open")}
+	onoutrostart={(e) => markSurfaceState(e, "closing")}
 >
 	{#each ctx.options as option, index (option.value)}
 		<!--

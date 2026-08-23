@@ -286,6 +286,9 @@
 	}
 
 	const context: SelectContext = {
+		get open() {
+			return open;
+		},
 		get panelId() {
 			return panelId;
 		},
