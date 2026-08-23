@@ -68,6 +68,16 @@ The one thing this component will not do is let a destructive action complete wi
 - The warning icon (`⚠`) is `aria-hidden` — it is reinforcement for sighted users, not the thing that communicates the stakes; `title` and `description` carry that for everyone.
 - Confirm renders through `Button`'s `destructive` variant, so its color signal (not its only signal — the label and the description both say what it does) matches every other destructive action in the library.
 
+## Motion
+
+Identical to `Dialog`'s, because it is the same surface: panel and backdrop arrive together over 300 ms on the shared arrival curve and leave together over 200 ms on the departure curve, the panel scaling from a `0.92` floor in and to a `0.96` floor out, the backdrop fading on opacity alone. See `Dialog`'s README for the full description; two things are worth restating here, because this component's dismiss rules make them matter more:
+
+- **Escape during the fade cannot cancel twice.** Escape is wired to the same `handleCancel` path the Cancel button calls, so a repeated press while the panel is leaving would otherwise fire `onCancel` again. The dismiss layer stops answering the moment `open` is false, and `onOpenChange`/`onCancel` are additionally guarded against a no-op change — a destructive prompt reports exactly one cancellation per dismissal.
+- **Focus returns at the dismiss instant**, not when the fade ends, so a keyboard user who backs out of a destructive prompt is on the trigger immediately rather than stranded on `<body>` for the length of the animation.
+
+- **Reduced motion** — every transition collapses to a duration of zero and the framework skips the animation entirely: the surface appears and disappears instantly and the close is fully synchronous, exactly as it behaved before it animated.
+- **Touch and coarse pointers** — unchanged; neither direction is pointer-gated.
+
 ## Implementation notes
 
 - Built on the same internal `DialogSurface` primitive `Dialog` renders through — portal, backdrop, focus trap, scroll lock. See `Dialog`'s own README for that plumbing's details, including "Portal-before-focus-trap ordering" — the reason `use:portal` and `use:focusTrap` live on the exact same element in a specific source order, and why getting that wrong leaves focus silently on `document.body` instead of the panel. This component only wires the role, the dismiss defaults above, and the fixed action pair on top of it.

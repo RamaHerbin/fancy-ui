@@ -26,6 +26,8 @@
 // most mobile browsers) that measures zero, so the padding write is skipped
 // entirely rather than adding a stray `padding-right: 0px`.
 
+import type { Action } from "svelte/action";
+
 interface LockedState {
 	scrollY: number;
 	bodyPosition: string;
@@ -106,3 +108,24 @@ export function lockScroll(): () => void {
 		window.scrollTo(0, state.scrollY);
 	};
 }
+
+/**
+ * Action form of `lockScroll`: acquires on mount, releases on destroy.
+ *
+ * The point is the release timing. An element's action `destroy()` is delayed
+ * by any outro transition in its block, so an overlay that animates its exit
+ * stays locked until the scrim has actually finished fading. An `$effect`
+ * keyed on `open` cannot do that — it releases the instant `open` flips,
+ * leaving the page scrollable underneath a scrim that is still on screen,
+ * which is precisely the bug this replaces.
+ *
+ * Reference-counted through `lockScroll()` exactly as before, so nesting is
+ * unchanged. SSR-safe: `lockScroll()` already returns a no-op release when
+ * `document` is unavailable, and actions do not run on the server anyway.
+ *
+ * Goes on the PANEL, never the scrim — the panel is the node that already
+ * carries `portal`/`focusTrap`/`dismissable`, and a branch is destroyed only
+ * once its LAST transition finishes, so the release lands at the same instant
+ * either way.
+ */
+export const scrollLock: Action<HTMLElement> = () => ({ destroy: lockScroll() });
