@@ -36,6 +36,13 @@ export interface ComputePositionResult {
 	y: number;
 	/** The side actually used, which may differ from the requested one when flipped. */
 	side: Side;
+	/**
+	 * The cross-axis alignment the element actually ended up with, which
+	 * differs from the requested one whenever clamping slid it along that
+	 * axis. Read it — not the requested `align` — for anything that has to
+	 * point back at the anchor, such as a transform origin or a caret.
+	 */
+	align: Align;
 }
 
 const OPPOSITE_SIDE: Record<Side, Side> = {
@@ -121,6 +128,41 @@ function placeAt(
 }
 
 /**
+ * Where the anchor's cross-axis centre falls inside the element as finally
+ * placed, expressed in the same vocabulary as the requested `align`.
+ *
+ * The requested alignment cannot answer this: clamping moves x/y without
+ * touching either input, so a menu asked for `align: "start"` next to the
+ * viewport's right edge is reported as `start` while the anchor now sits by
+ * its right edge. Deriving from the clamped coordinates keeps that honest.
+ * The thirds are the natural split of the three-value vocabulary.
+ */
+function resolveAlign(
+	side: Side,
+	anchor: DOMRect,
+	floating: { width: number; height: number },
+	x: number,
+	y: number,
+	requested: Align
+): Align {
+	const horizontal = isHorizontalSide(side);
+	const extent = horizontal ? floating.width : floating.height;
+	// A zero-size element has no inside for the anchor to fall in — an
+	// unlaid-out first frame, a `display: none` ancestor, or jsdom, where
+	// every element measures zero. Nothing was clamped in that state either,
+	// so the requested alignment is both the honest answer and the one that
+	// keeps a never-measured panel behaving exactly as it did before.
+	if (extent <= 0) return requested;
+
+	const anchorCentre = horizontal ? anchor.left + anchor.width / 2 : anchor.top + anchor.height / 2;
+	const ratio = (anchorCentre - (horizontal ? x : y)) / extent;
+
+	if (ratio < 1 / 3) return "start";
+	if (ratio > 2 / 3) return "end";
+	return "center";
+}
+
+/**
  * Computes where to place a floating element relative to an anchor rect.
  *
  * Pure function — no DOM access, so it is testable with plain objects that
@@ -142,10 +184,14 @@ export function computePosition(
 	const maxX = Math.max(0, viewport.width - floating.width);
 	const maxY = Math.max(0, viewport.height - floating.height);
 
+	const clampedX = clamp(x, 0, maxX);
+	const clampedY = clamp(y, 0, maxY);
+
 	return {
-		x: clamp(x, 0, maxX),
-		y: clamp(y, 0, maxY),
+		x: clampedX,
+		y: clampedY,
 		side: resolvedSide,
+		align: resolveAlign(resolvedSide, anchor, floating, clampedX, clampedY, align),
 	};
 }
 
@@ -157,15 +203,19 @@ export interface AnchorPositionOptions {
 	offset?: number;
 	/**
 	 * Called with the side the element was actually placed on, which differs
-	 * from the requested `side` whenever a flip occurred. Fires once on the
-	 * initial placement and thereafter only when the resolved side changes,
-	 * so a consumer can react (move a caret, mirror a submenu's open
-	 * direction) without re-rendering on every scroll frame.
+	 * from the requested `side` whenever a flip occurred, and with the
+	 * cross-axis alignment it actually ended up with, which differs from the
+	 * requested `align` whenever clamping slid it along that axis. Fires once
+	 * on the initial placement and thereafter only when either resolved value
+	 * changes, so a consumer can react (move a caret, set a transform origin,
+	 * mirror a submenu's open direction) without re-rendering on every scroll
+	 * frame.
 	 *
-	 * Without this, `computePosition`'s resolved side is computed and
-	 * discarded here, and a consumer has no way to learn a flip happened.
+	 * Without this, `computePosition`'s resolved placement is computed and
+	 * discarded here, and a consumer has no way to learn a flip or a clamp
+	 * happened.
 	 */
-	onPlacement?: (side: Side) => void;
+	onPlacement?: (side: Side, align: Align) => void;
 }
 
 /**
@@ -182,11 +232,12 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 	}
 
 	let options = opts;
-	// The last side reported through `onPlacement`, so a scroll or resize that
-	// recomputes to the same side stays silent. `null` means "nothing reported
-	// yet", which is distinct from any real side and makes the first placement
-	// always fire.
+	// The last placement reported through `onPlacement`, so a scroll or resize
+	// that recomputes to the same one stays silent. `null` means "nothing
+	// reported yet", which is distinct from any real value and makes the first
+	// placement always fire.
 	let reportedSide: Side | null = null;
+	let reportedAlign: Align | null = null;
 
 	function update(): void {
 		const anchorEl = options.anchor();
@@ -194,7 +245,7 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 
 		const anchorRect = anchorEl.getBoundingClientRect();
 		const floatingRect = node.getBoundingClientRect();
-		const { x, y, side } = computePosition(
+		const { x, y, side, align } = computePosition(
 			anchorRect,
 			{ width: floatingRect.width, height: floatingRect.height },
 			{
@@ -209,9 +260,10 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 		node.style.left = `${x}px`;
 		node.style.top = `${y}px`;
 
-		if (side !== reportedSide) {
+		if (side !== reportedSide || align !== reportedAlign) {
 			reportedSide = side;
-			options.onPlacement?.(side);
+			reportedAlign = align;
+			options.onPlacement?.(side, align);
 		}
 	}
 
@@ -230,7 +282,10 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 			// scoped to the node, not to the callback, so the gate that exists
 			// to suppress duplicate reports to the *same* listener ends up
 			// suppressing the first report to a *different* one.
-			if (newOpts.onPlacement !== options.onPlacement) reportedSide = null;
+			if (newOpts.onPlacement !== options.onPlacement) {
+				reportedSide = null;
+				reportedAlign = null;
+			}
 			options = newOpts;
 			update();
 		},

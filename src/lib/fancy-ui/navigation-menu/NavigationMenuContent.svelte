@@ -15,7 +15,7 @@
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { portal } from "../_internals/portal.js";
-	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { dismissable } from "../_internals/dismissable.js";
 	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { NAVIGATION_MENU_KEY, type NavigationMenuContext } from "./types.js";
@@ -34,6 +34,13 @@
 	// still the request, never a guess. `computePosition` flips it to `"top"`
 	// for a nav sitting low in the viewport, and the growth origin follows.
 	let resolvedSide = $state<Side>("bottom");
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>("start");
 
 	// Only Enter/Space/ArrowDown on the trigger ever calls `requestFocus`
 	// (see NavigationMenuTrigger) — a hover- or click-open leaves this a
@@ -98,13 +105,16 @@
 			side: "bottom",
 			align: "start",
 			offset: 6,
-			onPlacement: (side) => (resolvedSide = side),
+			onPlacement: (side, align) => {
+				resolvedSide = side;
+				resolvedAlign = align;
+			},
 		}}
 		use:dismissable={{ onDismiss: root.close, exclude: () => [root.getTriggerElement(item.value)] }}
 		in:anchored={{ side: resolvedSide }}
 		data-side={resolvedSide}
 		data-align="start"
-		style:transform-origin={originFor(resolvedSide, "start")}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onpointerenter={root.cancelClose}
 		onpointerleave={root.scheduleClose}
 		onfocusout={handleFocusOut}

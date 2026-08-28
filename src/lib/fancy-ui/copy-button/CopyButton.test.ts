@@ -337,6 +337,60 @@ describe("CopyButton", () => {
 		expect(live.textContent).toBe("Copy failed");
 	});
 
+	// A permission prompt can hold the first write open across a second click,
+	// and the two promises then settle in whatever order the user agent chose.
+	// `createCopy` already ticket-guards `copied`; without the same guard here
+	// the two halves of the same button would contradict each other.
+	it("ignores a stale clipboard result that lands after a newer attempt", async () => {
+		let settleFirst!: (v: unknown) => void;
+		let settleSecond!: (v: unknown) => void;
+		const writeText = vi
+			.fn()
+			.mockImplementationOnce(() => new Promise((_, reject) => (settleFirst = reject)))
+			.mockImplementationOnce(() => new Promise((resolve) => (settleSecond = resolve)));
+		stubClipboard(writeText);
+		const { container } = render(CopyButton, { props: { value: "hello" } });
+
+		await fireEvent.click(button(container));
+		await fireEvent.click(button(container));
+
+		// The SECOND attempt succeeds first, then the first one's denial lands.
+		settleSecond(undefined);
+		await flush();
+		expect(morph(container)?.getAttribute("data-state")).toBe("success");
+
+		settleFirst(new Error("denied"));
+		await flush();
+		expect(morph(container)?.getAttribute("data-state")).toBe("success");
+		expect(button(container).className).not.toContain("ft-copybtn--failed");
+	});
+
+	// StatusMorph's `resetAfter` is the only thing that walks `morphState` back
+	// to idle, and a custom `children` removes StatusMorph entirely — so the
+	// parent has to own the timer for that composition or the failure state
+	// sticks forever.
+	it("reverts a failed copy to idle after resetMs when custom children replace the morph", async () => {
+		stubClipboard(vi.fn().mockRejectedValue(new Error("denied")));
+		const custom = createRawSnippet(() => ({ render: () => "<span>Custom</span>" }));
+		const { container } = render(CopyButton, {
+			props: { value: "hello", children: custom, resetMs: 500 },
+		});
+
+		await fireEvent.click(button(container));
+		await flush();
+
+		const live = visibleLabel(container);
+		expect(live.textContent).toBe("Copy failed");
+		expect(live.getAttribute("aria-live")).toBe("assertive");
+		expect(button(container).className).toContain("ft-copybtn--failed");
+
+		await vi.advanceTimersByTimeAsync(500);
+
+		expect(live.textContent).toBe("Copy");
+		expect(live.getAttribute("aria-live")).toBe("polite");
+		expect(button(container).className).not.toContain("ft-copybtn--failed");
+	});
+
 	it("renders the copy glyph through StatusMorph's idle slot, at the icon footprint", () => {
 		const { container } = render(CopyButton, { props: { value: "hello" } });
 		const el = morph(container);

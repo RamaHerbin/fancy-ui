@@ -5,7 +5,7 @@ import Dock from "./Dock.svelte";
 import Harness from "./DockHarness.test.svelte";
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
-const COARSE_QUERY = "(hover: none)";
+const COARSE_QUERY = "(any-hover: none)";
 
 /**
  * A `matchMedia` stub that answers per query rather than for every query at
@@ -44,10 +44,24 @@ function icons(container: HTMLElement): HTMLElement[] {
 /** Moves the pointer across the dock and lets the one queued frame run.
  * `Dock` defers every position write to `requestAnimationFrame`, so without
  * advancing a frame nothing would have been written yet and every assertion
- * below would pass for the wrong reason. */
-async function movePointerTo(container: HTMLElement, x: number) {
+ * below would pass for the wrong reason. `pointerType` defaults to the mouse
+ * because that is the input the magnification exists for; the touch case
+ * passes it explicitly. */
+async function movePointerTo(
+	container: HTMLElement,
+	x: number,
+	init: { pointerType?: string; isPrimary?: boolean } = {}
+) {
 	const dock = container.querySelector('[role="toolbar"]') as HTMLElement;
-	await fireEvent.mouseMove(dock, { clientX: x, clientY: x, pageX: x, pageY: x });
+	await fireEvent.pointerMove(dock, {
+		clientX: x,
+		clientY: x,
+		pageX: x,
+		pageY: x,
+		pointerType: "mouse",
+		isPrimary: true,
+		...init,
+	});
 	vi.advanceTimersToNextFrame();
 	await tick();
 }
@@ -161,6 +175,39 @@ describe("Dock", () => {
 			for (const icon of icons(container)) {
 				expect(icon.style.width).toBe("40px");
 				expect(icon.style.height).toBe("40px");
+			}
+		});
+
+		// The hybrid device the `any-hover` switch exists for: a mouse is
+		// attached, so the capability query says hovering is possible, but the
+		// gesture in hand is a finger. The magnifier has to ignore that one
+		// without going dormant for the mouse beside it.
+		it("ignores touch pointers on a device that can also hover", async () => {
+			stubMatchMedia([]);
+			const { container } = render(Harness);
+
+			await movePointerTo(container, 20, { pointerType: "touch" });
+
+			for (const icon of icons(container)) {
+				expect(icon.style.width).toBe("40px");
+			}
+
+			// Same device, same dock, real mouse: still magnifies.
+			await movePointerTo(container, 20);
+
+			expect(icons(container)[0].style.width).not.toBe("40px");
+		});
+
+		// A second finger, or any secondary pointer, must not drive the
+		// magnifier — otherwise a two-finger gesture fights itself.
+		it("ignores non-primary pointers", async () => {
+			stubMatchMedia([]);
+			const { container } = render(Harness);
+
+			await movePointerTo(container, 20, { isPrimary: false });
+
+			for (const icon of icons(container)) {
+				expect(icon.style.width).toBe("40px");
 			}
 		});
 

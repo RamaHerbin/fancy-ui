@@ -137,6 +137,13 @@
 	// actually landed.
 	let resolvedSide = $state<Side>(untrack(() => side));
 
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(untrack(() => align));
+
 	// The documented contract is that nothing inside the card is interactive
 	// (see the README), so in the shape this component was designed for,
 	// focus never moves from the trigger into the card and this check never
@@ -198,14 +205,17 @@
 			side,
 			align,
 			offset,
-			onPlacement: (placed) => (resolvedSide = placed),
+			onPlacement: (placed, placedAlign) => {
+				resolvedSide = placed;
+				resolvedAlign = placedAlign;
+			},
 		}}
 		use:dismissable={{ onDismiss: () => setOpen(false), exclude: () => [ref] }}
 		in:anchored={{ side: resolvedSide }}
 		data-state="open"
 		data-side={resolvedSide}
 		data-align={align}
-		style:transform-origin={originFor(resolvedSide, align)}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onpointerenter={clearCloseTimer}
 		onpointerleave={scheduleClose}
 	>

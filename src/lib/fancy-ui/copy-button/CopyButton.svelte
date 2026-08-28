@@ -81,6 +81,14 @@
 	// Reads nothing, so it runs once and its teardown is the unmount cleanup.
 	$effect(() => copyState.destroy);
 
+	// The same latest-attempt guard `createCopy` keeps for `copied`, kept here
+	// for the state this component owns. A permission prompt can hold one write
+	// open across a second click, and both promises then resolve in whatever
+	// order the user agent settled them: without the ticket, a first click's
+	// late failure would repaint the error skin over a second click's success,
+	// and `copyState.copied` — which IS ticket-guarded — would disagree with it.
+	let attempt = 0;
+
 	// The glyph's own state, two-way bound so StatusMorph's own `resetAfter`
 	// timer writes it back to "idle". Deliberately not a second authority for
 	// the success window: `createCopy` still owns `copyState.copied` (the skin
@@ -127,11 +135,35 @@
 		// `copy()` resolves false instead of throwing on a denied permission or a
 		// missing clipboard API — that outcome is reported to the caller honestly,
 		// not swallowed into a silent no-op, and is now shown and announced too.
+		const mine = ++attempt;
 		const ok = await copyState.copy(value);
-		morphState = ok ? "success" : "error";
-		if (sound) soundFx.play(ok ? "copy" : "error");
+		// `onCopy` still fires for every attempt, stale or not — it reports what
+		// that call did, matching `copy()`'s own honest return. Only the visible
+		// and audible cues, which describe the button's CURRENT state, are
+		// dropped when a newer attempt has already spoken for them.
+		if (mine === attempt) {
+			morphState = ok ? "success" : "error";
+			if (sound) soundFx.play(ok ? "copy" : "error");
+		}
 		onCopy?.(value, ok);
 	}
+
+	// StatusMorph's `resetAfter` is what normally walks `morphState` back to
+	// "idle", and a custom `children` replaces the whole icon slot — so in that
+	// composition nothing owns the timer and a failure would keep the error
+	// skin, the error label and the assertive live region forever. The parent
+	// takes the timer over for exactly that case, on the same window and with
+	// the same 0-means-1ms clamp the morph is handed above.
+	$effect(() => {
+		if (!children || morphState === "idle") return;
+		const timer = setTimeout(
+			() => {
+				morphState = "idle";
+			},
+			resetWindow > 0 ? resetWindow : 1
+		);
+		return () => clearTimeout(timer);
+	});
 </script>
 
 {#snippet copyIcon()}

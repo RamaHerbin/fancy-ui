@@ -198,11 +198,13 @@ reasoning if you add a portalled read of the accent to either later.
 
 The panel enters with a 150 ms opacity + scale rise (`DURATIONS.fast` and
 `JS_EASINGS.out`, the shared rung every floating surface in the library is
-on), growing from a `0.92` floor. The growth origin follows the side the panel
-was actually placed on — flipped placements included — so it always appears to
-come out of the click rather than out of its own centre. Exposed as
-`data-side` / `data-align` for consumers that want to key their own styling
-off the resolved placement.
+on), growing from a `0.92` floor. The growth origin follows the placement the panel
+actually got — flipped sides included, and the cross-axis alignment as it
+ended up rather than as it was requested, since a menu opened near a viewport
+edge is clamped sideways until the corner touching the pointer is no longer
+the one asked for. Either way it appears to come out of the click rather than
+out of its own centre. `data-side` / `data-align` carry the resolved side and
+the requested alignment for consumers keying their own styling off placement.
 
 The entrance is a Svelte transition rather than a keyframe, so there is no
 `--ft-*` variable on the panel to retime it; reduced motion is the one switch.
