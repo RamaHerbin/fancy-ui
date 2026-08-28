@@ -20,7 +20,9 @@ type BaseProps = {
 	children?: ReactNode;
 };
 
-export type ShimmerButtonProps = BaseProps & Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps>;
+export interface ShimmerButtonProps
+	extends BaseProps,
+		Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> {}
 
 export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 	(

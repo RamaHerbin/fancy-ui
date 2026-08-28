@@ -22,7 +22,9 @@ type BaseProps = {
 	children?: ReactNode;
 };
 
-export type GradientButtonProps = BaseProps & Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps>;
+export interface GradientButtonProps
+	extends BaseProps,
+		Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> {}
 
 const DEFAULT_COLORS = [
 	"#FF0000",

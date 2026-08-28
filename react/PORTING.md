@@ -35,6 +35,15 @@ Every component folder gets a matching export block in `react/src/index.ts`.
   renders `<a>` when `href` is set) keep the same branch logic.
 - `Snippet` props become `ReactNode` props; the default `children` snippet is
   React `children`.
+- Prop contracts are `interface`, never a `type` alias — including when the
+  props are an intersection of DOM attributes. Intersect the attribute sets
+  FIRST and extend the result (see `RainbowButton`): an interface may not
+  extend two types that declare the same property differently.
+- **Nothing may differ between a server render and its hydration.** No
+  `Math.random()`, `Date.now()` or `window` read in a render path or a lazy
+  `useState` initializer. Where the Svelte source randomises, take a seed
+  prop and use a deterministic PRNG, and record it as a divergence in the
+  README.
 
 ## Rune → hook mapping
 
@@ -78,6 +87,15 @@ Every component folder gets a matching export block in `react/src/index.ts`.
    `@theme`/keyframes definition and re-declare the equivalent in the
    component's own `.css` so consumers need zero app-side theme setup.
 5. **`prefers-reduced-motion` blocks are ported as-is.** Never drop one.
+6. **Semantic colour names are declared once, in `react/tailwind.css`.**
+   `bg-background`, `bg-primary`, `text-primary-foreground` and `ring-ring`
+   are not stock Tailwind either, but unlike rule 4's per-component
+   utilities they are a shared vocabulary — redeclaring them in every
+   component's `.css` would fight itself. The package stylesheet maps them
+   with `@theme inline` and ships defaults in `@layer base`, which serves the
+   same goal rule 4 exists for (zero app-side setup) while still letting an
+   app with its own shadcn tokens win. Adding a new semantic name to a ported
+   component means adding it there too.
 
 ## Tests
 

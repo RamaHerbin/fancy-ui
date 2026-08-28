@@ -11,8 +11,9 @@ type BaseProps = {
 	children?: ReactNode;
 };
 
-export type InteractiveHoverButtonProps = BaseProps &
-	Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps>;
+export interface InteractiveHoverButtonProps
+	extends BaseProps,
+		Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> {}
 
 export const InteractiveHoverButton = forwardRef<HTMLButtonElement, InteractiveHoverButtonProps>(
 	({ text = "Button", className, children, ...restProps }, ref) => {

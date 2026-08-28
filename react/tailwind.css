@@ -10,3 +10,49 @@
  * Mirrors fancy-ui-svelte/tailwind.css.
  */
 @source "./dist";
+
+/*
+ * The semantic colour names the components actually spend: `bg-background`,
+ * `bg-primary` / `text-primary`, `text-primary-foreground`, `ring-ring`. None
+ * of these exist in Tailwind's default palette, so without this block the two
+ * documented imports generate the utilities and they resolve to nothing — the
+ * InteractiveHoverButton's hover fill and its contrasting label simply do not
+ * paint unless the consumer happens to run the same custom theme.
+ *
+ * `@theme inline` on purpose: each utility resolves `var(--primary)` at USE
+ * time rather than baking a value in, so an app that already defines the
+ * shadcn token set (the common case, and where these names come from) keeps
+ * its own colours with no configuration here. The defaults below only fill in
+ * when nothing else defines them.
+ */
+@theme inline {
+	--color-background: var(--background);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-ring: var(--ring);
+}
+
+/*
+ * Defaults, in `@layer base` rather than a bare `:root`: a consumer's own
+ * token block is almost always unlayered, and unlayered rules beat layered
+ * ones whatever the import order. So these apply when the app defines
+ * nothing, and lose the moment it does — no `!important`, no ordering
+ * requirement in the app's CSS. Values match the shadcn defaults the Svelte
+ * package's own docs site runs on, so the two packages look alike out of the
+ * box. `.dark` mirrors what the docs site switches to.
+ */
+@layer base {
+	:root {
+		--background: oklch(1 0 0);
+		--primary: oklch(0.208 0.042 265.755);
+		--primary-foreground: oklch(0.984 0.003 247.858);
+		--ring: oklch(0.704 0.04 256.788);
+	}
+
+	.dark {
+		--background: oklch(0.05 0 0);
+		--primary: oklch(0.929 0.013 255.508);
+		--primary-foreground: oklch(0.05 0 0);
+		--ring: oklch(0.551 0.027 264.364);
+	}
+}

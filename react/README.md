@@ -11,8 +11,17 @@ a faithful transpose (see `PORTING.md` for the law that governs ports).
 
 ## Install
 
+> **Not published yet.** `fancy-ui-react` has no npm release: the repo's
+> release pipeline runs `changeset publish` from the root, which only ever
+> sees `fancy-ui-svelte` — `react/` is a separate install root with its own
+> lockfile, so Changesets never discovers it. Building the release path for
+> this package is tracked separately; until it lands, use the package from a
+> checkout (`cd react && pnpm install && pnpm build`) and consume `dist/`
+> directly. The instructions below describe the intended install so the
+> setup they document stays reviewable, not a command that works today.
+
 ```bash
-npm install fancy-ui-react
+npm install fancy-ui-react # once the package is published
 ```
 
 Peer dependencies: `react` / `react-dom` 18 or 19, `tailwindcss` 4.
@@ -29,6 +38,19 @@ Peer dependencies: `react` / `react-dom` 18 or 19, `tailwindcss` 4.
 import "fancy-ui-react/styles.css"; // keyframes + component-scoped CSS
 import { RainbowButton, Marquee } from "fancy-ui-react";
 ```
+
+Those two imports are the whole setup. `tailwind.css` also declares the
+semantic colours the components spend — `--background`, `--primary`,
+`--primary-foreground`, `--ring` — because none of them exist in Tailwind's
+default palette, and without them `bg-primary` and friends compile to nothing.
+They are wired with `@theme inline`, so the utilities resolve the variables at
+use time: an app that already defines the shadcn token set keeps its own
+colours automatically. The defaults ship in `@layer base`, which an unlayered
+`:root` in your app overrides whatever the import order.
+
+Every export is a client module — the built entries carry `"use client"`, so
+`fancy-ui-react` can be imported directly from a React Server Component file
+without a wrapper of your own.
 
 ## Development
 
@@ -63,6 +85,13 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - Compiler-scoped selectors with no root anchor in the source gained one
   (`fancy-marquee`, `ripple-button`) so their CSS does not leak into consumer
   pages — see PORTING.md, styling rule 2.
+- **`Meteors` takes a `seed`** the Svelte side has no equivalent for. Svelte
+  runs its randomiser once, in the browser; React runs the same initializer on
+  the server AND again during hydration, and `Math.random()` disagrees with
+  itself across the two — a hydration mismatch React may settle by keeping the
+  server values. A seeded PRNG makes both renders agree while leaving the
+  shower in the server HTML. The default seed is shared, so two unseeded
+  showers fall the same way; pass different seeds to separate them.
 
 ## Porting a component
 

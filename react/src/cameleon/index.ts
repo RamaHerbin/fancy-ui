@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Cameleon Engine — multi-skin UI primitives for fancy-ui.
  *

@@ -14,9 +14,18 @@ type BaseProps = {
 	children?: ReactNode;
 };
 
-export type RainbowButtonProps = BaseProps &
-	Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> &
-	Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof BaseProps>;
+// The two attribute sets are intersected BEFORE `Omit`, then extended as one:
+// an interface may not extend two types that name the same property with
+// different signatures (`onAbort` and friends differ between button and
+// anchor), while an intersection tolerates it. Same resulting type as the
+// alias this replaces — the interface form is the tooling contract in
+// PORTING.md.
+type RainbowButtonElementProps = Omit<
+	ButtonHTMLAttributes<HTMLButtonElement> & AnchorHTMLAttributes<HTMLAnchorElement>,
+	keyof BaseProps
+>;
+
+export interface RainbowButtonProps extends BaseProps, RainbowButtonElementProps {}
 
 // Note: unlike most components in this package, RainbowButton does not spread
 // rest props onto the rendered element — this mirrors the Svelte source,

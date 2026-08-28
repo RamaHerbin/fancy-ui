@@ -1,3 +1,5 @@
+"use client";
+
 // fancy-ui-react — public barrel. One export block per component folder,
 // mirroring src/lib/fancy-ui/index.ts on the Svelte side. The cameleon skin
 // engine is deliberately NOT here (parity with the Svelte barrel); it ships
