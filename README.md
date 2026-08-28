@@ -152,7 +152,7 @@ Component tests are colocated with their component (see `RainbowButton.test.ts` 
 
 ## Contributing
 
-Contributions are welcome! 134 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
+Contributions are welcome! 135 components and counting — PRs for new components, bug fixes, and improvements are appreciated.
 
 ### Adding a new component
 

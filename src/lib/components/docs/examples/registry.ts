@@ -252,6 +252,21 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "CustomColor", title: "Custom Color" },
 		{ name: "AnimationSpeed", title: "Animation Speed" },
 	],
+	"mosaic-glow": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Colors",
+			title: "Colors",
+			description: "Any hex or rgb() colour for the halo and the surface.",
+		},
+		{ name: "DenseGrid", title: "Dense Grid", description: "Smaller tiles for a finer mosaic." },
+		{
+			name: "TrailAndIdle",
+			title: "Trail and Idle",
+			description: "A short, cursor-only trail versus a long comet that keeps drifting.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"matrix-rain": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{
