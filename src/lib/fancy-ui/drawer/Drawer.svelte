@@ -69,16 +69,8 @@
 	const titleId = $derived(title ? `${uid}-title` : undefined);
 	const descriptionId = $derived(description ? `${uid}-description` : undefined);
 
-	// Where the exit starts from. Captured in `close()` rather than in the
-	// drag handler so EVERY close path sets it — a scrim click, Escape and
-	// the close button all leave `dragY` at 0, which is the resting position,
-	// and a past-threshold release leaves it wherever the finger did. One
-	// assignment, one meaning: "the panel is here now; take it from here."
-	let exitFromY = 0;
-
 	function close() {
 		if (!open) return;
-		exitFromY = dragY;
 		open = false;
 		onOpenChange?.(false);
 	}
@@ -222,17 +214,23 @@
 	// drawer that slid half-way down and then vanished reads worse than one
 	// that simply leaves. A named exception, not an oversight.
 	//
-	// `from` is where the panel is at the instant the exit starts — 0 for
-	// every close path except a past-threshold swipe, which hands over
-	// wherever the finger let go. At `t = 1` the panel sits exactly there; at
-	// `t = 0` it is a full height below the viewport. One continuous motion
+	// `from` is where the panel is at the instant the exit starts, read
+	// straight off the live `dragY` rather than from a value captured on the
+	// way into `close()`. A parent writing the bound `open` to false — mid-drag
+	// included — never goes through `close()` at all, and a captured offset
+	// would then still be 0 while the panel'"'"'s inline transform sat at the
+	// finger'"'"'s position: the drawer would snap back to rest and only then slide
+	// out. `dragY` is already correct on every path: 0 for a scrim click,
+	// Escape and the close button, and left exactly where the finger let go
+	// for a past-threshold release. At `t = 1` the panel sits exactly there;
+	// at `t = 0` it is a full height below the viewport. One continuous motion
 	// rather than a snap back followed by a slide. On the way in `from` is
 	// always 0: an entrance starts off-screen and ends at rest, and a stale
 	// offset from an earlier swipe must not become the resting position.
 	function drawerSlide(_node: Element, params: { entering: boolean }): TransitionConfig {
 		const reduced = prefersReducedMotion();
 		const entering = params.entering;
-		const from = entering ? 0 : exitFromY;
+		const from = entering ? 0 : dragY;
 		return {
 			// Reduced motion collapses this to 0, which makes Svelte call
 			// `on_finish()` synchronously and never touch `element.animate()` —

@@ -60,6 +60,9 @@
 			return focus;
 		},
 		itemTextClass: "text-[12px]",
+		get rootOpen() {
+			return root.open;
+		},
 		closeAll(options) {
 			root.close(options);
 		},

@@ -31,6 +31,23 @@
 	const parentMenu = getContext<MenuContext>(MENU_KEY);
 	const sub = getContext<SubContext>(SUB_KEY);
 
+	// `sub.open` alone is not liveness. Closing the root — selecting a root
+	// item, or an external `bind:open` write — flips only the root's state and
+	// tears this block down with it, leaving `sub.open` true for the whole
+	// global outro. Everything that has to know whether this panel is a live
+	// top layer reads THIS instead: the transition, which would otherwise run
+	// the entrance curve on the way out, and `dismissable`, which would
+	// otherwise let a fading submenu swallow an Escape or an outside click
+	// that belongs to whatever is underneath.
+	//
+	// `parentMenu.rootOpen` rather than a family-specific root context: this
+	// component is shared with `ContextMenu`, which publishes no
+	// `DROPDOWN_MENU_KEY` at all. Reading it off `MenuContext` — the contract
+	// both families implement — and republishing `live` as this level's own
+	// `rootOpen` below is also what makes the answer compose down a chain of
+	// nested submenus.
+	const live = $derived(sub.open && parentMenu.rootOpen);
+
 	const focus = createMenuFocus();
 	const { registerOpenSub, closeSiblingSubs } = createOpenSubRegistry();
 
@@ -46,6 +63,11 @@
 		// to travel through context rather than plain CSS inheritance.
 		get itemTextClass() {
 			return parentMenu.itemTextClass;
+		},
+		// This level's own liveness, not the root's raw state: a submenu nested
+		// inside THIS one is no more alive than this one is.
+		get rootOpen() {
+			return live;
 		},
 		// Copied from the parent level for the same reason as `itemTextClass`
 		// just above: a submenu's own sound behaviour follows whatever the
@@ -168,9 +190,9 @@
 		use:dismissable={{
 			onDismiss: () => sub.closeSub(true),
 			exclude: () => [sub.triggerRef],
-			active: () => sub.open,
+			active: () => live,
 		}}
-		transition:anchored|global={{ side: sub.resolvedSide, entering: sub.open }}
+		transition:anchored|global={{ side: sub.resolvedSide, entering: live }}
 		data-state="open"
 		data-side={sub.resolvedSide}
 		data-align="start"

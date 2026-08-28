@@ -60,6 +60,17 @@ export interface MenuContext {
 	 * that has no `sound` prop of its own (yet).
 	 */
 	readonly sound?: boolean;
+	/**
+	 * Whether the menu TREE this level belongs to is still open — not just
+	 * this level's own `{#if}`. Closing the root flips only the root's state
+	 * and tears every nested level down with it, so a submenu's own
+	 * `sub.open` stays true for the whole of that outro. Anything asking "is
+	 * this panel a live top layer?" — an exit transition picking its curve,
+	 * a `dismissable` deciding whether an Escape is its to swallow — has to
+	 * read this instead. A `*SubContent` republishes it as its own liveness,
+	 * so the answer composes down a chain of nested submenus.
+	 */
+	readonly rootOpen: boolean;
 	/** Closes the whole menu, root included. What selecting an item and pressing Tab both do. */
 	closeAll(options?: MenuCloseOptions): void;
 	/** Registers a currently-open submenu at this level, keyed by its trigger element. Returns an unregister function. */

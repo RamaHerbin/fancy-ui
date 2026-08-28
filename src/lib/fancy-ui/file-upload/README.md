@@ -164,6 +164,11 @@ animated.
 Rows animate in and out. A new row rises 8px into place over 150ms on the
 arrival curve; a removed row simply fades over 200ms on the departure curve —
 shorter, and with no travel, so nothing appears to fly back out of the list.
+The removal transition is `|global` so the LAST row fades like every other
+one: emptying the list destroys the whole `<ul>`, and Svelte only collects a
+_local_ transition through transparent children — a nested `{#if}` is not one,
+so a local outro there would never run. The entrance stays local, which is
+what keeps a restored list from animating every row in at once.
 
 Removal stays instant as far as your code is concerned: `files` and
 `onFilesChange` both update in the same tick they always did, and the row only

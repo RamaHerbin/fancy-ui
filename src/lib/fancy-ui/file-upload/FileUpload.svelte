@@ -362,6 +362,21 @@
 		{/if}
 	</div>
 
+	<!--
+		`out:` is `|global` for the same reason `DropdownMenuSubContent`'"'"'s
+		transition is: Svelte'"'"'s outro collector (`pause_children`) only gathers a
+		LOCAL transition while walking through TRANSPARENT children, and a
+		nested `{#if}` block is not transparent. Removing the LAST file flips
+		this `{#if}` false and tears the whole `<ul>` down, so a local row outro
+		would never be collected — every other removal would fade and the final
+		one would vanish on the spot. `|global` hands the row'"'"'s outro to
+		whichever block is closing, so the list stays mounted until the last row
+		has finished leaving.
+
+		`in:` stays LOCAL on purpose: the usual cost of `|global` is an intro
+		that also fires when an ancestor block first renders, which would make
+		every row of a restored list animate in at once.
+	-->
 	{#if files.length > 0}
 		<ul bind:this={listRef} class="ft-file-upload-list flex flex-col gap-2">
 			{#each files as entry (entry.id)}
@@ -373,7 +388,7 @@
 						distance: 8,
 						easing: JS_EASINGS.out,
 					}}
-					out:rowLeave={{
+					out:rowLeave|global={{
 						duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
 						easing: JS_EASINGS.in,
 					}}
