@@ -200,17 +200,26 @@
 	let directionFirstRun = true;
 	$effect(() => {
 		const nextValue = value;
+		// Read BEFORE the first-run early return, not at the point of use:
+		// an effect only subscribes to what it actually reads on a given run,
+		// so returning early without touching `direction` would leave this
+		// effect depending on `value` alone — a `direction` flip before the
+		// first value change would then never reach `resolvedDirection`, and
+		// `data-direction` would stay stale until some later value change
+		// happened to re-run this.
+		const requested = direction;
 		if (directionFirstRun) {
 			directionFirstRun = false;
 			priorValueForDirection = nextValue;
 			return;
 		}
-		resolvedDirection = resolveDirection(priorValueForDirection, nextValue, direction);
+		resolvedDirection = resolveDirection(priorValueForDirection, nextValue, requested);
 		priorValueForDirection = nextValue;
 	});
 
 	// Effect 2: generation bump + the hard timeout backstop. Reads ONLY
-	// `value` (via `graphemes.length`) — never `direction` — for the reason
+	// `value` (via `graphemes.length`) — never `direction`, and never
+	// `effDuration` reactively (see the `untrack` below) — for the reason
 	// above. `firstRun` skips the bookkeeping on mount — there is no prior
 	// value to diff against yet, and skipping it also means the backstop
 	// timer below is never armed for content that never rolled.
@@ -251,9 +260,16 @@
 		// The returned cleanup clears this timer both on the NEXT value
 		// change (re-arming a fresh window rather than trusting whatever was
 		// left on the old one) and on unmount.
-		const backstopMs = Math.max(
-			DURATIONS.entrance,
-			effDuration + STAGGER_CAPS.text + DURATIONS.fast
+		// `untrack`, for the same reason this effect never reads `direction`
+		// (see above): subscribing to `effDuration` would let a `duration`-only
+		// change tear this timer down and arm a fresh, differently-sized one
+		// mid-roll, while the WAAPI transitions already running keep the
+		// duration they were created with. Dropping a 2000ms roll to `0`
+		// after it starts would then end `inFlight` at the 600ms floor and
+		// expose the real layer under still-animating cells. The window is
+		// sized once, from the duration the roll actually started with.
+		const backstopMs = untrack(() =>
+			Math.max(DURATIONS.entrance, effDuration + STAGGER_CAPS.text + DURATIONS.fast)
 		);
 		const timeoutId = setTimeout(() => {
 			inFlight = 0;

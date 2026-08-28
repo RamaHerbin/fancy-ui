@@ -147,6 +147,29 @@ describe("Pressable — disabled", () => {
 		expect(wrapper()).not.toHaveAttribute("data-pressed");
 	});
 
+	it("clears a live press when disabled flips true mid-press, and a later re-enable stays unpressed", async () => {
+		const { rerender } = render(Pressable, {
+			props: { children: buttonSnippet(), disabled: false },
+		});
+
+		await fireEvent.pointerDown(wrapper(), { pointerId: 1, button: 0, pointerType: "mouse" });
+		expect(wrapper()).toHaveAttribute("data-pressed", "true");
+
+		// The press handler disables the wrapper (a "Save" submitting) and no
+		// pointerup/focusout follows — Firefox delivers no pointerup to a
+		// control disabled under the pointer, and a click that never focused
+		// the button delivers no focusout either. The state itself must be
+		// released, not merely hidden by the CSS `:not([data-disabled])`
+		// guard.
+		await rerender({ disabled: true });
+		expect(wrapper()).not.toHaveAttribute("data-pressed");
+
+		// The async work resolved and the wrapper is interactive again: no
+		// stale press resurfaces, because there is no stale press left.
+		await rerender({ disabled: false });
+		expect(wrapper()).not.toHaveAttribute("data-pressed");
+	});
+
 	it("omits data-disabled entirely when not disabled", () => {
 		render(Pressable, { props: { children: buttonSnippet() } });
 		expect(wrapper()).not.toHaveAttribute("data-disabled");

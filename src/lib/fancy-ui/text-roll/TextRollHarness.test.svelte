@@ -1,11 +1,12 @@
 <!--
-  Test-only harness: owns `value`/`direction` as its OWN internal `$state`,
-  mutated through exported instance functions — deliberately NOT as incoming
-  `$props` driven by `@testing-library/svelte`'s `rerender()`.
+  Test-only harness: owns `value`/`direction`/`duration` as its OWN internal
+  `$state`, mutated through exported instance functions — deliberately NOT as
+  incoming `$props` driven by `@testing-library/svelte`'s `rerender()`.
 
-  That distinction is load-bearing for one specific regression test (the
-  backstop must not restart on a `direction`-only change). Testing-library's
-  props adapter (`@testing-library/svelte-core`'s `props.svelte.js`) keeps
+  That distinction is load-bearing for two specific regression tests (the
+  backstop must restart on neither a `direction`-only nor a `duration`-only
+  change, and a `direction`-only change must still reach `data-direction`).
+  Testing-library's props adapter (`@testing-library/svelte-core`'s `props.svelte.js`) keeps
   ALL of a rendered component's props in a single shared `$state.raw` box,
   reassigned wholesale — `{ ...currentProps, ...nextProps }` — on every
   `rerender()` call. Every prop read anywhere in the tree traces back to
@@ -24,10 +25,15 @@
 -->
 
 <script lang="ts">
+	import { DURATIONS } from "../_internals/motion/tokens.js";
 	import TextRoll from "./TextRoll.svelte";
 
 	let value = $state("A");
 	let direction = $state<"auto" | "up" | "down">("up");
+	// Seeded with TextRoll's OWN default so the harness starts out
+	// indistinguishable from `<TextRoll {value} />` — a test that never calls
+	// `setDuration` gets the default-duration timings the other suites assume.
+	let duration = $state<number>(DURATIONS.base);
 
 	export function setValue(next: string) {
 		value = next;
@@ -35,6 +41,9 @@
 	export function setDirection(next: "auto" | "up" | "down") {
 		direction = next;
 	}
+	export function setDuration(next: number) {
+		duration = next;
+	}
 </script>
 
-<TextRoll {value} {direction} />
+<TextRoll {value} {direction} {duration} />

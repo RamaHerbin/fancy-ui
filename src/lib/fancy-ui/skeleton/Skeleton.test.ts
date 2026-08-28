@@ -126,13 +126,30 @@ describe("Skeleton", () => {
 			expect(statuses[0]).toHaveAttribute("aria-live", "polite");
 		});
 
-		it("swaps to children once loading is false, leaving no bones and no status node", () => {
+		it("swaps to children once loading is false, leaving no bones and an emptied status region", () => {
 			const { container } = render(Skeleton, { props: { loading: false, children } });
 			expect(container.textContent).toContain("Real content");
 			expect(bones(container)).toHaveLength(0);
-			expect(container.querySelector('[role="status"]')).toBeNull();
+			const status = container.querySelector('[role="status"]');
+			expect(status).not.toBeNull();
+			expect(status?.textContent).toBe("");
 			expect(root(container)).not.toHaveAttribute("aria-busy");
 			expect(root(container)).not.toHaveAttribute("data-loading");
+		});
+
+		it("keeps the live region mounted across a loading toggle — turning loading on is a text change, not an insertion", async () => {
+			// A live region inserted already populated is announced unreliably;
+			// assistive tech has to see the region before its text changes. The
+			// same node has to survive the false → true reuse flow for that.
+			const { container, rerender } = render(Skeleton, { props: { loading: false, children } });
+			const status = container.querySelector('[role="status"]');
+			expect(status).not.toBeNull();
+			expect(status?.textContent).toBe("");
+
+			await rerender({ loading: true, children });
+
+			expect(container.querySelector('[role="status"]')).toBe(status);
+			expect(status?.textContent).toBe("Loading");
 		});
 
 		it("silences the inner status span too when label is an empty string", () => {
