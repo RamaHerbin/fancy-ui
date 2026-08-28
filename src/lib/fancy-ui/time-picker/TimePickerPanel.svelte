@@ -10,7 +10,7 @@
 <script lang="ts">
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
 	import { anchored, originFor } from "../_internals/motion/anchored.js";
@@ -30,6 +30,13 @@
 	// the growth origin is already right on the first frame, and `onPlacement`
 	// only ever has to correct a real flip.
 	let resolvedSide = $state<Side>("bottom");
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>("start");
 
 	function rowClasses(index: number): string {
 		return cn(
@@ -60,13 +67,16 @@
 		side: "bottom",
 		align: "start",
 		offset: 4,
-		onPlacement: (side) => (resolvedSide = side),
+		onPlacement: (side, align) => {
+			resolvedSide = side;
+			resolvedAlign = align;
+		},
 	}}
 	use:dismissable={{ onDismiss: ctx.close, exclude: () => [ctx.triggerRef] }}
 	in:anchored={{ side: resolvedSide }}
 	data-side={resolvedSide}
 	data-align="start"
-	style:transform-origin={originFor(resolvedSide, "start")}
+	style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 >
 	{#if ctx.slots.length === 0}
 		<!-- Reachable when `min`/`max` exclude every generated slot — see the

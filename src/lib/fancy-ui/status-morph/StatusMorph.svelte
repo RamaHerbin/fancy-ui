@@ -398,18 +398,22 @@
 		/* Same draw technique and easing as the check (an arrival, not a
 		   departure), staggered one --ft-duration-micro apart so the X reads
 		   as two strokes rather than one simultaneous flash. The second
-		   stroke's 160ms delay is 2 × --ft-duration-micro; no token,
-		   deliberately — R11 adds one rung, not two. The 160ms DURATIONS on
-		   both lines are off-scale for the same reason (a stroke that takes
-		   --ft-duration-fast reads slower than the beat between the two), as
-		   is the 0.8s spin above: left as literals rather than forced onto a
-		   token that would change their value. */
+		   stroke's delay is CALCULATED from the same token rather than
+		   hardcoded at its default's 160ms: a theme that retunes the token
+		   would otherwise start both strokes together at 160ms, or — past
+		   that — draw the nominally second stroke first. No second token,
+		   deliberately: R11 adds one rung, not two. The 160ms DURATIONS on
+		   both lines stay off-scale (a stroke that takes --ft-duration-fast
+		   reads slower than the beat between the two), as is the 0.8s spin
+		   above: left as literals rather than forced onto a token that would
+		   change their value. */
 		.ft-statusmorph-cross-a {
 			transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
 				var(--ft-duration-micro, 80ms);
 		}
 		.ft-statusmorph-cross-b {
-			transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 160ms;
+			transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
+				calc(var(--ft-duration-micro, 80ms) * 2);
 		}
 		svg[data-state="error"] {
 			animation: ft-statusmorph-shake var(--ft-duration-base, 300ms)

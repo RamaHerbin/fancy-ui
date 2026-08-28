@@ -87,8 +87,17 @@ export interface SubContext {
 	 * regardless of which side that visually is.
 	 */
 	readonly resolvedSide: Side;
+	/**
+	 * The cross-axis alignment the submenu actually rendered with, as last
+	 * reported by `onPlacement`. `"start"` until a clamp near a viewport edge
+	 * slides the panel along that axis, after which the requested corner is
+	 * no longer the one touching the trigger. `SubContent` reads this for its
+	 * entrance origin, so the panel grows from the corner nearest the trigger
+	 * rather than from the far one.
+	 */
+	readonly resolvedAlign: Align;
 	setTriggerRef(el: HTMLElement | null): void;
-	setResolvedSide(side: Side): void;
+	setPlacement(side: Side, align: Align): void;
 	/** Opens the submenu. Idempotent — does nothing if already open. */
 	openSub(): void;
 	/** Closes the submenu, optionally returning DOM focus to its trigger. */

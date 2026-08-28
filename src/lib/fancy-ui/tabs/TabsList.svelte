@@ -198,8 +198,34 @@
 		const observer = new ResizeObserver(() => place(false));
 		observer.observe(list);
 
+		// The list's border box is not enough on its own. Inside a fixed-width
+		// `TabsList` a trigger can change its own label — and therefore its
+		// width and every later trigger's offset — while the list measures the
+		// same to the pixel. Observing the triggers as well is what catches it.
+		function observeTriggers(el: HTMLElement): void {
+			for (const trigger of el.querySelectorAll<HTMLElement>("[data-ft-tabs-trigger]")) {
+				// `ResizeObserver.observe` on an element already observed is a
+				// no-op, so re-running this on every mutation costs nothing and
+				// saves tracking which triggers are new.
+				observer.observe(trigger);
+			}
+		}
+		observeTriggers(list);
+
+		// And geometry can move with NO box changing size at all: reordering
+		// equal-width keyed tabs swaps two offsets while every observed border
+		// box stays identical, so no resize ever fires. The mutation is the
+		// only signal there is — it also picks up triggers that arrive later,
+		// which is why `observeTriggers` runs again from here.
+		const mutations = new MutationObserver(() => {
+			observeTriggers(list);
+			place(false);
+		});
+		mutations.observe(list, { childList: true, subtree: true, characterData: true });
+
 		return () => {
 			observer.disconnect();
+			mutations.disconnect();
 			releaseWillChange();
 		};
 	});

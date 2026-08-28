@@ -10,7 +10,7 @@
 <script lang="ts">
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
 	import { anchored, originFor } from "../_internals/motion/anchored.js";
@@ -31,6 +31,13 @@
 	// flip makes that ordering observable, and a wrong seed would be a
 	// one-frame origin jump on every open.
 	let resolvedSide = $state<Side>(ctx.side);
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(ctx.align);
 
 	function rowClasses(index: number, option: SelectOption): string {
 		return cn(
@@ -98,7 +105,10 @@
 		side: ctx.side,
 		align: ctx.align,
 		offset: 4,
-		onPlacement: (side) => (resolvedSide = side),
+		onPlacement: (side, align) => {
+			resolvedSide = side;
+			resolvedAlign = align;
+		},
 	}}
 	use:dismissable={{
 		onDismiss: ctx.close,
@@ -107,7 +117,7 @@
 	in:anchored={{ side: resolvedSide }}
 	data-side={resolvedSide}
 	data-align={ctx.align}
-	style:transform-origin={originFor(resolvedSide, ctx.align)}
+	style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 >
 	{#each ctx.options as option, index (option.value)}
 		<!--

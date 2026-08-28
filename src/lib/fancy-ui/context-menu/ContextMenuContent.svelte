@@ -14,7 +14,7 @@
 <script lang="ts">
 	import { setContext, getContext, tick } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition, type Side } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
 	import { anchored, originFor } from "../_internals/motion/anchored.js";
@@ -39,6 +39,13 @@
 	// nearest that point is what keeps the menu feeling attached to the click
 	// instead of erupting from its own middle.
 	let resolvedSide = $state<Side>(root.side);
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(root.align);
 
 	const focus = createMenuFocus({
 		get loop() {
@@ -117,7 +124,10 @@
 			side: root.side,
 			align: root.align,
 			offset: root.offset,
-			onPlacement: (side) => (resolvedSide = side),
+			onPlacement: (side, align) => {
+				resolvedSide = side;
+				resolvedAlign = align;
+			},
 		}}
 		use:dismissable={{
 			onDismiss: () => root.close(),
@@ -125,7 +135,7 @@
 		in:anchored={{ side: resolvedSide }}
 		data-side={resolvedSide}
 		data-align={root.align}
-		style:transform-origin={originFor(resolvedSide, root.align)}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onkeydown={handleKeydown}
 	>
 		{@render children?.()}

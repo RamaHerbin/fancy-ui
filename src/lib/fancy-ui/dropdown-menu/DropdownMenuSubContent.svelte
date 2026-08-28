@@ -136,7 +136,7 @@
 			side: "right",
 			align: "start",
 			offset: 2,
-			onPlacement: (side) => sub.setResolvedSide(side),
+			onPlacement: (side, align) => sub.setPlacement(side, align),
 		}}
 		use:dismissable={{
 			onDismiss: () => sub.closeSub(true),
@@ -145,7 +145,7 @@
 		in:anchored={{ side: sub.resolvedSide }}
 		data-side={sub.resolvedSide}
 		data-align="start"
-		style:transform-origin={originFor(sub.resolvedSide, "start")}
+		style:transform-origin={originFor(sub.resolvedSide, sub.resolvedAlign)}
 		onkeydown={handleKeydown}
 		onmouseenter={handleMouseEnter}
 		onmouseleave={handleMouseLeave}

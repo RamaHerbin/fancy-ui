@@ -9,7 +9,7 @@
 
 <script lang="ts">
 	import { getContext, setContext } from "svelte";
-	import type { Side } from "../_internals/anchor-position.js";
+	import type { Side, Align } from "../_internals/anchor-position.js";
 	import { MENU_KEY, SUB_KEY, type MenuContext, type SubContext } from "./types.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 
@@ -27,6 +27,10 @@
 	let open = $state(false);
 	let triggerRef: HTMLElement | null = null;
 	let resolvedSide = $state<Side>("right");
+	// Reported by `anchorPosition` alongside the side: a submenu clamped along
+	// its cross axis near a viewport edge no longer touches its trigger at the
+	// requested corner, and its entrance has to grow from the real one.
+	let resolvedAlign = $state<Align>("start");
 	let closeTimer: ReturnType<typeof setTimeout> | null = null;
 	let unregisterOpenSub: (() => void) | null = null;
 
@@ -108,11 +112,15 @@
 		get resolvedSide() {
 			return resolvedSide;
 		},
+		get resolvedAlign() {
+			return resolvedAlign;
+		},
 		setTriggerRef(el) {
 			triggerRef = el;
 		},
-		setResolvedSide(side) {
+		setPlacement(side, align) {
 			resolvedSide = side;
+			resolvedAlign = align;
 		},
 		openSub,
 		closeSub,
