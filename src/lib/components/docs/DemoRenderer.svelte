@@ -41,6 +41,7 @@
 		"password-input": { label: "Password", showStrength: true },
 		"date-picker": { label: "Date", placeholder: "Pick a date" },
 		"time-picker": { label: "Time", placeholder: "Pick a time" },
+		skeleton: { variant: "text", lines: 3, class: "w-72 text-base" },
 	};
 
 	// Components that we skip direct render (need too much setup). Exported so the
@@ -151,6 +152,22 @@
 		"context-menu",
 		"command-menu",
 		"navigation-menu",
+		// Micro-interactions. Each of these is a wrapper or a state-driven
+		// primitive: Reveal, Presence, Magnetic, Pressable and DimSiblings only
+		// show something once they wrap real content; StatusMorph and TextRoll
+		// only move when a prop changes; StickyScroll needs items and two
+		// snippets; ScrollProgress defaults to position:fixed, which would
+		// escape the preview frame. Their BasicUsage supplies the scene and
+		// the state that makes the motion legible.
+		"reveal",
+		"presence",
+		"magnetic",
+		"pressable",
+		"scroll-progress",
+		"status-morph",
+		"text-roll",
+		"sticky-scroll",
+		"dim-siblings",
 		// Core / actions. A propless SoundToggle is one mute icon; the page's
 		// BasicUsage is the Sound Lab, which is the honest preview.
 		"sound",
@@ -313,6 +330,7 @@
 		"displacement-text": "DisplacementText",
 		"matrix-rain": "MatrixRain",
 		"terminal-text": "TerminalText",
+		skeleton: "Skeleton",
 	};
 
 	function getComponent() {

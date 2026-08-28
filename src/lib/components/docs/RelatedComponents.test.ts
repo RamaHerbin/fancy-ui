@@ -20,10 +20,21 @@ function firstCategoryWithAtLeast(n: number): ComponentMeta[] {
 	return match;
 }
 
+/**
+ * A component with no category siblings. Prefer a real single-member category;
+ * once every category has grown siblings, synthesise one in a category the
+ * registry does not use yet so the empty state stays testable regardless of
+ * how the registry fills in.
+ */
 function soloComponent(): ComponentMeta {
 	const solo = allCategories.find((members) => members.length === 1);
-	if (!solo) throw new Error("No single-component category to exercise the empty state");
-	return solo[0];
+	if (solo) return solo[0];
+	const used = new Set(all.map((c) => c.category));
+	const unused = (
+		["display", "media", "data-display", "layout", "feedback", "backgrounds"] as ComponentCategory[]
+	).find((category) => !used.has(category));
+	if (!unused) throw new Error("No empty or single-component category to exercise the empty state");
+	return { ...all[0], slug: "__solo__", name: "Solo", category: unused };
 }
 
 function linkedSlugs(container: HTMLElement): string[] {
