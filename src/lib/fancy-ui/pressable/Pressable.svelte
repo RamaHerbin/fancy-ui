@@ -84,6 +84,19 @@
 		pressed = false;
 	}
 
+	// `disabled` can flip true mid-press (a "Save" handler disabling its own
+	// button on submit), and the control that just went disabled is not
+	// guaranteed to deliver the pointerup/focusout that would normally
+	// release: Firefox sends no pointerup to a control disabled under the
+	// pointer, and a click that never focused the button (macOS Safari) sends
+	// no focusout either. The CSS `:not([data-disabled])` guard only HIDES the
+	// pressed styling for as long as `disabled` stays true — clearing the
+	// state here is what keeps a later re-enable (an async save resolving)
+	// from revealing a stale `data-pressed` that no live press is behind.
+	$effect(() => {
+		if (disabled) release();
+	});
+
 	function handlePointerDown(event: PointerEvent) {
 		if (disabled) return;
 		// Mirrors this repo's own Drawer.svelte precedent: a non-primary
@@ -166,13 +179,11 @@
 	   `opacity: 1` when motion is enabled, with no `!important` and no
 	   duplicated guard.
 
-	   `:not([data-disabled])`: `disabled` can flip true mid-press (e.g. a
-	   "Save" handler disables the button on submit) with no guaranteed
-	   pointerup/focusout to follow — Firefox sends no pointerup to a control
-	   that just went disabled, and a click that never focused the button
-	   (macOS Safari) sends no focusout either. Without this guard the
-	   wrapper would stay visually pressed until an unrelated pointerleave
-	   happened to fire. */
+	   `:not([data-disabled])`: belt-and-braces for the mid-press disable case
+	   the `$effect` in the script block actually handles (it clears `pressed`
+	   itself, so `data-pressed` is gone by the time that flush paints) —
+	   this keeps a disabled wrapper from ever painting the pressed styling,
+	   whatever order a UA delivers the events in. */
 	.ft-pressable[data-pressed]:not([data-disabled]) {
 		opacity: var(--ft-pressable-opacity, 0.85);
 	}

@@ -123,8 +123,15 @@
 		takes over this exact node, and a live region that outlives its own
 		announcement would be wrong. aria-busy mirrors Button's own semantics
 		(a machine-readable "still working" flag, independent of any visual
-		dimming) while the one sr-only status span lives and dies with the
-		bones, never lingering after the swap.
+		dimming).
+
+		The sr-only status span outlives the bones on purpose: a live region
+		that is INSERTED already populated is announced unreliably (assistive
+		tech registers the region first, then reports changes to it), and
+		`loading` false → true is a normal reuse flow here — a refetch on an
+		already-rendered wrapper. So the region is mounted for as long as the
+		component is, and only its TEXT changes; emptied rather than removed
+		once `children` takes over, so nothing lingers to re-announce.
 	-->
 	<div
 		bind:this={ref}
@@ -138,11 +145,11 @@
 	>
 		{#if loading}
 			{@render bonesList()}
-			{#if label !== ""}
-				<span role="status" aria-live="polite" class="sr-only">{label}</span>
-			{/if}
 		{:else}
 			{@render children?.()}
+		{/if}
+		{#if label !== ""}
+			<span role="status" aria-live="polite" class="sr-only">{loading ? label : ""}</span>
 		{/if}
 	</div>
 {:else if loading}
@@ -153,6 +160,12 @@
 		exactly. There is no `children` to swap to here, so `loading=false` with
 		nothing supplied renders nothing at all rather than leaving inert,
 		unannounced bones sitting in the DOM.
+
+		That is also why standalone mode cannot keep its live region mounted the
+		way wrapping mode does above: with nothing rendered at all there is no
+		node left to host one, and the "renders nothing / `ref` is null" contract
+		(shared with Presence) outranks it. A caller who toggles `loading` back
+		and forth on a persistent node wants wrapping mode.
 	-->
 	<div
 		bind:this={ref}

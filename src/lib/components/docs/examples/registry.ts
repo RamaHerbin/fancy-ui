@@ -196,6 +196,22 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "SpeedVariations", title: "Speed Variations" },
 		{ name: "Playground", title: "Interactive Playground" },
 	],
+	"pulse-beam": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WorkingState",
+			title: "Working State",
+			description: "Toggle `active` to fade the glow in and out around a task list.",
+		},
+		{
+			name: "OutsideVariant",
+			title: "Outside Variant",
+			description: "Ring plus a blurred halo behind the card.",
+		},
+		{ name: "Palettes", title: "Palettes", description: "Colorful, mono, ocean and sunset." },
+		{ name: "PillButton", title: "Pill Button", description: "Outside halo on a small control." },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"glowing-effect": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "WhiteVariant", title: "White Variant" },
@@ -235,6 +251,21 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColor", title: "Custom Color" },
 		{ name: "AnimationSpeed", title: "Animation Speed" },
+	],
+	"mosaic-glow": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Colors",
+			title: "Colors",
+			description: "Any hex or rgb() colour for the halo and the surface.",
+		},
+		{ name: "DenseGrid", title: "Dense Grid", description: "Smaller tiles for a finer mosaic." },
+		{
+			name: "TrailAndIdle",
+			title: "Trail and Idle",
+			description: "A short, cursor-only trail versus a long comet that keeps drifting.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"matrix-rain": [
 		{ name: "BasicUsage", title: "Basic Usage" },

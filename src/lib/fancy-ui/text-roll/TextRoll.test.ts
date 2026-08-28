@@ -223,6 +223,34 @@ describe("TextRoll", () => {
 			expect(root(container2).dataset.direction).toBe("up");
 		});
 
+		it("a direction-only change reaches data-direction with no new value", () => {
+			// The effect that owns `resolvedDirection` must read `direction` on
+			// EVERY run, including the first one that returns early — an effect
+			// subscribes only to what it actually read, so a first run that
+			// bailed before touching `direction` would depend on `value` alone
+			// and leave `data-direction` stale until some later value change
+			// happened to re-run it.
+			//
+			// Uses the harness rather than `rerender()` for the reason its own
+			// header comment gives: testing-library keeps every prop in one
+			// shared box, so a `direction`-only `rerender()` also bumps the
+			// signal `value` was read from and would pass either way.
+			const target = document.createElement("div");
+			document.body.appendChild(target);
+
+			try {
+				const instance = mount(TextRollHarness, { target });
+				expect(root(target).dataset.direction).toBe("up");
+
+				flushSync(() => instance.setDirection("down"));
+				expect(root(target).dataset.direction).toBe("down");
+
+				unmountInstance(instance);
+			} finally {
+				target.remove();
+			}
+		});
+
 		it("an explicit direction is never overridden by the numeric comparison", async () => {
 			const { container, rerender } = render(TextRoll, {
 				props: { value: "5", direction: "down" as const },
@@ -498,6 +526,66 @@ describe("TextRoll", () => {
 				// value change above). A restarted timer would need a whole
 				// new window from here and still read "rolling".
 				await vi.advanceTimersByTimeAsync(60);
+				expect(root(target).dataset.state).toBe("idle");
+
+				unmountInstance(instance);
+			} finally {
+				target.remove();
+				Element.prototype.animate = realAnimate;
+				vi.useRealTimers();
+			}
+		});
+
+		it("keeps the window sized for the duration the roll started with, ignoring a mid-roll duration change", async () => {
+			// The WAAPI transitions already running keep the duration they were
+			// created with, so the backstop must not be re-sized (nor re-armed
+			// from "now") when `duration` changes underneath them. Collapsing a
+			// running roll's duration to `0` is the loud version of the bug:
+			// the backstop would drop to the 600ms floor, measured from the
+			// change, and either cut the roll short or — as asserted here —
+			// stretch it well past its own deadline.
+			//
+			// Harness, not `rerender()`, for the same shared-props-box reason
+			// the direction-only test above gives.
+			vi.useFakeTimers();
+			const realAnimate = Element.prototype.animate;
+			Element.prototype.animate = function stuckAnimate() {
+				return {
+					playState: "running",
+					currentTime: 0,
+					effect: null,
+					onfinish: null,
+					oncancel: null,
+					cancel() {},
+					finish() {},
+					play() {},
+					pause() {},
+					reverse() {},
+					updatePlaybackRate() {},
+					commitStyles() {},
+					persist() {},
+					addEventListener() {},
+					removeEventListener() {},
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				} as any;
+			};
+
+			const target = document.createElement("div");
+			document.body.appendChild(target);
+
+			try {
+				const instance = mount(TextRollHarness, { target });
+				flushSync(() => instance.setValue("B"));
+				await vi.advanceTimersByTimeAsync(expectedBackstopMs - 50);
+				expect(root(target).dataset.state).toBe("rolling");
+
+				// Same `value`, `duration` collapsed — must not re-arm.
+				flushSync(() => instance.setDuration(0));
+
+				// Just past the ORIGINAL deadline. A re-armed timer would run a
+				// whole fresh window from the change above and still read
+				// "rolling" here.
+				await vi.advanceTimersByTimeAsync(50);
 				expect(root(target).dataset.state).toBe("idle");
 
 				unmountInstance(instance);

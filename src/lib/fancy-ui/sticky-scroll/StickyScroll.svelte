@@ -97,17 +97,13 @@
 
 <!--
 	Exactly two items live directly under `.ft-stickyscroll`: the items
-	column and the panel. In the wide (grid) layout, a single
-	`repeat(auto-fit, minmax(min(100%, 20rem), 1fr))` track list does BOTH
-	jobs — two side-by-side columns when the container is wide enough for
-	both, or one column with the two children stacked when it isn't — with no
-	explicit `grid-column` placement to keep in sync. An explicit
-	`grid-column` per section would break this: CSS Grid would implicitly
-	manufacture a real second column for it even when the auto-fit template
-	only resolved to one. Below the stacking threshold a `@container` query
-	switches `.ft-stickyscroll` itself from grid to a single flex column
-	instead (see the stylesheet) — that switch is what gives the panel real
-	sticky travel once stacked, not just a smaller box to sit in.
+	column and the panel. One wrapping flex line does BOTH layout jobs — two
+	side-by-side columns when the container fits both, or two full-width rows
+	when it doesn't — with no breakpoint to keep in sync: each child asks for
+	a 20rem basis and they wrap when the pair (plus the real gap) no longer
+	fits. That wrap is also what gives the panel real sticky travel once
+	stacked, since a flex item's containing block is the whole container's
+	content box (see the stylesheet).
 -->
 <div
 	bind:this={ref}
@@ -153,20 +149,42 @@
 </div>
 
 <style>
+	/*
+	 * The two-column ⇄ stacked switch is FLEX WRAPPING, not a `@container`
+	 * query, and deliberately so: an element is styled by the query containers
+	 * ABOVE it, never by the `container-type` it declares on itself, so a
+	 * `@container` rule targeting `.ft-stickyscroll` could never switch this
+	 * element's own layout (it would match some unrelated ancestor container,
+	 * or nothing at all). Wrapping also does the arithmetic with the REAL gap,
+	 * so a `--ft-stickyscroll-gap` override moves the stacking point honestly.
+	 *
+	 * Wrapping is also what gives the panel real sticky travel once stacked: a
+	 * flex item's containing block is the whole flex container's content box,
+	 * so `top: 0` has the full column to move in. A collapsed single-column
+	 * GRID cannot do this — a grid item's containing block is its own grid
+	 * area, auto-sized to the panel's own content, so `position: sticky` would
+	 * compile and never visibly do anything.
+	 */
 	.ft-stickyscroll {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-		align-items: start;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
 		gap: var(--ft-stickyscroll-gap, 2rem);
-		/* Establishes the SAME inline-size the grid's own auto-fit collapse
-		   already reacts to, so the `@container` query below (which does the
-		   actual math) tracks container width, not viewport width. */
+		/* Read only by the descendant-only query at the bottom of this sheet
+		   (stacked sizing/placement), so those track container width rather
+		   than viewport width. The layout switch itself is above, not there. */
 		container-type: inline-size;
 	}
 
+	/* `flex: 1 1 min(100%, 20rem)` on BOTH children is the whole responsive
+	   rule: they share one line while `2 × (20rem + gap) − gap` fits and grow
+	   to equal halves of it, and each takes its own full-width line when it
+	   doesn't. `min(100%, …)` keeps a container narrower than 20rem from
+	   overflowing instead of wrapping. */
 	.ft-stickyscroll-items {
 		display: flex;
 		flex-direction: column;
+		flex: 1 1 min(100%, 20rem);
 		gap: var(--ft-stickyscroll-gap, 2rem);
 		order: 1;
 		min-width: 0;
@@ -178,13 +196,14 @@
 		max-block-size: var(--ft-stickyscroll-panel-size, 80vh);
 		overflow: hidden;
 		display: grid;
+		flex: 1 1 min(100%, 20rem);
 		order: 2;
 		min-width: 0;
 	}
 
-	/* Logical placement via `order`, not DOM reordering or explicit grid
-	   lines — under `dir="rtl"` the grid's own inline flow already places
-	   column 1 on the physical right, so swapping which item is logically
+	/* Logical placement via `order`, not DOM reordering or explicit placement
+	   — under `dir="rtl"` the flex line's own inline flow already puts the
+	   first item on the physical right, so swapping which item is logically
 	   first is the whole trick; no `:dir(rtl)` override needed here. This
 	   rule's higher specificity (two classes + one attribute selector) also
 	   wins over the stacked-layout `order: -1` below regardless of which one
@@ -203,37 +222,25 @@
 	}
 
 	/*
-	 * The grid's own `auto-fit` track list keeps two 20rem tracks alive while
-	 * `container width + gap >= 2 * (20rem + gap)` — with the default
-	 * `gap: 2rem` that's `2 * (20rem + 2rem) - 2rem = 42rem`, not the "two
-	 * 20rem tracks" 40rem a gap-blind reading suggests. This threshold is
-	 * chosen to match that real collapse point for the DEFAULT gap; a
-	 * `--ft-stickyscroll-gap` override moves the grid's actual collapse point
-	 * but not this query (a container query condition can't read a custom
-	 * property), so the two can drift apart — see the README.
+	 * Stacked-layout tuning ONLY. Every selector in here targets a DESCENDANT
+	 * of the query container, which is the only thing a container query can
+	 * ever style — the layout switch itself is flex wrapping, up at the top of
+	 * this sheet, for exactly that reason.
 	 *
-	 * Below the threshold, the layout itself switches from grid to a single
-	 * flex column. This is NOT just a sizing tweak: a grid item's containing
-	 * block is its own grid area, so in a collapsed single-column grid the
-	 * panel's row is auto-sized to the panel's own content and `position:
-	 * sticky` has zero room to travel in — `top: 0` would compile but never
-	 * visibly do anything. A flex item's containing block is the whole flex
-	 * container's content box instead, which is what actually gives the
-	 * panel somewhere to stick. `order: -1` (not DOM reordering) puts the
-	 * panel first visually so it can overlay the items scrolling beneath it;
-	 * the DOM keeps items-before-panel, so the screen-reader/tab order is
-	 * unchanged. `align-items: stretch` undoes the `align-items: start` set
-	 * for the grid layout above — in a column flexbox the cross axis is
-	 * inline size, so leaving `start` in place would shrink both children
-	 * down to their content's own inline width instead of letting them fill
-	 * the column.
+	 * The condition mirrors where that wrap actually happens for the DEFAULT
+	 * gap: the pair shares a line while `2 * (20rem + gap) - gap` fits, which
+	 * is `42rem` at `gap: 2rem` — not the "two 20rem tracks" 40rem a gap-blind
+	 * reading suggests. `width < 42rem` rather than `max-width: 42rem` so the
+	 * boundary agrees exactly with the wrap: at exactly 42rem the two columns
+	 * still fit side by side. A `--ft-stickyscroll-gap` override moves the
+	 * real wrap point but not this query (a container query condition can't
+	 * read a custom property), so the two can drift apart — see the README.
+	 *
+	 * `order: -1` (not DOM reordering) puts the panel on the first line so it
+	 * can overlay the items scrolling beneath it; the DOM keeps
+	 * items-before-panel, so the screen-reader/tab order is unchanged.
 	 */
-	@container (max-width: 42rem) {
-		.ft-stickyscroll {
-			display: flex;
-			flex-direction: column;
-			align-items: stretch;
-		}
+	@container (width < 42rem) {
 		.ft-stickyscroll-panel {
 			order: -1;
 			top: 0;
