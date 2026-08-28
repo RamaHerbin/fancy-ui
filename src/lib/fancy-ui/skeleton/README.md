@@ -102,9 +102,13 @@ aria-live="polite"`, with every bone `aria-hidden="true"` and one
   `Button`'s own semantics) but is never itself `role="status"` — once loading
   flips false, the same node becomes the real content container, and a
   status role that outlived its announcement would be wrong. The one
-  `role="status"` live region lives on an inner span that exists only while
-  `loading` is true, and unmounts together with the bones the instant
-  `children` takes over. Never two status nodes at once. `aria-busy` is the
+  `role="status"` live region lives on an inner `sr-only` span that stays
+  mounted for the component's lifetime and carries the label only while
+  `loading` is true — emptied, not removed, once `children` takes over. It is
+  kept mounted deliberately: a live region inserted already populated is
+  announced unreliably, and `loading` false → true (a refetch on an
+  already-rendered wrapper) is a normal flow here. Never two status nodes at
+  once, and `label=""` still removes the span entirely. `aria-busy` is the
   primary, reliable machine-readable signal here; the inner status span is a
   best-effort announcement that some assistive tech may suppress while its
   own ancestor subtree is marked busy.

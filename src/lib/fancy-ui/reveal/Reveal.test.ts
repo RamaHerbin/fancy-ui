@@ -396,6 +396,30 @@ describe("Reveal", () => {
 			}
 		});
 
+		it("staggers a direct <svg> child too, and clears its var on teardown", async () => {
+			// The stagger CSS targets every direct element child (`> *`), so an
+			// SVG icon animates whether or not the walk reaches it — leaving it
+			// out would animate the icon on a 0ms fallback delay while its
+			// siblings stagger around it.
+			const { container, rerender } = render(RevealHarness, {
+				props: { count: 3, stagger: 50, from: "first", svgIndex: 1 },
+			});
+			const root = container.querySelector(".ft-reveal") as HTMLElement;
+			const kids = Array.from(root.children) as (HTMLElement | SVGElement)[];
+
+			expect(kids[1]).toBeInstanceOf(SVGElement);
+			expect(kids.map((k) => k.style.getPropertyValue("--ft-reveal-child-delay"))).toEqual([
+				"0ms",
+				"50ms",
+				"100ms",
+			]);
+
+			await rerender({ count: 3, stagger: 0, from: "first", svgIndex: 1 });
+			expect(kids.every((k) => k.style.getPropertyValue("--ft-reveal-child-delay") === "")).toBe(
+				true
+			);
+		});
+
 		it("data-reveal-skip excludes a child from the delay and closes up the remaining indices", () => {
 			const { container } = render(RevealHarness, {
 				props: { count: 4, stagger: 50, from: "first", skipIndex: 1 },

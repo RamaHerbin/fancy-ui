@@ -1398,6 +1398,111 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"mosaic-glow": {
+		name: "MosaicGlow",
+		slug: "mosaic-glow",
+		description:
+			"Canvas mosaic of small tiles on a dark surface where a soft halo follows the cursor with a lag, lighting tiles to random gold intensities that decay into a comet trail, with an additive bloom over the gaps, a glassy per-tile highlight, ambient flicker and an autonomous drift when idle",
+		category: "backgrounds",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"canvas",
+			"grid",
+			"mosaic",
+			"glow",
+			"cursor",
+			"halo",
+			"trail",
+			"background",
+			"interactive",
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Content rendered above the canvas; give the host a height",
+			},
+		],
+		props: [
+			{ name: "tileSize", type: "number", default: "18", description: "Tile edge in CSS px" },
+			{ name: "gap", type: "number", default: "2", description: "Gap between tiles in CSS px" },
+			{
+				name: "color",
+				type: "string",
+				default: '"#f2c318"',
+				description: "Halo and tile colour, hex or rgb()",
+			},
+			{
+				name: "background",
+				type: "string",
+				default: '"#0a0a0a"',
+				description: "Surface colour behind the tiles, hex or rgb()",
+			},
+			{ name: "radius", type: "number", default: "170", description: "Halo radius in CSS px" },
+			{
+				name: "intensity",
+				type: "number",
+				default: "1",
+				description: "Overall brightness of lit tiles, 0 to 1",
+			},
+			{
+				name: "trail",
+				type: "number",
+				default: "0.6",
+				description: "How long lit tiles linger after the halo moves on, 0 to 1",
+			},
+			{
+				name: "smoothing",
+				type: "number",
+				default: "0.15",
+				description: "Pointer lag, 0 (instant) to 1 (very laggy)",
+			},
+			{
+				name: "noise",
+				type: "number",
+				default: "0.7",
+				description: "Spread of per-tile random brightness inside the halo, 0 to 1",
+			},
+			{
+				name: "ambient",
+				type: "number",
+				default: "0.35",
+				description: "Visibility of the random faint tiles outside the halo, 0 to 1",
+			},
+			{
+				name: "flicker",
+				type: "boolean",
+				default: "true",
+				description: "Slowly re-roll the faint tiles over time",
+			},
+			{
+				name: "idle",
+				type: '"drift" | "none"',
+				default: '"drift"',
+				description:
+					"With no pointer for 1.5s: drift wanders the halo on a slow path, none switches it off",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "Follow the pointer. Off leaves only the idle behaviour",
+			},
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description: "Seed for the per-tile randomness; same seed, same mosaic",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable host element",
+			},
+			{ name: "class", type: "string", description: "Additional classes on the host" },
+		],
+	},
 
 	"neon-border": {
 		name: "NeonBorder",
@@ -2188,6 +2293,103 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Duration of the angle lerp animation",
 			},
 			{ name: "borderWidth", type: "number", default: "1", description: "Border width in pixels" },
+		],
+	},
+
+	"pulse-beam": {
+		name: "PulseBeam",
+		slug: "pulse-beam",
+		description:
+			"Breathing border glow that wraps any card: colour blobs drift along the edges as a crisp 1px ring, a feathered inner glow and a blurred bloom, with slow hue rotation, fade in/out on an active flag, four palettes and an outside halo variant",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["border", "glow", "pulse", "gradient", "mask", "animation", "ai", "loading"],
+		slots: [
+			{
+				name: "children",
+				description: "Content the glow wraps; give it an opaque background and the same radius",
+			},
+		],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "true",
+				description:
+					"Show the glow. Turning it off fades out over 500ms and stops the animation loop; turning it on fades in over 600ms",
+			},
+			{
+				name: "variant",
+				type: '"inner" | "outside"',
+				default: '"inner"',
+				description:
+					"inner paints a 1px ring, a 28px feather and a bloom inside the box; outside keeps the ring and adds a blurred halo behind the content",
+			},
+			{
+				name: "palette",
+				type: '"colorful" | "mono" | "ocean" | "sunset"',
+				default: '"colorful"',
+				description:
+					"Built-in nine-slot colour set. mono halves the opacities and disables hue drift",
+			},
+			{
+				name: "colors",
+				type: "string[]",
+				description: "Up to nine CSS colours overriding the palette slots in order",
+			},
+			{ name: "strength", type: "number", default: "1", description: "Overall intensity, 0 to 1" },
+			{
+				name: "radius",
+				type: "number",
+				default: "16",
+				description: "Corner radius in px applied to the wrapper and every layer",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1",
+				description: "Multiplier for the breathing and drift periods",
+			},
+			{
+				name: "tone",
+				type: '"dark" | "light"',
+				default: '"dark"',
+				description: "Opacity, brightness and saturation preset for the surface the card sits on",
+			},
+			{
+				name: "hueShift",
+				type: "boolean",
+				default: "true",
+				description: "Slowly rotate all hues over a 14 to 16 second cycle",
+			},
+			{
+				name: "brightness",
+				type: "number",
+				description: "Override the preset brightness filter",
+			},
+			{
+				name: "saturation",
+				type: "number",
+				description: "Override the preset saturation filter",
+			},
+			{
+				name: "onfadein",
+				type: "() => void",
+				description: "Called once the fade-in has completed",
+			},
+			{
+				name: "onfadeout",
+				type: "() => void",
+				description: "Called once the fade-out has completed and the loop has stopped",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable wrapper element",
+			},
+			{ name: "class", type: "string", description: "Additional classes on the wrapper" },
 		],
 	},
 
