@@ -48,6 +48,7 @@
 	// of the generic single-tag usage.
 	export const skipDirectRender = new Set([
 		"mosaic-glow",
+		"pulse-beam",
 		"animated-beam",
 		"apple-card-carousel",
 		"animated-testimonials",

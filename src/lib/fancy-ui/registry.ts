@@ -2296,6 +2296,103 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"pulse-beam": {
+		name: "PulseBeam",
+		slug: "pulse-beam",
+		description:
+			"Breathing border glow that wraps any card: colour blobs drift along the edges as a crisp 1px ring, a feathered inner glow and a blurred bloom, with slow hue rotation, fade in/out on an active flag, four palettes and an outside halo variant",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["border", "glow", "pulse", "gradient", "mask", "animation", "ai", "loading"],
+		slots: [
+			{
+				name: "children",
+				description: "Content the glow wraps; give it an opaque background and the same radius",
+			},
+		],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "true",
+				description:
+					"Show the glow. Turning it off fades out over 500ms and stops the animation loop; turning it on fades in over 600ms",
+			},
+			{
+				name: "variant",
+				type: '"inner" | "outside"',
+				default: '"inner"',
+				description:
+					"inner paints a 1px ring, a 28px feather and a bloom inside the box; outside keeps the ring and adds a blurred halo behind the content",
+			},
+			{
+				name: "palette",
+				type: '"colorful" | "mono" | "ocean" | "sunset"',
+				default: '"colorful"',
+				description:
+					"Built-in nine-slot colour set. mono halves the opacities and disables hue drift",
+			},
+			{
+				name: "colors",
+				type: "string[]",
+				description: "Up to nine CSS colours overriding the palette slots in order",
+			},
+			{ name: "strength", type: "number", default: "1", description: "Overall intensity, 0 to 1" },
+			{
+				name: "radius",
+				type: "number",
+				default: "16",
+				description: "Corner radius in px applied to the wrapper and every layer",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1",
+				description: "Multiplier for the breathing and drift periods",
+			},
+			{
+				name: "tone",
+				type: '"dark" | "light"',
+				default: '"dark"',
+				description: "Opacity, brightness and saturation preset for the surface the card sits on",
+			},
+			{
+				name: "hueShift",
+				type: "boolean",
+				default: "true",
+				description: "Slowly rotate all hues over a 14 to 16 second cycle",
+			},
+			{
+				name: "brightness",
+				type: "number",
+				description: "Override the preset brightness filter",
+			},
+			{
+				name: "saturation",
+				type: "number",
+				description: "Override the preset saturation filter",
+			},
+			{
+				name: "onfadein",
+				type: "() => void",
+				description: "Called once the fade-in has completed",
+			},
+			{
+				name: "onfadeout",
+				type: "() => void",
+				description: "Called once the fade-out has completed and the loop has stopped",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable wrapper element",
+			},
+			{ name: "class", type: "string", description: "Additional classes on the wrapper" },
+		],
+	},
+
 	sparkles: {
 		name: "Sparkles",
 		slug: "sparkles",

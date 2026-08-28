@@ -56,6 +56,7 @@ export * from "./liquid-glass/index.js";
 export * from "./smooth-cursor/index.js";
 export * from "./sparkles/index.js";
 export * from "./glowing-effect/index.js";
+export * from "./pulse-beam/index.js";
 export * from "./confetti/index.js";
 export * from "./ripple/index.js";
 export * from "./text-generate-effect/index.js";
