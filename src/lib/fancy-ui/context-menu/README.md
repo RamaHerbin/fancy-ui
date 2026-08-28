@@ -201,10 +201,13 @@ The panel rises over 150 ms on the shared arrival curve (`DURATIONS.fast` and
 growing from a `0.92` floor, and reverses over the same 150 ms on the
 departure curve (`JS_EASINGS.in`) — collapsing only to `0.96`, half the depth,
 because leaving is a smaller gesture than arriving. The growth origin follows
-the side the panel was actually placed on — flipped placements included — so
-it appears to come out of the click, and to fold back into it, rather than out
-of its own centre. Exposed as `data-side` / `data-align` for consumers that
-want to key their own styling off the resolved placement.
+the placement the panel actually got — flipped sides included, and the
+cross-axis alignment as it ended up rather than as it was requested, since a
+menu opened near a viewport edge is clamped sideways until the corner touching
+the pointer is no longer the one asked for. Either way it appears to come out
+of the click, and to fold back into it, rather than out of its own centre.
+`data-side` / `data-align` carry the resolved side and the requested alignment
+for consumers keying their own styling off placement.
 
 One bidirectional Svelte transition drives both directions, not a keyframe, so
 there is no `--ft-*` variable on the panel to retime it; reduced motion is the

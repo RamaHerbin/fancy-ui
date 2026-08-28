@@ -15,7 +15,7 @@
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { anchorPosition } from "../_internals/anchor-position.js";
-	import type { Side } from "../_internals/anchor-position.js";
+	import type { Side, Align } from "../_internals/anchor-position.js";
 	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 	import { portal } from "../_internals/portal.js";
 	import { focusTrap } from "../_internals/focus-trap.js";
@@ -35,6 +35,13 @@
 	// overwrites it with the resolved side on its first placement, and again
 	// only when a later scroll or resize genuinely flips it.
 	let resolvedSide = $state<Side>(ctx.side);
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(ctx.align);
 
 	const classes = $derived(
 		cn(
@@ -111,7 +118,10 @@
 		side: ctx.side,
 		align: ctx.align,
 		offset: ctx.offset,
-		onPlacement: (side) => (resolvedSide = side),
+		onPlacement: (side, align) => {
+			resolvedSide = side;
+			resolvedAlign = align;
+		},
 	}}
 	use:focusTrap={{
 		returnFocus: true,
@@ -131,7 +141,7 @@
 	data-state="open"
 	data-side={resolvedSide}
 	data-align={ctx.align}
-	style:transform-origin={originFor(resolvedSide, ctx.align)}
+	style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 	onintrostart={handleIntroStart}
 	onoutrostart={handleOutroStart}
 >

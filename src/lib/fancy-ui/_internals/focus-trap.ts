@@ -112,7 +112,14 @@ export const focusTrap: Action<HTMLElement, FocusTrapOptions | undefined> = (nod
 
 	let returnFocus = opts.returnFocus ?? true;
 	let fallbackFocus = opts.fallbackFocus;
-	const previouslyFocused = document.activeElement as HTMLElement | null;
+	// Tracked like the other two rather than read off the original `opts`:
+	// a caller that retargets the initial focus between form steps updates
+	// the action, and `rearm()` below has to honour the CURRENT target, not
+	// the one this instance happened to mount with.
+	let initialFocus = opts.initialFocus;
+	// Not `const`: this is the element the trap displaced, and a surface
+	// reopened mid-exit is displacing a different one. `rearm()` recaptures.
+	let previouslyFocused = document.activeElement as HTMLElement | null;
 
 	function focusContainerFallback() {
 		// No focusable descendants (empty/loading dialog): contain focus on the
@@ -139,7 +146,8 @@ export const focusTrap: Action<HTMLElement, FocusTrapOptions | undefined> = (nod
 		if (returned) return;
 		returned = true;
 
-		// `previouslyFocused` is a raw reference captured once at mount —
+		// `previouslyFocused` is a raw reference, captured at mount and
+		// recaptured by `rearm()` on a reopen —
 		// `.focus()` on it is the same silent no-op a detached node always
 		// is if whatever it pointed at has since left the document, so it
 		// is checked rather than trusted. Three-step chain, each step only
@@ -187,8 +195,21 @@ export const focusTrap: Action<HTMLElement, FocusTrapOptions | undefined> = (nod
 	// from a user who has moved it inside the panel themselves.
 	function rearm() {
 		returned = false;
-		if (node.contains(document.activeElement)) return;
-		focusInitial(opts.initialFocus);
+		const active = document.activeElement as HTMLElement | null;
+		if (node.contains(active)) return;
+
+		// A reopen mid-exit is a NEW opening, and it can come from a different
+		// control than the one that opened the surface the first time. Without
+		// recapturing, the next dismissal would return focus to the original
+		// opener — or fall through to the fallback, if that opener has since
+		// been removed. `document.body` is excluded because it is exactly what
+		// `activeElement` reports while the exiting panel is still `inert`:
+		// adopting it would throw away a perfectly good return target in
+		// favour of one that clears focus.
+		if (active && active !== document.body && active.isConnected) {
+			previouslyFocused = active;
+		}
+		focusInitial(initialFocus);
 	}
 
 	// No `active` gate on the Tab handler, deliberately. Once the exit starts
@@ -220,7 +241,7 @@ export const focusTrap: Action<HTMLElement, FocusTrapOptions | undefined> = (nod
 		}
 	}
 
-	focusInitial(opts.initialFocus);
+	focusInitial(initialFocus);
 	// Handed over AFTER the initial focus move, so a caller that calls the
 	// handle synchronously inside `onActivate` still restores the element the
 	// trap displaced rather than racing it.
@@ -231,6 +252,7 @@ export const focusTrap: Action<HTMLElement, FocusTrapOptions | undefined> = (nod
 		update(newOpts: FocusTrapOptions = {}) {
 			returnFocus = newOpts.returnFocus ?? true;
 			fallbackFocus = newOpts.fallbackFocus;
+			initialFocus = newOpts.initialFocus;
 		},
 		destroy() {
 			node.removeEventListener("keydown", handleKeydown);

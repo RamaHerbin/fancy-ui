@@ -126,9 +126,12 @@ by `color-scheme`, so **your theme must declare it**:
 - **`--ft-duration-micro`** (`80ms`) is the shortest rung of the shared
   duration scale, and this is where it is spent: the beat before the check
   starts drawing, and the gap between the two cross strokes. Set it on an
-  ancestor to retime both at once. The second stroke's `160ms` delay is two
-  of those beats, and both strokes' `160ms` durations are off-scale on
-  purpose — the scale gains one rung at this size, not two.
+  ancestor to retime both at once. The second stroke's delay is
+  `calc(var(--ft-duration-micro) * 2)` — two of those beats, derived rather
+  than hardcoded, so retuning the token keeps the stagger instead of
+  collapsing the two strokes onto each other. Both strokes' `160ms`
+  durations are off-scale on purpose — the scale gains one rung at this
+  size, not two.
 
 ## Accessibility
 

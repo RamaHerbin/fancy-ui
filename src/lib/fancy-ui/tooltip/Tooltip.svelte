@@ -67,6 +67,13 @@
 	// for where the bubble actually landed.
 	let resolvedSide = $state<Side>(untrack(() => side));
 
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(untrack(() => align));
+
 	// Three independent reasons to be open, each tracked on its own:
 	// hovering the trigger, hovering the bubble itself, and focus. They are
 	// three separate booleans rather than one shared `hovered` flag
@@ -310,13 +317,16 @@
 			side,
 			align,
 			offset,
-			onPlacement: (placed) => (resolvedSide = placed),
+			onPlacement: (placed, placedAlign) => {
+				resolvedSide = placed;
+				resolvedAlign = placedAlign;
+			},
 		}}
 		use:dismissable={{ onDismiss: handleDismiss, escape: true, outsideClick: false }}
 		in:anchored={{ side: resolvedSide, scale: false }}
 		data-side={resolvedSide}
 		data-align={align}
-		style:transform-origin={originFor(resolvedSide, align)}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onpointerenter={handleContentPointerEnter}
 		onpointerleave={handleContentPointerLeave}
 	>

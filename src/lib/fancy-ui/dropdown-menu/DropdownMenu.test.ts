@@ -587,7 +587,7 @@ describe("DropdownMenu", () => {
 			const opts = call![1];
 			expect(subBtn.textContent).toContain("›");
 
-			opts.onPlacement?.("left");
+			opts.onPlacement?.("left", "start");
 			await tick();
 			expect(subBtn.textContent).toContain("‹");
 		});
@@ -924,7 +924,7 @@ describe("DropdownMenu", () => {
 			// never produce a genuine flip.
 			const call = vi.mocked(anchorPosition).mock.calls.find(([, opts]) => opts.side === "bottom");
 			expect(call).toBeTruthy();
-			call![1].onPlacement?.("top");
+			call![1].onPlacement?.("top", "start");
 			await tick();
 
 			const panel = rootMenu()!;
@@ -973,7 +973,7 @@ describe("DropdownMenu", () => {
 			// origin — one flip has to move both, which is why this panel
 			// keeps no local placement state of its own.
 			const call = vi.mocked(anchorPosition).mock.calls.find(([, opts]) => opts.side === "right");
-			call![1].onPlacement?.("left");
+			call![1].onPlacement?.("left", "start");
 			await tick();
 
 			expect(subBtn.textContent).toContain("‹");
