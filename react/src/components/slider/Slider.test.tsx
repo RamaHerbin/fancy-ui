@@ -1,4 +1,5 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
+import { StrictMode } from "react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { Slider } from "./Slider.js";
 import { SliderHarness } from "./SliderHarness.js";
@@ -118,6 +119,21 @@ describe("Slider", () => {
 		expect(el.getAttribute("aria-valuenow")).toBe("50");
 		expect(el.value).toBe("50");
 		expect(onValueChange).toHaveBeenCalledWith(50);
+	});
+
+	// The clamp runs in the effect BODY rather than inside a setState updater:
+	// React invokes updaters during a later render pass and double-invokes them
+	// under StrictMode, which would announce a single clamp twice.
+	it("announces an out-of-range clamp exactly once, even under StrictMode", () => {
+		const onValueChange = vi.fn();
+		render(
+			<StrictMode>
+				<Slider value={150} max={100} onValueChange={onValueChange} />
+			</StrictMode>
+		);
+
+		expect(onValueChange).toHaveBeenCalledTimes(1);
+		expect(onValueChange).toHaveBeenCalledWith(100);
 	});
 
 	it("keeps the showValue bubble in sync with the clamped value, not the raw out-of-range prop", () => {

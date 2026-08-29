@@ -133,15 +133,3 @@ callback.
   that drains the exit leg without advancing a single millisecond of timer
   time. That is stricter than the source, not looser: every "with no delay"
   assertion still runs with the clock exactly where it was.
-
-## Follow-up outside this folder
-
-`react/tailwind.css` declares four semantic colour names (`background`,
-`primary`, `primary-foreground`, `ring`). This compound spends seven more that
-are not declared anywhere: `border`, `popover`, `popover-foreground`,
-`foreground`, `muted-foreground`, `accent`, `accent-foreground`. Per
-PORTING.md §Styling rule 6 those belong in `react/tailwind.css`
-(`@theme inline` plus `@layer base` defaults), not in a component `.css`.
-Until they land, a consumer with no token set of its own gets an unstyled panel
-background and border. The class strings themselves are copied verbatim and
-need no change when the tokens are added.

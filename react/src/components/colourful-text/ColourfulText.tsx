@@ -61,10 +61,28 @@ function mulberry32(seed: number): () => number {
 	};
 }
 
-// Same biased comparator shuffle as the source (`sort(() => 0.5 - random())`),
-// ported as-is — only the random stream is seeded.
+/**
+ * Fisher-Yates over the seeded stream.
+ *
+ * DIVERGENCE from the Svelte source, which shuffles with
+ * `[...colors].sort(() => 0.5 - Math.random())`. That comparator is
+ * inconsistent, so `Array.prototype.sort` consumes a different number of draws
+ * in a different order depending on the engine's sort algorithm. Seeding the
+ * stream would therefore still leave the RESULT engine-dependent: a server
+ * render on Node and its hydration in another browser would deal different
+ * colors and reintroduce exactly the mismatch the seed exists to remove.
+ * Fisher-Yates consumes `length - 1` draws in a fixed order, so the same seed
+ * yields the same permutation on every engine. The dealt order differs
+ * slightly from the source's biased shuffle; the visual behaviour (a shuffled
+ * palette, reshuffled every 5s) is unchanged.
+ */
 function shuffleColors(colors: string[], random: () => number): string[] {
-	return [...colors].sort(() => 0.5 - random());
+	const out = [...colors];
+	for (let i = out.length - 1; i > 0; i--) {
+		const j = Math.floor(random() * (i + 1));
+		[out[i], out[j]] = [out[j]!, out[i]!];
+	}
+	return out;
 }
 
 export function ColourfulText({

@@ -7,6 +7,15 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
 	plugins: [react()],
 	build: {
+		// Vite's lib-mode default is `minify: "esbuild"`, which renames every
+		// top-level identifier — including the component functions themselves.
+		// `AnimatedBeam` shipped as `function ut(...)` and `Breadcrumb` as
+		// `C(function(...))` with no inner name at all, so a consumer's React
+		// DevTools tree and every production stack trace read as single letters.
+		// A library must not minify: the consumer's bundler does that, over the
+		// whole app, and only after it has read the `/* @__PURE__ */` annotations
+		// that minification here would have already obscured.
+		minify: false,
 		lib: {
 			// "cameleon/index" (not "cameleon") so the emitted entry lands at
 			// dist/cameleon/index.js, next to the d.ts tsc already puts there.

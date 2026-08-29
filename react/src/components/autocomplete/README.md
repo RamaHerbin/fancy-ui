@@ -74,15 +74,3 @@ exactly as the source seeds its own.
   collapses its own duration to 0, `runTransition` then never calls
   `element.animate()`, and the close stays synchronous. The source's `<style>`
   block carries no reduced-motion rule of its own and is ported unchanged.
-
-## Follow-up outside this folder
-
-`react/tailwind.css` declares four semantic colour names (`background`,
-`primary`, `primary-foreground`, `ring`). This component spends nine more that
-are not declared anywhere: `input`, `foreground`, `destructive`, `border`,
-`popover`, `popover-foreground`, `muted-foreground`, `accent`,
-`accent-foreground`. Per PORTING.md §Styling rule 6 those belong in
-`react/tailwind.css`, not in a component `.css`. Until they land, a consumer
-with no shadcn token set of its own gets an unstyled field border and panel
-background. The class strings themselves are copied verbatim and need no change
-when the tokens are added. Same follow-up the `dialog` port already filed.

@@ -193,7 +193,11 @@ export interface UseElapsedResult {
  */
 export function useElapsed(options: ElapsedOptions = {}): UseElapsedResult {
 	const elapsed = useConstant(() => createElapsed(options));
-	const ms = useSyncExternalStore(elapsed.subscribe, () => elapsed.ms, () => elapsed.ms);
+	const ms = useSyncExternalStore(
+		elapsed.subscribe,
+		() => elapsed.ms,
+		() => elapsed.ms
+	);
 	const running = useSyncExternalStore(
 		elapsed.subscribe,
 		() => elapsed.running,
@@ -226,12 +230,19 @@ const sharedClock = (() => {
 	let stopClock: (() => void) | null = null;
 	let retained = 0;
 	/*
-	 * Seeded to 0, never to `Date.now()`: this is the value a server render
-	 * and the hydration render that follows it both read, and the only one
-	 * they are guaranteed to agree on. The first retain replaces it with a
-	 * real timestamp in the layout phase, before the first paint.
+	 * Seeded to `NaN` — the documented "no clock yet" sentinel — never to
+	 * `Date.now()`: sampling the wall clock here would be a `Date.now()` read
+	 * on a render path (C-7), and a server render could never agree with the
+	 * hydration render that follows it. `NaN` is the one value both renders
+	 * are guaranteed to produce, `Object.is(NaN, NaN)` is true so
+	 * `useSyncExternalStore` sees a stable snapshot, and
+	 * `formatRelativeTime` renders a non-finite `now` as the empty string —
+	 * so a pre-clock render emits no label rather than the "in 57 years" a
+	 * seed of 0 produces for every present-day timestamp. The first retain
+	 * replaces it with a real timestamp in the layout phase, before the first
+	 * paint.
 	 */
-	let value = 0;
+	let value = Number.NaN;
 
 	function publish(): void {
 		if (clock) value = clock.value;
@@ -284,11 +295,19 @@ const sharedClock = (() => {
 
 /**
  * `useNow`'s server snapshot, and therefore also the value React reads
- * during hydration: a constant, so the two renders cannot disagree. The real
- * clock arrives in the first commit after hydration.
+ * during hydration: the `NaN` sentinel, so the two renders cannot disagree.
+ * The real clock arrives in the first commit after hydration.
+ *
+ * DIVERGENCE from Svelte, registered in `migration-matrix.json` and the
+ * README: `createNow` seeds itself with `Date.now()` at construction, so a
+ * Svelte server render ships real relative labels. React cannot — the client
+ * has no way to reproduce the server's timestamp, so any real value here is
+ * a hydration mismatch. The sentinel makes the server HTML carry an empty
+ * label instead of a wrong one; every consumer fills it in during the layout
+ * phase of hydration, before the first paint.
  */
 function getServerNow(): number {
-	return 0;
+	return Number.NaN;
 }
 
 function bumpReducer(n: number): number {
@@ -305,10 +324,14 @@ function bumpReducer(n: number): number {
  * second one. The interval stops once the last consumer unmounts.
  *
  * Before the first consumer anywhere on the page has mounted, the clock has
- * no value to give and the hook returns 0 — the one number a server render
- * and the hydration render that follows it are guaranteed to agree on. Every
- * later consumer, including one that mounts after the clock has been torn
- * down and rebuilt, renders a real timestamp immediately.
+ * no value to give and the hook returns `NaN` — the sentinel a server render
+ * and the hydration render that follows it are guaranteed to agree on, and
+ * the one `formatRelativeTime` turns into an empty label rather than a wrong
+ * one. Callers must therefore either pass the value straight to
+ * `formatRelativeTime` (which guards it) or check `Number.isFinite` before
+ * doing arithmetic with it. Every later consumer, including one that mounts
+ * after the clock has been torn down and rebuilt, renders a real timestamp
+ * immediately.
  */
 export function useNow(refreshMs = 30_000): number {
 	const value = useSyncExternalStore(sharedClock.subscribe, sharedClock.getValue, getServerNow);
@@ -320,7 +343,7 @@ export function useNow(refreshMs = 30_000): number {
 		const release = sharedClock.retain(refreshMs);
 		// React subscribes to an external store in the passive phase, which
 		// is a phase too late: the browser would paint one frame of the
-		// pre-clock 0 before the clock this effect just started is heard
+		// pre-clock sentinel before the clock this effect just started is heard
 		// from. Re-rendering here, in the layout phase, closes that frame.
 		// Only the first consumer on a page can ever see the gap — from then
 		// on the clock's last value survives its interval.

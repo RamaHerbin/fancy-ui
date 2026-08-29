@@ -49,6 +49,28 @@ describe("ColourfulText", () => {
 		expect(wrapper?.className).toContain("my-colourful");
 	});
 
+	// Port-only: the seed contract. Fisher-Yates draws a fixed count in a fixed
+	// order, so this permutation is the same on every JS engine — which is what
+	// keeps a server render and its hydration in agreement. A comparator shuffle
+	// would deal a different order per engine and fail this on some of them.
+	it("deals an engine-independent colour order for a given seed", () => {
+		const { container } = render(<ColourfulText text="abcd" seed={1} />);
+		const chars = container.querySelectorAll<HTMLElement>(".colourful-char");
+		expect(Array.from(chars, (char) => char.style.color)).toEqual([
+			"rgb(230, 64, 92)",
+			"rgb(232, 98, 63)",
+			"rgb(4, 112, 202)",
+			"rgb(42, 169, 210)",
+		]);
+	});
+
+	it("shuffles the palette without losing or duplicating a colour", () => {
+		const colors = ["rgb(1, 0, 0)", "rgb(2, 0, 0)", "rgb(3, 0, 0)", "rgb(4, 0, 0)"];
+		const { container } = render(<ColourfulText text="wxyz" colors={colors} />);
+		const chars = container.querySelectorAll<HTMLElement>(".colourful-char");
+		expect(Array.from(chars, (char) => char.style.color).sort()).toEqual([...colors].sort());
+	});
+
 	it("renders an empty wrapper for empty text", () => {
 		const { container } = render(<ColourfulText text="" />);
 		const chars = container.querySelectorAll(".colourful-char");

@@ -1837,8 +1837,21 @@ over `useSyncExternalStore` (snapshot: the number `ms`; `text` derived per rende
 source's getter does). The wall-clock-derived, never-accumulated tick is the invariant to
 preserve. `createNow`'s whole point — one shared interval for a list of fifty timestamps —
 survives as a module-scope store plus `useNow(refreshMs)`, which is *more* natural in React than
-in Svelte since every consumer subscribes to the same instance. SSR renders the initial value
-with no timer, matching Svelte, where the interval is only ever scheduled from an effect.
+in Svelte since every consumer subscribes to the same instance. No timer is ever scheduled from a
+render — the interval is retained from a layout effect, as in Svelte.
+
+The initial value is where the two diverge, and it is a registered divergence (see
+`migration-matrix.json` and the README). Svelte's `createNow` seeds itself with `Date.now()` at
+construction, so a Svelte server render ships real relative labels. React cannot: the client has
+no way to reproduce the server's timestamp, so any real value in the server snapshot is a
+hydration mismatch, and sampling the wall clock on a render path breaks C-7 besides. `useNow`
+therefore returns the sentinel `NaN` until the clock starts — on the server, through the
+hydration render, and for the first render of a fresh client tree — and `formatRelativeTime`
+renders a non-finite `now` as `""`. The server HTML carries an empty label rather than a wrong
+one ("in 57 years" is what a seed of `0` yields for a present-day timestamp), and the
+layout-phase re-render fills it in before the first paint. Consumers must pass the value straight
+to `formatRelativeTime` or check `Number.isFinite` before doing arithmetic with it;
+`use-elapsed.ssr.test.ts` pins the behaviour.
 
 **`autoscroll.ts`.** `scrollToBottom(node, behavior)` is pure and verbatim; the action becomes
 `attachAutoscroll(node, options)` + `useAutoscroll(node, options)`. The `stuck` flag stays a
@@ -1851,7 +1864,10 @@ paint, and its tests install controllable fakes locally rather than relying on t
 stubs.
 
 **`relative-time.ts`.** `RelativeTimeOptions` and `formatRelativeTime(date, opts)` — a pure
-`Intl.RelativeTimeFormat` wrapper with an injectable `now`. Verbatim. It must never be called
+`Intl.RelativeTimeFormat` wrapper with an injectable `now`. Verbatim but for one added guard: a
+non-finite `now` (the `useNow` "clock not started" sentinel) returns `""`, which is what keeps a
+server render from printing a label measured against the epoch and what keeps
+`Intl.RelativeTimeFormat` from throwing on `NaN`. It must never be called
 with a defaulted `Date.now()` during render (convention C-7), so consumers pair it with
 `useNow()` and pass an explicit `now` — which is also how the Svelte consumers avoid a per-item
 interval. Note it in the consuming components' READMEs.

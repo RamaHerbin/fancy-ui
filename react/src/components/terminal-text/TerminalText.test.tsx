@@ -86,6 +86,49 @@ describe("TerminalText", () => {
 		expect(text(wrapper)).toBe("a_");
 	});
 
+	it("keeps streaming when the parent re-renders with an equal but freshly allocated lines array", async () => {
+		vi.useFakeTimers();
+		const onComplete = vi.fn();
+		// A call site writing lines={["ab", "cd"]} inline hands a NEW array on
+		// every parent render. That must not wipe the typed-out text.
+		const { container, rerender } = render(
+			<TerminalText lines={["ab", "cd"]} speed={10} cursor={false} onComplete={onComplete} />
+		);
+		const wrapper = container.firstElementChild as HTMLElement;
+
+		await advance(20);
+		expect(text(wrapper)).toBe("ab");
+
+		rerender(
+			<TerminalText lines={["ab", "cd"]} speed={10} cursor={false} onComplete={onComplete} />
+		);
+		expect(text(wrapper)).toBe("ab");
+
+		// The original schedule survives: line 2 lands on the original timeline
+		// (push@50, chars@60/@70, done@100) rather than starting over.
+		await advance(50);
+		expect(text(wrapper)).toBe("abcd");
+		await advance(30);
+		expect(onComplete).toHaveBeenCalledTimes(1);
+	});
+
+	it("restarts the stream when the lines content actually changes", async () => {
+		vi.useFakeTimers();
+		const { container, rerender } = render(
+			<TerminalText lines={["ab"]} speed={10} cursor={false} />
+		);
+		const wrapper = container.firstElementChild as HTMLElement;
+
+		await advance(20);
+		expect(text(wrapper)).toBe("ab");
+
+		rerender(<TerminalText lines={["zz"]} speed={10} cursor={false} />);
+		expect(text(wrapper)).toBe("");
+
+		await advance(20);
+		expect(text(wrapper)).toBe("zz");
+	});
+
 	it("does not throw or leave dangling timers when glitch is enabled", async () => {
 		vi.useFakeTimers();
 		const { unmount } = render(<TerminalText lines={["glitchy line"]} speed={5} glitch={true} />);

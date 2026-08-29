@@ -53,7 +53,7 @@ export const TypingIndicator = forwardRef<HTMLDivElement, TypingIndicatorProps>(
 		return (
 			<div
 				ref={ref}
-				className={cn("inline-flex items-center", className)}
+				className={cn("ft-typing inline-flex items-center", className)}
 				style={rootStyle}
 				role="status"
 				aria-live="polite"

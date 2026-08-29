@@ -38,7 +38,10 @@ function formatter(locale: string | undefined, numeric: "auto" | "always") {
 export interface RelativeTimeOptions {
 	/** BCP 47 tag. Defaults to the runtime locale. */
 	locale?: string;
-	/** Epoch ms to measure against. Defaults to `Date.now()`. */
+	/**
+	 * Epoch ms to measure against. Defaults to `Date.now()`. A non-finite
+	 * value (the `useNow` "clock not started" sentinel) yields `""`.
+	 */
 	now?: number;
 	/** Defaults to `"auto"`, which yields idiomatic words ("now", "yesterday"). */
 	numeric?: "auto" | "always";
@@ -56,9 +59,19 @@ export function formatRelativeTime(date: number | Date, opts: RelativeTimeOption
 	const target = date instanceof Date ? date.getTime() : date;
 	if (!Number.isFinite(target)) return "";
 
+	/*
+	 * A non-finite `now` is the shared clock's "not started yet" sentinel
+	 * (`useNow` returns `NaN` on the server and through the hydration
+	 * render). Reporting nothing is the only honest answer: measuring against
+	 * it would print a label off by decades, and `Intl.RelativeTimeFormat`
+	 * throws on a non-finite value.
+	 */
+	const now = opts.now ?? Date.now();
+	if (!Number.isFinite(now)) return "";
+
 	const numeric = opts.numeric ?? "auto";
 	const rtf = formatter(opts.locale, numeric);
-	const diff = target - (opts.now ?? Date.now());
+	const diff = target - now;
 	const abs = Math.abs(diff);
 
 	for (const [limit, step, unit] of BUCKETS) {

@@ -58,6 +58,14 @@ describe("DirectionAwareHover", () => {
 		expect(figure?.className).toContain("rounded-lg");
 	});
 
+	it("carries the port-added CSS anchor class on the container", () => {
+		const { container } = render(<DirectionAwareHover imageUrl="/test.jpg" />);
+		const figure = container.querySelector('[role="figure"]') as HTMLElement;
+		expect(figure?.classList.contains("direction-aware-hover")).toBe(true);
+		// The named group is still there: the overlay's group-hover/card: variants depend on it.
+		expect(figure?.classList.contains("group/card")).toBe(true);
+	});
+
 	it("applies custom class names", () => {
 		const { container } = render(
 			<DirectionAwareHover imageUrl="/test.jpg" className="custom-hover" />

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { cn } from "../../utils.js";
 
 export interface ContainerScrollProps {
@@ -26,7 +27,10 @@ export function ContainerScroll({
 		scaleDimensions[0] + (scaleDimensions[1] - scaleDimensions[0]) * scrollYProgress;
 	const translateY = -100 * scrollYProgress;
 
-	useEffect(() => {
+	// Svelte does this in `onMount`, which runs before the browser paints. A passive
+	// effect would paint one frame at the unresolved pose (desktop scale, rotate 20deg)
+	// before snapping — see internals-api.md §4.
+	useIsomorphicLayoutEffect(() => {
 		function updateIsMobile() {
 			setIsMobile(window.innerWidth <= 768);
 		}

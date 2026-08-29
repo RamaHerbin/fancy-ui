@@ -11,8 +11,9 @@
 		"directory": "react"
 	},
 	"scripts": {
-		"build": "vite build && tsc -p tsconfig.build.json",
+		"build": "vite build && tsc -p tsconfig.build.json && node scripts/check-dist-names.mjs",
 		"check": "tsc --noEmit",
+		"check:matrix": "node scripts/check-matrix.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"prepublishOnly": "pnpm run build && publint"
@@ -24,17 +25,28 @@
 		"dist",
 		"tailwind.css"
 	],
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
 		},
 		"./cameleon": {
 			"types": "./dist/cameleon/index.d.ts",
-			"import": "./dist/cameleon/index.js"
+			"import": "./dist/cameleon/index.js",
+			"default": "./dist/cameleon/index.js"
 		},
 		"./styles.css": "./dist/styles.css",
 		"./tailwind.css": "./tailwind.css"
+	},
+	"typesVersions": {
+		"*": {
+			"cameleon": [
+				"./dist/cameleon/index.d.ts"
+			]
+		}
 	},
 	"sideEffects": [
 		"**/*.css"
@@ -46,6 +58,7 @@
 	},
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.5",
+		"@types/canvas-confetti": "^1.9.0",
 		"canvas-confetti": "^1.9.4",
 		"clsx": "^2.1.1",
 		"gsap": "^3.14.2",
@@ -54,7 +67,6 @@
 	},
 	"devDependencies": {
 		"@testing-library/jest-dom": "^6.6.3",
-		"@types/canvas-confetti": "^1.9.0",
 		"@types/three": "^0.183.1",
 		"@testing-library/react": "^16.3.0",
 		"@types/react": "^19.1.0",

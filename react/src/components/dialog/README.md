@@ -86,15 +86,3 @@ DOM.
   collapses its own duration to 0, `runTransition` then never calls
   `element.animate()`, and the close stays synchronous. The source's `<style>`
   block says the same thing and is ported with its comment intact.
-
-## Follow-up outside this folder
-
-`react/tailwind.css` declares four semantic colour names
-(`background`, `primary`, `primary-foreground`, `ring`). The panel and its
-close button spend six more that are not declared anywhere:
-`border`, `popover`, `popover-foreground`, `muted-foreground`, `accent`,
-`accent-foreground`. Per PORTING.md §Styling rule 6 those belong in
-`react/tailwind.css` (`@theme inline` plus `@layer base` defaults), not in a
-component `.css`. Until they land, a consumer with no shadcn token set of its
-own gets an unstyled panel background and border. The class strings themselves
-are copied verbatim and need no change when the tokens are added.

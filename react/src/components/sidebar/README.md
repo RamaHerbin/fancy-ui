@@ -45,16 +45,3 @@ inside the compound ever changes it, so there is nothing to round-trip.
   file; the React harness is declared at the top of the test file. The `await
   tick()` after each toggle is gone — `fireEvent` flushes React's update
   synchronously — and nothing else about the assertions changed.
-
-## Package-level gap (not fixable from this folder)
-
-`react/tailwind.css` declares `--color-background` and `--color-ring` but not
-`--color-accent`, `--color-accent-foreground`, `--color-muted-foreground` or
-`--color-border`. `SidebarItem`'s current/hover fill (`bg-accent`,
-`text-accent-foreground`), the muted label colours (`text-muted-foreground`,
-`text-muted-foreground/70`) and the separator's `border-border` therefore
-resolve to nothing in an app that does not already ship the shadcn token set.
-This is the same class of gap PORTING.md §Styling rule 6 covers, and the fix
-belongs in `react/tailwind.css`, which this folder does not own. The accent bar
-and the badge fill are unaffected — both run off the component's own
-`--ft-nav-accent` fallback, declared locally in the two CSS files.

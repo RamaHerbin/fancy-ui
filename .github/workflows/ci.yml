@@ -77,6 +77,10 @@ jobs:
       # react/ is a workspace member — one install at the root covers it.
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter fancy-ui-react run check
+      # The port's record of truth is only true if something reads it:
+      # folders exist, matrix exports are reachable from the barrel, and no
+      # divergence still claims a gap the tree has closed.
+      - run: pnpm --filter fancy-ui-react run check:matrix
       - run: pnpm --filter fancy-ui-react run test
       - run: pnpm --filter fancy-ui-react run build
       - run: pnpm --filter fancy-ui-react exec publint

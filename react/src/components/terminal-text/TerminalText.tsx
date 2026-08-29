@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import "./terminal-text.css";
 
 export interface TerminalTextProps {
@@ -36,6 +37,20 @@ export function TerminalText({
 	glitchRef.current = glitch;
 	const onCompleteRef = useRef(onComplete);
 	onCompleteRef.current = onComplete;
+
+	// The stream reads the CURRENT list when it schedules, the way the source's
+	// `streamLines()` closure reads the reactive `lines` prop.
+	const linesRef = useLiveRef(lines);
+
+	// The stream is keyed on the CONTENT, never on the `lines` array itself. The
+	// array is an identity that a call site like `lines={["a", "b"]}` re-allocates
+	// on every parent render; keying the effect on it would clear the pending
+	// timeouts, wipe the typed-out text and restart the whole animation each time
+	// the parent re-renders. The source restarts only when a tracked value really
+	// changes, and an inline literal in a Svelte template is not one.
+	// Serialised rather than joined, so `["ab"]` and `["a", "b"]` — which stream
+	// differently — never collide on the same key.
+	const linesKey = JSON.stringify(lines);
 
 	// Glitch bookkeeping never drives markup, so it lives in a ref, not state.
 	const glitchStateRef = useRef<{ lineIdx: number; charIdx: number; original: string } | null>(
@@ -118,8 +133,9 @@ export function TerminalText({
 
 		let totalDelay = delay;
 
-		for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
-			const line = lines[lineIdx]!;
+		const streamed = linesRef.current;
+		for (let lineIdx = 0; lineIdx < streamed.length; lineIdx++) {
+			const line = streamed[lineIdx]!;
 
 			// Push empty line placeholder
 			const capturedIdx = lineIdx;
@@ -153,7 +169,7 @@ export function TerminalText({
 			clearAllTimeouts();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [lines, speed, delay]);
+	}, [linesKey, speed, delay]);
 
 	// React to glitch changes without restarting the stream
 	useEffect(() => {

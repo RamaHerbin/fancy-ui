@@ -36,13 +36,3 @@ specific to this component.
 - **No `.css` file.** The source has no `<style>` block; the panel's motion and
   its `prefers-reduced-motion` collapse both live in `dialog-surface.css` and
   `anchored()`, which this component renders through unchanged.
-
-## Follow-up outside this folder
-
-On top of the six semantic colour names `../dialog/README.md` already flags,
-this component spends `destructive` (`text-destructive` on the warning glyph,
-`border-destructive/25` on the panel, and `Button`'s own `destructive` variant).
-It is not declared in `react/tailwind.css` either. Per PORTING.md §Styling rule 6
-it belongs there, not in a component `.css`; until it lands, a consumer with no
-shadcn token set of its own gets an untinted border and glyph. The class strings
-are copied verbatim and need no change when the token is added.

@@ -1,6 +1,6 @@
 import { render, cleanup, act } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { createRef } from "react";
+import { createRef, StrictMode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PulseBeam, type PulseBeamProps } from "./PulseBeam.js";
 import { pulseEntryCount } from "./pulse-beam-loop";
@@ -15,6 +15,9 @@ import {
 } from "./pulse-beam-data";
 
 const count = (s: string, needle: string) => s.split(needle).length - 1;
+
+/** FADE_IN_MS + FADE_SLACK_MS, the component's fade-in fallback delay. */
+const FADE_IN_FALLBACK_MS = 680;
 
 // --- pure data module ---------------------------------------------------------
 
@@ -459,6 +462,21 @@ describe("PulseBeam", () => {
 		});
 		expect(getHost(container).getAttribute("data-state")).toBe("idle");
 		expect(onfadeout).toHaveBeenCalledTimes(1);
+	});
+
+	it("re-arms the fade fallback under StrictMode's double-invoked effects", () => {
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		const onfadein = vi.fn();
+		const { container } = render(
+			<StrictMode>
+				<PulseBeam onfadein={onfadein} />
+			</StrictMode>
+		);
+		expect(getHost(container).getAttribute("data-state")).toBe("active");
+		act(() => {
+			vi.advanceTimersByTime(FADE_IN_FALLBACK_MS);
+		});
+		expect(onfadein).toHaveBeenCalledTimes(1);
 	});
 
 	it("cancels the frame and disconnects the observer on unmount", () => {

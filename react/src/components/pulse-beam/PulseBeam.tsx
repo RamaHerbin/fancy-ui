@@ -181,12 +181,15 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 		const host = hostRef.current;
 		clearTimeout(fadeTimerRef.current);
 		if (on) {
-			if (phaseRef.current === "active") return;
-			// Force the idle style to be computed so the flip to active is a
-			// transition rather than a first paint.
-			if (phaseRef.current === "idle" && host) void host.offsetWidth;
-			setPhase("active");
-			pendingRef.current = "in";
+			// Already active: no new fade to start, but a fade still pending from an
+			// earlier run needs its fallback back (the cleanup above just cleared it).
+			if (phaseRef.current !== "active") {
+				// Force the idle style to be computed so the flip to active is a
+				// transition rather than a first paint.
+				if (phaseRef.current === "idle" && host) void host.offsetWidth;
+				setPhase("active");
+				pendingRef.current = "in";
+			}
 		} else {
 			if (phaseRef.current === "idle") {
 				pendingRef.current = null;
@@ -195,8 +198,12 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 			setPhase("fading");
 			pendingRef.current = "out";
 		}
+		// Nothing left to settle — the fade already completed.
+		if (pendingRef.current === null) return;
 		// Fallback for the cases where no transitionend arrives: reduced
 		// motion, a display:none ancestor, an offscreen host, jsdom.
+		// Re-armed on EVERY run, so StrictMode's body → cleanup → body double
+		// invoke cannot leave a pending fade without its fallback timer.
 		const ms = reducedMotionRef.current ? 0 : (on ? FADE_IN_MS : FADE_OUT_MS) + FADE_SLACK_MS;
 		fadeTimerRef.current = setTimeout(() => settle(on ? "in" : "out"), ms);
 		return () => clearTimeout(fadeTimerRef.current);
