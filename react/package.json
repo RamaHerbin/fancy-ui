@@ -1,0 +1,63 @@
+{
+	"name": "fancy-ui-react",
+	"version": "0.1.0",
+	"description": "Animated UI components for React — the React counterpart of fancy-ui-svelte. WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
+	"license": "MIT",
+	"type": "module",
+	"homepage": "https://fancy-ui.rama.app",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/RamaHerbin/fancy-ui.git",
+		"directory": "react"
+	},
+	"scripts": {
+		"build": "vite build && tsc -p tsconfig.build.json",
+		"check": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest"
+	},
+	"files": [
+		"dist",
+		"tailwind.css"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./cameleon": {
+			"types": "./dist/cameleon/index.d.ts",
+			"import": "./dist/cameleon.js"
+		},
+		"./styles.css": "./dist/styles.css",
+		"./tailwind.css": "./tailwind.css"
+	},
+	"sideEffects": [
+		"*.css"
+	],
+	"peerDependencies": {
+		"react": "^18.0.0 || ^19.0.0",
+		"react-dom": "^18.0.0 || ^19.0.0",
+		"tailwindcss": "^4.0.0"
+	},
+	"dependencies": {
+		"clsx": "^2.1.1",
+		"tailwind-merge": "^3.4.0"
+	},
+	"devDependencies": {
+		"@testing-library/jest-dom": "^6.6.3",
+		"@testing-library/react": "^16.3.0",
+		"@types/react": "^19.1.0",
+		"@types/react-dom": "^19.1.0",
+		"@vitejs/plugin-react": "^4.6.0",
+		"jsdom": "^26.1.0",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"typescript": "^5.8.0",
+		"vite": "^7.0.0",
+		"vitest": "^4.0.0"
+	},
+	"engines": {
+		"node": ">=20.19.0"
+	}
+}

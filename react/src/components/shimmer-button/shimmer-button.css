@@ -1,0 +1,32 @@
+@keyframes shimmer-slide {
+	to {
+		transform: translate(calc(100cqw - 100%), 0);
+	}
+}
+
+@keyframes spin-around {
+	0% {
+		transform: translateZ(0) rotate(0);
+	}
+	15%,
+	35% {
+		transform: translateZ(0) rotate(90deg);
+	}
+	65%,
+	85% {
+		transform: translateZ(0) rotate(270deg);
+	}
+	100% {
+		transform: translateZ(0) rotate(360deg);
+	}
+}
+
+/* Anchored on the root class: the Svelte compiler scoped these rules, plain CSS
+   would leak them into every consumer element sharing the class name. */
+.shimmer-button .shimmer-slide {
+	animation: shimmer-slide var(--speed) ease-in-out infinite alternate;
+}
+
+.shimmer-button .spin-around {
+	animation: spin-around calc(var(--speed) * 2) infinite linear;
+}
