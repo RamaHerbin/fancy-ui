@@ -587,7 +587,7 @@ describe("DropdownMenu", () => {
 			const opts = call![1];
 			expect(subBtn.textContent).toContain("›");
 
-			opts.onPlacement?.("left");
+			opts.onPlacement?.("left", "start");
 			await tick();
 			expect(subBtn.textContent).toContain("‹");
 		});
@@ -924,7 +924,7 @@ describe("DropdownMenu", () => {
 			// never produce a genuine flip.
 			const call = vi.mocked(anchorPosition).mock.calls.find(([, opts]) => opts.side === "bottom");
 			expect(call).toBeTruthy();
-			call![1].onPlacement?.("top");
+			call![1].onPlacement?.("top", "start");
 			await tick();
 
 			const panel = rootMenu()!;
@@ -973,12 +973,50 @@ describe("DropdownMenu", () => {
 			// origin — one flip has to move both, which is why this panel
 			// keeps no local placement state of its own.
 			const call = vi.mocked(anchorPosition).mock.calls.find(([, opts]) => opts.side === "right");
-			call![1].onPlacement?.("left");
+			call![1].onPlacement?.("left", "start");
 			await tick();
 
 			expect(subBtn.textContent).toContain("‹");
 			expect(subMenu()!.getAttribute("data-side")).toBe("left");
 			expect(subMenu()!.style.transformOrigin).toBe("right top");
+		});
+
+		// Closing the ROOT while a submenu is open flips only the root's own
+		// state, so `sub.open` stays true for the whole global outro. Reading
+		// it as liveness made the submenu leave on the ENTRANCE curve — the
+		// 0.92 floor, the arrival easing — while its parent faded out beside
+		// it on the exit curve. The same predicate gates `dismissable`, so a
+		// fading submenu also went on claiming the top layer.
+		it("leaves on the exit curve when the ROOT closes underneath it", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			const panel = subMenu()!;
+			const beforeRootClosed = animateSpy.mock.calls.length;
+
+			// Selecting a root item closes the whole menu — the submenu is
+			// never told anything of its own.
+			itemByLabel(rootMenu(), "Rename")!.click();
+			await tick();
+
+			const subExit = animateSpy.mock.calls
+				.map((call, index) => ({ call, context: animateSpy.mock.contexts[index] }))
+				.filter(({ context }, index) => context === panel && index >= beforeRootClosed)
+				.at(-1);
+
+			expect(subExit).toBeTruthy();
+			const keyframes = subExit!.call[0] as Keyframe[];
+			// The exit floor (0.96), not the entrance floor (0.92).
+			expect(keyframes[0]).toEqual({ opacity: "1", transform: "scale(1)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "0", transform: "scale(0.96)" });
+			animateSpy.mockRestore();
 		});
 
 		it("runs no animation at all under reduced motion, and both panels are there in the same tick", async () => {

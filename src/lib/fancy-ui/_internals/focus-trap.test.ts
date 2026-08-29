@@ -612,6 +612,100 @@ describe("focusTrap — re-arming after a reopen mid-exit", () => {
 		outside.remove();
 	});
 
+	// `update()` used to store `returnFocus` and `fallbackFocus` but drop
+	// `initialFocus`, so `rearm()` kept honouring whatever target the action
+	// mounted with. A dialog that retargets between form steps would then
+	// reopen onto the previous step's field — or onto nothing, if that field
+	// had been removed with its step.
+	it("re-arms onto the CURRENT initialFocus, not the one it mounted with", () => {
+		const outside = withOutsideTrigger();
+		const trapNode = setup(
+			`<div id="trap"><button id="a">A</button><button id="b">B</button></div>`
+		);
+		const a = trapNode.querySelector<HTMLElement>("#a")!;
+		const b = trapNode.querySelector<HTMLElement>("#b")!;
+
+		let returnNow: (() => void) | null = null;
+		let rearm: (() => void) | null = null;
+		const trap = focusTrap(trapNode, {
+			initialFocus: a,
+			onActivate: (r, again) => {
+				returnNow = r;
+				rearm = again;
+			},
+		});
+		expect(document.activeElement).toBe(a);
+
+		// The caller retargets while the surface is still mounted.
+		trap?.update?.({ initialFocus: b });
+
+		returnNow!();
+		rearm!();
+
+		expect(document.activeElement).toBe(b);
+		trap?.destroy?.();
+		outside.remove();
+	});
+
+	// `previouslyFocused` was captured once at mount, so a surface reopened
+	// from a DIFFERENT control returned focus to the first opener on its next
+	// dismissal — or fell through to the fallback, if that opener was gone.
+	it("returns focus to the control that reopened it, not the original opener", () => {
+		const first = withOutsideTrigger();
+		const second = document.createElement("button");
+		second.id = "second";
+		document.body.appendChild(second);
+		const trapNode = setup(`<div id="trap"><button id="a">A</button></div>`);
+
+		let returnNow: (() => void) | null = null;
+		let rearm: (() => void) | null = null;
+		const trap = focusTrap(trapNode, {
+			onActivate: (r, again) => {
+				returnNow = r;
+				rearm = again;
+			},
+		});
+
+		returnNow!();
+		expect(document.activeElement).toBe(first);
+
+		// A different control reopens the surface mid-exit.
+		second.focus();
+		rearm!();
+		expect(trapNode.contains(document.activeElement)).toBe(true);
+
+		trap?.destroy?.();
+		expect(document.activeElement).toBe(second);
+
+		first.remove();
+		second.remove();
+	});
+
+	// Svelte marks the exiting panel `inert`, which drops focus to <body>.
+	// Adopting that as the new return target would trade a real opener for
+	// one that clears focus, so the recapture skips it.
+	it("does not adopt document.body as the return target when re-arming", () => {
+		const outside = withOutsideTrigger();
+		const trapNode = setup(`<div id="trap"><button id="a">A</button></div>`);
+
+		let returnNow: (() => void) | null = null;
+		let rearm: (() => void) | null = null;
+		const trap = focusTrap(trapNode, {
+			onActivate: (r, again) => {
+				returnNow = r;
+				rearm = again;
+			},
+		});
+
+		returnNow!();
+		document.body.focus();
+		rearm!();
+		trap?.destroy?.();
+
+		expect(document.activeElement).toBe(outside);
+		outside.remove();
+	});
+
 	it("leaves a trap that never took the handle untouched", () => {
 		const outside = withOutsideTrigger();
 		const trapNode = setup(`<div id="trap"><button id="a">A</button></div>`);

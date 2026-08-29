@@ -89,7 +89,14 @@
 	   (including the hovered one), and the group ends up entirely dimmed.
 	   Reached simply by pressing Tab while the pointer rests over the group. */
 	@media (hover: hover) {
-		.ft-dimsiblings:not(:has(:global(:focus-visible))):has(> :global(:hover))
+		/* Keyed on `data-effect` exactly like the `filter` rule below: the
+		   opacity dip belongs to the dim-capable effects only, or
+		   `effect="blur"` would dim AND blur — behaving identically to
+		   `effect="both"` and leaving the public union with two names for one
+		   effect. */
+		.ft-dimsiblings:is([data-effect="dim"], [data-effect="both"]):not(
+				:has(:global(:focus-visible))
+			):has(> :global(:hover))
 			> :global(:not(:hover)) {
 			opacity: var(--ft-dimsiblings-opacity, 0.4);
 		}
@@ -118,7 +125,7 @@
 	   very item that has focus. This rule always wins over the hover rule
 	   above (which excludes itself whenever a focus-visible descendant
 	   exists), so a focused item is never dimmed by a same-group hover. */
-	.ft-dimsiblings:has(:global(:focus-visible))
+	.ft-dimsiblings:is([data-effect="dim"], [data-effect="both"]):has(:global(:focus-visible))
 		> :global(:not(:focus-visible):not(:has(:focus-visible))) {
 		opacity: var(--ft-dimsiblings-opacity, 0.4);
 	}
@@ -156,9 +163,11 @@
 	   so a looser reset here would silently lose the cascade and never
 	   actually apply. */
 	@media (forced-colors: active), (prefers-contrast: more), (prefers-reduced-transparency: reduce) {
-		.ft-dimsiblings:not(:has(:global(:focus-visible))):has(> :global(:hover))
+		.ft-dimsiblings:is([data-effect="dim"], [data-effect="both"]):not(
+				:has(:global(:focus-visible))
+			):has(> :global(:hover))
 			> :global(:not(:hover)),
-		.ft-dimsiblings:has(:global(:focus-visible))
+		.ft-dimsiblings:is([data-effect="dim"], [data-effect="both"]):has(:global(:focus-visible))
 			> :global(:not(:focus-visible):not(:has(:focus-visible))) {
 			opacity: 1;
 		}

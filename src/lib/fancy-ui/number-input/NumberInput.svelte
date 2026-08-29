@@ -357,17 +357,23 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-number-input-step {
-			transform: scale(1);
+			/* The individual `scale` property, not `transform: scale()`: this
+			   scoped rule is unlayered, so a `transform` here would beat any
+			   transform utility a consumer passes through the public `class`
+			   prop — a `rotate-45` would silently vanish, at rest AND under
+			   the press. `scale` composes with the consumer's `transform`
+			   instead of replacing it. */
+			scale: 1;
 			transition:
 				color var(--ft-number-input-motion),
 				background-color var(--ft-number-input-motion),
 				border-color var(--ft-number-input-motion),
-				transform var(--ft-number-input-motion);
+				scale var(--ft-number-input-motion);
 		}
 
 		.ft-number-input-step:active:not(:disabled),
 		.ft-number-input-step[data-stepping="true"]:not(:disabled) {
-			transform: scale(var(--ft-number-input-press-scale, 0.97));
+			scale: var(--ft-number-input-press-scale, 0.97);
 			/* Full motion = scale only; reduced motion = opacity only. Never both. */
 			opacity: 1;
 		}

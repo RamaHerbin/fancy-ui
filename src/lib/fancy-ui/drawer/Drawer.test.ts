@@ -442,6 +442,32 @@ describe("Drawer", () => {
 			animateSpy.mockRestore();
 		});
 
+		// A parent writing the bound `open` to false mid-drag bypasses the
+		// component's own `close()` entirely. The exit start used to be
+		// captured there and nowhere else, so it was still 0 while the panel's
+		// inline transform sat at the finger's position — the drawer snapped
+		// back up to rest and only then slid out.
+		it("starts the exit from the live drag offset when a parent closes it mid-drag", async () => {
+			const { getByTestId } = render(Harness);
+			await fireEvent.click(getByTestId("trigger"));
+
+			const surface = dragSurface();
+			await fireEvent.pointerDown(surface, { pointerId: 1, clientY: 0, pointerType: "touch" });
+			await fireEvent.pointerMove(surface, { pointerId: 1, clientY: 90, pointerType: "touch" });
+			expect(dialog()!.style.transform).toBe("translateY(90px)");
+
+			// No pointerup: the drag is still live when the parent closes.
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			await fireEvent.click(getByTestId("close-from-parent"));
+
+			const exit = animateSpy.mock.calls
+				.map((call) => (call[0] as Keyframe[])?.[0]?.transform)
+				.find((transform) => typeof transform === "string" && transform.includes("translateY"));
+
+			expect(exit).toContain("90px");
+			animateSpy.mockRestore();
+		});
+
 		// The drag offset is deliberately left where the finger put it, and
 		// it cannot be cleared from inside the closing block — Svelte marks
 		// that branch inert before the outro. It is reset on the way back IN

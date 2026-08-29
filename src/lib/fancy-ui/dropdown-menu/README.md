@@ -464,6 +464,18 @@ one switch.
   `|global` (an intro that also plays when an ancestor block first renders)
   is not paid here, because `sub.open` starts false and this block's DOM
   only ever exists on a real open.
+- **A submenu'"'"'s liveness is `sub.open && parentMenu.rootOpen`, not `sub.open`
+  alone.**
+  Closing the root — selecting a root item, or a caller'"'"'s own `bind:open`
+  write — flips only the root'"'"'s state, so `sub.open` stays true for the whole
+  of that global outro. Both things that ask "is this panel a live top
+  layer?" read the combined value: the transition, which would otherwise run
+  the ARRIVAL curve on the way out, and `dismissable`, which would otherwise
+  let a fading submenu swallow an Escape or an outside click meant for
+  whatever sits underneath. `rootOpen` lives on `MenuContext`, the contract
+  both families implement, because `DropdownMenuSubContent` is shared with
+  `ContextMenu` — and each `*SubContent` republishes its own liveness under
+  that name, so the answer composes down a chain of nested submenus.
 - `{#each}` blocks in this family's own examples key on each item's own
   identity (a label, a value), never a positional index — a reordering or a
   duplicate-looking label stays correct.

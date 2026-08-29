@@ -392,6 +392,37 @@ describe("FileUpload", () => {
 		}
 	});
 
+	// The LAST row is the one case where the row's own `{#each}` is not what
+	// tears it down: `files.length` hits zero and the enclosing `{#if}`
+	// destroys the whole `<ul>`. Svelte's outro collector only gathers a LOCAL
+	// transition through transparent children, and a nested `{#if}` is not
+	// one — so with a local `out:` every other removal faded and the final row
+	// vanished on the spot. `|global` is what puts it back on the same clock.
+	it("plays the exit for the FINAL row too, keeping the list mounted until it finishes", async () => {
+		const held = holdExits();
+		try {
+			const entries: UploadFile[] = [
+				{ id: "1", file: makeFile("only.txt"), progress: null, status: "pending" },
+			];
+			const { container } = render(FileUpload, { props: { files: entries } });
+			expect(rows(container)).toHaveLength(1);
+
+			removeButtons(container)[0].click();
+			await tick();
+
+			// The list and its last row are still there, fading, not gone.
+			expect(rows(container)).toHaveLength(1);
+			expect(rows(container)[0].inert).toBe(true);
+			expect(container.querySelector(".ft-file-upload-list")).not.toBeNull();
+
+			held.release();
+			await waitFor(() => expect(rows(container)).toHaveLength(0));
+			expect(container.querySelector(".ft-file-upload-list")).toBeNull();
+		} finally {
+			held.restore();
+		}
+	});
+
 	// The regression the id-based lookup in `removeFile` exists to stop: while the
 	// removed row is still animating out it is still in the DOM AND `inert`, so a
 	// DOM-order lookup would hand focus to the button that is leaving — which a

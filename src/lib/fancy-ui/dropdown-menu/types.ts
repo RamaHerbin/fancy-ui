@@ -60,6 +60,17 @@ export interface MenuContext {
 	 * that has no `sound` prop of its own (yet).
 	 */
 	readonly sound?: boolean;
+	/**
+	 * Whether the menu TREE this level belongs to is still open — not just
+	 * this level's own `{#if}`. Closing the root flips only the root's state
+	 * and tears every nested level down with it, so a submenu's own
+	 * `sub.open` stays true for the whole of that outro. Anything asking "is
+	 * this panel a live top layer?" — an exit transition picking its curve,
+	 * a `dismissable` deciding whether an Escape is its to swallow — has to
+	 * read this instead. A `*SubContent` republishes it as its own liveness,
+	 * so the answer composes down a chain of nested submenus.
+	 */
+	readonly rootOpen: boolean;
 	/** Closes the whole menu, root included. What selecting an item and pressing Tab both do. */
 	closeAll(options?: MenuCloseOptions): void;
 	/** Registers a currently-open submenu at this level, keyed by its trigger element. Returns an unregister function. */
@@ -87,8 +98,17 @@ export interface SubContext {
 	 * regardless of which side that visually is.
 	 */
 	readonly resolvedSide: Side;
+	/**
+	 * The cross-axis alignment the submenu actually rendered with, as last
+	 * reported by `onPlacement`. `"start"` until a clamp near a viewport edge
+	 * slides the panel along that axis, after which the requested corner is
+	 * no longer the one touching the trigger. `SubContent` reads this for its
+	 * entrance origin, so the panel grows from the corner nearest the trigger
+	 * rather than from the far one.
+	 */
+	readonly resolvedAlign: Align;
 	setTriggerRef(el: HTMLElement | null): void;
-	setResolvedSide(side: Side): void;
+	setPlacement(side: Side, align: Align): void;
 	/** Opens the submenu. Idempotent — does nothing if already open. */
 	openSub(): void;
 	/** Closes the submenu, optionally returning DOM focus to its trigger. */

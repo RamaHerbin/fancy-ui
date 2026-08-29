@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { tick } from "svelte";
@@ -294,6 +295,31 @@ describe("StickyScroll", () => {
 
 		expect(activeIndexText(second)).toBe("1");
 		expect(activeIndexText(first)).toBe("0");
+	});
+
+	// jsdom applies no scoped stylesheet and evaluates no container query at
+	// all, so the layout half of the contract is asserted against the source
+	// directly — the `button-group`/`code-diff` archetype in this repo.
+	it("stacks by flex wrapping, and never tries to restyle the query container from inside its own @container block", () => {
+		const source = readFileSync("src/lib/fancy-ui/sticky-scroll/StickyScroll.svelte", "utf8");
+
+		// The root wraps on its own...
+		expect(source).toMatch(/\.ft-stickyscroll \{[^}]*display:\s*flex/);
+		expect(source).toMatch(/\.ft-stickyscroll \{[^}]*flex-wrap:\s*wrap/);
+		// ...and both children carry the basis that decides where it wraps.
+		expect(source).toMatch(/\.ft-stickyscroll-items \{[^}]*flex:\s*1 1 min\(100%, 20rem\)/);
+		expect(source).toMatch(/\.ft-stickyscroll-panel \{[^}]*flex:\s*1 1 min\(100%, 20rem\)/);
+
+		// An element is styled by the query containers ABOVE it, never by its
+		// own `container-type`, so the @container block must only ever select
+		// descendants of `.ft-stickyscroll` — a rule for the root itself in
+		// here would silently never apply.
+		// Anchored to a line that STARTS the at-rule, so the prose mentions of
+		// `@container` in the comments above it can't be picked up instead.
+		const block = source.match(/^\t@container[^{]*\{([\s\S]*?)\n\t\}/m);
+		expect(block).not.toBeNull();
+		expect(block![1]).toMatch(/\.ft-stickyscroll-panel \{/);
+		expect(block![1]).not.toMatch(/\.ft-stickyscroll[\s[]*\{/);
 	});
 
 	it("cleanup: unmount disconnects every section's observer", () => {
