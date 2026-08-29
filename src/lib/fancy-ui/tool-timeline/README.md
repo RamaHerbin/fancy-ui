@@ -59,6 +59,7 @@ This is the "what happened" panel you put under a finished answer or beside a ru
 | `label`    | `string`                                              | `"Activity"` | Accessible name for the list                                         |
 | `class`    | `string`                                              | —            | Additional CSS classes                                               |
 | `ref`      | `HTMLDivElement \| null`                              | `null`       | Bindable element reference                                           |
+| `sound`    | `boolean`                                             | `false`      | Plays the `select` cue on row activation                             |
 
 ## Snippets
 
@@ -74,6 +75,16 @@ Each entry is a `ToolTimelineItemData` from the shared AI data model, so the sam
 - **`detail`** — a muted second line, dropped entirely in `compact` mode.
 - **`additions` / `deletions`** — right-aligned `+N` / `−N` in `tabular-nums`, rendered only for the entries that carry them, and independently of each other. `0` is a value, not an absence: `additions: 0` renders `+0`.
 - **`timestamp`** — a relative time ("5 minutes ago") via `_internals/relative-time`, with the exact instant in both `datetime` and `title`.
+
+## Sound
+
+Set `sound` to play the `select` cue when a timeline entry is activated, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<ToolTimeline {items} onSelect={(entry) => inspect(entry)} sound />
+```
+
+It only fires from the `{#if onSelect}` button branch — without `onSelect` the rows are plain, inert spans and nothing plays. An entry appending as the agent works, or the shared clock ticking the relative timestamps forward, never plays it either: only an actual row activation does. Off by default; only audible once the user has separately turned sound on.
 
 ## Implementation notes
 

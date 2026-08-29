@@ -20,11 +20,17 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import type { RunStatus } from "../_internals/ai-types.js";
 
 	let {
@@ -35,6 +41,7 @@
 		item,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: AgentPlanProps = $props();
 
 	/** Spoken alongside each step, since the glyph says nothing out loud. */
@@ -129,6 +136,14 @@
 	// Only the first one: a plan with two things in flight still has one place the
 	// reader's eye — and a screen reader's "current step" — should land.
 	const currentIndex = $derived(rows.findIndex((row) => row.step.status === "running"));
+
+	/** A row activation is a fresh gesture every time — there is no selected
+	 *  value on the component to compare against, so the cue plays on every
+	 *  pick, repeats included. */
+	function selectStep(step: PlanStepData) {
+		if (sound) soundFx.play("select");
+		onSelect?.(step);
+	}
 </script>
 
 {#snippet glyph(status: RunStatus)}
@@ -246,7 +261,7 @@
 					<button
 						type="button"
 						class="ft-agentplan-body hover:bg-muted/60 focus-visible:ring-ring flex w-full cursor-pointer items-start gap-2 rounded-md text-left transition-colors focus-visible:ring-1 focus-visible:outline-none"
-						onclick={() => onSelect?.(row.step)}
+						onclick={() => selectStep(row.step)}
 					>
 						{@render rowBody(row)}
 					</button>

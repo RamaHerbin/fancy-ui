@@ -26,12 +26,18 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { formatElapsed } from "../_internals/elapsed.svelte.js";
 
 	let {
@@ -43,6 +49,7 @@
 		onToggle,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ToolCallProps = $props();
 
 	/** Spoken alongside the tool name, since the dot's colour says nothing out loud. */
@@ -154,7 +161,12 @@
 		// From here on the reader owns the card: a later failure will not pop it
 		// open again behind their back.
 		userToggled = true;
-		commit(!isOpen);
+		const next = !isOpen;
+		// Only this click plays a cue — the error auto-open effect and the SSR
+		// `autoOpen` seed both fold through `commit()` (or bypass it entirely) and
+		// must stay silent, so the play sits here rather than in `commit()`.
+		if (sound) soundFx.play(next ? "open" : "close");
+		commit(next);
 	}
 
 	// A failure is the one thing worth reading without being asked, so it expands
