@@ -1,0 +1,112 @@
+.pulse-beam {
+	position: relative;
+	isolation: isolate;
+	border-radius: var(--pb-radius);
+	overflow: hidden;
+}
+
+.pulse-beam[data-variant="outside"] {
+	overflow: visible;
+}
+
+.pulse-beam .pulse-beam__layer {
+	position: absolute;
+	inset: 0;
+	border-radius: var(--pb-radius);
+	pointer-events: none;
+	transition: opacity 600ms ease;
+}
+
+/* Filter runs before the mask: the bloom blurs its gradients, then the 1px
+   ring is cut from the blurred image — a softened ring, not a halo. */
+.pulse-beam .pulse-beam__stroke,
+.pulse-beam .pulse-beam__bloom {
+	padding: 1px;
+	clip-path: inset(0 round var(--pb-radius));
+	-webkit-mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	-webkit-mask-composite: xor;
+	mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	mask-composite: exclude;
+}
+
+.pulse-beam .pulse-beam__stroke {
+	z-index: 2;
+	opacity: calc(var(--pb-o-stroke) * var(--pb-strength));
+	filter: hue-rotate(var(--pb-hue, 0deg)) brightness(var(--pb-brightness))
+		saturate(var(--pb-saturation));
+}
+
+.pulse-beam .pulse-beam__glow {
+	z-index: 1;
+	clip-path: inset(0 round var(--pb-radius));
+	-webkit-mask-image:
+		linear-gradient(#fff, transparent 28px, transparent calc(100% - 28px), #fff),
+		linear-gradient(to right, #fff, transparent 28px, transparent calc(100% - 28px), #fff);
+	-webkit-mask-composite: source-over;
+	mask-image:
+		linear-gradient(#fff, transparent 28px, transparent calc(100% - 28px), #fff),
+		linear-gradient(to right, #fff, transparent 28px, transparent calc(100% - 28px), #fff);
+	mask-composite: add;
+	opacity: calc(var(--pb-o-glow) * var(--pb-strength));
+	filter: hue-rotate(var(--pb-hue, 0deg)) brightness(var(--pb-brightness))
+		saturate(var(--pb-saturation));
+}
+
+.pulse-beam .pulse-beam__bloom {
+	z-index: 3;
+	opacity: calc(var(--pb-o-bloom) * var(--pb-strength));
+	filter: blur(var(--pb-bloom-blur)) hue-rotate(var(--pb-hue, 0deg))
+		brightness(var(--pb-brightness)) saturate(var(--pb-saturation));
+}
+
+/* Outside: the stroke stays a ring; glow and bloom bleed past the box and
+   sit behind the (opaque) children inside the isolated stacking context. */
+.pulse-beam[data-variant="outside"] .pulse-beam__glow {
+	inset: -10px;
+	z-index: -1;
+	border-radius: calc(var(--pb-radius) + 10px);
+	clip-path: none;
+	-webkit-mask: none;
+	mask: none;
+	transform: scale(0.95, 0.9);
+	filter: blur(var(--pb-glow-blur)) hue-rotate(var(--pb-hue, 0deg))
+		brightness(var(--pb-brightness)) saturate(var(--pb-saturation));
+}
+
+.pulse-beam[data-variant="outside"] .pulse-beam__bloom {
+	inset: -30px;
+	z-index: -1;
+	border-radius: calc(var(--pb-radius) + 30px);
+	padding: 0;
+	clip-path: none;
+	-webkit-mask: none;
+	mask: none;
+	transform: scale(0.95, 0.9);
+}
+
+/* Fade states */
+.pulse-beam[data-state="idle"] .pulse-beam__layer {
+	opacity: 0;
+	visibility: hidden;
+	transition: none;
+}
+
+.pulse-beam[data-state="fading"] .pulse-beam__layer {
+	opacity: 0;
+	transition-duration: 500ms;
+}
+
+.pulse-beam[data-state="active"] .pulse-beam__layer,
+.pulse-beam[data-state="fading"] .pulse-beam__layer {
+	will-change: opacity, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pulse-beam .pulse-beam__layer {
+		transition: none;
+	}
+}

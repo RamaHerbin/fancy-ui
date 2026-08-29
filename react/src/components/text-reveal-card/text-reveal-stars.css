@@ -1,0 +1,25 @@
+/* The keyframes were declared `:global` in the Svelte source; the emitted
+   name `star-drift` is the visual contract and is kept identical. */
+@keyframes star-drift {
+	0% {
+		opacity: 0;
+		transform: scale(1);
+	}
+	50% {
+		opacity: var(--star-opacity, 0.5);
+		transform: scale(1.2);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(0);
+		top: var(--target-top);
+		left: var(--target-left);
+	}
+}
+
+/* `.text-reveal-stars` is a port-added anchor: the Svelte compiler scoped
+   this rule and the source has no root class to anchor on, so the slug class
+   keeps the generic `.star-animate` name from leaking globally. */
+.text-reveal-stars .star-animate {
+	animation: star-drift linear infinite;
+}

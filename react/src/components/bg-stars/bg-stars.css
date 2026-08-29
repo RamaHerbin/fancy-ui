@@ -1,0 +1,36 @@
+/*
+ * `.fancy-bg-stars` is a PORT-ADDED anchor (PORTING.md, styling rule 2). The
+ * Svelte source has no root class: its compiler scoped `.stars-parallax` /
+ * `.star-layer` / `.star-field`, which would leak into any consumer element
+ * with those names once the rules ship as plain global CSS. The anchor is the
+ * first token of the root `cn()` call in StarsBackground.tsx. (`bg-stars`
+ * itself is avoided because tailwind-merge treats `bg-*` as a background
+ * utility and would drop it.)
+ */
+.fancy-bg-stars .stars-parallax {
+	will-change: transform;
+}
+
+.fancy-bg-stars .star-layer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 2000px;
+	animation: scroll-stars var(--duration, 50s) linear infinite;
+}
+
+.fancy-bg-stars .star-field {
+	position: absolute;
+	background: transparent;
+	border-radius: 50%;
+}
+
+@keyframes scroll-stars {
+	from {
+		transform: translateY(0);
+	}
+	to {
+		transform: translateY(-2000px);
+	}
+}

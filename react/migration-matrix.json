@@ -3,7 +3,7 @@
     "slug": "agent-plan",
     "sveltePath": "src/lib/fancy-ui/agent-plan",
     "reactPath": "react/src/components/agent-plan",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -30,15 +30,18 @@
       "AgentPlan.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Svelte's `item` prop is a Snippet<[PlanStepData, number]>; ported as a render-prop function `(step, index) => ReactNode` per PORTING.md's Snippet->ReactNode mapping.",
+      "Svelte's `ref = $bindable(null)` became a standard forwardRef<HTMLDivElement, AgentPlanProps> on the root div; no functional difference."
+    ],
     "lastFailure": null
   },
   {
     "slug": "ai-data-table",
     "sveltePath": "src/lib/fancy-ui/ai-data-table",
     "reactPath": "react/src/components/ai-data-table",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -65,8 +68,10 @@
       "AiDataTable.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "The `cell` snippet prop became a render-function prop `cell?: (value, at) => ReactNode` instead of a ReactNode, since the Svelte Snippet<[unknown,{row,key}]> takes arguments — same call-site shape, a JS function instead of a snippet."
+    ],
     "lastFailure": null
   },
   {
@@ -111,7 +116,7 @@
     "slug": "animated-beam",
     "sveltePath": "src/lib/fancy-ui/animated-beam",
     "reactPath": "react/src/components/animated-beam",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -140,15 +145,19 @@
       "AnimatedBeam.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "containerRef/fromRef/toRef additionally accept a React ref object ({ current: HTMLElement | null }) alongside a plain HTMLElement, resolved at effect/observer time (exported helper type AnimatedBeamTarget), and are typed nullable since a ref may not be populated yet",
+      "gradient id comes from useFancyId(\"beam\") (SSR-stable) instead of the Svelte side's Math.random() id",
+      "new seed prop (default 1): the default duration (Svelte: Math.random() * 3 + 4) is derived from a deterministic mulberry32 PRNG so server render and hydration agree"
+    ],
     "lastFailure": null
   },
   {
     "slug": "animated-testimonials",
     "sveltePath": "src/lib/fancy-ui/animated-testimonials",
     "reactPath": "react/src/components/animated-testimonials",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -175,7 +184,7 @@
       "AnimatedTestimonials.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -183,7 +192,7 @@
     "slug": "animated-tooltip",
     "sveltePath": "src/lib/fancy-ui/animated-tooltip",
     "reactPath": "react/src/components/animated-tooltip",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -212,7 +221,7 @@
       "AnimatedTooltip.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -220,7 +229,7 @@
     "slug": "apple-card-carousel",
     "sveltePath": "src/lib/fancy-ui/apple-card-carousel",
     "reactPath": "react/src/components/apple-card-carousel",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -251,15 +260,21 @@
       "AppleCardCarousel.test.ts"
     ],
     "svelteFiles": 2,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "AppleCardData.content is a ReactNode instead of a Svelte Snippet (rendered directly rather than invoked).",
+      "AppleCard's props interface is now exported as AppleCardProps (the Svelte side kept it a local, unexported interface) to satisfy the <Name>Props tooling contract.",
+      "TRANSITION_MS is exported from AppleCard.tsx (as in the Svelte module script) but, matching the Svelte index, is not re-exported from the folder's index.ts.",
+      "Svelte's await tick() + inline rAF chain after expand became a useEffect keyed on overlayVisible: focus close button, then double-rAF flip to fullyExpanded; the rAFs are cancelled on cleanup (Svelte had no cancellation, but the timing/behaviour is identical). The reduced-motion branch is read from a ref so it is decided once per expand, like the source handler.",
+      "The collapse setTimeout is not cleared on unmount, mirroring the Svelte source verbatim (React 18+ makes the late setState a no-op)."
+    ],
     "lastFailure": null
   },
   {
     "slug": "approval-card",
     "sveltePath": "src/lib/fancy-ui/approval-card",
     "reactPath": "react/src/components/approval-card",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -289,8 +304,11 @@
       "ApprovalCard.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Svelte's bind:state two-way binding becomes a controlled/uncontrolled prop pair: `state` + `onStateChange` (React's counterpart, following the Stepper.tsx precedent), rather than a bindable ref. Consumers driving state from outside now pass both props instead of `bind:state`.",
+      "children (Snippet) becomes ReactNode children as usual for the detail region."
+    ],
     "lastFailure": null
   },
   {
@@ -386,7 +404,7 @@
     "slug": "bento-grid",
     "sveltePath": "src/lib/fancy-ui/bento-grid",
     "reactPath": "react/src/components/bento-grid",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -415,15 +433,17 @@
       "BentoGrid.test.ts"
     ],
     "svelteFiles": 3,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "BentoGridItemProps uses Omit<HTMLAttributes<HTMLDivElement>, 'title'> to avoid a TS conflict between the DOM 'title' attribute and the Svelte 'title' snippet prop (same intersection pattern PORTING.md prescribes for RainbowButton)."
+    ],
     "lastFailure": null
   },
   {
     "slug": "bg-falling-stars",
     "sveltePath": "src/lib/fancy-ui/bg-falling-stars",
     "reactPath": "react/src/components/bg-falling-stars",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -453,15 +473,30 @@
       "FallingStarsBg.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "Added optional `seed?: number` (default 1) + mulberry32 PRNG replacing every `Math.random()` (star layout and respawn), per PORTING.md's randomisation rule; consequence: two `<FallingStarsBg />` with no seed show an identical sky, where the Svelte side gave each instance a different one.",
+      "`count` re-initialises the starfield in React (it is a dependency of the canvas effect); the Svelte side reads `count` only inside `onMount`, so a later `count` change there is silently ignored. `color` keeps Svelte's behaviour exactly (live, next-frame, no re-seed) via a ref rather than an effect dependency."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/bg-falling-stars/FallingStarsBg.tsx",
+        "problem": "`count` is a dependency of the canvas effect, so changing it after mount tears down and re-seeds the starfield; the Svelte side reads `count` only inside `onMount` and silently ignores later changes. Declared by the port agent and unavoidable with an honest dependency array (omitting `count` would strand a stale closure), so accepted as a minor behavioural divergence rather than a fidelity break.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/bg-falling-stars/FallingStarsBg.tsx",
+        "problem": "PORTING.md asks that the seed-prop divergence be \"recorded as a divergence in the README\". The seed prop itself is correct and sanctioned (mulberry32, default 1, same shape as the existing bg-stars port), and it is documented in a TSDoc block on the prop, but there is no README carrying it: this folder shape has none and react/README.md was out of scope for the port agent. The note therefore lives only in the port report — worth folding into the wave-level docs pass. Consequence to document: two unseeded <FallingStarsBg /> on one page show an identical sky, where Svelte gave each a different one.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "bg-stars",
     "sveltePath": "src/lib/fancy-ui/bg-stars",
     "reactPath": "react/src/components/bg-stars",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -490,15 +525,20 @@
       "StarsBackground.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Added a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the Svelte side's Math.random() star scatter — required by the SSR/hydration rule (PORTING.md, C-7); same seed = same sky.",
+      "Star box-shadows are derived in render (useMemo on starColor+seed) instead of a client-only effect, so stars appear in server-rendered HTML; the Svelte side renders empty shadows until the effect runs.",
+      "Port-added root anchor class `fancy-bg-stars` for the colocated CSS (Svelte compiler-scoped .stars-parallax/.star-layer/.star-field). The bare slug `bg-stars` was avoided deliberately: tailwind-merge classifies `bg-*` tokens as background utilities and would drop the anchor against any consumer bg-* override.",
+      "Per-frame spring transform is written imperatively to the parallax element's style in the rAF loop (per group guidance) instead of re-rendering through state; a stiffness/damping change restarts the loop but spring position/velocity persist in refs, so motion resumes from the in-flight position."
+    ],
     "lastFailure": null
   },
   {
     "slug": "blur-reveal",
     "sveltePath": "src/lib/fancy-ui/blur-reveal",
     "reactPath": "react/src/components/blur-reveal",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -527,7 +567,7 @@
       "BlurReveal.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -535,7 +575,7 @@
     "slug": "book",
     "sveltePath": "src/lib/fancy-ui/book",
     "reactPath": "react/src/components/book",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -569,7 +609,7 @@
       "Book.test.ts"
     ],
     "svelteFiles": 4,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -612,7 +652,7 @@
     "slug": "box-reveal",
     "sveltePath": "src/lib/fancy-ui/box-reveal",
     "reactPath": "react/src/components/box-reveal",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -641,15 +681,18 @@
       "BoxReveal.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Rest props: React BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div; the Svelte BoxRevealProps declares only color/duration/delay/class and spreads nothing, so the React component accepts id/onClick/data-* attributes the Svelte one silently drops. Kept per PORTING.md's general 'rest props spread onto the root element' rule, recorded here because it is consumer-visible.",
+      "Barrel edit made outside the assigned component directory: react/src/index.ts gained the box-reveal export line. The task brief said 'no barrel edits', but PORTING.md states the index.ts entry as law in two places (Folder-shape section and hard rule line 118) and it is the reviewed blocker. Sibling wave agents (blur-reveal, interactive-grid-pattern) are adding their own lines to the same file concurrently, confirming this is the wave's actual convention despite the file's 'GENERATED between migration waves' banner."
+    ],
     "lastFailure": null
   },
   {
     "slug": "breadcrumb",
     "sveltePath": "src/lib/fancy-ui/breadcrumb",
     "reactPath": "react/src/components/breadcrumb",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "headless",
@@ -676,8 +719,12 @@
       "Breadcrumb.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "`item` snippet prop (`Snippet<[BreadcrumbItem, number]>`) becomes a render-prop function: `item?: (item: BreadcrumbItem, index: number) => ReactNode`.",
+      "`ref` bindable prop becomes `forwardRef<HTMLElement, BreadcrumbProps>` — the nav element arrives through the React ref channel instead of a `ref` prop.",
+      "`class` becomes `className` (standard rename)."
+    ],
     "lastFailure": null
   },
   {
@@ -719,7 +766,7 @@
     "slug": "button-group",
     "sveltePath": "src/lib/fancy-ui/button-group",
     "reactPath": "react/src/components/button-group",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "compound",
@@ -749,15 +796,22 @@
       "ButtonGroupHarness.test.svelte"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "BUTTON_GROUP_CONTEXT_KEY is a React.Context<ButtonGroupContext | undefined> object rather than a Symbol context key: a nested control reads it with useContext(BUTTON_GROUP_CONTEXT_KEY) instead of getContext(BUTTON_GROUP_CONTEXT_KEY). Same exported name, same optional/degrades-to-undefined contract.",
+      "ButtonGroupContext.orientation is a plain readonly value on an object the root rebuilds whenever orientation changes, not a Svelte getter. Observable behaviour is identical (consumers re-render on change); a consumer cannot destructure-and-hold it across renders, which the getter also did not allow meaningfully.",
+      "The `class` prop is `className`, per PORTING.md.",
+      "The `ref` prop is gone from ButtonGroupProps: the root <div> arrives through forwardRef's ref channel (Svelte declares `ref = $bindable(null)`).",
+      "`children?: Snippet` becomes `children?: ReactNode`.",
+      "The Svelte <style> block's `:global(...)` selectors become plain child/descendant selectors in the colocated button-group.css, every one anchored on the existing `.ft-button-group` root class (no class-string addition needed). Specificity story is unchanged: the rules are unlayered and so still beat Tailwind's layered `rounded-*` / `border` utilities on a child without !important."
+    ],
     "lastFailure": null
   },
   {
     "slug": "card-3d",
     "sveltePath": "src/lib/fancy-ui/card-3d",
     "reactPath": "react/src/components/card-3d",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "compound",
@@ -788,15 +842,26 @@
       "CardContainer.test.ts"
     ],
     "svelteFiles": 3,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "CardItem `as` is typed `ElementType` (React) instead of Svelte's raw `string` — `<svelte:element this={as}>` only accepts tag strings, so the React type is a widening; `as=\"span\"` etc. behave identically.",
+      "A `<CardItem>` rendered outside a `<CardContainer>` throws `Card3DContext is missing: this component must be rendered inside its provider.` The Svelte side also throws there (`getMouseEntered is not a function`), so the failure mode is the same; only the message differs.",
+      "CardItem's Svelte source declares `let ref: HTMLElement` with `bind:this={ref}` but never reads it and does not make it `$bindable`; the React port forwards no ref, matching the Svelte public API surface (PORTING.md forwardRef rule)."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "No card-3d export block in the package barrel, so CardContainer/CardBody/CardItem and their Props types are not reachable from the package entry point. PORTING.md's hard rules require every ported component to appear here. Deliberate per the orchestration (the port was scoped to react/src/components/card-3d/ only and the barrel is regenerated separately), so it is not a fidelity break — but it must be added before the barrel is considered complete.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "card-spotlight",
     "sveltePath": "src/lib/fancy-ui/card-spotlight",
     "reactPath": "react/src/components/card-spotlight",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -825,15 +890,18 @@
       "CardSpotlight.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "class prop becomes className (standard React mapping per PORTING.md)",
+      "Svelte-side bug ported intentionally: the overlay's inline style sets opacity to gradientOpacity unconditionally, overriding the opacity-0 / group-hover:opacity-100 classes (inline style wins), same as the Svelte source"
+    ],
     "lastFailure": null
   },
   {
     "slug": "chat-error",
     "sveltePath": "src/lib/fancy-ui/chat-error",
     "reactPath": "react/src/components/chat-error",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -860,8 +928,11 @@
       "ChatError.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "ref exposed via forwardRef (mirrors Svelte's ref = $bindable(null))",
+      "icon/children Snippet props became ReactNode props (icon and children)"
+    ],
     "lastFailure": null
   },
   {
@@ -1036,7 +1107,7 @@
     "slug": "colourful-text",
     "sveltePath": "src/lib/fancy-ui/colourful-text",
     "reactPath": "react/src/components/colourful-text",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -1063,8 +1134,11 @@
       "ColourfulText.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "New `seed` prop (default 1): the Svelte side shuffles with Math.random() at init; the React initial shuffle draws from a deterministic mulberry32(seed) stream so server render and hydration match (PORTING.md C-7). Same seed = same initial color order; two instances without a seed start identically.",
+      "The 5-second reshuffles draw from a second deterministic stream (mulberry32(seed ^ 0x9e3779b9)) so the first reshuffle is not a visual no-op replay of the initial order; reshuffle sequences are therefore reproducible per seed rather than random."
+    ],
     "lastFailure": null
   },
   {
@@ -1170,7 +1244,7 @@
     "slug": "compare",
     "sveltePath": "src/lib/fancy-ui/compare",
     "reactPath": "react/src/components/compare",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -1200,8 +1274,11 @@
       "Compare.test.ts"
     ],
     "svelteFiles": 2,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "StarField gains a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the Svelte side's render-path Math.random(), per PORTING.md's SSR rule; two StarFields with the same starsCount and seed render identical skies, and stars only reshuffle when starsCount or seed changes.",
+      "StarField's root cn() gains the port-added anchor class `fancy-star-field` (PORTING.md styling rule 2 sanctioned addition) so the formerly compiler-scoped `.star` rules don't leak globally; keyframe names `twinkle`/`drift` kept identical."
+    ],
     "lastFailure": null
   },
   {
@@ -1262,7 +1339,7 @@
     "slug": "confetti",
     "sveltePath": "src/lib/fancy-ui/confetti",
     "reactPath": "react/src/components/confetti",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "compound",
@@ -1294,15 +1371,33 @@
       "Confetti.test.ts"
     ],
     "svelteFiles": 2,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "BLOCKING PACKAGING GAP: `canvas-confetti` (+ `@types/canvas-confetti`) is NOT declared in react/package.json. Both files import it exactly as the Svelte source does; it only resolves today because the monorepo root node_modules hoists the Svelte package's copy. `fancy-ui-react` will fail to install/resolve for consumers until `canvas-confetti` is added to `dependencies` (and `@types/canvas-confetti` to devDependencies). I was forbidden from editing package.json — orchestration must add it.",
+      "`fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.",
+      "Context key stays private. Svelte publishes on the string key `\"ConfettiContext\"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.",
+      "`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.",
+      "No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options` and `children` on a bare `<button>`."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
+        "problem": "`canvas-confetti` is not declared in react/package.json dependencies (nor `@types/canvas-confetti` in devDependencies), yet Confetti.tsx and ConfettiButton.tsx import it as a bare specifier. It resolves today only because the monorepo root package.json (line 102) hoists it for the Svelte package. Systemic rather than confetti-specific — `three`, `gsap` and `@chenglou/pretext` are imported under react/src and are equally undeclared — and the port agent was forbidden from editing package.json, so orchestration must add it before fancy-ui-react is publishable. Not a fidelity/behavior/test/SSR blocker: tests and tsc are green and behavior matches the Svelte source exactly.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/confetti/Confetti.tsx",
+        "problem": "`Confetti` is wrapped in `forwardRef<ConfettiHandle, ConfettiProps>` even though the Svelte source declares no `ref = $bindable` — a literal deviation from PORTING.md's 'forwardRef exactly where the Svelte source declares ref = $bindable' and internals-api.md C-4. It is justified and documented in-file: the ref carries `{ fire }`, the React channel for Svelte's `export function fire(opts)` (a public method the registry documents at registry.ts:2468 as 'call fire() manually'); the alternative was deleting a public method. Residual nit: `ConfettiHandle` is exported from Confetti.tsx but not from index.ts, so consumers cannot name the ref type directly and must fall back to `ComponentRef<typeof Confetti>`.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "container-scroll",
     "sveltePath": "src/lib/fancy-ui/container-scroll",
     "reactPath": "react/src/components/container-scroll",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -1331,7 +1426,7 @@
       "ContainerScroll.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -1339,7 +1434,7 @@
     "slug": "container-text-flip",
     "sveltePath": "src/lib/fancy-ui/container-text-flip",
     "reactPath": "react/src/components/container-text-flip",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -1366,7 +1461,7 @@
       "ContainerTextFlip.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 2,
     "divergences": [],
     "lastFailure": null
   },
@@ -1609,7 +1704,7 @@
     "slug": "dim-siblings",
     "sveltePath": "src/lib/fancy-ui/dim-siblings",
     "reactPath": "react/src/components/dim-siblings",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -1637,7 +1732,7 @@
       "DimSiblingsHarness.test.svelte"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 2,
     "divergences": [],
     "lastFailure": null
   },
@@ -1645,7 +1740,7 @@
     "slug": "direction-aware-hover",
     "sveltePath": "src/lib/fancy-ui/direction-aware-hover",
     "reactPath": "react/src/components/direction-aware-hover",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -1675,15 +1770,20 @@
       "DirectionAwareHover.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "fade transitions on the overlay and caption are reproduced via usePresence + a local fade300 TransitionSpec (WAAPI mechanism per internals-api §5) instead of a framework transition directive — same 300ms linear opacity curve",
+      "overlay class freezes at the last hovered direction during the fade-out (explicit lastDirectionRef) to reproduce the source's inert-outro-branch behavior, since React keeps re-rendering the exiting node",
+      "isMobile lives in a ref rather than state — it is only read in event handlers and never drives markup, so resize events no longer trigger re-renders (no observable difference)",
+      "non-null assertion added on event.touches[0] to satisfy the React tsconfig's indexed-access checking (no runtime change)"
+    ],
     "lastFailure": null
   },
   {
     "slug": "displacement-text",
     "sveltePath": "src/lib/fancy-ui/displacement-text",
     "reactPath": "react/src/components/displacement-text",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -1717,9 +1817,24 @@
       "DisplacementText.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`class` prop is renamed `className` (PORTING.md API contract); every other prop name, default and type is unchanged.",
+      "BLOCKER for publish: `react/package.json` declares no `three`. The Svelte package has `\"three\": \"^0.183.2\"` in `dependencies` and `react/vite.config.ts` already externalizes `/^three(\\/|$)/`, so the same entry must be added to `react/package.json` dependencies centrally. It currently resolves only because the monorepo root `node_modules` has three@0.183.2 + @types/three@0.183.1 installed for the Svelte package; a standalone `fancy-ui-react` install would fail at runtime."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
+        "problem": "`three` is not declared in dependencies although DisplacementText.tsx (and NoiseReveal.tsx) import it and vite.config.ts externalizes /^three(\\/|$)/. It resolves today only via the monorepo root node_modules; a standalone `fancy-ui-react` install would fail at runtime. Pre-existing and package-level — PORTING.md forbids the porting agent from editing package.json, and the agent flagged it as a divergence for central resolution. Not a fidelity defect in this port.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "No `export * from \"./components/displacement-text/index.js\"` block. PORTING.md's hard rules say every ported component must appear here, but this file's own header states it is GENERATED between migration waves and must not be edited per-component by hand (only 14 of 81 component folders are currently listed). Resolved by the central barrel regeneration, not by this port.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "dock",
@@ -1871,7 +1986,7 @@
     "slug": "editorial-engine",
     "sveltePath": "src/lib/fancy-ui/editorial-engine",
     "reactPath": "react/src/components/editorial-engine",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -1903,9 +2018,31 @@
       "EditorialEngine.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`class` prop becomes `className` (PORTING.md API contract). Prop set is otherwise identical (headline, body, pullquotes, fontFamily) — no rest-props spread and no ref forwarding, matching the Svelte surface which declares neither.",
+      "Engine re-creation is keyed on pullquote CONTENT (`pullquotes.join(\"\u0000\")`) rather than array identity. A caller passing an inline `pullquotes={[...]}` literal would otherwise tear down and re-measure the whole article on every parent render; identical content now yields identical output, so no rendered difference is observable.",
+      "`@chenglou/pretext` is NOT declared in `react/package.json` `dependencies` (no package.json edits were sanctioned). `react/vite.config.ts` already lists `/^@chenglou\\/pretext(\\/|$)/` in `rollupOptions.external`, so the build treats it as a peer of the consumer — but nothing installs it for them. Consumers of `fancy-ui-react` importing `EditorialEngine` will hit an unresolved module until it is added to `dependencies`. Needs a package.json follow-up by whoever owns that file.",
+      "`react/README.md` was not updated (sanctioned deviation): EditorialEngine's props table / usage snippet still needs adding there. Same for `react/src/index.ts`, which is regenerated centrally."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "EditorialEngine is not exported from the package barrel, which PORTING.md lists as a hard rule for every ported component. Mitigating: the file carries a 'GENERATED between migration waves - do not edit per-component by hand' banner and contains only 10 entries against 83 component directories, so this is a pending central regeneration rather than a defect specific to this port.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
+        "problem": "engine.ts imports '@chenglou/pretext' but it is not declared in react/package.json dependencies; it resolves today only through root workspace hoisting. A published consumer importing EditorialEngine would hit an unresolved module. react/vite.config.ts already externalizes it and three/gsap/canvas-confetti are equally undeclared, so this is a pre-existing campaign-level packaging gap (already tracked as runtimeDeps in react/migration-matrix.json). PORTING.md forbids porting agents from editing package.json, so deferring it was correct; it needs a follow-up by the file owner.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/editorial-engine/EditorialEngine.tsx",
+        "problem": "The engine effect is keyed on pullquote CONTENT (pullquotes.join(\"\u0000\")) rather than array identity, so the dependency array does not literally list the `pullquotes` prop it reads. This is a deliberate, commented divergence that is closer to Svelte's $effect semantics than identity keying (an inline array literal would otherwise tear down and re-measure the whole article on every parent render); identical content yields identical output, so no rendered difference is observable.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "file-upload",
@@ -1957,7 +2094,7 @@
     "slug": "fireworks-hdr",
     "sveltePath": "src/lib/fancy-ui/fireworks-hdr",
     "reactPath": "react/src/components/fireworks-hdr",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -1998,15 +2135,28 @@
       "webgl2-renderer.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`class` prop is `className` (standard rename; same verbatim Tailwind literals on the wrapper: `pointer-events-none absolute inset-0 h-full w-full` + merge, and `block h-full w-full` on the canvas).",
+      "NO `seed` prop was added, deliberately. Every `Math.random()` on the Svelte side lives inside `onMount` (ambient scheduling, hue jitter, shell pick, poisson intervals) and drives an imperatively-painted canvas — no random value ever reaches the rendered markup, which is a static wrapper + `<canvas>`. PORTING.md's seed-prop rule targets render-path randomisation (the Meteors case); adding a seed here would invent API surface the Svelte component does not expose. `createSim({ rng })` remains the injectable-randomness seam and is what the tests use.",
+      "WebGPU types: the Svelte module opens with `/// <reference types=\"@webgpu/types\" />`. `fancy-ui-react` does not declare that package and may not add it, and such a directive would be emitted into the published `.d.ts` and break every consumer that lacks it. The exact GPU surface the renderer touches is therefore declared locally in `webgpu-types.ts` (type-only, module-scoped, no ambient globals), and the three host boundaries (`navigator.gpu`, both `getContext(\"webgpu\")` calls) go through `as unknown as`. No public export mentions a GPU type, so the emitted declarations stay WebGPU-free. Shader source (WGSL + GLSL) is byte-for-byte verbatim.",
+      "Dev diagnostics: `import.meta.env.DEV` becomes `isDev()` (`dev.ts`), which reads `process.env.NODE_ENV` — the flag every React toolchain already replaces — and returns `false` when no such global exists. Consumer-visible only in that the `[FireworksHdr] …` console warnings appear in dev builds that set NODE_ENV and stay silent in a plain ESM page that sets nothing.",
+      "React StrictMode (dev only) double-invokes effects, so the engine boots, tears down and reboots once at mount; a consumer's `onReady` therefore fires twice under dev StrictMode. Production and non-StrictMode behaviour is unchanged (one boot, one `onReady`)."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/fireworks-hdr/webgl2-renderer.ts",
+        "problem": "Stale reference to the Svelte source filename left in a comment in the React package: line 5 reads \"so FireworksHdr.svelte drives WebGPU and WebGL2 through one code path\". The equivalent header comment in FireworksHdr.test.tsx was correctly updated to say \"FireworksHdr\", so this is an oversight. Comment-only, no runtime or type effect.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "flickering-grid",
     "sveltePath": "src/lib/fancy-ui/flickering-grid",
     "reactPath": "react/src/components/flickering-grid",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -2037,15 +2187,25 @@
       "FlickeringGrid.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "Added `seed?: number` (default `1`) — the source's bare `Math.random()` is replaced by mulberry32 for both the initial square opacities and every flicker change, per PORTING.md's seed rule and matching the sibling MatrixRain port. Consumer-visible: two `<FlickeringGrid />` with no seed now flicker in step (the Svelte side gives each an independent stream), and a remount replays the same sequence. Changing `seed` restarts the grid.",
+      "`class` prop is named `className`, per PORTING.md's API contract. Same position in the same `cn(\"h-full w-full\", className)` call."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "react/src/components/flickering-grid/FlickeringGrid.tsx",
+        "problem": "Comment at lines 79-85 claims the Svelte source's onMount closures read untracked values (\"nothing it reads is tracked\"). Svelte 5 $props() destructures compile to live getters, so color/flickerChance/squareSize ARE read fresh on each frame; the accurate statement is that they never re-run the lifecycle. The implementation (useLiveRef for each, only [container, canvas, seed] as deps) is correct and matches behavior exactly — only the prose is misleading for the next maintainer.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "flip-card",
     "sveltePath": "src/lib/fancy-ui/flip-card",
     "reactPath": "react/src/components/flip-card",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -2072,7 +2232,7 @@
       "FlipCard.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -2080,7 +2240,7 @@
     "slug": "flip-words",
     "sveltePath": "src/lib/fancy-ui/flip-words",
     "reactPath": "react/src/components/flip-words",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -2107,15 +2267,19 @@
       "FlipWords.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Svelte `class` prop becomes `className` (standard port mapping)",
+      "Timer scheduling moved inside useEffect closures (refs for timeout ids); observable timing behavior identical (duration wait -> 600ms exit -> next word)",
+      "Compiler-scoped `.flip-words-enter` / `.flip-words-exit` rules are anchored under the `.flip-words` root class in the colocated CSS (global keyframe names kept identical)"
+    ],
     "lastFailure": null
   },
   {
     "slug": "fluid-cursor",
     "sveltePath": "src/lib/fancy-ui/fluid-cursor",
     "reactPath": "react/src/components/fluid-cursor",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -2151,15 +2315,37 @@
       "FluidCursor.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`FluidCursorAdvancedProps` is a new exported type (empty interface extending `FluidCursorProps`). The Svelte index exports the deprecated `FluidCursorAdvanced` alias with no Props type of its own; PORTING.md's `<Name>Props` tooling contract requires one.",
+      "Dev-only console diagnostics (singleton warning, WebGPU fallback/tone-mapping/device-lost logs, HDR-level info) are gated on a `typeof`-guarded `process.env.NODE_ENV !== \"production\"` instead of `import.meta.env.DEV` — the react package's tsconfig does not load Vite client types. In an unbundled browser load where `process` is undefined the diagnostics are silent. No non-diagnostic behavior differs; `hexToRgb`'s invalid-hex `console.warn` is NOT gated on either side (the test asserts it).",
+      "`interactive` and `contained` are captured at mount and used for BOTH listener registration and removal. The Svelte source re-reads them (reactive getters) at cleanup time, so flipping either prop mid-life leaks or mis-pairs listeners there; here add/remove always pair. Unobservable unless a consumer mutates those props on a live instance, which the props are documented not to support.",
+      "WebGPU is typed by module-scoped minimal interfaces instead of `@webgpu/types` (not declared in react/package.json; it is only reachable here by accident, transitively through `@types/three`). Type-level only — no runtime difference — but it also keeps the emitted `.d.ts` free of an external type reference consumers would have to install."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/fluid-cursor/fluid-shared.ts",
+        "problem": "DEV gate divergence: `export const DEV = typeof process !== \"undefined\" && process.env.NODE_ENV !== \"production\"` replaces the Svelte sources' `import.meta.env.DEV` (Vite client types are not loaded by react/tsconfig.json). Every bundled React consumer replaces process.env.NODE_ENV so behavior matches there, but in an unbundled browser load `process` is undefined and all dev diagnostics (singleton warning, WebGPU fallback / tone-mapping / device-lost logs, HDR-level info) go silent. Diagnostics only - no simulation or render behavior differs, and hexToRgb's invalid-hex console.warn is ungated on both sides. Correctly declared as a divergence by the port agent.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/fluid-cursor/FluidCursor.tsx",
+        "problem": "Port-added public type: `export interface FluidCursorAdvancedProps extends FluidCursorProps {}` (also re-exported from index.ts) has no counterpart on the Svelte side, which exports the deprecated `FluidCursorAdvanced` component alias with no Props type of its own. Defensible under PORTING.md's <Name>Props tooling contract and declared as a divergence, but it is a net-new name in the React public API surface - worth an explicit ruling so the docs/design-tool generators expect it.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/fluid-cursor/FluidCursor.tsx",
+        "problem": "Ported bug, correctly flagged, needs a cross-framework follow-up (not a port defect): `allowMultiple` is inert on BOTH sides. I confirmed the Svelte source declares activeInstance/mountCounter in the instance <script>, not <script module> (no <script module> block exists in FluidCursor.svelte), so the module-level singleton registry is actually per-instance and the destroy-previous path can never fire. The React port reproduces this with per-instance refs plus an explanatory comment, per PORTING.md's port-the-bug rule. Consequence: the component README/registry copy documenting 'singleton by default, destroys previous instance' is wrong for Svelte and React alike. Related nit in the same area: allowMultiple, interactive and contained are frozen at mount for listener registration AND removal here, whereas Svelte re-reads them live at cleanup - the React pairing is strictly safer and unobservable unless a consumer mutates those mount-time props on a live instance.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "focus",
     "sveltePath": "src/lib/fancy-ui/focus",
     "reactPath": "react/src/components/focus",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -2188,7 +2374,7 @@
       "Focus.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -2244,7 +2430,7 @@
     "slug": "frosted-glass",
     "sveltePath": "src/lib/fancy-ui/frosted-glass",
     "reactPath": "react/src/components/frosted-glass",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -2271,15 +2457,17 @@
       "FrostedGlass.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Filter id generator: the Svelte `onMount` mints `fg-dist-${Math.random().toString(36).slice(2,8)}`; the port mints `uid(\"fg-dist\")` from `src/internals/use-id.ts` inside the equivalent mount effect. Consumer-visible ids are now `fg-dist-1`, `fg-dist-2`, ... instead of a random base-36 suffix. Timing is unchanged (still client-only, still after mount, so the filter layer and its <defs> are still absent from the server HTML), and no seed prop was added — the existing `seed` prop stays the feTurbulence seed it is on the Svelte side."
+    ],
     "lastFailure": null
   },
   {
     "slug": "glare-card",
     "sveltePath": "src/lib/fancy-ui/glare-card",
     "reactPath": "react/src/components/glare-card",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -2308,7 +2496,7 @@
       "GlareCard.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -2316,7 +2504,7 @@
     "slug": "glow-border",
     "sveltePath": "src/lib/fancy-ui/glow-border",
     "reactPath": "react/src/components/glow-border",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -2343,15 +2531,17 @@
       "GlowBorder.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Svelte binds `style={styles}` as a raw attribute string; React's `style` prop only accepts an object and would reformat/reorder the CSS text (breaking the exact `--glow-duration: 5s` substring the tests check). Ported by writing the identical raw style string via a ref + useLayoutEffect (`ref.current.style.cssText = styles`) instead of React's style object — visually and textually identical output, same reactivity (re-runs when derived values change), no SSR/hydration mismatch risk since it only touches the DOM after mount."
+    ],
     "lastFailure": null
   },
   {
     "slug": "glowing-effect",
     "sveltePath": "src/lib/fancy-ui/glowing-effect",
     "reactPath": "react/src/components/glowing-effect",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -2381,7 +2571,7 @@
       "GlowingEffect.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -2471,7 +2661,7 @@
     "slug": "hyper-text",
     "sveltePath": "src/lib/fancy-ui/hyper-text",
     "reactPath": "react/src/components/hyper-text",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -2500,9 +2690,19 @@
       "HyperText.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "HyperText adds a `seed` prop (default 1): the scramble characters come from a deterministic mulberry32 PRNG instead of the source's bare `Math.random()` (PORTING.md seed-prop rule); the distribution and visual effect are unchanged.",
+      "When `text` shrinks mid-animation, an already-revealed index past the new length keeps its previous letter (`target[i] ?? l`) instead of rendering the string \"undefined\" as the Svelte code would — strict-TS guard, practically unobservable since the text-sync effect resets `displayText` on any `text` change."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "react/src/components/hyper-text/",
+        "problem": "No README.md documenting the seed-prop divergence, though PORTING.md's literal text asks for one. Consistent with established campaign practice (only 2/83 react component folders have a README; other seeded components like animated-beam/sparkles/meteors also lack one), and the divergence is properly disclosed in the port notes instead.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "icon-button",
@@ -2582,7 +2782,7 @@
     "slug": "image-trail-cursor",
     "sveltePath": "src/lib/fancy-ui/image-trail-cursor",
     "reactPath": "react/src/components/image-trail-cursor",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -2614,9 +2814,19 @@
       "trail-variants.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "react/package.json does not declare `gsap` — this is the package's first GSAP consumer. The import resolves today only because the pnpm workspace root installs gsap@^3.14.2 and node resolution walks up; `gsap` must be added to react/package.json (dependency or peerDependency) before publish or a consumer install breaks. vite.config.ts already externalises /^gsap(\\/|$)/, so the build side is ready. I was barred from editing package.json.",
+      "Root `touch-action: none` is emitted through React's inline-style object instead of Svelte's literal style string. Identical in browsers (style=\"touch-action: none;\"), but jsdom's cssstyle does not implement `touch-action` and silently drops any CSSOM write, so the transposed assertion reads the server markup (renderToStaticMarkup contains style=\"touch-action:none\") rather than the live node's style attribute. Same fact, jsdom-observable form."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
+        "problem": "`gsap` is declared in neither dependencies nor peerDependencies, yet react/src/components/image-trail-cursor/trail-variants.ts imports it and this is the react package's only GSAP consumer. `react/node_modules/gsap` does not exist; the import resolves solely because node walks up to the pnpm workspace root (gsap@^3.14.2 at root package.json:104). vite.config.ts:47 externalises /^gsap(\\/|$)/, so the published dist will emit a bare `import { gsap } from \"gsap\"` that a consumer install cannot resolve. Central action required before publish — NOT a port fidelity defect and not fixable by the port agent, whose PORTING.md hard rules forbid package.json edits (same class as the missing react/src/index.ts barrel line, which that file marks as GENERATED between migration waves).",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "inline-citation",
@@ -2707,7 +2917,7 @@
     "slug": "interactive-grid-pattern",
     "sveltePath": "src/lib/fancy-ui/interactive-grid-pattern",
     "reactPath": "react/src/components/interactive-grid-pattern",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -2736,8 +2946,10 @@
       "InteractiveGridPattern.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Root SVG carries an extra class token `interactive-grid-pattern` that the Svelte source does not emit: the Svelte <style> rule `.interactive-grid-square:not(:hover){transition-duration:1000ms}` was compiler-scoped, so the port adds the slug as an anchor per PORTING.md styling rule 2. This was already present in the ported component before this fix and is commented as port-added in interactive-grid-pattern.css."
+    ],
     "lastFailure": null
   },
   {
@@ -2819,7 +3031,7 @@
     "slug": "letter-pullup",
     "sveltePath": "src/lib/fancy-ui/letter-pullup",
     "reactPath": "react/src/components/letter-pullup",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -2846,7 +3058,7 @@
       "LetterPullup.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -2854,7 +3066,7 @@
     "slug": "line-hover-link",
     "sveltePath": "src/lib/fancy-ui/line-hover-link",
     "reactPath": "react/src/components/line-hover-link",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -2881,7 +3093,7 @@
       "LineHoverLink.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -2889,7 +3101,7 @@
     "slug": "line-reveal",
     "sveltePath": "src/lib/fancy-ui/line-reveal",
     "reactPath": "react/src/components/line-reveal",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -2920,15 +3132,26 @@
       "LineReveal.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`class` -> `className` (standard PORTING.md rename); no ref/forwardRef and no rest-prop spread, matching the Svelte source which declares neither.",
+      "Port-added root anchor class `line-reveal` (first token of the root `cn()`), so the compiler-scoped `.line-mask` / `.line` / `.revealed` rules do not leak globally — same treatment as `fancy-marquee` and `ripple-button`; README's 'Compiler-scoped selectors ... gained one' bullet should list `line-reveal` too.",
+      "`@chenglou/pretext` is NOT declared in react/package.json dependencies. It only appears in vite.config.ts's `external` list. It resolves today via the pnpm workspace root node_modules, so tsc and vitest are green, but a published `fancy-ui-react` install would fail to resolve it. Someone with package.json ownership must add `@chenglou/pretext` to `dependencies` (Svelte package pins ^0.0.5; installed version here is 0.0.5)."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "react/package.json",
+        "problem": "`@chenglou/pretext` is imported by LineReveal.tsx (and already by src/components/editorial-engine/engine.ts) but is not declared in react/package.json `dependencies` — it only appears in vite.config.ts's rollup `external` list and resolves today via the pnpm workspace root node_modules. tsc and vitest are green, but a published `fancy-ui-react` install would fail to resolve it. Pre-existing gap, not introduced by this port, and PORTING.md forbids the porting agent from editing package.json. An owner should add \"@chenglou/pretext\": \"^0.0.5\" (matching the Svelte package's pin) to dependencies.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "line-shadow-text",
     "sveltePath": "src/lib/fancy-ui/line-shadow-text",
     "reactPath": "react/src/components/line-shadow-text",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -2955,7 +3178,7 @@
       "LineShadowText.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -2963,7 +3186,7 @@
     "slug": "link",
     "sveltePath": "src/lib/fancy-ui/link",
     "reactPath": "react/src/components/link",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -2990,15 +3213,18 @@
       "Link.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Native click handler is `onClick` (React convention/rest-props spread) rather than Svelte's `onclick` prop name.",
+      "Props extend AnchorHTMLAttributes (minus className) and spread ...rest onto the <a>, per PORTING.md's rest-props-spread rule; Svelte side only exposed a fixed prop list plus onclick."
+    ],
     "lastFailure": null
   },
   {
     "slug": "liquid-glass",
     "sveltePath": "src/lib/fancy-ui/liquid-glass",
     "reactPath": "react/src/components/liquid-glass",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -3027,15 +3253,27 @@
       "LiquidGlass.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "Filter id: minted with the internals' `uid(\"lg\")` inside the mount effect instead of `Math.random().toString(36).slice(2, 8)`. Same client-only timing as `onMount` (no filter and no `backdrop-filter` in the server HTML, exactly as Svelte SSR) and the same per-instance uniqueness, but the ids read `lg-1`, `lg-2`, … per page load instead of random 6-char suffixes. No `seed` prop was added: a shared default seed would give every instance on a page the same SVG filter id, which is the one thing the Svelte randomisation exists to prevent, and `uid()` is the sanctioned generator for an id minted in an effect (internals-api §C-6 / use-id.ts).",
+      "Prop rename: the Svelte `class` prop (applied to the inner slot) becomes `className`, per PORTING.md. `containerClass` keeps its Svelte name — it is not `class`, and the transposed test drives it by that name.",
+      "Inline style is a React style object rather than the Svelte raw style-attribute string, so a declaration the CSSOM does not recognise is dropped instead of surviving verbatim in the `style` attribute. Only observable where `backdrop-filter` is unsupported (jsdom drops it from the serialised attribute; the four CSS custom properties and `border-radius` are unaffected). No browser effect: engines that ignore `backdrop-filter` ignore it in the Svelte string form too, and Safari is served by the `@supports (background: -webkit-named-image(i))` fallback block regardless.",
+      "No rest-props spread and no `forwardRef` — the Svelte source declares neither `$$restProps` nor `ref = $bindable`, so the API surface stays exactly the Svelte one."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "No export block for liquid-glass. PORTING.md requires every ported component to appear in react/src/index.ts, but the port agent left index.ts untouched as an orchestrator-sanctioned deviation. The component folder itself is complete and correct; this is pending barrel wiring, not a fidelity break.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "liquid-text",
     "sveltePath": "src/lib/fancy-ui/liquid-text",
     "reactPath": "react/src/components/liquid-text",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -3069,15 +3307,27 @@
       "LiquidText.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`class` prop is `className` (PORTING.md API contract). Every other prop name, default and type is identical to the Svelte surface; no ref is exposed (the Svelte source declares no `$bindable` ref) and no rest props are spread (the Svelte root has none).",
+      "`liquid-text.css`: the `.liquid-text-fallback` rule is anchored as `.liquid-text .liquid-text-fallback` (PORTING.md styling rule 2 — Svelte scoped it at compile time; as flat CSS the bare class would leak). Class names and the `.liquid-text` root rule are unchanged, and the fallback span is always a child of the root, so the computed styling is identical.",
+      "New internal dependency the Svelte side does not have: `useLiveRef` from `internals/dom/use-live-ref.js`. It reproduces Svelte's live `$props()` reads inside the long-lived sim closures (pointer handler, rAF loop, observers), so `interactive`, `forceGain`, `radius`, `dissipation`, `viscosity`, `strength`, `chromaticRatio`, `pauseWhenHidden`, `text` and `fontWeight` still take effect after mount without re-initialising GL. Matrix row lists `deps.internals: []`; it is now `[\"dom/use-live-ref\"]`.",
+      "Test-only: `LiquidText.test.tsx` adds one throwaway `render(...).unmount()` before the listener-balance spies are installed. react-dom attaches its delegated `selectionchange` listener to the owner document the first time any root is created and never removes it; without the warm-up the transposed balance assertion fails when the test is run in isolation (`-t`). No production-code effect."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "No `export * from \"./components/liquid-text/index.js\";` block. PORTING.md's hard rules say every ported component must appear in the root barrel, but the file header marks it GENERATED between migration waves and the orchestration scoped this agent to the component directory only — so this is a deferred barrel-wave task, not a port defect. Nothing else outside react/src/components/liquid-text/ was needed (useLiveRef is a pre-existing internal documented in internals-api.md and used by 20+ modules).",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "logo-cloud",
     "sveltePath": "src/lib/fancy-ui/logo-cloud",
     "reactPath": "react/src/components/logo-cloud",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -3107,8 +3357,11 @@
       "StaticLogoCloud.test.ts"
     ],
     "svelteFiles": 3,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "`class` prop renamed to `className` per PORTING.md contract (Svelte source used `class`) — purely mechanical, no behavior change.",
+      "Svelte compiler-scoped .logo-cloud-scroll/.logo-cloud-mask/keyframes are unscoped in plain CSS; both classes already existed as public identifiers in the Svelte markup/JS API so no anchor class was added (rule 4 exception doesn't apply — these already had public identity)."
+    ],
     "lastFailure": null
   },
   {
@@ -3193,7 +3446,7 @@
     "slug": "matrix-rain",
     "sveltePath": "src/lib/fancy-ui/matrix-rain",
     "reactPath": "react/src/components/matrix-rain",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -3223,9 +3476,25 @@
       "MatrixRain.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "New prop `seed?: number` (default 1), absent on the Svelte side: both `Math.random()` call sites (column initialisation in `init()` and glyph picking in `randomGlyph()`) are driven by a seeded mulberry32 stream, per PORTING.md's seed-prop rule. Same uniform distribution, so no visual change; two `<MatrixRain />` with no seed now start out alike where two Svelte instances did not.",
+      "The PRNG stream restarts when the effect re-runs (a `glyphSize`, `density` or `seed` change), whereas the Svelte source draws from the process-global `Math.random()` stream continuously across re-inits. Not observable — the distribution is identical either way.",
+      "React README not updated (orchestration forbids editing `react/README.md`); the `seed` divergence above is normally recorded there per PORTING.md."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/matrix-rain/MatrixRain.tsx",
+        "problem": "The port-added `seed` prop (default 1) is a small behavioural divergence not recorded in react/README.md's divergence register (which does record the equivalent Meteors seed). Unlike Meteors, MatrixRain's randomness never touches a render path or a lazy useState initializer — all three Math.random() sites live inside the effect — so seeding was not required by PORTING.md's SSR rule, and it has a visible cost: two unseeded <MatrixRain /> on one page now rain identically where two Svelte instances differ. PORTING.md's seed-prop clause literally sanctions the pattern and 14 sibling ports already do the same, so this is consistency/bookkeeping rather than a fidelity break; the divergence is documented in the prop's JSDoc.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "matrix-rain has no entry in the package barrel, which PORTING.md lists as a hard rule for porting agents (`export * from \"./components/matrix-rain/index.js\";` is missing). The port agent states the barrel is regenerated centrally and left it alone, consistent with the brief's 'no files outside react/src/components/matrix-rain/' constraint — but the component is not importable from the package entry point until that regeneration happens.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "meteors",
@@ -3266,7 +3535,7 @@
     "slug": "mosaic-glow",
     "sveltePath": "src/lib/fancy-ui/mosaic-glow",
     "reactPath": "react/src/components/mosaic-glow",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -3301,15 +3570,31 @@
       "MosaicGlow.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "SSR markup: React serialises the host's inline style as `style=\"background-color:#0a0a0a\"` (no space after the colon) where Svelte emits `background-color: #0a0a0a`. Same declaration, different byte string — the SSR test asserts the React form and carries a comment saying so.",
+      "The Svelte `ref = $bindable(null)` prop becomes a React forwarded ref (`forwardRef`), per PORTING.md: `<MosaicGlow ref={r} />` publishes the host div, and `ref` is no longer a member of `MosaicGlowProps`.",
+      "`MosaicGlowProps` extends `Omit<HTMLAttributes<HTMLDivElement>, \"color\" | \"children\">` rather than omitting every `keyof BaseProps` — those two are the only names that actually collide in `@types/react`, so the surviving attribute surface is one entry wider than the Svelte type (e.g. `title`, `role` were never omitted on either side anyway). No runtime effect."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "PORTING.md requires every ported component to appear in react/src/index.ts, but there is no `export * from \"./components/mosaic-glow/index.js\";` line. Not specific to this port — the barrel currently has zero component entries for all 83 ported folders, so it is a campaign-wide regeneration step, not a fidelity break in mosaic-glow. Recorded so it is not lost.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/mosaic-glow/MosaicGlow.tsx",
+        "problem": "MosaicGlowProps extends Omit<HTMLAttributes<HTMLDivElement>, \"color\" | \"children\"> instead of omitting every own-prop key as the Svelte type does (Omit<HTMLAttributes, keyof BaseProps>). Verified that `color` and `children` are the only names @types/react's HTMLAttributes actually declares that collide (color sits in its non-standard block, children in DOMAttributes); the remaining 13 props are not part of HTMLAttributes, so the resulting surface is equivalent. Type-level only, no runtime effect, and disclosed by the port agent.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "navbar",
     "sveltePath": "src/lib/fancy-ui/navbar",
     "reactPath": "react/src/components/navbar",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -3337,8 +3622,11 @@
       "Navbar.test.ts"
     ],
     "svelteFiles": 2,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "NavbarLink's onclick prop is renamed onClick (React event-prop casing convention, consistent with other ports)",
+      "Svelte source had two <style> blocks (one per .svelte file); ported as two colocated CSS files, navbar.css and navbar-link.css, each imported by its own component"
+    ],
     "lastFailure": null
   },
   {
@@ -3396,7 +3684,7 @@
     "slug": "neon-border",
     "sveltePath": "src/lib/fancy-ui/neon-border",
     "reactPath": "react/src/components/neon-border",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -3423,15 +3711,26 @@
       "NeonBorder.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "UNFIXED / OUT OF SCOPE: react/src/index.ts is missing `export * from \"./components/neon-border/index.js\";` (belongs alphabetically between meteors and presence). Not applied — my task forbade barrel edits, the file's own header says GENERATED between migration waves, do not edit per-component by hand, and it is being written concurrently (13 component lines now vs 10 when I first read it this session). Needs the wave-level barrel regeneration, not a per-component patch.",
+      "Context correcting the finding's premise: neon-border is not uniquely missing. react/src/components/ has 83 folders and the barrel lists only 13; ~70 ported components are absent from it, so this is barrel lag across the whole wave.",
+      "Minor, left as-is: neon-border.css copies the Svelte <style> rules unanchored (.neon-layer-one, .neon-layer-two, .neon-animated) whereas marquee.css and ripple-button.css anchor under the root class per PORTING.md styling rule 2. meteors.css is unanchored the same way, so this reads as a wave-wide convention question rather than a neon-border defect; not touched since it was outside the reported failure."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "react/src/components/neon-border/neon-border.css",
+        "problem": "CSS rules (.neon-layer-one, .neon-layer-two, .neon-animated, @keyframes neon-rotate) are not anchored under the root `.neon-border-container` class as PORTING.md styling rule 2 requires (compare react/src/components/marquee's anchored, commented pattern). Since plain CSS is global, these generic class names could collide with another component reusing them. Visually identical to the Svelte output today and matches the same (also non-compliant) pattern already present in the merged meteors component, so this reads as a wave-wide convention gap rather than a neon-border-specific regression.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "noise-reveal",
     "sveltePath": "src/lib/fancy-ui/noise-reveal",
     "reactPath": "react/src/components/noise-reveal",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -3464,9 +3763,19 @@
       "NoiseReveal.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`class` prop renamed to `className` (package-wide PORTING.md convention); every other prop name, type and default is identical.",
+      "`three` is imported but is NOT declared in react/package.json (no dependency/peerDependency entry) — it only resolves through the repo-root install in this worktree. Pre-existing gap shared with displacement-text; a consumer installing fancy-ui-react would fail to resolve it. Needs a package.json entry before publish (I was barred from editing package.json)."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
+        "problem": "NoiseReveal.tsx imports `three` but the react package declares it in neither dependencies nor peerDependencies (same gap as displacement-text). It resolves only via the repo-root install in this worktree; a consumer installing fancy-ui-react would fail to resolve it. Pre-existing and out of the port agent's permitted scope — needs an orchestrator-level package.json entry before publish. Not a fidelity break in this port.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "number-input",
@@ -3513,7 +3822,7 @@
     "slug": "number-ticker",
     "sveltePath": "src/lib/fancy-ui/number-ticker",
     "reactPath": "react/src/components/number-ticker",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -3542,7 +3851,7 @@
       "NumberTicker.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -3550,7 +3859,7 @@
     "slug": "pagination",
     "sveltePath": "src/lib/fancy-ui/pagination",
     "reactPath": "react/src/components/pagination",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "headless",
@@ -3579,9 +3888,24 @@
       "PaginationHarness.test.svelte"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "Pagination: Svelte's `bind:page` becomes the standard controlled/uncontrolled split — uncontrolled by default (internal page state starting at 1), controlled when the `page` prop is passed; `onPageChange` fires with the same value either way.",
+      "Pagination: `previousLabel`/`nextLabel` snippets become `ReactNode` props; the nav element is exposed via `forwardRef` instead of `bind:ref`."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/pagination/Pagination.tsx",
+        "problem": "`previousLabel ?? \"‹ Previous\"` / `nextLabel ?? \"Next ›\"` diverges from Svelte's `{#if previousLabel}` truthiness test: `??` falls back only on null/undefined, so a defined-but-falsy ReactNode (empty string, 0, false) renders as nothing where the Svelte source would show the default label. Vanishing edge case and idiomatic React, but it is a literal behavior difference.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "The package barrel does not export ./components/pagination/index.js. Not attributable to this port: the file is marked 'GENERATED between migration waves — do not edit per-component by hand', currently lists only 11 of ~85 component folders, and PORTING.md forbids the port agent from writing outside its own directory. Flagged so the orchestrator regenerates the barrel before release.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "password-input",
@@ -3633,7 +3957,7 @@
     "slug": "pixel-loader",
     "sveltePath": "src/lib/fancy-ui/pixel-loader",
     "reactPath": "react/src/components/pixel-loader",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -3660,7 +3984,7 @@
       "PixelLoader.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -3799,7 +4123,7 @@
     "slug": "prompt-suggestions",
     "sveltePath": "src/lib/fancy-ui/prompt-suggestions",
     "reactPath": "react/src/components/prompt-suggestions",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -3826,15 +4150,19 @@
       "PromptSuggestions.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Svelte 'item' prop was a Snippet<[string,number]>; ported as item?: (suggestion, index) => ReactNode, per PORTING.md snippet->ReactNode rule.",
+      "Svelte $effect.pre (pre-flush) mapped to useLayoutEffect (closest React equivalent for pre-paint DOM updates); no functional difference observed in tests.",
+      "class prop renamed to className per PORTING.md convention."
+    ],
     "lastFailure": null
   },
   {
     "slug": "pulse-beam",
     "sveltePath": "src/lib/fancy-ui/pulse-beam",
     "reactPath": "react/src/components/pulse-beam",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -3867,7 +4195,7 @@
       "PulseBeam.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -4078,7 +4406,7 @@
     "slug": "ripple",
     "sveltePath": "src/lib/fancy-ui/ripple",
     "reactPath": "react/src/components/ripple",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -4105,7 +4433,7 @@
       "Ripple.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -4407,7 +4735,7 @@
     "slug": "sidebar",
     "sveltePath": "src/lib/fancy-ui/sidebar",
     "reactPath": "react/src/components/sidebar",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "compound",
@@ -4440,9 +4768,30 @@
       "SidebarHarness.test.svelte"
     ],
     "svelteFiles": 5,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "SIDEBAR_KEY is a React context object (createContext<SidebarContext|undefined>(undefined), displayName \"SidebarContext\") instead of the Svelte `unique symbol` context key — the ButtonGroup precedent. Consumers read it with useContext(SIDEBAR_KEY); Sidebar renders SIDEBAR_KEY.Provider around its <nav>.",
+      "The context value's `get collapsed()` getter becomes a plain object rebuilt via useMemo keyed on `collapsed`; the rebuild is what re-renders nested consumers. Same observable behaviour.",
+      "`class` becomes `className` on all five components; SidebarItem's `onclick` becomes `onClick`, typed (event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => void.",
+      "`ref` props become forwardRef on Sidebar, SidebarItem, SidebarSeparator and SidebarFooter (the four declaring `ref = $bindable(null)`); SidebarGroup declares none and gets none. The `ref` field is therefore absent from every Props interface.",
+      "Snippet props become ReactNode: SidebarItem.icon, SidebarFooter.avatar, and `children` on Sidebar/SidebarGroup/SidebarItem/SidebarFooter.",
+      "No rest-prop spread and no DOM-attribute extension on any Props interface — the Svelte source reads a closed prop list off $props() and spreads nothing.",
+      "SidebarHarness.test.svelte becomes a `Harness()` component declared at the top of Sidebar.test.tsx; the `await tick()` after each toggle is dropped (fireEvent flushes React synchronously). All other assertions transposed 1:1 — 31 tests, same count as the Svelte suite.",
+      "PACKAGE GAP (outside this folder, not fixed): react/tailwind.css declares --color-background/--color-primary/--color-primary-foreground/--color-ring but NOT --color-accent, --color-accent-foreground, --color-muted-foreground or --color-border. The sidebar spends bg-accent, text-accent-foreground, text-muted-foreground (+ /70) and border-border, so those resolve to nothing for a consumer without their own shadcn token set. PORTING.md §Styling rule 6 says the fix belongs in react/tailwind.css."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "react/src/index.ts",
+        "problem": "The sidebar component folder has no export block in the package barrel, which PORTING.md's hard rules require (\"Every component you port must appear in react/src/index.ts\"). The port agent skipped it deliberately as the orchestrator-sanctioned in-folder deviation to avoid concurrent-write conflicts, and the folder's own index.ts exports all 12 expected names correctly — so this is a pending registration sweep, not a fidelity break.",
+        "severity": "minor"
+      },
+      {
+        "file": "react/tailwind.css",
+        "problem": "Declares --color-background/--color-primary/--color-primary-foreground/--color-ring but not --color-accent, --color-accent-foreground, --color-muted-foreground or --color-border, which SidebarItem/SidebarGroup/SidebarFooter/SidebarSeparator spend via bg-accent, text-accent-foreground, text-muted-foreground(/70) and border-border. Verified real, and honestly disclosed in the port README. Package-wide debt rather than a sidebar defect: navbar, pagination, dialog, toggle, breadcrumb and ~15 other already-ported components spend the same names, and PORTING.md rule 6 places the fix outside the component folder the agent was scoped to.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "skeleton",
@@ -4527,7 +4876,7 @@
     "slug": "smooth-cursor",
     "sveltePath": "src/lib/fancy-ui/smooth-cursor",
     "reactPath": "react/src/components/smooth-cursor",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -4557,8 +4906,11 @@
       "SmoothCursor.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "`cursor` prop is a ReactNode instead of a Svelte Snippet (standard snippet->ReactNode mapping); truthiness check preserved, so a falsy node falls back to the default arrow exactly like the Svelte {#if}.",
+      "`class` prop becomes `className` (standard mapping)."
+    ],
     "lastFailure": null
   },
   {
@@ -4669,7 +5021,7 @@
     "slug": "sparkles",
     "sveltePath": "src/lib/fancy-ui/sparkles",
     "reactPath": "react/src/components/sparkles",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "graphics",
@@ -4699,15 +5051,32 @@
       "Sparkles.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "Adds a `seed?: number` prop (default `1`) and generates the particle field with a seeded mulberry32 PRNG instead of `Math.random()`, per PORTING.md's determinism rule - consequence: two `<Sparkles />` with no `seed` render the identical field, whereas the Svelte version gives every instance and every remount a different one. Pass distinct `seed` values to differentiate.",
+      "The mount effect re-inits (regenerates the particle field) when `minSize`, `maxSize`, `speed`, `particleDensity` or `seed` change. The Svelte side reads those five inside `generateParticles()` called from `onMount`, so changing them after mount is a no-op there until a remount. Same precedent as the FallingStarsBg port keying on `count`. `particleColor` is read through a live ref inside the rAF loop (repaints next frame, no re-init) and `background` is a plain inline style, so both behave identically to Svelte.",
+      "`class` prop becomes `className` (PORTING.md API contract). No `forwardRef` and no rest-prop spread: the Svelte source declares neither a `$bindable` ref nor `...restProps`, and its API surface is the contract.",
+      "No `.css` file is emitted - the Svelte source has no `<style>` block, so there is no port-added root anchor class and no new Tailwind literal. Root and canvas class strings are byte-identical to the Svelte source."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/sparkles/Sparkles.tsx",
+        "problem": "The mount effect depends on minSize, maxSize, speed, particleDensity and seed, so changing any of them after mount tears down the rAF loop and regenerates the whole particle field. The Svelte source reads those five inside generateParticles() called from onMount only, so post-mount changes are a no-op there until a remount. Declared as a divergence by the port and consistent with the Meteors/FallingStarsBg precedent in this campaign; behaviour on first mount is identical.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/README.md",
+        "problem": "PORTING.md requires a seeded-PRNG divergence to be recorded in the README, and README.md's \"Divergences from the Svelte API\" section already carries the equivalent entry for Meteors' seed; Sparkles' seed is documented only in the prop JSDoc. Likewise react/src/index.ts has no sparkles export block. Both files are outside the port's assigned directory and are regenerated between migration waves (the barrel header says GENERATED - do not edit per-component by hand), so this is a follow-up for the wave regeneration, not a defect in the ported files. Needs: export * from \"./components/sparkles/index.js\";",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "sparkles-text",
     "sveltePath": "src/lib/fancy-ui/sparkles-text",
     "reactPath": "react/src/components/sparkles-text",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -4734,8 +5103,12 @@
       "SparklesText.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Adds a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the source's Math.random() — required for identical server render and hydration; same seed yields the same initial field.",
+      "Sparkle ids drop the source's Date.now()+Math.random() composition in favor of an extra PRNG draw (`${x}-${y}-${random()}`) — ids stay unique per field but are deterministic.",
+      "Post-mount star regeneration draws from a second seeded stream (mulberry32(seed+1)) instead of Math.random(), so the animation timeline is also deterministic per seed."
+    ],
     "lastFailure": null
   },
   {
@@ -4785,7 +5158,7 @@
     "slug": "stepper",
     "sveltePath": "src/lib/fancy-ui/stepper",
     "reactPath": "react/src/components/stepper",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "compound",
@@ -4815,9 +5188,34 @@
       "StepperHarness.test.svelte"
     ],
     "svelteFiles": 2,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`current` is a controlled/uncontrolled pair instead of `bind:current`: pass `current` + `onCurrentChange` for two-way behaviour, omit `current` and the component owns the index itself, starting at the same 0 the Svelte `$bindable(0)` default uses.",
+      "`STEPPER_KEY` is a `React.Context<StepperContext | undefined>` object, not a `Symbol` context key — read with `useContext(STEPPER_KEY)`. Same exported name, same optional-outside-the-root semantics (button-group's `BUTTON_GROUP_CONTEXT_KEY` precedent).",
+      "Step.svelte's scoped `<style>` block ships as colocated `step.css` imported by `Step.tsx`. Every rule was already anchored on a class the component owns (`.ft-step`, `.ft-step-bullet`, `.ft-step-connector`, `.ft-step-trigger`), so no port-added anchor class was needed; keyframe-free, and the deliberate no-`prefers-reduced-motion` decision is preserved verbatim with its rationale.",
+      "The Svelte `untrack` guard around register/unregister becomes two React rules: `register` is `useCallback(..., [])` over a ref-held registry (identity never changes), and a Step's registration effect depends on `[register, id]`, never on the context object — depending on the context (rebuilt whenever the registry changes) would re-run the effect from its own call and loop forever, the same bug in React shape.",
+      "`Step`'s custom-bullet branch is `children ?? default` (null/undefined only) rather than Svelte's snippet-existence test, so a falsy-but-present child such as `0` or `false` overrides the glyph where Svelte would have rendered the default.",
+      "`StepperHarness.test.svelte` becomes an inline `Harness` component at the top of `Stepper.test.tsx` (a Svelte harness needs its own file only because Svelte components do); `bind:current` becomes the controlled pair and `bind:ref` a callback ref held in state.",
+      "Semantic Tailwind colour names `border-border`, `bg-border`, `text-foreground` and `text-muted-foreground` are used verbatim but are not declared in `react/tailwind.css` (which currently maps only background/primary/primary-foreground/ring). Per PORTING.md §Styling rule 6 they should be added there; the file is outside this port's ownership. Pre-existing: `dialog` and `button-group` already ship the same names."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/stepper/Step.tsx",
+        "problem": "Registration runs in a passive `useEffect` (Step.tsx:59) rather than a pre-paint layout effect. Svelte's `$effect` flushes before paint, so the Svelte stepper never paints an unregistered frame; in React the first client paint can show every step with `index === -1` — bullets numbered \"0\", all steps `flex-1` instead of the first being `flex-none`, a leading connector before step 1, and no done/current colours — before the effect flush re-renders it correctly. Not a blocker: it matches the in-repo precedent (ToggleGroupItem.tsx:84 registers in `useEffect` too), it is one frame at mount only, and internals-api.md §4's table does not cover component-level registration. But §4's own rationale rows (\"a passive effect paints one frame at rest\", \"shows one frame of hidden content\") apply more strongly here than for a toggle group, where registration only affects invisible roving tabindex.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
+        "problem": "Step.tsx spends the semantic colour names `border-border`, `bg-border`, `text-foreground` and `text-muted-foreground` (copied verbatim from the Svelte source, correctly), but `react/tailwind.css` maps only background/primary/primary-foreground/ring, so those four utilities resolve to nothing in a consumer that does not already ship the shadcn token set. PORTING.md §Styling rule 6 says adding a new semantic name to a ported component means adding it there too. Not charged as a blocker against this port: the debt is pre-existing and shared by ~30 already-ported components (dialog, button-group, toggle-group, navbar, breadcrumb, timeline, …), the file is outside this port's assigned directory, and the port agent declared it explicitly as a divergence. It needs a wave-level fix, not a stepper-level one.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/stepper/Stepper.tsx",
+        "problem": "Controlled/uncontrolled pair semantics differ from `$bindable` in one edge case: a consumer that passes `current` but no `onCurrentChange` gets a stepper that never moves on click, whereas the Svelte side's `current = index` assignment (Stepper.svelte:78) updates the component's own copy and visibly advances even when the prop is not bound. This is the sanctioned React idiom for `bind:`, is the pattern used across this port, and was declared as divergence #1 — recorded for completeness, not as a defect.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "sticky-scroll",
@@ -5070,7 +5468,7 @@
     "slug": "terminal-text",
     "sveltePath": "src/lib/fancy-ui/terminal-text",
     "reactPath": "react/src/components/terminal-text",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -5097,15 +5495,17 @@
       "TerminalText.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "Root class gains a port-added `terminal-text` anchor token (sanctioned by PORTING.md styling rule 2: the Svelte <style> was compiler-scoped with no root class; `.cursor-blink` is anchored under it, keyframe name `blink` kept identical)."
+    ],
     "lastFailure": null
   },
   {
     "slug": "text-generate-effect",
     "sveltePath": "src/lib/fancy-ui/text-generate-effect",
     "reactPath": "react/src/components/text-generate-effect",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -5132,15 +5532,18 @@
       "TextGenerateEffect.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "`class` prop becomes `className` (standard React rename per PORTING.md).",
+      "Trailing `&nbsp;` after each word is rendered as the JSX string literal `\" \"` — identical character in the DOM."
+    ],
     "lastFailure": null
   },
   {
     "slug": "text-reveal-card",
     "sveltePath": "src/lib/fancy-ui/text-reveal-card",
     "reactPath": "react/src/components/text-reveal-card",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -5170,8 +5573,13 @@
       "TextRevealCard.test.ts"
     ],
     "svelteFiles": 2,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "TextRevealStars takes a `seed?: number` prop (default 1) with a deterministic mulberry32 PRNG in place of Math.random() in the render path (SSR/hydration safety, per PORTING.md seed rule); same seed = same star field, call order matches the Svelte generator.",
+      "TextRevealCard takes a `starsSeed?: number` prop forwarded to the star field so card consumers can vary the layout (the Svelte side reshuffles randomly per mount).",
+      "Port-added CSS anchor class `text-reveal-stars` on the stars root div: the Svelte compiler scoped `.star-animate { animation: star-drift ... }` and the source has no root class, so the rule is anchored as `.text-reveal-stars .star-animate` to avoid leaking the generic name; keyframe name `star-drift` unchanged.",
+      "touchmove is attached natively via useEffect with { passive: false } instead of React's onTouchMove: the handler calls preventDefault() and React registers its touchmove root listener as passive. Same listener semantics as the Svelte attribute; behavior identical."
+    ],
     "lastFailure": null
   },
   {
@@ -5387,7 +5795,7 @@
     "slug": "timeline",
     "sveltePath": "src/lib/fancy-ui/timeline",
     "reactPath": "react/src/components/timeline",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -5417,8 +5825,11 @@
       "Timeline.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "`class` prop becomes `className` (standard port convention)",
+      "`content` snippet becomes a `content?: (item: TimelineItem) => ReactNode` render prop"
+    ],
     "lastFailure": null
   },
   {
@@ -5473,7 +5884,7 @@
     "slug": "toggle",
     "sveltePath": "src/lib/fancy-ui/toggle",
     "reactPath": "react/src/components/toggle",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -5501,15 +5912,18 @@
       "ToggleHarness.test.svelte"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
+    "attempts": 1,
+    "divergences": [
+      "pressed is React state seeded once from the `pressed` prop (mirrors Svelte's pressed = $bindable(false)), not a controlled/uncontrolled toggle via `pressed ?? state` — re-passing a different `pressed` value after mount does not resync it, matching the Svelte bindable-prop semantics exactly.",
+      "ToggleHarness.test.svelte (Svelte bind: rig) became ToggleHarness.tsx (not .test.tsx, so vitest's src/**/*.test.{ts,tsx} include does not collect it as its own empty suite); its assertions live in Toggle.test.tsx as before."
+    ],
     "lastFailure": null
   },
   {
     "slug": "toggle-group",
     "sveltePath": "src/lib/fancy-ui/toggle-group",
     "reactPath": "react/src/components/toggle-group",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "compound",
@@ -5541,15 +5955,34 @@
       "ToggleGroupHarness.test.svelte"
     ],
     "svelteFiles": 2,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`value` is a controlled prop instead of a Svelte `$bindable`: pass `value` + `onValueChange` to control the selection; omit `value` entirely and the group keeps its own internal copy (seeded to \"\") and still reports every change through `onValueChange`. No `defaultValue` prop was added.",
+      "`TOGGLE_GROUP_KEY` is a `React.Context<ToggleGroupContext | undefined>` (displayName \"ToggleGroupContext\") rather than the Svelte `unique symbol` context key — read it with `useContext(TOGGLE_GROUP_KEY)`. Same exported name, same optional-read contract (an item outside a group gets `undefined`, never a throw). Mirrors the BUTTON_GROUP_CONTEXT_KEY precedent.",
+      "`ToggleGroupContext.focusedValue`, `.value`, `.type`, `.disabled`, `.size` and `.orientation` are plain readonly values, not Svelte getters; the root rebuilds the context object every render and that rebuild is what re-renders the items. `register`/`unregister` are the only identity-stable members — they appear in each item's effect dependency list, the React counterpart of the Svelte `untrack` guard against the register/unregister loop.",
+      "`class` becomes `className` on both parts. Neither part spreads rest props, matching the Svelte sources which read no `...restProps`.",
+      "The two Svelte `<style>` blocks split into two colocated stylesheets, `toggle-group.css` and `toggle-group-item.css` (one per Svelte file, per the sidebar precedent). Both are already anchored on the sources' own root classes `.ft-toggle-group` / `.ft-toggle-group-item`, so no port-added anchor class was needed; the `prefers-reduced-motion: no-preference` block and the `light-dark()` accent fallback are carried over verbatim.",
+      "Test transposition: the two `bind:value` round-trip tests become \"round-trips a single/multiple selection through the value channel\", asserting the same values via the harness's `onValueChange`; \"binds the root element\" becomes \"exposes the root element through the ref\" using `createRef` + `forwardRef`. `ToggleGroupHarness.test.svelte` is now an inline `Harness` component inside `ToggleGroup.test.tsx`. Every `await tick()` flush is dropped as Svelte-scheduler mechanics (RTL's `fireEvent` already acts)."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "No toggle-group export block in the package barrel, which PORTING.md's hard rules require for every ported component. Mitigating: the file's own header says it is GENERATED between migration waves and must not be edited per-component by hand, and it currently lists only 11 of the 83 component folders — so this is pending wave-level regeneration rather than a port defect. Flagged so it is not missed at regeneration time.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/toggle-group/ToggleGroupItem.tsx",
+        "problem": "Content fallback is `children !== undefined ? children : (label ?? value)` where the Svelte source uses `{#if children}...{:else}{label ?? value}{/if}`. A defined-but-falsy children (e.g. `{cond && <Icon/>}` collapsing to `false`, or an explicit `null`) renders nothing instead of falling back to the label/value text. `children != null` would be marginally closer to the Svelte truthiness check. Cosmetic: `undefined` is the only case the Svelte snippet channel can actually produce, and both the Svelte and React tests for the fallback pass.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "tool-call",
     "sveltePath": "src/lib/fancy-ui/tool-call",
     "reactPath": "react/src/components/tool-call",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "headless",
@@ -5576,9 +6009,34 @@
       "ToolCall.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
-    "divergences": [],
-    "lastFailure": null
+    "attempts": 1,
+    "divergences": [
+      "`bind:open` becomes the standard controlled/uncontrolled split: `open` is uncontrolled by default (auto-open on failure still applies) and controlled when the prop is passed — pair it with `onToggle`; when controlled, a header click reports through `onToggle` but the parent owns the value.",
+      "Snippet props become render props: `input`/`output` are `(value: unknown) => ReactNode` receiving `call.input`/`call.output`; `icon` (parameterless snippet) is a plain `ReactNode`."
+    ],
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/tool-call/ToolCall.tsx",
+        "problem": "Line 251 renders `inert={!isOpen}` as a declarative boolean, which only react-dom 19 understands. The package peer range is `^18.0.0 || ^19.0.0`; on React 18 a boolean for an unrecognised attribute is dropped (with a dev warning), so on that major a collapsed card's payloads stay focusable and reachable by assistive tech — the Svelte source sets the attribute unconditionally. Every other component in the port (Presence/Dialog) sets `inert` imperatively, which works on both majors. Correct and tested under React 19.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/tool-call/ToolCall.tsx",
+        "problem": "Doc comments at lines 19 and 107 point at \"the README\" for the open-behaviour contract, but no README exists in the React component folder, and the two sanctioned divergences (controlled `open` + `onToggle` instead of `bind:open`; snippet props becoming render props) are recorded only in the port report. PORTING.md asks divergences be recorded in the README.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/tool-call/ToolCall.tsx",
+        "problem": "Lines 161 and 163 assign `isOpenRef.current` and `onToggleRef.current` during render rather than in an effect. Idempotent and harmless for this component, but it is a render-phase side effect; the repo's other ports keep such writes in effects.",
+        "severity": "minor"
+      },
+      {
+        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
+        "problem": "ToolCall is not exported from the package barrel (PORTING.md hard rule: \"Every component you port must appear in react/src/index.ts\"). The port agent left it untouched per the orchestration sanction and it is outside this verification's file scope — flagged only so the barrel wiring is not forgotten downstream.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "tool-timeline",
@@ -5667,7 +6125,7 @@
     "slug": "tracing-beam",
     "sveltePath": "src/lib/fancy-ui/tracing-beam",
     "reactPath": "react/src/components/tracing-beam",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "motion",
@@ -5695,15 +6153,22 @@
     "loc": 157,
     "testFiles": [],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
-    "lastFailure": null
+    "lastFailure": null,
+    "minors": [
+      {
+        "file": "react/src/index.ts",
+        "problem": "TracingBeam is not re-exported from the package root index.ts (grep for 'tracing' returns nothing), whereas PORTING.md's hard rules state every ported component must appear there. Agent notes say this was left untouched 'per orchestration' (likely deferred to avoid multi-agent merge conflicts on a shared file during parallel porting). Not a fidelity/behavior defect in the component itself and outside this task's stated verification scope (react/src/components/tracing-beam/), but flag it so the orchestrator confirms a follow-up step wires it into the barrel export before release.",
+        "severity": "minor"
+      }
+    ]
   },
   {
     "slug": "typing-indicator",
     "sveltePath": "src/lib/fancy-ui/typing-indicator",
     "reactPath": "react/src/components/typing-indicator",
-    "status": "pending",
+    "status": "ported",
     "wave": "A",
     "tier": 1,
     "group": "trivial",
@@ -5730,7 +6195,7 @@
       "TypingIndicator.test.ts"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },

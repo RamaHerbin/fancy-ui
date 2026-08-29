@@ -1,0 +1,74 @@
+/*
+ * These rules reach into whatever a caller renders inside ButtonGroup — a
+ * Button, a plain <button>, an <a> — which ButtonGroup does not own and has
+ * no other way to touch: the seam only reads as one control if every item
+ * gives up its own corners and border, and only the container can reach in
+ * and say so. Every rule is anchored on the root class `.ft-button-group`
+ * (the Svelte source's own name, already the first token of the root class
+ * list) so nothing here escapes into the rest of a consumer's page.
+ * Unlayered rules beat Tailwind's layered utilities, so this wins over a
+ * child's own `rounded-*` / `border` classes without `!important`.
+ */
+.ft-button-group > * {
+	border-style: none;
+	border-radius: 0;
+}
+
+/*
+ * The divider reads lighter than the container's own outer border (10%
+ * vs. 14% in the mockup) — a seam between two items already in contact,
+ * not an edge that has to hold its own against whatever sits outside it.
+ */
+
+/* Horizontal: a vertical hairline between items, left-to-right. */
+.ft-button-group:not([data-orientation="vertical"]) > * + * {
+	border-left: 1px solid var(--color-border, color-mix(in oklab, currentColor 10%, transparent));
+}
+
+/* Vertical: the same hairline, rotated onto the stacking axis. */
+.ft-button-group[data-orientation="vertical"] > * + * {
+	border-top: 1px solid var(--color-border, color-mix(in oklab, currentColor 10%, transparent));
+}
+
+/*
+ * The container's own radius only ever shows at its two open ends — the
+ * left edge of the first item and the right edge of the last one in a
+ * row, or the top and bottom in a stack. `inherit` copies whatever radius
+ * the container ends up with (including a caller's override through
+ * `className`) instead of a second hardcoded value that could drift from it.
+ */
+.ft-button-group:not([data-orientation="vertical"]) > *:first-child {
+	border-top-left-radius: inherit;
+	border-bottom-left-radius: inherit;
+}
+
+.ft-button-group:not([data-orientation="vertical"]) > *:last-child {
+	border-top-right-radius: inherit;
+	border-bottom-right-radius: inherit;
+}
+
+.ft-button-group[data-orientation="vertical"] > *:first-child {
+	border-top-left-radius: inherit;
+	border-top-right-radius: inherit;
+}
+
+.ft-button-group[data-orientation="vertical"] > *:last-child {
+	border-bottom-left-radius: inherit;
+	border-bottom-right-radius: inherit;
+}
+
+/*
+ * No `overflow: hidden` on the root: the first/last child rules above
+ * already give the two open ends exactly the container's own radius, so
+ * nothing ever renders outside its rounded outline that would need
+ * clipping — and a clip here would have cut every item's focus ring off
+ * at the container's edge along with it. What is still a real hazard is
+ * a focused item's ring bleeding sideways into whichever neighbour sits
+ * later in source order, whose opaque background then paints over it.
+ * Lifting the focused item into its own stacking context puts the ring
+ * back on top of that neighbour instead.
+ */
+.ft-button-group > *:focus-visible {
+	position: relative;
+	z-index: 1;
+}

@@ -1,0 +1,16 @@
+.logo-cloud-mask {
+	mask-image: linear-gradient(to left, transparent 0%, black 20%, black 80%, transparent 95%);
+}
+
+.logo-cloud-scroll {
+	animation: logo-cloud-scroll 30s linear infinite;
+}
+
+@keyframes logo-cloud-scroll {
+	0% {
+		transform: translateX(0);
+	}
+	100% {
+		transform: translateX(calc(-100% - 1.5rem));
+	}
+}

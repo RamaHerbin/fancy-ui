@@ -1,0 +1,194 @@
+import { render, cleanup } from "@testing-library/react";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { FluidCursor } from "./FluidCursor.js";
+
+describe("FluidCursor", () => {
+	afterEach(cleanup);
+
+	it("renders a container div", () => {
+		const { container } = render(<FluidCursor />);
+		const div = container.firstElementChild as HTMLElement;
+		expect(div).toBeInTheDocument();
+	});
+
+	it("renders a canvas element", () => {
+		const { container } = render(<FluidCursor />);
+		const canvas = container.querySelector("canvas");
+		expect(canvas).toBeInTheDocument();
+	});
+
+	it("container has pointer-events-none class", () => {
+		const { container } = render(<FluidCursor />);
+		const div = container.firstElementChild as HTMLElement;
+		expect(div?.className).toContain("pointer-events-none");
+	});
+
+	it("defaults to contained mode (absolute positioning)", () => {
+		const { container } = render(<FluidCursor />);
+		const div = container.firstElementChild as HTMLElement;
+		expect(div?.className).toContain("absolute");
+		expect(div?.className).toContain("inset-0");
+	});
+
+	it("canvas fills container in contained mode", () => {
+		const { container } = render(<FluidCursor />);
+		const canvas = container.querySelector("canvas") as HTMLElement;
+		expect(canvas?.className).toContain("h-full");
+		expect(canvas?.className).toContain("w-full");
+	});
+
+	it("uses fixed positioning when contained={false}", () => {
+		const { container } = render(<FluidCursor contained={false} />);
+		const div = container.firstElementChild as HTMLElement;
+		expect(div?.className).toContain("fixed");
+		expect(div?.className).toContain("z-50");
+	});
+
+	it("applies custom class names", () => {
+		const { container } = render(<FluidCursor className="my-fluid" />);
+		const div = container.firstElementChild as HTMLElement;
+		expect(div?.className).toContain("my-fluid");
+	});
+
+	describe("interaction props", () => {
+		it("interactive={false} does not register mouse event listeners", () => {
+			const addSpy = vi.spyOn(window, "addEventListener");
+			render(<FluidCursor interactive={false} />);
+			const mousedownCalls = addSpy.mock.calls.filter(([event]) => event === "mousedown");
+			expect(mousedownCalls).toHaveLength(0);
+			const mousemoveCalls = addSpy.mock.calls.filter(([event]) => event === "mousemove");
+			expect(mousemoveCalls).toHaveLength(0);
+			addSpy.mockRestore();
+		});
+
+		it("mounts without error with autoSplat={true} and splatOnMount={true}", () => {
+			const { container } = render(<FluidCursor autoSplat splatOnMount />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("pauseWhenHidden={false} does not instantiate IntersectionObserver", () => {
+			const observeSpy = vi.fn();
+			const mockObserver = vi.fn(() => ({ observe: observeSpy, disconnect: vi.fn() }));
+			vi.stubGlobal("IntersectionObserver", mockObserver);
+			render(<FluidCursor pauseWhenHidden={false} />);
+			expect(mockObserver).not.toHaveBeenCalled();
+			vi.unstubAllGlobals();
+		});
+	});
+
+	describe("hdr props", () => {
+		it("renders without error with hdr={true} when WebGPU is unavailable", () => {
+			const { container } = render(<FluidCursor hdr />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when hdrBoost is out of [1,4] range (clamped internally)", () => {
+			const { container } = render(<FluidCursor hdr hdrBoost={100} />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("falls back cleanly when WebGPU is present but no adapter is returned", async () => {
+			const requestAdapter = vi.fn(async () => null);
+			// Define `gpu` on the real navigator instead of replacing it, so the
+			// Navigator prototype (userAgent, etc.) stays intact.
+			Object.defineProperty(navigator, "gpu", {
+				value: { requestAdapter },
+				configurable: true,
+			});
+			try {
+				const { container } = render(<FluidCursor hdr />);
+				// Let the async WebGPU attempt resolve and fall back.
+				await new Promise((resolve) => setTimeout(resolve, 0));
+				expect(requestAdapter).toHaveBeenCalled();
+				expect(container.querySelector("canvas")).toBeInTheDocument();
+			} finally {
+				delete (navigator as unknown as Record<string, unknown>).gpu;
+			}
+		});
+	});
+
+	describe("dither props", () => {
+		it("renders without error with dither={true}", () => {
+			const { container } = render(<FluidCursor dither />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when dither values are out of range (clamped internally)", () => {
+			const { container } = render(<FluidCursor dither ditherPixelSize={0} ditherLevels={100} />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("does not attempt WebGPU when dither and hdr are both set", async () => {
+			const requestAdapter = vi.fn(async () => null);
+			Object.defineProperty(navigator, "gpu", {
+				value: { requestAdapter },
+				configurable: true,
+			});
+			try {
+				const { container } = render(<FluidCursor dither hdr />);
+				await new Promise((resolve) => setTimeout(resolve, 0));
+				expect(requestAdapter).not.toHaveBeenCalled();
+				expect(container.querySelector("canvas")).toBeInTheDocument();
+			} finally {
+				delete (navigator as unknown as Record<string, unknown>).gpu;
+			}
+		});
+	});
+
+	describe("color props", () => {
+		it("renders without error when fluidColor is provided", () => {
+			const { container } = render(<FluidCursor fluidColor="#00ffcc" />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when fluidColors is provided", () => {
+			const { container } = render(<FluidCursor fluidColors={["#ff0080", "#00ffcc", "#7700ff"]} />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when fluidColor and fluidColors are both provided (fluidColor takes priority)", () => {
+			const { container } = render(
+				<FluidCursor fluidColor="#ff0000" fluidColors={["#00ffcc", "#7700ff"]} />
+			);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("renders without error when backColor is a hex string", () => {
+			const { container } = render(<FluidCursor backColor="#1a1a2e" />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+
+		it("warns and falls back when an invalid hex string is passed to backColor", () => {
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			render(<FluidCursor backColor="not-a-color" />);
+			expect(warn).toHaveBeenCalledWith(expect.stringContaining("[FluidCursor] Invalid hex color"));
+			warn.mockRestore();
+		});
+
+		it("renders without error when colorIntensity is out of [0,1] range (clamped internally)", () => {
+			const { container } = render(<FluidCursor colorIntensity={5} />);
+			expect(container.querySelector("canvas")).toBeInTheDocument();
+		});
+	});
+
+	describe("onReady handle", () => {
+		// jsdom provides no WebGL context, so this exercises the no-renderer path.
+		it('reports renderLevel "none" when no renderer is available', () => {
+			const onReady = vi.fn();
+			render(<FluidCursor onReady={onReady} />);
+			expect(onReady).toHaveBeenCalledTimes(1);
+			expect(onReady.mock.calls[0]![0].renderLevel).toBe("none");
+		});
+
+		it("hands over an inert handle that is safe to call", () => {
+			const onReady = vi.fn();
+			render(<FluidCursor onReady={onReady} />);
+			const handle = onReady.mock.calls[0]![0];
+			expect(() => {
+				handle.moveTo(0.5, 0.5);
+				handle.penUp();
+				handle.burst(0.5, 0.5, 10, 10, { r: 1, g: 0, b: 0 });
+			}).not.toThrow();
+		});
+	});
+});

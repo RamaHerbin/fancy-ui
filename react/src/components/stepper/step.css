@@ -1,0 +1,69 @@
+/*
+ * The only place this component reaches for the brand purple — the
+ * current bullet's fill/halo and a done segment's connector. No
+ * semantic token owns it, so it's declared locally with a light-dark()
+ * fallback, retintable from higher up the tree via `--ft-accent`.
+ * Mirrors the identical accent pattern a toggle group's items use for
+ * their focus ring. Never redeclare `--ft-accent` itself: that would
+ * shadow whatever an ancestor set, the exact bug an earlier wave shipped
+ * in `Link`.
+ *
+ * Svelte scoped these rules; plain CSS is global, so every selector below
+ * is anchored on a class this component owns and puts on its own elements
+ * (`.ft-step`, `.ft-step-bullet`, `.ft-step-connector`, `.ft-step-trigger`
+ * — all of them the Svelte source's own names, already the first token of
+ * the element's class list). No anchor had to be added.
+ */
+.ft-step {
+	--ft-nav-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+/*
+ * A step's whole visible state — the bullet's fill, its label colour, the
+ * halo around the current one, and the connector behind it — used to arrive
+ * in a single frame. It now eases in on the same clock as everything else
+ * in the library.
+ *
+ * Declared outside any `prefers-reduced-motion` query on purpose: none of
+ * these three properties moves anything. A colour that crossfades and a
+ * static ring that appears are state changes, not travel, and suppressing
+ * them under reduced motion would make the stepper flicker rather than
+ * settle. The focus ring is safe from this list because it lives on a
+ * different element (`.ft-step-trigger`), so no `box-shadow` here is ever
+ * a focus indicator.
+ *
+ * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout
+ */
+.ft-step-bullet,
+.ft-step-connector {
+	--ft-step-signal: var(--ft-step-signal-duration, var(--ft-duration-fast, 150ms))
+		var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+	transition:
+		background-color var(--ft-step-signal),
+		color var(--ft-step-signal),
+		box-shadow var(--ft-step-signal);
+}
+
+.ft-step-bullet-done {
+	background: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
+	color: light-dark(oklch(1 0 0), oklch(0.15 0 0));
+}
+
+.ft-step-bullet-current {
+	background: var(--ft-nav-accent);
+	color: light-dark(oklch(1 0 0), oklch(0.15 0 0));
+	box-shadow: 0 0 0 4px color-mix(in oklab, var(--ft-nav-accent) 20%, transparent);
+}
+
+.ft-step-connector-done {
+	background: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
+}
+
+.ft-step-trigger:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-nav-accent) 35%, transparent);
+	border-radius: 0.375rem;
+}

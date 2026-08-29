@@ -1,0 +1,36 @@
+/*
+ * `SidebarItem` declares this same fallback again, locally on itself —
+ * deliberately, not a drift: an item is a fully standalone component, and
+ * this declaration here only reaches it through DOM inheritance, which
+ * plain CSS custom properties do regardless of where the rule was authored.
+ * `Autocomplete`/`Combobox`/`TimePicker` and its portalled `TimePickerPanel`
+ * are the precedent — a component that can render somewhere other than as
+ * a literal descendant needs its own copy, not just an ancestor's. Neither
+ * declaration redeclares `--ft-accent` itself, so a consumer retinting the
+ * whole tree via `--ft-accent` still reaches both.
+ */
+.ft-sidebar {
+	--ft-nav-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+/*
+ * A NAMED exception to "only opacity and transform animate": a collapsing
+ * sidebar is a layout change and there is no transform that reflows the
+ * content beside it. Kept, retokenised, and declared as an exception rather
+ * than quietly claiming compliance.
+ *
+ * The curve is `--ft-ease-inout`, not `--ft-ease-out`: a collapse is a
+ * reversible state flip, not an arrival, and it has to read the same in
+ * both directions.
+ *
+ * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-sidebar {
+		transition: width var(--ft-sidebar-collapse-duration, var(--ft-duration-fast, 150ms))
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+	}
+}

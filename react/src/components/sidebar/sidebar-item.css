@@ -1,0 +1,79 @@
+/*
+ * Declared here too, not just on Sidebar's root: `SidebarItem` is meant to
+ * be usable on its own DOM subtree, and relying on inheritance alone
+ * would leave the accent bar and badge fill missing wherever it doesn't
+ * happen to render as a Sidebar descendant. Same shape as
+ * `Autocomplete`/`Combobox`/`TimePicker`'s `--ft-field-accent` and
+ * `Button`'s `--ft-btn-accent` — every one of those declares its own copy
+ * of the same formula rather than trusting an ancestor. This reads
+ * `--ft-accent`, never redeclares it, so a consumer retinting the whole
+ * tree from higher up still reaches this. Declared on the item's own
+ * root class, not the `--current` modifier, so the badge fill below —
+ * which needs it regardless of `current` — inherits it too.
+ */
+.ft-sidebar-item {
+	--ft-nav-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+	/* The accent bar below is an absolutely-positioned pseudo, which needs a
+	   containing block. A flex item taking `position: relative` changes no
+	   layout. */
+	position: relative;
+}
+
+/*
+ * The accent bar, character-for-character the declaration that used to sit
+ * on `.ft-sidebar-item--current` itself — same inset shadow, same inherited
+ * radius, so the resting look is unchanged. It lives one layer down for two
+ * reasons. It can now be transitioned without transitioning the focus ring,
+ * which shares the `box-shadow` property and must never animate. And it
+ * frees the host's own `box-shadow`, which Tailwind's `focus-visible:ring-2`
+ * compiles to: an unlayered rule beats `@layer utilities` regardless of
+ * specificity, so a bar declared on the host itself would suppress the
+ * current item's focus ring entirely.
+ */
+.ft-sidebar-item::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	pointer-events: none;
+	box-shadow: inset 2px 0 0 var(--ft-nav-accent);
+	opacity: 0;
+}
+
+.ft-sidebar-item--current::before {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	/* 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout */
+	.ft-sidebar-item::before {
+		transition:
+			opacity var(--ft-sidebar-signal-duration, var(--ft-duration-fast, 150ms))
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			transform var(--ft-sidebar-signal-duration, var(--ft-duration-fast, 150ms))
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+		transform: scaleY(0.4);
+		transform-origin: center;
+	}
+
+	.ft-sidebar-item--current::before {
+		transform: scaleY(1);
+	}
+}
+
+.ft-sidebar-item-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.1rem;
+	border-radius: 999px;
+	padding: 1px 7px;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1.4;
+	background: var(--ft-nav-accent);
+	color: var(--ft-accent-foreground, oklch(1 0 0));
+}
