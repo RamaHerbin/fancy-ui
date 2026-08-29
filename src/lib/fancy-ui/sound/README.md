@@ -208,20 +208,79 @@ For markup that doesn't have a `sound` prop of its own, bind cues directly:
 
 ## The `sound` prop on components
 
-Seven components carry an opt-in `sound?: boolean` prop (default `false`)
+Sixty-four components carry an opt-in `sound?: boolean` prop (default `false`)
 that plays the matching cue through the same controller, from inside each
-component's own existing guarded handler — no new markup, no behaviour
-change, no extra event:
+component's own guarded commit path — no visual change and no new interactive
+markup; a small number of components (Slider, Breadcrumb, ArtifactCard,
+ContextRing) gained one listener or funnel so the cue has a single, guarded
+call site:
 
-| Component      | Cue(s)                                                                    |
-| -------------- | ------------------------------------------------------------------------- |
-| `Button`       | `press` on activation                                                     |
-| `CopyButton`   | `copy` on a successful copy, `error` otherwise                            |
-| `Checkbox`     | `toggle-on` / `toggle-off`                                                |
-| `Switch`       | `toggle-on` / `toggle-off`                                                |
-| `RadioGroup`   | `select` when the selection actually changes                              |
-| `Select`       | `open` on opening, `select` on committing a value, `close` on a dismissal |
-| `DropdownMenu` | `open`/`close` on the root and on submenus, `select` on an item           |
+| Component                                                                         | Cue(s)                                                                                                                     |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `Button`                                                                          | `press` on activation                                                                                                      |
+| `IconButton`                                                                      | `press` on activation                                                                                                      |
+| `Link`                                                                            | `press` on activation                                                                                                      |
+| `Toggle`                                                                          | `toggle-on` / `toggle-off` on activation                                                                                   |
+| `ToggleGroup`                                                                     | `toggle-on`/`toggle-off` (multiple) or `select` (single)                                                                   |
+| `CopyButton`                                                                      | `copy` on a successful copy, `error` otherwise                                                                             |
+| `Checkbox`                                                                        | `toggle-on` / `toggle-off`                                                                                                 |
+| `Switch`                                                                          | `toggle-on` / `toggle-off`                                                                                                 |
+| `RadioGroup`                                                                      | `select` when the selection actually changes                                                                               |
+| `Slider`                                                                          | `tick` on a committed value change                                                                                         |
+| `NumberInput`                                                                     | `tick` on each step (button or arrow key)                                                                                  |
+| `Dialog`                                                                          | `open` on the trigger, `close` on a dismissal                                                                              |
+| `AlertDialog`                                                                     | `open` on the trigger, `select` on Confirm, `close` on Cancel/Escape                                                       |
+| `Sheet`                                                                           | `close` on a dismissal                                                                                                     |
+| `Drawer`                                                                          | `close` on a dismissal, including a committed swipe                                                                        |
+| `Popover`                                                                         | `open` on the trigger, `close` on a dismissal                                                                              |
+| `Toaster`                                                                         | `success`/`error` when a toast of that variant appears                                                                     |
+| `Select`                                                                          | `open` on opening, `select` on committing a value, `close` on a dismissal                                                  |
+| `Combobox`                                                                        | `select` on committing an option                                                                                           |
+| `Autocomplete`                                                                    | `select` on committing a suggestion                                                                                        |
+| `SearchInput`                                                                     | `close` when the query is cleared                                                                                          |
+| `PasswordInput`                                                                   | `toggle-on`/`toggle-off` on the reveal toggle                                                                              |
+| `FileUpload`                                                                      | `select`/`error` on an accepted or rejected selection/drop                                                                 |
+| `DatePicker`                                                                      | `open` on opening, `select` on picking a day, `close` on a dismissal                                                       |
+| `TimePicker`                                                                      | `open` on opening, `select` on picking a slot, `close` on a dismissal                                                      |
+| `NavbarLink`                                                                      | `select` on activation (non-current only)                                                                                  |
+| `SidebarItem`                                                                     | `select` on activation (non-current only)                                                                                  |
+| `Tabs`                                                                            | `select` when the active tab actually changes                                                                              |
+| `Breadcrumb`                                                                      | `select` on activating a default-rendered crumb link                                                                       |
+| `Pagination`                                                                      | `select` when any control actually changes the page                                                                        |
+| `Stepper`                                                                         | `select` when a clickable step changes the current step                                                                    |
+| `DropdownMenu`                                                                    | `open`/`close` on the root and on submenus, `select` on an item                                                            |
+| `ContextMenu`                                                                     | `open`/`close` on the menu (and submenus), `select` on an item                                                             |
+| `CommandMenu`                                                                     | `select` on committing a row, `close` on dismissal                                                                         |
+| `AppleCardCarousel`                                                               | `open` on expand, `close` on dismiss                                                                                       |
+| `AnimatedTestimonials`                                                            | `select` on Previous/Next                                                                                                  |
+| `LineHoverLink`                                                                   | `press` on activation                                                                                                      |
+| `RainbowButton`                                                                   | `press` on activation (button or anchor)                                                                                   |
+| `RippleButton`                                                                    | `press` on activation                                                                                                      |
+| `ShimmerButton`                                                                   | `press` on activation                                                                                                      |
+| `GradientButton`                                                                  | `press` on activation                                                                                                      |
+| `InteractiveHoverButton`                                                          | `press` on activation (never on hover)                                                                                     |
+| `ConfettiButton`                                                                  | `press` on activation (never `success`)                                                                                    |
+| `ReasoningPanel`                                                                  | `open`/`close` on toggle                                                                                                   |
+| `ChatMessage`                                                                     | `press` on an action, `select` on a branch step                                                                            |
+| `PromptSuggestions`                                                               | `select` on a pill pick                                                                                                    |
+| `ChatError`                                                                       | `press` on retry                                                                                                           |
+| `ToolCall`                                                                        | `open`/`close` on toggle                                                                                                   |
+| `ToolTimeline`                                                                    | `select` on row activation                                                                                                 |
+| `CodeDiff`                                                                        | `open`/`close` on a file fold, `open` on revealing clamped lines                                                           |
+| `Sources`                                                                         | `open`/`close` on the trigger                                                                                              |
+| `WebSearch`                                                                       | `select` on a result pick, `open`/`close` on the expander                                                                  |
+| `ImageGeneration`                                                                 | `press` on retry                                                                                                           |
+| `AgentPlan`                                                                       | `select` on row activation                                                                                                 |
+| `SubagentList`                                                                    | `select` on row activation                                                                                                 |
+| `ApprovalCard`                                                                    | `select` on approve or deny                                                                                                |
+| `RecommendationCard`                                                              | `select` on accept, `close` on dismiss                                                                                     |
+| `ArtifactCard`                                                                    | `press` on open, `select` on a version step                                                                                |
+| `Composer` (+ `ComposerModelPicker`, `ComposerCommandMenu`, `ComposerAttachment`) | `press` on send/stop, `open`/`select`/`close` on the model menu, `select` on a command pick, `press` on attachment removal |
+| `VoiceInput`                                                                      | `open` on start, `close` on cancel, `success` on confirm                                                                   |
+| `ContextRing`                                                                     | `open`/`close` on the breakdown popover                                                                                    |
+| `ScrollAnchor`                                                                    | `press` on the return pill                                                                                                 |
+| `ThreadList`                                                                      | `select` on pick, `press` on delete                                                                                        |
+| `ChatPanel`                                                                       | `press` on the jump-to-latest pill                                                                                         |
 
 ```svelte
 <Button sound onclick={save}>Save changes</Button>
