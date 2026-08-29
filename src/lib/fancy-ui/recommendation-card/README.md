@@ -27,20 +27,21 @@ An agent's proposal, waiting for an answer: a kicker, the recommendation itself,
 
 ## Props
 
-| Prop           | Type                                  | Default     | Description                                               |
-| -------------- | ------------------------------------- | ----------- | --------------------------------------------------------- |
-| `title`        | `string`                              | —           | What the agent is proposing. Required.                    |
-| `description`  | `string`                              | `undefined` | Secondary muted line — the reasoning, the expected effect |
-| `confidence`   | `number`                              | `undefined` | How sure the agent is, 0–1. Omitted, the block disappears |
-| `acceptLabel`  | `string`                              | `"Apply"`   | Label for the confirm button                              |
-| `dismissLabel` | `string`                              | `"Dismiss"` | Label for the decline button                              |
-| `onAccept`     | `() => void`                          | `undefined` | Called on acceptance, after `state` has been written      |
-| `onDismiss`    | `() => void`                          | `undefined` | Called on dismissal, after `state` has been written       |
-| `state`        | `"open" \| "accepted" \| "dismissed"` | `"open"`    | Where the recommendation stands. Bindable                 |
-| `badge`        | `string`                              | `undefined` | Small kicker above the title, e.g. `"Suggestion"`         |
-| `children`     | `Snippet`                             | `undefined` | Detail region between the header and the footer           |
-| `class`        | `string`                              | `undefined` | Additional CSS classes                                    |
-| `ref`          | `HTMLDivElement \| null`              | `null`      | Bindable reference to the root element                    |
+| Prop           | Type                                  | Default     | Description                                                                      |
+| -------------- | ------------------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `title`        | `string`                              | —           | What the agent is proposing. Required.                                           |
+| `description`  | `string`                              | `undefined` | Secondary muted line — the reasoning, the expected effect                        |
+| `confidence`   | `number`                              | `undefined` | How sure the agent is, 0–1. Omitted, the block disappears                        |
+| `acceptLabel`  | `string`                              | `"Apply"`   | Label for the confirm button                                                     |
+| `dismissLabel` | `string`                              | `"Dismiss"` | Label for the decline button                                                     |
+| `onAccept`     | `() => void`                          | `undefined` | Called on acceptance, after `state` has been written                             |
+| `onDismiss`    | `() => void`                          | `undefined` | Called on dismissal, after `state` has been written                              |
+| `state`        | `"open" \| "accepted" \| "dismissed"` | `"open"`    | Where the recommendation stands. Bindable                                        |
+| `badge`        | `string`                              | `undefined` | Small kicker above the title, e.g. `"Suggestion"`                                |
+| `children`     | `Snippet`                             | `undefined` | Detail region between the header and the footer                                  |
+| `class`        | `string`                              | `undefined` | Additional CSS classes                                                           |
+| `ref`          | `HTMLDivElement \| null`              | `null`      | Bindable reference to the root element                                           |
+| `sound`        | `boolean`                             | `false`     | Plays `select` on accept and `close` on dismiss, once the user has enabled sound |
 
 ## Reading the confidence
 
@@ -96,6 +97,16 @@ Every colour is read at the point of use, so a value set by a consumer wins with
 | `--ft-rec-accepted`  | `--ft-status-done`    | The applied line              |
 | `--ft-rec-dismissed` | `currentColor` at 65% | The dismissed line            |
 | `--ft-rec-ring-size` | `1.75rem`             | Diameter of the donut         |
+
+## Sound
+
+Set `sound` to play a cue the moment the proposal resolves, off by default and silent until the user has enabled sound in their own preferences:
+
+```svelte
+<RecommendationCard title="Add an index on orders.customer_id" sound onAccept={runMigration} />
+```
+
+Accepting plays `select`; dismissing plays `close` — the deliberate asymmetry with [`ApprovalCard`](../approval-card/README.md), whose approve and deny both play `select`. A recommendation is a suggestion, not a permission gate: taking it up is a commit, and waving it off is closer to dismissing a panel than to refusing a request. Nothing plays for a decision that arrives after the card has already resolved: the cue lives inside the same guarded `decide()` a proposal resolves through exactly once. See [`sound/README.md`](../sound/README.md) for how the preference and playback work.
 
 ## Implementation Notes
 

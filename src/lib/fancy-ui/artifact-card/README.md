@@ -33,19 +33,20 @@ It is the surface a model writes _into_. While the text arrives the top edge swe
 
 ## Props
 
-| Prop              | Type                                         | Default      | Description                                                                    |
-| ----------------- | -------------------------------------------- | ------------ | ------------------------------------------------------------------------------ |
-| `title`           | `string`                                     | —            | What the document is called. Required                                          |
-| `kind`            | `string`                                     | `"Document"` | The kind of thing it is, on the muted line under the title                     |
-| `version`         | `number`                                     | `undefined`  | Which revision is on screen, 1-based. Renders as `v3`                          |
-| `versionCount`    | `number`                                     | `undefined`  | How many revisions exist. With `version`, the badge reads `v3/5`               |
-| `onVersionChange` | `(version: number) => void`                  | `undefined`  | Asked for another revision by 1-based number; turns the badge into a navigator |
-| `status`          | `"idle" \| "streaming" \| "done" \| "error"` | `"done"`     | Where the document is in its life                                              |
-| `preview`         | `string`                                     | `undefined`  | The text so far — not the latest delta                                         |
-| `onOpen`          | `() => void`                                 | `undefined`  | Asked to open the document; makes the whole card activatable                   |
-| `actions`         | `Snippet`                                    | `undefined`  | Buttons for the top-right rail: copy, download, delete                         |
-| `class`           | `string`                                     | `undefined`  | Additional CSS classes                                                         |
-| `ref`             | `HTMLDivElement \| null`                     | `null`       | Bindable reference to the root element                                         |
+| Prop              | Type                                         | Default      | Description                                                                                               |
+| ----------------- | -------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------- |
+| `title`           | `string`                                     | —            | What the document is called. Required                                                                     |
+| `kind`            | `string`                                     | `"Document"` | The kind of thing it is, on the muted line under the title                                                |
+| `version`         | `number`                                     | `undefined`  | Which revision is on screen, 1-based. Renders as `v3`                                                     |
+| `versionCount`    | `number`                                     | `undefined`  | How many revisions exist. With `version`, the badge reads `v3/5`                                          |
+| `onVersionChange` | `(version: number) => void`                  | `undefined`  | Asked for another revision by 1-based number; turns the badge into a navigator                            |
+| `status`          | `"idle" \| "streaming" \| "done" \| "error"` | `"done"`     | Where the document is in its life                                                                         |
+| `preview`         | `string`                                     | `undefined`  | The text so far — not the latest delta                                                                    |
+| `onOpen`          | `() => void`                                 | `undefined`  | Asked to open the document; makes the whole card activatable                                              |
+| `actions`         | `Snippet`                                    | `undefined`  | Buttons for the top-right rail: copy, download, delete                                                    |
+| `class`           | `string`                                     | `undefined`  | Additional CSS classes                                                                                    |
+| `ref`             | `HTMLDivElement \| null`                     | `null`       | Bindable reference to the root element                                                                    |
+| `sound`           | `boolean`                                    | `false`      | Plays `press` when the document is opened and `select` on a version step, once the user has enabled sound |
 
 ## Streaming the preview
 
@@ -85,6 +86,16 @@ Pass `onOpen` and an `Open →` button appears in the header rail. That button i
 A click anywhere else on the card opens it too, as a pointer shortcut. That is all it is — the card root carries no `role`, no `tabindex` and no key handling, because an ARIA button makes everything inside it presentational, which would erase the version navigator, the actions rail and the spoken status from the accessibility tree.
 
 Controls inside the card keep their own activation — a click on a version arrow, or on anything you put in `actions`, does not also open the document. Both rails are guarded whole, so the gaps between their buttons, and a disabled arrow that retargets its click, are safe too.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the user has enabled sound in their own preferences:
+
+```svelte
+<ArtifactCard title="Q3 revenue review" sound onOpen={openInSidePanel} onVersionChange={goTo} />
+```
+
+`press` plays once per open — from the card-wide pointer shortcut or the Open button, never both, since a click on the button also bubbles to the card's own handler and is sent home by the same guard that keeps a version-arrow click from opening the card. `select` plays on a version step; nothing plays for a step clamped at either end. The `actions` snippet often holds a consumer's own `CopyButton` — its clicks are guarded out the same way a version arrow's are, so the card never adds a second cue on top of one it already plays. See [`sound/README.md`](../sound/README.md) for how the preference and playback work.
 
 ## Styling
 
