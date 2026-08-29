@@ -1,0 +1,44 @@
+/*
+ * The `<style>` block of the source Drawer, moved to a colocated stylesheet
+ * (PORTING.md §Styling rule 2). The compiler scoped that block; plain CSS is
+ * global, so every rule below is anchored on `.ft-drawer-panel` — the class
+ * the panel already carries in its own `cn()` call, so no port-added anchor
+ * was needed here.
+ *
+ * The entrance and its resting rule used to live here as keyframes; both
+ * are now the JS transition in Drawer.tsx, which emits no transform at rest
+ * and collapses to zero duration under reduced motion. What survives is the
+ * spring-back, which is a different interaction on a different curve.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	/*
+	 * The only place a CSS transition ever touches `transform`: a released
+	 * drag that fell short of the dismiss threshold. Live dragging itself
+	 * never carries this class, so the panel tracks the pointer with no lag;
+	 * only the snap-back afterwards eases. A drag released PAST the
+	 * threshold never carries it either — that one is handed to the exit
+	 * transition instead, from wherever the finger let go.
+	 */
+	.ft-drawer-panel.ft-drawer-panel--releasing {
+		transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+	}
+}
+
+.ft-drawer-panel .ft-drawer-drag-surface {
+	/*
+	 * Without this, a touch drag starting on the handle is first interpreted
+	 * by the browser as a page-scroll/pan gesture: it both withholds the
+	 * continuous pointermove stream our handler needs and fights our
+	 * transform with the browser's own scroll offset. Pointer capture alone
+	 * does not stop that tug-of-war — only touch-action does.
+	 */
+	touch-action: none;
+	cursor: grab;
+}
+
+.ft-drawer-panel .ft-drawer-handle {
+	width: 40px;
+	height: 4px;
+	border-radius: 2px;
+	background-color: var(--color-border, rgba(255, 255, 255, 0.2));
+}

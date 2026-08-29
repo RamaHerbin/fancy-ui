@@ -1,0 +1,16 @@
+/*
+ * Declared once, here, on the compound's actual root — TabsList and
+ * TabsTrigger both read `var(--ft-nav-accent)` without redeclaring the
+ * fallback. Custom-property inheritance is what carries it to both of them in
+ * the live DOM, exactly as it did when the Svelte compiler scoped this rule.
+ *
+ * `.ft-tabs` is the Svelte source's own root class, already the first token of
+ * the root class list, so the rule below is anchored on it exactly as the
+ * compiler-scoped original was.
+ */
+.ft-tabs {
+	--ft-nav-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}

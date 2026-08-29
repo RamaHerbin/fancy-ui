@@ -1,0 +1,80 @@
+/*
+ * Every colour is read at the point of use through two hooks: this ring's own
+ * `--ft-ctxring-*`, then the `--ft-status-*` vocabulary the whole AI family
+ * shares, then the literal. Setting either anywhere up the tree retints the
+ * ring without having to win a specificity fight against these scoped rules,
+ * and the shared one recolours every sibling component at once.
+ */
+.ft-ctxring-track {
+	stroke: var(--ft-ctxring-track, color-mix(in oklab, currentColor 15%, transparent));
+}
+
+/*
+ * The band is carried by the arc's length as much as by its hue — a quarter
+ * ring and a nearly closed one are told apart without seeing colour at all,
+ * and the figure beside it says the count in words either way.
+ */
+.ft-ctxring-value.ft-status-pending {
+	stroke: var(
+		--ft-ctxring-ok,
+		var(--ft-status-pending, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260)))
+	);
+}
+
+.ft-ctxring-value.ft-status-running {
+	stroke: var(
+		--ft-ctxring-warn,
+		var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+	);
+}
+
+.ft-ctxring-value.ft-status-error {
+	stroke: var(
+		--ft-ctxring-critical,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+}
+
+.ft-ctxring-panel {
+	width: var(--ft-ctxring-panel-width, 14rem);
+	max-width: calc(100vw - 1rem);
+	background: var(--ft-ctxring-panel-bg, var(--color-popover, canvas));
+	border-color: var(--ft-ctxring-panel-border, var(--color-border, currentColor));
+	color: var(--ft-ctxring-panel-fg, var(--color-popover-foreground, canvastext));
+}
+
+.ft-ctxring-row-value {
+	color: var(--ft-ctxring-row-value, color-mix(in oklab, currentColor 70%, transparent));
+}
+
+.ft-ctxring-empty {
+	color: var(--ft-ctxring-row-value, color-mix(in oklab, currentColor 70%, transparent));
+}
+
+/*
+ * Everything that moves lives behind the query, so reduced motion is not a
+ * degraded variant to keep in sync: the arc is drawn at its final length, the
+ * band change is instant, and the panel simply appears, already placed.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-ctxring-value {
+		transition:
+			stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1),
+			stroke 300ms linear;
+	}
+
+	.ft-ctxring-panel {
+		animation: ft-ctxring-in 140ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}
+
+@keyframes ft-ctxring-in {
+	from {
+		opacity: 0;
+		transform: translateY(-3px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}

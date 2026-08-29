@@ -1,0 +1,68 @@
+/*
+ * Svelte scoped these rules to the component; plain CSS is global, so every one
+ * of them is anchored on the root class `.ft-voice` the source already renders.
+ */
+
+/*
+ * The dot is read at the point of use through two hooks: this component's own
+ * `--ft-voice-dot`, then the `--ft-status-*` vocabulary the whole AI family
+ * shares. Setting either anywhere up the tree retints it without having to win
+ * a specificity fight against these rules.
+ *
+ * It takes `running` rather than `error` because a recording in progress is a
+ * run in flight, not a failure — retinting the family's error colour should
+ * not turn the record light red. Consumers who want the classic red record dot
+ * say so in one line: `--ft-voice-dot: oklch(0.6 0.2 25)`.
+ */
+.ft-voice .ft-voice-dot {
+	position: relative;
+	display: inline-block;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: 9999px;
+	background: var(
+		--ft-voice-dot,
+		var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+	);
+}
+
+.ft-voice .ft-voice-dot::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: inherit;
+	opacity: 0;
+}
+
+.ft-voice .ft-voice-transcript {
+	/* Wrapping rather than scrolling sideways, and capped rather than unbounded:
+	   a two-minute dictation should not push the controls off the panel. */
+	max-height: var(--ft-voice-transcript-max-height, 4.5rem);
+	overflow-y: auto;
+	overflow-wrap: anywhere;
+}
+
+/*
+ * The only animation in the component lives behind the query, so reduced
+ * motion is not a second variant to keep in sync: the dot is simply a static
+ * dot, still the same colour, still saying the same thing.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-voice .ft-voice-dot::after {
+		animation: ft-voice-pulse var(--ft-voice-pulse-duration, 1.6s) cubic-bezier(0, 0, 0.2, 1)
+			infinite;
+	}
+}
+
+@keyframes ft-voice-pulse {
+	0% {
+		transform: scale(1);
+		opacity: 0.55;
+	}
+	75%,
+	100% {
+		transform: scale(2.6);
+		opacity: 0;
+	}
+}

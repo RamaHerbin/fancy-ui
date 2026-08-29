@@ -1,0 +1,56 @@
+/* Ported verbatim from the Svelte source's <style> block. Every rule was
+   already anchored on the component's root class (`.ft-pressable`), so no
+   port-added anchor was needed. */
+
+.ft-pressable {
+	display: inline-flex;
+	/* Removes the ~300ms tap delay and double-tap-zoom on touch without
+	   blocking pan/scroll the way `touch-action: none` would — a card in
+	   a scrollable list must stay scrollable while it press-reacts. */
+	touch-action: manipulation;
+}
+
+/* Universal fallback, declared ABOVE the `no-preference` block on
+   purpose: press feedback must survive reduced motion (a static opacity
+   change instead of a moving scale), and a UA that supports neither
+   motion-preference query below still needs *some* pressed affordance.
+   Ordinary cascade order — same selector, same specificity, later rule
+   wins — lets the `no-preference` block below override this back to
+   `opacity: 1` when motion is enabled, with no `!important` and no
+   duplicated guard.
+
+   `:not([data-disabled])`: belt-and-braces for the mid-press disable case
+   the disabled-flip effect in the component actually handles (it clears
+   `pressed` itself, so `data-pressed` is gone by the time that flush
+   paints) — this keeps a disabled wrapper from ever painting the pressed
+   styling, whatever order a UA delivers the events in. */
+.ft-pressable[data-pressed]:not([data-disabled]) {
+	opacity: var(--ft-pressable-opacity, 0.85);
+}
+
+/* The scale itself, and the transition that animates it, both live inside
+   `no-preference` — reduced motion drops the moving part entirely rather
+   than playing it at zero duration, matching this collection's rule that
+   the resting state (here: `scale(1)`, unanimated) is the fallback.
+
+   The pressed rule also resets `opacity` back to `1` here: without it, a
+   no-preference press would both scale down AND fade via the fallback
+   rule above — two channels for one interaction, and the two would
+   desync on release since only the scale is transitioned. `opacity` is
+   deliberately NOT added to the transition list below — that would only
+   smooth the now-pointless fade rather than remove the second channel,
+   and R5 ("one idea per interaction") wants scale to be the only thing
+   that moves while motion is enabled. */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-pressable {
+		transform: scale(1);
+		/* Literal fallbacks: 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout */
+		transition: transform var(--ft-pressable-duration, var(--ft-duration-fast, 150ms))
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+	}
+
+	.ft-pressable[data-pressed]:not([data-disabled]) {
+		transform: scale(var(--ft-pressable-scale, 0.97));
+		opacity: 1;
+	}
+}

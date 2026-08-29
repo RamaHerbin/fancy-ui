@@ -1,0 +1,113 @@
+/*
+ * Makes the list the triggers' `offsetParent`, so `offsetLeft`/`offsetTop`
+ * and the indicator's own `left: 0; top: 0` share one origin (both are
+ * measured from the list's padding box). That shared origin is what
+ * removes every fudge factor from the arithmetic in `TabsList.tsx` —
+ * including the segmented rail's 3px padding, which simply falls out of
+ * `offsetLeft`.
+ *
+ * `.ft-tabs-list` is the Svelte source's own root class, already the first
+ * token of the root class list, so every rule below is anchored exactly as
+ * the compiler-scoped originals were.
+ */
+.ft-tabs-list {
+	position: relative;
+}
+
+/*
+ * Exact rail padding/gap/radius from the mockup — not expressible as a
+ * single Tailwind utility. Same `bg-background` reasoning as ToggleGroup's
+ * rail: this app's dark theme has `--muted` *lighter* than `--card`, so a
+ * muted fill on a card-nested rail would read as raised, the opposite of the
+ * mockup's recessed strip.
+ */
+.ft-tabs-list-segmented {
+	border-radius: 0.5rem; /* 8px */
+	padding: 3px;
+	gap: 2px;
+}
+
+.ft-tabs-indicator {
+	position: absolute;
+	left: 0;
+	top: 0;
+	pointer-events: none;
+	/* Hidden until the first successful measurement, so a not-yet-laid-out
+	   first paint shows nothing rather than a sliver at the origin. */
+	opacity: 0;
+	transform-origin: left top;
+}
+
+/*
+ * Underline, horizontal: a 2px bar pinned to the list's bottom edge and
+ * grown along x only. `bottom: 0` overrides the base `top: 0` because the
+ * height is explicit. This lands on exactly the pixels the retired
+ * `inset 0 -2px 0` box-shadow on the trigger used to paint — the trigger's
+ * bottom edge and the list's padding-box bottom are the same line.
+ */
+.ft-tabs-indicator[data-variant="underline"][data-orientation="horizontal"] {
+	top: auto;
+	bottom: 0;
+	width: 1px;
+	height: 2px;
+	background: var(--ft-tabs-indicator-color, var(--ft-nav-accent));
+	transform-origin: left bottom;
+}
+
+/* Underline, vertical: a 2px bar on the list's inline-start edge, grown
+   along y — where `inset 2px 0 0` used to sit, for the same reason. */
+.ft-tabs-indicator[data-variant="underline"][data-orientation="vertical"] {
+	width: 2px;
+	height: 1px;
+	background: var(--ft-tabs-indicator-color, var(--ft-nav-accent));
+	transform-origin: left top;
+}
+
+/*
+ * Segmented: the pill itself, sized to the trigger's whole box on both
+ * axes. Two variables carry the retired utilities' own values rather than
+ * new numbers, so the resting look is unchanged: `--color-accent` is what
+ * `bg-accent` resolved to, and `--radius-md` is what `rounded-md` resolved
+ * to (Tailwind's stock `0.375rem` is only the last-resort literal — a
+ * theme that redefines the scale, as this app's does, must be followed).
+ *
+ * The corner is then pre-divided by the scale factors JS writes, so what
+ * renders after `scale()` has stretched a 1x1 box is the intended radius
+ * rather than an ellipse — CSS `border-radius` takes a
+ * `<horizontal> / <vertical>` pair for exactly this.
+ */
+.ft-tabs-indicator[data-variant="segmented"] {
+	width: 1px;
+	height: 1px;
+	background: var(--ft-tabs-indicator-color, var(--color-accent));
+	border-radius: calc(
+			var(--ft-tabs-indicator-radius, var(--radius-md, 0.375rem)) / var(--ft-tabs-indicator-sx, 1)
+		) /
+		calc(
+			var(--ft-tabs-indicator-radius, var(--radius-md, 0.375rem)) / var(--ft-tabs-indicator-sy, 1)
+		);
+	z-index: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-tabs-indicator {
+		/* 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) =
+		   tokens.EASINGS.inout. `inout`, not `out`: selecting a tab is a
+		   reversible flip between two resting places, not an arrival. */
+		transition: transform var(--ft-tabs-indicator-duration, var(--ft-duration-fast, 150ms))
+			var(--ft-tabs-indicator-ease, var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)));
+	}
+}
+
+/*
+ * A forced-colors palette replaces every author background with a system
+ * colour, so the fill has to be re-stated as one of that palette's own
+ * keywords or the bar disappears. Repeating both attributes matches the
+ * specificity of the most specific variant rule above, so this later
+ * declaration actually wins rather than losing to it.
+ */
+@media (forced-colors: active) {
+	.ft-tabs-indicator[data-variant][data-orientation] {
+		background: Highlight;
+	}
+}

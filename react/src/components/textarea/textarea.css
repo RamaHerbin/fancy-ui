@@ -1,0 +1,20 @@
+/*
+ * The brand accent has no semantic token, so it is declared locally with a
+ * light-dark() fallback — the same shape Toggle, Button and Input use for
+ * their own accent ring.
+ */
+.ft-textarea:focus-visible {
+	--ft-textarea-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+	border-color: var(--ft-textarea-accent);
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-textarea-accent) 25%, transparent);
+}
+
+/* Reaching the character limit needs a cue that survives without colour:
+   weight carries it here, so a colour-blind or monochrome-display reader
+   still sees the counter's state change, not just its digits. */
+.ft-textarea-count[data-limit-reached="true"] {
+	font-weight: 600;
+}
