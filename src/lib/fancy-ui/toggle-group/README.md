@@ -109,18 +109,19 @@ component.
 
 ### ToggleGroup
 
-| Prop            | Type                                  | Default        | Description                                                     |
-| --------------- | ------------------------------------- | -------------- | --------------------------------------------------------------- |
-| `type`          | `"single" \| "multiple"`              | `"single"`     | Whether one item can be active at a time, or several            |
-| `value`         | `string \| string[]`                  | `""`           | The active value(s), bindable — shape follows `type`            |
-| `onValueChange` | `(value: string \| string[]) => void` | —              | Called with the new value, shaped to match `type`               |
-| `disabled`      | `boolean`                             | `false`        | Disables every item in the group                                |
-| `size`          | `"sm" \| "md" \| "lg"`                | `"md"`         | Sizes every item                                                |
-| `orientation`   | `"horizontal" \| "vertical"`          | `"horizontal"` | The rail's stacking axis — both arrow-key pairs work either way |
-| `label`         | `string`                              | —              | Accessible name for the group                                   |
-| `children`      | `Snippet`                             | —              | The `ToggleGroupItem`s                                          |
-| `class`         | `string`                              | —              | Additional CSS classes                                          |
-| `ref`           | `HTMLDivElement \| null`              | `null`         | Bindable element reference                                      |
+| Prop            | Type                                  | Default        | Description                                                      |
+| --------------- | ------------------------------------- | -------------- | ---------------------------------------------------------------- |
+| `type`          | `"single" \| "multiple"`              | `"single"`     | Whether one item can be active at a time, or several             |
+| `value`         | `string \| string[]`                  | `""`           | The active value(s), bindable — shape follows `type`             |
+| `onValueChange` | `(value: string \| string[]) => void` | —              | Called with the new value, shaped to match `type`                |
+| `disabled`      | `boolean`                             | `false`        | Disables every item in the group                                 |
+| `size`          | `"sm" \| "md" \| "lg"`                | `"md"`         | Sizes every item                                                 |
+| `orientation`   | `"horizontal" \| "vertical"`          | `"horizontal"` | The rail's stacking axis — both arrow-key pairs work either way  |
+| `label`         | `string`                              | —              | Accessible name for the group                                    |
+| `children`      | `Snippet`                             | —              | The `ToggleGroupItem`s                                           |
+| `class`         | `string`                              | —              | Additional CSS classes                                           |
+| `ref`           | `HTMLDivElement \| null`              | `null`         | Bindable element reference                                       |
+| `sound`         | `boolean`                             | `false`        | Plays toggle-on/off or select on a change, once sound is enabled |
 
 ### ToggleGroupItem
 
@@ -227,3 +228,17 @@ Two optional variables tune the press feedback on an item:
 - Every item still owns its own `disabled` prop on top of the group's — a
   group that is otherwise enabled can disable one option without disabling
   the rest.
+
+## Sound
+
+`sound?: boolean` (default `false`, set on `ToggleGroup`, not on individual
+items) plays a cue whenever `toggle()` actually commits a change: in
+`type="multiple"`, `toggle-on` for activating an unselected item and
+`toggle-off` for deactivating a selected one; in `type="single"`, `select`
+for picking an item — including the clear-on-repick case, which is still a
+real commit and still plays. Nothing plays while the group is `disabled`, and
+the cue lives entirely in `ToggleGroup`'s own `toggle()` — `ToggleGroupItem`
+never plays anything itself, so an item rendered outside a group stays
+silent. Off by default; the cue is only audible once the user has separately
+turned sound on. See `sound/README.md` for how the preference and playback
+work.
