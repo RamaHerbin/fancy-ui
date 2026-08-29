@@ -20,11 +20,17 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		suggestions,
@@ -35,6 +41,7 @@
 		item,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: PromptSuggestionsProps = $props();
 
 	/** Mirrors the CSS fallback on `--ft-suggestions-delay` below. */
@@ -78,6 +85,12 @@
 	const rootStyle = $derived(
 		`${stagger === undefined ? "" : `--ft-suggestions-stagger:${stagger}ms;`}${visible ? "" : "display:none"}`
 	);
+
+	/** A pick is an activation, not a change of a selected value — no changed-only guard. */
+	function pick(suggestion: string, index: number) {
+		if (sound) soundFx.play("select");
+		onSelect?.(suggestion, index);
+	}
 </script>
 
 <div
@@ -92,7 +105,7 @@
 			type="button"
 			class="ft-suggestion border-border text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:ring-ring cursor-pointer rounded-full border px-3 py-1.5 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-none"
 			style="--ft-suggestions-delay:calc(var(--ft-suggestions-stagger, {DEFAULT_STAGGER_MS}ms) * {i})"
-			onclick={() => onSelect?.(suggestion, i)}
+			onclick={() => pick(suggestion, i)}
 		>
 			{#if item}{@render item(suggestion, i)}{:else}{suggestion}{/if}
 		</button>

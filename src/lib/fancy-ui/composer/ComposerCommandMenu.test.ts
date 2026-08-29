@@ -1,11 +1,12 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import ComposerCommandMenu from "./ComposerCommandMenu.svelte";
 import type { ComposerCommandMenuProps } from "./ComposerCommandMenu.svelte";
 import { findTriggerToken } from "./caret.js";
 import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
 import type { AttachmentData, CommandItemData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 const ITEMS: CommandItemData[] = [
 	{ id: "deploy", label: "/deploy", description: "Ship the current branch", hint: "⌘⏎" },
@@ -35,7 +36,7 @@ interface Rig {
 
 const mounted: HTMLTextAreaElement[] = [];
 
-function rig(trigger = "/", registerTextarea = true): Rig {
+function rig(trigger = "/", registerTextarea = true, withSound = false): Rig {
 	const el = document.createElement("textarea");
 	document.body.appendChild(el);
 	mounted.push(el);
@@ -62,6 +63,7 @@ function rig(trigger = "/", registerTextarea = true): Rig {
 				return registerTextarea ? el : null;
 			},
 		},
+		sound: withSound,
 		submit() {},
 		stop() {},
 		setValue(next: string) {
@@ -403,5 +405,76 @@ describe("ComposerCommandMenu", () => {
 		removed.mockRestore();
 		docAdded.mockRestore();
 		docRemoved.mockRestore();
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when a row is clicked, with sound enabled", async () => {
+			const composer = rig("/", true, true);
+			const { container } = mountMenu(composer.context);
+			await type(composer, "/de");
+
+			await fireEvent.click(rows(container)[1]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select exactly once when a row is completed on Enter", async () => {
+			const composer = rig("/", true, true);
+			const { container } = mountMenu(composer.context);
+			await type(composer, "/de");
+
+			await fireEvent.keyDown(composer.el, { key: "Enter" });
+			await tick();
+
+			expect(menu(container)).toBeNull();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound off on the composer context)", async () => {
+			const composer = rig();
+			const { container } = mountMenu(composer.context);
+			await type(composer, "/de");
+
+			await fireEvent.click(rows(container)[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("opening and closing the menu itself stays silent — only a pick plays a cue", async () => {
+			const composer = rig("/", true, true);
+			const { container } = mountMenu(composer.context);
+
+			await type(composer, "/");
+			expect(menu(container)).not.toBeNull();
+			expect(play).not.toHaveBeenCalled();
+
+			await fireEvent.keyDown(composer.el, { key: "Escape" });
+			expect(menu(container)).toBeNull();
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when Enter has nothing to complete — the !item guard holds", async () => {
+			const composer = rig("/", true, true);
+			mountMenu(composer.context);
+			await type(composer, "/zzz");
+
+			const consumed = await fireEvent.keyDown(composer.el, { key: "Enter" });
+
+			// Nothing to complete: Enter goes back to meaning send, and plays nothing.
+			expect(consumed).toBe(true);
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

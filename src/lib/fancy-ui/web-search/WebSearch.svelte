@@ -24,6 +24,11 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -31,6 +36,7 @@
 	import { cn } from "$lib/utils.js";
 	import { hostOf, monogram } from "../_internals/host.js";
 	import { sanitizeHref } from "../_internals/markdown.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	/**
 	 * A result url made safe for an `href`, or `null` when it must not be a link
@@ -57,6 +63,7 @@
 		label = "Web search",
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: WebSearchProps = $props();
 
 	const ROW_BASE =
@@ -87,6 +94,18 @@
 	$effect(() => {
 		if (results.length === 0) expanded = false;
 	});
+
+	function pick(result: SearchResultData, index: number) {
+		if (sound) soundFx.play("select");
+		onSelect?.(result, index);
+	}
+
+	/** Disclosure, not a menu: `open`/`close` follow the same toggle either way. */
+	function toggleExpanded() {
+		const next = !isExpanded;
+		if (sound) soundFx.play(next ? "open" : "close");
+		expanded = next;
+	}
 </script>
 
 <div
@@ -175,7 +194,7 @@
 						<button
 							type="button"
 							class={cn(ROW_BASE, ROW_INTERACTIVE)}
-							onclick={() => onSelect?.(result, index)}
+							onclick={() => pick(result, index)}
 						>
 							{@render body()}
 						</button>
@@ -190,6 +209,7 @@
 							href={safeHref}
 							target="_blank"
 							rel="noopener noreferrer nofollow ugc"
+							onclick={() => pick(result, index)}
 						>
 							{@render body()}
 						</a>
@@ -213,7 +233,7 @@
 			class="ft-websearch-more text-muted-foreground hover:text-foreground focus-visible:ring-ring mt-1 cursor-pointer rounded-md px-2 py-1 text-xs transition-colors focus-visible:ring-1 focus-visible:outline-none"
 			aria-expanded={isExpanded}
 			aria-controls={listId}
-			onclick={() => (expanded = !isExpanded)}
+			onclick={toggleExpanded}
 		>
 			{isExpanded ? "Show less" : `Show ${hiddenCount} more`}
 		</button>

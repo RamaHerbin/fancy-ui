@@ -1,12 +1,13 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import Composer from "./Composer.svelte";
 import ComposerInput from "./ComposerInput.svelte";
 import ComposerSubmit from "./ComposerSubmit.svelte";
 import Harness from "./ComposerHarness.test.svelte";
 import type { ComposerContext } from "./types.js";
 import type { AttachmentData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -52,6 +53,7 @@ interface HarnessOptions {
 	onSubmit?: (payload: { text: string; attachments: AttachmentData[] }) => void;
 	onStop?: () => void;
 	onAttach?: (files: File[]) => void;
+	sound?: boolean;
 }
 
 /** Mount the rig and hand back its container plus the context its parts see. */
@@ -245,6 +247,105 @@ describe("Composer", () => {
 		const on = mount({ onAttach });
 		on.context.addFiles([]);
 		expect(onAttach).not.toHaveBeenCalled();
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays press exactly once when the send button submits the draft", async () => {
+			const onSubmit = vi.fn();
+			const { container } = mount({ initialValue: "hello", onSubmit, sound: true });
+
+			await fireEvent.click(sendButton(container));
+
+			expect(onSubmit).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays press exactly once when the stop button interrupts the stream", async () => {
+			const onStop = vi.fn();
+			const { container } = mount({
+				initialValue: "hello",
+				streaming: true,
+				onStop,
+				sound: true,
+			});
+
+			await fireEvent.click(sendButton(container));
+
+			expect(onStop).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const onSubmit = vi.fn();
+			const { container } = mount({ initialValue: "hello", onSubmit });
+
+			await fireEvent.click(sendButton(container));
+
+			expect(onSubmit).toHaveBeenCalledTimes(1);
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic submit dispatch", () => {
+			const onSubmit = vi.fn();
+			const { container } = mount({
+				initialValue: "hello",
+				disabled: true,
+				onSubmit,
+				sound: true,
+			});
+
+			// A synthetic dispatch on the form itself bypasses the send button's own
+			// native disabled state, proving the guard lives inside `submit()`.
+			form(container).dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+
+			expect(onSubmit).not.toHaveBeenCalled();
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on an empty or a whitespace-only draft", async () => {
+			const { container } = mount({ sound: true });
+
+			await fireEvent.submit(form(container));
+			expect(play).not.toHaveBeenCalled();
+
+			await type(container, "   \n  ");
+			await fireEvent.submit(form(container));
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when stop is reached while idle — never streaming", () => {
+			const { context } = mount({ initialValue: "hello", sound: true });
+
+			context.stop();
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("never double-fires — Enter and a click on the send button are the same funnel", async () => {
+			const onSubmit = vi.fn();
+			const { container } = mount({ initialValue: "hello", onSubmit, sound: true });
+
+			// Enter submits through ComposerInput's own handler, which calls the
+			// same context `submit()` a click on the send button reaches — proving
+			// the cue is wired to that one funnel, not duplicated onto a second path.
+			await fireEvent.keyDown(textarea(container), { key: "Enter" });
+
+			expect(onSubmit).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
 	});
 });
 
