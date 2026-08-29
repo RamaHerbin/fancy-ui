@@ -1,0 +1,5 @@
+@import "tailwindcss";
+/* Scans the shipped component sources so their utility classes compile. */
+@import "fancy-ui-react/tailwind.css";
+/* Keyframes and component-scoped CSS. */
+@import "fancy-ui-react/styles.css";
