@@ -26,6 +26,7 @@ export type {
 export * from "./primitives/index.js";
 
 export { defaultSkin } from "./skins/default.js";
+export { auroraSkin } from "./skins/aurora/index.js";
 export { brutalSkin } from "./skins/brutal/index.js";
 export { glassSkin } from "./skins/glass/index.js";
 export { terminalSkin } from "./skins/terminal/index.js";

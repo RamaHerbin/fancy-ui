@@ -1,0 +1,41 @@
+/*
+ * The `<style>` block of the source `DialogSurface`, moved to a colocated
+ * stylesheet (PORTING.md §Styling rule 2). The compiler scoped that block;
+ * plain CSS is global, so the rule stays anchored on `.ft-dialog-panel` —
+ * the class the panel already carries in its own `cn()` call, so no
+ * port-added anchor was needed here.
+ */
+
+/*
+ * The brand accent has no semantic Tailwind token, so it is a scoped
+ * custom property with a light-dark() fallback — the same shape Button's
+ * own `--ft-btn-accent` uses. Named for the category rather than this one
+ * component: every overlay in this wave (Dialog, AlertDialog, Popover,
+ * Tooltip, ...) reads the same `--ft-overlay-accent`, so retinting one
+ * `--ft-accent` up the tree moves every overlay's focus ring together.
+ * Set on the panel, not a wrapper: the custom property still inherits to
+ * every descendant that reads it (Dialog's close button, for one), and
+ * scoping it here means a page with no open dialog pays nothing for it.
+ */
+.ft-dialog-panel {
+	--ft-overlay-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+/*
+ * No `@keyframes` and no `@media (prefers-reduced-motion)` block here any
+ * more: both surfaces are driven by the shared JS transition, which
+ * collapses its own duration to 0 when the user has asked for reduced
+ * motion — `runTransition` then skips `element.animate()` entirely and the
+ * dialog appears and disappears instantly, with the close staying
+ * synchronous.
+ *
+ * The keyframes this replaced also carried a bug worth naming: the panel's
+ * `from` restated `translate(-50%, -50%)` as a `transform`, on a node
+ * whose centring comes from Tailwind v4's separate `translate` property.
+ * The two composed, so the panel drifted in from half its own size up and
+ * to the left. `transform: scale(…)` alone composes after `translate` and
+ * scales the panel about its own centre without touching the centring.
+ */

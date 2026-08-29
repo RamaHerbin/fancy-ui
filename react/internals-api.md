@@ -1131,9 +1131,15 @@ export const DialogSurface = forwardRef<HTMLDivElement, DialogSurfaceProps>(func
 		onExitStart: () => trap.returnFocusNow(),
 	});
 
-	// Mounted for the whole exit ⇒ this releases when the fade ends, exactly like an
-	// action's outro-delayed destroy(). Never `useScrollLock(open)`.
-	useScrollLock();
+	// Dialog renders DialogSurface unconditionally (the `{#if open}` lives inside the
+	// surface, exactly as in the Svelte source), so this component is mounted for the
+	// Dialog's whole life — a bare `useScrollLock()` would lock the page forever.
+	// Lock on `presence.mounted`: it stays true through the whole exit, so the release
+	// still lands in the unmount commit, exactly like an action's outro-delayed
+	// destroy(). Never `useScrollLock(open)` — that releases at exit START.
+	// (Corrected by the wave-3 acceptance port; the transposed scroll-release test
+	// fails against the previous bare call.)
+	useScrollLock(presence.mounted);
 
 	// `active: open` — a plain boolean where Svelte needed `() => open`.
 	useDismissable(panel, { onDismiss, escape, outsideClick, exclude, active: open });
@@ -1151,23 +1157,33 @@ export const DialogSurface = forwardRef<HTMLDivElement, DialogSurfaceProps>(func
 		entering, scale: false, duration: DURATIONS.base, exitDuration: DURATIONS.exit,
 	}));
 
-	if (!presence.mounted) return null;
-
+	// `<Portal>` stays ABOVE the mounted gate, and the gate wraps its CHILDREN.
+	// `usePortalTarget` resolves its container in a layout effect, so a Portal that
+	// first mounts in the same commit as the surface renders null on that pass —
+	// presence then finds no registered legs and the ENTRANCE ANIMATION IS SILENTLY
+	// SKIPPED (every other assertion still passes, which is what makes it vicious).
+	// Found by the wave-3 acceptance port; applies to EVERY usePresence + Portal
+	// pairing: Popover, Tooltip, DropdownMenu, Select, HoverCard, ContextMenu, Sheet,
+	// Drawer, Toast. Never write `if (!presence.mounted) return null` around a Portal.
 	return (
 		<Portal>
-			<div ref={scrimRef} className="ft-dialog-scrim fixed inset-0 z-50 bg-black/60" aria-hidden="true" />
-			<div
-				ref={panelRef}
-				role={role}
-				aria-modal="true"
-				aria-labelledby={titleId}
-				aria-describedby={descriptionId}
-				tabIndex={-1}
-				data-state={presence.surfaceState}   {/* "open" | "closing" — never "opening" */}
-				className={cn("ft-dialog-panel …verbatim Tailwind…", "focus-visible:outline-none", panelClass)}
-			>
-				{children}
-			</div>
+			{presence.mounted ? (
+				<>
+					<div ref={scrimRef} className="ft-dialog-scrim fixed inset-0 z-50 bg-black/60" aria-hidden="true" />
+					<div
+						ref={panelRef}
+						role={role}
+						aria-modal="true"
+						aria-labelledby={titleId}
+						aria-describedby={descriptionId}
+						tabIndex={-1}
+						data-state={presence.surfaceState}   {/* "open" | "closing" — never "opening" */}
+						className={cn("ft-dialog-panel …verbatim Tailwind…", "focus-visible:outline-none", panelClass)}
+					>
+						{children}
+					</div>
+				</>
+			) : null}
 		</Portal>
 	);
 });

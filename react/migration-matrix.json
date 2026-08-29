@@ -1562,7 +1562,7 @@
     "slug": "dialog",
     "sveltePath": "src/lib/fancy-ui/dialog",
     "reactPath": "react/src/components/dialog",
-    "status": "pending",
+    "status": "ported",
     "wave": "B",
     "tier": 2,
     "group": "headless",
@@ -1601,7 +1601,7 @@
       "Dialog.test.ts"
     ],
     "svelteFiles": 2,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -3716,7 +3716,7 @@
     "slug": "presence",
     "sveltePath": "src/lib/fancy-ui/presence",
     "reactPath": "react/src/components/presence",
-    "status": "pending",
+    "status": "ported",
     "wave": "B",
     "tier": 2,
     "group": "motion",
@@ -3750,7 +3750,7 @@
       "PresenceHarness.test.svelte"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
@@ -4565,7 +4565,7 @@
     "slug": "sound",
     "sveltePath": "src/lib/fancy-ui/sound",
     "reactPath": "react/src/sound",
-    "status": "pending",
+    "status": "ported",
     "wave": "F",
     "tier": 0,
     "group": "foundation",
@@ -4618,7 +4618,7 @@
       "SoundToggleHarness.test.svelte"
     ],
     "svelteFiles": 1,
-    "attempts": 0,
+    "attempts": 1,
     "divergences": [],
     "lastFailure": null
   },
