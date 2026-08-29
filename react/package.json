@@ -14,7 +14,11 @@
 		"build": "vite build && tsc -p tsconfig.build.json",
 		"check": "tsc --noEmit",
 		"test": "vitest run",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"prepublishOnly": "pnpm run build && publint"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"files": [
 		"dist",
@@ -27,13 +31,13 @@
 		},
 		"./cameleon": {
 			"types": "./dist/cameleon/index.d.ts",
-			"import": "./dist/cameleon.js"
+			"import": "./dist/cameleon/index.js"
 		},
 		"./styles.css": "./dist/styles.css",
 		"./tailwind.css": "./tailwind.css"
 	},
 	"sideEffects": [
-		"*.css"
+		"**/*.css"
 	],
 	"peerDependencies": {
 		"react": "^18.0.0 || ^19.0.0",
@@ -51,6 +55,7 @@
 		"@types/react-dom": "^19.1.0",
 		"@vitejs/plugin-react": "^4.6.0",
 		"jsdom": "^26.1.0",
+		"publint": "^0.3.18",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"typescript": "^5.8.0",

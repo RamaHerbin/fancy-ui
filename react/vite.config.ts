@@ -8,30 +8,45 @@ export default defineConfig({
 	plugins: [react()],
 	build: {
 		lib: {
-			entry: { index: "src/index.ts", cameleon: "src/cameleon/index.ts" },
+			// "cameleon/index" (not "cameleon") so the emitted entry lands at
+			// dist/cameleon/index.js, next to the d.ts tsc already puts there.
+			entry: { index: "src/index.ts", "cameleon/index": "src/cameleon/index.ts" },
 			formats: ["es"],
 			cssFileName: "styles",
 		},
 		rollupOptions: {
-			// Every built entry is a client module. Rollup strips module-level
+			// Every built module is a client module. Rollup strips module-level
 			// directives when it bundles, so a `"use client"` written in a
 			// source file would not survive into `dist/` — the banner is what
 			// actually reaches the consumer. Without it an RSC app importing
-			// `fancy-ui-react` classifies the entry as server code and rejects
-			// the `useState`/`useMemo` inside `RippleButton`, `Meteors` and
-			// the cameleon provider. The whole entry is marked rather than
-			// individual components because a single-chunk lib build has no
-			// per-component module boundary left to mark.
+			// `fancy-ui-react` classifies the module as server code and rejects
+			// the `useState`/`useMemo` inside the components.
+			//
+			// preserveModules keeps one dist file per source module so a
+			// consumer bundling `import { Marquee }` tree-shakes the other
+			// components away — a single chunk would drag every module-scope
+			// side effect (gsap plugin registration, three setup) into every
+			// app. Must not change after the first publish: it is the artifact
+			// shape. CSS is unaffected: lib mode keeps cssCodeSplit off, so
+			// component CSS still aggregates into the single dist/styles.css.
 			output: {
 				banner: '"use client";',
+				preserveModules: true,
+				preserveModulesRoot: "src",
+				entryFileNames: "[name].js",
 			},
+			// Regexes so subpath imports (gsap/ScrollTrigger, three/examples/*)
+			// stay external too — deps are declared for the consumer's
+			// installer, never bundled.
 			external: [
-				"react",
-				"react-dom",
-				"react/jsx-runtime",
-				"react/jsx-dev-runtime",
+				/^react(\/|$)/,
+				/^react-dom(\/|$)/,
 				"clsx",
 				"tailwind-merge",
+				/^three(\/|$)/,
+				/^gsap(\/|$)/,
+				"canvas-confetti",
+				/^@chenglou\/pretext(\/|$)/,
 			],
 		},
 	},

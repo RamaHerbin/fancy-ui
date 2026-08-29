@@ -60,9 +60,6 @@ jobs:
         github.head_ref == 'changeset-release/main') ||
       (github.event_name == 'pull_request')
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: react
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,14 +73,37 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: react/pnpm-lock.yaml
 
-      # react/ is a standalone package with its own lockfile and its own
-      # pnpm-workspace.yaml boundary marker — installs never touch the app.
+      # react/ is a workspace member — one install at the root covers it.
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check
-      - run: pnpm test
-      - run: pnpm build
+      - run: pnpm --filter fancy-ui-react run check
+      - run: pnpm --filter fancy-ui-react run test
+      - run: pnpm --filter fancy-ui-react run build
+      - run: pnpm --filter fancy-ui-react exec publint
+
+      - name: Pack dry-run — allow-list sanity
+        working-directory: react
+        run: |
+          npm pack --dry-run --json > /tmp/pack.json
+          node -e "
+            const files = require('/tmp/pack.json')[0].files.map(f => f.path);
+            const stray = files.filter(p =>
+              !p.startsWith('dist/') &&
+              !['tailwind.css','package.json','README.md','LICENSE'].includes(p));
+            if (stray.length) { console.error('stray files in pack:', stray); process.exit(1); }
+            const leaked = files.filter(p => p.includes('.test.'));
+            if (leaked.length) { console.error('test files in pack:', leaked); process.exit(1); }
+            console.log(files.length + ' files, allow-list clean');
+          "
+
+      - name: use client banner survives the build
+        working-directory: react
+        run: |
+          missing=0
+          for f in dist/index.js dist/cameleon/index.js; do
+            head -c 200 "$f" | grep -q '"use client"' || { echo "missing banner: $f"; missing=1; }
+          done
+          exit $missing
 
   changeset:
     name: Changeset present
