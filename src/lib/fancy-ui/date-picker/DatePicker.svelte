@@ -34,6 +34,11 @@
 		class?: string;
 		/** Bindable reference to the trigger button. */
 		ref?: HTMLButtonElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -63,6 +68,7 @@
 		getWeekdayNames,
 		isDayInRange,
 	} from "./date-utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value = $bindable(null),
@@ -81,6 +87,7 @@
 		isDateDisabled,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: DatePickerProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -161,6 +168,7 @@
 		viewDate = new Date(seed.getFullYear(), seed.getMonth(), 1);
 		focusedDate = seed;
 		open = true;
+		if (sound) soundFx.play("open");
 	}
 
 	// Closing always returns focus to the trigger, whether the close came from
@@ -169,8 +177,15 @@
 	// Escape press would leave focus on a grid cell about to be removed from
 	// the DOM, which browsers resolve by dropping focus to `<body>` — a real
 	// loss for a keyboard user, not just a cosmetic one.
-	function closePanel() {
+	//
+	// `reason` distinguishes a commit-flavoured close (a day was just picked)
+	// from a plain dismiss (Escape, an outside click, the trigger toggling
+	// shut, or re-picking the day already in force). Only a dismiss plays the
+	// `close` cue — a real commit already played `select` inside `commit`
+	// above, and the contract is one cue per interaction, never both.
+	function closePanel(reason: "commit" | "dismiss" = "dismiss") {
 		open = false;
+		if (sound && reason === "dismiss") soundFx.play("close");
 		ref?.focus();
 	}
 
@@ -181,9 +196,14 @@
 
 	function commit(date: Date) {
 		if (isDayDisabled(date)) return;
+		// Captured before `value` is overwritten: re-picking the day already in
+		// force changes nothing, so it closes like a dismiss (`close`) instead
+		// of playing a second `select` for a no-op.
+		const changed = !value || !isSameDay(value, date);
 		value = date;
+		if (sound && changed) soundFx.play("select");
 		onValueChange?.(date);
-		closePanel();
+		closePanel(changed ? "commit" : "dismiss");
 	}
 
 	function moveDays(delta: number) {
@@ -342,7 +362,7 @@
 				resolvedAlign = align;
 			},
 		}}
-		use:dismissable={{ onDismiss: closePanel, exclude: () => [ref], active: () => open }}
+		use:dismissable={{ onDismiss: () => closePanel(), exclude: () => [ref], active: () => open }}
 		transition:anchored={{ side: resolvedSide, entering: open }}
 		data-state="open"
 		data-side={resolvedSide}

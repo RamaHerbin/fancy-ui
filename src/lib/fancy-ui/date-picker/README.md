@@ -92,9 +92,27 @@ and `disabled`:
 | `isDateDisabled` | `(date: Date) => boolean`       | —               | Rejects individual days beyond `min`/`max` — e.g. weekends, holidays                   |
 | `class`          | `string`                        | —               | Additional CSS classes, merged onto the trigger button                                 |
 | `ref`            | `HTMLButtonElement \| null`     | `null`          | Bindable element reference to the trigger button                                       |
+| `sound`          | `boolean`                       | `false`         | Plays interface cues through the sound controller. See [Sound](#sound)                 |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<DatePicker bind:value={date} sound />
+```
+
+`open` plays when the calendar opens from the trigger; `select` plays once a
+day commits — a click, or Enter/Space on the focused cell — and changes the
+value. Escape, an outside click, toggling the trigger shut, and re-picking
+the day already selected all play `close` instead, never both: a commit is
+one cue, a dismiss is the other, never `select` followed by `close` for the
+same pick. Month paging and arrow-key movement across the grid stay silent —
+only a real commit or a real dismissal makes a sound.
 
 ## Theming
 
