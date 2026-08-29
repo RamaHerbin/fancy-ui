@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { sound } from "../sound/sound.svelte.js";
 import CommandMenu from "./CommandMenu.svelte";
 import type { CommandItem } from "./types.js";
 
@@ -800,6 +801,115 @@ describe("CommandMenu", () => {
 			expect(scrim()).toBeNull();
 			expect(document.body.style.position).toBe("");
 			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("committing the active item with Enter plays select exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(CommandMenu, { props: { items: ITEMS, open: true, sound: true } });
+			await tick();
+			const el = input()!;
+			await waitFor(() => expect(el.getAttribute("aria-activedescendant")).toBe(rows()[0].id));
+
+			await fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(CommandMenu, { props: { items: ITEMS, open: true } });
+			await tick();
+
+			await fireEvent.click(rows()[0]);
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Dispatched synthetically, not through `fireEvent.click` — proves the
+		// guard lives in `commitItem`'s own `if (item.disabled) return`, not
+		// merely in something a native `disabled` attribute or `fireEvent`'s
+		// own event construction happens to skip.
+		it("a disabled row plays nothing, even dispatched synthetically", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(CommandMenu, { props: { items: ITEMS_WITH_DISABLED, open: true, sound: true } });
+			await tick();
+
+			const disabledRow = rows().find((r) => r.textContent?.includes("Bravo"))!;
+			disabledRow.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+			expect(panel()).toBeTruthy();
+		});
+
+		// The matrix's own double-fire guard: `commitItem`'s own `setOpen(false)`
+		// passes `{ silent: true }`, so a committed row's `select` cue is the
+		// only one that plays — closing on top of it never also plays `close`.
+		it("a row click commits, closes, and plays select only — never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(CommandMenu, { props: { items: ITEMS, open: true, sound: true } });
+			await tick();
+
+			const row = rows().find((r) => r.textContent?.includes("Icon Button"))!;
+			await fireEvent.click(row);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("Escape dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(CommandMenu, { props: { items: ITEMS, open: true, sound: true } });
+			await tick();
+
+			pressEscape();
+			await tick();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("an outside click on the scrim dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(CommandMenu, { props: { items: ITEMS, open: true, sound: true } });
+			await tick();
+
+			pointerDownOn(scrim()!);
+			await tick();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		// Select precedent (the matrix's own guardrail): the search field stays
+		// silent, and so does arrow-browsing the highlight.
+		it("typing in the search field and arrow-browsing the list stay silent", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(CommandMenu, { props: { items: ITEMS, open: true, sound: true } });
+			await tick();
+
+			const el = input()!;
+			await fireEvent.input(el, { target: { value: "rain" } });
+			await fireEvent.keyDown(el, { key: "ArrowDown" });
+			await fireEvent.keyDown(el, { key: "ArrowUp" });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("Enter with no active item plays nothing", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(CommandMenu, { props: { items: ITEMS, open: true, sound: true } });
+			await tick();
+
+			await fireEvent.input(input()!, { target: { value: "zzzzz" } });
+			await fireEvent.keyDown(input()!, { key: "Enter" });
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 
