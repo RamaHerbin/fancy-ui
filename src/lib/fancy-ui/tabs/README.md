@@ -160,6 +160,7 @@ which one is active.
 | `children`      | `Snippet`                    | —              | A `TabsList` and one or more `TabsContent`s                               |
 | `class`         | `string`                     | —              | Additional CSS classes                                                    |
 | `ref`           | `HTMLDivElement \| null`     | `null`         | Bindable element reference                                                |
+| `sound`         | `boolean`                    | `false`        | Plays the `select` cue whenever the active tab actually changes           |
 
 ### TabsList
 
@@ -188,6 +189,18 @@ which one is active.
 | `children`   | `Snippet`                | —       | The panel's content                                                                             |
 | `class`      | `string`                 | —       | Additional CSS classes                                                                          |
 | `ref`        | `HTMLDivElement \| null` | `null`  | Bindable element reference                                                                      |
+
+## Sound
+
+Set `sound` on `Tabs` to play the `select` cue whenever the active tab actually changes, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Tabs bind:value={section} sound>
+	<!-- ... -->
+</Tabs>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on `Tabs` **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue lives on `select()`, the single funnel every activation path runs through — a trigger click, and (under `activation="automatic"`) each arrow/Home/End step that lands on a different tab — so every one of them plays it once. Re-activating the already-active tab plays nothing: the changed-only guard checks the value _before_ writing it, gating only the cue — `onValueChange` still fires unconditionally either way. Moving roving focus without selecting (arrowing under `activation="manual"`, or the internal `focusElement()` that reclaims focus when the current trigger goes disabled) never plays anything, since neither one calls `select()`.
 
 ## Theming
 

@@ -18,6 +18,11 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLOListElement | null;
+		/**
+		 * Plays the select cue through the sound controller. Off by default;
+		 * only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -25,6 +30,7 @@
 	import { setContext, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { STEPPER_KEY, type StepperContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		current = $bindable(0),
@@ -35,6 +41,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: StepperProps = $props();
 
 	// Ids, not elements: a `Step` can register the instant its own `$effect`
@@ -74,6 +81,7 @@
 
 	function select(index: number) {
 		if (!clickable) return;
+		if (sound && current !== index) soundFx.play("select");
 		onStepClick?.(index);
 		current = index;
 		onCurrentChange?.(index);
