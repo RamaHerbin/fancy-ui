@@ -4564,7 +4564,7 @@
   {
     "slug": "sound",
     "sveltePath": "src/lib/fancy-ui/sound",
-    "reactPath": "react/src/components/sound",
+    "reactPath": "react/src/sound",
     "status": "pending",
     "wave": "F",
     "tier": 0,
