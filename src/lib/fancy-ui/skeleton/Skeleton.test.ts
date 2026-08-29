@@ -232,17 +232,26 @@ describe("Skeleton", () => {
 			expect(overlay(container)!.className).toContain("ft-skeleton-bones-out");
 		});
 
-		// A live region that outlives its own announcement is the bug the
-		// component's own comment warns about: the status span goes with the
-		// in-flow bones, in the same update, and is never copied into the
-		// overlay.
-		it("removes the status span with the in-flow bones rather than lingering it into the fade", async () => {
+		// A live region that outlives its own ANNOUNCEMENT is the bug the
+		// component's own comment warns about — not the region itself, which
+		// deliberately stays mounted so a later `loading` flip is a text
+		// change rather than an insertion (see the toggle test above; an
+		// already-populated region inserted fresh is announced unreliably).
+		// What must not survive the reveal is the TEXT, and the overlay must
+		// never carry a second copy of the region into the fade.
+		it("empties the status span with the in-flow bones rather than lingering the announcement into the fade", async () => {
 			const { container } = render(RevealHarness);
+			const status = container.querySelector('[role="status"]');
 			expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
+			expect(status?.textContent).not.toBe("");
 
 			await reveal(container);
 
-			expect(container.querySelector('[role="status"]')).toBeNull();
+			// The same node, emptied — not a second one, and not one copied
+			// into the lingering bones.
+			expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
+			expect(container.querySelector('[role="status"]')).toBe(status);
+			expect(status?.textContent).toBe("");
 			expect(overlay(container)!.querySelector('[role="status"]')).toBeNull();
 			// aria-busy goes at the same instant, for the same reason.
 			expect(container.querySelector(".ft-skeleton")).not.toHaveAttribute("aria-busy");
