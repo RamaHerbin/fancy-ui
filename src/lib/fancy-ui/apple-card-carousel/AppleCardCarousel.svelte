@@ -7,6 +7,11 @@
 		cards: AppleCardData[];
 		/** Additional CSS classes */
 		class?: string;
+		/**
+		 * Plays the matching open/close cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -15,7 +20,7 @@
 	import { cn } from "$lib/utils.js";
 	import AppleCard from "./AppleCard.svelte";
 
-	let { cards, class: className = "" }: AppleCardCarouselProps = $props();
+	let { cards, class: className = "", sound = false }: AppleCardCarouselProps = $props();
 
 	let expandedIndex = $state(-1);
 	let reducedMotion = $state(false);
@@ -43,6 +48,7 @@
 				{reducedMotion}
 				onExpand={(idx) => (expandedIndex = idx)}
 				onCollapse={() => (expandedIndex = -1)}
+				{sound}
 			/>
 		{/each}
 	</div>

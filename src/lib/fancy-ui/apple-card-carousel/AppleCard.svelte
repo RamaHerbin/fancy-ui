@@ -21,6 +21,7 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	interface Props {
 		card: AppleCardData;
@@ -30,6 +31,11 @@
 		onExpand: (index: number) => void;
 		onCollapse: () => void;
 		class?: string;
+		/**
+		 * Plays the matching open/close cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 
 	let {
@@ -40,6 +46,7 @@
 		onExpand,
 		onCollapse,
 		class: className = "",
+		sound = false,
 	}: Props = $props();
 
 	let cardEl: HTMLDivElement;
@@ -52,6 +59,7 @@
 
 	async function handleExpand() {
 		if (expandedIndex !== -1) return;
+		if (sound) soundFx.play("open");
 		previousFocus = document.activeElement as HTMLElement;
 		const r = cardEl.getBoundingClientRect();
 		rect = { top: r.top, left: r.left, width: r.width, height: r.height };
@@ -74,6 +82,7 @@
 	}
 
 	function handleCollapse() {
+		if (sound && fullyExpanded) soundFx.play("close");
 		fullyExpanded = false;
 		const delay = reducedMotion ? 0 : TRANSITION_MS;
 		setTimeout(() => {

@@ -45,11 +45,17 @@
 		/** Additional CSS classes */
 		class?: string;
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		variant = "slide",
@@ -59,10 +65,15 @@
 		"aria-label": ariaLabel,
 		class: className = "",
 		children,
+		sound = false,
 	}: LineHoverLinkProps = $props();
 
 	const needsSpan = $derived(["strike", "bounce", "arc", "scribble"].includes(variant));
 	const relValue = $derived(target === "_blank" ? (rel ?? "noopener noreferrer") : rel);
+
+	function handleClick() {
+		if (sound) soundFx.play("press");
+	}
 </script>
 
 <a
@@ -71,6 +82,7 @@
 	aria-label={ariaLabel}
 	rel={relValue}
 	class={cn("link-hover", `link-hover--${variant}`, className)}
+	onclick={handleClick}
 >
 	{#if needsSpan}
 		<span

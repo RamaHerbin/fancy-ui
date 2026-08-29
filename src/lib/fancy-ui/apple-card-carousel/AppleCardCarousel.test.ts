@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { flushSync } from "svelte";
+import { flushSync, tick } from "svelte";
 import AppleCardCarousel from "./AppleCardCarousel.svelte";
 import type { AppleCardData } from "./AppleCard.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 const cards: AppleCardData[] = [
 	{ category: "Nature", title: "Mountains", src: "mountains.jpg", description: "High peaks." },
@@ -94,5 +95,89 @@ describe("AppleCardCarousel", () => {
 		fireEvent.click(getByLabelText("Open Mountains"));
 		flushSync();
 		expect(getByText("High peaks.")).toBeTruthy();
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays open exactly once when a card is expanded, with sound enabled", () => {
+			const { getByLabelText } = render(AppleCardCarousel, { props: { cards, sound: true } });
+
+			fireEvent.click(getByLabelText("Open Mountains"));
+			flushSync();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("does not double-fire on keyboard activation — Enter shares handleExpand with click", () => {
+			const { getByLabelText } = render(AppleCardCarousel, { props: { cards, sound: true } });
+
+			fireEvent.keyDown(getByLabelText("Open Mountains"), { key: "Enter" });
+			flushSync();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays close exactly once when the expanded card is dismissed via the close button, with sound enabled", async () => {
+			const { getByLabelText } = render(AppleCardCarousel, { props: { cards, sound: true } });
+			fireEvent.click(getByLabelText("Open Mountains"));
+			// The double-rAF that flips `fullyExpanded` true is scheduled after
+			// handleExpand's own `await tick()`; drain that microtask (two hops —
+			// the closeBtn focus in between yields once more) before advancing past
+			// the rAF chain, matching real-world timing where a user cannot react
+			// before it settles.
+			await tick();
+			await tick();
+			flushSync(() => vi.advanceTimersByTime(50));
+			play.mockClear();
+
+			fireEvent.click(getByLabelText("Close"));
+			flushSync(() => vi.advanceTimersByTime(400));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("does not replay close on a second Escape fired inside the ~400ms collapse window", async () => {
+			const { getByLabelText } = render(AppleCardCarousel, { props: { cards, sound: true } });
+			fireEvent.click(getByLabelText("Open Mountains"));
+			await tick();
+			await tick();
+			flushSync(() => vi.advanceTimersByTime(50));
+			const dialog = getByLabelText("Mountains");
+			play.mockClear();
+
+			fireEvent.keyDown(dialog, { key: "Escape" });
+			flushSync();
+			// A second Escape while the ~400ms collapse timer is still pending must
+			// not replay the cue — `fullyExpanded` is already false by then.
+			fireEvent.keyDown(dialog, { key: "Escape" });
+			flushSync(() => vi.advanceTimersByTime(400));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { getByLabelText } = render(AppleCardCarousel, { props: { cards } });
+
+			fireEvent.click(getByLabelText("Open Mountains"));
+			await tick();
+			flushSync(() => vi.advanceTimersByTime(50));
+			fireEvent.click(getByLabelText("Close"));
+			flushSync(() => vi.advanceTimersByTime(400));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });
