@@ -4,6 +4,7 @@ import { tick } from "svelte";
 import Toaster from "./Toaster.svelte";
 import { toast, dismissToast, toastStore } from "./store.svelte.js";
 import { DURATIONS } from "../_internals/motion/tokens.js";
+import { sound } from "../sound/sound.svelte.js";
 
 /** The store is a module-level singleton — clear it between tests so none leak into the next. */
 function resetStore() {
@@ -475,5 +476,126 @@ describe("Toast / Toaster", () => {
 
 		expect(id).toBe("");
 		expect(toastStore.items).toHaveLength(0);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays success exactly once when a success toast arrives", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+
+			toast({ title: "Theme saved", variant: "success" });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("success");
+		});
+
+		it("plays error exactly once when an error toast arrives", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+
+			toast({ title: "Failed to send", variant: "error" });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("error");
+		});
+
+		it("plays nothing for info or loading toasts, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+
+			toast({ title: "Heads up", variant: "info" });
+			toast({ title: "Publishing…", variant: "loading" });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster);
+
+			toast({ title: "Theme saved", variant: "success" });
+			toast({ title: "Failed to send", variant: "error" });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not sound the toast's own close or action button", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+			const onClick = vi.fn();
+			toast({
+				title: "Failed to send",
+				variant: "error",
+				duration: Infinity,
+				action: { label: "Retry", onClick },
+			});
+			await vi.advanceTimersByTimeAsync(0);
+			play.mockClear(); // only the arrival cue is under test here
+
+			const actionButton = toastPanels()[0].querySelector(
+				"button.ft-toast-action"
+			) as HTMLButtonElement;
+			await fireEvent.click(actionButton);
+			expect(play).not.toHaveBeenCalled();
+
+			const closeButton = toastPanels()[0].querySelector(
+				'button[aria-label="Dismiss"]'
+			) as HTMLButtonElement;
+			await fireEvent.click(closeButton);
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// The seen-id dedupe (`announcedIds`) is what keeps the announcement
+		// effect — which reruns on every store change, dismissals included —
+		// from replaying a cue for a toast already announced. Ids are
+		// monotonic and never reused, so this is the same guard the live
+		// region relies on.
+		it("plays the cue for each toast exactly once, even as the store changes around it — the seen-id dedupe", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+
+			const firstId = toast({ title: "First", variant: "success", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			// Dismissing a toast reruns the same $effect over the remaining
+			// (already-announced) items — must not replay their cue.
+			dismissToast(firstId);
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			toast({ title: "Second", variant: "error", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(2);
+			expect(play).toHaveBeenNthCalledWith(2, "error");
+		});
+
+		// The seen-id dedupe above (`announcedIds`) is per-instance and thrown
+		// away on unmount, while `toastStore.items` is a module-level singleton
+		// that survives it — so a `<Toaster>` remount while a toast is still on
+		// screen must not replay its cue, even though the fresh instance's own
+		// `announcedIds` starts empty.
+		it("does not replay a cue for a still-visible toast when <Toaster> remounts", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { unmount } = render(Toaster, { props: { sound: true } });
+
+			toast({ title: "Uploading…", variant: "success", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			unmount();
+			render(Toaster, { props: { sound: true } });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });
