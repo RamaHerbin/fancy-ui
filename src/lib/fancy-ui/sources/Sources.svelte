@@ -18,6 +18,12 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays open/close through the sound controller when the source list
+		 * expands or collapses. Off by default; only audible once the user
+		 * has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -27,6 +33,7 @@
 	import SourcesTrigger from "./SourcesTrigger.svelte";
 	import SourcesList from "./SourcesList.svelte";
 	import { SOURCES_CONTEXT_KEY, type SourcesContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		sources,
@@ -35,6 +42,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: SourcesProps = $props();
 
 	const uid = $props.id();
@@ -58,6 +66,7 @@
 		listId,
 		toggle() {
 			open = !open;
+			if (sound) soundFx.play(open ? "open" : "close");
 			onToggle?.(open);
 		},
 	};

@@ -80,8 +80,9 @@ It is the only part that behaves this way. The trigger and the list also survive
 | `children` | `Snippet`                 | `undefined` | Replaces the default trigger-and-list composition entirely   |
 | `class`    | `string`                  | `undefined` | Additional CSS classes                                       |
 | `ref`      | `HTMLDivElement \| null`  | `null`      | Bindable reference to the root `<div>`                       |
+| `sound`    | `boolean`                 | `false`     | Plays `open`/`close` on the trigger, once enabled            |
 
-`onToggle` fires only when the pill is clicked. Driving `open` yourself — through the binding or the prop — changes the state without calling it, which is what lets a caller tell "the reader opened this" apart from "I opened this".
+`onToggle` fires only when the pill is clicked. Driving `open` yourself — through the binding or the prop — changes the state without calling it, which is what lets a caller tell "the reader opened this" apart from "I opened this". The `sound` cue follows the same rule: it plays only from a real trigger activation, never from a `bind:open` write.
 
 ### SourcesTrigger
 
@@ -104,6 +105,16 @@ It is the only part that behaves this way. The trigger and the list also survive
 | `source` | `SourceData` | —           | The document being cited. Required                |
 | `icon`   | `Snippet`    | `undefined` | Replaces the monogram: a favicon you host, a logo |
 | `class`  | `string`     | `undefined` | Additional CSS classes                            |
+
+## Sound
+
+Set `sound` to play `open`/`close` when the source list expands or collapses, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Sources {sources} sound />
+```
+
+It is opt-in and silent by default. The cue lives at the single mutation point the whole disclosure funnels through — the root's own `toggle()` — so it covers the built-in trigger and any consumer-composed one alike, while a `bind:open` write stays silent, matching `onToggle`.
 
 ## The data
 

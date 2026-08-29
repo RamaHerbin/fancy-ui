@@ -93,6 +93,7 @@ A `system` turn is a notice about the conversation rather than a turn in it, so 
 | `footer`    | `Snippet`                           | `undefined`   | Rendered under the body — where `ChatMessageBranches` belongs            |
 | `class`     | `string`                            | `undefined`   | Additional CSS classes                                                   |
 | `ref`       | `HTMLElement \| null`               | `null`        | Bindable reference to the root `<article>`                               |
+| `sound`     | `boolean`                           | `false`       | Plays `press` on an action and `select` on a branch step, once enabled   |
 
 ### ChatMessageActions
 
@@ -133,6 +134,7 @@ interface ChatMessageContext {
 	readonly role: "user" | "assistant" | "system";
 	readonly streaming: boolean;
 	readonly hovered: { readonly current: boolean };
+	readonly sound?: boolean;
 }
 ```
 
@@ -154,6 +156,29 @@ Both the key and the type are exported, so you can build your own parts:
 ```
 
 Read it as optional. Every shipped part does, so a rail rendered outside a message degrades to a plain toolbar instead of throwing.
+
+## Sound
+
+Set `sound` on the root to play a cue on each gesture, through the shared sound controller (see [`sound/README.md`](../sound/README.md)): `press` when a `ChatMessageAction` is clicked, `select` when `ChatMessageBranches` steps to another version. Both parts read it from context, so it needs setting in one place:
+
+```svelte
+<ChatMessage {role} {content} sound>
+	{#snippet actions()}
+		<ChatMessageActions>
+			<ChatMessageAction label="Copy" confirmLabel="Copied" onclick={copy}>
+				<CopyIcon />
+			</ChatMessageAction>
+		</ChatMessageActions>
+	{/snippet}
+	{#snippet footer()}
+		<ChatMessageBranches {index} {count} {onNavigate} />
+	{/snippet}
+</ChatMessage>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the message **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). A `ChatMessageAction` or `ChatMessageBranches` used outside a `ChatMessage` root reads no context and stays silent too.
+
+If you nest a sound-enabled control of your own inside a `ChatMessageAction` — a sound-enabled `CopyButton` in its icon slot, say — enable `sound` on that one layer only. Both would otherwise fire on the same click.
 
 ## Styling
 

@@ -40,6 +40,7 @@ Give the region a height to scroll inside — either `maxHeight`, or a bounded p
 | `children`        | `Snippet`                  | —                  | The scrolling content. Required.                                   |
 | `class`           | `string`                   | `undefined`        | Additional CSS classes, applied to the outer wrapper               |
 | `ref`             | `HTMLDivElement \| null`   | `null`             | Bindable reference to the root element                             |
+| `sound`           | `boolean`                  | `false`            | Plays `press` on the return pill, once the user has enabled sound  |
 
 ## The pinning contract
 
@@ -71,6 +72,16 @@ Once released, a pill floats over the bottom edge of the region: a down arrow, h
 That scroll is smooth — a journey the reader asked for is worth showing — unless they have asked for no journeys at all, in which case `prefers-reduced-motion: reduce` makes them simply arrive. Pressing it also hands focus to the scroll region, because the button that had the focus is about to unmount and would otherwise drop the keyboard back to the document body.
 
 `showReturn={false}` drops the button entirely and leaves `onStickChange` as the only signal — the right choice when your layout already has somewhere better to put that affordance.
+
+## Sound
+
+Set `sound` to play the `press` cue when the return pill is activated, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<ScrollAnchor active={streaming} sound>…</ScrollAnchor>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the component **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). Only the pill's own click plays — `handleStick` and the geometry effect that recomputes `stuck` are scroll-driven and stay silent, and the cue is never generalised to whatever `children` scrolls inside the region.
 
 ## Styling
 

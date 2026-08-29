@@ -4,6 +4,7 @@ import ThreadList from "./ThreadList.svelte";
 import Harness from "./ThreadListHarness.test.svelte";
 import { formatRelativeTime } from "../_internals/relative-time.js";
 import type { ThreadData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 const T0 = new Date("2026-01-01T00:00:00.000Z").getTime();
 const MINUTE = 60_000;
@@ -327,5 +328,60 @@ describe("ThreadList", () => {
 		const { container } = render(ThreadList, { props: { threads: collision } });
 
 		expect(text(container, ".ft-threadlist-title")).toEqual(["First", "Second", "Third"]);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when a different conversation is picked, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ThreadList, {
+				props: { threads, activeId: "t1", sound: true },
+			});
+
+			await fireEvent.click(rowButtons(container)[1]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ThreadList, { props: { threads, activeId: "t1" } });
+
+			await fireEvent.click(rowButtons(container)[1]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the already-active row is re-picked, but onSelect still fires", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(ThreadList, {
+				props: { threads, activeId: "t1", onSelect, sound: true },
+			});
+
+			await fireEvent.click(rowButtons(container)[0]);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onSelect).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledWith(threads[0]);
+		});
+
+		it("plays press exactly once when a conversation is deleted, and never select alongside it", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onDelete = vi.fn();
+			const { container } = render(Harness, {
+				props: { threads, activeId: "t1", onDelete, sound: true },
+			});
+
+			await fireEvent.click(deleteButtons(container)[1]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+			expect(onDelete).toHaveBeenCalledTimes(1);
+		});
 	});
 });

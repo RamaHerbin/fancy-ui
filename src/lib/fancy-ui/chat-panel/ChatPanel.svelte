@@ -25,6 +25,12 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the press cue through the sound controller when the
+		 * jump-to-latest pill is activated. Off by default; only audible
+		 * once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -32,6 +38,7 @@
 	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { autoscroll, scrollToBottom } from "../_internals/autoscroll.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		streaming = false,
@@ -44,6 +51,7 @@
 		emptyState,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ChatPanelProps = $props();
 
 	/** How close to the bottom (px) still counts as pinned — the action's own default. */
@@ -130,6 +138,7 @@
 	function jumpToLatest(): void {
 		const el = scrollEl;
 		if (!el) return;
+		if (sound) soundFx.play("press");
 		// The pill is about to disappear under the pointer, which would leave the
 		// keyboard with nothing focused. Handing focus to the scroll region keeps
 		// the reader where they were and lets them carry on with the arrow keys.
