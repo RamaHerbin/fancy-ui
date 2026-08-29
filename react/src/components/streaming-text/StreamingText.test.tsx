@@ -1,4 +1,5 @@
 import { render, cleanup } from "@testing-library/react";
+import { act } from "react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { StreamingText } from "./StreamingText.js";
 
@@ -28,7 +29,11 @@ describe("StreamingText", () => {
 		expect(fresh?.textContent).toBe(" is");
 		expect(root.textContent).toBe("The answer is");
 
-		await vi.advanceTimersByTimeAsync(100);
+		// The settle timer publishes into the stream store from outside React,
+		// so the flush it triggers has to be act-wrapped like any other update.
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(100);
+		});
 		expect(container.querySelector(".ft-fresh")).toBeFalsy();
 		expect(root.textContent).toBe("The answer is");
 	});

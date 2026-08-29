@@ -1,4 +1,4 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { ToolTimeline } from "./ToolTimeline.js";
 import { formatRelativeTime } from "../../internals/relative-time.js";
@@ -173,7 +173,7 @@ describe("ToolTimeline", () => {
 		expect(root.className).toContain("ft-tooltimeline");
 	});
 
-	it("ages its timestamps while it stays mounted", async () => {
+	it("ages its timestamps while it stays mounted", () => {
 		// Nothing re-renders a quiet timeline, so a label written once would keep
 		// reporting the age its row had when it first appeared.
 		vi.useFakeTimers();
@@ -187,8 +187,12 @@ describe("ToolTimeline", () => {
 		expect(label()).toBe("now");
 
 		// Two refreshes of the shared clock: the row is 80s old by then, which is
-		// the first reading that leaves the "now" bucket.
-		await vi.advanceTimersByTimeAsync(60_000);
+		// the first reading that leaves the "now" bucket. The advance is wrapped
+		// in `act` because each refresh re-renders through the shared clock's
+		// store subscription, outside anything React already knows about.
+		act(() => {
+			vi.advanceTimersByTime(60_000);
+		});
 		expect(label()).toBe("1 minute ago");
 	});
 });

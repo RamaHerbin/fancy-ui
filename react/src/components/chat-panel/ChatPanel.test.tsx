@@ -33,10 +33,19 @@ function patchGeometry(node: HTMLElement, scrollTop: number): HTMLElement {
 	return node;
 }
 
-/** Let the MutationObserver callback land, then wait out the batching rAF. */
+/**
+ * Let the MutationObserver callback land, then wait out the batching rAF.
+ *
+ * The panel's stick sync runs from that frame callback rather than from an
+ * event handler, so React has no idea a re-render is coming: `act` is what
+ * flushes it. Every wait for the batching frame goes through here, so the
+ * flush belongs here too rather than at each call site.
+ */
 async function settle(): Promise<void> {
-	await new Promise((resolve) => setTimeout(resolve, 0));
-	await new Promise((resolve) => requestAnimationFrame(resolve));
+	await act(async () => {
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		await new Promise((resolve) => requestAnimationFrame(resolve));
+	});
 }
 
 /** Patch the region's geometry and tell it the reader has scrolled to the top. */
@@ -183,13 +192,10 @@ describe("ChatPanel", () => {
 
 		// A reply lands below them. The scrollbar has not moved, so no scroll event
 		// fires — the transcript growing is the only thing that says the bottom is
-		// now a thousand pixels away. The sync lands from a frame callback rather
-		// than an event handler, so `act` is what flushes the re-render it queues.
-		await act(async () => {
-			Object.defineProperty(region, "scrollHeight", { value: 2000, configurable: true });
-			region.appendChild(document.createElement("p"));
-			await settle();
-		});
+		// now a thousand pixels away.
+		Object.defineProperty(region, "scrollHeight", { value: 2000, configurable: true });
+		region.appendChild(document.createElement("p"));
+		await settle();
 
 		expect(pill(container)?.textContent).toContain("Jump to latest");
 	});
@@ -340,13 +346,9 @@ describe("ChatPanel", () => {
 		fireEvent.scroll(region);
 		expect(pill(container)).toBeFalsy();
 
-		// The sync lands from a frame callback rather than an event handler, so
-		// `act` is what flushes the re-render it queues.
-		await act(async () => {
-			Object.defineProperty(region, "scrollHeight", { value: 2000, configurable: true });
-			notify?.([], {} as ResizeObserver);
-			await settle();
-		});
+		Object.defineProperty(region, "scrollHeight", { value: 2000, configurable: true });
+		notify?.([], {} as ResizeObserver);
+		await settle();
 
 		expect(pill(container)?.textContent).toContain("Jump to latest");
 		vi.unstubAllGlobals();

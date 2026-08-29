@@ -5437,7 +5437,8 @@
       "SoundToggle",
       "sound",
       "getSoundStatus",
-      "soundFeedback",
+      "attachSoundFeedback",
+      "useSoundFeedback",
       "DEFAULT_SOUND_FEEDBACK_ON",
       "createSoundEngine",
       "FANCY_SOUND_THEME",
@@ -5465,7 +5466,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "Svelte's `use:soundFeedback` action has no React counterpart: it ships as `attachSoundFeedback(element, options)` (the imperative attach/detach core, callable from a ref callback) plus the `useSoundFeedback(options)` hook that returns a ref callback for the common case. The action name `soundFeedback` is therefore absent from the package root."
+    ],
     "lastFailure": null
   },
   {
