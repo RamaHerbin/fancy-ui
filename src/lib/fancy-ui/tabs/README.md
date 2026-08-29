@@ -260,11 +260,25 @@ Contrast user (where it repaints as `Highlight`, and the selected `segmented`
 label as `HighlightText`) and a server-rendered page with JavaScript disabled
 all still see which tab is active.
 
+The panel that arrives fades in, over 150 ms (`DURATIONS.fast`) on
+`JS_EASINGS.out` — opacity only, and an entrance only. The panel being left cuts
+away in the same tick it stops being selected: `TabsContent` instances are
+siblings the caller places by hand, so an outgoing panel has nowhere to be
+stacked, and a true cross-fade would mean wrapping every caller's content in a
+layer element to get one. The hard cut on arrival was the part that read as a
+jolt, and it is the part that is fixed. With `forceMount` every panel is mounted
+permanently and the fade never plays after the first render — `forceMount`
+exists to keep panels alive, and a `hidden` attribute flip is not something that
+can be animated. A panel that is already selected at first render simply
+appears, with no fade.
+
 - **Reduced motion** — the bar still tracks the selection, it just arrives
   without the tween. Both halves agree: the CSS `transition` is declared inside
   `@media (prefers-reduced-motion: no-preference)`, and `TabsList` snaps its own
   writes when the preference is set, so neither half can drift into animating
-  alone.
+  alone. The panel fade collapses to `duration: 0` under the same preference,
+  which makes Svelte skip `element.animate()` outright — the panel is simply
+  there.
 - **Touch and coarse pointers** — unchanged; nothing here is pointer-gated. The
   bar moves on selection regardless of input modality.
 - **RTL** — no branch, and none needed. `offsetLeft` is a physical offset from

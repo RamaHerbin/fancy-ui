@@ -141,6 +141,12 @@ a second one is a bug, not a feature). Both routes return focus to the
 trigger; see the keyboard model above for why that refocus is safe and
 doesn't fight the pointer.
 
+The layer stops answering the moment the panel stops being the open one, so
+a second Escape pressed while the panel is still fading out is not swallowed
+by a panel already on its way to nowhere — it reaches whatever dismissable
+surface sits underneath. See Motion for the rest of what happens in that
+window.
+
 ## Props
 
 ### NavigationMenu
@@ -260,31 +266,55 @@ ordinary semantic tokens and needs no local fallback.
 
 ## Motion
 
-The panel enters with a 150 ms opacity + scale rise (`DURATIONS.fast` and
-`JS_EASINGS.out`, the shared rung every floating surface in the library is
-on), growing from a `0.92` floor. The growth origin follows the side the panel
-was actually placed on — flipped placements included — so it always appears to
-come out of the menu bar rather than out of its own centre. Exposed as
-`data-side` / `data-align` for consumers that want to key their own styling
-off the resolved placement, alongside the existing `data-state`.
+The panel rises over 150 ms on the shared arrival curve (`DURATIONS.fast` and
+`JS_EASINGS.out`, the rung every floating surface in the library is on),
+growing from a `0.92` floor, and reverses over the same 150 ms on the
+departure curve (`JS_EASINGS.in`) — collapsing only to `0.96`, half the depth,
+because leaving is a smaller gesture than arriving. The growth origin follows
+the side the panel was actually placed on — flipped placements included — so
+it appears to come out of the menu bar, and to fold back into it, rather than
+out of its own centre. Exposed as `data-side` / `data-align` for consumers
+that want to key their own styling off the resolved placement, alongside
+`data-state`.
 
-The entrance is a Svelte transition rather than a keyframe, so there is no
-`--ft-*` variable on the panel to retime it; reduced motion is the one switch.
+One bidirectional Svelte transition drives both directions, not a keyframe, so
+there is no `--ft-*` variable on the panel to retime it; reduced motion is the
+one switch.
 
 - The panel used to slide four pixels down as it faded in. That travel is
   gone: `anchorPosition` owns `left`/`top` on this same element, so a panel
   can only ever fake vertical movement, and growing from the edge nearest the
   list says "this came out of that bar" more plainly than four pixels did.
 - Only `opacity` and `transform` animate, and only on the panel itself.
-- **Focus is never animated.** A keyboard-opened panel focuses its first link
-  in the same tick it mounts, entrance running or not.
-- **Reduced motion** — no entrance animation at all; the panel simply appears.
-  Visibility never depended on the animation: `{#if isOpen}` owns the panel's
-  DOM existence, and the entrance is layered on top of that.
-- **Touch and coarse pointers** — unchanged; the entrance is not
-  pointer-gated. It plays identically for a tap-opened panel, which never
+- **Reversing matters more here than on a click-only surface.** This panel
+  closes on a hover-intent timer, so a pointer that wanders off the bar and
+  comes back mid-close is ordinary rather than exceptional. One bidirectional
+  transition means the panel continues from wherever it is instead of snapping
+  to invisible and re-entering.
+- **The close is not deferred, only the removal is.** `value` still flips the
+  instant you dismiss, the triggers' `aria-expanded` with it, and
+  `onValueChange` fires once and immediately. What waits is the panel leaving
+  the DOM.
+- **Focus is never animated, and never waits.** A keyboard-opened panel
+  focuses its first link in the same tick it mounts; on the way out, Escape
+  returns focus to the trigger at the dismiss instant rather than at the end
+  of the fade — `NavigationMenu`'s own `close()` does that, which is why this
+  surface needs no focus trap (see "Why not `role=menu`" for why it must not
+  have one). `data-state="closing"` is set on the panel for the length of the
+  exit, and the framework marks it `inert` for the same window, so a panel on
+  its way out cannot hand out a clickable link.
+- **A second Escape during the fade reaches whatever is underneath.** The
+  dismiss layer stops answering the moment the panel stops being the open one,
+  so it neither fires again nor swallows the key on its way to the surface
+  below.
+- **Reduced motion** — no animation at all in either direction; the panel
+  simply appears and disappears, and the close is fully synchronous again,
+  exactly as it was before this component animated out. Visibility never
+  depended on the animation: `{#if isOpen}` owns the panel's DOM existence,
+  and the motion is layered on top of that.
+- **Touch and coarse pointers** — unchanged; neither direction is
+  pointer-gated. Both play identically for a tap-opened panel, which never
   goes through the hover-intent delays at all.
-- Closing is instant.
 
 ## Implementation notes
 

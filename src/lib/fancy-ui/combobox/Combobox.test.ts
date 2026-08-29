@@ -6,6 +6,7 @@ import ValueHarness from "./ComboboxHarness.test.svelte";
 import FieldHarness from "./ComboboxFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
 import type { ComboboxOption } from "./types.js";
+import { dismissable } from "../_internals/dismissable.js";
 
 const OPTIONS: ComboboxOption[] = [
 	{ value: "svelte-5", label: "Svelte 5" },
@@ -40,6 +41,32 @@ function options(): HTMLElement[] {
 
 function liveRegion(container: HTMLElement): HTMLElement {
 	return container.querySelector('[role="status"]') as HTMLElement;
+}
+
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh on every call, so an
+ * override installed before a render is visible to the very next read. */
+function stubReducedMotion(matches = true): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** Dispatches Escape SYNCHRONOUSLY, unlike `fireEvent.keyDown`, which awaits a
+ * tick of its own. The exit window is two microtasks under the WAAPI stub, so
+ * anything awaited between the dismiss and the assertion has already drained
+ * it and the test would pass for the wrong reason. */
+function pressEscape(): void {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
 }
 
 describe("Combobox", () => {
@@ -529,19 +556,6 @@ describe("Combobox", () => {
 	// rect measures 0×0, so the requested `bottom` never overflows the
 	// 768px-tall default viewport and never flips.
 	describe("entrance", () => {
-		function stubReducedMotion(): void {
-			vi.stubGlobal("matchMedia", (query: string) => ({
-				matches: true,
-				media: query,
-				onchange: null,
-				addEventListener: () => {},
-				removeEventListener: () => {},
-				dispatchEvent: () => false,
-				addListener: () => {},
-				removeListener: () => {},
-			}));
-		}
-
 		afterEach(() => {
 			vi.unstubAllGlobals();
 			vi.restoreAllMocks();
@@ -577,6 +591,90 @@ describe("Combobox", () => {
 			// visibility never depended on the entrance in the first place.
 			expect(animate).not.toHaveBeenCalled();
 			expect(panel()).not.toBeNull();
+		});
+	});
+
+	// The panel now leaves on the same shared transition it arrives on, so
+	// between the dismiss and the unmount there is a window — 150 ms in a
+	// browser, a couple of microtasks under the WAAPI stub. These pin what
+	// must be true inside it. `open`, `value` and `onValueChange` all still
+	// settle synchronously, which is why every assertion on them above stayed
+	// unwrapped.
+	describe("exit", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(Combobox, { props: { options: OPTIONS } });
+			const el = input(container);
+			await fireEvent.focus(el);
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = panel();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`. A reactive
+			// `data-state={…}` would never reach the DOM: Svelte marks the
+			// branch inert before it plays the outro and the scheduler skips
+			// inert effects.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a `transition:`,
+			// for the whole exit — which is what stops a row taking a click on
+			// its way out.
+			expect(closing!.inert).toBe(true);
+			// The input has already been told the panel is gone.
+			expect(el.getAttribute("aria-expanded")).toBe("false");
+
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The `active: () => ctx.open` gate. A layer on its way out must not
+		// swallow the key: the dismiss stack scans past it and hands Escape to
+		// whatever is underneath.
+		it("lets an Escape during the exit reach the layer underneath instead of swallowing it", async () => {
+			// Registered BEFORE the combobox, so the panel sits above it on the
+			// shared layer stack.
+			const beneath = document.createElement("div");
+			document.body.appendChild(beneath);
+			const onBeneath = vi.fn();
+			const beneathAction = dismissable(beneath, { onDismiss: onBeneath });
+
+			const { container } = render(Combobox, { props: { options: OPTIONS } });
+			await fireEvent.focus(input(container));
+
+			pressEscape(); // the panel is the top LIVE layer and takes this one
+			await tick();
+			expect(onBeneath).not.toHaveBeenCalled();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape(); // the panel is inactive now, so this falls through
+			expect(onBeneath).toHaveBeenCalledTimes(1);
+
+			beneathAction?.destroy?.();
+			beneath.remove();
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The reduced-motion fast path: a zero duration makes Svelte call
+		// `on_finish()` synchronously and never touch `element.animate()`, so
+		// a visitor who asked for less motion gets exactly the synchronous
+		// close this panel had before the exit existed.
+		it("closes synchronously and never animates under prefers-reduced-motion", async () => {
+			stubReducedMotion();
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Combobox, { props: { options: OPTIONS } });
+			await fireEvent.focus(input(container));
+			expect(panel()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			expect(panel()).toBeNull();
+			expect(animate).not.toHaveBeenCalled();
 		});
 	});
 });

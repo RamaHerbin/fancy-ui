@@ -17,7 +17,7 @@
 	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { anchored, originFor } from "../_internals/motion/anchored.js";
+	import { anchored, originFor, markSurfaceState } from "../_internals/motion/anchored.js";
 	import { createMenuFocus } from "../_internals/menu.svelte.js";
 	import {
 		DROPDOWN_MENU_KEY,
@@ -67,6 +67,9 @@
 			return focus;
 		},
 		itemTextClass: "text-[13px]",
+		get rootOpen() {
+			return root.open;
+		},
 		get sound() {
 			return root.sound;
 		},
@@ -132,15 +135,36 @@
 	`handleKeydown` above instead — it closes the menu and is never
 	`preventDefault`ed, so the browser's own Tab traversal continues from
 	wherever real DOM focus currently sits, rather than being cycled back
-	into a trap.
+	into a trap. That also means this panel needs no eager focus-return
+	handle the way a modal surface does: `DropdownMenu`'s own `setOpen`
+	refocuses the trigger from a plain function outside this `{#if}`, so the
+	return already lands at the dismiss instant rather than at unmount, exit
+	transition or not.
 
-	`in:`, never `transition:`: an intro does not delay unmount, so closing
-	stays as instant as it has always been and nothing that watches for the
-	panel leaving the DOM has to start waiting. The entrance itself is
-	`_internals/motion/anchored.js` — shared with every other floating surface
-	in the library — and it animates `opacity` + `transform` only. Focus is
-	untouched by it: `$effect` above still moves the roving focus in the same
-	tick it always did, mid-entrance or not.
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair: a
+	bidirectional directive passes the in-flight counterpart's current
+	position into the fresh call, so a menu reopened mid-exit continues from
+	where it is instead of snapping to invisible first. `entering: root.open`
+	is what tells it which way it is going — Svelte reports
+	`direction: "both"` for a bidirectional directive and cannot distinguish
+	the two on its own, and the params are read fresh (outside any reactive
+	context) at the instant each direction starts. The transition itself is
+	`_internals/motion/anchored.js`, shared with every other floating surface
+	in the library, and it animates `opacity` + `transform` only.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays
+	the outro and the scheduler skips inert effects, so a reactive
+	`data-state={…}` would never reach the DOM on a real close. `inert`
+	itself is never written by hand: Svelte sets it on any element carrying a
+	`transition:` for the whole exit, which is what keeps a menu on its way
+	out from answering a click.
+
+	`active: () => root.open` disarms the dismiss layer the instant `open`
+	flips, so a second Escape during the fade is neither answered again nor
+	swallowed on its way to whatever sits underneath — the layer is still on
+	the stack (its `destroy()` is delayed by the outro) but no longer top of
+	it.
 -->
 {#if root.open}
 	<div
@@ -164,12 +188,16 @@
 		use:dismissable={{
 			onDismiss: () => root.close(),
 			exclude: () => [root.triggerRef],
+			active: () => root.open,
 		}}
-		in:anchored={{ side: resolvedSide }}
+		transition:anchored={{ side: resolvedSide, entering: root.open }}
+		data-state="open"
 		data-side={resolvedSide}
 		data-align={root.align}
 		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onkeydown={handleKeydown}
+		onintrostart={(e) => markSurfaceState(e, "open")}
+		onoutrostart={(e) => markSurfaceState(e, "closing")}
 	>
 		{@render children?.()}
 	</div>

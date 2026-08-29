@@ -17,7 +17,7 @@
 	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { anchored, originFor } from "../_internals/motion/anchored.js";
+	import { anchored, originFor, markSurfaceState } from "../_internals/motion/anchored.js";
 	import { createMenuFocus } from "../_internals/menu.svelte.js";
 	import { handleMenuContentKeydown, createOpenSubRegistry } from "../dropdown-menu/menu-shared.js";
 	import {
@@ -60,6 +60,9 @@
 			return focus;
 		},
 		itemTextClass: "text-[12px]",
+		get rootOpen() {
+			return root.open;
+		},
 		closeAll(options) {
 			root.close(options);
 		},
@@ -102,14 +105,26 @@
 	last right-click's coordinates — instead of a real trigger element, but
 	`anchorPosition`'s flip/clamp behaviour needs nothing different for that:
 	a zero-size `DOMRect` at the pointer flips and clamps at the viewport
-	edges exactly the same way a real element's rect does — and the entrance
+	edges exactly the same way a real element's rect does — and the growth
 	origin below follows that same resolved side, so a menu that flipped to
 	sit *above* a click near the bottom of the viewport grows out of its own
-	bottom edge, the one still touching the pointer, instead of its top.
+	bottom edge, the one still touching the pointer, instead of its top. The
+	exit collapses back into that same corner.
 
-	`in:`, never `transition:`: an intro never delays unmount, so closing is
-	as instant as it has always been. Only `opacity` and `transform` animate;
-	focus still lands on the first item in the same tick it always did.
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair, with
+	`entering: root.open` as the direction signal: a bidirectional directive
+	hands the in-flight counterpart's current position to the fresh call, so
+	a menu reopened mid-exit continues from where it is rather than snapping
+	to invisible first, and Svelte's own `direction: "both"` cannot tell an
+	arrival from a departure. Only `opacity` and `transform` animate.
+
+	Focus needs nothing here: `ContextMenu`'s own `setOpen` returns focus to
+	whatever was focused before the right-click, from a plain function
+	outside this `{#if}`, so the return still happens at the dismiss instant
+	rather than waiting out the fade. `data-state` is a static literal moved
+	only by `markSurfaceState` from the two handlers below — a reactive
+	attribute inside a closing block never reaches the DOM — and `inert`
+	comes free with the `transition:` for the whole exit.
 -->
 {#if root.open}
 	<div
@@ -131,12 +146,16 @@
 		}}
 		use:dismissable={{
 			onDismiss: () => root.close(),
+			active: () => root.open,
 		}}
-		in:anchored={{ side: resolvedSide }}
+		transition:anchored={{ side: resolvedSide, entering: root.open }}
+		data-state="open"
 		data-side={resolvedSide}
 		data-align={root.align}
 		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onkeydown={handleKeydown}
+		onintrostart={(e) => markSurfaceState(e, "open")}
+		onoutrostart={(e) => markSurfaceState(e, "closing")}
 	>
 		{@render children?.()}
 	</div>

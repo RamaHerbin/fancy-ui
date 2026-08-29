@@ -13,7 +13,7 @@
 	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { anchored, originFor } from "../_internals/motion/anchored.js";
+	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 	import { TIME_PICKER_KEY, type TimePickerContext } from "./types.js";
 
 	let { class: className, ref = $bindable(null) }: TimePickerPanelProps = $props();
@@ -52,6 +52,22 @@
 	only ever communicated through `aria-activedescendant` on the button
 	above, which is why this panel carries `role="listbox"` and `role="option"`
 	rows instead of a plain menu, and why nothing here ever calls `.focus()`.
+
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair: a
+	bidirectional directive hands the in-flight counterpart's current position
+	to the fresh call, so a panel reopened mid-exit continues from where it is
+	instead of snapping to invisible first. `entering: ctx.open` is what tells
+	it which way it is going — Svelte reports `direction: "both"` for one
+	bidirectional directive and cannot tell the two apart on its own, and the
+	`{#if}` that mounts this component lives one level up in `TimePicker`, so
+	the flag has to arrive through the context.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays the
+	outro and the scheduler skips inert effects, so a reactive `data-state={…}`
+	would never reach the DOM on a real close. `inert` itself is never written
+	by hand: Svelte sets it on any element carrying a `transition:` for the
+	whole exit, which is what stops a row taking a click on its way out.
 -->
 <div
 	bind:this={ref}
@@ -72,11 +88,18 @@
 			resolvedAlign = align;
 		},
 	}}
-	use:dismissable={{ onDismiss: ctx.close, exclude: () => [ctx.triggerRef] }}
-	in:anchored={{ side: resolvedSide }}
+	use:dismissable={{
+		onDismiss: ctx.close,
+		exclude: () => [ctx.triggerRef],
+		active: () => ctx.open,
+	}}
+	transition:anchored={{ side: resolvedSide, entering: ctx.open }}
+	data-state="open"
 	data-side={resolvedSide}
 	data-align="start"
 	style:transform-origin={originFor(resolvedSide, resolvedAlign)}
+	onintrostart={(e) => markSurfaceState(e, "open")}
+	onoutrostart={(e) => markSurfaceState(e, "closing")}
 >
 	{#if ctx.slots.length === 0}
 		<!-- Reachable when `min`/`max` exclude every generated slot — see the

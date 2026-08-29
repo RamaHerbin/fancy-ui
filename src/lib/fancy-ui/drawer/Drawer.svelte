@@ -27,11 +27,18 @@
 
 <script lang="ts">
 	import { onDestroy } from "svelte";
+	import type { TransitionConfig } from "svelte/transition";
 	import { cn } from "$lib/utils.js";
 	import { portal } from "../_internals/portal.js";
 	import { focusTrap } from "../_internals/focus-trap.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { lockScroll } from "../_internals/scroll-lock.js";
+	import { scrollLock } from "../_internals/scroll-lock.js";
+	import {
+		anchored,
+		markSurfaceState,
+		prefersReducedMotion,
+	} from "../_internals/motion/anchored.js";
+	import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
 
 	let {
 		open = $bindable(false),
@@ -68,15 +75,6 @@
 		onOpenChange?.(false);
 	}
 
-	// Acquired the instant the drawer opens, released the instant it closes
-	// or unmounts — lockScroll() is reference-counted on its own side, so a
-	// second overlay opening/closing on top of this one never fights it.
-	$effect(() => {
-		if (!open) return;
-		const release = lockScroll();
-		return release;
-	});
-
 	// Swiping is a second way to trigger the same `dismissible` decision the
 	// close button, scrim and Escape already respect — a drawer marked
 	// non-dismissible can't be swiped away either, only closed
@@ -95,6 +93,18 @@
 	let activePointerId: number | null = null;
 	let dragStartY = 0;
 	let springBackTimer: ReturnType<typeof setTimeout> | undefined;
+
+	// The drag offset is deliberately NOT zeroed on a past-threshold release
+	// (see `handlePointerUp`) — it is the exit's start point. It cannot be
+	// cleared inside the closing block either: Svelte marks that branch inert
+	// before it plays the outro, so the `style:transform` write would never
+	// reach the DOM. The reset therefore happens on the way back IN, from an
+	// effect that lives outside the block, and lands before paint. Without it
+	// a drawer swiped shut would reopen already pushed down by the last
+	// swipe's distance.
+	$effect(() => {
+		if (open) dragY = 0;
+	});
 
 	// A drag released below the threshold arms this timer (see
 	// `handlePointerUp`/`handlePointerCancel`); if the drawer unmounts before
@@ -136,7 +146,12 @@
 		releaseCapture(event);
 
 		if (dragY > DISMISS_THRESHOLD_PX) {
-			dragY = 0;
+			// `dragY` is NOT zeroed here. Zeroing it used to be harmless
+			// because removal was instant; with an exit it would snap the
+			// panel back up to rest and then slide it down — two gestures
+			// where the user made one. `close()` captures the offset as the
+			// exit's start point instead, so the slide-out carries on from
+			// exactly where the finger let go.
 			close();
 			return;
 		}
@@ -164,6 +179,69 @@
 		}, SPRING_BACK_MS);
 	}
 
+	// Handed over by `focusTrap` the moment the trap arms; called at
+	// `outrostart`, which is the dismiss instant on EVERY close path (Escape,
+	// the scrim, the close button, a past-threshold swipe, a caller's own
+	// `bind:open` write). Waiting for the trap's own `destroy()` would leave a
+	// keyboard user on `<body>` for the whole length of the slide-out, because
+	// Svelte sets `inert` on this panel the instant the exit starts.
+	let returnFocusNow: (() => void) | null = null;
+
+	// The other half of that handover, called at `introstart`. A drawer
+	// reopened DURING its exit reverses the outro instead of remounting, so
+	// `use:focusTrap` is never re-created: without this the panel would come
+	// back `aria-modal` and interactive with focus left on the trigger behind
+	// it, and the eager return already spent for the life of the instance.
+	let rearmFocusTrap: (() => void) | null = null;
+
+	function handleIntroStart(event: Event) {
+		markSurfaceState(event, "open");
+		rearmFocusTrap?.();
+	}
+
+	function handleOutroStart(event: Event) {
+		markSurfaceState(event, "closing");
+		returnFocusNow?.();
+	}
+
+	// The one place this component owns motion, and the other half of the
+	// swipe gesture. Not `anchored`: that helper is scale+opacity by design
+	// and carries no translate term, and a drawer's whole gesture is travel.
+	// Not a pixel distance either — the panel's height depends on its
+	// content, and only `%` clears its own edge whatever that height is.
+	//
+	// The exit does not halve its travel the way the scale rung does: a
+	// drawer that slid half-way down and then vanished reads worse than one
+	// that simply leaves. A named exception, not an oversight.
+	//
+	// `from` is where the panel is at the instant the exit starts, read
+	// straight off the live `dragY` rather than from a value captured on the
+	// way into `close()`. A parent writing the bound `open` to false — mid-drag
+	// included — never goes through `close()` at all, and a captured offset
+	// would then still be 0 while the panel'"'"'s inline transform sat at the
+	// finger'"'"'s position: the drawer would snap back to rest and only then slide
+	// out. `dragY` is already correct on every path: 0 for a scrim click,
+	// Escape and the close button, and left exactly where the finger let go
+	// for a past-threshold release. At `t = 1` the panel sits exactly there;
+	// at `t = 0` it is a full height below the viewport. One continuous motion
+	// rather than a snap back followed by a slide. On the way in `from` is
+	// always 0: an entrance starts off-screen and ends at rest, and a stale
+	// offset from an earlier swipe must not become the resting position.
+	function drawerSlide(_node: Element, params: { entering: boolean }): TransitionConfig {
+		const reduced = prefersReducedMotion();
+		const entering = params.entering;
+		const from = entering ? 0 : dragY;
+		return {
+			// Reduced motion collapses this to 0, which makes Svelte call
+			// `on_finish()` synchronously and never touch `element.animate()` —
+			// so the close is exactly as synchronous as it was before the
+			// drawer animated out at all.
+			duration: reduced ? 0 : entering ? DURATIONS.base : DURATIONS.exit,
+			easing: entering ? JS_EASINGS.out : JS_EASINGS.in,
+			css: (t, u) => `transform: translateY(calc(${from}px * ${t} + 100% * ${u}))`,
+		};
+	}
+
 	const panelClasses = $derived(
 		cn(
 			"ft-drawer-panel bg-popover text-popover-foreground fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col gap-3 rounded-t-[14px] border-t border-r border-l border-border pt-3.5 pr-5 pb-5 pl-5 shadow-2xl",
@@ -185,19 +263,73 @@
 	  ahead of `use:focusTrap` in source order, guarantees the panel is
 	  already attached to the document by the time focus-trap tries to focus
 	  into it.
+
+	  The scrim fades on opacity alone (`scale: false`) while the panel
+	  travels, and both run the same clock, so they leave together and
+	  Svelte's "destroy the branch when the LAST transition finishes" rule is
+	  a tie rather than a straggler.
 	-->
-	<div class="ft-drawer-scrim fixed inset-0 z-50 bg-black/60" use:portal aria-hidden="true"></div>
+	<div
+		class="ft-drawer-scrim fixed inset-0 z-50 bg-black/60"
+		use:portal
+		aria-hidden="true"
+		transition:anchored={{
+			entering: open,
+			scale: false,
+			duration: DURATIONS.base,
+			exitDuration: DURATIONS.exit,
+		}}
+	></div>
+	<!--
+	  `use:scrollLock` sits here rather than on the scrim, and is an action
+	  rather than an `$effect`, for the release timing: an action's
+	  `destroy()` is delayed by the outro, so the page stays locked until the
+	  panel has actually finished sliding out instead of unlocking the instant
+	  `open` flips and leaving the page scrollable under a scrim still on
+	  screen.
+
+	  ONE bidirectional `transition:` directive, never a split `in:`/`out:`
+	  pair: a bidirectional directive passes the in-flight counterpart's
+	  current position into the fresh call, so a drawer reopened mid-exit
+	  continues from where it is instead of snapping off-screen first.
+
+	  `style:transform` still carries the live drag offset, and the two never
+	  fight: a running animation wins over an inline style, so the transition
+	  owns `transform` for the whole exit and hands back to the inline value
+	  only once it is finished — by which point the panel is gone. The offset
+	  is frozen for the length of the exit anyway, because Svelte marks this
+	  branch inert before playing the outro and the scheduler skips inert
+	  effects. `data-state` is a STATIC literal for the same reason, changed
+	  only by `markSurfaceState` from the two handlers below; `inert` is not
+	  written by hand, because Svelte sets it on any element carrying a
+	  `transition:` for the whole exit.
+	-->
 	<div
 		bind:this={ref}
 		class={panelClasses}
-		style:transform="translateY({dragY}px)"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={titleId}
 		aria-describedby={descriptionId}
 		use:portal
-		use:focusTrap
-		use:dismissable={{ onDismiss: close, escape: dismissible, outsideClick: dismissible }}
+		use:scrollLock
+		use:focusTrap={{
+			onActivate: (returnNow, rearm) => {
+				returnFocusNow = returnNow;
+				rearmFocusTrap = rearm;
+			},
+		}}
+		use:dismissable={{
+			onDismiss: close,
+			escape: dismissible,
+			outsideClick: dismissible,
+			active: () => open,
+		}}
+		transition:drawerSlide={{ entering: open }}
+		data-state="open"
+		style:transform="translateY({dragY}px)"
+		onintrostart={handleIntroStart}
+		onoutrostart={handleOutroStart}
 	>
 		<div
 			class="ft-drawer-drag-surface flex flex-col items-center gap-2 pb-1"
@@ -239,47 +371,24 @@
 
 <style>
 	/*
-	 * Resting position is a plain, unconditional rule — the drawer is fully
-	 * on-screen with or without the entrance animation below, so a panel
-	 * that only becomes visible via the animation never disappears when
-	 * motion is turned off.
+	 * The entrance and its resting rule used to live here as keyframes; both
+	 * are now the JS transition in the script above, which emits no
+	 * transform at rest and collapses to zero duration under reduced motion.
+	 * What survives is the spring-back, which is a different interaction on
+	 * a different curve.
 	 */
-	.ft-drawer-panel {
-		transform: translateY(0);
-	}
-
 	@media (prefers-reduced-motion: no-preference) {
-		.ft-drawer-panel {
-			animation: ft-drawer-in 0.22s ease-out;
-		}
-		.ft-drawer-scrim {
-			animation: ft-drawer-scrim-in 0.22s ease-out;
-		}
 		/*
-		 * The only place a transition ever touches `transform`: a released
-		 * drag that fell short of the dismiss threshold. Live dragging
-		 * itself never carries this class, so the panel tracks the pointer
-		 * with no lag; only the snap-back afterwards eases.
+		 * The only place a CSS transition ever touches `transform`: a
+		 * released drag that fell short of the dismiss threshold. Live
+		 * dragging itself never carries this class, so the panel tracks the
+		 * pointer with no lag; only the snap-back afterwards eases. A drag
+		 * released PAST the threshold never carries it either — that one is
+		 * handed to the exit transition instead, from wherever the finger
+		 * let go.
 		 */
 		.ft-drawer-panel--releasing {
 			transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
-		}
-	}
-
-	@keyframes ft-drawer-in {
-		from {
-			transform: translateY(100%);
-		}
-		to {
-			transform: translateY(0);
-		}
-	}
-	@keyframes ft-drawer-scrim-in {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
 		}
 	}
 

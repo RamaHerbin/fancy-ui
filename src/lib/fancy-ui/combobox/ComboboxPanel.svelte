@@ -4,7 +4,7 @@
 	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { anchored, originFor } from "../_internals/motion/anchored.js";
+	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 	import { getMatchRange } from "./match.js";
 	import { COMBOBOX_KEY, type ComboboxContext } from "./types.js";
 
@@ -45,11 +45,23 @@
 	identical reason: without it, clicking a row would blur the input a beat
 	before selecting anything.
 
-	This panel had no entrance at all until now — it appeared fully formed on
-	the first frame while every sibling surface rose into place. `in:` and not
-	`transition:`, deliberately: an entrance-only directive leaves teardown
-	synchronous, so closing still removes the panel in the same tick that
-	`open` flips false.
+	This panel had no motion at all until recently — it appeared and vanished
+	fully formed while every sibling surface rose into place. It now arrives and
+	leaves on ONE bidirectional `transition:`, never a split `in:`/`out:` pair:
+	a bidirectional directive hands the in-flight counterpart's current position
+	to the fresh call, so a panel reopened mid-exit continues from where it is
+	instead of snapping to invisible first. `entering: ctx.open` is what tells
+	it which way it is going — Svelte reports `direction: "both"` for one
+	bidirectional directive and cannot tell the two apart on its own, and the
+	`{#if}` that mounts this component lives one level up in `Combobox`, so the
+	flag has to arrive through the context.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays the
+	outro and the scheduler skips inert effects, so a reactive `data-state={…}`
+	would never reach the DOM on a real close. `inert` itself is never written
+	by hand: Svelte sets it on any element carrying a `transition:` for the
+	whole exit, which is what stops a row taking a click on its way out.
 -->
 <div
 	id={ctx.panelId}
@@ -66,11 +78,18 @@
 			resolvedAlign = align;
 		},
 	}}
-	use:dismissable={{ onDismiss: ctx.close, exclude: () => [ctx.inputRef] }}
-	in:anchored={{ side: resolvedSide }}
+	use:dismissable={{
+		onDismiss: ctx.close,
+		exclude: () => [ctx.inputRef],
+		active: () => ctx.open,
+	}}
+	transition:anchored={{ side: resolvedSide, entering: ctx.open }}
+	data-state="open"
 	data-side={resolvedSide}
 	data-align="start"
 	style:transform-origin={originFor(resolvedSide, resolvedAlign)}
+	onintrostart={(e) => markSurfaceState(e, "open")}
+	onoutrostart={(e) => markSurfaceState(e, "closing")}
 >
 	{#if ctx.options.length === 0}
 		<div

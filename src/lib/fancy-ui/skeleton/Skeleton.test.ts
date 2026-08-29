@@ -1,7 +1,8 @@
-import { render, cleanup, screen, within } from "@testing-library/svelte";
-import { createRawSnippet } from "svelte";
-import { afterEach, describe, expect, it } from "vitest";
+import { render, cleanup, fireEvent, screen, waitFor, within } from "@testing-library/svelte";
+import { createRawSnippet, tick } from "svelte";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import Skeleton from "./Skeleton.svelte";
+import RevealHarness from "./SkeletonRevealHarness.test.svelte";
 
 // Skeleton's motion is entirely CSS-gated (no JS reduced-motion check, no
 // listener/observer/timer of any kind besides the phase-sync effect below),
@@ -155,6 +156,172 @@ describe("Skeleton", () => {
 			const { container } = render(Skeleton, { props: { loading: true, label: "", children } });
 			expect(container.querySelector('[role="status"]')).toBeNull();
 			expect(bones(container).length).toBeGreaterThan(0);
+		});
+	});
+
+	// The reveal: the bones no longer cut to the content, they fade out on top
+	// of it. Everything below is about the window between those two — which is
+	// 200ms in a browser and a couple of microtasks under the WAAPI stub, so
+	// the flip is driven by a CLICK inside the harness and observed after ONE
+	// `tick()`. `rerender()` awaits a tick of its own and would drain the
+	// stub's microtask chain before the assertion ever ran, turning every one
+	// of these into a false negative.
+	describe("the reveal (wrapping mode)", () => {
+		function overlay(container: HTMLElement): HTMLElement | null {
+			return container.querySelector<HTMLElement>(".ft-skeleton-bones-out");
+		}
+
+		// A RAW `.click()`, never `fireEvent.click`: testing-library's helper
+		// awaits a tick of its own, which would spend the one flush the fade
+		// lives in before the assertion ran. And this returns `tick()`'s
+		// promise rather than being `async` for the same reason at one level
+		// down — an `async` wrapper resolves through a promise of its own, and
+		// under the stubbed Web Animations API a microtask is the whole fade.
+		function reveal(container: HTMLElement): Promise<void> {
+			within(container).getByTestId("toggle").click();
+			return tick();
+		}
+
+		it("keeps the bones on screen, aria-hidden and out of flow, then drops them", async () => {
+			const { container } = render(RevealHarness);
+			expect(bones(container).length).toBe(2);
+
+			await reveal(container);
+
+			const lingering = overlay(container);
+			expect(lingering).not.toBeNull();
+			expect(lingering).toHaveAttribute("aria-hidden", "true");
+			expect(bones(container).length).toBe(2);
+			// The bones that are left are the overlay's, never in-flow ones:
+			// the content is what sizes the root from the first frame.
+			for (const bone of bones(container)) {
+				expect(lingering!.contains(bone)).toBe(true);
+			}
+
+			await waitFor(() => expect(overlay(container)).toBeNull());
+			expect(bones(container)).toHaveLength(0);
+		});
+
+		// The whole point of the design. If the content only became queryable
+		// once the fade ended, the reveal would be a 200ms hole in the page
+		// rather than a dissolve over content that is already there.
+		it("hands over the real content immediately, not after the fade", async () => {
+			const onContentClick = vi.fn();
+			const { container } = render(RevealHarness, { props: { onContentClick } });
+
+			await reveal(container);
+
+			expect(container.textContent).toContain("Real content");
+			// And it is interactive while the bones are still painted over it:
+			// the overlay is `pointer-events: none`, asserted below.
+			await fireEvent.click(within(container).getByTestId("content-button"));
+			expect(onContentClick).toHaveBeenCalledTimes(1);
+		});
+
+		// jsdom applies no stylesheet, so the property itself is unobservable
+		// here; the class that carries it is the testable half. `.ft-skeleton-
+		// bones-out` exists for exactly two declarations — `position: absolute`
+		// and `pointer-events: none` — and a tidy-up that drops either one
+		// would make the reveal cover the content it is fading over.
+		it("puts the lingering bones in the class that takes them out of flow and out of the way", async () => {
+			const { container } = render(RevealHarness);
+
+			await reveal(container);
+
+			expect(overlay(container)).not.toBeNull();
+			expect(overlay(container)!.className).toContain("ft-skeleton-bones-out");
+		});
+
+		// A live region that outlives its own ANNOUNCEMENT is the bug the
+		// component's own comment warns about — not the region itself, which
+		// deliberately stays mounted so a later `loading` flip is a text
+		// change rather than an insertion (see the toggle test above; an
+		// already-populated region inserted fresh is announced unreliably).
+		// What must not survive the reveal is the TEXT, and the overlay must
+		// never carry a second copy of the region into the fade.
+		it("empties the status span with the in-flow bones rather than lingering the announcement into the fade", async () => {
+			const { container } = render(RevealHarness);
+			const status = container.querySelector('[role="status"]');
+			expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
+			expect(status?.textContent).not.toBe("");
+
+			await reveal(container);
+
+			// The same node, emptied — not a second one, and not one copied
+			// into the lingering bones.
+			expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
+			expect(container.querySelector('[role="status"]')).toBe(status);
+			expect(status?.textContent).toBe("");
+			expect(overlay(container)!.querySelector('[role="status"]')).toBeNull();
+			// aria-busy goes at the same instant, for the same reason.
+			expect(container.querySelector(".ft-skeleton")).not.toHaveAttribute("aria-busy");
+		});
+
+		// `duration: 0` makes Svelte finish the outro synchronously and never
+		// touch `element.animate()`, so a visitor who asked for less motion
+		// gets exactly the instant swap this component had before the reveal
+		// existed — the overlay is gone in the same tick it mounted.
+		it("reduced motion: swaps instantly, with no overlay and no animation", async () => {
+			vi.stubGlobal("matchMedia", (query: string) => ({
+				matches: /prefers-reduced-motion:\s*reduce\b/.test(query),
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				dispatchEvent: () => false,
+				addListener: () => {},
+				removeListener: () => {},
+			}));
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			try {
+				const { container } = render(RevealHarness);
+
+				await reveal(container);
+
+				expect(overlay(container)).toBeNull();
+				expect(bones(container)).toHaveLength(0);
+				expect(container.textContent).toContain("Real content");
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+				vi.unstubAllGlobals();
+			}
+		});
+
+		// Mounting already revealed is not a reveal: there is nothing to fade
+		// out, and a set of bones flashed over content that was never hidden
+		// would be a new defect rather than a nicety.
+		it("never flashes bones for a Skeleton that mounts with loading already false", async () => {
+			const { container } = render(Skeleton, { props: { loading: false, children } });
+
+			expect(overlay(container)).toBeNull();
+			expect(bones(container)).toHaveLength(0);
+			// Not just on the first frame: the arming effect runs after the
+			// first render, and must not arm a reveal that never happened.
+			await tick();
+			expect(overlay(container)).toBeNull();
+			expect(bones(container)).toHaveLength(0);
+		});
+
+		// Going back to loading re-arms the reveal rather than spending it
+		// once per instance — a list that refetches shows its bones again, and
+		// the next reveal fades them out the same way the first one did.
+		it("re-arms when loading goes true again", async () => {
+			const { container } = render(RevealHarness);
+
+			await reveal(container);
+			await waitFor(() => expect(overlay(container)).toBeNull());
+
+			// Back to loading: in-flow bones and the live region return.
+			await reveal(container);
+			expect(overlay(container)).toBeNull();
+			expect(bones(container).length).toBe(2);
+			expect(container.querySelectorAll('[role="status"]')).toHaveLength(1);
+
+			// And the second reveal lingers exactly like the first.
+			await reveal(container);
+			expect(overlay(container)).not.toBeNull();
+			await waitFor(() => expect(overlay(container)).toBeNull());
 		});
 	});
 

@@ -40,6 +40,9 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { preset } from "../_internals/motion/transitions.js";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
 
 	let {
 		variant = "rect",
@@ -71,6 +74,47 @@
 		return Number.isFinite(n) ? Math.max(1, n) : 1;
 	});
 	const bones = $derived(Array.from({ length: lineCount }, (_, i) => i));
+
+	// The reveal. Bones do not cut to content, they fade out ON TOP of it:
+	// the content lands in its final, unwrapped position on the first frame
+	// and never moves, while the outgoing bones become an out-of-flow overlay
+	// the content sizes for them. That answers "what sizes the slot while both
+	// layers are mounted" with "the content does", and it is why there is no
+	// layer wrapper here — the root IS the eventual content container (see the
+	// comment on the wrapping branch below), so introducing one, even only for
+	// the length of the fade, would move the caller's children in the DOM tree
+	// and make Svelte destroy and recreate them: focus, scroll position and
+	// media playback lost, in exchange for a cross-fade nobody asked for.
+	//
+	// `bonesLingering` deliberately LAGS `loading` by one update. The instant
+	// `loading` flips false the `{:else}` branch renders while this is still
+	// true, so the overlay mounts already sitting over the real content; the
+	// effect then writes it false, and THAT is what starts the fade. It lives
+	// out here rather than inside the block because nothing reactive survives
+	// inside a block Svelte has begun closing — the branch is marked inert
+	// before the outro plays and the scheduler skips inert effects.
+	//
+	// Seeded `false`, never `true`: a Skeleton that mounts with
+	// `loading={false}` has nothing to reveal and must not flash a set of
+	// bones over content that was never hidden. Mounting the other way round
+	// costs nothing — while `loading` is true the bones are in flow and the
+	// overlay is not rendered at all, and the effect below has already armed
+	// this by the time the first reveal can happen.
+	let bonesLingering = $state(false);
+	$effect(() => {
+		bonesLingering = loading;
+	});
+
+	// Opacity only, `DURATIONS.exit` (200ms) on `JS_EASINGS.in` — a departure
+	// curve for a departing layer. `prefersReducedMotion()` is called from the
+	// params expression at the call site rather than stored here: Svelte
+	// re-evaluates a directive's params at the instant the transition starts,
+	// so the preference is read then, never at construction and never during
+	// SSR. `duration: 0` makes Svelte skip `element.animate()` outright and
+	// finish the outro inside the same flush, so the overlay is gone in the
+	// same tick it mounted — exactly the instant swap this component had
+	// before the reveal existed.
+	const bonesFade = preset("fade");
 
 	// Page-wide shimmer phase sync. Every Skeleton instance on the page reads
 	// the SAME shared monotonic timeline, so instances that mount at different
@@ -146,6 +190,26 @@
 		{#if loading}
 			{@render bonesList()}
 		{:else}
+			<!--
+				The bones on their way out, `aria-hidden` and out of flow. They
+				are NOT the live region: `role="status"` lives and dies with
+				the in-flow bones above, so the announcement never outlives
+				itself by lingering into the fade. `pointer-events: none` (see
+				the stylesheet) is what makes the revealed content clickable
+				from frame one despite something still being painted over it.
+			-->
+			{#if bonesLingering}
+				<div
+					class="ft-skeleton-bones-out"
+					aria-hidden="true"
+					out:bonesFade={{
+						duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
+						easing: JS_EASINGS.in,
+					}}
+				>
+					{@render bonesList()}
+				</div>
+			{/if}
 			{@render children?.()}
 		{/if}
 		{#if label !== ""}
@@ -188,6 +252,23 @@
 <style>
 	.ft-skeleton {
 		display: block;
+		/* NEW, and a named layout-property exception: the containing block for
+		   the outgoing bones overlay. `display: block` is unchanged; this
+		   changes nothing for a consumer unless they were relying on the
+		   skeleton root NOT being a containing block for an absolutely
+		   positioned descendant of their own content. */
+		position: relative;
+	}
+
+	/* The outgoing bones, for the length of the fade only. Out of flow, so the
+	   content underneath is what sizes the root and the container never
+	   overshoots and settles; `inset: 0` then hands the bones exactly the
+	   content's own box to fade out over. Not interactive for a single frame
+	   of it — the revealed content is clickable from the moment it lands. */
+	.ft-skeleton-bones-out {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
 	}
 
 	.ft-skeleton-bone {

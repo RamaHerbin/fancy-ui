@@ -25,6 +25,9 @@
 </script>
 
 <button type="button" data-testid="trigger" onclick={() => (open = true)}>Open</button>
+<!-- A close driven from OUTSIDE the drawer: the bound-write path, which never
+     goes through the component's own `close()`. -->
+<button type="button" data-testid="close-from-parent" onclick={() => (open = false)}>Close</button>
 
 <Drawer bind:open bind:ref={panelRef} {onOpenChange} title="Filters">Body content</Drawer>
 

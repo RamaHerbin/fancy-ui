@@ -111,28 +111,41 @@ component-local tokens of its own.
 
 ## Motion
 
-The suggestion list enters with a 150 ms opacity + scale rise
-(the shared `fast` rung and out-curve, applied in JS — there is no `--ft-*`
-variable to override for this entrance), growing from a `0.92` floor — the same
-entrance every floating surface in the library uses. The growth origin follows
-the side the panel was **actually** placed on, so a list that flips above the
-input when the input sits low in the viewport grows from its bottom edge rather
-than its top, and always appears to come out of the field.
+The suggestion list arrives and leaves on one bidirectional transition — the
+shared `fast` rung, 150 ms in each direction, applied in JS (there is no
+`--ft-*` variable to override it). It rises from a `0.92` scale floor on the
+out-curve and collapses to `0.96` on the in-curve: leaving is a smaller gesture
+than arriving, and a full-depth collapse on dismiss reads as the list being
+sucked away rather than simply closing. It is the same motion every floating
+surface in the library uses.
 
-The entrance plays when the list opens, not on every keystroke: while it stays
-open, refiltering only swaps rows. A query that stops matching does close the
-list, though, so the next keystroke that matches again is a fresh open — and a
-fresh entrance.
+The growth origin follows the side the panel was **actually** placed on, so a
+list that flips above the input when the input sits low in the viewport grows
+from its bottom edge rather than its top, and always appears to come out of the
+field and go back into it.
+
+Neither direction plays on every keystroke: while the list stays open,
+refiltering only swaps rows. A query that stops matching does close it — and
+because both directions share one bidirectional transition, a keystroke that
+matches again mid-fade **reverses** the exit from wherever it had got to rather
+than starting a second list over the top of the first.
 
 The resolved placement is published on the panel as `data-side` and
 `data-align`, for consumers that want to key their own styling off where it
-landed.
+landed. While the list is on screen it carries `data-state="open"`; for the
+length of the exit it carries `data-state="closing"` and is `inert`, so a row
+cannot be clicked on its way out.
 
-- **Reduced motion** — no entrance animation at all; the list simply appears.
-  Its visibility never depended on the animation, so nothing is lost.
-- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated
-  and plays identically on touch.
-- Closing is currently instant.
+- **Reduced motion** — no animation in either direction; the list appears and
+  disappears instantly and the close is synchronous again. Its visibility never
+  depended on the animation, so nothing is lost.
+- **Touch and coarse pointers** — unchanged; neither direction is pointer-gated
+  and both play identically on touch.
+- **Committing or dismissing is still immediate.** `value`, `onValueChange`,
+  `onSelect` and `aria-expanded` all settle in the tick you act; only the list's
+  removal from the DOM waits for the fade. A second Escape inside that window is
+  not swallowed by the list already leaving — it reaches whatever sits
+  underneath.
 
 ## Implementation Notes
 

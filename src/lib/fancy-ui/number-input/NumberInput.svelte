@@ -32,8 +32,10 @@
 </script>
 
 <script lang="ts">
+	import { onDestroy } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
 
 	let {
 		value = $bindable(null),
@@ -145,13 +147,45 @@
 		effectiveDisabled || readonly || (value !== null && max !== undefined && value >= max)
 	);
 
+	// Which stepper just fired, for `DURATIONS.micro` (80ms) afterwards, or
+	// `null` between steps. A pointer gets its press feedback from `:active`
+	// for free; a keyboard press has no `:active` to give, so this flag hands
+	// the very same rule to the arrow keys. One shared visual answer to "that
+	// stepper just fired", whichever device fired it — no second keyframe, and
+	// so no animation-restart problem on a held key.
+	//
+	// Nothing here touches the `<input>`: a transform on the field would blur
+	// the digits the reader is checking and fight the caret.
+	let steppingDirection = $state<1 | -1 | null>(null);
+	let steppingTimer: ReturnType<typeof setTimeout> | null = null;
+
+	// Re-armed, never stacked: a held ArrowUp repeats faster than 80ms, and a
+	// second timer on top of the first would clear the flag mid-repeat.
+	function flagStepping(direction: 1 | -1) {
+		steppingDirection = direction;
+		if (steppingTimer !== null) clearTimeout(steppingTimer);
+		steppingTimer = setTimeout(() => {
+			steppingTimer = null;
+			steppingDirection = null;
+		}, DURATIONS.micro);
+	}
+
+	onDestroy(() => {
+		if (steppingTimer !== null) clearTimeout(steppingTimer);
+	});
+
 	// Shared by the buttons and the keyboard handler below, so button-driven
-	// and arrow-key-driven stepping can never drift apart in rounding.
+	// and arrow-key-driven stepping can never drift apart in rounding — and,
+	// since `flagStepping` is called from here and from nowhere else, so that
+	// the feedback can only ever fire on an actual step. Typing goes through
+	// `handleInput`, which cannot reach it: a field that flashed a stepper on
+	// every keystroke would be reporting something that did not happen.
 	function applyStep(direction: 1 | -1) {
 		const next = nextStepValue(direction);
 		value = next;
 		rawText = String(next);
 		onValueChange?.(next);
+		flagStepping(direction);
 	}
 
 	function handleDecrement() {
@@ -244,6 +278,7 @@
 		class="ft-number-input-step text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground flex w-[34px] shrink-0 cursor-pointer items-center justify-center border-r focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
 		aria-label="Decrease value"
 		disabled={decrementDisabled}
+		data-stepping={steppingDirection === -1 ? "true" : undefined}
 		onclick={handleDecrement}
 	>
 		−
@@ -272,6 +307,7 @@
 		class="ft-number-input-step text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground flex w-[34px] shrink-0 cursor-pointer items-center justify-center border-l focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
 		aria-label="Increase value"
 		disabled={incrementDisabled}
+		data-stepping={steppingDirection === 1 ? "true" : undefined}
 		onclick={handleIncrement}
 	>
 		+
@@ -314,7 +350,8 @@
 	 * and deliberately kept: a bound-reached stepper must read as inert, and
 	 * that should not depend on a utility staying in the class string.
 	 */
-	.ft-number-input-step:active:not(:disabled) {
+	.ft-number-input-step:active:not(:disabled),
+	.ft-number-input-step[data-stepping="true"]:not(:disabled) {
 		opacity: var(--ft-number-input-press-opacity, 0.85);
 	}
 
@@ -334,7 +371,8 @@
 				scale var(--ft-number-input-motion);
 		}
 
-		.ft-number-input-step:active:not(:disabled) {
+		.ft-number-input-step:active:not(:disabled),
+		.ft-number-input-step[data-stepping="true"]:not(:disabled) {
 			scale: var(--ft-number-input-press-scale, 0.97);
 			/* Full motion = scale only; reduced motion = opacity only. Never both. */
 			opacity: 1;

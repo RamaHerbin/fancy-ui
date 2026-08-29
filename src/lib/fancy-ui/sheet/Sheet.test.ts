@@ -1,5 +1,5 @@
-import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { createRawSnippet } from "svelte";
+import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
+import { createRawSnippet, flushSync } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 
 // `vi.mock` factories are hoisted above imports and may not close over
@@ -14,6 +14,12 @@ const { lockScrollMock, releaseMock } = vi.hoisted(() => {
 
 vi.mock("../_internals/scroll-lock.js", () => ({
 	lockScroll: lockScrollMock,
+	// The action form goes through the same mock so the existing
+	// acquire/release assertions keep meaning what they meant — and it has to
+	// be here at all now: the component locks the page with `use:scrollLock`
+	// rather than an `$effect`, so a factory exporting only `lockScroll`
+	// leaves the action `undefined` and the component throws on open.
+	scrollLock: () => ({ destroy: lockScrollMock() }),
 }));
 
 import Sheet from "./Sheet.svelte";
@@ -36,14 +42,47 @@ function pressEscape() {
 	return fireEvent.keyDown(document, { key: "Escape" });
 }
 
+/**
+ * Escape, dispatched WITHOUT awaiting testing-library's own flush.
+ *
+ * `fireEvent` awaits a promise of its own on top of `tick()`, and those extra
+ * microtask turns are exactly long enough for the stubbed Web Animations API
+ * to fire `onfinish` and let Svelte destroy the branch — so a test that awaits
+ * it can never observe the exit window it is trying to assert on. A bare
+ * dispatch followed by `flushSync()` runs the whole close synchronously and
+ * stops there, right inside the window.
+ */
+function dispatchEscape() {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
+}
+
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
+}
+
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh on every call, so an
+ * override installed before a render is visible to the very next read. */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
 }
 
 describe("Sheet", () => {
 	afterEach(() => {
 		cleanup();
 		document.body.innerHTML = "";
+		vi.unstubAllGlobals();
 		lockScrollMock.mockClear();
 		releaseMock.mockClear();
 	});
@@ -94,8 +133,11 @@ describe("Sheet", () => {
 
 		await pressEscape();
 
+		// `open` still flips synchronously — nothing a caller can observe
+		// waits for the slide-out — but the panel stays mounted while it
+		// plays, so its removal is what has to be awaited.
 		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(dialog()).toBeNull();
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("does not close on Escape when dismissible is false", async () => {
@@ -115,7 +157,7 @@ describe("Sheet", () => {
 		await fireEvent.pointerDown(scrim()!);
 
 		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(dialog()).toBeNull();
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("does not close on scrim click when dismissible is false", async () => {
@@ -135,7 +177,7 @@ describe("Sheet", () => {
 		await fireEvent.click(closeButton()!);
 
 		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(dialog()).toBeNull();
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("omits the close button when dismissible is false", () => {
@@ -158,6 +200,12 @@ describe("Sheet", () => {
 
 		await pressEscape();
 
+		// Deliberately UNWRAPPED. The return happens at the dismiss instant,
+		// not when the slide-out ends: the focus trap hands the component a
+		// handle it calls from `onoutrostart`. Wrapping this in `waitFor`
+		// would silently accept a return that only lands once the panel is
+		// gone — which in a browser is 200 ms of a keyboard user sitting on
+		// `<body>`, because the closing panel is made inert immediately.
 		expect(document.activeElement).toBe(trigger);
 		trigger.remove();
 	});
@@ -238,11 +286,16 @@ describe("Sheet", () => {
 	it("acquires the scroll lock on open and releases it on close", async () => {
 		const { unmount } = render(Sheet, { props: { open: true, title: "Settings" } });
 
+		// Stays synchronous: `use:scrollLock` acquires at mount, so the lock is
+		// in place by the time the panel is on screen.
 		expect(lockScrollMock).toHaveBeenCalledTimes(1);
 		expect(releaseMock).not.toHaveBeenCalled();
 
 		await pressEscape();
-		expect(releaseMock).toHaveBeenCalledTimes(1);
+		// The release is deliberately NOT synchronous any more: the action's
+		// `destroy()` is delayed by the exit transition, which is what keeps
+		// the page locked until the panel has actually finished sliding out.
+		await waitFor(() => expect(releaseMock).toHaveBeenCalledTimes(1));
 
 		unmount();
 	});
@@ -260,6 +313,72 @@ describe("Sheet", () => {
 		expect(lockScrollMock).not.toHaveBeenCalled();
 	});
 
+	// The exit protocol's own regression guards. Between the dismiss and the
+	// unmount there is now a window — 200 ms in a browser, a couple of
+	// microtasks under the stubbed Web Animations API — and these pin what
+	// must be true inside it.
+	it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+		render(Sheet, { props: { open: true, title: "Settings" } });
+		expect(dialog()!.getAttribute("data-state")).toBe("open");
+
+		dispatchEscape();
+		flushSync();
+
+		const closing = dialog();
+		expect(closing).toBeTruthy();
+		// Written imperatively from `onoutrostart` — a reactive `data-state`
+		// would never reach the DOM, because Svelte marks the branch inert
+		// before it plays the outro and the scheduler skips inert effects.
+		expect(closing!.getAttribute("data-state")).toBe("closing");
+		// Svelte sets this itself on any element carrying a `transition:`, for
+		// the whole exit. The assertion is here so nobody removes the
+		// transition without noticing that a closing modal would go
+		// interactive again.
+		expect(closing!.inert).toBe(true);
+		// `data-side` survives the deletion of the keyframes it used to
+		// select: it is part of the component's semantics, not decoration.
+		expect(closing!.getAttribute("data-side")).toBe("right");
+
+		await waitFor(() => expect(dialog()).toBeNull());
+		expect(scrim()).toBeNull();
+	});
+
+	it("ignores a second Escape during the exit — onOpenChange fires exactly once", async () => {
+		const onOpenChange = vi.fn();
+		render(Sheet, { props: { open: true, title: "Settings", onOpenChange } });
+
+		dispatchEscape();
+		flushSync();
+		expect(dialog()).toBeTruthy(); // still sliding out
+
+		// The dismiss layer stops answering the moment `open` is false, so
+		// neither of these reaches the sheet at all.
+		dispatchEscape();
+		dispatchEscape();
+		flushSync();
+
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+	});
+
+	// The fast path: a duration of zero makes Svelte finish the transition
+	// synchronously and never touch `element.animate()`, so a visitor who
+	// asked for less motion gets exactly the synchronous close this component
+	// had before the exit existed.
+	it("closes synchronously and never animates when the user asked for reduced motion", async () => {
+		stubReducedMotion(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(Sheet, { props: { open: true, title: "Settings" } });
+		expect(dialog()).toBeTruthy();
+
+		await pressEscape();
+
+		expect(dialog()).toBeNull();
+		expect(scrim()).toBeNull();
+		expect(animateSpy).not.toHaveBeenCalled();
+		animateSpy.mockRestore();
+	});
+
 	it("works with a plain non-bound open plus a callback: the callback observes the close, and the panel still unmounts", async () => {
 		const onOpenChange = vi.fn();
 		render(Sheet, { props: { open: true, title: "Settings", onOpenChange } });
@@ -268,7 +387,7 @@ describe("Sheet", () => {
 
 		expect(onOpenChange).toHaveBeenCalledTimes(1);
 		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(dialog()).toBeNull();
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("works with the callback alone (no open prop passed at all)", () => {
@@ -290,8 +409,10 @@ describe("Sheet", () => {
 		expect(getByTestId("bound-open").textContent).toBe("true");
 
 		await fireEvent.click(closeButton()!);
-		expect(dialog()).toBeNull();
+		// The bound value flips straight away; only the panel's removal waits
+		// for the slide-out.
 		expect(getByTestId("bound-open").textContent).toBe("false");
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("round-trips the panel element through bind:ref", async () => {

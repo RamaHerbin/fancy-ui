@@ -51,6 +51,9 @@
 	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { preset } from "../_internals/motion/transitions.js";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
 
 	let {
 		files = $bindable([]),
@@ -259,18 +262,45 @@
 		files = next;
 		onFilesChange?.(next);
 
-		// The removed row's own button can't keep focus — it just left the
-		// DOM. Move it to the row that slid into its place, the row before it
-		// if this was the last one, or back to the picker once the list is
-		// empty, rather than letting it fall back to <body>.
+		// The removed row's own button can't keep focus. Move it to the row that
+		// slid into its place, the row before it if this was the last one, or
+		// back to the picker once the list is empty, rather than letting it fall
+		// back to <body>.
+		//
+		// The target is resolved from `next` by id, not by counting buttons in
+		// the DOM, because the removed row has NOT left the DOM yet: its exit
+		// transition is still playing, and Svelte marks a leaving element `inert`
+		// for the whole of it. A DOM-order lookup would hand focus to the very
+		// button that is on its way out — which browsers refuse to focus inside
+		// an inert subtree, dropping focus on <body> exactly where this code
+		// exists to stop it landing. Reading `next` gives the same answer whether
+		// the exit is running or reduced motion already collapsed it to nothing.
 		await tick();
-		const buttons = listRef?.querySelectorAll<HTMLButtonElement>("[data-file-remove]");
-		if (buttons && buttons.length > 0) {
-			buttons[Math.min(index, buttons.length - 1)]?.focus();
+		const target = next[Math.min(index, next.length - 1)];
+		const button = target
+			? Array.from(listRef?.querySelectorAll<HTMLLIElement>("[data-file-row]") ?? [])
+					.find((row) => row.dataset.fileRow === target.id)
+					?.querySelector<HTMLButtonElement>("[data-file-remove]")
+			: undefined;
+		if (button) {
+			button.focus();
 		} else {
 			ref?.focus();
 		}
 	}
+
+	// A split `in:`/`out:` pair rather than one bidirectional `transition:`,
+	// which is the house rule everywhere else. The `{#each}` is keyed, so a row
+	// has no local `open` flag a single directive could read to tell an arrival
+	// from a departure — Svelte reports `direction: "both"` there — and a row id
+	// is never reused (`createRowId` only counts up), so the reversal smoothing
+	// a bidirectional directive buys is smoothing nothing: a leaving row can
+	// never come back mid-exit. Toast is shaped the same way for the same two
+	// reasons. Splitting also lets the exit be its own, quieter gesture rather
+	// than the entrance played backwards: a row arrives by rising into place and
+	// leaves by simply fading, so nothing appears to travel back out of the list.
+	const rowEnter = preset("fade-up");
+	const rowLeave = preset("fade");
 
 	const classes = $derived(cn("ft-file-upload flex flex-col gap-3", className));
 
@@ -332,11 +362,36 @@
 		{/if}
 	</div>
 
+	<!--
+		`out:` is `|global` for the same reason `DropdownMenuSubContent`'"'"'s
+		transition is: Svelte'"'"'s outro collector (`pause_children`) only gathers a
+		LOCAL transition while walking through TRANSPARENT children, and a
+		nested `{#if}` block is not transparent. Removing the LAST file flips
+		this `{#if}` false and tears the whole `<ul>` down, so a local row outro
+		would never be collected — every other removal would fade and the final
+		one would vanish on the spot. `|global` hands the row'"'"'s outro to
+		whichever block is closing, so the list stays mounted until the last row
+		has finished leaving.
+
+		`in:` stays LOCAL on purpose: the usual cost of `|global` is an intro
+		that also fires when an ancestor block first renders, which would make
+		every row of a restored list animate in at once.
+	-->
 	{#if files.length > 0}
 		<ul bind:this={listRef} class="ft-file-upload-list flex flex-col gap-2">
 			{#each files as entry (entry.id)}
 				<li
+					data-file-row={entry.id}
 					class="border-border flex items-center gap-[10px] rounded-[8px] border px-[10px] py-[8px] text-[12px]"
+					in:rowEnter={{
+						duration: prefersReducedMotion() ? 0 : DURATIONS.fast,
+						distance: 8,
+						easing: JS_EASINGS.out,
+					}}
+					out:rowLeave|global={{
+						duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
+						easing: JS_EASINGS.in,
+					}}
 				>
 					<span aria-hidden="true">📄</span>
 					<div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -355,7 +410,9 @@
 										"ft-file-upload-progress-fill",
 										entry.progress === null && "ft-file-upload-progress-indeterminate"
 									)}
-									style={entry.progress !== null ? `width: ${entry.progress}%` : undefined}
+									style:--ft-fileupload-progress={entry.progress !== null
+										? entry.progress / 100
+										: null}
 								></div>
 							</div>
 						{:else if entry.status === "error" && entry.error}
@@ -446,30 +503,63 @@
 		background-color: var(--color-muted, rgba(255, 255, 255, 0.08));
 	}
 
+	/*
+	 * scaleX off a custom property, never `width` — the same technique
+	 * ScrollProgress ships for the same reason: a width change forces layout on
+	 * every progress report a consumer pushes in, while a transform is
+	 * compositor-only. The property carries a 0–1 ratio (70% is `0.7`), so the
+	 * component never has to parse a percentage back out of a style string.
+	 * `transform-origin: left` makes the bar grow from the start edge.
+	 */
 	.ft-file-upload-progress-fill {
 		position: absolute;
 		inset: 0;
-		width: 0%;
 		border-radius: 2px;
 		background-color: var(--ft-field-accent, currentColor);
+		transform: scaleX(var(--ft-fileupload-progress, 0));
+		transform-origin: left;
 	}
 
+	/*
+	 * `width: 40%` is layout, not animation: it sizes the travelling block once
+	 * and never changes it, which is why it stays a `width` rather than becoming
+	 * another transform. `transform: none` un-does the determinate rule above —
+	 * without it an indeterminate bar under reduced motion (where the keyframes
+	 * never run) would sit at `scaleX(0)` and vanish, where today it shows a
+	 * static block. The keyframes below out-rank this declaration whenever the
+	 * animation is actually running.
+	 */
 	.ft-file-upload-progress-indeterminate {
 		width: 40%;
+		transform: none;
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
+		/* A bar that eases toward each reported value instead of jumping to it is
+		   the whole user-visible point of the swap above. tokens.ts:
+		   DURATIONS.fast / EASINGS.out. */
+		.ft-file-upload-progress-fill {
+			transition: transform var(--ft-duration-fast, 150ms)
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+		}
+
 		.ft-file-upload-progress-indeterminate {
-			animation: ft-file-upload-indeterminate 1.4s ease-in-out infinite;
+			/* tokens.* n/a: loop period, component-owned */
+			animation: ft-file-upload-indeterminate 1.4s
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)) infinite;
 		}
 	}
 
+	/* translateX, not margin-left: a margin animation re-runs layout on every
+	   frame of a loop that never stops. The arithmetic: the block is 40% of the
+	   track wide, so -100% parks it fully off the left edge and 250% (2.5 × 40%)
+	   carries it fully off the right. */
 	@keyframes ft-file-upload-indeterminate {
 		0% {
-			margin-left: -40%;
+			transform: translateX(-100%);
 		}
 		100% {
-			margin-left: 100%;
+			transform: translateX(250%);
 		}
 	}
 
