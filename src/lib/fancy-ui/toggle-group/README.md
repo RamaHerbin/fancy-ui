@@ -150,6 +150,29 @@ to a `light-dark()` accent pair local to the component — the same shape
 Set `--ft-accent` higher up the tree to retint the focus ring on every
 `ToggleGroupItem` beneath it.
 
+Two optional variables tune the press feedback on an item:
+
+| Variable                          | Default | What it controls                                    |
+| --------------------------------- | ------- | --------------------------------------------------- |
+| `--ft-toggle-group-press-scale`   | `0.97`  | How far an item shrinks while held down             |
+| `--ft-toggle-group-press-opacity` | `0.85`  | The pressed fade used instead, under reduced motion |
+
+## Motion
+
+- Pressing an item scales it to `0.97` for as long as it is held, over 150 ms.
+  The colour change beside it runs on the same clock and the same easing.
+- The focus ring is deliberately not in any transition list: it is painted
+  with `box-shadow`, and a focus ring that fades in is a ring the keyboard
+  user has to wait for.
+- **Reduced motion.** The press scale is declared inside
+  `@media (prefers-reduced-motion: no-preference)`. Without that preference
+  the press is acknowledged with an `opacity: 0.85` fade instead — never both
+  at once. The colour change is not motion and is not gated.
+- **Touch and coarse pointers.** `:active` is exactly the affordance a finger
+  gets, so the press feedback is not suppressed on touch. Every item carries
+  `touch-action: manipulation`, which removes the browser's ~300 ms tap delay
+  without blocking scrolling.
+
 ## Implementation Notes
 
 - `value` is normalised to a `string[]` through `toArray`, which does branch

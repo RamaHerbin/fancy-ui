@@ -4848,11 +4848,11 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "CopyButton",
 		slug: "copy-button",
 		description:
-			"Button preset wired to the clipboard, swapping its icon and label to a success skin for a moment after a successful copy",
+			"Button preset wired to the clipboard, morphing its icon and label to a success or failure state for a moment after each copy attempt",
 		category: "actions",
 		group: "core",
 		status: "done",
-		dependencies: ["button"],
+		dependencies: ["button", "status-morph"],
 		tags: ["copy", "clipboard", "button", "success"],
 		props: [
 			{
@@ -4872,6 +4872,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Copied"',
 				description: "Label shown for resetMs after a successful copy",
+			},
+			{
+				name: "errorLabel",
+				type: "string",
+				default: '"Copy failed"',
+				description: "Label and announcement shown after a failed copy",
 			},
 			{
 				name: "resetMs",

@@ -240,6 +240,52 @@ describe("Stepper", () => {
 		expect(stepContainer.querySelector("li")?.className).toContain("pl-2");
 	});
 
+	// The bullet fill, its label colour, the halo around the current bullet and
+	// the connector behind it now crossfade over 150 ms instead of snapping.
+	// The transition hangs off the two base classes rather than off each status
+	// modifier, so this pins that both base classes are actually on the
+	// elements — without them the rule would select nothing and the whole
+	// change would silently do nothing.
+	it("carries the base bullet and connector classes the transition hangs off", () => {
+		const { container } = render(Harness, { props: { items: ITEMS, current: 1 } });
+
+		const bullets = Array.from(container.querySelectorAll(".ft-step-bullet"));
+		expect(bullets).toHaveLength(ITEMS.length);
+		expect(connectors(container).length).toBeGreaterThan(0);
+
+		// The status modifiers still ride on top of the base class, not instead
+		// of it.
+		expect(bullets.some((b) => b.className.includes("ft-step-bullet-current"))).toBe(true);
+		expect(bullets.some((b) => b.className.includes("ft-step-bullet-done"))).toBe(true);
+	});
+
+	it("reduced motion: the status colours still cross-fade, because none of them is travel", () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			// Deliberate: the bullet/connector transition is colour and a static
+			// halo, neither of which moves anything, so it is declared outside any
+			// `prefers-reduced-motion` query. Suppressing it would make the stepper
+			// flicker rather than settle. jsdom cannot read the rule, so what this
+			// pins is that advancing a step still produces the same class contract
+			// under the preference.
+			const { container } = render(Harness, { props: { items: ITEMS, current: 0 } });
+			expect(stepByLabel(container, "Account").dataset.status).toBe("current");
+
+			const { container: laterContainer } = render(Harness, {
+				props: { items: ITEMS, current: 2 },
+			});
+			expect(stepByLabel(laterContainer, "Account").dataset.status).toBe("done");
+			expect(stepByLabel(laterContainer, "Confirmation").dataset.status).toBe("current");
+		} finally {
+			window.matchMedia = real;
+		}
+	});
+
 	it("works uncontrolled, with neither current nor onCurrentChange passed in", async () => {
 		const { container } = render(Harness, { props: { items: ITEMS, clickable: true } });
 		expect(stepByLabel(container, "Account").getAttribute("aria-current")).toBe("step");

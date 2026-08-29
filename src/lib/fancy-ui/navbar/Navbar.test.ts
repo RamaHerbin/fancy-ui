@@ -170,6 +170,51 @@ describe("NavbarLink", () => {
 		expect(link(container).className).toContain("mx-1");
 	});
 
+	// The accent underline moved from the anchor's own `box-shadow` to a
+	// `::before` pseudo-element. That is a bug fix riding along inside a motion
+	// change: the anchor's `box-shadow` is what `focus-visible:ring-2` compiles
+	// to, and Svelte's unlayered scoped CSS was overwriting it, so until now the
+	// current link had no visible focus ring at all. jsdom computes neither
+	// pseudo-elements nor cascade layers, so what a test can pin is that the two
+	// hooks still coexist on the same element and that `aria-current` — the only
+	// thing the pseudo selects on — still appears exactly when it did.
+	it("keeps the focus-ring utility on the current link alongside aria-current", () => {
+		const { container } = render(NavbarLink, { props: { href: "/docs", current: true } });
+		const el = link(container);
+
+		expect(el.getAttribute("aria-current")).toBe("page");
+		expect(el.className).toContain("focus-visible:ring-2");
+	});
+
+	it("marks only the current link, leaving every other one without aria-current", () => {
+		const { container: currentContainer } = render(NavbarLink, {
+			props: { href: "/docs", current: true },
+		});
+		const { container: plainContainer } = render(NavbarLink, { props: { href: "/blog" } });
+
+		expect(link(currentContainer).getAttribute("aria-current")).toBe("page");
+		expect(link(plainContainer).hasAttribute("aria-current")).toBe(false);
+	});
+
+	it("reduced motion: the current marker still arrives, it just does not grow", () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			// The `scaleX` growth is declared only inside `no-preference`, so the
+			// underline's resting state under this preference is un-transformed and
+			// instant. Neither is observable in jsdom; what is observable is that
+			// the attribute driving it is not gated on the preference in any way.
+			const { container } = render(NavbarLink, { props: { href: "/docs", current: true } });
+			expect(link(container).getAttribute("aria-current")).toBe("page");
+		} finally {
+			window.matchMedia = real;
+		}
+	});
+
 	it("binds the anchor element", () => {
 		let ref: HTMLAnchorElement | null = null;
 		const { container } = render(NavbarLink, {

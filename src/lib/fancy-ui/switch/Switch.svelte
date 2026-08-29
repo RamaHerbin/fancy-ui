@@ -144,6 +144,16 @@
 			--ft-accent,
 			light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
 		);
+		/* One local INTERNAL alias so the token pair is typed once rather than four
+		   times. Declared here, on the control itself, so a value inherited from an
+		   ancestor never reaches it — it is deliberately not a theming knob, and the
+		   README says so. Retiming a Switch is done through --ft-duration-fast /
+		   --ft-ease-inout, which this reads and which do inherit.
+		   150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout.
+		   `inout` and not `out`: a switch is a reversible state flip, not an
+		   arrival — the knob travels the same way in both directions. */
+		--ft-switch-motion: var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		appearance: none;
 		flex: none;
 		margin: 0;
@@ -152,7 +162,11 @@
 		position: relative;
 		cursor: pointer;
 		vertical-align: middle;
-		transition: background-color 0.15s ease;
+		/* Colour is a state change, not motion (the knob's slide below is the
+		   only thing here that travels), so it stays outside the reduced-motion
+		   query — the same rule Toggle's and Input's own colour transitions
+		   follow. */
+		transition: background-color var(--ft-switch-motion);
 	}
 
 	.ft-switch::after {
@@ -162,7 +176,7 @@
 		left: 3px;
 		border-radius: 50%;
 		background-color: var(--color-muted-foreground, #9aa3b2);
-		transition: background-color 0.15s ease;
+		transition: background-color var(--ft-switch-motion);
 	}
 
 	.ft-switch:checked {
@@ -234,8 +248,8 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-switch::after {
 			transition:
-				background-color 0.15s ease,
-				transform 0.15s ease;
+				background-color var(--ft-switch-motion),
+				transform var(--ft-switch-motion);
 		}
 	}
 </style>

@@ -117,11 +117,21 @@ by `color-scheme`, so **your theme must declare it**:
 - **Touch and coarse pointers.** Nothing here is pointer-driven.
 - **Timing.** Loading ring: `0.8s linear infinite` spin, matching
   `Button`'s own spinner exactly. Success: the ring closes in `200ms`
-  (`--ft-ease-in`), the check draws in `300ms` (`--ft-ease-out`, `80ms`
-  delay) and pops past `scale(1)` with `--ft-ease-overshoot` — the one
-  overshoot consumer in the family. Error: the ring closes the same `200ms`,
-  the cross draws as two `160ms` strokes staggered `80ms` apart, and the
-  whole icon shakes `±2px` over `300ms`.
+  (`--ft-ease-in`), the check draws in `300ms` (`--ft-ease-out`) after a
+  `--ft-duration-micro` lead-in and pops past `scale(1)` with
+  `--ft-ease-overshoot` — the one overshoot consumer in the family. Error:
+  the ring closes the same `200ms`, the cross draws as two `160ms` strokes
+  staggered one `--ft-duration-micro` apart, and the whole icon shakes
+  `±2px` over `300ms`.
+- **`--ft-duration-micro`** (`80ms`) is the shortest rung of the shared
+  duration scale, and this is where it is spent: the beat before the check
+  starts drawing, and the gap between the two cross strokes. Set it on an
+  ancestor to retime both at once. The second stroke's delay is
+  `calc(var(--ft-duration-micro) * 2)` — two of those beats, derived rather
+  than hardcoded, so retuning the token keeps the stagger instead of
+  collapsing the two strokes onto each other. Both strokes' `160ms`
+  durations are off-scale on purpose — the scale gains one rung at this
+  size, not two.
 
 ## Accessibility
 

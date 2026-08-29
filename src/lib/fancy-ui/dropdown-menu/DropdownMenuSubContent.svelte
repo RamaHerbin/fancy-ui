@@ -17,6 +17,7 @@
 	import { anchorPosition } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { createMenuFocus } from "../_internals/menu.svelte.js";
 	import { MENU_KEY, SUB_KEY, type MenuContext, type SubContext } from "./types.js";
 	import { handleMenuContentKeydown, createOpenSubRegistry } from "./menu-shared.js";
@@ -113,6 +114,14 @@
 	not the root, one interaction at a time; see `_internals/dismissable.ts`'s
 	own header comment for why that's the deliberate, shared behaviour every
 	nested overlay in this library gets, not a gap specific to submenus.
+
+	The entrance reads `sub.resolvedSide` directly rather than keeping a local
+	copy: that value is already published on the sub context and already
+	drives `DropdownMenuSubTrigger`'s caret glyph, so a second `$state` here
+	would give the caret and the growth origin two sources of truth that could
+	disagree after a flip. `align` is the literal `"start"` for the same
+	reason it is on `use:anchorPosition` below — a submenu never aligns any
+	other way.
 -->
 {#if sub.open}
 	<div
@@ -127,12 +136,16 @@
 			side: "right",
 			align: "start",
 			offset: 2,
-			onPlacement: (side) => sub.setResolvedSide(side),
+			onPlacement: (side, align) => sub.setPlacement(side, align),
 		}}
 		use:dismissable={{
 			onDismiss: () => sub.closeSub(true),
 			exclude: () => [sub.triggerRef],
 		}}
+		in:anchored={{ side: sub.resolvedSide }}
+		data-side={sub.resolvedSide}
+		data-align="start"
+		style:transform-origin={originFor(sub.resolvedSide, sub.resolvedAlign)}
 		onkeydown={handleKeydown}
 		onmouseenter={handleMouseEnter}
 		onmouseleave={handleMouseLeave}
@@ -140,22 +153,3 @@
 		{@render children?.()}
 	</div>
 {/if}
-
-<style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-dropdown-menu-content {
-			animation: ft-dropdown-menu-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-dropdown-menu-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-</style>

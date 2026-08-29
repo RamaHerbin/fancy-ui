@@ -378,30 +378,42 @@
 			animation: ft-statusmorph-spin 0.8s linear infinite;
 		}
 
+		/* The lead-in before the check starts drawing is --ft-duration-micro
+		   (tokens.ts DURATIONS.micro), the rung that exists for exactly this:
+		   a glyph-scale beat long enough to read as a beat and no longer. */
 		.ft-statusmorph-check {
 			transition: stroke-dashoffset var(--ft-duration-base, 300ms)
-				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms;
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) var(--ft-duration-micro, 80ms);
 		}
 		/* The one --ft-ease-overshoot consumer in the family: the check pops
 		   past scale(1) and settles, layered on top of (not instead of) the
-		   dashoffset draw above — both keyed to the same 80ms delay so the pop
-		   and the draw read as one gesture. */
+		   dashoffset draw above — both keyed to the same --ft-duration-micro
+		   delay so the pop and the draw read as one gesture. */
 		svg[data-state="success"] .ft-statusmorph-check {
 			animation: ft-statusmorph-check-pop var(--ft-duration-base, 300ms)
-				var(--ft-ease-overshoot, cubic-bezier(0.34, 1.56, 0.64, 1)) 80ms both;
+				var(--ft-ease-overshoot, cubic-bezier(0.34, 1.56, 0.64, 1)) var(--ft-duration-micro, 80ms)
+				both;
 		}
 
 		/* Same draw technique and easing as the check (an arrival, not a
-		   departure), staggered 80ms apart so the X reads as two strokes
-		   rather than one simultaneous flash. 160ms/80ms are off-scale on
-		   purpose (no --ft-duration-* token matches), same as the 0.8s spin
-		   above — left as literals rather than forced onto a token that would
+		   departure), staggered one --ft-duration-micro apart so the X reads
+		   as two strokes rather than one simultaneous flash. The second
+		   stroke's delay is CALCULATED from the same token rather than
+		   hardcoded at its default's 160ms: a theme that retunes the token
+		   would otherwise start both strokes together at 160ms, or — past
+		   that — draw the nominally second stroke first. No second token,
+		   deliberately: R11 adds one rung, not two. The 160ms DURATIONS on
+		   both lines stay off-scale (a stroke that takes --ft-duration-fast
+		   reads slower than the beat between the two), as is the 0.8s spin
+		   above: left as literals rather than forced onto a token that would
 		   change their value. */
 		.ft-statusmorph-cross-a {
-			transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms;
+			transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
+				var(--ft-duration-micro, 80ms);
 		}
 		.ft-statusmorph-cross-b {
-			transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 160ms;
+			transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
+				calc(var(--ft-duration-micro, 80ms) * 2);
 		}
 		svg[data-state="error"] {
 			animation: ft-statusmorph-shake var(--ft-duration-base, 300ms)

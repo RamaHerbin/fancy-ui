@@ -85,6 +85,33 @@ the shared `--ft-accent` further up — `--ft-nav-accent` falls back to it, and
 this component never redeclares `--ft-accent` itself, so a value set on an
 ancestor keeps flowing through untouched.
 
+One optional variable tunes the motion. It falls back to the library-wide
+token, which falls back to a literal, so leaving it unset is the supported
+default:
+
+| Variable                       | Default                          | What it controls                   |
+| ------------------------------ | -------------------------------- | ---------------------------------- |
+| `--ft-pagination-pop-duration` | `var(--ft-duration-fast, 150ms)` | How long the active-page pop lasts |
+
+## Motion
+
+- When the page changes, the newly-current pill pops once from `scale(0.92)`
+  to full size over 150 ms, so the eye can find where it landed instead of
+  hunting for a colour change among a row of identical squares.
+- The pop is **armed**: it never fires on first paint, only once the page has
+  really moved. A page arriving already-current is not an event, and
+  animating it would read as a glitch on load. Arming follows the page
+  itself, so a controlled `Pagination` whose `page` prop changes from outside
+  pops exactly like a clicked one.
+- Only `transform` animates. The focus ring on those same buttons is painted
+  with `box-shadow` and is deliberately left out of every animation.
+- **Reduced motion.** The keyframe is declared inside
+  `@media (prefers-reduced-motion: no-preference)`. Without that preference
+  the pill simply changes place — the colour and `aria-current` change
+  exactly as before.
+- **Touch and coarse pointers.** The pop follows the page, never the pointer,
+  so a coarse pointer needs no special handling.
+
 ## Implementation Notes
 
 - The visible page sequence — which numbers show, and where the `…` markers

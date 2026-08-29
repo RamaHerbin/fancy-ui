@@ -107,6 +107,20 @@
 </a>
 
 <style>
+	/*
+	 * One rule governs this whole sheet: every `transition` and `animation`
+	 * declaration lives inside `@media (prefers-reduced-motion: no-preference)`,
+	 * and nothing else does. The resting and hover states themselves stay
+	 * outside, so a visitor who asked for less motion still gets the full
+	 * underline — it simply appears rather than travelling. Each variant keeps
+	 * its own guard block next to its own rules rather than pooling them at the
+	 * end of the file, so the shape is obvious to whoever adds variant thirteen.
+	 *
+	 * The eleven bespoke `cubic-bezier` curves and the `0.2s`/`0.3s`/`0.4s`/
+	 * `0.6s` durations below are deliberately NOT retokenised: they are this
+	 * component's designed choreography, and flattening them onto the four
+	 * house curves would make eleven distinct variants read as one.
+	 */
 	.link-hover {
 		cursor: pointer;
 		position: relative;
@@ -134,7 +148,6 @@
 	.link-hover--slide::before {
 		transform-origin: 100% 50%;
 		transform: scale3d(0, 1, 1);
-		transition: transform 0.3s;
 	}
 
 	.link-hover--slide:is(:hover, :focus-visible)::before {
@@ -142,17 +155,21 @@
 		transform: scale3d(1, 1, 1);
 	}
 
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--slide::before {
+			transition: transform 0.3s;
+		}
+	}
+
 	/* Double */
 	.link-hover--double::before {
 		transform-origin: 100% 50%;
 		transform: scale3d(0, 1, 1);
-		transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1);
 	}
 
 	.link-hover--double:is(:hover, :focus-visible)::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
-		transition-timing-function: cubic-bezier(0.4, 1, 0.8, 1);
 	}
 
 	.link-hover--double::after {
@@ -160,26 +177,34 @@
 		top: calc(100% + 4px);
 		transform-origin: 0% 50%;
 		transform: scale3d(0, 1, 1);
-		transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1);
 	}
 
 	.link-hover--double:is(:hover, :focus-visible)::after {
 		transform-origin: 100% 50%;
 		transform: scale3d(1, 1, 1);
-		transition-timing-function: cubic-bezier(0.4, 1, 0.8, 1);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--double::before,
+		.link-hover--double::after {
+			transition: transform 0.3s cubic-bezier(0.7, 0, 0.2, 1);
+		}
+
+		.link-hover--double:is(:hover, :focus-visible)::before,
+		.link-hover--double:is(:hover, :focus-visible)::after {
+			transition-timing-function: cubic-bezier(0.4, 1, 0.8, 1);
+		}
 	}
 
 	/* Grow */
 	.link-hover--grow::before {
 		transform-origin: 100% 50%;
 		transform: scale3d(0, 1, 1);
-		transition: transform 0.3s cubic-bezier(0.2, 1, 0.8, 1);
 	}
 
 	.link-hover--grow:is(:hover, :focus-visible)::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 2, 1);
-		transition-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
 	}
 
 	.link-hover--grow::after {
@@ -187,13 +212,26 @@
 		top: calc(100% + 4px);
 		transform-origin: 100% 50%;
 		transform: scale3d(0, 1, 1);
-		transition: transform 0.4s 0.1s cubic-bezier(0.2, 1, 0.8, 1);
 	}
 
 	.link-hover--grow:is(:hover, :focus-visible)::after {
 		transform-origin: 0% 50%;
 		transform: scale3d(1, 1, 1);
-		transition-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--grow::before {
+			transition: transform 0.3s cubic-bezier(0.2, 1, 0.8, 1);
+		}
+
+		.link-hover--grow::after {
+			transition: transform 0.4s 0.1s cubic-bezier(0.2, 1, 0.8, 1);
+		}
+
+		.link-hover--grow:is(:hover, :focus-visible)::before,
+		.link-hover--grow:is(:hover, :focus-visible)::after {
+			transition-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+		}
 	}
 
 	/* Strike */
@@ -206,7 +244,6 @@
 		height: 2px;
 		transform-origin: 100% 50%;
 		transform: scale3d(0, 1, 1);
-		transition: transform 0.3s cubic-bezier(0.4, 1, 0.8, 1);
 	}
 
 	.link-hover--strike:is(:hover, :focus-visible)::before {
@@ -216,11 +253,17 @@
 
 	.link-hover--strike span {
 		display: inline-block;
-		transition: transform 0.3s cubic-bezier(0.4, 1, 0.8, 1);
 	}
 
 	.link-hover--strike:is(:hover, :focus-visible) span {
 		transform: scale3d(1.1, 1.1, 1.1);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--strike::before,
+		.link-hover--strike span {
+			transition: transform 0.3s cubic-bezier(0.4, 1, 0.8, 1);
+		}
 	}
 
 	/* Fade */
@@ -229,16 +272,12 @@
 		opacity: 0;
 		transform-origin: 50% 0%;
 		transform: translate3d(0, 3px, 0);
-		transition-property: transform, opacity;
-		transition-duration: 0.3s;
-		transition-timing-function: cubic-bezier(0.2, 1, 0.8, 1);
 	}
 
 	.link-hover--fade:is(:hover, :focus-visible)::before,
 	.link-hover--fade:is(:hover, :focus-visible)::after {
 		opacity: 1;
 		transform: translate3d(0, 0, 0);
-		transition-timing-function: cubic-bezier(0.2, 0, 0.3, 1);
 	}
 
 	.link-hover--fade::after {
@@ -248,13 +287,29 @@
 		left: 15%;
 	}
 
-	.link-hover--fade::before,
-	.link-hover--fade:is(:hover, :focus-visible)::after {
-		transition-delay: 0.1s;
-	}
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--fade::before,
+		.link-hover--fade::after {
+			transition-property: transform, opacity;
+			transition-duration: 0.3s;
+			transition-timing-function: cubic-bezier(0.2, 1, 0.8, 1);
+		}
 
-	.link-hover--fade:is(:hover, :focus-visible)::before {
-		transition-delay: 0s;
+		.link-hover--fade:is(:hover, :focus-visible)::before,
+		.link-hover--fade:is(:hover, :focus-visible)::after {
+			transition-timing-function: cubic-bezier(0.2, 0, 0.3, 1);
+		}
+
+		/* The stagger: the two lines swap which of them leads, so the pair reads
+		   as a gesture rather than as one line drawn twice. */
+		.link-hover--fade::before,
+		.link-hover--fade:is(:hover, :focus-visible)::after {
+			transition-delay: 0.1s;
+		}
+
+		.link-hover--fade:is(:hover, :focus-visible)::before {
+			transition-delay: 0s;
+		}
 	}
 
 	/* Pulse */
@@ -264,9 +319,21 @@
 		opacity: 0;
 	}
 
+	/*
+	 * `opacity: 1` stays outside the guard and the `animation` goes inside, on
+	 * purpose: this variant reaches its visible state THROUGH the keyframes'
+	 * `forwards` fill. The base rule is a full-width, full-opacity 10px bar
+	 * with no transform of its own, so dropping the animation leaves a
+	 * correctly-sized bar that simply appears. Nothing goes invisible.
+	 */
 	.link-hover--pulse:is(:hover, :focus-visible)::before {
 		opacity: 1;
-		animation: lineUp 0.3s ease forwards;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--pulse:is(:hover, :focus-visible)::before {
+			animation: lineUp 0.3s ease forwards;
+		}
 	}
 
 	@keyframes lineUp {
@@ -290,21 +357,28 @@
 
 	.link-hover--pulse::after {
 		content: "";
-		transition: opacity 0.3s;
 		opacity: 0;
-		transition-delay: 0s;
 	}
 
 	.link-hover--pulse:is(:hover, :focus-visible)::after {
 		opacity: 1;
-		transition-delay: 0.3s;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--pulse::after {
+			transition: opacity 0.3s;
+			transition-delay: 0s;
+		}
+
+		.link-hover--pulse:is(:hover, :focus-visible)::after {
+			transition-delay: 0.3s;
+		}
 	}
 
 	/* Swap */
 	.link-hover--swap::before {
 		transform-origin: 0% 50%;
 		transform: scale3d(0, 1, 1);
-		transition: transform 0.3s;
 	}
 
 	.link-hover--swap:is(:hover, :focus-visible)::before {
@@ -314,12 +388,18 @@
 	.link-hover--swap::after {
 		content: "";
 		top: calc(100% + 4px);
-		transition: transform 0.3s;
 		transform-origin: 100% 50%;
 	}
 
 	.link-hover--swap:is(:hover, :focus-visible)::after {
 		transform: scale3d(0, 1, 1);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--swap::before,
+		.link-hover--swap::after {
+			transition: transform 0.3s;
+		}
 	}
 
 	/* Sweep */
@@ -329,9 +409,20 @@
 		opacity: 0;
 	}
 
+	/*
+	 * Same shape as `--pulse` above, and for the same reason: the visible state
+	 * is reached through the keyframes' `forwards` fill, so `opacity: 1` has to
+	 * stay outside the guard. The base rule is a full-height, full-width cover
+	 * with no transform, so without the animation it simply appears.
+	 */
 	.link-hover--sweep:is(:hover, :focus-visible)::before {
 		opacity: 1;
-		animation: coverUp 0.3s ease forwards;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--sweep:is(:hover, :focus-visible)::before {
+			animation: coverUp 0.3s ease forwards;
+		}
 	}
 
 	@keyframes coverUp {
@@ -355,11 +446,16 @@
 
 	.link-hover--sweep::after {
 		content: "";
-		transition: opacity 0.3s;
 	}
 
 	.link-hover--sweep:is(:hover, :focus-visible)::after {
 		opacity: 0;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--sweep::after {
+			transition: opacity 0.3s;
+		}
 	}
 
 	/* Bounce */
@@ -367,15 +463,9 @@
 		height: 7px;
 		border-radius: 20px;
 		transform: scale3d(1, 1, 1);
-		transition:
-			transform 0.2s,
-			opacity 0.2s;
-		transition-timing-function: cubic-bezier(0.2, 0.57, 0.67, 1.53);
 	}
 
 	.link-hover--bounce:is(:hover, :focus-visible)::before {
-		transition-timing-function: cubic-bezier(0.8, 0, 0.1, 1);
-		transition-duration: 0.4s;
 		opacity: 1;
 		transform: scale3d(1.2, 0.1, 1);
 	}
@@ -383,14 +473,33 @@
 	.link-hover--bounce span {
 		transform: translate3d(0, -4px, 0);
 		display: inline-block;
-		transition: transform 0.2s 0.05s cubic-bezier(0.2, 0.57, 0.67, 1.53);
 	}
 
 	.link-hover--bounce:is(:hover, :focus-visible) span {
 		transform: translate3d(0, 0, 0);
-		transition-timing-function: cubic-bezier(0.8, 0, 0.1, 1);
-		transition-duration: 0.4s;
-		transition-delay: 0s;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover--bounce::before {
+			transition:
+				transform 0.2s,
+				opacity 0.2s;
+			transition-timing-function: cubic-bezier(0.2, 0.57, 0.67, 1.53);
+		}
+
+		.link-hover--bounce span {
+			transition: transform 0.2s 0.05s cubic-bezier(0.2, 0.57, 0.67, 1.53);
+		}
+
+		.link-hover--bounce:is(:hover, :focus-visible)::before,
+		.link-hover--bounce:is(:hover, :focus-visible) span {
+			transition-timing-function: cubic-bezier(0.8, 0, 0.1, 1);
+			transition-duration: 0.4s;
+		}
+
+		.link-hover--bounce:is(:hover, :focus-visible) span {
+			transition-delay: 0s;
+		}
 	}
 
 	/* SVG Graphics Base */
@@ -423,13 +532,15 @@
 		left: -23%;
 	}
 
-	.link-hover__graphic--arc :global(path) {
-		transition: stroke-dashoffset 0.4s cubic-bezier(0.7, 0, 0.3, 1);
-	}
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover__graphic--arc :global(path) {
+			transition: stroke-dashoffset 0.4s cubic-bezier(0.7, 0, 0.3, 1);
+		}
 
-	.link-hover:is(:hover, :focus-visible) .link-hover__graphic--arc :global(path) {
-		transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
-		transition-duration: 0.3s;
+		.link-hover:is(:hover, :focus-visible) .link-hover__graphic--arc :global(path) {
+			transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
+			transition-duration: 0.3s;
+		}
 	}
 
 	/* Scribble */
@@ -441,13 +552,20 @@
 		top: 100%;
 	}
 
-	.link-hover__graphic--scribble :global(path) {
-		transition: stroke-dashoffset 0.6s cubic-bezier(0.7, 0, 0.3, 1);
-	}
+	/* The stroke-draw pair (`--arc` and `--scribble`) animates
+	   `stroke-dashoffset`, which is neither opacity nor transform — a named,
+	   long-standing exception for SVG line drawing. Under reduced motion the
+	   guard drops the transition and the resting `stroke-dashoffset: 1` snaps
+	   straight to `0`, so the stroke is fully drawn, just not drawn *for* you. */
+	@media (prefers-reduced-motion: no-preference) {
+		.link-hover__graphic--scribble :global(path) {
+			transition: stroke-dashoffset 0.6s cubic-bezier(0.7, 0, 0.3, 1);
+		}
 
-	.link-hover:is(:hover, :focus-visible) .link-hover__graphic--scribble :global(path) {
-		transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
-		transition-duration: 0.3s;
+		.link-hover:is(:hover, :focus-visible) .link-hover__graphic--scribble :global(path) {
+			transition-timing-function: cubic-bezier(0.8, 1, 0.7, 1);
+			transition-duration: 0.3s;
+		}
 	}
 
 	/* Ink */

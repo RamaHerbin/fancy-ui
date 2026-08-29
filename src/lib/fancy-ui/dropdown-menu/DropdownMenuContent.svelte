@@ -14,9 +14,10 @@
 <script lang="ts">
 	import { setContext, getContext, tick } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { createMenuFocus } from "../_internals/menu.svelte.js";
 	import {
 		DROPDOWN_MENU_KEY,
@@ -29,6 +30,26 @@
 	let { children, class: className, ref = $bindable(null) }: DropdownMenuContentProps = $props();
 
 	const root = getContext<DropdownMenuRootContext>(DROPDOWN_MENU_KEY);
+
+	// The side the panel was ACTUALLY placed on — `root.side` until
+	// `computePosition` flips it away from a viewport edge. Seeded with the
+	// *requested* side rather than a hardcoded `"bottom"` so the common,
+	// never-flipped case never depends on `onPlacement` having fired first:
+	// the action does run before the transition reads its params, but a wrong
+	// seed would still show as a one-frame origin jump on every open, and only
+	// a real flip should ever move the growth origin.
+	//
+	// This mirrors what `DropdownMenuSubContent` has always done through
+	// `SubContext.resolvedSide` — the root panel had no equivalent because
+	// nothing here used to care which side it landed on.
+	let resolvedSide = $state<Side>(root.side);
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(root.align);
 
 	// A getter property, not a plain value, so every read inside the core
 	// (`move()` reads `options.loop` fresh on each call) sees `root.loop`
@@ -112,6 +133,14 @@
 	`preventDefault`ed, so the browser's own Tab traversal continues from
 	wherever real DOM focus currently sits, rather than being cycled back
 	into a trap.
+
+	`in:`, never `transition:`: an intro does not delay unmount, so closing
+	stays as instant as it has always been and nothing that watches for the
+	panel leaving the DOM has to start waiting. The entrance itself is
+	`_internals/motion/anchored.js` — shared with every other floating surface
+	in the library — and it animates `opacity` + `transform` only. Focus is
+	untouched by it: `$effect` above still moves the roving focus in the same
+	tick it always did, mid-entrance or not.
 -->
 {#if root.open}
 	<div
@@ -127,32 +156,21 @@
 			side: root.side,
 			align: root.align,
 			offset: root.offset,
+			onPlacement: (side, align) => {
+				resolvedSide = side;
+				resolvedAlign = align;
+			},
 		}}
 		use:dismissable={{
 			onDismiss: () => root.close(),
 			exclude: () => [root.triggerRef],
 		}}
+		in:anchored={{ side: resolvedSide }}
+		data-side={resolvedSide}
+		data-align={root.align}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onkeydown={handleKeydown}
 	>
 		{@render children?.()}
 	</div>
 {/if}
-
-<style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-dropdown-menu-content {
-			animation: ft-dropdown-menu-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-dropdown-menu-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-</style>

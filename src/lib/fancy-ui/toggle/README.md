@@ -66,6 +66,33 @@ Set `--ft-accent` (and, if the ring's foreground needs to change too,
 `--ft-accent-foreground`) higher up the tree to retint every `Toggle` beneath
 it.
 
+Three optional variables tune the motion. Each falls back to the library-wide
+token, which falls back to a literal, so setting none of them is the supported
+default:
+
+| Variable                      | Default                          | What it controls                                    |
+| ----------------------------- | -------------------------------- | --------------------------------------------------- |
+| `--ft-toggle-press-scale`     | `0.97`                           | How far the button shrinks while held down          |
+| `--ft-toggle-press-opacity`   | `0.85`                           | The pressed fade used instead, under reduced motion |
+| `--ft-toggle-signal-duration` | `var(--ft-duration-fast, 150ms)` | How long the pressed ring takes to fade in          |
+
+## Motion
+
+- The pressed accent ring fades in over 150 ms on the same easing as the
+  colour beside it, instead of appearing a frame ahead of it. It is painted by
+  a `::before` pseudo-element rather than by the button's own `box-shadow`,
+  which leaves that shadow free to be the focus ring — a focus ring must never
+  animate, so the two signals are kept on separate layers.
+- Pressing the button scales it to `0.97` for as long as it is held.
+- **Reduced motion.** Both the ring fade and the press scale are declared
+  inside `@media (prefers-reduced-motion: no-preference)`. Without that
+  preference the ring simply appears, and the press is acknowledged with an
+  `opacity: 0.85` fade instead of a scale — never both at once.
+- **Touch and coarse pointers.** `:active` is exactly the affordance a finger
+  gets, so the press feedback is not suppressed on touch. The button carries
+  `touch-action: manipulation`, which removes the browser's ~300 ms tap delay
+  without blocking scrolling.
+
 ## Implementation Notes
 
 - Uncontrolled and controlled usage both work from the same `pressed` prop:

@@ -191,12 +191,13 @@ which one is active.
 
 ## Theming
 
-The segmented rail's fill uses `bg-background`/`border-border`, and the
-selected segmented pill uses `bg-accent`/`text-accent-foreground` — all
-follow whatever a consumer's theme already says for those tokens. The
-underline bar and the focus ring have no semantic token in the app's theme
-layer, so both fall back to a `light-dark()` accent pair, declared once on
-`Tabs`'s own root and read by `TabsTrigger` below it:
+The segmented rail's fill uses `bg-background`/`border-border`. The selected
+segmented pill is painted by the sliding indicator from `--color-accent` — the
+same variable the `bg-accent` utility resolves to, so it still follows whatever
+a consumer's theme says — with `text-accent-foreground` on the trigger above
+it. The underline bar and the focus ring have no semantic token in the app's
+theme layer, so both fall back to a `light-dark()` accent pair, declared once
+on `Tabs`'s own root and read by `TabsList` and `TabsTrigger` below it:
 
 ```css
 --ft-nav-accent: var(
@@ -208,6 +209,82 @@ layer, so both fall back to a `light-dark()` accent pair, declared once on
 Set `--ft-accent` higher up the tree to retint the underline and the focus
 ring on every `TabsTrigger` beneath it — the same variable `ToggleGroup` and
 `Toggle` already key off of, so one override retints all three.
+
+The sliding indicator reads four variables of its own, all optional:
+
+| Variable                       | Default                                                     | What it sets                       |
+| ------------------------------ | ----------------------------------------------------------- | ---------------------------------- |
+| `--ft-tabs-indicator-color`    | `--ft-nav-accent` (underline), `--color-accent` (segmented) | The bar's or the pill's fill       |
+| `--ft-tabs-indicator-duration` | `--ft-duration-fast` (`150ms`)                              | How long the slide takes           |
+| `--ft-tabs-indicator-ease`     | `--ft-ease-inout` (`cubic-bezier(0.4, 0, 0.2, 1)`)          | The slide's curve                  |
+| `--ft-tabs-indicator-radius`   | `--radius-md`, falling back to `0.375rem`                   | The segmented pill's corner radius |
+
+`--ft-tabs-indicator-sx` and `--ft-tabs-indicator-sy` also appear on that
+element. They are internal bookkeeping — `TabsList` writes the pill's two scale
+factors there on every measurement so the pill's own `border-radius` can divide
+its corner back down — not knobs; setting them by hand only distorts the
+corners.
+
+`.ft-tabs-trigger-selected` is still on every selected trigger in the underline
+variant, but it carries no rules of its own any more. It stays because it is a
+published styling hook, and removing it from the class string would silently
+break a consumer targeting it.
+
+## Motion
+
+One `aria-hidden` bar slides between tabs instead of blinking on under each one
+in turn. `TabsList` measures the selected trigger and writes a single
+`transform` — `translate()` to put the bar at that trigger, `scale()` to
+stretch it to that trigger's size — so nothing about the rail relayouts while
+the selection walks along it with the arrow keys. The slide runs for 150 ms
+(`--ft-duration-fast`) on `--ft-ease-inout`, not `--ft-ease-out`: selecting a
+tab is a reversible flip between two resting places, not an arrival, so it
+eases out of the old tab as much as into the new one.
+
+In the `underline` variant the bar _is_ the 2px accent rule along the list's
+bottom edge — its inline-start edge when vertical. In the `segmented` variant
+it is the pill itself, stretched to the selected trigger's whole box on both
+axes.
+
+It snaps rather than slides the first time it is placed — including the case
+where nothing was selected at mount and the reader's first click is what places
+it — on a resize, and whenever `orientation` or `variant` changes. A bar has to
+_travel_ between two places for the travel to mean anything, and none of those
+is a journey: with no previous place to leave from, a tween would fly the bar
+in from the list's own corner.
+
+The bar is a progressive enhancement, never the only selection signal: the
+selected trigger keeps `aria-selected="true"` and its own foreground colour. A
+screen reader (the bar has no role and is never announced), a Windows High
+Contrast user (where it repaints as `Highlight`, and the selected `segmented`
+label as `HighlightText`) and a server-rendered page with JavaScript disabled
+all still see which tab is active.
+
+- **Reduced motion** — the bar still tracks the selection, it just arrives
+  without the tween. Both halves agree: the CSS `transition` is declared inside
+  `@media (prefers-reduced-motion: no-preference)`, and `TabsList` snaps its own
+  writes when the preference is set, so neither half can drift into animating
+  alone.
+- **Touch and coarse pointers** — unchanged; nothing here is pointer-gated. The
+  bar moves on selection regardless of input modality.
+- **RTL** — no branch, and none needed. `offsetLeft` is a physical offset from
+  the list's left edge in both directions and the bar's `transform-origin` is
+  physical to match, so the arithmetic lands correctly under `dir="rtl"`
+  unchanged. Do not restyle the indicator onto a logical `inset-inline-start`:
+  that moves the origin while the measurement stays physical, and the bar lands
+  mirrored.
+- **Forced colors** — a forced-colors palette replaces every author background
+  with a system colour, so the bar re-states its fill as one of that palette's
+  own keywords (`Highlight`) or it would disappear entirely. In the `segmented`
+  variant that fill sits _under_ the selected label, whose colour the same
+  palette forces independently to `ButtonText`, so the label re-states itself as
+  `HighlightText` — the partner the palette guarantees contrast against. The
+  `underline` variant needs no such pairing: its bar sits on the list's edge,
+  not under a label.
+- Retiring the old per-trigger underline also freed `TabsTrigger`'s focus ring,
+  which used to share one `box-shadow` declaration with the accent bar. It is
+  now the only `box-shadow` on the element, and it is never part of a
+  transition — a focus ring that fades in reads as lag, not polish.
 
 ## Implementation Notes
 
@@ -260,11 +337,37 @@ ring on every `TabsTrigger` beneath it — the same variable `ToggleGroup` and
   case, skipping the guard would yank focus back into the tablist from
   wherever the user actually is — the regression this guard exists to rule
   out.
-- The underline's `box-shadow` and the focus ring's `box-shadow` are
-  composited into one declaration when a trigger is both selected and
-  keyboard-focused (`.ft-tabs-trigger-selected:focus-visible`) — two
-  separate `box-shadow` rules on the same element cannot both apply; the
-  more specific one simply wins and the other disappears.
+- The selection's _shape_ is drawn once, by `TabsList`, and not at all by
+  `TabsTrigger`. That split is what lets it slide: a per-trigger background or
+  `inset` box-shadow can only ever blink from one trigger to the next. It also
+  retired a wart — the underline and the focus ring used to be two
+  `box-shadow`s on the same element, and two `box-shadow` rules on one element
+  cannot both apply (the more specific simply wins and the other disappears),
+  so a trigger that was selected _and_ keyboard-focused needed the two
+  composited into a single declaration. There is one `box-shadow` on a trigger
+  now.
+- The indicator is measured with `offsetLeft`/`offsetTop`/`offsetWidth`/
+  `offsetHeight` against `TabsList`'s own padding box — the list is
+  `position: relative`, so it is every trigger's `offsetParent`, and the bar's
+  `left: 0; top: 0` shares that same origin. That shared origin is what removes
+  every fudge factor from the arithmetic; the segmented rail's 3px padding, for
+  one, simply falls out of the measurement. A zero measurement is read as "not
+  laid out yet" and leaves the bar hidden, rather than collapsing it into a
+  0-wide sliver parked at the origin.
+- A snap suspends the transition around the write and forces a reflow between
+  the two: `transition: none` → write the transform → read `offsetWidth` →
+  restore. Without that forced read the browser coalesces all three writes into
+  one style recalculation and the "snap" tweens anyway.
+- The list's `ResizeObserver` lives in its own `$effect`, keyed to the list
+  element alone rather than to the selection. A `ResizeObserver` delivers a
+  callback as soon as `observe()` runs, so an observer torn down and
+  re-established on every tab change would fire immediately after the tween's
+  write and snap the bar back before it had moved.
+- `will-change: transform` is set only for the length of a slide and dropped
+  again by a timer keyed to the same token the CSS transition uses.
+  `transitionend` would be the honest signal, but jsdom never fires one, and a
+  compositor hint left on permanently costs a permanent layer for a bar that
+  moves a handful of times a session.
 - The segmented rail's `bg-background` (not `bg-muted`) repeats
   `ToggleGroup`'s exact reasoning: this app's dark theme has `--muted`
   _lighter_ than `--card`, so a muted fill on a card-nested rail would read

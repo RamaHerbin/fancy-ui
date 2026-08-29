@@ -151,6 +151,25 @@ plays no `select` — the same silent early return `onValueChange` gets — and
 the panel closes as a dismissal, with `close`, rather than in silence.
 Toggling the trigger shut with nothing highlighted stays a `close`.
 
+## Motion
+
+The panel enters with a 150 ms opacity + scale rise (the shared `fast` rung and out-curve, applied in JS — there is no `--ft-*`
+variable to override for this entrance), growing from a `0.92` floor. The growth origin follows the
+side the panel was **actually** placed on — flipped placements included — so it
+always appears to come out of the trigger rather than out of its own centre. A
+panel that asked for `side="top"` but had to flip below the trigger grows from
+its top edge, not the bottom edge it requested.
+
+The resolved placement is published on the panel as `data-side` and
+`data-align`, for consumers that want to key their own styling off where it
+landed.
+
+- **Reduced motion** — no entrance animation at all; the panel simply appears.
+  Its visibility never depended on the animation, so nothing is lost.
+- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated
+  and plays identically on touch.
+- Closing is currently instant.
+
 ## Implementation Notes
 
 - **Focus never leaves the trigger — because each row cancels its own

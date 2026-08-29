@@ -101,9 +101,55 @@
 			--ft-accent,
 			light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
 		);
+		/* The underline below is an absolutely-positioned pseudo, which needs a
+		   containing block. An inline-flex anchor taking `position: relative`
+		   changes no layout. */
+		position: relative;
 	}
 
-	.ft-navbar-link[aria-current="page"] {
+	/*
+	 * The accent underline, character-for-character the declaration that used to
+	 * sit on the anchor itself — same inset shadow, same inherited radius, so
+	 * the resting look is unchanged. It lives one layer down for two reasons.
+	 * It can now be transitioned without transitioning the focus ring, which
+	 * shares the `box-shadow` property and must never animate. And it frees the
+	 * anchor's own `box-shadow`, which Tailwind's `focus-visible:ring-2`
+	 * compiles to: unlayered scoped CSS beats `@layer utilities` regardless of
+	 * specificity, so until now the current link's own underline was
+	 * suppressing its focus ring entirely.
+	 */
+	.ft-navbar-link::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		pointer-events: none;
 		box-shadow: inset 0 -2px 0 var(--ft-nav-accent);
+		opacity: 0;
+	}
+
+	.ft-navbar-link[aria-current="page"]::before {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		/* `transform-origin: center` rather than a leading edge is deliberate:
+		   unlike a sliding tab indicator this bar never travels between
+		   siblings, so there is no leading edge to grow from, and `center`
+		   reads the same in both writing directions for free.
+		   150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout */
+		.ft-navbar-link::before {
+			transition:
+				opacity var(--ft-navbar-signal-duration, var(--ft-duration-fast, 150ms))
+					var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+				transform var(--ft-navbar-signal-duration, var(--ft-duration-fast, 150ms))
+					var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+			transform: scaleX(0.4);
+			transform-origin: center;
+		}
+
+		.ft-navbar-link[aria-current="page"]::before {
+			transform: scaleX(1);
+		}
 	}
 </style>

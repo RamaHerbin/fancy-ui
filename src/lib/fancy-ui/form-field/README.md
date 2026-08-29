@@ -131,6 +131,32 @@ set the control's own prop.
 | `class`       | `string`                 | —       | Additional CSS classes, merged onto the root                                                  |
 | `ref`         | `HTMLDivElement \| null` | `null`  | Bindable reference to the root element                                                        |
 
+## Motion
+
+- Help text and error text each grow and fade in over 150 ms when they
+  appear, so a message arriving under a field the user is typing in reads as
+  "this just changed" rather than as a layout jolt. Only `opacity` and
+  `transform` animate.
+- The checkmark next to valid help text gets 80 ms instead — it is one
+  character wide, and a glyph-scale change only needs a glyph-scale beat.
+- **Messages animate in, never out.** The error and the description are the
+  two branches of one `{#if}`, and each carries the id `aria-describedby`
+  points at. An exit animation would leave a paragraph on screen for 150 ms
+  after the control had already stopped describing it — a message a screen
+  reader is no longer pointed at, still visible. With entrances only, the
+  outgoing branch is gone in the same tick the incoming one mounts, so the
+  wiring and the pixels never disagree.
+- A field that renders with its message already present gets no entrance,
+  and a field that renders already-valid does not pop its checkmark. Svelte
+  skips a local intro on a block's first run, which is the behaviour you
+  want: only a real change performs.
+- **Reduced motion.** With `prefers-reduced-motion: reduce`, both entrances
+  collapse to zero duration, which makes Svelte skip the animation outright
+  rather than run a zero-length one. Every message and glyph still appears,
+  still carries its id, still reaches `aria-describedby`.
+- **Touch and coarse pointers.** Nothing here follows the pointer or depends
+  on hover, so a coarse pointer behaves identically.
+
 ## Implementation notes
 
 - **`describedBy` is derived, not registered.** It is recomputed on every

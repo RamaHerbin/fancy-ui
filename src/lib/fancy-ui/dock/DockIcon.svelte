@@ -26,6 +26,12 @@
 	}
 
 	let iconWidth = $derived.by(() => {
+		// Checked before `calculateDistance()`, not after: on a touch device or
+		// under reduced motion this also skips a `getBoundingClientRect()` per
+		// icon per frame, which is the whole reason the flag is read here rather
+		// than only in the mouse handler.
+		if (!context.magnify) return 40;
+
 		const distanceCalc = calculateDistance();
 
 		if (!context.distance || !context.magnification) return 40;

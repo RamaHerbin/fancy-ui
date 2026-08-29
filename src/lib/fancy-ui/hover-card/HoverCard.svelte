@@ -45,11 +45,12 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
 	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 
 	let {
 		open = $bindable(false),
@@ -126,6 +127,23 @@
 
 	let panelEl = $state<HTMLDivElement | null>(null);
 
+	// Seeded with the REQUESTED side rather than a hardcoded `"bottom"`, so a
+	// card that never flips reads the right growth origin without depending on
+	// whether `anchorPosition`'s `onPlacement` has run yet. `untrack` silences
+	// the compiler's `state_referenced_locally` warning and is honest about
+	// the shape: this read of `side` is deliberately one-shot, and every later
+	// value — a flip, or a change to the `side` prop itself — arrives through
+	// `onPlacement` below, which is the one source of truth for where the card
+	// actually landed.
+	let resolvedSide = $state<Side>(untrack(() => side));
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(untrack(() => align));
+
 	// The documented contract is that nothing inside the card is interactive
 	// (see the README), so in the shape this component was designed for,
 	// focus never moves from the trigger into the card and this check never
@@ -162,43 +180,45 @@
 	{@render trigger?.(open ? panelId : undefined)}
 </div>
 
+<!--
+	`in:` and never `transition:`: an entrance must not delay the unmount.
+	`closeDelay` already owns the grace period a pointer needs to travel
+	between the trigger and the card, and it does so *before* the card leaves —
+	stacking an outro on top of it would mean the card is gone from the
+	pointer's point of view while still occupying the DOM, and would make
+	`onOpenChange(false)` and the removal fall out of step.
+
+	Reduced motion needs no rule of its own any more: `anchored` collapses the
+	duration to 0, Svelte's own falsy-duration fast path then skips
+	`element.animate()` entirely, and the card appears in the frame it mounts.
+	Its visibility never depended on the animation — `{#if open}` alone decides
+	that — so nothing is reachable only through motion.
+-->
 {#if open}
 	<div
 		bind:this={panelEl}
 		id={panelId}
 		class={classes}
-		data-state="open"
 		use:portal
-		use:anchorPosition={{ anchor: () => ref, side, align, offset }}
+		use:anchorPosition={{
+			anchor: () => ref,
+			side,
+			align,
+			offset,
+			onPlacement: (placed, placedAlign) => {
+				resolvedSide = placed;
+				resolvedAlign = placedAlign;
+			},
+		}}
 		use:dismissable={{ onDismiss: () => setOpen(false), exclude: () => [ref] }}
+		in:anchored={{ side: resolvedSide }}
+		data-state="open"
+		data-side={resolvedSide}
+		data-align={align}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onpointerenter={clearCloseTimer}
 		onpointerleave={scheduleClose}
 	>
 		{@render children?.()}
 	</div>
 {/if}
-
-<style>
-	/*
-	 * Reduced motion keeps the resting state (fully opaque, untransformed) as
-	 * the base, so a card that only ever becomes visible via this animation
-	 * still appears immediately when motion is off — the keyframe is added on
-	 * top, not required to reach the visible state.
-	 */
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-hover-card-panel[data-state="open"] {
-			animation: ft-hover-card-in 150ms ease-out;
-		}
-	}
-
-	@keyframes ft-hover-card-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96) translateY(4px);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1) translateY(0);
-		}
-	}
-</style>

@@ -1,4 +1,5 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { computePosition } from "../_internals/anchor-position.js";
 import Harness from "./ContextMenuHarness.test.svelte";
@@ -28,6 +29,23 @@ function itemsIn(root: HTMLElement | null): HTMLElement[] {
 
 function itemByLabel(root: HTMLElement | null, label: string): HTMLElement | undefined {
 	return itemsIn(root).find((el) => el.textContent?.trim().startsWith(label));
+}
+
+// Replaces `window.matchMedia` wholesale, the pattern the rest of the repo
+// uses. The entrance resolves it fresh the instant it starts, so an override
+// installed before the right-click is the one that decides whether the panel
+// animates at all.
+function stubMatchMedia(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
 }
 
 describe("ContextMenu", () => {
@@ -369,5 +387,62 @@ describe("ContextMenu", () => {
 		await fireEvent.click(itemByLabel(subMenuEl, "Inspect")!);
 		expect(onSelect).toHaveBeenCalledWith("Inspect");
 		await waitFor(() => expect(document.querySelectorAll('[role="menu"]')).toHaveLength(0));
+	});
+
+	// The entrance itself lives in `_internals/motion/anchored.ts` and is
+	// tested there. What is component-specific is the plumbing between
+	// `anchorPosition`'s resolved placement and the growth origin — which
+	// matters more here than anywhere else, because this panel's anchor is a
+	// point at the pointer and a right-click low or far right in the viewport
+	// flips it as a matter of routine.
+	describe("anchored entrance", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("publishes its resolved placement and grows from the corner nearest the click", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 120, clientY: 80 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+
+			// jsdom has no layout engine — every rect reads as zeroes — so
+			// `computePosition` never overflows and never flips. That makes
+			// the un-flipped case the deterministic one to assert here.
+			expect(menu()!.getAttribute("data-side")).toBe("bottom");
+			expect(menu()!.getAttribute("data-align")).toBe("start");
+			// `bottom` + `start`: the panel's own top-left corner, which sits
+			// under the pointer that opened it.
+			expect(menu()!.style.transformOrigin).toBe("left top");
+
+			// The positive control for the reduced-motion case below: with no
+			// preference expressed, opening really does schedule an animation
+			// — and Svelte hands `element.animate()` the sampled `css(t, u)`
+			// verbatim, so the spy's arguments are a readable record of what
+			// that animation touches: opacity and transform only, from the
+			// shared `0.92` floor. Asserting the keyframes rather than a bare
+			// call count means a panel animating the wrong property, or off
+			// the wrong scale, fails here instead of passing silently.
+			expect(animateSpy).toHaveBeenCalled();
+			const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+			expect(keyframes[0]).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
+		});
+
+		it("runs no animation at all under reduced motion, and the panel is there in the same tick", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 120, clientY: 80 });
+			await tick();
+			expect(menu()).not.toBeNull();
+
+			// A zero duration makes Svelte skip `element.animate()` outright
+			// rather than run a zero-length animation, so no call at all is
+			// the honest proof that nothing was scheduled.
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
 	});
 });

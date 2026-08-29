@@ -196,6 +196,37 @@ readable:
 }
 ```
 
+Two optional variables tune the motion. Each falls back to the library-wide
+token, which falls back to a literal, so setting neither is the supported
+default:
+
+| Variable                         | Default                          | What it controls                                       |
+| -------------------------------- | -------------------------------- | ------------------------------------------------------ |
+| `--ft-sidebar-collapse-duration` | `var(--ft-duration-fast, 150ms)` | How long the rail takes to collapse or expand          |
+| `--ft-sidebar-signal-duration`   | `var(--ft-duration-fast, 150ms)` | How long the current item's accent bar takes to arrive |
+
+## Motion
+
+- The current item's accent bar grows from `scaleY(0.4)` to full height and
+  fades in over 150 ms, on the same easing as the colour change beside it,
+  instead of appearing a frame ahead of it.
+- The bar is painted by a `::before` pseudo-element rather than by the item's
+  own `box-shadow`. That leaves the item's shadow free to be its focus ring —
+  a focus ring must never animate, and until this change the current item's
+  own accent bar was suppressing its focus ring entirely.
+- Collapsing the rail animates `width` over 150 ms. This is a **named
+  exception** to the library's "only opacity and transform animate" rule: a
+  collapsing sidebar is a layout change, and no transform reflows the content
+  beside it. The curve is the reversible one, not an arrival curve, so the
+  collapse and the expand read the same.
+- **Reduced motion.** Both the bar's growth and the width transition are
+  declared inside `@media (prefers-reduced-motion: no-preference)`. Without
+  that preference the bar simply appears at full height and the rail changes
+  width in one step. Nothing is hidden; nothing travels.
+- **Touch and coarse pointers.** Nothing here is pointer-driven — the accent
+  bar follows `current`, and the rail follows `collapsed` — so a coarse
+  pointer needs no special handling.
+
 ## Implementation Notes
 
 - The context (`types.ts`) is deliberately read-only: it exposes only

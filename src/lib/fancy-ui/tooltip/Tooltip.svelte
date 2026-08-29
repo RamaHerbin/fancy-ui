@@ -35,6 +35,7 @@
 	import { onDestroy, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
 
@@ -55,6 +56,23 @@
 
 	let open = $state(false);
 	let triggerEl = $state<HTMLElement | null>(null);
+
+	// Seeded with the REQUESTED side rather than a hardcoded `"bottom"`, so a
+	// bubble that never flips reads the right growth origin without depending
+	// on whether `anchorPosition`'s `onPlacement` has run yet. `untrack`
+	// silences the compiler's `state_referenced_locally` warning and is
+	// honest about the shape: this read of `side` is deliberately one-shot,
+	// and every later value — a flip, or a change to the `side` prop itself —
+	// arrives through `onPlacement` below, which is the one source of truth
+	// for where the bubble actually landed.
+	let resolvedSide = $state<Side>(untrack(() => side));
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(untrack(() => align));
 
 	// Three independent reasons to be open, each tracked on its own:
 	// hovering the trigger, hovering the bubble itself, and focus. They are
@@ -274,34 +292,44 @@
 	{@render children?.()}
 </span>
 
+<!--
+	`in:` and never `transition:`. Instant-out is the whole point of a tooltip:
+	a label that lingers on its way out makes the pointer feel sticky, and an
+	outro would also delay the unmount that `closeDelay`, Escape and blur all
+	expect to be immediate. The open delay above is a *scheduling* delay —
+	nothing is mounted while it runs — so it is not, and must not become,
+	`anchored`'s transition `delay`.
+
+	`scale: false` keeps the entrance opacity-only, exactly as it has always
+	been: a tooltip is a label, not a surface, so it has no "grew out of the
+	trigger" story that a scale would tell. The origin is still written, so a
+	consumer styling off `data-side` gets the same information every other
+	panel exposes.
+-->
 {#if open && !disabled}
 	<div
-		use:portal
-		use:anchorPosition={{ anchor: () => triggerEl, side, align, offset }}
-		use:dismissable={{ onDismiss: handleDismiss, escape: true, outsideClick: false }}
 		id={tooltipId}
 		role="tooltip"
 		class="ft-tooltip bg-primary text-primary-foreground pointer-events-auto z-50 rounded-[6px] px-[10px] py-[5px] text-[11px] font-medium shadow-lg"
+		use:portal
+		use:anchorPosition={{
+			anchor: () => triggerEl,
+			side,
+			align,
+			offset,
+			onPlacement: (placed, placedAlign) => {
+				resolvedSide = placed;
+				resolvedAlign = placedAlign;
+			},
+		}}
+		use:dismissable={{ onDismiss: handleDismiss, escape: true, outsideClick: false }}
+		in:anchored={{ side: resolvedSide, scale: false }}
+		data-side={resolvedSide}
+		data-align={align}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onpointerenter={handleContentPointerEnter}
 		onpointerleave={handleContentPointerLeave}
 	>
 		{content}
 	</div>
 {/if}
-
-<style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-tooltip {
-			animation: ft-tooltip-in 0.1s ease-out;
-		}
-	}
-
-	@keyframes ft-tooltip-in {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-</style>

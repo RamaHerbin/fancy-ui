@@ -113,6 +113,28 @@ The panel itself uses `bg-popover`/`text-popover-foreground`/`border-border`
 — tokens a consumer's theme is already expected to define, unlike the
 accent.
 
+## Motion
+
+The panel enters with a 150 ms opacity + scale rise on the shared arrival
+curve (`DURATIONS.fast` and `JS_EASINGS.out` from the motion foundation),
+growing from a `0.92` floor. The growth origin follows the side the panel was
+actually placed on — flipped placements included — so it always appears to come
+out of the trigger rather than out of its own centre. The resolved placement is
+exposed as `data-side` / `data-align` for consumers that want to key their own
+styling off it.
+
+The entrance is a JS transition, not a CSS animation, so there is no
+`--ft-*` variable to override here; the timing comes from the shared token
+ladder and moves with it.
+
+- **Reduced motion** — no entrance animation at all; the panel simply appears.
+  Its visibility never depended on the animation, so nothing is reachable only
+  through motion.
+- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated.
+- Closing is instant. The entrance is declared with `in:`, never `transition:`,
+  so it can never delay the unmount — which is what keeps the focus trap's
+  return-focus and every dismissal path synchronous.
+
 ## Implementation Notes
 
 - `computePosition`/the `anchorPosition` action (`_internals/anchor-position.js`)

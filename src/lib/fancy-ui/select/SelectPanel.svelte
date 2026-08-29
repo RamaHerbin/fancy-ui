@@ -10,9 +10,10 @@
 <script lang="ts">
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { SELECT_KEY, type SelectContext, type SelectOption } from "./types.js";
 
 	let { class: className, ref = $bindable(null) }: SelectPanelProps = $props();
@@ -21,6 +22,22 @@
 	// so the context is always present by the time this runs — there is no
 	// standalone-usage fallback to design for, the same as PopoverContent.
 	const ctx = getContext<SelectContext>(SELECT_KEY);
+
+	// The side the panel was ACTUALLY placed on, which is the requested one
+	// until `computePosition` flips it away from a viewport edge. Seeded with
+	// the request rather than a hardcoded `"bottom"` so the common,
+	// never-flipped case never depends on `onPlacement` having fired first:
+	// the action runs before the transition reads its params, but only a real
+	// flip makes that ordering observable, and a wrong seed would be a
+	// one-frame origin jump on every open.
+	let resolvedSide = $state<Side>(ctx.side);
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(ctx.align);
 
 	function rowClasses(index: number, option: SelectOption): string {
 		return cn(
@@ -62,6 +79,17 @@
 	rows instead of a plain menu. Focus staying there through a mouse click
 	specifically depends on `preventFocusSteal` below, not merely on this
 	component never calling `.focus()` — see its own comment.
+
+	`in:` and not `transition:`, deliberately: an entrance-only directive
+	leaves teardown synchronous, so closing the panel still removes it from
+	the DOM in the same tick that `open` flips false. An exit is PR-scoped
+	work of its own, not something to smuggle in behind an entrance.
+
+	That entrance used to live in this file's `<style>` as a hand-rolled
+	keyframe, on a duration and a scale floor the panel invented for itself.
+	It is now the shared `anchored` transition below, which every floating
+	surface in the library uses — one rung, one curve, one floor, and a
+	growth origin that follows a flipped placement instead of ignoring it.
 -->
 <div
 	bind:this={ref}
@@ -77,11 +105,19 @@
 		side: ctx.side,
 		align: ctx.align,
 		offset: 4,
+		onPlacement: (side, align) => {
+			resolvedSide = side;
+			resolvedAlign = align;
+		},
 	}}
 	use:dismissable={{
 		onDismiss: ctx.close,
 		exclude: () => [ctx.triggerRef],
 	}}
+	in:anchored={{ side: resolvedSide }}
+	data-side={resolvedSide}
+	data-align={ctx.align}
+	style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 >
 	{#each ctx.options as option, index (option.value)}
 		<!--
@@ -112,23 +148,6 @@
 </div>
 
 <style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-select-panel {
-			animation: ft-select-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-select-in {
-		from {
-			opacity: 0;
-			transform: scale(0.97);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-
 	.ft-select-option {
 		--ft-field-accent: var(
 			--ft-accent,

@@ -78,4 +78,37 @@ describe("LineHoverLink", () => {
 		const { container } = render(LineHoverLink, { props: { variant: "ink", href: "#" } });
 		expect(container.querySelector("svg")).toBeNull();
 	});
+
+	// Every `transition` and `animation` in this component now lives inside
+	// `@media (prefers-reduced-motion: no-preference)`; the resting and hover
+	// states stay outside it, so the underline still appears, it just stops
+	// travelling. jsdom evaluates neither the media query nor the pseudo-
+	// elements that carry it, so what a test can pin is that the preference
+	// changes nothing about the markup the CSS selects on — no variant is
+	// swapped out, no graphic is dropped, and the SVG stroke-draw variants
+	// still ship the path that snaps to fully drawn.
+	it("reduced motion: every variant still renders the markup its effect hangs off", () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			for (const variant of ["slide", "pulse", "sweep", "bounce", "ink"] as const) {
+				const { container, unmount } = render(LineHoverLink, { props: { variant, href: "#" } });
+				expect(container.querySelector(`a.link-hover--${variant}`)).toBeTruthy();
+				unmount();
+			}
+
+			for (const variant of ["arc", "scribble"] as const) {
+				const { container, unmount } = render(LineHoverLink, { props: { variant, href: "#" } });
+				const path = container.querySelector(`svg.link-hover__graphic--${variant} path`);
+				expect(path?.getAttribute("pathLength")).toBe("1");
+				unmount();
+			}
+		} finally {
+			window.matchMedia = real;
+		}
+	});
 });

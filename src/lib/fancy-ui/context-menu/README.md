@@ -194,6 +194,39 @@ above `body`. Neither reads `--ft-nav-accent`, so this doesn't currently
 bite here; see `dropdown-menu/README.md`'s Theming section for the full
 reasoning if you add a portalled read of the accent to either later.
 
+## Motion
+
+The panel enters with a 150 ms opacity + scale rise (`DURATIONS.fast` and
+`JS_EASINGS.out`, the shared rung every floating surface in the library is
+on), growing from a `0.92` floor. The growth origin follows the placement the panel
+actually got — flipped sides included, and the cross-axis alignment as it
+ended up rather than as it was requested, since a menu opened near a viewport
+edge is clamped sideways until the corner touching the pointer is no longer
+the one asked for. Either way it appears to come out of the click rather than
+out of its own centre. `data-side` / `data-align` carry the resolved side and
+the requested alignment for consumers keying their own styling off placement.
+
+The entrance is a Svelte transition rather than a keyframe, so there is no
+`--ft-*` variable on the panel to retime it; reduced motion is the one switch.
+
+- This is the panel where the origin earns its keep. The anchor is a
+  zero-size point at the pointer, so a right-click low in the viewport, or
+  far to the right of it, flips the placement as a matter of routine — and
+  the corner the menu grows from flips with it.
+- Only `opacity` and `transform` animate, and only on the panel itself.
+- A submenu opened from here is `dropdown-menu`'s `SubContent` (see "Shared
+  implementation"), so it gets exactly the same entrance, growing from the
+  edge nearest the row that opened it.
+- **Focus is never animated.** The first item is focused in the same tick the
+  panel mounts, entrance running or not.
+- **Reduced motion** — no entrance animation at all; the panel simply appears.
+  Visibility never depended on the animation: `{#if root.open}` owns the
+  panel's DOM existence, and the entrance is layered on top of that.
+- **Touch and coarse pointers** — unchanged; the entrance is not
+  pointer-gated. A long-press-driven `contextmenu` event opens exactly as a
+  right-click does.
+- Closing is instant.
+
 ## Implementation notes
 
 - The virtual anchor (`ContextMenu`'s own `<span class="ft-context-menu-anchor">`)
@@ -216,8 +249,9 @@ reasoning if you add a portalled read of the accent to either later.
 - `ContextMenuContent` carries no `focusTrap`/`lockScroll`, same as
   `DropdownMenuContent` — not modal, the rest of the page stays reachable.
 - `{#if root.open}` gates the panel's entire DOM existence, same reasoning
-  as `DropdownMenuContent` — the reduced-motion entrance animation is
-  layered on top, not load-bearing for whether the panel exists at all.
+  as `DropdownMenuContent` — the shared entrance (`in:anchored`, from
+  `_internals/motion/anchored.js`) is layered on top, not load-bearing for
+  whether the panel exists at all.
 - Item font-size lives on `ContextMenuContent` (`text-[12px]`, this
   family's own density), not on the shared item components — see
   `dropdown-menu/README.md`'s Implementation notes for the full reasoning,

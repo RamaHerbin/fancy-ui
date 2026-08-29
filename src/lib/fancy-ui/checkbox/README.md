@@ -91,9 +91,13 @@ Notes.
 
 ## Theming
 
-The checked/indeterminate fill and focus ring color have no semantic token in
-the app's theme layer, so they fall back to a `light-dark()` accent pair local
-to the component:
+| Variable                      | Default                                                               | Applies to                                        |
+| ----------------------------- | --------------------------------------------------------------------- | ------------------------------------------------- |
+| `--ft-accent`                 | `light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))` | The checked/indeterminate fill and the focus ring |
+| `--ft-checkbox-draw-duration` | `var(--ft-duration-base, 300ms)`                                      | How long the mark takes to draw itself            |
+
+The fill and focus-ring colour have no semantic token in the app's theme layer,
+so they fall back to a `light-dark()` accent pair local to the component:
 
 ```css
 .my-form {
@@ -102,6 +106,54 @@ to the component:
 ```
 
 Set `--ft-accent` higher up the tree to retint every `Checkbox` beneath it.
+
+`--ft-checkbox-draw-duration` is the one escape hatch on the draw: the family
+default matches `StatusMorph`'s check exactly, so the library has one
+check-draw at one speed, but a dense form where boxes are flipped constantly
+can shorten it without leaving the scale:
+
+```css
+.my-dense-table {
+	--ft-checkbox-draw-duration: var(--ft-duration-fast, 150ms);
+}
+```
+
+## Motion
+
+The mark draws itself. Both shapes are real stroked SVG paths normalised with
+`pathLength="1"`, so checking the box animates `stroke-dashoffset` from `1` to
+`0` over `300ms` (`--ft-duration-base`) on `--ft-ease-out` — the same technique
+and the same clock as `StatusMorph`'s check, deliberately, so the library has
+one check-draw rather than two. The box's own fill and border cross-fade first,
+on `150ms` (`--ft-duration-fast`, `--ft-ease-inout`): the two are ordered, not
+parallel — the box fills, then the mark is drawn onto the filled box.
+
+Both paths are always present, each waiting at `stroke-dashoffset: 1` until its
+own state matches, which is what makes **indeterminate → checked** one gesture:
+the dash un-draws while the tick draws, over the same window, instead of one
+shape being swapped for another.
+
+`checked` and `indeterminate` are not mutually exclusive — `checked` is the real
+state underneath even while `indeterminate` is true. With both set, the **dash
+wins the shape**, so the mark says exactly what `aria-checked="mixed"` already
+announces rather than drawing a tick and a dash on top of one another.
+
+- **Reduced motion** — only the `transition` sits inside
+  `@media (prefers-reduced-motion: no-preference)`. The resting and drawn
+  `stroke-dashoffset` values are outside it, so without motion the mark is
+  simply there, whole, the instant the box is checked. It is never invisible
+  for want of an animation. The colour channel is not gated at all — a colour
+  change is not motion.
+- **Touch and coarse pointers** — unchanged; nothing here is pointer-driven,
+  and the mark takes no pointer events, so a tap anywhere on the box reaches
+  the native `<input>` underneath.
+- **Forced colors** — the mark strokes `currentColor` against a colour set on
+  the SVG itself, so a forced palette re-colours the mark and the box behind it
+  from the same system colours. No `@media (forced-colors: active)` block, and
+  nothing to keep in sync with one.
+- **Keyboard** — identical to the pointer path: `Space` fires the native
+  change, and the draw is keyed off `:checked` / `:indeterminate`, never off a
+  pointer event.
 
 ## Implementation Notes
 
@@ -124,14 +176,21 @@ Set `--ft-accent` higher up the tree to retint every `Checkbox` beneath it.
   falls back to this component's own prop of the same name in that case, so
   the control never throws and never renders unlabelled just because there is
   no surrounding `FormField`.
-- Checked and indeterminate each render their own shape (a rotated checkmark
-  corner vs. a flat dash), not only a colour difference between the two, and
-  disabled dims through opacity plus `cursor: not-allowed` — colour is never
-  the only cue. Invalid gets both a border-colour echo at rest and an outline
-  ring (offset outside the box, past the focus halo) that persists once
-  checked or indeterminate fills the box and turns its own border transparent
-  — without the ring, the invalid cue would silently disappear the moment the
-  box gets checked.
+- Checked and indeterminate each render their own shape (a drawn tick vs. a
+  flat dash), not only a colour difference between the two, and disabled dims
+  through opacity plus `cursor: not-allowed` — colour is never the only cue.
+  Invalid gets both a border-colour echo at rest and an outline ring (offset
+  outside the box, past the focus halo) that persists once checked or
+  indeterminate fills the box and turns its own border transparent — without
+  the ring, the invalid cue would silently disappear the moment the box gets
+  checked.
+- The mark is an SVG **sibling** overlaid on the input, not a child of it: the
+  control is a real `<input type="checkbox">`, and an `<input>` is a void
+  element that cannot contain anything. That is the whole reason the markup
+  carries one wrapper `<span>` — it is the positioning context the overlay
+  needs, and nothing else lives on it. The SVG is `aria-hidden` and
+  `focusable="false"` (older engines put SVGs in the tab order on their own)
+  and takes no pointer events, so the input still receives every click.
 - `label` always renders as `aria-label` when passed, whether or not
   `children` is also given — the component has no way to inspect an arbitrary
   `Snippet` to tell whether it renders visible text, so it trusts the prop

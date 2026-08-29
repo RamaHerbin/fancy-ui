@@ -224,6 +224,32 @@
 		);
 	}
 
+	/*
+	 * A step's whole visible state — the bullet's fill, its label colour, the
+	 * halo around the current one, and the connector behind it — used to arrive
+	 * in a single frame. It now eases in on the same clock as everything else
+	 * in the library.
+	 *
+	 * Declared outside any `prefers-reduced-motion` query on purpose: none of
+	 * these three properties moves anything. A colour that crossfades and a
+	 * static ring that appears are state changes, not travel, and suppressing
+	 * them under reduced motion would make the stepper flicker rather than
+	 * settle. The focus ring is safe from this list because it lives on a
+	 * different element (`.ft-step-trigger`), so no `box-shadow` here is ever
+	 * a focus indicator.
+	 *
+	 * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout
+	 */
+	.ft-step-bullet,
+	.ft-step-connector {
+		--ft-step-signal: var(--ft-step-signal-duration, var(--ft-duration-fast, 150ms))
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+		transition:
+			background-color var(--ft-step-signal),
+			color var(--ft-step-signal),
+			box-shadow var(--ft-step-signal);
+	}
+
 	.ft-step-bullet-done {
 		background: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
 		color: light-dark(oklch(1 0 0), oklch(0.15 0 0));

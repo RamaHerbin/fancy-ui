@@ -1,4 +1,5 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import DatePicker from "./DatePicker.svelte";
 import ValueHarness from "./DatePickerHarness.test.svelte";
@@ -25,10 +26,32 @@ function announcement(): string {
 	return document.querySelector('[role="status"]')?.textContent ?? "";
 }
 
+/** Replaces `window.matchMedia` wholesale. The panel's entrance reads the
+ * preference fresh at the instant the transition starts, so an override
+ * installed before the panel opens is the one it sees. */
+function stubReducedMotion(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
 describe("DatePicker", () => {
 	afterEach(() => {
 		cleanup();
 		document.querySelectorAll(".ft-date-picker-panel").forEach((el) => el.remove());
+		vi.unstubAllGlobals();
+		// A spy on `Element.prototype.animate` has to be fresh in every test:
+		// `vi.spyOn` on an already-mocked property reuses the existing mock
+		// rather than layering a new one, so without this a later
+		// `expect(spy).not.toHaveBeenCalled()` would see an earlier test's calls.
+		vi.restoreAllMocks();
 	});
 
 	it("renders closed by default, with a placeholder and aria-expanded false", () => {
@@ -482,5 +505,44 @@ describe("DatePicker", () => {
 	it("resolves the accessible name from the label prop", () => {
 		const { container } = render(DatePicker, { props: { label: "Deadline" } });
 		expect(trigger(container).getAttribute("aria-label")).toBe("Deadline");
+	});
+
+	it("publishes the resolved placement and grows from the panel corner nearest the trigger", async () => {
+		// The positive counterpart to the reduced-motion test below: under the
+		// default stub (`matches: false`, i.e. no-preference) the entrance really
+		// does run, which is what makes that test's `not.toHaveBeenCalled()`
+		// discriminating instead of vacuously true. Without this line, dropping
+		// the `in:` directive altogether would leave both tests green.
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+		const { container } = render(DatePicker, {});
+		await fireEvent.click(trigger(container));
+		await waitFor(() => expect(panel()).not.toBeNull());
+
+		expect(animateSpy).toHaveBeenCalled();
+
+		// jsdom measures every rect as 0x0, so `computePosition` never sees an
+		// overflow and never flips: the resolved side is the requested one. That
+		// is the un-flipped case, and the one that can be asserted
+		// deterministically here. `bottom` + `align: "start"` puts the growth
+		// origin on the panel's top-left corner — the corner nearest the trigger.
+		expect(panel()!.getAttribute("data-side")).toBe("bottom");
+		expect(panel()!.getAttribute("data-align")).toBe("start");
+		expect(panel()!.style.transformOrigin).toBe("left top");
+	});
+
+	it("runs no animation at all under reduced motion, and still shows the panel", async () => {
+		stubReducedMotion(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+		const { container } = render(DatePicker, {});
+		await fireEvent.click(trigger(container));
+		await waitFor(() => expect(panel()).not.toBeNull());
+		await tick();
+
+		// A zero duration makes Svelte skip `element.animate()` entirely rather
+		// than run a zero-length animation, so the panel is simply there.
+		expect(animateSpy).not.toHaveBeenCalled();
+		expect(panel()).not.toBeNull();
 	});
 });
