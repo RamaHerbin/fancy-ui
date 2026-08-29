@@ -2,7 +2,7 @@ import { render, cleanup } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { tick } from "svelte";
 import Harness from "./AnchoredHarness.test.svelte";
-import { anchored, originFor, prefersReducedMotion } from "./anchored.js";
+import { anchored, markSurfaceState, originFor, prefersReducedMotion } from "./anchored.js";
 import { DURATIONS, JS_EASINGS } from "./tokens.js";
 import { PRESETS } from "./presets.js";
 import type { Side, Align } from "../anchor-position.js";
@@ -227,6 +227,56 @@ describe("anchored transition mounted through {#if} — WAAPI stub path (non-zer
 			return found!;
 		});
 		expect(node.style.transformOrigin).toBe("left top");
+	});
+});
+
+describe("markSurfaceState() — the imperative data-state write", () => {
+	/** Dispatches a real event so `currentTarget` is populated the way it is
+	 * inside a Svelte `onoutrostart` handler — reading it off a hand-built
+	 * event object would test nothing, since `currentTarget` is null outside
+	 * dispatch. */
+	function dispatchOn(node: HTMLElement, type: string, handler: (event: Event) => void) {
+		node.addEventListener(type, handler);
+		node.dispatchEvent(new CustomEvent(type));
+		node.removeEventListener(type, handler);
+	}
+
+	it("writes the state onto the element the handler is bound to", () => {
+		const node = document.createElement("div");
+		node.setAttribute("data-state", "open");
+
+		dispatchOn(node, "outrostart", (event) => markSurfaceState(event, "closing"));
+
+		expect(node.getAttribute("data-state")).toBe("closing");
+	});
+
+	it("round-trips back to open on a reopen mid-exit", () => {
+		const node = document.createElement("div");
+		node.setAttribute("data-state", "open");
+
+		dispatchOn(node, "outrostart", (event) => markSurfaceState(event, "closing"));
+		expect(node.getAttribute("data-state")).toBe("closing");
+
+		dispatchOn(node, "introstart", (event) => markSurfaceState(event, "open"));
+		expect(node.getAttribute("data-state")).toBe("open");
+	});
+
+	it("writes currentTarget, not target — a bubbled event from a child does not mislabel the surface", () => {
+		const surface = document.createElement("div");
+		const child = document.createElement("button");
+		surface.appendChild(child);
+		document.body.appendChild(surface);
+
+		surface.addEventListener("outrostart", (event) => markSurfaceState(event, "closing"));
+		child.dispatchEvent(new CustomEvent("outrostart", { bubbles: true }));
+
+		expect(surface.getAttribute("data-state")).toBe("closing");
+		expect(child.hasAttribute("data-state")).toBe(false);
+		surface.remove();
+	});
+
+	it("is a no-op, not a throw, when there is no currentTarget to write to", () => {
+		expect(() => markSurfaceState(new CustomEvent("outrostart"), "closing")).not.toThrow();
 	});
 });
 

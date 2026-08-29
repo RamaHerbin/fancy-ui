@@ -53,7 +53,12 @@
 		ref = $bindable(null),
 	}: AlertDialogProps = $props();
 
+	// Same guard, and the same reason, as Dialog's own `setOpen`: a dismiss
+	// that changes nothing fires nothing, so a second Escape during the close
+	// cannot fire `onOpenChange` — or, through `handleCancel` below,
+	// `onCancel` — a second time.
 	function setOpen(next: boolean) {
+		if (open === next) return;
 		open = next;
 		onOpenChange?.(next);
 	}

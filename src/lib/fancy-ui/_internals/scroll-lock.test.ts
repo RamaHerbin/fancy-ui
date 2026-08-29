@@ -1,5 +1,8 @@
+import { render, cleanup, waitFor } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { lockScroll } from "./scroll-lock";
+import { lockScroll, scrollLock } from "./scroll-lock";
+import Harness from "./ScrollLockHarness.test.svelte";
 
 function setViewport(innerWidth: number, clientWidth: number) {
 	Object.defineProperty(window, "innerWidth", { value: innerWidth, configurable: true });
@@ -125,5 +128,99 @@ describe("lockScroll", () => {
 		expect(() => release()).not.toThrow();
 
 		globalThis.document = originalDocument;
+	});
+});
+
+describe("scrollLock — the action form", () => {
+	beforeEach(() => {
+		setViewport(1024, 1009);
+	});
+
+	afterEach(() => {
+		cleanup();
+		document.body.style.cssText = "";
+		document.documentElement.style.cssText = "";
+	});
+
+	it("acquires on mount and releases on destroy", () => {
+		const node = document.createElement("div");
+		document.body.appendChild(node);
+
+		const action = scrollLock(node);
+		expect(document.body.style.position).toBe("fixed");
+
+		action?.destroy?.();
+		expect(document.body.style.position).toBe("");
+		node.remove();
+	});
+
+	it("reference-counts like lockScroll(): two mounts, and only the second destroy unlocks", () => {
+		const outer = document.createElement("div");
+		const inner = document.createElement("div");
+		document.body.append(outer, inner);
+
+		const a = scrollLock(outer);
+		const b = scrollLock(inner);
+		expect(document.body.style.position).toBe("fixed");
+
+		b?.destroy?.(); // e.g. a Popover inside the dialog closing
+		expect(document.body.style.position).toBe("fixed");
+
+		a?.destroy?.();
+		expect(document.body.style.position).toBe("");
+		outer.remove();
+		inner.remove();
+	});
+});
+
+// THE PLATFORM-FACT PROOF, and the gate on the rest of the campaign.
+//
+// The claim: a LOCAL transition on a CHILD component's root element is
+// collected by the PARENT's `{#if}` when that branch closes, because Svelte's
+// collector walks through the transparent effect a statically-known child
+// compiles to. Five panels in the next lane are shaped exactly this way, and
+// the close protocol depends on the claim holding — if it does not, the exit
+// is skipped, the branch is destroyed synchronously, and the scroll lock
+// releases while the surface is still on screen.
+//
+// The scroll lock is the instrument rather than the subject: it reads the
+// delay directly, with no mock in between. If the outro is collected, the
+// action's `destroy()` waits for it and the body stays pinned; if it is not,
+// the body unlocks in the same flush.
+describe("scrollLock — a child component's exit still delays the parent's unmount", () => {
+	beforeEach(() => {
+		setViewport(1024, 1009);
+	});
+
+	afterEach(() => {
+		cleanup();
+		document.body.style.cssText = "";
+		document.documentElement.style.cssText = "";
+	});
+
+	it("keeps the panel mounted and the page locked for the length of the exit", async () => {
+		const { container } = render(Harness);
+		const toggle = container.querySelector<HTMLButtonElement>('[data-testid="toggle"]')!;
+		const panel = () => document.querySelector('[data-testid="panel"]');
+		expect(panel()).toBeNull();
+
+		toggle.click();
+		await tick();
+		expect(panel()).not.toBeNull();
+		expect(document.body.style.position).toBe("fixed");
+
+		toggle.click();
+		await tick();
+
+		// Still here, still locked: the child's transition WAS collected by the
+		// parent's `{#if}`. If it had not been, the branch would have been
+		// destroyed in that same flush and both assertions would invert.
+		expect(panel()).not.toBeNull();
+		expect((panel() as HTMLElement).inert).toBe(true);
+		expect(document.body.style.position).toBe("fixed");
+
+		// And both land once the exit finishes.
+		await waitFor(() => expect(panel()).toBeNull());
+		await waitFor(() => expect(document.body.style.position).toBe(""));
 	});
 });

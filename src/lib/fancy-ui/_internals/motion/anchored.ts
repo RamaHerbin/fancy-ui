@@ -1,7 +1,14 @@
 /**
- * The shared entrance for anchored floating surfaces — menus, selects,
+ * The shared scale+opacity transition for floating surfaces — menus, selects,
  * pickers, popovers, tooltips, hover cards. One rung, one curve, one
  * geometry, so twelve panels stop each inventing their own.
+ *
+ * The name is a slight misnomer for the modal rung: a centred dialog is
+ * anchored to nothing, and spends this same function with its own two
+ * durations (`DURATIONS.base` in, `DURATIONS.exit` out) rather than the
+ * anchored defaults. One geometry in one place was worth more than a synonym,
+ * so the modal surfaces call `anchored` too and spell their rung at the call
+ * site where the diff can see it.
  *
  * Two pieces that are deliberately kept separate:
  *
@@ -163,4 +170,22 @@ export function anchored(
 		css: (t) =>
 			floor === 1 ? `opacity: ${t}` : `opacity: ${t}; transform: scale(${floor + (1 - floor) * t})`,
 	};
+}
+
+/** The `data-state` values a transitioning surface reports. There is no
+ *  "closed": a closed surface is not in the DOM. Deliberately two values, not
+ *  three — a 150–300 ms entrance has nothing that needs to key off "opening",
+ *  and two values means one static attribute plus two one-line handlers
+ *  instead of four. */
+export type SurfaceState = "open" | "closing";
+
+/** Writes `data-state` IMPERATIVELY from a transition event handler. Never
+ *  `data-state={phase}`: Svelte marks the owning `{#if}` branch INERT before
+ *  it plays the outro and the scheduler skips inert effects (verified in
+ *  `node_modules/svelte/src/internal/client/reactivity/batch.js:221` and
+ *  `:696`), so a reactive attribute inside a closing block never reaches the
+ *  DOM. `currentTarget` is the element the handler is bound to, which is the
+ *  transitioning element itself — read during dispatch, where it is defined. */
+export function markSurfaceState(event: Event, state: SurfaceState): void {
+	(event.currentTarget as HTMLElement | null)?.setAttribute("data-state", state);
 }

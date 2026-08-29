@@ -49,6 +49,12 @@
 	// function, not an `$effect`, so it never fights a caller's own
 	// `bind:open` write and never reads/writes `open` in the same pass.
 	function setOpen(next: boolean) {
+		// A dismiss that changes nothing fires nothing. Belt and braces beside
+		// the dismiss layer's own `active` gate — `active` stops the listener,
+		// this stops the callback — and it fixes a real defect on its own: a
+		// second Escape during the close used to fire `onOpenChange(false)` a
+		// second time.
+		if (open === next) return;
 		open = next;
 		onOpenChange?.(next);
 	}
