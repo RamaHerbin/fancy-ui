@@ -11,6 +11,7 @@
 </script>
 
 <Select
+	sound
 	options={frameworks}
 	bind:value={framework}
 	label="Framework"
