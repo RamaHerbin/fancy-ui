@@ -9194,3 +9194,13 @@ export function hasComponent(slug: string): boolean {
 export function getComponentCategory(slug: string): ComponentCategory | undefined {
 	return registry[slug]?.category;
 }
+
+/**
+ * Whether a component takes an opt-in `sound` prop. Read from the props table rather than a
+ * hand-kept list so a newly wired component turns its docs sound switch on by documenting the
+ * prop. Sub-component props are namespaced (`NavbarLink.sound`), which still counts — the family
+ * makes a sound, which is what the docs need to know.
+ */
+export function hasSoundProp(slug: string): boolean {
+	return registry[slug]?.props?.some((prop) => /^(?:[A-Za-z]+\.)?sound$/.test(prop.name)) ?? false;
+}
