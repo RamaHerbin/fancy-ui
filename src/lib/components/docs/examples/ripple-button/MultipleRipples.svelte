@@ -2,6 +2,6 @@
 	import { RippleButton } from "$lib/fancy-ui/ripple-button";
 </script>
 
-<RippleButton class="px-12 py-4 text-lg" rippleColor="#8B5CF6" duration={800}>
+<RippleButton sound class="px-12 py-4 text-lg" rippleColor="#8B5CF6" duration={800}>
 	Click rapidly!
 </RippleButton>
