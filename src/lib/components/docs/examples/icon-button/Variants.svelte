@@ -3,7 +3,7 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-3">
-	<IconButton label="Edit" variant="primary">
+	<IconButton sound label="Edit" variant="primary">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -19,7 +19,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Duplicate" variant="secondary">
+	<IconButton sound label="Duplicate" variant="secondary">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -35,7 +35,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Settings" variant="outline">
+	<IconButton sound label="Settings" variant="outline">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -53,7 +53,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Like" variant="ghost">
+	<IconButton sound label="Like" variant="ghost">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -70,7 +70,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Add" variant="accent">
+	<IconButton sound label="Add" variant="accent">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -85,7 +85,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Delete" variant="destructive">
+	<IconButton sound label="Delete" variant="destructive">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"

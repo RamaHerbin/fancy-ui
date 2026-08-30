@@ -4,7 +4,7 @@
 	let alignment = $state("left");
 </script>
 
-<ToggleGroup bind:value={alignment} label="Text alignment">
+<ToggleGroup sound bind:value={alignment} label="Text alignment">
 	<ToggleGroupItem value="left" label="Align left">
 		<svg
 			class="size-4"
