@@ -883,7 +883,7 @@
 </script>
 
 <div class="h-[36rem] w-full max-w-2xl">
-	<ChatPanel streaming={busy} {empty}>
+	<ChatPanel sound streaming={busy} {empty}>
 		{#snippet header()}
 			<div class="flex items-center gap-3 px-4 py-3">
 				<div class="min-w-0 flex-1">
@@ -901,7 +901,7 @@
 					<ThinkingIndicator variant="pill" status={thinkingStatus} since={thinkingSince} />
 				{/if}
 
-				<ContextRing {usage} size={26} strokeWidth={3} showLabel={false} expandable />
+				<ContextRing sound {usage} size={26} strokeWidth={3} showLabel={false} expandable />
 			</div>
 		{/snippet}
 
@@ -924,6 +924,7 @@
 				<div class="flex flex-col gap-3">
 					{#if reasoningShown}
 						<ReasoningPanel
+							sound
 							text={reasoning}
 							streaming={reasoningStreaming}
 							since={reasoningSince}
@@ -933,17 +934,18 @@
 					{/if}
 
 					{#if searchShown}
-						<WebSearch query={SEARCH_QUERY} {results} {searching} />
+						<WebSearch sound query={SEARCH_QUERY} {results} {searching} />
 					{/if}
 
 					{#if call}
 						<!-- `open` is left alone, so the card stays folded: a call that
 					     succeeded has nothing worth reading unasked. -->
-						<ToolCall {call} />
+						<ToolCall sound {call} />
 					{/if}
 
 					{#if answerShown}
 						<ChatMessage
+							sound
 							role="assistant"
 							content={answer}
 							streaming={answerStreaming}
@@ -973,12 +975,13 @@
 					{/if}
 
 					{#if sourcesShown}
-						<Sources sources={SOURCES} />
+						<Sources sound sources={SOURCES} />
 					{/if}
 
 					<!-- Never unmounted: `visible` is what replays the cascade, and a
 				     component that is not there cannot replay anything. -->
 					<PromptSuggestions
+						sound
 						suggestions={SUGGESTIONS}
 						visible={suggestionsShown}
 						onSelect={chooseSuggestion}
@@ -1002,11 +1005,12 @@
 						{/if}
 
 						{#if diffShown}
-							<CodeDiff diff={PATCH} maxLines={14} />
+							<CodeDiff sound diff={PATCH} maxLines={14} />
 						{/if}
 
 						{#if approvalShown}
 							<ApprovalCard
+								sound
 								title="Write the patch to src/upload/client.ts"
 								description="Replaces the single fetch with a five-attempt loop. Nothing is committed and nothing is pushed."
 								bind:state={approval}
@@ -1033,6 +1037,7 @@
 
 				{#if errorShown}
 					<ChatError
+						sound
 						message="The assistant couldn't finish that reply"
 						detail="stream_interrupted · request 8f21c0"
 						onRetry={retry}
@@ -1069,6 +1074,7 @@
 				<!-- `streaming` here is the live reply alone, never the script: a
 				     recording playing back must not take the send button away. -->
 				<Composer
+					sound
 					bind:value={draft}
 					bind:attachments
 					streaming={liveStreaming}

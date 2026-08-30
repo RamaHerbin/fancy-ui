@@ -64,7 +64,7 @@
 </script>
 
 <div class="bg-card grid w-full max-w-2xl gap-4 rounded-lg border p-4 sm:grid-cols-[20rem_1fr]">
-	<ThreadList {threads} bind:activeId onSelect={open} onDelete={remove}>
+	<ThreadList sound {threads} bind:activeId onSelect={open} onDelete={remove}>
 		{#snippet empty()}
 			<p class="text-muted-foreground px-2 py-6 text-center text-xs">
 				Every conversation deleted. Refresh to bring them back.

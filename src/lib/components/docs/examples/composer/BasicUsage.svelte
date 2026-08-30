@@ -135,6 +135,7 @@
 	{/if}
 
 	<Composer
+		sound
 		bind:value={draft}
 		{streaming}
 		placeholder="Ask anything"

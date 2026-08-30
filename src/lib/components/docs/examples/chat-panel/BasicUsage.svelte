@@ -81,7 +81,7 @@
 </script>
 
 <div class="h-[26rem] w-full max-w-xl">
-	<ChatPanel {streaming} empty={false}>
+	<ChatPanel sound {streaming} empty={false}>
 		{#snippet header()}
 			<div class="flex items-center justify-between gap-3 px-4 py-3">
 				<!--
@@ -104,7 +104,7 @@
 
 		{#snippet composer()}
 			<div class="p-3">
-				<Composer bind:value={draft} placeholder="Ask a follow-up" onSubmit={send} />
+				<Composer sound bind:value={draft} placeholder="Ask a follow-up" onSubmit={send} />
 			</div>
 		{/snippet}
 	</ChatPanel>
