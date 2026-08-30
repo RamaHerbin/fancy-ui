@@ -57,9 +57,9 @@
 </script>
 
 <div class="flex w-full max-w-xl flex-col gap-2 p-6">
-	<ToolCall call={search} />
-	<ToolCall call={fetching} />
-	<ToolCall call={posting} />
+	<ToolCall sound call={search} />
+	<ToolCall sound call={fetching} />
+	<ToolCall sound call={posting} />
 
 	<p class="text-muted-foreground mt-2 text-xs">
 		Click any header to see what went out and what came back. The failed call opened itself — but

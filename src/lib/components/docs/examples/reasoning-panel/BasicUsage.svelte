@@ -57,7 +57,7 @@
 </script>
 
 <div class="w-full max-w-xl">
-	<ReasoningPanel {text} {streaming} {since} bind:open label="Reasoning" />
+	<ReasoningPanel sound {text} {streaming} {since} bind:open label="Reasoning" />
 	<p class="text-muted-foreground mt-3 text-xs">
 		Streams while it thinks, then folds itself into a summary. Click the header at any point and it
 		stays exactly where you left it.

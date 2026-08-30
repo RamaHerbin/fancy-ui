@@ -19,12 +19,14 @@
 
 <div class="flex w-full max-w-xl flex-col gap-3 p-6">
 	<ApprovalCard
+		sound
 		title="Create branch fix/retry-backoff"
 		description="Branches from develop and pushes an empty commit so CI has something to run."
 		bind:state={branchState}
 	/>
 
 	<ApprovalCard
+		sound
 		title="Run database migration"
 		description="Adds two columns to invoices and backfills 41,880 rows. There is no down migration."
 		destructive
