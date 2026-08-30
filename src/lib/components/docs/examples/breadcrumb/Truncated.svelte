@@ -11,4 +11,4 @@
 	];
 </script>
 
-<Breadcrumb {items} maxItems={3} />
+<Breadcrumb sound {items} maxItems={3} />

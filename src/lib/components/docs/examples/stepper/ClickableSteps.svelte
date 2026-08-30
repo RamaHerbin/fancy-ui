@@ -10,7 +10,7 @@
 </script>
 
 <div class="flex flex-col items-start gap-2">
-	<Stepper bind:current clickable {onStepClick}>
+	<Stepper sound bind:current clickable {onStepClick}>
 		<Step label="Account" />
 		<Step label="Profile" />
 		<Step label="Confirmation" />

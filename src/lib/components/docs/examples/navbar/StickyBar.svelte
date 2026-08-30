@@ -19,9 +19,9 @@
 			FancyUI
 		{/snippet}
 
-		<NavbarLink href="#docs" current>Docs</NavbarLink>
-		<NavbarLink href="#components">Components</NavbarLink>
-		<NavbarLink href="#showcase">Showcase</NavbarLink>
+		<NavbarLink sound href="#docs" current>Docs</NavbarLink>
+		<NavbarLink sound href="#components">Components</NavbarLink>
+		<NavbarLink sound href="#showcase">Showcase</NavbarLink>
 	</Navbar>
 
 	<div class="text-muted-foreground space-y-3 p-5 text-sm">

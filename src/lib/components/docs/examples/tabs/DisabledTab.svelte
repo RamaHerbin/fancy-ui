@@ -4,7 +4,7 @@
 	let plan = $state("starter");
 </script>
 
-<Tabs bind:value={plan}>
+<Tabs sound bind:value={plan}>
 	<TabsList>
 		<TabsTrigger value="starter">Starter</TabsTrigger>
 		<TabsTrigger value="team" disabled>Team</TabsTrigger>
