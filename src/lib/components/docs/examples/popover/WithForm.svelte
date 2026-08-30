@@ -13,7 +13,7 @@
 	}
 </script>
 
-<Popover bind:open class="w-[240px]">
+<Popover sound bind:open class="w-[240px]">
 	{#snippet trigger()}
 		Invite a teammate
 	{/snippet}

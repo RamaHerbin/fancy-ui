@@ -16,6 +16,7 @@
 	so it stays the one deliberate way out.
 -->
 <Dialog
+	sound
 	bind:open
 	{trigger}
 	dismissible={false}

@@ -15,5 +15,5 @@
 	}
 </script>
 
-<Toaster />
+<Toaster sound />
 <Button variant="outline" onclick={send}>Simulate a failed request</Button>
