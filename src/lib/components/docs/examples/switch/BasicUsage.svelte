@@ -4,4 +4,4 @@
 	let notifications = $state(false);
 </script>
 
-<Switch bind:checked={notifications} label="Notifications" />
+<Switch sound bind:checked={notifications} label="Notifications" />

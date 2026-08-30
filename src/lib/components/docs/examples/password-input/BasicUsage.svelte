@@ -4,4 +4,4 @@
 	let password = $state("");
 </script>
 
-<PasswordInput bind:value={password} label="Password" placeholder="Enter your password" />
+<PasswordInput sound bind:value={password} label="Password" placeholder="Enter your password" />

@@ -7,6 +7,7 @@
 
 <div class="flex w-full max-w-sm flex-col gap-2">
 	<SearchInput
+		sound
 		bind:value={query}
 		placeholder="Type to filter…"
 		debounceMs={300}
