@@ -91,8 +91,19 @@ carries `aria-current`. `Breadcrumb` still owns truncation and separators;
 | `item`                | `Snippet<[BreadcrumbItem, number]>` | —              | Custom rendering for one crumb, given the item and its index in `items`                                |
 | `class`               | `string`                            | —              | Additional CSS classes                                                                                 |
 | `ref`                 | `HTMLElement \| null`               | `null`         | Bindable element reference (the `<nav>`)                                                               |
+| `sound`               | `boolean`                           | `false`        | Plays the `select` cue on activation, once the user has enabled sound                                  |
 
 `BreadcrumbItem` is `{ label: string; href?: string }`.
+
+## Sound
+
+Set `sound` to play the `select` cue when a crumb is activated, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Breadcrumb items={trail} sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on `Breadcrumb` **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). Coverage is partial by construction: only the default anchor rendering is wired. The current page never plays anything — it's a plain `<span>`, not a link. And a crumb you replace with the `item` snippet is silent too; supplying `item` hands you the whole crumb, including whatever click behaviour it has, so a snippet that wants a cue plays its own.
 
 ## Theming
 

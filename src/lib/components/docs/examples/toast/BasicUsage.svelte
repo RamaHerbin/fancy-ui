@@ -11,5 +11,5 @@
 	}
 </script>
 
-<Toaster />
+<Toaster sound />
 <Button onclick={show}>Show toast</Button>

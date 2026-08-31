@@ -35,6 +35,11 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -42,6 +47,7 @@
 	import { onMount, tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import NumberTicker from "../number-ticker/NumberTicker.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	// `state` is renamed on the way in: a binding of that name in scope would turn
 	// every `$state(...)` below into a store subscription, which is a compile-time
@@ -59,6 +65,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: RecommendationCardProps = $props();
 
 	/** Shown and spoken once the proposal is behind us. */
@@ -140,6 +147,9 @@
 	function decide(next: "accepted" | "dismissed") {
 		if (current !== "open") return;
 		current = next;
+		// The deliberate asymmetry with ApprovalCard: accepting is a commit
+		// (`select`), dismissing is a close (`close`), never `error` either way.
+		if (sound) soundFx.play(next === "accepted" ? "select" : "close");
 		if (next === "accepted") onAccept?.();
 		else onDismiss?.();
 		// The button just pressed is about to leave the DOM along with the rest of

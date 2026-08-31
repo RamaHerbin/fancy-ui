@@ -2,4 +2,4 @@
 	import { CopyButton } from "$lib/fancy-ui/copy-button";
 </script>
 
-<CopyButton value="npm install fancy-ui-svelte" />
+<CopyButton sound value="npm install fancy-ui-svelte" />

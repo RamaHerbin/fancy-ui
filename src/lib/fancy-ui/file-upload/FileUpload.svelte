@@ -44,6 +44,11 @@
 		class?: string;
 		/** Bindable reference to the underlying file input. */
 		ref?: HTMLInputElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -54,6 +59,7 @@
 	import { preset } from "../_internals/motion/transitions.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 	import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		files = $bindable([]),
@@ -71,6 +77,7 @@
 		hint,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: FileUploadProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -207,6 +214,14 @@
 		}
 
 		files = next;
+		// Mirrors the liveMessage precedence right below: a rejection anywhere
+		// in this batch wins the cue over an acceptance, and a batch that added
+		// nothing plays nothing at all. Never `success` — this component only
+		// tracks a selection/drop, it does not perform the upload itself.
+		if (sound) {
+			if (problems.length > 0) soundFx.play("error");
+			else if (addedCount > 0) soundFx.play("select");
+		}
 		onFilesChange?.(next);
 
 		if (problems.length > 0) {

@@ -133,6 +133,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Cards to display in the carousel",
 				required: true,
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open when a card expands and close when it is dismissed, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -261,6 +268,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "5000",
 				description: "Interval between auto-advances in ms",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when the previous or next control moves to another testimonial, once the user has enabled sound",
 			},
 		],
 	},
@@ -574,6 +588,12 @@ export const registry: Record<string, ComponentMeta> = {
 			{ name: "target", type: "string", description: "Link target attribute" },
 			{ name: "rel", type: "string", description: "Link rel attribute" },
 			{ name: "aria-label", type: "string", description: "Accessible label" },
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "Link text content" }],
 	},
@@ -747,6 +767,12 @@ export const registry: Record<string, ComponentMeta> = {
 		props: [
 			{ name: "speed", type: "number", default: "2", description: "Animation speed in seconds" },
 			{ name: "href", type: "string", description: "Render as anchor element when provided" },
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "Button label content" }],
 	},
@@ -773,6 +799,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "600",
 				description: "Animation duration in milliseconds",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
 			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
@@ -817,6 +849,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"rgba(0, 0, 0, 1)"',
 				description: "Button background color",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
 			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
@@ -1262,6 +1300,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"#000"',
 				description: "Background color of the button content area",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
 	},
@@ -1286,6 +1330,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Button"',
 				description: "Button label text (used when children slot is not provided)",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
 			},
 		],
 		slots: [{ name: "children", description: "Button content (overrides text prop)" }],
@@ -2467,6 +2517,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "false",
 				description: "Prevent auto-firing on mount; call fire() manually",
 			},
+			{
+				name: "ConfettiButton.sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the press cue when the confetti button fires a burst, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "ConfettiButton or other trigger elements" }],
 	},
@@ -3112,6 +3169,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "(open: boolean) => void",
 				description: "Called on every open/close, by click or on the panel's own initiative",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open or close when the reader toggles the reasoning trace, once the user has enabled sound",
+			},
 		],
 	},
 	"chat-message": {
@@ -3156,6 +3220,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "Date | number",
 				description:
 					"When the turn was produced; rendered relative, with the exact time as its tooltip",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays press on a message action and select on a branch step, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3214,6 +3285,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"Suggestions"',
 				description: "Accessible name of the group wrapping the pills",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select when a suggestion is picked, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3261,6 +3338,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "false",
 				description: "Whether a retry is in flight: disables the button and marks the row busy",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on retry, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3301,6 +3384,13 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "onToggle",
 				type: "(open: boolean) => void",
 				description: "Called on every open/close, by click or on the card's own initiative",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open or close when the reader toggles the payloads, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3345,6 +3435,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Activity"',
 				description: "Accessible name for the list",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a timeline entry is activated, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3470,6 +3567,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "false",
 				description: "Whether long lines wrap instead of scrolling sideways",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open or close as a file folds, and open when clamped lines are revealed, once the user has enabled sound",
+			},
 		],
 	},
 	sources: {
@@ -3500,6 +3604,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "(open: boolean) => void",
 				description:
 					"Called when the pill is clicked, with the state it moved to; driving open yourself does not fire it",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open/close when the source list is expanded or collapsed, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3610,6 +3721,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"Web search"',
 				description: "Accessible name for the whole block",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select on a picked result and open/close on the expander, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3674,6 +3792,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "() => void",
 				description: "Called once the generated image has finished loading",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on retry, once the user has enabled sound",
+			},
 		],
 	},
 	"agent-plan": {
@@ -3711,6 +3835,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "onSelect",
 				type: "(step: PlanStepData) => void",
 				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select when a plan row is activated, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3755,6 +3885,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description: "Tighter rows with the task line dropped",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a subagent row is activated, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3829,6 +3966,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description:
 					"The consumer is executing the decision: both buttons go disabled and the card is marked aria-busy",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select on both approve and deny, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3901,6 +4044,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				description: 'Small kicker above the title, e.g. "Suggestion"',
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select on accept and close on dismiss, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3968,6 +4117,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "() => void",
 				description:
 					"Asked to open the document; supplying it makes the whole card activatable by click, Enter, or Space",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays press when the document is opened and select on a version step, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -4098,6 +4254,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description:
 					"Called with the files handed to the picker. Upload them, then push the results onto attachments — the composer never uploads anything itself",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays press on send and stop, select on a model or command pick and open/close on the model menu, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -4178,6 +4341,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description:
 					"Any CSS colour for the bars, including a var() or currentColor — written onto the canvas as its CSS color and read back resolved, because a 2D context understands neither",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on start, close on cancel and select on a confirmed recording, once the user has enabled sound",
+			},
 		],
 	},
 	"context-ring": {
@@ -4246,6 +4416,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description:
 					"Turns the ring into a button that toggles a popover listing usage.breakdown; closes on Escape, on a click outside, or on a second press",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays open/close on the breakdown popover, once the user has enabled sound",
+			},
 		],
 	},
 	"scroll-anchor": {
@@ -4296,6 +4472,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "(stuck: boolean) => void",
 				description: "Called when the region pins itself or lets go, never on every scroll",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays press on the return-to-latest pill, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The scrolling content" }],
 	},
@@ -4337,6 +4519,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Conversations"',
 				description: "Accessible name for the list",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a different conversation is picked and press when one is deleted, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -4380,6 +4569,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Jump to latest"',
 				description: "Label on the pill offered once the reader scrolls away from the bottom",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays press on the jump-to-latest pill, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -4573,6 +4768,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The icon, rendered centred" }],
 	},
@@ -4675,6 +4876,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The link's text or content" }],
 	},
@@ -4733,6 +4940,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLButtonElement | null",
 				default: "null",
 				description: "Bindable element reference",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays toggle-on or toggle-off on activation, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -4805,6 +5018,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on/toggle-off on a multi-select item or select on a single-select change, once the user has enabled sound",
 			},
 			{
 				name: "ToggleGroupItem.value",
@@ -5602,6 +5822,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Reference to the underlying input type=range",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the tick cue on a committed value change, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -5683,6 +5910,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Reference to the underlying input type=number",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the tick cue on each step, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -5744,6 +5977,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the panel element",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open when the trigger opens the dialog and close on every dismissal, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -5829,6 +6069,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the panel element",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on the trigger, select on a confirmed action and close on Cancel or Escape, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -5898,6 +6145,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference to the panel",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays close when the sheet is dismissed, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{ name: "children", description: "Panel body content" },
@@ -5959,6 +6212,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable element reference to the panel",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays close when the drawer is dismissed, including a committed swipe, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -6023,6 +6283,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the panel element",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open when the trigger opens the panel and close on a dismissal, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -6213,6 +6480,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the <Toaster /> root node",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays success or error when a toast of that variant appears, once the user has enabled sound",
 			},
 			{
 				name: "toast().title",
@@ -6440,6 +6714,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the input element.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the select cue when an option is committed, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -6545,6 +6826,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the input element.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the select cue when a suggestion is committed, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -6642,6 +6930,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLInputElement | null",
 				default: "null",
 				description: "Bindable element reference",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the press cue when the field is cleared, once the user has enabled sound",
 			},
 		],
 	},
@@ -6746,6 +7041,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on/toggle-off when the password is revealed or hidden, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -6841,6 +7143,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLInputElement | null",
 				default: "null",
 				description: "Bindable reference to the underlying file input",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select on an accepted selection or drop and error on a rejection, once the user has enabled sound",
 			},
 		],
 	},
@@ -6943,6 +7252,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the trigger button.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on opening, select on a picked day and close on a dismissal, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -7044,6 +7360,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the trigger button.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on opening, select on a picked slot and close on a dismissal, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -7131,6 +7454,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLAnchorElement | null",
 				default: "null",
 				description: "Bindable reference to the anchor element.",
+			},
+			{
+				name: "NavbarLink.sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a navbar link that is not already current is activated, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -7232,6 +7562,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Bindable reference to the item's interactive element.",
 			},
 			{
+				name: "SidebarItem.sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a sidebar item that is not already current is activated, once the user has enabled sound",
+			},
+			{
 				name: "SidebarSeparator.class",
 				type: "string",
 				description: "Additional CSS classes, merged onto the hairline.",
@@ -7325,6 +7662,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when the active tab actually changes, once the user has enabled sound",
 			},
 			{
 				name: "TabsList.class",
@@ -7456,6 +7800,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the nav element.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a default-rendered crumb link is activated, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -7534,6 +7885,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the nav element.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select when the page actually changes, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{ name: "previousLabel", description: "Overrides the Previous button's content." },
@@ -7590,6 +7947,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLOListElement | null",
 				default: "null",
 				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a clickable step changes the current step, once the user has enabled sound",
 			},
 			{
 				name: "Step.label",
@@ -7725,6 +8089,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "true",
 				description: "Whether arrow-key navigation wraps at the ends",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open/close on the menu and its submenus and select on an item, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The ContextMenuTrigger and ContextMenuContent" }],
 	},
@@ -7807,6 +8178,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the panel element.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select on a committed row and close on a dismissal, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -8815,4 +9193,14 @@ export function hasComponent(slug: string): boolean {
  */
 export function getComponentCategory(slug: string): ComponentCategory | undefined {
 	return registry[slug]?.category;
+}
+
+/**
+ * Whether a component takes an opt-in `sound` prop. Read from the props table rather than a
+ * hand-kept list so a newly wired component turns its docs sound switch on by documenting the
+ * prop. Sub-component props are namespaced (`NavbarLink.sound`), which still counts — the family
+ * makes a sound, which is what the docs need to know.
+ */
+export function hasSoundProp(slug: string): boolean {
+	return registry[slug]?.props?.some((prop) => /^(?:[A-Za-z]+\.)?sound$/.test(prop.name)) ?? false;
 }

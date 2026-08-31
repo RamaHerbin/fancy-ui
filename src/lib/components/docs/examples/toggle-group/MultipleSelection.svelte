@@ -5,7 +5,7 @@
 </script>
 
 <div class="flex flex-col gap-3">
-	<ToggleGroup type="multiple" bind:value={marks} label="Formatting">
+	<ToggleGroup sound type="multiple" bind:value={marks} label="Formatting">
 		<ToggleGroupItem value="bold" label="Bold"><strong>B</strong></ToggleGroupItem>
 		<ToggleGroupItem value="italic" label="Italic"><em>I</em></ToggleGroupItem>
 		<ToggleGroupItem value="underline" label="Underline">

@@ -10,6 +10,7 @@
 {/snippet}
 
 <AlertDialog
+	sound
 	{trigger}
 	title="Delete this project?"
 	description="This action is irreversible. All data will be lost."

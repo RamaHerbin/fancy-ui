@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import type { SearchResultData } from "../_internals/ai-types.js";
 import WebSearch from "./WebSearch.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 const QUERY = "svelte 5 runes reactivity";
 
@@ -338,6 +339,83 @@ describe("WebSearch", () => {
 			expect(container.querySelector("a")?.getAttribute("href")).toBe(
 				"https://docs.example.dev/guide"
 			);
+		});
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when a row is activated, with sound enabled", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(WebSearch, {
+				props: { query: QUERY, results: RESULTS, onSelect, sound: true },
+			});
+
+			await fireEvent.click(rows(container)[1]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+			expect(onSelect).toHaveBeenCalledWith(RESULTS[1], 1);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(WebSearch, {
+				props: { query: QUERY, results: RESULTS, onSelect: vi.fn() },
+			});
+
+			await fireEvent.click(rows(container)[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays select exactly once when the anchor row is activated — same cue as the button branch", async () => {
+			const { container } = render(WebSearch, {
+				props: { query: QUERY, results: RESULTS, sound: true },
+			});
+			const anchor = rows(container)[0] as HTMLAnchorElement;
+			expect(anchor.tagName).toBe("A");
+
+			// No `onSelect` is passed, so this is the plain navigating anchor, not
+			// the button branch — synthetic dispatch to prove the row's own
+			// handler fires, not just that a `fireEvent` shortcut looks intercepted.
+			anchor.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays open when the expander reveals more results, and close when it collapses them", async () => {
+			const { container } = render(WebSearch, {
+				props: { query: QUERY, results: RESULTS, maxVisible: 1, sound: true },
+			});
+
+			await fireEvent.click(more(container)!);
+			expect(play).toHaveBeenNthCalledWith(1, "open");
+
+			await fireEvent.click(more(container)!);
+			expect(play).toHaveBeenNthCalledWith(2, "close");
+
+			expect(play).toHaveBeenCalledTimes(2);
+		});
+
+		it("stays silent when an emptied result list collapses the expander on its own", async () => {
+			const { container, rerender } = render(WebSearch, {
+				props: { query: QUERY, results: RESULTS, maxVisible: 1, sound: true },
+			});
+			await fireEvent.click(more(container)!);
+			play.mockClear();
+
+			await rerender({ query: QUERY, results: [], maxVisible: 1, sound: true });
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import ChatError from "./ChatError.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -118,5 +119,59 @@ describe("ChatError", () => {
 
 		expect(root.className).toContain("my-error");
 		expect(root.className).toContain("ft-error");
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when retry is pressed, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onRetry = vi.fn();
+			const { container } = render(ChatError, { props: { onRetry, sound: true } });
+
+			await fireEvent.click(retryButton(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+			expect(onRetry).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ChatError, { props: { onRetry: () => {} } });
+
+			await fireEvent.click(retryButton(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while retrying, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onRetry = vi.fn();
+			const { container } = render(ChatError, {
+				props: { onRetry, retrying: true, sound: true },
+			});
+
+			// A synthetic dispatch bypasses jsdom's own disabled handling, unlike
+			// `.click()` — this is what actually proves the handler's own guard,
+			// not just the native `disabled` attribute.
+			retryButton(container)?.dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onRetry).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one click plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ChatError, { props: { onRetry: () => {}, sound: true } });
+
+			await fireEvent.click(retryButton(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

@@ -68,6 +68,7 @@ Clickable, so a reader can jump between steps directly:
 | `children`        | `Snippet`                    | —              | The `Step`s                                                                            |
 | `class`           | `string`                     | —              | Additional CSS classes                                                                 |
 | `ref`             | `HTMLOListElement \| null`   | `null`         | Bindable element reference                                                             |
+| `sound`           | `boolean`                    | `false`        | Plays the `select` cue whenever a clickable step moves to a different step             |
 
 ### Step
 
@@ -78,6 +79,20 @@ Clickable, so a reader can jump between steps directly:
 | `children`    | `Snippet`               | —       | Overrides the bullet's default content (checkmark / number / outline) |
 | `class`       | `string`                | —       | Additional CSS classes                                                |
 | `ref`         | `HTMLLIElement \| null` | `null`  | Bindable element reference                                            |
+
+## Sound
+
+Set `sound` on `Stepper` to play the `select` cue whenever a clickable step moves the active step to a different one, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Stepper bind:current clickable sound>
+	<Step label="Account" />
+	<Step label="Profile" />
+	<Step label="Confirmation" />
+</Stepper>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on `Stepper` **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue lives inside `select()`, gated behind its existing `if (!clickable) return` — a non-`clickable` `Stepper` never plays anything, the same as it never fires `onStepClick`. Re-clicking the already-current step plays nothing (the changed-only guard), even though `onStepClick`/`onCurrentChange` still fire on that same click exactly as they always did — the guard gates only the cue.
 
 ## Theming
 

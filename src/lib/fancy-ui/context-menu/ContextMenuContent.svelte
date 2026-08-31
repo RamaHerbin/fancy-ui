@@ -63,6 +63,9 @@
 		get rootOpen() {
 			return root.open;
 		},
+		get sound() {
+			return root.sound;
+		},
 		closeAll(options) {
 			root.close(options);
 		},

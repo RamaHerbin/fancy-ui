@@ -1,12 +1,13 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Sidebar from "./Sidebar.svelte";
 import SidebarGroup from "./SidebarGroup.svelte";
 import SidebarItem from "./SidebarItem.svelte";
 import SidebarSeparator from "./SidebarSeparator.svelte";
 import SidebarFooter from "./SidebarFooter.svelte";
 import Harness from "./SidebarHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -320,6 +321,76 @@ describe("SidebarItem", () => {
 			},
 		});
 		expect(ref).toBe(container.querySelector("a"));
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a non-current item (button branch) is activated", async () => {
+			const { container } = render(SidebarItem, {
+				props: { sound: true, children: snippet("<span>Projects</span>") },
+			});
+
+			await fireEvent.click(container.querySelector("button") as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a non-current item (link branch) is activated", async () => {
+			const { container } = render(SidebarItem, {
+				props: { href: "/dashboard", sound: true, children: snippet("<span>Dashboard</span>") },
+			});
+
+			await fireEvent.click(container.querySelector("a") as HTMLAnchorElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(SidebarItem, {
+				props: { children: snippet("<span>Projects</span>") },
+			});
+
+			await fireEvent.click(container.querySelector("button") as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const { container } = render(SidebarItem, {
+				props: { sound: true, disabled: true, children: snippet("<span>Projects</span>") },
+			});
+			const button = container.querySelector("button") as HTMLButtonElement;
+
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the item is already current — the changed-only guard", async () => {
+			const { container } = render(SidebarItem, {
+				props: {
+					href: "/dashboard",
+					current: true,
+					sound: true,
+					children: snippet("<span>Dashboard</span>"),
+				},
+			});
+
+			await fireEvent.click(container.querySelector("a") as HTMLAnchorElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });
 

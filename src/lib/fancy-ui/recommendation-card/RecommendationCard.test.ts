@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import RecommendationCard from "./RecommendationCard.svelte";
 import Harness from "./RecommendationCardHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 const TITLE = "Add an index on orders.customer_id";
 
@@ -328,5 +329,57 @@ describe("RecommendationCard", () => {
 		expect(root(container).classList.contains("my-8")).toBe(true);
 		expect(root(container).classList.contains("border-dashed")).toBe(true);
 		expect(root(container).classList.contains("ft-rec")).toBe(true);
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when accepted, with sound enabled", async () => {
+			const { container } = render(RecommendationCard, { props: { title: TITLE, sound: true } });
+
+			await fireEvent.click(accept(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays close — the deliberate asymmetry with ApprovalCard — when dismissed", async () => {
+			const { container } = render(RecommendationCard, { props: { title: TITLE, sound: true } });
+
+			await fireEvent.click(dismiss(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(RecommendationCard, { props: { title: TITLE } });
+
+			await fireEvent.click(accept(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("resolves once — a second decision on an already-resolved proposal does not double-fire", () => {
+			const { container } = render(RecommendationCard, { props: { title: TITLE, sound: true } });
+			const button = accept(container);
+
+			// Two synchronous dispatches, with no flush between them: the proposal's
+			// own `current !== "open"` guard is what has to stop the second one, not
+			// the accept button having already left the DOM.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
 	});
 });

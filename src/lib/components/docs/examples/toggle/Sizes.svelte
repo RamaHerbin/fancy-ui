@@ -6,7 +6,7 @@
 
 <div class="flex flex-wrap items-center gap-3">
 	{#each sizes as size (size)}
-		<Toggle {size} pressed label={`Size ${size}`}>
+		<Toggle sound {size} pressed label={`Size ${size}`}>
 			<strong>B</strong>
 		</Toggle>
 	{/each}

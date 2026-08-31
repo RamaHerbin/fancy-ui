@@ -18,6 +18,6 @@
 	<Button variant="outline" onclick={() => openFrom("bottom")}>Bottom</Button>
 </div>
 
-<Sheet bind:open {side} title="Panel" description="Slides in from {side}.">
+<Sheet sound bind:open {side} title="Panel" description="Slides in from {side}.">
 	<p class="text-muted-foreground text-[13px]">Body content goes here.</p>
 </Sheet>

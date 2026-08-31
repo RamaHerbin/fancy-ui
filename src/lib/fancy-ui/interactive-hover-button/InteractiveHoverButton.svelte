@@ -9,6 +9,11 @@
 		class?: string;
 		/** Button content (overrides text prop) */
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	};
 
 	export type InteractiveHoverButtonProps = BaseProps & Omit<HTMLButtonAttributes, keyof BaseProps>;
@@ -16,13 +21,21 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		text = "Button",
 		class: className,
 		children,
+		onclick,
+		sound = false,
 		...restProps
 	}: InteractiveHoverButtonProps = $props();
+
+	function handleClick(event: MouseEvent) {
+		if (sound && !restProps.disabled) soundFx.play("press");
+		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	}
 </script>
 
 <!--
@@ -38,6 +51,7 @@
 		"group bg-background relative w-auto cursor-pointer overflow-hidden rounded-full border p-2 px-6 text-center font-semibold",
 		className
 	)}
+	onclick={handleClick}
 	{...restProps}
 >
 	<div class="flex items-center gap-2">

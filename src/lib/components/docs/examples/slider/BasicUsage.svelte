@@ -5,5 +5,5 @@
 </script>
 
 <div class="w-72">
-	<Slider bind:value={volume} label="Volume" showValue />
+	<Slider sound bind:value={volume} label="Volume" showValue />
 </div>

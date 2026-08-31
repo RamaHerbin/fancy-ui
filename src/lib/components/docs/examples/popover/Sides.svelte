@@ -6,7 +6,7 @@
 
 <div class="flex flex-wrap items-center gap-6">
 	{#each sides as side (side)}
-		<Popover {side}>
+		<Popover sound {side}>
 			{#snippet trigger()}
 				{side}
 			{/snippet}

@@ -66,5 +66,5 @@
 <div class="bg-card flex w-full max-w-xl flex-col gap-3 rounded-lg border p-5">
 	<p class="text-sm leading-relaxed">{answer}</p>
 
-	<Sources {sources} bind:open onToggle={() => (readerTookOver = true)} />
+	<Sources sound {sources} bind:open onToggle={() => (readerTookOver = true)} />
 </div>

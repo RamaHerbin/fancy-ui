@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import SubagentList from "./SubagentList.svelte";
 import type { SubagentData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 const agents: SubagentData[] = [
 	{
@@ -374,5 +375,71 @@ describe("SubagentList", () => {
 		expect(
 			[...collision.container.querySelectorAll(".ft-subagents-name")].map((el) => el.textContent)
 		).toEqual(["First", "Second", "Third"]);
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when a row is activated, with sound enabled", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(SubagentList, { props: { agents, sound: true, onSelect } });
+
+			await fireEvent.click(container.querySelectorAll("button")[0]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(SubagentList, { props: { agents, onSelect } });
+
+			await fireEvent.click(container.querySelectorAll("button")[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when onSelect is absent — rows are plain spans, not buttons", () => {
+			const { container } = render(SubagentList, { props: { agents, sound: true } });
+
+			expect(container.querySelectorAll("button")).toHaveLength(0);
+			rows(container)[0].dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when a row's status changes — only a pick fires the cue", async () => {
+			const onSelect = vi.fn();
+			const { rerender } = render(SubagentList, { props: { agents, sound: true, onSelect } });
+
+			await rerender({
+				agents: [{ ...agents[0], status: "done", progress: undefined }, agents[1], agents[2]],
+				sound: true,
+				onSelect,
+			});
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when a new worker is spawned — mounting a row is not a pick", async () => {
+			const onSelect = vi.fn();
+			const { rerender } = render(SubagentList, { props: { agents, sound: true, onSelect } });
+
+			await rerender({
+				agents: [...agents, agent({ id: "d", name: "Auditor" })],
+				sound: true,
+				onSelect,
+			});
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

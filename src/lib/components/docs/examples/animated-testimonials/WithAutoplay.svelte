@@ -26,5 +26,5 @@
 </script>
 
 <div class="flex min-h-[400px] items-center justify-center">
-	<AnimatedTestimonials {testimonials} autoplay interval={3000} />
+	<AnimatedTestimonials sound {testimonials} autoplay interval={3000} />
 </div>

@@ -10,5 +10,5 @@
 </script>
 
 <FormField label="Attachments" required {error} class="w-full max-w-sm">
-	<FileUpload bind:files multiple hint="PNG, SVG — 4 MB max" />
+	<FileUpload sound bind:files multiple hint="PNG, SVG — 4 MB max" />
 </FormField>

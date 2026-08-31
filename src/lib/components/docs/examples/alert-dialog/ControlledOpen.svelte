@@ -19,6 +19,7 @@
 </ul>
 
 <AlertDialog
+	sound
 	open={isOpen}
 	onOpenChange={(next) => (isOpen = next)}
 	title="Remove member?"

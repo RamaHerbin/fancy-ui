@@ -36,11 +36,18 @@
 		class?: string;
 		/** Element reference. */
 		ref?: HTMLElement | null;
+		/**
+		 * Plays the select cue through the sound controller when a crumb
+		 * rendered by the default (non-`item`-snippet) markup is activated.
+		 * Off by default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		items,
@@ -52,7 +59,15 @@
 		item,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: BreadcrumbProps = $props();
+
+	// No consumer `onclick` exists on a crumb to forward to — the default
+	// anchor has none today — so this just plays and returns, the same shape
+	// as a fancy button with no onclick prop of its own.
+	function handleCrumbClick() {
+		if (sound) soundFx.play("select");
+	}
 
 	interface Crumb {
 		key: string;
@@ -132,6 +147,7 @@
 						<a
 							href={row.item.href}
 							class="text-muted-foreground hover:text-foreground transition-colors"
+							onclick={handleCrumbClick}
 						>
 							{row.item.label}
 						</a>

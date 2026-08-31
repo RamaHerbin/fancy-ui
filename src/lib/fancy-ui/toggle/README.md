@@ -39,17 +39,18 @@ Or handle the change yourself instead of binding:
 
 ## Props
 
-| Prop              | Type                         | Default   | Description                                                        |
-| ----------------- | ---------------------------- | --------- | ------------------------------------------------------------------ |
-| `pressed`         | `boolean`                    | `false`   | Whether the toggle is currently pressed (active); bindable         |
-| `onPressedChange` | `(pressed: boolean) => void` | —         | Called with the new pressed state whenever the toggle is activated |
-| `disabled`        | `boolean`                    | `false`   | Disables the toggle; blocks both the state change and the callback |
-| `size`            | `"sm" \| "md" \| "lg"`       | `"md"`    | Visual size of the control                                         |
-| `variant`         | `"ghost" \| "outline"`       | `"ghost"` | `"ghost"` has no resting border, `"outline"` keeps one at rest     |
-| `label`           | `string`                     | —         | Accessible name — required when `children` is icon-only            |
-| `children`        | `Snippet`                    | —         | Toggle content, typically a single glyph or a short label          |
-| `class`           | `string`                     | —         | Additional CSS classes                                             |
-| `ref`             | `HTMLButtonElement \| null`  | `null`    | Bindable element reference                                         |
+| Prop              | Type                         | Default   | Description                                                         |
+| ----------------- | ---------------------------- | --------- | ------------------------------------------------------------------- |
+| `pressed`         | `boolean`                    | `false`   | Whether the toggle is currently pressed (active); bindable          |
+| `onPressedChange` | `(pressed: boolean) => void` | —         | Called with the new pressed state whenever the toggle is activated  |
+| `disabled`        | `boolean`                    | `false`   | Disables the toggle; blocks both the state change and the callback  |
+| `size`            | `"sm" \| "md" \| "lg"`       | `"md"`    | Visual size of the control                                          |
+| `variant`         | `"ghost" \| "outline"`       | `"ghost"` | `"ghost"` has no resting border, `"outline"` keeps one at rest      |
+| `label`           | `string`                     | —         | Accessible name — required when `children` is icon-only             |
+| `children`        | `Snippet`                    | —         | Toggle content, typically a single glyph or a short label           |
+| `class`           | `string`                     | —         | Additional CSS classes                                              |
+| `ref`             | `HTMLButtonElement \| null`  | `null`    | Bindable element reference                                          |
+| `sound`           | `boolean`                    | `false`   | Plays `toggle-on`/`toggle-off` on activation, once sound is enabled |
 
 ## Theming
 
@@ -114,3 +115,12 @@ default:
   logic self-contained if it is ever called from somewhere other than a click.
 - Pass `label` whenever `children` is icon-only; without it, the accessible
   name falls through to whatever text content is inside the button.
+
+## Sound
+
+`sound?: boolean` (default `false`) plays a short confirmation cue through the
+sound controller whenever the toggle actually flips — `toggle-on` when
+activating while off, `toggle-off` when activating while on. Nothing plays
+while `disabled`. Off by default; the cue is only audible once the user has
+separately turned sound on. See `sound/README.md` for how the preference and
+playback work.

@@ -4,6 +4,7 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import type { SourceData } from "../_internals/ai-types.js";
 import Sources from "./Sources.svelte";
 import Harness from "./SourcesHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 const SOURCES: SourceData[] = [
 	{
@@ -174,5 +175,51 @@ describe("Sources", () => {
 		expect(error).not.toHaveBeenCalled();
 		warn.mockRestore();
 		error.mockRestore();
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open, then close, exactly once each as the trigger is toggled, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Sources, { props: { sources: SOURCES, sound: true } });
+
+			await fireEvent.click(trigger(container));
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenLastCalledWith("open");
+
+			await fireEvent.click(trigger(container));
+			expect(play).toHaveBeenCalledTimes(2);
+			expect(play).toHaveBeenLastCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Sources, { props: { sources: SOURCES } });
+
+			await fireEvent.click(trigger(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("never plays for a bind:open write that bypasses toggle() — only a real activation goes through it", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(Sources, { props: { sources: SOURCES, sound: true } });
+
+			await rerender({ sources: SOURCES, open: true, sound: true });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one click plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Sources, { props: { sources: SOURCES, sound: true } });
+
+			await fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

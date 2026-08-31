@@ -16,7 +16,7 @@
 	button — a reasonable default, but not what a rename dialog wants. Passing
 	the input's own element sends focus straight to it instead.
 -->
-<Dialog bind:open initialFocus={nameInput} {trigger} title="Rename project">
+<Dialog sound bind:open initialFocus={nameInput} {trigger} title="Rename project">
 	<input
 		bind:this={nameInput}
 		bind:value={name}

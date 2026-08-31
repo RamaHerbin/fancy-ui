@@ -34,6 +34,7 @@ A plain-text anchor styled for prose and inline copy — a colored text link, no
 | `onclick`   | `(event: MouseEvent) => void`   | `undefined` | Native click handler                                                                           |
 | `class`     | `string`                        | `undefined` | Additional CSS classes                                                                         |
 | `ref`       | `HTMLAnchorElement \| null`     | `null`      | Bindable element reference                                                                     |
+| `sound`     | `boolean`                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound                           |
 
 ## Implementation Notes
 
@@ -99,3 +100,13 @@ default:
   unconditional, so keyboard users get it. The `:hover` half is gated behind
   `@media (hover: hover)`, so a touch device that synthesises a sticky hover
   never leaves the arrow parked off-centre.
+
+## Sound
+
+Set `sound` to play the `press` cue on activation, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Link href="/docs" sound>Read the docs</Link>
+```
+
+It is opt-in and silent by default: nothing plays until the user has separately turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue plays before the native navigation follows, so a same-tab destination can cut it short — an acceptable tradeoff given the prop defaults to off. Hover and focus stay silent; only activation plays anything.

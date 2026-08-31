@@ -4,4 +4,4 @@
 	let seats = $state<number | null>(2);
 </script>
 
-<NumberInput bind:value={seats} min={1} max={8} label="Seats" />
+<NumberInput sound bind:value={seats} min={1} max={8} label="Seats" />

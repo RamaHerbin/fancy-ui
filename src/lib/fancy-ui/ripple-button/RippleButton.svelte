@@ -11,6 +11,11 @@
 		duration?: number;
 		/** Button content */
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 
 	interface Ripple {
@@ -23,6 +28,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		class: className,
@@ -30,6 +36,7 @@
 		duration = 600,
 		children,
 		onclick,
+		sound = false,
 		...restProps
 	}: RippleButtonProps = $props();
 
@@ -37,6 +44,7 @@
 	let ripples = $state<Ripple[]>([]);
 
 	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (sound && !restProps.disabled) soundFx.play("press");
 		createRipple(event);
 		// Call the original onclick handler if provided
 		if (onclick && typeof onclick === "function") {

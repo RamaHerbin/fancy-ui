@@ -16,7 +16,7 @@
 
 <Button onclick={() => (open = true)}>Send feedback</Button>
 
-<Drawer bind:open title="Send feedback" {footer}>
+<Drawer sound bind:open title="Send feedback" {footer}>
 	<div class="flex flex-col gap-4">
 		<FormField label="Subject">
 			<Input bind:value={subject} placeholder="What's this about?" />

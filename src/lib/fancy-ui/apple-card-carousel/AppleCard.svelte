@@ -21,6 +21,7 @@
 <script lang="ts">
 	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	interface Props {
 		card: AppleCardData;
@@ -30,6 +31,11 @@
 		onExpand: (index: number) => void;
 		onCollapse: () => void;
 		class?: string;
+		/**
+		 * Plays the matching open/close cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 
 	let {
@@ -40,6 +46,7 @@
 		onExpand,
 		onCollapse,
 		class: className = "",
+		sound = false,
 	}: Props = $props();
 
 	let cardEl: HTMLDivElement;
@@ -48,10 +55,16 @@
 	let rect = $state<{ top: number; left: number; width: number; height: number } | null>(null);
 	let overlayVisible = $state(false);
 	let fullyExpanded = $state(false);
+	// Collapse-in-progress latch. Not $state: nothing renders off it — it only
+	// dedupes handleCollapse calls (Escape + backdrop click) during the exit
+	// window, and gates the close cue on the overlay actually being open
+	// rather than on the entrance animation having finished.
+	let closing = false;
 	let previousFocus: HTMLElement | null = null;
 
 	async function handleExpand() {
 		if (expandedIndex !== -1) return;
+		if (sound) soundFx.play("open");
 		previousFocus = document.activeElement as HTMLElement;
 		const r = cardEl.getBoundingClientRect();
 		rect = { top: r.top, left: r.left, width: r.width, height: r.height };
@@ -74,10 +87,17 @@
 	}
 
 	function handleCollapse() {
+		if (!overlayVisible || closing) return;
+		closing = true;
+		// Gated on the overlay being open, not on `fullyExpanded` — a dismissal
+		// during the two entrance frames (Escape right after Enter) must still
+		// pair the `open` cue with a `close`.
+		if (sound) soundFx.play("close");
 		fullyExpanded = false;
 		const delay = reducedMotion ? 0 : TRANSITION_MS;
 		setTimeout(() => {
 			overlayVisible = false;
+			closing = false;
 			onCollapse();
 			rect = null;
 			previousFocus?.focus();

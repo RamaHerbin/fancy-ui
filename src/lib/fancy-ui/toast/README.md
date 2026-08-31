@@ -96,11 +96,12 @@ loading toast and raise a fresh one. No positioning per-toast; `<Toaster>`'s
 
 ### `<Toaster />`
 
-| Prop       | Type                     | Default          | Description                                                |
-| ---------- | ------------------------ | ---------------- | ---------------------------------------------------------- |
-| `position` | `ToasterPosition`        | `"bottom-right"` | Corner (or edge-center) the stack anchors to               |
-| `class`    | `string`                 | —                | Additional classes for the viewport that stacks the toasts |
-| `ref`      | `HTMLDivElement \| null` | `null`           | Bindable reference to the root node                        |
+| Prop       | Type                     | Default          | Description                                                                                   |
+| ---------- | ------------------------ | ---------------- | --------------------------------------------------------------------------------------------- |
+| `position` | `ToasterPosition`        | `"bottom-right"` | Corner (or edge-center) the stack anchors to                                                  |
+| `class`    | `string`                 | —                | Additional classes for the viewport that stacks the toasts                                    |
+| `ref`      | `HTMLDivElement \| null` | `null`           | Bindable reference to the root node                                                           |
+| `sound`    | `boolean`                | `false`          | Plays `success`/`error` when a toast of that variant appears, once the user has enabled sound |
 
 `ToasterPosition` is one of `"top-left"`, `"top-center"`, `"top-right"`,
 `"bottom-left"`, `"bottom-center"`, `"bottom-right"`.
@@ -182,6 +183,16 @@ works with no consumer setup at all:
 
 The panel itself uses `bg-popover`/`text-popover-foreground`/`border-border`
 — tokens a consumer's theme is already expected to define, unlike the accent.
+
+## Sound
+
+Set `sound` on `<Toaster>` to play `success`/`error` when a toast of that variant arrives, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Toaster sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the toaster **and** the user has turned sound on globally. `info` and `loading` toasts are always silent, and there is no per-call override — `sound` lives on `<Toaster>`, never as a `toast()` option, so one flag controls every toast this viewport raises. The cue rides the same seen-id dedupe the live-region announcement already uses, so each toast sounds exactly once, on arrival: nothing plays again for eviction, auto-dismiss, pausing/resuming, or the toast's own close/action buttons.
 
 ## Motion
 

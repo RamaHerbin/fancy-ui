@@ -171,10 +171,23 @@ A square or circular icon-only button, built on top of Button. `label` is requir
 | `children` | `Snippet`                                                                       | —           | The icon, rendered centred                                               |
 | `class`    | `string`                                                                        | —           | Additional CSS classes                                                   |
 | `ref`      | `HTMLButtonElement \| HTMLAnchorElement \| null`                                | `null`      | Bindable element reference                                               |
+| `sound`    | `boolean`                                                                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound     |
 
 ## Theming
 
 IconButton forwards `variant` straight to Button, so it follows the same tokens: `primary` / `secondary` / `outline` / `destructive` read the theme's own semantic colors, and `accent` reads the shared `--ft-accent` / `--ft-accent-foreground` custom properties (see the Button README for how to retint it). The focus ring and loading spinner are Button's own — nothing about them is reimplemented here.
+
+## Sound
+
+Set `sound` to play the `press` cue on activation, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<IconButton sound label="Like" onclick={like}>
+	<!-- icon -->
+</IconButton>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the icon button **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` and `loading` block the cue exactly like they block `onclick`. `sound` is forwarded straight through to the underlying `Button`, which is the only place the cue actually plays — IconButton adds no second call site of its own.
 
 ## Implementation notes
 
