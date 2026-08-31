@@ -1,0 +1,5 @@
+/* .interactive-grid-pattern is a port-added anchor: the source's scoped rule had no
+   root class, so the slug anchors it to keep the selector out of the global namespace. */
+.interactive-grid-pattern .interactive-grid-square:not(:hover) {
+	transition-duration: 1000ms;
+}

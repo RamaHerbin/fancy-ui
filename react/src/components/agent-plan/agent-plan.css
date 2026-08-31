@@ -1,0 +1,195 @@
+.ft-agentplan {
+	/* Rail and track are mixes of currentColor, so one value reads correctly on
+	   either theme. The status colours cannot do that — they are ink, and no
+	   single token clears 4.5:1 on both white and near-black — so they are read
+	   at their point of use off the `--ft-status-*` vocabulary this family
+	   shares, whose defaults are `light-dark()` pairs. A glyph is a graphical
+	   object and owes 3:1, which is why the light half of the grey pair is 0.5
+	   rather than 0.55. */
+	--ft-agentplan-rail: color-mix(in oklab, currentColor 16%, transparent);
+	--ft-agentplan-track-bg: color-mix(in oklab, currentColor 12%, transparent);
+
+	/* Geometry shared by the glyph, the indent, and the substep rail, so moving
+	   one moves all three together. */
+	--ft-agentplan-glyph-size: 0.875rem;
+	--ft-agentplan-row-pad: 0.25rem;
+	--ft-agentplan-indent: 1.5rem;
+	/* Centre of a top-level glyph: body padding plus half the glyph. */
+	--ft-agentplan-rail-x: 0.9375rem;
+	/* Where that glyph's centre sits vertically, so the rail can stop on it. */
+	--ft-agentplan-rail-stop: 0.875rem;
+}
+
+.ft-agentplan-header {
+	padding: 0 0.5rem 0.375rem;
+}
+
+.ft-agentplan-track {
+	margin-top: 0.375rem;
+	height: 0.1875rem;
+	border-radius: 9999px;
+	background: var(--ft-agentplan-track-bg);
+	overflow: hidden;
+}
+
+.ft-agentplan-bar {
+	height: 100%;
+	border-radius: inherit;
+	background: var(
+		--ft-agentplan-bar,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}
+
+.ft-agentplan-row {
+	position: relative;
+}
+
+.ft-agentplan-sub {
+	padding-left: var(--ft-agentplan-indent);
+}
+
+/* Drawn per row rather than once behind the group, so it stretches with the
+   row it belongs to and needs no height measurement. */
+.ft-agentplan-sub::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: calc(var(--ft-agentplan-rail-x) - 1px);
+	width: 2px;
+	background: var(--ft-agentplan-rail);
+}
+
+/* Stop on the last child's glyph instead of running on into the next
+   top-level step, which belongs to nobody. */
+.ft-agentplan-sub-last::before {
+	bottom: auto;
+	height: calc(var(--ft-agentplan-rail-stop) + var(--ft-agentplan-row-pad));
+}
+
+.ft-agentplan-body {
+	width: 100%;
+	padding: var(--ft-agentplan-row-pad) 0.5rem;
+}
+
+.ft-agentplan-glyph {
+	position: relative;
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: var(--ft-agentplan-glyph-size);
+	height: var(--ft-agentplan-glyph-size);
+	/* Centres the glyph on the first line of the label rather than its box. */
+	margin-top: calc((1.25rem - var(--ft-agentplan-glyph-size)) / 2);
+}
+
+/*
+ * Each state sets `color` once and every shape inside reads `currentColor`, so
+ * a consumer retints a status by naming one variable. The component's own
+ * `--ft-agentplan-*` sits in front of the shared `--ft-status-*`, which sits in
+ * front of the literal: setting either anywhere up the tree wins without having
+ * to out-specify these scoped rules.
+ */
+.ft-agentplan-glyph.ft-status-pending {
+	color: var(
+		--ft-agentplan-pending,
+		color-mix(
+			in oklab,
+			var(--ft-status-pending, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260))) 70%,
+			transparent
+		)
+	);
+}
+
+.ft-agentplan-glyph.ft-status-cancelled {
+	color: var(
+		--ft-agentplan-cancelled,
+		color-mix(
+			in oklab,
+			var(--ft-status-cancelled, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260))) 55%,
+			transparent
+		)
+	);
+}
+
+.ft-agentplan-glyph.ft-status-running {
+	color: var(
+		--ft-agentplan-running,
+		var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+	);
+}
+
+.ft-agentplan-glyph.ft-status-done {
+	color: var(
+		--ft-agentplan-done,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}
+
+.ft-agentplan-glyph.ft-status-error {
+	color: var(
+		--ft-agentplan-error,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+}
+
+.ft-agentplan-icon {
+	width: 100%;
+	height: 100%;
+}
+
+.ft-agentplan-ring {
+	width: 0.625rem;
+	height: 0.625rem;
+	border-radius: 9999px;
+	box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.ft-agentplan-dot {
+	position: relative;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: 9999px;
+	background: currentColor;
+}
+
+.ft-agentplan-dash {
+	width: 0.625rem;
+	height: 2px;
+	border-radius: 9999px;
+	background: currentColor;
+}
+
+/*
+ * Everything that moves lives behind the query, so reduced motion is not a
+ * degraded variant to keep in sync: the running step is still a filled accent
+ * dot, it just stops breathing, and the bar lands at its width instead of
+ * sliding to it.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-agentplan-bar {
+		transition: width 420ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.ft-agentplan-dot::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: currentColor;
+		animation: ft-agentplan-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+	}
+}
+
+@keyframes ft-agentplan-ping {
+	from {
+		opacity: 0.55;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(2.4);
+	}
+}

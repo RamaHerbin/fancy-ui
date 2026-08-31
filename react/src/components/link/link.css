@@ -1,0 +1,67 @@
+/*
+ * `--ft-accent` is the brand purple shared, by name only, across every
+ * component in the Actions family — none of them can reach a real shared
+ * token file, so each declares the same fallback locally under its own
+ * name (`--ft-link-accent`) and *reads* `--ft-accent` through `var()`
+ * rather than redeclaring it. A flat `--ft-accent: …` here would shadow
+ * whatever an ancestor set, since a property declared on a closer element
+ * always wins regardless of its value — that would make retinting the
+ * family from a shared ancestor silently stop working for this component
+ * alone.
+ */
+.ft-link {
+	--ft-link-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+/*
+ * The muted variant intentionally skips these two custom properties and
+ * uses the ordinary `text-muted-foreground` token instead — it is supporting
+ * copy, not a call to action, so it does not carry the brand hue.
+ */
+.ft-link--default {
+	color: var(--ft-link, light-dark(oklch(0.45 0.1013 293.57), oklch(0.8112 0.1013 293.57)));
+}
+
+.ft-link--default:hover {
+	color: var(--ft-link-hover, light-dark(oklch(0.36 0.1013 293.28), oklch(0.8943 0.0549 293.28)));
+}
+
+.ft-link:focus-visible {
+	border-radius: 3px;
+	box-shadow: 0 0 0 3px color-mix(in oklch, var(--ft-link-accent) 35%, transparent);
+}
+
+/*
+ * The external-link arrow nudges a pixel up and to the right on
+ * interaction — the direction it points, so the gesture reads as "this
+ * leaves the page" rather than as decoration. `--ft-ease-out` because the
+ * arrow arrives; it does not toggle back and forth in place.
+ *
+ * `box-shadow` is deliberately absent from the transition list: it is the
+ * focus ring above, and a focus ring must never animate.
+ *
+ * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-link-icon {
+		transition: transform var(--ft-link-icon-duration, var(--ft-duration-fast, 150ms))
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+	}
+
+	/* Keyboard parity is not optional, and it is not free-standing:
+	   `:focus-visible` is declared unconditionally while `:hover` is gated
+	   behind `(hover: hover)`, so a touch device that synthesises a sticky
+	   hover never leaves the arrow parked off-centre. */
+	.ft-link:focus-visible .ft-link-icon {
+		transform: translate(1px, -1px);
+	}
+
+	@media (hover: hover) {
+		.ft-link:hover .ft-link-icon {
+			transform: translate(1px, -1px);
+		}
+	}
+}

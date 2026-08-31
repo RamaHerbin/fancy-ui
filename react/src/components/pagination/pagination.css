@@ -1,0 +1,49 @@
+/*
+ * The current-page pill reads the app's semantic `bg-accent` token (the
+ * mockup's neutral highlight, not the brand purple) — Pagination never
+ * needs the purple accent for its own surface. The focus ring is the one
+ * place this component reaches for the shared nav accent, matching
+ * ToggleGroupItem's identical `--ft-toggle-group-accent` pattern: no
+ * semantic token owns "focus ring purple", so it is declared locally
+ * with a light-dark() fallback, retintable from higher up the tree via
+ * `--ft-accent`.
+ */
+.ft-pagination {
+	--ft-nav-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+.ft-pagination button:focus-visible {
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-nav-accent) 35%, transparent);
+}
+
+/*
+ * The newly-current page pops once, so the eye can find where it landed
+ * without hunting for a colour change among nine identical squares.
+ *
+ * `transform` only: `box-shadow` on this same button is the focus ring
+ * above, and a focus ring must never animate. `data-armed` keeps the pop
+ * off the first paint (see the component). `--ft-ease-out` because the pill
+ * arrives at its new place — it is not toggling in position.
+ *
+ * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-pagination[data-armed="true"] button[aria-current="page"] {
+		animation: ft-pagination-pop var(--ft-pagination-pop-duration, var(--ft-duration-fast, 150ms))
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+	}
+}
+
+/* 0.92 is the library's scale floor — the same value every entrance preset
+   starts from, so a pop and a panel opening read as one vocabulary. */
+@keyframes ft-pagination-pop {
+	from {
+		transform: scale(0.92);
+	}
+	to {
+		transform: scale(1);
+	}
+}

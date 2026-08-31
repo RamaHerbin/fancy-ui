@@ -1,0 +1,19 @@
+/* Both rules below were declared global in the source's style block and are
+   kept exactly as emitted: the first anchors on the component's own root
+   `group/card` class; the second is a deliberately global reduced-motion
+   clamp. */
+
+/* Enhanced mobile touch targets */
+@media (max-width: 768px) {
+	.group\/card {
+		min-height: 44px;
+		min-width: 44px;
+	}
+}
+
+/* Smooth transitions for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+	* {
+		transition-duration: 0.1s !important;
+	}
+}

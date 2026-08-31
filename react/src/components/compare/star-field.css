@@ -1,0 +1,49 @@
+/*
+ * `.fancy-star-field` is a PORT-ADDED anchor (PORTING.md, styling rule 2).
+ * The Svelte source has no root class of its own: its compiler scoped `.star`,
+ * which would leak into any consumer element named .star once the rules ship
+ * as plain global CSS. The anchor is the first token of the root `cn()` call
+ * in StarField.tsx.
+ */
+.fancy-star-field .star {
+	opacity: var(--fancy-ui-opacity-start);
+	animation:
+		twinkle var(--fancy-ui-twinkle-duration) ease-in-out infinite alternate,
+		drift var(--fancy-ui-drift-duration) linear infinite;
+}
+
+@keyframes twinkle {
+	0% {
+		opacity: var(--fancy-ui-opacity-start);
+	}
+	100% {
+		opacity: var(--fancy-ui-opacity-end);
+	}
+}
+
+@keyframes drift {
+	0% {
+		transform: translate(0, 0);
+	}
+	25% {
+		transform: translate(
+			var(--fancy-ui-drift-direction),
+			calc(var(--fancy-ui-drift-direction) / 2)
+		);
+	}
+	50% {
+		transform: translate(
+			calc(var(--fancy-ui-drift-direction) / 2),
+			var(--fancy-ui-drift-direction)
+		);
+	}
+	75% {
+		transform: translate(
+			calc(var(--fancy-ui-drift-direction) * -1),
+			calc(var(--fancy-ui-drift-direction) / 2)
+		);
+	}
+	100% {
+		transform: translate(0, 0);
+	}
+}

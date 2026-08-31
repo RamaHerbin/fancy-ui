@@ -1,0 +1,17 @@
+/* .terminal-text anchor is port-added: the source's compiler-scoped <style>
+   had no root class, so the rules are anchored on the component slug to keep
+   the generic .cursor-blink name from leaking globally. The keyframe name
+   `blink` is kept identical to the source (part of the visual contract). */
+.terminal-text .cursor-blink {
+	animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0;
+	}
+}

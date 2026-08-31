@@ -1,0 +1,27 @@
+@media (prefers-reduced-motion: no-preference) {
+	.ft-suggestion {
+		/*
+		 * `backwards` holds the pill at the keyframe's starting opacity through
+		 * its delay. Without it every pill would paint fully opaque first and
+		 * then drop out to fade back in, one at a time.
+		 */
+		animation: ft-suggestions-enter var(--ft-suggestions-duration, 220ms) ease-out backwards;
+		animation-delay: var(--ft-suggestions-delay, 0ms);
+	}
+
+	@keyframes ft-suggestions-enter {
+		from {
+			opacity: 0;
+			transform: translateY(4px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+}
+
+/*
+ * Reduced motion leaves the pills exactly where they land. The entrance is the
+ * only motion in the component, so there is nothing here to override.
+ */

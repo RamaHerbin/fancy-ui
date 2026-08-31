@@ -1,0 +1,17 @@
+/* Keyframes referenced by the inline `animation` on each .sparkles-star.
+   Keyframe names are global by nature; the name is kept identical to the
+   Svelte source's emitted name. */
+@keyframes sparkleAnim {
+	0% {
+		opacity: 0;
+		transform: scale(0) rotate(75deg);
+	}
+	50% {
+		opacity: 1;
+		transform: scale(var(--sparkle-scale, 1)) rotate(120deg);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(0) rotate(150deg);
+	}
+}

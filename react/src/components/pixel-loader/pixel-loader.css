@@ -1,0 +1,28 @@
+.ft-pixel {
+  background-color: var(--ft-pixel-cell-color);
+  border-radius: 1px;
+  /*
+   * Reduced motion holds every pixel at the mid-pulse value: the grid still
+   * reads as a loader, it just stops moving. Putting the animation entirely
+   * behind the no-preference query means there is nothing to override.
+   */
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ft-pixel {
+    /* `backwards` keeps a delayed pixel dim instead of flashing at 0.55
+       until its turn comes around. */
+    animation: ft-pixel-pulse var(--ft-pixel-speed) ease-in-out infinite backwards;
+  }
+
+  @keyframes ft-pixel-pulse {
+    0%,
+    100% {
+      opacity: 0.15;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+}
