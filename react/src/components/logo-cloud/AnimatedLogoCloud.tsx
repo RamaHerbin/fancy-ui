@@ -28,13 +28,26 @@ export function AnimatedLogoCloud({ className, title, logos = [] }: AnimatedLogo
 						className
 					)}
 				>
+					{/*
+						Five identical tracks, because a seamless marquee needs the
+						strip to be wider than the viewport. Only the first one is
+						real content: the other four are the same logos again, so
+						they are hidden from assistive tech (`aria-hidden` plus an
+						empty `alt`, since an image with a non-empty alt inside an
+						aria-hidden subtree can still surface). Without that, a
+						screen reader reads the whole roster five times over.
+					*/}
 					{Array.from({ length: 5 }).map((_, i) => (
-						<div key={i} className="logo-cloud-scroll flex shrink-0 flex-row justify-around gap-6">
+						<div
+							key={i}
+							className="logo-cloud-scroll flex shrink-0 flex-row justify-around gap-6"
+							aria-hidden={i > 0 ? "true" : undefined}
+						>
 							{logos.map((logo, j) => (
 								<img
 									key={j}
 									src={logo.path}
-									alt={logo.name}
+									alt={i === 0 ? logo.name : ""}
 									className="h-10 w-28 px-2 brightness-0 dark:invert"
 								/>
 							))}

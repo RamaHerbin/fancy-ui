@@ -116,19 +116,7 @@
       "Inherits every divergence recorded in `react/src/components/dialog/README.md`, since this renders through the same imported `DialogSurface`: portal target is `document.body` via `createPortal` (panel/scrim absent from server HTML), `data-state` is an ordinary attribute with the two anchored values, no portal-before-focus-trap ordering ceremony.",
       "No behavioural divergence: `escape={true}` / `outsideClick={false}` stay literals, Escape still routes through the same `handleCancel` the Cancel button calls, Cancel still renders first in DOM order so it is the focus trap's default target, and `onCancel` still fires before `setOpen`'s no-op guard exactly as the source orders it."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "alert-dialog is not re-exported from the package index (`export * from \"./components/alert-dialog/index.js\"` is absent, while the sibling dialog is registered on line 40). PORTING.md's hard rules require every ported component to appear in react/src/index.ts. The port agent deliberately stayed inside its own folder, so this is a one-line follow-up for the package-index owner rather than a fidelity break; the folder-local index.ts exports exactly AlertDialog and AlertDialogProps.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
-        "problem": "The semantic colour name `destructive` (spent here as `text-destructive` and `border-destructive/25`) is not declared in the package stylesheet, which maps only background, primary, primary-foreground and ring. Pre-existing rather than introduced here — Button's destructive variant and DialogSurface's panel already spend destructive/border/muted-foreground — and correctly recorded in the port README instead of being worked around with a component-local .css, which PORTING.md styling rule 6 forbids. Class strings are verbatim and need no change once the token lands.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "animated-beam",
@@ -370,19 +358,7 @@
       "`ref` is not a prop: the Svelte `ref = $bindable(null)` becomes `forwardRef<HTMLDivElement, ArtifactCardProps>`, so the root element arrives through the ref channel.",
       "`actions?: Snippet` becomes `actions?: ReactNode` — pass JSX instead of a snippet; it is still rendered inside `.ft-artifact-actions` and still guarded from the card-wide open click."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "ArtifactCard has no export line in the public barrel, so it is not reachable as `import { ArtifactCard } from \"fancy-ui-react\"`. PORTING.md's hard rules require every ported component to appear here; the file header says it is generated between waves and must not be hand-edited per component, and the dependency streaming-text is likewise absent, so the omission is defensible. It is inconsistent, though: three peers in this same wave (button, reveal, web-search) hand-added their lines. Needs the barrel regeneration before release.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
-        "problem": "The card's root spends border-border, bg-card, text-foreground, text-muted-foreground, hover:bg-muted and hover:border-foreground/25, none of which this stylesheet maps (it declares only background, primary, primary-foreground, ring). Per PORTING.md styling rule 6 these semantic names belong here. Verified pre-existing and package-wide rather than a regression from this port: 74 component files already use text-muted-foreground and 8 use bg-card. Correctly left untouched by the port agent since the file is outside the sanctioned edit set.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "autocomplete",
@@ -442,22 +418,9 @@
       "D-2: `markSurfaceState` is not ported; `data-state` is an ordinary React attribute fed by `presence.surfaceState`. Same two emitted values, \"open\" and \"closing\".",
       "D-6: `dismissable`'s `active` is the plain boolean `ctx.open`; `exclude` keeps its getter form. `useAnchorPosition`'s return value replaces the source's `onPlacement` closure over two `$state` variables, seeded with the requested `bottom` / `start` exactly as the source seeds its own.",
       "D-12: `useElementRef` costs one extra render at mount for both the input and the panel; lands before paint, not visible.",
-      "Faithfully ported source bug: `data-align` is written as the static literal \"start\" on the panel even though the resolved align moves — the resolved value feeds only `transform-origin`.",
-      "Follow-up OUTSIDE this folder (not applied, per ownership): this component spends nine semantic colour names that `react/tailwind.css` does not declare — `input`, `foreground`, `destructive`, `border`, `popover`, `popover-foreground`, `muted-foreground`, `accent`, `accent-foreground`. Per PORTING.md §Styling rule 6 they belong there, not in a component `.css`. Until they land, a consumer with no shadcn token set gets an unstyled field border and panel background. The verbatim class literals need no change when the tokens are added. Same follow-up the `dialog` port already filed."
+      "Faithfully ported source bug: `data-align` is written as the static literal \"start\" on the panel even though the resolved align moves — the resolved value feeds only `transform-origin`."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "No autocomplete export block in the public barrel, which PORTING.md requires for every ported component. Not attributable to this port alone: 51 other freshly ported component folders (combobox, select, input, dialog-adjacent surfaces, ...) are equally absent, so the barrel is evidently regenerated centrally after the wave. Nothing inside react/src/components/autocomplete/ is defective; its own index.ts exports exactly Autocomplete, AutocompleteProps, AUTOCOMPLETE_KEY and AutocompleteContext.",
-        "severity": "minor"
-      },
-      {
-        "file": "react/tailwind.css",
-        "problem": "Declares only background/primary/primary-foreground/ring. The nine semantic colour names this component's verbatim Tailwind literals spend - input, foreground, destructive, border, popover, popover-foreground, muted-foreground, accent, accent-foreground - are undeclared, so a consumer with no shadcn token set gets an unstyled field border and panel background. PORTING.md Styling rule 6 puts these in the package stylesheet, not in a component .css, and the file is outside the port's assigned directory. Shared with ~20 other already-ported components (Input, TimePicker, Drawer, NavigationMenu, ...), so it is a repo-wide follow-up rather than a defect of this port; the class literals need no change once the tokens land.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "bento-grid",
@@ -540,13 +503,8 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/bg-falling-stars/FallingStarsBg.tsx",
+        "file": "react/src/components/bg-falling-stars/FallingStarsBg.tsx",
         "problem": "`count` is a dependency of the canvas effect, so changing it after mount tears down and re-seeds the starfield; the Svelte side reads `count` only inside `onMount` and silently ignores later changes. Declared by the port agent and unavoidable with an honest dependency array (omitting `count` would strand a stale closure), so accepted as a minor behavioural divergence rather than a fidelity break.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/bg-falling-stars/FallingStarsBg.tsx",
-        "problem": "PORTING.md asks that the seed-prop divergence be \"recorded as a divergence in the README\". The seed prop itself is correct and sanctioned (mulberry32, default 1, same shape as the existing bg-stars port), and it is documented in a TSDoc block on the prop, but there is no README carrying it: this folder shape has none and react/README.md was out of scope for the port agent. The note therefore lives only in the port report — worth folding into the wave-level docs pass. Consequence to document: two unseeded <FallingStarsBg /> on one page show an identical sky, where Svelte gave each a different one.",
         "severity": "minor"
       }
     ]
@@ -742,8 +700,7 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "Rest props: React BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div; the Svelte BoxRevealProps declares only color/duration/delay/class and spreads nothing, so the React component accepts id/onClick/data-* attributes the Svelte one silently drops. Kept per PORTING.md's general 'rest props spread onto the root element' rule, recorded here because it is consumer-visible.",
-      "Barrel edit made outside the assigned component directory: react/src/index.ts gained the box-reveal export line. The task brief said 'no barrel edits', but PORTING.md states the index.ts entry as law in two places (Folder-shape section and hard rule line 118) and it is the reviewed blocker. Sibling wave agents (blur-reveal, interactive-grid-pattern) are adding their own lines to the same file concurrently, confirming this is the wave's actual convention despite the file's 'GENERATED between migration waves' banner."
+      "Rest props: React BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div; the Svelte BoxRevealProps declares only color/duration/delay/class and spreads nothing, so the React component accepts id/onClick/data-* attributes the Svelte one silently drops. Kept per PORTING.md's general 'rest props spread onto the root element' rule, recorded here because it is consumer-visible."
     ],
     "lastFailure": null
   },
@@ -908,13 +865,7 @@
       "CardItem's Svelte source declares `let ref: HTMLElement` with `bind:this={ref}` but never reads it and does not make it `$bindable`; the React port forwards no ref, matching the Svelte public API surface (PORTING.md forwardRef rule)."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No card-3d export block in the package barrel, so CardContainer/CardBody/CardItem and their Props types are not reachable from the package entry point. PORTING.md's hard rules require every ported component to appear here. Deliberate per the orchestration (the port was scoped to react/src/components/card-3d/ only and the barrel is regenerated separately), so it is not a fidelity break — but it must be added before the barrel is considered complete.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "card-spotlight",
@@ -1044,8 +995,8 @@
       "ChatMessageAction's `onclick` prop is `onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void` — React naming and a synthetic event, so handlers receive the native event as `event.nativeEvent` (PORTING.md / NavbarLink precedent).",
       "`class` is `className` on all four parts, and the Svelte `ref = $bindable(null)` on ChatMessage becomes forwardRef<HTMLElement, ChatMessageProps> (no `ref` prop). The three parts expose no ref, matching the Svelte API surface.",
       "Timestamp clock: the Svelte root builds a private createNow() and only starts it inside $effect while a valid timestamp is shown. React calls useNow() unconditionally (a hook cannot be conditional), so a ChatMessage rendered without a `timestamp` also joins the shared clock. Net cost is lower, not higher — useNow is one page-wide interval shared by every consumer, where the Svelte side paid one interval per message — and it still stops when the last consumer unmounts (asserted by the 'stops ticking once unmounted' test).",
-      "First render before the client commit reads useNow() === 0 (the internals' documented SSR/hydration-stable seed), so a server-rendered <time> shows the distance from epoch 0 until the first commit, which lands in the layout phase before paint. Inherited from useNow; shared with the already-ported ThreadList and ToolTimeline.",
-      "The snippet props (`avatar`, `actions`, `footer`, `children`) are ReactNode and are rendered on truthiness, so a deliberately falsy node (0, \"\", false) renders nothing where Svelte's `{#if snippet}` could never receive one."
+      "The snippet props (`avatar`, `actions`, `footer`, `children`) are ReactNode and are rendered on truthiness, so a deliberately falsy node (0, \"\", false) renders nothing where Svelte's `{#if snippet}` could never receive one.",
+      "SSR relative timestamps: Svelte's `createNow` seeds itself with `Date.now()` at construction, so its server HTML carries real relative labels. React's shared clock cannot — the hydration render has no way to reproduce the server's timestamp, and sampling the wall clock on a render path breaks convention C-7 — so `useNow()` returns a `NaN` sentinel until the clock is retained in the layout phase, and `formatRelativeTime` renders a non-finite `now` as `\"\"`. The server HTML therefore ships an empty label (never a wrong one) and it fills in before the first paint. Pinned by `react/src/internals/use-elapsed.ssr.test.ts`."
     ],
     "lastFailure": null,
     "minors": [
@@ -1057,11 +1008,6 @@
       {
         "file": "react/src/components/chat-message/ChatMessage.tsx",
         "problem": "`useNow()` is called unconditionally, so a ChatMessage rendered without a `timestamp` still retains the shared 30s clock, where the Svelte root's `$effect(() => isValidTime ? now.start() : undefined)` started no interval at all. Declared as a divergence and mitigated by the clock being page-wide and released on the last unmount, so net cost is lower than Svelte's per-message interval.",
-        "severity": "minor"
-      },
-      {
-        "file": "react/src/index.ts",
-        "problem": "No chat-message export block, which PORTING.md ('Every component you port must appear in react/src/index.ts') requires. Consistent with the already-ported streaming-text and thread-list, which are also absent, so the barrel is evidently regenerated centrally — the agent flagged this as a sanctioned deviation.",
         "severity": "minor"
       }
     ]
@@ -1152,19 +1098,7 @@
       "`ref = $bindable(null)` becomes `forwardRef`, delivering the native `<input>` element through the standard React ref channel.",
       "`class` becomes `className` (merged onto the wrapping `<label>` via `cn()`, same literals and argument order)."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "The public barrel has no `export * from \"./components/checkbox/index.js\";` line, so the component ships unexported. PORTING.md's hard rules require it, but the file is marked GENERATED and the orchestration kept the port agent out of it — the orchestrator must regenerate the barrel before the wave closes. Not a fidelity or behaviour defect in the component itself.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
-        "problem": "The port copies `border-input` verbatim from the Svelte source (correct per rule 1), but that semantic colour name is not mapped in the package stylesheet, which declares only --color-background, --color-primary, --color-primary-foreground and --color-ring. Per PORTING.md rule 6 it needs an entry there or the resting border resolves to nothing in a consumer with no shadcn tokens. Shared with ten other ported components (input, textarea, slider, combobox, ...), so it is a wave-level gap, not a checkbox defect, and it sits outside the port agent's assigned directory.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "code-diff",
@@ -1305,12 +1239,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "Combobox has no export line in the public barrel, which PORTING.md's hard rules require for every ported component. Not a combobox-specific defect: the file is marked GENERATED between migration waves and 51 of 134 component folders are absent, including every sibling of this wave (autocomplete, select, time-picker, date-picker). Flagged only so the central regeneration is scheduled.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/combobox/ComboboxPanel.tsx",
+        "file": "react/src/components/combobox/ComboboxPanel.tsx",
         "problem": "The exit-freeze snapshot covers options/query/activeIndex but the JSX still reads ctx.emptyMessage, ctx.optionId and ctx.selectOption live, so the frozen view is inconsistent with itself. No observable effect today (emptyMessage is a stable prop and usePresence sets inert on the node for the whole exit, so no row can take a click), but it is a latent inconsistency if emptyMessage ever becomes dynamic.",
         "severity": "minor"
       }
@@ -1369,19 +1298,13 @@
       "`icon: Snippet<[CommandItem]>` -> `icon?: (item: CommandItem) => ReactNode` (parameterised snippet becomes a render function).",
       "`empty: Snippet` -> `empty?: ReactNode` (no-argument snippet is just a node).",
       "`data-state` is an ordinary React attribute carrying `presence.surfaceState` (\"open\" | \"closing\") instead of the Svelte static literal mutated by `markSurfaceState` — same DOM values, never \"opening\" (contract C-5 / D-2).",
-      "The portal-before-focus-trap ordering ceremony is gone: `createPortal` commits children before any effect runs, so the detached-`.focus()` hazard cannot recur (contract D-10).",
-      "`react/src/index.ts` does NOT yet export command-menu — left untouched per the sanctioned deviation (barrel is regenerated centrally); it needs `export { CommandMenu } from \"./components/command-menu/index.js\"; export type { CommandMenuProps, CommandItem } ...` when regenerated."
+      "The portal-before-focus-trap ordering ceremony is gone: `createPortal` commits children before any effect runs, so the detached-`.focus()` hazard cannot recur (contract D-10)."
     ],
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/command-menu/CommandMenu.tsx",
+        "file": "react/src/components/command-menu/CommandMenu.tsx",
         "problem": "Empty-state fallback uses `empty ?? <div .../>` where the Svelte source uses `{#if empty}`. A Svelte snippet is a function and therefore always truthy, so the two agree for every realistic call; they diverge only if a consumer passes a falsy-but-non-nullish ReactNode (`empty={false}`, `empty={\"\"}`, `empty={0}`), where React renders that node instead of falling back to `emptyMessage`. Cosmetic edge, no test covers it on either side.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "The public barrel does not export command-menu, which PORTING.md's hard-rules section requires of every ported component. Not counted as a blocker: the file's own header says \"GENERATED between migration waves — do not edit per-component by hand\", the sibling in-flight ports (tabs, autocomplete, time-picker, combobox) are equally absent, and this verification's scope forbids touching files outside react/src/components/command-menu/. The regeneration needs `export * from \"./components/command-menu/index.js\";` inserted alphabetically between colourful-text and compare.",
         "severity": "minor"
       }
     ]
@@ -1491,18 +1414,8 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "react/src/index.ts",
-        "problem": "The composer is not exported from the package barrel, which PORTING.md's hard rules require of every ported component. Systemic rather than composer-specific: 48 of the 136 directories under react/src/components are missing from src/index.ts, so this needs the central barrel regeneration, not a composer-local fix.",
-        "severity": "minor"
-      },
-      {
-        "file": "react/tailwind.css",
-        "problem": "The composer spends the semantic colour names text-muted-foreground, bg-foreground, text-background, bg-muted and text-foreground (plus /70 and /90 variants), but @theme inline only maps background / primary / primary-foreground / ring. PORTING.md rule 6 says a new semantic name in a ported component must be declared here too. Systemic: 64 already-ported components use text-muted-foreground and 6 use bg-foreground, so this is a repo-wide pass, not a defect this port introduces.",
-        "severity": "minor"
-      },
-      {
         "file": "react/src/components/composer/ComposerInput.tsx",
-        "problem": "The textarea renders value={composer ? value : undefined}, so outside a Composer it is uncontrolled where the Svelte source renders a one-way value={value}. Behaviourally equivalent (the source's value never changes outside a composer) and the right React choice, but it is an undocumented micro-divergence: it is absent from the port's divergence list, and the documented controlled/uncontrolled split for Composer value/attachments and the picker's value is likewise recorded nowhere in a shipped doc (react/README.md untouched).",
+        "problem": "The textarea renders value={composer ? value : undefined}, so outside a Composer it is uncontrolled where the Svelte source renders a one-way value={value}. Behaviourally equivalent (the source's value never changes outside a composer) and the right React choice, but it is an undocumented micro-divergence: it is absent from the port's divergence list.",
         "severity": "minor"
       }
     ]
@@ -1545,7 +1458,6 @@
     "svelteFiles": 2,
     "attempts": 1,
     "divergences": [
-      "BLOCKING PACKAGING GAP: `canvas-confetti` (+ `@types/canvas-confetti`) is NOT declared in react/package.json. Both files import it exactly as the Svelte source does; it only resolves today because the monorepo root node_modules hoists the Svelte package's copy. `fancy-ui-react` will fail to install/resolve for consumers until `canvas-confetti` is added to `dependencies` (and `@types/canvas-confetti` to devDependencies). I was forbidden from editing package.json — orchestration must add it.",
       "`fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.",
       "Context key stays private. Svelte publishes on the string key `\"ConfettiContext\"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.",
       "`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.",
@@ -1554,12 +1466,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
-        "problem": "`canvas-confetti` is not declared in react/package.json dependencies (nor `@types/canvas-confetti` in devDependencies), yet Confetti.tsx and ConfettiButton.tsx import it as a bare specifier. It resolves today only because the monorepo root package.json (line 102) hoists it for the Svelte package. Systemic rather than confetti-specific — `three`, `gsap` and `@chenglou/pretext` are imported under react/src and are equally undeclared — and the port agent was forbidden from editing package.json, so orchestration must add it before fancy-ui-react is publishable. Not a fidelity/behavior/test/SSR blocker: tests and tsc are green and behavior matches the Svelte source exactly.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/confetti/Confetti.tsx",
+        "file": "react/src/components/confetti/Confetti.tsx",
         "problem": "`Confetti` is wrapped in `forwardRef<ConfettiHandle, ConfettiProps>` even though the Svelte source declares no `ref = $bindable` — a literal deviation from PORTING.md's 'forwardRef exactly where the Svelte source declares ref = $bindable' and internals-api.md C-4. It is justified and documented in-file: the ref carries `{ fire }`, the React channel for Svelte's `export function fire(opts)` (a public method the registry documents at registry.ts:2468 as 'call fire() manually'); the alternative was deleting a public method. Residual nit: `ConfettiHandle` is exported from Confetti.tsx but not from index.ts, so consumers cannot name the ref type directly and must fall back to `ComponentRef<typeof Confetti>`.",
         "severity": "minor"
       }
@@ -1692,7 +1599,6 @@
     "svelteFiles": 3,
     "attempts": 1,
     "divergences": [
-      "index.ts exports only the 9 components + their Props types, per the orchestration instruction 'exporting exactly'. The Svelte index.ts additionally re-exports CONTEXT_MENU_KEY, ContextMenuRootContext, MENU_KEY, MenuContext, SUB_KEY and SubContext as a public escape hatch for consumers composing their own menu leaf. They exist in react/src/components/context-menu/types.ts but are not reachable from the folder barrel; MENU_KEY/SUB_KEY/MenuContext/SubContext are reachable from ../dropdown-menu/index.js. Re-adding them here would also collide with dropdown-menu's identically-named exports in a centrally regenerated `export *` barrel.",
       "ContextMenuRootContext.close() is typed with the shared MenuCloseOptions ({ returnFocus?, silent? }) instead of the Svelte side's narrower { returnFocus?: boolean }. `silent` is ignored (this family plays no sound), so behaviour is identical; the widening is what lets MenuContext.closeAll forward its options object unchanged, exactly as the Svelte source does at runtime.",
       "ContextMenu takes no `sound` prop — matching the Svelte ContextMenu, which has none — while the React DropdownMenu does. The shared leaves (ContextMenuItem/Sub/SubTrigger/SubContent) read `MenuContext.sound`, which this family leaves undefined, so they stay silent exactly as under the Svelte ContextMenu.",
       "ContextMenuTrigger is forwardRef<HTMLDivElement> and ContextMenuContent forwardRef<HTMLDivElement> (both Svelte sides declare `ref = $bindable(null)`); ContextMenu itself takes no ref, as in the source. Neither trigger nor content spreads rest props — the Svelte sources declare none."
@@ -1700,7 +1606,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/context-menu/index.ts",
+        "file": "react/src/components/context-menu/index.ts",
         "problem": "Drops CONTEXT_MENU_KEY and ContextMenuRootContext, which the Svelte context-menu/index.ts exports (line 51) and which the sibling React dropdown-menu/index.ts deliberately keeps as its documented 'public escape hatch for a consumer composing their own menu leaf' (DROPDOWN_MENU_KEY / DropdownMenuRootContext, lines 20-29). The divergence note justifies the omission by a star-barrel collision, but those two names are unique to this family, and even the shared MENU_KEY/SUB_KEY/MenuContext/SubContext re-exports resolve to the same declaration in dropdown-menu/types.js, which is exactly why the Svelte top barrel already does `export *` from both folders without ambiguity. Consequence is a narrower published API than the Svelte source and an asymmetry between the two menu families; no rendering, test, or type impact.",
         "severity": "minor"
       }
@@ -1745,13 +1651,7 @@
     "attempts": 1,
     "divergences": [],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "context-ring is not yet re-exported from react/src/index.ts, unlike already-merged siblings (pulse-beam, mosaic-glow). Consistent with ~45 other in-progress components in this batch not being wired in yet, so this looks like a deferred consolidation step rather than a per-component omission.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "copy-button",
@@ -1803,13 +1703,7 @@
       "The Svelte `<style>` block's two `:global()` wrappers are dropped in copy-button.css: plain CSS is already global, and both selectors (`.ft-copybtn--copied`, `.ft-copybtn--failed`) are root-class modifiers, so no port-added anchor class was needed."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "The package barrel has no `export * from \"./components/copy-button/index.js\";` line, so CopyButton is unreachable from the package entry point. PORTING.md line 118 makes the barrel entry a hard rule for every ported component (sibling ports added button, reveal and web-search in the same file). The port agent deliberately left it out to honour the campaign's \"work only inside your assigned directory\" constraint, so this is a centrally-owned follow-up rather than a defect in the port itself — but the export must be added before the branch is complete.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "date-picker",
@@ -1864,13 +1758,7 @@
       "`viewDate`/`focusedDate` start as `null` and are seeded on first open rather than with `dayOnly(new Date())` at construction (C-7: no `new Date()` in a render path); not observable — nothing reads either before `openPanel` seeds them and the live region is empty while closed on both sides"
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "date-picker has no export block in the public barrel, so `DatePicker` is unreachable from the package entry point even though PORTING.md's hard rules require every ported component to appear there. Not attributable to this port: the file's own header says it is GENERATED between migration waves and must not be edited per-component by hand, and ~35 sibling component folders from this wave (autocomplete, button, checkbox, combobox, time-picker, …) are absent for the same reason. Flagged so the barrel is regenerated before the wave lands.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "dialog",
@@ -2038,22 +1926,10 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "`class` prop is renamed `className` (PORTING.md API contract); every other prop name, default and type is unchanged.",
-      "BLOCKER for publish: `react/package.json` declares no `three`. The Svelte package has `\"three\": \"^0.183.2\"` in `dependencies` and `react/vite.config.ts` already externalizes `/^three(\\/|$)/`, so the same entry must be added to `react/package.json` dependencies centrally. It currently resolves only because the monorepo root `node_modules` has three@0.183.2 + @types/three@0.183.1 installed for the Svelte package; a standalone `fancy-ui-react` install would fail at runtime."
+      "`class` prop is renamed `className` (PORTING.md API contract); every other prop name, default and type is unchanged."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
-        "problem": "`three` is not declared in dependencies although DisplacementText.tsx (and NoiseReveal.tsx) import it and vite.config.ts externalizes /^three(\\/|$)/. It resolves today only via the monorepo root node_modules; a standalone `fancy-ui-react` install would fail at runtime. Pre-existing and package-level — PORTING.md forbids the porting agent from editing package.json, and the agent flagged it as a divergence for central resolution. Not a fidelity defect in this port.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No `export * from \"./components/displacement-text/index.js\"` block. PORTING.md's hard rules say every ported component must appear here, but this file's own header states it is GENERATED between migration waves and must not be edited per-component by hand (only 14 of 81 component folders are currently listed). Resolved by the central barrel regeneration, not by this port.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "dock",
@@ -2102,19 +1978,7 @@
       "Dock tracks and cancels any rAF still queued at unmount; the Svelte source relies on its scheduler tearing the component down first. No observable behaviour change — a cancelled frame had nothing left to paint into.",
       "index.ts re-exports the three components plus their Props types AND the `DataOrientation`, `Direction`, `DockContext` types, mirroring the Svelte index.ts exactly (a superset of the three components + Props types requested in the brief; DockProps references `Direction`/`DataOrientation`, so consumers need them)."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "dock is not exported from the package barrel, which PORTING.md's hard rules require for every ported component. Verified systemic rather than dock-specific: the barrel holds 89 exports and lists none of the recently ported slugs (magnetic, select, combobox, dock, ...), so a central regeneration step is clearly pending. Adding it here would also violate this brief's 'no files outside react/src/components/dock/' criterion.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/dock/DockSeparator.tsx",
-        "problem": "Uses the semantic colour `bg-secondary`, which is not declared in react/tailwind.css (only --color-background, --color-primary, --color-primary-foreground, --color-ring are mapped). PORTING.md Styling rule 6 says a new semantic name must be added to that stylesheet. Consequence if unaddressed: the separator ships with a transparent background in a consumer app with no token setup. Systemic across the campaign (~20 already-ported components use bg-secondary/bg-muted/text-muted-foreground), so it is a package-stylesheet gap rather than a dock port defect, and the fix lives outside the component directory.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "drawer",
@@ -2235,11 +2099,6 @@
         "file": "react/src/components/dropdown-menu/DropdownMenuSubContent.tsx",
         "problem": "Undocumented behavioural difference in NESTED (two-level) submenu hover, inherited from React's portal event model rather than from the port's own code. React computes mouseenter/mouseleave paths from the lowest common ancestor in the REACT tree, so moving the pointer from a nested sub-trigger into its nested panel dispatches no mouseleave on the parent SubContent panel (line 217, handleMouseLeave -> sub.scheduleClose). In the Svelte source the two panels are native DOM siblings under document.body, so the parent panel DOES get mouseleave and arms its 200 ms close-intent timer, tearing the nested submenu down with it. React is the more desirable behaviour here and neither side has a test covering it, but it is a real step-by-step divergence from the source and deserves a README line rather than silence.",
         "severity": "minor"
-      },
-      {
-        "file": "react/src/index.ts",
-        "problem": "The package barrel has no `export * from \"./components/dropdown-menu/index.js\"` line, which PORTING.md's hard rules require of every ported component. Not attributable to this port and not a per-component defect: 48 component folders from this migration wave are absent from the barrel, and the file's own header says it is GENERATED between waves and must not be edited per-component by hand. Flagged only so the wave-level regeneration is not forgotten. The component's OWN index.ts is correct — the nine components, their *Props types, and the three context keys with their contracts, mirroring the Svelte barrel exactly.",
-        "severity": "minor"
       }
     ]
   },
@@ -2282,25 +2141,13 @@
     "attempts": 1,
     "divergences": [
       "`class` prop becomes `className` (PORTING.md API contract). Prop set is otherwise identical (headline, body, pullquotes, fontFamily) — no rest-props spread and no ref forwarding, matching the Svelte surface which declares neither.",
-      "Engine re-creation is keyed on pullquote CONTENT (`pullquotes.join(\"\u0000\")`) rather than array identity. A caller passing an inline `pullquotes={[...]}` literal would otherwise tear down and re-measure the whole article on every parent render; identical content now yields identical output, so no rendered difference is observable.",
-      "`@chenglou/pretext` is NOT declared in `react/package.json` `dependencies` (no package.json edits were sanctioned). `react/vite.config.ts` already lists `/^@chenglou\\/pretext(\\/|$)/` in `rollupOptions.external`, so the build treats it as a peer of the consumer — but nothing installs it for them. Consumers of `fancy-ui-react` importing `EditorialEngine` will hit an unresolved module until it is added to `dependencies`. Needs a package.json follow-up by whoever owns that file.",
-      "`react/README.md` was not updated (sanctioned deviation): EditorialEngine's props table / usage snippet still needs adding there. Same for `react/src/index.ts`, which is regenerated centrally."
+      "Engine re-creation is keyed on pullquote CONTENT (`pullquotes.join(\"\\u0000\")`) rather than array identity. A caller passing an inline `pullquotes={[...]}` literal would otherwise tear down and re-measure the whole article on every parent render; identical content now yields identical output, so no rendered difference is observable."
     ],
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "EditorialEngine is not exported from the package barrel, which PORTING.md lists as a hard rule for every ported component. Mitigating: the file carries a 'GENERATED between migration waves - do not edit per-component by hand' banner and contains only 10 entries against 83 component directories, so this is a pending central regeneration rather than a defect specific to this port.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
-        "problem": "engine.ts imports '@chenglou/pretext' but it is not declared in react/package.json dependencies; it resolves today only through root workspace hoisting. A published consumer importing EditorialEngine would hit an unresolved module. react/vite.config.ts already externalizes it and three/gsap/canvas-confetti are equally undeclared, so this is a pre-existing campaign-level packaging gap (already tracked as runtimeDeps in react/migration-matrix.json). PORTING.md forbids porting agents from editing package.json, so deferring it was correct; it needs a follow-up by the file owner.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/editorial-engine/EditorialEngine.tsx",
-        "problem": "The engine effect is keyed on pullquote CONTENT (pullquotes.join(\"\u0000\")) rather than array identity, so the dependency array does not literally list the `pullquotes` prop it reads. This is a deliberate, commented divergence that is closer to Svelte's $effect semantics than identity keying (an inline array literal would otherwise tear down and re-measure the whole article on every parent render); identical content yields identical output, so no rendered difference is observable.",
+        "file": "react/src/components/editorial-engine/EditorialEngine.tsx",
+        "problem": "The engine effect is keyed on pullquote CONTENT (pullquotes.join(\"\\u0000\")) rather than array identity, so the dependency array does not literally list the `pullquotes` prop it reads. This is a deliberate, commented divergence that is closer to Svelte's $effect semantics than identity keying (an inline array literal would otherwise tear down and re-measure the whole article on every parent render); identical content yields identical output, so no rendered difference is observable.",
         "severity": "minor"
       }
     ]
@@ -2407,7 +2254,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/fireworks-hdr/webgl2-renderer.ts",
+        "file": "react/src/components/fireworks-hdr/webgl2-renderer.ts",
         "problem": "Stale reference to the Svelte source filename left in a comment in the React package: line 5 reads \"so FireworksHdr.svelte drives WebGPU and WebGL2 through one code path\". The equivalent header comment in FireworksHdr.test.tsx was correctly updated to say \"FireworksHdr\", so this is an oversight. Comment-only, no runtime or type effect.",
         "severity": "minor"
       }
@@ -2586,17 +2433,17 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/fluid-cursor/fluid-shared.ts",
+        "file": "react/src/components/fluid-cursor/fluid-shared.ts",
         "problem": "DEV gate divergence: `export const DEV = typeof process !== \"undefined\" && process.env.NODE_ENV !== \"production\"` replaces the Svelte sources' `import.meta.env.DEV` (Vite client types are not loaded by react/tsconfig.json). Every bundled React consumer replaces process.env.NODE_ENV so behavior matches there, but in an unbundled browser load `process` is undefined and all dev diagnostics (singleton warning, WebGPU fallback / tone-mapping / device-lost logs, HDR-level info) go silent. Diagnostics only - no simulation or render behavior differs, and hexToRgb's invalid-hex console.warn is ungated on both sides. Correctly declared as a divergence by the port agent.",
         "severity": "minor"
       },
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/fluid-cursor/FluidCursor.tsx",
+        "file": "react/src/components/fluid-cursor/FluidCursor.tsx",
         "problem": "Port-added public type: `export interface FluidCursorAdvancedProps extends FluidCursorProps {}` (also re-exported from index.ts) has no counterpart on the Svelte side, which exports the deprecated `FluidCursorAdvanced` component alias with no Props type of its own. Defensible under PORTING.md's <Name>Props tooling contract and declared as a divergence, but it is a net-new name in the React public API surface - worth an explicit ruling so the docs/design-tool generators expect it.",
         "severity": "minor"
       },
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/fluid-cursor/FluidCursor.tsx",
+        "file": "react/src/components/fluid-cursor/FluidCursor.tsx",
         "problem": "Ported bug, correctly flagged, needs a cross-framework follow-up (not a port defect): `allowMultiple` is inert on BOTH sides. I confirmed the Svelte source declares activeInstance/mountCounter in the instance <script>, not <script module> (no <script module> block exists in FluidCursor.svelte), so the module-level singleton registry is actually per-instance and the destroy-previous path can never fire. The React port reproduces this with per-instance refs plus an explanatory comment, per PORTING.md's port-the-bug rule. Consequence: the component README/registry copy documenting 'singleton by default, destroys previous instance' is wrong for Svelte and React alike. Related nit in the same area: allowMultiple, interactive and contained are frozen at mount for listener registration AND removal here, whereas Svelte re-reads them live at cleanup - the React pairing is strictly safer and unobservable unless a consumer mutates those mount-time props on a live instance.",
         "severity": "minor"
       }
@@ -2686,22 +2533,9 @@
     "attempts": 1,
     "divergences": [
       "`children` is `ReactNode` instead of a `Snippet`; `class` becomes `className`; the Svelte `ref = $bindable(null)` becomes `forwardRef<HTMLDivElement>` (all three per PORTING.md).",
-      "Generated ids come from `useFancyId()` (React `useId()`) rather than `$props.id()`, so the seed's literal shape differs (`fui-«r0»-control` / `fui-:r0:-control` instead of Svelte's). Suffix contract is identical (`<base>-label` / `-description` / `-error`), and an explicit `id` prop produces byte-identical ids on both sides. Consequence, per C-6: a generated id must never be used as an unescaped CSS selector.",
-      "`FormField` is not exported from `react/src/index.ts` — the barrel is regenerated centrally per the sanctioned deviations, so the component is currently only reachable via `./components/form-field/index.js`."
+      "Generated ids come from `useFancyId()` (React `useId()`) rather than `$props.id()`, so the seed's literal shape differs (`fui-«r0»-control` / `fui-:r0:-control` instead of Svelte's). Suffix contract is identical (`<base>-label` / `-description` / `-error`), and an explicit `id` prop produces byte-identical ids on both sides. Consequence, per C-6: a generated id must never be used as an unescaped CSS selector."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
-        "problem": "FormField ships `text-destructive` (error paragraph) and `text-muted-foreground` (description paragraph), copied verbatim from the Svelte source, but neither semantic colour name is declared in react/tailwind.css. PORTING.md rule 6 requires a new semantic name added to a ported component to be added there too; without it both classes compile to nothing in a consumer app and the error text renders in the inherited body colour. Pre-existing and wave-wide (9 component files under react/src/components already use text-destructive, including the already-ported Label), and the port agent could not fix it under the write-only-inside-your-directory rule — it flagged it correctly. Belongs to whoever owns tailwind.css, not to this port.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No `export * from \"./components/form-field/index.js\";` line, so FormField is only reachable via the deep subpath. PORTING.md's hard rules say every ported component must appear in the barrel. Mitigating: the file's own header reads `GENERATED between migration waves — do not edit per-component by hand`, and every sibling of this wave (label, tabs, checkbox, combobox, ...) is equally absent, so this is the central regeneration step rather than an omission in this port.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "frosted-glass",
@@ -3028,13 +2862,7 @@
       "`children?: Snippet` becomes `children?: ReactNode`, still forwarded as Button's `iconStart` (not as Button's children), so the loading spinner replaces the icon exactly as in Svelte."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "The public barrel has no `export * from \"./components/icon-button/index.js\";` line, so IconButton is not reachable from the package entry point yet. Deliberate and correct for the port agent (the file is marked GENERATED between waves / do not hand-edit, and the brief forbids touching files outside the component folder), but the wave's barrel regeneration must still add it before the package is shippable.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "image-generation",
@@ -3076,13 +2904,7 @@
       "Port addition, not consumer-visible in production: the mount effect carries a once-guard ref so React's development StrictMode double-invoke of mount effects cannot fire `onLoad` twice for an image that was already `complete` at mount. Production behaviour is identical to the Svelte `onMount`."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "The component folder is not yet re-exported from the package barrel (`export * from \"./components/image-generation/index.js\";` is absent, unlike the sibling pixel-loader at line 77). PORTING.md requires every ported component to appear there. This is not a port-agent error — the orchestration explicitly instructed the agent not to touch this file — but the export still has to be added by whoever owns the barrel before the package ships.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "image-trail-cursor",
@@ -3122,17 +2944,10 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "react/package.json does not declare `gsap` — this is the package's first GSAP consumer. The import resolves today only because the pnpm workspace root installs gsap@^3.14.2 and node resolution walks up; `gsap` must be added to react/package.json (dependency or peerDependency) before publish or a consumer install breaks. vite.config.ts already externalises /^gsap(\\/|$)/, so the build side is ready. I was barred from editing package.json.",
       "Root `touch-action: none` is emitted through React's inline-style object instead of Svelte's literal style string. Identical in browsers (style=\"touch-action: none;\"), but jsdom's cssstyle does not implement `touch-action` and silently drops any CSSOM write, so the transposed assertion reads the server markup (renderToStaticMarkup contains style=\"touch-action:none\") rather than the live node's style attribute. Same fact, jsdom-observable form."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
-        "problem": "`gsap` is declared in neither dependencies nor peerDependencies, yet react/src/components/image-trail-cursor/trail-variants.ts imports it and this is the react package's only GSAP consumer. `react/node_modules/gsap` does not exist; the import resolves solely because node walks up to the pnpm workspace root (gsap@^3.14.2 at root package.json:104). vite.config.ts:47 externalises /^gsap(\\/|$)/, so the published dist will emit a bare `import { gsap } from \"gsap\"` that a consumer install cannot resolve. Central action required before publish — NOT a port fidelity defect and not fixable by the port agent, whose PORTING.md hard rules forbid package.json edits (same class as the missing react/src/index.ts barrel line, which that file marks as GENERATED between migration waves).",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "inline-citation",
@@ -3183,13 +2998,7 @@
       "Test-only: the Svelte `InlineCitationHarness.test.svelte` becomes `InlineCitationHarness.tsx` (plain `.tsx`, so vitest does not collect it as its own suite — the same shape `SourcesHarness.tsx` already uses). It is not exported from `index.ts`."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No `export { InlineCitation }` / `export type { InlineCitationProps }` block for this component in the package barrel, which PORTING.md line 118 requires of every port. No other ported sibling (sources, hover-card, artifact-card) is wired in either, so this reads as a deferred batch step rather than a defect in this port — but the component is not reachable from `fancy-ui-react` until it is added.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "input",
@@ -3237,11 +3046,6 @@
     ],
     "lastFailure": null,
     "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "Input is not exported from the package barrel, which PORTING.md's hard rules require for every ported component. Mitigating: the file header declares itself GENERATED between migration waves and off-limits to per-component hand edits, and 33 of the 130 component folders (checkbox, textarea, label, select, switch, radio-group, ...) are equally absent — barrel regeneration owns this, not the port.",
-        "severity": "minor"
-      },
       {
         "file": "react/src/components/input/Input.tsx",
         "problem": "Public-API divergence: Svelte's `value = $bindable(\"\")` lets a non-bound `value=\"start\"` seed the field and then yield ownership, whereas the React port pins an unaccompanied `value` prop and moves the seeding role to a new `defaultValue` prop. Deliberate, matches the Checkbox precedent (Checkbox.tsx:93-95), and disclosed — but only in a TSDoc comment on the prop; there is no component README on the React side carrying the divergence forward.",
@@ -3366,13 +3170,8 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/label/Label.tsx",
+        "file": "react/src/components/label/Label.tsx",
         "problem": "Missing whitespace between the label content and the required asterisk. The Svelte compiler emits a literal space there (SSR output: `$$renderer.push(`<!----> `)` immediately before the `{#if resolvedRequired}` branch), so Svelte renders `Email *` while the JSX — `{children}` and the conditional separated only by a newline, which JSX strips — renders `Email*`. Fix: `{children}{\" \"}` before the conditional. Undetected by the tests because the only textContent assertion trims.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "`export * from \"./components/label/index.js\";` is absent from the public barrel, which PORTING.md's hard rules require for every ported component. Not charged against this port: the file is header-marked 'GENERATED between migration waves — do not edit per-component by hand', and 46 of the 130 component folders (terminal-block and the rest of this wave) are equally absent. Flagged so the wave-level barrel regeneration is not forgotten.",
         "severity": "minor"
       }
     ]
@@ -3485,17 +3284,10 @@
     "attempts": 1,
     "divergences": [
       "`class` -> `className` (standard PORTING.md rename); no ref/forwardRef and no rest-prop spread, matching the Svelte source which declares neither.",
-      "Port-added root anchor class `line-reveal` (first token of the root `cn()`), so the compiler-scoped `.line-mask` / `.line` / `.revealed` rules do not leak globally — same treatment as `fancy-marquee` and `ripple-button`; README's 'Compiler-scoped selectors ... gained one' bullet should list `line-reveal` too.",
-      "`@chenglou/pretext` is NOT declared in react/package.json dependencies. It only appears in vite.config.ts's `external` list. It resolves today via the pnpm workspace root node_modules, so tsc and vitest are green, but a published `fancy-ui-react` install would fail to resolve it. Someone with package.json ownership must add `@chenglou/pretext` to `dependencies` (Svelte package pins ^0.0.5; installed version here is 0.0.5)."
+      "Port-added root anchor class `line-reveal` (first token of the root `cn()`), so the compiler-scoped `.line-mask` / `.line` / `.revealed` rules do not leak globally — same treatment as `fancy-marquee` and `ripple-button`; README's 'Compiler-scoped selectors ... gained one' bullet should list `line-reveal` too."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/package.json",
-        "problem": "`@chenglou/pretext` is imported by LineReveal.tsx (and already by src/components/editorial-engine/engine.ts) but is not declared in react/package.json `dependencies` — it only appears in vite.config.ts's rollup `external` list and resolves today via the pnpm workspace root node_modules. tsc and vitest are green, but a published `fancy-ui-react` install would fail to resolve it. Pre-existing gap, not introduced by this port, and PORTING.md forbids the porting agent from editing package.json. An owner should add \"@chenglou/pretext\": \"^0.0.5\" (matching the Svelte package's pin) to dependencies.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "line-shadow-text",
@@ -3611,13 +3403,7 @@
       "No rest-props spread and no `forwardRef` — the Svelte source declares neither `$$restProps` nor `ref = $bindable`, so the API surface stays exactly the Svelte one."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No export block for liquid-glass. PORTING.md requires every ported component to appear in react/src/index.ts, but the port agent left index.ts untouched as an orchestrator-sanctioned deviation. The component folder itself is complete and correct; this is pending barrel wiring, not a fidelity break.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "liquid-text",
@@ -3665,13 +3451,7 @@
       "Test-only: `LiquidText.test.tsx` adds one throwaway `render(...).unmount()` before the listener-balance spies are installed. react-dom attaches its delegated `selectionchange` listener to the owner document the first time any root is created and never removes it; without the warm-up the transposed balance assertion fails when the test is run in isolation (`-t`). No production-code effect."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No `export * from \"./components/liquid-text/index.js\";` block. PORTING.md's hard rules say every ported component must appear in the root barrel, but the file header marks it GENERATED between migration waves and the orchestration scoped this agent to the component directory only — so this is a deferred barrel-wave task, not a port defect. Nothing else outside react/src/components/liquid-text/ was needed (useLiveRef is a pre-existing internal documented in internals-api.md and used by 20+ modules).",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "logo-cloud",
@@ -3832,22 +3612,10 @@
     "attempts": 1,
     "divergences": [
       "New prop `seed?: number` (default 1), absent on the Svelte side: both `Math.random()` call sites (column initialisation in `init()` and glyph picking in `randomGlyph()`) are driven by a seeded mulberry32 stream, per PORTING.md's seed-prop rule. Same uniform distribution, so no visual change; two `<MatrixRain />` with no seed now start out alike where two Svelte instances did not.",
-      "The PRNG stream restarts when the effect re-runs (a `glyphSize`, `density` or `seed` change), whereas the Svelte source draws from the process-global `Math.random()` stream continuously across re-inits. Not observable — the distribution is identical either way.",
-      "React README not updated (orchestration forbids editing `react/README.md`); the `seed` divergence above is normally recorded there per PORTING.md."
+      "The PRNG stream restarts when the effect re-runs (a `glyphSize`, `density` or `seed` change), whereas the Svelte source draws from the process-global `Math.random()` stream continuously across re-inits. Not observable — the distribution is identical either way."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/matrix-rain/MatrixRain.tsx",
-        "problem": "The port-added `seed` prop (default 1) is a small behavioural divergence not recorded in react/README.md's divergence register (which does record the equivalent Meteors seed). Unlike Meteors, MatrixRain's randomness never touches a render path or a lazy useState initializer — all three Math.random() sites live inside the effect — so seeding was not required by PORTING.md's SSR rule, and it has a visible cost: two unseeded <MatrixRain /> on one page now rain identically where two Svelte instances differ. PORTING.md's seed-prop clause literally sanctions the pattern and 14 sibling ports already do the same, so this is consistency/bookkeeping rather than a fidelity break; the divergence is documented in the prop's JSDoc.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "matrix-rain has no entry in the package barrel, which PORTING.md lists as a hard rule for porting agents (`export * from \"./components/matrix-rain/index.js\";` is missing). The port agent states the barrel is regenerated centrally and left it alone, consistent with the brief's 'no files outside react/src/components/matrix-rain/' constraint — but the component is not importable from the package entry point until that regeneration happens.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "meteors",
@@ -3932,12 +3700,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "PORTING.md requires every ported component to appear in react/src/index.ts, but there is no `export * from \"./components/mosaic-glow/index.js\";` line. Not specific to this port — the barrel currently has zero component entries for all 83 ported folders, so it is a campaign-wide regeneration step, not a fidelity break in mosaic-glow. Recorded so it is not lost.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/mosaic-glow/MosaicGlow.tsx",
+        "file": "react/src/components/mosaic-glow/MosaicGlow.tsx",
         "problem": "MosaicGlowProps extends Omit<HTMLAttributes<HTMLDivElement>, \"color\" | \"children\"> instead of omitting every own-prop key as the Svelte type does (Omit<HTMLAttributes, keyof BaseProps>). Verified that `color` and `children` are the only names @types/react's HTMLAttributes actually declares that collide (color sits in its non-standard block, children in DOMAttributes); the remaining 13 props are not part of HTMLAttributes, so the resulting surface is equivalent. Type-level only, no runtime effect, and disclosed by the port agent.",
         "severity": "minor"
       }
@@ -4041,14 +3804,7 @@
       "The panel's focus effect checks the node BEFORE consuming the request, where the source checks it after — `useElementRef` publishes the panel one commit after the branch mounts, so consuming on the null pass would spend the request on nothing. Same observable behaviour, one guard reordered.",
       "`onfocusout` becomes React's `onBlur` (which is `focusout` under React 17+ and still bubbles from a link inside the panel)."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
-        "problem": "NOT attributable to this port; recorded for the campaign's tracking only. NavigationMenuContent/Trigger/Link use seven semantic colour names that react/tailwind.css does not declare (border, popover, popover-foreground, foreground, muted-foreground, accent, accent-foreground), so a consumer with no token set of its own gets an unstyled panel. PORTING.md Styling rule 6 puts these in the shared package stylesheet, which is outside the port agent's assigned directory; the issue is systemic (15 already-ported components use bg-popover) and is correctly recorded as a follow-up in the component README rather than fixed by a per-component .css redeclaration. Nothing about the navigation-menu port needs to change.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "neon-border",
@@ -4083,9 +3839,7 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "UNFIXED / OUT OF SCOPE: react/src/index.ts is missing `export * from \"./components/neon-border/index.js\";` (belongs alphabetically between meteors and presence). Not applied — my task forbade barrel edits, the file's own header says GENERATED between migration waves, do not edit per-component by hand, and it is being written concurrently (13 component lines now vs 10 when I first read it this session). Needs the wave-level barrel regeneration, not a per-component patch.",
-      "Context correcting the finding's premise: neon-border is not uniquely missing. react/src/components/ has 83 folders and the barrel lists only 13; ~70 ported components are absent from it, so this is barrel lag across the whole wave.",
-      "Minor, left as-is: neon-border.css copies the Svelte <style> rules unanchored (.neon-layer-one, .neon-layer-two, .neon-animated) whereas marquee.css and ripple-button.css anchor under the root class per PORTING.md styling rule 2. meteors.css is unanchored the same way, so this reads as a wave-wide convention question rather than a neon-border defect; not touched since it was outside the reported failure."
+      "`neon-border.css` carries the Svelte `<style>` rules unanchored (`.neon-layer-one`, `.neon-layer-two`, `.neon-animated`) instead of nesting them under the root class, so they are global where the Svelte compiler scoped them. Known deviation from PORTING.md styling rule 2, shared with `meteors.css`."
     ],
     "lastFailure": null,
     "minors": [
@@ -4135,17 +3889,10 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "`class` prop renamed to `className` (package-wide PORTING.md convention); every other prop name, type and default is identical.",
-      "`three` is imported but is NOT declared in react/package.json (no dependency/peerDependency entry) — it only resolves through the repo-root install in this worktree. Pre-existing gap shared with displacement-text; a consumer installing fancy-ui-react would fail to resolve it. Needs a package.json entry before publish (I was barred from editing package.json)."
+      "`class` prop renamed to `className` (package-wide PORTING.md convention); every other prop name, type and default is identical."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/package.json",
-        "problem": "NoiseReveal.tsx imports `three` but the react package declares it in neither dependencies nor peerDependencies (same gap as displacement-text). It resolves only via the repo-root install in this worktree; a consumer installing fancy-ui-react would fail to resolve it. Pre-existing and out of the port agent's permitted scope — needs an orchestrator-level package.json entry before publish. Not a fidelity break in this port.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "number-input",
@@ -4193,12 +3940,12 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/number-input/NumberInput.test.tsx",
+        "file": "react/src/components/number-input/NumberInput.test.tsx",
         "problem": "Line ~219 keeps the transposed comment \"Documented, deliberate choice (see the README)\", but the React component folder ships no README (only 9 of the ported folders have one). The reference now dangles unless the reader knows to look at the Svelte folder's README.md. Cosmetic only — the assertion itself is faithful.",
         "severity": "minor"
       },
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/number-input/NumberInput.tsx",
+        "file": "react/src/components/number-input/NumberInput.tsx",
         "problem": "Consequence of the sanctioned controlled/uncontrolled split, worth recording: in controlled mode `applyStep` and `handleBlur` still call `setRawText(String(next))` while `value` stays whatever the parent passes. A parent that supplies `value` but ignores `onValueChange` shows the stepped text (\"5\") over an unchanged value (4), and the `[value]`-keyed resync effect cannot correct it because `value` never changed. Svelte's plain (non-bound) `value` prop instead behaved like the React uncontrolled path. The port maps every such Svelte test to `defaultValue`, which is the documented Input precedent, so this is the standard React contract rather than a fidelity break — but it is a real behavioural difference for a misused controlled parent.",
         "severity": "minor"
       }
@@ -4282,13 +4029,8 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/pagination/Pagination.tsx",
+        "file": "react/src/components/pagination/Pagination.tsx",
         "problem": "`previousLabel ?? \"‹ Previous\"` / `nextLabel ?? \"Next ›\"` diverges from Svelte's `{#if previousLabel}` truthiness test: `??` falls back only on null/undefined, so a defined-but-falsy ReactNode (empty string, 0, false) renders as nothing where the Svelte source would show the default label. Vanishing edge case and idiomatic React, but it is a literal behavior difference.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "The package barrel does not export ./components/pagination/index.js. Not attributable to this port: the file is marked 'GENERATED between migration waves — do not edit per-component by hand', currently lists only 11 of ~85 component folders, and PORTING.md forbids the port agent from writing outside its own directory. Flagged so the orchestrator regenerates the barrel before release.",
         "severity": "minor"
       }
     ]
@@ -4436,13 +4178,7 @@
       "Ported as-is, not fixed: `data-align` publishes the REQUESTED alignment while `transform-origin` follows the RESOLVED one, exactly as the Svelte panel does."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No popover export block in the package barrel, which PORTING.md nominally requires for every ported component. Campaign-wide rather than popover-specific: the barrel has 83 entries against 134 component directories, so roughly 51 ports in this wave are equally absent, and the port agent recorded it as a sanctioned deviation pending a central regeneration. The component's own index.ts exports exactly the expected six names.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "presence",
@@ -4661,17 +4397,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "The package barrel has no `export * from \"./components/radio-group/index.js\";` line, so RadioGroup/RadioGroupItem/RADIO_GROUP_KEY are not reachable from the `fancy-ui-react` entry point. PORTING.md requires every ported component to appear here. Not attributed to this port as a blocker: the file header says `GENERATED between migration waves — do not edit per-component by hand`, and ~40 other components of the current wave (pressable, select, sheet, slider, switch, tabs, textarea, time-picker, toast, tooltip, …) are missing identically. Needs one barrel regeneration at the end of the wave.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
-        "problem": "RadioGroupItem spends the semantic Tailwind colour names `border-input` and `border-destructive` (verbatim from the Svelte source), but react/tailwind.css declares only --color-background, --color-primary, --color-primary-foreground and --color-ring. In a consumer build that defines no shadcn tokens both classes resolve to nothing and the radio ring loses its border colour. PORTING.md rule 6 puts these in the package stylesheet. Pre-existing and repo-wide, not introduced here: 12 other ported components (checkbox, input, textarea, select, slider, combobox, autocomplete, date-picker, time-picker, number-input, password-input, search-input) already spend `border-input`. One central fix to react/tailwind.css, not a per-component patch.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/radio-group/RadioGroupItem.tsx",
+        "file": "react/src/components/radio-group/RadioGroupItem.tsx",
         "problem": "Line 91 renders `{children != null ? children : (label ?? value)}` where the Svelte source uses `{#if children}` truthiness. The idiomatic React conditional child `{cond && <span/>}` passes `false`, which is non-null, so the `label ?? value` fallback is skipped and the item renders with no visible text — where the Svelte equivalent would fall back. Empty-string children behave the same way. Disclosed in the port's divergence list; a truthiness check would track the Svelte semantics more closely.",
         "severity": "minor"
       }
@@ -4803,12 +4529,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "The component is not exported from the package barrel: `export * from \"./components/recommendation-card/index.js\";` is absent, while siblings approval-card (line 21) and number-ticker (line 75) are present. PORTING.md's hard rules require every ported component to appear in react/src/index.ts, so RecommendationCard is currently unreachable from `fancy-ui-react`. The port agent lists this as a sanctioned deviation and the verification brief says no files outside the component folder were needed, so this is flagged for the orchestrator's aggregation step rather than as a port defect.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/recommendation-card/RecommendationCard.tsx",
+        "file": "react/src/components/recommendation-card/RecommendationCard.tsx",
         "problem": "Controlled-mode focus flag can go stale. `decide()` sets `shouldFocusResolved.current = true`, but the no-deps effect only consumes it on the next render. When `state` is supplied and the consumer ignores `onStateChange`, no re-render follows and the flag stays armed, so a later unrelated re-render into a resolved state moves focus to `.ft-rec-resolved` at the wrong moment. The Svelte source's `tick().then(() => resolvedRef?.focus())` simply no-ops there because `resolvedRef` is null. Identical to the already-shipped ApprovalCard pattern, so fixing it here alone would break campaign consistency.",
         "severity": "minor"
       }
@@ -5121,13 +4842,7 @@
       "`SelectPanel` is not exported from the folder's `index.ts` (matching the source barrel), and the context is exposed only internally as `SelectReactContext` / `useSelectContext` in `types.ts` — the source does not export `SELECT_KEY` from its `index.ts` either."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "The `select` component is not exported from the package barrel. PORTING.md's hard rules state \"Every component you port must appear in react/src/index.ts\". Non-blocking here: 52 of the 134 component folders are in the same state (central barrel regeneration is pending for the whole migration wave), and this verification's own scope rule forbids touching files outside react/src/components/select/. Flagged so the barrel pass includes it.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "sheet",
@@ -5264,22 +4979,9 @@
       "`ref` props become forwardRef on Sidebar, SidebarItem, SidebarSeparator and SidebarFooter (the four declaring `ref = $bindable(null)`); SidebarGroup declares none and gets none. The `ref` field is therefore absent from every Props interface.",
       "Snippet props become ReactNode: SidebarItem.icon, SidebarFooter.avatar, and `children` on Sidebar/SidebarGroup/SidebarItem/SidebarFooter.",
       "No rest-prop spread and no DOM-attribute extension on any Props interface — the Svelte source reads a closed prop list off $props() and spreads nothing.",
-      "SidebarHarness.test.svelte becomes a `Harness()` component declared at the top of Sidebar.test.tsx; the `await tick()` after each toggle is dropped (fireEvent flushes React synchronously). All other assertions transposed 1:1 — 31 tests, same count as the Svelte suite.",
-      "PACKAGE GAP (outside this folder, not fixed): react/tailwind.css declares --color-background/--color-primary/--color-primary-foreground/--color-ring but NOT --color-accent, --color-accent-foreground, --color-muted-foreground or --color-border. The sidebar spends bg-accent, text-accent-foreground, text-muted-foreground (+ /70) and border-border, so those resolve to nothing for a consumer without their own shadcn token set. PORTING.md §Styling rule 6 says the fix belongs in react/tailwind.css."
+      "SidebarHarness.test.svelte becomes a `Harness()` component declared at the top of Sidebar.test.tsx; the `await tick()` after each toggle is dropped (fireEvent flushes React synchronously). All other assertions transposed 1:1 — 31 tests, same count as the Svelte suite."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "The sidebar component folder has no export block in the package barrel, which PORTING.md's hard rules require (\"Every component you port must appear in react/src/index.ts\"). The port agent skipped it deliberately as the orchestrator-sanctioned in-folder deviation to avoid concurrent-write conflicts, and the folder's own index.ts exports all 12 expected names correctly — so this is a pending registration sweep, not a fidelity break.",
-        "severity": "minor"
-      },
-      {
-        "file": "react/tailwind.css",
-        "problem": "Declares --color-background/--color-primary/--color-primary-foreground/--color-ring but not --color-accent, --color-accent-foreground, --color-muted-foreground or --color-border, which SidebarItem/SidebarGroup/SidebarFooter/SidebarSeparator spend via bg-accent, text-accent-foreground, text-muted-foreground(/70) and border-border. Verified real, and honestly disclosed in the port README. Package-wide debt rather than a sidebar defect: navbar, pagination, dialog, toggle, breadcrumb and ~15 other already-ported components spend the same names, and PORTING.md rule 6 places the fix outside the component folder the agent was scoped to.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "skeleton",
@@ -5437,7 +5139,8 @@
       "SoundToggle",
       "sound",
       "getSoundStatus",
-      "soundFeedback",
+      "attachSoundFeedback",
+      "useSoundFeedback",
       "DEFAULT_SOUND_FEEDBACK_ON",
       "createSoundEngine",
       "FANCY_SOUND_THEME",
@@ -5465,7 +5168,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "Svelte's `use:soundFeedback` action has no React counterpart: it ships as `attachSoundFeedback(element, options)` (the imperative attach/detach core, callable from a ref callback) plus the `useSoundFeedback(options)` hook that returns a ref callback for the common case. The action name `soundFeedback` is therefore absent from the package root."
+    ],
     "lastFailure": null
   },
   {
@@ -5519,12 +5224,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No `export * from \"./components/sources/index.js\"` block, which PORTING.md lists as a hard rule for every ported component. Non-blocking here: 51 of the 134 component folders are equally absent from the barrel (thread-list, composer, ... missing while toggle and tool-call are present), matching the sanctioned wave-wide deviation that the barrel is regenerated centrally, and adding it would mean editing a file outside the assigned react/src/components/sources/ directory.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/sources/SourcesHarness.tsx",
+        "file": "react/src/components/sources/SourcesHarness.tsx",
         "problem": "tsconfig.build.json excludes only `src/**/*.test.ts(x)`, so the test-only harness still gets a declaration emitted into dist (dist/components/sources/SourcesHarness.d.ts) even though no JS ships for it (the Vite lib entry is src/index.ts and the harness is unreachable from it). Identical for the 10 sibling *Harness.tsx files already in the package, so it is a pre-existing convention rather than a defect introduced by this port.",
         "severity": "minor"
       }
@@ -5574,13 +5274,8 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/sparkles/Sparkles.tsx",
+        "file": "react/src/components/sparkles/Sparkles.tsx",
         "problem": "The mount effect depends on minSize, maxSize, speed, particleDensity and seed, so changing any of them after mount tears down the rAF loop and regenerates the whole particle field. The Svelte source reads those five inside generateParticles() called from onMount only, so post-mount changes are a no-op there until a remount. Declared as a divergence by the port and consistent with the Meteors/FallingStarsBg precedent in this campaign; behaviour on first mount is identical.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/README.md",
-        "problem": "PORTING.md requires a seeded-PRNG divergence to be recorded in the README, and README.md's \"Divergences from the Svelte API\" section already carries the equivalent entry for Meteors' seed; Sparkles' seed is documented only in the prop JSDoc. Likewise react/src/index.ts has no sparkles export block. Both files are outside the port's assigned directory and are regenerated between migration waves (the barrel header says GENERATED - do not edit per-component by hand), so this is a follow-up for the wave regeneration, not a defect in the ported files. Needs: export * from \"./components/sparkles/index.js\";",
         "severity": "minor"
       }
     ]
@@ -5712,23 +5407,17 @@
       "Step.svelte's scoped `<style>` block ships as colocated `step.css` imported by `Step.tsx`. Every rule was already anchored on a class the component owns (`.ft-step`, `.ft-step-bullet`, `.ft-step-connector`, `.ft-step-trigger`), so no port-added anchor class was needed; keyframe-free, and the deliberate no-`prefers-reduced-motion` decision is preserved verbatim with its rationale.",
       "The Svelte `untrack` guard around register/unregister becomes two React rules: `register` is `useCallback(..., [])` over a ref-held registry (identity never changes), and a Step's registration effect depends on `[register, id]`, never on the context object — depending on the context (rebuilt whenever the registry changes) would re-run the effect from its own call and loop forever, the same bug in React shape.",
       "`Step`'s custom-bullet branch is `children ?? default` (null/undefined only) rather than Svelte's snippet-existence test, so a falsy-but-present child such as `0` or `false` overrides the glyph where Svelte would have rendered the default.",
-      "`StepperHarness.test.svelte` becomes an inline `Harness` component at the top of `Stepper.test.tsx` (a Svelte harness needs its own file only because Svelte components do); `bind:current` becomes the controlled pair and `bind:ref` a callback ref held in state.",
-      "Semantic Tailwind colour names `border-border`, `bg-border`, `text-foreground` and `text-muted-foreground` are used verbatim but are not declared in `react/tailwind.css` (which currently maps only background/primary/primary-foreground/ring). Per PORTING.md §Styling rule 6 they should be added there; the file is outside this port's ownership. Pre-existing: `dialog` and `button-group` already ship the same names."
+      "`StepperHarness.test.svelte` becomes an inline `Harness` component at the top of `Stepper.test.tsx` (a Svelte harness needs its own file only because Svelte components do); `bind:current` becomes the controlled pair and `bind:ref` a callback ref held in state."
     ],
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/stepper/Step.tsx",
+        "file": "react/src/components/stepper/Step.tsx",
         "problem": "Registration runs in a passive `useEffect` (Step.tsx:59) rather than a pre-paint layout effect. Svelte's `$effect` flushes before paint, so the Svelte stepper never paints an unregistered frame; in React the first client paint can show every step with `index === -1` — bullets numbered \"0\", all steps `flex-1` instead of the first being `flex-none`, a leading connector before step 1, and no done/current colours — before the effect flush re-renders it correctly. Not a blocker: it matches the in-repo precedent (ToggleGroupItem.tsx:84 registers in `useEffect` too), it is one frame at mount only, and internals-api.md §4's table does not cover component-level registration. But §4's own rationale rows (\"a passive effect paints one frame at rest\", \"shows one frame of hidden content\") apply more strongly here than for a toggle group, where registration only affects invisible roving tabindex.",
         "severity": "minor"
       },
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
-        "problem": "Step.tsx spends the semantic colour names `border-border`, `bg-border`, `text-foreground` and `text-muted-foreground` (copied verbatim from the Svelte source, correctly), but `react/tailwind.css` maps only background/primary/primary-foreground/ring, so those four utilities resolve to nothing in a consumer that does not already ship the shadcn token set. PORTING.md §Styling rule 6 says adding a new semantic name to a ported component means adding it there too. Not charged as a blocker against this port: the debt is pre-existing and shared by ~30 already-ported components (dialog, button-group, toggle-group, navbar, breadcrumb, timeline, …), the file is outside this port's assigned directory, and the port agent declared it explicitly as a divergence. It needs a wave-level fix, not a stepper-level one.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/stepper/Stepper.tsx",
+        "file": "react/src/components/stepper/Stepper.tsx",
         "problem": "Controlled/uncontrolled pair semantics differ from `$bindable` in one edge case: a consumer that passes `current` but no `onCurrentChange` gets a stepper that never moves on click, whereas the Svelte side's `current = index` assignment (Stepper.svelte:78) updates the component's own copy and visibly advances even when the prop is not bound. This is the sanctioned React idiom for `bind:`, is the pattern used across this port, and was declared as divergence #1 — recorded for completeness, not as a defect.",
         "severity": "minor"
       }
@@ -5916,13 +5605,7 @@
       "Switch: Svelte `bind:checked` becomes the standard controlled/uncontrolled split — uncontrolled by default with a new `defaultChecked` prop, controlled when `checked` is passed (pair with `onCheckedChange`)."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "Switch is not exported from the public barrel (no `export * from \"./components/switch/index.js\";`), so PORTING.md's \"every component you port must appear in react/src/index.ts\" is not yet satisfied. Non-blocking for this port: the file is marked \"GENERATED between migration waves - do not edit per-component by hand\", and every sibling of the same form wave (checkbox, input, textarea, radio-group, select, slider) is equally absent, so it needs a wave-level regeneration rather than a per-component edit - which the port agent was correctly forbidden from making.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "tabs",
@@ -5976,12 +5659,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No `export * from \"./components/tabs/index.js\"` line, so the package barrel does not ship Tabs. PORTING.md requires every ported component to appear here. Not charged against this port: 47 other ported component directories are also missing from the barrel, so it is evidently wired in a separate orchestrator pass — flagging only so it is not forgotten before release.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/tabs/Tabs.tsx",
+        "file": "react/src/components/tabs/Tabs.tsx",
         "problem": "The `value` prop is strictly controlled (passing it without an `onValueChange` that writes back freezes the selection), whereas Svelte's `value = $bindable(\"\")` still writes its own local copy when passed without `bind:`. This is the unavoidable rune-to-React gap and matches the house pattern already shipped in ToggleGroup and Stepper, and it is documented in the prop's JSDoc — but it is a real API-surface divergence and was not listed in the port agent's divergences report.",
         "severity": "minor"
       }
@@ -6291,11 +5969,6 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "react/src/index.ts",
-        "problem": "The public barrel has no `export * from \"./components/thinking-indicator/index.js\";` line, so the component is unreachable from the package entry point even though PORTING.md's hard rules require it. Not attributable to this port: 49 of 133 component folders are missing from the barrel and the file's own header states it is GENERATED between migration waves and must not be edited per-component by hand. Needs a barrel regeneration pass at wave level.",
-        "severity": "minor"
-      },
-      {
         "file": "react/src/components/thinking-indicator/ThinkingIndicator.tsx",
         "problem": "`showDone = !running && done !== undefined` was transposed literally, but `done` is now `ReactNode` rather than `Snippet`. A caller writing the idiomatic React `done={someCondition && <span>…</span>}` passes `false`, which is not `undefined`, so with `running={false}` the component renders an empty `.ft-thinking-done` span and suppresses the status label — where the Svelte side could only ever receive a snippet or `undefined`. A `!= null && done !== false` style guard (or documenting the edge in divergences) would close it.",
         "severity": "minor"
@@ -6342,18 +6015,14 @@
     "divergences": [
       "`bind:activeId` becomes the standard controlled/uncontrolled split: `activeId` is controlled when passed (pair it with `onSelect` to move the highlight); omit it and the list owns its own selection, reporting every pick through `onSelect`.",
       "A Svelte consumer passing a non-bound initial `activeId` and expecting clicks to still move the highlight must instead omit the prop (uncontrolled) or update it from `onSelect` — there is no defaultActiveId, matching the Tabs precedent.",
-      "Timestamps read `useNow()`'s shared module clock instead of a per-instance `createNow`; behaviour is identical (one interval per page, none under SSR), but the SSR/first render shows times relative to epoch 0 for one pre-paint frame, corrected in the layout phase before paint."
+      "Timestamps read `useNow()`'s shared module clock instead of a per-instance `createNow`; behaviour is identical (one interval per page, none under SSR), but the SSR/first render shows times relative to epoch 0 for one pre-paint frame, corrected in the layout phase before paint.",
+      "SSR relative timestamps: Svelte's `createNow` seeds itself with `Date.now()` at construction, so its server HTML carries real relative labels. React's shared clock cannot — the hydration render has no way to reproduce the server's timestamp, and sampling the wall clock on a render path breaks convention C-7 — so `useNow()` returns a `NaN` sentinel until the clock is retained in the layout phase, and `formatRelativeTime` renders a non-finite `now` as `\"\"`. The server HTML therefore ships an empty label (never a wrong one) and it fills in before the first paint. Pinned by `react/src/internals/use-elapsed.ssr.test.ts`."
     ],
     "lastFailure": null,
     "minors": [
       {
         "file": "react/src/components/thread-list/ThreadList.tsx",
         "problem": "Controlled/uncontrolled split diverges from Svelte's `$bindable` in one call shape: a Svelte consumer passing a non-bound `activeId` still gets the highlight moved on click (the component writes its local copy), whereas here passing `activeId` freezes the highlight unless the consumer feeds it back from `onSelect`. Disclosed by the port agent and consistent with the house precedent in react/src/components/tabs/Tabs.tsx (identical isControlled/uncontrolledValue shape), and the added test covers the uncontrolled half — acceptable, but it is a real API-surface difference worth recording in the component README.",
-        "severity": "minor"
-      },
-      {
-        "file": "react/src/index.ts",
-        "problem": "No `export * from \"./components/thread-list/index.js\";` line yet, so the component is not reachable from the package barrel, which PORTING.md's hard rules require. Not chargeable to the port agent: the file is marked \"GENERATED between migration waves — do not edit per-component by hand\" and the agent was correctly scoped to its own directory. Flagging so the orchestrator regenerates the barrel before the wave lands.",
         "severity": "minor"
       }
     ]
@@ -6418,13 +6087,7 @@
       "Behaviourally unchanged elsewhere: reduced-motion fast path, the `anchored` transition, `data-side`/`data-align` and `transform-origin` — `data-align` stays the statically requested \"start\" while `data-side` is the resolved one, the same asymmetry the source ships."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No time-picker export block, which PORTING.md's hard rules require for every ported component. Not a defect of this port in isolation: none of the wave's other finished folders (select, date-picker, combobox, ...) appear in the barrel either, so the central regeneration still owes it. The component's own index.ts is correct (exports exactly TimePicker + type TimePickerProps, matching the Svelte barrel).",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "timeline",
@@ -6602,12 +6265,7 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No toggle-group export block in the package barrel, which PORTING.md's hard rules require for every ported component. Mitigating: the file's own header says it is GENERATED between migration waves and must not be edited per-component by hand, and it currently lists only 11 of the 83 component folders — so this is pending wave-level regeneration rather than a port defect. Flagged so it is not missed at regeneration time.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/toggle-group/ToggleGroupItem.tsx",
+        "file": "react/src/components/toggle-group/ToggleGroupItem.tsx",
         "problem": "Content fallback is `children !== undefined ? children : (label ?? value)` where the Svelte source uses `{#if children}...{:else}{label ?? value}{/if}`. A defined-but-falsy children (e.g. `{cond && <Icon/>}` collapsing to `false`, or an explicit `null`) renders nothing instead of falling back to the label/value text. `children != null` would be marginally closer to the Svelte truthiness check. Cosmetic: `undefined` is the only case the Svelte snippet channel can actually produce, and both the Svelte and React tests for the fallback pass.",
         "severity": "minor"
       }
@@ -6652,23 +6310,18 @@
     "lastFailure": null,
     "minors": [
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/tool-call/ToolCall.tsx",
+        "file": "react/src/components/tool-call/ToolCall.tsx",
         "problem": "Line 251 renders `inert={!isOpen}` as a declarative boolean, which only react-dom 19 understands. The package peer range is `^18.0.0 || ^19.0.0`; on React 18 a boolean for an unrecognised attribute is dropped (with a dev warning), so on that major a collapsed card's payloads stay focusable and reachable by assistive tech — the Svelte source sets the attribute unconditionally. Every other component in the port (Presence/Dialog) sets `inert` imperatively, which works on both majors. Correct and tested under React 19.",
         "severity": "minor"
       },
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/tool-call/ToolCall.tsx",
+        "file": "react/src/components/tool-call/ToolCall.tsx",
         "problem": "Doc comments at lines 19 and 107 point at \"the README\" for the open-behaviour contract, but no README exists in the React component folder, and the two sanctioned divergences (controlled `open` + `onToggle` instead of `bind:open`; snippet props becoming render props) are recorded only in the port report. PORTING.md asks divergences be recorded in the README.",
         "severity": "minor"
       },
       {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/components/tool-call/ToolCall.tsx",
+        "file": "react/src/components/tool-call/ToolCall.tsx",
         "problem": "Lines 161 and 163 assign `isOpenRef.current` and `onToggleRef.current` during render rather than in an effect. Idempotent and harmless for this component, but it is a render-phase side effect; the repo's other ports keep such writes in effects.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "ToolCall is not exported from the package barrel (PORTING.md hard rule: \"Every component you port must appear in react/src/index.ts\"). The port agent left it untouched per the orchestration sanction and it is outside this verification's file scope — flagged only so the barrel wiring is not forgotten downstream.",
         "severity": "minor"
       }
     ]
@@ -6710,7 +6363,8 @@
     "attempts": 1,
     "divergences": [
       "Svelte's `item` Snippet<[ToolTimelineItemData, number]> prop becomes a render-prop function `(item, index) => ReactNode` per PORTING.md snippet-to-ReactNode mapping.",
-      "Svelte source has no rest-prop spread on the root div, so the React port matches it exactly (no ...rest) rather than adding one speculatively."
+      "Svelte source has no rest-prop spread on the root div, so the React port matches it exactly (no ...rest) rather than adding one speculatively.",
+      "SSR relative timestamps: Svelte's `createNow` seeds itself with `Date.now()` at construction, so its server HTML carries real relative labels. React's shared clock cannot — the hydration render has no way to reproduce the server's timestamp, and sampling the wall clock on a render path breaks convention C-7 — so `useNow()` returns a `NaN` sentinel until the clock is retained in the layout phase, and `formatRelativeTime` renders a non-finite `now` as `\"\"`. The server HTML therefore ships an empty label (never a wrong one) and it fills in before the first paint. Pinned by `react/src/internals/use-elapsed.ssr.test.ts`."
     ],
     "lastFailure": null
   },
@@ -6800,13 +6454,7 @@
     "attempts": 1,
     "divergences": [],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/index.ts",
-        "problem": "TracingBeam is not re-exported from the package root index.ts (grep for 'tracing' returns nothing), whereas PORTING.md's hard rules state every ported component must appear there. Agent notes say this was left untouched 'per orchestration' (likely deferred to avoid multi-agent merge conflicts on a shared file during parallel porting). Not a fidelity/behavior defect in the component itself and outside this task's stated verification scope (react/src/components/tracing-beam/), but flag it so the orchestrator confirms a follow-up step wires it into the barrel export before release.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "typing-indicator",
@@ -6890,19 +6538,7 @@
       "No `mounted` state: a React effect never runs on the server, and the canvas node arrives through `useElementRef`, which together give exactly the guarantee the Svelte flag existed for. Not consumer-visible.",
       "No `untrack()` around the reduced-motion still frame and the ResizeObserver repaint — there is no reactivity graph to escape. The same guarantee (incoming `samples`/`demo` cannot restart the loop) comes from reading them through `useLiveRef` instead of effect dependencies. Effect deps are `[active, canvasEl, barHeight, color]`, matching the Svelte effect's tracked set exactly."
     ],
-    "lastFailure": null,
-    "minors": [
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/src/index.ts",
-        "problem": "No `voice-input` export block in the package barrel. PORTING.md's hard rules require every ported component to appear in `react/src/index.ts`, so `VoiceInput`/`VoiceInputProps` are not reachable from the package entry point. The port agent was told the barrel was out of write scope, so this is an orchestrator follow-up rather than a defect inside the component folder — flagged so it is not lost.",
-        "severity": "minor"
-      },
-      {
-        "file": "/Users/ramaherbin/Documents/dev-perso/fancy-ui/.claude/worktrees/react-migration/react/tailwind.css",
-        "problem": "The verbatim-copied literals `bg-card/50`, `text-muted-foreground`, `text-foreground`, `bg-foreground/5` and `bg-foreground/10` have no mapping: `@theme inline` declares only `--color-background`, `--color-primary`, `--color-primary-foreground` and `--color-ring`, so `card`, `muted-foreground` and `foreground` resolve to nothing for a consumer with no shadcn tokens. Copying the strings verbatim is exactly what PORTING.md Styling rule 1 requires, and the gap is pre-existing and shared with already-shipped ports (tabs, sidebar, approval-card, thinking-indicator). Not a defect in this port; recorded against the file that owns the vocabulary.",
-        "severity": "minor"
-      }
-    ]
+    "lastFailure": null
   },
   {
     "slug": "web-search",

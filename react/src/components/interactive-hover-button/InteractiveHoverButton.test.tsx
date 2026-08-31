@@ -70,4 +70,33 @@ describe("InteractiveHoverButton", () => {
 		const overlay = button.querySelector(".translate-x-12.opacity-0");
 		expect(overlay).toBeInTheDocument();
 	});
+
+	// The reduced-motion branch is pure CSS: `motion-safe:` is Tailwind's
+	// spelling of `@media (prefers-reduced-motion: no-preference)`, and jsdom
+	// computes neither the media query nor the utility behind it. What a test
+	// can pin is that the gate is actually on every transition utility, and on
+	// none of the transforms — the hover state must still arrive under reduced
+	// motion, it just must not travel there.
+	it("gates every transition utility behind motion-safe, and no transform with it", () => {
+		render(<InteractiveHoverButton />);
+		const button = screen.getByRole("button");
+
+		const animated = Array.from(button.querySelectorAll<HTMLElement>("*")).filter((el) =>
+			/\btransition-|\bduration-/.test(el.className)
+		);
+		expect(animated).toHaveLength(3);
+
+		for (const el of animated) {
+			expect(el.className).not.toMatch(/(^|\s)transition-/);
+			expect(el.className).not.toMatch(/(^|\s)duration-/);
+			expect(el.className).toContain("motion-safe:transition-all");
+			expect(el.className).toContain("motion-safe:duration-300");
+		}
+
+		// The state itself is never gated — these are the classes that make the
+		// hover readable at all, and one of them is what the overlay test above
+		// already pins.
+		expect(button.querySelector(".group-hover\\:scale-\\[100\\.8\\]")).toBeInTheDocument();
+		expect(button.querySelector(".translate-x-12.opacity-0")).toBeInTheDocument();
+	});
 });

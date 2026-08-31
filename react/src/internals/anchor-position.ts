@@ -222,7 +222,7 @@ export interface AnchorPositionHandle {
 	update(options: AnchorPositionOptions): void;
 	/** Recomputes against the current options, for a caller that knows the geometry moved. */
 	recompute(): void;
-	/** Detaches the scroll and resize listeners. */
+	/** Detaches the scroll and resize listeners, and strips the position `update()` wrote. */
 	destroy(): void;
 }
 
@@ -230,7 +230,7 @@ export interface AnchorPositionHandle {
  * Positions `node` with `position: fixed` against a live anchor element, using
  * `computePosition`. Recomputes on scroll and resize (passive, capturing
  * listeners so nested scroll containers are caught too) and cleans up its
- * listeners on destroy.
+ * listeners — and the position it wrote — on destroy.
  *
  * SSR-safe: does nothing when `window` is unavailable.
  */
@@ -278,6 +278,23 @@ export function attachAnchorPosition(
 		}
 	}
 
+	// Everything `update()` wrote onto the node, cleared.
+	//
+	// DIVERGENCE from the Svelte action, deliberate. There, destroy runs only
+	// when the element the action is attached to is itself being removed, so
+	// leftover inline styles are unobservable. The React binding adds an
+	// `enabled` option that tears this handle down while the node stays
+	// mounted, and the same leftovers then read as a surface frozen at its
+	// last computed coordinates — `position: fixed` at a stale left/top, over
+	// content it no longer belongs to, until something re-enables it. Clearing
+	// here also matches `FloatHandle.destroy()`, the sibling core, which
+	// already promises to strip the node's own styles.
+	function reset(): void {
+		node.style.position = "";
+		node.style.left = "";
+		node.style.top = "";
+	}
+
 	update();
 
 	window.addEventListener("scroll", update, { passive: true, capture: true });
@@ -309,6 +326,7 @@ export function attachAnchorPosition(
 		destroy() {
 			window.removeEventListener("scroll", update, { capture: true });
 			window.removeEventListener("resize", update);
+			reset();
 		},
 	};
 }

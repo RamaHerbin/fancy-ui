@@ -131,6 +131,34 @@ function movePointerTo(
 	});
 }
 
+/**
+ * The same move, but with the page and viewport coordinates deliberately pulled
+ * apart — a page scrolled 1000px right reports `pageX = clientX + 1000`. jsdom's
+ * `MouseEvent` derives `pageX` from `clientX` itself (its `scrollX` is pinned at
+ * 0), so the two are written onto the instance directly; they shadow the
+ * prototype getters, and React's synthetic event reads them straight off the
+ * native event.
+ */
+function movePointerScrolled(
+	container: HTMLElement,
+	{ clientX, pageX }: { clientX: number; pageX: number }
+) {
+	const dock = container.querySelector('[role="toolbar"]') as HTMLElement;
+	const event = new window.PointerEvent("pointermove", {
+		bubbles: true,
+		clientX,
+		clientY: clientX,
+		pointerType: "mouse",
+		isPrimary: true,
+	});
+	Object.defineProperty(event, "pageX", { get: () => pageX });
+	Object.defineProperty(event, "pageY", { get: () => pageX });
+	fireEvent(dock, event);
+	act(() => {
+		vi.advanceTimersToNextFrame();
+	});
+}
+
 describe("Dock", () => {
 	afterEach(cleanup);
 
@@ -215,6 +243,23 @@ describe("Dock", () => {
 			const { container } = render(<Harness />);
 
 			movePointerTo(container, 20);
+
+			expect(icons(container)[0]!.style.width).not.toBe("40px");
+		});
+
+		// A scrolled page is the whole point: `DockIcon` measures with
+		// `getBoundingClientRect()`, which is viewport-relative, so the pointer
+		// has to be read in the same frame of reference. Page coordinates carry
+		// the scroll offset on top, and every icon's distance would then be
+		// wrong by exactly that offset — the dock swelling under a pointer that
+		// is somewhere else entirely. jsdom reports a zero rect for every
+		// element, so an icon sits at viewport x = 0 here and a pointer at
+		// clientX = 0 is right on top of it, however far the page has scrolled.
+		it("magnifies from the viewport position, not the page position", () => {
+			stubMatchMedia([]);
+			const { container } = render(<Harness />);
+
+			movePointerScrolled(container, { clientX: 0, pageX: 1000 });
 
 			expect(icons(container)[0]!.style.width).not.toBe("40px");
 		});

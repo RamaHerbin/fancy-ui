@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 
 /**
  * AnimatedTestimonials - Animated testimonial carousel
@@ -50,6 +51,14 @@ export function AnimatedTestimonials({
 
 	const testimonialCount = testimonials.length;
 
+	// The timeout below outlives the render that scheduled it, so the count it
+	// wraps around has to be read when it FIRES, not when it was captured: a
+	// collection that shrank during the 300ms transition would otherwise land
+	// `activeIndex` past the end of the new list. The Svelte source reads
+	// `testimonials.length` through a reactive prop getter inside the same
+	// callback and gets the live value for free; a React closure captures.
+	const testimonialCountRef = useLiveRef(testimonialCount);
+
 	const navigate = useCallback(
 		(dir: "next" | "prev") => {
 			if (isAnimatingRef.current || testimonialCount === 0) return;
@@ -57,17 +66,17 @@ export function AnimatedTestimonials({
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
 			navigateTimerRef.current = setTimeout(() => {
-				setActiveIndex((current) =>
-					dir === "next"
-						? (current + 1) % testimonialCount
-						: (current - 1 + testimonialCount) % testimonialCount
-				);
+				const count = testimonialCountRef.current;
+				setActiveIndex((current) => {
+					if (count === 0) return 0;
+					return dir === "next" ? (current + 1) % count : (current - 1 + count) % count;
+				});
 				isAnimatingRef.current = false;
 				setIsAnimating(false);
 				navigateTimerRef.current = null;
 			}, TRANSITION_DURATION);
 		},
-		[testimonialCount]
+		[testimonialCount, testimonialCountRef]
 	);
 
 	// Reactive autoplay: restarts whenever autoplay, interval, or hover state changes

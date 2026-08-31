@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import "./flip-words.css";
 
 /**
@@ -32,20 +33,42 @@ export function FlipWords({ words, duration = 3000, className }: FlipWordsProps)
 		letters: word.split(""),
 	}));
 
+	// The pending timeouts read the CURRENT list, the way the source's closures
+	// read the reactive `words` prop at fire time.
+	const wordsRef = useLiveRef(words);
+
+	// `words.length`, never `words` itself. The array is an identity that a call
+	// site like `words={["Hello", "World"]}` re-allocates on every parent render;
+	// keying the schedule on it would clear the pending timeout and re-arm a fresh
+	// `duration` wait each time, so a parent re-rendering faster than `duration`
+	// would stop the words flipping altogether. The source re-schedules only when
+	// a tracked value actually changes, and `wordCount` is what its `< 2` guard
+	// reads.
+	const wordCount = words.length;
+
 	useEffect(() => {
 		// Re-schedule whenever a new word becomes active (not during exit).
 		if (isExiting) return;
-		if (words.length < 2) return;
+		if (wordCount < 2) return;
 		if (timeoutRef.current) clearTimeout(timeoutRef.current);
 		timeoutRef.current = setTimeout(() => {
+			if (wordsRef.current.length < 2) return;
 			setIsExiting(true);
 			if (exitTimeoutRef.current) clearTimeout(exitTimeoutRef.current);
 			exitTimeoutRef.current = setTimeout(() => {
 				setIsExiting(false);
-				setCurrentIndex((index) => (index + 1) % words.length);
+				// `words` can shrink to empty while this exit animation is in
+				// flight (a parent clearing/reloading the list). Re-check the
+				// CURRENT length here rather than trusting the length captured
+				// when the timeout was armed: `% 0` is NaN, and once NaN lands
+				// in state every future `(index + 1) % length` is NaN too — the
+				// component would stay blank forever, even after `words` is
+				// repopulated. Deferring to index 0 lets it resume normally.
+				const length = wordsRef.current.length;
+				setCurrentIndex((index) => (length === 0 ? 0 : (index + 1) % length));
 			}, EXIT_MS);
 		}, duration);
-	}, [currentIndex, duration, isExiting, words]);
+	}, [currentIndex, duration, isExiting, wordCount, wordsRef]);
 
 	useEffect(() => {
 		return () => {

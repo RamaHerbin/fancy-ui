@@ -79,6 +79,8 @@ describe("TypingIndicator", () => {
 		const { container } = render(<TypingIndicator className="text-blue-500" />);
 		const cls = root(container).className;
 
+		// Port-added anchor: the colocated CSS is scoped under it.
+		expect(cls).toContain("ft-typing");
 		expect(cls).toContain("inline-flex");
 		expect(cls).toContain("items-center");
 		expect(cls).toContain("text-blue-500");

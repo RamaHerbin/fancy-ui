@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import "./slider.css";
 
 export interface SliderProps {
@@ -89,16 +90,26 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 		// Also corrects `value` itself, the same way NumberInput clamps on
 		// blur, so a caller's own state does not stay silently out of range
 		// forever. `min`/`max` are the only tracked dependency, matching the
-		// Svelte source's `$effect` which reads `value` through `untrack`.
+		// Svelte source's `$effect` which reads `value` through `untrack` —
+		// here that untracked read is `valueRef`, a live mirror of the state
+		// written in an insertion effect on every commit. The clamp is
+		// computed in the effect BODY, never inside a `setValue` updater:
+		// React runs updaters during the next render pass (twice under
+		// StrictMode), so calling `onValueChange` from one would fire a
+		// consumer's callback twice for a single clamp and update a parent
+		// from another component's render phase.
+		const valueRef = useLiveRef(value) as { current: number };
 		useEffect(() => {
-			setValue((current) => {
-				const clamped = Math.min(max, Math.max(min, current));
-				if (clamped !== current) {
-					onValueChange?.(clamped);
-					return clamped;
-				}
-				return current;
-			});
+			const current = valueRef.current;
+			const clamped = Math.min(max, Math.max(min, current));
+			if (clamped !== current) {
+				// Written back before the state lands so a StrictMode
+				// re-invoke of this same effect sees the corrected number and
+				// stays a no-op.
+				valueRef.current = clamped;
+				setValue(clamped);
+				onValueChange?.(clamped);
+			}
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [min, max]);
 

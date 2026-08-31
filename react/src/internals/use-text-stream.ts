@@ -54,6 +54,16 @@ export interface TextStream {
 	/** Cancel pending settle timers. Call from the consumer's teardown. */
 	destroy(): void;
 	/**
+	 * Re-arm a settle timer for every segment still marked fresh with nothing
+	 * left to settle it. Not part of the Svelte source's surface: it exists
+	 * because a React effect can be torn down and replayed without the
+	 * component ever unmounting (StrictMode's mount rehearsal), which runs
+	 * `destroy()` between a push and its settle. The replayed push is a no-op
+	 * — the full text is already stored — so without this the segment would
+	 * stay `fresh` for ever and `done` would never become true.
+	 */
+	resume(): void;
+	/**
 	 * Subscribe to every change of `segments`/`text`. Not part of the Svelte
 	 * source's surface — the React counterpart of the `$state.raw` runes that
 	 * made them reactive there; `useTextStream` is what actually reads this.
@@ -124,6 +134,17 @@ export function createTextStream(initial = "", opts: TextStreamOptions = {}): Te
 		publish();
 	}
 
+	function scheduleSettle(id: number): void {
+		const timer = setTimeout(
+			() => {
+				timers.delete(timer);
+				settle(id);
+			},
+			Math.max(0, settleAt())
+		);
+		timers.add(timer);
+	}
+
 	function push(fullText: string): void {
 		if (fullText === full) return;
 		if (!fullText.startsWith(full)) {
@@ -146,14 +167,22 @@ export function createTextStream(initial = "", opts: TextStreamOptions = {}): Te
 		}
 
 		publish();
-		const timer = setTimeout(
-			() => {
-				timers.delete(timer);
-				settle(seg.id);
-			},
-			Math.max(0, settleAt())
-		);
-		timers.add(timer);
+		scheduleSettle(seg.id);
+	}
+
+	/**
+	 * Give every still-fresh segment a settle timer again. Only ever true
+	 * after `destroy()` cancelled them: `settle` removes its own timer as it
+	 * fires, `flush` and `reset` clear the timers AND the freshness together,
+	 * so `timers.size === 0` alongside a fresh segment is exactly the
+	 * "cancelled but never settled" state and nothing else. A non-empty timer
+	 * set therefore means a stream mid-flight, which must be left alone.
+	 */
+	function resume(): void {
+		if (!animate || timers.size > 0) return;
+		for (const seg of list) {
+			if (seg.fresh) scheduleSettle(seg.id);
+		}
 	}
 
 	function flush(): void {
@@ -177,6 +206,7 @@ export function createTextStream(initial = "", opts: TextStreamOptions = {}): Te
 		reset,
 		flush,
 		destroy: clearTimers,
+		resume,
 		subscribe(listener) {
 			listeners.add(listener);
 			return () => listeners.delete(listener);
@@ -206,13 +236,26 @@ export interface UseTextStreamResult {
  * `destroy()` is removed from the returned surface and called in the hook's
  * own cleanup instead (D-5): a pacing timer left running past unmount can no
  * longer happen.
+ *
+ * That cleanup can run WITHOUT an unmount, though — StrictMode rehearses
+ * every effect as mount/cleanup/mount — and the typical consumer pushes from
+ * a mount effect of its own. First pass: push stores the text and starts a
+ * settle timer. Cleanup: the timer is cancelled. Replay: the push is a no-op,
+ * because the full text is already stored, so nothing reschedules the settle
+ * and the segment stays `fresh` for ever — `done` never turns true and the
+ * enter animation never ends. `resume()` on the way back in is what closes
+ * that, and it is a no-op on a first mount and on any stream with timers
+ * still in flight.
  */
 export function useTextStream(initial = "", options: TextStreamOptions = {}): UseTextStreamResult {
 	const stream = useConstant(() => createTextStream(initial, options));
 	const segments = useSyncExternalStore(stream.subscribe, () => stream.segments, () => stream.segments);
 	const text = useSyncExternalStore(stream.subscribe, () => stream.text, () => stream.text);
 
-	useEffect(() => stream.destroy, [stream]);
+	useEffect(() => {
+		stream.resume();
+		return stream.destroy;
+	}, [stream]);
 
 	return {
 		text,

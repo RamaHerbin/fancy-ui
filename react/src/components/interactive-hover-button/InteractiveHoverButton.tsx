@@ -19,6 +19,14 @@ export const InteractiveHoverButton = forwardRef<HTMLButtonElement, InteractiveH
 	({ text = "Button", className, children, ...restProps }, ref) => {
 		const label = children ?? text;
 
+		/*
+		 * Every `transition-*` utility below is prefixed `motion-safe:`, which Tailwind
+		 * compiles to `@media (prefers-reduced-motion: no-preference)`. The
+		 * `group-hover:` transforms are deliberately left unprefixed: a visitor who
+		 * asked for less motion still gets the whole hover state, it simply arrives
+		 * instead of travelling. Gating the transforms too would leave the button
+		 * looking broken on hover rather than calm.
+		 */
 		return (
 			<button
 				ref={ref}
@@ -29,13 +37,13 @@ export const InteractiveHoverButton = forwardRef<HTMLButtonElement, InteractiveH
 				{...restProps}
 			>
 				<div className="flex items-center gap-2">
-					<div className="bg-primary size-2 rounded-lg transition-all duration-300 group-hover:scale-[100.8]" />
-					<span className="inline-block transition-all duration-300 group-hover:translate-x-12 group-hover:opacity-0">
+					<div className="bg-primary size-2 rounded-lg group-hover:scale-[100.8] motion-safe:transition-all motion-safe:duration-300" />
+					<span className="inline-block group-hover:translate-x-12 group-hover:opacity-0 motion-safe:transition-all motion-safe:duration-300">
 						{label}
 					</span>
 				</div>
 
-				<div className="text-primary-foreground absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:-translate-x-5 group-hover:opacity-100">
+				<div className="text-primary-foreground absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 opacity-0 group-hover:-translate-x-5 group-hover:opacity-100 motion-safe:transition-all motion-safe:duration-300">
 					<span>{label}</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

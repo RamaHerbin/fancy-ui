@@ -96,6 +96,31 @@ describe("AnimatedTestimonials", () => {
 		expect(getByText("First quote")).toBeTruthy();
 	});
 
+	// Regression: the pending 300ms navigation used to wrap around the length
+	// captured when the button was pressed. Shrinking the collection mid-flight
+	// then left `activeIndex` past the end of the new list and the card went
+	// blank. The wrap reads the live length now, exactly as the Svelte source's
+	// reactive prop read does.
+	it("wraps around the collection it lands in, not the one it left", () => {
+		const { getByLabelText, getByText, rerender } = render(
+			<AnimatedTestimonials testimonials={testimonials} />
+		);
+
+		// Sit on index 1 so the stale wrap would compute index 2 — one past the
+		// end of the two-entry list that replaces this one.
+		fireEvent.click(getByLabelText("Next testimonial"));
+		act(() => vi.advanceTimersByTime(300));
+		expect(getByText("Second quote")).toBeTruthy();
+
+		// Start a navigation, then shrink the list while it is still in flight.
+		fireEvent.click(getByLabelText("Next testimonial"));
+		rerender(<AnimatedTestimonials testimonials={testimonials.slice(0, 2)} />);
+		act(() => vi.advanceTimersByTime(300));
+
+		expect(getByText("First quote")).toBeTruthy();
+		expect(getByText("Alice")).toBeTruthy();
+	});
+
 	it("renders navigation buttons", () => {
 		const { getByLabelText } = render(<AnimatedTestimonials testimonials={testimonials} />);
 		expect(getByLabelText("Previous testimonial")).toBeTruthy();

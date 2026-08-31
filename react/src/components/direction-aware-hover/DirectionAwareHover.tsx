@@ -152,6 +152,8 @@ export function DirectionAwareHover({
 	}
 
 	const containerClass = cn(
+		// Port-added anchor for the colocated CSS — see direction-aware-hover.css.
+		"direction-aware-hover",
 		"group/card relative overflow-hidden rounded-lg bg-transparent transition-all duration-300",
 		"h-48 w-48",
 		"sm:h-64 sm:w-64",

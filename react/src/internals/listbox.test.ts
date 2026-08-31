@@ -316,6 +316,57 @@ describe("createListbox — setActive", () => {
 		lb.setActive(0);
 		expect(lb.activeIndex).toBe(-1);
 	});
+
+	// Same reasoning one step earlier: an index outside `0..count()-1` names
+	// no option at all, so `enabled(index)` is being asked about a row that
+	// does not exist and the default predicate says yes. Publishing it would
+	// put an option id with no matching row into `aria-activedescendant`.
+	it("refuses an index past the end, leaving the previous state untouched", () => {
+		const items: Item[] = [{ label: "A" }, { label: "B" }];
+		const onActiveChange = vi.fn();
+		const lb = makeListbox(items, { onActiveChange });
+		lb.setActive(0);
+		onActiveChange.mockClear();
+
+		lb.setActive(2);
+		expect(lb.activeIndex).toBe(0);
+		lb.setActive(99);
+		expect(lb.activeIndex).toBe(0);
+		expect(onActiveChange).not.toHaveBeenCalled();
+	});
+
+	it("refuses a negative index other than the -1 sentinel", () => {
+		const items: Item[] = [{ label: "A" }, { label: "B" }];
+		const onActiveChange = vi.fn();
+		const lb = makeListbox(items, { onActiveChange });
+		lb.setActive(1);
+		onActiveChange.mockClear();
+
+		lb.setActive(-2);
+		expect(lb.activeIndex).toBe(1);
+		expect(onActiveChange).not.toHaveBeenCalled();
+	});
+
+	it("refuses any index while the list is empty, -1 apart", () => {
+		const lb = makeListbox([]);
+		lb.setActive(0);
+		expect(lb.activeIndex).toBe(-1);
+	});
+
+	// The count is read at call time, so a list that shrank between renders
+	// is honoured by the bounds check rather than by the index it was valid
+	// under.
+	it("reads the count at call time, so a shrunk list refuses a once-valid index", () => {
+		const items: Item[] = [{ label: "A" }, { label: "B" }, { label: "C" }];
+		const lb = makeListbox(items);
+		lb.setActive(2);
+		expect(lb.activeIndex).toBe(2);
+
+		items.length = 1;
+		lb.setActive(-1);
+		lb.setActive(2);
+		expect(lb.activeIndex).toBe(-1);
+	});
 });
 
 describe("createListbox — typeahead", () => {

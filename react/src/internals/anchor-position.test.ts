@@ -402,4 +402,28 @@ describe("attachAnchorPosition — onPlacement", () => {
 		expect(node.style.top).toBe("612px"); // 720 - 100 - 8, flipped above
 		handle.destroy();
 	});
+
+	// The Svelte action leaves these behind, which is unobservable there:
+	// an action is destroyed only with the element it is attached to. The
+	// React binding's `enabled: false` tears the handle down while the node
+	// stays mounted, and the leftovers then read as a surface frozen at
+	// coordinates nothing is maintaining any more.
+	it("strips the position it wrote when destroyed under a still-mounted node", () => {
+		const { anchorEl, node } = setup(
+			{ x: 100, y: 100, width: 50, height: 20 },
+			{ width: 200, height: 100 }
+		);
+
+		const handle = attachAnchorPosition(node, { anchor: () => anchorEl, side: "bottom" });
+		expect(node.style.position).toBe("fixed");
+		expect(node.style.top).toBe("128px");
+		expect(node.style.left).toBe("25px");
+
+		handle.destroy();
+
+		expect(node.isConnected).toBe(true);
+		expect(node.style.position).toBe("");
+		expect(node.style.top).toBe("");
+		expect(node.style.left).toBe("");
+	});
 });

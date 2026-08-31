@@ -77,6 +77,10 @@ jobs:
       # react/ is a workspace member — one install at the root covers it.
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter fancy-ui-react run check
+      # The port's record of truth is only true if something reads it:
+      # folders exist, matrix exports are reachable from the barrel, and no
+      # divergence still claims a gap the tree has closed.
+      - run: pnpm --filter fancy-ui-react run check:matrix
       - run: pnpm --filter fancy-ui-react run test
       - run: pnpm --filter fancy-ui-react run build
       - run: pnpm --filter fancy-ui-react exec publint
@@ -95,6 +99,11 @@ jobs:
             if (leaked.length) { console.error('test files in pack:', leaked); process.exit(1); }
             console.log(files.length + ' files, allow-list clean');
           "
+
+      # The App Router example is the SSR/hydration gate: its prerender runs
+      # every imported module server-side, and the build fails if the
+      # "use client" boundary or any render path touches browser globals.
+      - run: pnpm --filter fancy-ui-react-example-next run build
 
       - name: use client banner survives the build
         working-directory: react

@@ -1,5 +1,7 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useInertAttribute } from "../../internals/dom/use-inert-attribute.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { parseUnifiedDiff, type DiffFile, type DiffLine } from "../../internals/diff.js";
 import "./code-diff.css";
@@ -235,14 +237,7 @@ export const CodeDiff = forwardRef<HTMLDivElement, CodeDiffProps>(function CodeD
 
 						<div className={cn("ft-body", open && "ft-open")}>
 							<div className="overflow-hidden">
-								{/*
-									`inert` is written as a boolean, which React 19 renders as the
-									bare `inert` attribute. React 18 does not know the attribute
-									and drops it with a warning — the one behaviour difference
-									across this package's peer range, and the alternative (an
-									empty string) is what React 19 rejects, so the newer wins.
-								*/}
-								<div id={bodyId} role="group" aria-labelledby={headerId} inert={!open}>
+								<DiffBody id={bodyId} labelledBy={headerId} open={open}>
 									<div className={cn("ft-scroll", wrap && "ft-wrap")}>
 										{view.rows.map((row, rowIndex) =>
 											row.kind === "sep" ? (
@@ -284,14 +279,12 @@ export const CodeDiff = forwardRef<HTMLDivElement, CodeDiffProps>(function CodeD
 										<button
 											type="button"
 											className="text-muted-foreground hover:text-foreground hover:bg-muted/40 border-border w-full border-t px-3 py-1.5 text-left transition-colors"
-											onClick={() =>
-												setUnclamped((current) => ({ ...current, [view.name]: true }))
-											}
+											onClick={() => setUnclamped((current) => ({ ...current, [view.name]: true }))}
 										>
 											Show {view.hidden} more {view.hidden === 1 ? "line" : "lines"}
 										</button>
 									) : null}
-								</div>
+								</DiffBody>
 							</div>
 						</div>
 					</div>
@@ -300,3 +293,29 @@ export const CodeDiff = forwardRef<HTMLDivElement, CodeDiffProps>(function CodeD
 		</div>
 	);
 });
+
+/**
+ * One file's body region, extracted for the single reason that its inertness is
+ * a hook: `inert` cannot be written as a JSX prop across this package's peer
+ * range (React 18 drops `inert={true}`, React 19 rejects `inert=""`), so it goes
+ * to the node imperatively — and a hook cannot be called inside the `views.map`
+ * above. The markup is unchanged.
+ */
+function DiffBody({
+	id,
+	labelledBy,
+	open,
+	children,
+}: {
+	id: string;
+	labelledBy: string;
+	open: boolean;
+	children: ReactNode;
+}) {
+	const inertRef = useInertAttribute<HTMLDivElement>(!open);
+	return (
+		<div ref={inertRef} id={id} role="group" aria-labelledby={labelledBy}>
+			{children}
+		</div>
+	);
+}

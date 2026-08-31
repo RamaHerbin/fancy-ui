@@ -228,7 +228,15 @@ svg[data-state="error"] .ft-statusmorph-cross-b {
 		transition: stroke-dashoffset 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
 			calc(var(--ft-duration-micro, 80ms) * 2);
 	}
-	svg[data-state="error"] {
+	/* `.ft-statusmorph` here is a PORT-ADDED anchor (PORTING.md §Styling
+	   rule 2). Every other selector in this file already carries an owned
+	   `.ft-statusmorph-*` token; this one targets the bare `<svg>`, which
+	   the Svelte compiler's scoping hash confined to this component but
+	   plain global CSS would not — it would shake ANY consumer element
+	   matching `svg[data-state="error"]`. The root class the component
+	   already sets anchors it back. Specificity is inert here: nothing
+	   else animates this element. */
+	.ft-statusmorph svg[data-state="error"] {
 		animation: ft-statusmorph-shake var(--ft-duration-base, 300ms)
 			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}

@@ -155,8 +155,11 @@ export const DropdownMenuSubContent = forwardRef<HTMLDivElement, DropdownMenuSub
 			handleMenuContentKeydown(event, menuContext, {
 				// Tab closes the *whole* tree, not just this level — the browser's
 				// own Tab traversal should leave the entire menu system behind, the
-				// same as it does from the root content.
-				onTab: () => parentMenu.closeAll({ returnFocus: false }),
+				// same as it does from the root content, and resume from the root
+				// trigger for the same reason it does there (both panels are
+				// portalled to `document.body`). `closeAll` forwards to the root's
+				// own `close`, so the default `returnFocus` lands on the trigger.
+				onTab: () => parentMenu.closeAll(),
 			});
 		}
 

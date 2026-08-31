@@ -4,7 +4,9 @@ import { StreamText } from "../../internals/StreamText.js";
 import { useAutoscroll } from "../../internals/use-autoscroll.js";
 import { formatElapsed, useElapsed } from "../../internals/use-elapsed.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useInertAttribute } from "../../internals/dom/use-inert-attribute.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 import "./reasoning-panel.css";
 
@@ -170,6 +172,8 @@ export const ReasoningPanel = forwardRef<HTMLDivElement, ReasoningPanelProps>(
 		}, [streaming, since, startElapsed, stopElapsed]);
 
 		const [bodyEl, bodyRef] = useElementRef<HTMLDivElement>();
+		const inertRef = useInertAttribute<HTMLDivElement>(!isOpen);
+		const composedBodyRef = useComposedRefs<HTMLDivElement>(bodyRef, inertRef);
 		useAutoscroll(bodyEl, { enabled: streaming && isOpen, pinOnConnect: true });
 
 		return (
@@ -209,18 +213,16 @@ export const ReasoningPanel = forwardRef<HTMLDivElement, ReasoningPanelProps>(
 				<div className={cn("ft-body", isOpen && "ft-open")}>
 					<div className="overflow-hidden">
 						{/*
-							`inert` is written as a boolean, which React 19 renders as the
-							bare `inert` attribute. React 18 does not know the attribute and
-							drops it with a warning — the one behaviour difference across
-							this package's peer range, and the alternative (an empty string)
-							is what React 19 rejects, so the newer wins.
+							`inert` goes straight to the node through `useInertAttribute`, never
+							as a JSX prop: React 18 drops `inert={true}` and React 19 rejects
+							`inert=""`, so no single prop spelling covers this package's peer
+							range. The hook emits the same attribute on both.
 						*/}
 						<div
-							ref={bodyRef}
+							ref={composedBodyRef}
 							id={bodyId}
 							role="group"
 							aria-labelledby={headerId}
-							inert={!isOpen}
 							className="text-muted-foreground overflow-y-auto px-3 pb-3 leading-relaxed"
 							style={{ maxHeight }}
 						>

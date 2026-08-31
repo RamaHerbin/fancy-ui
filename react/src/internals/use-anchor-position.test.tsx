@@ -94,6 +94,62 @@ function Probe({
 	);
 }
 
+const ANCHOR_A: Partial<DOMRect> = { x: 100, y: 100, width: 50, height: 20 };
+const ANCHOR_B: Partial<DOMRect> = { x: 400, y: 300, width: 50, height: 20 };
+const PANEL_BOX: Partial<DOMRect> = { width: 200, height: 100 };
+
+/** The three shapes `UseAnchorPositionOptions.anchor` accepts. */
+type AnchorForm = "element" | "ref" | "getter";
+
+/**
+ * Two live anchors and one surface. `target` swaps which anchor the surface
+ * points at while side, align and offset all hold still — the retarget the
+ * option-diffing effect used to sleep through.
+ */
+function RetargetProbe({ form, target }: { form: AnchorForm; target: "a" | "b" }) {
+	const [node, publishNode] = useElementRef<HTMLDivElement>();
+	const [a, publishA] = useElementRef<HTMLButtonElement>();
+	const [b, publishB] = useElementRef<HTMLButtonElement>();
+
+	const setNode = useCallback(
+		(el: HTMLDivElement | null) => {
+			if (el) el.getBoundingClientRect = () => rect(PANEL_BOX);
+			publishNode(el);
+		},
+		[publishNode]
+	);
+	const setA = useCallback(
+		(el: HTMLButtonElement | null) => {
+			if (el) el.getBoundingClientRect = () => rect(ANCHOR_A);
+			publishA(el);
+		},
+		[publishA]
+	);
+	const setB = useCallback(
+		(el: HTMLButtonElement | null) => {
+			if (el) el.getBoundingClientRect = () => rect(ANCHOR_B);
+			publishB(el);
+		},
+		[publishB]
+	);
+
+	const current = target === "a" ? a : b;
+	// The ref and getter forms are rebuilt on every render on purpose: both
+	// are idiomatic inline call sites, so the hook has to judge them by the
+	// element they RESOLVE to, not by their own identity.
+	const anchor = form === "element" ? current : form === "ref" ? { current } : () => current;
+
+	useAnchorPosition(node, { anchor, side: "bottom", align: "start" });
+
+	return (
+		<>
+			<button type="button" ref={setA} />
+			<button type="button" ref={setB} />
+			<div data-testid="panel" ref={setNode} />
+		</>
+	);
+}
+
 describe("useAnchorPosition", () => {
 	afterEach(cleanup);
 
@@ -272,6 +328,50 @@ describe("useAnchorPosition", () => {
 		expect(getByTestId("panel").style.position).toBe("fixed");
 
 		addSpy.mockRestore();
+	});
+
+	it.each<AnchorForm>(["element", "ref", "getter"])(
+		"re-pins the surface onto a replacement %s anchor with the geometry unchanged",
+		(form) => {
+			const { getByTestId, rerender } = render(<RetargetProbe form={form} target="a" />);
+			const panel = getByTestId("panel");
+
+			expect(panel.style.top).toBe("128px"); // 100 + 20 + default offset
+			expect(panel.style.left).toBe("100px"); // align: start
+
+			rerender(<RetargetProbe form={form} target="b" />);
+
+			// Side, align and offset never moved, so nothing but the anchor
+			// itself can drive this recompute. Left to the geometry-only
+			// guard, the panel stayed over the anchor it no longer belongs to
+			// until a scroll or a resize happened to fire — which over a
+			// static page is never.
+			expect(panel.style.top).toBe("328px"); // 300 + 20 + default offset
+			expect(panel.style.left).toBe("400px");
+		}
+	);
+
+	it("strips its position writes when enabled flips off under a still-mounted node", () => {
+		const anchorRect = () => rect({ x: 100, y: 100, width: 50, height: 20 });
+		const nodeRect = () => rect({ width: 200, height: 100 });
+
+		const { getByTestId, rerender } = render(
+			<Probe enabled side="bottom" anchorRect={anchorRect} nodeRect={nodeRect} />
+		);
+		const panel = getByTestId("panel");
+		expect(panel.style.position).toBe("fixed");
+		expect(panel.style.top).toBe("128px");
+
+		rerender(<Probe enabled={false} side="bottom" anchorRect={anchorRect} nodeRect={nodeRect} />);
+
+		// Nothing unmounted — only the positioning stopped. A leftover
+		// `position: fixed` would pin the panel to the viewport at the last
+		// coordinates anyone computed for it, out of the flow it has to fall
+		// back into.
+		expect(panel.isConnected).toBe(true);
+		expect(panel.style.position).toBe("");
+		expect(panel.style.top).toBe("");
+		expect(panel.style.left).toBe("");
 	});
 
 	it("leaves zero window listeners behind after a StrictMode mount/unmount", () => {

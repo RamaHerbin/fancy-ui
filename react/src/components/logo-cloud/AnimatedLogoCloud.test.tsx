@@ -1,4 +1,4 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, screen } from "@testing-library/react";
 import { afterEach, describe, it, expect } from "vitest";
 import { AnimatedLogoCloud } from "./index.js";
 
@@ -33,6 +33,34 @@ describe("AnimatedLogoCloud", () => {
 		const { container } = render(<AnimatedLogoCloud logos={mockLogos} />);
 		const img = container.querySelector("img");
 		expect(img).toHaveAttribute("alt", "Svelte");
+	});
+
+	// Regression: all five marquee tracks used to carry the same alt text, so a
+	// screen reader announced the whole roster five times. The duplicates are
+	// presentation, not content.
+	it("names each logo once, however many times the track is cloned", () => {
+		const { container } = render(<AnimatedLogoCloud logos={mockLogos} />);
+
+		expect(container.querySelectorAll("img")).toHaveLength(10);
+		// Only the one real track reaches the accessibility tree.
+		expect(screen.getAllByRole("img")).toHaveLength(2);
+		expect(screen.getAllByRole("img").map((img) => img.getAttribute("alt"))).toEqual([
+			"Svelte",
+			"React",
+		]);
+	});
+
+	it("hides the cloned tracks from assistive tech, alt included", () => {
+		const { container } = render(<AnimatedLogoCloud logos={mockLogos} />);
+		const tracks = Array.from(container.querySelectorAll(".logo-cloud-scroll"));
+
+		expect(tracks[0]?.getAttribute("aria-hidden")).toBeNull();
+		for (const clone of tracks.slice(1)) {
+			expect(clone.getAttribute("aria-hidden")).toBe("true");
+			for (const img of clone.querySelectorAll("img")) {
+				expect(img.getAttribute("alt")).toBe("");
+			}
+		}
 	});
 
 	it("renders title when provided", () => {

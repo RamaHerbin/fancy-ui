@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { CodeDiff } from "./CodeDiff.js";
 
 /** One file, two hunks: 4 additions, 3 deletions, 10 line rows in total. */
@@ -178,6 +178,23 @@ describe("CodeDiff", () => {
 		expect(headers(container)[0]!.getAttribute("aria-expanded")).toBe("true");
 	});
 
+	it("writes `inert` onto the node itself, never as a JSX prop", () => {
+		// A JSX `inert` prop is expressible on exactly ONE of this package's two
+		// peer majors: React 18 drops `inert={true}` (it knows no such
+		// attribute) and React 19 rejects the `inert=""` spelling that would
+		// survive React 18. The attribute therefore reaches the node
+		// imperatively, through `useInertAttribute`. This suite runs on React
+		// 19, where both mechanisms end at the same DOM — so the mechanism is
+		// the only thing left to pin, and it is exactly what React 18 needs.
+		const spy = vi.spyOn(Element.prototype, "toggleAttribute");
+		const { container } = render(<CodeDiff diff={MULTI_HUNK} collapsed />);
+		const inertWrites = spy.mock.calls.filter(([name]) => name === "inert");
+		const applied = body(container).hasAttribute("inert");
+		spy.mockRestore();
+
+		expect(inertWrites).toContainEqual(["inert", true]);
+		expect(applied).toBe(true);
+	});
 	it("starts folded when asked, header and stats still readable", () => {
 		const { container } = render(<CodeDiff diff={MULTI_HUNK} collapsed />);
 

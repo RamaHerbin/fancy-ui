@@ -2,6 +2,7 @@ import {
 	useEffect,
 	useRef,
 	useState,
+	type KeyboardEvent,
 	type MouseEvent,
 	type ReactNode,
 	type TouchEvent,
@@ -30,7 +31,18 @@ export interface CompareProps {
 	firstContent?: ReactNode;
 	secondContent?: ReactNode;
 	handle?: ReactNode;
+	/**
+	 * Accessible name for the slider. The element carries `role="slider"` and
+	 * sits in the tab order, so it needs one — the two images around it are not
+	 * its label. Overridable because "before and after" only says something when
+	 * the caller says what changed.
+	 */
+	ariaLabel?: string;
 }
+
+/** One arrow press. `PageUp`/`PageDown` move ten times as far. */
+const KEYBOARD_STEP = 1;
+const KEYBOARD_PAGE_STEP = 10;
 
 export function Compare({
 	firstImage = "",
@@ -53,6 +65,7 @@ export function Compare({
 	firstContent,
 	secondContent,
 	handle,
+	ariaLabel = "Image comparison slider",
 }: CompareProps) {
 	const sliderRef = useRef<HTMLDivElement>(null);
 	const [sliderXPercent, setSliderXPercent] = useState(initialSliderPercentage);
@@ -143,6 +156,17 @@ export function Compare({
 		}
 	}
 
+	/**
+	 * Clamp, store, announce. Pointer, touch and keyboard all land here, so
+	 * `onpercentagechange` fires exactly once per committed move whichever input
+	 * produced it, and none of them can drive the divider off either edge.
+	 */
+	function commitPercent(percent: number): void {
+		const newPercent = Math.max(0, Math.min(100, percent));
+		setSliderXPercent(newPercent);
+		onpercentagechange?.(newPercent);
+	}
+
 	function handleMove(clientX: number): void {
 		if (!sliderRef.current) return;
 
@@ -155,11 +179,49 @@ export function Compare({
 			const percent = (x / rect.width) * 100;
 
 			requestAnimationFrame(() => {
-				const newPercent = Math.max(0, Math.min(100, percent));
-				setSliderXPercent(newPercent);
-				onpercentagechange?.(newPercent);
+				commitPercent(percent);
 			});
 		}
+	}
+
+	/**
+	 * The element advertises `role="slider"` and takes focus, which is a promise
+	 * that arrow keys move it — a keyboard-only or switch user has no pointer to
+	 * offer. Home/End jump to the ends, PageUp/PageDown take the coarse step, and
+	 * the default is scrolled past untouched. Autoplay stops on the first press,
+	 * as it does for a pointer, so the loop does not fight the person.
+	 */
+	function handleKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+		let next: number;
+		switch (event.key) {
+			case "ArrowLeft":
+			case "ArrowDown":
+				next = sliderXPercent - KEYBOARD_STEP;
+				break;
+			case "ArrowRight":
+			case "ArrowUp":
+				next = sliderXPercent + KEYBOARD_STEP;
+				break;
+			case "PageDown":
+				next = sliderXPercent - KEYBOARD_PAGE_STEP;
+				break;
+			case "PageUp":
+				next = sliderXPercent + KEYBOARD_PAGE_STEP;
+				break;
+			case "Home":
+				next = 0;
+				break;
+			case "End":
+				next = 100;
+				break;
+			default:
+				return;
+		}
+
+		// Only now: an unhandled key must keep its native behaviour.
+		event.preventDefault();
+		stopAutoplay();
+		commitPercent(next);
 	}
 
 	function handleMouseDown(): void {
@@ -221,7 +283,9 @@ export function Compare({
 			onTouchStart={handleTouchStart}
 			onTouchEnd={handleTouchEnd}
 			onTouchMove={handleTouchMove}
+			onKeyDown={handleKeyDown}
 			role="slider"
+			aria-label={ariaLabel}
 			aria-valuenow={sliderXPercent}
 			aria-valuemin={0}
 			aria-valuemax={100}

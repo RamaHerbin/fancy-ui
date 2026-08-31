@@ -68,7 +68,13 @@ export class ImageItem {
 		el: null as unknown as HTMLDivElement,
 		inner: null,
 	};
-	public defaultStyle: gsap.TweenVars = { scale: 1, x: 0, y: 0, opacity: 0 };
+	// Port divergence: `private` where the Svelte source says `public`. gsap declares
+	// `TweenVars` inside a GLOBAL `namespace gsap` with no module-level export, so a
+	// public `gsap.TweenVars` member emits a bare `gsap.` reference into the shipped
+	// .d.ts while tsc drops the value-only `import { gsap }` — consumers then hit
+	// TS2503 "Cannot find namespace 'gsap'". A private member emits no type at all.
+	// Read only by initEvents() below, so nothing outside this class loses access.
+	private defaultStyle: gsap.TweenVars = { scale: 1, x: 0, y: 0, opacity: 0 };
 	public rect: DOMRect | null = null;
 	private resizeHandler: (() => void) | null = null;
 

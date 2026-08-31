@@ -1,4 +1,10 @@
-.ft-dot {
+/*
+ * Svelte scoped these rules to the component; plain CSS is global. The source
+ * root carries no class of its own, so `.ft-typing` is added by the port purely
+ * as an anchor — without it a bare `.ft-dot` in a consumer's page would inherit
+ * the dot geometry and the wave.
+ */
+.ft-typing .ft-dot {
 	display: block;
 	width: var(--ft-typing-size);
 	height: var(--ft-typing-size);
@@ -13,7 +19,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-	.ft-dot {
+	.ft-typing .ft-dot {
 		animation: ft-typing-pulse var(--ft-typing-speed) ease-in-out infinite;
 	}
 

@@ -1,3 +1,4 @@
+import { StrictMode, useEffect } from "react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { renderHook, cleanup, act } from "@testing-library/react";
 import { createTextStream, useTextStream } from "./use-text-stream.js";
@@ -152,6 +153,50 @@ describe("createTextStream", () => {
 		expect(stream.segments).toEqual([]);
 	});
 
+	// `resume` is the React-only half of `destroy`: an effect that is torn
+	// down and replayed without an unmount has to be able to put back what
+	// the teardown cancelled.
+	it("resume re-arms a settle that destroy cancelled", async () => {
+		vi.useFakeTimers();
+		const stream = createTextStream("", { settleMs: 100 });
+
+		stream.push("Hello");
+		stream.destroy();
+		expect(vi.getTimerCount()).toBe(0);
+
+		stream.resume();
+		expect(vi.getTimerCount()).toBe(1);
+		expect(shape(stream.segments)).toEqual([{ text: "Hello", fresh: true }]);
+
+		await vi.advanceTimersByTimeAsync(100);
+		expect(shape(stream.segments)).toEqual([{ text: "Hello", fresh: false }]);
+	});
+
+	it("resume leaves a stream with timers still in flight alone", () => {
+		vi.useFakeTimers();
+		const stream = createTextStream("", { settleMs: 100 });
+
+		stream.push("Hel");
+		stream.push("Hello");
+		expect(vi.getTimerCount()).toBe(2);
+
+		stream.resume();
+		// No second timer per segment: a live stream is not a cancelled one.
+		expect(vi.getTimerCount()).toBe(2);
+	});
+
+	it("resume is a no-op with nothing fresh, and when animation is off", () => {
+		vi.useFakeTimers();
+		const idle = createTextStream("ready", { settleMs: 100 });
+		idle.resume();
+		expect(vi.getTimerCount()).toBe(0);
+
+		const unanimated = createTextStream("", { animate: false });
+		unanimated.push("Hello");
+		unanimated.resume();
+		expect(vi.getTimerCount()).toBe(0);
+	});
+
 	it("flush settles every fresh segment immediately and cancels their timers", () => {
 		vi.useFakeTimers();
 		const stream = createTextStream("", { settleMs: 100 });
@@ -217,6 +262,40 @@ describe("useTextStream", () => {
 		});
 		expect(result.current.done).toBe(true);
 		expect(shape(result.current.segments)).toEqual([{ text: "Hello", fresh: false }]);
+	});
+
+	/*
+	 * The shape every consumer of this hook has: the text arrives from a
+	 * mount effect. StrictMode rehearses that as mount / cleanup / mount, and
+	 * the hook's own cleanup cancels the settle timer in between. The
+	 * replayed push is a no-op — the full text is already stored — so unless
+	 * the second mount re-arms the settle, the chunk stays `fresh` for ever,
+	 * `done` never turns true and the enter animation never ends.
+	 */
+	it("still settles a chunk pushed from a mount effect under StrictMode", async () => {
+		vi.useFakeTimers();
+		const { result } = renderHook(
+			() => {
+				const stream = useTextStream("", { settleMs: 100 });
+				useEffect(() => {
+					stream.push("Hello");
+					// The push is deliberately mount-only: re-pushing on every
+					// render would hide the bug this pins.
+					// eslint-disable-next-line react-hooks/exhaustive-deps
+				}, []);
+				return stream;
+			},
+			{ wrapper: StrictMode }
+		);
+
+		expect(shape(result.current.segments)).toEqual([{ text: "Hello", fresh: true }]);
+		expect(result.current.done).toBe(false);
+
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(100);
+		});
+		expect(shape(result.current.segments)).toEqual([{ text: "Hello", fresh: false }]);
+		expect(result.current.done).toBe(true);
 	});
 
 	it("destroys the stream on unmount, cancelling a pending settle", () => {

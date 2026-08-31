@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import "./focus.css";
 
 /**
@@ -59,9 +60,11 @@ export function Focus({
 		}
 	}
 
-	// Runs after commit, the counterpart of `$effect` + `tick()`: measures the
-	// current word once the DOM reflects `currentIndex`. Covers mount too.
-	useEffect(() => {
+	// Pre-paint, the counterpart of `$effect` + `tick()`: measures the current word
+	// once the DOM reflects `currentIndex`, before the browser paints. Covers mount
+	// too. A passive effect would paint the zero-size frame at the container origin
+	// first, then transition it into place — a visible slide-and-grow from (0,0).
+	useIsomorphicLayoutEffect(() => {
 		const wordEl = wordElements.current[currentIndex];
 		const container = containerRef.current;
 		if (!wordEl || !container) return;

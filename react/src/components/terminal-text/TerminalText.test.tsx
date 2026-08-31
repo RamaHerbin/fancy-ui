@@ -86,10 +86,78 @@ describe("TerminalText", () => {
 		expect(text(wrapper)).toBe("a_");
 	});
 
+	it("keeps streaming when the parent re-renders with an equal but freshly allocated lines array", async () => {
+		vi.useFakeTimers();
+		const onComplete = vi.fn();
+		// A call site writing lines={["ab", "cd"]} inline hands a NEW array on
+		// every parent render. That must not wipe the typed-out text.
+		const { container, rerender } = render(
+			<TerminalText lines={["ab", "cd"]} speed={10} cursor={false} onComplete={onComplete} />
+		);
+		const wrapper = container.firstElementChild as HTMLElement;
+
+		await advance(20);
+		expect(text(wrapper)).toBe("ab");
+
+		rerender(
+			<TerminalText lines={["ab", "cd"]} speed={10} cursor={false} onComplete={onComplete} />
+		);
+		expect(text(wrapper)).toBe("ab");
+
+		// The original schedule survives: line 2 lands on the original timeline
+		// (push@50, chars@60/@70, done@100) rather than starting over.
+		await advance(50);
+		expect(text(wrapper)).toBe("abcd");
+		await advance(30);
+		expect(onComplete).toHaveBeenCalledTimes(1);
+	});
+
+	it("restarts the stream when the lines content actually changes", async () => {
+		vi.useFakeTimers();
+		const { container, rerender } = render(
+			<TerminalText lines={["ab"]} speed={10} cursor={false} />
+		);
+		const wrapper = container.firstElementChild as HTMLElement;
+
+		await advance(20);
+		expect(text(wrapper)).toBe("ab");
+
+		rerender(<TerminalText lines={["zz"]} speed={10} cursor={false} />);
+		expect(text(wrapper)).toBe("");
+
+		await advance(20);
+		expect(text(wrapper)).toBe("zz");
+	});
+
 	it("does not throw or leave dangling timers when glitch is enabled", async () => {
 		vi.useFakeTimers();
 		const { unmount } = render(<TerminalText lines={["glitchy line"]} speed={5} glitch={true} />);
 		await advance(5000);
 		expect(() => unmount()).not.toThrow();
+	});
+
+	it("does not re-serialize `lines` on renders that reuse the same array reference", () => {
+		// One render happens per streamed character, all reusing the SAME
+		// `lines` array identity (only internal state changes between them).
+		// JSON.stringify-ing the whole transcript on every one of those is
+		// O(n^2) over a long stream; it should run once per distinct
+		// reference, not once per render.
+		const lines = ["Hello world"];
+		const stringifySpy = vi.spyOn(JSON, "stringify");
+		try {
+			const { rerender } = render(<TerminalText lines={lines} speed={10} />);
+			stringifySpy.mockClear();
+
+			for (let i = 0; i < 20; i++) {
+				rerender(<TerminalText lines={lines} speed={10} />);
+			}
+
+			const callsOnSameReference = stringifySpy.mock.calls.filter(
+				([value]) => value === lines
+			).length;
+			expect(callsOnSameReference).toBe(0);
+		} finally {
+			stringifySpy.mockRestore();
+		}
 	});
 });

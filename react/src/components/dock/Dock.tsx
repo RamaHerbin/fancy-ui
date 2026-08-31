@@ -108,8 +108,18 @@ export function Dock({
 		// Read off the synthetic event now, not inside the frame: the values are
 		// what the frame needs, and the event object is not guaranteed to still
 		// carry them a frame later.
-		const { pageX, pageY } = e;
-		schedule(pageX, pageY);
+		//
+		// clientX/clientY, not pageX/pageY: `DockIcon` measures each icon with
+		// `getBoundingClientRect()`, whose coordinates are relative to the
+		// VIEWPORT. Page coordinates add the scroll offset, so on a scrolled
+		// page every icon's distance to the pointer is off by exactly that
+		// offset and the magnifier swells somewhere the pointer is not. The
+		// Svelte source reads `pageX`/`pageY` against the same
+		// `getBoundingClientRect()` and has the same bug; fixing it here is a
+		// deliberate departure from PORTING.md's "port the bug" rule, recorded
+		// with the port.
+		const { clientX, clientY } = e;
+		schedule(clientX, clientY);
 	}
 
 	// Deliberately ungated, unlike `onPointerMove`: if the preference or the

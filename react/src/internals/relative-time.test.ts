@@ -73,4 +73,18 @@ describe("formatRelativeTime", () => {
 		expect(formatRelativeTime(Number.NaN, { locale: "en", now: NOW })).toBe("");
 		expect(formatRelativeTime(new Date("nope"), { locale: "en", now: NOW })).toBe("");
 	});
+
+	/*
+	 * `useNow` hands back `NaN` until the shared clock starts — on the server,
+	 * through the hydration render, and for the first render of a fresh client
+	 * tree. Every consumer pipes that straight into `now`, so a non-finite
+	 * clock has to degrade to "no label" rather than to a label measured
+	 * against the epoch (which reads "in 57 years" for any present-day
+	 * timestamp) or to a `RangeError` out of `Intl.RelativeTimeFormat`.
+	 */
+	it("returns an empty string when the clock has not started", () => {
+		expect(formatRelativeTime(NOW - 5 * MINUTE, { locale: "en", now: Number.NaN })).toBe("");
+		expect(formatRelativeTime(NOW, { locale: "en", now: Number.NaN, numeric: "always" })).toBe("");
+		expect(formatRelativeTime(NOW, { locale: "en", now: Number.POSITIVE_INFINITY })).toBe("");
+	});
 });
