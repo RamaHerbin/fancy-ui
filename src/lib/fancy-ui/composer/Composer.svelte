@@ -30,6 +30,11 @@
 		class?: string;
 		/** The form element, bindable. */
 		ref?: HTMLFormElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -40,6 +45,7 @@
 	import ComposerInput from "./ComposerInput.svelte";
 	import ComposerSubmit from "./ComposerSubmit.svelte";
 	import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value = $bindable(""),
@@ -54,6 +60,7 @@
 		accessory,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ComposerProps = $props();
 
 	// Written by ComposerInput through the context, read by insertText's caret
@@ -71,6 +78,7 @@
 		// With nobody listening there is nowhere for the draft to go, and clearing
 		// it would throw away text the reader has no way of getting back.
 		if (!onSubmit) return;
+		if (sound) soundFx.play("press");
 		// A copy, so a consumer stashing the payload does not end up holding the
 		// live list it is about to mutate.
 		onSubmit({ text, attachments: [...attachments] });
@@ -81,6 +89,9 @@
 
 	function stop() {
 		if (!streaming) return;
+		// No handler, no interruption — the cue must not announce a stop that
+		// cannot happen (ComposerSubmit disables itself in that state too).
+		if (sound && onStop) soundFx.play("press");
 		onStop?.();
 	}
 
@@ -153,6 +164,9 @@
 		},
 		get stoppable() {
 			return typeof onStop === "function";
+		},
+		get sound() {
+			return sound;
 		},
 		// Declared read-only on ComposerContext so no other part writes it; the
 		// setter exists for ComposerInput alone, which registers its element here

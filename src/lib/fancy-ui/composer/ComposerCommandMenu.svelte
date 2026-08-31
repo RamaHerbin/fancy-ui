@@ -39,6 +39,7 @@
 	import { float, type FloatRect } from "../_internals/float.js";
 	import { findTriggerToken, measureCaretRect } from "./caret.js";
 	import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		trigger,
@@ -193,6 +194,10 @@
 
 	function select(item: CommandItemData | undefined) {
 		if (!item) return;
+		// The menu's own open/close stay silent — it opens from keystrokes and
+		// closes on blur/Escape, not a dismissal the reader triggered — so a pick
+		// is the only cue this component ever plays.
+		if (composer?.sound) soundFx.play("select");
 		const insertText = (text: string, replaceTriggerToken?: boolean) =>
 			composer?.insertText(text, replaceTriggerToken);
 		if (onSelect) onSelect(item, { insertText, query });

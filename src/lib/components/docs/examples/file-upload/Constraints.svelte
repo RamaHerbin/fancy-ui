@@ -10,6 +10,7 @@
 
 <div class="w-full max-w-sm">
 	<FileUpload
+		sound
 		bind:files
 		multiple
 		accept="image/png,image/svg+xml"

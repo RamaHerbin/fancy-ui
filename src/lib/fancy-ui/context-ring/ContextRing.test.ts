@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import ContextRing from "./ContextRing.svelte";
 import type { TokenUsageData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function usage(overrides: Partial<TokenUsageData> = {}): TokenUsageData {
 	return { used: 12_400, max: 200_000, ...overrides };
@@ -317,5 +318,104 @@ describe("ContextRing", () => {
 		await tick();
 		expect(panel(container)).toBeNull();
 		expect(trigger(container)?.getAttribute("aria-expanded")).toBe("false");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays open exactly once when the trigger opens the popover", async () => {
+			const { container } = render(ContextRing, {
+				props: { usage: usage(), expandable: true, sound: true },
+			});
+
+			await fireEvent.click(trigger(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(ContextRing, {
+				props: { usage: usage(), expandable: true },
+			});
+
+			await fireEvent.click(trigger(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while not expandable, even with sound enabled", () => {
+			const { container } = render(ContextRing, {
+				props: { usage: usage(), expandable: false, sound: true },
+			});
+
+			// No trigger renders at all — nothing to synthesize a click against —
+			// so a direct dispatch on the root proves the meter itself is inert.
+			root(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays close exactly once on a second press of the trigger", async () => {
+			const { container } = render(ContextRing, {
+				props: { usage: usage(), expandable: true, sound: true },
+			});
+			const button = trigger(container) as HTMLButtonElement;
+
+			await fireEvent.click(button);
+			play.mockClear();
+			await fireEvent.click(button);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on Escape, and never twice for one dismissal", async () => {
+			const { container } = render(ContextRing, {
+				props: { usage: usage(), expandable: true, sound: true },
+			});
+			await fireEvent.click(trigger(container) as HTMLButtonElement);
+			play.mockClear();
+
+			await fireEvent.keyDown(window, { key: "Escape" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on a press outside", async () => {
+			const { container } = render(ContextRing, {
+				props: { usage: usage(), expandable: true, sound: true },
+			});
+			await fireEvent.click(trigger(container) as HTMLButtonElement);
+			play.mockClear();
+
+			document.body.dispatchEvent(
+				new MouseEvent("pointerdown", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("stays silent when expandability is taken away — that close is bookkeeping, not a dismissal", async () => {
+			const initial = { usage: usage(), expandable: true, sound: true };
+			const { container, rerender } = render(ContextRing, { props: initial });
+			await fireEvent.click(trigger(container) as HTMLButtonElement);
+			play.mockClear();
+
+			await rerender({ ...initial, expandable: false });
+			await tick();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

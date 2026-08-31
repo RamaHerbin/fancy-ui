@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import ToolCall from "./ToolCall.svelte";
 import type { ToolCallData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function call(overrides: Partial<ToolCallData> = {}): ToolCallData {
 	return { id: "call_1", name: "search_docs", status: "done", ...overrides };
@@ -303,5 +304,73 @@ describe("ToolCall", () => {
 
 		expect(root.className).toContain("my-card");
 		expect(root.className).toContain("ft-toolcall");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays open exactly once when the reader expands the payloads, with sound enabled", async () => {
+			const { container } = render(ToolCall, { props: { call: call(), sound: true } });
+
+			await fireEvent.click(header(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays close exactly once when the reader folds the payloads back", async () => {
+			const { container } = render(ToolCall, { props: { call: call(), sound: true } });
+
+			await fireEvent.click(header(container));
+			play.mockClear();
+			await fireEvent.click(header(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(ToolCall, { props: { call: call() } });
+
+			await fireEvent.click(header(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when a running call auto-opens itself on failure", async () => {
+			const { rerender } = render(ToolCall, {
+				props: { call: call({ status: "running" }), sound: true },
+			});
+
+			await rerender({ call: call({ status: "error", error: "boom" }), sound: true });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent on the SSR autoOpen seed for a call that starts failed", () => {
+			render(ToolCall, {
+				props: { call: call({ status: "error", error: "boom" }), sound: true },
+			});
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when a consumer writes to the bound open prop directly", async () => {
+			const { rerender } = render(ToolCall, {
+				props: { call: call(), open: false, sound: true },
+			});
+
+			await rerender({ call: call(), open: true, sound: true });
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

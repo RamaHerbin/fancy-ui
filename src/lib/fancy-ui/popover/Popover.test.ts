@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
 import { createRawSnippet, flushSync, tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import Popover from "./Popover.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 // Spies on the real `anchorPosition` action instead of replacing it, so
 // positioning assertions check what Popover asked for while the action
@@ -623,5 +624,98 @@ describe("Popover", () => {
 		await fireEvent.click(triggerButton(container));
 		await tick();
 		expect(ref).toBe(panel(container));
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when the trigger opens the panel", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Popover, {
+				props: { sound: true, trigger: textSnippet("Options"), children: panelSnippet() },
+			});
+
+			await fireEvent.click(triggerButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays close exactly once when a second trigger click dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Popover, {
+				props: { sound: true, trigger: textSnippet("Options"), children: panelSnippet() },
+			});
+			const btn = triggerButton(container);
+			await fireEvent.click(btn);
+			play.mockClear();
+
+			await fireEvent.click(btn);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on Escape, and close exactly once on an outside click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(Popover, {
+				props: { sound: true, trigger: textSnippet("Options"), children: panelSnippet() },
+			});
+
+			await fireEvent.click(triggerButton(container));
+			play.mockClear();
+			await fireEvent.keyDown(document, { key: "Escape" });
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+
+			play.mockClear();
+			await fireEvent.click(triggerButton(container));
+			play.mockClear();
+			await fireEvent.pointerDown(outside);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			outside.remove();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Popover, {
+				props: { trigger: textSnippet("Options"), children: panelSnippet() },
+			});
+			const btn = triggerButton(container);
+
+			await fireEvent.click(btn);
+			await fireEvent.click(btn);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// The `if (open === next) return` guard inside setOpen — a second Escape
+		// landing during the exit must not double the close cue.
+		it("swallows a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Popover, {
+				props: { sound: true, trigger: textSnippet("Options"), children: panelSnippet() },
+			});
+
+			await fireEvent.click(triggerButton(container));
+			await tick();
+			play.mockClear();
+
+			pressEscape();
+			await tick();
+			expect(panel(container)).not.toBeNull(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
 	});
 });

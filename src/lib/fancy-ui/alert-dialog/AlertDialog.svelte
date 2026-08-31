@@ -30,6 +30,11 @@
 		class?: string;
 		/** Element reference to the panel. */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching open/select/close cue through the sound controller.
+		 * Off by default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -37,6 +42,7 @@
 	import { cn } from "$lib/utils.js";
 	import Button from "../button/Button.svelte";
 	import DialogSurface from "../dialog/DialogSurface.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -51,6 +57,7 @@
 		trigger,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: AlertDialogProps = $props();
 
 	// Same guard, and the same reason, as Dialog's own `setOpen`: a dismiss
@@ -69,6 +76,7 @@
 
 	function openFromTrigger() {
 		if (open) return;
+		if (sound) soundFx.play("open");
 		setOpen(true);
 	}
 
@@ -79,11 +87,18 @@
 	// meant to back out, the same thing clicking Cancel means, so both fire
 	// the same callback.
 	function handleCancel() {
+		// Restates `setOpen`'s own dedupe locally: this function runs before
+		// `setOpen`, so a second Escape/Cancel arriving while `open` is
+		// already false (mid-exit) must not play a second `close`.
+		if (sound && open) soundFx.play("close");
 		onCancel?.();
 		setOpen(false);
 	}
 
 	function handleConfirm() {
+		// Commit-close is silent — `setOpen` below carries no cue of its own —
+		// so `select` is the only sound a confirm ever plays.
+		if (sound) soundFx.play("select");
 		onConfirm?.();
 		setOpen(false);
 	}

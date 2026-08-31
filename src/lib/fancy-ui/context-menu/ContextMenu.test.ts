@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { computePosition } from "../_internals/anchor-position.js";
+import { sound } from "../sound/sound.svelte.js";
 import Harness from "./ContextMenuHarness.test.svelte";
 
 interface ItemSpec {
@@ -411,6 +412,175 @@ describe("ContextMenu", () => {
 		await fireEvent.click(itemByLabel(subMenuEl, "Inspect")!);
 		expect(onSelect).toHaveBeenCalledWith("Inspect");
 		await waitFor(() => expect(document.querySelectorAll('[role="menu"]')).toHaveLength(0));
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("a right-click opens the menu and plays open exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			await fireEvent.keyDown(document, { key: "Escape" });
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Dispatched synthetically, not through `fireEvent.contextMenu` — proves
+		// the guard lives in `ContextMenuTrigger`'s own `if (disabled) return`,
+		// not merely in something `fireEvent`'s own event construction happens
+		// to skip.
+		it("a disabled trigger plays nothing, even dispatched synthetically", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, {
+				props: { items: ITEMS, triggerDisabled: true, sound: true },
+			});
+
+			region(container).dispatchEvent(
+				new MouseEvent("contextmenu", {
+					bubbles: true,
+					cancelable: true,
+					button: 2,
+					clientX: 50,
+					clientY: 50,
+				})
+			);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(menu()).toBeNull();
+		});
+
+		// The matrix's own double-fire guard for `open`: the existing
+		// `open === next` early return in `setOpen` makes a reposition
+		// right-click — the menu is already open, only `point` moves — silent
+		// rather than replaying the open cue a second time.
+		it("a reposition right-click while already open is silent — no repeated open cue", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			const el = region(container);
+
+			await fireEvent.contextMenu(el, { button: 2, clientX: 10, clientY: 10 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.contextMenu(el, { button: 2, clientX: 300, clientY: 400 });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("Escape dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.keyDown(document, { key: "Escape" });
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("an outside click dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.pointerDown(outside);
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			outside.remove();
+		});
+
+		// Select precedent: the item's own `select` cue already tells the story
+		// of this interaction — `closeAll({ silent: true })` must keep the close
+		// that follows it mute, or one activation would sound like two.
+		it("selecting an item plays select exactly once, never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(menu(), "Reload")!);
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("a disabled item plays nothing", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const withDisabled: ItemSpec[] = [{ label: "Previous", disabled: true }, { label: "Reload" }];
+			const { container } = render(Harness, { props: { items: withDisabled, sound: true } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(menu(), "Previous")!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Submenu open/close come free from the shared `DropdownMenuSub`, which
+		// reads `sound` off whichever level's `MenuContext` it was mounted
+		// under — this proves that inheritance actually reaches this family's
+		// own context, not just DropdownMenu's.
+		it("a submenu inherits sound: opening plays open once, selecting inside plays select only", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, {
+				props: {
+					items: ITEMS,
+					withSubmenu: true,
+					subItems: [{ label: "Inspect" }],
+					sound: true,
+				},
+			});
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			const subBtn = menu()!.querySelector('[aria-haspopup="menu"]') as HTMLElement;
+			await fireEvent.click(subBtn);
+			await waitFor(() => {
+				const subMenus = Array.from(document.querySelectorAll('[role="menu"]'));
+				expect(subMenus).toHaveLength(2);
+			});
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+
+			play.mockClear();
+			const subMenuEl = Array.from(document.querySelectorAll('[role="menu"]')).find(
+				(el) => el !== menu()
+			) as HTMLElement;
+			await fireEvent.click(itemByLabel(subMenuEl, "Inspect")!);
+			await waitFor(() => expect(document.querySelectorAll('[role="menu"]')).toHaveLength(0));
+
+			expect(play.mock.calls).toEqual([["select"]]);
+		});
 	});
 
 	// The entrance itself lives in `_internals/motion/anchored.ts` and is

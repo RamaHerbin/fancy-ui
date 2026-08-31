@@ -1,7 +1,8 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import VoiceInput from "./VoiceInput.svelte";
 import Harness from "./VoiceInputHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function root(container: HTMLElement): HTMLElement {
 	return container.firstElementChild as HTMLElement;
@@ -323,5 +324,87 @@ describe("VoiceInput", () => {
 
 		expect(root(container).className).toContain("my-voice");
 		expect(root(container).className).toContain("ft-voice");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays open exactly once when the mic starts a recording", async () => {
+			const { container } = render(VoiceInput, { props: { sound: true } });
+
+			await fireEvent.click(mic(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(VoiceInput, {});
+
+			await fireEvent.click(mic(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays close exactly once when cancel abandons the recording", async () => {
+			const { container } = render(VoiceInput, { props: { active: true, sound: true } });
+
+			await fireEvent.click(cancelButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays select, never close, when confirm ends the recording", async () => {
+			const { container } = render(VoiceInput, { props: { active: true, sound: true } });
+
+			await fireEvent.click(confirmButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("does not double-fire on a repeated cancel dispatch — the added !active guard holds", () => {
+			const { container } = render(VoiceInput, { props: { active: true, sound: true } });
+			const button = cancelButton(container);
+
+			// Two synchronous dispatches, with no flush between them: the guard
+			// added inside cancel() itself is what stops the second one, not the
+			// button having already left the DOM once `active` flips.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("does not double-fire on a repeated confirm dispatch — the added !active guard holds", () => {
+			const { container } = render(VoiceInput, { props: { active: true, sound: true } });
+			const button = confirmButton(container);
+
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing when active is driven from outside rather than through start()", async () => {
+			const { container, rerender } = render(VoiceInput, {
+				props: { active: false, sound: true },
+			});
+
+			await rerender({ active: true, sound: true });
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

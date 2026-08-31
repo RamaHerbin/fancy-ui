@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import ImageGeneration from "./ImageGeneration.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 // A 1x1 transparent GIF: a real, non-empty src that jsdom will never actually
 // fetch, so `complete` stays false and the load event is ours to dispatch.
@@ -301,5 +302,63 @@ describe("ImageGeneration", () => {
 
 		expect(root.className).toContain("my-frame");
 		expect(root.className).toContain("ft-imagegen");
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when retry is pressed, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onRetry = vi.fn();
+			const { container } = render(ImageGeneration, {
+				props: { status: "error", alt: "A red barn", onRetry, sound: true },
+			});
+
+			await fireEvent.click(container.querySelector(".ft-imagegen-retry") as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+			expect(onRetry).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ImageGeneration, {
+				props: { status: "error", alt: "A red barn", onRetry: () => {} },
+			});
+
+			await fireEvent.click(container.querySelector(".ft-imagegen-retry") as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on load, error or a status transition to done — those are observed outcomes, not a gesture", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onLoad = vi.fn();
+			const { container, rerender } = render(ImageGeneration, {
+				props: { status: "generating", alt: "A red barn", onLoad, sound: true },
+			});
+
+			await rerender({ status: "done", src: SRC, alt: "A red barn", onLoad, sound: true });
+			await tick();
+			const img = image(container) as HTMLImageElement;
+			await fireEvent.load(img);
+			await fireEvent.error(img);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one retry click plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ImageGeneration, {
+				props: { status: "error", alt: "A red barn", onRetry: () => {}, sound: true },
+			});
+
+			await fireEvent.click(container.querySelector(".ft-imagegen-retry") as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

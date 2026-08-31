@@ -33,6 +33,7 @@
 		triggerDisabled?: boolean;
 		withSubmenu?: boolean;
 		subItems?: ItemSpec[];
+		sound?: boolean;
 	}
 
 	let {
@@ -43,10 +44,11 @@
 		triggerDisabled = false,
 		withSubmenu = false,
 		subItems = [],
+		sound = false,
 	}: Props = $props();
 </script>
 
-<ContextMenu bind:open {onOpenChange}>
+<ContextMenu bind:open {onOpenChange} {sound}>
 	<ContextMenuTrigger disabled={triggerDisabled}>
 		<div data-testid="region">Right-click me</div>
 	</ContextMenuTrigger>

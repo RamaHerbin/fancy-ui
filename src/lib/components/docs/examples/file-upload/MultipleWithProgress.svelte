@@ -42,5 +42,11 @@
 </script>
 
 <div class="w-full max-w-sm">
-	<FileUpload bind:files {onFilesChange} multiple hint="Any file — upload speed is simulated" />
+	<FileUpload
+		sound
+		bind:files
+		{onFilesChange}
+		multiple
+		hint="Any file — upload speed is simulated"
+	/>
 </div>

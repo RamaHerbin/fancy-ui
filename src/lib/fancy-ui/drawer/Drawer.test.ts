@@ -24,6 +24,7 @@ vi.mock("../_internals/scroll-lock.js", () => ({
 
 import Drawer from "./Drawer.svelte";
 import Harness from "./DrawerHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 // Mirrors Drawer.svelte's own (not exported) DISMISS_THRESHOLD_PX — kept as a
 // named constant here too so the boundary tests below read as "exactly at"
@@ -525,5 +526,96 @@ describe("Drawer", () => {
 		const { getByTestId } = render(Harness);
 		await fireEvent.click(getByTestId("trigger"));
 		expect(dialog()!.getAttribute("data-bound-ref")).toBe("yes");
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays close exactly once when the close button dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters", sound: true } });
+
+			await fireEvent.click(closeButton()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on a swipe committed past the threshold", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters", sound: true } });
+
+			await drag(DISMISS_THRESHOLD_PX + 1);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		// The spring-back branch — a release short of the threshold — never
+		// calls close() at all, so it must stay silent even with sound enabled.
+		it("plays nothing when a swipe springs back short of the threshold", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters", sound: true } });
+
+			await drag(40);
+
+			expect(dialog()).not.toBeNull();
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters" } });
+
+			await fireEvent.click(closeButton()!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when dismissible is false, even via a synthetic dispatch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, {
+				props: { open: true, title: "Filters", dismissible: false, sound: true },
+			});
+
+			document.dispatchEvent(
+				new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// The `if (!open) return` guard inside close() — a second Escape landing
+		// during the exit must not double the cue.
+		it("ignores a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters", sound: true } });
+
+			dispatchEscape();
+			flushSync();
+			expect(dialog()).toBeTruthy(); // still sliding out
+
+			dispatchEscape();
+			dispatchEscape();
+			flushSync();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		// A bind:open write closing the drawer mid-drag bypasses close() entirely
+		// (see "starts the exit from the live drag offset" above) — it must stay
+		// silent, exactly like a bind:open-driven open would on Dialog/Popover.
+		it("a bind:open write that closes the drawer from outside plays nothing", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByTestId } = render(Harness, { props: { sound: true } });
+			await fireEvent.click(getByTestId("trigger"));
+
+			await fireEvent.click(getByTestId("close-from-parent"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

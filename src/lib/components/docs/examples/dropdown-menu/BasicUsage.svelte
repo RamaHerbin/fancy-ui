@@ -8,7 +8,7 @@
 	} from "$lib/fancy-ui/dropdown-menu";
 </script>
 
-<DropdownMenu>
+<DropdownMenu sound>
 	<DropdownMenuTrigger>Options</DropdownMenuTrigger>
 	<DropdownMenuContent>
 		<DropdownMenuItem onSelect={() => console.log("rename")}>Rename</DropdownMenuItem>

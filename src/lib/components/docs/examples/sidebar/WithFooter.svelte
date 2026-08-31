@@ -4,9 +4,9 @@
 
 <Sidebar>
 	<SidebarGroup label="General">
-		<SidebarItem href="#dashboard" current>Dashboard</SidebarItem>
-		<SidebarItem href="#projects">Projects</SidebarItem>
-		<SidebarItem href="#settings">Settings</SidebarItem>
+		<SidebarItem sound href="#dashboard" current>Dashboard</SidebarItem>
+		<SidebarItem sound href="#projects">Projects</SidebarItem>
+		<SidebarItem sound href="#settings">Settings</SidebarItem>
 	</SidebarGroup>
 
 	<SidebarFooter>

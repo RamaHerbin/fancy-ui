@@ -27,12 +27,18 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import StreamText from "../_internals/StreamText.svelte";
 	import { autoscroll } from "../_internals/autoscroll.js";
 	import { createElapsed, formatElapsed } from "../_internals/elapsed.svelte.js";
@@ -48,6 +54,7 @@
 		onToggle,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ReasoningPanelProps = $props();
 
 	/** How long a finished trace stays on screen before folding itself away. */
@@ -103,7 +110,12 @@
 		// its own behind their back.
 		userToggled = true;
 		clearCollapseTimer();
-		commit(!isOpen);
+		const next = !isOpen;
+		// Only this click plays a cue — the streaming auto-open and the 600ms
+		// auto-collapse both fold through `commit()` and must stay silent, so the
+		// play sits here rather than in `commit()` or the effect that watches it.
+		if (sound) soundFx.play(next ? "open" : "close");
+		commit(next);
 	}
 
 	// Open on the first chunk, fold away a beat after the last one — until the

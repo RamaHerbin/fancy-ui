@@ -16,6 +16,7 @@
 {/snippet}
 
 <Dialog
+	sound
 	bind:open
 	{trigger}
 	{footer}

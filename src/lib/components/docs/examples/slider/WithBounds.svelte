@@ -5,5 +5,5 @@
 </script>
 
 <div class="w-72">
-	<Slider bind:value={brightness} min={0} max={100} label="Brightness" showValue showBounds />
+	<Slider sound bind:value={brightness} min={0} max={100} label="Brightness" showValue showBounds />
 </div>

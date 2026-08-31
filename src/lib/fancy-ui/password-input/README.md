@@ -63,6 +63,7 @@ and `disabled`:
 | `strength`      | `(value: string) => { score: 0\|1\|2\|3\|4; label: string }` | —                    | Overrides the built-in heuristic scorer — see Implementation Notes            |
 | `class`         | `string`                                                     | —                    | Additional CSS classes, merged onto the field surface, not the bare `<input>` |
 | `ref`           | `HTMLInputElement \| null`                                   | `null`               | Bindable element reference                                                    |
+| `sound`         | `boolean`                                                    | `false`              | Plays `toggle-on`/`toggle-off` when the password is revealed or hidden        |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context — see Implementation
@@ -121,6 +122,23 @@ default:
   on hover. The reveal toggle is a real `<button>`, reachable and operable
   from the keyboard, and the selection restore that follows a toggle works
   the same on touch.
+
+## Sound
+
+Set `sound` to play `toggle-on`/`toggle-off` through the shared sound
+controller (see [`sound/README.md`](../sound/README.md)) whenever the reveal
+button flips the field between hidden and shown:
+
+```svelte
+<PasswordInput bind:value={password} sound label="Password" />
+```
+
+The cue lands synchronously inside the click, before `toggleReveal`'s own
+`await tick()` that restores the caret — never after it, which would break
+the in-gesture rule the way an unresumed `AudioContext` would on a reload.
+Typing and the strength meter never play. Off by default; nothing plays
+unless both `sound` is set here **and** the user has turned sound on
+globally. Nothing plays while `disabled`.
 
 ## Implementation Notes
 

@@ -43,6 +43,6 @@
 </script>
 
 <div class="flex w-full max-w-2xl flex-col gap-4">
-	<CodeDiff diff={PATCH} />
-	<CodeDiff diff={RENAME} />
+	<CodeDiff sound diff={PATCH} />
+	<CodeDiff sound diff={RENAME} />
 </div>

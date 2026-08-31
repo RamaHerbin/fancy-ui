@@ -28,6 +28,11 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLAnchorElement | HTMLButtonElement | null;
+		/**
+		 * Plays the select cue through the sound controller. Off by default;
+		 * only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -35,6 +40,7 @@
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { SIDEBAR_KEY, type SidebarContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		href,
@@ -47,6 +53,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: SidebarItemProps = $props();
 
 	const sidebar = getContext<SidebarContext | undefined>(SIDEBAR_KEY);
@@ -77,6 +84,7 @@
 			event.preventDefault();
 			return;
 		}
+		if (sound && !current) soundFx.play("select");
 		onclick?.(event);
 	}
 </script>

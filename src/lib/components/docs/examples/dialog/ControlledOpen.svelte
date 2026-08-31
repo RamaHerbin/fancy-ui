@@ -12,6 +12,7 @@
 <Button onclick={() => (isOpen = true)}>Open dialog</Button>
 
 <Dialog
+	sound
 	open={isOpen}
 	onOpenChange={(next) => (isOpen = next)}
 	title="Restart required"

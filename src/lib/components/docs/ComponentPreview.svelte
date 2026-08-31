@@ -1,14 +1,17 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import CodeBlock from "./CodeBlock.svelte";
+	import { SoundToggle } from "$lib/fancy-ui/sound/index.js";
 
 	interface Props {
 		code?: string;
 		title?: string;
+		/** Shows the sound switch beside the tabs, for a demo whose component plays cues. */
+		sound?: boolean;
 		preview: Snippet;
 	}
 
-	let { code = "", title = "", preview }: Props = $props();
+	let { code = "", title = "", sound = false, preview }: Props = $props();
 
 	let activeTab = $state<"preview" | "code">("preview");
 </script>
@@ -20,25 +23,31 @@
 				{title}
 			</div>
 		{/if}
-		<!-- Tabs -->
-		<div class="retro-tabbar border-border flex border-b">
-			<button
-				onclick={() => (activeTab = "preview")}
-				class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'preview'
-					? 'border-foreground text-foreground border-b-2'
-					: 'text-muted-foreground hover:text-foreground'}"
-			>
-				Preview
-			</button>
-			{#if code}
+		<!-- Tabs. The sound switch rides the same bar rather than the demo itself, so every example
+		     of a sound-capable component gets one without 180-odd demos each pasting their own. -->
+		<div class="retro-tabbar border-border flex items-center justify-between border-b">
+			<div class="flex">
 				<button
-					onclick={() => (activeTab = "code")}
-					class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'code'
+					onclick={() => (activeTab = "preview")}
+					class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'preview'
 						? 'border-foreground text-foreground border-b-2'
 						: 'text-muted-foreground hover:text-foreground'}"
 				>
-					Code
+					Preview
 				</button>
+				{#if code}
+					<button
+						onclick={() => (activeTab = "code")}
+						class="px-4 py-2 text-sm font-medium transition-colors {activeTab === 'code'
+							? 'border-foreground text-foreground border-b-2'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						Code
+					</button>
+				{/if}
+			</div>
+			{#if sound}
+				<SoundToggle size="sm" class="mr-2" />
 			{/if}
 		</div>
 

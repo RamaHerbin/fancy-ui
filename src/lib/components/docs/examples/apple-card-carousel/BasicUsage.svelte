@@ -39,5 +39,5 @@
 </script>
 
 <div class="overflow-hidden py-8">
-	<AppleCardCarousel {cards} />
+	<AppleCardCarousel sound {cards} />
 </div>

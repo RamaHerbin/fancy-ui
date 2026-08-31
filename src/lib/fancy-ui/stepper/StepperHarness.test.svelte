@@ -23,6 +23,7 @@
 		orientation?: "horizontal" | "vertical";
 		clickable?: boolean;
 		onStepClick?: (index: number) => void;
+		sound?: boolean;
 	}
 
 	let {
@@ -32,6 +33,7 @@
 		orientation = "horizontal",
 		clickable = false,
 		onStepClick,
+		sound = false,
 	}: Props = $props();
 
 	let el = $state<HTMLOListElement | null>(null);
@@ -40,7 +42,15 @@
 	});
 </script>
 
-<Stepper bind:current bind:ref={el} {onCurrentChange} {orientation} {clickable} {onStepClick}>
+<Stepper
+	bind:current
+	bind:ref={el}
+	{onCurrentChange}
+	{orientation}
+	{clickable}
+	{onStepClick}
+	{sound}
+>
 	{#each items as item (item.label)}
 		<Step label={item.label} description={item.description} />
 	{/each}

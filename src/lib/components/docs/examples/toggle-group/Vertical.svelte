@@ -4,7 +4,7 @@
 	let tool = $state("select");
 </script>
 
-<ToggleGroup bind:value={tool} orientation="vertical" label="Tool">
+<ToggleGroup sound bind:value={tool} orientation="vertical" label="Tool">
 	<ToggleGroupItem value="select" label="Select">
 		<svg
 			class="size-4"

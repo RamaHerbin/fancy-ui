@@ -1,6 +1,7 @@
-import { render, screen, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import InteractiveHoverButton from "./InteractiveHoverButton.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 describe("InteractiveHoverButton", () => {
 	afterEach(cleanup);
@@ -100,5 +101,58 @@ describe("InteractiveHoverButton", () => {
 		// already pins.
 		expect(button.querySelector(".group-hover\\:scale-\\[100\\.8\\]")).toBeInTheDocument();
 		expect(button.querySelector(".translate-x-12.opacity-0")).toBeInTheDocument();
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", async () => {
+			render(InteractiveHoverButton, { props: { sound: true } });
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			render(InteractiveHoverButton);
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			render(InteractiveHoverButton, { props: { sound: true, disabled: true } });
+			const button = screen.getByRole("button");
+
+			// Synthetic dispatch bypasses jsdom's native-disabled short-circuit,
+			// proving the guard is the JS `restProps.disabled` check.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// This component's signature interaction is a hover reveal, but the hover
+		// cue is reserved for use:soundFeedback (guardrail 13) — the identity
+		// gesture must stay silent even though it's the whole point of the button.
+		it("plays nothing on hover — the hover reveal stays silent even with sound enabled", async () => {
+			render(InteractiveHoverButton, { props: { sound: true } });
+			const button = screen.getByRole("button");
+
+			await fireEvent.mouseEnter(button);
+			await fireEvent.pointerEnter(button);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

@@ -31,12 +31,18 @@
 		class?: string;
 		/** The root element, bindable. */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import StreamingText from "../streaming-text/StreamingText.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		title,
@@ -50,6 +56,7 @@
 		actions,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ArtifactCardProps = $props();
 
 	/** Spoken beside the title, since the sweep and the tint say nothing out loud. */
@@ -103,6 +110,16 @@
 	 */
 	function open(event: MouseEvent) {
 		if (fromControl(event)) return;
+		if (sound) soundFx.play("press");
+		onOpen?.();
+	}
+
+	// The Open button's own click bubbles up to the card handler above, which
+	// `fromControl()` sends home without playing anything — so the cue for that
+	// path lives here instead, or a click on the button would play nothing at
+	// all rather than playing twice.
+	function openFromButton() {
+		if (sound) soundFx.play("press");
 		onOpen?.();
 	}
 
@@ -110,6 +127,7 @@
 		const current = version ?? 1;
 		const next = current + delta;
 		if (next < 1 || next > (versionCount ?? 1)) return;
+		if (sound) soundFx.play("select");
 		onVersionChange?.(next);
 	}
 
@@ -237,7 +255,7 @@
 					type="button"
 					class="ft-artifact-open text-muted-foreground hover:text-foreground focus-visible:ring-ring ml-0.5 inline-flex cursor-pointer items-center gap-1 rounded text-xs transition-colors focus-visible:ring-1 focus-visible:outline-none"
 					aria-label="Open {title}"
-					onclick={() => onOpen?.()}
+					onclick={openFromButton}
 				>
 					Open
 					<svg

@@ -4,4 +4,10 @@
 	let time = $state<string | null>(null);
 </script>
 
-<TimePicker bind:value={time} step={15} label="Appointment slot" placeholder="15-minute slots" />
+<TimePicker
+	sound
+	bind:value={time}
+	step={15}
+	label="Appointment slot"
+	placeholder="15-minute slots"
+/>

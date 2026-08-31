@@ -7,10 +7,10 @@
 <div class="flex flex-wrap items-center gap-6">
 	{#each variants as variant (variant)}
 		<div class="flex items-center gap-2">
-			<Toggle {variant} label={`${variant}, resting`}>
+			<Toggle sound {variant} label={`${variant}, resting`}>
 				<strong>B</strong>
 			</Toggle>
-			<Toggle {variant} pressed label={`${variant}, pressed`}>
+			<Toggle sound {variant} pressed label={`${variant}, pressed`}>
 				<strong>B</strong>
 			</Toggle>
 		</div>

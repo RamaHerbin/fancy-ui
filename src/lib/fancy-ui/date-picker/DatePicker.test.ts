@@ -5,6 +5,7 @@ import DatePicker from "./DatePicker.svelte";
 import ValueHarness from "./DatePickerHarness.test.svelte";
 import FieldHarness from "./DatePickerFieldHarness.test.svelte";
 import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function trigger(container: HTMLElement): HTMLButtonElement {
 	return container.querySelector(".ft-date-picker-trigger") as HTMLButtonElement;
@@ -651,6 +652,118 @@ describe("DatePicker", () => {
 
 			expect(panel()).toBeNull();
 			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when opened by a trigger click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, { props: { sound: true } });
+
+			await fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("picking a new day plays select exactly once and never close, for the same click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, {
+				props: { value: new Date(2026, 6, 24), locale: "en-US", sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(cellFor("2026-07-24")).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(cellFor("2026-07-25")!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("re-picking the already-selected day plays close (a dismiss), never a second select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, {
+				props: { value: new Date(2026, 6, 24), locale: "en-US", sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(cellFor("2026-07-24")).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(cellFor("2026-07-24")!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("Escape plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, { props: { sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			pressEscape();
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("an outside click plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(DatePicker, { props: { sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.pointerDown(outside);
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			outside.remove();
+		});
+
+		it("toggling the trigger shut with nothing picked plays close, not select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, { props: { sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn); // open
+			play.mockClear();
+
+			await fireEvent.click(btn); // toggled shut
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, {
+				props: { value: new Date(2026, 6, 24), locale: "en-US" },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(cellFor("2026-07-24")).not.toBeNull());
+
+			await fireEvent.click(cellFor("2026-07-25")!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, { props: { disabled: true, sound: true } });
+
+			trigger(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

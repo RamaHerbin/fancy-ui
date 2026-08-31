@@ -36,6 +36,12 @@ export interface ComposerContext {
 	readonly stoppable: boolean;
 	/** The live textarea, once `ComposerInput` has mounted one. */
 	readonly textareaRef: { readonly current: HTMLTextAreaElement | null };
+	/**
+	 * Whether this composer plays sound cues — forwarded from the root's own
+	 * `sound` prop. Parts read `composer?.sound ?? false`, so a part rendered
+	 * outside a `Composer` stays silent rather than throwing.
+	 */
+	readonly sound?: boolean;
 	/** Send the draft. No-ops while disabled, while streaming, and on an empty draft. */
 	submit(): void;
 	/** Interrupt the stream. No-ops unless the composer is streaming. */

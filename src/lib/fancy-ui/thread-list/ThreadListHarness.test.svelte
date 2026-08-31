@@ -19,6 +19,7 @@
 		customItem?: boolean;
 		/** Swaps the default empty line for the local `blank` snippet below. */
 		customEmpty?: boolean;
+		sound?: boolean;
 	}
 
 	let {
@@ -29,6 +30,7 @@
 		label,
 		customItem = false,
 		customEmpty = false,
+		sound = false,
 	}: Props = $props();
 
 	// `ref` can only be proven to hand back the real root by marking whatever comes
@@ -54,6 +56,7 @@
 	{onSelect}
 	{onDelete}
 	{label}
+	{sound}
 	item={customItem ? row : undefined}
 	empty={customEmpty ? blank : undefined}
 />

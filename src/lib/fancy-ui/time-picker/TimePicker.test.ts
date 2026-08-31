@@ -6,6 +6,7 @@ import ValueHarness from "./TimePickerHarness.test.svelte";
 import FieldHarness from "./TimePickerFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
 import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function trigger(container: HTMLElement): HTMLButtonElement {
 	return container.querySelector('[role="combobox"]') as HTMLButtonElement;
@@ -584,6 +585,143 @@ describe("TimePicker", () => {
 			expect(btn.disabled).toBe(true);
 			expect(btn.getAttribute("aria-required")).toBe("true");
 			expect(btn.getAttribute("aria-invalid")).toBe("true");
+		});
+	});
+
+	describe("sound", () => {
+		it("plays open exactly once when opened by a trigger click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+
+			await fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("picking a new slot by row click plays select exactly once and never close, for the same click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, {
+				props: { locale: "en-US", value: "09:00", sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.click(optionRows()[0]); // 00:00, differs from 09:00
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("re-picking the already-selected slot plays close (a dismiss), never a second select — the highest-risk guard: ctx.commit must thread the outcome into closePanel", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, {
+				props: { locale: "en-US", value: "00:00", sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.click(optionRows()[0]); // 00:00 again — no change
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("Enter commit plays select exactly once and never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, {
+				props: { locale: "en-US", value: "09:00", sound: true },
+			});
+			const btn = trigger(container);
+			await fireEvent.click(btn); // opens, activates nearest to 09:00
+			await fireEvent.keyDown(btn, { key: "Home" }); // moves to 00:00
+			play.mockClear();
+			await fireEvent.keyDown(btn, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("Escape plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			pressEscape();
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("an outside click plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.pointerDown(outside);
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			outside.remove();
+		});
+
+		it("toggling the trigger shut with nothing committed plays close, not select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn); // open
+			play.mockClear();
+
+			await fireEvent.click(btn); // toggled shut
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		// Listbox move/moveToEdge and row pointerenter only ever set the active
+		// index — they never reach `setValue`, so they stay silent even while
+		// the panel is open and a row is highlighted.
+		it("arrow navigation and row hover never play", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn); // open — plays "open"
+			play.mockClear();
+
+			await fireEvent.keyDown(btn, { key: "ArrowDown" });
+			await fireEvent.keyDown(btn, { key: "End" });
+			await fireEvent.pointerEnter(optionRows()[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", value: "09:00" } });
+			await fireEvent.click(trigger(container));
+
+			await fireEvent.click(optionRows()[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, {
+				props: { locale: "en-US", disabled: true, sound: true },
+			});
+
+			trigger(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

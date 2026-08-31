@@ -24,4 +24,4 @@
 	{/if}
 </div>
 
-<CommandMenu bind:open {items} onSelect={handleSelect} />
+<CommandMenu sound bind:open {items} onSelect={handleSelect} />

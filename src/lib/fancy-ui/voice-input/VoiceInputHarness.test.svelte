@@ -17,6 +17,7 @@
 		onStart?: () => void;
 		onStop?: () => void;
 		onCancel?: () => void;
+		sound?: boolean;
 	}
 
 	let {
@@ -26,9 +27,10 @@
 		onStart,
 		onStop,
 		onCancel,
+		sound = false,
 	}: Props = $props();
 </script>
 
-<VoiceInput bind:active {transcript} {demo} {onStart} {onStop} {onCancel} />
+<VoiceInput bind:active {transcript} {demo} {onStart} {onStop} {onCancel} {sound} />
 
 <span data-testid="bound-active">{active ? "recording" : "idle"}</span>

@@ -51,6 +51,17 @@ const result: SearchResultData = {
 | `label`      | `string`                                            | `'Web search'` | Accessible name for the whole block                                            |
 | `class`      | `string`                                            | `undefined`    | Additional CSS classes                                                         |
 | `ref`        | `HTMLDivElement \| null`                            | `null`         | Bindable element reference                                                     |
+| `sound`      | `boolean`                                           | `false`        | Plays `select` on a picked row and `open`/`close` on the expander              |
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the user has enabled sound in their own preferences (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<WebSearch {query} {results} onSelect={open} sound />
+```
+
+Activating a row plays `select` — whether `onSelect` turns it into a button or the row falls back to a plain navigating anchor, matching every other navigational link in the family (navbar, sidebar, breadcrumb). "Show N more" plays `open`; "Show less" plays `close`. An emptied result list collapsing the expander is a direct write, not a dismissal the reader triggered, so it stays silent.
 
 ## Slots
 

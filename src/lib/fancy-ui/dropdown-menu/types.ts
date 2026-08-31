@@ -54,10 +54,9 @@ export interface MenuContext {
 	readonly itemTextClass: string;
 	/**
 	 * Whether this menu family plays sound cues — forwarded from the root's
-	 * own `sound` prop. Optional so `ContextMenu`, which builds its own
-	 * `MenuContext` without this field, keeps compiling unchanged; reads as
-	 * falsy there, which is the correct "no sound" behaviour for a family
-	 * that has no `sound` prop of its own (yet).
+	 * own `sound` prop by `DropdownMenu` and by `ContextMenuContent`.
+	 * Optional so a part rendered outside either root reads falsy, which is
+	 * the correct "no sound" answer there.
 	 */
 	readonly sound?: boolean;
 	/**

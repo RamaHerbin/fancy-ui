@@ -1,7 +1,8 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Link from "./Link.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function textChildren(text: string) {
 	return createRawSnippet(() => ({
@@ -256,5 +257,54 @@ describe("Link", () => {
 
 		expect(tokens).toContain("text-lg");
 		expect(tokens).not.toContain("text-sm");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the link is clicked", async () => {
+			render(Link, { props: { href: "/docs", sound: true } });
+
+			await fireEvent.click(screen.getByRole("link"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			render(Link, { props: { href: "/docs" } });
+
+			await fireEvent.click(screen.getByRole("link"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls the caller's onclick alongside the cue, exactly once", async () => {
+			const onclick = vi.fn();
+			render(Link, { props: { href: "/docs", sound: true, onclick } });
+
+			await fireEvent.click(screen.getByRole("link"));
+
+			expect(onclick).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("never plays on hover or focus alone — only activation", async () => {
+			render(Link, { props: { href: "/docs", sound: true } });
+			const anchor = screen.getByRole("link");
+
+			await fireEvent.mouseOver(anchor);
+			anchor.focus();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

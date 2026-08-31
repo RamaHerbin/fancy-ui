@@ -13,10 +13,11 @@
 		FancyUI
 	{/snippet}
 
-	<NavbarLink href="#docs" current={current === "docs"} onclick={() => (current = "docs")}>
+	<NavbarLink sound href="#docs" current={current === "docs"} onclick={() => (current = "docs")}>
 		Docs
 	</NavbarLink>
 	<NavbarLink
+		sound
 		href="#components"
 		current={current === "components"}
 		onclick={() => (current = "components")}
@@ -24,6 +25,7 @@
 		Components
 	</NavbarLink>
 	<NavbarLink
+		sound
 		href="#showcase"
 		current={current === "showcase"}
 		onclick={() => (current = "showcase")}

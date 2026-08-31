@@ -37,20 +37,21 @@ A confirmation dialog for consequential, hard-to-undo actions — deleting a pro
 
 ## Props
 
-| Prop           | Type                      | Default     | Description                                                                 |
-| -------------- | ------------------------- | ----------- | --------------------------------------------------------------------------- |
-| `open`         | `boolean`                 | `false`     | Whether the alert dialog is open. Bindable.                                 |
-| `onOpenChange` | `(open: boolean) => void` | —           | Fires whenever `open` changes — Confirm, Cancel, or Escape.                 |
-| `title`        | `string`                  | —           | The heading. Omitted entirely (not just visually) when not given.           |
-| `description`  | `string`                  | —           | The warning copy under the title. Same omission rule as `title`.            |
-| `confirmLabel` | `string`                  | `"Confirm"` | Label of the destructive action.                                            |
-| `cancelLabel`  | `string`                  | `"Cancel"`  | Label of the safe action.                                                   |
-| `onConfirm`    | `() => void`              | —           | Called when the destructive action is activated, before the surface closes. |
-| `onCancel`     | `() => void`              | —           | Called when the safe action is activated, and also when Escape closes it.   |
-| `initialFocus` | `HTMLElement \| null`     | —           | Element to focus once the surface opens. Defaults to the Cancel button.     |
-| `trigger`      | `Snippet`                 | —           | Optional trigger; renders in place and opens the surface on activation.     |
-| `class`        | `string`                  | —           | Additional CSS classes for the panel.                                       |
-| `ref`          | `HTMLDivElement \| null`  | `null`      | Bindable element reference to the panel.                                    |
+| Prop           | Type                      | Default     | Description                                                                                                     |
+| -------------- | ------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------- |
+| `open`         | `boolean`                 | `false`     | Whether the alert dialog is open. Bindable.                                                                     |
+| `onOpenChange` | `(open: boolean) => void` | —           | Fires whenever `open` changes — Confirm, Cancel, or Escape.                                                     |
+| `title`        | `string`                  | —           | The heading. Omitted entirely (not just visually) when not given.                                               |
+| `description`  | `string`                  | —           | The warning copy under the title. Same omission rule as `title`.                                                |
+| `confirmLabel` | `string`                  | `"Confirm"` | Label of the destructive action.                                                                                |
+| `cancelLabel`  | `string`                  | `"Cancel"`  | Label of the safe action.                                                                                       |
+| `onConfirm`    | `() => void`              | —           | Called when the destructive action is activated, before the surface closes.                                     |
+| `onCancel`     | `() => void`              | —           | Called when the safe action is activated, and also when Escape closes it.                                       |
+| `initialFocus` | `HTMLElement \| null`     | —           | Element to focus once the surface opens. Defaults to the Cancel button.                                         |
+| `trigger`      | `Snippet`                 | —           | Optional trigger; renders in place and opens the surface on activation.                                         |
+| `class`        | `string`                  | —           | Additional CSS classes for the panel.                                                                           |
+| `ref`          | `HTMLDivElement \| null`  | `null`      | Bindable element reference to the panel.                                                                        |
+| `sound`        | `boolean`                 | `false`     | Plays `open` on the trigger, `select` on Confirm and `close` on Cancel/Escape, once the user has enabled sound. |
 
 ## The dismiss decision, and why
 
@@ -77,6 +78,26 @@ Identical to `Dialog`'s, because it is the same surface: panel and backdrop arri
 
 - **Reduced motion** — every transition collapses to a duration of zero and the framework skips the animation entirely: the surface appears and disappears instantly and the close is fully synchronous, exactly as it behaved before it animated.
 - **Touch and coarse pointers** — unchanged; neither direction is pointer-gated.
+
+## Sound
+
+Set `sound` to play a cue for each of the three outcomes, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<AlertDialog
+	sound
+	{trigger}
+	title="Delete this project?"
+	confirmLabel="Delete"
+	onConfirm={deleteProject}
+/>
+```
+
+- **`open`** — the trigger opens the prompt.
+- **`select`** — the destructive action is confirmed. This is a commit, so the close underneath it is silent — never both `select` and `close` for one Confirm.
+- **`close`** — Cancel or Escape backs out. Both route through the same `handleCancel`, so a repeated Escape during the exit plays `close` at most once, never twice.
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the alert dialog **and** the user has turned sound on globally. The cue is never forwarded to the internal Cancel/Confirm buttons — they render as plain `Button`s with no `sound` prop of their own, so an activation plays exactly one cue, not two.
 
 ## Implementation notes
 

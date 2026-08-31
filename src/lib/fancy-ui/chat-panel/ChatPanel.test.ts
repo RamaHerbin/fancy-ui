@@ -3,6 +3,7 @@ import { createRawSnippet } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import ChatPanel from "./ChatPanel.svelte";
 import ChatEmptyState from "./ChatEmptyState.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -324,6 +325,64 @@ describe("ChatPanel", () => {
 
 		expect(pill(container)?.textContent).toContain("Jump to latest");
 		vi.unstubAllGlobals();
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when the jump-to-latest pill is activated, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ChatPanel, {
+				props: { children: snippet("<p>two turns</p>"), sound: true },
+			});
+			await scrollAway(container);
+
+			await fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ChatPanel, {
+				props: { children: snippet("<p>two turns</p>") },
+			});
+			await scrollAway(container);
+
+			await fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing from handleScroll/handleMutation/mount — only the pill's own click plays", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ChatPanel, {
+				props: { children: snippet("<p>two turns</p>"), sound: true },
+			});
+
+			// Mount's own initial snap, plus a plain scroll — neither is a gesture.
+			await scrollAway(container);
+			const region = scrollRegion(container);
+			region.scrollTop = BOTTOM;
+			await fireEvent.scroll(region);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one pill click plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ChatPanel, {
+				props: { children: snippet("<p>two turns</p>"), sound: true },
+			});
+			await scrollAway(container);
+
+			await fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });
 

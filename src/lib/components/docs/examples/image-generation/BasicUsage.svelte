@@ -68,6 +68,7 @@
 	<ImageGeneration {status} src={artwork} alt={PROMPT} prompt={PROMPT} />
 
 	<ImageGeneration
+		sound
 		status="error"
 		alt="a rain-slicked alley at night, neon signage"
 		prompt="a rain-slicked alley at night, neon signage"

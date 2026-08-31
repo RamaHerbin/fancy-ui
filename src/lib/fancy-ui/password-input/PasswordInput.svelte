@@ -40,6 +40,11 @@
 		class?: string;
 		/** Element reference. */
 		ref?: HTMLInputElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -50,6 +55,7 @@
 	import { preset } from "../_internals/motion/transitions.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 	import { DURATIONS } from "../_internals/motion/tokens.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	// The reveal toggle swaps one 16px glyph for another in place. A hard cut
 	// at that scale reads as a flicker, so the two icons cross-fade over
@@ -87,6 +93,7 @@
 		strength,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: PasswordInputProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -197,6 +204,7 @@
 		const direction = el?.selectionDirection ?? undefined;
 
 		revealed = !revealed;
+		if (sound) soundFx.play(revealed ? "toggle-on" : "toggle-off");
 		await tick();
 
 		if (el && start !== null && end !== null) {

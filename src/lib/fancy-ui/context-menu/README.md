@@ -154,6 +154,7 @@ What is **not** shared, because it is genuinely different:
 | `offset`       | `number`                                 | `2`        | Gap in pixels between the pointer and the menu                         |
 | `loop`         | `boolean`                                | `true`     | Whether arrow-key navigation wraps at the ends                         |
 | `children`     | `Snippet`                                | —          | The `ContextMenuTrigger` and `ContextMenuContent`                      |
+| `sound`        | `boolean`                                | `false`    | Plays `open`/`close`/`select` cues — see [Sound](#sound) below         |
 
 ### ContextMenuTrigger
 
@@ -173,6 +174,33 @@ Same shape as `DropdownMenuContent` (`children`, `class`, `ref`) — see
 
 Identical props to their `DropdownMenu*` counterparts — see
 `dropdown-menu/README.md`'s Props section; these are the same components.
+
+## Sound
+
+Set `sound` on the root to opt into interface cues, off by default and
+silent until the user has enabled sound in their own preferences:
+
+```svelte
+<ContextMenu sound>
+	<ContextMenuTrigger>...</ContextMenuTrigger>
+	<ContextMenuContent>...</ContextMenuContent>
+</ContextMenu>
+```
+
+`open` plays when a right-click (or its keyboard equivalents) opens the
+menu; a second right-click while it is already open only repositions the
+panel and plays nothing again, the same `open === next` early return that
+makes the panel itself idempotent. `close` plays when Escape, an outside
+click or Tab dismisses it. Selecting an item plays `select` instead of
+`close`, never both — the shared `DropdownMenuItem` this family's items
+really are plays `select` first, then closes the menu silently
+(`{ silent: true }`), so one activation is always exactly one cue. A
+submenu — `dropdown-menu`'s own `DropdownMenuSub`, re-exported under this
+family's names — inherits `sound` through the same `MenuContext` and sounds
+like the panel it is: opening it plays `open`, closing it yourself (ArrowLeft,
+Escape, the pointer leaving) plays `close`, and a close driven by the parent
+(the whole tree closing after a selection, or a sibling submenu opening)
+stays silent.
 
 ## Theming
 

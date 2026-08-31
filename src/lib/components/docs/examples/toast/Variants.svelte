@@ -23,7 +23,7 @@
 	}
 </script>
 
-<Toaster />
+<Toaster sound />
 <div class="flex flex-wrap gap-2">
 	<Button variant="outline" onclick={showSuccess}>Success</Button>
 	<Button variant="outline" onclick={showError}>Error</Button>

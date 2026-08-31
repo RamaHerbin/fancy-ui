@@ -30,6 +30,11 @@
 		class?: string;
 		/** Bindable reference to the input element. */
 		ref?: HTMLInputElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -40,6 +45,7 @@
 	import { createListbox } from "../_internals/listbox.svelte.js";
 	import { AUTOCOMPLETE_KEY, type AutocompleteContext } from "./types.js";
 	import AutocompletePanel from "./AutocompletePanel.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		suggestions,
@@ -57,6 +63,7 @@
 		maxSuggestions = 8,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: AutocompleteProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -116,8 +123,14 @@
 	// The only place a suggestion becomes the value. A plain function, not an
 	// `$effect`, so it doesn't fight a caller's own `bind:value` write.
 	function commit(suggestion: string) {
+		// Re-picking the suggestion already in force changes nothing — matching
+		// the changed-only rule every other value-holding component follows
+		// (Select, Tabs, DatePicker, ...) even where, as here, there is no
+		// second cue to fall back on.
+		const changed = value !== suggestion;
 		value = suggestion;
 		open = false;
+		if (sound && !effectiveDisabled && changed) soundFx.play("select");
 		onValueChange?.(suggestion);
 		onSelect?.(suggestion);
 	}

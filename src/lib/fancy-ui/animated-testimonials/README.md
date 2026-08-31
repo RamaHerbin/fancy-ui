@@ -25,14 +25,25 @@ A testimonial carousel that cross-fades between quote/author pairs, with a match
 
 ## Props
 
-| Prop           | Type            | Default | Description                                 |
-| -------------- | --------------- | ------- | ------------------------------------------- |
-| `testimonials` | `Testimonial[]` | —       | Array of testimonials to display (required) |
-| `autoplay`     | `boolean`       | `false` | Auto-advance testimonials                   |
-| `interval`     | `number`        | `5000`  | Interval between auto-advances (ms)         |
-| `class`        | `string`        | —       | Additional CSS classes on the root          |
+| Prop           | Type            | Default | Description                                                                                                |
+| -------------- | --------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `testimonials` | `Testimonial[]` | —       | Array of testimonials to display (required)                                                                |
+| `autoplay`     | `boolean`       | `false` | Auto-advance testimonials                                                                                  |
+| `interval`     | `number`        | `5000`  | Interval between auto-advances (ms)                                                                        |
+| `class`        | `string`        | —       | Additional CSS classes on the root                                                                         |
+| `sound`        | `boolean`       | `false` | Plays the `select` cue when Previous or Next moves to another testimonial, once the user has enabled sound |
 
 `Testimonial` shape: `{ quote: string; name: string; designation: string; src: string }` — `src` is the author's avatar image URL.
+
+## Sound
+
+Set `sound` to play the `select` cue when the Previous or Next control moves to another testimonial, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<AnimatedTestimonials {testimonials} sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set and the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue is gesture-only — `navigate()` takes an internal `fromUser` flag that only the two button `onclick`s set to `true`, so the autoplay `$effect`'s own call to `navigate("next")` never plays it; without that split, autoplay would turn into a metronome. It also respects the existing `isAnimating` guard (a click mid-transition plays nothing) and requires more than one testimonial, since a single-item carousel "advances" back to the same index.
 
 ## Implementation notes
 

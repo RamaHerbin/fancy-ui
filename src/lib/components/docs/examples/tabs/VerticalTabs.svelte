@@ -4,7 +4,7 @@
 	let section = $state("general");
 </script>
 
-<Tabs bind:value={section} orientation="vertical">
+<Tabs sound bind:value={section} orientation="vertical">
 	<div class="flex gap-6">
 		<TabsList>
 			<TabsTrigger value="general">General</TabsTrigger>

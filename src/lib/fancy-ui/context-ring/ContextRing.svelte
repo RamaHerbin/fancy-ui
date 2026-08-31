@@ -25,6 +25,11 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -32,6 +37,7 @@
 	import { onMount } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { float } from "../_internals/float.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		usage,
@@ -44,6 +50,7 @@
 		expandable = false,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ContextRingProps = $props();
 
 	/** Shown in the popover when a caller asked for one but sent no rows. */
@@ -164,8 +171,22 @@
 	let open = $state(false);
 	let trigger = $state<HTMLButtonElement | null>(null);
 
+	// One place every dismissal funnels through, so the toggle, Escape and an
+	// outside pointerdown all give exactly one `close` cue rather than each
+	// wiring its own.
+	function close() {
+		if (!open) return;
+		open = false;
+		if (sound) soundFx.play("close");
+	}
+
 	function toggle() {
-		open = !open;
+		if (!open) {
+			open = true;
+			if (sound) soundFx.play("open");
+			return;
+		}
+		close();
 	}
 
 	// Taking expandability away takes the panel with it. Left open, it would keep
@@ -183,14 +204,14 @@
 
 		const onKeydown = (event: KeyboardEvent) => {
 			if (event.key !== "Escape") return;
-			open = false;
+			close();
 			// Focus goes back to what opened the panel, not to the top of the page.
 			trigger?.focus();
 		};
 		const onPointerDown = (event: Event) => {
 			const target = event.target as Node | null;
 			if (target && ref?.contains(target)) return;
-			open = false;
+			close();
 		};
 
 		window.addEventListener("keydown", onKeydown);
