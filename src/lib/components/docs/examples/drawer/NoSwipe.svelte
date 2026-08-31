@@ -8,6 +8,7 @@
 <Button onclick={() => (open = true)}>Open drawer</Button>
 
 <Drawer
+	sound
 	bind:open
 	swipeToClose={false}
 	title="Filters"

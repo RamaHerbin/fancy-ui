@@ -1,7 +1,8 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Toggle from "./Toggle.svelte";
 import Harness from "./ToggleHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function button(container: HTMLElement): HTMLButtonElement {
 	return container.querySelector("button") as HTMLButtonElement;
@@ -164,5 +165,54 @@ describe("Toggle", () => {
 		// the rendered button is what proves the two are the same element.
 		const { container } = render(Harness);
 		expect(button(container).getAttribute("data-bound-ref")).toBe("yes");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays toggle-on exactly once when activating while off, with sound enabled", async () => {
+			const { container } = render(Toggle, { props: { sound: true, pressed: false } });
+
+			await fireEvent.click(button(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays toggle-off exactly once when activating while on, with sound enabled", async () => {
+			const { container } = render(Toggle, { props: { sound: true, pressed: true } });
+
+			await fireEvent.click(button(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Toggle, { props: { pressed: false } });
+
+			await fireEvent.click(button(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const { container } = render(Toggle, {
+				props: { sound: true, disabled: true, pressed: false },
+			});
+			const el = button(container);
+
+			el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

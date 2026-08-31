@@ -4,4 +4,4 @@
 	let quantity = $state<number | null>(12);
 </script>
 
-<NumberInput bind:value={quantity} label="Quantity" />
+<NumberInput sound bind:value={quantity} label="Quantity" />

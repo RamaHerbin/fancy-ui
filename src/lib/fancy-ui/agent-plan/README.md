@@ -57,6 +57,7 @@ Only `id`, `label`, and `status` are required. Give each step an `id` that is un
 | `item`         | `Snippet<[PlanStepData, number]>` | `undefined` | Replaces the row body, keeping the glyph and indent     |
 | `class`        | `string`                          | `undefined` | Additional CSS classes                                  |
 | `ref`          | `HTMLDivElement \| null`          | `null`      | Bindable reference to the root element                  |
+| `sound`        | `boolean`                         | `false`     | Plays the `select` cue on row activation                |
 
 ## Counting
 
@@ -124,6 +125,16 @@ The `--ft-agentplan-*` names below sit in front of the shared ones, for the case
 | `--ft-agentplan-rail`      | `currentColor` at 16%          | The line beside a group of substeps |
 | `--ft-agentplan-track-bg`  | `currentColor` at 12%          | The unfilled part of the bar        |
 | `--ft-agentplan-indent`    | `1.5rem`                       | How far a substep sits in           |
+
+## Sound
+
+Set `sound` to play the `select` cue when a row is activated, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<AgentPlan {steps} onSelect={(step) => inspect(step)} sound />
+```
+
+It only fires from the `{#if onSelect}` button branch — a plan with no `onSelect` renders plain, inert rows and never plays anything. Every activation plays, repeats included: the component holds no "currently selected" step to compare against, so picking the same row twice is two fresh gestures, not one. Off by default; only audible once the user has separately turned sound on.
 
 ## Implementation Notes
 

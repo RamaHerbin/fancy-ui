@@ -62,19 +62,20 @@ Pin actions to the bottom of the panel with `footer`:
 
 ## Props
 
-| Prop           | Type                                     | Default   | Description                                                        |
-| -------------- | ---------------------------------------- | --------- | ------------------------------------------------------------------ |
-| `open`         | `boolean`                                | `false`   | Whether the sheet is open; bindable                                |
-| `onOpenChange` | `(open: boolean) => void`                | —         | Called with the new value whenever the sheet opens or closes       |
-| `side`         | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Edge of the viewport the panel slides in from                      |
-| `title`        | `string`                                 | —         | Heading rendered in the header and wired to `aria-labelledby`      |
-| `description`  | `string`                                 | —         | Supporting text under the title, wired to `aria-describedby`       |
-| `dismissible`  | `boolean`                                | `true`    | Whether Escape, the scrim and the close button can close the sheet |
-| `size`         | `"sm" \| "md" \| "lg"`                   | `"md"`    | Panel width (left/right sides) or height (top/bottom sides)        |
-| `children`     | `Snippet`                                | —         | Panel body content                                                 |
-| `footer`       | `Snippet`                                | —         | Content pinned below the body, e.g. actions                        |
-| `class`        | `string`                                 | —         | Additional CSS classes merged onto the panel                       |
-| `ref`          | `HTMLDivElement \| null`                 | `null`    | Bindable element reference to the panel                            |
+| Prop           | Type                                     | Default   | Description                                                                |
+| -------------- | ---------------------------------------- | --------- | -------------------------------------------------------------------------- |
+| `open`         | `boolean`                                | `false`   | Whether the sheet is open; bindable                                        |
+| `onOpenChange` | `(open: boolean) => void`                | —         | Called with the new value whenever the sheet opens or closes               |
+| `side`         | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Edge of the viewport the panel slides in from                              |
+| `title`        | `string`                                 | —         | Heading rendered in the header and wired to `aria-labelledby`              |
+| `description`  | `string`                                 | —         | Supporting text under the title, wired to `aria-describedby`               |
+| `dismissible`  | `boolean`                                | `true`    | Whether Escape, the scrim and the close button can close the sheet         |
+| `size`         | `"sm" \| "md" \| "lg"`                   | `"md"`    | Panel width (left/right sides) or height (top/bottom sides)                |
+| `children`     | `Snippet`                                | —         | Panel body content                                                         |
+| `footer`       | `Snippet`                                | —         | Content pinned below the body, e.g. actions                                |
+| `class`        | `string`                                 | —         | Additional CSS classes merged onto the panel                               |
+| `ref`          | `HTMLDivElement \| null`                 | `null`    | Bindable element reference to the panel                                    |
+| `sound`        | `boolean`                                | `false`   | Plays `close` when the sheet is dismissed, once the user has enabled sound |
 
 ## Theming
 
@@ -99,6 +100,16 @@ The close is where the work is. `open` still flips the instant you dismiss — n
 
 - **Reduced motion** — every transition collapses to a duration of zero, which makes the framework skip the animation entirely. The sheet appears and disappears instantly, and the close is fully synchronous again — exactly the behaviour this component had before it animated out at all. Neither surface has a hidden resting state, so nothing is ever left off-screen waiting for an animation that will not run.
 - **Touch and coarse pointers** — unchanged; neither the entrance nor the exit is pointer-gated, and the sheet has no drag gesture of its own.
+
+## Sound
+
+Set `sound` to play `close` whenever the sheet is dismissed — the close button, Escape or the scrim — through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Sheet bind:open sound title="Settings">...</Sheet>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the sheet **and** the user has turned sound on globally. The cue is asymmetric by design — there is no `open` cue. The sheet has no internal open gesture of its own (opening is always programmatic, through `bind:open` or a caller-driven `open`/`onOpenChange` pair), and every dismiss path funnels through the same `close()`, whose own `if (!open) return` guard is what keeps a second Escape mid-exit — or any other redundant dismiss — silent rather than doubling the cue. `dismissible={false}` makes the sheet entirely silent, since none of its three dismiss paths can reach `close()` at all.
 
 ## Implementation Notes
 

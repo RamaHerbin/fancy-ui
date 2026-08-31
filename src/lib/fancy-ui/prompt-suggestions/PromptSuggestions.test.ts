@@ -1,7 +1,8 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import PromptSuggestions from "./PromptSuggestions.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 const SUGGESTIONS = ["Summarize this", "Explain the tradeoffs", "Draft a reply"];
 
@@ -163,5 +164,59 @@ describe("PromptSuggestions", () => {
 		expect(cls).toContain("flex");
 		expect(cls).toContain("flex-wrap");
 		expect(cls).toContain("mt-4");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when a pill is picked with sound enabled", async () => {
+			const { container } = render(PromptSuggestions, {
+				props: { suggestions: SUGGESTIONS, sound: true },
+			});
+
+			await fireEvent.click(pills(container)[1]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(PromptSuggestions, { props: { suggestions: SUGGESTIONS } });
+
+			await fireEvent.click(pills(container)[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("reports the right suggestion and index alongside the cue, one pick at a time", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(PromptSuggestions, {
+				props: { suggestions: SUGGESTIONS, sound: true, onSelect },
+			});
+
+			await fireEvent.click(pills(container)[2]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledWith("Draft a reply", 2);
+		});
+
+		it("never plays when the staggered entrance replays — only a pick plays the cue", async () => {
+			const { container, rerender } = render(PromptSuggestions, {
+				props: { suggestions: SUGGESTIONS, sound: true, visible: false },
+			});
+
+			await rerender({ suggestions: SUGGESTIONS, sound: true, visible: true });
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

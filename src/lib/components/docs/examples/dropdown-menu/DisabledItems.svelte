@@ -7,7 +7,7 @@
 	} from "$lib/fancy-ui/dropdown-menu";
 </script>
 
-<DropdownMenu>
+<DropdownMenu sound>
 	<DropdownMenuTrigger>Edit</DropdownMenuTrigger>
 	<DropdownMenuContent>
 		<DropdownMenuItem onSelect={() => console.log("undo")}>Undo</DropdownMenuItem>

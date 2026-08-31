@@ -15,5 +15,5 @@
 	error={deadline ? undefined : "Pick a deadline before continuing."}
 	class="w-full max-w-sm"
 >
-	<DatePicker bind:value={deadline} />
+	<DatePicker sound bind:value={deadline} />
 </FormField>

@@ -27,6 +27,15 @@
 		class?: string;
 		/** The root element, bindable. */
 		ref?: HTMLElement | null;
+		/**
+		 * Plays press on a message action and select on a branch step,
+		 * through the sound controller. Off by default; only audible once
+		 * the user has enabled sound. Threaded to `ChatMessageAction` and
+		 * `ChatMessageBranches` through context — enable it on one layer
+		 * only, since a sound-enabled action nested inside another
+		 * sound-enabled control would otherwise double-play.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -50,6 +59,7 @@
 		footer,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ChatMessageProps = $props();
 
 	const LABELS = {
@@ -75,6 +85,9 @@
 			get current() {
 				return pointerInside || focusInside;
 			},
+		},
+		get sound() {
+			return sound;
 		},
 	};
 

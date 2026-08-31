@@ -14,6 +14,6 @@
 
 <div class="flex flex-wrap items-center gap-3">
 	{#each variants as { variant, label } (variant)}
-		<Button {variant}>{label}</Button>
+		<Button sound {variant}>{label}</Button>
 	{/each}
 </div>

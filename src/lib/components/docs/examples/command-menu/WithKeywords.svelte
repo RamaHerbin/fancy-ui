@@ -21,4 +21,4 @@
 
 <Button onclick={() => (open = true)}>Open command menu</Button>
 
-<CommandMenu bind:open {items} placeholder="Try “invoice” or “hotkeys”…" />
+<CommandMenu sound bind:open {items} placeholder="Try “invoice” or “hotkeys”…" />

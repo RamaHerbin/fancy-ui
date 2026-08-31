@@ -86,5 +86,5 @@
 	sequence plays inside a box that never changes size.
 -->
 <div class="min-h-[24rem] w-full max-w-xl">
-	<WebSearch query={QUERY} {results} {searching} />
+	<WebSearch sound query={QUERY} {results} {searching} />
 </div>

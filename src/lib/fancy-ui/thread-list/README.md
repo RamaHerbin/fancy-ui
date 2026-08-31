@@ -58,6 +58,7 @@ interface ThreadData {
 | `empty`    | `Snippet`                        | `undefined`       | Replaces the built-in "No conversations yet" line                       |
 | `class`    | `string`                         | `undefined`       | Additional CSS classes                                                  |
 | `ref`      | `HTMLElement \| null`            | `null`            | Bindable reference to the root element                                  |
+| `sound`    | `boolean`                        | `false`           | Plays `select` on pick and `press` on delete, once enabled              |
 
 ## Selection
 
@@ -80,6 +81,16 @@ Pass `onDelete` and every row grows a delete button, hidden at rest and revealed
 Its accessible name is the whole sentence — `"Delete Migration plan"` — rather than a bare "Delete" repeated down a list of otherwise identical buttons. It is a sibling of the row button, not a child (nesting buttons is invalid HTML), so deleting never selects on the way through.
 
 Nothing is deleted for you: the row disappears when the next `threads` array arrives without it, which keeps an undo or a confirmation dialog entirely yours.
+
+## Sound
+
+Set `sound` to play a cue on each gesture, through the shared sound controller (see [`sound/README.md`](../sound/README.md)): `select` when a different conversation is picked, `press` when one is deleted.
+
+```svelte
+<ThreadList {threads} bind:activeId onDelete={(thread) => archive(thread.id)} sound />
+```
+
+It is opt-in and silent by default. Picking the row that is already active plays nothing — the same changed-only rule `Sidebar`, `Navbar` and `Tabs` follow — though `onSelect` and the `activeId` write still fire unconditionally. Deleting stops the click from reaching the row underneath it, which is also what keeps one delete from ever playing both `press` and `select`.
 
 ## Timestamps
 

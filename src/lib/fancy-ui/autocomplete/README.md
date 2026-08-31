@@ -70,26 +70,45 @@ and `disabled`, the same as `Input`:
 
 ## Props
 
-| Prop             | Type                           | Default | Description                                                      |
-| ---------------- | ------------------------------ | ------- | ---------------------------------------------------------------- |
-| `suggestions`    | `string[]`                     | —       | Candidate strings offered as the user types                      |
-| `value`          | `string`                       | `""`    | The free-text value. Bindable                                    |
-| `onValueChange`  | `(value: string) => void`      | —       | Called with the new value on every keystroke                     |
-| `onSelect`       | `(suggestion: string) => void` | —       | Called only when a suggestion is committed via click or Enter    |
-| `placeholder`    | `string`                       | —       | Shown while the field is empty                                   |
-| `disabled`       | `boolean`                      | `false` | Blocks focus and typing; excluded from form submission           |
-| `required`       | `boolean`                      | `false` | Native `required`                                                |
-| `invalid`        | `boolean`                      | `false` | Drives the error border and `aria-invalid`                       |
-| `id`             | `string`                       | —       | Element id                                                       |
-| `name`           | `string`                       | —       | Native `name`, read on form submission                           |
-| `label`          | `string`                       | —       | Accessible name — for a control with no visible Label next to it |
-| `minLength`      | `number`                       | `1`     | Characters required before suggestions appear                    |
-| `maxSuggestions` | `number`                       | `8`     | Maximum number of suggestions shown at once                      |
-| `class`          | `string`                       | —       | Additional CSS classes                                           |
-| `ref`            | `HTMLInputElement \| null`     | `null`  | Bindable reference to the input element                          |
+| Prop             | Type                           | Default | Description                                                              |
+| ---------------- | ------------------------------ | ------- | ------------------------------------------------------------------------ |
+| `suggestions`    | `string[]`                     | —       | Candidate strings offered as the user types                              |
+| `value`          | `string`                       | `""`    | The free-text value. Bindable                                            |
+| `onValueChange`  | `(value: string) => void`      | —       | Called with the new value on every keystroke                             |
+| `onSelect`       | `(suggestion: string) => void` | —       | Called only when a suggestion is committed via click or Enter            |
+| `placeholder`    | `string`                       | —       | Shown while the field is empty                                           |
+| `disabled`       | `boolean`                      | `false` | Blocks focus and typing; excluded from form submission                   |
+| `required`       | `boolean`                      | `false` | Native `required`                                                        |
+| `invalid`        | `boolean`                      | `false` | Drives the error border and `aria-invalid`                               |
+| `id`             | `string`                       | —       | Element id                                                               |
+| `name`           | `string`                       | —       | Native `name`, read on form submission                                   |
+| `label`          | `string`                       | —       | Accessible name — for a control with no visible Label next to it         |
+| `minLength`      | `number`                       | `1`     | Characters required before suggestions appear                            |
+| `maxSuggestions` | `number`                       | `8`     | Maximum number of suggestions shown at once                              |
+| `class`          | `string`                       | —       | Additional CSS classes                                                   |
+| `ref`            | `HTMLInputElement \| null`     | `null`  | Bindable reference to the input element                                  |
+| `sound`          | `boolean`                      | `false` | Plays the `select` cue through the sound controller. See [Sound](#sound) |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<Autocomplete suggestions={cities} bind:value={city} sound />
+```
+
+`select` plays once a suggestion commits — by a row click or Enter on the
+active row — and only when it actually changes `value`; re-picking the
+suggestion already in force plays nothing, the same changed-only rule every
+other value-holding component follows (Select, Tabs, DatePicker, ...),
+`onValueChange`/`onSelect` still fire either way. Typing, the focus-open and
+blur-close, and a suggestion list auto-closing because the query stopped
+matching all stay silent — there is no `close` cue here, the same shape as
+[Combobox](../combobox/README.md).
 
 ## Theming
 

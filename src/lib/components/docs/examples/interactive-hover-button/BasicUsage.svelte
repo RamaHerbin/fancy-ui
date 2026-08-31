@@ -2,4 +2,4 @@
 	import { InteractiveHoverButton } from "$lib/fancy-ui/interactive-hover-button";
 </script>
 
-<InteractiveHoverButton />
+<InteractiveHoverButton sound />

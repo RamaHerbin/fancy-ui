@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import IconButton from "./IconButton.svelte";
 import type { ButtonSize, ButtonVariant } from "../button/types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function icon(html = '<svg aria-hidden="true"><path d="M4 4h8v8H4z" /></svg>') {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -146,5 +147,58 @@ describe("IconButton", () => {
 			props: { label: "Action", class: "my-icon-button", children: icon() },
 		});
 		expect(root(container).className.split(/\s+/)).toContain("my-icon-button");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", async () => {
+			const { container } = render(IconButton, {
+				props: { sound: true, label: "Like", children: icon() },
+			});
+
+			await fireEvent.click(root(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(IconButton, {
+				props: { label: "Like", children: icon() },
+			});
+
+			await fireEvent.click(root(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const { container } = render(IconButton, {
+				props: { sound: true, disabled: true, label: "Delete", children: icon() },
+			});
+
+			root(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while loading, even with sound enabled", () => {
+			const { container } = render(IconButton, {
+				props: { sound: true, loading: true, label: "Save", children: icon() },
+			});
+
+			root(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

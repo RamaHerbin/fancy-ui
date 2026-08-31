@@ -10,6 +10,7 @@
 </script>
 
 <DatePicker
+	sound
 	bind:value={selected}
 	isDateDisabled={isWeekend}
 	label="Delivery date"

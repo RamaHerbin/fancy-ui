@@ -1,6 +1,7 @@
-import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import LineHoverLink from "./LineHoverLink.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 describe("LineHoverLink", () => {
 	afterEach(() => {
@@ -110,5 +111,55 @@ describe("LineHoverLink", () => {
 		} finally {
 			window.matchMedia = real;
 		}
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when the link is activated, with sound enabled", async () => {
+			const { container } = render(LineHoverLink, { props: { href: "#", sound: true } });
+
+			await fireEvent.click(container.querySelector("a")!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(LineHoverLink, { props: { href: "#" } });
+
+			await fireEvent.click(container.querySelector("a")!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("never preventDefaults the click — navigation stays untouched", async () => {
+			const { container } = render(LineHoverLink, { props: { href: "#", sound: true } });
+			const el = container.querySelector("a")!;
+			const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+
+			el.dispatchEvent(event);
+
+			expect(event.defaultPrevented).toBe(false);
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing on hover or focus — the CSS underline animation stays silent", async () => {
+			const { container } = render(LineHoverLink, { props: { href: "#", sound: true } });
+			const el = container.querySelector("a")!;
+
+			await fireEvent.mouseEnter(el);
+			await fireEvent.focus(el);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

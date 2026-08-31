@@ -20,11 +20,17 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { formatRelativeTime } from "../_internals/relative-time.js";
 	import { createNow } from "../_internals/elapsed.svelte.js";
 
@@ -36,6 +42,7 @@
 		label = "Activity",
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ToolTimelineProps = $props();
 
 	// A relative label is only recomputed when something makes this component
@@ -48,6 +55,13 @@
 	function iso(timestamp: Date | number) {
 		const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
 		return Number.isFinite(date.getTime()) ? date.toISOString() : "";
+	}
+
+	/** A row activation is a fresh gesture every time — an appended entry or the
+	 *  shared clock ticking never routes through here, only an actual pick does. */
+	function selectEntry(entry: ToolTimelineItemData, index: number) {
+		if (sound) soundFx.play("select");
+		onSelect?.(entry, index);
 	}
 </script>
 
@@ -125,7 +139,7 @@
 					<button
 						type="button"
 						class="ft-tooltimeline-body hover:bg-muted/60 focus-visible:ring-ring flex w-full cursor-pointer items-baseline gap-3 rounded-md text-left transition-colors focus-visible:ring-1 focus-visible:outline-none"
-						onclick={() => onSelect?.(entry, index)}
+						onclick={() => selectEntry(entry, index)}
 					>
 						{@render body()}
 					</button>

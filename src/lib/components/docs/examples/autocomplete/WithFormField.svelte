@@ -14,5 +14,5 @@
 	error={city ? undefined : "Enter a city before continuing."}
 	class="w-full max-w-sm"
 >
-	<Autocomplete suggestions={cities} bind:value={city} />
+	<Autocomplete sound suggestions={cities} bind:value={city} />
 </FormField>

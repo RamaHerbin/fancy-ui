@@ -4,4 +4,4 @@
 	let time = $state<string | null>(null);
 </script>
 
-<TimePicker bind:value={time} label="Time" />
+<TimePicker sound bind:value={time} label="Time" />

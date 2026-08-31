@@ -34,7 +34,7 @@
 	</p>
 
 	<div class="border-border flex items-center gap-3 border-t pt-6">
-		<ContextRing usage={detailed} size={34} strokeWidth={4} expandable />
+		<ContextRing sound usage={detailed} size={34} strokeWidth={4} expandable />
 		<span class="text-muted-foreground text-xs">
 			Press the ring for the breakdown. Escape closes it.
 		</span>

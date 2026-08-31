@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { examplesRegistry } from "./examples/registry.js";
 	import ComponentPreview from "./ComponentPreview.svelte";
+	import { hasSoundProp } from "$lib/fancy-ui/registry.js";
 	import { t } from "$lib/stores";
 
 	interface Props {
@@ -8,6 +9,8 @@
 	}
 
 	let { slug }: Props = $props();
+
+	let soundCapable = $derived(hasSoundProp(slug));
 
 	// Raw example source is inlined at build time so the titles, descriptions and snippets are
 	// part of the prerendered HTML. The [slug] page eager-globs these same modules, so this
@@ -86,7 +89,7 @@
 					{#if example.description}
 						<p class="text-muted-foreground mb-3 text-sm">{example.description}</p>
 					{/if}
-					<ComponentPreview code={example.code}>
+					<ComponentPreview code={example.code} sound={soundCapable}>
 						{#snippet preview()}
 							{@const Live = liveComponents[example.path] as any}
 							{#if Live}

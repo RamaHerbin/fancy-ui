@@ -3,7 +3,7 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-3">
-	<IconButton label="Settings (square)" variant="outline" shape="square">
+	<IconButton sound label="Settings (square)" variant="outline" shape="square">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -21,7 +21,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Settings (circle)" variant="outline" shape="circle">
+	<IconButton sound label="Settings (circle)" variant="outline" shape="circle">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -39,7 +39,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Like (square)" variant="ghost" shape="square">
+	<IconButton sound label="Like (square)" variant="ghost" shape="square">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -56,7 +56,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Like (circle)" variant="ghost" shape="circle">
+	<IconButton sound label="Like (circle)" variant="ghost" shape="circle">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"

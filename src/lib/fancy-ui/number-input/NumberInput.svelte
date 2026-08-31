@@ -28,6 +28,11 @@
 		class?: string;
 		/** Reference to the underlying `<input>`. */
 		ref?: HTMLInputElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -36,6 +41,7 @@
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
 	import { DURATIONS } from "../_internals/motion/tokens.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value = $bindable(null),
@@ -52,6 +58,7 @@
 		label,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: NumberInputProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -184,6 +191,7 @@
 		const next = nextStepValue(direction);
 		value = next;
 		rawText = String(next);
+		if (sound) soundFx.play("tick");
 		onValueChange?.(next);
 		flagStepping(direction);
 	}

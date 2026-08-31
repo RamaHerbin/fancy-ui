@@ -53,19 +53,20 @@ A modal panel with an optional trigger, a title/description pair, a body, and a 
 
 ## Props
 
-| Prop           | Type                      | Default | Description                                                                          |
-| -------------- | ------------------------- | ------- | ------------------------------------------------------------------------------------ |
-| `open`         | `boolean`                 | `false` | Whether the dialog is open. Bindable.                                                |
-| `onOpenChange` | `(open: boolean) => void` | —       | Fires whenever `open` changes, from any trigger.                                     |
-| `title`        | `string`                  | —       | The heading. Omitted entirely (not just visually) when not given.                    |
-| `description`  | `string`                  | —       | The copy under the title. Same omission rule as `title`.                             |
-| `dismissible`  | `boolean`                 | `true`  | Whether Escape and an outside click close the dialog. The close button always works. |
-| `initialFocus` | `HTMLElement \| null`     | —       | Element to focus once the dialog opens. Defaults to the first focusable descendant.  |
-| `children`     | `Snippet`                 | —       | The dialog's body.                                                                   |
-| `footer`       | `Snippet`                 | —       | The action row under the body. Free-form.                                            |
-| `trigger`      | `Snippet`                 | —       | Optional trigger; renders in place and opens the dialog on activation.               |
-| `class`        | `string`                  | —       | Additional CSS classes for the panel.                                                |
-| `ref`          | `HTMLDivElement \| null`  | `null`  | Bindable element reference to the panel.                                             |
+| Prop           | Type                      | Default | Description                                                                              |
+| -------------- | ------------------------- | ------- | ---------------------------------------------------------------------------------------- |
+| `open`         | `boolean`                 | `false` | Whether the dialog is open. Bindable.                                                    |
+| `onOpenChange` | `(open: boolean) => void` | —       | Fires whenever `open` changes, from any trigger.                                         |
+| `title`        | `string`                  | —       | The heading. Omitted entirely (not just visually) when not given.                        |
+| `description`  | `string`                  | —       | The copy under the title. Same omission rule as `title`.                                 |
+| `dismissible`  | `boolean`                 | `true`  | Whether Escape and an outside click close the dialog. The close button always works.     |
+| `initialFocus` | `HTMLElement \| null`     | —       | Element to focus once the dialog opens. Defaults to the first focusable descendant.      |
+| `children`     | `Snippet`                 | —       | The dialog's body.                                                                       |
+| `footer`       | `Snippet`                 | —       | The action row under the body. Free-form.                                                |
+| `trigger`      | `Snippet`                 | —       | Optional trigger; renders in place and opens the dialog on activation.                   |
+| `class`        | `string`                  | —       | Additional CSS classes for the panel.                                                    |
+| `ref`          | `HTMLDivElement \| null`  | `null`  | Bindable element reference to the panel.                                                 |
+| `sound`        | `boolean`                 | `false` | Plays `open`/`close` as the dialog opens and dismisses, once the user has enabled sound. |
 
 ## Accessibility
 
@@ -100,6 +101,16 @@ The close is where the work is. `open` still flips the instant you dismiss — n
 
 - **Reduced motion** — every transition collapses to a duration of zero, which makes the framework skip the animation entirely. The dialog appears and disappears instantly, and the close is fully synchronous again — exactly the behaviour this component had before it animated at all. Neither surface has a hidden resting state, so nothing is ever left invisible waiting for an animation that will not run.
 - **Touch and coarse pointers** — unchanged; neither the entrance nor the exit is pointer-gated.
+
+## Sound
+
+Set `sound` to play `open` when the trigger opens the dialog and `close` on every dismissal (close button, Escape or an outside click), through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Dialog sound bind:open {trigger} title="Invite a member" />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the dialog **and** the user has turned sound on globally. Both cues are wired to `setOpen`'s own `if (open === next) return` guard, so a redundant call — a second Escape mid-exit, a dismiss that changes nothing — stays silent rather than doubling up. A dialog driven purely by `bind:open` (no `trigger` snippet, `open` flipped from outside) never routes through `setOpen`'s open branch, so it opens silently by design; its dismissals still play `close` as normal, since the close button, Escape and outside click all funnel through the same function either way.
 
 ## Implementation notes
 

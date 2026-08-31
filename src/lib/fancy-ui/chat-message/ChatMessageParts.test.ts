@@ -4,6 +4,7 @@ import ChatMessageAction from "./ChatMessageAction.svelte";
 import ChatMessageActions from "./ChatMessageActions.svelte";
 import ChatMessageBranches from "./ChatMessageBranches.svelte";
 import Harness from "./ChatMessageHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 /** Longer than the action's internal confirmation window. */
 const PAST_CONFIRM = 2100;
@@ -218,5 +219,99 @@ describe("ChatMessageActions", () => {
 		expect(error).not.toHaveBeenCalled();
 		warn.mockRestore();
 		error.mockRestore();
+	});
+});
+
+describe("sound", () => {
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+		vi.useRealTimers();
+	});
+
+	describe("ChatMessageAction", () => {
+		it("plays the press cue exactly once when a message action is clicked, with sound enabled on the root", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { sound: true } });
+
+			await fireEvent.click(button(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (the root's sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, {});
+
+			await fireEvent.click(button(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing for a loose action button outside a ChatMessage root", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ChatMessageAction, { props: { label: "Copy" } });
+
+			await fireEvent.click(button(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one click plays one cue, and the confirmLabel window is untouched", async () => {
+			vi.useFakeTimers();
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { sound: true } });
+
+			await fireEvent.click(button(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(button(container).getAttribute("aria-label")).toBe("Copied");
+		});
+	});
+
+	describe("ChatMessageBranches", () => {
+		it("plays the select cue exactly once when a version is stepped, with sound enabled on the root", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByLabelText } = render(Harness, { props: { sound: true, index: 2, count: 3 } });
+
+			await fireEvent.click(getByLabelText("Next version"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (the root's sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByLabelText } = render(Harness, { props: { index: 2, count: 3 } });
+
+			await fireEvent.click(getByLabelText("Next version"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at the start edge, even via a synthetic dispatch that bypasses the native disabled attribute", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onNavigate = vi.fn();
+			const { getByLabelText } = render(Harness, {
+				props: { sound: true, index: 1, count: 3, onNavigate },
+			});
+
+			getByLabelText("Previous version").dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onNavigate).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one step plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByLabelText } = render(Harness, { props: { sound: true, index: 2, count: 3 } });
+
+			await fireEvent.click(getByLabelText("Next version"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

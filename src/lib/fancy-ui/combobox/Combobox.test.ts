@@ -7,6 +7,7 @@ import FieldHarness from "./ComboboxFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
 import type { ComboboxOption } from "./types.js";
 import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
 
 const OPTIONS: ComboboxOption[] = [
 	{ value: "svelte-5", label: "Svelte 5" },
@@ -675,6 +676,109 @@ describe("Combobox", () => {
 
 			expect(panel()).toBeNull();
 			expect(animate).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once on a row click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Combobox, { props: { options: OPTIONS, sound: true } });
+			await fireEvent.focus(input(container));
+
+			await fireEvent.click(options()[1]!); // SvelteKit
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select exactly once on Enter, and typing/focus/blur stay silent", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Combobox, { props: { options: OPTIONS, sound: true } });
+			const el = input(container);
+
+			await fireEvent.focus(el); // open — silent
+			await fireEvent.input(el, { target: { value: "sve" } }); // typing — silent
+			expect(play).not.toHaveBeenCalled();
+
+			await fireEvent.keyDown(el, { key: "ArrowDown" }); // navigate — silent
+			await fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+
+			play.mockClear();
+			await fireEvent.blur(el); // resolveAndClose — silent
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Combobox, { props: { options: OPTIONS } });
+			await fireEvent.focus(input(container));
+
+			await fireEvent.click(options()[1]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Combobox, {
+				props: { options: OPTIONS, disabled: true, sound: true },
+			});
+			const el = input(container);
+
+			el.dispatchEvent(new FocusEvent("focus", { bubbles: true }));
+			el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Guardrail: selecting an already-disabled row never plays, even while the
+		// panel is open and the row is present in the DOM to dispatch a click at.
+		it("never plays for a disabled row, even via a synthetic dispatch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Combobox, {
+				props: { options: OPTIONS_WITH_DISABLED, sound: true },
+			});
+			await fireEvent.focus(input(container));
+			const disabledRow = options()[1]!; // SvelteKit, disabled
+
+			disabledRow.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when re-picking the option already selected — the changed-only guard", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Combobox, {
+				props: { options: OPTIONS, value: "sveltekit", sound: true },
+			});
+			await fireEvent.focus(input(container));
+
+			await fireEvent.click(options()[1]!); // SvelteKit — already the value
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls onValueChange on the very same click that the changed-only guard silences", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onValueChange = vi.fn();
+			const { container } = render(Combobox, {
+				props: { options: OPTIONS, value: "sveltekit", sound: true, onValueChange },
+			});
+			await fireEvent.focus(input(container));
+
+			await fireEvent.click(options()[1]!); // SvelteKit — already the value
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("sveltekit");
 		});
 	});
 });

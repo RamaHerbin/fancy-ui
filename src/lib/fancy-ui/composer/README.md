@@ -258,6 +258,7 @@ Without `replaceTriggerToken`, `insertText` splices exactly what it was handed a
 | `accessory`   | `Snippet`                                                            | `undefined` | An overlay covering the composer                             |
 | `class`       | `string`                                                             | `undefined` | Additional CSS classes                                       |
 | `ref`         | `HTMLFormElement \| null`                                            | `null`      | Bindable reference to the form                               |
+| `sound`       | `boolean`                                                            | `false`     | Plays interface cues across the composer's parts (see below) |
 
 ### ComposerInput
 
@@ -326,6 +327,36 @@ Without `replaceTriggerToken`, `insertText` splices exactly what it was handed a
 | `maxItems` | `number`                                            | `8`         | How many matches the menu shows at once                     |
 | `class`    | `string`                                            | `undefined` | Additional CSS classes                                      |
 | `ref`      | `HTMLDivElement \| null`                            | `null`      | Bindable. Null while closed — the menu is not rendered then |
+
+## Sound
+
+Set `sound` on the root to opt into interface cues across every part, off by default and silent until the user has enabled sound in their own preferences (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Composer bind:value bind:attachments {onSubmit} {onStop} sound>
+	<ComposerInput />
+	<ComposerToolbar>
+		<ComposerModelPicker {models} bind:value={model} />
+		<ComposerAttachments />
+		<div class="flex-1"></div>
+		<ComposerSubmit />
+	</ComposerToolbar>
+</Composer>
+```
+
+`sound` is published on `ComposerContext`; every part reads `composer?.sound ?? false`, so a part rendered outside a `Composer` — or inside one with `sound` left off — stays silent rather than throwing:
+
+| Part                  | Interaction                                                           | Cue      |
+| --------------------- | --------------------------------------------------------------------- | -------- |
+| `Composer`            | The draft is sent (send button or Enter)                              | `press`  |
+| `Composer`            | The stream is interrupted (stop button)                               | `press`  |
+| `ComposerModelPicker` | The model listbox opens from the trigger                              | `open`   |
+| `ComposerModelPicker` | A different model is committed                                        | `select` |
+| `ComposerModelPicker` | The listbox is dismissed (Escape, Tab, outside click, trigger toggle) | `close`  |
+| `ComposerCommandMenu` | A slash/@ command completion is picked                                | `select` |
+| `ComposerAttachment`  | An attachment chip is removed                                         | `press`  |
+
+Send and stop share one funnel — both the send button's native `type="submit"` and Enter route through `Composer`'s own `submit()`, and the stop button's click routes through `stop()` — so wiring the cue there, once, covers every road in without doubling up. The model picker follows Select's own rule: re-picking the model already in force plays no `select` (nothing changed), and the menu closes as a dismissal — `close` — rather than in silence. A commit never plays both `select` and `close` for the same pick. `ComposerCommandMenu`'s own open/close are never cued: it opens from keystrokes and closes on blur or Escape, not on a dismissal the reader triggered, so a pick is the only sound it ever makes. Typing, attaching (which opens an OS file dialog), and the command menu's open/close all stay silent.
 
 ## Data shapes
 

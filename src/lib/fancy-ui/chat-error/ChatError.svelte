@@ -23,11 +23,18 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the press cue through the sound controller when retry is
+		 * pressed. Off by default; only audible once the user has enabled
+		 * sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		message = "Something went wrong",
@@ -39,7 +46,18 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ChatErrorProps = $props();
+
+	// Mirrors Button's own guard: `retrying` disables the button natively, but
+	// a synthetic click (or any dispatch that bypasses jsdom's disabled
+	// handling) walks straight past that, so the handler checks again before
+	// playing anything or calling out.
+	function handleRetry() {
+		if (retrying) return;
+		if (sound) soundFx.play("press");
+		onRetry?.();
+	}
 </script>
 
 <div
@@ -94,7 +112,7 @@
 			type="button"
 			class="ft-error-retry text-foreground/80 hover:text-foreground hover:bg-foreground/5 -my-0.5 flex flex-none items-center gap-1.5 rounded px-2 py-1 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-60"
 			disabled={retrying}
-			onclick={onRetry}
+			onclick={handleRetry}
 		>
 			{#if retrying}
 				<span class="ft-error-dot" aria-hidden="true"></span>

@@ -64,18 +64,19 @@ Pin actions to the bottom of the panel with `footer`:
 
 ## Props
 
-| Prop           | Type                      | Default | Description                                                                            |
-| -------------- | ------------------------- | ------- | -------------------------------------------------------------------------------------- |
-| `open`         | `boolean`                 | `false` | Whether the drawer is open; bindable                                                   |
-| `onOpenChange` | `(open: boolean) => void` | —       | Called with the new value whenever the drawer opens or closes                          |
-| `title`        | `string`                  | —       | Heading rendered in the header and wired to `aria-labelledby`                          |
-| `description`  | `string`                  | —       | Supporting text under the title, wired to `aria-describedby`                           |
-| `dismissible`  | `boolean`                 | `true`  | Whether Escape, the scrim, the close button and the swipe gesture can close the drawer |
-| `swipeToClose` | `boolean`                 | `true`  | Whether dragging the handle down past the threshold closes the drawer                  |
-| `children`     | `Snippet`                 | —       | Panel body content                                                                     |
-| `footer`       | `Snippet`                 | —       | Content pinned below the body, e.g. actions                                            |
-| `class`        | `string`                  | —       | Additional CSS classes merged onto the panel                                           |
-| `ref`          | `HTMLDivElement \| null`  | `null`  | Bindable element reference to the panel                                                |
+| Prop           | Type                      | Default | Description                                                                                              |
+| -------------- | ------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
+| `open`         | `boolean`                 | `false` | Whether the drawer is open; bindable                                                                     |
+| `onOpenChange` | `(open: boolean) => void` | —       | Called with the new value whenever the drawer opens or closes                                            |
+| `title`        | `string`                  | —       | Heading rendered in the header and wired to `aria-labelledby`                                            |
+| `description`  | `string`                  | —       | Supporting text under the title, wired to `aria-describedby`                                             |
+| `dismissible`  | `boolean`                 | `true`  | Whether Escape, the scrim, the close button and the swipe gesture can close the drawer                   |
+| `swipeToClose` | `boolean`                 | `true`  | Whether dragging the handle down past the threshold closes the drawer                                    |
+| `children`     | `Snippet`                 | —       | Panel body content                                                                                       |
+| `footer`       | `Snippet`                 | —       | Content pinned below the body, e.g. actions                                                              |
+| `class`        | `string`                  | —       | Additional CSS classes merged onto the panel                                                             |
+| `ref`          | `HTMLDivElement \| null`  | `null`  | Bindable element reference to the panel                                                                  |
+| `sound`        | `boolean`                 | `false` | Plays `close` when the drawer is dismissed, including a committed swipe, once the user has enabled sound |
 
 ## Theming
 
@@ -102,6 +103,16 @@ The close is where the rest of the work is. `open` still flips the instant you d
 
 - **Reduced motion** — every transition collapses to a duration of zero, which makes the framework skip the animation entirely. The drawer appears and disappears instantly, a past-threshold swipe removes it synchronously, and the spring-back snaps rather than eases. Neither surface has a hidden resting state, so nothing is ever left off-screen waiting for an animation that will not run.
 - **Touch and coarse pointers** — the drag gesture is the whole point of this component and is pointer-driven rather than touch-only: it works with a mouse, a finger or a stylus alike, through pointer events plus `touch-action: none` on the handle row. `swipeToClose={false}` turns it off without taking away Escape, the scrim or the close button.
+
+## Sound
+
+Set `sound` to play `close` whenever the drawer is dismissed — the close button, Escape, the scrim, or a swipe released past the dismiss threshold — through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Drawer bind:open sound title="Filters">...</Drawer>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the drawer **and** the user has turned sound on globally. Like `Sheet`, there is no `open` cue — opening is always programmatic, so the drawer only ever sounds its own dismissal. Every dismiss path funnels through the same `close()`, whose `if (!open) return` guard keeps a redundant dismiss (a second Escape mid-exit, a spring-back drag that falls short of the threshold) silent. A swipe released _below_ the threshold springs back and never calls `close()` at all — only a committed, past-threshold release plays the cue, the same as any other dismissal.
 
 ## Implementation Notes
 

@@ -42,6 +42,11 @@
 		class?: string;
 		/** Element reference. */
 		ref?: HTMLButtonElement | HTMLAnchorElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -64,6 +69,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: IconButtonProps = $props();
 
 	// A fixed square replaces Button's own horizontal padding — an icon-only
@@ -106,6 +112,7 @@
 	{rel}
 	{label}
 	{onclick}
+	{sound}
 	iconStart={children}
 	class={classes}
 />

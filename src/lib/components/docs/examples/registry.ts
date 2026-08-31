@@ -1249,6 +1249,30 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "With Menus",
 			description: "Select and DropdownMenu — open, close and select, one cue per interaction.",
 		},
+		{
+			name: "WithSlider",
+			title: "With Slider",
+			description:
+				"Slider and NumberInput — one tick per committed step, never one per pixel of a drag.",
+		},
+		{
+			name: "WithOverlays",
+			title: "With Overlays",
+			description:
+				"Dialog open/close and Toaster outcomes — success and error chime, info and loading stay silent.",
+		},
+		{
+			name: "WithComposer",
+			title: "With Composer",
+			description:
+				"One sound prop on the root: sending plays press, the model picker and command menu play their own cues.",
+		},
+		{
+			name: "WithAgentCards",
+			title: "With Agent Cards",
+			description:
+				"ApprovalCard and RecommendationCard — approve and deny share one select cue; dismiss closes.",
+		},
 	],
 
 	// Micro-interactions

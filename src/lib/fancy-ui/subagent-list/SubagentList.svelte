@@ -23,11 +23,17 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import type { RunStatus } from "../_internals/ai-types.js";
 
 	let {
@@ -38,6 +44,7 @@
 		compact = false,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: SubagentListProps = $props();
 
 	/** The small caption a row shows in place of a progress bar. */
@@ -133,6 +140,13 @@
 			return { agent, index, key };
 		});
 	});
+
+	/** A row activation is a fresh gesture every time — mounting a new row or a
+	 *  status change never routes through here, only an actual pick does. */
+	function selectAgent(agent: SubagentData, index: number) {
+		if (sound) soundFx.play("select");
+		onSelect?.(agent, index);
+	}
 </script>
 
 <!--
@@ -240,7 +254,7 @@
 					<button
 						type="button"
 						class="ft-subagents-body hover:bg-muted/60 focus-visible:ring-ring flex w-full cursor-pointer items-start gap-2.5 rounded-md text-left transition-colors focus-visible:ring-1 focus-visible:outline-none"
-						onclick={() => onSelect?.(agent, index)}
+						onclick={() => selectAgent(agent, index)}
 					>
 						{@render body()}
 					</button>

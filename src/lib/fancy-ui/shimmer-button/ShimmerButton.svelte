@@ -17,6 +17,11 @@
 		class?: string;
 		/** Button content */
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	};
 
 	export type ShimmerButtonProps = BaseProps & Omit<HTMLButtonAttributes, keyof BaseProps>;
@@ -24,6 +29,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		class: className,
@@ -33,12 +39,19 @@
 		shimmerDuration = "3s",
 		background = "rgba(0, 0, 0, 1)",
 		children,
+		onclick,
+		sound = false,
 		...restProps
 	}: ShimmerButtonProps = $props();
 
 	const styleVars = $derived(
 		`--spread: 90deg; --shimmer-color: ${shimmerColor}; --radius: ${borderRadius}; --speed: ${shimmerDuration}; --cut: ${shimmerSize}; --bg: ${background}`
 	);
+
+	function handleClick(event: MouseEvent) {
+		if (sound && !restProps.disabled) soundFx.play("press");
+		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	}
 </script>
 
 <button
@@ -48,6 +61,7 @@
 		className
 	)}
 	style={styleVars}
+	onclick={handleClick}
 	{...restProps}
 >
 	<!-- Shimmer layer -->

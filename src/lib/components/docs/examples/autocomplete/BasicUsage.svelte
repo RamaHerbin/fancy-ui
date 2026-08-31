@@ -5,4 +5,10 @@
 	let city = $state("");
 </script>
 
-<Autocomplete suggestions={cities} bind:value={city} label="City" placeholder="Type a city…" />
+<Autocomplete
+	sound
+	suggestions={cities}
+	bind:value={city}
+	label="City"
+	placeholder="Type a city…"
+/>

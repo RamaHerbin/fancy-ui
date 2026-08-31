@@ -22,7 +22,7 @@
 	<div class="grid grid-cols-3 gap-x-16 gap-y-10 md:grid-cols-4">
 		{#each variants as { variant, label }}
 			<div class="text-center">
-				<LineHoverLink {variant} href="#" class="text-lg font-medium">
+				<LineHoverLink sound {variant} href="#" class="text-lg font-medium">
 					{label}
 				</LineHoverLink>
 			</div>

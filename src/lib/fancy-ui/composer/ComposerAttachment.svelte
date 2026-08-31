@@ -18,6 +18,7 @@
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let { attachment, onRemove, class: className }: ComposerAttachmentProps = $props();
 
@@ -62,6 +63,12 @@
 	}
 
 	function remove() {
+		// The native `disabled` attribute already blocks a real click, but a
+		// synthetic dispatch — in a test, or from any other caller — walks
+		// straight past it, so the handler guards again rather than trusting the
+		// attribute alone (see Button's `handleClick`).
+		if (removeDisabled) return;
+		if (composer?.sound) soundFx.play("press");
 		// The prop wins outright: a consumer that passes one is running its own
 		// upload bookkeeping and will drop the entry itself.
 		if (onRemove) {

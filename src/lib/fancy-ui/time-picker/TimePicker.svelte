@@ -32,6 +32,11 @@
 		class?: string;
 		/** Bindable reference to the trigger button. */
 		ref?: HTMLButtonElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -43,6 +48,7 @@
 	import { filterByBounds, formatSlotLabel, generateSlots, nearestIndex } from "./time-utils.js";
 	import { TIME_PICKER_KEY, type TimePickerContext } from "./types.js";
 	import TimePickerPanel from "./TimePickerPanel.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value = $bindable(null),
@@ -61,6 +67,7 @@
 		locale,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: TimePickerProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -98,16 +105,19 @@
 	// onValueChange) — a plain function, not an `$effect`, so it never reads
 	// and writes `value` in the same reactive pass and never fights a
 	// caller's own `bind:value` write.
-	function setValue(next: string | null): void {
-		if (value === next) return;
+	/** Returns true when the value actually changed (and a `select` cue played). */
+	function setValue(next: string | null): boolean {
+		if (value === next) return false;
 		value = next;
+		if (sound) soundFx.play("select");
 		onValueChange?.(next);
+		return true;
 	}
 
-	function commitIndex(index: number): void {
+	function commitIndex(index: number): boolean {
 		const slot = slots[index];
-		if (!slot) return;
-		setValue(slot);
+		if (!slot) return false;
+		return setValue(slot);
 	}
 
 	function scrollActiveIntoView(index: number): void {
@@ -125,6 +135,7 @@
 	function openPanel(): void {
 		if (effectiveDisabled) return;
 		open = true;
+		if (sound) soundFx.play("open");
 		const index = nearestIndex(slots, value);
 		if (index === -1) return;
 		listbox.setActive(index);
@@ -136,13 +147,19 @@
 		tick().then(() => scrollActiveIntoView(index));
 	}
 
-	function closePanel(): void {
+	// `reason` distinguishes a commit-flavoured close (a slot was just picked)
+	// from a plain dismiss (Escape, an outside click, or the trigger toggling
+	// the panel shut with nothing committed). Only a dismiss plays the `close`
+	// cue — a commit already played `select` inside `setValue` above, and the
+	// contract is one cue per interaction, never both.
+	function closePanel(reason: "commit" | "dismiss" = "dismiss"): void {
 		open = false;
+		if (sound && reason === "dismiss") soundFx.play("close");
 	}
 
 	function commitActiveAndClose(): void {
-		if (listbox.activeIndex !== -1) commitIndex(listbox.activeIndex);
-		closePanel();
+		const committed = listbox.activeIndex !== -1 && commitIndex(listbox.activeIndex);
+		closePanel(committed ? "commit" : "dismiss");
 	}
 
 	function handleTriggerClick(): void {
@@ -234,9 +251,12 @@
 			listbox.setActive(index);
 		},
 		commit(index: number) {
-			commitIndex(index);
-			closePanel();
+			const committed = commitIndex(index);
+			closePanel(committed ? "commit" : "dismiss");
 		},
+		// `dismissable` calls `onDismiss()` with zero arguments, so the default
+		// parameter above already resolves this to a plain dismiss — no wrapper
+		// needed to keep a stray argument from becoming the reason.
 		close: closePanel,
 	};
 	setContext(TIME_PICKER_KEY, context);

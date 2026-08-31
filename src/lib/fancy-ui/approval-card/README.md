@@ -26,20 +26,21 @@ A human-in-the-loop gate: the agent states what it is about to do, and nothing h
 
 ## Props
 
-| Prop           | Type                                  | Default     | Description                                                         |
-| -------------- | ------------------------------------- | ----------- | ------------------------------------------------------------------- |
-| `title`        | `string`                              | —           | What permission is being asked for. Required.                       |
-| `description`  | `string`                              | `undefined` | Muted second line — the consequence, the blast radius               |
-| `state`        | `"pending" \| "approved" \| "denied"` | `"pending"` | Which side of the gate we are on. Bindable                          |
-| `destructive`  | `boolean`                             | `false`     | Irreversible: red approve button, warning tint, alert on the shield |
-| `approveLabel` | `string`                              | `"Approve"` | Label for the approve button                                        |
-| `denyLabel`    | `string`                              | `"Deny"`    | Label for the deny button                                           |
-| `onApprove`    | `() => void`                          | `undefined` | Called on approve, after `state` has been written                   |
-| `onDeny`       | `() => void`                          | `undefined` | Called on deny, after `state` has been written                      |
-| `busy`         | `boolean`                             | `false`     | The consumer is executing: both buttons disabled, card `aria-busy`  |
-| `children`     | `Snippet`                             | `undefined` | Detail region between header and footer                             |
-| `class`        | `string`                              | `undefined` | Additional CSS classes                                              |
-| `ref`          | `HTMLDivElement \| null`              | `null`      | Bindable reference to the root element                              |
+| Prop           | Type                                  | Default     | Description                                                            |
+| -------------- | ------------------------------------- | ----------- | ---------------------------------------------------------------------- |
+| `title`        | `string`                              | —           | What permission is being asked for. Required.                          |
+| `description`  | `string`                              | `undefined` | Muted second line — the consequence, the blast radius                  |
+| `state`        | `"pending" \| "approved" \| "denied"` | `"pending"` | Which side of the gate we are on. Bindable                             |
+| `destructive`  | `boolean`                             | `false`     | Irreversible: red approve button, warning tint, alert on the shield    |
+| `approveLabel` | `string`                              | `"Approve"` | Label for the approve button                                           |
+| `denyLabel`    | `string`                              | `"Deny"`    | Label for the deny button                                              |
+| `onApprove`    | `() => void`                          | `undefined` | Called on approve, after `state` has been written                      |
+| `onDeny`       | `() => void`                          | `undefined` | Called on deny, after `state` has been written                         |
+| `busy`         | `boolean`                             | `false`     | The consumer is executing: both buttons disabled, card `aria-busy`     |
+| `children`     | `Snippet`                             | `undefined` | Detail region between header and footer                                |
+| `class`        | `string`                              | `undefined` | Additional CSS classes                                                 |
+| `ref`          | `HTMLDivElement \| null`              | `null`      | Bindable reference to the root element                                 |
+| `sound`        | `boolean`                             | `false`     | Plays `select` when the gate resolves, once the user has enabled sound |
 
 ## The decision contract
 
@@ -104,6 +105,21 @@ Every colour is read at the point of use, so a value you set wins without having
 | `--ft-approval-danger-border` | `--ft-approval-danger` 22% | Card border when destructive         |
 | `--ft-approval-approved`      | `--ft-status-done`         | The "Approved" line                  |
 | `--ft-approval-denied`        | `currentColor` at 65%      | The "Denied" line                    |
+
+## Sound
+
+Set `sound` to play a `select` cue the moment the gate resolves, off by default and silent until the user has enabled sound in their own preferences:
+
+```svelte
+<ApprovalCard
+	title="Run database migration"
+	sound
+	onApprove={runMigration}
+	onDeny={tellTheAgentNo}
+/>
+```
+
+Both decisions play the same cue — a denial is a legitimate choice, not a failure, so it is never mapped to `error`. Nothing plays while `busy`, or for a decision that arrives after the gate has already resolved: the cue lives inside the same guarded `decide()` a gate resolves through exactly once. See [`sound/README.md`](../sound/README.md) for how the preference and playback work.
 
 ## Implementation Notes
 

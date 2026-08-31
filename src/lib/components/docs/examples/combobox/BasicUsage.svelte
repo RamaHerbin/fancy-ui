@@ -11,4 +11,10 @@
 	let framework = $state("");
 </script>
 
-<Combobox options={frameworks} bind:value={framework} label="Framework" placeholder="Search…" />
+<Combobox
+	sound
+	options={frameworks}
+	bind:value={framework}
+	label="Framework"
+	placeholder="Search…"
+/>

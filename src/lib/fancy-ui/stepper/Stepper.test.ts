@@ -1,9 +1,10 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Stepper from "./Stepper.svelte";
 import Step from "./Step.svelte";
 import Harness from "./StepperHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 interface Item {
 	label: string;
@@ -293,5 +294,65 @@ describe("Stepper", () => {
 		const profileButton = stepByLabel(container, "Profile").querySelector("button")!;
 		await fireEvent.click(profileButton);
 		expect(stepByLabel(container, "Profile").getAttribute("aria-current")).toBe("step");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a clickable step moves to a different step", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 0, clickable: true, sound: true },
+			});
+
+			const confirmationButton = stepByLabel(container, "Confirmation").querySelector("button")!;
+			await fireEvent.click(confirmationButton);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 0, clickable: true },
+			});
+
+			const confirmationButton = stepByLabel(container, "Confirmation").querySelector("button")!;
+			await fireEvent.click(confirmationButton);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the root is not clickable, even dispatched directly at the trigger", () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 0, clickable: false, sound: true },
+			});
+
+			const trigger = stepByLabel(container, "Confirmation").querySelector(".ft-step-trigger")!;
+			trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on a re-click of the already-current step, though onStepClick still fires — the changed-only guard", async () => {
+			const onStepClick = vi.fn();
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 1, clickable: true, sound: true, onStepClick },
+			});
+
+			const profileButton = stepByLabel(container, "Profile").querySelector("button")!;
+			await fireEvent.click(profileButton);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onStepClick).toHaveBeenCalledTimes(1);
+			expect(onStepClick).toHaveBeenCalledWith(1);
+		});
 	});
 });

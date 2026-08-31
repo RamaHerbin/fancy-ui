@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Navbar from "./Navbar.svelte";
 import NavbarLink from "./NavbarLink.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -229,5 +230,54 @@ describe("NavbarLink", () => {
 			},
 		});
 		expect(ref).toBe(link(container));
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a non-current link is activated", async () => {
+			const { container } = render(NavbarLink, { props: { href: "/docs", sound: true } });
+
+			await fireEvent.click(link(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(NavbarLink, { props: { href: "/docs" } });
+
+			await fireEvent.click(link(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const { container } = render(NavbarLink, {
+				props: { href: "/docs", disabled: true, sound: true },
+			});
+
+			link(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the link is already current — the changed-only guard", async () => {
+			const { container } = render(NavbarLink, {
+				props: { href: "/docs", current: true, sound: true },
+			});
+
+			await fireEvent.click(link(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

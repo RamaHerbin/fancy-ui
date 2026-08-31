@@ -26,6 +26,11 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLElement | null;
+		/**
+		 * Plays the select cue through the sound controller. Off by default;
+		 * only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -33,6 +38,7 @@
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { buildPageRange } from "./pagination-range.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		page = $bindable(1),
@@ -47,6 +53,7 @@
 		nextLabel,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: PaginationProps = $props();
 
 	const items = $derived(buildPageRange(page, count, siblingCount, boundaryCount));
@@ -93,6 +100,7 @@
 		const clamped = Math.max(1, Math.min(Math.floor(next), Math.max(safeCount, 1)));
 		if (clamped === page) return;
 		page = clamped;
+		if (sound) soundFx.play("select");
 		onPageChange?.(clamped);
 	}
 
