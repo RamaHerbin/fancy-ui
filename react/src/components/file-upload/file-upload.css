@@ -1,0 +1,137 @@
+/*
+ * The brand accent has no semantic token, so it is declared locally with a
+ * light-dark() fallback — the same shape Input uses for its own focus
+ * ring — on the component root rather than the dropzone alone, since the
+ * file rows' progress fills read it too and they are the dropzone's
+ * sibling, not its descendant. Every other rule below reads this one
+ * custom property, so retinting --ft-accent higher up the tree moves the
+ * dashed border, the dragging state, the focus halo and the progress
+ * fills together.
+ */
+.ft-file-upload {
+	--ft-field-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+.ft-file-upload-dropzone {
+	background-color: color-mix(in oklab, var(--ft-field-accent) 4%, transparent);
+}
+
+.ft-file-upload-accent-border {
+	border-color: color-mix(in oklab, var(--ft-field-accent) 40%, transparent);
+}
+
+.ft-file-upload-dragging {
+	border-color: var(--ft-field-accent);
+	background-color: color-mix(in oklab, var(--ft-field-accent) 10%, transparent);
+}
+
+/* Keyboard focus lands on the sr-only input, not the dropzone — this is
+   what actually surfaces that focus to a sighted user. :has() runs off
+   the input's own :focus-visible, so it never lights up on a mouse click,
+   only on the same conditions the input's own ring would use if it were
+   visible. */
+.ft-file-upload-dropzone:has(.ft-file-upload-input:focus-visible) {
+	border-color: var(--ft-field-accent);
+	border-style: solid;
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-field-accent) 25%, transparent);
+}
+
+.ft-file-upload-browse {
+	color: var(--ft-field-accent);
+}
+
+.ft-file-upload-icon {
+	font-size: 18px;
+	color: var(--ft-field-accent);
+}
+
+.ft-file-upload-progress-track {
+	position: relative;
+	height: 3px;
+	border-radius: 2px;
+	overflow: hidden;
+	background-color: var(--color-muted, rgba(255, 255, 255, 0.08));
+}
+
+/*
+ * scaleX off a custom property, never `width` — the same technique
+ * ScrollProgress ships for the same reason: a width change forces layout on
+ * every progress report a consumer pushes in, while a transform is
+ * compositor-only. The property carries a 0–1 ratio (70% is `0.7`), so the
+ * component never has to parse a percentage back out of a style string.
+ * `transform-origin: left` makes the bar grow from the start edge.
+ */
+.ft-file-upload-progress-fill {
+	position: absolute;
+	inset: 0;
+	border-radius: 2px;
+	background-color: var(--ft-field-accent, currentColor);
+	transform: scaleX(var(--ft-fileupload-progress, 0));
+	transform-origin: left;
+}
+
+/*
+ * `width: 40%` is layout, not animation: it sizes the travelling block once
+ * and never changes it, which is why it stays a `width` rather than becoming
+ * another transform. `transform: none` un-does the determinate rule above —
+ * without it an indeterminate bar under reduced motion (where the keyframes
+ * never run) would sit at `scaleX(0)` and vanish, where today it shows a
+ * static block. The keyframes below out-rank this declaration whenever the
+ * animation is actually running.
+ */
+.ft-file-upload-progress-indeterminate {
+	width: 40%;
+	transform: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	/* A bar that eases toward each reported value instead of jumping to it is
+	   the whole user-visible point of the swap above. tokens.ts:
+	   DURATIONS.fast / EASINGS.out. */
+	.ft-file-upload-progress-fill {
+		transition: transform var(--ft-duration-fast, 150ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+	}
+
+	.ft-file-upload-progress-indeterminate {
+		/* tokens.* n/a: loop period, component-owned */
+		animation: ft-file-upload-indeterminate 1.4s
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)) infinite;
+	}
+}
+
+/* translateX, not margin-left: a margin animation re-runs layout on every
+   frame of a loop that never stops. The arithmetic: the block is 40% of the
+   track wide, so -100% parks it fully off the left edge and 250% (2.5 × 40%)
+   carries it fully off the right. */
+@keyframes ft-file-upload-indeterminate {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(250%);
+	}
+}
+
+.ft-file-upload-done {
+	color: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
+}
+
+.ft-file-upload-remove {
+	font-size: 11px;
+	line-height: 1;
+	padding: 4px;
+	border-radius: 999px;
+}
+
+.ft-file-upload-remove:hover:not(:disabled) {
+	background-color: color-mix(in oklab, currentColor 10%, transparent);
+}
+
+.ft-file-upload-remove:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

@@ -1,0 +1,18 @@
+/*
+ * `NavbarLink` declares this same fallback again, locally on itself —
+ * deliberately, not a drift: it is a fully standalone component ("keep
+ * them independent so a consumer can put a NavbarLink anywhere" — a
+ * mobile menu, a footer), so this declaration here only reaches it when
+ * it happens to render as a DOM descendant of a Navbar. `Autocomplete`/
+ * `Combobox`/`TimePicker` and its portalled `TimePickerPanel` are the
+ * precedent — a component that can render somewhere other than as a
+ * literal descendant needs its own copy, not just an ancestor's. Neither
+ * declaration redeclares `--ft-accent` itself, so a consumer retinting
+ * the whole tree via `--ft-accent` still reaches both.
+ */
+.ft-navbar {
+	--ft-nav-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}

@@ -1,0 +1,46 @@
+/*
+ * Lifts every trigger above `TabsList`'s indicator, which sits at
+ * `z-index: 0` in the same stacking context. Only the segmented variant
+ * actually overlaps — the pill is painted under the label it belongs to —
+ * but the rule is unconditional so a consumer restyling the underline
+ * variant into something that overlaps cannot fall through the floor.
+ *
+ * `.ft-tabs-trigger` is the Svelte source's own root class, already the first
+ * token of the root class list, so every rule below is anchored exactly as
+ * the compiler-scoped originals were.
+ */
+.ft-tabs-trigger {
+	position: relative;
+	z-index: 1;
+}
+
+/*
+ * The only `box-shadow` left on this element. It used to have to be
+ * composited with an `inset` accent bar, because two `box-shadow` rules on
+ * one element cannot both apply — the more specific simply wins and the
+ * other disappears. The bar now lives on `TabsList`'s indicator, so the
+ * focus ring stands alone and is never part of any transition: R13, no
+ * animated focus.
+ */
+.ft-tabs-trigger:focus-visible {
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-nav-accent) 35%, transparent);
+}
+
+/*
+ * The segmented variant's selection is now painted by `TabsList`'s
+ * indicator, which repaints as `Highlight` in a forced-colors palette and
+ * sits *under* this label — whose own colour that same palette forces
+ * independently, to `ButtonText`. `HighlightText` is the partner the
+ * palette guarantees contrast against, and a system-colour keyword
+ * declared inside the query is honoured rather than re-forced, which is
+ * what makes re-stating it work at all (same mechanism as the indicator's
+ * own fill, and as `Skeleton`/`TextRoll` elsewhere in the library).
+ *
+ * The underline variant needs nothing here: its bar sits on the list's
+ * edge, not under the label, so the forced `ButtonText` stays legible.
+ */
+@media (forced-colors: active) {
+	.ft-tabs-trigger[data-variant="segmented"][aria-selected="true"] {
+		color: HighlightText;
+	}
+}

@@ -1,0 +1,40 @@
+/*
+ * The source's `<style>` block, anchored on the panel's own `.ft-command-menu`
+ * root class — which the source already declares as the first token of the
+ * panel's `cn()` call, so nothing had to be added here.
+ *
+ * The nav accent has no semantic Tailwind token, so it is a scoped
+ * custom property with a `light-dark()` fallback, declared once here on
+ * the component root and read below via `var(--ft-nav-accent)`.
+ * `--ft-accent` itself is deliberately never redeclared — doing so would
+ * shadow whatever value a consumer set higher up the tree, the exact bug
+ * an earlier wave shipped in `Link`.
+ */
+.ft-command-menu {
+	--ft-nav-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+.ft-command-menu mark {
+	background: transparent;
+	color: var(--ft-nav-accent);
+	font-weight: 600;
+}
+
+/*
+ * No `@keyframes` and no `@media (prefers-reduced-motion)` block here any
+ * more: both surfaces are driven by the shared JS transition on the
+ * markup above, which collapses its own duration to 0 when the user has
+ * asked for reduced motion — the runtime then skips `element.animate()`
+ * entirely and the menu appears and disappears instantly, with the close
+ * staying synchronous.
+ *
+ * The keyframes this replaced also carried a bug worth naming: the
+ * panel's `from` restated `translateX(-50%)` as a `transform`, on a node
+ * whose centring comes from Tailwind v4's separate `translate` property.
+ * The two composed, so the panel drifted in from half its own width to
+ * the left. `transform: scale(…)` alone composes after `translate` and
+ * scales the panel about its own centre without touching the centring.
+ */

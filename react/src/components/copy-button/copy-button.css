@@ -1,0 +1,50 @@
+/*
+ * `--ft-status-done` / `--ft-status-error` are the family's actual "operation
+ * landed" and "operation failed" vocabulary — the same tokens ToolCall,
+ * ToolTimeline, AgentPlan, SubagentList, CodeDiff, ApprovalCard, AiDataTable,
+ * TerminalBlock, ContextRing, RecommendationCard and Toast all read. Reusing
+ * them (fallback hues included, not a mockup's) means a copy outcome sitting
+ * next to a tool-call or a toast on the same page reads as one palette, and
+ * retinting a token once moves every success — or every failure — surface in
+ * the library together, this one included. The error fallback pair is the same
+ * one the toast surface uses, character for character, so the two failure
+ * surfaces stay one colour even in a theme that declares neither token.
+ *
+ * The Svelte source wraps both rules in `:global()`, which is that compiler's
+ * way of saying what plain CSS says by default: the classes land on the
+ * `<button>`/`<a>` that Button renders inside its own template, which is
+ * outside CopyButton's own markup. Both selectors are already anchored on the
+ * component's root class (`ft-copybtn`), so nothing here leaks a generic name.
+ *
+ * Unlayered author CSS beats Tailwind's `@layer utilities` regardless of
+ * selector order or the `:hover` state Button's own variant classes add, so
+ * neither skin needs a separate hover rule to keep it from flickering back to
+ * the idle variant's colours on pointer-over.
+ */
+.ft-copybtn--copied {
+	border-color: color-mix(
+		in oklab,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145))) 35%,
+		transparent
+	);
+	background-color: color-mix(
+		in oklab,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145))) 10%,
+		transparent
+	);
+	color: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
+}
+
+.ft-copybtn--failed {
+	border-color: color-mix(
+		in oklab,
+		var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216))) 35%,
+		transparent
+	);
+	background-color: color-mix(
+		in oklab,
+		var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216))) 10%,
+		transparent
+	);
+	color: var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216)));
+}

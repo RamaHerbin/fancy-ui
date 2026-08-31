@@ -1,0 +1,11 @@
+/* The source's `TimePickerPanel.svelte` <style> block, verbatim. Already
+   anchored on the row's own class (`.ft-time-picker-option`, the first token of
+   each row's `cn()` call), so no port-added anchor class is needed here. The
+   custom property is re-declared locally with its full fallback chain on
+   purpose: a component must never depend on an app-level token existing. */
+.ft-time-picker-option {
+	--ft-field-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}

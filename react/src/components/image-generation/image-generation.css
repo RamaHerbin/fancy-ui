@@ -1,0 +1,89 @@
+/*
+ * The neutral chrome mixes `currentColor` into transparency rather than
+ * naming a colour, so the frame sits at the same distance from whatever
+ * surface it lands on in either scheme, with no light-dark() pair to keep
+ * balanced. Only the error state names a colour, and it names the family
+ * token so every failure surface moves together.
+ */
+.ft-imagegen-frame {
+	background: var(--ft-imagegen-bg, color-mix(in oklab, currentColor 4%, transparent));
+	border-color: var(--ft-imagegen-border, color-mix(in oklab, currentColor 12%, transparent));
+}
+
+.ft-imagegen-frame-idle {
+	border-style: dashed;
+}
+
+/*
+ * Inset by two tiles so the layer overhangs the frame on every side: the
+ * drift translates a whole tile, and the overhang is what keeps the edges
+ * covered while it does. `overflow-hidden` on the frame clips the surplus.
+ */
+.ft-imagegen-dots {
+	position: absolute;
+	inset: calc(var(--ft-imagegen-dot-size, 12px) * -2);
+	background-image: radial-gradient(
+		circle at center,
+		var(--ft-imagegen-dot, color-mix(in oklab, currentColor 20%, transparent)) 1px,
+		transparent 1.5px
+	);
+	background-size: var(--ft-imagegen-dot-size, 12px) var(--ft-imagegen-dot-size, 12px);
+}
+
+.ft-imagegen-error-icon,
+.ft-imagegen-error-text {
+	color: var(
+		--ft-imagegen-error-fg,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+}
+
+.ft-imagegen-retry {
+	color: var(
+		--ft-imagegen-error-fg,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+	border-color: color-mix(in oklab, currentColor 30%, transparent);
+}
+
+.ft-imagegen-retry:hover {
+	background: color-mix(in oklab, currentColor 10%, transparent);
+}
+
+/*
+ * Both halves of the reveal — the blurred starting point and the transition
+ * out of it — live behind `no-preference`. With those rules gone there is
+ * nothing to override and nothing to keep in sync: the image is simply
+ * sharp the moment it arrives, which is also what a server render ships.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-imagegen-img {
+		transition:
+			filter var(--ft-imagegen-reveal, 700ms) ease-out,
+			transform var(--ft-imagegen-reveal, 700ms) ease-out;
+	}
+
+	.ft-imagegen-img-blurred {
+		filter: blur(var(--ft-imagegen-blur, 24px));
+		/* The overscale hides the transparent fringe a blur pulls in from
+		   outside the image's own edges. */
+		transform: scale(1.05);
+	}
+
+	.ft-imagegen-dots {
+		animation: ft-imagegen-drift var(--ft-imagegen-drift, 14s) linear infinite;
+	}
+
+	@keyframes ft-imagegen-drift {
+		from {
+			transform: translate3d(0, 0, 0);
+		}
+		to {
+			transform: translate3d(
+				var(--ft-imagegen-dot-size, 12px),
+				var(--ft-imagegen-dot-size, 12px),
+				0
+			);
+		}
+	}
+}

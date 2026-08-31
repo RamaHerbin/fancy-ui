@@ -1,0 +1,47 @@
+.ft-streaming-text {
+	display: inline;
+}
+
+/*
+ * Markdown renders block children, which need a block box to lay out in.
+ */
+.ft-streaming-block {
+	display: block;
+}
+
+/*
+ * Falls back to currentColor rather than the tint's own blue default: an
+ * untinted stream should not grow a coloured cursor, but a tinted one reads
+ * as a single gesture when the cursor matches what it is depositing.
+ */
+.ft-streaming-cursor {
+	display: inline-block;
+	inline-size: 0.5em;
+	block-size: 1em;
+	margin-inline-start: 0.12em;
+	vertical-align: text-bottom;
+	border-radius: 1px;
+	background: var(--ft-tint-color, currentColor);
+	opacity: 0.75;
+}
+
+/*
+ * Reduced motion keeps the cursor as a steady block: it still marks where the
+ * next character lands, it just stops flashing.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-streaming-cursor {
+		animation: ft-streaming-blink 1.05s steps(1, end) infinite;
+	}
+
+	@keyframes ft-streaming-blink {
+		0%,
+		50% {
+			opacity: 0.75;
+		}
+		50.01%,
+		100% {
+			opacity: 0;
+		}
+	}
+}

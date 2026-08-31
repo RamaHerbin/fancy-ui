@@ -1,0 +1,32 @@
+/*
+ * `.line-reveal` is a PORT-ADDED anchor (PORTING.md §Styling rule 2). The Svelte
+ * source has no root class: its compiler scoped `.line-mask` / `.line` /
+ * `.revealed`, which are generic enough to collide with a consumer's own rules
+ * once the styles ship as plain global CSS. The anchor is the first token of the
+ * root `cn()` call in LineReveal.tsx.
+ */
+
+.line-reveal .line-mask {
+	overflow: hidden;
+	/* preserve exact spacing so rendered width matches pretext measurement */
+	white-space: pre;
+}
+
+.line-reveal .line {
+	opacity: 0;
+	transform: translateY(105%);
+	transition-property: transform, opacity;
+	transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.line-reveal .line.revealed {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.line-reveal .line {
+		transition-duration: 0.1s !important;
+		transition-delay: 0s !important;
+	}
+}

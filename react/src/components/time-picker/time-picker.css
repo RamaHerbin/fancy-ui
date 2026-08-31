@@ -1,0 +1,13 @@
+/* The source's `TimePicker.svelte` <style> block, verbatim. Already anchored on
+   the component's own root class (`.ft-time-picker-trigger`, the first token of
+   the trigger's `cn()` call), so no port-added anchor class is needed here. The
+   custom property is re-declared locally with its full fallback chain on
+   purpose: a component must never depend on an app-level token existing. */
+.ft-time-picker-trigger:focus-visible {
+	--ft-field-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+	border-color: var(--ft-field-accent);
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-field-accent) 25%, transparent);
+}

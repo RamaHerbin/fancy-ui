@@ -1,0 +1,142 @@
+/*
+ * Every status colour is read at the point of use through two hooks: the
+ * component's own `--ft-toolcall-*`, then the `--ft-status-*` vocabulary every
+ * component in this family shares, then the literal. Setting either anywhere up
+ * the tree retints the state without having to win a specificity fight against
+ * these scoped rules — the shared one recolours the whole family at once.
+ */
+.ft-toolcall-dot {
+	position: relative;
+	display: inline-block;
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: 9999px;
+}
+
+/* Hollow: nothing has happened yet, or nothing ever will. The two share a hue
+   and stay apart on the ring's weight, plus the struck-through name below. */
+.ft-toolcall-dot.ft-status-pending {
+	box-shadow: inset 0 0 0 1.5px
+		var(
+			--ft-toolcall-pending,
+			color-mix(
+				in oklab,
+				var(--ft-status-pending, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260))) 55%,
+				transparent
+			)
+		);
+}
+
+.ft-toolcall-dot.ft-status-cancelled {
+	box-shadow: inset 0 0 0 1.5px
+		var(
+			--ft-toolcall-cancelled,
+			color-mix(
+				in oklab,
+				var(--ft-status-cancelled, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260))) 40%,
+				transparent
+			)
+		);
+}
+
+.ft-toolcall-dot.ft-status-running {
+	background: var(
+		--ft-toolcall-running,
+		var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+	);
+}
+
+.ft-toolcall-dot.ft-status-done {
+	background: var(
+		--ft-toolcall-done,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}
+
+.ft-toolcall-dot.ft-status-error {
+	background: var(
+		--ft-toolcall-error,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+}
+
+.ft-toolcall-name.ft-struck {
+	text-decoration: line-through;
+	opacity: 0.7;
+}
+
+.ft-toolcall-error-text {
+	color: var(
+		--ft-toolcall-error,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+	font-size: 0.75rem;
+	line-height: 1.5;
+}
+
+.ft-toolcall-payload {
+	max-height: var(--ft-toolcall-max-height, 16rem);
+	overflow-y: auto;
+	border-radius: 0.375rem;
+	background: var(--ft-toolcall-payload-bg, color-mix(in oklab, currentColor 6%, transparent));
+	padding: 0.5rem 0.625rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	/* Wrapping rather than scrolling sideways: a long URL in a payload should
+	   not put the whole card on a horizontal rail. */
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+/*
+ * 0fr → 1fr on a one-row grid is the only way to transition "auto" height
+ * without measuring anything. The inner wrapper does the clipping.
+ */
+.ft-toolcall-body {
+	display: grid;
+	grid-template-rows: 0fr;
+}
+
+.ft-toolcall-body.ft-open {
+	grid-template-rows: 1fr;
+}
+
+.ft-toolcall-chevron.ft-open {
+	transform: rotate(90deg);
+}
+
+/*
+ * Everything that moves lives behind the query, so reduced motion gets the
+ * same states with nothing to shorten or fall back from — a running call is
+ * still a filled accent dot, it just stops breathing.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-toolcall-body {
+		transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.ft-toolcall-chevron {
+		transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.ft-toolcall-dot.ft-status-running::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: inherit;
+		animation: ft-toolcall-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+	}
+}
+
+@keyframes ft-toolcall-ping {
+	from {
+		opacity: 0.55;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(2.4);
+	}
+}

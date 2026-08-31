@@ -1,0 +1,122 @@
+/*
+ * `inline-grid` stacks both layers on the SAME grid area, so the
+ * implicit track sizes to `max-content` across both — the box is exactly
+ * as wide as the wider layer, no manual width-matching CSS needed,
+ * provided both layers shape identically (see the Svelte README's
+ * "supported scope" section for where that assumption breaks and why it
+ * degrades safely). `white-space: pre` is set ONCE here — it is inherited,
+ * so both children get it without repeating the declaration, and critically
+ * both layers then collapse whitespace by the IDENTICAL rule: a space
+ * grapheme rendered in its own isolated cell (see `.ft-textroll-cell`
+ * below) is at the start AND end of that cell's own inline formatting
+ * context, so under `nowrap` (which still collapses) it would be trimmed
+ * to zero width, while the real layer's single text node collapses the
+ * same run of whitespace consistently — `pre` (preserve) is what keeps
+ * both layers agreeing on width for any number of consecutive spaces.
+ * `pre` still implies no-wrap (single line, unchanged), but it DOES
+ * preserve a literal `\n` as a forced break — `value` must not contain
+ * newlines (see the Svelte README's "Supported scope").
+ */
+.ft-textroll {
+	display: inline-grid;
+	white-space: pre;
+	/* tokens.DURATIONS.base — this var is NOT read by anything in this
+	   file: the roll itself is JS/WAAPI-driven (roll-transitions.ts reads
+	   `duration` as a plain number, not this CSS var). It exists purely
+	   as a public theming/introspection hook, matching the family-wide
+	   `--ft-<compact>-duration` convention, for a consumer's own CSS that
+	   wants to stay in sync with the configured duration. */
+	--ft-textroll-duration: var(--ft-duration-base, 300ms);
+}
+
+.ft-textroll .ft-textroll-real {
+	grid-area: 1 / 1;
+}
+
+/* aria-hidden, inert-by-CSS: never selectable, never hit-testable, and
+   invisible at rest — only the real layer above is authoritative except
+   for the roll's own brief window (see [data-state="rolling"] below).
+   A NESTED grid, not plain flow: `.ft-textroll-cell` pins BOTH its
+   column (via `grid-column-start`, by index) AND its row (`grid-row: 1`,
+   below) explicitly, so a leaving and an entering cell for the SAME
+   grapheme position are fully co-located and deliberately overlap in one
+   grid cell instead of sitting side by side in normal flow for the whole
+   roll window. The latter is what used to widen this layer's box — and
+   the root's `max-content` track with it — on every value change: an
+   exit-transitioning element stays in the DOM, in flow, until its outro
+   completes, so the departing and arriving glyph were both present as
+   ordinary flow siblings. `align-items: baseline` keeps the row aligned
+   now that cells are blockified grid items rather than inline-block
+   siblings on one text line. */
+.ft-textroll .ft-textroll-cells {
+	grid-area: 1 / 1;
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: max-content;
+	align-items: baseline;
+	justify-content: start;
+	user-select: none;
+	pointer-events: none;
+	opacity: 0;
+}
+
+/* `overflow: hidden` does NOT make a cell's `translateY` read as
+   "rolling into/out of a slot" — the transition is applied to the cell
+   itself, so its clip box travels WITH the glyph and there is nothing
+   left inside the cell to mask against a static slot. Kept per contract
+   anyway, for what it actually buys: it clips glyph overhang at the
+   transform's extremes, and it is what makes an inline-block synthesize
+   its baseline from its bottom margin edge rather than the glyph's own
+   text baseline. `grid-row: 1` pins every cell to the single row that
+   exists (see `.ft-textroll-cells` above) so that two cells sharing one
+   `grid-column-start` — set inline, per cell, in the markup — are fully
+   explicit on BOTH axes and therefore intentionally overlap instead of
+   the grid's auto-placement pushing the second one to a row of its own
+   to avoid a collision it would otherwise assume was unintended. */
+.ft-textroll .ft-textroll-cell {
+	display: inline-block;
+	grid-row: 1;
+	overflow: hidden;
+}
+
+/*
+ * The layer swap itself — not an animation, a discrete state change — is
+ * still gated behind `no-preference` on purpose: under reduced motion
+ * the cells layer must never become visible at all (there is nothing to
+ * roll), so the resting styles above stay in force unconditionally and
+ * the real layer — always showing the current `value` — is what a
+ * reduced-motion user sees update, instantly, with no transparent frame
+ * in between.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-textroll[data-state="rolling"] .ft-textroll-real {
+		color: transparent;
+	}
+
+	.ft-textroll[data-state="rolling"] .ft-textroll-cells {
+		opacity: 1;
+	}
+}
+
+/* Forced-colors mode (Windows High Contrast) forces `color` to a system
+   color on any element left at the default `forced-color-adjust: auto`
+   — only `opacity` and `background-color: transparent` pass through
+   untouched. That means the real layer's `color: transparent` above is
+   already going to be overridden by the UA during a roll (stating it
+   explicitly here as `CanvasText` is just naming that outcome rather
+   than leaving it to an implicit default). `opacity` is NOT forced,
+   though, so without the second rule below a high-contrast user would
+   see the cell layer's stale glyphs painted on top of the now-visible
+   real layer for the whole roll window — this degrades to the
+   reduced-motion outcome instead: an instant swap, cell layer never
+   shown. Same specificity as the `no-preference` block above, placed
+   after it, so source order alone decides without `!important`. */
+@media (forced-colors: active) {
+	.ft-textroll[data-state="rolling"] .ft-textroll-real {
+		color: CanvasText;
+	}
+
+	.ft-textroll[data-state="rolling"] .ft-textroll-cells {
+		opacity: 0;
+	}
+}

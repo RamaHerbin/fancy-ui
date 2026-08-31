@@ -1,0 +1,58 @@
+/*
+ * Declared locally, once, from the shared consumer-facing `--ft-accent` —
+ * the same indirection `Button` (`--ft-btn-accent`) and `Popover`
+ * (`--ft-overlay-accent` itself) use, and for the same reason: the brand
+ * accent has no semantic Tailwind token, so retinting it has to go
+ * through a real custom property a consumer can set, not a value baked
+ * into each rule below. Every other rule in this file just reads
+ * `var(--ft-overlay-accent)` with no fallback of its own — the fallback
+ * lives here, exactly once, so retinting only ever means overriding
+ * `--ft-accent` and never chasing three separate literals.
+ *
+ * Every selector is anchored on the component's own `ft-toast` vocabulary,
+ * exactly as the source names it — plain CSS is global where the source's
+ * was compiler-scoped.
+ */
+.ft-toast {
+	--ft-overlay-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+.ft-toast-icon--success {
+	color: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.7729 0.1535 163.22)));
+}
+
+.ft-toast-icon--error {
+	color: var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216)));
+}
+
+.ft-toast-icon--info {
+	color: var(--ft-overlay-accent);
+}
+
+.ft-toast-action {
+	color: var(--ft-overlay-accent);
+}
+
+.ft-toast-spinner {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 2px solid color-mix(in oklab, currentColor 20%, transparent);
+	border-top-color: var(--ft-overlay-accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-toast-spinner {
+		animation: ft-toast-spin 0.8s linear infinite;
+	}
+}
+
+@keyframes ft-toast-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}

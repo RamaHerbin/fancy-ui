@@ -1,0 +1,17 @@
+/*
+ * `--ft-nav-accent` lives here, not on `NavigationMenu`'s own `<nav>`: the
+ * panel is rendered into `document.body` by the portal, which severs the DOM
+ * ancestry a CSS custom property would otherwise inherit through — a
+ * declaration up on `<nav>` would simply never reach anything rendered in
+ * here. This is the one read/declare site for the whole compound; a
+ * `NavigationMenuLink` used as the mockup's feature tile
+ * (`className="ft-navigation-menu-feature"`, see that component's own CSS)
+ * reads it back through ordinary inheritance, since it always renders as a
+ * descendant of this element even inside the portal.
+ */
+.ft-navigation-menu-content {
+	--ft-nav-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}

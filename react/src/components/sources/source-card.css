@@ -1,0 +1,64 @@
+.ft-source-card {
+	display: flex;
+	gap: 0.5rem;
+	border-radius: 0.5rem;
+	border: 1px solid
+		var(
+			--ft-sources-card-border,
+			var(--color-border, color-mix(in oklab, currentColor 15%, transparent))
+		);
+	background: var(--ft-sources-card-bg, color-mix(in oklab, currentColor 3%, transparent));
+	padding: 0.5rem 0.625rem;
+	text-decoration: none;
+	color: inherit;
+}
+
+.ft-source-linked:hover,
+.ft-source-linked:focus-visible {
+	background: var(--ft-sources-card-hover-bg, color-mix(in oklab, currentColor 7%, transparent));
+}
+
+/*
+ * The monogram stands in for a favicon: no request leaves the reader's browser
+ * to the cited site, and there is no broken image to fall back from.
+ */
+.ft-source-mark {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.25rem;
+	height: 1.25rem;
+	border-radius: 9999px;
+	background: var(--ft-sources-chip-bg, color-mix(in oklab, currentColor 10%, transparent));
+	color: var(--ft-sources-chip-fg, inherit);
+	font-size: 0.625rem;
+	font-weight: 600;
+	line-height: 1;
+}
+
+/*
+ * Two lines for a title, two for the snippet: enough to tell two results
+ * apart, few enough that a row of cards stays a row.
+ */
+.ft-source-title,
+.ft-source-snippet {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
+	overflow: hidden;
+}
+
+/* A host is an identifier, so it is set like one — and never wrapped. */
+.ft-source-domain {
+	overflow: hidden;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-source-linked {
+		transition: background-color 150ms ease;
+	}
+}
