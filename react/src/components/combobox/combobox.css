@@ -1,0 +1,17 @@
+/*
+ * The Svelte source's <style> block, anchored on the root class it already
+ * named itself (`.ft-combobox`, the first token of the input's own `cn()`
+ * call) — no port-added anchor was needed.
+ *
+ * The `--ft-accent` fallback literals are re-typed here by hand, per
+ * PORTING.md's custom-property rule: the component must not depend on an
+ * app-level token existing.
+ */
+.ft-combobox:focus-visible {
+	--ft-field-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+	border-color: var(--ft-field-accent);
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-field-accent) 25%, transparent);
+}

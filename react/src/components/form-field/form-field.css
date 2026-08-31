@@ -1,0 +1,15 @@
+/* Ported verbatim from the Svelte source's <style> block. The rule was
+   already anchored on the component's own `ft-form-field-*` class name, so no
+   port-added anchor was needed. */
+
+/*
+ * `--ft-status-done` is the family's "operation landed"/success vocabulary
+ * — the same token CopyButton, ToolCall, AgentPlan, ContextRing and others
+ * read. Reusing it (fallback hue included, not a fresh literal) means a
+ * validated field sitting near any of those on the same page reads as one
+ * palette, and retinting the token once moves every success surface in
+ * the library together, this one included.
+ */
+.ft-form-field-valid-glyph {
+	color: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
+}

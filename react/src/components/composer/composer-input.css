@@ -1,0 +1,6 @@
+.ft-composer-input {
+	/* Kept out of the auto-grow arithmetic: scrollbar-gutter would change the
+	   content box mid-measurement. */
+	scrollbar-width: thin;
+	color: var(--ft-composer-input-color, inherit);
+}

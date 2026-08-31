@@ -1,0 +1,22 @@
+/*
+ * Optional utility for the mockup's feature tile — a `NavigationMenuLink`
+ * rendered as the panel's highlighted first column. Not a boolean prop: the
+ * mockup only ever shows one per panel, so a prop would exist for a single
+ * call site, where `className="ft-navigation-menu-feature"` composes with
+ * everything else the `className` prop already merges in. Reads
+ * `--ft-nav-accent`, which `NavigationMenuContent` declares — this class only
+ * ever makes visual sense on a link rendered inside a content panel, so the
+ * property is always present by the time it's read here.
+ *
+ * The source's `<style>` block was compiler-scoped to this component's own
+ * markup, where the class could only ever land on the root anchor. Plain CSS
+ * is global, so the port anchors the rule on that root class as well — the
+ * same match, without a generic name leaking into every consumer's page.
+ */
+.ft-navigation-menu-link.ft-navigation-menu-feature {
+	background: linear-gradient(
+		135deg,
+		color-mix(in oklch, var(--ft-nav-accent) 12%, transparent),
+		color-mix(in oklch, oklch(0.8001 0.1345 225.49) 6%, transparent)
+	);
+}

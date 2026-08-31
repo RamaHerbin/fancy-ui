@@ -1,0 +1,60 @@
+/*
+ * Both surfaces read their variables at the point of use with a fallback
+ * rather than declaring them on a root, so a value set anywhere up the tree —
+ * a wrapper's `style`, a theme class, `:root` — wins without having to
+ * out-specify these rules.
+ */
+/*
+ * A hand-made superscript, because `vertical-align: super` is not one: it lifts
+ * the box without shrinking the line it belongs to, so a marker inheriting the
+ * prose line-height stretches the line box it sits in and leaves the paragraph
+ * with uneven leading — wider gaps under exactly the lines that carry a
+ * citation. Here the box is `0.75em × 1`, comfortably shorter than any line
+ * height it lands in, and the lift is a relative offset, which moves the paint
+ * without touching layout at all.
+ */
+.ft-citation-marker {
+	position: relative;
+	top: -0.35em;
+	vertical-align: baseline;
+	font-size: 0.75em;
+	line-height: 1;
+	color: var(--ft-citation-fg, var(--color-primary, currentColor));
+}
+
+/*
+ * The pill is mixed from `currentColor`, so retinting the marker retints its
+ * hover state with it and the two can never drift apart.
+ */
+.ft-citation-marker:hover,
+.ft-citation-marker:focus-visible {
+	background: var(--ft-citation-bg, color-mix(in oklab, currentColor 14%, transparent));
+}
+
+.ft-citation-preview {
+	width: var(--ft-citation-preview-width, 16rem);
+	max-width: calc(100vw - 1rem);
+	background: var(--ft-citation-preview-bg, var(--color-popover, canvas));
+	border-color: var(--ft-citation-preview-border, var(--color-border, currentColor));
+}
+
+/*
+ * The entrance lives entirely inside `no-preference`, so reduced motion is not
+ * a degraded variant to keep in sync: the card simply appears, already placed.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-citation-preview {
+		animation: ft-citation-in 140ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}
+
+@keyframes ft-citation-in {
+	from {
+		opacity: 0;
+		transform: translateY(3px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}

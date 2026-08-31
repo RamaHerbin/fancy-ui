@@ -1,0 +1,86 @@
+/*
+ * `inline-block` on both nodes: a block-level wrapper would force a line
+ * break around an inline child (an icon link sitting mid-sentence), but
+ * the inner node still needs a real box for `transform` to apply to at
+ * all — `display: contents` (no box) would make the translation a no-op.
+ */
+.ft-magnetic {
+	position: relative;
+	display: inline-block;
+}
+
+/*
+ * The activation field's visual footprint, sized to match the geometry
+ * `radius` actually drives. Fully inert by construction: `pointer-events:
+ * none` means no real hit-testable box is ever enlarged, so a generous
+ * `radius` can never start stealing clicks or hovers from a neighbour —
+ * only the halo's own (default: invisible) paint grows. Lives on the
+ * OUTER (never-transformed) node so it never drifts out of sync with the
+ * activation math, which is always measured against the outer's own
+ * untransformed rect.
+ */
+.ft-magnetic::before {
+	content: "";
+	position: absolute;
+	inset: calc(
+		-1 * var(--ft-magnetic-radius, 40px)
+	); /* tokens: Magnetic's own default radius (40) — no tokens.ts entry, geometry is per-component */
+	pointer-events: none;
+	/* No `background` declared here (not even `transparent`, which is the
+	   property's own initial value and so changes nothing by omitting it):
+	   leaving the property undeclared means a consumer's own
+	   `.ft-magnetic::before` rule is the ONLY one setting it, which is what
+	   makes README's halo recipe (and the contract's promise of it)
+	   actually work without a specificity fight. */
+	border-radius: inherit;
+}
+
+.ft-magnetic-inner {
+	/* `position: relative` unconditionally (not just under the transform
+	   media queries below): `::before` is `position: absolute`, so per
+	   CSS 2.1 §"painting order" it is ALWAYS painted in the positioned
+	   layer. Without this, `.ft-magnetic-inner` is only in that same layer
+	   while its `transform` creates a stacking context — true under
+	   `no-preference` + `hover: hover`, false under reduced motion and
+	   under `(hover: none)` (`transform: none`) — so the halo would paint
+	   OVER the child in exactly those two states. Making the inner node
+	   positioned too keeps both boxes in the positioned layer, painted in
+	   tree order (halo, an earlier sibling, first) in all four
+	   combinations, regardless of whether a transform happens to be live. */
+	position: relative;
+	display: inline-block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-magnetic-inner {
+		transform: translate(var(--ft-magnetic-x, 0px), var(--ft-magnetic-y, 0px));
+	}
+
+	/* An eased curve, not `transition: none`: the target is rewritten every
+	   frame, so this smoothing reads as slight inertia (a hand-held jitter
+	   does not become a control jitter) rather than a delay — replaying
+	   raw rAF-sampled pointer motion one-to-one would twitch, not follow. */
+	.ft-magnetic[data-state="active"] .ft-magnetic-inner {
+		transition: transform var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)); /* tokens.DURATIONS.fast / tokens.EASINGS.inout */
+		will-change: transform;
+	}
+
+	/* Slower on release: the element settles back to rest rather than
+	   snapping off, and reads as "let go" instead of "cut short". */
+	.ft-magnetic[data-state="idle"] .ft-magnetic-inner {
+		transition: transform var(--ft-duration-base, 300ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)); /* tokens.DURATIONS.base / tokens.EASINGS.out */
+	}
+}
+
+/* Coarse pointers (touchscreens without a mouse) never see a pull at
+   all, in addition to the `pointerType === "touch"` guard in JS above —
+   defense in depth, not redundant: a stylus/pen pointer type is not
+   ignored by the JS guard, but a touch-only device still has no hover
+   capability to drive a meaningful follow. */
+@media (hover: none) {
+	.ft-magnetic-inner {
+		transform: none;
+	}
+}

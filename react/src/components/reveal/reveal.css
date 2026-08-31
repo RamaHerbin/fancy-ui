@@ -1,0 +1,98 @@
+/*
+ * Ported from the Svelte source's <style> block. Every rule was already
+ * anchored on the component's own root class (.ft-reveal) there, so nothing
+ * is port-added; Svelte's `:global(*)` child selectors become plain `*`
+ * (this file is global CSS to begin with).
+ */
+
+/*
+ * Composed once here (rather than inline per data-preset selector below)
+ * so both the root path (stagger=0) and the per-child path (stagger>0)
+ * read the exact same formula — a custom property is inherited, so a
+ * staggered child picks this up straight from its parent without
+ * needing its own copy. The tx/ty/scale sign vars are plain data (see
+ * the data-preset rules right below) and stay defined outside the
+ * reduced-motion query on purpose: they do nothing on their own, so
+ * there's nothing to gate.
+ */
+.ft-reveal {
+	--ft-reveal-hidden-transform: translate(
+			calc(var(--ft-reveal-tx, 0) * var(--ft-reveal-distance, 16px)),
+			calc(var(--ft-reveal-ty, 0) * var(--ft-reveal-distance, 16px))
+		)
+		scale(var(--ft-reveal-scale, 1));
+}
+
+/* Signs mirror internals/motion/presets.ts's PRESETS table exactly —
+   "fade" sets none of these (no transform term at all, matching
+   preset()'s own cssFor(), which never emits a no-op `transform: none`
+   for fade either). */
+.ft-reveal[data-preset="fade-up"] {
+	--ft-reveal-ty: 1; /* PRESETS["fade-up"].y */
+}
+.ft-reveal[data-preset="fade-down"] {
+	--ft-reveal-ty: -1; /* PRESETS["fade-down"].y */
+}
+.ft-reveal[data-preset="fade-left"] {
+	--ft-reveal-tx: 1; /* PRESETS["fade-left"].x */
+}
+.ft-reveal[data-preset="fade-right"] {
+	--ft-reveal-tx: -1; /* PRESETS["fade-right"].x */
+}
+.ft-reveal[data-preset="scale"] {
+	--ft-reveal-scale: 0.92; /* PRESETS.scale.scale — fixed, no matching prop */
+}
+
+/*
+ * Hidden styling exists ONLY here: a user who prefers reduced motion, or
+ * whose browser reports no scripting capability at all, never has this
+ * rule apply — the resting (visible, untransformed) state is always the
+ * fallback, never something JS has to force. `visibility`/`display` are
+ * deliberately never used (see the frozen contract) so hidden content
+ * stays reachable by Tab — see `handleFocusIn` in Reveal.tsx.
+ */
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+	/* Root path (stagger=0): the root itself is the thing that animates.
+	   Only `armed` hides. `idle` (the `initial="visible"` server paint)
+	   stays visible, and the transition is declared on the `visible`
+	   state alone so the mount-time idle→armed flip snaps instantly
+	   instead of fading content out over the entrance duration. */
+	.ft-reveal:not([data-stagger])[data-state="armed"] {
+		opacity: 0;
+		transform: var(--ft-reveal-hidden-transform);
+	}
+	.ft-reveal:not([data-stagger])[data-state="visible"] {
+		transition-property: opacity, transform;
+		transition-duration: var(
+			--ft-reveal-duration,
+			var(--ft-duration-entrance, 600ms)
+		); /* tokens.DURATIONS.entrance */
+		transition-timing-function: var(
+			--ft-reveal-easing,
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
+		); /* tokens.EASINGS.out */
+		transition-delay: var(--ft-reveal-delay, 0ms);
+	}
+
+	/* Stagger path (stagger>0): the root stays static (no opacity/transform
+	   of its own — see the "double-animation" note in the Wave-1 audit)
+	   and each direct element child animates on its own, offset by
+	   --ft-reveal-child-delay (written per child by the stagger effect in
+	   Reveal.tsx). data-reveal-skip opts a child out entirely. */
+	.ft-reveal[data-stagger][data-state="armed"] > *:not([data-reveal-skip]) {
+		opacity: 0;
+		transform: var(--ft-reveal-hidden-transform);
+	}
+	.ft-reveal[data-stagger][data-state="visible"] > *:not([data-reveal-skip]) {
+		transition-property: opacity, transform;
+		transition-duration: var(
+			--ft-reveal-duration,
+			var(--ft-duration-entrance, 600ms)
+		); /* tokens.DURATIONS.entrance */
+		transition-timing-function: var(
+			--ft-reveal-easing,
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1))
+		); /* tokens.EASINGS.out */
+		transition-delay: calc(var(--ft-reveal-delay, 0ms) + var(--ft-reveal-child-delay, 0ms));
+	}
+}

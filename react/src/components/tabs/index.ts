@@ -1,0 +1,10 @@
+export { Tabs } from "./Tabs.js";
+export type { TabsProps } from "./Tabs.js";
+export { TabsList } from "./TabsList.js";
+export type { TabsListProps } from "./TabsList.js";
+export { TabsTrigger } from "./TabsTrigger.js";
+export type { TabsTriggerProps } from "./TabsTrigger.js";
+export { TabsContent } from "./TabsContent.js";
+export type { TabsContentProps } from "./TabsContent.js";
+export { TABS_KEY } from "./types.js";
+export type { TabsContext } from "./types.js";

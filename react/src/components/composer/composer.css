@@ -1,0 +1,27 @@
+/*
+ * The surface is a form, not a card: it reads as one input the whole row of
+ * controls lives inside, which is why the focus ring belongs to the container
+ * rather than to the textarea buried in it.
+ */
+.ft-composer {
+	border-radius: var(--ft-composer-radius, 0.75rem);
+	border-color: var(--ft-composer-border, color-mix(in oklab, currentColor 14%, transparent));
+	background: var(--ft-composer-bg, color-mix(in oklab, currentColor 4%, transparent));
+}
+
+.ft-composer:focus-within {
+	border-color: var(--ft-composer-border-focus, color-mix(in oklab, currentColor 32%, transparent));
+	box-shadow: 0 0 0 1px var(--ft-composer-ring, color-mix(in oklab, currentColor 22%, transparent));
+}
+
+.ft-composer-disabled {
+	opacity: var(--ft-composer-disabled-opacity, 0.6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-composer {
+		transition:
+			border-color 150ms ease,
+			box-shadow 150ms ease;
+	}
+}

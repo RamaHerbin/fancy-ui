@@ -1,0 +1,53 @@
+.ft-sources-trigger {
+	border: 1px solid
+		var(
+			--ft-sources-card-border,
+			var(--color-border, color-mix(in oklab, currentColor 15%, transparent))
+		);
+	background: var(--ft-sources-trigger-bg, transparent);
+}
+
+.ft-sources-trigger:hover,
+.ft-sources-trigger:focus-visible {
+	background: var(--ft-sources-card-hover-bg, color-mix(in oklab, currentColor 7%, transparent));
+}
+
+/*
+ * Overlapping monograms read as "a handful of places", which is the whole job
+ * of the collapsed pill. The ring is the surface colour rather than a border,
+ * so the circles cut into each other instead of stacking two outlines.
+ */
+.ft-sources-chip {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1rem;
+	height: 1rem;
+	border-radius: 9999px;
+	box-shadow: 0 0 0 1.5px var(--ft-sources-chip-ring, var(--color-background, canvas));
+	background: var(--ft-sources-chip-bg, color-mix(in oklab, currentColor 12%, transparent));
+	color: var(--ft-sources-chip-fg, inherit);
+	font-size: 0.5rem;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.ft-sources-chip:not(:first-child) {
+	margin-inline-start: -0.3125rem;
+}
+
+.ft-sources-chevron.ft-open {
+	transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-sources-trigger {
+		transition:
+			background-color 150ms ease,
+			color 150ms ease;
+	}
+
+	.ft-sources-chevron {
+		transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}

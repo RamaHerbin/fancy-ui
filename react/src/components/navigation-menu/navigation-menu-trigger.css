@@ -1,0 +1,22 @@
+/*
+ * Reduced motion keeps the whole rotation, not just its transition, out of
+ * the base rule set — the caret is decorative (open/closed state is already
+ * carried by `aria-expanded`), so under reduced motion it simply stays put
+ * rather than only losing the animated easing between states.
+ *
+ * The source's `<style>` block was compiler-scoped to this component's own
+ * markup, where `.ft-navigation-menu-caret` could only ever match the caret
+ * inside a trigger. Plain CSS is global, so the descendant selector is
+ * written out: it is the same match, and it keeps a generic class name from
+ * leaking into every consumer's page.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-navigation-menu-trigger .ft-navigation-menu-caret {
+		display: inline-block;
+		transition: transform 150ms ease;
+	}
+
+	.ft-navigation-menu-trigger[aria-expanded="true"] .ft-navigation-menu-caret {
+		transform: rotate(180deg);
+	}
+}

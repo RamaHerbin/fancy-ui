@@ -1,0 +1,89 @@
+.ft-scrollprogress {
+	display: block;
+	height: var(--ft-scrollprogress-thickness, 3px);
+	background: var(--ft-scrollprogress-track, transparent);
+	overflow: hidden;
+}
+
+.ft-scrollprogress[data-position="top"],
+.ft-scrollprogress[data-position="bottom"] {
+	position: fixed;
+	right: 0;
+	left: 0;
+	z-index: var(--ft-scrollprogress-z, 50);
+}
+.ft-scrollprogress[data-position="top"] {
+	top: 0;
+}
+.ft-scrollprogress[data-position="bottom"] {
+	bottom: 0;
+}
+.ft-scrollprogress[data-position="inline"] {
+	position: static;
+	width: 100%;
+}
+
+/* Logical default: the bar fills from the reading-start edge. RTL flips
+   which physical edge that is — `transform-origin` isn't itself a
+   direction-aware property, so it needs this explicit override. */
+.ft-scrollprogress:dir(rtl) {
+	--ft-scrollprogress-origin: right;
+}
+
+.ft-scrollprogress-bar {
+	width: 100%;
+	height: 100%;
+	background: var(--ft-scrollprogress-color, currentColor);
+	/* scaleX, never width — the family rule ("opacity/transform only")
+	   plus a practical one: animating width forces layout on every frame,
+	   scaleX is compositor-only. */
+	transform: scaleX(var(--ft-scrollprogress-value, 0));
+	transform-origin: var(--ft-scrollprogress-origin, left);
+	transition: none;
+}
+
+/*
+ * The zero-JS path: a native scroll-driven animation grows the bar from
+ * 0 to full width purely off the document's own scroll position, working
+ * before hydration and without this component ever running a scroll
+ * listener. `:not([data-mode="js"])` matches BOTH the pre-mount state (no
+ * `data-mode` attribute exists yet) and the post-mount `"css"` mode
+ * explicitly. What this guarantees: no hydration mismatch (the attribute
+ * is only ever ADDED client-side, never changed out from under something
+ * the server already committed to), and a bar that ends up in CSS mode is
+ * already painting correctly before the mount effect runs at all. It does
+ * NOT guarantee the mechanism is always right pre-mount for a bar that ends
+ * up in JS mode (a `target`/`label` bar): for the one frame between first
+ * paint and mount, `data-mode` is absent, this rule matches, and the
+ * DOCUMENT's scroll is what's actually driving the fill — normally
+ * invisible, but a page restored mid-scroll or reached via an anchor can
+ * paint a wrongly-filled bar for that frame before it snaps to the
+ * target's own progress.
+ *
+ * Deliberately NOT gated behind `prefers-reduced-motion` — see the
+ * README's Motion section for why a 1:1 scroll-position mapping isn't the
+ * kind of animation that preference is about.
+ */
+@supports (animation-timeline: scroll()) {
+	.ft-scrollprogress:not([data-mode="js"]) .ft-scrollprogress-bar {
+		animation: ft-scrollprogress-grow linear both;
+		animation-timeline: scroll(root block);
+		/* The shorthand above resets `animation-duration` to its initial
+		   value, which the scroll-animations spec changes from `0s` to
+		   `auto` — on an engine that ships `animation-timeline` but still
+		   carries the OLD initial value, that reset would jump the bar to
+		   `scaleX(1)` permanently instead of tracking the timeline. Written
+		   standalone (not folded into the shorthand) so that on an engine
+		   that doesn't accept `auto` here, this single declaration is what
+		   drops — not the whole rule. */
+		animation-duration: auto;
+	}
+}
+@keyframes ft-scrollprogress-grow {
+	from {
+		transform: scaleX(0);
+	}
+	to {
+		transform: scaleX(1);
+	}
+}

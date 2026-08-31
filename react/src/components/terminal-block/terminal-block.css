@@ -1,0 +1,78 @@
+/*
+ * A terminal is dark in a light page too, so the surface is its own colour
+ * rather than the theme's. Everything inside inherits from it — including
+ * `color-scheme`, which is declared dark for exactly that reason: the shared
+ * `--ft-status-*` fallbacks are `light-dark()` pairs, and on this surface the
+ * dark half is the legible one whatever the page around it is doing.
+ */
+.ft-terminal {
+	color-scheme: dark;
+	background-color: var(--ft-terminal-bg, oklch(0.18 0.02 260));
+	color: var(--ft-terminal-fg, oklch(0.92 0.01 260));
+}
+
+.ft-rule {
+	border-color: color-mix(in oklab, currentColor 16%, transparent);
+}
+
+.ft-prompt {
+	color: var(--ft-terminal-green, oklch(0.78 0.17 150));
+}
+
+/* Output is preformatted, but a long line wraps rather than scrolling sideways. */
+.ft-wrap {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+/* Keeps a blank line the height of a written one. Matches leading-relaxed. */
+.ft-line {
+	min-height: 1.625em;
+}
+
+.ft-bold {
+	font-weight: 700;
+}
+
+.ft-cursor {
+	display: inline-block;
+	opacity: 0.85;
+}
+
+/*
+ * The exit verdict is a status, not terminal output: it reads off the
+ * `--ft-status-*` vocabulary this component family shares rather than the ANSI
+ * palette above, so a run that failed here looks like a failure everywhere else.
+ */
+.ft-status {
+	color: var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)));
+}
+
+.ft-status.ft-ok {
+	color: var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)));
+}
+
+.ft-muted {
+	color: var(--ft-terminal-fg, oklch(0.92 0.01 260));
+	opacity: 0.55;
+}
+
+/*
+ * The cursor is a steady block first and a blinking one second: reduced
+ * motion still gets the "this is still running" signal, without the blink.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-cursor {
+		animation: ft-terminal-cursor 1.1s step-end infinite;
+	}
+
+	@keyframes ft-terminal-cursor {
+		0%,
+		100% {
+			opacity: 0.85;
+		}
+		50% {
+			opacity: 0;
+		}
+	}
+}
