@@ -11,17 +11,8 @@ a faithful transpose (see `PORTING.md` for the law that governs ports).
 
 ## Install
 
-> **Not published yet.** `fancy-ui-react` has no npm release: the repo's
-> release pipeline runs `changeset publish` from the root, which only ever
-> sees `fancy-ui-svelte` — `react/` is a separate install root with its own
-> lockfile, so Changesets never discovers it. Building the release path for
-> this package is tracked separately; until it lands, use the package from a
-> checkout (`cd react && pnpm install && pnpm build`) and consume `dist/`
-> directly. The instructions below describe the intended install so the
-> setup they document stays reviewable, not a command that works today.
-
 ```bash
-npm install fancy-ui-react # once the package is published
+npm install fancy-ui-react
 ```
 
 Peer dependencies: `react` / `react-dom` 18 or 19, `tailwindcss` 4.
@@ -54,15 +45,14 @@ without a wrapper of your own.
 
 ## Development
 
-Standalone package: its own lockfile, its own install, zero coupling to the
-SvelteKit app at the repo root.
+Workspace member of the repo's pnpm workspace — one `pnpm install` at the
+repo root covers it.
 
 ```bash
-cd react
-pnpm install
-pnpm test     # vitest + testing-library
-pnpm check    # tsc --noEmit
-pnpm build    # vite lib build + d.ts via tsc
+pnpm install                              # at the repo root
+pnpm --filter fancy-ui-react test         # vitest + testing-library
+pnpm --filter fancy-ui-react check        # tsc --noEmit
+pnpm --filter fancy-ui-react build        # vite lib build + d.ts via tsc
 ```
 
 ## Divergences from the Svelte API
