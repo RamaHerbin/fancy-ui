@@ -25,6 +25,11 @@
 		interval?: number;
 		/** Additional CSS classes */
 		class?: string;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 
 	/** Duration must match the CSS transition duration below */
@@ -33,12 +38,14 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		testimonials,
 		autoplay = false,
 		interval = 5000,
 		class: className,
+		sound = false,
 	}: AnimatedTestimonialsProps = $props();
 
 	let activeIndex = $state(0);
@@ -48,8 +55,9 @@
 
 	let navigateTimer: ReturnType<typeof setTimeout> | null = null;
 
-	function navigate(dir: "next" | "prev") {
+	function navigate(dir: "next" | "prev", fromUser = false) {
 		if (isAnimating || testimonials.length === 0) return;
+		if (sound && fromUser && testimonials.length > 1) soundFx.play("select");
 		direction = dir;
 		isAnimating = true;
 		navigateTimer = setTimeout(() => {
@@ -150,7 +158,7 @@
 				<!-- Navigation -->
 				<div class="mt-8 flex gap-4">
 					<button
-						onclick={() => navigate("prev")}
+						onclick={() => navigate("prev", true)}
 						class="group/button flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
 						aria-label="Previous testimonial"
 					>
@@ -170,7 +178,7 @@
 						</svg>
 					</button>
 					<button
-						onclick={() => navigate("next")}
+						onclick={() => navigate("next", true)}
 						class="group/button flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
 						aria-label="Next testimonial"
 					>

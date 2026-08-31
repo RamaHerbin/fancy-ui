@@ -33,6 +33,11 @@
 		icon?: Snippet<[CommandItem]>;
 		/** Rendered in place of the list when nothing matches, instead of `emptyMessage`. */
 		empty?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -47,6 +52,7 @@
 	import { DURATIONS } from "../_internals/motion/tokens.js";
 	import { createListbox } from "../_internals/listbox.svelte.js";
 	import { defaultFilter, getMatchRange } from "./match.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -63,6 +69,7 @@
 		ref = $bindable(null),
 		icon,
 		empty,
+		sound = false,
 	}: CommandMenuProps = $props();
 
 	// How long the query has to sit still before the live region reports a
@@ -282,17 +289,26 @@
 		announcedCount === null ? "" : announcedCount === 1 ? "1 result" : `${announcedCount} results`
 	);
 
-	function setOpen(next: boolean): void {
+	function setOpen(next: boolean, options: { silent?: boolean } = {}): void {
 		if (open === next) return;
 		open = next;
 		onOpenChange?.(next);
+		// No `open` cue here on purpose — this menu is opened programmatically
+		// by the consumer (⌘K and the like), never by an interaction this
+		// component itself handles, so there is no gesture here to attach one
+		// to. Only a dismissal (Escape, an outside click) plays `close`; a
+		// commit-driven close passes `{ silent: true }` from `commitItem` below
+		// so a committed row's own `select` cue is the only one that plays —
+		// the same commit/dismiss split `Select`'s `closePanel` uses.
+		if (sound && !next && !options.silent) soundFx.play("close");
 	}
 
 	function commitItem(item: CommandItem): void {
 		if (item.disabled) return;
+		if (sound) soundFx.play("select");
 		item.onSelect?.();
 		onSelect?.(item);
-		setOpen(false);
+		setOpen(false, { silent: true });
 	}
 
 	function setQuery(next: string): void {

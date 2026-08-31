@@ -7,6 +7,6 @@
 
 <div class="flex flex-wrap items-center gap-3">
 	{#each variants as variant}
-		<CopyButton value="npm install fancy-ui-svelte" {variant} />
+		<CopyButton sound value="npm install fancy-ui-svelte" {variant} />
 	{/each}
 </div>

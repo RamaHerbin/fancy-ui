@@ -3,6 +3,7 @@ import { createRawSnippet, flushSync, tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import Dialog from "./Dialog.svelte";
 import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
 
 /** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
  * uses. `prefersReducedMotion()` resolves it fresh on every call, so an
@@ -533,5 +534,110 @@ describe("Dialog", () => {
 		});
 		await tick();
 		expect(ref).toBe(panel());
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when the trigger opens the dialog", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Dialog, {
+				props: {
+					sound: true,
+					title: "Invite",
+					trigger: snippet('<button type="button" data-testid="open-trigger">Invite</button>'),
+				},
+			});
+
+			const trigger = document.body.querySelector<HTMLButtonElement>(
+				'[data-testid="open-trigger"]'
+			)!;
+			await fireEvent.click(trigger);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays close exactly once when the close button dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Dialog, { props: { sound: true, open: true, title: "Invite" } });
+			await tick();
+
+			await fireEvent.click(closeButton()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on Escape and close exactly once on an outside click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(Dialog, { props: { sound: true, open: true, title: "Invite" } });
+			await tick();
+
+			pressEscape();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+
+			play.mockClear();
+			await rerender({ sound: true, open: true, title: "Invite" });
+			await tick();
+			pointerDownOn(scrim()!);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Dialog, { props: { open: true, title: "Invite" } });
+			await tick();
+
+			await fireEvent.click(closeButton()!);
+			pressEscape();
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("swallows a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Dialog, { props: { sound: true, open: true, title: "Invite" } });
+			await tick();
+
+			pressEscape();
+			await tick();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("a dialog driven purely by bind:open opens silently — no trigger and no gesture ever reaches setOpen's open branch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			let open = false;
+			const { rerender } = render(Dialog, {
+				props: {
+					sound: true,
+					title: "Invite",
+					get open() {
+						return open;
+					},
+					set open(value: boolean) {
+						open = value;
+					},
+				},
+			});
+
+			open = true;
+			await rerender({ sound: true, open: true, title: "Invite" });
+			await tick();
+			expect(panel()).toBeTruthy();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

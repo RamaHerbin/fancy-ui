@@ -19,6 +19,7 @@
 </script>
 
 <Combobox
+	sound
 	options={frameworks}
 	bind:value={framework}
 	filter={filterByValuePrefix}

@@ -9,4 +9,4 @@
 	];
 </script>
 
-<Breadcrumb {items} separator=">" />
+<Breadcrumb sound {items} separator=">" />

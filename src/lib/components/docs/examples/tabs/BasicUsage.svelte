@@ -4,7 +4,7 @@
 	let section = $state("account");
 </script>
 
-<Tabs bind:value={section}>
+<Tabs sound bind:value={section}>
 	<TabsList>
 		<TabsTrigger value="account">Account</TabsTrigger>
 		<TabsTrigger value="security">Security</TabsTrigger>

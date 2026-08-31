@@ -65,6 +65,24 @@ the surrounding field supplies `controlId`, `aria-describedby`,
 | `label`         | `string`                          | —       | Accessible name — for a control with no visible Label next to it              |
 | `class`         | `string`                          | —       | Additional CSS classes, applied to the outer bordered wrapper                 |
 | `ref`           | `HTMLInputElement \| null`        | `null`  | Bindable reference to the underlying `<input>`                                |
+| `sound`         | `boolean`                         | `false` | Plays the `tick` cue on each step, once sound is on                           |
+
+## Sound
+
+Set `sound` to play the `tick` cue through the shared sound controller (see
+[`sound/README.md`](../sound/README.md)) each time the value steps by one
+increment — via the `−`/`+` buttons or the `ArrowUp`/`ArrowDown` keys, both
+of which funnel through the same `applyStep`:
+
+```svelte
+<NumberInput bind:value={quantity} sound label="Quantity" />
+```
+
+Typing a digit and the blur-time clamp to `min`/`max` never play — only an
+actual step does. Off by default; nothing plays unless both `sound` is set
+here **and** the user has turned sound on globally. Nothing plays while
+`disabled` or `readonly`, or once a step would cross `min`/`max` — the same
+guards that already grey out the stepper buttons.
 
 ## Implementation Notes
 

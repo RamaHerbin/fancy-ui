@@ -54,6 +54,17 @@ Only `used` and `max` are required. `breakdown` is what the popover lists; witho
 | `expandable`  | `boolean`             | `false`           | Whether clicking opens the breakdown popover        |
 | `class`       | `string`              | `undefined`       | Additional CSS classes                              |
 | `ref`         | `HTMLElement \| null` | `null`            | Bindable reference to the root element              |
+| `sound`       | `boolean`             | `false`           | Plays `open`/`close` on the breakdown popover       |
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the user has enabled sound in their own preferences (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<ContextRing {usage} expandable sound />
+```
+
+`open` plays when the breakdown popover opens from the trigger; `close` plays exactly once whichever way it is dismissed — the trigger toggling it shut, Escape, or a press outside. `sound` has nothing to do while `expandable` is false: there is no popover to toggle. Taking `expandable` away closes the popover as a direct write, silently — that path is bookkeeping, not a dismissal the reader triggered.
 
 ## Reading the ring
 

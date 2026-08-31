@@ -15,14 +15,15 @@ An anchor with a pure-CSS underline hover effect, selectable from 12 variants. N
 
 ## Props
 
-| Prop         | Type               | Default   | Description            |
-| ------------ | ------------------ | --------- | ---------------------- |
-| `variant`    | `LineHoverVariant` | `"slide"` | The animation variant  |
-| `href`       | `string`           | `"#"`     | Link href              |
-| `target`     | `string`           | —         | Link target            |
-| `rel`        | `string`           | —         | Link rel               |
-| `aria-label` | `string`           | —         | Accessible label       |
-| `class`      | `string`           | `""`      | Additional CSS classes |
+| Prop         | Type               | Default   | Description                                                          |
+| ------------ | ------------------ | --------- | -------------------------------------------------------------------- |
+| `variant`    | `LineHoverVariant` | `"slide"` | The animation variant                                                |
+| `href`       | `string`           | `"#"`     | Link href                                                            |
+| `target`     | `string`           | —         | Link target                                                          |
+| `rel`        | `string`           | —         | Link rel                                                             |
+| `aria-label` | `string`           | —         | Accessible label                                                     |
+| `class`      | `string`           | `""`      | Additional CSS classes                                               |
+| `sound`      | `boolean`          | `false`   | Plays the `press` cue on activation, once the user has enabled sound |
 
 Children (slot content) are the link's visible text/label.
 
@@ -50,6 +51,16 @@ Children (slot content) are the link's visible text/label.
   `:focus-visible`, so the effect is keyboard-reachable. `ink` is the one
   variant whose translate could stick on a synthesised hover, and its hover
   half is gated behind `@media (hover: hover)` for exactly that reason.
+
+## Sound
+
+Set `sound` to play the `press` cue on activation, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<LineHoverLink href="/about" sound>About</LineHoverLink>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the link **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue fires on click only — the CSS hover/focus underline animation stays silent, and the click handler never calls `preventDefault`, so navigation is untouched.
 
 ## Implementation notes
 

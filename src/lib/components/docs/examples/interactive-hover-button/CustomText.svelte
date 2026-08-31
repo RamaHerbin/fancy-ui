@@ -3,7 +3,7 @@
 </script>
 
 <div class="flex items-center gap-4">
-	<InteractiveHoverButton text="Get Started" />
-	<InteractiveHoverButton text="Learn More" />
-	<InteractiveHoverButton text="Subscribe" />
+	<InteractiveHoverButton sound text="Get Started" />
+	<InteractiveHoverButton sound text="Learn More" />
+	<InteractiveHoverButton sound text="Subscribe" />
 </div>

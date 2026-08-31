@@ -12,6 +12,6 @@
 
 <div class="flex flex-wrap items-center gap-6">
 	{#each sides as side (side)}
-		<Select options={sizes} placeholder={side} {side} class="w-[140px]" />
+		<Select sound options={sizes} placeholder={side} {side} class="w-[140px]" />
 	{/each}
 </div>

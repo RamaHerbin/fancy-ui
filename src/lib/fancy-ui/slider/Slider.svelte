@@ -26,6 +26,11 @@
 		class?: string;
 		/** Reference to the underlying `<input type="range">`. */
 		ref?: HTMLInputElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -33,6 +38,7 @@
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value = $bindable(0),
@@ -48,6 +54,7 @@
 		showBounds = false,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: SliderProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -110,6 +117,17 @@
 		value = next;
 		onValueChange?.(next);
 	}
+
+	// `input` fires continuously while dragging (and once per key press), so
+	// it is the wrong event to hang a cue on — that would fire dozens of
+	// times per drag. `change` fires exactly once a value is committed: on
+	// drag release, or once per committed keyboard step. This handler plays
+	// only; it never writes `value` or calls `onValueChange` — `handleInput`
+	// above stays the single place the value itself changes.
+	function handleChange() {
+		if (effectiveDisabled) return;
+		if (sound) soundFx.play("tick");
+	}
 </script>
 
 <div class={cn("ft-slider-wrap flex w-full flex-col gap-4", className)}>
@@ -146,6 +164,7 @@
 			aria-label={label}
 			style:--ft-slider-fill="{fraction * 100}%"
 			oninput={handleInput}
+			onchange={handleChange}
 		/>
 	</div>
 	{#if showBounds}

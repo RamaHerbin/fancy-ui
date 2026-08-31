@@ -57,6 +57,7 @@
 
 <div class="flex w-full max-w-lg flex-col gap-3 p-6">
 	<ScrollAnchor
+		sound
 		active={streaming}
 		maxHeight="13rem"
 		class="border-border bg-card/50 rounded-lg border"

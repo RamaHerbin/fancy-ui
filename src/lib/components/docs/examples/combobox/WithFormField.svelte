@@ -20,5 +20,5 @@
 	error={framework ? undefined : "Pick a framework before continuing."}
 	class="w-full max-w-sm"
 >
-	<Combobox options={frameworks} bind:value={framework} />
+	<Combobox sound options={frameworks} bind:value={framework} />
 </FormField>

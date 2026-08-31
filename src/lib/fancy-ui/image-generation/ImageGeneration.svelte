@@ -23,6 +23,12 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the press cue through the sound controller when retry is
+		 * pressed. Off by default; only audible once the user has enabled
+		 * sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -30,6 +36,7 @@
 	import { onMount } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import PixelLoader from "../pixel-loader/PixelLoader.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		status,
@@ -42,6 +49,7 @@
 		onLoad,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ImageGenerationProps = $props();
 
 	let imageEl: HTMLImageElement | null = $state(null);
@@ -109,6 +117,15 @@
 		}
 		mounted = true;
 	});
+
+	// Retry only ever renders while status === "error" and onRetry is set —
+	// there is no in-flight/disabled state to guard here, unlike ChatError's
+	// retry. No cue plays from handleLoad/handleError or a status transition:
+	// those are outcomes the component observes, never a gesture it resolves.
+	function handleRetry() {
+		if (sound) soundFx.play("press");
+		onRetry?.();
+	}
 </script>
 
 <div
@@ -167,7 +184,7 @@
 					<button
 						type="button"
 						class="ft-imagegen-retry rounded border px-2.5 py-1 text-xs font-medium transition-colors"
-						onclick={onRetry}
+						onclick={handleRetry}
 					>
 						Retry
 					</button>

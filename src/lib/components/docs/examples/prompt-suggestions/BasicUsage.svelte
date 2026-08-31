@@ -64,6 +64,7 @@
 	{/each}
 
 	<PromptSuggestions
+		sound
 		suggestions={SUGGESTIONS}
 		{visible}
 		onSelect={select}

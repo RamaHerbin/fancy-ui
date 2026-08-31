@@ -19,6 +19,7 @@
 		showEdges?: boolean;
 		disabled?: boolean;
 		label?: string;
+		sound?: boolean;
 	}
 
 	let {
@@ -30,6 +31,7 @@
 		showEdges = false,
 		disabled = false,
 		label = "Pagination",
+		sound = false,
 	}: Props = $props();
 
 	let el = $state<HTMLElement | null>(null);
@@ -48,6 +50,7 @@
 	{showEdges}
 	{disabled}
 	{label}
+	{sound}
 />
 
 <span data-testid="bound-page">{page}</span>

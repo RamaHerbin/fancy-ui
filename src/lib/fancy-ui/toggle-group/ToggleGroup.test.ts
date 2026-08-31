@@ -1,9 +1,10 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import ToggleGroup from "./ToggleGroup.svelte";
 import ToggleGroupItem from "./ToggleGroupItem.svelte";
 import Harness from "./ToggleGroupHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 interface Item {
 	value: string;
@@ -510,5 +511,88 @@ describe("ToggleGroup", () => {
 		// There is no group to toggle; this must not throw.
 		await fireEvent.click(el);
 		expect(el.getAttribute("aria-pressed")).toBe("false");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when picking an item in type=single, with sound enabled", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select again on clear-on-repick — activating the already-selected item in type=single", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, sound: true, value: "left" },
+			});
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays toggle-on exactly once when activating an unselected item in type=multiple", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, type: "multiple", sound: true },
+			});
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays toggle-off exactly once when deactivating a selected item in type=multiple", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, type: "multiple", sound: true, value: ["left"] },
+			});
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the group is disabled, even with sound enabled", () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, sound: true, disabled: true },
+			});
+
+			byLabel(container, "Left").dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not wire the cue in ToggleGroupItem.handleClick — an item outside a group plays nothing", async () => {
+			const { container } = render(ToggleGroupItem, { props: { value: "solo", label: "Solo" } });
+			const el = container.querySelector("button") as HTMLButtonElement;
+
+			await fireEvent.click(el);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

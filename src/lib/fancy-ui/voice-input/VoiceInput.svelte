@@ -38,6 +38,11 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -46,6 +51,7 @@
 	import { cn } from "$lib/utils.js";
 	import { createElapsed } from "../_internals/elapsed.svelte.js";
 	import { drawWaveformFrame, fakeWaveSample } from "../_internals/waveform-core.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		active = $bindable(false),
@@ -59,6 +65,7 @@
 		color = "var(--ft-voice-color, currentColor)",
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: VoiceInputProps = $props();
 
 	/** Bar geometry, in CSS pixels. Fixed: the waveform is a meter, not a chart. */
@@ -104,15 +111,26 @@
 	function start() {
 		if (active) return;
 		active = true;
+		if (sound) soundFx.play("open");
 		onStart?.();
 	}
 
 	function cancel() {
+		if (!active) return;
+		if (sound) soundFx.play("close");
 		active = false;
 		onCancel?.();
 	}
 
 	function finish() {
+		if (!active) return;
+		// This is a commit gesture, not an outcome: the component never opens a
+		// microphone or runs a recogniser (see the `samples`/`transcript` docs
+		// above), so it has nothing of its own to resolve. `select` matches every
+		// other commit branch in the library; the consumer's own pipeline is what
+		// actually succeeds or fails, and can play `success`/`error` itself once
+		// it knows which.
+		if (sound) soundFx.play("select");
 		active = false;
 		onStop?.();
 	}

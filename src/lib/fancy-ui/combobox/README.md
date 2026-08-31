@@ -87,11 +87,30 @@ and `disabled`, the same as `Input`:
 | `emptyMessage`  | `string`                                             | `"No results"`                        | Shown in the panel when no option matches the current query              |
 | `class`         | `string`                                             | —                                     | Additional CSS classes                                                   |
 | `ref`           | `HTMLInputElement \| null`                           | `null`                                | Bindable reference to the input element                                  |
+| `sound`         | `boolean`                                            | `false`                               | Plays the `select` cue through the sound controller. See [Sound](#sound) |
 
 `ComboboxOption` is `{ value: string; label: string; disabled?: boolean }`.
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<Combobox options={frameworks} bind:value={framework} sound />
+```
+
+`select` plays once an option commits — by a row click or Enter on the
+active row — and only when it actually changes `value`; re-picking the
+option already selected plays nothing, the same changed-only rule every
+other value-holding component follows (Select, Tabs, DatePicker, ...),
+`onValueChange` still fires either way. Opening the panel on focus, typing,
+arrow navigation, and resolving/closing on blur or Escape all stay silent —
+there is no `close` cue here, since the panel's open and close paths ride
+along focus and blur rather than a discrete toggle.
 
 ## Theming
 

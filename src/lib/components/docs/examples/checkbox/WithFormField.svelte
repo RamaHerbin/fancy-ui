@@ -18,5 +18,5 @@
 	error={agreed ? undefined : "You must agree before continuing."}
 	class="w-full max-w-sm"
 >
-	<Checkbox bind:checked={agreed}>I agree to the terms and conditions</Checkbox>
+	<Checkbox sound bind:checked={agreed}>I agree to the terms and conditions</Checkbox>
 </FormField>

@@ -26,14 +26,25 @@ A horizontally scroll-snapping card carousel where tapping a card grows it from 
 
 ### AppleCardCarousel
 
-| Prop    | Type              | Default | Description                        |
-| ------- | ----------------- | ------- | ---------------------------------- |
-| `cards` | `AppleCardData[]` | —       | Cards to display (required)        |
-| `class` | `string`          | `""`    | Additional CSS classes on the root |
+| Prop    | Type              | Default | Description                                                                                                |
+| ------- | ----------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `cards` | `AppleCardData[]` | —       | Cards to display (required)                                                                                |
+| `class` | `string`          | `""`    | Additional CSS classes on the root                                                                         |
+| `sound` | `boolean`         | `false` | Plays the `open` cue when a card expands and `close` when it is dismissed, once the user has enabled sound |
 
 `AppleCardData` shape: `{ category: string; title: string; src: string; description?: string; content?: Snippet }`. `content`, when provided, replaces `description` in the expanded view — pass a Svelte snippet for rich content (headings, lists, embedded components) instead of a plain paragraph.
 
-`AppleCard` is also exported directly (`import { AppleCard } from "fancy-ui-svelte"`) for building a custom carousel shell around the individual expand/collapse card, but its own prop interface is internal to the component and not re-exported as a named type.
+`AppleCard` is also exported directly (`import { AppleCard } from "fancy-ui-svelte"`) for building a custom carousel shell around the individual expand/collapse card, but its own prop interface is internal to the component and not re-exported as a named type. It accepts the same `sound` prop directly.
+
+## Sound
+
+Set `sound` to play `open` when a card expands into its full-screen overlay and `close` when it is dismissed, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<AppleCardCarousel {cards} sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set and the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `sound` forwards from `AppleCardCarouselProps` to each `<AppleCard>`; `AppleCard` also declares its own `sound` prop when used standalone. `open` plays once per expand gesture (click and keyboard share `handleExpand`, so neither can double-fire it); `close` plays once per dismissal — Esc, the backdrop, and the close button all funnel through the same `handleCollapse`, which is gated on the overlay having actually reached its fully-expanded state, so a second Esc pressed while the ~400ms collapse transition is still running does not replay the cue.
 
 ## Implementation notes
 

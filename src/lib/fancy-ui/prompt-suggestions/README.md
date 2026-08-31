@@ -36,6 +36,17 @@ A row of prompt pills that cascade in after a reply lands, offering the user a n
 | `label`       | `string`                                      | `'Suggestions'` | Accessible name of the group wrapping the pills                         |
 | `class`       | `string`                                      | `undefined`     | Additional CSS classes                                                  |
 | `ref`         | `HTMLDivElement \| null`                      | `null`          | Bindable element reference                                              |
+| `sound`       | `boolean`                                     | `false`         | Plays the `select` cue when a pill is picked                            |
+
+## Sound
+
+Set `sound` to play the `select` cue when a pill is picked, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<PromptSuggestions {suggestions} onSelect={pick} sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the component **and** the user has turned sound on globally. A pick is an activation rather than a change of a selected value, so there is no changed-only guard — every activation plays. The pills carry no disabled state, and the staggered entrance (including the `visible`-driven replay) never plays a cue of its own.
 
 ## Slots
 

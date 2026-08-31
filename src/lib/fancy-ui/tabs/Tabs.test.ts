@@ -1,11 +1,12 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { DURATIONS } from "../_internals/motion/tokens.js";
 import Tabs from "./Tabs.svelte";
 import TabsTrigger from "./TabsTrigger.svelte";
 import TabsContent from "./TabsContent.svelte";
 import Harness from "./TabsHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 interface Item {
 	value: string;
@@ -885,6 +886,87 @@ describe("Tabs", () => {
 			} finally {
 				restore();
 			}
+		});
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a click actually changes the active tab", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.click(byLabel(container, "Security"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+
+			await fireEvent.click(byLabel(container, "Security"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the clicked trigger is disabled, even with sound enabled", () => {
+			const items: Item[] = [
+				{ value: "account", label: "Account" },
+				{ value: "security", label: "Security", disabled: true },
+			];
+			const { container } = render(Harness, { props: { items, value: "account", sound: true } });
+			const trigger = byLabel(container, "Security");
+
+			// jsdom does not synthesize a click from a real gesture on a native
+			// `disabled` button; a synthetic dispatch bypasses that and reaches
+			// the handler's own `if (isDisabled) return` guard instead.
+			trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when re-activating the already-active tab — the changed-only guard", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.click(byLabel(container, "Account"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls onValueChange on the very same click that the changed-only guard silences", async () => {
+			const onValueChange = vi.fn();
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true, onValueChange },
+			});
+
+			await fireEvent.click(byLabel(container, "Account"));
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("account");
+		});
+
+		it("plays select on an automatic-activation arrow step that commits a different tab", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.keyDown(byLabel(container, "Account"), { key: "ArrowRight" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
 		});
 	});
 });

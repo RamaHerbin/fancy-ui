@@ -5,7 +5,7 @@
 </script>
 
 <div class="flex flex-col items-start gap-2">
-	<RadioGroup bind:value={plan} label="Plan">
+	<RadioGroup sound bind:value={plan} label="Plan">
 		<RadioGroupItem value="starter" label="Starter" />
 		<RadioGroupItem value="team" label="Team (unavailable)" disabled />
 		<RadioGroupItem value="enterprise" label="Enterprise" />

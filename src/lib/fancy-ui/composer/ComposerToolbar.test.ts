@@ -1,10 +1,11 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import ComposerToolbar from "./ComposerToolbar.svelte";
 import ComposerModelPicker from "./ComposerModelPicker.svelte";
 import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
 import type { ModelOptionData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 /** Generic tiers, so the fixture says nothing about anyone's product line-up. */
 const MODELS: ModelOptionData[] = [
@@ -26,7 +27,10 @@ function snippet(html: string) {
  * provide without the test noticing. `disabled` arrives as a getter so a test
  * can flip it mid-life, the way a real root's own state does.
  */
-function composerContext(disabled: () => boolean = () => false): Map<symbol, ComposerContext> {
+function composerContext(
+	disabled: () => boolean = () => false,
+	sound = false
+): Map<symbol, ComposerContext> {
 	const context: ComposerContext = {
 		value: { current: "" },
 		attachments: { current: [] },
@@ -36,6 +40,7 @@ function composerContext(disabled: () => boolean = () => false): Map<symbol, Com
 		streaming: false,
 		stoppable: false,
 		textareaRef: { current: null },
+		sound,
 		submit: () => {},
 		stop: () => {},
 		setValue: () => {},
@@ -367,5 +372,109 @@ describe("ComposerModelPicker", () => {
 		expect(error).not.toHaveBeenCalled();
 		warn.mockRestore();
 		error.mockRestore();
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays open exactly once when the trigger opens the menu", async () => {
+			const { container } = renderPicker(
+				{},
+				composerContext(() => false, true)
+			);
+
+			await fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays select once (never close) when a different model is picked", async () => {
+			const { container } = renderPicker(
+				{},
+				composerContext(() => false, true)
+			);
+			await openMenu(container);
+			play.mockClear();
+
+			await fireEvent.click(options(container)[2]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays close, not select, when re-picking the already-selected model", async () => {
+			const { container } = renderPicker(
+				{ value: "pro" },
+				composerContext(() => false, true)
+			);
+			await openMenu(container);
+			play.mockClear();
+
+			await fireEvent.click(options(container)[1]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on Escape", async () => {
+			const { container } = renderPicker(
+				{},
+				composerContext(() => false, true)
+			);
+			const list = await openMenu(container);
+			play.mockClear();
+
+			await fireEvent.keyDown(list, { key: "Escape" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on a press outside", async () => {
+			const { container } = renderPicker(
+				{},
+				composerContext(() => false, true)
+			);
+			await openMenu(container);
+			play.mockClear();
+
+			await fireEvent.mouseDown(document.body);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (no composer context wiring sound on)", async () => {
+			const { container } = renderPicker();
+
+			await fireEvent.click(trigger(container));
+			await fireEvent.click(options(container)[1]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch", () => {
+			const { container } = renderPicker(
+				{},
+				composerContext(() => true, true)
+			);
+
+			// A synthetic dispatch bypasses the trigger's native disabled attribute,
+			// proving the guard lives inside `openMenu()` itself.
+			trigger(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

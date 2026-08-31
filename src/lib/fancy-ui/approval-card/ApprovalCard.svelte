@@ -32,12 +32,18 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		title,
@@ -52,6 +58,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ApprovalCardProps = $props();
 
 	/** Spoken and shown once the gate is behind us. */
@@ -75,6 +82,9 @@
 	function decide(next: "approved" | "denied") {
 		if (busy || state !== "pending") return;
 		state = next;
+		// Deny is a legitimate choice, not a failure — both sides of the gate play
+		// the same cue, never `error` for a refusal.
+		if (sound) soundFx.play("select");
 		if (next === "approved") onApprove?.();
 		else onDeny?.();
 		// The button just pressed is about to leave the DOM along with the rest of

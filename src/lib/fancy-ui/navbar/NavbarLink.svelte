@@ -25,11 +25,17 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLAnchorElement | null;
+		/**
+		 * Plays the select cue through the sound controller. Off by default;
+		 * only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		href,
@@ -40,6 +46,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: NavbarLinkProps = $props();
 
 	const classes = $derived(
@@ -62,6 +69,7 @@
 			event.preventDefault();
 			return;
 		}
+		if (sound && !current) soundFx.play("select");
 		onclick?.(event);
 	}
 </script>

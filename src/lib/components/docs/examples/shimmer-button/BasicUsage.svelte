@@ -2,4 +2,4 @@
 	import { ShimmerButton } from "$lib/fancy-ui/shimmer-button";
 </script>
 
-<ShimmerButton>Shimmer</ShimmerButton>
+<ShimmerButton sound>Shimmer</ShimmerButton>

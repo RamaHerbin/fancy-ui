@@ -1,8 +1,9 @@
-import { render, cleanup } from "@testing-library/svelte";
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Breadcrumb from "./Breadcrumb.svelte";
 import type { BreadcrumbItem } from "./Breadcrumb.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 const TRAIL: BreadcrumbItem[] = [
 	{ label: "Docs", href: "/docs" },
@@ -316,5 +317,60 @@ describe("Breadcrumb", () => {
 		});
 
 		expect(ref).toBe(nav(container));
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a linked crumb is activated", async () => {
+			const { container } = render(Breadcrumb, { props: { items: TRAIL, sound: true } });
+			const first = crumbLis(container)[0].querySelector("a") as HTMLAnchorElement;
+
+			await fireEvent.click(first);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Breadcrumb, { props: { items: TRAIL } });
+			const first = crumbLis(container)[0].querySelector("a") as HTMLAnchorElement;
+
+			await fireEvent.click(first);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("never calls preventDefault on the click — navigation stays untouched", async () => {
+			const { container } = render(Breadcrumb, { props: { items: TRAIL, sound: true } });
+			const first = crumbLis(container)[0].querySelector("a") as HTMLAnchorElement;
+			const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+
+			first.dispatchEvent(event);
+
+			expect(event.defaultPrevented).toBe(false);
+		});
+
+		it("plays nothing for a crumb rendered through the item snippet — coverage is partial by construction, the override owns its own cue", async () => {
+			const rendersItem = createRawSnippet<[BreadcrumbItem, number]>((getItem, getIndex) => ({
+				render: () => `<a data-testid="custom" href="#">${getIndex()}:${getItem().label}</a>`,
+			}));
+			const { container } = render(Breadcrumb, {
+				props: { items: TRAIL, item: rendersItem, sound: true },
+			});
+			const custom = container.querySelector('[data-testid="custom"]') as HTMLAnchorElement;
+
+			await fireEvent.click(custom);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

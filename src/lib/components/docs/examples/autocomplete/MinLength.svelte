@@ -9,6 +9,7 @@
 </script>
 
 <Autocomplete
+	sound
 	suggestions={cities}
 	bind:value={city}
 	minLength={3}

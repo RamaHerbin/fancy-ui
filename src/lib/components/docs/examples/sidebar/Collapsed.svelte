@@ -66,9 +66,11 @@
 
 	<Sidebar {collapsed}>
 		<SidebarGroup label="General">
-			<SidebarItem href="#dashboard" current icon={dashboardIcon}>Dashboard</SidebarItem>
-			<SidebarItem href="#inbox" badge={4} badgeLabel="unread" icon={inboxIcon}>Inbox</SidebarItem>
-			<SidebarItem href="#settings" icon={settingsIcon}>Settings</SidebarItem>
+			<SidebarItem sound href="#dashboard" current icon={dashboardIcon}>Dashboard</SidebarItem>
+			<SidebarItem sound href="#inbox" badge={4} badgeLabel="unread" icon={inboxIcon}
+				>Inbox</SidebarItem
+			>
+			<SidebarItem sound href="#settings" icon={settingsIcon}>Settings</SidebarItem>
 		</SidebarGroup>
 	</Sidebar>
 </div>

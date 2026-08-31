@@ -13,6 +13,11 @@
 		children?: Snippet;
 		/** Element reference */
 		ref?: HTMLButtonElement | HTMLAnchorElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	};
 
 	export type RainbowButtonProps = BaseProps &
@@ -22,6 +27,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		class: className,
@@ -31,9 +37,19 @@
 		disabled,
 		ref = $bindable(null),
 		children,
+		sound = false,
 	}: RainbowButtonProps = $props();
 
 	const speedStyle = $derived(`--rainbow-speed: ${speed}s`);
+
+	// No `...restProps` spread exists on this component (see Implementation
+	// notes in the README), so there is no consumer `onclick` to forward — the
+	// handler only ever plays the cue, and is bound identically on both the
+	// anchor and button render branches.
+	function handleClick() {
+		if (disabled) return;
+		if (sound) soundFx.play("press");
+	}
 
 	const baseClasses = $derived(
 		cn(
@@ -59,11 +75,19 @@
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
 		tabindex={disabled ? -1 : undefined}
+		onclick={handleClick}
 	>
 		{@render children?.()}
 	</a>
 {:else}
-	<button bind:this={ref} class={baseClasses} style={speedStyle} {type} {disabled}>
+	<button
+		bind:this={ref}
+		class={baseClasses}
+		style={speedStyle}
+		{type}
+		{disabled}
+		onclick={handleClick}
+	>
 		{@render children?.()}
 	</button>
 {/if}

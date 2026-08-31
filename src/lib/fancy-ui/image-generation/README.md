@@ -57,6 +57,17 @@ The four states share one aspect-ratio box, so the frame is the same size before
 | `onLoad`      | `() => void`                                  | —                     | Called once the generated image has finished loading                   |
 | `class`       | `string`                                      | —                     | Additional CSS classes                                                 |
 | `ref`         | `HTMLDivElement \| null` (bindable)           | `null`                | Bound reference to the root element                                    |
+| `sound`       | `boolean`                                     | `false`               | Plays the `press` cue on retry, once the user has enabled sound        |
+
+## Sound
+
+Set `sound` to play the `press` cue on retry, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<ImageGeneration status="error" alt="A red barn" onRetry={regenerate} sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the component **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `handleLoad`/`handleError` and a `status` transition to `"done"` are outcomes the component observes, not a gesture it resolves — nothing plays for either, and the nested `PixelLoader` stays silent too.
 
 ## Theming
 

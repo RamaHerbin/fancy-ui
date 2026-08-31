@@ -14,6 +14,8 @@
 	import Breadcrumbs from "$lib/components/docs/Breadcrumbs.svelte";
 	import RelatedComponents from "$lib/components/docs/RelatedComponents.svelte";
 	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
+	import { SoundToggle } from "$lib/fancy-ui/sound/index.js";
+	import { hasSoundProp } from "$lib/fancy-ui/registry.js";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
 	import { SITE_URL, SITE_NAME } from "$lib/site.js";
@@ -24,6 +26,7 @@
 	let { data }: { data: PageData } = $props();
 
 	let component = $derived(data.component);
+	let soundCapable = $derived(hasSoundProp(component.slug));
 
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
@@ -223,6 +226,11 @@
 							{t("comp.code")}
 						</button>
 					</div>
+					{#if soundCapable}
+						<!-- The header carries the same switch, but it is hidden below `sm` — and a visitor
+						     reading about a component that makes sound should not have to hunt for it. -->
+						<SoundToggle size="sm" label={t("a11y.sound")} class="mr-2" />
+					{/if}
 				</div>
 
 				<!-- Content -->

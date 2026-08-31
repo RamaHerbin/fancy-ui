@@ -14,9 +14,10 @@
 	interface Props {
 		open?: boolean;
 		onOpenChange?: (open: boolean) => void;
+		sound?: boolean;
 	}
 
-	let { open = $bindable(false), onOpenChange }: Props = $props();
+	let { open = $bindable(false), onOpenChange, sound = false }: Props = $props();
 
 	let panelRef = $state<HTMLDivElement | null>(null);
 	$effect(() => {
@@ -26,6 +27,6 @@
 
 <button type="button" data-testid="trigger" onclick={() => (open = true)}>Open</button>
 
-<Sheet bind:open bind:ref={panelRef} {onOpenChange} title="Settings">Body content</Sheet>
+<Sheet bind:open bind:ref={panelRef} {onOpenChange} {sound} title="Settings">Body content</Sheet>
 
 <span data-testid="bound-open">{open}</span>

@@ -13,6 +13,6 @@
 {/snippet}
 
 <div class="flex flex-wrap items-center gap-3">
-	<Button iconStart={plusIcon}>New project</Button>
-	<Button variant="outline" iconEnd={arrowIcon}>Continue</Button>
+	<Button sound iconStart={plusIcon}>New project</Button>
+	<Button sound variant="outline" iconEnd={arrowIcon}>Continue</Button>
 </div>

@@ -4,7 +4,7 @@
 	let view = $state("preview");
 </script>
 
-<Tabs bind:value={view} variant="segmented">
+<Tabs sound bind:value={view} variant="segmented">
 	<TabsList>
 		<TabsTrigger value="preview">Preview</TabsTrigger>
 		<TabsTrigger value="code">Code</TabsTrigger>

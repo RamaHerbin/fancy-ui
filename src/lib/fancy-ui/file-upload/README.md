@@ -102,6 +102,7 @@ and `disabled`:
 | `hint`          | `string`                        | —       | Constraint text under the drop zone, e.g. `"PNG, SVG — 4 MB max"`                     |
 | `class`         | `string`                        | —       | Additional CSS classes                                                                |
 | `ref`           | `HTMLInputElement \| null`      | `null`  | Bindable reference to the underlying file input                                       |
+| `sound`         | `boolean`                       | `false` | Plays `select`/`error` on an accepted or rejected selection/drop, once sound is on    |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context — see Implementation
@@ -185,6 +186,25 @@ because the leaving row is still on screen and unfocusable.
   about validation, announcements, or focus depends on any of it.
 - **Touch and coarse pointers** — unchanged. Nothing here is pointer-gated, and
   no motion sits between a tap on a remove button and the row leaving the list.
+
+## Sound
+
+Set `sound` to play a cue through the shared sound controller (see
+[`sound/README.md`](../sound/README.md)) on the outcome of a selection or
+drop: `select` when every file in the batch is accepted, `error` when at
+least one is rejected:
+
+```svelte
+<FileUpload bind:files sound accept=".png,.jpg" />
+```
+
+Exactly one cue plays per selection/drop — on a mixed batch, `error` wins
+over `select` rather than firing both. Never `success`: this component only
+tracks a selection, it does not perform the upload itself. Removing a row
+stays silent, and the "browse" label and the drag bookkeeping events
+(`dragenter`/`dragover`/`dragleave`) never play. Off by default; nothing
+plays unless both `sound` is set here **and** the user has turned sound on
+globally. Nothing plays while `disabled`.
 
 ## Implementation Notes
 

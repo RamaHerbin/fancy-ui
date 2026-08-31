@@ -25,12 +25,18 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { setContext, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 	import { TOGGLE_GROUP_KEY, type ToggleGroupContext } from "./types.js";
 
 	let {
@@ -44,6 +50,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ToggleGroupProps = $props();
 
 	// The public prop is a string or an array depending on `type`; everything
@@ -103,6 +110,7 @@
 		// snapshot at this point in the tick. `value` itself never lies.
 		const current = toArray(value);
 		const isOn = current.includes(itemValue);
+		if (sound) soundFx.play(type === "multiple" ? (isOn ? "toggle-off" : "toggle-on") : "select");
 		if (type === "single") {
 			// Activating the already-active item clears the selection instead of
 			// no-op-ing — the one state a native radio group can't express, and

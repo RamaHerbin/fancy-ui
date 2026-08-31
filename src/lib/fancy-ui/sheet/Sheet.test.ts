@@ -25,6 +25,7 @@ vi.mock("../_internals/scroll-lock.js", () => ({
 import Sheet from "./Sheet.svelte";
 import Harness from "./SheetHarness.test.svelte";
 import type { SheetSide, SheetSize } from "./Sheet.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function dialog(): HTMLElement | null {
 	return document.querySelector('[role="dialog"]');
@@ -419,5 +420,92 @@ describe("Sheet", () => {
 		const { getByTestId } = render(Harness);
 		await fireEvent.click(getByTestId("trigger"));
 		expect(dialog()!.getAttribute("data-bound-ref")).toBe("yes");
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays close exactly once when the close button dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Sheet, { props: { open: true, title: "Settings", sound: true } });
+
+			await fireEvent.click(closeButton()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on Escape, and close exactly once on a scrim click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { unmount } = render(Sheet, { props: { open: true, title: "Settings", sound: true } });
+
+			await pressEscape();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			unmount();
+
+			play.mockClear();
+			render(Sheet, { props: { open: true, title: "Settings", sound: true } });
+			await fireEvent.pointerDown(scrim()!);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Sheet, { props: { open: true, title: "Settings" } });
+
+			await fireEvent.click(closeButton()!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when dismissible is false, even via a synthetic dispatch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Sheet, {
+				props: { open: true, title: "Settings", dismissible: false, sound: true },
+			});
+
+			document.dispatchEvent(
+				new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// The `if (!open) return` guard inside close() — a second Escape landing
+		// during the exit must not double the cue.
+		it("ignores a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Sheet, { props: { open: true, title: "Settings", sound: true } });
+
+			dispatchEscape();
+			flushSync();
+			expect(dialog()).toBeTruthy(); // still sliding out
+
+			dispatchEscape();
+			dispatchEscape();
+			flushSync();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		// A bind:open write opening the sheet plays nothing (no open cue exists
+		// by design); the close button on the same instance still plays close.
+		it("a bind:open-driven open stays silent; the close button on that same instance still plays close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByTestId } = render(Harness, { props: { sound: true } });
+
+			await fireEvent.click(getByTestId("trigger"));
+			expect(dialog()).not.toBeNull();
+			expect(play).not.toHaveBeenCalled();
+
+			await fireEvent.click(closeButton()!);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
 	});
 });

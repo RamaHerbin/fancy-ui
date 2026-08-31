@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import AgentPlan from "./AgentPlan.svelte";
 import type { PlanStepData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function step(overrides: Partial<PlanStepData> = {}): PlanStepData {
 	return { id: "s1", label: "Read the failing test", status: "pending", ...overrides };
@@ -372,5 +373,76 @@ describe("AgentPlan", () => {
 		});
 
 		expect(labels(container)).toEqual(["First", "Second", "Third"]);
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when a row is activated, with sound enabled", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(AgentPlan, {
+				props: { steps: nested(), sound: true, onSelect },
+			});
+
+			await fireEvent.click(container.querySelectorAll("button")[0]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select for a substep row too, through the same shared handler", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(AgentPlan, {
+				props: { steps: nested(), sound: true, onSelect },
+			});
+
+			// The third row is the first substep — same handler, same cue.
+			await fireEvent.click(container.querySelectorAll("button")[2]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(AgentPlan, {
+				props: { steps: nested(), onSelect },
+			});
+
+			await fireEvent.click(container.querySelectorAll("button")[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when onSelect is absent — rows are plain divs, not buttons", () => {
+			const { container } = render(AgentPlan, { props: { steps: nested(), sound: true } });
+
+			expect(container.querySelectorAll("button")).toHaveLength(0);
+			rows(container)[0].dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays again on a repeat activation of the same row — there is no changed-only guard", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(AgentPlan, {
+				props: { steps: nested(), sound: true, onSelect },
+			});
+			const button = container.querySelectorAll("button")[0];
+
+			await fireEvent.click(button);
+			await fireEvent.click(button);
+
+			expect(play).toHaveBeenCalledTimes(2);
+			expect(onSelect).toHaveBeenCalledTimes(2);
+		});
 	});
 });

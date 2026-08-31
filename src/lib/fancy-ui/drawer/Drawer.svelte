@@ -22,6 +22,12 @@
 		class?: string;
 		/** Bindable element reference to the panel. */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the `close` cue through the sound controller when the drawer is
+		 * dismissed, including a committed swipe. Off by default; only audible
+		 * once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -39,6 +45,7 @@
 		prefersReducedMotion,
 	} from "../_internals/motion/anchored.js";
 	import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -51,6 +58,7 @@
 		footer,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: DrawerProps = $props();
 
 	// Fixed pixel distance rather than a percentage of the panel's own
@@ -72,6 +80,7 @@
 	function close() {
 		if (!open) return;
 		open = false;
+		if (sound) soundFx.play("close");
 		onOpenChange?.(false);
 	}
 

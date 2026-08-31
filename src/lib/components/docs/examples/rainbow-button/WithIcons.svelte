@@ -5,11 +5,11 @@
 </script>
 
 <div class="flex flex-wrap gap-4">
-	<RainbowButton>
+	<RainbowButton sound>
 		<Sparkles class="mr-2 h-4 w-4" />
 		Magic Button
 	</RainbowButton>
-	<RainbowButton>
+	<RainbowButton sound>
 		Continue
 		<ChevronRight class="ml-2 h-4 w-4" />
 	</RainbowButton>

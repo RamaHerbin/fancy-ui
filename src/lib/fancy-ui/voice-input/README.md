@@ -66,19 +66,30 @@ With no `samples` and no `demo`, the waveform draws a flat floor: a live signal 
 
 ## Props
 
-| Prop         | Type                     | Default                               | Description                                         |
-| ------------ | ------------------------ | ------------------------------------- | --------------------------------------------------- |
-| `active`     | `boolean`                | `false`                               | Whether a recording is in progress. Bindable        |
-| `transcript` | `string`                 | `""`                                  | Live text; rendered muted under the waveform        |
-| `samples`    | `ArrayLike<number>`      | `undefined`                           | Amplitude levels in `0..1`, from your own pipeline  |
-| `demo`       | `boolean`                | `false`                               | Draw a synthetic wave when no samples arrive        |
-| `onStart`    | `() => void`             | `undefined`                           | The mic button started a recording                  |
-| `onStop`     | `() => void`             | `undefined`                           | The check ended it and kept the transcript          |
-| `onCancel`   | `() => void`             | `undefined`                           | The cross abandoned it                              |
-| `height`     | `number`                 | `48`                                  | Waveform height in CSS pixels, clamped to `16..240` |
-| `color`      | `string`                 | `var(--ft-voice-color, currentColor)` | Any CSS colour for the bars                         |
-| `class`      | `string`                 | `undefined`                           | Additional CSS classes                              |
-| `ref`        | `HTMLDivElement \| null` | `null`                                | Bindable reference to the root element              |
+| Prop         | Type                     | Default                               | Description                                           |
+| ------------ | ------------------------ | ------------------------------------- | ----------------------------------------------------- |
+| `active`     | `boolean`                | `false`                               | Whether a recording is in progress. Bindable          |
+| `transcript` | `string`                 | `""`                                  | Live text; rendered muted under the waveform          |
+| `samples`    | `ArrayLike<number>`      | `undefined`                           | Amplitude levels in `0..1`, from your own pipeline    |
+| `demo`       | `boolean`                | `false`                               | Draw a synthetic wave when no samples arrive          |
+| `onStart`    | `() => void`             | `undefined`                           | The mic button started a recording                    |
+| `onStop`     | `() => void`             | `undefined`                           | The check ended it and kept the transcript            |
+| `onCancel`   | `() => void`             | `undefined`                           | The cross abandoned it                                |
+| `height`     | `number`                 | `48`                                  | Waveform height in CSS pixels, clamped to `16..240`   |
+| `color`      | `string`                 | `var(--ft-voice-color, currentColor)` | Any CSS colour for the bars                           |
+| `class`      | `string`                 | `undefined`                           | Additional CSS classes                                |
+| `ref`        | `HTMLDivElement \| null` | `null`                                | Bindable reference to the root element                |
+| `sound`      | `boolean`                | `false`                               | Plays `open`/`close`/`select` on start/cancel/confirm |
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the user has enabled sound in their own preferences (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<VoiceInput bind:active sound />
+```
+
+The mic button plays `open` when it starts a recording; the cross plays `close`, abandoning it; the check plays `select`, not `close` — it commits the transcript, the same shape as every other commit branch in the library. This component never opens a microphone or runs a recogniser itself (see above), so it has no outcome of its own to report: `success`/`error` are the consumer's to play, from their own recogniser's real resolution, once they know which. Every cue plays synchronously inside its own click, before `active` flips and before the matching callback fires. Setting `active` from outside plays nothing — the cues describe what a button did, not what the state now is, exactly like `onStart`/`onStop`/`onCancel` above.
 
 ## The active contract
 
