@@ -578,6 +578,35 @@ describe("Toast / Toaster", () => {
 			expect(play).toHaveBeenNthCalledWith(2, "error");
 		});
 
+		// `sound` is a live prop, so a consumer can flip it on mid-session (a
+		// settings switch, a first user gesture unlocking audio). The cue marks
+		// a toast *appearing*, so outcomes already on screen when the switch is
+		// thrown have had their moment and must stay silent — which is why an
+		// outcome toast's id is recorded whether or not sound is currently
+		// opted in, rather than only when the cue actually plays.
+		it("does not sound outcome toasts already on screen when sound is switched on", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(Toaster, { props: { sound: false } });
+
+			toast({ title: "Theme saved", variant: "success", duration: Infinity });
+			toast({ title: "Failed to send", variant: "error", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).not.toHaveBeenCalled();
+
+			// Same instance, same two toasts still on screen — only the prop moves.
+			await rerender({ sound: true });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).not.toHaveBeenCalled();
+
+			// …while a toast that genuinely arrives after the flip does sound,
+			// proving the silence above is the seen-id record and not a switch
+			// that never took effect.
+			toast({ title: "Draft published", variant: "success", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("success");
+		});
+
 		// The seen-id dedupe above (`announcedIds`) is per-instance and thrown
 		// away on unmount, while `toastStore.items` is a module-level singleton
 		// that survives it — so a `<Toaster>` remount while a toast is still on

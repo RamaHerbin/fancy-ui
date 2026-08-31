@@ -237,7 +237,7 @@ call site:
 | `Select`                                                                          | `open` on opening, `select` on committing a value, `close` on a dismissal                                                  |
 | `Combobox`                                                                        | `select` on committing an option                                                                                           |
 | `Autocomplete`                                                                    | `select` on committing a suggestion                                                                                        |
-| `SearchInput`                                                                     | `close` when the query is cleared                                                                                          |
+| `SearchInput`                                                                     | `press` when the query is cleared                                                                                          |
 | `PasswordInput`                                                                   | `toggle-on`/`toggle-off` on the reveal toggle                                                                              |
 | `FileUpload`                                                                      | `select`/`error` on an accepted or rejected selection/drop                                                                 |
 | `DatePicker`                                                                      | `open` on opening, `select` on picking a day, `close` on a dismissal                                                       |
@@ -276,7 +276,7 @@ call site:
 | `RecommendationCard`                                                              | `select` on accept, `close` on dismiss                                                                                     |
 | `ArtifactCard`                                                                    | `press` on open, `select` on a version step                                                                                |
 | `Composer` (+ `ComposerModelPicker`, `ComposerCommandMenu`, `ComposerAttachment`) | `press` on send/stop, `open`/`select`/`close` on the model menu, `select` on a command pick, `press` on attachment removal |
-| `VoiceInput`                                                                      | `open` on start, `close` on cancel, `success` on confirm                                                                   |
+| `VoiceInput`                                                                      | `open` on start, `close` on cancel, `select` on confirm                                                                    |
 | `ContextRing`                                                                     | `open`/`close` on the breakdown popover                                                                                    |
 | `ScrollAnchor`                                                                    | `press` on the return pill                                                                                                 |
 | `ThreadList`                                                                      | `select` on pick, `press` on delete                                                                                        |

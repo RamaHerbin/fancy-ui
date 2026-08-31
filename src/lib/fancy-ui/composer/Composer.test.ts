@@ -333,6 +333,41 @@ describe("Composer", () => {
 			expect(play).not.toHaveBeenCalled();
 		});
 
+		// Streaming with no `onStop` is a real state: the root publishes a
+		// callable `stop()` regardless, and `ComposerSubmit` greys itself out
+		// because `stoppable` is false. A cue there would announce an
+		// interruption that cannot happen — the button the user would be
+		// hearing back from is disabled.
+		it("plays nothing when stop has no handler behind it, even while streaming", () => {
+			const { container, context } = mount({
+				initialValue: "hello",
+				streaming: true,
+				sound: true,
+			});
+			// The disabled control is why the cue must stay silent — and it is
+			// also why this goes through the context: a click would never reach
+			// `stop()` at all, so it could not tell the two branches apart.
+			expect(sendButton(container).disabled).toBe(true);
+
+			context.stop();
+
+			expect(play).not.toHaveBeenCalled();
+
+			// Control: the same call, same state, one handler added — the cue is
+			// wired to the interruption actually happening, not to `streaming`.
+			cleanup();
+			const stoppable = mount({
+				initialValue: "hello",
+				streaming: true,
+				onStop: vi.fn(),
+				sound: true,
+			});
+			stoppable.context.stop();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
 		it("never double-fires — Enter and a click on the send button are the same funnel", async () => {
 			const onSubmit = vi.fn();
 			const { container } = mount({ initialValue: "hello", onSubmit, sound: true });

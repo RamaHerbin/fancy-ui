@@ -4346,7 +4346,7 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description:
-					"Plays open on start, close on cancel and success on a confirmed recording, once the user has enabled sound",
+					"Plays open on start, close on cancel and select on a confirmed recording, once the user has enabled sound",
 			},
 		],
 	},
@@ -6936,7 +6936,7 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description:
-					"Plays the close cue when the field is cleared, once the user has enabled sound",
+					"Plays the press cue when the field is cleared, once the user has enabled sound",
 			},
 		],
 	},

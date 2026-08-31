@@ -89,7 +89,9 @@
 
 	function stop() {
 		if (!streaming) return;
-		if (sound) soundFx.play("press");
+		// No handler, no interruption — the cue must not announce a stop that
+		// cannot happen (ComposerSubmit disables itself in that state too).
+		if (sound && onStop) soundFx.play("press");
 		onStop?.();
 	}
 

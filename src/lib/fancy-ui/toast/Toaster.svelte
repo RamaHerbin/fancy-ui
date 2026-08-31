@@ -93,12 +93,13 @@
 			// plays. Gated on the module-level `soundedIds`, not the
 			// per-instance `announcedIds`, so a remount can't replay a cue for a
 			// toast that already got one.
-			if (
-				sound &&
-				!soundedIds.has(item.id) &&
-				(item.variant === "success" || item.variant === "error")
-			) {
-				soundFx.play(item.variant);
+			// The ID is recorded whether or not sound is currently opted in:
+			// the cue marks a toast APPEARING, so flipping `sound` on later
+			// must not retroactively replay outcomes already on screen.
+			if (item.variant === "success" || item.variant === "error") {
+				if (sound && !soundedIds.has(item.id)) {
+					soundFx.play(item.variant);
+				}
 				soundedIds.add(item.id);
 			}
 			if (announcedIds.has(item.id)) continue;

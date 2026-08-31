@@ -168,6 +168,57 @@ describe("AppleCardCarousel", () => {
 			expect(play).toHaveBeenCalledWith("close");
 		});
 
+		// The entrance flips `fullyExpanded` two rAFs after the click, and a
+		// dismissal can land inside that window — Escape pressed the instant
+		// the overlay appears. The close cue is gated on the overlay being
+		// *open*, not on the entrance having finished, so the `open` cue is
+		// always paired with a `close`: gating on `fullyExpanded` instead
+		// would leave the open cue hanging with no resolution.
+		it("pairs open with close when the card is dismissed before the entrance settles", () => {
+			const { getByLabelText } = render(AppleCardCarousel, { props: { cards, sound: true } });
+
+			fireEvent.click(getByLabelText("Open Mountains"));
+			flushSync();
+
+			// Proof the dismissal below really is inside the entrance window:
+			// `fullyExpanded` is still false, so the backdrop sits at its
+			// from-state. (Its opacity is the only tell — jsdom reports a zero
+			// rect, so the dialog's own top/left/width read the same either way.)
+			const backdrop = document.querySelector(".fixed.z-40") as HTMLElement;
+			expect(backdrop.style.opacity).toBe("0");
+
+			fireEvent.keyDown(getByLabelText("Mountains"), { key: "Escape" });
+			flushSync(() => vi.advanceTimersByTime(400));
+
+			expect(play).toHaveBeenCalledTimes(2);
+			expect(play).toHaveBeenNthCalledWith(1, "open");
+			expect(play).toHaveBeenNthCalledWith(2, "close");
+		});
+
+		// Two dismissal paths racing inside the same collapse window, before the
+		// entrance has even settled: the guard that makes this one cue is the
+		// collapse-in-progress latch, not `fullyExpanded` — which is false here
+		// on *both* calls and would have silenced the cue entirely.
+		it("plays close once when Escape and a backdrop click race in the same collapse window", () => {
+			const { getByLabelText } = render(AppleCardCarousel, { props: { cards, sound: true } });
+			fireEvent.click(getByLabelText("Open Mountains"));
+			flushSync();
+			const dialog = getByLabelText("Mountains");
+			const backdrop = document.querySelector(".fixed.z-40") as HTMLElement;
+			play.mockClear(); // only the close cue is under test here
+
+			fireEvent.keyDown(dialog, { key: "Escape" });
+			flushSync();
+			// The overlay is still mounted — it leaves when the ~400ms exit timer
+			// fires — so the backdrop is still clickable, and a click on it lands
+			// on a collapse that is already under way.
+			fireEvent.click(backdrop);
+			flushSync(() => vi.advanceTimersByTime(400));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
 		it("plays nothing by default (sound prop omitted)", async () => {
 			const { getByLabelText } = render(AppleCardCarousel, { props: { cards } });
 
