@@ -1,0 +1,147 @@
+/*
+ * Typographic normalization, not a theme. Rendered markdown has to stay
+ * legible in a host app whose reset has stripped list markers and heading
+ * scale, so these defaults restore structure and nothing else — no palette,
+ * no font stack, no spacing opinions beyond the flow rhythm. Every value the
+ * host is likely to disagree with reads from a custom property first, and
+ * colours are mixed from `currentColor` so a dark surface needs no override.
+ *
+ * The Svelte source scoped these rules through the compiler; as plain CSS they
+ * are global, so every rule is anchored on the component's own `.ft-md*`
+ * classes — the same names the source uses, which are already specific enough
+ * to need no port-added anchor. The blockquote branch renders the component
+ * recursively and a recursive instance carries the same `.ft-md` root class,
+ * so the block rules reach quoted content exactly as they did before.
+ *
+ * Both halves live here: `Markdown.tsx` owns the block marks, `MarkdownInline.tsx`
+ * the inline ones (code spans, links), and the contract ships one stylesheet.
+ * It stays colocated with the two components that import it, which is why it
+ * moved down with them into `internals/markdown/` — see the header of
+ * `Markdown.tsx` for why that directory exists.
+ */
+
+.ft-md {
+	line-height: 1.6;
+}
+
+/* One rhythm for every block, whatever margins the UA or reset supplies. */
+.ft-md > * {
+	margin: 0;
+}
+
+.ft-md > * + * {
+	margin-block-start: 0.75em;
+}
+
+.ft-md > * + .ft-md-h {
+	margin-block-start: 1.25em;
+}
+
+.ft-md > * + .ft-md-hr,
+.ft-md > .ft-md-hr + * {
+	margin-block-start: 1em;
+}
+
+.ft-md-h {
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.ft-md-h[data-depth="1"] {
+	font-size: 1.5em;
+}
+
+.ft-md-h[data-depth="2"] {
+	font-size: 1.3em;
+}
+
+.ft-md-h[data-depth="3"] {
+	font-size: 1.15em;
+}
+
+.ft-md-h[data-depth="4"] {
+	font-size: 1.05em;
+}
+
+.ft-md-h[data-depth="5"] {
+	font-size: 1em;
+}
+
+.ft-md-h[data-depth="6"] {
+	font-size: 0.95em;
+}
+
+.ft-md-ul {
+	list-style: disc;
+	padding-inline-start: 1.5em;
+}
+
+.ft-md-ol {
+	list-style: decimal;
+	padding-inline-start: 1.5em;
+}
+
+.ft-md-quote {
+	border-inline-start: 3px solid
+		var(--ft-md-quote-border, color-mix(in oklab, currentColor 25%, transparent));
+	padding-inline-start: 0.75em;
+	color: var(--ft-md-quote-color, color-mix(in oklab, currentColor 75%, transparent));
+}
+
+.ft-md-pre {
+	background: var(--ft-md-code-bg, color-mix(in oklab, currentColor 8%, transparent));
+	border-radius: 6px;
+	padding: 0.75em 1em;
+	overflow-x: auto;
+	font-size: 0.9em;
+	line-height: 1.5;
+}
+
+/* The wrapper scrolls so a wide table never widens the whole message. */
+.ft-md-table-scroll {
+	overflow-x: auto;
+}
+
+.ft-md-table {
+	border-collapse: collapse;
+}
+
+.ft-md-table th,
+.ft-md-table td {
+	border: 1px solid var(--ft-md-border, color-mix(in oklab, currentColor 15%, transparent));
+	padding: 0.35em 0.6em;
+}
+
+.ft-md-table th {
+	font-weight: 600;
+}
+
+.ft-md-hr {
+	border: 0;
+	border-block-start: 1px solid
+		var(--ft-md-border, color-mix(in oklab, currentColor 15%, transparent));
+}
+
+/*
+ * The inline half of the markdown defaults. Both marks below go invisible under
+ * a reset that strips link underlines and code backgrounds, which is what makes
+ * them worth shipping. Colours mix from `currentColor` so they follow the
+ * surface, and both read from a custom property first so a host can restyle them.
+ */
+
+.ft-md-code {
+	background: var(--ft-md-code-bg, color-mix(in oklab, currentColor 8%, transparent));
+	border-radius: 4px;
+	padding: 0.1em 0.35em;
+	font-size: 0.9em;
+}
+
+.ft-md-link {
+	color: var(--ft-md-link, inherit);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.ft-md-link:hover {
+	opacity: 0.8;
+}

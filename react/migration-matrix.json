@@ -1,0 +1,5819 @@
+[
+  {
+    "slug": "agent-plan",
+    "sveltePath": "src/lib/fancy-ui/agent-plan",
+    "reactPath": "react/src/components/agent-plan",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "AgentPlan"
+    ],
+    "loc": 463,
+    "testFiles": [
+      "AgentPlan.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "ai-data-table",
+    "sveltePath": "src/lib/fancy-ui/ai-data-table",
+    "reactPath": "react/src/components/ai-data-table",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "AiDataTable"
+    ],
+    "loc": 229,
+    "testFiles": [
+      "AiDataTable.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "alert-dialog",
+    "sveltePath": "src/lib/fancy-ui/alert-dialog",
+    "reactPath": "react/src/components/alert-dialog",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "composite",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": [
+        "button",
+        "dialog"
+      ]
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "AlertDialog"
+    ],
+    "loc": 147,
+    "testFiles": [
+      "AlertDialog.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "animated-beam",
+    "sveltePath": "src/lib/fancy-ui/animated-beam",
+    "reactPath": "react/src/components/animated-beam",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "ResizeObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "high",
+    "exports": [
+      "AnimatedBeam"
+    ],
+    "loc": 187,
+    "testFiles": [
+      "AnimatedBeam.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "animated-testimonials",
+    "sveltePath": "src/lib/fancy-ui/animated-testimonials",
+    "reactPath": "react/src/components/animated-testimonials",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "AnimatedTestimonials"
+    ],
+    "loc": 198,
+    "testFiles": [
+      "AnimatedTestimonials.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "animated-tooltip",
+    "sveltePath": "src/lib/fancy-ui/animated-tooltip",
+    "reactPath": "react/src/components/animated-tooltip",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "AnimatedTooltip"
+    ],
+    "loc": 99,
+    "testFiles": [
+      "AnimatedTooltip.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "apple-card-carousel",
+    "sveltePath": "src/lib/fancy-ui/apple-card-carousel",
+    "reactPath": "react/src/components/apple-card-carousel",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "matchMedia",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "AppleCardCarousel",
+      "AppleCard"
+    ],
+    "loc": 278,
+    "testFiles": [
+      "AppleCardCarousel.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "approval-card",
+    "sveltePath": "src/lib/fancy-ui/approval-card",
+    "reactPath": "react/src/components/approval-card",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ApprovalCard"
+    ],
+    "loc": 300,
+    "testFiles": [
+      "ApprovalCardHarness.test.svelte",
+      "ApprovalCard.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "artifact-card",
+    "sveltePath": "src/lib/fancy-ui/artifact-card",
+    "reactPath": "react/src/components/artifact-card",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": [
+        "streaming-text"
+      ]
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ArtifactCard"
+    ],
+    "loc": 366,
+    "testFiles": [
+      "ArtifactCard.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "autocomplete",
+    "sveltePath": "src/lib/fancy-ui/autocomplete",
+    "reactPath": "react/src/components/autocomplete",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "field",
+        "listbox",
+        "anchor-position",
+        "portal",
+        "dismissable"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Autocomplete",
+      "AUTOCOMPLETE_KEY"
+    ],
+    "loc": 473,
+    "testFiles": [
+      "AutocompleteHarness.test.svelte",
+      "AutocompleteFieldHarness.test.svelte",
+      "Autocomplete.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "bento-grid",
+    "sveltePath": "src/lib/fancy-ui/bento-grid",
+    "reactPath": "react/src/components/bento-grid",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "BentoGrid",
+      "BentoGridItem",
+      "BentoGridCard"
+    ],
+    "loc": 133,
+    "testFiles": [
+      "BentoGrid.test.ts"
+    ],
+    "svelteFiles": 3,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "bg-falling-stars",
+    "sveltePath": "src/lib/fancy-ui/bg-falling-stars",
+    "reactPath": "react/src/components/bg-falling-stars",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "canvas2d",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "ResizeObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "FallingStarsBg"
+    ],
+    "loc": 165,
+    "testFiles": [
+      "FallingStarsBg.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "bg-stars",
+    "sveltePath": "src/lib/fancy-ui/bg-stars",
+    "reactPath": "react/src/components/bg-stars",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "StarsBackground"
+    ],
+    "loc": 206,
+    "testFiles": [
+      "StarsBackground.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "blur-reveal",
+    "sveltePath": "src/lib/fancy-ui/blur-reveal",
+    "reactPath": "react/src/components/blur-reveal",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "IntersectionObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "BlurReveal"
+    ],
+    "loc": 144,
+    "testFiles": [
+      "BlurReveal.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "book",
+    "sveltePath": "src/lib/fancy-ui/book",
+    "reactPath": "react/src/components/book",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "BOOK_RADIUS_MAP",
+      "BOOK_SIZE_MAP",
+      "BOOK_SHADOW_SIZE_MAP",
+      "BOOK_COLOR_MAP",
+      "Book",
+      "BookHeader",
+      "BookTitle",
+      "BookDescription"
+    ],
+    "loc": 195,
+    "testFiles": [
+      "Book.test.ts"
+    ],
+    "svelteFiles": 4,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "border-beam",
+    "sveltePath": "src/lib/fancy-ui/border-beam",
+    "reactPath": "react/src/components/border-beam",
+    "status": "ported",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "BorderBeam"
+    ],
+    "loc": 88,
+    "testFiles": [
+      "BorderBeam.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "box-reveal",
+    "sveltePath": "src/lib/fancy-ui/box-reveal",
+    "reactPath": "react/src/components/box-reveal",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "IntersectionObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "BoxReveal"
+    ],
+    "loc": 76,
+    "testFiles": [
+      "BoxReveal.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "breadcrumb",
+    "sveltePath": "src/lib/fancy-ui/breadcrumb",
+    "reactPath": "react/src/components/breadcrumb",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Breadcrumb"
+    ],
+    "loc": 149,
+    "testFiles": [
+      "Breadcrumb.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "button",
+    "sveltePath": "src/lib/fancy-ui/button",
+    "reactPath": "react/src/components/button",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": true,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Button"
+    ],
+    "loc": 257,
+    "testFiles": [
+      "Button.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "button-group",
+    "sveltePath": "src/lib/fancy-ui/button-group",
+    "reactPath": "react/src/components/button-group",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ButtonGroup",
+      "BUTTON_GROUP_CONTEXT_KEY"
+    ],
+    "loc": 157,
+    "testFiles": [
+      "ButtonGroup.test.ts",
+      "ButtonGroupContextProbe.test.svelte",
+      "ButtonGroupHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "card-3d",
+    "sveltePath": "src/lib/fancy-ui/card-3d",
+    "reactPath": "react/src/components/card-3d",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "CardContainer",
+      "CardBody",
+      "CardItem"
+    ],
+    "loc": 121,
+    "testFiles": [
+      "CardContainer.test.ts"
+    ],
+    "svelteFiles": 3,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "card-spotlight",
+    "sveltePath": "src/lib/fancy-ui/card-spotlight",
+    "reactPath": "react/src/components/card-spotlight",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "CardSpotlight"
+    ],
+    "loc": 60,
+    "testFiles": [
+      "CardSpotlight.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "chat-error",
+    "sveltePath": "src/lib/fancy-ui/chat-error",
+    "reactPath": "react/src/components/chat-error",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ChatError"
+    ],
+    "loc": 199,
+    "testFiles": [
+      "ChatError.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "chat-message",
+    "sveltePath": "src/lib/fancy-ui/chat-message",
+    "reactPath": "react/src/components/chat-message",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "relative-time",
+        "elapsed"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": [
+        "streaming-text"
+      ]
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ChatMessage",
+      "ChatMessageActions",
+      "ChatMessageAction",
+      "ChatMessageBranches",
+      "CHAT_MESSAGE_CONTEXT_KEY"
+    ],
+    "loc": 531,
+    "testFiles": [
+      "ChatMessage.test.ts",
+      "ChatMessageHarness.test.svelte",
+      "ChatMessageParts.test.ts"
+    ],
+    "svelteFiles": 4,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "chat-panel",
+    "sveltePath": "src/lib/fancy-ui/chat-panel",
+    "reactPath": "react/src/components/chat-panel",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "autoscroll"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "MutationObserver",
+      "ResizeObserver",
+      "matchMedia",
+      "scroll",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "ChatPanel",
+      "ChatEmptyState"
+    ],
+    "loc": 389,
+    "testFiles": [
+      "ChatPanel.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "checkbox",
+    "sveltePath": "src/lib/fancy-ui/checkbox",
+    "reactPath": "react/src/components/checkbox",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [],
+      "sound": true,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Checkbox"
+    ],
+    "loc": 344,
+    "testFiles": [
+      "Checkbox.test.ts",
+      "CheckboxFieldHarness.test.svelte",
+      "CheckboxHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "code-diff",
+    "sveltePath": "src/lib/fancy-ui/code-diff",
+    "reactPath": "react/src/components/code-diff",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "diff"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "CodeDiff"
+    ],
+    "loc": 432,
+    "testFiles": [
+      "CodeDiff.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "colourful-text",
+    "sveltePath": "src/lib/fancy-ui/colourful-text",
+    "reactPath": "react/src/components/colourful-text",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "high",
+    "exports": [
+      "ColourfulText"
+    ],
+    "loc": 81,
+    "testFiles": [
+      "ColourfulText.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "combobox",
+    "sveltePath": "src/lib/fancy-ui/combobox",
+    "reactPath": "react/src/components/combobox",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "field",
+        "listbox",
+        "anchor-position",
+        "portal",
+        "dismissable"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Combobox",
+      "COMBOBOX_KEY"
+    ],
+    "loc": 577,
+    "testFiles": [
+      "Combobox.test.ts",
+      "ComboboxFieldHarness.test.svelte",
+      "ComboboxHarness.test.svelte"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "command-menu",
+    "sveltePath": "src/lib/fancy-ui/command-menu",
+    "reactPath": "react/src/components/command-menu",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "listbox",
+        "portal",
+        "focus-trap",
+        "dismissable",
+        "scroll-lock"
+      ],
+      "motion": [
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom",
+      "scroll"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "CommandMenu"
+    ],
+    "loc": 760,
+    "testFiles": [
+      "CommandMenu.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "compare",
+    "sveltePath": "src/lib/fancy-ui/compare",
+    "reactPath": "react/src/components/compare",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "high",
+    "exports": [
+      "Compare",
+      "StarField"
+    ],
+    "loc": 416,
+    "testFiles": [
+      "Compare.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "composer",
+    "sveltePath": "src/lib/fancy-ui/composer",
+    "reactPath": "react/src/components/composer",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "composite",
+    "model": "opus",
+    "effort": "max",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "ai-types",
+        "float"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "File"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Composer",
+      "ComposerInput",
+      "ComposerSubmit",
+      "ComposerToolbar",
+      "ComposerModelPicker",
+      "ComposerAttachments",
+      "ComposerAttachment",
+      "ComposerCommandMenu"
+    ],
+    "loc": 2028,
+    "testFiles": [
+      "caret.test.ts",
+      "Composer.test.ts",
+      "ComposerAttachments.test.ts",
+      "ComposerCommandMenu.test.ts",
+      "ComposerHarness.test.svelte",
+      "ComposerIntegration.test.ts",
+      "ComposerToolbar.test.ts",
+      "IntegrationHarness.test.svelte"
+    ],
+    "svelteFiles": 8,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "confetti",
+    "sveltePath": "src/lib/fancy-ui/confetti",
+    "reactPath": "react/src/components/confetti",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d"
+    ],
+    "runtimeDeps": [
+      "canvas-confetti"
+    ],
+    "setContext": true,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Confetti",
+      "ConfettiButton"
+    ],
+    "loc": 103,
+    "testFiles": [
+      "Confetti.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "container-scroll",
+    "sveltePath": "src/lib/fancy-ui/container-scroll",
+    "reactPath": "react/src/components/container-scroll",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "scroll"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "ContainerScroll"
+    ],
+    "loc": 83,
+    "testFiles": [
+      "ContainerScroll.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "container-text-flip",
+    "sveltePath": "src/lib/fancy-ui/container-text-flip",
+    "reactPath": "react/src/components/container-text-flip",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ContainerTextFlip"
+    ],
+    "loc": 79,
+    "testFiles": [
+      "ContainerTextFlip.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "context-menu",
+    "sveltePath": "src/lib/fancy-ui/context-menu",
+    "reactPath": "react/src/components/context-menu",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "anchor-position",
+        "portal",
+        "dismissable",
+        "menu"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": [
+        "dropdown-menu"
+      ]
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "portal-dom",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": false,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "ContextMenu",
+      "ContextMenuTrigger",
+      "ContextMenuContent",
+      "ContextMenuItem",
+      "ContextMenuSeparator",
+      "ContextMenuLabel",
+      "ContextMenuSub",
+      "ContextMenuSubTrigger",
+      "ContextMenuSubContent"
+    ],
+    "loc": 462,
+    "testFiles": [
+      "ContextMenu.test.ts",
+      "ContextMenuHarness.test.svelte"
+    ],
+    "svelteFiles": 3,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "context-ring",
+    "sveltePath": "src/lib/fancy-ui/context-ring",
+    "reactPath": "react/src/components/context-ring",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "float"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "matchMedia",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "ContextRing"
+    ],
+    "loc": 411,
+    "testFiles": [
+      "ContextRing.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "copy-button",
+    "sveltePath": "src/lib/fancy-ui/copy-button",
+    "reactPath": "react/src/components/copy-button",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "composite",
+    "deps": {
+      "internals": [
+        "clipboard"
+      ],
+      "motion": [],
+      "sound": true,
+      "components": [
+        "button",
+        "status-morph"
+      ]
+    },
+    "browserAPIs": [
+      "clipboard"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "CopyButton"
+    ],
+    "loc": 305,
+    "testFiles": [
+      "CopyButton.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "date-picker",
+    "sveltePath": "src/lib/fancy-ui/date-picker",
+    "reactPath": "react/src/components/date-picker",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "field",
+        "anchor-position",
+        "portal",
+        "dismissable",
+        "calendar-core"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "DatePicker"
+    ],
+    "loc": 597,
+    "testFiles": [
+      "date-utils.test.ts",
+      "DatePicker.test.ts",
+      "DatePickerFieldHarness.test.svelte",
+      "DatePickerHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "dialog",
+    "sveltePath": "src/lib/fancy-ui/dialog",
+    "reactPath": "react/src/components/dialog",
+    "status": "ported",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "portal",
+        "focus-trap",
+        "dismissable",
+        "scroll-lock"
+      ],
+      "motion": [
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "focus-management",
+      "portal-dom",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Dialog"
+    ],
+    "loc": 396,
+    "testFiles": [
+      "Dialog.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 1,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "dim-siblings",
+    "sveltePath": "src/lib/fancy-ui/dim-siblings",
+    "reactPath": "react/src/components/dim-siblings",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "DimSiblings"
+    ],
+    "loc": 188,
+    "testFiles": [
+      "DimSiblings.test.ts",
+      "DimSiblingsHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "direction-aware-hover",
+    "sveltePath": "src/lib/fancy-ui/direction-aware-hover",
+    "reactPath": "react/src/components/direction-aware-hover",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "matchMedia",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "DirectionAwareHover"
+    ],
+    "loc": 233,
+    "testFiles": [
+      "DirectionAwareHover.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "displacement-text",
+    "sveltePath": "src/lib/fancy-ui/displacement-text",
+    "reactPath": "react/src/components/displacement-text",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "webgl",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "webgl2",
+      "canvas2d",
+      "pointer-events",
+      "MutationObserver"
+    ],
+    "runtimeDeps": [
+      "three"
+    ],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "DisplacementText"
+    ],
+    "loc": 226,
+    "testFiles": [
+      "DisplacementText.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "dock",
+    "sveltePath": "src/lib/fancy-ui/dock",
+    "reactPath": "react/src/components/dock",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "media-query"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "matchMedia",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Dock",
+      "DockIcon",
+      "DockSeparator"
+    ],
+    "loc": 228,
+    "testFiles": [
+      "Dock.test.ts",
+      "DockHarness.test.svelte"
+    ],
+    "svelteFiles": 3,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "drawer",
+    "sveltePath": "src/lib/fancy-ui/drawer",
+    "reactPath": "react/src/components/drawer",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [
+        "portal",
+        "focus-trap",
+        "dismissable",
+        "scroll-lock"
+      ],
+      "motion": [
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Drawer"
+    ],
+    "loc": 418,
+    "testFiles": [
+      "Drawer.test.ts",
+      "DrawerHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "dropdown-menu",
+    "sveltePath": "src/lib/fancy-ui/dropdown-menu",
+    "reactPath": "react/src/components/dropdown-menu",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "anchor-position",
+        "portal",
+        "dismissable",
+        "menu"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": true,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "DropdownMenu",
+      "DropdownMenuTrigger",
+      "DropdownMenuContent",
+      "DropdownMenuItem",
+      "DropdownMenuSeparator",
+      "DropdownMenuLabel",
+      "DropdownMenuSub",
+      "DropdownMenuSubTrigger",
+      "DropdownMenuSubContent"
+    ],
+    "loc": 1414,
+    "testFiles": [
+      "DropdownMenu.test.ts",
+      "DropdownMenuHarness.test.svelte"
+    ],
+    "svelteFiles": 9,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "editorial-engine",
+    "sveltePath": "src/lib/fancy-ui/editorial-engine",
+    "reactPath": "react/src/components/editorial-engine",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "pretext",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "ResizeObserver"
+    ],
+    "runtimeDeps": [
+      "@chenglou/pretext"
+    ],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "EditorialEngine"
+    ],
+    "loc": 935,
+    "testFiles": [
+      "EditorialEngine.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "file-upload",
+    "sveltePath": "src/lib/fancy-ui/file-upload",
+    "reactPath": "react/src/components/file-upload",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [
+        "transitions",
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "File",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "FileUpload"
+    ],
+    "loc": 589,
+    "testFiles": [
+      "FileUpload.test.ts",
+      "FileUploadFieldHarness.test.svelte",
+      "FileUploadHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "fireworks-hdr",
+    "sveltePath": "src/lib/fancy-ui/fireworks-hdr",
+    "reactPath": "react/src/components/fireworks-hdr",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "max",
+    "complexity": "webgl",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "webgl2",
+      "webgpu",
+      "IntersectionObserver",
+      "ResizeObserver",
+      "matchMedia",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "FireworksHdr",
+      "heartOutline",
+      "starOutline",
+      "polygonOutline",
+      "outlineBurst"
+    ],
+    "loc": 3944,
+    "testFiles": [
+      "fireworks-shared.test.ts",
+      "FireworksHdr.test.ts",
+      "webgl2-renderer.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "flickering-grid",
+    "sveltePath": "src/lib/fancy-ui/flickering-grid",
+    "reactPath": "react/src/components/flickering-grid",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "canvas2d",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "ResizeObserver",
+      "IntersectionObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "FlickeringGrid"
+    ],
+    "loc": 157,
+    "testFiles": [
+      "FlickeringGrid.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "flip-card",
+    "sveltePath": "src/lib/fancy-ui/flip-card",
+    "reactPath": "react/src/components/flip-card",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "FlipCard"
+    ],
+    "loc": 49,
+    "testFiles": [
+      "FlipCard.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "flip-words",
+    "sveltePath": "src/lib/fancy-ui/flip-words",
+    "reactPath": "react/src/components/flip-words",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "FlipWords"
+    ],
+    "loc": 170,
+    "testFiles": [
+      "FlipWords.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "fluid-cursor",
+    "sveltePath": "src/lib/fancy-ui/fluid-cursor",
+    "reactPath": "react/src/components/fluid-cursor",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "max",
+    "complexity": "webgl",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "webgl2",
+      "webgpu",
+      "pointer-events",
+      "matchMedia",
+      "ResizeObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "FluidCursor",
+      "FluidCursorAdvanced"
+    ],
+    "loc": 3166,
+    "testFiles": [
+      "fluid-shared.test.ts",
+      "FluidCursor.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "focus",
+    "sveltePath": "src/lib/fancy-ui/focus",
+    "reactPath": "react/src/components/focus",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Focus"
+    ],
+    "loc": 178,
+    "testFiles": [
+      "Focus.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "form-field",
+    "sveltePath": "src/lib/fancy-ui/form-field",
+    "reactPath": "react/src/components/form-field",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [
+        "transitions",
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": [
+        "label"
+      ]
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "FormField"
+    ],
+    "loc": 202,
+    "testFiles": [
+      "FormFieldPairHarness.test.svelte",
+      "FormField.test.ts",
+      "FormFieldHarness.test.svelte",
+      "FormFieldControl.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "frosted-glass",
+    "sveltePath": "src/lib/fancy-ui/frosted-glass",
+    "reactPath": "react/src/components/frosted-glass",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "svg-filter",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "FrostedGlass"
+    ],
+    "loc": 205,
+    "testFiles": [
+      "FrostedGlass.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "glare-card",
+    "sveltePath": "src/lib/fancy-ui/glare-card",
+    "reactPath": "react/src/components/glare-card",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "GlareCard"
+    ],
+    "loc": 134,
+    "testFiles": [
+      "GlareCard.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "glow-border",
+    "sveltePath": "src/lib/fancy-ui/glow-border",
+    "reactPath": "react/src/components/glow-border",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "GlowBorder"
+    ],
+    "loc": 68,
+    "testFiles": [
+      "GlowBorder.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "glowing-effect",
+    "sveltePath": "src/lib/fancy-ui/glowing-effect",
+    "reactPath": "react/src/components/glowing-effect",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "scroll"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "GlowingEffect"
+    ],
+    "loc": 183,
+    "testFiles": [
+      "GlowingEffect.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "gradient-button",
+    "sveltePath": "src/lib/fancy-ui/gradient-button",
+    "reactPath": "react/src/components/gradient-button",
+    "status": "ported",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "GradientButton"
+    ],
+    "loc": 106,
+    "testFiles": [
+      "GradientButton.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "hover-card",
+    "sveltePath": "src/lib/fancy-ui/hover-card",
+    "reactPath": "react/src/components/hover-card",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [
+        "portal",
+        "dismissable",
+        "anchor-position"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "HoverCard"
+    ],
+    "loc": 254,
+    "testFiles": [
+      "HoverCard.test.ts",
+      "HoverCardAriaHarness.test.svelte",
+      "HoverCardHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "hyper-text",
+    "sveltePath": "src/lib/fancy-ui/hyper-text",
+    "reactPath": "react/src/components/hyper-text",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "HyperText"
+    ],
+    "loc": 115,
+    "testFiles": [
+      "HyperText.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "icon-button",
+    "sveltePath": "src/lib/fancy-ui/icon-button",
+    "reactPath": "react/src/components/icon-button",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "composite",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": [
+        "button"
+      ]
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "IconButton"
+    ],
+    "loc": 114,
+    "testFiles": [
+      "IconButton.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "image-generation",
+    "sveltePath": "src/lib/fancy-ui/image-generation",
+    "reactPath": "react/src/components/image-generation",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": [
+        "pixel-loader"
+      ]
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ImageGeneration"
+    ],
+    "loc": 278,
+    "testFiles": [
+      "ImageGeneration.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "image-trail-cursor",
+    "sveltePath": "src/lib/fancy-ui/image-trail-cursor",
+    "reactPath": "react/src/components/image-trail-cursor",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "gsap",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [
+      "gsap"
+    ],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ImageTrailCursor"
+    ],
+    "loc": 1034,
+    "testFiles": [
+      "ImageTrailCursor.test.ts",
+      "trail-variants.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "inline-citation",
+    "sveltePath": "src/lib/fancy-ui/inline-citation",
+    "reactPath": "react/src/components/inline-citation",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [
+        "float",
+        "markdown"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": [
+        "sources"
+      ]
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "InlineCitation"
+    ],
+    "loc": 293,
+    "testFiles": [
+      "InlineCitation.test.ts",
+      "InlineCitationHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "input",
+    "sveltePath": "src/lib/fancy-ui/input",
+    "reactPath": "react/src/components/input",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Input"
+    ],
+    "loc": 127,
+    "testFiles": [
+      "Input.test.ts",
+      "InputFieldHarness.test.svelte",
+      "InputHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "interactive-grid-pattern",
+    "sveltePath": "src/lib/fancy-ui/interactive-grid-pattern",
+    "reactPath": "react/src/components/interactive-grid-pattern",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "InteractiveGridPattern"
+    ],
+    "loc": 83,
+    "testFiles": [
+      "InteractiveGridPattern.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "interactive-hover-button",
+    "sveltePath": "src/lib/fancy-ui/interactive-hover-button",
+    "reactPath": "react/src/components/interactive-hover-button",
+    "status": "ported",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "InteractiveHoverButton"
+    ],
+    "loc": 88,
+    "testFiles": [
+      "InteractiveHoverButton.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "label",
+    "sveltePath": "src/lib/fancy-ui/label",
+    "reactPath": "react/src/components/label",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Label"
+    ],
+    "loc": 57,
+    "testFiles": [
+      "Label.test.ts",
+      "LabelHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "letter-pullup",
+    "sveltePath": "src/lib/fancy-ui/letter-pullup",
+    "reactPath": "react/src/components/letter-pullup",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "LetterPullup"
+    ],
+    "loc": 61,
+    "testFiles": [
+      "LetterPullup.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "line-hover-link",
+    "sveltePath": "src/lib/fancy-ui/line-hover-link",
+    "reactPath": "react/src/components/line-hover-link",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "LineHoverLink"
+    ],
+    "loc": 587,
+    "testFiles": [
+      "LineHoverLink.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "line-reveal",
+    "sveltePath": "src/lib/fancy-ui/line-reveal",
+    "reactPath": "react/src/components/line-reveal",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "pretext",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "IntersectionObserver"
+    ],
+    "runtimeDeps": [
+      "@chenglou/pretext"
+    ],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "LineReveal"
+    ],
+    "loc": 170,
+    "testFiles": [
+      "LineReveal.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "line-shadow-text",
+    "sveltePath": "src/lib/fancy-ui/line-shadow-text",
+    "reactPath": "react/src/components/line-shadow-text",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "LineShadowText"
+    ],
+    "loc": 65,
+    "testFiles": [
+      "LineShadowText.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "link",
+    "sveltePath": "src/lib/fancy-ui/link",
+    "reactPath": "react/src/components/link",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Link"
+    ],
+    "loc": 181,
+    "testFiles": [
+      "Link.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "liquid-glass",
+    "sveltePath": "src/lib/fancy-ui/liquid-glass",
+    "reactPath": "react/src/components/liquid-glass",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "svg-filter",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "ResizeObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "LiquidGlass"
+    ],
+    "loc": 222,
+    "testFiles": [
+      "LiquidGlass.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "liquid-text",
+    "sveltePath": "src/lib/fancy-ui/liquid-text",
+    "reactPath": "react/src/components/liquid-text",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "webgl",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "webgl2",
+      "ResizeObserver",
+      "MutationObserver",
+      "matchMedia",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "LiquidText"
+    ],
+    "loc": 1194,
+    "testFiles": [
+      "LiquidText.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "logo-cloud",
+    "sveltePath": "src/lib/fancy-ui/logo-cloud",
+    "reactPath": "react/src/components/logo-cloud",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "AnimatedLogoCloud",
+      "StaticLogoCloud",
+      "IconLogoCloud"
+    ],
+    "loc": 180,
+    "testFiles": [
+      "AnimatedLogoCloud.test.ts",
+      "StaticLogoCloud.test.ts"
+    ],
+    "svelteFiles": 3,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "magnetic",
+    "sveltePath": "src/lib/fancy-ui/magnetic",
+    "reactPath": "react/src/components/magnetic",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "in-view",
+        "raf",
+        "media-query"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "IntersectionObserver",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Magnetic"
+    ],
+    "loc": 340,
+    "testFiles": [
+      "Magnetic.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "marquee",
+    "sveltePath": "src/lib/fancy-ui/marquee",
+    "reactPath": "react/src/components/marquee",
+    "status": "ported",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Marquee",
+      "ReviewCard"
+    ],
+    "loc": 97,
+    "testFiles": [
+      "Marquee.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "matrix-rain",
+    "sveltePath": "src/lib/fancy-ui/matrix-rain",
+    "reactPath": "react/src/components/matrix-rain",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "canvas2d",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "ResizeObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "MatrixRain"
+    ],
+    "loc": 131,
+    "testFiles": [
+      "MatrixRain.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "meteors",
+    "sveltePath": "src/lib/fancy-ui/meteors",
+    "reactPath": "react/src/components/meteors",
+    "status": "ported",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "high",
+    "exports": [
+      "Meteors"
+    ],
+    "loc": 62,
+    "testFiles": [
+      "Meteors.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "mosaic-glow",
+    "sveltePath": "src/lib/fancy-ui/mosaic-glow",
+    "reactPath": "react/src/components/mosaic-glow",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "canvas2d",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "ResizeObserver",
+      "IntersectionObserver",
+      "matchMedia",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "MosaicGlow"
+    ],
+    "loc": 815,
+    "testFiles": [
+      "mosaic-glow-core.test.ts",
+      "MosaicGlow.ssr.test.ts",
+      "MosaicGlow.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "navbar",
+    "sveltePath": "src/lib/fancy-ui/navbar",
+    "reactPath": "react/src/components/navbar",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Navbar",
+      "NavbarLink"
+    ],
+    "loc": 249,
+    "testFiles": [
+      "Navbar.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "navigation-menu",
+    "sveltePath": "src/lib/fancy-ui/navigation-menu",
+    "reactPath": "react/src/components/navigation-menu",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "portal",
+        "anchor-position",
+        "dismissable"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "NavigationMenu",
+      "NavigationMenuList",
+      "NavigationMenuItem",
+      "NavigationMenuTrigger",
+      "NavigationMenuContent",
+      "NavigationMenuLink"
+    ],
+    "loc": 870,
+    "testFiles": [
+      "NavigationMenu.test.ts",
+      "NavigationMenuHarness.test.svelte"
+    ],
+    "svelteFiles": 6,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "neon-border",
+    "sveltePath": "src/lib/fancy-ui/neon-border",
+    "reactPath": "react/src/components/neon-border",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "NeonBorder"
+    ],
+    "loc": 138,
+    "testFiles": [
+      "NeonBorder.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "noise-reveal",
+    "sveltePath": "src/lib/fancy-ui/noise-reveal",
+    "reactPath": "react/src/components/noise-reveal",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "webgl",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "webgl2",
+      "IntersectionObserver",
+      "matchMedia"
+    ],
+    "runtimeDeps": [
+      "three"
+    ],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "NoiseReveal"
+    ],
+    "loc": 325,
+    "testFiles": [
+      "NoiseReveal.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "number-input",
+    "sveltePath": "src/lib/fancy-ui/number-input",
+    "reactPath": "react/src/components/number-input",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "NumberInput"
+    ],
+    "loc": 385,
+    "testFiles": [
+      "NumberInput.test.ts",
+      "NumberInputFieldHarness.test.svelte",
+      "NumberInputHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "number-ticker",
+    "sveltePath": "src/lib/fancy-ui/number-ticker",
+    "reactPath": "react/src/components/number-ticker",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "IntersectionObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "NumberTicker"
+    ],
+    "loc": 126,
+    "testFiles": [
+      "NumberTicker.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "pagination",
+    "sveltePath": "src/lib/fancy-ui/pagination",
+    "reactPath": "react/src/components/pagination",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Pagination"
+    ],
+    "loc": 377,
+    "testFiles": [
+      "pagination-range.test.ts",
+      "Pagination.test.ts",
+      "PaginationHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "password-input",
+    "sveltePath": "src/lib/fancy-ui/password-input",
+    "reactPath": "react/src/components/password-input",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [
+        "transitions",
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "PasswordInput"
+    ],
+    "loc": 412,
+    "testFiles": [
+      "PasswordInput.test.ts",
+      "PasswordInputFieldHarness.test.svelte",
+      "PasswordInputHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "pixel-loader",
+    "sveltePath": "src/lib/fancy-ui/pixel-loader",
+    "reactPath": "react/src/components/pixel-loader",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "PixelLoader"
+    ],
+    "loc": 115,
+    "testFiles": [
+      "PixelLoader.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "popover",
+    "sveltePath": "src/lib/fancy-ui/popover",
+    "reactPath": "react/src/components/popover",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "anchor-position",
+        "portal",
+        "focus-trap",
+        "dismissable"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "portal-dom",
+      "focus-management",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Popover",
+      "PopoverContent",
+      "POPOVER_KEY"
+    ],
+    "loc": 332,
+    "testFiles": [
+      "Popover.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "presence",
+    "sveltePath": "src/lib/fancy-ui/presence",
+    "reactPath": "react/src/components/presence",
+    "status": "ported",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "transitions",
+        "media-query",
+        "types"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "matchMedia"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Presence"
+    ],
+    "loc": 164,
+    "testFiles": [
+      "Presence.test.ts",
+      "PresenceHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 1,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "pressable",
+    "sveltePath": "src/lib/fancy-ui/pressable",
+    "reactPath": "react/src/components/pressable",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "haptics",
+        "types"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Pressable"
+    ],
+    "loc": 221,
+    "testFiles": [
+      "Pressable.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "prompt-suggestions",
+    "sveltePath": "src/lib/fancy-ui/prompt-suggestions",
+    "reactPath": "react/src/components/prompt-suggestions",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "PromptSuggestions"
+    ],
+    "loc": 134,
+    "testFiles": [
+      "PromptSuggestions.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "pulse-beam",
+    "sveltePath": "src/lib/fancy-ui/pulse-beam",
+    "reactPath": "react/src/components/pulse-beam",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "matchMedia",
+      "IntersectionObserver",
+      "ResizeObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "PulseBeam"
+    ],
+    "loc": 945,
+    "testFiles": [
+      "pulse-beam-data.test.ts",
+      "PulseBeam.ssr.test.ts",
+      "PulseBeam.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "radio-group",
+    "sveltePath": "src/lib/fancy-ui/radio-group",
+    "reactPath": "react/src/components/radio-group",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [],
+      "sound": true,
+      "components": []
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "RadioGroup",
+      "RadioGroupItem",
+      "RADIO_GROUP_KEY"
+    ],
+    "loc": 390,
+    "testFiles": [
+      "RadioGroup.test.ts",
+      "RadioGroupHarness.test.svelte"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "rainbow-button",
+    "sveltePath": "src/lib/fancy-ui/rainbow-button",
+    "reactPath": "react/src/components/rainbow-button",
+    "status": "ported",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "RainbowButton"
+    ],
+    "loc": 99,
+    "testFiles": [
+      "RainbowButton.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "reasoning-panel",
+    "sveltePath": "src/lib/fancy-ui/reasoning-panel",
+    "reactPath": "react/src/components/reasoning-panel",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "StreamText",
+        "autoscroll",
+        "elapsed"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "scroll"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ReasoningPanel"
+    ],
+    "loc": 264,
+    "testFiles": [
+      "ReasoningPanel.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "recommendation-card",
+    "sveltePath": "src/lib/fancy-ui/recommendation-card",
+    "reactPath": "react/src/components/recommendation-card",
+    "status": "pending",
+    "wave": "B",
+    "tier": 3,
+    "group": "composite",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": [
+        "number-ticker"
+      ]
+    },
+    "browserAPIs": [
+      "matchMedia"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "RecommendationCard"
+    ],
+    "loc": 379,
+    "testFiles": [
+      "RecommendationCard.test.ts",
+      "RecommendationCardHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "reveal",
+    "sveltePath": "src/lib/fancy-ui/reveal",
+    "reactPath": "react/src/components/reveal",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "in-view",
+        "stagger",
+        "tokens",
+        "types"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "IntersectionObserver",
+      "MutationObserver",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Reveal"
+    ],
+    "loc": 355,
+    "testFiles": [
+      "Reveal.test.ts",
+      "RevealHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "ripple",
+    "sveltePath": "src/lib/fancy-ui/ripple",
+    "reactPath": "react/src/components/ripple",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Ripple"
+    ],
+    "loc": 65,
+    "testFiles": [
+      "Ripple.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "ripple-button",
+    "sveltePath": "src/lib/fancy-ui/ripple-button",
+    "reactPath": "react/src/components/ripple-button",
+    "status": "ported",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "RippleButton"
+    ],
+    "loc": 114,
+    "testFiles": [
+      "RippleButton.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "scroll-anchor",
+    "sveltePath": "src/lib/fancy-ui/scroll-anchor",
+    "reactPath": "react/src/components/scroll-anchor",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "autoscroll"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "MutationObserver",
+      "ResizeObserver",
+      "scroll",
+      "focus-management",
+      "matchMedia"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "ScrollAnchor"
+    ],
+    "loc": 201,
+    "testFiles": [
+      "ScrollAnchor.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "scroll-progress",
+    "sveltePath": "src/lib/fancy-ui/scroll-progress",
+    "reactPath": "react/src/components/scroll-progress",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "raf"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "scroll"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "ScrollProgress"
+    ],
+    "loc": 295,
+    "testFiles": [
+      "ScrollProgress.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "search-input",
+    "sveltePath": "src/lib/fancy-ui/search-input",
+    "reactPath": "react/src/components/search-input",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [
+        "transitions",
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "low",
+    "exports": [
+      "SearchInput"
+    ],
+    "loc": 287,
+    "testFiles": [
+      "SearchInput.test.ts",
+      "SearchInputFieldHarness.test.svelte",
+      "SearchInputHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "select",
+    "sveltePath": "src/lib/fancy-ui/select",
+    "reactPath": "react/src/components/select",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "field",
+        "listbox",
+        "anchor-position",
+        "portal",
+        "dismissable"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": true,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "low",
+    "exports": [
+      "Select"
+    ],
+    "loc": 632,
+    "testFiles": [
+      "Select.test.ts",
+      "SelectHarness.test.svelte"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "sheet",
+    "sveltePath": "src/lib/fancy-ui/sheet",
+    "reactPath": "react/src/components/sheet",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "portal",
+        "focus-trap",
+        "dismissable",
+        "scroll-lock"
+      ],
+      "motion": [
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "portal-dom",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Sheet"
+    ],
+    "loc": 292,
+    "testFiles": [
+      "Sheet.test.ts",
+      "SheetHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "shimmer-button",
+    "sveltePath": "src/lib/fancy-ui/shimmer-button",
+    "reactPath": "react/src/components/shimmer-button",
+    "status": "ported",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ShimmerButton"
+    ],
+    "loc": 120,
+    "testFiles": [
+      "ShimmerButton.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "sidebar",
+    "sveltePath": "src/lib/fancy-ui/sidebar",
+    "reactPath": "react/src/components/sidebar",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Sidebar",
+      "SidebarGroup",
+      "SidebarItem",
+      "SidebarSeparator",
+      "SidebarFooter",
+      "SIDEBAR_KEY"
+    ],
+    "loc": 462,
+    "testFiles": [
+      "Sidebar.test.ts",
+      "SidebarHarness.test.svelte"
+    ],
+    "svelteFiles": 5,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "skeleton",
+    "sveltePath": "src/lib/fancy-ui/skeleton",
+    "reactPath": "react/src/components/skeleton",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "transitions",
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "low",
+    "exports": [
+      "Skeleton"
+    ],
+    "loc": 396,
+    "testFiles": [
+      "Skeleton.test.ts",
+      "SkeletonRevealHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "slider",
+    "sveltePath": "src/lib/fancy-ui/slider",
+    "reactPath": "react/src/components/slider",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Slider"
+    ],
+    "loc": 258,
+    "testFiles": [
+      "Slider.test.ts",
+      "SliderFieldHarness.test.svelte",
+      "SliderHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "smooth-cursor",
+    "sveltePath": "src/lib/fancy-ui/smooth-cursor",
+    "reactPath": "react/src/components/smooth-cursor",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "matchMedia",
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "SmoothCursor"
+    ],
+    "loc": 228,
+    "testFiles": [
+      "SmoothCursor.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "sound",
+    "sveltePath": "src/lib/fancy-ui/sound",
+    "reactPath": "react/src/sound",
+    "status": "ported",
+    "wave": "F",
+    "tier": 0,
+    "group": "foundation",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "audio",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "webaudio",
+      "localStorage"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "SoundToggle",
+      "sound",
+      "getSoundStatus",
+      "soundFeedback",
+      "DEFAULT_SOUND_FEEDBACK_ON",
+      "createSoundEngine",
+      "FANCY_SOUND_THEME",
+      "SOUND_THEMES",
+      "getSoundTheme",
+      "validateSoundTheme",
+      "SOUND_CUES",
+      "SOUND_THEME_NAMES",
+      "SOUND_STORAGE_KEY",
+      "SOUND_MIN_INTERVAL_MS",
+      "SOUND_LIMITS",
+      "DEFAULT_SOUND_PREFERENCES"
+    ],
+    "loc": 1966,
+    "testFiles": [
+      "sound.test.ts",
+      "sound-feedback.test.ts",
+      "themes.test.ts",
+      "engine.test.ts",
+      "sound.integration.test.ts",
+      "sound.barrel.test.ts",
+      "SoundToggle.test.ts",
+      "sound.ssr.test.ts",
+      "SoundToggleHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 1,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "sources",
+    "sveltePath": "src/lib/fancy-ui/sources",
+    "reactPath": "react/src/components/sources",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "ai-types"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Sources",
+      "SourcesTrigger",
+      "SourcesList",
+      "SourceCard",
+      "SOURCES_CONTEXT_KEY"
+    ],
+    "loc": 525,
+    "testFiles": [
+      "Sources.test.ts",
+      "SourcesParts.test.ts",
+      "SourcesHarness.test.svelte"
+    ],
+    "svelteFiles": 4,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "sparkles",
+    "sveltePath": "src/lib/fancy-ui/sparkles",
+    "reactPath": "react/src/components/sparkles",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "canvas2d",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "ResizeObserver"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "Sparkles"
+    ],
+    "loc": 124,
+    "testFiles": [
+      "Sparkles.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "sparkles-text",
+    "sveltePath": "src/lib/fancy-ui/sparkles-text",
+    "reactPath": "react/src/components/sparkles-text",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "high",
+    "exports": [
+      "SparklesText"
+    ],
+    "loc": 115,
+    "testFiles": [
+      "SparklesText.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "status-morph",
+    "sveltePath": "src/lib/fancy-ui/status-morph",
+    "reactPath": "react/src/components/status-morph",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [
+        "portal"
+      ],
+      "motion": [
+        "haptics"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "portal-dom",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "StatusMorph"
+    ],
+    "loc": 453,
+    "testFiles": [
+      "StatusMorph.test.ts",
+      "StatusMorphHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "stepper",
+    "sveltePath": "src/lib/fancy-ui/stepper",
+    "reactPath": "react/src/components/stepper",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Stepper",
+      "Step",
+      "STEPPER_KEY"
+    ],
+    "loc": 449,
+    "testFiles": [
+      "Stepper.test.ts",
+      "StepperHarness.test.svelte"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "sticky-scroll",
+    "sveltePath": "src/lib/fancy-ui/sticky-scroll",
+    "reactPath": "react/src/components/sticky-scroll",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "in-view",
+        "media-query",
+        "transitions",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "IntersectionObserver",
+      "scroll",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "StickyScroll"
+    ],
+    "loc": 259,
+    "testFiles": [
+      "StickyScroll.test.ts",
+      "StickyScrollHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "streaming-text",
+    "sveltePath": "src/lib/fancy-ui/streaming-text",
+    "reactPath": "react/src/components/streaming-text",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [
+        "StreamText",
+        "Markdown"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "StreamingText"
+    ],
+    "loc": 130,
+    "testFiles": [
+      "StreamingText.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "subagent-list",
+    "sveltePath": "src/lib/fancy-ui/subagent-list",
+    "reactPath": "react/src/components/subagent-list",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [
+        "ai-types"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "SubagentList"
+    ],
+    "loc": 442,
+    "testFiles": [
+      "SubagentList.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "switch",
+    "sveltePath": "src/lib/fancy-ui/switch",
+    "reactPath": "react/src/components/switch",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [],
+      "sound": true,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Switch"
+    ],
+    "loc": 259,
+    "testFiles": [
+      "Switch.test.ts",
+      "SwitchFieldHarness.test.svelte",
+      "SwitchHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "tabs",
+    "sveltePath": "src/lib/fancy-ui/tabs",
+    "reactPath": "react/src/components/tabs",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "transitions",
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "ResizeObserver",
+      "MutationObserver",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Tabs",
+      "TabsList",
+      "TabsTrigger",
+      "TabsContent",
+      "TABS_KEY"
+    ],
+    "loc": 1070,
+    "testFiles": [
+      "Tabs.test.ts",
+      "TabsHarness.test.svelte"
+    ],
+    "svelteFiles": 4,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "terminal-block",
+    "sveltePath": "src/lib/fancy-ui/terminal-block",
+    "reactPath": "react/src/components/terminal-block",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [
+        "autoscroll"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "scroll"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "TerminalBlock"
+    ],
+    "loc": 455,
+    "testFiles": [
+      "TerminalBlock.test.ts",
+      "ansi.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "terminal-text",
+    "sveltePath": "src/lib/fancy-ui/terminal-text",
+    "reactPath": "react/src/components/terminal-text",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "TerminalText"
+    ],
+    "loc": 191,
+    "testFiles": [
+      "TerminalText.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "text-generate-effect",
+    "sveltePath": "src/lib/fancy-ui/text-generate-effect",
+    "reactPath": "react/src/components/text-generate-effect",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "TextGenerateEffect"
+    ],
+    "loc": 68,
+    "testFiles": [
+      "TextGenerateEffect.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "text-reveal-card",
+    "sveltePath": "src/lib/fancy-ui/text-reveal-card",
+    "reactPath": "react/src/components/text-reveal-card",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "high",
+    "exports": [
+      "TextRevealCard",
+      "TextRevealStars"
+    ],
+    "loc": 190,
+    "testFiles": [
+      "TextRevealCard.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "text-roll",
+    "sveltePath": "src/lib/fancy-ui/text-roll",
+    "reactPath": "react/src/components/text-roll",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [
+        "media-query",
+        "tokens",
+        "stagger",
+        "types"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "matchMedia"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "low",
+    "exports": [
+      "TextRoll"
+    ],
+    "loc": 571,
+    "testFiles": [
+      "TextRoll.test.ts",
+      "TextRollHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "textarea",
+    "sveltePath": "src/lib/fancy-ui/textarea",
+    "reactPath": "react/src/components/textarea",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "field"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Textarea"
+    ],
+    "loc": 229,
+    "testFiles": [
+      "Textarea.test.ts",
+      "TextareaFieldHarness.test.svelte",
+      "TextareaHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "thinking-indicator",
+    "sveltePath": "src/lib/fancy-ui/thinking-indicator",
+    "reactPath": "react/src/components/thinking-indicator",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "elapsed"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ThinkingIndicator"
+    ],
+    "loc": 193,
+    "testFiles": [
+      "ThinkingIndicator.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "thread-list",
+    "sveltePath": "src/lib/fancy-ui/thread-list",
+    "reactPath": "react/src/components/thread-list",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [
+        "elapsed",
+        "relative-time",
+        "ai-types"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ThreadList"
+    ],
+    "loc": 344,
+    "testFiles": [
+      "ThreadList.test.ts",
+      "ThreadListHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "time-picker",
+    "sveltePath": "src/lib/fancy-ui/time-picker",
+    "reactPath": "react/src/components/time-picker",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [
+        "field",
+        "listbox",
+        "anchor-position",
+        "portal",
+        "dismissable"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "portal-dom",
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "TimePicker"
+    ],
+    "loc": 586,
+    "testFiles": [
+      "time-utils.test.ts",
+      "TimePicker.test.ts",
+      "TimePickerFieldHarness.test.svelte",
+      "TimePickerHarness.test.svelte"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "timeline",
+    "sveltePath": "src/lib/fancy-ui/timeline",
+    "reactPath": "react/src/components/timeline",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "ResizeObserver",
+      "scroll"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Timeline"
+    ],
+    "loc": 144,
+    "testFiles": [
+      "Timeline.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "toast",
+    "sveltePath": "src/lib/fancy-ui/toast",
+    "reactPath": "react/src/components/toast",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [
+        "portal"
+      ],
+      "motion": [
+        "transitions",
+        "anchored",
+        "tokens"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": true,
+    "ssrRisk": "none",
+    "exports": [
+      "Toast",
+      "Toaster",
+      "toast",
+      "dismissToast"
+    ],
+    "loc": 582,
+    "testFiles": [
+      "Toast.test.ts"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "toggle",
+    "sveltePath": "src/lib/fancy-ui/toggle",
+    "reactPath": "react/src/components/toggle",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Toggle"
+    ],
+    "loc": 195,
+    "testFiles": [
+      "Toggle.test.ts",
+      "ToggleHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "toggle-group",
+    "sveltePath": "src/lib/fancy-ui/toggle-group",
+    "reactPath": "react/src/components/toggle-group",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "compound",
+    "model": "opus",
+    "effort": "high",
+    "complexity": "compound-context",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "focus-management"
+    ],
+    "runtimeDeps": [],
+    "setContext": true,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ToggleGroup",
+      "ToggleGroupItem",
+      "TOGGLE_GROUP_KEY"
+    ],
+    "loc": 543,
+    "testFiles": [
+      "ToggleGroup.test.ts",
+      "ToggleGroupHarness.test.svelte"
+    ],
+    "svelteFiles": 2,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "tool-call",
+    "sveltePath": "src/lib/fancy-ui/tool-call",
+    "reactPath": "react/src/components/tool-call",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "headless",
+    "model": null,
+    "effort": "medium",
+    "complexity": "headless",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ToolCall"
+    ],
+    "loc": 434,
+    "testFiles": [
+      "ToolCall.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "tool-timeline",
+    "sveltePath": "src/lib/fancy-ui/tool-timeline",
+    "reactPath": "react/src/components/tool-timeline",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [
+        "relative-time",
+        "elapsed.svelte"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "ToolTimeline"
+    ],
+    "loc": 267,
+    "testFiles": [
+      "ToolTimeline.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "tooltip",
+    "sveltePath": "src/lib/fancy-ui/tooltip",
+    "reactPath": "react/src/components/tooltip",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "pointer",
+    "deps": {
+      "internals": [
+        "anchor-position",
+        "portal",
+        "dismissable"
+      ],
+      "motion": [
+        "anchored"
+      ],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "pointer-events",
+      "focus-management",
+      "portal-dom"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "Tooltip"
+    ],
+    "loc": 339,
+    "testFiles": [
+      "Tooltip.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "tracing-beam",
+    "sveltePath": "src/lib/fancy-ui/tracing-beam",
+    "reactPath": "react/src/components/tracing-beam",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "motion",
+    "model": null,
+    "effort": "medium",
+    "complexity": "js-anim",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "ResizeObserver",
+      "scroll"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": false,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "TracingBeam"
+    ],
+    "loc": 157,
+    "testFiles": [],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "typing-indicator",
+    "sveltePath": "src/lib/fancy-ui/typing-indicator",
+    "reactPath": "react/src/components/typing-indicator",
+    "status": "pending",
+    "wave": "A",
+    "tier": 1,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "TypingIndicator"
+    ],
+    "loc": 101,
+    "testFiles": [
+      "TypingIndicator.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "voice-input",
+    "sveltePath": "src/lib/fancy-ui/voice-input",
+    "reactPath": "react/src/components/voice-input",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "graphics",
+    "model": "opus",
+    "effort": "xhigh",
+    "complexity": "canvas2d",
+    "deps": {
+      "internals": [
+        "elapsed.svelte",
+        "waveform-core"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [
+      "canvas2d",
+      "ResizeObserver",
+      "matchMedia"
+    ],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "VoiceInput"
+    ],
+    "loc": 411,
+    "testFiles": [
+      "VoiceInput.test.ts",
+      "VoiceInputHarness.test.svelte"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  },
+  {
+    "slug": "web-search",
+    "sveltePath": "src/lib/fancy-ui/web-search",
+    "reactPath": "react/src/components/web-search",
+    "status": "pending",
+    "wave": "B",
+    "tier": 2,
+    "group": "trivial",
+    "model": "sonnet",
+    "effort": "low",
+    "complexity": "css-trivial",
+    "deps": {
+      "internals": [
+        "ai-types",
+        "host",
+        "markdown"
+      ],
+      "motion": [],
+      "sound": false,
+      "components": []
+    },
+    "browserAPIs": [],
+    "runtimeDeps": [],
+    "setContext": false,
+    "hasStyleBlock": true,
+    "usesTransition": false,
+    "ssrRisk": "none",
+    "exports": [
+      "WebSearch"
+    ],
+    "loc": 339,
+    "testFiles": [
+      "WebSearch.test.ts"
+    ],
+    "svelteFiles": 1,
+    "attempts": 0,
+    "divergences": [],
+    "lastFailure": null
+  }
+]
