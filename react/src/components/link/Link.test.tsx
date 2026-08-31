@@ -68,6 +68,30 @@ describe("Link", () => {
 			);
 		});
 
+		// Regression: `external` used to force the safe rel and the "(opens in a
+		// new tab)" note on its own, whatever `target` resolved to. A caller who
+		// overrode the target back to a same-tab keyword got a link that stayed
+		// in this tab while telling a screen-reader user it would not, and lost
+		// its referrer for no safety gain. Both now follow the resolved target.
+		it.each(["_self", "_parent", "_top"])(
+			'stops claiming a new tab when the target is overridden to "%s"',
+			(sameTabTarget) => {
+				render(<Link href="https://example.com" external target={sameTabTarget} rel="nofollow" />);
+				const anchor = screen.getByRole("link");
+
+				expect(anchor).toHaveAttribute("target", sameTabTarget);
+				expect(anchor).toHaveAttribute("rel", "nofollow");
+				expect(anchor.textContent).not.toContain("opens in a new tab");
+				// The off-site arrow is about the destination, not the tab, so it stays.
+				expect(anchor.querySelector(".ft-link-icon")).toBeInTheDocument();
+			}
+		);
+
+		it("still announces the new tab when external resolves to _blank on its own", () => {
+			render(<Link href="https://example.com" external />);
+			expect(screen.getByRole("link").textContent).toContain("(opens in a new tab)");
+		});
+
 		it("does not de-dupe away an already-safe caller rel", () => {
 			render(<Link href="https://example.com" external rel="noopener" />);
 			expect(screen.getByRole("link").getAttribute("rel")?.split(" ").sort()).toEqual(

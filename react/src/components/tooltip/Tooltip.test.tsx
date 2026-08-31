@@ -267,6 +267,35 @@ describe("Tooltip", () => {
 		expect(triggerEl.hasAttribute("aria-describedby")).toBe(false);
 	});
 
+	it("appends to a describedby the trigger already had, and gives it back untouched on close", async () => {
+		// A trigger that already points at something — a hint line, a live
+		// status — is the ordinary case, not an exotic one. Overwriting that
+		// list for the length of a hover silences the description the consumer
+		// wrote, and removing the attribute on close deletes it for good.
+		render(
+			<Tooltip content="Add to favorites">
+				<button data-testid="trigger" aria-describedby="own-hint">
+					♥
+				</button>
+			</Tooltip>
+		);
+		const triggerEl = getTrigger();
+		await advance(0);
+		expect(triggerEl.getAttribute("aria-describedby")).toBe("own-hint");
+
+		fireEvent.focus(triggerEl);
+		const bubbleId = bubble()?.id as string;
+		expect(bubbleId).toBeTruthy();
+		expect(triggerEl.getAttribute("aria-describedby")).toBe(`own-hint ${bubbleId}`);
+
+		fireEvent.blur(triggerEl);
+		expect(triggerEl.getAttribute("aria-describedby")).toBe("own-hint");
+
+		// And again, so a second open cannot stack a duplicate id.
+		fireEvent.focus(triggerEl);
+		expect(triggerEl.getAttribute("aria-describedby")).toBe(`own-hint ${bubbleId}`);
+	});
+
 	it("passes side, align and offset through to the anchor-position hook", async () => {
 		render(
 			<Tooltip content="Add to favorites" side="right" align="start" offset={12}>

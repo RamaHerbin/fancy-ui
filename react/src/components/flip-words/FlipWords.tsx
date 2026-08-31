@@ -57,7 +57,15 @@ export function FlipWords({ words, duration = 3000, className }: FlipWordsProps)
 			if (exitTimeoutRef.current) clearTimeout(exitTimeoutRef.current);
 			exitTimeoutRef.current = setTimeout(() => {
 				setIsExiting(false);
-				setCurrentIndex((index) => (index + 1) % wordsRef.current.length);
+				// `words` can shrink to empty while this exit animation is in
+				// flight (a parent clearing/reloading the list). Re-check the
+				// CURRENT length here rather than trusting the length captured
+				// when the timeout was armed: `% 0` is NaN, and once NaN lands
+				// in state every future `(index + 1) % length` is NaN too — the
+				// component would stay blank forever, even after `words` is
+				// repopulated. Deferring to index 0 lets it resume normally.
+				const length = wordsRef.current.length;
+				setCurrentIndex((index) => (length === 0 ? 0 : (index + 1) % length));
 			}, EXIT_MS);
 		}, duration);
 	}, [currentIndex, duration, isExiting, wordCount, wordsRef]);

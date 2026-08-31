@@ -423,21 +423,40 @@ describe("DropdownMenu", () => {
 		expect(document.activeElement).toBe(btn);
 	});
 
-	// Tab is never `preventDefault`ed, so real browsers continue their own Tab
-	// traversal from whatever the menu core left focused — jsdom does not
-	// implement that default action (it does not move focus on Tab at all), so
-	// this test can only prove the menu closes and that, unlike Escape, this
-	// component does not force focus back onto the trigger.
-	it("Tab closes the menu without forcing focus back to the trigger", async () => {
+	// Tab is never `preventDefault`ed: the browser's own traversal is what moves
+	// focus on, and it moves on from wherever focus SITS. The panel is portalled
+	// to `document.body`, so the item holding focus is a DOM sibling of the whole
+	// app — a Tab resuming from there, or from `<body>` once the panel is gone,
+	// walks straight past every control that follows the trigger. Focus is
+	// therefore handed back to the trigger synchronously, inside the keydown, so
+	// the default action starts from the right place. jsdom implements no Tab
+	// default action at all, so that handoff is exactly what is provable here.
+	it("Tab closes the menu and hands focus back to the trigger for the browser's own traversal", async () => {
 		render(<Harness items={ITEMS} />);
 		const btn = trigger();
 
 		fireEvent.click(btn);
 		await waitFor(() => expect(rootMenu()).not.toBeNull());
+		await waitFor(() => expect(rootMenu()!.contains(document.activeElement)).toBe(true));
 
-		fireEvent.keyDown(rootMenu()!, { key: "Tab" });
+		// Dispatched on the focused ITEM, the way a real key press arrives — the
+		// item is the node the browser would resume its traversal from.
+		fireEvent.keyDown(document.activeElement!, { key: "Tab" });
+		expect(document.activeElement).toBe(btn);
 		await waitFor(() => expect(rootMenu()).toBeNull());
-		expect(document.activeElement).not.toBe(btn);
+	});
+
+	it("Shift+Tab does the same, so the traversal backward resumes at the trigger too", async () => {
+		render(<Harness items={ITEMS} />);
+		const btn = trigger();
+
+		fireEvent.click(btn);
+		await waitFor(() => expect(rootMenu()).not.toBeNull());
+		await waitFor(() => expect(rootMenu()!.contains(document.activeElement)).toBe(true));
+
+		fireEvent.keyDown(document.activeElement!, { key: "Tab", shiftKey: true });
+		expect(document.activeElement).toBe(btn);
+		await waitFor(() => expect(rootMenu()).toBeNull());
 	});
 
 	it("selecting an item fires onSelect and closes the menu by default", async () => {

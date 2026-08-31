@@ -185,8 +185,18 @@ export function attachFloat(node: HTMLElement, opts: AttachFloatOptions): FloatH
 			listen(false);
 			sizes?.disconnect();
 			sizes = null;
-			if (frame !== null) cancelAnimationFrame(frame);
-			frame = null;
+			// `reset()` rather than an inline frame cancel: it cancels the same
+			// pending frame AND strips `position`/`top`/`left`/`width`/
+			// `visibility` and `data-placement`, which is what this handle's
+			// own documentation promises and what the `enabled: false` path
+			// already does through `sync()`. A destroy that only unhooks
+			// leaves a node the caller keeps mounted fixed at its last
+			// coordinates, sized to an anchor it no longer tracks.
+			//
+			// DIVERGENCE from the Svelte action, deliberate: there, destroy
+			// coincides with the node's removal, so the leftovers are
+			// unobservable.
+			reset();
 		},
 	};
 }

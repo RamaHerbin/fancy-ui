@@ -246,6 +246,40 @@ describe("ScrollProgress", () => {
 		target.remove();
 	});
 
+	it("`target` mode: content growing with no scroll still moves the bar", async () => {
+		// The old `resize` listener on the element was dead weight — only a
+		// window fires that event — so a target whose content grew (a streamed
+		// answer, a lazily loaded page) went on reporting the fraction it had
+		// while the content was shorter, until something happened to scroll.
+		const target = document.createElement("div");
+		document.body.appendChild(target);
+		mockScrollable(target, { scrollTop: 50, scrollHeight: 200, clientHeight: 100 });
+
+		const { container } = render(<ScrollProgress target={target} label="P" />);
+		act(() => {
+			vi.advanceTimersToNextFrame();
+		});
+		expect(root(container).style.getPropertyValue("--ft-scrollprogress-value")).toBe("0.5");
+
+		// Twice as much to read, from the same scroll position: half way down
+		// is now a quarter of the way through.
+		mockScrollable(target, { scrollTop: 50, scrollHeight: 400, clientHeight: 100 });
+		target.appendChild(document.createElement("p"));
+
+		// The MutationObserver callback is a microtask (real, even on fake
+		// timers), and the update it schedules is throttled to a frame.
+		await act(async () => {});
+		act(() => {
+			vi.advanceTimersToNextFrame();
+		});
+
+		expect(root(container).style.getPropertyValue("--ft-scrollprogress-value")).toBe(
+			String(50 / 300)
+		);
+		expect(root(container).getAttribute("aria-valuenow")).toBe("17");
+		target.remove();
+	});
+
 	it("content with nothing to scroll reads as 0, never NaN", () => {
 		mockWindowScroll(0);
 		Object.defineProperty(document.documentElement, "scrollHeight", {

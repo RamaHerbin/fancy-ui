@@ -210,6 +210,26 @@ describe("attachFloat", () => {
 		expect(node.hasAttribute("data-placement")).toBe(false);
 	});
 
+	it("strips its own styles when destroyed under a still-mounted node", () => {
+		const { node, handle } = mount({ anchor: ANCHOR, matchWidth: true });
+		expect(node.style.position).toBe("fixed");
+		expect(node.dataset.placement).toBe("bottom-start");
+
+		handle.destroy();
+
+		// `FloatHandle.destroy()` promises to strip the node's own styles, and
+		// only a caller that keeps the node in the document can see it break
+		// that promise: left fixed, sized to an anchor it no longer tracks and
+		// still advertising a stale `data-placement`.
+		expect(node.isConnected).toBe(true);
+		expect(node.style.position).toBe("");
+		expect(node.style.top).toBe("");
+		expect(node.style.left).toBe("");
+		expect(node.style.width).toBe("");
+		expect(node.style.visibility).toBe("");
+		expect(node.hasAttribute("data-placement")).toBe(false);
+	});
+
 	it("hides the float while its anchor getter has nothing to point at", () => {
 		let current: FloatRect | null = null;
 		const { node } = mount({ anchor: () => current });

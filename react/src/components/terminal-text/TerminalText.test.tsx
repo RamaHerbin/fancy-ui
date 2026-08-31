@@ -135,4 +135,29 @@ describe("TerminalText", () => {
 		await advance(5000);
 		expect(() => unmount()).not.toThrow();
 	});
+
+	it("does not re-serialize `lines` on renders that reuse the same array reference", () => {
+		// One render happens per streamed character, all reusing the SAME
+		// `lines` array identity (only internal state changes between them).
+		// JSON.stringify-ing the whole transcript on every one of those is
+		// O(n^2) over a long stream; it should run once per distinct
+		// reference, not once per render.
+		const lines = ["Hello world"];
+		const stringifySpy = vi.spyOn(JSON, "stringify");
+		try {
+			const { rerender } = render(<TerminalText lines={lines} speed={10} />);
+			stringifySpy.mockClear();
+
+			for (let i = 0; i < 20; i++) {
+				rerender(<TerminalText lines={lines} speed={10} />);
+			}
+
+			const callsOnSameReference = stringifySpy.mock.calls.filter(
+				([value]) => value === lines
+			).length;
+			expect(callsOnSameReference).toBe(0);
+		} finally {
+			stringifySpy.mockRestore();
+		}
+	});
 });

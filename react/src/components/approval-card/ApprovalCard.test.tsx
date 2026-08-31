@@ -122,6 +122,45 @@ describe("ApprovalCard", () => {
 		expect(screen.getByTestId("bound-state").textContent).toBe("denied");
 	});
 
+	// Regression: the card used to call `onApprove()` with nothing, one line
+	// after `onStateChange`. In controlled mode that leaves the consumer's own
+	// `state` still reading "pending" — React has not re-rendered it yet — so a
+	// handler that gated on it saw the gate as unresolved. The decision now
+	// travels with the callback.
+	it("hands the committed decision to the action callback, not a stale prop", async () => {
+		const seen: { decision: ApprovalState; propState: ApprovalState }[] = [];
+
+		function ControlledProbe() {
+			const [state, setState] = useState<ApprovalState>("pending");
+			return (
+				<ApprovalCard
+					title={TITLE}
+					state={state}
+					onStateChange={setState}
+					onApprove={(decision) => seen.push({ decision, propState: state })}
+				/>
+			);
+		}
+
+		const { container } = render(<ControlledProbe />);
+		await fireEvent.click(approve(container));
+
+		expect(seen).toHaveLength(1);
+		// The prop the consumer holds is still the pre-decision one — which is
+		// exactly why the argument has to carry the answer.
+		expect(seen[0]?.propState).toBe("pending");
+		expect(seen[0]?.decision).toBe("approved");
+	});
+
+	it("hands a denial to onDeny the same way", async () => {
+		const onDeny = vi.fn();
+		const { container } = render(<ApprovalCard title={TITLE} onDeny={onDeny} />);
+
+		await fireEvent.click(deny(container));
+
+		expect(onDeny).toHaveBeenCalledWith("denied");
+	});
+
 	it("follows a state prop driven from outside", () => {
 		const { container, rerender } = render(<ApprovalCard title={TITLE} state="pending" />);
 		expect(approve(container)).not.toBeNull();

@@ -47,20 +47,48 @@ describe("MatrixRain", () => {
 		shadowBlur: number;
 		shadowColor: string;
 		fillRect(): void;
-		fillText(text: string): void;
+		fillText(text: string, x: number): void;
 		setTransform(): void;
 	}
 
 	interface Harness {
 		glyphs: string[];
+		/** x of every `fillText`, in draw order — one per glyph in `glyphs`. */
+		xs: number[];
 		cancelled: number[];
 		disconnects: number;
 		step(frames: number): void;
 		restore(): void;
 	}
 
+	/**
+	 * jsdom reports 0 for every layout box, and a zero-width canvas is always a
+	 * single column — so a column-count assertion needs a canvas that claims a
+	 * real size. Defined on the prototype and deleted afterwards, which restores
+	 * the inherited `Element` getter.
+	 */
+	function stubCanvasSize(width: number, height: number): () => void {
+		for (const [name, value] of [
+			["clientWidth", width],
+			["clientHeight", height],
+		] as const) {
+			Object.defineProperty(HTMLCanvasElement.prototype, name, {
+				configurable: true,
+				get: () => value,
+			});
+		}
+		return () => {
+			// Removing the own property restores the inherited `Element` getter.
+			// `Reflect.deleteProperty` rather than `delete`, which TypeScript
+			// refuses on a readonly DOM member.
+			Reflect.deleteProperty(HTMLCanvasElement.prototype, "clientWidth");
+			Reflect.deleteProperty(HTMLCanvasElement.prototype, "clientHeight");
+		};
+	}
+
 	function installHarness(): Harness {
 		const glyphs: string[] = [];
+		const xs: number[] = [];
 		const cancelled: number[] = [];
 		// Keyed by id, like the real frame queue, so `cancelAnimationFrame`
 		// actually drops the pending callback instead of only recording the id.
@@ -74,8 +102,9 @@ describe("MatrixRain", () => {
 			shadowBlur: 0,
 			shadowColor: "",
 			fillRect() {},
-			fillText(text: string) {
+			fillText(text: string, x: number) {
 				glyphs.push(text);
+				xs.push(x);
 			},
 			setTransform() {},
 		};
@@ -109,6 +138,7 @@ describe("MatrixRain", () => {
 
 		return {
 			glyphs,
+			xs,
 			cancelled,
 			get disconnects() {
 				return disconnects;
@@ -159,6 +189,39 @@ describe("MatrixRain", () => {
 		} finally {
 			harness.restore();
 		}
+	});
+
+	/** How many distinct columns a single frame paints at this density. */
+	function columnCount(density: number): number {
+		const restoreSize = stubCanvasSize(800, 400);
+		const harness = installHarness();
+		try {
+			const { unmount } = render(<MatrixRain density={density} glyphSize={16} />);
+			harness.step(1);
+			const count = new Set(harness.xs).size;
+			unmount();
+			return count;
+		} finally {
+			harness.restore();
+			restoreSize();
+		}
+	}
+
+	// Regression: `density` is documented as "higher = more, narrower columns",
+	// but the column pitch used to be `glyphSize * density` — which made a
+	// higher density draw FEWER, wider columns. The upstream Svelte source has
+	// the same inversion; this port follows the documented contract instead and
+	// records the divergence.
+	it("packs in more columns as density rises, per the documented contract", () => {
+		const sparse = columnCount(0.5);
+		const normal = columnCount(1);
+		const dense = columnCount(2);
+
+		expect(normal).toBe(50); // 800px / 16px
+		expect(dense).toBeGreaterThan(normal);
+		expect(sparse).toBeLessThan(normal);
+		expect(dense).toBe(100);
+		expect(sparse).toBe(25);
 	});
 
 	it("draws the same rain for the same seed and a different one for another seed", () => {

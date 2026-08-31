@@ -460,6 +460,22 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **voice-input**: `active` is no longer `bind:active`: it is the controlled/uncontrolled pair `active?: boolean` + `onActiveChange?: (active: boolean) => void` (added prop). The component keeps its own copy either way and re-syncs it in the render path when the prop changes, so every observable behaviour the Svelte tests assert is preserved — a supplied `active` opens/closes the panel, a button-driven change closes it even when `active` was passed and no callback is wired, and an externally driven change still fires no callback. Mirrors the Dialog/ApprovalCard convention already in the package.
 - **voice-input**: `class` → `className` (PORTING.md).
 
+- **approval-card**: onApprove/onDeny receive the committed decision as an argument — React batches the onStateChange parent update, so the argument is the only synchronously-committed signal (Svelte writes through bind:state and needs none).
+- **code-diff**: inert is written to the collapsed views imperatively via internals/dom/use-inert-attribute (React 18 drops the boolean JSX prop); absent from server HTML where Svelte SSRs it. A local DiffBody sub-component hosts the hook — markup unchanged.
+- **compare**: new ariaLabel prop (default "Image comparison slider") and full keyboard operation (Arrow ±1, PageUp/PageDown ±10, Home/End) on the role=slider root; the Svelte source exposes a focusable slider with no name and no key handling.
+- **dock**: pointer tracked in viewport coordinates (clientX/clientY); the Svelte source reads pageX/pageY against getBoundingClientRect() and mis-magnifies on a scrolled page.
+- **dropdown-menu**: Tab/Shift+Tab return focus to the trigger before the browser continues traversal; the source passes returnFocus: false and leaves focus in a portalled panel, wrapping traversal to the body.
+- **file-upload**: the native input resets on the click that opens the picker rather than on change, so name/required keep a real FileList through form submission. Residual: cancelling the picker leaves the native selection empty.
+- **glow-border**: style custom properties are built as a React style object during render (present in server HTML); the Svelte source emits one raw CSS string — byte order differs, rendered result identical.
+- **inline-citation**: a scheme-less host like docs.example.dev/guide is promoted to https:// before sanitizing, matching SourceCard and WebSearch; genuine relative paths pass through.
+- **link**: the new-tab announcement and opensNewContext derive from the RESOLVED target, so external combined with target="_self" no longer claims a new tab (the Svelte source announces from external alone).
+- **logo-cloud**: the four cloned marquee tracks carry aria-hidden and empty alt, so assistive tech hears the brand list once; the Svelte source announces all five copies.
+- **matrix-rain**: column pitch is glyphSize / density where the Svelte source uses glyphSize * density; the source README documents "higher = more, narrower columns" and contradicts it in code — the port honors the documented contract.
+- **reasoning-panel**: inert applied imperatively via use-inert-attribute (React 18 compatibility); absent from server HTML where Svelte SSRs it.
+- **scroll-progress**: an element target is observed with ResizeObserver + MutationObserver; the source listens for a resize event elements never fire, so async content growth left the bar stale.
+- **sources**: collapsed source lists get inert imperatively via use-inert-attribute (React 18 compatibility); absent from server HTML where Svelte SSRs it.
+- **tooltip**: aria-describedby appends the tooltip id to the trigger&#39;s existing list and removes only its own id on close; the source overwrote and then deleted the whole attribute.
+
 ## Porting a component
 
 Read `PORTING.md` first — folder shape, rune→hook mapping, the styling rules

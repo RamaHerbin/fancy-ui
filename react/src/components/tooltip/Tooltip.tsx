@@ -64,6 +64,15 @@ function isFocusable(el: HTMLElement): boolean {
 }
 
 /**
+ * `aria-describedby` is an ID REFERENCE LIST — whitespace-separated, and read
+ * in order — so the trigger's own description has to survive a tooltip
+ * appearing over it.
+ */
+function describedByIds(el: HTMLElement): string[] {
+	return (el.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
+}
+
+/**
  * A plain-text label anchored to a focusable trigger, opening on hover or
  * focus.
  *
@@ -292,12 +301,27 @@ export const Tooltip = forwardRef<HTMLSpanElement, TooltipProps>(function Toolti
 	// Reacting to `open` here rather than in the wiring effect also keeps
 	// the listeners themselves from being torn down and re-attached on every
 	// open/close.
+	//
+	// The id is APPENDED to whatever the trigger already declared, and only
+	// this component's own id is taken away again on close. A trigger that
+	// carries its own description — a form control pointing at its hint, an
+	// icon button pointing at a live status line — keeps it while the tooltip
+	// shows, instead of having it overwritten for the duration and then
+	// deleted outright. Divergence from the Svelte source, which writes and
+	// removes the whole attribute.
 	useEffect(() => {
 		if (!triggerEl || disabled || !open) return;
 		const el = triggerEl;
-		el.setAttribute("aria-describedby", tooltipId);
+		const ids = describedByIds(el);
+		if (!ids.includes(tooltipId)) ids.push(tooltipId);
+		el.setAttribute("aria-describedby", ids.join(" "));
 		return () => {
-			el.removeAttribute("aria-describedby");
+			// Read fresh rather than restoring the captured string: anything the
+			// consumer added while the tooltip was open is theirs to keep, and
+			// an attribute left empty is worse than no attribute at all.
+			const rest = describedByIds(el).filter((id) => id !== tooltipId);
+			if (rest.length > 0) el.setAttribute("aria-describedby", rest.join(" "));
+			else el.removeAttribute("aria-describedby");
 		};
 	}, [triggerEl, disabled, open, tooltipId]);
 

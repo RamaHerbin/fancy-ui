@@ -1,5 +1,5 @@
 import { forwardRef, useRef, useState } from "react";
-import type { ChangeEvent, CSSProperties, DragEvent, RefCallback } from "react";
+import type { ChangeEvent, CSSProperties, DragEvent, MouseEvent, RefCallback } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -440,11 +440,31 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 
 		function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
 			if (effectiveDisabled) return;
-			const picked = Array.from(event.currentTarget.files ?? []);
-			// Cleared so selecting the exact same file again still fires change —
-			// otherwise the browser sees an unchanged selection and stays silent.
+			addFiles(Array.from(event.currentTarget.files ?? []));
+		}
+
+		/**
+		 * The reset that keeps the SAME file re-selectable happens HERE, on the
+		 * click that opens the picker, not after the change it produces.
+		 *
+		 * Clearing on change is the usual spelling of this trick, and it is what
+		 * the Svelte source does — but this control documents `name` and
+		 * `required` on a real `<input type="file">`, and an input cleared the
+		 * instant it changes carries no `FileList` into a native form submission:
+		 * the field posts nothing and `required` fails validation against a list
+		 * the reader can plainly see. Clearing at picker-open time leaves the
+		 * browser comparing the new pick against an empty value, so re-picking
+		 * the same file still counts as a change, and the pick then survives
+		 * until the next picker opens.
+		 *
+		 * Divergence from the Svelte source (which clears on change), with one
+		 * residual gap of its own: opening the picker and CANCELLING leaves the
+		 * input empty, so the native submission loses a pick the row list still
+		 * shows. Restoring it would need a `DataTransfer` round-trip. Drag-drop
+		 * has never fed the native input at all, on either side.
+		 */
+		function handleInputClick(event: MouseEvent<HTMLInputElement>) {
 			event.currentTarget.value = "";
-			addFiles(picked);
 		}
 
 		function handleDragEnter(event: DragEvent<HTMLDivElement>) {
@@ -544,6 +564,7 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 						aria-describedby={describedBy}
 						aria-label={label}
 						className="ft-file-upload-input sr-only"
+						onClick={handleInputClick}
 						onChange={handleInputChange}
 					/>
 					{/*

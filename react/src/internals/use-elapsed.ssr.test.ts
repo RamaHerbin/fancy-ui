@@ -76,3 +76,56 @@ describe("useNow on the server", () => {
 		vi.useRealTimers();
 	});
 });
+
+/*
+ * The stopwatch has the same hazard for the same reason. `createElapsed`
+ * seeds itself with `Date.now() - since` so a caller-supplied start time
+ * paints its real duration straight away, and the hook builds the store
+ * during the render — so the server samples the SERVER's clock and the
+ * hydration render samples the client's, some transport time later. Those
+ * two numbers cannot be made to agree, so the server render publishes a
+ * deterministic zero instead and the live duration arrives in the layout
+ * phase of hydration, before the first paint.
+ */
+describe("useElapsed on the server", () => {
+	it("renders the deterministic seed for a `since` in the past, not the server's own measurement", () => {
+		const since = Date.now() - 5 * 60 * 1000;
+		let seen: number | null = null;
+
+		function Stopwatch() {
+			const elapsed = mod.useElapsed({ since });
+			seen = elapsed.ms;
+			return createElement("span", null, elapsed.text);
+		}
+
+		const html = renderToString(createElement(Stopwatch));
+		expect(seen).toBe(0);
+		// Not "5m 00s", which is what the server's clock measured and what no
+		// client could reproduce.
+		expect(html).toBe("<span>0s</span>");
+	});
+
+	it("reports a stopwatch nobody has started as not running", () => {
+		let running: boolean | null = null;
+		renderToString(
+			createElement(function Probe() {
+				running = mod.useElapsed({ since: Date.now() - 1000 }).running;
+				return null;
+			})
+		);
+		expect(running).toBe(false);
+	});
+
+	it("starts no interval on the server", () => {
+		vi.useFakeTimers();
+		const timers = vi.getTimerCount();
+		renderToString(
+			createElement(function Probe() {
+				mod.useElapsed({ since: Date.now() - 1000, tickMs: 1000 });
+				return null;
+			})
+		);
+		expect(vi.getTimerCount()).toBe(timers);
+		vi.useRealTimers();
+	});
+});

@@ -173,11 +173,60 @@ export const ScrollProgress = forwardRef<HTMLDivElement, ScrollProgressProps>(
 
 			update(); // paints the CURRENT position immediately, not just on the next scroll/resize
 			eventTarget.addEventListener("scroll", onScrollOrResize, { passive: true });
-			eventTarget.addEventListener("resize", onScrollOrResize, { passive: true });
+
+			// `resize` is a WINDOW event: an element never fires one, so on the
+			// `target` path that listener only ever looked like it was doing
+			// something. What changes an element scroller's progress without a
+			// scroll is its content growing — a streamed answer, a lazily loaded
+			// page, an image finishing its download — and each of those leaves the
+			// bar reporting the fraction it had while the content was shorter.
+			//
+			// Divergence from the Svelte source, which registers the same
+			// never-firing `resize` listener on its target; observing is the only
+			// way to get the event the listener was reaching for.
+			let observer: ResizeObserver | null = null;
+			let mutations: MutationObserver | null = null;
+
+			if (!target) {
+				eventTarget.addEventListener("resize", onScrollOrResize, { passive: true });
+			} else {
+				const scrollerEl = target;
+
+				if (typeof ResizeObserver !== "undefined") {
+					// The scroller's own box says how much fits; its children's boxes
+					// say how much there is. Both move the fraction.
+					observer = new ResizeObserver(onScrollOrResize);
+					observer.observe(scrollerEl);
+					// `ResizeObserver.observe` on an element already observed is a
+					// no-op, so re-running this on every mutation costs nothing and
+					// saves tracking which children are new.
+					const observeChildren = () => {
+						for (const child of Array.from(scrollerEl.children)) observer?.observe(child);
+					};
+					observeChildren();
+
+					if (typeof MutationObserver !== "undefined") {
+						mutations = new MutationObserver(() => {
+							observeChildren();
+							onScrollOrResize();
+						});
+					}
+				} else if (typeof MutationObserver !== "undefined") {
+					mutations = new MutationObserver(onScrollOrResize);
+				}
+
+				// Content arriving is a change of scroll HEIGHT with every observed
+				// border box possibly identical — appended text in a fixed-size
+				// child included — so the mutation is a signal of its own, not a
+				// stand-in for the resize.
+				mutations?.observe(scrollerEl, { childList: true, subtree: true, characterData: true });
+			}
 
 			return () => {
 				eventTarget.removeEventListener("scroll", onScrollOrResize);
 				eventTarget.removeEventListener("resize", onScrollOrResize);
+				observer?.disconnect();
+				mutations?.disconnect();
 				throttled.cancel();
 			};
 		}, [mode, node, target, label]);

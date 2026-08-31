@@ -1,4 +1,6 @@
 import { createElement, StrictMode } from "react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, renderHook, cleanup, act } from "@testing-library/react";
 import { createElapsed, createNow, formatElapsed, useElapsed, useNow } from "./use-elapsed.js";
@@ -239,6 +241,62 @@ describe("useElapsed", () => {
 		unmount();
 
 		expect(vi.getTimerCount()).toBe(0);
+	});
+
+	/*
+	 * `createElapsed` seeds itself from the wall clock when `since` is given,
+	 * and the hook builds it during the render. On the server that samples the
+	 * SERVER's clock; the hydration render re-runs the same factory against
+	 * the client's, however much later the HTML arrived. Two different
+	 * numbers, one piece of markup — the mismatch §7 forbids outright.
+	 */
+	it("hydrates a past `since` without disagreeing with the server render", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(T0);
+		const since = T0 - 5000;
+
+		function Probe() {
+			const elapsed = useElapsed({ since, tickMs: 1000 });
+			return createElement("span", null, elapsed.text);
+		}
+
+		const html = renderToString(createElement(Probe));
+		// The deterministic seed, not the five seconds the server's own clock
+		// happened to measure.
+		expect(html).toContain(">0s<");
+
+		// The page took four seconds to reach the browser.
+		vi.setSystemTime(T0 + 4000);
+		const container = document.createElement("div");
+		container.innerHTML = html;
+		document.body.appendChild(container);
+
+		const recoverable: unknown[] = [];
+		const consoleErrors: unknown[][] = [];
+		const spy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+			consoleErrors.push(args);
+		});
+
+		let root: ReturnType<typeof hydrateRoot> | undefined;
+		act(() => {
+			root = hydrateRoot(container, createElement(Probe), {
+				onRecoverableError: (error) => {
+					recoverable.push(error);
+				},
+			});
+		});
+		spy.mockRestore();
+
+		expect(recoverable).toEqual([]);
+		expect(consoleErrors).toEqual([]);
+		// And the real duration is on screen once hydration is through: the
+		// seed is a starting point, not the answer.
+		expect(container.textContent).toBe("9s");
+
+		act(() => {
+			root?.unmount();
+		});
+		container.remove();
 	});
 });
 

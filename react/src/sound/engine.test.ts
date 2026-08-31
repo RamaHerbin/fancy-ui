@@ -560,6 +560,38 @@ describe("setTheme", () => {
 	});
 });
 
+describe("MAX_LAYER_MS clamp", () => {
+	it("clamps a custom theme's layer duration to MAX_LAYER_MS before scheduling", () => {
+		const { engine, fake } = makeEngine({ initialState: "running" });
+		const hugeDurationMs = SOUND_LIMITS.MAX_LAYER_MS * 100; // a huge finite duration
+		const customTheme = {
+			...FANCY_SOUND_THEME,
+			cues: {
+				...FANCY_SOUND_THEME.cues,
+				hover: {
+					layers: [
+						{
+							kind: "oscillator" as const,
+							wave: "sine" as const,
+							frequency: 440,
+							gain: 0.2,
+							envelope: { attack: 2, decay: 6, sustain: 0, release: 8 },
+							duration: hugeDurationMs,
+						},
+					],
+				},
+			},
+		};
+		engine.setTheme(customTheme);
+		engine.play("hover");
+		const osc = fake.created.oscillators[0]!;
+		// stop() = durationSec + the fixed 10ms tail; an unclamped engine would
+		// schedule this ~40s out instead of capping at MAX_LAYER_MS, keeping the
+		// oscillator and its voice slot alive for minutes.
+		expect(osc.stopTime).toBeCloseTo(SOUND_LIMITS.MAX_LAYER_MS / 1000 + 0.01, 5);
+	});
+});
+
 describe("dispose()", () => {
 	it("stops sources, disconnects nodes, closes the context, and returns to idle", () => {
 		const { engine, fake } = makeEngine({ initialState: "running" });

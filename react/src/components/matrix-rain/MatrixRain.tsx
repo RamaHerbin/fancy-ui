@@ -91,6 +91,16 @@ export function MatrixRain({
 
 		const random = mulberry32(seed);
 
+		const safeGlyphSize = Math.max(1, glyphSize);
+		const safeDensity = Math.max(0.1, density);
+		// Horizontal distance between two columns. `density` is documented as
+		// "higher = more, narrower columns", so it DIVIDES the glyph width here:
+		// doubling it halves the pitch, which both doubles the column count and
+		// packs the streams tighter. The Svelte source multiplies instead, which
+		// makes a higher density produce fewer, wider columns — the opposite of
+		// what its own README describes. Deliberate divergence: the contract wins.
+		const columnPitch = safeGlyphSize / safeDensity;
+
 		let columns: number[] = [];
 		let canvasW = 0;
 		let canvasH = 0;
@@ -103,12 +113,8 @@ export function MatrixRain({
 		}
 
 		function init(w: number, h: number) {
-			const safeGlyphSize = Math.max(1, glyphSize);
-			const safeDensity = Math.max(0.1, density);
-			const colCount = Math.max(1, Math.floor(w / (safeGlyphSize * safeDensity)));
-			columns = Array.from({ length: colCount }, () =>
-				Math.floor(random() * (h / safeGlyphSize))
-			);
+			const colCount = Math.max(1, Math.floor(w / columnPitch));
+			columns = Array.from({ length: colCount }, () => Math.floor(random() * (h / safeGlyphSize)));
 		}
 
 		function draw() {
@@ -137,7 +143,7 @@ export function MatrixRain({
 			if (shouldAdvance) {
 				for (let i = 0; i < columns.length; i++) {
 					const row = columns[i] as number;
-					const x = i * glyphSize * density;
+					const x = i * columnPitch;
 					const y = row * glyphSize;
 
 					// Head character (bright white)

@@ -35,10 +35,17 @@ export interface ApprovalCardProps {
 	approveLabel?: string;
 	/** Label for the deny button. */
 	denyLabel?: string;
-	/** Called when approve is pressed, after `state` has been written. */
-	onApprove?: () => void;
-	/** Called when deny is pressed, after `state` has been written. */
-	onDeny?: () => void;
+	/**
+	 * Called when approve is pressed, with the decision that was just taken
+	 * (always `"approved"`). The argument is the point: `onStateChange` has
+	 * only just been called at this instant, so a controlled consumer's own
+	 * `state` has not re-rendered yet and still reads `"pending"`. The Svelte
+	 * source's `bind:state` writes through synchronously and needs no argument;
+	 * React does. A `() => void` handler keeps working — it simply ignores it.
+	 */
+	onApprove?: (state: ApprovalState) => void;
+	/** Called when deny is pressed, with the decision (always `"denied"`). See `onApprove`. */
+	onDeny?: (state: ApprovalState) => void;
 	/** The consumer is executing the decision: both buttons go disabled and the card is `aria-busy`. */
 	busy?: boolean;
 	/** The detail region between the header and the footer — a diff, a command preview. */
@@ -94,10 +101,12 @@ export const ApprovalCard = forwardRef<HTMLDivElement, ApprovalCardProps>(functi
 	});
 
 	/**
-	 * The decision is written to `state` before the callback fires, so a
-	 * consumer reading the controlled value from inside its own handler
-	 * already sees the answer. Re-entry is refused rather than re-announced:
-	 * a gate resolves once.
+	 * The decision is written to `state` before the callback fires — and then
+	 * handed to the callback as well. In controlled mode `onStateChange` only
+	 * *schedules* the consumer's update, so its `state` prop is still
+	 * `"pending"` when `onApprove` runs one line later; the argument is the
+	 * committed answer it can act on without waiting for its own re-render.
+	 * Re-entry is refused rather than re-announced: a gate resolves once.
 	 */
 	function decide(next: "approved" | "denied") {
 		if (busy || currentState !== "pending") return;
@@ -105,8 +114,8 @@ export const ApprovalCard = forwardRef<HTMLDivElement, ApprovalCardProps>(functi
 			setUncontrolledState(next);
 		}
 		onStateChange?.(next);
-		if (next === "approved") onApprove?.();
-		else onDeny?.();
+		if (next === "approved") onApprove?.(next);
+		else onDeny?.(next);
 		// The button just pressed is about to leave the DOM along with the
 		// rest of the action group, so focus is moved to the verdict once it
 		// has painted — otherwise the browser drops it back to the document

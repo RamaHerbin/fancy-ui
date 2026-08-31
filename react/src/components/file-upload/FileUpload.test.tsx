@@ -14,6 +14,27 @@ function fileInput(container: HTMLElement): HTMLInputElement {
 	return container.querySelector('input[type="file"]') as HTMLInputElement;
 }
 
+/**
+ * Records every write to one input's `value`, delegating to jsdom's own
+ * accessor. Shadowing the prototype descriptor per node is the only way to see
+ * the write at all: for a file input the only legal value IS the empty string,
+ * so reading `value` back can never tell a reset apart from a control that was
+ * never touched.
+ */
+function recordValueWrites(input: HTMLInputElement): string[] {
+	const writes: string[] = [];
+	const proto = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!;
+	Object.defineProperty(input, "value", {
+		configurable: true,
+		get: () => proto.get!.call(input),
+		set: (next: string) => {
+			writes.push(next);
+			proto.set!.call(input, next);
+		},
+	});
+	return writes;
+}
+
 function dropzone(container: HTMLElement): HTMLElement {
 	return container.querySelector(".ft-file-upload-dropzone") as HTMLElement;
 }
@@ -225,6 +246,28 @@ describe("FileUpload", () => {
 		expect(passed[0]!.file).toBe(file);
 	});
 
+	it("leaves the picked FileList on the input, and only resets it when the picker reopens", async () => {
+		// The input is a real form control: `name` posts its FileList and
+		// `required` validates against it. Clearing the value the instant the
+		// change arrives — the usual same-file-reselection trick — empties both
+		// while the list on screen still shows the file. The reset belongs on
+		// the click that opens the picker instead.
+		const { container } = render(<FileUpload name="attachment" required />);
+		const input = fileInput(container);
+		const writes = recordValueWrites(input);
+
+		fireEvent.change(input, { target: { files: [makeFile("logo.svg")] } });
+		await settle();
+
+		expect(rows(container)).toHaveLength(1);
+		expect(writes).toEqual([]);
+		expect(input.files).toHaveLength(1);
+
+		// ...where it still makes re-picking the very same file a change.
+		fireEvent.click(input);
+		expect(writes).toEqual([""]);
+	});
+
 	it("dropping a file adds a row", async () => {
 		const onFilesChange = vi.fn();
 		const { container } = render(<FileUpload onFilesChange={onFilesChange} />);
@@ -318,7 +361,9 @@ describe("FileUpload", () => {
 
 	it("maxFiles caps the list instead of growing past it, and announces the file it turned away", async () => {
 		const onFilesChange = vi.fn();
-		const { container } = render(<FileUpload multiple maxFiles={2} onFilesChange={onFilesChange} />);
+		const { container } = render(
+			<FileUpload multiple maxFiles={2} onFilesChange={onFilesChange} />
+		);
 		const zone = dropzone(container);
 		const a = makeFile("a.txt");
 		const b = makeFile("b.txt");
@@ -545,7 +590,9 @@ describe("FileUpload", () => {
 			{ id: "2", file: makeFile("b.txt"), progress: null, status: "pending" },
 		];
 		const onFilesChange = vi.fn();
-		const { container } = render(<FileUpload defaultFiles={entries} onFilesChange={onFilesChange} />);
+		const { container } = render(
+			<FileUpload defaultFiles={entries} onFilesChange={onFilesChange} />
+		);
 
 		expect(rows(container)).toHaveLength(2);
 		fireEvent.click(removeButtons(container)[0]!);
@@ -623,9 +670,7 @@ describe("FileUpload", () => {
 	});
 
 	it("works standalone: useField() has no provider, so its own props apply untouched", () => {
-		const { container } = render(
-			<FileUpload id="solo" invalid required disabled={false} />
-		);
+		const { container } = render(<FileUpload id="solo" invalid required disabled={false} />);
 		const input = fileInput(container);
 
 		expect(input.id).toBe("solo");

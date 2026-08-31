@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import "./terminal-text.css";
@@ -50,7 +50,15 @@ export function TerminalText({
 	// changes, and an inline literal in a Svelte template is not one.
 	// Serialised rather than joined, so `["ab"]` and `["a", "b"]` — which stream
 	// differently — never collide on the same key.
-	const linesKey = JSON.stringify(lines);
+	//
+	// Keyed on `lines` REFERENCE identity via useMemo, not recomputed on every
+	// call: the component body re-runs once per streamed character (each is
+	// its own state update), and JSON.stringify over a long transcript on
+	// every one of those internal renders is O(n²) in the stream length. A
+	// fresh array from the parent (different identity) still re-serialises —
+	// so equal-content-but-new-reference arrays keep comparing by content,
+	// same as before — only re-renders that reuse the same array skip it.
+	const linesKey = useMemo(() => JSON.stringify(lines), [lines]);
 
 	// Glitch bookkeeping never drives markup, so it lives in a ref, not state.
 	const glitchStateRef = useRef<{ lineIdx: number; charIdx: number; original: string } | null>(

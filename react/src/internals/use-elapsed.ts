@@ -183,6 +183,34 @@ export interface UseElapsedResult {
 }
 
 /**
+ * `useElapsed`'s server snapshot, and therefore also the value React reads
+ * during the hydration render: a flat zero, which `formatElapsed` renders as
+ * `"0s"`.
+ *
+ * `createElapsed` seeds itself from the wall clock when `since` is given —
+ * "a caller-supplied `since` is already in the past, so the first paint shows
+ * the real duration instead of zero". On the server that seed is the
+ * SERVER's clock, and the hydration render on the client re-runs the same
+ * factory against the CLIENT's clock some hundreds of milliseconds later, so
+ * the two renders disagree by exactly the transport time and React reports a
+ * hydration mismatch on every stopwatch on the page (§7: nothing may differ
+ * between a server render and its hydration).
+ *
+ * Zero is the one value both sides are guaranteed to produce, and it is the
+ * value `createElapsed` itself starts at with no `since` at all — so the
+ * server HTML ships the honest "not yet counting" label rather than one
+ * measured against a clock the client cannot reproduce. This is the same
+ * trade `useNow` makes below, with `0` in place of `NaN` because `ms` is
+ * documented as a number consumers may do arithmetic with, and because
+ * `formatElapsed` collapses both to `"0s"` anyway.
+ *
+ * DIVERGENCE from Svelte, whose SSR pass ships the server-measured duration.
+ */
+function getServerElapsed(): number {
+	return 0;
+}
+
+/**
  * Reactive stopwatch. Built once (`ElapsedOptions` is read only at mount,
  * matching the Svelte source's `createElapsed(opts)` call site — a changed
  * `tickMs`/`since` prop does not retarget a running timer) and subscribed
@@ -190,19 +218,37 @@ export interface UseElapsedResult {
  * exactly as the source's getter does. Nothing is scheduled by the hook
  * itself — call the returned `start()` from your own effect or handler,
  * same as the Svelte side.
+ *
+ * A client-only render reads the live value straight away, exactly as
+ * before; only a hydration render takes the deterministic seed, and the
+ * layout effect below replaces it before the first paint.
  */
 export function useElapsed(options: ElapsedOptions = {}): UseElapsedResult {
 	const elapsed = useConstant(() => createElapsed(options));
-	const ms = useSyncExternalStore(
-		elapsed.subscribe,
-		() => elapsed.ms,
-		() => elapsed.ms
-	);
+	const ms = useSyncExternalStore(elapsed.subscribe, () => elapsed.ms, getServerElapsed);
 	const running = useSyncExternalStore(
 		elapsed.subscribe,
 		() => elapsed.running,
-		() => elapsed.running
+		// Deterministic on both sides for a different reason: nothing has
+		// started the stopwatch by the time the first render runs, so the
+		// store's own value is `false` here too.
+		() => false
 	);
+
+	const rendered = useRef(ms);
+	rendered.current = ms;
+	const [, bump] = useReducer(bumpReducer, 0);
+
+	useIsomorphicLayoutEffect(() => {
+		// React only notices that an external store disagrees with its server
+		// snapshot in the passive phase, which is a phase too late: the
+		// browser would paint one frame of "0s" over a stopwatch that already
+		// knows its real duration. Re-rendering here, in the layout phase,
+		// closes that frame. Only a hydrated tree can ever see the gap — a
+		// client-only render read the live value to begin with, so the
+		// comparison is false and nothing is scheduled.
+		if (elapsed.ms !== rendered.current) bump();
+	}, [elapsed, bump]);
 
 	useEffect(() => elapsed.stop, [elapsed]);
 

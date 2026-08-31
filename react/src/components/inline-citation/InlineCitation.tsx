@@ -31,6 +31,24 @@ export interface InlineCitationProps {
 	className?: string;
 }
 
+/**
+ * A model-provided url made safe for an anchor's `href`, or `""` when the
+ * marker must not render as a link at all. The same normalisation the other
+ * source surfaces in this package run (`SourceCard`, `WebSearch`): a
+ * disallowed scheme is rejected outright by the shared markdown-link
+ * sanitizer, and a scheme-less host is promoted to `https://` first — left
+ * alone, an `href` of "docs.example.dev/guide" resolves against the app's own
+ * origin and lands on a page that was never there. A genuine relative path
+ * ("/local/guide") has nowhere else to resolve against and is left alone.
+ */
+function resolveHref(raw: string): string {
+	if (raw === "") return "";
+	const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("//");
+	const host = raw.split(/[/?#]/, 1)[0] ?? "";
+	const looksHostLike = !hasScheme && !raw.startsWith("/") && host.includes(".");
+	return sanitizeHref(looksHostLike ? `https://${raw}` : raw) ?? "";
+}
+
 /** How long the pointer must rest on the marker before the card appears. */
 const OPEN_DELAY_MS = 150;
 /** How long the card survives after the pointer leaves, so it can be walked into. */
@@ -50,7 +68,7 @@ export const InlineCitation = forwardRef<HTMLElement, InlineCitationProps>(funct
 	// only an omitted prop falls through to the source's own URL. Whatever it
 	// ends up being clears the same scheme check every link in this family runs
 	// through, since a url on a source is as model-supplied as the prose around it.
-	const resolvedHref = sanitizeHref(href ?? source.url ?? "") ?? "";
+	const resolvedHref = resolveHref(href ?? source.url ?? "");
 	const isLink = resolvedHref !== "";
 
 	const [open, setOpen] = useState(false);

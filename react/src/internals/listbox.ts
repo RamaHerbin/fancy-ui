@@ -142,7 +142,22 @@ export function createListbox(options: ListboxOptions): ListboxState {
 		// `setActive(index)` call carries no implied direction to hunt a
 		// substitute in, so the safe answer is to do nothing rather than
 		// guess one.
-		if (index !== -1 && !isEnabled(index)) return;
+		//
+		// Bounds come first, before `enabled` is consulted at all: an index
+		// outside `0..count()-1` names no option, so there is nothing for a
+		// caller-supplied `enabled(index)` to answer about — it would be asked
+		// about a row that does not exist, and a permissive predicate (the
+		// default `?? true`) would wave it straight through to
+		// `commitActive`. Publishing it puts an option id with no matching
+		// row in `aria-activedescendant`, which a screen reader reads as a
+		// dangling reference. `move`, `moveToEdge` and `typeahead` are all
+		// bounded by `count()` already; `setActive` is the one way in that
+		// takes an index from outside the module.
+		if (index !== -1) {
+			const count = options.count();
+			if (index < 0 || index >= count) return;
+			if (!isEnabled(index)) return;
+		}
 		commitActive(index);
 	}
 

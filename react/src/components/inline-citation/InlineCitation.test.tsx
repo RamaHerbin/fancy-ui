@@ -76,6 +76,23 @@ describe("InlineCitation", () => {
 		expect(marker(container).getAttribute("href")).toBe("https://example.org/mirror");
 	});
 
+	it("promotes a scheme-less host to https, and leaves a real relative path alone", () => {
+		// Hand-written and model-written urls both arrive without a scheme all
+		// the time. An `href` of "docs.example.dev/guide" is a RELATIVE path to
+		// the browser: it resolves against the app's own origin and lands on a
+		// page nobody ever published. The other source surfaces in this package
+		// normalise it, and a citation marker is the same kind of link.
+		const { container, rerender } = render(
+			<InlineCitation source={source({ url: "docs.example.dev/guide" })} index={1} />
+		);
+		expect(marker(container).getAttribute("href")).toBe("https://docs.example.dev/guide");
+
+		// A path that really is relative has no host in it and nowhere else to
+		// resolve against, so it stays exactly as written.
+		rerender(<InlineCitation source={source({ url: "/local/guide" })} index={1} />);
+		expect(marker(container).getAttribute("href")).toBe("/local/guide");
+	});
+
 	it("renders a button, not a link, when href is an empty string", () => {
 		const { container } = render(<InlineCitation source={source()} index={1} href="" />);
 		const el = marker(container);

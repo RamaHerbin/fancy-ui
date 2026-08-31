@@ -29,6 +29,16 @@ describe("assignRef", () => {
 		expect(() => assignRef(null, node)).not.toThrow();
 		expect(() => assignRef(undefined, node)).not.toThrow();
 	});
+
+	it("hands back the cleanup a React 19 callback ref returns", () => {
+		const cleanup = () => {};
+		const node = document.createElement("div");
+
+		expect(assignRef(() => cleanup, node)).toBe(cleanup);
+		// Nothing to hand back: the pre-19 shape, and an object ref.
+		expect(assignRef(() => {}, node)).toBeUndefined();
+		expect(assignRef({ current: null }, node)).toBeUndefined();
+	});
 });
 
 describe("useComposedRefs", () => {
@@ -52,6 +62,58 @@ describe("useComposedRefs", () => {
 		unmount();
 		expect(callbackRef).toHaveBeenLastCalledWith(null);
 		expect(objectRef.current).toBeNull();
+	});
+
+	/*
+	 * React 19 lets a callback ref return a cleanup, and runs THAT on detach
+	 * instead of calling the ref with `null`. A composer that discarded the
+	 * return value published nothing back to React, so React fell back to the
+	 * `null` call and the consumer's cleanup never ran at all.
+	 */
+	it("runs a callback ref's own cleanup on detach instead of calling it with null", () => {
+		const cleanup = vi.fn();
+		const withCleanup = vi.fn((_node: HTMLDivElement | null) => cleanup);
+		const plain = vi.fn();
+		const objectRef: { current: HTMLDivElement | null } = { current: null };
+
+		function Probe() {
+			const composed = useComposedRefs<HTMLDivElement>(withCleanup, plain, objectRef);
+			return <div ref={composed} data-testid="target" />;
+		}
+
+		const { unmount, getByTestId } = render(<Probe />);
+		const node = getByTestId("target");
+
+		expect(withCleanup).toHaveBeenCalledWith(node);
+		expect(cleanup).not.toHaveBeenCalled();
+
+		unmount();
+		expect(cleanup).toHaveBeenCalledTimes(1);
+		// The ref that owns a cleanup is never ALSO nulled — running the
+		// cleanup is the whole of its teardown.
+		expect(withCleanup).toHaveBeenCalledTimes(1);
+		expect(withCleanup).not.toHaveBeenCalledWith(null);
+		// The ones that returned nothing keep the pre-19 contract.
+		expect(plain).toHaveBeenLastCalledWith(null);
+		expect(objectRef.current).toBeNull();
+	});
+
+	it("runs the cleanup when the ref list changes, before the new refs attach", () => {
+		const cleanup = vi.fn();
+		const withCleanup = vi.fn((_node: HTMLDivElement | null) => cleanup);
+
+		function Probe({ second }: { second: Ref<HTMLDivElement> }) {
+			const composed = useComposedRefs<HTMLDivElement>(withCleanup, second);
+			return <div ref={composed} data-testid="target" />;
+		}
+
+		const { rerender } = render(<Probe second={vi.fn((_node: HTMLDivElement | null) => {})} />);
+		expect(cleanup).not.toHaveBeenCalled();
+
+		rerender(<Probe second={vi.fn((_node: HTMLDivElement | null) => {})} />);
+		expect(cleanup).toHaveBeenCalledTimes(1);
+		// Re-attached with the node, not left detached.
+		expect(withCleanup).toHaveBeenCalledTimes(2);
 	});
 
 	it("forwards to an inner ref alongside the component's own", () => {

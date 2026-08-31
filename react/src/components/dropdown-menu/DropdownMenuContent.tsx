@@ -133,7 +133,19 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
 			// dispatch simply does not exist.
 			if (!event.currentTarget.contains(event.target as Node)) return;
 			handleMenuContentKeydown(event, menuContext, {
-				onTab: () => root.close({ returnFocus: false }),
+				// Tab is never `preventDefault`ed — the browser's own traversal is
+				// what moves focus on, and it moves on from wherever focus SITS.
+				// This panel is portalled to `document.body`, so the item holding
+				// focus is a DOM sibling of the whole app: a Tab resuming from
+				// there (or from `<body>`, once the panel is gone) walks straight
+				// past every control that follows the trigger. Handing focus back
+				// to the trigger synchronously, inside the keydown, is what gives
+				// the default action the right starting point — forward to the
+				// control after the trigger, backward to the one before it.
+				//
+				// Divergence from the Svelte source, which passes
+				// `returnFocus: false` here and leaves the same gap.
+				onTab: () => root.close(),
 			});
 		}
 

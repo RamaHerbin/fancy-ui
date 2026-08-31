@@ -8,8 +8,10 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
 	href: string;
 	/** Visual weight: `default` reads as inline copy, `muted` recedes into supporting text */
 	variant?: "default" | "muted";
-	/** Marks the destination as off-site: appends an arrow glyph, defaults `target` to
-	 * `_blank`, and guarantees a safe `rel` */
+	/** Marks the destination as off-site: appends an arrow glyph and defaults `target`
+	 * to `_blank`, which in turn brings the safe `rel` and the "opens in a new tab"
+	 * announcement. Override `target` with `_self`, `_parent` or `_top` and both drop
+	 * away — the resolved target decides those, not this flag */
 	external?: boolean;
 	/** When the underline shows: only on hover/focus (`hover`, the default), always, or never */
 	underline?: "hover" | "always" | "none";
@@ -52,12 +54,17 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 
 	// A new context that keeps a handle on `window.opener` can repaint the tab
 	// it came from, so the safe tokens are non-negotiable whenever the link
-	// opens one — `external`, an explicit `target="_blank"`, or any other
-	// named target that isn't one of the three same-tab keywords above.
-	// Existing tokens are preserved with a Set so a caller-supplied `rel` is
-	// extended, never dropped.
-	const opensNewContext =
-		external || (!!computedTarget && !SAME_TAB_TARGETS.has(computedTarget.toLowerCase()));
+	// opens one — the `_blank` that `external` defaults to, an explicit
+	// `target="_blank"`, or any other named target that isn't one of the three
+	// same-tab keywords above. Existing tokens are preserved with a Set so a
+	// caller-supplied `rel` is extended, never dropped.
+	//
+	// The predicate reads the RESOLVED target and nothing else. `external`
+	// alone already resolves to `_blank`, so it needs no separate clause — and
+	// a caller who passes `external` with `target="_self"` genuinely stays in
+	// this tab, where forcing `noreferrer` would strip a referrer the
+	// destination may rely on for no safety gain.
+	const opensNewContext = !!computedTarget && !SAME_TAB_TARGETS.has(computedTarget.toLowerCase());
 	let computedRel = rel;
 	if (opensNewContext) {
 		const tokens = new Set(rel?.split(/\s+/).filter(Boolean));
@@ -102,7 +109,15 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 						<path d="M7 17 17 7" />
 						<path d="M8 7h9v9" />
 					</svg>
-					<span className="sr-only">{" "}(opens in a new tab)</span>
+					{/*
+						The arrow says "off-site", which `external` alone settles.
+						This sentence says "and it will open somewhere else", which
+						only the resolved target can settle — an `external` link
+						pointed back at `_self` stays right here, and announcing a
+						new tab that never opens is a lie a screen-reader user acts
+						on.
+					*/}
+					{opensNewContext && <span className="sr-only"> (opens in a new tab)</span>}
 				</>
 			)}
 		</a>

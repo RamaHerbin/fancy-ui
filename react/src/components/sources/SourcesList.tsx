@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useInertAttribute } from "../../internals/dom/use-inert-attribute.js";
 import type { SourceData } from "../../internals/ai-types.js";
 import { SourceCard } from "./SourceCard.js";
 import { SOURCES_CONTEXT_KEY } from "./types.js";
@@ -24,20 +25,20 @@ export function SourcesList({ item, className }: SourcesListProps) {
 
 	const items = sources?.sources ?? [];
 	const isOpen = sources?.open.current ?? true;
+	const inertRef = useInertAttribute<HTMLUListElement>(!isOpen);
 
 	return (
 		<div className={cn("ft-sources-list", isOpen && "ft-open")}>
 			<div className="overflow-hidden">
 				{/*
-					`inert` is written as a boolean, which React 19 renders as the bare
-					`inert` attribute. React 18 does not know the attribute and drops it
-					with a warning — the one behaviour difference across this package's
-					peer range, and the alternative (an empty string) is what React 19
-					rejects, so the newer of the two wins.
+					`inert` is written straight to the node by `useInertAttribute`, never
+					as a JSX prop: `inert={true}` is dropped by React 18 and `inert=""` is
+					rejected by React 19, so no single prop spelling covers this package's
+					peer range. The hook emits the same attribute on both.
 				*/}
 				<ul
+					ref={inertRef}
 					id={sources?.listId}
-					inert={!isOpen}
 					aria-label="Sources"
 					className={cn("ft-sources-grid", className)}
 				>

@@ -550,6 +550,63 @@ describe("TimePicker", () => {
 		await settleLegs();
 	});
 
+	/*
+	 * `slots` is regenerated whenever `step`, `min` or `max` change, while the
+	 * listbox store only ever hears about explicit move/typeahead/setActive
+	 * calls. A grid that changes shape under an open panel therefore leaves
+	 * the active index describing a row that no longer exists, or a different
+	 * time than the one the user arrowed to.
+	 */
+	it("re-resolves the active slot when max shortens the list under an open panel", async () => {
+		const { container, rerender } = render(<TimePicker locale="en-US" value="23:00" />);
+		const btn = trigger(container);
+
+		fireEvent.click(btn); // opens, active on 23:00 — index 46 of 48
+		expect(btn.getAttribute("aria-activedescendant")).toBe(optionRow(46).id);
+
+		rerender(<TimePicker locale="en-US" value="23:00" max="06:00" />);
+		expect(optionRows()).toHaveLength(13);
+
+		const activeId = btn.getAttribute("aria-activedescendant");
+		// Never an option id with no row behind it — that is a dangling
+		// reference for anything reading the accessibility tree.
+		expect(document.getElementById(activeId!)).not.toBeNull();
+		// 23:00 is past every remaining slot, so the highlight lands on the
+		// last one: where reopening the panel would have put it.
+		expect(activeId).toBe(optionRows().at(-1)?.id);
+		await settleLegs();
+	});
+
+	it("keeps the active index on the same TIME when min shifts the list", async () => {
+		const { container, rerender } = render(<TimePicker locale="en-US" value="12:00" />);
+		const btn = trigger(container);
+
+		fireEvent.click(btn); // opens, active on 12:00 — index 24 of 48
+		expect(btn.getAttribute("aria-activedescendant")).toBe(optionRow(24).id);
+
+		rerender(<TimePicker locale="en-US" value="12:00" min="06:00" />);
+
+		// The grid now starts at 06:00, so 12:00 lives at index 12. A stale
+		// index 24 stays in range and silently highlights 18:00 instead.
+		expect(optionRows()).toHaveLength(36);
+		expect(btn.getAttribute("aria-activedescendant")).toBe(optionRow(12).id);
+		await settleLegs();
+	});
+
+	it("clears the active index when the bounds leave no slots at all", async () => {
+		const { container, rerender } = render(<TimePicker locale="en-US" value="12:00" />);
+		const btn = trigger(container);
+
+		fireEvent.click(btn);
+		expect(btn.hasAttribute("aria-activedescendant")).toBe(true);
+
+		rerender(<TimePicker locale="en-US" value="12:00" min="20:00" max="06:00" />);
+
+		expect(optionRows()).toHaveLength(0);
+		expect(btn.hasAttribute("aria-activedescendant")).toBe(false);
+		await settleLegs();
+	});
+
 	it("Enter commits the active slot and closes the panel", async () => {
 		const onValueChange = vi.fn();
 		const { container } = render(

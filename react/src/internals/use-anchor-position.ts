@@ -109,10 +109,21 @@ export function useAnchorPosition(
 	);
 
 	const handleRef = useRef<AnchorPositionHandle | null>(null);
-	// The geometry the live handle was last given. `null` while nothing is
-	// attached; it is what keeps the update effect below from spending a
-	// second layout read on the commit that just attached.
-	const appliedRef = useRef<{ side: Side; align: Align; offset: number | undefined } | null>(null);
+	// The geometry AND the anchor the live handle was last given. `null` while
+	// nothing is attached; it is what keeps the update effect below from
+	// spending a second layout read on the commit that just attached.
+	//
+	// `anchor` is the RESOLVED element, never the `anchor` option itself. The
+	// option is routinely an inline arrow rebuilt on every render (a virtual
+	// anchor's `() => root.anchorRef`), so its identity says nothing about
+	// whether the surface still points at the same thing; the element it
+	// resolves to says exactly that.
+	const appliedRef = useRef<{
+		side: Side;
+		align: Align;
+		offset: number | undefined;
+		anchor: HTMLElement | null;
+	} | null>(null);
 
 	// A layout effect, not a passive one: a position applied after paint is a
 	// visible jump from (0, 0).
@@ -131,6 +142,7 @@ export function useAnchorPosition(
 			side: sideRef.current,
 			align: alignRef.current,
 			offset: offsetRef.current,
+			anchor: resolveAnchor(),
 		};
 
 		return () => {
@@ -144,9 +156,22 @@ export function useAnchorPosition(
 		const handle = handleRef.current;
 		const applied = appliedRef.current;
 		if (!handle || !applied) return;
-		if (applied.side === side && applied.align === align && applied.offset === offset) return;
+		// Resolved here rather than compared as an option, so a surface
+		// retargeted from one anchor onto another recomputes even though the
+		// three geometry options never moved. Without it the panel stays pinned
+		// where the previous anchor stood until a scroll or a resize happens to
+		// fire, which for a surface over a static page is never.
+		const nextAnchor = resolveAnchor();
+		if (
+			applied.side === side &&
+			applied.align === align &&
+			applied.offset === offset &&
+			applied.anchor === nextAnchor
+		) {
+			return;
+		}
 
-		appliedRef.current = { side, align, offset };
+		appliedRef.current = { side, align, offset, anchor: nextAnchor };
 		handle.update({
 			anchor: resolveAnchor,
 			side,
@@ -154,7 +179,12 @@ export function useAnchorPosition(
 			offset,
 			onPlacement: handlePlacement,
 		});
-	}, [node, side, align, offset, resolveAnchor, handlePlacement]);
+		// `options.anchor` is listed for its CHANGES, not its value: the effect
+		// reads the anchor through `resolveAnchor`'s live ref, and a new anchor
+		// option is the only signal React gives that the resolved element may
+		// have moved. An inline arrow's fresh identity re-runs this for one
+		// pointer comparison and no layout read.
+	}, [node, side, align, offset, options.anchor, resolveAnchor, handlePlacement]);
 
 	return placement;
 }

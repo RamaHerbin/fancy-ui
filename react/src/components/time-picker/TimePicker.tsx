@@ -157,6 +157,40 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 		onActiveChange: scrollActiveIntoView,
 	});
 
+	// `slots` is regenerated whenever `step`, `min` or `max` change, and the
+	// listbox store knows nothing about that: it only reacts to explicit
+	// move/typeahead/setActive calls, never to the grid changing shape between
+	// them. An index that was valid under the old grid therefore survives into
+	// the new one — pointing past the end of a shorter list, so
+	// `aria-activedescendant` below cites an option id with no row left in the
+	// DOM, or (a shifted grid: a later `min`, a coarser `step`) pointing at a
+	// completely different TIME than the one the user arrowed to, with the
+	// highlight silently jumping under them.
+	//
+	// So the index is reconciled against the time it named, not clamped as a
+	// number: the previous grid says which slot was active, and `nearestIndex`
+	// re-resolves that slot in the new grid exactly as `openPanel` resolves
+	// `value` — same slot if it survived, else the closest one at or after it,
+	// else the last, else -1 for a grid with no slots at all. A bounds change
+	// therefore lands the highlight where reopening the panel would.
+	//
+	// DIVERGENCE: the Svelte source has the same gap. `Select` clamps to -1
+	// instead, which is right there — its options are an opaque caller-supplied
+	// list with no ordering to resolve a missing entry against, while these
+	// slots are times on a line.
+	const previousSlotsRef = useRef(slots);
+	useEffect(() => {
+		const previous = previousSlotsRef.current;
+		previousSlotsRef.current = slots;
+		if (previous === slots) return;
+
+		const index = listbox.activeIndex;
+		if (index === -1) return;
+
+		const activeSlot = previous[index];
+		listbox.setActive(activeSlot === undefined ? -1 : nearestIndex(slots, activeSlot));
+	}, [listbox, slots]);
+
 	// The index owed a scroll as soon as the panel exists. The source spells
 	// this `tick().then(() => scrollActiveIntoView(index))`; here the panel is
 	// mounted by its own presence clock a commit later, so the request is
