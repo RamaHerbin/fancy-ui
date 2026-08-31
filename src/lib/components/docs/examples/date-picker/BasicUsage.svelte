@@ -4,4 +4,4 @@
 	let selected = $state<Date | null>(null);
 </script>
 
-<DatePicker bind:value={selected} label="Date" />
+<DatePicker sound bind:value={selected} label="Date" />

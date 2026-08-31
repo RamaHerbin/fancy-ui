@@ -36,6 +36,7 @@ The consumer owns the trace: append to `text` as chunks arrive and flip `streami
 | `onToggle`   | `(open: boolean) => void` | `undefined`   | Called on every open/close, by click or on the panel's own initiative |
 | `class`      | `string`                  | `undefined`   | Additional CSS classes                                                |
 | `ref`        | `HTMLDivElement \| null`  | `null`        | Bindable reference to the root element                                |
+| `sound`      | `boolean`                 | `false`       | Plays `open` / `close` when the reader toggles the panel              |
 
 ## The open-behaviour contract
 
@@ -59,6 +60,16 @@ A collapse already scheduled is cancelled by a click, by a new stream starting, 
 While `streaming`, the header shows a live stopwatch driven by `createElapsed`, ticking once a second off the wall clock so a throttled background tab still reports the true duration. When the stream ends, the last reading becomes the summary duration; pass `durationMs` to override it with a server-measured one, or `since` to pin where the clock started (useful when the panel mounts mid-burst).
 
 Each new burst restarts the clock unless `since` is supplied, so the summary describes the burst you just watched rather than the sum of all of them.
+
+## Sound
+
+Set `sound` to play `open` when the reader expands the trace and `close` when they fold it back, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<ReasoningPanel {text} sound />
+```
+
+Only an actual click on the header plays a cue — one of `open`/`close`, never both. The panel opening on its own while streaming, folding itself away 600 ms after a stream ends, or a consumer writing straight to a bound `open` variable all stay silent: those are the panel deciding, not the reader, and the contract above is exactly the line the cue follows. Off by default; only audible once the user has separately turned sound on.
 
 ## Implementation Notes
 

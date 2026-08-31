@@ -40,6 +40,7 @@
 	import { cn } from "$lib/utils.js";
 	import { float } from "../_internals/float.js";
 	import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		models,
@@ -83,11 +84,18 @@
 		const current = models.findIndex((model) => model.id === selectedId);
 		activeIndex = current >= 0 ? current : 0;
 		open = true;
+		if (composer?.sound) soundFx.play("open");
 	}
 
-	function closeMenu(returnFocus: boolean) {
+	// `reason` distinguishes a commit-flavoured close (a model was just picked)
+	// from a plain dismiss (Escape, Tab, an outside press, or the trigger
+	// toggling the menu shut). Only a dismiss plays `close` — a commit already
+	// played `select` inside `select()` below, and the contract is one cue per
+	// interaction, never both.
+	function closeMenu(returnFocus: boolean, reason: "commit" | "dismiss" = "dismiss") {
 		if (!open) return;
 		open = false;
+		if (composer?.sound && reason === "dismiss") soundFx.play("close");
 		// Focus was moved into the listbox on open; leaving it there would drop the
 		// keyboard user at the top of the document when the listbox disappears.
 		if (returnFocus) triggerEl?.focus();
@@ -105,7 +113,11 @@
 		if (!model || isDisabled) return;
 		const changed = model.id !== selectedId;
 		value = model.id;
-		closeMenu(true);
+		// Re-picking the model already in force plays no `select` — same as
+		// `onChange` below — and the menu closes as a dismissal instead, with
+		// `close`, rather than in silence (RadioGroup/Select parity).
+		if (changed && composer?.sound) soundFx.play("select");
+		closeMenu(true, changed ? "commit" : "dismiss");
 		// `onChange` reports a change, not an interaction: re-picking the model
 		// already in force has nothing to announce.
 		if (changed) onChange?.(model.id);

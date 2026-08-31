@@ -8,13 +8,13 @@
 
 <div class="flex flex-col gap-3">
 	<div class="flex gap-2">
-		<Toggle bind:pressed={bold} label="Bold">
+		<Toggle sound bind:pressed={bold} label="Bold">
 			<strong>B</strong>
 		</Toggle>
-		<Toggle bind:pressed={italic} label="Italic">
+		<Toggle sound bind:pressed={italic} label="Italic">
 			<em>I</em>
 		</Toggle>
-		<Toggle bind:pressed={underline} label="Underline">
+		<Toggle sound bind:pressed={underline} label="Underline">
 			<span class="underline">U</span>
 		</Toggle>
 	</div>

@@ -11,7 +11,9 @@
 	} from "$lib/fancy-ui/dropdown-menu";
 </script>
 
-<DropdownMenu>
+<!-- `sound` on the root reaches the submenu too: DropdownMenuSub and
+     DropdownMenuSubContent inherit it through context. -->
+<DropdownMenu sound>
 	<DropdownMenuTrigger>Actions</DropdownMenuTrigger>
 	<DropdownMenuContent>
 		<DropdownMenuItem onSelect={() => console.log("reload")}>Reload</DropdownMenuItem>

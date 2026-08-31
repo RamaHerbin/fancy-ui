@@ -22,6 +22,7 @@
 	{#snippet preview(values)}
 		<div class="flex items-center justify-center py-8">
 			<GradientButton
+				sound
 				duration={values.duration as number}
 				borderWidth={values.borderWidth as number}
 				borderRadius={values.borderRadius as number}

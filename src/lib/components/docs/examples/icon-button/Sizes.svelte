@@ -3,7 +3,7 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-3">
-	<IconButton label="Settings" size="sm">
+	<IconButton sound label="Settings" size="sm">
 		<svg
 			class="size-3.5"
 			viewBox="0 0 24 24"
@@ -21,7 +21,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Settings" size="md">
+	<IconButton sound label="Settings" size="md">
 		<svg
 			class="size-4"
 			viewBox="0 0 24 24"
@@ -39,7 +39,7 @@
 		</svg>
 	</IconButton>
 
-	<IconButton label="Settings" size="lg">
+	<IconButton sound label="Settings" size="lg">
 		<svg
 			class="size-[18px]"
 			viewBox="0 0 24 24"

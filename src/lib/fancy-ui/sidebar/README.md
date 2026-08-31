@@ -88,6 +88,7 @@ below for what happens to an item that has no icon.
 | `children`   | `Snippet`                                        | —       | The item's label. Moves to `sr-only` text while collapsed — never removed               |
 | `class`      | `string`                                         | —       | Additional CSS classes                                                                  |
 | `ref`        | `HTMLAnchorElement \| HTMLButtonElement \| null` | `null`  | Bindable element reference                                                              |
+| `sound`      | `boolean`                                        | `false` | Plays the `select` cue on activation, once the user has enabled sound                   |
 
 ### SidebarSeparator
 
@@ -146,6 +147,16 @@ sighted user to trust something false. If your item set can't guarantee a
 distinct, meaningful icon for every entry, don't collapse this sidebar, or
 override the collapsed row's own styling to show something else through
 `class`.
+
+## Sound
+
+Set `sound` on a `SidebarItem` to play the `select` cue when it is activated (either the `<a>` or the `<button>` branch — one shared handler), through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<SidebarItem href="/dashboard" sound current>Dashboard</SidebarItem>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the item **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` blocks the cue exactly like it blocks `onclick`. Activating an item that is already `current` also plays nothing — the cue marks moving to a different item, not re-clicking the one already open. Collapsing/expanding the rail is driven entirely from outside the compound (see "Implementation Notes"), so there is nothing here for `sound` to hook into for that interaction — a consumer wiring their own collapse trigger owns that cue, if any, themselves.
 
 ## Theming
 

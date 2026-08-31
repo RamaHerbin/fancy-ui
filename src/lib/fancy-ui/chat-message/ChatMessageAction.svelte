@@ -21,7 +21,10 @@
 </script>
 
 <script lang="ts">
+	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { CHAT_MESSAGE_CONTEXT_KEY, type ChatMessageContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		label,
@@ -31,6 +34,10 @@
 		children,
 		class: className,
 	}: ChatMessageActionProps = $props();
+
+	// A loose action button — used outside a `ChatMessage` root — is silent:
+	// there is no root `sound` prop to read, so this falls through to `false`.
+	const message = getContext<ChatMessageContext | undefined>(CHAT_MESSAGE_CONTEXT_KEY);
 
 	/** How long the confirmation label holds before the button says what it does again. */
 	const CONFIRM_MS = 2000;
@@ -50,6 +57,9 @@
 	$effect(() => clearTimer);
 
 	function handleClick(event: MouseEvent) {
+		// Press, never toggle-on/off: `active` is fully controlled by the caller,
+		// so the post-click state is unknowable here.
+		if (message?.sound ?? false) soundFx.play("press");
 		onclick?.(event);
 		if (!confirmLabel) return;
 		confirmed = true;

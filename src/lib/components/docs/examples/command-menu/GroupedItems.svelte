@@ -18,4 +18,4 @@
 
 <Button onclick={() => (open = true)}>Open command menu</Button>
 
-<CommandMenu bind:open {items} label="Jump to" />
+<CommandMenu sound bind:open {items} label="Jump to" />

@@ -17,13 +17,19 @@
 		loop?: boolean;
 		/** The `ContextMenuTrigger` and `ContextMenuContent`. */
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { setContext } from "svelte";
 	import { portal } from "../_internals/portal.js";
-	import { CONTEXT_MENU_KEY, type ContextMenuRootContext } from "./types.js";
+	import { CONTEXT_MENU_KEY, type ContextMenuRootContext, type MenuCloseOptions } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -33,6 +39,7 @@
 		offset = 2,
 		loop = true,
 		children,
+		sound = false,
 	}: ContextMenuProps = $props();
 
 	const contentId = $props.id();
@@ -47,10 +54,11 @@
 	// restore it on close if it's still around.
 	let previouslyFocused: HTMLElement | null = null;
 
-	function setOpen(next: boolean, options: { returnFocus?: boolean } = {}): void {
+	function setOpen(next: boolean, options: MenuCloseOptions = {}): void {
 		if (open === next) return;
 		open = next;
 		onOpenChange?.(next);
+		if (sound && !options.silent) soundFx.play(next ? "open" : "close");
 		if (!next && (options.returnFocus ?? true) && previouslyFocused?.isConnected) {
 			previouslyFocused.focus();
 		}
@@ -70,7 +78,7 @@
 		setOpen(true);
 	}
 
-	function close(options: { returnFocus?: boolean } = {}): void {
+	function close(options: MenuCloseOptions = {}): void {
 		setOpen(false, options);
 	}
 
@@ -98,6 +106,9 @@
 		},
 		get anchorRef() {
 			return anchorRef;
+		},
+		get sound() {
+			return sound;
 		},
 		setAnchorRef(el) {
 			anchorRef = el;

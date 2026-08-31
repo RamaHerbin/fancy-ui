@@ -77,6 +77,7 @@
 
 <div class="flex w-full max-w-xl flex-col gap-2 p-6">
 	<ArtifactCard
+		sound
 		title="Q3 revenue review"
 		kind="Memo"
 		{version}

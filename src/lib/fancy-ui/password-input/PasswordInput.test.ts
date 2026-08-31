@@ -5,6 +5,7 @@ import PasswordInput from "./PasswordInput.svelte";
 import ValueHarness from "./PasswordInputHarness.test.svelte";
 import FieldHarness from "./PasswordInputFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function input(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input") as HTMLInputElement;
@@ -506,6 +507,73 @@ describe("PasswordInput", () => {
 			} finally {
 				animateSpy.mockRestore();
 			}
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays toggle-on exactly once when revealing the password, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+
+			await fireEvent.click(toggleButton(container)!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays toggle-off exactly once when hiding it again, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+			const btn = toggleButton(container)!;
+
+			await fireEvent.click(btn); // reveal
+			play.mockClear();
+			await fireEvent.click(btn); // hide
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+
+			await fireEvent.click(toggleButton(container)!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatchEvent", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, {
+				props: { sound: true, disabled: true, value: "hunter2" },
+			});
+			const btn = toggleButton(container)!;
+
+			btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays synchronously inside the click, before the async selection-restore work — no unlock() needed", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+			const btn = toggleButton(container)!;
+
+			// Dispatched without awaiting: toggleReveal is async (it awaits
+			// tick() to restore the caret), but the cue must land in the
+			// synchronous portion of the handler, before that await — landing it
+			// after would break the in-gesture rule the way an unlocked
+			// AudioContext relies on. A raw, un-awaited dispatch is what proves
+			// `play` already fired before this line returns.
+			btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
 		});
 	});
 });

@@ -23,11 +23,17 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLButtonElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		pressed = $bindable(false),
@@ -39,6 +45,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ToggleProps = $props();
 
 	const SIZE_CLASSES: Record<ToggleSize, string> = {
@@ -73,6 +80,7 @@
 		if (disabled) return;
 		const next = !pressed;
 		pressed = next;
+		if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 		onPressedChange?.(next);
 	}
 </script>

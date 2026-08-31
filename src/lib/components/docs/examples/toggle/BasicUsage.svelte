@@ -4,7 +4,7 @@
 	let muted = $state(false);
 </script>
 
-<Toggle bind:pressed={muted} label={muted ? "Unmute" : "Mute"}>
+<Toggle sound bind:pressed={muted} label={muted ? "Unmute" : "Mute"}>
 	{#if muted}
 		<svg
 			class="size-4"

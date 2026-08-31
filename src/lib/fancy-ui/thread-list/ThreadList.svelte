@@ -24,6 +24,12 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLElement | null;
+		/**
+		 * Plays select when a different conversation is picked and press when
+		 * one is deleted, through the sound controller. Off by default; only
+		 * audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -32,6 +38,7 @@
 	import { cn } from "$lib/utils.js";
 	import { createNow } from "../_internals/elapsed.svelte.js";
 	import { formatRelativeTime } from "../_internals/relative-time.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		threads,
@@ -43,6 +50,7 @@
 		empty,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ThreadListProps = $props();
 
 	/** How often every timestamp in the list is recomputed. */
@@ -55,6 +63,10 @@
 	onMount(() => now.start());
 
 	function select(thread: ThreadData) {
+		// Changed-only, matching the sidebar/navbar/tabs rule: re-picking the row
+		// that is already active plays nothing. The check gates the cue alone —
+		// `onSelect` and the write below still fire unconditionally.
+		if (sound && thread.id !== activeId) soundFx.play("select");
 		// The binding is written whether or not anyone is listening on `onSelect`,
 		// so `bind:activeId` alone is enough to drive the highlight.
 		activeId = thread.id;
@@ -65,8 +77,10 @@
 		// The delete button is a *sibling* of the row button rather than a child —
 		// nesting buttons is invalid HTML — so nothing bubbles into a selection
 		// today. Stopping it anyway keeps that true if a consumer ever wraps the
-		// row in something clickable of their own.
+		// row in something clickable of their own — and it is what keeps this
+		// press cue from also triggering the row's own select cue.
 		event.stopPropagation();
+		if (sound) soundFx.play("press");
 		onDelete?.(thread);
 	}
 

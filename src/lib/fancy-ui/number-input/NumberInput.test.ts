@@ -5,6 +5,7 @@ import { DURATIONS } from "../_internals/motion/tokens.js";
 import NumberInput from "./NumberInput.svelte";
 import ValueHarness from "./NumberInputHarness.test.svelte";
 import FieldHarness from "./NumberInputFieldHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function field(container: HTMLElement): HTMLInputElement {
 	return container.querySelector(".ft-number-input-field") as HTMLInputElement;
@@ -645,6 +646,65 @@ describe("NumberInput", () => {
 			} finally {
 				vi.useRealTimers();
 			}
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the tick cue exactly once when stepped via the increment button, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, { props: { sound: true, value: 4 } });
+
+			await fireEvent.click(incrementButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick");
+		});
+
+		it("plays the tick cue exactly once when stepped via ArrowUp, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, { props: { sound: true, value: 4 } });
+
+			await fireEvent.keyDown(field(container), { key: "ArrowUp" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, { props: { value: 4 } });
+
+			await fireEvent.click(incrementButton(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch on the button", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, {
+				props: { sound: true, disabled: true, value: 4 },
+			});
+
+			incrementButton(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while typing or on blur clamp — only an actual step plays", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, { props: { sound: true, max: 10 } });
+			const el = field(container);
+
+			await fireEvent.input(el, { target: { value: "42" } });
+			await fireEvent.blur(el);
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

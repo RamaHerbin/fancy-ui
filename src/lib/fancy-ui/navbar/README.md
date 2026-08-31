@@ -70,6 +70,7 @@ Pin the bar to the top of the viewport with `sticky`:
 | `children` | `Snippet`                     | —       | The link's label                                                                           |
 | `class`    | `string`                      | —       | Additional CSS classes                                                                     |
 | `ref`      | `HTMLAnchorElement \| null`   | `null`  | Bindable element reference                                                                 |
+| `sound`    | `boolean`                     | `false` | Plays the `select` cue on activation, once the user has enabled sound                      |
 
 ## Accessibility
 
@@ -143,6 +144,16 @@ default:
   the underline simply appears at full width. Nothing is hidden.
 - **Touch and coarse pointers.** The underline follows `current`, never the
   pointer, so a coarse pointer needs no special handling.
+
+## Sound
+
+Set `sound` on a `NavbarLink` to play the `select` cue when it is activated, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<NavbarLink href="/docs" sound current={pathname === "/docs"}>Docs</NavbarLink>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the link **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` blocks the cue exactly like it blocks `onclick`. Activating a link that is already `current` also plays nothing — the cue marks moving to a different page, not re-clicking the one already open. `Navbar` itself carries no `sound` prop; it is layout only.
 
 ## Implementation Notes
 

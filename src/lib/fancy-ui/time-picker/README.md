@@ -75,9 +75,27 @@ Display in 12-hour form without changing what the app reads or stores:
 | `locale`        | `string`                          | —                 | BCP 47 locale for slot and trigger-label formatting                       |
 | `class`         | `string`                          | —                 | Additional CSS classes, merged onto the trigger button                    |
 | `ref`           | `HTMLButtonElement \| null`       | `null`            | Bindable element reference to the trigger button                          |
+| `sound`         | `boolean`                         | `false`           | Plays interface cues through the sound controller. See [Sound](#sound)    |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<TimePicker bind:value={time} sound />
+```
+
+`open` plays when the slot list opens from the trigger; `select` plays once
+a slot commits — a row click, or Enter/Space on the active row — and changes
+the value. Escape, an outside click, toggling the trigger shut, and
+re-picking the slot already selected all play `close` instead, never both:
+a commit is one cue, a dismiss is the other, never `select` followed by
+`close` for the same pick. Arrow-key navigation and hovering a row only move
+the highlight and stay silent.
 
 ## Theming
 

@@ -6,6 +6,6 @@
 
 <div class="flex flex-wrap items-center gap-6">
 	{#each sizes as size (size)}
-		<Switch {size} checked label={`Size ${size}`} />
+		<Switch sound {size} checked label={`Size ${size}`} />
 	{/each}
 </div>

@@ -60,6 +60,7 @@ Inside a `FormField`, drop the `label`/`id` — the surrounding field supplies
 | `showBounds`    | `boolean`                  | `false` | Shows `min` and `max` as end labels below the track                 |
 | `class`         | `string`                   | —       | Additional CSS classes, applied to the outer wrapper                |
 | `ref`           | `HTMLInputElement \| null` | `null`  | Bindable reference to the underlying `<input type="range">`         |
+| `sound`         | `boolean`                  | `false` | Plays the `tick` cue on a committed value change, once sound is on  |
 
 ## Theming
 
@@ -76,6 +77,24 @@ this wave uses for its accent:
 Set `--ft-accent` higher up the tree to retint the purple end of every
 `Slider` beneath it; the cyan end (`--ft-slider-accent-end`, `#42cfff` in dark
 mode) is local to the component and not exposed as a variable to override.
+
+## Sound
+
+Set `sound` to play the `tick` cue through the shared sound controller (see
+[`sound/README.md`](../sound/README.md)) whenever a value is committed —
+once on drag release, once per committed keyboard step:
+
+```svelte
+<Slider bind:value={volume} sound label="Volume" />
+```
+
+It is wired to the input's `change` event, not `input` — dragging fires
+`input` continuously and stays silent, so the cue never repeats faster than a
+value is actually committed. `tick` is itself engine-rate-limited to 40ms as
+a second line of defence (see the sound package's silence contract). Off by
+default; nothing plays unless both `sound` is set here **and** the user has
+turned sound on globally. Nothing plays while `disabled`, whether that comes
+from this component's own prop or a surrounding `FormField`.
 
 ## Implementation Notes
 

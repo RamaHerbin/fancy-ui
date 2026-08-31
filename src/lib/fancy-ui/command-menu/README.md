@@ -101,6 +101,7 @@ Replaces the default entirely — `keywords` is then only meaningful if your own
 | `ref`           | `HTMLDivElement \| null`                        | `null`           | Bindable reference to the panel element.                                          |
 | `icon`          | `Snippet<[CommandItem]>`                        | —                | Rendered before each row's label, given that row's item. Treated as decorative.   |
 | `empty`         | `Snippet`                                       | —                | Rendered in place of the list when nothing matches, instead of `emptyMessage`.    |
+| `sound`         | `boolean`                                       | `false`          | Plays `select`/`close` cues — see [Sound](#sound) below.                          |
 
 `CommandItem` is:
 
@@ -132,6 +133,26 @@ The default filter is case- and **diacritic**-insensitive: it folds both the que
 - `icon` is rendered inside an `aria-hidden="true"` wrapper — it is assumed decorative. If your icon carries meaning nothing else on the row conveys, put that meaning in `label` (or `keywords`) too.
 - Result-count changes are announced through a polite, always-mounted `role="status"` live region that reports **only the count** ("3 results"), never the row contents. A nonzero count waits for the query to sit still for 300ms before announcing, not after every keystroke — announcing on every character would turn fast typing into a screen reader narrating a number many times a second. A drop to **zero** is the one exception: it announces immediately, because the empty state is already visible on screen at that instant, and a debounced zero would leave the region reporting a stale nonzero count while the list a screen reader user cannot see already reads empty. See Implementation Notes for the exact mechanism. The region goes with the panel when the menu closes — never on a debounce — and the closing panel is `inert` for the length of its fade, which takes the region out of the accessibility tree, so a count from the session just ended is never announced on the way out.
 - A disabled item (`disabled: true`) is skipped as part of a block by arrow/Home/End navigation — it can never become the active row — and a click or Enter on it does nothing. The native `disabled` attribute on its `<button>` is not trusted alone as the guard (a synthetic click can walk past it), so `commitItem` checks `item.disabled` explicitly too.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<CommandMenu bind:open {items} sound />
+```
+
+Committing a row — Enter on the active row, or a click — plays `select`.
+Dismissing the menu (Escape, a click on the backdrop) plays `close`. Those
+two never both fire for the same interaction: `commitItem` closes the menu
+silently (`{ silent: true }`) right after playing `select`, the same
+commit/dismiss split `Select`'s `closePanel` uses, so one activation is
+always exactly one cue. There is no `open` cue — this menu is opened
+programmatically by the consumer (⌘K and the like), not by a gesture this
+component itself handles, so there is nothing here to attach one to. Typing
+in the search field and arrow-browsing the highlighted row both stay silent,
+the same as `Select`'s own typeahead and arrow navigation.
 
 ## Theming
 

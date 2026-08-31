@@ -4,4 +4,4 @@
 	let count = $state(0);
 </script>
 
-<Button onclick={() => (count += 1)}>Clicked {count} {count === 1 ? "time" : "times"}</Button>
+<Button sound onclick={() => (count += 1)}>Clicked {count} {count === 1 ? "time" : "times"}</Button>

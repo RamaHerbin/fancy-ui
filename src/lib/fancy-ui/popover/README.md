@@ -84,18 +84,19 @@ one this component actually wires up.
 
 ### Popover
 
-| Prop           | Type                                     | Default    | Description                                                 |
-| -------------- | ---------------------------------------- | ---------- | ----------------------------------------------------------- |
-| `open`         | `boolean`                                | `false`    | Whether the panel is open. Bindable                         |
-| `onOpenChange` | `(open: boolean) => void`                | —          | Called whenever the panel opens or closes                   |
-| `side`         | `"top" \| "bottom" \| "left" \| "right"` | `"bottom"` | Side of the trigger to place the panel on                   |
-| `align`        | `"start" \| "center" \| "end"`           | `"center"` | Alignment along the trigger's cross axis                    |
-| `offset`       | `number`                                 | `8`        | Gap in pixels between the trigger and the panel             |
-| `dismissible`  | `boolean`                                | `true`     | Whether Escape and an outside click close the panel         |
-| `trigger`      | `Snippet`                                | —          | The trigger's content, rendered inside the owned `<button>` |
-| `children`     | `Snippet`                                | —          | The panel's content                                         |
-| `class`        | `string`                                 | —          | Additional CSS classes, merged onto the panel               |
-| `ref`          | `HTMLDivElement \| null`                 | `null`     | Bindable reference to the panel element                     |
+| Prop           | Type                                     | Default    | Description                                                                            |
+| -------------- | ---------------------------------------- | ---------- | -------------------------------------------------------------------------------------- |
+| `open`         | `boolean`                                | `false`    | Whether the panel is open. Bindable                                                    |
+| `onOpenChange` | `(open: boolean) => void`                | —          | Called whenever the panel opens or closes                                              |
+| `side`         | `"top" \| "bottom" \| "left" \| "right"` | `"bottom"` | Side of the trigger to place the panel on                                              |
+| `align`        | `"start" \| "center" \| "end"`           | `"center"` | Alignment along the trigger's cross axis                                               |
+| `offset`       | `number`                                 | `8`        | Gap in pixels between the trigger and the panel                                        |
+| `dismissible`  | `boolean`                                | `true`     | Whether Escape and an outside click close the panel                                    |
+| `trigger`      | `Snippet`                                | —          | The trigger's content, rendered inside the owned `<button>`                            |
+| `children`     | `Snippet`                                | —          | The panel's content                                                                    |
+| `class`        | `string`                                 | —          | Additional CSS classes, merged onto the panel                                          |
+| `ref`          | `HTMLDivElement \| null`                 | `null`     | Bindable reference to the panel element                                                |
+| `sound`        | `boolean`                                | `false`    | Plays `open`/`close` as the panel opens and dismisses, once the user has enabled sound |
 
 ## Theming
 
@@ -156,6 +157,19 @@ ladder and moves with it.
   through motion.
 - **Touch and coarse pointers** — unchanged; neither direction is
   pointer-gated.
+
+## Sound
+
+Set `sound` to play `open` when the trigger opens the panel and `close` on every dismissal (a second trigger click, Escape or an outside click), through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Popover sound>
+	{#snippet trigger()}⚙ Options{/snippet}
+	...
+</Popover>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the popover **and** the user has turned sound on globally. Both cues are wired to `setOpen`'s own `if (open === next) return` guard, so a redundant call — a second Escape racing the exit, a dismiss that changes nothing — stays silent rather than doubling up. `PopoverContent` itself is cue-free; every open/close path (the trigger's `toggle()`, and every dismissal through `ctx.close`) runs through this same `setOpen`.
 
 ## Implementation Notes
 

@@ -5,7 +5,7 @@
 	let height = $state("25px");
 </script>
 
-<Popover class="w-[220px]">
+<Popover sound class="w-[220px]">
 	{#snippet trigger()}
 		⚙ Options
 	{/snippet}

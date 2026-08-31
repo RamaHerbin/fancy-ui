@@ -1,11 +1,12 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import ComposerAttachment from "./ComposerAttachment.svelte";
 import ComposerAttachments from "./ComposerAttachments.svelte";
 import Harness from "./ComposerHarness.test.svelte";
 import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
 import type { AttachmentData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
@@ -20,7 +21,9 @@ function snippet(html: string) {
  * than about a root that has its own tests, and the last case in this file
  * mounts them against a real `Composer` to prove the two halves meet.
  */
-function fakeComposer(options: { attachments?: AttachmentData[]; disabled?: boolean } = {}) {
+function fakeComposer(
+	options: { attachments?: AttachmentData[]; disabled?: boolean; sound?: boolean } = {}
+) {
 	const attachments = options.attachments ?? [];
 	const addFiles = vi.fn();
 	const removeAttachment = vi.fn();
@@ -31,6 +34,7 @@ function fakeComposer(options: { attachments?: AttachmentData[]; disabled?: bool
 		streaming: false,
 		stoppable: false,
 		textareaRef: { current: null },
+		sound: options.sound ?? false,
 		submit: vi.fn(),
 		stop: vi.fn(),
 		setValue: vi.fn(),
@@ -408,6 +412,69 @@ describe("ComposerAttachment", () => {
 			expect(sizeText(container), `${size} bytes`).toBe(expected);
 			cleanup();
 		}
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when a chip is removed, with sound enabled", async () => {
+			const { context } = fakeComposer({ sound: true });
+			const { container } = render(ComposerAttachment, {
+				props: { attachment: { id: "a1", name: "notes.pdf" } },
+				context: provide(context),
+			});
+
+			await fireEvent.click(removeButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default, even when the composer removes it", async () => {
+			const { context } = fakeComposer();
+			const { container } = render(ComposerAttachment, {
+				props: { attachment: { id: "a1", name: "notes.pdf" } },
+				context: provide(context),
+			});
+
+			await fireEvent.click(removeButton(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch", () => {
+			const { context } = fakeComposer({ disabled: true, sound: true });
+			const { container } = render(ComposerAttachment, {
+				props: { attachment: { id: "a1", name: "notes.pdf" } },
+				context: provide(context),
+			});
+
+			// A synthetic dispatch bypasses jsdom's own disabled handling, proving
+			// the guard lives inside `remove()` itself, not merely on the attribute.
+			removeButton(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent outside a composer — attaching stays silent, and so does an inert cross", async () => {
+			const { container } = render(ComposerAttachment, {
+				props: { attachment: { id: "a1", name: "notes.pdf" } },
+			});
+
+			await expect(fireEvent.click(removeButton(container))).resolves.not.toThrow();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });
 

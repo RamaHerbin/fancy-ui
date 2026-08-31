@@ -52,6 +52,7 @@ A failed assistant turn is not an application-level catastrophe, so this is not 
 | `children`   | `Snippet`              | —                        | Rendered instead of the message and detail block                  |
 | `class`      | `string`               | —                        | Additional CSS classes                                            |
 | `ref`        | `HTMLDivElement\|null` | `null`                   | Bindable element reference                                        |
+| `sound`      | `boolean`              | `false`                  | Plays the `press` cue on retry, once the user has enabled sound   |
 
 ## Theming
 
@@ -68,6 +69,16 @@ The row's tint comes from a single variable. `--ft-error-fg` colours the icon an
 Left unset, `--ft-error-fg` falls through to `--ft-status-error`, the failure colour shared with `ToolCall`, `ToolTimeline`, `TerminalBlock` and `CodeDiff`. Set that one instead and everything that reports a failure moves together.
 
 Its default is a `light-dark()` pair — `oklch(0.5 0.19 25)` on light, `oklch(0.7 0.18 25)` on dark — since one token cannot clear 4.5:1 against both white and near-black. Declare `color-scheme: light` / `dark` on your theme so the right half is picked; without it a page gets the light half. See the [ToolCall README](../tool-call/README.md#styling) for the full palette.
+
+## Sound
+
+Set `sound` to play the `press` cue on retry, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<ChatError onRetry={send} sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the component **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `retrying` blocks the cue exactly like it blocks `onRetry` — a press that never fires the callback plays nothing either.
 
 ## Implementation notes
 

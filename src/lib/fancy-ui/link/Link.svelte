@@ -25,11 +25,17 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLAnchorElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		href,
@@ -42,6 +48,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: LinkProps = $props();
 
 	// `external` only *defaults* the tab target — a caller who passes both
@@ -82,9 +89,23 @@
 			className
 		)
 	);
+
+	// The single call site for the cue: never a second listener, and never
+	// `preventDefault` — navigation is untouched, this only rides alongside it.
+	function handleClick(event: MouseEvent) {
+		if (sound) soundFx.play("press");
+		onclick?.(event);
+	}
 </script>
 
-<a bind:this={ref} {href} target={computedTarget} rel={computedRel} class={classes} {onclick}>
+<a
+	bind:this={ref}
+	{href}
+	target={computedTarget}
+	rel={computedRel}
+	class={classes}
+	onclick={handleClick}
+>
 	{@render children?.()}
 	{#if external}
 		<svg

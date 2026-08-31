@@ -4,7 +4,7 @@
 	let step = $state("one");
 </script>
 
-<Tabs bind:value={step} activation="manual">
+<Tabs sound bind:value={step} activation="manual">
 	<TabsList>
 		<TabsTrigger value="one">Step one</TabsTrigger>
 		<TabsTrigger value="two">Step two</TabsTrigger>

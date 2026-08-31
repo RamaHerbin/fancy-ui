@@ -9,6 +9,7 @@
 </script>
 
 <DatePicker
+	sound
 	bind:value={selected}
 	{min}
 	{max}

@@ -1,9 +1,10 @@
-import { render, cleanup } from "@testing-library/svelte";
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import ToolTimeline from "./ToolTimeline.svelte";
 import { formatRelativeTime } from "../_internals/relative-time.js";
 import type { ToolTimelineItemData } from "../_internals/ai-types.js";
+import { sound } from "../sound/sound.svelte.js";
 
 const T0 = new Date("2026-01-01T00:00:00.000Z").getTime();
 
@@ -191,5 +192,76 @@ describe("ToolTimeline", () => {
 		// the first reading that leaves the "now" bucket.
 		await vi.advanceTimersByTimeAsync(60_000);
 		expect(label()).toBe("1 minute ago");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when an entry is activated, with sound enabled", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(ToolTimeline, { props: { items, sound: true, onSelect } });
+
+			await fireEvent.click(container.querySelectorAll("button")[1]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const onSelect = vi.fn();
+			const { container } = render(ToolTimeline, { props: { items, onSelect } });
+
+			await fireEvent.click(container.querySelectorAll("button")[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when onSelect is absent — rows are plain spans, not buttons", () => {
+			const { container } = render(ToolTimeline, { props: { items, sound: true } });
+
+			expect(container.querySelectorAll("button")).toHaveLength(0);
+			container
+				.querySelector(".ft-tooltimeline-row")
+				?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when a new entry is appended — mounting a row is not a pick", async () => {
+			const onSelect = vi.fn();
+			const { rerender } = render(ToolTimeline, { props: { items, sound: true, onSelect } });
+
+			await rerender({
+				items: [...items, { id: "d", verb: "Read", target: "new.ts" }],
+				sound: true,
+				onSelect,
+			});
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the shared clock ticks — the interval never plays a cue", async () => {
+			vi.useFakeTimers();
+			const onSelect = vi.fn();
+			render(ToolTimeline, {
+				props: {
+					items: [{ id: "a", verb: "Read", target: "a.ts", timestamp: Date.now() }],
+					sound: true,
+					onSelect,
+				},
+			});
+
+			await vi.advanceTimersByTimeAsync(60_000);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

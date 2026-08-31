@@ -6,6 +6,7 @@ import ValueHarness from "./FileUploadHarness.test.svelte";
 import FieldHarness from "./FileUploadFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
 import type { UploadFile } from "./FileUpload.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function makeFile(name: string, size = 1024, type = "application/octet-stream"): File {
 	return new File([new ArrayBuffer(size)], name, { type });
@@ -585,5 +586,86 @@ describe("FileUpload", () => {
 		expect(input.getAttribute("aria-invalid")).toBe("true");
 		expect(input.required).toBe(true);
 		expect(input.disabled).toBe(true);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the select cue exactly once on a drop where every file is accepted, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(FileUpload, { props: { sound: true } });
+			const zone = dropzone(container);
+
+			await fireEvent.drop(zone, { dataTransfer: { files: [makeFile("photo.png")] } });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays the error cue exactly once on a drop with a rejected file, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(FileUpload, {
+				props: { sound: true, accept: ".png,image/png" },
+			});
+			const zone = dropzone(container);
+
+			await fireEvent.drop(zone, { dataTransfer: { files: [makeFile("notes.txt")] } });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("error");
+		});
+
+		it("on a mixed batch, error wins over select — never both cues for one drop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(FileUpload, {
+				props: { sound: true, multiple: true, accept: ".png,image/png" },
+			});
+			const zone = dropzone(container);
+
+			await fireEvent.drop(zone, {
+				dataTransfer: { files: [makeFile("ok.png", 100, "image/png"), makeFile("notes.txt")] },
+			});
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("error");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(FileUpload, { props: {} });
+			const zone = dropzone(container);
+
+			await fireEvent.drop(zone, { dataTransfer: { files: [makeFile("photo.png")] } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic drop dispatchEvent bypassing fireEvent", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(FileUpload, { props: { sound: true, disabled: true } });
+			const zone = dropzone(container);
+
+			const event = new Event("drop", { bubbles: true, cancelable: true });
+			Object.defineProperty(event, "dataTransfer", {
+				value: { files: [makeFile("photo.png")] },
+			});
+			zone.dispatchEvent(event);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("removeFile stays silent — removing a row never plays a cue", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const entries: UploadFile[] = [
+				{ id: "1", file: makeFile("a.txt"), progress: null, status: "pending" },
+			];
+			const { container } = render(FileUpload, { props: { sound: true, files: entries } });
+
+			await fireEvent.click(removeButtons(container)[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

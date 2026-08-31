@@ -26,6 +26,7 @@
 <Button onclick={() => (open = true)}>Show the empty state</Button>
 
 <CommandMenu
+	sound
 	bind:open
 	{items}
 	query="zzz-no-match"

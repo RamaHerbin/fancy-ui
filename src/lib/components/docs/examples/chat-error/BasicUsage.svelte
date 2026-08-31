@@ -47,6 +47,7 @@
 		</button>
 	{:else}
 		<ChatError
+			sound
 			message="The assistant couldn't finish that reply"
 			detail="network_error · request 8f21c0"
 			onRetry={retry}

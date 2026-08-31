@@ -4,10 +4,12 @@
 
 <div class="flex items-center gap-4">
 	<InteractiveHoverButton
+		sound
 		text="Danger"
 		class="border-red-500/30 [&_div>.size-2]:bg-red-500 [&>div:last-child]:text-white"
 	/>
 	<InteractiveHoverButton
+		sound
 		text="Success"
 		class="border-green-500/30 [&_div>.size-2]:bg-green-500 [&>div:last-child]:text-white"
 	/>

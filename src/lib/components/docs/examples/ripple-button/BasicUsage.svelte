@@ -2,4 +2,4 @@
 	import { RippleButton } from "$lib/fancy-ui/ripple-button";
 </script>
 
-<RippleButton>Click me</RippleButton>
+<RippleButton sound>Click me</RippleButton>

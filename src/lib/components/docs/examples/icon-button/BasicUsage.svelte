@@ -5,6 +5,7 @@
 </script>
 
 <IconButton
+	sound
 	label={liked ? "Unlike" : "Like"}
 	variant={liked ? "accent" : "outline"}
 	shape="circle"

@@ -55,6 +55,17 @@ With First/Last jump buttons and a wider sibling window:
 | `nextLabel`     | `Snippet`                | —              | Overrides the Next button's content                                       |
 | `class`         | `string`                 | —              | Additional CSS classes                                                    |
 | `ref`           | `HTMLElement \| null`    | `null`         | Bindable element reference, the `<nav>`                                   |
+| `sound`         | `boolean`                | `false`        | Plays the `select` cue whenever the page actually changes                 |
+
+## Sound
+
+Set `sound` to play the `select` cue whenever any control actually moves the page, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Pagination bind:page count={12} sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on `Pagination` **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue lives inside `goTo()`, the single funnel every control — First, Previous, a page number, Next, Last — calls through, after both of its existing early-returns: `disabled` blocks the cue exactly like it blocks the page change, and landing on the already-current page (clicking the current pill, or Previous on page 1) plays nothing either, the same boundary check that already no-ops the change itself. The pop animation on the newly-current pill is armed off the page value alone and stays silent regardless of `sound` — a controlled `Pagination` whose `page` prop is changed from outside never plays a cue, since it never calls `goTo`.
 
 ## Theming
 

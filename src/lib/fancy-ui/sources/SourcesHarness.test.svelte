@@ -19,16 +19,24 @@
 		onToggle?: (open: boolean) => void;
 		/** Swaps the default card for the local `row` snippet below. */
 		customItem?: boolean;
+		sound?: boolean;
 	}
 
-	let { sources, open = $bindable(false), label, onToggle, customItem = false }: Props = $props();
+	let {
+		sources,
+		open = $bindable(false),
+		label,
+		onToggle,
+		customItem = false,
+		sound = false,
+	}: Props = $props();
 </script>
 
 {#snippet row(source: SourceData, index: number)}
 	<span data-testid="custom-item">{index}:{source.title}</span>
 {/snippet}
 
-<Sources {sources} bind:open {onToggle}>
+<Sources {sources} bind:open {onToggle} {sound}>
 	<SourcesTrigger {label} />
 	<SourcesList item={customItem ? row : undefined} />
 </Sources>

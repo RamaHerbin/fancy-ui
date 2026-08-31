@@ -6,6 +6,7 @@ import ValueHarness from "./AutocompleteHarness.test.svelte";
 import FieldHarness from "./AutocompleteFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
 import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
 
 const CITIES = ["Paris", "Parma", "Prague", "London"];
 
@@ -664,6 +665,112 @@ describe("Autocomplete", () => {
 
 			expect(panel()).toBeNull();
 			expect(animate).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once on a row click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES, sound: true } });
+			await fireEvent.input(input(container), { target: { value: "par" } });
+
+			await fireEvent.click(options()[0]!); // Paris
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select exactly once on Enter, and typing/focus/blur stay silent", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES, sound: true } });
+			const el = input(container);
+
+			await fireEvent.input(el, { target: { value: "par" } }); // typing/open — silent
+			expect(play).not.toHaveBeenCalled();
+
+			await fireEvent.keyDown(el, { key: "ArrowDown" }); // navigate — silent
+			await fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+
+			play.mockClear();
+			await fireEvent.blur(el); // closes — silent
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES } });
+			await fireEvent.input(input(container), { target: { value: "par" } });
+
+			await fireEvent.click(options()[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, {
+				props: { suggestions: CITIES, disabled: true, sound: true },
+			});
+			const el = input(container);
+
+			el.dispatchEvent(new Event("input", { bubbles: true }));
+			el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Guardrail (riskFlag): an emptied panel closing via the `$effect` above
+		// must never itself play — only a real commit through `commit()` does.
+		it("never plays when the panel auto-closes because the filtered list empties out", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES, sound: true } });
+			const el = input(container);
+			await fireEvent.input(el, { target: { value: "par" } });
+			expect(panel()).not.toBeNull();
+			play.mockClear();
+
+			await fireEvent.input(el, { target: { value: "zzz" } }); // no matches — panel auto-closes
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when re-picking the suggestion already the value — the changed-only guard", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, {
+				props: { suggestions: CITIES, value: "Paris", sound: true },
+			});
+			await fireEvent.focus(input(container)); // opens: "Paris" already matches itself
+
+			await fireEvent.click(options()[0]!); // Paris — already the value
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls onValueChange/onSelect on the very same click that the changed-only guard silences", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onValueChange = vi.fn();
+			const onSelect = vi.fn();
+			const { container } = render(Autocomplete, {
+				props: { suggestions: CITIES, value: "Paris", sound: true, onValueChange, onSelect },
+			});
+			await fireEvent.focus(input(container));
+
+			await fireEvent.click(options()[0]!); // Paris — already the value
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("Paris");
+			expect(onSelect).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledWith("Paris");
 		});
 	});
 });

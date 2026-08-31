@@ -1,6 +1,7 @@
-import { render, screen, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import GradientButton from "./GradientButton.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 describe("GradientButton", () => {
 	afterEach(cleanup);
@@ -72,5 +73,57 @@ describe("GradientButton", () => {
 		const button = screen.getByRole("button");
 		expect(button).toBeDisabled();
 		expect(button).toHaveAttribute("type", "submit");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", async () => {
+			render(GradientButton, { props: { sound: true } });
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			render(GradientButton);
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			render(GradientButton, { props: { sound: true, disabled: true } });
+			const button = screen.getByRole("button");
+
+			// Synthetic dispatch bypasses jsdom's own native-disabled short-circuit,
+			// proving the guard is the JS `restProps.disabled` check, not the
+			// browser's default handling of a real click.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("forwards a consumer onclick alongside the cue instead of the spread onclick silently overwriting handleClick", async () => {
+			const onclick = vi.fn();
+			render(GradientButton, { props: { sound: true, onclick } });
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+			expect(onclick).toHaveBeenCalledTimes(1);
+		});
 	});
 });

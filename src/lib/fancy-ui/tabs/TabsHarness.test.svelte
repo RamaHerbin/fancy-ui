@@ -28,6 +28,7 @@
 		activation?: "automatic" | "manual";
 		variant?: "underline" | "segmented";
 		forceMount?: boolean;
+		sound?: boolean;
 	}
 
 	let {
@@ -38,10 +39,11 @@
 		activation = "automatic",
 		variant = "underline",
 		forceMount = false,
+		sound = false,
 	}: Props = $props();
 </script>
 
-<Tabs bind:value {onValueChange} {orientation} {activation} {variant}>
+<Tabs bind:value {onValueChange} {orientation} {activation} {variant} {sound}>
 	<TabsList>
 		{#each items as item (item.value)}
 			<TabsTrigger value={item.value} disabled={item.disabled}>{item.label}</TabsTrigger>

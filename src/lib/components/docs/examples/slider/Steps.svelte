@@ -5,5 +5,5 @@
 </script>
 
 <div class="w-72">
-	<Slider bind:value={rating} min={0} max={5} step={1} label="Rating" showValue showBounds />
+	<Slider sound bind:value={rating} min={0} max={5} step={1} label="Rating" showValue showBounds />
 </div>

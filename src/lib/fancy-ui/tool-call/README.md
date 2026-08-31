@@ -45,16 +45,17 @@ Only `id`, `name`, and `status` are required. Everything else appears as it arri
 
 ## Props
 
-| Prop       | Type                      | Default     | Description                                        |
-| ---------- | ------------------------- | ----------- | -------------------------------------------------- |
-| `call`     | `ToolCallData`            | —           | The invocation to render. Required.                |
-| `open`     | `boolean`                 | `undefined` | Expanded state. Bindable — see the contract below  |
-| `input`    | `Snippet<[unknown]>`      | `undefined` | Replaces the default request rendering             |
-| `output`   | `Snippet<[unknown]>`      | `undefined` | Replaces the default result rendering              |
-| `icon`     | `Snippet`                 | `undefined` | Leading icon, replacing the default wrench         |
-| `onToggle` | `(open: boolean) => void` | `undefined` | Called on every open/close, by click or on its own |
-| `class`    | `string`                  | `undefined` | Additional CSS classes                             |
-| `ref`      | `HTMLDivElement \| null`  | `null`      | Bindable reference to the root element             |
+| Prop       | Type                      | Default     | Description                                             |
+| ---------- | ------------------------- | ----------- | ------------------------------------------------------- |
+| `call`     | `ToolCallData`            | —           | The invocation to render. Required.                     |
+| `open`     | `boolean`                 | `undefined` | Expanded state. Bindable — see the contract below       |
+| `input`    | `Snippet<[unknown]>`      | `undefined` | Replaces the default request rendering                  |
+| `output`   | `Snippet<[unknown]>`      | `undefined` | Replaces the default result rendering                   |
+| `icon`     | `Snippet`                 | `undefined` | Leading icon, replacing the default wrench              |
+| `onToggle` | `(open: boolean) => void` | `undefined` | Called on every open/close, by click or on its own      |
+| `class`    | `string`                  | `undefined` | Additional CSS classes                                  |
+| `ref`      | `HTMLDivElement \| null`  | `null`      | Bindable reference to the root element                  |
+| `sound`    | `boolean`                 | `false`     | Plays `open` / `close` when the reader toggles the card |
 
 ## The open-behaviour contract
 
@@ -65,6 +66,16 @@ The moment the reader clicks the header, the card hands over for good — a late
 - Ignore `open` entirely and you get the automatic behaviour above.
 - `bind:open={expanded}` and you get that behaviour _plus_ a variable that always reflects the truth.
 - Write to `expanded` yourself and the card obeys — but that does not count as a reader toggle, so the auto-open stays armed.
+
+## Sound
+
+Set `sound` to play `open` when the reader expands the payloads and `close` when they fold them back, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<ToolCall {call} sound />
+```
+
+Only an actual click on the header plays a cue — one of `open`/`close`, never both. The card opening itself on a failure, its SSR-seeded `autoOpen` for a call that already starts failed, and a consumer writing straight to a bound `open` variable all stay silent: none of those are the reader's own gesture. Off by default; only audible once the user has separately turned sound on.
 
 ## Rendering payloads
 

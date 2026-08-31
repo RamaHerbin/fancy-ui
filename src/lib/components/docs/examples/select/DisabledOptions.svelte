@@ -10,4 +10,4 @@
 	let region = $state("us");
 </script>
 
-<Select options={regions} bind:value={region} label="Region" class="w-[240px]" />
+<Select sound options={regions} bind:value={region} label="Region" class="w-[240px]" />

@@ -22,6 +22,11 @@
 		class?: string;
 		/** Element reference. */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the select cue through the sound controller. Off by default;
+		 * only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -29,6 +34,7 @@
 	import { setContext, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { TABS_KEY, type TabsContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value = $bindable(""),
@@ -39,6 +45,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: TabsProps = $props();
 
 	// SSR-stable: `_internals/id.js`'s `uid()` is client-only, and trigger/panel
@@ -54,7 +61,9 @@
 	// writing `value` there would mean reading and writing the same state in
 	// one pass, and would fight a caller's own `bind:value` write.
 	function select(itemValue: string) {
+		const changed = value !== itemValue;
 		value = itemValue;
+		if (sound && changed) soundFx.play("select");
 		onValueChange?.(itemValue);
 	}
 

@@ -12,9 +12,9 @@
 		FancyUI
 	{/snippet}
 
-	<NavbarLink href="#docs" current>Docs</NavbarLink>
-	<NavbarLink href="#components">Components</NavbarLink>
-	<NavbarLink href="#showcase">Showcase</NavbarLink>
+	<NavbarLink sound href="#docs" current>Docs</NavbarLink>
+	<NavbarLink sound href="#components">Components</NavbarLink>
+	<NavbarLink sound href="#showcase">Showcase</NavbarLink>
 
 	{#snippet actions()}
 		<button

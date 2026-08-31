@@ -45,7 +45,7 @@
 		behind it. A real integration drops that and passes `samples` from its own
 		audio pipeline instead.
 	-->
-	<VoiceInput bind:active {transcript} demo onStop={reset} onCancel={reset} />
+	<VoiceInput sound bind:active {transcript} demo onStop={reset} onCancel={reset} />
 
 	<p class="text-muted-foreground text-xs">
 		Press the mic and the words arrive as a recogniser would hand them over. The check keeps the
