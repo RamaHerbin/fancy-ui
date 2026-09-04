@@ -87,6 +87,15 @@ an unrelated one two levels up.
 - **D-12** — `useElementRef` costs one extra render at mount for each panel,
   before paint.
 
+### Post-open focus lands one frame after the panel paints
+
+`DropdownMenuContent` and `DropdownMenuSubContent` move focus onto the first or
+last item from a passive effect, where the source does it in a `tick()`
+microtask — so the panel paints once before the focus ring arrives. Cosmetic:
+the anchored entrance is still animating at that point. It is the port's house
+pattern across both menu families rather than a per-component slip, and it is
+recorded in `react/README.md` for `dropdown-menu` and `context-menu` alike.
+
 ## Not a divergence
 
 The static import of the sound controller (and, through it, the theme recipe
@@ -116,3 +125,11 @@ Adjustments, all mechanical:
 - One addition, marked under a `React layer` block: a StrictMode mount / open /
   open-submenu / close-both, asserting one panel per level, no duplicate item
   registrations, and that the dismiss stack drains to zero.
+
+**Known coverage gap.** The six entrance/exit keyframe checks use
+`toMatchObject` where the source suite pins each keyframe with `toEqual`. The
+sampled objects carry exactly `opacity` and `transform` today, so the weaker
+matcher would let a regression that starts animating a third property ship
+green. The two equivalent assertions in the `ContextMenu` suite were tightened,
+so the two suites now differ in strictness. Test-only — no consumer-visible
+behaviour depends on it.

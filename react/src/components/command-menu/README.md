@@ -115,7 +115,9 @@ handler touches it, so it is not reproduced.
 
 ## Tests
 
-All 55 assertions of `CommandMenu.test.ts` transpose one for one. The
+All 63 assertions of `CommandMenu.test.ts` transpose one for one, the `sound`
+block included — same titles, same assertions, with the cue spy on the sound
+controller rather than on the React hook. The
 `createRawSnippet` harnesses for `icon` / `empty` become plain JSX, `bind:open`
 and `bind:query` become controlled wrapper components, and the transition
 assertions read `FakeAnimation.instances` instead of spying on
@@ -123,8 +125,10 @@ assertions read `FakeAnimation.instances` instead of spying on
 leading dummy's `onfinish`, one microtask later, so each motion test drains the
 leg before reading the keyframes it actually runs.
 
-Three React-layer additions the internals contract §9.4 names for a
-presence + portal + trap + lock + dismiss pairing sit at the end, clearly
+Four React-layer additions the internals contract §9.4 names for a
+presence + portal + trap + lock + dismiss pairing sit alongside them, clearly
 marked: `data-state` never renders `"opening"`, the entrance leg actually
-plays, and the scroll-lock / dismissable-stack leak counters return to rest
-under StrictMode.
+plays, the scroll-lock / dismissable-stack leak counters return to rest under
+StrictMode, and a seeded `query` survives a StrictMode mount without reporting
+a change the caller never made — the source has no double invoke to survive,
+so the reset-on-open effect keys on the open EDGE rather than on a latch.
