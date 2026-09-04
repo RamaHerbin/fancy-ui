@@ -40,16 +40,23 @@ function menus(): HTMLElement[] {
 	return Array.from(document.querySelectorAll('[role="menu"]'));
 }
 
-// The root content is the only one carrying `aria-labelledby` (it points at
-// the real trigger button; a submenu has no equivalent single label to
-// point at) — the one reliable way to tell the two apart when both are
-// portalled to `document.body` at once.
+// Both the root panel and a submenu panel carry `aria-labelledby` — the root
+// points at the real trigger button, a submenu points at its own sub-trigger
+// row — so telling the two apart when both are portalled to `document.body`
+// at once comes down to what kind of element each one's label actually is:
+// the root trigger carries the trigger class, a sub-trigger is a
+// `role="menuitem"` row instead.
+function labelFor(el: HTMLElement): HTMLElement | null {
+	const id = el.getAttribute("aria-labelledby");
+	return id ? document.getElementById(id) : null;
+}
+
 function rootMenu(): HTMLElement | null {
-	return menus().find((el) => el.hasAttribute("aria-labelledby")) ?? null;
+	return menus().find((el) => labelFor(el)?.classList.contains("ft-dropdown-menu-trigger")) ?? null;
 }
 
 function subMenu(): HTMLElement | null {
-	return menus().find((el) => !el.hasAttribute("aria-labelledby")) ?? null;
+	return menus().find((el) => labelFor(el)?.getAttribute("role") === "menuitem") ?? null;
 }
 
 function items(root: HTMLElement | null): HTMLElement[] {
@@ -460,6 +467,25 @@ describe("DropdownMenu", () => {
 			await waitFor(() =>
 				expect(document.activeElement).toBe(itemByLabel(subMenu(), "Screenshot"))
 			);
+		});
+
+		// WAI-ARIA's menu-button/submenu pattern requires a submenu panel to be
+		// named by the row that opened it — without it, a screen-reader user who
+		// arrows into a submenu hears only an anonymous "menu" and loses which
+		// item they drilled into.
+		it("names the submenu panel after its own sub-trigger via aria-labelledby", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems: SUB_ITEMS },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			const subBtn = subTriggerEl(rootMenu())!;
+
+			await fireEvent.click(subBtn);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			expect(subBtn.id).not.toBe("");
+			expect(subMenu()!.getAttribute("aria-labelledby")).toBe(subBtn.id);
 		});
 
 		// `DropdownMenuSubContent` is portalled independently of the root

@@ -178,7 +178,12 @@ row cannot be clicked on its way out.
   `select/Select.svelte` and `select/SelectPanel.svelte` use, down to reusing
   the same `_internals/listbox.svelte.ts` core for the move/wrap/edge
   mechanics (per-slot disabling is not part of this component's surface, so
-  every slot is always enabled to that shared core).
+  every slot is always enabled to that shared core). A **pointer** commit is
+  the one path that can move focus off the trigger — pressing a row focuses
+  the row, and the panel is portalled to `<body>`, so it has no focusable
+  ancestor to hand focus back to once it unmounts. The commit puts focus on
+  the trigger itself before closing, so a click leaves the tab order exactly
+  where a keyboard commit does rather than stranding it on `<body>`.
 - **The highlighted slot is scrolled into view the instant the panel opens**,
   not only on the next arrow press — `openPanel` calls the scroll explicitly
   after the DOM updates, rather than relying solely on the listbox core's

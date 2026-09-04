@@ -110,6 +110,7 @@
 
 <ol
 	bind:this={ref}
+	role="list"
 	class={cn(
 		"ft-stepper flex list-none",
 		orientation === "vertical" ? "flex-col" : "w-full items-start",

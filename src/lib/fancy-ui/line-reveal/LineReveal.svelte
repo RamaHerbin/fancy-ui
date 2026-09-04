@@ -69,14 +69,18 @@
 		const currentFont = font;
 		let cancelled = false;
 
-		document.fonts
-			.load(currentFont)
-			.catch(() => {})
-			.then(() => {
-				if (!cancelled) {
+		// `document.fonts` (FontFaceSet) may be undefined — jsdom/happy-dom and
+		// some older browsers don't implement it — so guard the read instead of
+		// letting a missing FontFaceSet throw inside this effect.
+		Promise.resolve(document.fonts?.load(currentFont)).catch(() => {}).then(() => {
+			if (!cancelled) {
+				try {
 					prepared = prepareWithSegments(currentText, currentFont);
+				} catch {
+					// Missing 2d context (e.g. jsdom) — stay on the pre-measure fallback.
 				}
-			});
+			}
+		});
 
 		return () => {
 			cancelled = true;

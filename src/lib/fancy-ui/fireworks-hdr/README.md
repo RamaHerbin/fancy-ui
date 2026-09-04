@@ -52,7 +52,7 @@ handle.setExposure(2.6);
 | `exposure`             | `number`                             | `2.2`                                       | Display exposure multiplier, clamped to `[1,4]`.                                                                                                                       |
 | `ambient`              | `boolean`                            | `true`                                      | Run the ambient auto-scheduler (Poisson-timed background shells).                                                                                                      |
 | `ambientIntensity`     | `number`                             | `0.35`                                      | Ambient energy `[0,1]` — scales shell size.                                                                                                                            |
-| `interactive`          | `boolean`                            | `true`                                      | Launch a shell toward the pointer on window `pointerdown`.                                                                                                             |
+| `interactive`          | `boolean`                            | `true`                                      | Launch a shell toward the pointer on window `pointerdown`. Read once, when the engine activates — a later change does not re-wire the listener.                         |
 | `quality`              | `"auto" \| "high" \| "mid" \| "low"` | `"auto"`                                    | Particle budget; `auto` picks from the render level + DPR.                                                                                                             |
 | `ambientShells`        | `ShellKind[]`                        | —                                           | Restrict the ambient scheduler to these shells, picked uniformly (default: weighted peony/willow/ring). `"glyph"` and `"shape"` are ignored — they need caller points. |
 | `respectReducedMotion` | `boolean`                            | `true`                                      | Force ambient off under `prefers-reduced-motion` (explicit launches still work).                                                                                       |
@@ -62,7 +62,9 @@ handle.setExposure(2.6);
 
 The canvas wrapper is `pointer-events-none` and `aria-hidden` — it is a
 background. `interactive` listens at the window level, so clicks pass through to
-your UI while still launching a shell.
+your UI while still launching a shell. The listener is wired once, when the
+engine activates, so pass the value you want at mount rather than toggling it
+later; use `key` to remount if you need to switch it.
 
 ## Handle (`FireworksHandle`)
 

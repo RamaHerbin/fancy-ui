@@ -110,6 +110,7 @@ Neither the transcript nor the samples are cleared on cancel. The component does
 - The root is a `role="group"` named _"Voice input"_, so the mic and the panel it becomes read as one control rather than as unrelated buttons appearing and disappearing.
 - The three buttons carry the labels _"Start voice input"_, _"Cancel voice input"_ and _"Stop voice input"_ — the icons say nothing out loud.
 - Recording is announced through an `sr-only` `role="status"` line that is **always in the document** and changes its text between `""` and `"Recording"`. A live region inserted along with its own content is announced unreliably; one that outlives the change is not.
+- **Focus follows the swap.** Each button destroys itself when it flips `active`, so pressing one hands focus straight on to the control that replaces it: the mic opens the panel and focuses _"Cancel voice input"_, and the cross and the check close it and focus the mic again. Without that, focus would fall to `<body>` on every start, cancel and confirm, and the next Tab would restart from the top of the page. Setting `active` from outside moves nothing — focus stays wherever you put it, the same way no callback fires.
 - The canvas is `aria-hidden`. It is a picture of an amplitude the stopwatch and the transcript already state in words.
 - The transcript is deliberately **not** a live region. Partial recogniser output announced word by word is unusable; wrap the component and mirror the text into your own region if your application wants it announced.
 

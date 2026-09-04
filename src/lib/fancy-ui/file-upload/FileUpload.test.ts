@@ -240,6 +240,31 @@ describe("FileUpload", () => {
 		expect(live?.textContent).toMatch(/notes\.txt/);
 	});
 
+	it("re-announces an identical rejection instead of leaving the live region silent the second time", async () => {
+		const { container } = render(FileUpload, { props: { accept: ".png,image/png" } });
+		const zone = dropzone(container);
+		const live = container.querySelector('[aria-live="polite"]') as HTMLElement;
+
+		await fireEvent.drop(zone, { dataTransfer: { files: [makeFile("notes.txt", 100, "text/plain")] } });
+		expect(live.textContent).toMatch(/notes\.txt/);
+
+		// A regression assigns the identical string back to the same $state,
+		// which is a no-op — the sr-only text node never mutates and the
+		// second attempt is announced to nobody. Watch the node mutate at
+		// least twice: once to clear, once to restate the message.
+		const seen: string[] = [];
+		const observer = new MutationObserver(() => seen.push(live.textContent ?? ""));
+		observer.observe(live, { characterData: true, childList: true, subtree: true });
+
+		await fireEvent.drop(zone, { dataTransfer: { files: [makeFile("notes.txt", 100, "text/plain")] } });
+		await tick();
+		await tick();
+		observer.disconnect();
+
+		expect(seen.length).toBeGreaterThanOrEqual(2);
+		expect(live.textContent).toMatch(/notes\.txt/);
+	});
+
 	it("accept allows a matching drop through as a plain pending row, with no error text", async () => {
 		const { container } = render(FileUpload, { props: { accept: ".png,image/png" } });
 		const zone = dropzone(container);

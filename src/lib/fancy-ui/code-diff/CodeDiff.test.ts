@@ -166,6 +166,17 @@ describe("CodeDiff", () => {
 		expect(glyphs).toEqual([" ", "−", "+"]);
 	});
 
+	it("exposes the add/del verdict to assistive tech, not just colour and glyph", () => {
+		const { container, getByText } = render(CodeDiff, { props: { diff: BARE_HUNK } });
+
+		const addRow = rowsOfKind(container, "add")[0];
+		const delRow = rowsOfKind(container, "del")[0];
+		expect(getByText("Added line")).toBeTruthy();
+		expect(getByText("Removed line")).toBeTruthy();
+		expect(addRow.textContent).toContain("Added line");
+		expect(delRow.textContent).toContain("Removed line");
+	});
+
 	it("starts open, folds the body on click, and reports it through aria-expanded", async () => {
 		const { container } = render(CodeDiff, { props: { diff: MULTI_HUNK } });
 		expect(headers(container)[0].getAttribute("aria-expanded")).toBe("true");

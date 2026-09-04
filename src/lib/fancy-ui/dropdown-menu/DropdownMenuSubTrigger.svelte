@@ -125,6 +125,7 @@
 
 <button
 	bind:this={itemRef}
+	id={sub.triggerId}
 	type="button"
 	role="menuitem"
 	tabindex="-1"

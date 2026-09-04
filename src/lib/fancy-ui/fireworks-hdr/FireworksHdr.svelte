@@ -207,6 +207,10 @@
 		// WebGL waits for `webglcontextrestored`), then a full teardown so the
 		// caller can fall back instead of holding a dead handle.
 		let wired = false; // observers/listeners are registered exactly once
+		// Latches what was actually wired, so teardown removes exactly what was
+		// added. Reading the live `interactive` prop there would leak the window
+		// listener whenever the prop flipped to false after mount.
+		let pointerWired = false;
 		let recovering = false;
 		let recoveryUsed = false;
 		let restoreTimer = 0;
@@ -426,7 +430,10 @@
 			stopLoop();
 			observer?.disconnect();
 			resizeObs?.disconnect();
-			if (interactive) window.removeEventListener("pointerdown", handlePointerDown);
+			if (pointerWired) {
+				window.removeEventListener("pointerdown", handlePointerDown);
+				pointerWired = false;
+			}
 			document.removeEventListener("visibilitychange", handleVisibility);
 			canvas.removeEventListener("webglcontextrestored", onContextRestored);
 			if (restoreTimer) window.clearTimeout(restoreTimer);
@@ -547,7 +554,10 @@
 				});
 				resizeObs.observe(canvas);
 
-				if (interactive) window.addEventListener("pointerdown", handlePointerDown);
+				if (interactive) {
+					window.addEventListener("pointerdown", handlePointerDown);
+					pointerWired = true;
+				}
 				document.addEventListener("visibilitychange", handleVisibility);
 				wired = true;
 			}

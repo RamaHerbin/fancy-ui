@@ -22,7 +22,9 @@
 	// close a sibling one at the same level.
 	const parentMenu = getContext<MenuContext>(MENU_KEY);
 
-	const contentId = $props.id();
+	const uid = $props.id();
+	const contentId = `${uid}-content`;
+	const triggerId = `${uid}-trigger`;
 
 	let open = $state(false);
 	let triggerRef: HTMLElement | null = null;
@@ -106,6 +108,7 @@
 			return open;
 		},
 		contentId,
+		triggerId,
 		get triggerRef() {
 			return triggerRef;
 		},

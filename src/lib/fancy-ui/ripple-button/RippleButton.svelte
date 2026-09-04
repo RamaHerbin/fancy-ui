@@ -42,6 +42,7 @@
 
 	let buttonRef: HTMLButtonElement;
 	let ripples = $state<Ripple[]>([]);
+	let nextRippleKey = 0;
 
 	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		if (sound && !restProps.disabled) soundFx.play("press");
@@ -60,7 +61,7 @@
 		const x = event.clientX - rect.left - size / 2;
 		const y = event.clientY - rect.top - size / 2;
 
-		const newRipple: Ripple = { x, y, size, key: Date.now() };
+		const newRipple: Ripple = { x, y, size, key: nextRippleKey++ };
 		ripples = [...ripples, newRipple];
 
 		// Remove ripple after animation completes

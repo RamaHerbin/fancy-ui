@@ -1,21 +1,6 @@
 import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import LineReveal from "./LineReveal.svelte";
-
-// pretext's prepareWithSegments() needs a canvas 2d context or OffscreenCanvas
-// for text measurement — neither exists under jsdom (getContext is mocked to
-// return null in src/test-setup.ts). Stubbing document.fonts.load() with a
-// promise that never resolves keeps the component on its pre-measurement
-// fallback branch instead of letting the effect's `.then()` handler call
-// into pretext and throw "Text measurement requires OffscreenCanvas or a DOM
-// canvas context."
-function stubNeverLoadingFonts() {
-	Object.defineProperty(document, "fonts", {
-		configurable: true,
-		writable: true,
-		value: { load: () => new Promise<FontFace[]>(() => {}) },
-	});
-}
 
 class MockIntersectionObserver {
 	callback: IntersectionObserverCallback;
@@ -34,7 +19,6 @@ class MockIntersectionObserver {
 vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
 describe("LineReveal", () => {
-	beforeEach(stubNeverLoadingFonts);
 	afterEach(() => {
 		cleanup();
 		MockIntersectionObserver.instances = [];
@@ -86,5 +70,28 @@ describe("LineReveal", () => {
 	it("unmounts cleanly", () => {
 		const { unmount } = render(LineReveal, { props: { text: "Bye" } });
 		expect(() => unmount()).not.toThrow();
+	});
+
+	it("does not throw when document.fonts is unavailable (e.g. jsdom)", () => {
+		const originalFonts = document.fonts;
+		// @ts-expect-error -- simulate an environment without FontFaceSet
+		delete document.fonts;
+
+		try {
+			expect(() =>
+				render(LineReveal, { props: { text: "No FontFaceSet" } })
+			).not.toThrow();
+
+			const container = document.body;
+			const fallback = container.querySelector('[aria-hidden="true"]') as HTMLElement;
+			expect(fallback).toBeTruthy();
+			expect(fallback.style.visibility).toBe("hidden");
+		} finally {
+			Object.defineProperty(document, "fonts", {
+				configurable: true,
+				writable: true,
+				value: originalFonts,
+			});
+		}
 	});
 });

@@ -70,6 +70,7 @@ Pin actions to the bottom of the panel with `footer`:
 | `onOpenChange` | `(open: boolean) => void` | —       | Called with the new value whenever the drawer opens or closes                                            |
 | `title`        | `string`                  | —       | Heading rendered in the header and wired to `aria-labelledby`                                            |
 | `description`  | `string`                  | —       | Supporting text under the title, wired to `aria-describedby`                                             |
+| `ariaLabel`    | `string`                  | —       | Accessible name for the dialog when no `title` is rendered; ignored when `title` is set                  |
 | `dismissible`  | `boolean`                 | `true`  | Whether Escape, the scrim, the close button and the swipe gesture can close the drawer                   |
 | `swipeToClose` | `boolean`                 | `true`  | Whether dragging the handle down past the threshold closes the drawer                                    |
 | `children`     | `Snippet`                 | —       | Panel body content                                                                                       |

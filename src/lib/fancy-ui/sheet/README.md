@@ -69,6 +69,7 @@ Pin actions to the bottom of the panel with `footer`:
 | `side`         | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Edge of the viewport the panel slides in from                              |
 | `title`        | `string`                                 | —         | Heading rendered in the header and wired to `aria-labelledby`              |
 | `description`  | `string`                                 | —         | Supporting text under the title, wired to `aria-describedby`               |
+| `ariaLabel`    | `string`                                 | —         | Accessible name when no `title` is rendered; ignored once `title` is set   |
 | `dismissible`  | `boolean`                                | `true`    | Whether Escape, the scrim and the close button can close the sheet         |
 | `size`         | `"sm" \| "md" \| "lg"`                   | `"md"`    | Panel width (left/right sides) or height (top/bottom sides)                |
 | `children`     | `Snippet`                                | —         | Panel body content                                                         |

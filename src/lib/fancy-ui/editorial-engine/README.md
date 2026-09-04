@@ -47,6 +47,15 @@ The stage fills its parent — give the parent an explicit height.
 | `fontFamily` | `string`   | Palatino serif stack | Font stack for all text                           |
 | `class`      | `string`   | —                    | Additional CSS classes for the stage              |
 
+## Accessibility
+
+The stage renders two layers. The positioned-line layer the engine writes into
+is `aria-hidden` — it is one `<span>` per visual line, with no heading and no
+paragraph boundaries. Alongside it, an `<h2>` + `<p>` copy of the same content
+is always in the DOM: visible before the engine is ready, visually hidden
+(never unmounted) afterwards. Screen readers therefore keep the headline as a
+heading and the body as prose, whatever the engine is doing on screen.
+
 ## Interactions
 
 - **Drag** an orb — text reparts around it every frame.

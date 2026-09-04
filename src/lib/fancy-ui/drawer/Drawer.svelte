@@ -8,6 +8,12 @@
 		onOpenChange?: (open: boolean) => void;
 		/** Heading rendered in the header and wired to `aria-labelledby`. */
 		title?: string;
+		/**
+		 * Accessible name for the dialog when no `title` is rendered. Ignored
+		 * when `title` is set, since `aria-labelledby` already supplies the
+		 * name.
+		 */
+		ariaLabel?: string;
 		/** Supporting text under the title, wired to `aria-describedby`. */
 		description?: string;
 		/** Whether Escape, the scrim and the close button can close the drawer. */
@@ -52,6 +58,7 @@
 		onOpenChange,
 		title,
 		description,
+		ariaLabel,
 		dismissible = true,
 		swipeToClose = true,
 		children,
@@ -319,6 +326,7 @@
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={titleId}
+		aria-label={titleId ? undefined : ariaLabel}
 		aria-describedby={descriptionId}
 		use:portal
 		use:scrollLock

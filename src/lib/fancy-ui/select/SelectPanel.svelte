@@ -109,6 +109,7 @@
 	bind:this={ref}
 	id={ctx.panelId}
 	role="listbox"
+	aria-label={ctx.label}
 	class={cn(
 		"ft-select-panel border-border bg-popover text-popover-foreground flex w-max min-w-[160px] flex-col gap-[1px] rounded-[10px] border p-[5px] text-[13px] shadow-lg outline-none",
 		className

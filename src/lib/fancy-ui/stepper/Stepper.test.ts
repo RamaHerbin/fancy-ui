@@ -48,6 +48,18 @@ describe("Stepper", () => {
 		expect(items(container)).toHaveLength(3);
 	});
 
+	// list-style: none strips the implicit list role from an <ol> in
+	// WebKit, so a screen reader announces neither "list, N items" nor
+	// "item M of N" — the only remaining positional cue, since the visible
+	// step number is `aria-hidden`. ThreadList/SubagentList already state
+	// `role="list"` for the same reason; Stepper's <ol> must too.
+	it("states role=list on the ol so its list semantics survive list-style:none", () => {
+		const { container, getByRole, getAllByRole } = render(Harness, { props: { items: ITEMS } });
+
+		expect(getByRole("list")).toBe(list(container));
+		expect(getAllByRole("listitem")).toHaveLength(ITEMS.length);
+	});
+
 	it("renders an ol containing one li per Step, in order", () => {
 		const { container } = render(Harness, { props: { items: ITEMS } });
 		const lis = items(container);

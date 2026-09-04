@@ -88,6 +88,8 @@ export const MENU_KEY: unique symbol = Symbol("menu-context");
 export interface SubContext {
 	readonly open: boolean;
 	readonly contentId: string;
+	/** The sub-trigger's own id — read by `SubContent` for `aria-labelledby`, so the submenu panel announces the row that opened it. */
+	readonly triggerId: string;
 	readonly triggerRef: HTMLElement | null;
 	/**
 	 * The side the submenu actually rendered on, as last reported by

@@ -29,6 +29,12 @@ describe("InteractiveHoverButton", () => {
 		expect(matches).toHaveLength(2);
 	});
 
+	it("exposes the label once in the accessible name, not twice", () => {
+		render(InteractiveHoverButton, { props: { text: "Subscribe" } });
+		const button = screen.getByRole("button", { name: "Subscribe" });
+		expect(button.getAttribute("aria-label")).not.toBe("Subscribe Subscribe");
+	});
+
 	it("renders the arrow SVG icon", () => {
 		render(InteractiveHoverButton);
 		const button = screen.getByRole("button");
