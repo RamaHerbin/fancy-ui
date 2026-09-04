@@ -49,12 +49,20 @@ export function useComposedRefs<T>(...refs: Array<Ref<T> | undefined | null>): R
 	// stable too.
 	return useCallback<RefCallback<T>>(
 		(node) => {
-			// React 18 has no ref-cleanup channel: it drops the function we
-			// return below and calls us with `null` on detach instead. React 19
-			// sees the returned function and calls THAT instead of passing
-			// `null`. Both versions therefore funnel through the same `detach`,
-			// which is idempotent, so neither can run a cleanup twice nor skip
-			// one.
+			// Returns NOTHING, on purpose, on both React versions.
+			//
+			// React 18 treats a ref callback that returns a function as a
+			// mistake and logs "Unexpected return value from a callback ref"
+			// once per attach — for a package whose peer range is
+			// `^18 || ^19`, that is dev-console noise on every element wired
+			// through here, and a hard failure in any consumer whose CI fails
+			// on console.error. React 19's cleanup channel would accept a
+			// returned function and call it INSTEAD of passing `null`, but it
+			// buys nothing: `detach()` at the head of this callback plus the
+			// `node === null` branch below already release the previous
+			// attachment on both versions, and `detach` is idempotent, so no
+			// cleanup can run twice or be skipped. One code path, one
+			// observable behaviour, no warning.
 			detach();
 			if (node === null) return;
 			pending.current = refs.map((ref) => {
@@ -65,7 +73,6 @@ export function useComposedRefs<T>(...refs: Array<Ref<T> | undefined | null>): R
 				// whole of its teardown.
 				return cleanup ?? (() => assignRef(ref, null));
 			});
-			return detach;
 		},
 		[...refs, detach]
 	);

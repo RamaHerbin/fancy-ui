@@ -252,6 +252,12 @@ describe("field hydration", () => {
 		expect(html).toContain('aria-describedby="email-description email-error"');
 		expect(html).toContain('data-described-by="email-description email-error"');
 
+		// React 19 does NOT `console.error` a hydration mismatch — it routes the
+		// error to the root's `onRecoverableError`. A suite that only spies on
+		// `console.error` therefore passes through a real server/client
+		// divergence, so both channels are collected and both are asserted
+		// empty.
+		const recoverable: unknown[] = [];
 		const errors = vi.spyOn(console, "error").mockImplementation(() => {});
 		const container = document.createElement("div");
 		container.innerHTML = html;
@@ -263,7 +269,12 @@ describe("field hydration", () => {
 				container,
 				<Form>
 					<FieldConsumer />
-				</Form>
+				</Form>,
+				{
+					onRecoverableError: (error) => {
+						recoverable.push(error);
+					},
+				}
 			);
 		});
 
@@ -274,6 +285,7 @@ describe("field hydration", () => {
 		expect(consumer(container).dataset.valid).toBe("false");
 		expect(consumer(container).dataset.invalid).toBe("true");
 		expect(errors).not.toHaveBeenCalled();
+		expect(recoverable).toEqual([]);
 
 		act(() => {
 			root?.unmount();
@@ -286,6 +298,8 @@ describe("field hydration", () => {
 		const html = renderToString(<FieldConsumer />);
 		expect(html).toContain('data-has-field="false"');
 
+		// Both mismatch channels, for the reason spelled out above.
+		const recoverable: unknown[] = [];
 		const errors = vi.spyOn(console, "error").mockImplementation(() => {});
 		const container = document.createElement("div");
 		container.innerHTML = html;
@@ -293,11 +307,16 @@ describe("field hydration", () => {
 
 		let root: Root | undefined;
 		act(() => {
-			root = hydrateRoot(container, <FieldConsumer />);
+			root = hydrateRoot(container, <FieldConsumer />, {
+				onRecoverableError: (error) => {
+					recoverable.push(error);
+				},
+			});
 		});
 
 		expect(consumer(container).dataset.hasField).toBe("false");
 		expect(errors).not.toHaveBeenCalled();
+		expect(recoverable).toEqual([]);
 
 		act(() => {
 			root?.unmount();

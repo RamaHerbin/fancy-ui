@@ -1,4 +1,5 @@
-import { act, renderHook } from "@testing-library/react";
+import { StrictMode, createElement } from "react";
+import { act, render, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { observeInView, useInView } from "./in-view.js";
 
@@ -332,5 +333,38 @@ describe("useInView", () => {
 
 		expect(result.current).toBe(true);
 		expect(onChange).toHaveBeenCalledExactlyOnceWith(true);
+	});
+
+	/*
+	 * §9.4's StrictMode row, whose leak counter for this module is live
+	 * observers. The rehearsal runs the layout effect, its cleanup, then the
+	 * effect again, so a second IntersectionObserver is always constructed —
+	 * what must not happen is the first one surviving it. `firedOnce` makes
+	 * this the sharpest case in the unit: it is written from inside the
+	 * observer callback and read as the effect's own early return, so an edit
+	 * that moved the construction out of the effect, or dropped
+	 * `handle.destroy()`, would strand a live observer on the node and every
+	 * other case here would stay green.
+	 *
+	 * The file is `.ts`, so the tree is built with `createElement` rather than
+	 * JSX.
+	 */
+	it("leaves exactly one live observer under StrictMode, and none observing after unmount", () => {
+		const node = makeNode();
+		function Probe() {
+			useInView(node);
+			return null;
+		}
+
+		const { unmount } = render(createElement(StrictMode, null, createElement(Probe)));
+
+		expect(MockIntersectionObserver.instances.length).toBeGreaterThan(0);
+		const live = MockIntersectionObserver.instances.filter((o) => o.observed.includes(node));
+		expect(live).toHaveLength(1);
+
+		unmount();
+		expect(MockIntersectionObserver.instances.filter((o) => o.observed.includes(node))).toHaveLength(
+			0
+		);
 	});
 });

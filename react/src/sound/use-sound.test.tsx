@@ -6,8 +6,15 @@
 import { act, cleanup, render, renderHook, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getSoundSnapshot, resetSoundForTests, sound } from "./sound.js";
-import { useSound, useSoundCue, useSoundEnabled, useSoundStatus } from "./use-sound.js";
+import {
+	useSound,
+	useSoundCue,
+	useSoundEnabled,
+	useSoundEngineState,
+	useSoundStatus,
+} from "./use-sound.js";
 import { SOUND_STORAGE_KEY, type SoundCue, type SoundPlayOptions } from "./types.js";
+import { installFakeAudioContext } from "./web-audio-mock.js";
 
 function storeEnabled(volume = 0.25) {
 	window.localStorage.setItem(
@@ -221,6 +228,82 @@ describe("useSoundStatus", () => {
 	it("reports the storage outcome once hydration has run", () => {
 		const { result } = renderHook(() => useSoundStatus());
 		expect(result.current.storage).toBe("ok");
+	});
+});
+
+describe("useSoundEngineState", () => {
+	let audio: { restore(): void };
+
+	beforeEach(() => {
+		resetSoundForTests();
+		window.localStorage.clear();
+		audio = installFakeAudioContext(window as unknown as Record<string, unknown>);
+	});
+
+	afterEach(() => {
+		cleanup();
+		audio.restore();
+		vi.restoreAllMocks();
+		resetSoundForTests();
+		window.localStorage.clear();
+	});
+
+	it("reports the engine state and tracks it", async () => {
+		const { result } = renderHook(() => useSoundEngineState());
+		expect(result.current).toBe("idle");
+
+		await act(async () => {
+			sound.enable();
+			await sound.unlock();
+		});
+
+		expect(result.current).toBe("ready");
+	});
+
+	it("does not re-render for a cue played anywhere on the page", async () => {
+		let renders = 0;
+		function Probe() {
+			renders += 1;
+			useSoundEngineState();
+			return <span data-testid="probe" />;
+		}
+
+		render(<Probe />);
+		await act(async () => {
+			sound.enable();
+			await sound.unlock();
+		});
+		const initial = renders;
+
+		act(() => {
+			sound.play("press");
+		});
+
+		// The cue really landed — the status moved, and this reader still did not.
+		expect(getSoundSnapshot().status.lastCue).toBe("press");
+		expect(renders).toBe(initial);
+	});
+
+	it("is the difference: the whole-status reader DOES re-render on that cue", async () => {
+		let renders = 0;
+		function Probe() {
+			renders += 1;
+			useSoundStatus();
+			return <span data-testid="probe" />;
+		}
+
+		render(<Probe />);
+		await act(async () => {
+			sound.enable();
+			await sound.unlock();
+		});
+		const initial = renders;
+
+		act(() => {
+			sound.play("press");
+		});
+
+		expect(renders).toBeGreaterThan(initial);
 	});
 });
 

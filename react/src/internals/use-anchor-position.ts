@@ -32,6 +32,12 @@ export interface UseAnchorPositionOptions {
 	/** Stop positioning without unmounting. Default true. */
 	enabled?: boolean;
 	/**
+	 * An opaque value the caller bumps to force a recompute when something the
+	 * geometry depends on moved but no option did — a context menu's pointer
+	 * coordinates, which slide the same virtual anchor element to a new place.
+	 */
+	recomputeKey?: string | number;
+	/**
 	 * Fires on first placement, then only when the resolved side or align
 	 * actually changes. Most consumers want the RETURN VALUE instead; this is
 	 * for the caller that has to publish the placement somewhere other than
@@ -67,7 +73,7 @@ export function useAnchorPosition(
 	node: HTMLElement | null,
 	options: UseAnchorPositionOptions
 ): ResolvedPlacement {
-	const { side = "bottom", align = "center", offset, enabled = true } = options;
+	const { side = "bottom", align = "center", offset, enabled = true, recomputeKey } = options;
 
 	const [placement, setPlacement] = useState<ResolvedPlacement>(() => ({ side, align }));
 
@@ -79,6 +85,7 @@ export function useAnchorPosition(
 	const sideRef = useLiveRef(side);
 	const alignRef = useLiveRef(align);
 	const offsetRef = useLiveRef(offset);
+	const recomputeKeyRef = useLiveRef(recomputeKey);
 
 	const resolveAnchor = useCallback((): HTMLElement | null => {
 		const anchor = anchorRef.current;
@@ -123,6 +130,7 @@ export function useAnchorPosition(
 		align: Align;
 		offset: number | undefined;
 		anchor: HTMLElement | null;
+		recomputeKey: string | number | undefined;
 	} | null>(null);
 
 	// A layout effect, not a passive one: a position applied after paint is a
@@ -143,6 +151,7 @@ export function useAnchorPosition(
 			align: alignRef.current,
 			offset: offsetRef.current,
 			anchor: resolveAnchor(),
+			recomputeKey: recomputeKeyRef.current,
 		};
 
 		return () => {
@@ -150,7 +159,16 @@ export function useAnchorPosition(
 			appliedRef.current = null;
 			handle.destroy();
 		};
-	}, [node, enabled, resolveAnchor, handlePlacement, sideRef, alignRef, offsetRef]);
+	}, [
+		node,
+		enabled,
+		resolveAnchor,
+		handlePlacement,
+		sideRef,
+		alignRef,
+		offsetRef,
+		recomputeKeyRef,
+	]);
 
 	useIsomorphicLayoutEffect(() => {
 		const handle = handleRef.current;
@@ -166,12 +184,13 @@ export function useAnchorPosition(
 			applied.side === side &&
 			applied.align === align &&
 			applied.offset === offset &&
-			applied.anchor === nextAnchor
+			applied.anchor === nextAnchor &&
+			applied.recomputeKey === recomputeKey
 		) {
 			return;
 		}
 
-		appliedRef.current = { side, align, offset, anchor: nextAnchor };
+		appliedRef.current = { side, align, offset, anchor: nextAnchor, recomputeKey };
 		handle.update({
 			anchor: resolveAnchor,
 			side,
@@ -184,7 +203,7 @@ export function useAnchorPosition(
 		// option is the only signal React gives that the resolved element may
 		// have moved. An inline arrow's fresh identity re-runs this for one
 		// pointer comparison and no layout read.
-	}, [node, side, align, offset, options.anchor, resolveAnchor, handlePlacement]);
+	}, [node, side, align, offset, recomputeKey, options.anchor, resolveAnchor, handlePlacement]);
 
 	return placement;
 }

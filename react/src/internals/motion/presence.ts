@@ -74,10 +74,18 @@ export interface UsePresenceOptions {
 	appear?: boolean;
 	/**
 	 * Set `inert` on every attached node while closing, clear it on enter.
-	 * Default true — the source sets `element.inert = true` itself,
-	 * synchronously, immediately before the exit starts, which is what keeps a
-	 * closing panel from answering a click. `false` is the explicit opt-out, and
-	 * it means this hook never touches `inert` at all.
+	 * Default true — the source sets it itself, synchronously, immediately
+	 * before the exit starts, which is what keeps a closing panel from
+	 * answering a click. `false` is the explicit opt-out, and it means this
+	 * hook never touches `inert` at all.
+	 *
+	 * Written as the ATTRIBUTE, through `toggleAttribute`, never as the
+	 * `inert` IDL property — the one mechanism this package uses everywhere
+	 * (`useInertAttribute` is the same write behind a ref). The attribute is
+	 * what `:not([inert])` selectors and assistive technology key on, a real
+	 * browser reflects it to the IDL property for anything reading that
+	 * instead, and it is the only one of the two that exists under jsdom, so
+	 * the behaviour a test pins is the behaviour that ships.
 	 */
 	inert?: boolean;
 	onEnterStart?: () => void;
@@ -343,7 +351,7 @@ function createPresenceCore(deps: PresenceCoreDeps) {
 		if (inertApplied) {
 			inertApplied = false;
 			for (const slot of slots.values()) {
-				if (slot.node) slot.node.inert = false;
+				slot.node?.toggleAttribute("inert", false);
 			}
 		}
 		deps.setState("opening");
@@ -359,7 +367,7 @@ function createPresenceCore(deps: PresenceCoreDeps) {
 		if (deps.inertRef.current) {
 			inertApplied = true;
 			for (const slot of slots.values()) {
-				if (slot.node) slot.node.inert = true;
+				slot.node?.toggleAttribute("inert", true);
 			}
 		}
 	}

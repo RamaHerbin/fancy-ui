@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { renderHook, cleanup } from "@testing-library/react";
 import { attachFloat, useFloat } from "./use-float.js";
@@ -280,11 +281,14 @@ describe("useFloat", () => {
 	afterEach(() => {
 		cleanup();
 		document.body.innerHTML = "";
+		vi.unstubAllGlobals();
 	});
 
 	it("positions the node on mount and returns the requested placement", () => {
 		const node = makeNode();
-		const { result } = renderHook(() => useFloat(node, { anchor: ANCHOR, placement: "bottom-start" }));
+		const { result } = renderHook(() =>
+			useFloat(node, { anchor: ANCHOR, placement: "bottom-start" })
+		);
 
 		expect(node.style.position).toBe("fixed");
 		expect(result.current.placement).toBe("bottom-start");
@@ -294,7 +298,9 @@ describe("useFloat", () => {
 		// An anchor with plenty of room below: "bottom-end" holds unflipped, so
 		// the seed the hook renders with matches the first real result too.
 		const node = makeNode();
-		const { result } = renderHook(() => useFloat(node, { anchor: ANCHOR, placement: "bottom-end" }));
+		const { result } = renderHook(() =>
+			useFloat(node, { anchor: ANCHOR, placement: "bottom-end" })
+		);
 
 		expect(result.current.placement).toBe("bottom-end");
 	});
@@ -303,7 +309,8 @@ describe("useFloat", () => {
 		const node = makeNode();
 		let anchor = ANCHOR;
 		const { result, rerender } = renderHook(
-			({ anchor: a }: { anchor: FloatRect }) => useFloat(node, { anchor: a, placement: "bottom-start" }),
+			({ anchor: a }: { anchor: FloatRect }) =>
+				useFloat(node, { anchor: a, placement: "bottom-start" }),
 			{ initialProps: { anchor } }
 		);
 		expect(result.current.placement).toBe("bottom-start");
@@ -332,6 +339,69 @@ describe("useFloat", () => {
 
 		unmount();
 		expect(removeListener).toHaveBeenCalledWith("scroll", expect.any(Function), { capture: true });
+		removeListener.mockRestore();
+	});
+
+	/*
+	 * The mandated per-hook StrictMode rehearsal: mount, cleanup, mount again,
+	 * with nothing left over. The hazards here are a second capturing scroll
+	 * listener on `window` — which outlives the component and would answer for
+	 * a torn-down float — and a second ResizeObserver holding the node.
+	 */
+	it("returns its window listeners and its observer to rest after a StrictMode rehearsal", () => {
+		// Counted by TARGETS, not by construction: the action re-observes on
+		// every sync and calls `disconnect()` first, so an instance goes empty
+		// and fills again in normal operation. What must never survive a
+		// cleanup is an observer still holding the node.
+		const instances: Set<Element>[] = [];
+		const watching = () => instances.filter((targets) => targets.size > 0).length;
+		vi.stubGlobal(
+			"ResizeObserver",
+			class {
+				#targets = new Set<Element>();
+				constructor() {
+					instances.push(this.#targets);
+				}
+				observe(target: Element) {
+					this.#targets.add(target);
+				}
+				unobserve(target: Element) {
+					this.#targets.delete(target);
+				}
+				disconnect() {
+					this.#targets.clear();
+				}
+			}
+		);
+
+		const node = makeNode();
+		const addListener = vi.spyOn(window, "addEventListener");
+		const removeListener = vi.spyOn(window, "removeEventListener");
+		/** Listeners of one type currently attached, net of every add and remove. */
+		const live = (type: "scroll" | "resize") =>
+			addListener.mock.calls.filter(([t]) => t === type).length -
+			removeListener.mock.calls.filter(([t]) => t === type).length;
+
+		const { unmount } = renderHook(() => useFloat(node, { anchor: ANCHOR }), {
+			wrapper: StrictMode,
+		});
+
+		expect(instances.length).toBeGreaterThan(1); // the double-invoke happened
+		expect(watching()).toBe(1);
+		// The count a single mount leaves, not two of each: a surviving
+		// capturing scroll listener outlives the component and would keep
+		// scheduling frames for a float nothing owns any more.
+		expect(live("scroll")).toBe(1);
+		expect(live("resize")).toBe(1);
+
+		unmount();
+
+		// Back to the pre-mount baseline.
+		expect(live("scroll")).toBe(0);
+		expect(live("resize")).toBe(0);
+		expect(watching()).toBe(0);
+
+		addListener.mockRestore();
 		removeListener.mockRestore();
 	});
 });

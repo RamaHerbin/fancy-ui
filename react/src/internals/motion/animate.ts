@@ -195,7 +195,18 @@ export function runTransition(
 			}
 
 			getT = () => {
-				const time = animation.currentTime as number;
+				// `currentTime` is `CSSNumberish | null`, not `number`: it is
+				// `null` on an idle or cancelled animation, and a
+				// `CSSNumericValue` on a timeline that reports progress rather
+				// than milliseconds. Either one divided by `duration` is a
+				// value `easing()` cannot use — `null` silently coerces to `0`
+				// and a `CSSNumericValue` gives `NaN`, which `css(t, 1 - t)`
+				// would then bake into every sampled keyframe as the literal
+				// string "NaN" and the reversing leg would jump. A leg whose
+				// clock cannot be read has made no progress worth honouring,
+				// so it reports the position it started from.
+				const time = animation.currentTime;
+				if (typeof time !== "number" || !Number.isFinite(time)) return t1;
 				return t1 + delta * easing(time / duration);
 			};
 		}

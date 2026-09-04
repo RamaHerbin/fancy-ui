@@ -333,6 +333,39 @@ describe("runTransition() — t()", () => {
 
 		expect(run.t()).toBe(0);
 	});
+
+	/*
+	 * A reversing leg reads `t()` off its counterpart to start from the
+	 * in-flight position, so whatever this returns is baked into every
+	 * keyframe the reversal samples. `currentTime` is `CSSNumberish | null`,
+	 * not `number`: `null` on an idle or cancelled animation, and a
+	 * `CSSNumericValue` on a timeline reporting progress rather than
+	 * milliseconds. Both used to reach `easing()` through an unchecked cast,
+	 * and the non-numeric ones produced NaN — which `css(t, 1 - t)` writes
+	 * into the keyframes as the literal string "NaN", so the element jumps
+	 * instead of reversing.
+	 */
+	it("reports the leg's starting position when the clock is unreadable, never NaN", async () => {
+		const run = runTransition(el(), specOf({ duration: 100 }), 0, undefined, () => {});
+		await nextLeg();
+
+		// Loosely typed on purpose: the stub declares `currentTime: number`,
+		// and the values under test are exactly the ones that type excludes.
+		const clock = FakeAnimation.instances[1] as unknown as { currentTime: unknown };
+
+		clock.currentTime = null;
+		expect(run.t()).toBe(1);
+
+		clock.currentTime = { value: 50, unit: "ms" };
+		expect(run.t()).toBe(1);
+
+		clock.currentTime = Number.NaN;
+		expect(run.t()).toBe(1);
+
+		// A readable clock still interpolates exactly as before.
+		clock.currentTime = 50;
+		expect(run.t()).toBeCloseTo(0.5, 10);
+	});
 });
 
 describe("runTransition() — abort() and deactivate()", () => {

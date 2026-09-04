@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { cn } from "../utils.js";
 import { sound } from "./sound.js";
-import { useSoundEnabled, useSoundStatus } from "./use-sound.js";
+import { useSoundEnabled, useSoundEngineState } from "./use-sound.js";
 import "./sound-toggle.css";
 
 export type SoundToggleSize = "sm" | "md" | "lg";
@@ -55,7 +55,12 @@ export const SoundToggle = forwardRef<HTMLButtonElement, SoundToggleProps>(funct
 	// can never honour is presented disabled — but only while sound is OFF:
 	// disabling it while it is on would strand the user with a persisted "on"
 	// preference and no control left to undo it.
-	const unsupported = useSoundStatus().engine === "unsupported";
+	//
+	// The engine state is read through its own selector, not through the whole
+	// `status` object: the object is rebuilt on every cue (lastCue,
+	// lastPlayedAt), which would re-render this toggle every time anything on
+	// the page made a sound.
+	const unsupported = useSoundEngineState() === "unsupported";
 	const effectiveDisabled = disabled || (unsupported && !enabled);
 
 	const classes = cn(

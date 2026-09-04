@@ -1,4 +1,5 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { StrictMode } from "react";
 import { renderHook, cleanup, act } from "@testing-library/react";
 import { attachAutoscroll, scrollToBottom, useAutoscroll } from "./use-autoscroll.js";
 
@@ -33,17 +34,30 @@ async function settle(): Promise<void> {
 	await new Promise((resolve) => requestAnimationFrame(resolve));
 }
 
-/** jsdom ships no ResizeObserver; this one reports what it was handed. */
+/**
+ * jsdom ships no ResizeObserver; this one reports what it was handed.
+ *
+ * `live` counts the observers that have been constructed and not yet
+ * disconnected, which is the only number that shows a doubled attach:
+ * `observed` is a Set shared by every instance, so two observers watching the
+ * same node still read as one entry, and one instance's `disconnect()` would
+ * clear the other's rows out from under it.
+ */
 function stubResizeObserver() {
 	const observed = new Set<Element>();
 	let notify: () => void = () => {};
+	const state = { live: 0, constructed: 0, observeCalls: 0 };
 	vi.stubGlobal(
 		"ResizeObserver",
 		class {
+			#connected = true;
 			constructor(callback: () => void) {
 				notify = callback;
+				state.live += 1;
+				state.constructed += 1;
 			}
 			observe(target: Element) {
+				state.observeCalls += 1;
 				observed.add(target);
 			}
 			unobserve(target: Element) {
@@ -51,10 +65,14 @@ function stubResizeObserver() {
 			}
 			disconnect() {
 				observed.clear();
+				if (this.#connected) {
+					this.#connected = false;
+					state.live -= 1;
+				}
 			}
 		}
 	);
-	return { observed, resize: () => notify() };
+	return { observed, state, resize: () => notify() };
 }
 
 describe("attachAutoscroll", () => {
@@ -381,5 +399,86 @@ describe("useAutoscroll", () => {
 		node.scrollTop = 100;
 		node.dispatchEvent(new Event("scroll"));
 		expect(onStickChange).not.toHaveBeenCalled();
+	});
+
+	/*
+	 * The mandated per-hook StrictMode rehearsal. This is the one hook in this
+	 * unit that attaches three things at once — a scroll listener, a
+	 * MutationObserver and a ResizeObserver — so a mount/cleanup/mount that
+	 * left any of them behind would double every stick report and keep a
+	 * detached transcript observed for the life of the page.
+	 */
+	it("returns its observers and listeners to rest after a StrictMode rehearsal", async () => {
+		const sizes = stubResizeObserver();
+		const node = makeNode();
+		const row = document.createElement("p");
+		node.appendChild(row);
+
+		const onStickChange = vi.fn();
+		// This hook listens on the NODE, never on `window` — both are counted,
+		// so the assertion says which one it uses as well as that it balances.
+		const addNode = vi.spyOn(node, "addEventListener");
+		const removeNode = vi.spyOn(node, "removeEventListener");
+		const addWindow = vi.spyOn(window, "addEventListener");
+		const removeWindow = vi.spyOn(window, "removeEventListener");
+		/** Listeners of one type currently attached, net of every add and remove. */
+		const live = (add: typeof addNode, remove: typeof removeNode, type: "scroll" | "resize") =>
+			add.mock.calls.filter(([t]) => t === type).length -
+			remove.mock.calls.filter(([t]) => t === type).length;
+
+		const { unmount } = renderHook(() => useAutoscroll(node, { onStickChange }), {
+			wrapper: StrictMode,
+		});
+
+		// One scroll listener on the node, not two, and nothing on `window`.
+		expect(live(addNode, removeNode, "scroll")).toBe(1);
+		expect(live(addWindow, removeWindow, "scroll")).toBe(0);
+		expect(live(addWindow, removeWindow, "resize")).toBe(0);
+
+		// One live observer watching the node and its one row, not two of each.
+		expect(sizes.state.constructed).toBeGreaterThan(1); // the double-invoke happened
+		expect(sizes.state.live).toBe(1);
+		expect(sizes.observed.size).toBe(2);
+		expect([...sizes.observed]).toEqual([node, row]);
+
+		// One call per flip. A surviving second scroll listener answers twice.
+		node.scrollTop = 100;
+		act(() => {
+			node.dispatchEvent(new Event("scroll"));
+		});
+		expect(onStickChange).toHaveBeenCalledExactlyOnceWith(false);
+
+		node.scrollTop = BOTTOM;
+		act(() => {
+			node.dispatchEvent(new Event("scroll"));
+		});
+		expect(onStickChange).toHaveBeenCalledTimes(2);
+		expect(onStickChange).toHaveBeenLastCalledWith(true);
+
+		// One MutationObserver, too: a second would run the row sweep again and
+		// hand the same appended row to the resize observer twice.
+		const observeCallsBefore = sizes.state.observeCalls;
+		node.appendChild(document.createElement("p"));
+		await settle();
+		expect(sizes.state.observeCalls - observeCallsBefore).toBe(1);
+
+		unmount();
+
+		// Back to the pre-mount baseline on every channel.
+		expect(live(addNode, removeNode, "scroll")).toBe(0);
+		expect(live(addWindow, removeWindow, "scroll")).toBe(0);
+		expect(live(addWindow, removeWindow, "resize")).toBe(0);
+		expect(sizes.state.live).toBe(0);
+		expect(sizes.observed.size).toBe(0);
+
+		onStickChange.mockClear();
+		node.scrollTop = 100;
+		node.dispatchEvent(new Event("scroll"));
+		expect(onStickChange).not.toHaveBeenCalled();
+
+		addNode.mockRestore();
+		removeNode.mockRestore();
+		addWindow.mockRestore();
+		removeWindow.mockRestore();
 	});
 });

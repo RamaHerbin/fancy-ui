@@ -408,6 +408,50 @@ describe("attachAnchorPosition — onPlacement", () => {
 	// React binding's `enabled: false` tears the handle down while the node
 	// stays mounted, and the leftovers then read as a surface frozen at
 	// coordinates nothing is maintaining any more.
+	// The panel is mid-entrance the first time this runs: the presence clock
+	// pins `transform: scale(0.92)` on it a commit before the node reaches the
+	// position hook. A painted measurement sizes the panel 8% small and places
+	// it that much off the anchor, then leaves it there — the entrance settles
+	// and nothing recomputes.
+	it("measures the layout box, not the smaller box an entrance transform paints", () => {
+		const anchorEl = document.createElement("button");
+		const node = document.createElement("div");
+		document.body.append(anchorEl, node);
+		anchorEl.getBoundingClientRect = () => rect({ x: 100, y: 100, width: 50, height: 20 });
+
+		// What the browser reports while `scale(0.92)` is pinned.
+		node.getBoundingClientRect = () => rect({ width: 184, height: 92 });
+		// What the element actually occupies. A transform never moves these.
+		Object.defineProperty(node, "offsetWidth", { configurable: true, value: 200 });
+		Object.defineProperty(node, "offsetHeight", { configurable: true, value: 100 });
+
+		const handle = attachAnchorPosition(node, { anchor: () => anchorEl, side: "bottom" });
+
+		// Centred on a 200-wide panel: 100 + 25 - 100. The painted box would
+		// have put it at 33px, eight pixels off, for good.
+		expect(node.style.left).toBe("25px");
+		expect(node.style.top).toBe("128px");
+		handle.destroy();
+	});
+
+	// jsdom measures every element at zero, and so does a detached node in a
+	// real browser. The rect is the only answer available there, and every
+	// suite in this package that stubs geometry stubs the rect.
+	it("falls back to the rect when the node reports no layout box", () => {
+		const { anchorEl, node } = setup(
+			{ x: 100, y: 100, width: 50, height: 20 },
+			{ width: 200, height: 100 }
+		);
+
+		expect(node.offsetWidth).toBe(0);
+
+		const handle = attachAnchorPosition(node, { anchor: () => anchorEl, side: "bottom" });
+
+		expect(node.style.left).toBe("25px");
+		expect(node.style.top).toBe("128px");
+		handle.destroy();
+	});
+
 	it("strips the position it wrote when destroyed under a still-mounted node", () => {
 		const { anchorEl, node } = setup(
 			{ x: 100, y: 100, width: 50, height: 20 },

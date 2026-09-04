@@ -6,7 +6,10 @@ import { StrictMode, useCallback } from "react";
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import type { Align, Side } from "./anchor-position.js";
+import { useComposedRefs } from "./dom/use-composed-refs.js";
 import { useElementRef } from "./dom/use-element-ref.js";
+import { anchored } from "./motion/anchored.js";
+import { usePresence } from "./motion/presence.js";
 import { useAnchorPosition } from "./use-anchor-position.js";
 import type { ResolvedPlacement } from "./use-anchor-position.js";
 
@@ -32,6 +35,7 @@ interface ProbeProps {
 	align?: Align;
 	offset?: number;
 	enabled?: boolean;
+	recomputeKey?: string | number;
 	/** Stable across re-renders on purpose — a new ref callback would detach. */
 	anchorRect: () => DOMRect;
 	nodeRect: () => DOMRect;
@@ -50,6 +54,7 @@ function Probe({
 	align,
 	offset,
 	enabled,
+	recomputeKey,
 	anchorRect,
 	nodeRect,
 	onPlacement,
@@ -65,6 +70,7 @@ function Probe({
 		align,
 		offset,
 		enabled,
+		recomputeKey,
 		onPlacement,
 	});
 	seen?.push(placement);
@@ -236,6 +242,59 @@ describe("useAnchorPosition", () => {
 		expect(nodeRect).toHaveBeenCalledTimes(4);
 	});
 
+	// The virtual-anchor case: one anchor ELEMENT that slides to new
+	// coordinates while side, align and offset all hold still — a context
+	// menu's second right-click. Nothing the option-diffing effect compares has
+	// moved, so `recomputeKey` is the only thing that can tell it to look again.
+	it("recomputes when recomputeKey changes with the same anchor element", () => {
+		let anchorX = 100;
+		const anchorRect = () => rect({ x: anchorX, y: 100 });
+		const nodeRect = () => rect(PANEL_BOX);
+
+		const { getByTestId, rerender } = render(
+			<Probe
+				side="bottom"
+				align="start"
+				offset={2}
+				anchorRect={anchorRect}
+				nodeRect={nodeRect}
+				recomputeKey="100,100"
+			/>
+		);
+		const panel = getByTestId("panel");
+		expect(panel.style.left).toBe("100px");
+		expect(panel.style.top).toBe("102px");
+
+		// The anchor's rect moved, but its element identity and all three
+		// geometry options held still: without a key change the surface stays
+		// parked where it was.
+		anchorX = 400;
+		rerender(
+			<Probe
+				side="bottom"
+				align="start"
+				offset={2}
+				anchorRect={anchorRect}
+				nodeRect={nodeRect}
+				recomputeKey="100,100"
+			/>
+		);
+		expect(panel.style.left).toBe("100px");
+
+		rerender(
+			<Probe
+				side="bottom"
+				align="start"
+				offset={2}
+				anchorRect={anchorRect}
+				nodeRect={nodeRect}
+				recomputeKey="400,100"
+			/>
+		);
+		expect(panel.style.left).toBe("400px");
+		expect(panel.style.top).toBe("102px");
+	});
+
 	it("does not re-render on a scroll storm that resolves to the same placement", () => {
 		const anchorRect = () => rect({ x: 100, y: 100, width: 50, height: 20 });
 		const nodeRect = () => rect({ width: 200, height: 100 });
@@ -399,5 +458,117 @@ describe("useAnchorPosition", () => {
 
 		addSpy.mockRestore();
 		removeSpy.mockRestore();
+	});
+});
+
+/**
+ * The shape every anchored surface in this package has: one presence clock
+ * driving the entrance, one `useAnchorPosition` placing the panel, and the
+ * panel node reaching the second through `useElementRef`'s state.
+ *
+ * That last part is the whole hazard. `presence.register`'s ref callback is a
+ * plain one, so the clock owns the node in the commit that creates it and its
+ * driver effect pins `transform: scale(0.92)` there. `useElementRef` publishes
+ * through state, so the position hook does not see the node until the NEXT
+ * commit — both land before paint, but the panel is already scaled by the time
+ * anything measures it. Hook declaration order inside the component cannot
+ * change that, which is why the guard lives in the measurement.
+ */
+function EntranceProbe({
+	open,
+	measured,
+}: {
+	open: boolean;
+	/** The scale in force each time the panel was measured. */
+	measured: number[];
+}) {
+	const [panel, publishPanel] = useElementRef<HTMLDivElement>();
+	const [anchor, publishAnchor] = useElementRef<HTMLButtonElement>();
+
+	const presence = usePresence(open);
+	useAnchorPosition(panel, { anchor, side: "bottom", align: "center" });
+
+	const setAnchor = useCallback(
+		(el: HTMLButtonElement | null) => {
+			if (el) el.getBoundingClientRect = () => rect(ANCHOR_A);
+			publishAnchor(el);
+		},
+		[publishAnchor]
+	);
+
+	// Stands in for the browser: `getBoundingClientRect` reports the PAINTED
+	// box, so it shrinks the moment the entrance pins a scale; `offsetWidth`
+	// and `offsetHeight` are layout metrics and never move.
+	const setPanel = useCallback(
+		(el: HTMLDivElement | null) => {
+			if (el) {
+				let scale = 1;
+				const animate = el.animate.bind(el);
+				el.animate = (keyframes, options) => {
+					const frames = Array.isArray(keyframes) ? (keyframes as Keyframe[]) : [];
+					for (const frame of frames) {
+						const match = /scale\(([\d.]+)\)/.exec(String(frame.transform ?? ""));
+						if (match?.[1]) scale = Number(match[1]);
+					}
+					return animate(keyframes, options);
+				};
+				el.getBoundingClientRect = () => {
+					measured.push(scale);
+					return rect({ width: 200 * scale, height: 100 * scale });
+				};
+				Object.defineProperty(el, "offsetWidth", { configurable: true, value: 200 });
+				Object.defineProperty(el, "offsetHeight", { configurable: true, value: 100 });
+			}
+			publishPanel(el);
+		},
+		[publishPanel, measured]
+	);
+
+	const panelRef = useComposedRefs(
+		setPanel,
+		presence.register(anchored, (entering) => ({ side: "bottom" as Side, entering }))
+	);
+
+	return (
+		<>
+			<button type="button" data-testid="anchor" ref={setAnchor} />
+			{presence.mounted ? <div data-testid="panel" ref={panelRef} /> : null}
+		</>
+	);
+}
+
+describe("useAnchorPosition — entrance ordering", () => {
+	it("places the panel from its resting size while the entrance transform is pinned", async () => {
+		const measured: number[] = [];
+		const { rerender } = render(<EntranceProbe open={false} measured={measured} />);
+
+		// Awaited: the animation stub finishes on a microtask, and the leg that
+		// settles behind it writes state.
+		await act(async () => {
+			rerender(<EntranceProbe open measured={measured} />);
+		});
+
+		const panel = document.querySelector<HTMLElement>('[data-testid="panel"]');
+		expect(panel).not.toBeNull();
+		// Centred on the RESTING 200-wide panel: 100 + 25 - 100. Measured
+		// through the painted box it would sit at 33px and stay there — the
+		// entrance settles and nothing recomputes.
+		expect(panel?.style.left).toBe("25px");
+		expect(panel?.style.top).toBe("128px");
+	});
+
+	// The reason the guard above has to exist. If this ever stops being true
+	// the clock has changed when it starts a leg, and the ordering claim in
+	// `anchor-position.ts`'s `measureFloating` needs rereading.
+	it("has already pinned the entrance transform by the time the panel is first measured", async () => {
+		const measured: number[] = [];
+		const { rerender } = render(<EntranceProbe open={false} measured={measured} />);
+
+		await act(async () => {
+			rerender(<EntranceProbe open measured={measured} />);
+		});
+
+		expect(measured.length).toBeGreaterThan(0);
+		expect(measured[0]).toBeCloseTo(0.92, 5);
 	});
 });

@@ -17,13 +17,27 @@
  * guarantee on top. The consuming pattern collapses from three lines to
  * `const reduced = useReducedMotion();`.
  *
- * `window.matchMedia(query)` is resolved FRESH on every subscribe and every
- * snapshot, never memoised at module or hook scope — carried over verbatim
- * from the source's rationale: a test that overrides `window.matchMedia`
- * wholesale must be visible to the very next call, and caching either the
- * `MediaQueryList` or even just the `matchMedia` function reference would make
- * that override invisible to a component that mounted before it was installed.
- * `matches` is a boolean, so snapshot identity is a non-issue.
+ * `getSnapshot` is called by React on every render and again after every store
+ * change, so it must not allocate: `window.matchMedia(query)` mints a NEW
+ * `MediaQueryList` on each call, and one `useReducedMotion()` in a
+ * scroll-driven tree turns that into garbage on every frame. The list is
+ * therefore memoised per query, and dropped again on the two events that can
+ * make a memoised one wrong:
+ *
+ * - `window.matchMedia` itself being replaced. The cache is keyed on the
+ *   current function as well as the query, which is what keeps the source's
+ *   own rationale intact: a test that overrides `matchMedia` wholesale
+ *   installs a different function, the key stops matching, and the very next
+ *   call resolves against the new implementation.
+ * - A `change` event actually firing. A real `MediaQueryList.matches` is live
+ *   — the browser updates the object you already hold — but a stub that
+ *   captures `matches` at construction is not, and re-resolving once per real
+ *   preference change (a rare, user-driven event) costs nothing and makes the
+ *   hook correct against both. The subscription itself stays on the list it
+ *   was added to, so no listener is stranded.
+ *
+ * Between those, every render reuses one list. `matches` is a boolean, so
+ * snapshot identity is a non-issue either way.
  */
 
 import { useCallback, useSyncExternalStore } from "react";
@@ -32,6 +46,36 @@ export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 function canMatchMedia(): boolean {
 	return typeof window !== "undefined" && typeof window.matchMedia === "function";
+}
+
+/** The `window.matchMedia` the cache below was built against. A different
+ *  function means a different implementation, so the cache is dropped. */
+let cachedImpl: typeof window.matchMedia | undefined;
+let cache = new Map<string, MediaQueryList>();
+
+/**
+ * The `MediaQueryList` for `query`, allocated once per (implementation, query)
+ * pair. Called through `window.` rather than a saved reference, because
+ * `matchMedia` is a `Window` method and an unbound call throws in a real
+ * browser; the saved reference is only ever compared, never invoked.
+ */
+function mediaQueryList(query: string): MediaQueryList {
+	if (cachedImpl !== window.matchMedia) {
+		cachedImpl = window.matchMedia;
+		cache = new Map();
+	}
+
+	const existing = cache.get(query);
+	if (existing) return existing;
+
+	const mql = window.matchMedia(query);
+	cache.set(query, mql);
+	return mql;
+}
+
+/** Drop one query's memoised list, so the next snapshot resolves a fresh one. */
+function invalidate(query: string): void {
+	cache.delete(query);
 }
 
 /**
@@ -43,10 +87,17 @@ export function useMediaQuery(query: string, fallback = false): boolean {
 		(onStoreChange: () => void) => {
 			if (!canMatchMedia()) return () => {};
 
-			const mql = window.matchMedia(query);
-			mql.addEventListener("change", onStoreChange);
+			const mql = mediaQueryList(query);
+			// Invalidate BEFORE waking React, so the snapshot it reads next is
+			// resolved against the media state that just changed.
+			const handleChange = () => {
+				invalidate(query);
+				onStoreChange();
+			};
+
+			mql.addEventListener("change", handleChange);
 			return () => {
-				mql.removeEventListener("change", onStoreChange);
+				mql.removeEventListener("change", handleChange);
 			};
 		},
 		[query]
@@ -54,7 +105,7 @@ export function useMediaQuery(query: string, fallback = false): boolean {
 
 	const getSnapshot = useCallback(() => {
 		if (!canMatchMedia()) return fallback;
-		return window.matchMedia(query).matches;
+		return mediaQueryList(query).matches;
 	}, [query, fallback]);
 
 	const getServerSnapshot = useCallback(() => fallback, [fallback]);

@@ -18,10 +18,14 @@ import { renderToString } from "react-dom/server";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 type SoundModules = {
+	barrel: typeof import("./index.js");
 	controller: typeof import("./sound.js");
+	engine: typeof import("./engine.js");
 	feedback: typeof import("./sound-feedback.js");
 	hooks: typeof import("./use-sound.js");
+	themes: typeof import("./themes.js");
 	types: typeof import("./types.js");
+	SoundToggle: typeof import("./SoundToggle.js").SoundToggle;
 };
 
 let mods: SoundModules;
@@ -30,13 +34,26 @@ let importError: unknown = null;
 beforeAll(async () => {
 	vi.resetModules();
 	try {
-		const [controller, feedback, hooks, types] = await Promise.all([
+		const [barrel, controller, engine, feedback, hooks, themes, types, toggle] = await Promise.all([
+			import("./index.js"),
 			import("./sound.js"),
+			import("./engine.js"),
 			import("./sound-feedback.js"),
 			import("./use-sound.js"),
+			import("./themes.js"),
 			import("./types.js"),
+			import("./SoundToggle.js"),
 		]);
-		mods = { controller, feedback, hooks, types };
+		mods = {
+			barrel,
+			controller,
+			engine,
+			feedback,
+			hooks,
+			themes,
+			types,
+			SoundToggle: toggle.SoundToggle,
+		};
 	} catch (error) {
 		importError = error;
 	}
@@ -51,9 +68,16 @@ describe("sound — server environment", () => {
 
 	it("imports every module without throwing", () => {
 		expect(importError).toBeNull();
+		expect(mods.barrel).toBeTruthy();
+		expect(mods.engine.createSoundEngine).toBeTypeOf("function");
 		expect(mods.controller.sound).toBeTruthy();
 		expect(mods.feedback.attachSoundFeedback).toBeTypeOf("function");
 		expect(mods.hooks.useSound).toBeTypeOf("function");
+		expect(mods.themes.FANCY_SOUND_THEME).toBeTruthy();
+	});
+
+	it("exposes the same controller through the barrel and the module", () => {
+		expect(mods.barrel.sound).toBe(mods.controller.sound);
 	});
 
 	it("reports sound as disabled without touching storage", () => {
@@ -100,6 +124,23 @@ describe("sound — server environment", () => {
 		expect(mods.controller.getSoundStatus().storage).toBe("untouched");
 		mods.controller.resetSoundForTests();
 		expect(mods.controller.sound.enabled).toBe(false);
+	});
+
+	it("a bare engine reports failure instead of constructing anything", () => {
+		const engine = mods.engine.createSoundEngine();
+		expect(engine.play("press")).toBe(false);
+		expect(engine.voiceCount).toBe(0);
+		expect(["idle", "unsupported"]).toContain(engine.state);
+		expect(() => engine.dispose()).not.toThrow();
+	});
+
+	it("the engine's unlock() resolves false on the server", async () => {
+		await expect(mods.engine.createSoundEngine().unlock()).resolves.toBe(false);
+	});
+
+	it("themes are inert data that validate on the server", () => {
+		expect(mods.themes.validateSoundTheme(mods.themes.FANCY_SOUND_THEME)).toEqual([]);
+		expect(mods.themes.getSoundTheme("fancy")).toBe(mods.themes.FANCY_SOUND_THEME);
 	});
 
 	it("hydrateSound() is inert with no window", () => {
@@ -187,5 +228,27 @@ describe("sound — server environment", () => {
 		expect(cuePlayer).toBeTypeOf("function");
 		expect(() => (cuePlayer as unknown as (cue: "press") => void)("press")).not.toThrow();
 		expect(mods.controller.getSoundStatus().lastCue).toBeNull();
+	});
+
+	it("renders SoundToggle to markup with role=switch and aria-checked=false", () => {
+		const body = renderToString(createElement(mods.SoundToggle));
+		expect(body).toContain('role="switch"');
+		expect(body).toContain('aria-checked="false"');
+		expect(body).toContain("data-sound-toggle");
+		// The SSR pass must never assume the stored (enabled) state.
+		expect(body).not.toContain('aria-checked="true"');
+		expect(body).toContain('data-state="off"');
+		// Both glyph groups ship in the server markup: which one shows is a pure
+		// CSS decision keyed off data-state, so hydration never changes the DOM
+		// shape when the client learns a stored "on".
+		expect(body).toContain("ft-sound-toggle-glyph-on");
+		expect(body).toContain("ft-sound-toggle-glyph-off");
+	});
+
+	it("renders SoundToggle with a constant accessible name", () => {
+		expect(renderToString(createElement(mods.SoundToggle))).toContain('aria-label="Sound"');
+		expect(renderToString(createElement(mods.SoundToggle, { label: "Audio" }))).toContain(
+			'aria-label="Audio"'
+		);
 	});
 });
