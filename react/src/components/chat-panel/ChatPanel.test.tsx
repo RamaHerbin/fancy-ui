@@ -1,7 +1,8 @@
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ChatPanel } from "./ChatPanel.js";
 import { ChatEmptyState } from "./ChatEmptyState.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 // jsdom has no layout, so scrollHeight/clientHeight are always 0. Patching them
 // onto the instance gives the region 1000px of content in a 400px viewport: the
@@ -56,6 +57,13 @@ async function scrollAway(container: HTMLElement): Promise<HTMLElement> {
 }
 
 describe("ChatPanel", () => {
+	// The sound controller is a module singleton: a cue played by one case
+	// would otherwise be audible to the next one's assertions.
+	beforeEach(() => {
+		resetSoundForTests();
+		window.localStorage.clear();
+	});
+
 	afterEach(cleanup);
 
 	it("names itself as the conversation and lays out its four regions", () => {
@@ -352,6 +360,72 @@ describe("ChatPanel", () => {
 
 		expect(pill(container)?.textContent).toContain("Jump to latest");
 		vi.unstubAllGlobals();
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when the jump-to-latest pill is activated, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<ChatPanel sound>
+					<p>two turns</p>
+				</ChatPanel>
+			);
+			await scrollAway(container);
+
+			fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<ChatPanel>
+					<p>two turns</p>
+				</ChatPanel>
+			);
+			await scrollAway(container);
+
+			fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing from handleScroll/handleMutation/mount — only the pill's own click plays", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<ChatPanel sound>
+					<p>two turns</p>
+				</ChatPanel>
+			);
+
+			// Mount's own initial snap, plus a plain scroll — neither is a gesture.
+			await scrollAway(container);
+			const region = scrollRegion(container);
+			region.scrollTop = BOTTOM;
+			fireEvent.scroll(region);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one pill click plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<ChatPanel sound>
+					<p>two turns</p>
+				</ChatPanel>
+			);
+			await scrollAway(container);
+
+			fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });
 

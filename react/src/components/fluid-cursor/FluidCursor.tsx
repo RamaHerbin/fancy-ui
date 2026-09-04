@@ -1,4 +1,5 @@
-import { useEffect, useInsertionEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
 import {
 	type ColorRGB,
@@ -148,13 +149,10 @@ export function FluidCursor({
 	// on every splat, `notifyReady` re-checks `onReady`, and the WebGL pointer
 	// mapping reads `contained`. Every other prop is captured when the mount
 	// effect runs, exactly as `onMount`'s `config` object freezes it.
-	const live = useRef({ fluidColor, fluidColors, contained, onReady });
-	useInsertionEffect(() => {
-		live.current.fluidColor = fluidColor;
-		live.current.fluidColors = fluidColors;
-		live.current.contained = contained;
-		live.current.onReady = onReady;
-	});
+	const fluidColorRef = useLiveRef(fluidColor);
+	const fluidColorsRef = useLiveRef(fluidColors);
+	const containedRef = useLiveRef(contained);
+	const onReadyRef = useLiveRef(onReady);
 
 	function getScaledColor(hex: string): ColorRGB {
 		const { r, g, b } = hexToRgb(hex);
@@ -185,10 +183,10 @@ export function FluidCursor({
 
 	function generateColor(): ColorRGB {
 		const cache = colorCacheRef.current;
-		if (live.current.fluidColor) {
-			return getCachedFluidColor(live.current.fluidColor);
+		if (fluidColorRef.current) {
+			return getCachedFluidColor(fluidColorRef.current);
 		}
-		const palette = live.current.fluidColors;
+		const palette = fluidColorsRef.current;
 		if (palette && palette.length > 0) {
 			const colors = getCachedFluidColors(palette);
 			const idx = cache.colorIndex % colors.length;
@@ -239,7 +237,7 @@ export function FluidCursor({
 	// already claimed by WebGPU and dropping the registered cleanup. Re-thrown
 	// asynchronously so it still surfaces as an unhandled error.
 	function notifyReady(handle: FluidCursorHandle) {
-		const callback = live.current.onReady;
+		const callback = onReadyRef.current;
 		if (!callback) return;
 		try {
 			callback(handle);
@@ -352,6 +350,18 @@ export function FluidCursor({
 
 		// WebGL engine path (default, and fallback when WebGPU is missing).
 		function startWebGl(): (() => void) | undefined {
+			// Every GL object the engine allocates registers its own deleter here so
+			// `cleanup()` can hand the memory back. React runs the mount effect,
+			// its cleanup and the effect again against the SAME <canvas> under
+			// StrictMode and Fast Refresh, and `getContext` then returns the SAME
+			// context: without these deletes the first engine's textures,
+			// framebuffers, programs and shaders stay owned by a live context with
+			// nothing left in JS referencing them, so the page holds two full
+			// simulations' worth of GPU memory for its whole lifetime. The context
+			// itself is deliberately NOT lost here (`WEBGL_lose_context`) — the
+			// canvas is reused by the next mount, and a lost context cannot serve
+			// it without an explicit restore.
+			const glDisposers: Array<() => void> = [];
 			// Wide-gamut probe result, surfaced through the handle's renderLevel.
 			let renderLevel: FluidRenderLevel = "webgl-sdr";
 			// Dedicated synthetic pointer driven programmatically through the
@@ -517,6 +527,7 @@ export function FluidCursor({
 			) {
 				const texture = gl.createTexture();
 				if (!texture) return false;
+				glDisposers.push(() => gl.deleteTexture(texture));
 
 				gl.bindTexture(gl.TEXTURE_2D, texture);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -527,6 +538,7 @@ export function FluidCursor({
 
 				const fbo = gl.createFramebuffer();
 				if (!fbo) return false;
+				glDisposers.push(() => gl.deleteFramebuffer(fbo));
 
 				gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
@@ -561,6 +573,7 @@ export function FluidCursor({
 				const shaderSource = addKeywords(source, keywords);
 				const shader = gl.createShader(type);
 				if (!shader) return null;
+				glDisposers.push(() => gl.deleteShader(shader));
 				gl.shaderSource(shader, shaderSource);
 				gl.compileShader(shader);
 				return shader;
@@ -573,6 +586,7 @@ export function FluidCursor({
 				if (!vertexShader || !fragmentShader) return null;
 				const program = gl.createProgram();
 				if (!program) return null;
+				glDisposers.push(() => gl.deleteProgram(program));
 				gl.attachShader(program, vertexShader);
 				gl.attachShader(program, fragmentShader);
 				gl.linkProgram(program);
@@ -1002,6 +1016,7 @@ export function FluidCursor({
 
 			const blit = (() => {
 				const buffer = gl.createBuffer()!;
+				glDisposers.push(() => gl.deleteBuffer(buffer));
 				gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 				gl.bufferData(
 					gl.ARRAY_BUFFER,
@@ -1009,6 +1024,7 @@ export function FluidCursor({
 					gl.STATIC_DRAW
 				);
 				const elemBuffer = gl.createBuffer()!;
+				glDisposers.push(() => gl.deleteBuffer(elemBuffer));
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elemBuffer);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW);
 				gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -1061,6 +1077,7 @@ export function FluidCursor({
 			): FBO {
 				gl.activeTexture(gl.TEXTURE0);
 				const texture = gl.createTexture()!;
+				glDisposers.push(() => gl.deleteTexture(texture));
 				gl.bindTexture(gl.TEXTURE_2D, texture);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, param);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, param);
@@ -1068,6 +1085,7 @@ export function FluidCursor({
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 				gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, null);
 				const fbo = gl.createFramebuffer()!;
+				glDisposers.push(() => gl.deleteFramebuffer(fbo));
 				gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 				gl.viewport(0, 0, w, h);
@@ -1258,7 +1276,7 @@ export function FluidCursor({
 
 			let canvasRectCache: DOMRect | null = null;
 			function updateCanvasRectCache() {
-				if (live.current.contained && canvas) canvasRectCache = canvas.getBoundingClientRect();
+				if (containedRef.current && canvas) canvasRectCache = canvas.getBoundingClientRect();
 			}
 			if (contained) {
 				window.addEventListener("resize", updateCanvasRectCache, { passive: true });
@@ -1267,7 +1285,7 @@ export function FluidCursor({
 			}
 
 			function getCanvasPos(clientX: number, clientY: number): { x: number; y: number } {
-				if (live.current.contained) {
+				if (containedRef.current) {
 					if (!canvasRectCache) updateCanvasRectCache();
 					const rect = canvasRectCache!;
 					return {
@@ -1553,7 +1571,7 @@ export function FluidCursor({
 				}
 				if (splatProgram.uniforms.radius) {
 					let radius = correctRadius(config.SPLAT_RADIUS / 100);
-					if (live.current.contained) {
+					if (containedRef.current) {
 						radius = scaleRadiusForContainer(radius, canvas.clientHeight, window.innerHeight);
 					}
 					gl.uniform1f(splatProgram.uniforms.radius, radius);
@@ -1570,6 +1588,11 @@ export function FluidCursor({
 				blit(dye.write);
 				dye.swap();
 			}
+
+			// Frame id of the `multipleSplats` arc chain, cancelled by `cleanup()`:
+			// the chain re-schedules itself for up to ~15 frames and would keep
+			// issuing GL work after the component is gone.
+			let splatFrameId = 0;
 
 			function multipleSplats(steps: number) {
 				// Simulate a cursor sweep along a random arc — each step on its own frame
@@ -1596,9 +1619,9 @@ export function FluidCursor({
 						color
 					);
 					i++;
-					if (i < steps) requestAnimationFrame(step);
+					if (i < steps) splatFrameId = requestAnimationFrame(step);
 				}
-				requestAnimationFrame(step);
+				splatFrameId = requestAnimationFrame(step);
 			}
 
 			function correctRadius(radius: number) {
@@ -1793,6 +1816,7 @@ export function FluidCursor({
 			// Cleanup
 			function cleanup() {
 				cancelAnimationFrame(animationFrameId);
+				cancelAnimationFrame(splatFrameId);
 				if (observer) observer.disconnect();
 				if (autoSplatTimer) clearInterval(autoSplatTimer);
 				if (interactive) {
@@ -1807,6 +1831,8 @@ export function FluidCursor({
 					window.removeEventListener("resize", updateCanvasRectCache);
 					window.removeEventListener("scroll", updateCanvasRectCache);
 				}
+				for (const dispose of glDisposers) dispose();
+				glDisposers.length = 0;
 			}
 
 			// Register before notifying: a throwing callback must not cost us the

@@ -5,6 +5,8 @@ import { scrollToBottom, useAutoscroll } from "../../internals/use-autoscroll.js
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { prefersReducedMotion } from "../../internals/motion/anchored.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./chat-panel.css";
 
 /**
@@ -29,15 +31,16 @@ export interface ChatPanelProps {
 	emptyState?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the press cue through the sound controller when the
+	 * jump-to-latest pill is activated. Off by default; only audible
+	 * once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** How close to the bottom (px) still counts as pinned — the autoscroll hook's own default. */
 const BOTTOM_THRESHOLD = 40;
-
-function prefersReducedMotion(): boolean {
-	if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-	return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
 
 export const ChatPanel = forwardRef<HTMLDivElement, ChatPanelProps>(function ChatPanel(
 	{
@@ -50,6 +53,7 @@ export const ChatPanel = forwardRef<HTMLDivElement, ChatPanelProps>(function Cha
 		composer,
 		emptyState,
 		className,
+		sound = false,
 	},
 	ref
 ) {
@@ -75,6 +79,8 @@ export const ChatPanel = forwardRef<HTMLDivElement, ChatPanelProps>(function Cha
 	const frame = useRef<number | null>(null);
 	/** The observer callback outlives any single render; it reads `empty` here. */
 	const emptyLive = useLiveRef(empty);
+
+	const playCue = useSoundCue(sound);
 
 	/**
 	 * The pill's visibility is tracked here rather than through the autoscroll
@@ -133,6 +139,7 @@ export const ChatPanel = forwardRef<HTMLDivElement, ChatPanelProps>(function Cha
 	function jumpToLatest(): void {
 		const el = scrollEl;
 		if (!el) return;
+		playCue("press");
 		// The pill is about to disappear under the pointer, which would leave the
 		// keyboard with nothing focused. Handing focus to the scroll region keeps
 		// the reader where they were and lets them carry on with the arrow keys.

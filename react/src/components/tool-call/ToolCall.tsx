@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { formatElapsed } from "../../internals/use-elapsed.js";
+import { useInertAttribute } from "../../internals/dom/use-inert-attribute.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import type { ToolCallData } from "../../internals/ai-types.js";
 import "./tool-call.css";
 
@@ -29,6 +31,11 @@ export interface ToolCallProps {
 	onToggle?: (open: boolean) => void;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** Spoken alongside the tool name, since the dot's colour says nothing out loud. */
@@ -107,7 +114,7 @@ function formatPayload(value: unknown): string {
  * per PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  */
 export const ToolCall = forwardRef<HTMLDivElement, ToolCallProps>(function ToolCall(
-	{ call, open, input, output, icon, onToggle, className },
+	{ call, open, input, output, icon, onToggle, className, sound = false },
 	ref
 ) {
 	const uid = useFancyId();
@@ -115,6 +122,7 @@ export const ToolCall = forwardRef<HTMLDivElement, ToolCallProps>(function ToolC
 	const bodyId = `${uid}-body`;
 	const requestId = `${uid}-request`;
 	const resultId = `${uid}-result`;
+	const playCue = useSoundCue(sound);
 
 	// `open` stays undefined until something actually decides: `autoOpen` carries
 	// the answer in the meantime, so a consumer that never touches the prop still
@@ -126,6 +134,7 @@ export const ToolCall = forwardRef<HTMLDivElement, ToolCallProps>(function ToolC
 	const userToggledRef = useRef(false);
 
 	const isOpen = open ?? autoOpen;
+	const inertRef = useInertAttribute<HTMLDivElement>(!isOpen);
 	const status = call.status;
 	const isError = status === "error";
 	const errorText = isError ? (call.error ?? FALLBACK_ERROR) : "";
@@ -150,7 +159,13 @@ export const ToolCall = forwardRef<HTMLDivElement, ToolCallProps>(function ToolC
 		// From here on the reader owns the card: a later failure will not pop it
 		// open again behind their back.
 		userToggledRef.current = true;
-		commit(!isOpen);
+		const next = !isOpen;
+		// Only this click plays a cue — the error auto-open effect and the
+		// initial `autoOpen` seed both bypass `commit()` (or fold through it
+		// silently) and must stay silent, so the play sits here rather than in
+		// `commit()`.
+		playCue(next ? "open" : "close");
+		commit(next);
 	}
 
 	// A failure is the one thing worth reading without being asked, so it expands
@@ -245,10 +260,10 @@ export const ToolCall = forwardRef<HTMLDivElement, ToolCallProps>(function ToolC
 			<div className={cn("ft-toolcall-body", isOpen && "ft-open")}>
 				<div className="overflow-hidden">
 					<div
+						ref={inertRef}
 						id={bodyId}
 						role="group"
 						aria-labelledby={headerId}
-						inert={!isOpen}
 						className="flex flex-col gap-3 px-3 pb-3"
 					>
 						{hasRequest ? (

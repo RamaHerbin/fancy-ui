@@ -1,6 +1,6 @@
 import { StrictMode, useState } from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 // Spies on the real anchor-position core instead of replacing it, so
 // positioning assertions check what `Popover` asked for while the core itself
@@ -13,6 +13,7 @@ vi.mock("../../internals/anchor-position.js", async (importOriginal) => {
 
 import { attachAnchorPosition } from "../../internals/anchor-position.js";
 import { __dismissableLayerCount } from "../../internals/dismissable.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { Popover } from "./Popover.js";
 
 /**
@@ -135,6 +136,14 @@ function pinRectsToViewportBottom() {
 }
 
 describe("Popover", () => {
+	beforeEach(() => {
+		// The sound controller is a module singleton: a preference or an engine
+		// left behind by an earlier test would decide whether a cue is audible
+		// in this one.
+		resetSoundForTests();
+		window.localStorage.clear();
+	});
+
 	afterEach(() => {
 		cleanup();
 		expect(__dismissableLayerCount()).toBe(0);
@@ -642,6 +651,153 @@ describe("Popover", () => {
 		fireEvent.click(triggerButton(container));
 		expect(panel()!.getAttribute("data-state")).toBe("open");
 		await settleLegs();
+	});
+
+	// Both hooks that touch the panel arm in layout effects in the commit its
+	// node lands in, so their order is purely hook-declaration order. The panel
+	// must be POSITIONED before the trap focuses into it: focusing a panel that
+	// is still `position: static` at the end of `document.body` makes a real
+	// browser scroll the page down to it, and that scroll survives the switch to
+	// `position: fixed` one effect later. jsdom neither lays out nor scrolls on
+	// `focus()`, so the only way to pin the order here is to record it.
+	it("writes the panel's position before the focus trap focuses into it", async () => {
+		const log: string[] = [];
+		const origFocus = HTMLElement.prototype.focus;
+		HTMLElement.prototype.focus = function (this: HTMLElement, ...args: unknown[]) {
+			if (this.dataset?.probe) log.push(`focus:${this.dataset.probe}`);
+			return origFocus.apply(this, args as []);
+		};
+		const desc = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, "left")!;
+		Object.defineProperty(CSSStyleDeclaration.prototype, "left", {
+			configurable: true,
+			get: desc.get,
+			set(this: CSSStyleDeclaration, value: string) {
+				log.push("write:left");
+				desc.set!.call(this, value);
+			},
+		});
+
+		try {
+			const { container } = render(
+				<Popover trigger="Options">
+					<input data-probe="first" />
+				</Popover>
+			);
+
+			fireEvent.click(triggerButton(container));
+		} finally {
+			Object.defineProperty(CSSStyleDeclaration.prototype, "left", desc);
+			HTMLElement.prototype.focus = origFocus;
+		}
+
+		// Consecutive repeats are collapsed: `useElementRef` costs one extra
+		// render before paint (divergence D-12), so the anchor effect detaches
+		// (clearing `left`) and re-attaches, writing the coordinate more than
+		// once. What is being pinned is the ORDER of the two kinds of event.
+		const collapsed = log.filter((entry, i) => entry !== log[i - 1]);
+		expect(collapsed).toEqual(["write:left", "focus:first"]);
+		await settleLegs();
+	});
+
+	// Transposed from the source's own `describe("sound")`. The cue names, the
+	// trigger moments and the "exactly once" guard are the source's, not this
+	// port's: the controller is spied directly so the hook's own enabled gate
+	// still runs for real.
+	describe("sound", () => {
+		it("plays open exactly once when the trigger opens the panel", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<Popover sound trigger="Options">
+					{PANEL}
+				</Popover>
+			);
+
+			fireEvent.click(triggerButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+			await settleLegs();
+		});
+
+		it("plays close exactly once when a second trigger click dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<Popover sound trigger="Options">
+					{PANEL}
+				</Popover>
+			);
+			const btn = triggerButton(container);
+			fireEvent.click(btn);
+			play.mockClear();
+
+			fireEvent.click(btn);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		it("plays close exactly once on Escape, and close exactly once on an outside click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(
+				<Popover sound trigger="Options">
+					{PANEL}
+				</Popover>
+			);
+
+			fireEvent.click(triggerButton(container));
+			play.mockClear();
+			pressEscape();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await waitFor(() => expect(panel()).toBeNull());
+
+			fireEvent.click(triggerButton(container));
+			play.mockClear();
+			pointerDownOn(outside);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			outside.remove();
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Popover trigger="Options">{PANEL}</Popover>);
+			const btn = triggerButton(container);
+
+			fireEvent.click(btn);
+			fireEvent.click(btn);
+
+			expect(play).not.toHaveBeenCalled();
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The `if (openRef.current === next) return` guard inside `setOpen` — a
+		// second Escape landing during the exit must not double the close cue.
+		it("swallows a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<Popover sound trigger="Options">
+					{PANEL}
+				</Popover>
+			);
+
+			fireEvent.click(triggerButton(container));
+			play.mockClear();
+
+			pressEscape();
+			expect(panel()).not.toBeNull(); // still fading
+
+			pressEscape();
+			pressEscape();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
 	});
 
 	// The dismiss stack's leak counter, driven through a StrictMode

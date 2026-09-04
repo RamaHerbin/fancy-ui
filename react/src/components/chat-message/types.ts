@@ -15,6 +15,13 @@ export interface ChatMessageContext {
 	readonly role: "user" | "assistant" | "system";
 	readonly streaming: boolean;
 	readonly hovered: { readonly current: boolean };
+	/**
+	 * Whether this message plays sound cues — forwarded from the root's own
+	 * `sound` prop. Optional so a part read outside a `ChatMessage` root
+	 * (`message?.sound`) falls through to `undefined`, which is the correct
+	 * "no sound" answer there too.
+	 */
+	readonly sound?: boolean;
 }
 
 /**

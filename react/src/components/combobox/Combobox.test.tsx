@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import { Combobox } from "./Combobox.js";
 import type { ComboboxOption } from "./types.js";
 import { FieldProvider } from "../../internals/field.js";
 import type { FieldContext } from "../../internals/field.js";
-import { attachDismissable } from "../../internals/dismissable.js";
+import { __dismissableLayerCount, attachDismissable } from "../../internals/dismissable.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 /**
  * jsdom has no `inert` IDL property, so `el.inert = true` would otherwise be a
@@ -804,6 +805,149 @@ describe("Combobox", () => {
 
 			expect(panel()).toBeNull();
 			expect(animate).not.toHaveBeenCalled();
+		});
+	});
+	// `useSoundCue` forwards its optional second argument, so every recorded
+	// call carries an explicit `undefined` where the source's
+	// `soundFx.play("select")` passed one argument. The cue itself — the only
+	// thing these assertions are about — is unchanged.
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once on a row click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Combobox options={OPTIONS} sound />);
+			fireEvent.focus(input(container));
+
+			fireEvent.click(options()[1]!); // SvelteKit
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+			await settleLegs();
+		});
+
+		it("plays select exactly once on Enter, and typing/focus/blur stay silent", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Combobox options={OPTIONS} sound />);
+			const el = input(container);
+
+			fireEvent.focus(el); // open — silent
+			fireEvent.change(el, { target: { value: "sve" } }); // typing — silent
+			expect(play).not.toHaveBeenCalled();
+
+			fireEvent.keyDown(el, { key: "ArrowDown" }); // navigate — silent
+			fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+
+			play.mockClear();
+			fireEvent.blur(el); // resolveAndClose — silent
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Combobox options={OPTIONS} />);
+			fireEvent.focus(input(container));
+
+			fireEvent.click(options()[1]!);
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Combobox options={OPTIONS} disabled sound />);
+			const el = input(container);
+
+			fireEvent.focus(el);
+			fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Guardrail: selecting an already-disabled row never plays, even while
+		// the panel is open and the row is present in the DOM to click.
+		it("never plays for a disabled row, even via a synthetic dispatch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Combobox options={OPTIONS_WITH_DISABLED} sound />);
+			fireEvent.focus(input(container));
+
+			fireEvent.click(options()[1]!); // SvelteKit, disabled
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing when re-picking the option already selected — the changed-only guard", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Combobox options={OPTIONS} value="sveltekit" sound />);
+			fireEvent.focus(input(container));
+
+			fireEvent.click(options()[1]!); // SvelteKit — already the value
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("still calls onValueChange on the very same click that the changed-only guard silences", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onValueChange = vi.fn();
+			const { container } = render(
+				<Combobox options={OPTIONS} value="sveltekit" sound onValueChange={onValueChange} />
+			);
+			fireEvent.focus(input(container));
+
+			fireEvent.click(options()[1]!); // SvelteKit — already the value
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("sveltekit");
+			await settleLegs();
+		});
+	});
+
+	// One addition this port needs and the source did not, pinning a
+	// React-specific hazard rather than new behaviour: the double invoke must
+	// leave exactly one panel and one dismiss layer behind, and one listbox
+	// store — a second one would answer arrow keys with its own active index.
+	describe("React layer", () => {
+		it("mounts, opens and closes once under StrictMode", async () => {
+			const { container, unmount } = render(
+				<StrictMode>
+					<Combobox options={OPTIONS} />
+				</StrictMode>
+			);
+			const el = input(container);
+
+			fireEvent.focus(el);
+			expect(document.querySelectorAll(".ft-combobox-panel")).toHaveLength(1);
+			expect(options()).toHaveLength(OPTIONS.length);
+
+			// The listbox store survived the double invoke intact: one arrow
+			// press moves the highlight exactly one row.
+			fireEvent.keyDown(el, { key: "ArrowDown" });
+			expect(el.getAttribute("aria-activedescendant")).toBe(options()[1]!.id);
+
+			pressEscape();
+			await waitFor(() => expect(panel()).toBeNull());
+
+			// And the document-level layer the panel pushed is gone exactly
+			// once — a double-invoked mount that pushed two would leave one
+			// behind to swallow the next Escape on the page.
+			unmount();
+			expect(__dismissableLayerCount()).toBe(0);
 		});
 	});
 });

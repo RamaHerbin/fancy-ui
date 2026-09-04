@@ -280,6 +280,48 @@ describe("ScrollProgress", () => {
 		target.remove();
 	});
 
+	it("`target` mode: an appended row costs one `observe`, not one per existing row", async () => {
+		// A streamed transcript appends a row per chunk. Re-walking the whole
+		// child list on every mutation batch — `observe` being itself a scan of
+		// the observation list — makes each chunk cost time proportional to the
+		// rows already there; tracking the mutation records keeps it flat.
+		const target = document.createElement("div");
+		for (let i = 0; i < 20; i += 1) target.appendChild(document.createElement("p"));
+		document.body.appendChild(target);
+		mockScrollable(target, { scrollTop: 0, scrollHeight: 200, clientHeight: 100 });
+
+		const observe = vi.spyOn(ResizeObserver.prototype, "observe");
+		const unobserve = vi.spyOn(ResizeObserver.prototype, "unobserve");
+
+		render(<ScrollProgress target={target} label="P" />);
+		act(() => {
+			vi.advanceTimersToNextFrame();
+		});
+
+		// The connect-time pass: the scroller itself plus its 20 rows.
+		expect(observe).toHaveBeenCalledTimes(21);
+		observe.mockClear();
+
+		const row = document.createElement("p");
+		target.appendChild(row);
+		await act(async () => {});
+		act(() => {
+			vi.advanceTimersToNextFrame();
+		});
+
+		expect(observe).toHaveBeenCalledTimes(1);
+		expect(observe).toHaveBeenCalledWith(row);
+
+		row.remove();
+		await act(async () => {});
+		act(() => {
+			vi.advanceTimersToNextFrame();
+		});
+
+		expect(unobserve).toHaveBeenCalledWith(row);
+		target.remove();
+	});
+
 	it("content with nothing to scroll reads as 0, never NaN", () => {
 		mockWindowScroll(0);
 		Object.defineProperty(document.documentElement, "scrollHeight", {

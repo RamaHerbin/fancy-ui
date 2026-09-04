@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 
 /**
  * A target element for the beam. The Svelte side receives the live elements
@@ -21,6 +23,8 @@ export interface AnimatedBeamProps {
 	pathOpacity?: number;
 	gradientStartColor?: string;
 	gradientStopColor?: string;
+	/** Seconds the beam waits before its first travel. Feeds the gradient
+	 * animations' `begin`, so a group of beams can be staggered. */
 	delay?: number;
 	duration?: number;
 	startXOffset?: number;
@@ -67,6 +71,7 @@ export function AnimatedBeam({
 	pathOpacity = 0.2,
 	gradientStartColor = "#FFAA40",
 	gradientStopColor = "#9C40FF",
+	delay = 0,
 	duration,
 	startXOffset = 0,
 	startYOffset = 0,
@@ -98,10 +103,11 @@ export function AnimatedBeam({
 	const y2 = (reverse ? !isBottomToTop : isBottomToTop) ? "100%; 0%;" : "0%; 100%;";
 
 	// The path calculation reads the current render's props, exactly like the
-	// Svelte closure — held in a ref so the ResizeObserver callback never goes
-	// stale without the observer being rebuilt.
-	const updatePathRef = useRef<() => void>(() => {});
-	updatePathRef.current = () => {
+	// Svelte closure. `useEventCallback` keeps the identity stable for the life
+	// of the component while publishing the closure from an insertion effect, so
+	// the long-lived ResizeObserver callback never goes stale and a render React
+	// throws away never installs itself.
+	const updatePath = useEventCallback(() => {
 		const container = resolveTarget(containerRef);
 		const from = resolveTarget(fromRef);
 		const to = resolveTarget(toRef);
@@ -130,26 +136,29 @@ export function AnimatedBeam({
 			const d = `M ${startX},${startY} Q ${(startX + endX) / 2},${controlY} ${endX},${endY}`;
 			setPathD(d);
 		}
-	};
+	});
 
 	// Setup ResizeObserver — the counterpart of the Svelte onMount, re-run
-	// only when the container target itself changes.
-	useEffect(() => {
+	// only when the container target itself changes. Layout phase, not passive:
+	// until the measurement lands the svg is 0x0 with an empty `d`, so a
+	// post-paint first measure shows one frame with no beam. `updatePath` is
+	// identity-stable, so it never re-runs this on its own.
+	useIsomorphicLayoutEffect(() => {
 		const container = resolveTarget(containerRef);
 		if (!container) return;
 
 		const resizeObserver = new ResizeObserver(() => {
-			updatePathRef.current();
+			updatePath();
 		});
 		resizeObserver.observe(container);
 
 		// Initial path calculation
-		updatePathRef.current();
+		updatePath();
 
 		return () => {
 			resizeObserver.disconnect();
 		};
-	}, [containerRef]);
+	}, [containerRef, updatePath]);
 
 	return (
 		<svg
@@ -189,6 +198,7 @@ export function AnimatedBeam({
 								attributeName="x1"
 								values={x1}
 								dur={`${resolvedDuration}s`}
+								begin={`${delay}s`}
 								keyTimes="0; 1"
 								keySplines="0.16 1 0.3 1"
 								calcMode="spline"
@@ -198,6 +208,7 @@ export function AnimatedBeam({
 								attributeName="x2"
 								values={x2}
 								dur={`${resolvedDuration}s`}
+								begin={`${delay}s`}
 								keyTimes="0; 1"
 								keySplines="0.16 1 0.3 1"
 								calcMode="spline"
@@ -210,6 +221,7 @@ export function AnimatedBeam({
 								attributeName="y1"
 								values={y1}
 								dur={`${resolvedDuration}s`}
+								begin={`${delay}s`}
 								keyTimes="0; 1"
 								keySplines="0.16 1 0.3 1"
 								calcMode="spline"
@@ -219,6 +231,7 @@ export function AnimatedBeam({
 								attributeName="y2"
 								values={y2}
 								dur={`${resolvedDuration}s`}
+								begin={`${delay}s`}
 								keyTimes="0; 1"
 								keySplines="0.16 1 0.3 1"
 								calcMode="spline"

@@ -10,6 +10,7 @@ import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useField } from "../../internals/field.js";
 import { createListbox } from "../../internals/listbox.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { ComboboxPanel } from "./ComboboxPanel.js";
 import { defaultFilter } from "./match.js";
 import { COMBOBOX_KEY } from "./types.js";
@@ -52,6 +53,11 @@ export interface ComboboxProps {
 	emptyMessage?: string;
 	/** Additional CSS classes. */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 function findOption(options: ComboboxOption[], val: string): ComboboxOption | undefined {
@@ -111,6 +117,7 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		filter,
 		emptyMessage = "No results",
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -125,6 +132,8 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 	const effectiveRequired = field?.required ?? required;
 	const effectiveInvalid = field?.invalid ?? invalid;
 	const panelId = `${uid}-listbox`;
+
+	const playCue = useSoundCue(sound);
 
 	// The source's `value = $bindable("")`: a consumer can bind it, or hand it
 	// a plain value and let the component keep writing its own copy. React has
@@ -232,9 +241,16 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 	// consequence of the user picking a row.
 	const selectOption = useEventCallback((option: ComboboxOption) => {
 		if (effectiveDisabled || option.disabled) return;
+		// Re-picking the row already committed changes nothing — the
+		// changed-only rule every other value-holding component follows
+		// (Select, Tabs, DatePicker, ...), even where, as here, there is no
+		// second cue to fall back on. Read BEFORE the write, and never at the
+		// cost of `onValueChange`, which still fires on a re-pick.
+		const changed = value !== option.value;
 		setValueState(option.value);
 		setQuery(option.label);
 		setOpen(false);
+		if (changed) playCue("select");
 		onValueChange?.(option.value);
 	});
 

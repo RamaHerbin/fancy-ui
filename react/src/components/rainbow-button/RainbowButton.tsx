@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, CSSProperties, ReactNode, Ref } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./rainbow-button.css";
 
 type BaseProps = {
@@ -12,6 +13,11 @@ type BaseProps = {
 	href?: string;
 	/** Button content */
 	children?: ReactNode;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 };
 
 // The two attribute sets are intersected BEFORE `Omit`, then extended as one:
@@ -33,8 +39,18 @@ export interface RainbowButtonProps extends BaseProps, RainbowButtonElementProps
 // and has no ...restProps spread. Attributes typed as valid via the union
 // (e.g. onClick) are accepted by the props type but not forwarded.
 export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, RainbowButtonProps>(
-	({ className, speed = 2, href, type = "button", disabled, children }, ref) => {
+	({ className, speed = 2, href, type = "button", disabled, children, sound = false }, ref) => {
 		const speedStyle = { "--rainbow-speed": `${speed}s` } as CSSProperties;
+		const playCue = useSoundCue(sound);
+
+		// Bound identically on both render branches below, matching the Svelte
+		// source's single `handleClick` — the anchor branch has no native
+		// `disabled` attribute, so this guard is the only thing keeping a
+		// disabled link silent.
+		function handleClick() {
+			if (disabled) return;
+			playCue("press");
+		}
 
 		const baseClasses = cn(
 			"rainbow-button",
@@ -58,6 +74,7 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 					aria-disabled={disabled}
 					role={disabled ? "link" : undefined}
 					tabIndex={disabled ? -1 : undefined}
+					onClick={handleClick}
 				>
 					{children}
 				</a>
@@ -71,6 +88,7 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 				style={speedStyle}
 				type={type}
 				disabled={disabled}
+				onClick={handleClick}
 			>
 				{children}
 			</button>

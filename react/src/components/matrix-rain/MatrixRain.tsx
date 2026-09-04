@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { observeInView } from "../../internals/motion/in-view.js";
 
 /**
  * MatrixRain - Canvas2D "digital rain" background
@@ -11,6 +12,9 @@ import { useLiveRef } from "../../internals/dom/use-live-ref.js";
  * rectangle over the previous frame instead of clearing it, so `fadeOpacity`
  * controls trail length. The canvas fills its parent (`h-full w-full`) and
  * paints its own black background, so size it via a wrapping element.
+ *
+ * The frame loop pauses while the canvas is scrolled out of view and resumes
+ * from the column state it left off at.
  */
 export interface MatrixRainProps {
 	/** Glyph color */
@@ -169,6 +173,20 @@ export function MatrixRain({
 			rafId = requestAnimationFrame(draw);
 		}
 
+		// A queued frame is the loop's only "is it running" state, so `0` is the
+		// idle sentinel — a real frame id is never 0. `start()` is therefore
+		// safe to call again while the loop is already running.
+		function start() {
+			if (rafId !== 0) return;
+			rafId = requestAnimationFrame(draw);
+		}
+
+		function stop() {
+			if (rafId === 0) return;
+			cancelAnimationFrame(rafId);
+			rafId = 0;
+		}
+
 		// Set canvas size to container size with HiDPI scaling
 		const resize = () => {
 			const dpr = window.devicePixelRatio || 1;
@@ -187,10 +205,32 @@ export function MatrixRain({
 		const observer = new ResizeObserver(resize);
 		observer.observe(canvas);
 
-		rafId = requestAnimationFrame(draw);
+		start();
+
+		// A rain used as a page background is off screen most of the time, and
+		// every frame it paints there costs a full-canvas `fillRect` plus two
+		// shadow-blurred `fillText` per column for nothing. Pause the loop while
+		// the canvas is out of view and resume it on the way back: the trail is
+		// an accumulation of fades over whatever is already on the canvas, so
+		// resuming from the current column state needs no re-init and shows no
+		// seam. `threshold: 0` — any sliver on screen counts as visible — and
+		// `once: false`, because this has to keep reporting both ways.
+		//
+		// The loop still starts immediately rather than waiting for the first
+		// observer callback: that callback lands a task later, and a background
+		// that is already on screen should not hold a blank canvas until then.
+		const inViewHandle = observeInView(canvas, {
+			once: false,
+			threshold: 0,
+			onChange: (intersecting) => {
+				if (intersecting) start();
+				else stop();
+			},
+		});
 
 		return () => {
-			cancelAnimationFrame(rafId);
+			stop();
+			inViewHandle.destroy();
 			observer.disconnect();
 		};
 	}, [canvas, glyphSize, density, seed, colorRef, speedRef, fadeOpacityRef]);

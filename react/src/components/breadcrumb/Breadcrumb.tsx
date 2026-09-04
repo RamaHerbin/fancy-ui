@@ -1,6 +1,7 @@
 import { forwardRef, Fragment } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 
 export interface BreadcrumbItem {
 	/** The crumb's visible text. */
@@ -35,6 +36,12 @@ export interface BreadcrumbProps {
 	item?: (item: BreadcrumbItem, index: number) => ReactNode;
 	/** Additional CSS classes. */
 	className?: string;
+	/**
+	 * Plays the select cue through the sound controller when a crumb
+	 * rendered by the default (non-`item`-prop) markup is activated.
+	 * Off by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 interface Crumb {
@@ -71,9 +78,19 @@ export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(function Brea
 		label = "Breadcrumb",
 		item,
 		className,
+		sound = false,
 	},
 	ref
 ) {
+	const playCue = useSoundCue(sound);
+
+	// No consumer `onClick` exists on a crumb to forward to — the default
+	// anchor has none today — so this just plays and returns, the same shape
+	// as a fancy button with no onClick prop of its own.
+	function handleCrumbClick() {
+		playCue("select");
+	}
+
 	// Collapsing is a decision about the whole list, not something a single
 	// crumb can make for itself — this is why Breadcrumb renders every item
 	// itself instead of being a compound of children the caller assembles.
@@ -140,6 +157,7 @@ export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(function Brea
 									<a
 										href={row.item.href}
 										className="text-muted-foreground hover:text-foreground transition-colors"
+										onClick={handleCrumbClick}
 									>
 										{row.item.label}
 									</a>

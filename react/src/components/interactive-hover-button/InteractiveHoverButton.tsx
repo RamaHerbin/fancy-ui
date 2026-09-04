@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 
 type BaseProps = {
 	/** Button label text */
@@ -9,6 +10,11 @@ type BaseProps = {
 	className?: string;
 	/** Button content (overrides text prop) */
 	children?: ReactNode;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 };
 
 export interface InteractiveHoverButtonProps
@@ -16,8 +22,14 @@ export interface InteractiveHoverButtonProps
 		Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> {}
 
 export const InteractiveHoverButton = forwardRef<HTMLButtonElement, InteractiveHoverButtonProps>(
-	({ text = "Button", className, children, ...restProps }, ref) => {
+	({ text = "Button", className, children, sound = false, onClick, disabled, ...restProps }, ref) => {
 		const label = children ?? text;
+		const playCue = useSoundCue(sound);
+
+		function handleClick(event: MouseEvent<HTMLButtonElement>) {
+			if (sound && !disabled) playCue("press");
+			onClick?.(event);
+		}
 
 		/*
 		 * Every `transition-*` utility below is prefixed `motion-safe:`, which Tailwind
@@ -34,6 +46,8 @@ export const InteractiveHoverButton = forwardRef<HTMLButtonElement, InteractiveH
 					"group bg-background relative w-auto cursor-pointer overflow-hidden rounded-full border p-2 px-6 text-center font-semibold",
 					className
 				)}
+				onClick={handleClick}
+				disabled={disabled}
 				{...restProps}
 			>
 				<div className="flex items-center gap-2">
@@ -43,7 +57,10 @@ export const InteractiveHoverButton = forwardRef<HTMLButtonElement, InteractiveH
 					</span>
 				</div>
 
-				<div className="text-primary-foreground absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 opacity-0 group-hover:-translate-x-5 group-hover:opacity-100 motion-safe:transition-all motion-safe:duration-300">
+				<div
+					aria-hidden="true"
+					className="text-primary-foreground absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 opacity-0 group-hover:-translate-x-5 group-hover:opacity-100 motion-safe:transition-all motion-safe:duration-300"
+				>
 					<span>{label}</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

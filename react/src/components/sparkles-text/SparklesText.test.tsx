@@ -1,5 +1,5 @@
-import { render, cleanup } from "@testing-library/react";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, cleanup, act } from "@testing-library/react";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { SparklesText } from "./SparklesText.js";
 
 describe("SparklesText", () => {
@@ -51,5 +51,40 @@ describe("SparklesText", () => {
 		const hasGreen = fills.some((f) => f === "#00FF00");
 		// With 20 sparkles and 50/50 chance, at least one of each should appear
 		expect(hasRed || hasGreen).toBe(true);
+	});
+
+	// The regeneration closure lives for the whole mount and reads the colours
+	// through a live ref, so a colour change reaches the next regenerated star
+	// without tearing the interval down.
+	it("regenerated sparkles pick up a later colors prop", () => {
+		vi.useFakeTimers();
+		try {
+			const { container, rerender } = render(
+				<SparklesText
+					text="X"
+					sparklesCount={4}
+					colors={{ first: "#FF0000", second: "#FF0000" }}
+				/>
+			);
+			rerender(
+				<SparklesText
+					text="X"
+					sparklesCount={4}
+					colors={{ first: "#0000FF", second: "#0000FF" }}
+				/>
+			);
+			// Every star's lifespan is below 15, and one tick every 100ms removes
+			// 0.1, so 200 ticks regenerate the whole field at least once.
+			act(() => {
+				vi.advanceTimersByTime(20000);
+			});
+			const fills = Array.from(container.querySelectorAll(".sparkles-star path")).map(
+				(p) => p.getAttribute("fill")
+			);
+			expect(fills.length).toBe(4);
+			expect(fills.every((f) => f === "#0000FF")).toBe(true);
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 });

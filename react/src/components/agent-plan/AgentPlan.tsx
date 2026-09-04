@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import type { PlanStepData, RunStatus } from "../../internals/ai-types.js";
 import "./agent-plan.css";
 
@@ -200,14 +201,28 @@ export interface AgentPlanProps {
 	item?: (step: PlanStepData, index: number) => ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 export const AgentPlan = forwardRef<HTMLDivElement, AgentPlanProps>(function AgentPlan(
-	{ steps, label = "Plan", showProgress = true, onSelect, item, className },
+	{ steps, label = "Plan", showProgress = true, onSelect, item, className, sound },
 	ref
 ) {
 	const uid = useFancyId();
 	const labelId = `${uid}-label`;
+	const playCue = useSoundCue(sound);
+
+	/** A row activation is a fresh gesture every time — there is no selected
+	 *  value on the component to compare against, so the cue plays on every
+	 *  pick, repeats included. */
+	const selectStep = (step: PlanStepData) => {
+		playCue("select");
+		onSelect?.(step);
+	};
 
 	const rows = buildRows(steps);
 
@@ -263,7 +278,7 @@ export const AgentPlan = forwardRef<HTMLDivElement, AgentPlanProps>(function Age
 							<button
 								type="button"
 								className="ft-agentplan-body hover:bg-muted/60 focus-visible:ring-ring flex w-full cursor-pointer items-start gap-2 rounded-md text-left transition-colors focus-visible:ring-1 focus-visible:outline-none"
-								onClick={() => onSelect?.(row.step)}
+								onClick={() => selectStep(row.step)}
 							>
 								<RowBody row={row} item={item} />
 							</button>

@@ -1,5 +1,4 @@
 import {
-	useEffect,
 	useRef,
 	useState,
 	type KeyboardEvent,
@@ -7,6 +6,8 @@ import {
 	type ReactNode,
 	type TouchEvent,
 } from "react";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
 import { StarField } from "./StarField.js";
 
@@ -76,15 +77,27 @@ export function Compare({
 	const isDraggingRef = useRef(false);
 	const isMouseOverRef = useRef(false);
 	const autoplayRAF = useRef<number | null>(null);
-	// The autoplay loop is long-lived; a ref keeps its percentage callback
+	// A pointer move commits on the next frame. Keeping the handle lets a burst
+	// of moves collapse into one commit and lets teardown drop a frame that no
+	// longer has a component to commit into.
+	const moveRAF = useRef<number | null>(null);
+	// The autoplay loop is long-lived; a live ref keeps its percentage callback
 	// current across re-renders, matching the Svelte closure's live prop read.
-	const onPercentageChangeRef = useRef(onpercentagechange);
-	onPercentageChangeRef.current = onpercentagechange;
+	// Written in an insertion effect, so a render React discards can never
+	// publish a callback into the loop.
+	const onPercentageChangeRef = useLiveRef(onpercentagechange);
 
 	function stopAutoplay(): void {
 		if (autoplayRAF.current) {
 			cancelAnimationFrame(autoplayRAF.current);
 			autoplayRAF.current = null;
+		}
+	}
+
+	function stopMoveFrame(): void {
+		if (moveRAF.current) {
+			cancelAnimationFrame(moveRAF.current);
+			moveRAF.current = null;
 		}
 	}
 
@@ -178,7 +191,9 @@ export function Compare({
 			const x = clientX - rect.left;
 			const percent = (x / rect.width) * 100;
 
-			requestAnimationFrame(() => {
+			stopMoveFrame();
+			moveRAF.current = requestAnimationFrame(() => {
+				moveRAF.current = null;
 				commitPercent(percent);
 			});
 		}
@@ -245,15 +260,20 @@ export function Compare({
 		if (!autoplay && touch) handleMove(touch.clientX);
 	}
 
-	// Watch for initialSliderPercentage changes
-	useEffect(() => {
+	// Watch for initialSliderPercentage changes. Layout, not passive, so it keeps
+	// running AHEAD of the autoplay start below in the same pre-paint commit —
+	// the order the two Svelte effects run in.
+	useIsomorphicLayoutEffect(() => {
 		setSliderXPercent(initialSliderPercentage);
 	}, [initialSliderPercentage]);
 
 	// Watch for autoplay changes. This effect also covers the Svelte side's
 	// onMount start / onDestroy stop pair: it runs at mount and its cleanup
-	// cancels the loop on unmount.
-	useEffect(() => {
+	// cancels the loop on unmount. Svelte's `onMount` runs before the browser
+	// paints; a passive effect would paint one frame with the divider at
+	// initialSliderPercentage before the loop snapped it to the autoplay start —
+	// see internals-api.md §4.
+	useIsomorphicLayoutEffect(() => {
 		if (autoplay && !isMouseOverRef.current && !isDraggingRef.current) {
 			startAutoplay();
 		} else {
@@ -261,6 +281,7 @@ export function Compare({
 		}
 		return () => {
 			stopAutoplay();
+			stopMoveFrame();
 		};
 		// The loop reads autoplayDuration from its closure — restart it when
 		// the duration changes so the closure stays current.

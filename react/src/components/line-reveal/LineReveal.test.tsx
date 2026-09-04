@@ -1,4 +1,4 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { LineReveal } from "./LineReveal.js";
 
@@ -82,5 +82,49 @@ describe("LineReveal", () => {
 	it("unmounts cleanly", () => {
 		const { unmount } = render(<LineReveal text="Bye" />);
 		expect(() => unmount()).not.toThrow();
+	});
+
+	it("renders the fallback instead of throwing when FontFaceSet is unavailable", () => {
+		// No stub: jsdom has no `document.fonts`, like any environment without
+		// FontFaceSet. Reading it unguarded inside the effect would throw and tear
+		// down the React tree.
+		Reflect.deleteProperty(document, "fonts");
+		expect(document.fonts).toBeUndefined();
+
+		const { container } = render(<LineReveal text="No font set" />);
+		const fallback = container.querySelector('[aria-hidden="true"]') as HTMLElement;
+		expect(fallback.textContent).toBe("No font set");
+		expect(fallback.style.visibility).toBe("hidden");
+	});
+
+	it("stays on the fallback when text measurement has no canvas context", async () => {
+		// Fonts resolve, so the effect reaches pretext — which throws under jsdom
+		// because getContext() returns null. The failure must land on the
+		// pre-measure fallback, not on an unhandled rejection.
+		Object.defineProperty(document, "fonts", {
+			configurable: true,
+			writable: true,
+			value: { load: () => Promise.resolve([] as FontFace[]) },
+		});
+
+		const { container } = render(<LineReveal text="Unmeasurable" />);
+		await act(async () => {});
+
+		const fallback = container.querySelector('[aria-hidden="true"]') as HTMLElement;
+		expect(fallback.textContent).toBe("Unmeasurable");
+		expect(fallback.style.visibility).toBe("hidden");
+	});
+
+	it("keeps the line height when only the font changes", () => {
+		const { container, rerender } = render(
+			<LineReveal text="Steady" font='600 32px "Helvetica Neue", Helvetica, Arial, sans-serif' />
+		);
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.lineHeight).toBe("38px");
+
+		// Same px size, different weight and family: the `font` shorthand is the
+		// only declaration React re-applies, and it resets `line-height`.
+		rerender(<LineReveal text="Steady" font="400 32px Georgia, serif" />);
+		expect(root.style.lineHeight).toBe("38px");
 	});
 });

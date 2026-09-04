@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useEventCallback } from "../../internals/dom/use-event-callback.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
 
 /**
@@ -49,7 +51,17 @@ export function NumberTicker({
 		setDisplayValue(next);
 	}
 
-	function animate(target: number) {
+	// Identity-stable, so the []-deps mount effect and the re-animate effect always
+	// run the latest render's closure without being rebuilt.
+	const animate = useEventCallback((target: number) => {
+		// One chain per instance: a target change mid-count cancels the frame still
+		// in flight, so two interpolations never write `displayValue` on alternating
+		// frames and the unmount cleanup always has the only live id to cancel.
+		if (animationFrameIdRef.current !== null) {
+			cancelAnimationFrame(animationFrameIdRef.current);
+			animationFrameIdRef.current = null;
+		}
+
 		const start = displayValueRef.current;
 		const startTime = performance.now() + delay;
 
@@ -66,18 +78,18 @@ export function NumberTicker({
 
 			if (progress < 1) {
 				animationFrameIdRef.current = requestAnimationFrame(tick);
+			} else {
+				animationFrameIdRef.current = null;
 			}
 		}
 
 		animationFrameIdRef.current = requestAnimationFrame(tick);
-	}
+	});
 
-	// Keep the latest closure reachable from the []-deps mount effect, so the
-	// observer callback reads live props exactly as the Svelte onMount closure does.
-	const animateRef = useRef(animate);
-	animateRef.current = animate;
-	const latestRef = useRef({ value, direction });
-	latestRef.current = { value, direction };
+	// Live prop mirrors, so the observer callback reads the latest value/direction
+	// exactly as the Svelte onMount closure does.
+	const valueRef = useLiveRef(value);
+	const directionRef = useLiveRef(direction);
 
 	// Set initial display value
 	useEffect(() => {
@@ -94,9 +106,8 @@ export function NumberTicker({
 			(entries) => {
 				if (entries[0]?.isIntersecting && !hasAnimatedRef.current) {
 					hasAnimatedRef.current = true;
-					const { value: liveValue, direction: liveDirection } = latestRef.current;
-					const target = liveDirection === "down" ? 0 : liveValue;
-					animateRef.current(target);
+					const target = directionRef.current === "down" ? 0 : valueRef.current;
+					animate(target);
 					observer.disconnect();
 				}
 			},
@@ -107,17 +118,21 @@ export function NumberTicker({
 
 		return () => {
 			observer.disconnect();
-			if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
+			if (animationFrameIdRef.current !== null) {
+				cancelAnimationFrame(animationFrameIdRef.current);
+				animationFrameIdRef.current = null;
+			}
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only observer; `animate` is identity-stable
 	}, []);
 
 	// Re-animate when value prop changes after initial animation
 	const animTarget = direction === "down" ? 0 : value;
 	useEffect(() => {
 		if (hasAnimatedRef.current) {
-			animateRef.current(animTarget);
+			animate(animTarget);
 		}
-	}, [animTarget]);
+	}, [animTarget, animate]);
 
 	const formattedValue = new Intl.NumberFormat("en-US", {
 		minimumFractionDigits: decimalPlaces,

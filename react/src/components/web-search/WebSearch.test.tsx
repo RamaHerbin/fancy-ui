@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import type { SearchResultData } from "../../internals/ai-types.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 import { WebSearch } from "./WebSearch.js";
 
 const QUERY = "svelte 5 runes reactivity";
@@ -338,6 +339,84 @@ describe("WebSearch", () => {
 			expect(container.querySelector("a")?.getAttribute("href")).toBe(
 				"https://docs.example.dev/guide"
 			);
+		});
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when a row is activated, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(
+				<WebSearch query={QUERY} results={RESULTS} onSelect={onSelect} sound />
+			);
+
+			fireEvent.click(rows(container)[1]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+			expect(onSelect).toHaveBeenCalledWith(RESULTS[1], 1);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<WebSearch query={QUERY} results={RESULTS} onSelect={vi.fn()} />
+			);
+
+			fireEvent.click(rows(container)[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays select exactly once when the anchor row is activated — same cue as the button branch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<WebSearch query={QUERY} results={RESULTS} sound />);
+			const anchor = rows(container)[0] as HTMLAnchorElement;
+			expect(anchor.tagName).toBe("A");
+
+			// No `onSelect` is passed, so this is the plain navigating anchor, not
+			// the button branch — dispatched the same way a real click would fire.
+			fireEvent.click(anchor);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays open when the expander reveals more results, and close when it collapses them", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<WebSearch query={QUERY} results={RESULTS} maxVisible={1} sound />
+			);
+
+			fireEvent.click(more(container)!);
+			expect(play).toHaveBeenNthCalledWith(1, "open", undefined);
+
+			fireEvent.click(more(container)!);
+			expect(play).toHaveBeenNthCalledWith(2, "close", undefined);
+
+			expect(play).toHaveBeenCalledTimes(2);
+		});
+
+		it("stays silent when an emptied result list collapses the expander on its own", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container, rerender } = render(
+				<WebSearch query={QUERY} results={RESULTS} maxVisible={1} sound />
+			);
+			fireEvent.click(more(container)!);
+			play.mockClear();
+
+			rerender(<WebSearch query={QUERY} results={[]} maxVisible={1} sound />);
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

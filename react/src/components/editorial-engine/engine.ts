@@ -301,15 +301,21 @@ export function createEditorialEngine(
 		}
 	}
 
+	// Everything the engine paints is hidden from assistive technology: the
+	// component keeps one ordered, semantic copy of the article (headline +
+	// paragraphs) in the DOM, so exposing the per-line spans as well would make
+	// a screen reader read the text twice, out of order and without structure.
 	function makeLineEl(className: string): HTMLSpanElement {
 		const element = document.createElement("span");
 		element.className = className;
+		element.setAttribute("aria-hidden", "true");
 		return element;
 	}
 
 	const orbEls = ORB_DEFS.map((def) => {
 		const element = document.createElement("div");
 		element.className = "ee-orb";
+		element.setAttribute("aria-hidden", "true");
 		const [r, g, b] = def.color;
 		element.style.background = `radial-gradient(circle at 35% 35%, rgba(${r},${g},${b},0.35), rgba(${r},${g},${b},0.12) 55%, transparent 72%)`;
 		element.style.boxShadow = `0 0 60px 15px rgba(${r},${g},${b},0.18), 0 0 120px 40px rgba(${r},${g},${b},0.07)`;
@@ -319,6 +325,7 @@ export function createEditorialEngine(
 
 	const dropCapEl = document.createElement("div");
 	dropCapEl.className = "ee-drop-cap";
+	dropCapEl.setAttribute("aria-hidden", "true");
 	stage.appendChild(dropCapEl);
 
 	// --- Prepared text (one-time measurement, cached) ---
@@ -649,6 +656,7 @@ export function createEditorialEngine(
 		syncPool(pullquoteBoxPool, pullquoteRects.length, () => {
 			const element = document.createElement("div");
 			element.className = "ee-pullquote-box";
+			element.setAttribute("aria-hidden", "true");
 			return element;
 		});
 		for (let i = 0; i < pullquoteRects.length; i++) {
@@ -762,6 +770,18 @@ export function createEditorialEngine(
 		window.removeEventListener("pointerup", onPointerUp);
 		window.removeEventListener("pointercancel", onPointerUp);
 		document.removeEventListener("selectionchange", onSelectionChange);
-		stage.replaceChildren();
+		// Only the elements this engine appended are removed, so a host that
+		// keeps its own children in the same element (or reuses it across a
+		// re-created engine, as a text prop change does) keeps them.
+		for (const element of [
+			...bodyLinePool,
+			...headlinePool,
+			...pullquoteLinePool,
+			...pullquoteBoxPool,
+			...orbEls,
+			dropCapEl,
+		]) {
+			element.remove();
+		}
 	};
 }

@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { Stepper } from "./Stepper.js";
 import { Step } from "./Step.js";
+import { STEPPER_KEY } from "./types.js";
+import type { StepperContext } from "./types.js";
 
 interface Item {
 	label: string;
@@ -18,6 +21,7 @@ interface HarnessProps {
 	orientation?: "horizontal" | "vertical";
 	clickable?: boolean;
 	onStepClick?: (index: number) => void;
+	sound?: boolean;
 }
 
 /*
@@ -36,6 +40,7 @@ function Harness({
 	orientation,
 	clickable,
 	onStepClick,
+	sound,
 }: HarnessProps) {
 	const [current, setCurrent] = useState(initial);
 	const [el, setEl] = useState<HTMLOListElement | null>(null);
@@ -56,6 +61,7 @@ function Harness({
 				orientation={orientation}
 				clickable={clickable}
 				onStepClick={onStepClick}
+				sound={sound}
 			>
 				{data.map((item) => (
 					<Step key={item.label} label={item.label} description={item.description} />
@@ -360,5 +366,111 @@ describe("Stepper", () => {
 		const profileButton = stepByLabel(container, "Profile").querySelector("button")!;
 		fireEvent.click(profileButton);
 		expect(stepByLabel(container, "Profile").getAttribute("aria-current")).toBe("step");
+	});
+	// `list-style: none` strips list semantics in Safari, and a step's position
+	// in the count is the only positional cue a reader gets — the visible number
+	// is `aria-hidden`. Same shape SubagentList's own list test pins.
+	it("states role='list' on the ol so the count survives list-style: none", () => {
+		const { container, getByRole, getAllByRole } = render(<Harness items={ITEMS} />);
+
+		expect(list(container).getAttribute("role")).toBe("list");
+		expect(getByRole("list")).toBe(list(container));
+		expect(getAllByRole("listitem")).toHaveLength(ITEMS.length);
+	});
+
+	// Registration decides every number, status colour, connector and
+	// `aria-current` on the rail, so it has to land before the browser paints —
+	// a passive effect would show one frame of bullets numbered "0" with a
+	// leading connector on the first step. The phase is observed the way
+	// ContextRing observes its own: relative to a later sibling's layout effect.
+	it("registers each step before paint, not in a passive effect", () => {
+		const order: string[] = [];
+		const context: StepperContext = {
+			orientation: "horizontal",
+			clickable: false,
+			current: 0,
+			count: 1,
+			register: () => {
+				order.push("register");
+				return () => {};
+			},
+			indexOf: () => 0,
+			select: () => {},
+		};
+
+		function Probe() {
+			useLayoutEffect(() => {
+				order.push("probe-layout");
+			}, []);
+			return null;
+		}
+
+		render(
+			<STEPPER_KEY.Provider value={context}>
+				<ol>
+					<Step label="Account" />
+				</ol>
+				<Probe />
+			</STEPPER_KEY.Provider>
+		);
+
+		expect(order).toEqual(["register", "probe-layout"]);
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a clickable step moves to a different step", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} current={0} clickable sound />);
+
+			const confirmationButton = stepByLabel(container, "Confirmation").querySelector("button")!;
+			fireEvent.click(confirmationButton);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} current={0} clickable />);
+
+			const confirmationButton = stepByLabel(container, "Confirmation").querySelector("button")!;
+			fireEvent.click(confirmationButton);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the root is not clickable, even dispatched directly at the trigger", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} current={0} clickable={false} sound />);
+
+			const trigger = stepByLabel(container, "Confirmation").querySelector(".ft-step-trigger")!;
+			fireEvent.click(trigger);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on a re-click of the already-current step, though onStepClick still fires — the changed-only guard", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onStepClick = vi.fn();
+			const { container } = render(
+				<Harness items={ITEMS} current={1} clickable sound onStepClick={onStepClick} />
+			);
+
+			const profileButton = stepByLabel(container, "Profile").querySelector("button")!;
+			fireEvent.click(profileButton);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onStepClick).toHaveBeenCalledTimes(1);
+			expect(onStepClick).toHaveBeenCalledWith(1);
+		});
 	});
 });

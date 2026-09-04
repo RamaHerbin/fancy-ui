@@ -1,11 +1,12 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import type { SourceData } from "../../internals/ai-types.js";
 import { Sources } from "./Sources.js";
 import { SourceCard } from "./SourceCard.js";
 import { SourcesList } from "./SourcesList.js";
 import { SourcesTrigger } from "./SourcesTrigger.js";
 import { SourcesHarness } from "./SourcesHarness.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 
 const SOURCES: SourceData[] = [
 	{
@@ -161,6 +162,16 @@ describe("Sources", () => {
 		expect(cards(container)).toHaveLength(0);
 	});
 
+	it("falls through to the default composition when children is falsy, not empty", () => {
+		// `{cond && <Parts />}` with a false `cond` is how a React consumer
+		// writes "no custom composition"; the Svelte source's `{#if children}`
+		// branches on truthiness, so this must render the default pair.
+		const { container } = render(<Sources sources={SOURCES}>{false}</Sources>);
+
+		expect(trigger(container)).toBeTruthy();
+		expect(cards(container)).toHaveLength(SOURCES.length);
+	});
+
 	it("points the trigger at the region it controls", () => {
 		const { container } = render(<Sources sources={SOURCES} />);
 		const controls = trigger(container).getAttribute("aria-controls");
@@ -189,6 +200,57 @@ describe("Sources", () => {
 		expect(error).not.toHaveBeenCalled();
 		warn.mockRestore();
 		error.mockRestore();
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open, then close, exactly once each as the trigger is toggled, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Sources sources={SOURCES} sound />);
+
+			fireEvent.click(trigger(container));
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenLastCalledWith("open", undefined);
+
+			fireEvent.click(trigger(container));
+			expect(play).toHaveBeenCalledTimes(2);
+			expect(play).toHaveBeenLastCalledWith("close", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Sources sources={SOURCES} />);
+
+			fireEvent.click(trigger(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("never plays for a controlled `open` write that bypasses toggle() — only a real activation goes through it", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(<Sources sources={SOURCES} sound />);
+
+			rerender(<Sources sources={SOURCES} open sound />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one click plays one cue, not two", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Sources sources={SOURCES} sound />);
+
+			fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });
 
@@ -321,6 +383,17 @@ describe("SourceCard", () => {
 
 		expect(container.querySelector('[data-testid="icon"]')).toBeTruthy();
 		expect(text(container, ".ft-source-mark")).toBe("*");
+	});
+
+	it("keeps the monogram when icon is falsy rather than emptying the circle", () => {
+		// `icon={cond && <Logo />}` with a false `cond` is a nullish-free falsy
+		// node; the Svelte source's `{#if icon}` branches on truthiness, so the
+		// mark must fall back to the initial.
+		const { container } = render(
+			<SourceCard source={{ id: "s1", title: "Title", url: "" }} icon={false} />
+		);
+
+		expect(text(container, ".ft-source-mark")).toBe("T");
 	});
 
 	it("merges custom classes onto both the link and the plain shapes", () => {

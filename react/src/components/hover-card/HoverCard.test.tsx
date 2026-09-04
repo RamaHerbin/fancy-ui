@@ -691,6 +691,127 @@ describe("HoverCard", () => {
 		expect(animateSpy).not.toHaveBeenCalled();
 	});
 
+	/**
+	 * The panel is mid-entrance the first time anything measures it: the
+	 * presence clock pins `transform: scale(0.92)` on the node in the commit
+	 * it attaches, and the node only reaches the position hook one commit
+	 * later, because the transition takes it through a plain ref callback and
+	 * the position takes it through state. A PAINTED measurement would size
+	 * the card 8% small and drop it that far off its trigger for the card's
+	 * whole life — nothing recomputes once the entrance settles.
+	 *
+	 * jsdom measures every element as zero, so the two boxes have to be pulled
+	 * apart by hand: `getBoundingClientRect` reports the scaled box the
+	 * transform paints, `offsetWidth`/`offsetHeight` the layout box no
+	 * transform can touch.
+	 */
+	it("positions the card from its laid-out box, not the box the entrance transform paints", async () => {
+		const LAYOUT = { width: 240, height: 100 };
+		const SCALE = 0.92;
+		const asRect = (r: { top: number; left: number; width: number; height: number }) =>
+			({
+				top: r.top,
+				left: r.left,
+				right: r.left + r.width,
+				bottom: r.top + r.height,
+				width: r.width,
+				height: r.height,
+				x: r.left,
+				y: r.top,
+				toJSON: () => ({}),
+			}) as DOMRect;
+		const zero = asRect({ top: 0, left: 0, width: 0, height: 0 });
+
+		vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (
+			this: Element
+		) {
+			if (this.classList.contains("ft-hover-card-trigger")) {
+				return asRect({ top: 100, left: 100, width: 100, height: 40 });
+			}
+			if (this.classList.contains("ft-hover-card-panel")) {
+				return asRect({
+					top: 0,
+					left: 0,
+					width: LAYOUT.width * SCALE,
+					height: LAYOUT.height * SCALE,
+				});
+			}
+			return zero;
+		});
+		vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockImplementation(function (
+			this: HTMLElement
+		) {
+			return this.classList.contains("ft-hover-card-panel") ? LAYOUT.width : 0;
+		});
+		vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockImplementation(function (
+			this: HTMLElement
+		) {
+			return this.classList.contains("ft-hover-card-panel") ? LAYOUT.height : 0;
+		});
+
+		render(
+			<HoverCard open side="bottom" align="center" offset={8} trigger={trigger}>
+				{content}
+			</HoverCard>
+		);
+		await advance(0);
+
+		const el = panel()!;
+		// The trigger's centre is 150; half of the LAID-OUT 240 either side of
+		// it puts the card at 30. Measured off the painted box it would be
+		// 150 − 220.8/2 = 39.6px, a full 10px off centre.
+		expect(el.style.left).toBe("30px");
+		// The trigger's bottom edge plus the requested 8px gap. The gap only
+		// survives because the height the flip test and the placement use is
+		// the layout one.
+		expect(el.style.top).toBe("148px");
+		await settle();
+	});
+
+	/**
+	 * The delayed open fires up to `openDelay` after the gesture that
+	 * scheduled it, and the caller is free to re-render in between. The source
+	 * reads `onOpenChange` off `$props()` inside `setOpen`, so the call always
+	 * lands on the callback that is current when the delay expires; a timer
+	 * holding the closure it was scheduled with would notify a parent against
+	 * state that parent has already left behind.
+	 */
+	it("notifies the onOpenChange current when the delay expires, not the one it was scheduled with", async () => {
+		const first = vi.fn();
+		const second = vi.fn();
+
+		function Parent() {
+			const [swapped, setSwapped] = useState(false);
+			return (
+				<>
+					<button type="button" data-testid="swap" onClick={() => setSwapped(true)}>
+						swap
+					</button>
+					<HoverCard
+						openDelay={300}
+						onOpenChange={swapped ? second : first}
+						trigger={trigger}
+					>
+						{content}
+					</HoverCard>
+				</>
+			);
+		}
+
+		const { getByTestId } = render(<Parent />);
+
+		pointerEnter(triggerWrapper());
+		await advance(150);
+		// The caller re-renders mid-delay, handing HoverCard a fresh closure.
+		fireEvent.click(getByTestId("swap"));
+		await advance(150);
+
+		expect(first).not.toHaveBeenCalled();
+		expect(second).toHaveBeenCalledTimes(1);
+		expect(second).toHaveBeenCalledWith(true);
+		await settle();
+	});
+
 	it("round-trips open through a controlled open + onOpenChange pair", async () => {
 		const { getByTestId } = render(<Harness />);
 		expect(getByTestId("bound-open").textContent).toBe("false");

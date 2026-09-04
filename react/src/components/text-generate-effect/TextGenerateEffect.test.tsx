@@ -70,4 +70,46 @@ describe("TextGenerateEffect", () => {
 		const span = container.querySelector("span") as HTMLElement;
 		expect(span.style.transition).toContain("0.3s");
 	});
+
+	it("picks up a filter change made mid-reveal", async () => {
+		vi.useFakeTimers();
+		const { container, rerender } = render(
+			<TextGenerateEffect words="one two three" stagger={100} />,
+		);
+		const spans = container.querySelectorAll("span");
+
+		await vi.advanceTimersByTimeAsync(1);
+		expect(spans[0]!.style.filter).toBe("blur(0px)");
+
+		rerender(<TextGenerateEffect words="one two three" stagger={100} filter={false} />);
+
+		// The word revealed after the change uses the current filter value.
+		await vi.advanceTimersByTimeAsync(100);
+		expect(spans[1]!.style.opacity).toBe("1");
+		expect(spans[1]!.style.filter).toBe("none");
+
+		vi.useRealTimers();
+	});
+
+	it("picks up a stagger change made before the reveal starts", async () => {
+		vi.useFakeTimers();
+		const { container, rerender } = render(
+			<TextGenerateEffect words="one two three" delay={500} stagger={100} />,
+		);
+		const spans = container.querySelectorAll("span");
+
+		rerender(<TextGenerateEffect words="one two three" delay={500} stagger={1000} />);
+
+		await vi.advanceTimersByTimeAsync(501);
+		expect(spans[0]!.style.opacity).toBe("1");
+
+		// The old 100ms spacing would have revealed the second word by now.
+		await vi.advanceTimersByTimeAsync(100);
+		expect(spans[1]!.style.opacity).toBe("0");
+
+		await vi.advanceTimersByTimeAsync(900);
+		expect(spans[1]!.style.opacity).toBe("1");
+
+		vi.useRealTimers();
+	});
 });

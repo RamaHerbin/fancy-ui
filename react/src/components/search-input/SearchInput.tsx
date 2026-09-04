@@ -8,6 +8,7 @@ import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
 import { runTransition } from "../../internals/motion/animate.js";
 import type { TransitionRun } from "../../internals/motion/animate.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./search-input.css";
 
 export interface SearchInputProps {
@@ -52,6 +53,11 @@ export interface SearchInputProps {
 	clearable?: boolean;
 	/** Additional CSS classes, merged onto the root field surface (not the bare `<input>`). */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 // The clear button appears mid-interaction, the instant the field stops
@@ -112,6 +118,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 			label,
 			clearable = true,
 			className,
+			sound = false,
 		},
 		forwardedRef
 	) => {
@@ -131,6 +138,8 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 		const effectiveDisabled = field?.disabled ?? disabled;
 		const effectiveRequired = field?.required ?? required;
 		const effectiveInvalid = field?.invalid ?? invalid;
+
+		const playCue = useSoundCue(sound);
 
 		// Whether the clear affordance — the button and Escape's clear-on-press —
 		// is available at all right now. Kept as one value so the button's
@@ -182,9 +191,22 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 				{ duration: prefersReducedMotion() ? 0 : DURATIONS.fast },
 				{ direction: "in" }
 			);
-			introRun.current = runTransition(node, spec, 1, undefined, () => {
+			// The leg aborts itself the moment it lands, exactly as the presence
+			// core does on an enter leg: aborting is what drops `fill: forwards`,
+			// so the button falls back to its resting style instead of holding
+			// `opacity` and `transform` at animation priority — over any consumer
+			// CSS — for the rest of its life, and it releases the Animation object
+			// the runner's own `abort()` calls a Chromium leak. The handle box is
+			// what makes the run reachable from inside its own finish callback: a
+			// duration-0 leg finishes synchronously inside `runTransition`, before
+			// the return value exists, and that leg's `abort` is a no-op anyway.
+			const handle: { current: TransitionRun | null } = { current: null };
+			const run = runTransition(node, spec, 1, undefined, () => {
+				handle.current?.abort();
 				introRun.current = null;
 			});
+			handle.current = run;
+			introRun.current = run;
 		}, []);
 
 		const classes = cn(
@@ -244,6 +266,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 		function clearValue() {
 			if (effectiveDisabled || readonly) return;
 			if (!isControlled) setUncontrolledValue("");
+			playCue("press");
 			onValueChange?.("");
 			clearDebounce();
 			// The button that triggered this is about to disappear (it only

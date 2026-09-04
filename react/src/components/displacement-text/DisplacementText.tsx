@@ -229,5 +229,15 @@ export function DisplacementText({
 		};
 	}, [text, fontSize, font, color, lightColor, darkColor]);
 
-	return <div ref={containerRef} className={cn("relative h-[400px] w-full", className)} />;
+	// The text only ever exists as pixels inside the WebGL canvas, so the
+	// container carries it for assistive technology: the canvas is a decorative
+	// rendering of this same string.
+	return (
+		<div
+			ref={containerRef}
+			role="img"
+			aria-label={text}
+			className={cn("relative h-[400px] w-full", className)}
+		/>
+	);
 }

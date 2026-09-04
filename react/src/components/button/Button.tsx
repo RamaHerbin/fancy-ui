@@ -31,7 +31,7 @@ export interface ButtonProps
 	/** Accessible name for a button whose content is icon-only. */
 	label?: string;
 	/** Fires on activation. Never called while `disabled` or `loading`. */
-	onclick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
+	onClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
 	/** Rendered before the label. Replaced by the spinner while `loading`. */
 	iconStart?: ReactNode;
 	/** Rendered after the label. */
@@ -77,7 +77,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 			rel = undefined,
 			fullWidth = false,
 			label = undefined,
-			onclick,
+			onClick,
 			iconStart,
 			iconEnd,
 			children,
@@ -138,7 +138,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 				return;
 			}
 			if (sound) soundFx.play("press");
-			onclick?.(event);
+			onClick?.(event);
 		}
 
 		const content = (

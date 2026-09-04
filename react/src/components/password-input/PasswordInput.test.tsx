@@ -1,8 +1,9 @@
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { useEffect, useRef, useState } from "react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { PasswordInput } from "./PasswordInput.js";
 import { FieldProvider, type FieldContext } from "../../internals/field.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 function input(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input") as HTMLInputElement;
@@ -107,6 +108,14 @@ function FieldHarness({
 }
 
 describe("PasswordInput", () => {
+	beforeEach(() => {
+		// The sound controller is a module singleton: a preference or an engine
+		// left behind by an earlier test would decide whether a cue is audible
+		// in this one.
+		resetSoundForTests();
+		window.localStorage.clear();
+	});
+
 	afterEach(cleanup);
 
 	it("renders a real input, type password, resting", () => {
@@ -563,6 +572,89 @@ describe("PasswordInput", () => {
 			} finally {
 				animateSpy.mockRestore();
 			}
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays toggle-on exactly once when revealing the password, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<PasswordInput sound defaultValue="hunter2" />);
+
+			fireEvent.click(toggleButton(container)!);
+			await settleLegs();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on", undefined);
+		});
+
+		it("plays toggle-off exactly once when hiding it again, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<PasswordInput sound defaultValue="hunter2" />);
+			const btn = toggleButton(container)!;
+
+			fireEvent.click(btn); // reveal
+			await settleLegs();
+			play.mockClear();
+			fireEvent.click(btn); // hide
+			await settleLegs();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<PasswordInput defaultValue="hunter2" />);
+
+			fireEvent.click(toggleButton(container)!);
+			await settleLegs();
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatchEvent", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<PasswordInput sound disabled defaultValue="hunter2" />);
+			const btn = toggleButton(container)!;
+
+			// The Svelte side needs its in-handler `effectiveDisabled` guard here
+			// because a listener bound straight to the element still runs for a
+			// synthetic dispatch. React's delegated system refuses to run a click
+			// handler on a disabled button at all, so this case pins the outcome
+			// — no cue, no flip — while the handler's own guard stays as the
+			// second line of defence.
+			btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+			expect(btn.getAttribute("aria-pressed")).toBe("false");
+			expect(input(container).type).toBe("password");
+		});
+
+		it("plays synchronously inside the click, before the selection-restore work — no unlock() needed", async () => {
+			// The Svelte source plays the cue before its `await tick()`; here the
+			// same rule reads as "before the commit". The DOM is sampled from
+			// inside the spy, so `type` still being "password" proves the cue
+			// landed in the synchronous portion of the click handler — ahead of
+			// the commit that flips `type` and of the layout effect that puts
+			// the caret back. A cue landing after that would be outside the user
+			// gesture an unlocked audio context relies on.
+			const { container } = render(<PasswordInput sound defaultValue="hunter2" />);
+			let typeAtCue: string | undefined;
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {
+				typeAtCue = input(container).type;
+			});
+
+			fireEvent.click(toggleButton(container)!);
+			await settleLegs();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on", undefined);
+			expect(typeAtCue).toBe("password");
+			expect(input(container).type).toBe("text");
 		});
 	});
 });

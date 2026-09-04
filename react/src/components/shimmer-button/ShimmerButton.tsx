@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./shimmer-button.css";
 
 type BaseProps = {
@@ -18,6 +19,11 @@ type BaseProps = {
 	className?: string;
 	/** Button content */
 	children?: ReactNode;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off
+	 * by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 };
 
 export interface ShimmerButtonProps
@@ -34,6 +40,8 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 			shimmerDuration = "3s",
 			background = "rgba(0, 0, 0, 1)",
 			children,
+			sound = false,
+			onClick,
 			...restProps
 		},
 		ref
@@ -47,6 +55,13 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 			"--bg": background,
 		} as CSSProperties;
 
+		const playCue = useSoundCue(sound);
+
+		function handleClick(event: MouseEvent<HTMLButtonElement>) {
+			if (sound && !restProps.disabled) playCue("press");
+			onClick?.(event);
+		}
+
 		return (
 			<button
 				ref={ref}
@@ -56,6 +71,7 @@ export const ShimmerButton = forwardRef<HTMLButtonElement, ShimmerButtonProps>(
 					className
 				)}
 				style={styleVars}
+				onClick={handleClick}
 				{...restProps}
 			>
 				{/* Shimmer layer */}

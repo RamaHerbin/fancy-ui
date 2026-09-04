@@ -1,7 +1,8 @@
-import { forwardRef, useContext, useEffect } from "react";
+import { forwardRef, useContext } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { STEPPER_KEY } from "./types.js";
 import "./step.css";
 
@@ -55,8 +56,14 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 	// context is rebuilt every time the registry changes, so depending on it
 	// would re-run this effect as a result of this effect's own call — see
 	// `Stepper.tsx` for the fuller account of the loop that guards against.
+	//
+	// A layout effect, not a passive one: every number, status colour,
+	// connector and `aria-current` on the rail is derived from the index this
+	// call settles, so a passive registration would let the browser paint one
+	// frame in which every step still reads -1 — bullets numbered "0", a
+	// leading connector on the first step, and no current step at all.
 	const register = stepper?.register;
-	useEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		if (!register) return;
 		return register(id);
 	}, [register, id]);

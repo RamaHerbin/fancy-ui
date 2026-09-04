@@ -302,6 +302,47 @@ describe("Pressable — wiring", () => {
 		expect(ref.current).toBe(wrapper());
 	});
 
+	it("keeps a callback ref attached across a whole press cycle", () => {
+		// A callback ref whose identity is stable must be called ONCE with the
+		// node and never re-run while the node stays mounted. An inline arrow
+		// in the render body would change identity on every render, and
+		// Pressable re-renders on each pointerdown/pointerup — React would
+		// answer that with a `null` call followed by a fresh node call, so a
+		// consumer measuring the node (or installing an observer on it) would
+		// be torn down and re-armed twice per press.
+		const setNode = vi.fn();
+		render(<Pressable ref={setNode}>{buttonChild()}</Pressable>);
+		expect(setNode).toHaveBeenCalledTimes(1);
+		expect(setNode).toHaveBeenCalledWith(wrapper());
+
+		fireEvent.pointerDown(wrapper(), { pointerId: 1, button: 0, pointerType: "mouse" });
+		expect(wrapper()).toHaveAttribute("data-pressed", "true");
+		fireEvent.pointerUp(wrapper(), { pointerId: 1, button: 0, pointerType: "mouse" });
+		expect(wrapper()).not.toHaveAttribute("data-pressed");
+
+		expect(setNode).toHaveBeenCalledTimes(1);
+		expect(setNode).not.toHaveBeenCalledWith(null);
+	});
+
+	it("keeps a callback ref attached across a disabled flip", () => {
+		const setNode = vi.fn();
+		const { rerender } = render(<Pressable ref={setNode}>{buttonChild()}</Pressable>);
+		rerender(
+			<Pressable ref={setNode} disabled>
+				{buttonChild()}
+			</Pressable>
+		);
+		expect(setNode).toHaveBeenCalledTimes(1);
+		expect(setNode).not.toHaveBeenCalledWith(null);
+	});
+
+	it("detaches a callback ref with null on unmount", () => {
+		const setNode = vi.fn();
+		const { unmount } = render(<Pressable ref={setNode}>{buttonChild()}</Pressable>);
+		unmount();
+		expect(setNode).toHaveBeenLastCalledWith(null);
+	});
+
 	it("merges a caller class and spreads restProps onto the wrapper", () => {
 		render(
 			<Pressable className="extra-class" data-testid="press-me">

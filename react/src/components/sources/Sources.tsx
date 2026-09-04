@@ -7,6 +7,7 @@ import { SourcesTrigger } from "./SourcesTrigger.js";
 import { SourcesList } from "./SourcesList.js";
 import { SOURCES_CONTEXT_KEY } from "./types.js";
 import type { SourcesContext } from "./types.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 
 /**
  * Props for Sources
@@ -22,6 +23,12 @@ export interface SourcesProps {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays open/close through the sound controller when the source list
+	 * expands or collapses. Off by default; only audible once the user
+	 * has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -32,7 +39,7 @@ export interface SourcesProps {
  * per PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  */
 export const Sources = forwardRef<HTMLDivElement, SourcesProps>(function Sources(
-	{ sources, open: openProp, onToggle, children, className },
+	{ sources, open: openProp, onToggle, children, className, sound = false },
 	ref
 ) {
 	// The Svelte source's `open` is `$bindable(false)`: a consumer can bind it,
@@ -47,6 +54,8 @@ export const Sources = forwardRef<HTMLDivElement, SourcesProps>(function Sources
 	const uid = useFancyId();
 	const listId = `${uid}-list`;
 
+	const playCue = useSoundCue(sound);
+
 	// Rebuilt only when something a part reads actually changes — that rebuild is
 	// what re-renders the trigger and the list below, and it is the React
 	// counterpart of the Svelte context's live getters.
@@ -59,16 +68,26 @@ export const Sources = forwardRef<HTMLDivElement, SourcesProps>(function Sources
 			toggle() {
 				const next = !open;
 				if (!isControlled) setUncontrolledOpen(next);
+				// The cue sits on the one mutation point, between the state
+				// write and the callback: a controlled `open` written from
+				// outside never comes through here, so it plays nothing.
+				playCue(next ? "open" : "close");
 				onToggle?.(next);
 			},
 		}),
-		[open, sources, listId, isControlled, onToggle]
+		[open, sources, listId, isControlled, onToggle, playCue]
 	);
 
 	return (
 		<SOURCES_CONTEXT_KEY.Provider value={context}>
 			<div ref={ref} className={cn("ft-sources w-full", className)} data-open={open}>
-				{children ?? (
+				{/*
+					Truthiness, not nullishness: the Svelte source branches on
+					`{#if children}`, so `{cond && <Parts />}` with a false
+					`cond` falls through to the default composition rather than
+					emptying the root.
+				*/}
+				{children || (
 					<>
 						<SourcesTrigger />
 						<SourcesList />

@@ -1,6 +1,8 @@
+import { StrictMode } from "react";
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ReasoningPanel } from "./ReasoningPanel.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 /** Longer than the component's internal auto-collapse delay. */
 const PAST_AUTO_COLLAPSE = 1000;
@@ -209,5 +211,91 @@ describe("ReasoningPanel", () => {
 		rerender(<ReasoningPanel text="trace" open={false} onToggle={onToggle} />);
 		expect(onToggle).toHaveBeenLastCalledWith(false);
 		expect(onToggle).toHaveBeenCalledTimes(2);
+	});
+
+	it("reports the same open sequence under StrictMode as it does without it", () => {
+		// StrictMode rehearses the mount effect with no render in between, so
+		// `commit` has to see its own pending decision rather than the state the
+		// last committed render published — otherwise the streaming auto-open
+		// commits, and announces itself, a second time.
+		vi.useFakeTimers();
+		const plain = vi.fn();
+		const first = render(<ReasoningPanel text="trace" streaming onToggle={plain} />);
+		first.unmount();
+
+		const strict = vi.fn();
+		const { container } = render(
+			<StrictMode>
+				<ReasoningPanel text="trace" streaming onToggle={strict} />
+			</StrictMode>
+		);
+
+		expect(strict.mock.calls).toEqual(plain.mock.calls);
+		expect(header(container).getAttribute("aria-expanded")).toBe("true");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when the reader expands the trace, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			vi.useFakeTimers();
+			const { container } = render(<ReasoningPanel text="trace" sound />);
+
+			await fireEvent.click(header(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+		});
+
+		it("plays close exactly once when the reader folds the trace back", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			vi.useFakeTimers();
+			const { container } = render(<ReasoningPanel text="trace" sound />);
+
+			await fireEvent.click(header(container));
+			play.mockClear();
+			await fireEvent.click(header(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			vi.useFakeTimers();
+			const { container } = render(<ReasoningPanel text="trace" />);
+
+			await fireEvent.click(header(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when streaming opens the panel on its own", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			vi.useFakeTimers();
+			render(<ReasoningPanel text="trace" streaming sound />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when the 600ms auto-collapse folds the panel on its own", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			vi.useFakeTimers();
+			const { container, rerender } = render(<ReasoningPanel text="trace" streaming sound />);
+
+			rerender(<ReasoningPanel text="trace" streaming={false} sound />);
+			await act(async () => void (await vi.advanceTimersByTimeAsync(PAST_AUTO_COLLAPSE)));
+
+			expect(header(container).getAttribute("aria-expanded")).toBe("false");
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

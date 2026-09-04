@@ -192,6 +192,34 @@ describe("Dock", () => {
 		expect(toolbar?.className).toContain("flex-col");
 	});
 
+	// The class alone is not what assistive technology reads: `role="toolbar"`
+	// defaults to a horizontal orientation, so a vertical dock that only swaps
+	// its flex direction is still announced as a row of icons.
+	it("announces a vertical orientation when orientation is vertical", () => {
+		const { container } = render(<Dock orientation="vertical" />);
+		const toolbar = container.querySelector('[role="toolbar"]') as HTMLElement;
+		expect(toolbar.getAttribute("aria-orientation")).toBe("vertical");
+	});
+
+	it("announces a horizontal orientation by default", () => {
+		const { container } = render(<Dock />);
+		const toolbar = container.querySelector('[role="toolbar"]') as HTMLElement;
+		expect(toolbar.getAttribute("aria-orientation")).toBe("horizontal");
+	});
+
+	// The dock spreads no rest props, so `ariaLabel` is the only way to name it.
+	it("names the toolbar from ariaLabel", () => {
+		const { container } = render(<Dock ariaLabel="Application dock" />);
+		const toolbar = container.querySelector('[role="toolbar"]') as HTMLElement;
+		expect(toolbar.getAttribute("aria-label")).toBe("Application dock");
+	});
+
+	it("leaves the toolbar unnamed when no ariaLabel is given", () => {
+		const { container } = render(<Dock />);
+		const toolbar = container.querySelector('[role="toolbar"]') as HTMLElement;
+		expect(toolbar.hasAttribute("aria-label")).toBe(false);
+	});
+
 	it("applies items-end class for bottom direction", () => {
 		const { container } = render(<Dock direction="bottom" />);
 		const toolbar = container.querySelector('[role="toolbar"]') as HTMLElement;

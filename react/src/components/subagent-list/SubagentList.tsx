@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import type { RunStatus, SubagentData } from "../../internals/ai-types.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./subagent-list.css";
 
 /** The small caption a row shows in place of a progress bar. */
@@ -211,12 +212,18 @@ export interface SubagentListProps {
 	compact?: boolean;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off
+	 * by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 export const SubagentList = forwardRef<HTMLDivElement, SubagentListProps>(function SubagentList(
-	{ agents, label, onSelect, item, compact = false, className },
+	{ agents, label, onSelect, item, compact = false, className, sound = false },
 	ref
 ) {
+	const playCue = useSoundCue(sound);
 	const runningCount = agents.filter((agent) => agent.status === "running").length;
 	const allFinished = agents.length > 0 && agents.every((agent) => isFinished(agent.status));
 
@@ -237,6 +244,13 @@ export const SubagentList = forwardRef<HTMLDivElement, SubagentListProps>(functi
 	const listLabel = label ?? autoLabel;
 	const rows = buildRows(agents);
 
+	/** A row activation is a fresh gesture every time — mounting a new row or a
+	 *  status change never routes through here, only an actual pick does. */
+	function selectAgent(agent: SubagentData, index: number) {
+		playCue("select");
+		onSelect?.(agent, index);
+	}
+
 	return (
 		<div ref={ref} className={cn("ft-subagents w-full text-sm", compact && "ft-subagents-compact", className)}>
 			{/*
@@ -250,7 +264,7 @@ export const SubagentList = forwardRef<HTMLDivElement, SubagentListProps>(functi
 							<button
 								type="button"
 								className="ft-subagents-body hover:bg-muted/60 focus-visible:ring-ring flex w-full cursor-pointer items-start gap-2.5 rounded-md text-left transition-colors focus-visible:ring-1 focus-visible:outline-none"
-								onClick={() => onSelect?.(agent, index)}
+								onClick={() => selectAgent(agent, index)}
 							>
 								<RowBody agent={agent} index={index} compact={compact} onSelect={onSelect} item={item} />
 							</button>

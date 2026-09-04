@@ -1,7 +1,8 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { useEffect, useRef, useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { Sidebar } from "./Sidebar.js";
 import { SidebarGroup } from "./SidebarGroup.js";
 import { SidebarItem } from "./SidebarItem.js";
@@ -363,6 +364,84 @@ describe("SidebarItem", () => {
 		);
 		expect(ref.current).toBe(container.querySelector("a"));
 	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a non-current item (button branch) is activated", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<SidebarItem sound>
+					<span>Projects</span>
+				</SidebarItem>
+			);
+
+			fireEvent.click(container.querySelector("button") as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a non-current item (link branch) is activated", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<SidebarItem href="/dashboard" sound>
+					<span>Dashboard</span>
+				</SidebarItem>
+			);
+
+			fireEvent.click(container.querySelector("a") as HTMLAnchorElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<SidebarItem>
+					<span>Projects</span>
+				</SidebarItem>
+			);
+
+			fireEvent.click(container.querySelector("button") as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<SidebarItem sound disabled>
+					<span>Projects</span>
+				</SidebarItem>
+			);
+
+			fireEvent.click(container.querySelector("button") as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the item is already current — the changed-only guard", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<SidebarItem href="/dashboard" current sound>
+					<span>Dashboard</span>
+				</SidebarItem>
+			);
+
+			fireEvent.click(container.querySelector("a") as HTMLAnchorElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+	});
 });
 
 describe("SidebarSeparator", () => {
@@ -397,8 +476,10 @@ describe("SidebarFooter", () => {
 		expect(hr).toBeTruthy();
 		expect(avatar).toBeTruthy();
 		// The separator precedes the row in document order.
+		// `&` binds tighter than `??`, so the mask has to be parenthesised —
+		// without it the assertion reads the raw bitmask and can never fail.
 		expect(
-			hr?.compareDocumentPosition(avatar as Node) ?? 0 & Node.DOCUMENT_POSITION_FOLLOWING
+			(hr?.compareDocumentPosition(avatar as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING
 		).toBeTruthy();
 	});
 

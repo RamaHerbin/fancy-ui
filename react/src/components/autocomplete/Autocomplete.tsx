@@ -7,6 +7,7 @@ import { useListbox } from "../../internals/listbox.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { AUTOCOMPLETE_KEY, type AutocompleteContext } from "./types.js";
 import { AutocompletePanel } from "./AutocompletePanel.js";
 import "./autocomplete.css";
@@ -40,6 +41,11 @@ export interface AutocompleteProps {
 	maxSuggestions?: number;
 	/** Additional CSS classes. */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(function Autocomplete(
@@ -58,6 +64,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 		minLength = 1,
 		maxSuggestions = 8,
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -72,6 +79,8 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 	const effectiveRequired = field?.required ?? required;
 	const effectiveInvalid = field?.invalid ?? invalid;
 	const panelId = `${uid}-listbox`;
+
+	const playCue = useSoundCue(sound);
 
 	// The Svelte source's `value` is `$bindable("")`: a consumer can bind it,
 	// or hand it a plain value and let the component keep writing its own
@@ -133,12 +142,19 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 	// effect, so it doesn't fight a caller's own controlled write.
 	const commit = useCallback(
 		(suggestion: string) => {
+			// Re-picking the suggestion already in force changes nothing — the
+			// changed-only rule every other value-holding component follows
+			// (Select, Tabs, DatePicker, ...), even where, as here, there is no
+			// second cue to fall back on. Read BEFORE the write, and never at
+			// the cost of the callbacks: both still fire on a re-pick.
+			const changed = value !== suggestion;
 			setValue(suggestion);
 			setOpen(false);
+			if (!effectiveDisabled && changed) playCue("select");
 			onValueChange?.(suggestion);
 			onSelect?.(suggestion);
 		},
-		[onValueChange, onSelect]
+		[value, effectiveDisabled, playCue, onValueChange, onSelect]
 	);
 
 	const close = useCallback(() => {

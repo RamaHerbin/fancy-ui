@@ -79,8 +79,10 @@ export function Focus({
 	}, [currentIndex]);
 
 	// Mount-only, as the Svelte side starts its interval in onMount: the timing
-	// props are captured once and a later change does not restart the cycle.
-	const startupRef = useLiveRef({ manualMode, animationDuration, pauseBetweenAnimations });
+	// props are captured once and a later change does not restart the cycle. A
+	// plain ref holds them — it is never written after the first render, so the
+	// mount effect reads the same values a Svelte `onMount` closure would.
+	const startupRef = useRef({ manualMode, animationDuration, pauseBetweenAnimations });
 	useEffect(() => {
 		const { manualMode, animationDuration, pauseBetweenAnimations } = startupRef.current;
 		if (manualMode) return;

@@ -40,6 +40,13 @@ export interface LineRevealProps {
 	className?: string;
 }
 
+/**
+ * First `<n>px` length in a CSS font shorthand, with the optional `/line-height`
+ * that may already follow it. Group 1 is the font size; the whole match is what
+ * gets rewritten when the resolved line height is folded into the shorthand.
+ */
+const FONT_SIZE_PX = /(\d+(?:\.\d+)?)px(?:\s*\/\s*[^\s,]+)?/;
+
 export function LineReveal({
 	text,
 	// Named families only: canvas and CSS can resolve `system-ui` to
@@ -52,8 +59,23 @@ export function LineReveal({
 	once = true,
 	className,
 }: LineRevealProps) {
-	const fontSize = Number(/(\d+(?:\.\d+)?)px/.exec(font)?.[1] ?? 32);
+	const fontSize = Number(FONT_SIZE_PX.exec(font)?.[1] ?? 32);
 	const resolvedLineHeight = lineHeight ?? Math.round(fontSize * 1.2);
+
+	// The `font` shorthand resets `line-height`, and only the style declarations
+	// whose value changed are re-applied on update — so a font-only change (same
+	// px size, different weight or family) would set `font` without re-applying a
+	// separately declared `line-height`, and the lines would drift inside their
+	// fixed-height masks. One declaration carries both instead: the line height is
+	// folded into the shorthand, and the `line-height` longhand is only used when
+	// there is no px size to fold into (never both — React warns about mixing a
+	// shorthand with a longhand for the same value). The `font` prop itself is
+	// left untouched for canvas measurement, where `ctx.font` ignores the line
+	// height anyway.
+	const foldable = FONT_SIZE_PX.test(font);
+	const fontWithLineHeight = foldable
+		? font.replace(FONT_SIZE_PX, (_match: string, size: string) => `${size}px/${resolvedLineHeight}px`)
+		: font;
 
 	const [container, containerRef] = useElementRef<HTMLDivElement>();
 	const [containerWidth, setContainerWidth] = useState(0);
@@ -66,12 +88,18 @@ export function LineReveal({
 	useEffect(() => {
 		let cancelled = false;
 
-		document.fonts
-			.load(font)
+		// Both steps are optional at runtime: `document.fonts` is missing wherever
+		// FontFaceSet is not implemented, and measurement needs a canvas 2d context.
+		// Either absence lands on the pre-measure fallback below instead of throwing
+		// out of the effect and tearing the tree down.
+		Promise.resolve(document.fonts?.load(font))
 			.catch(() => {})
 			.then(() => {
-				if (!cancelled) {
+				if (cancelled) return;
+				try {
 					setPrepared(prepareWithSegments(text, font));
+				} catch {
+					setPrepared(null);
 				}
 			});
 
@@ -139,8 +167,8 @@ export function LineReveal({
 			ref={containerRef}
 			className={cn("line-reveal", "relative w-full", className)}
 			style={{
-				font,
-				lineHeight: `${resolvedLineHeight}px`,
+				font: fontWithLineHeight,
+				...(foldable ? null : { lineHeight: `${resolvedLineHeight}px` }),
 				height: layoutResult ? `${layoutResult.height}px` : undefined,
 			}}
 		>

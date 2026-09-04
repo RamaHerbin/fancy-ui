@@ -3,6 +3,7 @@ import type { ChangeEvent, FocusEvent, KeyboardEvent } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./number-input.css";
 
 export interface NumberInputProps {
@@ -38,6 +39,11 @@ export interface NumberInputProps {
 	label?: string;
 	/** Additional CSS classes, applied to the outer bordered wrapper. */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off
+	 * by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
@@ -57,6 +63,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 			name,
 			label,
 			className,
+			sound = false,
 		},
 		ref
 	) => {
@@ -113,6 +120,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 		const effectiveDisabled = field?.disabled ?? disabled;
 		const effectiveRequired = field?.required ?? required;
 		const effectiveInvalid = field?.invalid ?? invalid;
+
+		const playCue = useSoundCue(sound);
 
 		// How many decimal digits a number carries, e.g. 2 for 0.25.
 		function decimalPlaces(n: number): number {
@@ -209,6 +218,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 			const next = nextStepValue(direction);
 			setValue(next);
 			setRawText(String(next));
+			playCue("tick");
 			onValueChange?.(next);
 			flagStepping(direction);
 		}

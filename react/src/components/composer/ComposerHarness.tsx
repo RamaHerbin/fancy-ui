@@ -32,6 +32,7 @@ export interface ComposerHarnessProps {
 	onSubmit?: (payload: { text: string; attachments: AttachmentData[] }) => void;
 	onStop?: () => void;
 	onAttach?: (files: File[]) => void;
+	sound?: boolean;
 }
 
 /**
@@ -71,6 +72,7 @@ export function ComposerHarness({
 	onSubmit,
 	onStop,
 	onAttach,
+	sound = false,
 }: ComposerHarnessProps) {
 	// Seeded once, as the Svelte rig's `untrack` reads are: the mode and the seeds
 	// are fixed for a mounted rig.
@@ -98,6 +100,7 @@ export function ComposerHarness({
 				onSubmit={onSubmit}
 				onStop={onStop}
 				onAttach={handleAttach}
+				sound={sound}
 			>
 				<ComposerInput placeholder={placeholder} maxRows={maxRows} />
 				<div className="flex items-center gap-2">

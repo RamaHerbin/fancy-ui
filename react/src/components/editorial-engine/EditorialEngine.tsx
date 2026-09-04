@@ -61,7 +61,10 @@ export function EditorialEngine({
 	fontFamily = DEFAULT_FONT_FAMILY,
 	className,
 }: EditorialEngineProps) {
-	const stageRef = useRef<HTMLDivElement | null>(null);
+	// The engine owns this layer exclusively, which is why the accessible
+	// fallback is a sibling of it and not a child of the element the engine
+	// writes into.
+	const layerRef = useRef<HTMLDivElement | null>(null);
 	const [ready, setReady] = useState(false);
 
 	// The pullquote array is compared by CONTENT, not identity: a caller who
@@ -75,8 +78,8 @@ export function EditorialEngine({
 	// Re-created whenever the text props change, so the prepared measurements
 	// always match the rendered content. Effects never run during SSR.
 	useEffect(() => {
-		const stage = stageRef.current;
-		if (stage === null) return;
+		const layer = layerRef.current;
+		if (layer === null) return;
 		const options = { headline, body, pullquotes, fontFamily };
 		let destroy: (() => void) | null = null;
 		let cancelled = false;
@@ -85,7 +88,7 @@ export function EditorialEngine({
 		// loaded first or widths come from the fallback font.
 		document.fonts.ready.then(() => {
 			if (cancelled) return;
-			destroy = createEditorialEngine(stage, options);
+			destroy = createEditorialEngine(layer, options);
 			setReady(true);
 		});
 
@@ -97,18 +100,19 @@ export function EditorialEngine({
 	}, [headline, body, pullquotesKey, fontFamily]);
 
 	return (
-		<div
-			ref={stageRef}
-			className={cn("ee-stage", className, ready && "ready")}
-			style={{ fontFamily }}
-		>
-			{!ready && (
-				// SSR / pre-engine fallback: keeps the content in the HTML
-				<div className="ee-fallback" aria-hidden="false">
-					<h2>{headline}</h2>
-					<p>{body}</p>
-				</div>
-			)}
+		<div className={cn("ee-stage", className, ready && "ready")} style={{ fontFamily }}>
+			{/*
+			 * The accessible document, and the SSR / pre-engine fallback: visible
+			 * until the engine is ready, then visually hidden (clipped, not
+			 * `display: none`) but never unmounted. The positioned-line layer
+			 * below is one span per visual line, with no heading and no paragraph
+			 * boundaries, so this stays the only accessible copy.
+			 */}
+			<div className={cn("ee-fallback", ready && "ee-sr-only")}>
+				<h2>{headline}</h2>
+				<p>{body}</p>
+			</div>
+			<div ref={layerRef} className="ee-layer" aria-hidden="true" />
 		</div>
 	);
 }

@@ -1,9 +1,12 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useInsertionEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
 import { useElapsed } from "../../internals/use-elapsed.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { drawWaveformFrame, fakeWaveSample } from "../../internals/waveform-core.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./voice-input.css";
 
 /**
@@ -51,6 +54,11 @@ export interface VoiceInputProps {
 	color?: string;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** Bar geometry, in CSS pixels. Fixed: the waveform is a meter, not a chart. */
@@ -63,13 +71,6 @@ const MIN_HEIGHT = 16;
 const MAX_HEIGHT = 240;
 /** Handed to the renderer when there is no signal and no stand-in for one. */
 const NO_SIGNAL: number[] = [];
-
-function prefersReducedMotion(): boolean {
-	return (
-		typeof window.matchMedia === "function" &&
-		window.matchMedia("(prefers-reduced-motion: reduce)").matches
-	);
-}
 
 /**
  * A mic button that opens into a recording panel: a live waveform, a stopwatch,
@@ -92,6 +93,7 @@ export const VoiceInput = forwardRef<HTMLDivElement, VoiceInputProps>(function V
 		height = 48,
 		color = "var(--ft-voice-color, currentColor)",
 		className,
+		sound = false,
 	},
 	ref
 ) {
@@ -146,28 +148,84 @@ export const VoiceInput = forwardRef<HTMLDivElement, VoiceInputProps>(function V
 	const samplesRef = useLiveRef(samples);
 	const demoRef = useLiveRef(demo);
 
+	const playCue = useSoundCue(sound);
+
+	const focusOnSwap = useRef<"panel" | "mic" | null>(null);
+	const micButtonRef = useRef<HTMLButtonElement | null>(null);
+	const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
+
+	/*
+	 * The synchronous half of `active`, and the counterpart of the source's plain
+	 * `active = false`. State is what renders; the guards below need what the
+	 * click before them wrote, and two dispatches inside one batch both close
+	 * over the same render's state. Written by `setActive` and re-synced from
+	 * every commit, so an `active` driven from outside lands here too.
+	 */
+	const activeRef = useRef(active);
+	useInsertionEffect(() => {
+		activeRef.current = active;
+	}, [active]);
+
 	// The only place `active` changes on this side of the wire.
 	function setActive(next: boolean) {
-		if (active === next) return;
+		if (activeRef.current === next) return;
+		activeRef.current = next;
 		setActiveState(next);
 		onActiveChange?.(next);
 	}
 
+	/*
+	 * Each of the three handlers re-reads the recording state first, exactly as
+	 * the source does. Without the guard a second click dispatched before the
+	 * state has flushed runs the whole body again, and the consumer's callback —
+	 * and the cue — fire twice for one gesture.
+	 */
 	function handleStart() {
-		if (active) return;
+		if (activeRef.current) return;
 		setActive(true);
+		playCue("open");
+		focusOnSwap.current = "panel";
 		onStart?.();
 	}
 
 	function handleCancel() {
+		if (!activeRef.current) return;
+		playCue("close");
 		setActive(false);
+		focusOnSwap.current = "mic";
 		onCancel?.();
 	}
 
 	function handleFinish() {
+		if (!activeRef.current) return;
+		// This is a commit gesture, not an outcome: the component never opens a
+		// microphone or runs a recogniser (see the `samples`/`transcript` docs
+		// above), so it has nothing of its own to resolve. `select` matches every
+		// other commit branch in the library; the consumer's own pipeline is what
+		// actually succeeds or fails, and can play `success`/`error` itself once
+		// it knows which.
+		playCue("select");
 		setActive(false);
+		focusOnSwap.current = "mic";
 		onStop?.();
 	}
+
+	/*
+	 * The button the user just pressed is unmounted by the state change it
+	 * caused, so without a move focus lands on <body> and the next Tab restarts
+	 * from the top of the page. Only a user-driven flip moves it: an `active`
+	 * driven from outside is the consumer's own gesture, and stealing focus for
+	 * it would be a surprise. A layout effect, so the move is in place for the
+	 * frame the new control is first painted in, and idempotent — the intent is
+	 * consumed on the first run, so a second invocation focuses nothing.
+	 */
+	useIsomorphicLayoutEffect(() => {
+		const target = focusOnSwap.current;
+		if (!target) return;
+		focusOnSwap.current = null;
+		const el = target === "panel" ? cancelButtonRef.current : micButtonRef.current;
+		el?.focus();
+	}, [active]);
 
 	/*
 	 * The whole canvas lifetime is one effect. It re-runs when the panel appears
@@ -301,6 +359,7 @@ export const VoiceInput = forwardRef<HTMLDivElement, VoiceInputProps>(function V
 
 			{!active ? (
 				<button
+					ref={micButtonRef}
 					type="button"
 					className="ft-voice-mic text-muted-foreground hover:text-foreground hover:bg-foreground/5 inline-flex size-9 flex-none items-center justify-center rounded-full border transition-colors"
 					aria-label="Start voice input"
@@ -353,6 +412,7 @@ export const VoiceInput = forwardRef<HTMLDivElement, VoiceInputProps>(function V
 					</time>
 
 					<button
+						ref={cancelButtonRef}
 						type="button"
 						className="ft-voice-btn text-muted-foreground hover:text-foreground hover:bg-foreground/5 inline-flex size-7 flex-none items-center justify-center rounded-full transition-colors"
 						aria-label="Cancel voice input"

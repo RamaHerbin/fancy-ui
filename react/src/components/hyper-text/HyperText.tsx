@@ -53,6 +53,11 @@ export function HyperText({
 	seed = 1,
 }: HyperTextProps) {
 	const [displayText, setDisplayText] = useState<string[]>(() => text.split(""));
+	// Mirror of `displayText`, so a tick builds the next array before handing it to
+	// the setter. React may call a state updater twice (StrictMode, in dev); an
+	// updater that scrambled in place would draw twice from the seeded stream and
+	// map the array twice per tick.
+	const displayTextRef = useRef(displayText);
 	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const iterationsRef = useRef(0);
 
@@ -65,9 +70,16 @@ export function HyperText({
 		seedRef.current = seed;
 	});
 
+	/** The single write path: keeps the ref mirror and the state in step. */
+	function writeDisplayText(next: string[]) {
+		displayTextRef.current = next;
+		setDisplayText(next);
+	}
+
 	// Sync displayText when text prop changes (the source's `$effect`).
 	useEffect(() => {
-		setDisplayText(text.split(""));
+		writeDisplayText(text.split(""));
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [text]);
 
 	function stopAnimation() {
@@ -88,15 +100,14 @@ export function HyperText({
 		intervalRef.current = setInterval(() => {
 			const target = textRef.current;
 			if (iterationsRef.current < target.length) {
-				setDisplayText((prev) =>
-					prev.map((l, i) =>
-						l === " " ? l : i <= iterationsRef.current ? (target[i] ?? l) : getRandomLetter()
-					)
+				const next = displayTextRef.current.map((l, i) =>
+					l === " " ? l : i <= iterationsRef.current ? (target[i] ?? l) : getRandomLetter()
 				);
+				writeDisplayText(next);
 				iterationsRef.current += 0.1;
 			} else {
 				stopAnimation();
-				setDisplayText(target.split(""));
+				writeDisplayText(target.split(""));
 			}
 		}, intervalMs);
 	}

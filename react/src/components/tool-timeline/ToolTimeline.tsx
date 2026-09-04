@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { formatRelativeTime } from "../../internals/relative-time.js";
 import { useNow } from "../../internals/use-elapsed.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import type { ToolTimelineItemData } from "../../internals/ai-types.js";
 import "./tool-timeline.css";
 
@@ -22,6 +23,11 @@ export interface ToolTimelineProps {
 	label?: string;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off
+	 * by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 function iso(timestamp: Date | number): string {
@@ -36,10 +42,19 @@ function iso(timestamp: Date | number): string {
  * list rather than one per row.
  */
 export const ToolTimeline = forwardRef<HTMLDivElement, ToolTimelineProps>(function ToolTimeline(
-	{ items, onSelect, item, compact = false, label = "Activity", className },
+	{ items, onSelect, item, compact = false, label = "Activity", className, sound = false },
 	ref
 ) {
 	const now = useNow();
+	const playCue = useSoundCue(sound);
+
+	// A row activation is a fresh gesture every time — an appended entry or
+	// the shared clock ticking never routes through here, only an actual
+	// pick does.
+	function selectEntry(entry: ToolTimelineItemData, index: number) {
+		playCue("select");
+		onSelect?.(entry, index);
+	}
 
 	return (
 		<div
@@ -113,7 +128,7 @@ export const ToolTimeline = forwardRef<HTMLDivElement, ToolTimelineProps>(functi
 								<button
 									type="button"
 									className="ft-tooltimeline-body hover:bg-muted/60 focus-visible:ring-ring flex w-full cursor-pointer items-baseline gap-3 rounded-md text-left transition-colors focus-visible:ring-1 focus-visible:outline-none"
-									onClick={() => onSelect(entry, index)}
+									onClick={() => selectEntry(entry, index)}
 								>
 									{body}
 								</button>

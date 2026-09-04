@@ -1,7 +1,9 @@
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
-import { afterEach, describe, it, expect } from "vitest";
+import { useLayoutEffect } from "react";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ContextRing } from "./ContextRing.js";
 import type { TokenUsageData } from "../../internals/ai-types.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 function usage(overrides: Partial<TokenUsageData> = {}): TokenUsageData {
 	return { used: 12_400, max: 200_000, ...overrides };
@@ -55,6 +57,27 @@ async function settle(): Promise<void> {
 		await new Promise<void>((resolve) =>
 			requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
 		);
+	});
+}
+
+/**
+ * jsdom has no motion preference of its own, so the query is answered by a stub.
+ * `onQuery` records the moment the ring asks, which is what tells a pre-paint
+ * write apart from one made after the browser has already painted.
+ */
+function stubMatchMedia(matches: boolean, onQuery?: () => void): void {
+	vi.stubGlobal("matchMedia", (query: string) => {
+		onQuery?.();
+		return {
+			matches,
+			media: query,
+			onchange: null,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		};
 	});
 }
 
@@ -287,6 +310,39 @@ describe("ContextRing", () => {
 		);
 	});
 
+	it("writes the settled arc before paint under reduced motion", () => {
+		// The source writes the target from `onMount`, which is flushed before the
+		// browser paints; a passive effect would run after it and show one frame of
+		// empty ring. The phase is observed through the order the preference query
+		// lands in relative to a later sibling's layout effect: in the layout phase
+		// the ring asks first, in a passive effect it would ask after every layout
+		// effect in the same commit.
+		const order: string[] = [];
+		stubMatchMedia(true, () => order.push("ring"));
+
+		function Probe() {
+			useLayoutEffect(() => {
+				order.push("probe-layout");
+			}, []);
+			return null;
+		}
+
+		try {
+			const { container } = render(
+				<>
+					<ContextRing usage={usage({ used: 50, max: 200 })} />
+					<Probe />
+				</>
+			);
+
+			expect(order).toEqual(["ring", "probe-layout"]);
+			// And the arc is at its full length with no frame to wait for.
+			expect(drawn(container)).toBeCloseTo(0.25, 5);
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
 	it("closes the popover when expandability is taken away, and leaves it closed", async () => {
 		const initial = {
 			usage: usage({ breakdown: [{ label: "System prompt", tokens: 1200 }] }),
@@ -303,5 +359,97 @@ describe("ContextRing", () => {
 		rerender(<ContextRing {...initial} expandable />);
 		expect(panel(container)).toBeNull();
 		expect(trigger(container)?.getAttribute("aria-expanded")).toBe("false");
+	});
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when the trigger opens the popover", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ContextRing usage={usage()} expandable sound />);
+
+			fireEvent.click(trigger(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ContextRing usage={usage()} expandable />);
+
+			fireEvent.click(trigger(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while not expandable, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ContextRing usage={usage()} expandable={false} sound />);
+
+			// No trigger renders at all — nothing to synthesize a click against —
+			// so a direct dispatch on the root proves the meter itself is inert.
+			fireEvent.click(root(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays close exactly once on a second press of the trigger", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ContextRing usage={usage()} expandable sound />);
+			const button = trigger(container) as HTMLButtonElement;
+
+			fireEvent.click(button);
+			play.mockClear();
+			fireEvent.click(button);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays close exactly once on Escape, and never twice for one dismissal", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ContextRing usage={usage()} expandable sound />);
+			fireEvent.click(trigger(container) as HTMLButtonElement);
+			play.mockClear();
+
+			fireEvent.keyDown(window, { key: "Escape" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays close exactly once on a press outside", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ContextRing usage={usage()} expandable sound />);
+			fireEvent.click(trigger(container) as HTMLButtonElement);
+			play.mockClear();
+
+			act(() => {
+				document.body.dispatchEvent(
+					new MouseEvent("pointerdown", { bubbles: true, cancelable: true })
+				);
+			});
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("stays silent when expandability is taken away — that close is bookkeeping, not a dismissal", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container, rerender } = render(<ContextRing usage={usage()} expandable sound />);
+			fireEvent.click(trigger(container) as HTMLButtonElement);
+			play.mockClear();
+
+			rerender(<ContextRing usage={usage()} expandable={false} sound />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

@@ -208,6 +208,17 @@ describe("Select", () => {
 		await waitFor(() => expect(panel()).toBeNull());
 	});
 
+	// WAI-ARIA APG's select-only combobox pattern names the listbox, not just
+	// the trigger — otherwise a screen reader announces it as an unnamed
+	// "listbox" the instant it expands.
+	it("gives the portalled listbox the same accessible name as the trigger's label prop", async () => {
+		const { container } = render(<Select options={OPTIONS} label="Plan" />);
+		fireEvent.click(trigger(container));
+
+		expect(panel()?.getAttribute("aria-label")).toBe("Plan");
+		await settleLegs();
+	});
+
 	it("renders every option as role=option with the right label, inside role=listbox", async () => {
 		const { container } = render(<Select options={OPTIONS} />);
 		fireEvent.click(trigger(container));
@@ -893,6 +904,37 @@ describe("Select", () => {
 			beneathLayer.destroy();
 			beneath.remove();
 			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// Svelte marks the `{#if open}` branch INERT before it plays the outro
+		// and its scheduler skips inert effects, so the rows a closing panel
+		// shows are frozen at whatever they were the instant the close began.
+		// Clicking a row is the most common way a select closes, and it commits
+		// the value in the same turn — so an unfrozen panel would move the ✓ and
+		// the `bg-accent` highlight onto the clicked row and off the old one for
+		// the whole length of the fade.
+		it("freezes the rows for the exit: the previously selected row keeps aria-selected and the highlight", async () => {
+			const { container } = render(<Select options={OPTIONS} value="svelte" />);
+			fireEvent.click(trigger(container));
+			const previous = optionByLabel("Svelte 5");
+			expect(previous.getAttribute("aria-selected")).toBe("true");
+
+			fireEvent.click(optionByLabel("React"));
+
+			// Still on screen, still fading, still showing what it showed.
+			expect(panel()).toBeTruthy();
+			expect(previous.getAttribute("aria-selected")).toBe("true");
+			expect(previous.className).toContain("bg-accent");
+			expect(previous.textContent).toContain("✓");
+			expect(optionByLabel("React").getAttribute("aria-selected")).toBe("false");
+
+			await waitFor(() => expect(panel()).toBeNull());
+
+			// And the commit itself was never in doubt: reopening shows the new
+			// selection.
+			fireEvent.click(trigger(container));
+			expect(optionByLabel("React").getAttribute("aria-selected")).toBe("true");
+			await settleLegs();
 		});
 
 		// The reduced-motion fast path: a zero duration makes `runTransition`

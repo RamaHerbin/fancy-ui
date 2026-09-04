@@ -1,6 +1,7 @@
-import { render, cleanup } from "@testing-library/react";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, cleanup, fireEvent } from "@testing-library/react";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { LineHoverLink } from "./LineHoverLink.js";
+import { sound } from "../../sound/sound.js";
 
 describe("LineHoverLink", () => {
 	afterEach(() => {
@@ -103,5 +104,53 @@ describe("LineHoverLink", () => {
 		} finally {
 			window.matchMedia = real;
 		}
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when the link is activated, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<LineHoverLink href="#" sound />);
+
+			fireEvent.click(container.querySelector("a")!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<LineHoverLink href="#" />);
+
+			fireEvent.click(container.querySelector("a")!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("never preventDefaults the click — navigation stays untouched", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<LineHoverLink href="#" sound />);
+			const el = container.querySelector("a")!;
+			const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+
+			el.dispatchEvent(event);
+
+			expect(event.defaultPrevented).toBe(false);
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing on hover or focus — the CSS underline animation stays silent", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<LineHoverLink href="#" sound />);
+			const el = container.querySelector("a")!;
+
+			fireEvent.mouseEnter(el);
+			fireEvent.focus(el);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

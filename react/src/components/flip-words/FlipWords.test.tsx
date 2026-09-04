@@ -42,6 +42,11 @@ describe("FlipWords", () => {
 		const wordSpans = container.querySelectorAll(".flip-words-word");
 		// "Hello World" split by space = 2 word groups
 		expect(wordSpans.length).toBe(2);
+		// Each group ends with TWO spaces: the collapsible space from the markup
+		// plus the trailing non-breaking space span. Dropping the first one halves
+		// the inter-word gap.
+		expect(wordSpans[0]?.textContent).toBe("Hello \u00a0");
+		expect(wordSpans[1]?.textContent).toBe("World \u00a0");
 	});
 
 	it("keeps flipping while the parent re-renders with a fresh array literal", () => {

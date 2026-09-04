@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { AgentPlan } from "./AgentPlan.js";
+import { sound } from "../../sound/sound.js";
 import type { PlanStepData } from "../../internals/ai-types.js";
 
 function step(overrides: Partial<PlanStepData> = {}): PlanStepData {
@@ -364,5 +365,67 @@ describe("AgentPlan", () => {
 		);
 
 		expect(labels(container)).toEqual(["First", "Second", "Third"]);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when a row is activated, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(<AgentPlan steps={nested()} sound onSelect={onSelect} />);
+
+			fireEvent.click(container.querySelectorAll("button")[0]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays select for a substep row too, through the same shared handler", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(<AgentPlan steps={nested()} sound onSelect={onSelect} />);
+
+			// The third row is the first substep — same handler, same cue.
+			fireEvent.click(container.querySelectorAll("button")[2]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(<AgentPlan steps={nested()} onSelect={onSelect} />);
+
+			fireEvent.click(container.querySelectorAll("button")[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when onSelect is absent — rows are plain divs, not buttons", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<AgentPlan steps={nested()} sound />);
+
+			expect(container.querySelectorAll("button")).toHaveLength(0);
+			rows(container)[0]!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays again on a repeat activation of the same row — there is no changed-only guard", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(<AgentPlan steps={nested()} sound onSelect={onSelect} />);
+			const button = container.querySelectorAll("button")[0]!;
+
+			fireEvent.click(button);
+			fireEvent.click(button);
+
+			expect(play).toHaveBeenCalledTimes(2);
+			expect(onSelect).toHaveBeenCalledTimes(2);
+		});
 	});
 });

@@ -7,6 +7,7 @@ import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { usePresence } from "../../internals/motion/presence.js";
 import { DURATIONS, JS_EASINGS } from "../../internals/motion/tokens.js";
 import { preset } from "../../internals/motion/transitions.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { clearAllToastTimers, rearmToastTimers, toastStore } from "./store.js";
 import type { ToastItem } from "./store.js";
 import { Toast } from "./Toast.js";
@@ -24,7 +25,28 @@ export interface ToasterProps {
 	position?: ToasterPosition;
 	/** Additional classes for the viewport that stacks the toasts. */
 	className?: string;
+	/**
+	 * Plays the `success`/`error` cue through the sound controller when a
+	 * toast of that variant appears. Off by default; only audible once the
+	 * user has enabled sound.
+	 */
+	sound?: boolean;
 }
+
+// Ids already sounded, kept at *module* scope — unlike `announcedIdsRef`
+// below, which is per-instance and thrown away the moment a `<Toaster>`
+// unmounts, while `toastStore.items` (a module-level singleton) survives
+// that unmount untouched. Without this, a remount while a success/error
+// toast is still on screen replays its cue: the announce effect reruns on
+// the fresh instance with an empty `announcedIds`, so a toast that has
+// already sounded once looks unseen to the sound check too. The live
+// region legitimately wants a fresh instance to re-announce (a screen
+// reader is not attached to the old, destroyed region), so this is
+// checked separately rather than folded into `announcedIds`. Pruned to
+// the current stack on every effect run, same bounding `announcedIds`
+// already does, so this never grows for the life of the page — ids are
+// monotonic and never reused (see `store.ts`'s `toast()`).
+const soundedIds = new Set<string>();
 
 const POSITION_CLASSES: Record<ToasterPosition, string> = {
 	"top-left": "top-4 left-4 items-start",
@@ -86,12 +108,67 @@ function ToastSlot({ item, present, appear, onExited }: ToastSlotProps) {
 				}
 	);
 
+	// A slot whose very first render is already un-present has no exit to run —
+	// `usePresence(false)` starts at `mounted === false`, so its clock never
+	// reaches `onExitEnd` and the viewport would hold the entry in its rendered
+	// list forever. Draining it here is the one path back out.
+	const mounted = presence.mounted;
+	useEffect(() => {
+		if (!present && !mounted) onExited(item.id);
+		// Mount-time only: every other route out of the list goes through the
+		// exit's `onExitEnd`.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
 	if (!presence.mounted) return null;
 
 	return (
 		<div className="pointer-events-auto">
 			<Toast item={item} ref={toastRef} />
 		</div>
+	);
+}
+
+interface ToastSlotsProps {
+	items: readonly ToastItem[];
+	storeIds: ReadonlySet<string>;
+	onExited: (id: string) => void;
+}
+
+/**
+ * The slot list, as its OWN component so it lives inside `<Portal>`.
+ *
+ * That placement is the whole point: `<Portal>` resolves its container in a
+ * layout effect and renders null until it has one, so the Toaster's own first
+ * commit produces no slots at all. A flag raised from the Toaster's mount
+ * effect is therefore already set by the time any slot first renders — the
+ * ids that must paint at rest have to be captured from the same render pass
+ * that creates them, which is this component's first.
+ *
+ * Those ids are the source's rule that a local transition never plays on the
+ * initial render of the block that owns it: a toast raised before any viewport
+ * existed, and one inherited by a viewport that replaced another, are simply
+ * there. Everything raised afterwards gets a real entrance.
+ */
+function ToastSlots({ items, storeIds, onExited }: ToastSlotsProps) {
+	const initialIdsRef = useRef<ReadonlySet<string> | null>(null);
+	if (initialIdsRef.current === null) {
+		initialIdsRef.current = new Set(items.map((item) => item.id));
+	}
+	const initialIds = initialIdsRef.current;
+
+	return (
+		<>
+			{items.map((item) => (
+				<ToastSlot
+					key={item.id}
+					item={item}
+					present={storeIds.has(item.id)}
+					appear={!initialIds.has(item.id)}
+					onExited={onExited}
+				/>
+			))}
+		</>
 	);
 }
 
@@ -107,9 +184,11 @@ const bumpReducer = (n: number) => n + 1;
  * mount, `clear` on unmount).
  */
 export const Toaster = forwardRef<HTMLDivElement, ToasterProps>(function Toaster(
-	{ position = "bottom-right", className },
+	{ position = "bottom-right", className, sound = false },
 	forwardedRef
 ) {
+	const playCue = useSoundCue(sound);
+
 	const storeItems = useSyncExternalStore(
 		toastStore.subscribe,
 		() => toastStore.items,
@@ -156,13 +235,6 @@ export const Toaster = forwardRef<HTMLDivElement, ToasterProps>(function Toaster
 		}
 	});
 
-	// Toasts already queued when this viewport first renders paint at rest;
-	// everything raised after it get a real entrance.
-	const mountedOnceRef = useRef(false);
-	useEffect(() => {
-		mountedOnceRef.current = true;
-	}, []);
-
 	// Two regions, mounted empty and never re-created — only their *content*
 	// changes. A live region created at the moment of the announcement is not
 	// reliably picked up by screen readers; existing from mount and being
@@ -181,7 +253,31 @@ export const Toaster = forwardRef<HTMLDivElement, ToasterProps>(function Toaster
 
 	useEffect(() => {
 		const current = storeItems;
+
+		// Forget any sounded id that has left the stack (dismissed, auto-
+		// dismissed, or evicted past `MAX_VISIBLE`) — bounds `soundedIds` to
+		// "currently visible", same as `announcedIds` below, instead of
+		// growing forever for the life of the page.
+		const currentIds = new Set(current.map((item) => item.id));
+		for (const id of soundedIds) {
+			if (!currentIds.has(id)) soundedIds.delete(id);
+		}
+
 		for (const item of current) {
+			// Only success/error toasts get a cue — info and loading stay silent.
+			// `sound` lives on `<Toaster>`, never on `toast()`'s own options: the
+			// caller who raises the toast has no per-call say over whether it
+			// plays. Gated on the module-level `soundedIds`, not the
+			// per-instance `announcedIds`, so a remount can't replay a cue for a
+			// toast that already got one.
+			// The ID is recorded whether or not sound is currently opted in:
+			// the cue marks a toast APPEARING, so flipping `sound` on later
+			// must not retroactively replay outcomes already on screen —
+			// `playCue` is the no-op half of that, reading `sound` live.
+			if (item.variant === "success" || item.variant === "error") {
+				if (!soundedIds.has(item.id)) playCue(item.variant);
+				soundedIds.add(item.id);
+			}
 			if (announcedIdsRef.current.has(item.id)) continue;
 			if (item.variant === "error") {
 				setAssertiveAnnouncement(announcementText(item));
@@ -190,7 +286,7 @@ export const Toaster = forwardRef<HTMLDivElement, ToasterProps>(function Toaster
 			}
 		}
 		announcedIdsRef.current = new Set(current.map((item) => item.id));
-	}, [storeItems]);
+	}, [storeItems, playCue]);
 
 	// The two halves of the timer hand-off. Re-arming on mount is what stops a
 	// toast inherited from a previous viewport from being stuck on screen
@@ -224,15 +320,7 @@ export const Toaster = forwardRef<HTMLDivElement, ToasterProps>(function Toaster
 						POSITION_CLASSES[position]
 					)}
 				>
-					{rendered.map((item) => (
-						<ToastSlot
-							key={item.id}
-							item={item}
-							present={storeIds.has(item.id)}
-							appear={mountedOnceRef.current}
-							onExited={handleExited}
-						/>
-					))}
+					<ToastSlots items={rendered} storeIds={storeIds} onExited={handleExited} />
 				</div>
 			</div>
 		</Portal>

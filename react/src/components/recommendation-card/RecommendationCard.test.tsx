@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { RecommendationCard } from "./RecommendationCard.js";
 import type { RecommendationState } from "./RecommendationCard.js";
 
@@ -314,6 +315,23 @@ describe("RecommendationCard", () => {
 		);
 	});
 
+	it("keeps a falsy-but-renderable child inside the detail region", () => {
+		const { container } = render(<RecommendationCard title={TITLE}>{0}</RecommendationCard>);
+
+		// A plain truthiness test would hand React the number itself, which it
+		// renders as bare text between the header row and the footer.
+		expect(container.querySelector(".ft-rec-detail")?.textContent).toBe("0");
+		expect(root(container).firstElementChild?.nextElementSibling?.className).toContain(
+			"ft-rec-detail"
+		);
+	});
+
+	it("leaves the detail region out when there are no children", () => {
+		const { container } = render(<RecommendationCard title={TITLE} />);
+
+		expect(container.querySelector(".ft-rec-detail")).toBeNull();
+	});
+
 	it("merges an extra class onto the root without losing its own", () => {
 		const { container } = render(
 			<RecommendationCard title={TITLE} className="my-8 border-dashed" />
@@ -322,5 +340,80 @@ describe("RecommendationCard", () => {
 		expect(root(container).classList.contains("my-8")).toBe(true);
 		expect(root(container).classList.contains("border-dashed")).toBe(true);
 		expect(root(container).classList.contains("ft-rec")).toBe(true);
+	});
+
+	it("resolves once — a second decision on an already-resolved proposal does not double-fire", () => {
+		const onAccept = vi.fn();
+		const onStateChange = vi.fn();
+		const { container } = render(
+			<RecommendationCard title={TITLE} onAccept={onAccept} onStateChange={onStateChange} />
+		);
+		const button = accept(container);
+
+		// Two synchronous dispatches inside one act, so nothing is flushed between
+		// them: the proposal's own re-entry guard is what has to stop the second
+		// one, not the accept button having already left the DOM.
+		act(() => {
+			act(() => {
+				button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+				button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			});
+		});
+
+		expect(onAccept).toHaveBeenCalledTimes(1);
+		expect(onStateChange).toHaveBeenCalledTimes(1);
+		expect(onStateChange).toHaveBeenCalledWith("accepted");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when accepted, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<RecommendationCard title={TITLE} sound />);
+
+			await fireEvent.click(accept(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays close — the deliberate asymmetry with ApprovalCard — when dismissed", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<RecommendationCard title={TITLE} sound />);
+
+			await fireEvent.click(dismiss(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<RecommendationCard title={TITLE} />);
+
+			await fireEvent.click(accept(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("resolves once — a second decision on an already-resolved proposal does not double-fire", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<RecommendationCard title={TITLE} sound />);
+			const button = accept(container);
+
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
 	});
 });

@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { IconButton } from "./IconButton.js";
+import { sound } from "../../sound/sound.js";
 import type { ButtonSize, ButtonVariant } from "../button/types.js";
 
 function icon() {
@@ -111,7 +112,7 @@ describe("IconButton", () => {
 	it("blocks the click callback while loading", () => {
 		const onclick = vi.fn();
 		const { container } = render(
-			<IconButton loading onclick={onclick} label="Save">
+			<IconButton loading onClick={onclick} label="Save">
 				{icon()}
 			</IconButton>
 		);
@@ -123,7 +124,7 @@ describe("IconButton", () => {
 	it("disables the control and blocks the click callback", () => {
 		const onclick = vi.fn();
 		const { container } = render(
-			<IconButton disabled onclick={onclick} label="Delete">
+			<IconButton disabled onClick={onclick} label="Delete">
 				{icon()}
 			</IconButton>
 		);
@@ -137,10 +138,10 @@ describe("IconButton", () => {
 		expect(onclick).not.toHaveBeenCalled();
 	});
 
-	it("calls onclick when activated", async () => {
+	it("calls onClick when activated", async () => {
 		const onclick = vi.fn();
 		const { container } = render(
-			<IconButton onclick={onclick} label="Like">
+			<IconButton onClick={onclick} label="Like">
 				{icon()}
 			</IconButton>
 		);
@@ -169,5 +170,62 @@ describe("IconButton", () => {
 			</IconButton>
 		);
 		expect(root(container).className.split(/\s+/)).toContain("my-icon-button");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", async () => {
+			const { container } = render(
+				<IconButton sound label="Like">
+					{icon()}
+				</IconButton>
+			);
+
+			await fireEvent.click(root(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(<IconButton label="Like">{icon()}</IconButton>);
+
+			await fireEvent.click(root(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const { container } = render(
+				<IconButton sound disabled label="Delete">
+					{icon()}
+				</IconButton>
+			);
+
+			root(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while loading, even with sound enabled", () => {
+			const { container } = render(
+				<IconButton sound loading label="Save">
+					{icon()}
+				</IconButton>
+			);
+
+			root(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

@@ -55,7 +55,10 @@ export interface FireworksHdrProps {
 	ambient?: boolean;
 	/** Ambient intensity [0,1] — scales shell size/energy. */
 	ambientIntensity?: number;
-	/** Launch a shell toward the pointer on window pointerdown. */
+	/**
+	 * Launch a shell toward the pointer on window pointerdown. Read once, when
+	 * the engine activates — a later change does not re-wire the listener.
+	 */
 	interactive?: boolean;
 	/** Quality tier, or "auto" to pick from the render level + DPR. */
 	quality?: "auto" | "high" | "mid" | "low";
@@ -156,7 +159,9 @@ export function FireworksHdr({
 
 	// Two props are read again AFTER mount by closures the engine owns —
 	// `quality` when a post-loss reboot re-resolves the tier, `interactive` when
-	// teardown decides whether to unhook the pointer listener. They go through
+	// the (asynchronous) engine activation decides whether to hook the pointer
+	// listener. Teardown unhooks what was actually wired, not what the prop says
+	// at unmount time, so a post-mount flip cannot strand the listener. They go through
 	// live refs, the React counterpart of the reference implementation's
 	// reactive prop reads; the callbacks go through identity-stable wrappers for
 	// the same reason. Every other prop is read exactly once, at mount.
@@ -224,6 +229,10 @@ export function FireworksHdr({
 		// WebGL waits for `webglcontextrestored`), then a full teardown so the
 		// caller can fall back instead of holding a dead handle.
 		let wired = false; // observers/listeners are registered exactly once
+		// Latches whether the pointer listener was actually attached, so teardown
+		// unhooks exactly what was hooked: reading the live `interactive` prop at
+		// unmount would strand the listener on `window` after a true→false flip.
+		let pointerBound = false;
 		let recovering = false;
 		let recoveryUsed = false;
 		let restoreTimer = 0;
@@ -444,7 +453,10 @@ export function FireworksHdr({
 			stopLoop();
 			observer?.disconnect();
 			resizeObs?.disconnect();
-			if (interactiveRef.current) window.removeEventListener("pointerdown", handlePointerDown);
+			if (pointerBound) {
+				window.removeEventListener("pointerdown", handlePointerDown);
+				pointerBound = false;
+			}
 			document.removeEventListener("visibilitychange", handleVisibility);
 			canvas.removeEventListener("webglcontextrestored", onContextRestored);
 			if (restoreTimer) window.clearTimeout(restoreTimer);
@@ -565,7 +577,10 @@ export function FireworksHdr({
 				});
 				resizeObs.observe(canvas);
 
-				if (interactiveRef.current) window.addEventListener("pointerdown", handlePointerDown);
+				if (interactiveRef.current) {
+					window.addEventListener("pointerdown", handlePointerDown);
+					pointerBound = true;
+				}
 				document.addEventListener("visibilitychange", handleVisibility);
 				wired = true;
 			}

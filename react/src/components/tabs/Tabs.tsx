@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { TABS_KEY } from "./types.js";
 import type { TabsContext } from "./types.js";
 import "./tabs.css";
@@ -31,6 +32,11 @@ export interface TabsProps {
 	children?: ReactNode;
 	/** Additional CSS classes. */
 	className?: string;
+	/**
+	 * Plays the select cue through the sound controller. Off by default;
+	 * only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -54,6 +60,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
 			variant = "underline",
 			children,
 			className,
+			sound = false,
 		},
 		forwardedRef
 	) => {
@@ -71,6 +78,8 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
 		// paint so `aria-controls`/`aria-labelledby` are correct before hydration.
 		const uid = useFancyId();
 
+		const playCue = useSoundCue(sound);
+
 		// The Svelte source's `value` is `$bindable("")`: a consumer can bind it,
 		// or leave it alone and let the component keep writing its own copy.
 		// React has no such channel, so the prop is controlled when it is passed
@@ -85,8 +94,16 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
 		}
 
 		// The only place `value` changes.
+		//
+		// The cue is guarded on an actual move: re-activating the tab that is
+		// already active is silent, while `onValueChange` fires either way. The
+		// comparison has to happen before the write, exactly as it does in the
+		// source, so the guard reads the outgoing value rather than the one it
+		// is about to become.
 		function select(itemValue: string) {
+			const changed = value !== itemValue;
 			if (!isControlled) setUncontrolledValue(itemValue);
+			if (changed) playCue("select");
 			onValueChange?.(itemValue);
 		}
 

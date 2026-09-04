@@ -32,6 +32,15 @@ export interface ChatMessageProps {
 	footer?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays press on a message action and select on a branch step,
+	 * through the sound controller. Off by default; only audible once
+	 * the user has enabled sound. Threaded to `ChatMessageAction` and
+	 * `ChatMessageBranches` through context — enable it on one layer
+	 * only, since a sound-enabled action nested inside another
+	 * sound-enabled control would otherwise double-play.
+	 */
+	sound?: boolean;
 }
 
 const LABELS = {
@@ -59,6 +68,7 @@ export const ChatMessage = forwardRef<HTMLElement, ChatMessageProps>(function Ch
 		actions,
 		footer,
 		className,
+		sound = false,
 	},
 	ref
 ) {
@@ -72,8 +82,8 @@ export const ChatMessage = forwardRef<HTMLElement, ChatMessageProps>(function Ch
 	// Rebuilt only when something a child reads actually changes — that rebuild
 	// is what re-renders the rail and the branch navigator below.
 	const context = useMemo<ChatMessageContext>(
-		() => ({ role, streaming, hovered: { current: hovered } }),
-		[role, streaming, hovered]
+		() => ({ role, streaming, hovered: { current: hovered }, sound }),
+		[role, streaming, hovered, sound]
 	);
 
 	const isUser = role === "user";

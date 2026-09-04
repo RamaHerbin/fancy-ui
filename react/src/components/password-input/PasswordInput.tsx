@@ -9,6 +9,7 @@ import { preset } from "../../internals/motion/transitions.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
 import { usePresence } from "../../internals/motion/presence.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./password-input.css";
 
 /** Result of scoring a password's strength. */
@@ -55,6 +56,11 @@ export interface PasswordInputProps {
 	strength?: (value: string) => PasswordStrengthResult;
 	/** Additional CSS classes, merged onto the root field surface (not the bare `<input>`). */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 // The reveal toggle swaps one 16px glyph for another in place. A hard cut
@@ -172,6 +178,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 			showStrength = false,
 			strength,
 			className,
+			sound = false,
 		},
 		forwardedRef
 	) => {
@@ -200,6 +207,8 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 
 		const inputRef = useRef<HTMLInputElement | null>(null);
 		const composedRef = useComposedRefs(forwardedRef, inputRef);
+
+		const playCue = useSoundCue(sound);
 
 		// One clock per icon layer, both fed the same bidirectional fade —
 		// during a toggle both layers are mounted at once and both animate,
@@ -275,7 +284,15 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
 				end: el?.selectionEnd ?? null,
 				direction: el?.selectionDirection ?? undefined,
 			};
-			setRevealed((r) => !r);
+			// The cue is named after the state the flip lands ON, not the one it
+			// leaves: revealing plays `toggle-on`, hiding plays `toggle-off`. It
+			// fires here, in the synchronous part of the click handler, rather
+			// than from the selection-restore effect below — a cue that lands
+			// after the gesture has ended is outside the user activation an
+			// unlocked audio context is granted on.
+			const next = !revealed;
+			setRevealed(next);
+			playCue(next ? "toggle-on" : "toggle-off");
 		}
 
 		useIsomorphicLayoutEffect(() => {

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 
 /**
  * AnimatedTestimonials - Animated testimonial carousel
@@ -28,6 +30,11 @@ export interface AnimatedTestimonialsProps {
 	interval?: number;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** Duration must match the CSS transition duration below */
@@ -38,11 +45,16 @@ export function AnimatedTestimonials({
 	autoplay = false,
 	interval = 5000,
 	className,
+	sound = false,
 }: AnimatedTestimonialsProps) {
 	const [activeIndex, setActiveIndex] = useState(0);
 	const [direction, setDirection] = useState<"next" | "prev">("next");
 	const [isAnimating, setIsAnimating] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
+	const [isFocused, setIsFocused] = useState(false);
+
+	const playCue = useSoundCue(sound);
+	const reducedMotion = useReducedMotion();
 
 	// Mirrors `isAnimating` for the guard inside timer callbacks, where the
 	// state value captured by the closure may be stale.
@@ -60,8 +72,13 @@ export function AnimatedTestimonials({
 	const testimonialCountRef = useLiveRef(testimonialCount);
 
 	const navigate = useCallback(
-		(dir: "next" | "prev") => {
+		(dir: "next" | "prev", fromUser = false) => {
 			if (isAnimatingRef.current || testimonialCount === 0) return;
+			// Only a gesture is audible. The autoplay interval calls this too —
+			// cueing that turns the carousel into a metronome — and a
+			// single-entry list wraps back onto the testimonial already shown,
+			// so neither one plays.
+			if (fromUser && testimonialCount > 1) playCue("select");
 			setDirection(dir);
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
@@ -76,16 +93,19 @@ export function AnimatedTestimonials({
 				navigateTimerRef.current = null;
 			}, TRANSITION_DURATION);
 		},
-		[testimonialCount, testimonialCountRef]
+		[testimonialCount, testimonialCountRef, playCue]
 	);
 
-	// Reactive autoplay: restarts whenever autoplay, interval, or hover state changes
+	// Reactive autoplay: restarts whenever autoplay, interval, hover state, focus
+	// state or the motion preference changes. Pointer hover and keyboard focus
+	// both hold the rotation, so the auto-updating live region can be stopped
+	// without a pointer, and a reduced-motion preference keeps it from starting.
 	useEffect(() => {
-		if (!autoplay || isHovered || testimonialCount === 0) return;
+		if (!autoplay || isHovered || isFocused || reducedMotion || testimonialCount === 0) return;
 
 		const timer = setInterval(() => navigate("next"), interval);
 		return () => clearInterval(timer);
-	}, [autoplay, isHovered, interval, testimonialCount, navigate]);
+	}, [autoplay, isHovered, isFocused, reducedMotion, interval, testimonialCount, navigate]);
 
 	// Cleanup navigate timeout on destroy
 	useEffect(() => {
@@ -104,6 +124,8 @@ export function AnimatedTestimonials({
 			)}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
+			onFocus={() => setIsFocused(true)}
+			onBlur={() => setIsFocused(false)}
 			role="region"
 			aria-label="Testimonials"
 		>
@@ -170,7 +192,8 @@ export function AnimatedTestimonials({
 						{/* Navigation */}
 						<div className="mt-8 flex gap-4">
 							<button
-								onClick={() => navigate("prev")}
+								type="button"
+								onClick={() => navigate("prev", true)}
 								className="group/button flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
 								aria-label="Previous testimonial"
 							>
@@ -190,7 +213,8 @@ export function AnimatedTestimonials({
 								</svg>
 							</button>
 							<button
-								onClick={() => navigate("next")}
+								type="button"
+								onClick={() => navigate("next", true)}
 								className="group/button flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
 								aria-label="Next testimonial"
 							>

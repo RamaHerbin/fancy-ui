@@ -1,6 +1,134 @@
 import { render, screen, cleanup } from "@testing-library/react";
+import { StrictMode, useEffect } from "react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { LiquidText } from "./LiquidText.js";
+
+/**
+ * A minimal 2D context: enough for the auto-fit probe (`measureText`) and for
+ * the text rasterizer that feeds the GL texture.
+ */
+function makeFake2dContext(): CanvasRenderingContext2D {
+	return {
+		font: "",
+		fillStyle: "",
+		textAlign: "",
+		textBaseline: "",
+		clearRect: () => {},
+		fillText: () => {},
+		measureText: () => ({ width: 100 }),
+	} as unknown as CanvasRenderingContext2D;
+}
+
+/**
+ * A fake WebGL2 context. Every ALL_CAPS property resolves to a stable unique
+ * number (so the component's format/status comparisons behave like the real
+ * enum space) and every other unknown property to a no-op function; only the
+ * calls whose RETURN value steers the setup path are spelled out.
+ *
+ * `state.lost` models a context that has been killed with
+ * WEBGL_lose_context — exactly like a real one, it then fails every resource
+ * allocation and is never silently re-acquired.
+ */
+function makeFakeGl(state: { lost: boolean }): WebGL2RenderingContext {
+	const constants = new Map<string, number>();
+	let nextConstant = 0x1000;
+	const constantFor = (name: string) => {
+		let value = constants.get(name);
+		if (value === undefined) {
+			value = nextConstant++;
+			constants.set(name, value);
+		}
+		return value;
+	};
+	const allocate = () => (state.lost ? null : {});
+	const methods: Record<string, (...args: never[]) => unknown> = {
+		getExtension: ((name: string) =>
+			name === "WEBGL_lose_context"
+				? {
+						loseContext: () => {
+							state.lost = true;
+						},
+						restoreContext: () => {
+							state.lost = false;
+						},
+					}
+				: { HALF_FLOAT_OES: constantFor("HALF_FLOAT_OES") }) as (...args: never[]) => unknown,
+		isContextLost: () => state.lost,
+		createTexture: allocate,
+		createFramebuffer: allocate,
+		createBuffer: allocate,
+		createShader: allocate,
+		createProgram: allocate,
+		checkFramebufferStatus: () => constantFor("FRAMEBUFFER_COMPLETE"),
+		getShaderParameter: () => true,
+		getProgramParameter: ((_program: unknown, pname: number) =>
+			pname === constantFor("ACTIVE_UNIFORMS") ? 0 : true) as (...args: never[]) => unknown,
+		getShaderInfoLog: () => "",
+		getProgramInfoLog: () => "",
+		getActiveUniform: () => null,
+		getUniformLocation: allocate,
+	};
+	return new Proxy(
+		{},
+		{
+			get(_target, property) {
+				if (typeof property !== "string") return undefined;
+				if (property === "drawingBufferWidth" || property === "drawingBufferHeight") return 300;
+				if (property in methods) return methods[property];
+				if (/^[A-Z][A-Z0-9_]*$/.test(property)) return constantFor(property);
+				return () => undefined;
+			},
+		}
+	) as unknown as WebGL2RenderingContext;
+}
+
+/**
+ * Replaces the ambient `getContext -> null` stub for the duration of one test.
+ * `loseOnReacquire` models the real hazard: a context that comes back already
+ * dead on the second acquisition.
+ */
+function installFakeCanvasContexts(options: { webgl?: boolean; loseOnReacquire?: boolean } = {}) {
+	const { webgl = true, loseOnReacquire = false } = options;
+	const original = HTMLCanvasElement.prototype.getContext;
+	const state = { lost: false };
+	const gl = makeFakeGl(state);
+	const context2d = makeFake2dContext();
+	let acquisitions = 0;
+	HTMLCanvasElement.prototype.getContext = function getContext(contextId: string) {
+		if (contextId === "2d") return context2d;
+		if (!webgl || contextId !== "webgl2") return null;
+		acquisitions += 1;
+		if (loseOnReacquire && acquisitions > 1) state.lost = true;
+		return gl;
+	} as unknown as typeof HTMLCanvasElement.prototype.getContext;
+	return {
+		state,
+		restore() {
+			HTMLCanvasElement.prototype.getContext = original;
+		},
+	};
+}
+
+/** Tracks rAF ids that were requested and never cancelled. */
+function installRafTracker() {
+	let nextId = 1;
+	const pending = new Set<number>();
+	const rafSpy = vi.spyOn(window, "requestAnimationFrame").mockImplementation(() => {
+		const id = nextId++;
+		pending.add(id);
+		return id;
+	});
+	const cafSpy = vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id: number) => {
+		pending.delete(id);
+	});
+	return {
+		pending,
+		restore() {
+			rafSpy.mockRestore();
+			cafSpy.mockRestore();
+		},
+	};
+}
 
 /**
  * Ambient test environment (see src/test-setup.ts) already stubs:
@@ -195,6 +323,104 @@ describe("LiquidText", () => {
 			removeSpies.forEach((s) => s.mockRestore());
 			rafSpy.mockRestore();
 			cafSpy.mockRestore();
+		});
+	});
+
+	describe("StrictMode double mount", () => {
+		it("re-acquires the GL context on the second setup pass and leaves the sim running", () => {
+			const canvasContexts = installFakeCanvasContexts();
+			const raf = installRafTracker();
+
+			try {
+				const { container } = render(
+					<StrictMode>
+						<LiquidText text="Strict Canvas" staticBelow={0} />
+					</StrictMode>
+				);
+
+				// setup -> cleanup -> setup on the SAME <canvas>: the cleanup must
+				// not kill the context, or the second pass gets a dead one back and
+				// the sim never starts (canvas mode, but nothing drawn).
+				expect(canvasContexts.state.lost).toBe(false);
+				const canvas = container.querySelector("canvas") as HTMLCanvasElement;
+				expect(canvas.className).not.toContain("invisible");
+				expect(screen.getByText("Strict Canvas").className).toContain("sr-only");
+				// Exactly one live render loop: the first pass's was cancelled by its
+				// cleanup, the second pass booted its own.
+				expect(raf.pending.size).toBe(1);
+			} finally {
+				raf.restore();
+				canvasContexts.restore();
+			}
+		});
+
+		it("restores the visible static text when a re-acquired context is unusable", () => {
+			const canvasContexts = installFakeCanvasContexts({ loseOnReacquire: true });
+			const raf = installRafTracker();
+
+			try {
+				const { container } = render(
+					<StrictMode>
+						<LiquidText text="Strict Fallback" staticBelow={0} />
+					</StrictMode>
+				);
+
+				// A failed (re-)acquisition must fall back to the visible static
+				// text rather than stranding the promoted "canvas" mode, which
+				// would leave an empty canvas and only the sr-only span.
+				const textNode = screen.getByText("Strict Fallback");
+				expect(textNode.className).not.toContain("sr-only");
+				const canvas = container.querySelector("canvas") as HTMLCanvasElement;
+				expect(canvas.className).toContain("invisible");
+				expect(raf.pending.size).toBe(0);
+			} finally {
+				raf.restore();
+				canvasContexts.restore();
+			}
+		});
+	});
+
+	describe("mount-time geometry", () => {
+		it("auto-fits the font size before any passive effect runs", () => {
+			const canvasContexts = installFakeCanvasContexts({ webgl: false });
+			const passiveHadRun: boolean[] = [];
+			let markerPassiveRan = false;
+
+			Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+				configurable: true,
+				get() {
+					passiveHadRun.push(markerPassiveRan);
+					return 400;
+				},
+			});
+
+			function PassiveMarker() {
+				useEffect(() => {
+					markerPassiveRan = true;
+				}, []);
+				return null;
+			}
+
+			try {
+				render(
+					<>
+						<PassiveMarker />
+						<LiquidText text="Fit" />
+					</>
+				);
+
+				// The fitted size drives the root height and the fallback text's
+				// size, so it has to be computed in the layout phase: a passive
+				// effect declared EARLIER in the tree must not have run yet when the
+				// container is measured.
+				expect(passiveHadRun.length).toBeGreaterThan(0);
+				expect(passiveHadRun[0]).toBe(false);
+				// 100px reference / 100px measured x 400px container = 400px.
+				expect(screen.getByText("Fit").style.fontSize).toBe("400px");
+			} finally {
+				delete (HTMLElement.prototype as unknown as Record<string, unknown>).clientWidth;
+				canvasContexts.restore();
+			}
 		});
 	});
 

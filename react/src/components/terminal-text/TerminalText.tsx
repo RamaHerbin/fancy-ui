@@ -65,9 +65,10 @@ export function TerminalText({
 		null
 	);
 
-	// One shared timeout pool for the stream AND the glitch loop: clearing the
-	// stream (lines/speed/delay change, unmount) also kills glitch timers,
-	// exactly as in the source.
+	// Timeout pool owned by the stream: the character schedule, the done tick and
+	// the 100ms glitch restores. Cleared whenever the stream restarts
+	// (lines/speed/delay change) and on unmount. The self-rescheduling glitch
+	// chain is NOT in here — see the glitch effect below.
 	const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
 	function scheduleTimeout(fn: () => void, ms: number) {
@@ -118,11 +119,16 @@ export function TerminalText({
 		}, 100);
 	}
 
-	function startGlitchLoop() {
+	// The chain owns its own pending id and a cancelled flag, so its teardown
+	// stops exactly the chain it started. Keeping it out of the stream's pool
+	// means a lines/speed/delay restart no longer kills the loop, and a glitch
+	// flip no longer leaves an orphaned chain running alongside the new one.
+	function startGlitchLoop(chain: { cancelled: boolean; id: ReturnType<typeof setTimeout> | null }) {
 		const scheduleGlitch = () => {
 			// Random interval between 2s and 4s
 			const interval = 2000 + Math.random() * 2000;
-			scheduleTimeout(() => {
+			chain.id = setTimeout(() => {
+				if (chain.cancelled) return;
 				if (glitchRef.current) glitchOnce();
 				scheduleGlitch();
 			}, interval);
@@ -181,11 +187,21 @@ export function TerminalText({
 
 	// React to glitch changes without restarting the stream
 	useEffect(() => {
-		if (glitch) {
-			startGlitchLoop();
-		} else {
+		if (!glitch) {
 			glitchStateRef.current = null;
+			return;
 		}
+
+		const chain: { cancelled: boolean; id: ReturnType<typeof setTimeout> | null } = {
+			cancelled: false,
+			id: null,
+		};
+		startGlitchLoop(chain);
+
+		return () => {
+			chain.cancelled = true;
+			if (chain.id !== null) clearTimeout(chain.id);
+		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [glitch]);
 

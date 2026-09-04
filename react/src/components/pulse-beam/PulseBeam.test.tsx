@@ -522,4 +522,24 @@ describe("PulseBeam", () => {
 		expect(getHost(container)).toBeInstanceOf(HTMLDivElement);
 		expect(ref.current).toBe(getHost(container));
 	});
+
+	it("runs a callback ref's own cleanup on unmount", () => {
+		const attached = vi.fn();
+		const detached = vi.fn();
+		const { container, unmount } = render(
+			<PulseBeam
+				ref={(node) => {
+					attached(node);
+					return () => detached();
+				}}
+			/>
+		);
+		expect(attached).toHaveBeenCalledTimes(1);
+		expect(attached).toHaveBeenLastCalledWith(getHost(container));
+		unmount();
+		// The teardown the consumer handed back is the whole of its detach: it
+		// runs, and the callback is never additionally called with `null`.
+		expect(detached).toHaveBeenCalledTimes(1);
+		expect(attached).toHaveBeenCalledTimes(1);
+	});
 });

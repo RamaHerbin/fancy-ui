@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from "react";
+import { memo, useMemo, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
 import "./star-field.css";
 
@@ -74,7 +74,19 @@ function createStars(starsCount: number, seed: number): Star[] {
 	);
 }
 
-export function StarField({ starsCount = 130, className, seed = 1 }: StarFieldProps) {
+/**
+ * Memoised, because the sky is a constant and its host is not: Compare
+ * re-renders on every autoplay frame and every pointer move while it passes
+ * this component nothing but static literals. Without the boundary each of
+ * those frames would rebuild every star element and diff its inline style to
+ * write nothing — work the Svelte source never does, where the `{#each}` block
+ * is built once and only the divider's own two style properties change.
+ */
+export const StarField = memo(function StarField({
+	starsCount = 130,
+	className,
+	seed = 1,
+}: StarFieldProps) {
 	// Generated once per (starsCount, seed) — the Svelte source builds the
 	// list once at component creation; recomputing on unrelated re-renders
 	// would reshuffle the sky.
@@ -103,4 +115,4 @@ export function StarField({ starsCount = 130, className, seed = 1 }: StarFieldPr
 			))}
 		</div>
 	);
-}
+});

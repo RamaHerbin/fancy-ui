@@ -7,6 +7,7 @@ import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { useFloat } from "../../internals/use-float.js";
 import type { FloatRect } from "../../internals/float.js";
 import type { CommandItemData } from "../../internals/ai-types.js";
@@ -81,6 +82,7 @@ export const ComposerCommandMenu = forwardRef<HTMLDivElement, ComposerCommandMen
 		// Undefined outside a Composer: the menu then has no textarea to watch and
 		// renders nothing at all, rather than throwing on a missing provider.
 		const composer = useContext(COMPOSER_CONTEXT_KEY);
+		const playCue = useSoundCue(composer?.sound);
 
 		const uid = useFancyId();
 		const listId = `${uid}-list`;
@@ -204,6 +206,10 @@ export const ComposerCommandMenu = forwardRef<HTMLDivElement, ComposerCommandMen
 
 		const select = useEventCallback((item: CommandItemData | undefined) => {
 			if (!item) return;
+			// The menu's own open/close stay silent — it opens from keystrokes and
+			// closes on blur/Escape, not a dismissal the reader triggered — so a pick
+			// is the only cue this component ever plays.
+			playCue("select");
 			const insertText = (text: string, replaceTriggerToken?: boolean) =>
 				composer?.insertText(text, replaceTriggerToken);
 			if (onSelect) onSelect(item, { insertText, query });

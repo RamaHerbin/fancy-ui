@@ -1,6 +1,7 @@
 import { forwardRef, useState } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./toggle.css";
 
 export type ToggleSize = "sm" | "md" | "lg";
@@ -21,6 +22,11 @@ type BaseProps = {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 };
 
 export interface ToggleProps
@@ -45,6 +51,7 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 			children,
 			className,
 			onClick,
+			sound = false,
 			...restProps
 		},
 		ref
@@ -55,6 +62,8 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 		// whether the caller re-passes the prop. `useState`'s lazy initializer
 		// runs once, matching a bindable prop's one-time seed.
 		const [pressed, setPressed] = useState(pressedProp ?? false);
+
+		const playCue = useSoundCue(sound);
 
 		const classes = cn(
 			// No `transition-colors` here: the colocated CSS below declares a
@@ -79,6 +88,7 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 			if (disabled) return;
 			const next = !pressed;
 			setPressed(next);
+			playCue(next ? "toggle-on" : "toggle-off");
 			onPressedChange?.(next);
 		}
 

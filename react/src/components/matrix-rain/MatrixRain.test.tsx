@@ -1,7 +1,8 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, act } from "@testing-library/react";
 import { afterEach, describe, it, expect } from "vitest";
 import type { ReactElement } from "react";
 import { MatrixRain } from "./MatrixRain.js";
+import { FakeIntersectionObserver } from "../../test-setup.js";
 
 describe("MatrixRain", () => {
 	afterEach(cleanup);
@@ -222,6 +223,60 @@ describe("MatrixRain", () => {
 		expect(sparse).toBeLessThan(normal);
 		expect(dense).toBe(100);
 		expect(sparse).toBe(25);
+	});
+
+	/** The observer watching the canvas — the last one constructed. */
+	function latestIntersectionObserver(): FakeIntersectionObserver {
+		const observers = FakeIntersectionObserver.instances;
+		return observers[observers.length - 1] as FakeIntersectionObserver;
+	}
+
+	it("pauses the frame loop while the canvas is out of view and resumes it on the way back", () => {
+		const harness = installHarness();
+		try {
+			const { unmount } = render(<MatrixRain />);
+			harness.step(2);
+			const drawnWhileVisible = harness.glyphs.length;
+			expect(drawnWhileVisible).toBeGreaterThan(0);
+
+			const observer = latestIntersectionObserver();
+			act(() => observer.trigger(false));
+
+			// The pending frame was cancelled and no replacement queued, so
+			// stepping the queue paints nothing at all.
+			expect(harness.cancelled.length).toBe(1);
+			harness.step(3);
+			expect(harness.glyphs.length).toBe(drawnWhileVisible);
+
+			act(() => observer.trigger(true));
+			harness.step(1);
+			expect(harness.glyphs.length).toBeGreaterThan(drawnWhileVisible);
+
+			unmount();
+		} finally {
+			harness.restore();
+		}
+	});
+
+	it("does not queue a second loop when the observer reports visible again while already running", () => {
+		const harness = installHarness();
+		try {
+			const { unmount } = render(<MatrixRain />);
+			harness.step(1);
+			const oneFrame = harness.glyphs.length;
+
+			const observer = latestIntersectionObserver();
+			act(() => observer.trigger(true));
+			act(() => observer.trigger(true));
+
+			// A second queued frame would double the glyphs painted per step.
+			harness.step(1);
+			expect(harness.glyphs.length).toBe(oneFrame * 2);
+
+			unmount();
+		} finally {
+			harness.restore();
+		}
 	});
 
 	it("draws the same rain for the same seed and a different one for another seed", () => {

@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./gradient-button.css";
 
 type BaseProps = {
@@ -20,6 +21,11 @@ type BaseProps = {
 	className?: string;
 	/** Button content */
 	children?: ReactNode;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 };
 
 export interface GradientButtonProps
@@ -48,10 +54,19 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 			blur = 4,
 			bgColor = "#000",
 			children,
+			onClick,
+			sound = false,
 			...restProps
 		},
 		ref
 	) => {
+		const playCue = useSoundCue(sound);
+
+		function handleClick(event: MouseEvent<HTMLButtonElement>) {
+			if (!restProps.disabled) playCue("press");
+			onClick?.(event);
+		}
+
 		const styleVars = {
 			"--gb-colors": colors.join(", "),
 			"--gb-duration": `${duration}ms`,
@@ -69,6 +84,7 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 					className
 				)}
 				style={styleVars}
+				onClick={handleClick}
 				{...restProps}
 			>
 				{/* Rotating conic-gradient pseudo-element */}

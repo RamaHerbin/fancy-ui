@@ -1,7 +1,9 @@
-import { createRef, useState } from "react";
+import { createRef, StrictMode, useState } from "react";
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { FakeAnimation } from "../../test-setup.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { Tabs } from "./Tabs.js";
 import { TabsList } from "./TabsList.js";
 import { TabsTrigger } from "./TabsTrigger.js";
@@ -39,6 +41,7 @@ interface HarnessProps {
 	activation?: "automatic" | "manual";
 	variant?: "underline" | "segmented";
 	forceMount?: boolean;
+	sound?: boolean;
 }
 
 function Harness({
@@ -49,6 +52,7 @@ function Harness({
 	activation = "automatic",
 	variant = "underline",
 	forceMount = false,
+	sound = false,
 }: HarnessProps) {
 	const [value, setValue] = useState(valueProp);
 	const [seenProp, setSeenProp] = useState(valueProp);
@@ -67,6 +71,7 @@ function Harness({
 			orientation={orientation}
 			activation={activation}
 			variant={variant}
+			sound={sound}
 		>
 			<TabsList>
 				{items.map((item) => (
@@ -321,6 +326,83 @@ describe("Tabs", () => {
 			} finally {
 				animateSpy.mockRestore();
 			}
+		});
+
+		// StrictMode runs a mount layout effect setup → cleanup → setup on the
+		// same instance, and refs survive that rehearsal. A one-shot "have I run
+		// yet" latch is consumed by the first setup, leaving the second one to
+		// animate a panel that started selected — a dev-only fade the Svelte
+		// source can never play, since a local `in:` does not run on the initial
+		// render of the block that owns it.
+		it("leaves the first render alone under StrictMode's double mount, and still fades a real switch in", () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			try {
+				const { container } = render(
+					<StrictMode>
+						<Harness items={ITEMS} value="account" />
+					</StrictMode>
+				);
+
+				expect(animateSpy).not.toHaveBeenCalled();
+
+				fireEvent.click(byLabel(container, "Security"));
+
+				const arrived = panels(container);
+				expect(arrived[0]!.textContent).toBe("Panel Security");
+				expect(animateSpy.mock.contexts).toContain(arrived[0]);
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		// A finished `fill: forwards` animation outranks every author CSS rule,
+		// so a leg left attached would pin the panel's opacity for the rest of
+		// its life. The framework drops it at `introend`; so does this.
+		it("aborts the entrance once it lands, leaving no fill-forwards animation on the panel", async () => {
+			const { container } = render(<Harness items={ITEMS} value="account" />);
+
+			fireEvent.click(byLabel(container, "Security"));
+			const panel = panels(container)[0]!;
+
+			const cancelSpy = vi.spyOn(FakeAnimation.prototype, "cancel");
+			try {
+				// The leading dummy resolves on one microtask and creates the
+				// sampled keyframes; those resolve on the next and finish the leg.
+				await act(async () => {
+					await Promise.resolve();
+					await Promise.resolve();
+				});
+
+				const onPanel = FakeAnimation.instances.filter(
+					(animation) => animation.target === panel
+				);
+				expect(onPanel).toHaveLength(2);
+				expect(cancelSpy.mock.contexts).toContain(onPanel[1]);
+			} finally {
+				cancelSpy.mockRestore();
+			}
+		});
+
+		it("cancels a leg still in flight when the panel it belongs to leaves mid-fade", async () => {
+			const { container } = render(<Harness items={ITEMS} value="account" />);
+
+			fireEvent.click(byLabel(container, "Security"));
+			const security = panels(container)[0]!;
+
+			// Switched away before the leading dummy has even resolved: the leg
+			// is in flight and its element is about to be unmounted under it.
+			fireEvent.click(byLabel(container, "Billing"));
+
+			await act(async () => {
+				await Promise.resolve();
+				await Promise.resolve();
+			});
+
+			// The aborted dummy never resolved, so no sampled-keyframe animation
+			// was ever created against the detached panel.
+			expect(
+				FakeAnimation.instances.filter((animation) => animation.target === security)
+			).toHaveLength(1);
 		});
 	});
 
@@ -940,6 +1022,141 @@ describe("Tabs", () => {
 			} finally {
 				restore();
 			}
+		});
+	});
+
+	// The uncontrolled half of the pair: `value` omitted entirely, so the root
+	// keeps its own copy — the React counterpart of the Svelte source's
+	// `$bindable("")` left unbound. The harness above is always controlled, so
+	// nothing else in this file reaches this branch.
+	describe("uncontrolled", () => {
+		function Uncontrolled() {
+			return (
+				<Tabs>
+					<TabsList>
+						{ITEMS.map((item) => (
+							<TabsTrigger key={item.value} value={item.value}>
+								{item.label}
+							</TabsTrigger>
+						))}
+					</TabsList>
+					{ITEMS.map((item) => (
+						<TabsContent key={item.value} value={item.value}>
+							Panel {item.label}
+						</TabsContent>
+					))}
+				</Tabs>
+			);
+		}
+
+		it("starts with nothing selected and selects on click, with no handler wired", () => {
+			const { container } = render(<Uncontrolled />);
+
+			// The root's own copy starts empty, so no trigger claims it and no
+			// panel is rendered at all.
+			expect(tabs(container).map((b) => b.getAttribute("aria-selected"))).toEqual([
+				"false",
+				"false",
+				"false",
+			]);
+			expect(panels(container)).toHaveLength(0);
+
+			fireEvent.click(byLabel(container, "Security"));
+
+			expect(byLabel(container, "Security").getAttribute("aria-selected")).toBe("true");
+			expect(byLabel(container, "Account").getAttribute("aria-selected")).toBe("false");
+			expect(panels(container)).toHaveLength(1);
+			expect(panels(container)[0]!.textContent).toBe("Panel Security");
+		});
+
+		it("moves its own selection on an automatic-activation arrow step", () => {
+			const { container } = render(<Uncontrolled />);
+
+			fireEvent.click(byLabel(container, "Account"));
+			fireEvent.keyDown(byLabel(container, "Account"), { key: "ArrowRight" });
+
+			expect(byLabel(container, "Security").getAttribute("aria-selected")).toBe("true");
+			expect(panels(container)[0]!.textContent).toBe("Panel Security");
+		});
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a click actually changes the active tab", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} value="account" sound />);
+
+			fireEvent.click(byLabel(container, "Security"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} value="account" />);
+
+			fireEvent.click(byLabel(container, "Security"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the clicked trigger is disabled, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const items: Item[] = [
+				{ value: "account", label: "Account" },
+				{ value: "security", label: "Security", disabled: true },
+			];
+			const { container } = render(<Harness items={items} value="account" sound />);
+			const trigger = byLabel(container, "Security");
+
+			// A synthetic dispatch rather than a real gesture: the native
+			// `disabled` attribute is the outer gate, and the handler's own
+			// `if (isDisabled) return` is the one this pins.
+			trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when re-activating the already-active tab — the changed-only guard", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} value="account" sound />);
+
+			fireEvent.click(byLabel(container, "Account"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls onValueChange on the very same click that the changed-only guard silences", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onValueChange = vi.fn();
+			const { container } = render(
+				<Harness items={ITEMS} value="account" sound onValueChange={onValueChange} />
+			);
+
+			fireEvent.click(byLabel(container, "Account"));
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("account");
+		});
+
+		it("plays select on an automatic-activation arrow step that commits a different tab", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} value="account" sound />);
+
+			fireEvent.keyDown(byLabel(container, "Account"), { key: "ArrowRight" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
 		});
 	});
 });

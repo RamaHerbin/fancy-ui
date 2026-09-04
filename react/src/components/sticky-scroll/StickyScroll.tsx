@@ -1,8 +1,10 @@
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, memo, useRef, useState } from "react";
 import type { ForwardedRef, HTMLAttributes, ReactElement, ReactNode, RefAttributes } from "react";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
-import { useInView } from "../../internals/motion/in-view.js";
+import { useEventCallback } from "../../internals/dom/use-event-callback.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { observeInView } from "../../internals/motion/in-view.js";
 import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { usePresence } from "../../internals/motion/presence.js";
 import { preset } from "../../internals/motion/transitions.js";
@@ -51,11 +53,16 @@ export interface StickyScrollProps<T>
 // per leg, exactly as the source's separate `in:`/`out:` directives did.
 const fadePanel = preset("fade");
 
-interface StickyScrollItemProps {
+interface StickyScrollItemProps<T> {
 	index: number;
 	active: boolean;
+	/** The row's own item, and the consumer's renderer for it. The row calls
+	 *  the renderer itself rather than receiving a ready-made element, so a
+	 *  parent re-render that changes nothing about this row leaves its props
+	 *  identical and the memo below holds. */
+	value: T;
+	item: (item: T, index: number, active: boolean) => ReactNode;
 	onActivate: (index: number) => void;
-	children?: ReactNode;
 }
 
 /**
@@ -63,18 +70,35 @@ interface StickyScrollItemProps {
  * per-node (`use:inView` was applied per `<section>` in the source), and a
  * hook cannot be called in a loop.
  */
-function StickyScrollItem({ index, active, onActivate, children }: StickyScrollItemProps) {
-	// Convention C-1: the hook takes the NODE, published by `useElementRef`.
+function StickyScrollItemImpl<T>({
+	index,
+	active,
+	value,
+	item,
+	onActivate,
+}: StickyScrollItemProps<T>) {
+	// Convention C-1: the primitive takes the NODE, published by `useElementRef`.
 	const [node, ref] = useElementRef<HTMLElement>();
 
-	useInView(node, {
-		once: false,
-		threshold: 0,
-		rootMargin: "-50% 0px -50% 0px",
-		onChange: (visible) => {
-			if (visible) onActivate(index);
-		},
-	});
+	// The framework-free core rather than the `useInView` hook: this row never
+	// reads the visible state, and the hook publishes it as component state —
+	// so the leaving fire (which deliberately does NOT move the active index)
+	// would still commit a render producing identical DOM. The source's
+	// `use:inView` action holds no reactive state at all.
+	useIsomorphicLayoutEffect(() => {
+		if (!node) return;
+		const handle = observeInView(node, {
+			once: false,
+			threshold: 0,
+			rootMargin: "-50% 0px -50% 0px",
+			onChange: (visible) => {
+				if (visible) onActivate(index);
+			},
+		});
+		return () => {
+			handle.destroy();
+		};
+	}, [node, index, onActivate]);
 
 	return (
 		<section
@@ -86,10 +110,21 @@ function StickyScrollItem({ index, active, onActivate, children }: StickyScrollI
 			// from descendants exactly like the source's `onfocusin`.
 			onFocus={() => onActivate(index)}
 		>
-			{children}
+			{item(value, index, active)}
 		</section>
 	);
 }
+
+/**
+ * An activation flips `data-active` on exactly two rows; the source re-runs
+ * exactly those two snippets. Memoising the row buys React the same update
+ * volume — every other row's props (`value`, `item`, `index`, `active` and the
+ * identity-stable `onActivate`) are unchanged, so the consumer's `item` is not
+ * re-invoked for them. `memo` erases a render function's type parameter the
+ * way `forwardRef` does, so the generic call signature is restored by
+ * assertion.
+ */
+const StickyScrollItem = memo(StickyScrollItemImpl) as typeof StickyScrollItemImpl;
 
 interface PanelFrameProps {
 	/** False the instant this frame starts its exit. */
@@ -176,40 +211,56 @@ function StickyScrollImpl<T>(
 	const panelIndex =
 		items.length > 0 ? Math.min(Math.max(activeIndex, 0), items.length - 1) : 0;
 
-	function setActive(i: number) {
+	// Identity-stable, like the source's module-instance `setActive`: a row
+	// that receives it as a prop is not re-rendered just because the parent
+	// re-rendered, and the observer effect below does not re-observe.
+	const setActive = useEventCallback((i: number) => {
 		if (activeIndex === i) return;
 		if (!isControlled) setUncontrolledIndex(i);
 		onChange?.(i, items[i] as T);
-	}
+	});
 
 	// ---- the `{#key panelIndex}` machinery -------------------------------
 	const [frames, setFrames] = useState<FrameEntry[]>(() => [
 		{ key: 0, live: true, frozen: null, appear: false },
 	]);
-	const nextFrameKey = useRef(1);
-	const prevPanelIndex = useRef(panelIndex);
-	/** The panel content as of the LAST completed render — what an exiting
+	/** The panel content as of the last COMMITTED render — what an exiting
 	 *  frame freezes, since by the time the change is detected `items` has
-	 *  already moved on. */
+	 *  already moved on. Written after the commit, never during render, so a
+	 *  render React starts and throws away leaves nothing behind. */
 	const lastPanelNode = useRef<ReactNode>(null);
+	const [prevPanelIndex, setPrevPanelIndex] = useState(panelIndex);
 
 	// Detected during render (a render-phase state update, which React applies
 	// before committing), not in an effect: the swap must land in the same
-	// commit as the index change, exactly as the keyed block does.
-	if (prevPanelIndex.current !== panelIndex) {
-		prevPanelIndex.current = panelIndex;
+	// commit as the index change, exactly as the keyed block does. The
+	// previous index is STATE, not a ref: React discards a thrown-away
+	// render's state updates but not its ref writes, so a ref here would let
+	// an abandoned render consume the change and silently drop the crossfade.
+	// The new frame's key is derived inside the updater from the frames it
+	// already holds, for the same reason.
+	if (prevPanelIndex !== panelIndex) {
+		setPrevPanelIndex(panelIndex);
 		const frozen = lastPanelNode.current;
-		const key = nextFrameKey.current;
-		nextFrameKey.current += 1;
 		setFrames((current) => [
 			...current.filter((f) => !f.live),
 			...current.filter((f) => f.live).map((f) => ({ ...f, live: false, frozen })),
-			{ key, live: true, frozen: null, appear: true },
+			{
+				key: current.reduce((highest, f) => Math.max(highest, f.key), 0) + 1,
+				live: true,
+				frozen: null,
+				appear: true,
+			},
 		]);
 	}
 
 	const liveNode = items.length > 0 ? panel(items[panelIndex] as T, panelIndex) : null;
-	lastPanelNode.current = liveNode;
+
+	// Every commit, no dependency list: the snapshot an exiting frame freezes
+	// is by definition "whatever the panel rendered last time it landed".
+	useIsomorphicLayoutEffect(() => {
+		lastPanelNode.current = liveNode;
+	});
 
 	return (
 		// Exactly two children live directly under `.ft-stickyscroll`: the
@@ -229,9 +280,14 @@ function StickyScrollImpl<T>(
 		>
 			<div className="ft-stickyscroll-items">
 				{items.map((it, i) => (
-					<StickyScrollItem key={i} index={i} active={i === activeIndex} onActivate={setActive}>
-						{item(it, i, i === activeIndex)}
-					</StickyScrollItem>
+					<StickyScrollItem
+						key={i}
+						index={i}
+						active={i === activeIndex}
+						value={it}
+						item={item}
+						onActivate={setActive}
+					/>
 				))}
 			</div>
 

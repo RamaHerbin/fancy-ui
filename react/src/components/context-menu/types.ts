@@ -34,6 +34,8 @@ export interface ContextMenuRootContext {
 	readonly point: { x: number; y: number };
 	/** The zero-size virtual anchor element `ContextMenuContent` positions itself against. */
 	readonly anchorRef: HTMLElement | null;
+	/** Whether this menu plays sound cues — mirrors `ContextMenuProps.sound`. */
+	readonly sound: boolean;
 	setAnchorRef(el: HTMLElement | null): void;
 	/** Opens (or, if already open, repositions) the menu at `(x, y)`. */
 	openAt(x: number, y: number): void;

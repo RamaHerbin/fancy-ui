@@ -1,9 +1,10 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useInertAttribute } from "../../internals/dom/use-inert-attribute.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { parseUnifiedDiff, type DiffFile, type DiffLine } from "../../internals/diff.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./code-diff.css";
 
 /**
@@ -38,6 +39,11 @@ export interface CodeDiffProps {
 	wrap?: boolean;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 type Row = { kind: "sep"; text: string } | { kind: "line"; line: DiffLine };
@@ -63,10 +69,12 @@ export const CodeDiff = forwardRef<HTMLDivElement, CodeDiffProps>(function CodeD
 		maxLines = 0,
 		wrap = false,
 		className,
+		sound = false,
 	},
 	ref
 ) {
 	const uid = useFancyId();
+	const playCue = useSoundCue(sound);
 
 	const files = useMemo(() => parseUnifiedDiff(diff), [diff]);
 
@@ -83,20 +91,25 @@ export const CodeDiff = forwardRef<HTMLDivElement, CodeDiffProps>(function CodeD
 	// `collapsed`, which a header click writes back to. The prop re-seeds it
 	// whenever the consumer changes it; a click updates it directly.
 	const [collapsedValue, setCollapsedValue] = useState(collapsed);
-	const lastPropRef = useRef(collapsed);
-	const lastCollapsedRef = useRef(collapsed);
+	const [lastProp, setLastProp] = useState(collapsed);
 
-	useEffect(() => {
-		if (collapsed === lastPropRef.current) return;
-		lastPropRef.current = collapsed;
-		setCollapsedValue(collapsed);
-	}, [collapsed]);
-
-	useEffect(() => {
-		if (collapsedValue === lastCollapsedRef.current) return;
-		lastCollapsedRef.current = collapsedValue;
-		setFolded({});
-	}, [collapsedValue]);
+	// Resynced during render, not from an effect: what the switch decides is
+	// visible on the very first painted frame, so the seed and the override
+	// wipe have to land in the same commit the flip produced — the Svelte
+	// source reads `collapsed` straight out of `isFolded` and defers only the
+	// wipe to a pre-paint `$effect`. React restarts the render before
+	// committing, so the pass below never reaches the screen.
+	if (lastProp !== collapsed) {
+		setLastProp(collapsed);
+		// Only a flip that actually moves the seed wipes the per-file
+		// overrides: a value the consumer merely echoed back from
+		// `onCollapsedChange` is the state this component already produced,
+		// and folding one file of a two-file patch must not unfold the other.
+		if (collapsedValue !== collapsed) {
+			setCollapsedValue(collapsed);
+			setFolded({});
+		}
+	}
 
 	function nameOf(file: DiffFile, count: number): string {
 		if (filename !== undefined && count <= 1) return filename;
@@ -119,63 +132,85 @@ export const CodeDiff = forwardRef<HTMLDivElement, CodeDiffProps>(function CodeD
 	// before it. The first hunk's declared start pins that down, and it is fixed
 	// the moment that header parses — a patch still streaming in only ever gains
 	// lines and later hunks, so growth in place still reads as the same file.
-	const signature = files
-		.map((file) => {
-			const anchor = file.hunks[0];
-			return `${nameOf(file, files.length)}:${anchor?.oldStart ?? ""}:${anchor?.newStart ?? ""}`;
-		})
-		.join("\n");
+	//
+	// Memoised for the reason the Svelte source keeps this in `$derived`: a
+	// parent that re-renders per streamed token would otherwise walk the whole
+	// file list again for a patch that did not move.
+	const signature = useMemo(
+		() =>
+			files
+				.map((file) => {
+					const anchor = file.hunks[0];
+					return `${nameOf(file, files.length)}:${anchor?.oldStart ?? ""}:${anchor?.newStart ?? ""}`;
+				})
+				.join("\n"),
+		// `nameOf` is re-created every render but reads nothing beyond `filename`,
+		// so the two inputs below are the whole dependency set.
+		[files, filename]
+	);
 	// Seeded with the first render's value on purpose: this is the "what did we
-	// render last" marker, and it is the effect below — not the seeding — that
-	// is meant to notice a change.
-	const lastSignatureRef = useRef(signature);
+	// render last" marker, and it is the comparison below — not the seeding —
+	// that is meant to notice a change.
+	const [lastSignature, setLastSignature] = useState(signature);
 
-	useEffect(() => {
-		if (signature === lastSignatureRef.current) return;
-		lastSignatureRef.current = signature;
+	// Same render-phase resync as the master switch above, and for the same
+	// reason: a replacement patch must not paint one frame with the previous
+	// patch's fold and clamp overrides on top of the new content.
+	if (lastSignature !== signature) {
+		setLastSignature(signature);
 		setFolded({});
 		setUnclamped({});
-	}, [signature]);
+	}
 
 	function isFolded(name: string): boolean {
 		return folded[name] ?? collapsedValue;
 	}
 
-	const views: FileView[] = files.map((file) => {
-		const name = nameOf(file, files.length);
-		const rows: Row[] = [];
-		let total = 0;
-		for (const hunk of file.hunks) {
-			if (hunk.header !== "") rows.push({ kind: "sep", text: hunk.header });
-			for (const line of hunk.lines) {
-				rows.push({ kind: "line", line });
-				total++;
-			}
-		}
+	const views: FileView[] = useMemo(
+		() =>
+			files.map((file) => {
+				const name = nameOf(file, files.length);
+				const rows: Row[] = [];
+				let total = 0;
+				for (const hunk of file.hunks) {
+					if (hunk.header !== "") rows.push({ kind: "sep", text: hunk.header });
+					for (const line of hunk.lines) {
+						rows.push({ kind: "line", line });
+						total++;
+					}
+				}
 
-		if (maxLines <= 0 || unclamped[name] || total <= maxLines) {
-			return { file, name, rows, hidden: 0 };
-		}
+				if (maxLines <= 0 || unclamped[name] || total <= maxLines) {
+					return { file, name, rows, hidden: 0 };
+				}
 
-		// Cut on a line, never on a hunk header, so the clamp never leaves a
-		// dangling `@@` with nothing under it.
-		const shown: Row[] = [];
-		let seen = 0;
-		for (const row of rows) {
-			shown.push(row);
-			if (row.kind !== "line") continue;
-			seen++;
-			if (seen === maxLines) break;
-		}
-		return { file, name, rows: shown, hidden: total - maxLines };
-	});
+				// Cut on a line, never on a hunk header, so the clamp never leaves a
+				// dangling `@@` with nothing under it.
+				const shown: Row[] = [];
+				let seen = 0;
+				for (const row of rows) {
+					shown.push(row);
+					if (row.kind !== "line") continue;
+					seen++;
+					if (seen === maxLines) break;
+				}
+				return { file, name, rows: shown, hidden: total - maxLines };
+			}),
+		// Same as above: `filename` stands in for `nameOf`.
+		[files, filename, maxLines, unclamped]
+	);
 
 	function toggle(name: string) {
-		const nextFolded = { ...folded, [name]: !isFolded(name) };
+		// Captured before the write, so the cue that plays matches the state this
+		// click is actually producing — the resyncs above that also wipe `folded`
+		// (a collapsed-prop flip, a patch-signature change) never run through this
+		// function, so they can never trigger it either.
+		const next = !isFolded(name);
+		const nextFolded = { ...folded, [name]: next };
 		setFolded(nextFolded);
+		playCue(next ? "close" : "open");
 		// `collapsed` reports the whole patch, so it is true only once nothing is left open.
 		const all = views.every((view) => nextFolded[view.name] ?? collapsedValue);
-		lastCollapsedRef.current = all;
 		setCollapsedValue(all);
 		onCollapsedChange?.(all);
 	}
@@ -269,6 +304,16 @@ export const CodeDiff = forwardRef<HTMLDivElement, CodeDiffProps>(function CodeD
 													<span className="ft-glyph" aria-hidden="true">
 														{GLYPH[row.line.type]}
 													</span>
+													{/* The glyph stays out of the reading flow — it is
+													    punctuation, and it must not be copied — so the
+													    verdict a sighted reader takes from the tint and
+													    the +/− is spoken here instead. Unselectable for
+													    the same copy hygiene the gutters follow. */}
+													{row.line.type === "add" || row.line.type === "del" ? (
+														<span className="sr-only select-none">
+															{row.line.type === "add" ? "Added line" : "Removed line"}
+														</span>
+													) : null}
 													<span className="ft-code">{row.line.text}</span>
 												</div>
 											)
@@ -279,7 +324,10 @@ export const CodeDiff = forwardRef<HTMLDivElement, CodeDiffProps>(function CodeD
 										<button
 											type="button"
 											className="text-muted-foreground hover:text-foreground hover:bg-muted/40 border-border w-full border-t px-3 py-1.5 text-left transition-colors"
-											onClick={() => setUnclamped((current) => ({ ...current, [view.name]: true }))}
+											onClick={() => {
+												playCue("open");
+												setUnclamped((current) => ({ ...current, [view.name]: true }));
+											}}
 										>
 											Show {view.hidden} more {view.hidden === 1 ? "line" : "lines"}
 										</button>

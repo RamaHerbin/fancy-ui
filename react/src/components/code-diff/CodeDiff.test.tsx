@@ -1,7 +1,9 @@
 import { readFileSync } from "node:fs";
+import { Profiler } from "react";
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { CodeDiff } from "./CodeDiff.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 
 /** One file, two hunks: 4 additions, 3 deletions, 10 line rows in total. */
 const MULTI_HUNK = [
@@ -155,6 +157,17 @@ describe("CodeDiff", () => {
 		expect(source).toMatch(rule);
 	});
 
+	it("spells the verdict out for assistive tech on every added and removed line", () => {
+		const { container } = render(<CodeDiff diff={BARE_HUNK} />);
+
+		// BARE_HUNK is one context row, one deletion, one addition — in that order.
+		const spoken = Array.from(container.querySelectorAll(".sr-only")).map((n) => n.textContent);
+		expect(spoken).toEqual(["Removed line", "Added line"]);
+		// The glyph stays punctuation; the tint stays decoration.
+		expect(rowsOfKind(container, "context")[0]!.querySelector(".sr-only")).toBeNull();
+		expect(container.querySelector(".ft-glyph")!.getAttribute("aria-hidden")).toBe("true");
+	});
+
 	it("carries the verdict in the glyph as well as the tint", () => {
 		const { container } = render(<CodeDiff diff={BARE_HUNK} />);
 
@@ -257,6 +270,63 @@ describe("CodeDiff", () => {
 			"false",
 			"false",
 		]);
+	});
+
+	it("re-folds every file in the same commit the master switch flips in", () => {
+		let commits = 0;
+		function Harness({ collapsed }: { collapsed: boolean }) {
+			return (
+				<Profiler
+					id="code-diff"
+					onRender={() => {
+						commits++;
+					}}
+				>
+					<CodeDiff diff={`${ADDED}${REMOVED}`} collapsed={collapsed} />
+				</Profiler>
+			);
+		}
+
+		const { container, rerender } = render(<Harness collapsed={false} />);
+		fireEvent.click(headers(container)[0]!);
+
+		commits = 0;
+		rerender(<Harness collapsed />);
+
+		expect(headers(container).map((h) => h.getAttribute("aria-expanded"))).toEqual([
+			"false",
+			"false",
+		]);
+		// The seed and the override wipe are resynced during the render the flip
+		// causes, so nothing intermediate is ever committed — let alone painted.
+		expect(commits).toBe(1);
+	});
+
+	it("re-seeds a replacement patch in the same commit it arrives in", () => {
+		let commits = 0;
+		function Harness({ diff }: { diff: string }) {
+			return (
+				<Profiler
+					id="code-diff"
+					onRender={() => {
+						commits++;
+					}}
+				>
+					<CodeDiff diff={diff} maxLines={1} />
+				</Profiler>
+			);
+		}
+
+		const { container, rerender, getAllByText } = render(
+			<Harness diff={`${ADDED}${REMOVED}`} />
+		);
+		fireEvent.click(getAllByText("Show 1 more line")[0]!);
+
+		commits = 0;
+		rerender(<Harness diff={ADDED} />);
+
+		expect(container.querySelectorAll("[data-kind]")).toHaveLength(1);
+		expect(commits).toBe(1);
 	});
 
 	it("clamps a long file and offers the rest behind a button", () => {
@@ -380,6 +450,78 @@ describe("CodeDiff", () => {
 			// flushes effects before returning, so no extra wait is needed here.
 			rerender(<CodeDiff diff={SECOND} />);
 			expect(headers(container)[0]!.getAttribute("aria-expanded")).toBe("true");
+		});
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays close exactly once when a file folds, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<CodeDiff diff={MULTI_HUNK} sound />);
+
+			fireEvent.click(headers(container)[0]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays open exactly once when a folded file unfolds, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<CodeDiff diff={MULTI_HUNK} collapsed sound />);
+
+			fireEvent.click(headers(container)[0]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+		});
+
+		it("plays open exactly once when a clamped file reveals its remaining lines", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByText } = render(<CodeDiff diff={MULTI_HUNK} maxLines={4} sound />);
+
+			fireEvent.click(getByText("Show 6 more lines"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<CodeDiff diff={MULTI_HUNK} />);
+
+			fireEvent.click(headers(container)[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when the collapsed-prop resync wipes the fold state, not just the click handler", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(<CodeDiff diff={MULTI_HUNK} sound />);
+
+			// Flips the master switch from outside — the resync that resets
+			// `folded` runs here, with no click involved.
+			rerender(<CodeDiff diff={MULTI_HUNK} collapsed sound />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when a streaming patch re-runs the signature resync", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(<CodeDiff diff={BARE_HUNK} sound />);
+
+			// Same file, more content: the signature resync resets `folded` and
+			// `unclamped` on every chunk, and none of that may play a cue.
+			rerender(<CodeDiff diff={`${BARE_HUNK}+const c = 4;\n`} sound />);
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

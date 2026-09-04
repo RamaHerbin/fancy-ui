@@ -1,6 +1,7 @@
-import { render, screen, cleanup } from "@testing-library/react";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { InteractiveHoverButton } from "./InteractiveHoverButton.js";
+import { sound } from "../../sound/sound.js";
 
 describe("InteractiveHoverButton", () => {
 	afterEach(cleanup);
@@ -26,6 +27,15 @@ describe("InteractiveHoverButton", () => {
 		render(<InteractiveHoverButton text="Subscribe" />);
 		const matches = screen.getAllByText("Subscribe");
 		expect(matches).toHaveLength(2);
+	});
+
+	it("exposes the label once in the accessible name, not twice", () => {
+		render(<InteractiveHoverButton text="Subscribe" />);
+		// The hover-overlay copy is aria-hidden, so only the resting label
+		// contributes to the accessible name — a screen reader must announce
+		// "Subscribe", not "Subscribe Subscribe".
+		const button = screen.getByRole("button", { name: "Subscribe" });
+		expect(button.getAttribute("aria-label")).not.toBe("Subscribe Subscribe");
 	});
 
 	it("renders the arrow SVG icon", () => {
@@ -98,5 +108,56 @@ describe("InteractiveHoverButton", () => {
 		// already pins.
 		expect(button.querySelector(".group-hover\\:scale-\\[100\\.8\\]")).toBeInTheDocument();
 		expect(button.querySelector(".translate-x-12.opacity-0")).toBeInTheDocument();
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<InteractiveHoverButton sound />);
+
+			fireEvent.click(screen.getByRole("button"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<InteractiveHoverButton />);
+
+			fireEvent.click(screen.getByRole("button"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<InteractiveHoverButton sound disabled />);
+			const button = screen.getByRole("button");
+
+			// Synthetic dispatch bypasses jsdom's native-disabled short-circuit,
+			// proving the guard is the JS `disabled` check.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// This component's signature interaction is a hover reveal, but the hover
+		// cue is reserved for use:soundFeedback (guardrail 13) — the identity
+		// gesture must stay silent even though it's the whole point of the button.
+		it("plays nothing on hover — the hover reveal stays silent even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<InteractiveHoverButton sound />);
+			const button = screen.getByRole("button");
+
+			fireEvent.mouseEnter(button);
+			fireEvent.pointerEnter(button);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

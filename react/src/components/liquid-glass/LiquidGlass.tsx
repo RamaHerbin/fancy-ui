@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { uid } from "../../internals/use-id.js";
 import "./liquid-glass.css";
@@ -76,11 +76,30 @@ export function LiquidGlass({
 	const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 	const [filterId, setFilterId] = useState("");
 
-	const brd = Math.min(dimensions.width, dimensions.height) * (borderProp * 0.5);
+	// Built once per input change, and not at all while the filter is absent —
+	// the same caching and laziness the Svelte source gets from `$derived.by`
+	// read only inside its `{#if filterId}` block. Every input is a primitive,
+	// so the comparison is cheap and the kilobyte string plus its URI encoding
+	// no longer run on renders that a parent alone caused.
+	const displacementDataUri = useMemo(() => {
+		if (!filterId) return "";
 
-	const displacementImage = `<svg viewBox="0 0 ${dimensions.width} ${dimensions.height}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="red-${filterId}" x1="100%" y1="0%" x2="0%" y2="0%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="red"/></linearGradient><linearGradient id="blue-${filterId}" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="blue"/></linearGradient></defs><rect x="0" y="0" width="${dimensions.width}" height="${dimensions.height}" fill="black"/><rect x="0" y="0" width="${dimensions.width}" height="${dimensions.height}" rx="${radius}" fill="url(#red-${filterId})"/><rect x="0" y="0" width="${dimensions.width}" height="${dimensions.height}" rx="${radius}" fill="url(#blue-${filterId})" style="mix-blend-mode:${blend}"/><rect x="${brd}" y="${brd}" width="${dimensions.width - brd * 2}" height="${dimensions.height - brd * 2}" rx="${radius}" fill="hsl(0 0% ${lightness}% / ${alpha})" style="filter:blur(${blur}px)"/></svg>`;
+		const brd = Math.min(dimensions.width, dimensions.height) * (borderProp * 0.5);
 
-	const displacementDataUri = `data:image/svg+xml,${encodeURIComponent(displacementImage)}`;
+		const displacementImage = `<svg viewBox="0 0 ${dimensions.width} ${dimensions.height}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="red-${filterId}" x1="100%" y1="0%" x2="0%" y2="0%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="red"/></linearGradient><linearGradient id="blue-${filterId}" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="blue"/></linearGradient></defs><rect x="0" y="0" width="${dimensions.width}" height="${dimensions.height}" fill="black"/><rect x="0" y="0" width="${dimensions.width}" height="${dimensions.height}" rx="${radius}" fill="url(#red-${filterId})"/><rect x="0" y="0" width="${dimensions.width}" height="${dimensions.height}" rx="${radius}" fill="url(#blue-${filterId})" style="mix-blend-mode:${blend}"/><rect x="${brd}" y="${brd}" width="${dimensions.width - brd * 2}" height="${dimensions.height - brd * 2}" rx="${radius}" fill="hsl(0 0% ${lightness}% / ${alpha})" style="filter:blur(${blur}px)"/></svg>`;
+
+		return `data:image/svg+xml,${encodeURIComponent(displacementImage)}`;
+	}, [
+		dimensions.width,
+		dimensions.height,
+		borderProp,
+		radius,
+		blend,
+		lightness,
+		alpha,
+		blur,
+		filterId,
+	]);
 
 	// Same declaration order as the Svelte source's style string, and the same
 	// two shapes: `backdrop-filter` only appears once the filter it points at does.

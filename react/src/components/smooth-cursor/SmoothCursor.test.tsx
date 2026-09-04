@@ -12,6 +12,13 @@ describe("SmoothCursor", () => {
 		expect(cursor.className).not.toContain("opacity-100");
 	});
 
+	it("keeps the decorative cursor layer out of the accessibility tree", () => {
+		const { container, queryAllByRole } = render(<SmoothCursor />);
+		expect(container.firstElementChild!.getAttribute("aria-hidden")).toBe("true");
+		expect(container.querySelector("svg")!.getAttribute("focusable")).toBe("false");
+		expect(queryAllByRole("img")).toHaveLength(0);
+	});
+
 	it("applies custom class names", () => {
 		const { container } = render(<SmoothCursor className="my-cursor" />);
 		const cursor = container.firstElementChild as HTMLElement;

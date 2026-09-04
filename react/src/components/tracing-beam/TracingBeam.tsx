@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { useFancyId } from "../../internals/use-id.js";
 import { cn } from "../../utils.js";
 
 export interface TracingBeamProps {
@@ -26,10 +28,18 @@ export function TracingBeam({ className = "", children }: TracingBeamProps) {
 	const contentRef = useRef<HTMLDivElement | null>(null);
 	const gradientRef = useRef<SVGLinearGradientElement | null>(null);
 
+	// One gradient per instance: the stroke references it by functional IRI, so a
+	// shared literal id would make every beam after the first paint the first
+	// beam's spring.
+	const gradientId = useFancyId("tracing-beam-gradient");
+
 	// State that re-renders markup (circle classes/shadow, svg path, viewBox) —
 	// mirrors the Svelte component's $state driving template expressions.
 	const [svgHeight, setSvgHeight] = useState(0);
-	const [scrollYProgress, setScrollYProgress] = useState(0);
+	// The raw scroll progress is a fresh float on every scroll event and feeds
+	// nothing but the three circle expressions below, so only the threshold it
+	// crosses reaches React; the value itself stays in the ref.
+	const [beamStarted, setBeamStarted] = useState(false);
 
 	// Mutable animation state — per-frame spring values never round-trip through
 	// React state; the rAF loop writes the gradient's y1/y2 attributes directly.
@@ -44,7 +54,7 @@ export function TracingBeam({ className = "", children }: TracingBeamProps) {
 		rafId: 0,
 	});
 
-	useEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const s = stateRef.current;
 
 		function targetY1(): number {
@@ -107,7 +117,7 @@ export function TracingBeam({ className = "", children }: TracingBeamProps) {
 
 			s.scrollPercentage = (windowHeight - rect.top) / (windowHeight + elementHeight);
 			s.scrollYProgress = (rect.y / windowHeight) * -1;
-			setScrollYProgress(s.scrollYProgress);
+			setBeamStarted(s.scrollYProgress > 0);
 
 			cancelAnimationFrame(s.rafId);
 			s.rafId = requestAnimationFrame(updateSpring);
@@ -138,9 +148,9 @@ export function TracingBeam({ className = "", children }: TracingBeamProps) {
 		};
 	}, []);
 
-	const circleHasShadow = scrollYProgress <= 0;
-	const circleBg = scrollYProgress > 0 ? "bg-white" : "bg-emerald-500";
-	const circleBorder = scrollYProgress > 0 ? "border-neutral-300" : "border-emerald-600";
+	const circleHasShadow = !beamStarted;
+	const circleBg = beamStarted ? "bg-white" : "bg-emerald-500";
+	const circleBorder = beamStarted ? "border-neutral-300" : "border-emerald-600";
 	const svgPath = `M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`;
 
 	return (
@@ -168,14 +178,14 @@ export function TracingBeam({ className = "", children }: TracingBeamProps) {
 					<path
 						d={svgPath}
 						fill="none"
-						stroke="url(#tracing-beam-gradient)"
+						stroke={`url(#${gradientId})`}
 						strokeWidth="1.25"
 						className="motion-reduce:hidden"
 					></path>
 					<defs>
 						<linearGradient
 							ref={gradientRef}
-							id="tracing-beam-gradient"
+							id={gradientId}
 							gradientUnits="userSpaceOnUse"
 							x1="0"
 							x2="0"

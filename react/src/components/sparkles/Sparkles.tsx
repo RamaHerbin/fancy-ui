@@ -94,10 +94,14 @@ export function Sparkles({
 		let ctx: CanvasRenderingContext2D | null = null;
 		let particles: Particle[] = [];
 		let rafId = 0;
+		// Kept alongside the backing store because the context transform below
+		// puts the draw calls in CSS-pixel space while `canvas.width` counts
+		// device pixels; the draw site divides by it to stay in the same space.
+		let dpr = 1;
 
 		function resizeCanvas() {
 			if (!canvas || !container) return;
-			const dpr = window.devicePixelRatio || 1;
+			dpr = window.devicePixelRatio || 1;
 			const rect = container.getBoundingClientRect();
 			canvas.width = rect.width * dpr;
 			canvas.height = rect.height * dpr;
@@ -143,8 +147,8 @@ export function Sparkles({
 
 				context.beginPath();
 				context.arc(
-					(p.x * canvas.width) / 100,
-					(p.y * canvas.height) / 100,
+					(p.x / 100) * (canvas.width / dpr),
+					(p.y / 100) * (canvas.height / dpr),
 					p.size,
 					0,
 					Math.PI * 2

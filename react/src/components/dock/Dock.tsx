@@ -16,6 +16,11 @@ export interface DockProps {
 	direction?: Direction;
 	/** Dock orientation. */
 	orientation?: DataOrientation;
+	/**
+	 * Accessible name for the toolbar. The dock spreads no rest props, so this
+	 * is the only way to name one whose icons carry no label of their own.
+	 */
+	ariaLabel?: string;
 	/** The `DockIcon`s and `DockSeparator`s. */
 	children?: ReactNode;
 }
@@ -32,6 +37,7 @@ export function Dock({
 	distance = 140,
 	direction = "middle",
 	orientation = "horizontal",
+	ariaLabel,
 	children,
 }: DockProps) {
 	// One piece of state for both axes, so a single frame writes one update
@@ -145,6 +151,10 @@ export function Dock({
 				onPointerMove={onPointerMove}
 				onPointerLeave={onPointerLeave}
 				role="toolbar"
+				// `role="toolbar"` is announced as horizontal unless told
+				// otherwise, so a column of icons would be described as a row.
+				aria-orientation={orientation}
+				aria-label={ariaLabel}
 				tabIndex={0}
 			>
 				{children}

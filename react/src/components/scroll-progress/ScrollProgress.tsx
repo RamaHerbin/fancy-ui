@@ -197,17 +197,29 @@ export const ScrollProgress = forwardRef<HTMLDivElement, ScrollProgressProps>(
 					// say how much there is. Both move the fraction.
 					observer = new ResizeObserver(onScrollOrResize);
 					observer.observe(scrollerEl);
-					// `ResizeObserver.observe` on an element already observed is a
-					// no-op, so re-running this on every mutation costs nothing and
-					// saves tracking which children are new.
-					const observeChildren = () => {
-						for (const child of Array.from(scrollerEl.children)) observer?.observe(child);
+					// One full pass at connect time; after that the rows are
+					// tracked through the mutation records instead. `observe` is
+					// itself a scan of the observation list, so re-walking the
+					// whole child list on every batch would make a streamed
+					// transcript pay a cost quadratic in its length for each
+					// appended chunk.
+					for (const child of Array.from(scrollerEl.children)) observer.observe(child);
+
+					const observeRows = (records: MutationRecord[]) => {
+						for (const record of records) {
+							if (record.target !== scrollerEl) continue;
+							for (const added of record.addedNodes) {
+								if (added instanceof Element) observer?.observe(added);
+							}
+							for (const removed of record.removedNodes) {
+								if (removed instanceof Element) observer?.unobserve(removed);
+							}
+						}
 					};
-					observeChildren();
 
 					if (typeof MutationObserver !== "undefined") {
-						mutations = new MutationObserver(() => {
-							observeChildren();
+						mutations = new MutationObserver((records) => {
+							observeRows(records);
 							onScrollOrResize();
 						});
 					}

@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useRef } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { cn } from "../../utils.js";
@@ -94,10 +94,27 @@ export const SelectPanel = forwardRef<HTMLDivElement, SelectPanelProps>(function
 		presence.register(anchored, (entering) => ({ side: resolvedSide, entering }))
 	);
 
+	// Svelte destroys the `{#if open}` branch that owns this component, and
+	// marks it INERT before playing the outro — its scheduler skips inert
+	// effects, so the rows on screen during the exit are frozen at whatever they
+	// were the instant the close began. React re-renders an exiting subtree
+	// normally, so the freeze is explicit here, exactly as `ComboboxPanel` and
+	// `AutocompletePanel` already do it. It is load-bearing on the most common
+	// interaction there is: clicking a row commits the value and flips `open`
+	// in the SAME turn, so an unfrozen panel would move the ✓ and the highlight
+	// onto the clicked row and off the old one for the whole 150 ms fade.
+	const frozen = useRef({ options: ctx.options, value: ctx.value, activeIndex: ctx.activeIndex });
+	if (ctx.open) {
+		frozen.current = { options: ctx.options, value: ctx.value, activeIndex: ctx.activeIndex };
+	}
+	const view = frozen.current;
+	const selectedIndex = view.options.findIndex((o) => o.value === view.value);
+
 	function rowClasses(index: number, option: SelectOption): string {
 		return cn(
 			"ft-select-option flex cursor-pointer items-center justify-between gap-2 rounded-[6px] px-[10px] py-[7px] text-foreground select-none",
-			(ctx.isSelected(index) || ctx.isActive(index)) && "bg-accent text-accent-foreground",
+			(index === selectedIndex || index === view.activeIndex) &&
+				"bg-accent text-accent-foreground",
 			option.disabled && "cursor-not-allowed opacity-50"
 		);
 	}
@@ -139,6 +156,12 @@ export const SelectPanel = forwardRef<HTMLDivElement, SelectPanelProps>(function
 					ref={panelRef}
 					id={ctx.panelId}
 					role="listbox"
+					// The popup carries the trigger's own name: a listbox with
+					// no accessible name is announced as an unnamed "listbox"
+					// the instant the combobox expands, and every
+					// `aria-activedescendant` announcement after it is made
+					// inside that unnamed list.
+					aria-label={ctx.label}
 					className={cn(
 						"ft-select-panel border-border bg-popover text-popover-foreground flex w-max min-w-[160px] flex-col gap-[1px] rounded-[10px] border p-[5px] text-[13px] shadow-lg outline-none",
 						className
@@ -157,7 +180,7 @@ export const SelectPanel = forwardRef<HTMLDivElement, SelectPanelProps>(function
 					// this same element.
 					style={{ transformOrigin: originFor(resolvedSide, resolvedAlign) }}
 				>
-					{ctx.options.map((option, index) => (
+					{view.options.map((option, index) => (
 						/*
 							Keyboard activation for a row is not local: the trigger
 							button owns every keydown (Enter/Space/arrow keys/typeahead)
@@ -171,7 +194,7 @@ export const SelectPanel = forwardRef<HTMLDivElement, SelectPanelProps>(function
 							id={ctx.optionId(index)}
 							role="option"
 							tabIndex={-1}
-							aria-selected={ctx.isSelected(index)}
+							aria-selected={index === selectedIndex}
 							aria-disabled={option.disabled ? "true" : undefined}
 							className={rowClasses(index, option)}
 							onMouseDown={preventFocusSteal}
@@ -179,7 +202,7 @@ export const SelectPanel = forwardRef<HTMLDivElement, SelectPanelProps>(function
 							onPointerEnter={() => handlePointerEnter(index, option)}
 						>
 							<span className="truncate">{option.label}</span>
-							{ctx.isSelected(index) ? (
+							{index === selectedIndex ? (
 								<span aria-hidden="true" className="text-[var(--ft-field-accent)]">
 									✓
 								</span>

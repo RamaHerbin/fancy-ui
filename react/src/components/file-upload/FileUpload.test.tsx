@@ -1,10 +1,11 @@
 import { render, cleanup, fireEvent, waitFor, act } from "@testing-library/react";
-import { useEffect, useRef, useState } from "react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { StrictMode, useEffect, useRef, useState } from "react";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { FileUpload } from "./FileUpload.js";
 import type { UploadFile } from "./FileUpload.js";
 import { FieldProvider } from "../../internals/field.js";
 import type { FieldContext } from "../../internals/field.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 
 function makeFile(name: string, size = 1024, type = "application/octet-stream"): File {
 	return new File([new ArrayBuffer(size)], name, { type });
@@ -490,7 +491,7 @@ describe("FileUpload", () => {
 
 			// Still two rows: the first one is on its way out, not gone.
 			expect(rows(container)).toHaveLength(2);
-			expect(rows(container)[0]!.inert).toBe(true);
+			expect(rows(container)[0]!.hasAttribute("inert")).toBe(true);
 			expect(rows(container)[0]!.textContent).toContain("a.txt");
 
 			await act(async () => {
@@ -522,7 +523,7 @@ describe("FileUpload", () => {
 
 			// The list and its last row are still there, fading, not gone.
 			expect(rows(container)).toHaveLength(1);
-			expect(rows(container)[0]!.inert).toBe(true);
+			expect(rows(container)[0]!.hasAttribute("inert")).toBe(true);
 			expect(container.querySelector(".ft-file-upload-list")).not.toBeNull();
 
 			await act(async () => {
@@ -698,5 +699,253 @@ describe("FileUpload", () => {
 		expect(input.getAttribute("aria-invalid")).toBe("true");
 		expect(input.required).toBe(true);
 		expect(input.disabled).toBe(true);
+	});
+
+	// A controlled consumer that puts a just-removed entry back — an undo, a
+	// retry, a parent re-deriving the list from content — lands inside the
+	// 200 ms exit window. The keyed block on the Svelte side resumes the
+	// leaving element for a returning key; the exit-aware list here has to
+	// revive the row rather than render a second one under the same key,
+	// which would share one ref callback and then be taken away wholesale by
+	// the id filter that ends the exit.
+	it("revives a row whose id comes back mid-exit instead of rendering it twice", async () => {
+		const held = holdExits();
+		try {
+			const entry: UploadFile = {
+				id: "1",
+				file: makeFile("a.txt"),
+				progress: null,
+				status: "pending",
+			};
+			const noop = () => {};
+			const { container, rerender } = render(<FileUpload files={[entry]} onFilesChange={noop} />);
+			expect(rows(container)).toHaveLength(1);
+
+			rerender(<FileUpload files={[]} onFilesChange={noop} />);
+			await settle();
+			expect(rows(container)).toHaveLength(1);
+			expect(rows(container)[0]!.hasAttribute("inert")).toBe(true);
+
+			// Back again, while the exit is still in flight.
+			rerender(<FileUpload files={[entry]} onFilesChange={noop} />);
+			await settle();
+
+			expect(rows(container)).toHaveLength(1);
+			expect(rows(container)[0]!.hasAttribute("inert")).toBe(false);
+
+			// ...and the exit that was running cannot take it away when it lands.
+			await act(async () => {
+				held.release();
+			});
+			await settle();
+			expect(rows(container)).toHaveLength(1);
+			expect(container.textContent).toContain("a.txt");
+		} finally {
+			held.restore();
+		}
+	});
+
+	// A leg that finished synchronously (reduced motion) has already removed
+	// itself from the run map by the time the call returns. Writing the spent
+	// handle back would strand it there, and the next exit of the same id
+	// would reverse from it — `t()` reporting the end position collapses that
+	// exit to no keyframes at all, so the row would vanish on the spot.
+	it("does not strand a spent transition handle: a later exit of the same id still plays in full", async () => {
+		stubReducedMotion(true);
+		const entry: UploadFile = {
+			id: "1",
+			file: makeFile("a.txt"),
+			progress: null,
+			status: "pending",
+		};
+		const noop = () => {};
+		const { container, rerender } = render(<FileUpload files={[entry]} onFilesChange={noop} />);
+
+		rerender(<FileUpload files={[]} onFilesChange={noop} />);
+		await settle();
+		expect(rows(container)).toHaveLength(0);
+
+		stubReducedMotion(false);
+		const held = holdExits();
+		try {
+			rerender(<FileUpload files={[entry]} onFilesChange={noop} />);
+			await settle();
+			expect(rows(container)).toHaveLength(1);
+
+			rerender(<FileUpload files={[]} onFilesChange={noop} />);
+			await settle();
+			await settle();
+
+			expect(rows(container)).toHaveLength(1);
+			expect(rows(container)[0]!.hasAttribute("inert")).toBe(true);
+
+			await act(async () => {
+				held.release();
+			});
+			await waitFor(() => expect(rows(container)).toHaveLength(0));
+		} finally {
+			held.restore();
+		}
+	});
+
+	// The input keeps its picked FileList so `name` posts it and `required`
+	// validates against it — which means a removal has to take the file off
+	// the input too, or the field posts a file the reader can see is gone.
+	it("clears the picked FileList off the input when that file's row is removed", async () => {
+		const { container } = render(<FileUpload name="attachment" required />);
+		const input = fileInput(container);
+		const writes = recordValueWrites(input);
+
+		fireEvent.change(input, { target: { files: [makeFile("logo.svg")] } });
+		await settle();
+
+		expect(rows(container)).toHaveLength(1);
+		expect(writes).toEqual([]);
+
+		fireEvent.click(removeButtons(container)[0]!);
+		await settle();
+
+		expect(writes).toEqual([""]);
+	});
+
+	// A live region only speaks when its text CHANGES. Rejecting the same file
+	// twice writes byte-identical text, so the region has to be cleared and
+	// rewritten or the second rejection is silent.
+	it("re-announces an identical rejection instead of leaving the live region untouched", async () => {
+		const { container } = render(<FileUpload accept=".png,image/png" />);
+		const zone = dropzone(container);
+		const live = container.querySelector('[aria-live="polite"]') as HTMLElement;
+
+		fireEvent.drop(zone, { dataTransfer: { files: [makeFile("notes.txt")] } });
+		await settle();
+		expect(live.textContent).toMatch(/notes\.txt/);
+
+		fireEvent.drop(zone, { dataTransfer: { files: [makeFile("notes.txt")] } });
+		// Cleared first: this is the mutation an assistive technology hears.
+		expect(live.textContent).toBe("");
+
+		await settle();
+		expect(live.textContent).toMatch(/notes\.txt/);
+	});
+
+	// StrictMode's simulated remount detaches and re-attaches every row ref on
+	// the dev mount, which is what arms the row-ref cache. The bookkeeping a
+	// removal depends on — the element behind each row id — has to survive it.
+	it("survives a StrictMode mount and a re-render: a removal still holds its row for the exit", async () => {
+		const held = holdExits();
+		try {
+			const entries: UploadFile[] = [
+				{ id: "1", file: makeFile("a.txt"), progress: null, status: "pending" },
+				{ id: "2", file: makeFile("b.txt"), progress: null, status: "pending" },
+			];
+			const { container, rerender } = render(
+				<StrictMode>
+					<FileUpload defaultFiles={entries} hint="PNG only" />
+				</StrictMode>
+			);
+			rerender(
+				<StrictMode>
+					<FileUpload defaultFiles={entries} hint="PNG or SVG" />
+				</StrictMode>
+			);
+
+			fireEvent.click(removeButtons(container)[0]!);
+			await settle();
+
+			expect(rows(container)).toHaveLength(2);
+			expect(rows(container)[0]!.hasAttribute("inert")).toBe(true);
+
+			await act(async () => {
+				held.release();
+			});
+			await waitFor(() => expect(rows(container)).toHaveLength(1));
+			expect(container.textContent).not.toContain("a.txt");
+		} finally {
+			held.restore();
+		}
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the select cue exactly once on a drop where every file is accepted, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<FileUpload sound />);
+			const zone = dropzone(container);
+
+			fireEvent.drop(zone, { dataTransfer: { files: [makeFile("photo.png")] } });
+			await settle();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays the error cue exactly once on a drop with a rejected file, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<FileUpload sound accept=".png,image/png" />);
+			const zone = dropzone(container);
+
+			fireEvent.drop(zone, { dataTransfer: { files: [makeFile("notes.txt")] } });
+			await settle();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("error", undefined);
+		});
+
+		it("on a mixed batch, error wins over select — never both cues for one drop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<FileUpload sound multiple accept=".png,image/png" />);
+			const zone = dropzone(container);
+
+			fireEvent.drop(zone, {
+				dataTransfer: { files: [makeFile("ok.png", 100, "image/png"), makeFile("notes.txt")] },
+			});
+			await settle();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("error", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<FileUpload />);
+			const zone = dropzone(container);
+
+			fireEvent.drop(zone, { dataTransfer: { files: [makeFile("photo.png")] } });
+			await settle();
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<FileUpload sound disabled />);
+			const zone = dropzone(container);
+
+			fireEvent.drop(zone, { dataTransfer: { files: [makeFile("photo.png")] } });
+			await settle();
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("removeFile stays silent — removing a row never plays a cue", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const entries: UploadFile[] = [
+				{ id: "1", file: makeFile("a.txt"), progress: null, status: "pending" },
+			];
+			const { container } = render(<FileUpload sound defaultFiles={entries} />);
+
+			fireEvent.click(removeButtons(container)[0]!);
+			await settle();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

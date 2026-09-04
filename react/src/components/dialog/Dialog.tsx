@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { DialogSurface } from "./DialogSurface.js";
 
 export interface DialogProps {
@@ -26,6 +27,11 @@ export interface DialogProps {
 	trigger?: ReactNode;
 	/** Additional classes for the panel. */
 	className?: string;
+	/**
+	 * Plays the matching open/close cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 export const Dialog = forwardRef<HTMLDivElement, DialogProps>(function Dialog(
@@ -40,6 +46,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(function Dialog(
 		footer,
 		trigger,
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -63,6 +70,9 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(function Dialog(
 		setOpenState(openProp ?? false);
 	}
 
+	// A no-op while `sound` is false, so the call sites below stay unguarded.
+	const playCue = useSoundCue(sound);
+
 	// The only place `open` changes on this side of the wire — a plain
 	// function, not an effect, so it never fights a caller's own controlled
 	// write and never reads/writes `open` in the same pass.
@@ -72,8 +82,14 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(function Dialog(
 		// this stops the callback — and it fixes a real defect on its own: a
 		// second Escape during the close used to fire `onOpenChange(false)` a
 		// second time.
+		// The same guard is what keeps the cues honest: a redundant call — a
+		// second Escape mid-exit, a dismiss that changes nothing — stays
+		// silent rather than doubling up, and a dialog driven purely by the
+		// `open` prop never reaches this function's open branch, so it opens
+		// silently by design.
 		if (open === next) return;
 		setOpenState(next);
+		playCue(next ? "open" : "close");
 		onOpenChange?.(next);
 	}
 

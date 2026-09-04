@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { DURATIONS } from "../../internals/motion/tokens.js";
+import { sound } from "../../sound/sound.js";
 import { NumberInput } from "./NumberInput.js";
 import { NumberInputHarness as ValueHarness } from "./NumberInputHarness.js";
 import { NumberInputFieldHarness as FieldHarness } from "./NumberInputFieldHarness.js";
@@ -658,6 +659,63 @@ describe("NumberInput", () => {
 			} finally {
 				vi.useRealTimers();
 			}
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the tick cue exactly once when stepped via the increment button, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NumberInput sound defaultValue={4} />);
+
+			fireEvent.click(incrementButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick", undefined);
+		});
+
+		it("plays the tick cue exactly once when stepped via ArrowUp, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NumberInput sound defaultValue={4} />);
+
+			fireEvent.keyDown(field(container), { key: "ArrowUp" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NumberInput defaultValue={4} />);
+
+			fireEvent.click(incrementButton(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch on the button", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NumberInput sound disabled defaultValue={4} />);
+
+			incrementButton(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while typing or on blur clamp — only an actual step plays", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NumberInput sound max={10} />);
+			const el = field(container);
+
+			fireEvent.input(el, { target: { value: "42" } });
+			fireEvent.blur(el);
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

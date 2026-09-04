@@ -1,8 +1,9 @@
-import { render, cleanup, fireEvent, screen } from "@testing-library/react";
+import { render, cleanup, fireEvent, screen, act } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ApprovalCard } from "./ApprovalCard.js";
 import type { ApprovalState } from "./ApprovalCard.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 
 const TITLE = "Run database migration";
 
@@ -272,5 +273,83 @@ describe("ApprovalCard", () => {
 
 		expect(root(container).className).toContain("my-gate");
 		expect(root(container).className).toContain("ft-approval");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when approved, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ApprovalCard title={TITLE} sound />);
+
+			await fireEvent.click(approve(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays select — never error — when denied, with sound enabled", async () => {
+			// Guardrail 9: deny is a legitimate choice, not a failure. Mapping it
+			// to `error` would be the wrong turn.
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ApprovalCard title={TITLE} sound />);
+
+			await fireEvent.click(deny(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ApprovalCard title={TITLE} />);
+
+			await fireEvent.click(approve(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while busy, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ApprovalCard title={TITLE} sound busy />);
+
+			// Both buttons are disabled while busy; a synthetic dispatch bypasses
+			// jsdom's own disabled handling to prove the guard inside decide()
+			// itself, not merely the native attribute.
+			approve(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("resolves once — a second decision on an already-resolved gate does not double-fire", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ApprovalCard title={TITLE} sound />);
+			const button = approve(container);
+
+			// Each dispatch is flushed on its own — the Svelte source's rune
+			// assignment is synchronous, so both clicks land against a `state`
+			// that already reads "approved"; React's `state` commits on the same
+			// cadence once its own update has flushed, so the guard is exercised
+			// the same way here: on the committed value, not on the approve
+			// button having already left the DOM.
+			act(() => {
+				button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			});
+			act(() => {
+				button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			});
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
 	});
 });

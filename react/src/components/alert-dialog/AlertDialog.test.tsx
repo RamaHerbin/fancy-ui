@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import { AlertDialog } from "./AlertDialog.js";
 import { __dismissableLayerCount, attachDismissable } from "../../internals/dismissable.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 // The source suite's assertions transposed one for one. Its `createRawSnippet`
 // harness becomes plain JSX; its `tick()` awaits disappear (React's own
@@ -119,6 +120,11 @@ describe("AlertDialog", () => {
 		// jsdom does not implement — unmocked it floods the run with
 		// "Not implemented" noise on every release.
 		vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+		// The sound controller is a module singleton: a preference or an engine
+		// left behind by an earlier test would decide whether a cue is audible
+		// in this one.
+		resetSoundForTests();
+		window.localStorage.clear();
 	});
 
 	afterEach(() => {
@@ -397,6 +403,94 @@ describe("AlertDialog", () => {
 		fireEvent.click(cancelButton());
 		expect(seen.at(-1)).toBe(false);
 		await settleLegs();
+	});
+
+	// The source suite's `describe("sound")` cases, transposed one for one.
+	// The spy sits on the CONTROLLER, not the hook, so what is asserted is the
+	// cue that actually reached the singleton; the second argument is the
+	// options object `useSoundCue` forwards, which is `undefined` here.
+	describe("sound", () => {
+		it("plays open exactly once when the trigger opens the prompt", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<AlertDialog sound title="Delete project" trigger={TRIGGER} />);
+
+			fireEvent.click(trigger());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+			await settleLegs();
+		});
+
+		it("plays select exactly once on Confirm, never close for the same activation", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<AlertDialog sound open title="Delete project" confirmLabel="Delete" />);
+
+			fireEvent.click(confirmButton());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+			await settleLegs();
+		});
+
+		it("plays close exactly once on Cancel, and close exactly once on Escape", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<AlertDialog sound open title="Delete project" />);
+
+			fireEvent.click(cancelButton());
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+
+			// The source re-opens the same instance with a `rerender`; here the
+			// controlled prop has not changed, so the Escape half needs a fresh
+			// mount rather than a re-render of the closed one.
+			await settleLegs();
+			cleanup();
+			play.mockClear();
+
+			render(<AlertDialog sound open title="Delete project" />);
+			pressEscape();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<AlertDialog open title="Delete project" confirmLabel="Delete" />);
+
+			fireEvent.click(confirmButton());
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		// The internal Cancel/Confirm Buttons never receive `sound` — a single
+		// activation must play exactly one cue, not this component's own plus
+		// a doubled Button `press`.
+		it("never double-fires — activating Confirm plays exactly one cue total", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<AlertDialog sound open title="Delete project" confirmLabel="Delete" />);
+
+			fireEvent.click(confirmButton());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			await settleLegs();
+		});
+
+		it("plays close exactly once when Escape is pressed twice during the exit", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<AlertDialog sound open title="Delete project" />);
+
+			pressEscape();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
 	});
 
 	it("merges the class prop onto the panel", () => {

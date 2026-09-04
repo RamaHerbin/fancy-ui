@@ -1,9 +1,10 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { useEffect, useRef, useState } from "react";
 import { ThreadList } from "./ThreadList.js";
 import { formatRelativeTime } from "../../internals/relative-time.js";
 import type { ThreadData } from "../../internals/ai-types.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 
 const T0 = new Date("2026-01-01T00:00:00.000Z").getTime();
 const MINUTE = 60_000;
@@ -40,6 +41,7 @@ function Harness({
 	onSelect,
 	onDelete,
 	label,
+	sound,
 	customItem = false,
 	customEmpty = false,
 }: {
@@ -48,6 +50,7 @@ function Harness({
 	onSelect?: (thread: ThreadData) => void;
 	onDelete?: (thread: ThreadData) => void;
 	label?: string;
+	sound?: boolean;
 	/** Swaps the default row body for the local row renderer below. */
 	customItem?: boolean;
 	/** Swaps the default empty line for the local blank node below. */
@@ -71,6 +74,7 @@ function Harness({
 				}}
 				onDelete={onDelete}
 				label={label}
+				sound={sound}
 				item={
 					customItem
 						? (thread, active) => (
@@ -401,5 +405,63 @@ describe("ThreadList", () => {
 		const { container } = render(<ThreadList threads={collision} />);
 
 		expect(text(container, ".ft-threadlist-title")).toEqual(["First", "Second", "Third"]);
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when a different conversation is picked, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ThreadList threads={threads} activeId="t1" sound />);
+
+			fireEvent.click(rowButtons(container)[1]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ThreadList threads={threads} activeId="t1" />);
+
+			fireEvent.click(rowButtons(container)[1]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the already-active row is re-picked, but onSelect still fires", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(
+				<ThreadList threads={threads} activeId="t1" onSelect={onSelect} sound />
+			);
+
+			fireEvent.click(rowButtons(container)[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onSelect).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledWith(threads[0]);
+		});
+
+		it("plays press exactly once when a conversation is deleted, and never select alongside it", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onDelete = vi.fn();
+			const { container } = render(
+				<Harness threads={threads} activeId="t1" onDelete={onDelete} sound />
+			);
+
+			fireEvent.click(deleteButtons(container)[1]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+			expect(onDelete).toHaveBeenCalledTimes(1);
+		});
 	});
 });

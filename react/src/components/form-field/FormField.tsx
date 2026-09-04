@@ -5,6 +5,7 @@ import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { FieldProvider, createFieldState } from "../../internals/field.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { runTransition } from "../../internals/motion/animate.js";
+import type { TransitionRun } from "../../internals/motion/animate.js";
 import { preset } from "../../internals/motion/transitions.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
@@ -66,8 +67,6 @@ export interface FormFieldProps {
 // Module scope, not per instance: `preset()` is a pure factory returning a
 // pure function, so one instance serves every field.
 const pop = preset("scale");
-
-function noop(): void {}
 
 /** Which message paragraph, if any, is currently rendered. */
 type MessageBranch = "error" | "description" | null;
@@ -164,6 +163,11 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(function For
 	const glyphRef = useRef<HTMLSpanElement | null>(null);
 	const firstPassRef = useRef(true);
 	const previousBranchRef = useRef<MessageBranch>(null);
+	// The glyph leg is gated on `showValid` FLIPPING, not on it being true, so
+	// a second run of this effect over the same DOM — which is exactly what a
+	// StrictMode mount rehearsal is — cannot pop a checkmark on a field that
+	// merely rendered already-valid.
+	const previousValidRef = useRef(false);
 
 	// A layout effect, per the effect-phase policy: intros start pre-paint,
 	// and a passive effect would paint one frame at rest first.
@@ -177,49 +181,69 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(function For
 		firstPassRef.current = false;
 		const previousBranch = previousBranchRef.current;
 		previousBranchRef.current = branch;
+		const previousValid = previousValidRef.current;
+		previousValidRef.current = showValid;
 
 		// A field that renders with its message already present gets no
 		// entrance: a local intro never plays on the first run of the block
 		// that owns it, and only a real change should perform.
 		if (first) return;
 
+		// The handle is kept and aborted on finish, which drops the
+		// `fill: forwards` the run leaves behind so the element falls back to
+		// its resting style — the visible end state by construction. The same
+		// handle is aborted from the cleanup, so a leg still in flight when the
+		// branch swaps (or the field unmounts) does not keep running on a
+		// paragraph that has left the DOM. On the reduced-motion duration-0
+		// path `onFinish` fires before the assignment, and `run` is still
+		// unset: aborting nothing is the right no-op there.
+		let run: TransitionRun | undefined;
+
 		if (branch !== null && branch !== previousBranch) {
 			const el = messageRef.current;
 			if (el) {
-				runTransition(
+				run = runTransition(
 					el,
 					pop(el, { duration: prefersReducedMotion() ? 0 : DURATIONS.fast }, {
 						direction: "in",
 					}),
 					1,
 					undefined,
-					noop
+					() => run?.abort()
 				);
 			}
 			// The glyph's own conditional is created in the same pass as the
 			// paragraph that owns it, so it skips a local intro here — which
 			// is exactly right for a field that renders already-valid.
-			return;
+			return () => run?.abort();
 		}
 
 		// A glyph-scale beat, not a message-scale one: it is one character
 		// wide, so it gets `micro` (80ms) rather than the paragraph's 150ms.
-		// It only animates when `valid` flips while the help text is ALREADY
-		// on screen.
-		if (branch === "description" && previousBranch === "description" && showValid) {
+		// It only animates when `valid` FLIPS while the help text is ALREADY
+		// on screen — the flip, not the current value, so re-running this
+		// effect over unchanged props is silent.
+		if (
+			branch === "description" &&
+			previousBranch === "description" &&
+			showValid &&
+			!previousValid
+		) {
 			const el = glyphRef.current;
 			if (el) {
-				runTransition(
+				run = runTransition(
 					el,
 					pop(el, { duration: prefersReducedMotion() ? 0 : DURATIONS.micro }, {
 						direction: "in",
 					}),
 					1,
 					undefined,
-					noop
+					() => run?.abort()
 				);
 			}
 		}
+
+		return () => run?.abort();
 	}, [branch, showValid]);
 
 	return (
@@ -242,6 +266,16 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(function For
 						key="error"
 						ref={messageRef}
 						id={errorId}
+						// An error that appears while focus is already inside the
+						// control is a change to described-by content, which a
+						// screen reader is not required to re-announce — the user
+						// would see the field turn invalid and hear nothing. The
+						// branch is keyed, so a new message is a fresh mount and
+						// `role="alert"` announces it without extra bookkeeping.
+						// The description paragraph stays silent: it is read on
+						// focus, and announcing help text as it arrives would talk
+						// over the user.
+						role="alert"
 						className="ft-form-field-message text-destructive flex items-center gap-1.5 text-[12px]"
 					>
 						<span aria-hidden="true">✕</span> {error}

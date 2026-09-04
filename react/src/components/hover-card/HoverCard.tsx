@@ -7,6 +7,7 @@ import { Portal } from "../../internals/Portal.js";
 import { useAnchorPosition } from "../../internals/use-anchor-position.js";
 import { useDismissable } from "../../internals/dismissable.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -125,15 +126,23 @@ export const HoverCard = forwardRef<HTMLDivElement, HoverCardProps>(function Hov
 	// the timer callbacks scheduled below always compare against the current
 	// value, not the render they were scheduled in.
 	const openRef = useLiveRef(open);
+	// The notification goes out through the house event-callback wrapper for
+	// the same reason: a timer scheduled at pointerenter fires up to
+	// `openDelay` later, and it must call the callback the caller has THEN,
+	// not the closure captured when the delay started. The source reads
+	// `onOpenChange` off `$props()` at call time, so a parent that re-rendered
+	// inside the window is notified against its current state. It also keeps
+	// `setOpen` identity-stable.
+	const emitOpenChange = useEventCallback(onOpenChange);
 	const setOpen = useCallback(
 		(next: boolean) => {
 			clearOpenTimer();
 			clearCloseTimer();
 			if (openRef.current === next) return;
 			setOpenState(next);
-			onOpenChange?.(next);
+			emitOpenChange(next);
 		},
-		[openRef, onOpenChange]
+		[openRef, emitOpenChange]
 	);
 
 	function scheduleOpen() {

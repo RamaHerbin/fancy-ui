@@ -1,9 +1,10 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import "./checkbox.css";
 
@@ -124,10 +125,14 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 		const composedRef = useComposedRefs(forwardedRef, inputRef);
 
 		// No HTML attribute reflects `indeterminate` — it exists only as a DOM
-		// property — so it has to be assigned imperatively. Re-running on every
-		// change (not just on mount) is what keeps a later prop update in
-		// sync; keying on the node also covers the element being (re)bound.
-		useEffect(() => {
+		// property — so it has to be assigned imperatively. It also drives the
+		// CSS `:indeterminate` pseudo-class that paints the box's fill, border
+		// and drawn mark (checkbox.css), so it has to land before the browser
+		// paints — a passive effect fires after paint and flashes the resting
+		// look for one frame first. Re-running on every change (not just on
+		// mount) is what keeps a later prop update in sync; keying on the node
+		// also covers the element being (re)bound.
+		useIsomorphicLayoutEffect(() => {
 			if (input) input.indeterminate = indeterminate;
 		}, [input, indeterminate]);
 

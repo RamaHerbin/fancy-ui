@@ -57,7 +57,13 @@ export function SourceCard({ source, icon, interactive = true, className }: Sour
 	const body = (
 		<>
 			<span className="ft-source-mark flex-none" aria-hidden="true">
-				{icon ?? mark}
+				{/*
+					Truthiness, not nullishness: the Svelte source branches on
+					`{#if icon}`, so a caller writing `icon={cond && <Logo />}`
+					with a false `cond` gets the monogram back rather than an
+					empty circle.
+				*/}
+				{icon || mark}
 			</span>
 
 			<span className="flex min-w-0 flex-col gap-0.5">

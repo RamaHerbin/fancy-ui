@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { cn } from "../../utils.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { observeInView } from "../../internals/motion/in-view.js";
 
 /**
  * NoiseReveal - A WebGL image reveal driven by a Perlin-noise dissolve mask.
@@ -12,6 +13,9 @@ import { useLiveRef } from "../../internals/dom/use-live-ref.js";
  * inverted into an alpha value. The vertex shader adds a wave displacement that
  * fades out over the same progress. Reveals once on viewport entry, or under
  * full manual control via `revealed`.
+ *
+ * The render loop pauses while the canvas is scrolled out of view or its tab is
+ * in the background, and resumes from the noise phase it paused at.
  */
 export interface NoiseRevealProps {
 	/** Image URL */
@@ -308,6 +312,16 @@ export function NoiseReveal({
 		window.addEventListener("resize", handleResize);
 
 		const clock = new THREE.Clock();
+		// Clock time that elapsed while the loop was stopped. Subtracted from uTime
+		// so a resumed loop carries on from the noise phase it paused at instead of
+		// jumping forward by the length of the pause.
+		let pausedTime = 0;
+		let stoppedAt: number | null = null;
+
+		// A queued frame is the loop's only "is it running" state, so `0` is the idle
+		// sentinel — a real frame id is never 0. `start()` is therefore safe to call
+		// again while the loop is already running, and it paints the frame it starts
+		// with synchronously, exactly as the first `animate()` call did.
 		let animationId = 0;
 		const animate = () => {
 			animationId = requestAnimationFrame(animate);
@@ -317,15 +331,61 @@ export function NoiseReveal({
 				if (t >= 1) tween.active = false;
 			}
 			material.uniforms.uProgress!.value = progress;
-			material.uniforms.uTime!.value = clock.getElapsedTime();
+			material.uniforms.uTime!.value = clock.getElapsedTime() - pausedTime;
 			renderer.render(scene, camera);
 		};
-		animate();
+
+		const start = () => {
+			if (animationId !== 0) return;
+			if (stoppedAt !== null) {
+				pausedTime += clock.getElapsedTime() - stoppedAt;
+				stoppedAt = null;
+			}
+			animate();
+		};
+
+		const stop = () => {
+			if (animationId === 0) return;
+			cancelAnimationFrame(animationId);
+			animationId = 0;
+			stoppedAt = clock.getElapsedTime();
+		};
+
+		start();
+
+		// Every frame evaluates the noise twice per fragment at the device pixel ratio,
+		// so a canvas that is off screen or in a background tab is pure cost. The mask
+		// is computed from scratch each frame and keeps no state to rebuild, so the
+		// loop can stop there and pick up where it left off. `threshold: 0` — any
+		// sliver on screen counts as visible — and `once: false`, because this has to
+		// keep reporting both ways.
+		//
+		// The loop still starts immediately rather than waiting for the first observer
+		// callback: that callback lands a task later, and a canvas that is already on
+		// screen should not hold a blank frame until then.
+		let onScreen = true;
+		const handleVisibility = () => {
+			if (document.hidden) stop();
+			else if (onScreen) start();
+		};
+		document.addEventListener("visibilitychange", handleVisibility);
+
+		const inViewHandle = observeInView(container, {
+			once: false,
+			threshold: 0,
+			onChange: (intersecting) => {
+				onScreen = intersecting;
+				if (intersecting && !document.hidden) start();
+				else stop();
+			},
+		});
 
 		return () => {
 			setSetTarget(null);
 			window.removeEventListener("resize", handleResize);
-			cancelAnimationFrame(animationId);
+			document.removeEventListener("visibilitychange", handleVisibility);
+			inViewHandle.destroy();
+			stop();
 			if (renderer.domElement.parentNode === container) container.removeChild(renderer.domElement);
 			renderer.dispose();
 			geometry.dispose();
