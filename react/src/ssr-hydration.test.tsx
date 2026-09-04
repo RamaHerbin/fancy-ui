@@ -1,10 +1,13 @@
-import { createElement } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { act } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import * as pkg from "./index.js";
-import * as cam from "./cameleon/index.js";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+	NEEDS_PROPS,
+	type Exported,
+	exportedComponents,
+	tree,
+} from "./ssr-sweep.fixtures.js";
 
 /**
  * Package-wide hydration gate.
@@ -17,20 +20,13 @@ import * as cam from "./cameleon/index.js";
  * file. An earlier version handed HTML between two test files through a JSON
  * file on disk, which pinned an absolute path and relied on vitest running the
  * files in filename order — neither of which holds outside one machine.
+ *
+ * One case per export, not one case for the whole sweep. The monolithic version
+ * was a single `it` on a hard-coded 120-second budget, and it timed out under
+ * load with no indication of which component was slow — a red gate that says
+ * nothing trains a reviewer to re-run it rather than read it. Now a slow or
+ * broken component fails its own case, under its own name.
  */
-
-type Exported = readonly [name: string, value: unknown];
-
-function exportedComponents(): Exported[] {
-	const out: Exported[] = [];
-	for (const [name, value] of Object.entries({ ...pkg, ...cam })) {
-		if (typeof value !== "function" && typeof value !== "object") continue;
-		if (typeof value === "object" && !(value && "$$typeof" in (value as object))) continue;
-		if (!/^[A-Z]/.test(name)) continue;
-		out.push([name, value]);
-	}
-	return out;
-}
 
 /**
  * Components whose *client* mount throws under jsdom, so hydration cannot be
@@ -54,7 +50,6 @@ const CANNOT_HYDRATE_UNDER_JSDOM = [
 	"NoiseReveal",
 	// Mount effect dereferences a required prop the sweep does not pass.
 	"EditorialEngine",
-	"LineReveal",
 	"ReasoningPanel",
 	"StreamingText",
 	"TerminalText",
@@ -66,83 +61,82 @@ const CANNOT_HYDRATE_UNDER_JSDOM = [
  * React 19 does NOT `console.error` a hydration mismatch: it routes the error
  * to the root's `onRecoverableError`, whose default implementation is
  * `reportError` — so a sweep that only spies on `console.error` sees nothing
- * and passes through a real mismatch. `hydrateAll` therefore supplies its own
+ * and passes through a real mismatch. `hydrateOne` therefore supplies its own
  * `onRecoverableError` (which also stops the error surfacing as an unhandled
  * rejection with no component attached to it) and keeps the `console.error`
  * spy alongside for diagnostics React still logs that way.
  */
 const HYDRATION_DIAGNOSTIC = /hydrat|did not match|Text content|server render/i;
 
-/**
- * Server HTML for every export the sweep can render from `{ children: "x" }`
- * alone. An export whose server render throws (it needs props this sweep does
- * not pass) is out of scope and covered by its own colocated suite.
- */
-function renderAll(): { rendered: Array<readonly [string, unknown, string]>; skipped: string[] } {
-	const rendered: Array<readonly [string, unknown, string]> = [];
+/** Server HTML per export, plus the names whose server render threw. */
+interface Rendered {
+	html: Map<string, string>;
+	skipped: string[];
+}
+
+function renderAll(swept: Exported[]): Rendered {
+	const html = new Map<string, string>();
 	const skipped: string[] = [];
-	for (const [name, value] of exportedComponents()) {
+	for (const [name, value] of swept) {
 		try {
-			rendered.push([
-				name,
-				value,
-				renderToString(createElement(value as never, { children: "x" } as never)),
-			]);
+			html.set(name, renderToString(tree(value)));
 		} catch {
 			skipped.push(name);
 		}
 	}
-	return { rendered, skipped };
+	return { html, skipped };
 }
 
-interface HydrateResult {
-	/** `name:: first diagnostic` for each component React complained about. */
-	mismatched: string[];
-	/** Names whose client mount threw before hydration could be judged. */
-	threw: string[];
-	/** Names that hydrated cleanly. */
-	hydrated: number;
-}
+/**
+ * Hydrate one export and assert on it: no diagnostic, and its membership of the
+ * two frozen lists is what the run actually produced.
+ */
+async function hydrateOne(name: string, value: unknown, rendered: Rendered) {
+	if (rendered.skipped.includes(name)) {
+		expect(NEEDS_PROPS as readonly string[]).toContain(name);
+		return;
+	}
+	expect(NEEDS_PROPS as readonly string[]).not.toContain(name);
 
-async function hydrateAll(
-	rendered: Array<readonly [string, unknown, string]>
-): Promise<HydrateResult> {
-	const result: HydrateResult = { mismatched: [], threw: [], hydrated: 0 };
+	const container = document.createElement("div");
+	container.innerHTML = rendered.html.get(name)!;
+	document.body.appendChild(container);
 
-	for (const [name, value, html] of rendered) {
-		const container = document.createElement("div");
-		container.innerHTML = html;
-		document.body.appendChild(container);
-
-		const seen: string[] = [];
-		const spy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
-			seen.push(args.map(String).join(" "));
+	const seen: string[] = [];
+	const spy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+		seen.push(args.map(String).join(" "));
+	});
+	// Recorded, never dropped: the assertion below is what keeps a failed mount
+	// from being quietly swallowed. Both channels feed it — the error boundary,
+	// which both React majors route a commit-phase throw through, and `act`
+	// rethrowing, which is React 19's own path and is kept as a backstop.
+	let threw = false;
+	try {
+		let root: ReturnType<typeof hydrateRoot> | undefined;
+		await act(async () => {
+			root = hydrateRoot(container, tree(value, () => (threw = true)), {
+				onRecoverableError: (error: unknown) => seen.push(String(error)),
+			});
 		});
-		try {
-			let root: ReturnType<typeof hydrateRoot> | undefined;
-			await act(async () => {
-				root = hydrateRoot(container, createElement(value as never, { children: "x" } as never), {
-					onRecoverableError: (error: unknown) => seen.push(String(error)),
-				});
-			});
-			await act(async () => {
-				root?.unmount();
-			});
-			result.hydrated += 1;
-		} catch {
-			// Recorded, never dropped: the allowlist assertion below is what keeps
-			// this branch from quietly swallowing a component that stopped working.
-			result.threw.push(name);
-		} finally {
-			spy.mockRestore();
-			container.remove();
-		}
-
-		const diagnostics = seen.filter((message) => HYDRATION_DIAGNOSTIC.test(message));
-		if (diagnostics.length) result.mismatched.push(`${name}:: ${diagnostics[0]!.slice(0, 400)}`);
+		await act(async () => {
+			root?.unmount();
+		});
+	} catch {
+		threw = true;
+	} finally {
+		spy.mockRestore();
+		container.remove();
 	}
 
-	return result;
+	if (threw) {
+		// A component that never mounted cannot be judged on hydration, so the
+		// membership assertion is the whole result for it.
+		expect(CANNOT_HYDRATE_UNDER_JSDOM as readonly string[]).toContain(name);
+		return;
+	}
+	expect(CANNOT_HYDRATE_UNDER_JSDOM as readonly string[]).not.toContain(name);
+	const diagnostics = seen.filter((message) => HYDRATION_DIAGNOSTIC.test(message));
+	expect(diagnostics.map((message) => `${name}:: ${message.slice(0, 400)}`)).toEqual([]);
 }
 
 /** The default jsdom environment test-setup installs: nothing matches. */
@@ -163,35 +157,59 @@ function installDefaultMatchMedia() {
 	});
 }
 
+const swept = exportedComponents();
+
+/** Both sweeps' coverage floor: the assertions above also pass on empty input. */
+const HYDRATED_FLOOR = 150;
+/** Per case, generous: the point is that one slow component names itself. */
+const CASE_TIMEOUT = 30_000;
+/** The whole render pass runs in one hook, so it gets the budget of a sweep. */
+const RENDER_TIMEOUT = 120_000;
+
+/** Every element comes from `tree()`, so both sweeps hydrate under StrictMode. */
 describe("hydration sweep", () => {
+	const rendered: Rendered = { html: new Map(), skipped: [] };
+
+	beforeAll(() => {
+		Object.assign(rendered, renderAll(swept));
+	}, RENDER_TIMEOUT);
+
 	afterEach(() => {
 		// Both are global mutations; restore them so test order cannot matter.
 		window.localStorage.clear();
 		installDefaultMatchMedia();
 	});
 
-	it("hydrates server HTML without mismatch", async () => {
-		const { rendered, skipped } = renderAll();
-		const { mismatched, threw, hydrated } = await hydrateAll(rendered);
+	it.each(swept)(
+		"%s hydrates server HTML without mismatch",
+		async (name, value) => {
+			await hydrateOne(name, value, rendered);
+		},
+		CASE_TIMEOUT
+	);
 
-		expect(mismatched).toEqual([]);
-		expect([...threw].sort()).toEqual([...CANNOT_HYDRATE_UNDER_JSDOM].sort());
-		// Coverage floor: the two assertions above also pass on empty input, so a
-		// refactor that made the sweep stop reaching the components (a broken
-		// barrel, a render that throws for everything) would read as green.
-		expect(hydrated).toBeGreaterThan(150);
-		expect(skipped.length).toBeLessThan(exportedComponents().length / 2);
-	}, 120000);
+	it("sweeps the whole barrel, and the frozen lists have no stale names", () => {
+		expect([...rendered.skipped].sort()).toEqual([...NEEDS_PROPS].sort());
+		const names = new Set(swept.map(([name]) => name));
+		expect(CANNOT_HYDRATE_UNDER_JSDOM.filter((name) => !names.has(name))).toEqual([]);
+		expect(rendered.html.size).toBeGreaterThan(HYDRATED_FLOOR);
+	});
+});
 
-	it("hydrates server HTML in a client whose environment answers differently", async () => {
-		// The real hazard an SSR app hits: the server renders with no media
-		// queries and no persisted storage, and the browser that hydrates reports
-		// reduced motion and already has sound preferences saved. A component that
-		// reads either during render — instead of in an effect — mismatches here
-		// while passing the sweep above. The render therefore runs BEFORE the
-		// environment is changed; only hydration sees the new answers.
-		const { rendered } = renderAll();
+describe("hydration sweep, in a client whose environment answers differently", () => {
+	// The real hazard an SSR app hits: the server renders with no media queries
+	// and no persisted storage, and the browser that hydrates reports reduced
+	// motion and already has sound preferences saved. A component that reads
+	// either during render — instead of in an effect — mismatches here while
+	// passing the sweep above. The render therefore runs BEFORE the environment
+	// is changed; only hydration sees the new answers.
+	const rendered: Rendered = { html: new Map(), skipped: [] };
 
+	beforeAll(() => {
+		Object.assign(rendered, renderAll(swept));
+	}, RENDER_TIMEOUT);
+
+	beforeAll(() => {
 		Object.defineProperty(window, "matchMedia", {
 			writable: true,
 			configurable: true,
@@ -210,11 +228,23 @@ describe("hydration sweep", () => {
 			"fancy-ui-sound",
 			JSON.stringify({ v: 1, enabled: true, volume: 0.9, theme: "fancy" })
 		);
+	});
 
-		const { mismatched, threw, hydrated } = await hydrateAll(rendered);
+	afterAll(() => {
+		window.localStorage.clear();
+		installDefaultMatchMedia();
+	});
 
-		expect(mismatched).toEqual([]);
-		expect([...threw].sort()).toEqual([...CANNOT_HYDRATE_UNDER_JSDOM].sort());
-		expect(hydrated).toBeGreaterThan(150);
-	}, 180000);
+	it.each(swept)(
+		"%s hydrates server HTML without mismatch",
+		async (name, value) => {
+			await hydrateOne(name, value, rendered);
+		},
+		CASE_TIMEOUT
+	);
+
+	it("sweeps the whole barrel, and the frozen lists have no stale names", () => {
+		expect([...rendered.skipped].sort()).toEqual([...NEEDS_PROPS].sort());
+		expect(rendered.html.size).toBeGreaterThan(HYDRATED_FLOOR);
+	});
 });

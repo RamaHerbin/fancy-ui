@@ -44,7 +44,7 @@
  */
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { dirname, resolve, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const reactDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = resolve(reactDir, "..");
@@ -119,6 +119,57 @@ function exportsOf(file, seen = new Set()) {
 }
 
 const publicExports = exportsOf(join(reactDir, "src/index.ts"));
+
+/* ------------------------------------------------------------------ *
+ * The converse pass: names the package publishes that the matrix does not.
+ * ------------------------------------------------------------------ */
+
+/**
+ * Every export name any matrix entry claims. Filled as the entries are walked
+ * below, and read afterwards by the converse pass.
+ *
+ * The forward pass ("every name the matrix lists is reachable") is only half a
+ * gate: it cannot see an export the package publishes and the record does not
+ * mention, which is how four `useSound*` hooks stayed unrecorded through a
+ * whole migration wave. It also cannot tell a type from a value — a name
+ * satisfied by `export type { X }` passes while a consumer's runtime
+ * `import { X }` fails.
+ */
+const recordedExports = new Set();
+
+/**
+ * Deliberate root-barrel names no component row owns.
+ *
+ * `cn` is the package's own addition (the Svelte barrel keeps it internal), and
+ * the sound family ships from `src/sound/` rather than from a component folder.
+ * Anything else appearing here is a real gap in the record.
+ */
+const UNRECORDED_BY_DESIGN = new Set(["cn"]);
+const SOUND_FAMILY = /^(?:sound|toast|dismissToast|SoundToggle|use?Sound|SOUND_|FANCY_SOUND_|DEFAULT_SOUND_|createSoundEngine|getSound|validateSound|attachSoundFeedback)/;
+
+/**
+ * The names `dist/index.js` really exports at runtime, or null when the package
+ * has not been built.
+ *
+ * Read from the artifact rather than from a regex over the source: the source
+ * scan above folds `export type { X }` in with values, so it cannot answer the
+ * question a consumer asks. `--require-dist` turns a missing build into a
+ * failure, which is what CI passes so the pass cannot quietly not run.
+ */
+async function runtimeExports() {
+	const entry = join(reactDir, "dist/index.js");
+	if (!existsSync(entry)) {
+		if (process.argv.includes("--require-dist")) {
+			console.error(
+				"❌ check-matrix --require-dist: react/dist/index.js is missing. " +
+					"Run `pnpm --filter fancy-ui-react run build` first."
+			);
+			process.exit(1);
+		}
+		return null;
+	}
+	return Object.keys(await import(pathToFileURL(entry).href));
+}
 
 /* ------------------------------------------------------------------ *
  * Control-character guard.
@@ -287,6 +338,7 @@ for (const entry of matrix) {
 		if (!publicExports.has(name)) {
 			fail(slug, `matrix lists export "${name}", but it is not reachable from react/src/index.ts`);
 		}
+		recordedExports.add(name);
 	}
 
 	for (const minor of entry.minors ?? []) {
@@ -495,6 +547,22 @@ if (!claim) {
 	}
 }
 
+/* ------------------------------------------------------------------ *
+ * Converse pass. Runs last: it needs every entry's `exports` collected.
+ * ------------------------------------------------------------------ */
+
+const runtime = await runtimeExports();
+if (runtime) {
+	for (const name of runtime) {
+		if (recordedExports.has(name)) continue;
+		if (UNRECORDED_BY_DESIGN.has(name) || SOUND_FAMILY.test(name)) continue;
+		errors.push(
+			`dist/index.js exports "${name}" at runtime, but no matrix entry records it — ` +
+				"add it to the owning slug's `exports`, or stop exporting it."
+		);
+	}
+}
+
 if (errors.length) {
 	console.error(
 		`migration-matrix.json is out of date with the tree (${errors.length} problem${errors.length === 1 ? "" : "s"}):\n`
@@ -505,6 +573,9 @@ if (errors.length) {
 }
 
 console.log(
-	`migration-matrix.json: ${matrix.length} entries, ${publicExports.size} public exports, ` +
-		`${reactComponents.length} components matching the README claim — clean.`
+	`migration-matrix.json: ${matrix.length} entries, ${recordedExports.size} recorded export ` +
+		`names, ${reactComponents.length} components matching the README claim — clean.` +
+		(runtime
+			? ` Converse pass: ${runtime.length} runtime names in dist/index.js, all recorded.`
+			: " Converse pass skipped: no dist/ (run `build` first, as CI does).")
 );

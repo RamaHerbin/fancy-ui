@@ -12,6 +12,21 @@
 @source "./dist";
 
 /*
+ * Class-based dark mode, declared here because this file is the one that
+ * defines `.dark` (below). Tailwind v4's built-in `dark:` variant keys off the
+ * `prefers-color-scheme` media query, so without this line a consumer who
+ * follows the Setup section — import the two stylesheets, toggle `.dark` on
+ * <html> — gets the token block flipped while every `dark:*` utility the
+ * components emit stays on its light branch. `:where()` keeps the variant at
+ * zero specificity, so it never outranks a consumer's own rule.
+ *
+ * An app that already declares its own `@custom-variant dark` keeps it: the
+ * last declaration in the cascade order wins, and the consumer's CSS imports
+ * this file rather than the other way round.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
  * The semantic colour names the components actually spend. None of them exist
  * in Tailwind's default palette, and Tailwind v4 emits NO rule at all for an
  * undeclared colour name — so without this block `border-border` and friends
@@ -59,6 +74,16 @@
  */
 @layer base {
 	:root {
+		/*
+		 * `color-scheme` is what decides which branch every `light-dark()` call
+		 * in dist/styles.css resolves to (133 of them), and it also sets the
+		 * UA colours for scrollbars, form controls and the caret. Without it
+		 * the browser answers "light" whatever `.dark` says, so the tokens
+		 * above would flip while the components' own `light-dark()` colours
+		 * stayed light.
+		 */
+		color-scheme: light;
+
 		--background: oklch(1 0 0);
 		--foreground: oklch(0.129 0.042 264.695);
 		--card: oklch(1 0 0);
@@ -80,6 +105,8 @@
 	}
 
 	.dark {
+		color-scheme: dark;
+
 		--background: oklch(0.05 0 0);
 		--foreground: oklch(0.984 0.003 247.858);
 		--card: oklch(0.1 0.005 265);

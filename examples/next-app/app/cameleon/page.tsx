@@ -19,9 +19,10 @@ import {
 /**
  * SERVER COMPONENT — no "use client" here either.
  *
- * The cameleon engine ships from its own subpath export, `fancy-ui-react/cameleon`,
- * and that barrel carries its own "use client" banner. Two things get proven here
- * that the root barrel cannot prove on its own:
+ * The cameleon engine ships from its own subpath export, `fancy-ui-react/cameleon`.
+ * That barrel is itself a server module — it re-exports and never calls — while
+ * everything it forwards, `FancyProvider` and the five skins included, is a client
+ * module. Two things get proven here that the root barrel cannot prove on its own:
  *
  *  1. The SUBPATH resolves and prerenders. `exports["./cameleon"]` in the package
  *     manifest has to line up with the built `dist/cameleon/index.js`, or this
@@ -32,6 +33,9 @@ import {
  *     locally-defined object. It works because a value imported out of a
  *     "use client" module is a *client reference*: the server serializes the
  *     reference, and the client resolves it back to the real skin, recipes and all.
+ *     This is why the skin modules keep the directive even though they import no
+ *     React: dropping it turns `brutalSkin` into real server data and the build
+ *     fails with "Functions cannot be passed directly to Client Components".
  *
  * The flip side of (2), and the reason nothing below reads `skin.label` or
  * `skin.tokens`: from this file those objects are opaque references, not the real

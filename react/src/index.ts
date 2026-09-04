@@ -1,13 +1,19 @@
-"use client";
-
 // fancy-ui-react — public barrel. One export block per component folder,
 // mirroring src/lib/fancy-ui/index.ts on the Svelte side. The cameleon skin
 // engine is deliberately NOT here (parity with the Svelte barrel); it ships
 // through the "fancy-ui-react/cameleon" subpath export instead.
 // GENERATED between migration waves — do not edit per-component by hand.
+//
+// No `"use client"` here: convention C-9 (internals-api.md §C-9) puts the
+// directive on the emitted modules, from vite.config.ts's banner function, and
+// only on the ones that import React. This file imports none, so it ships as a
+// server module — which is what lets `cn` and the sound values below be read
+// from a Server Component instead of arriving there as client references.
 export { cn } from "./utils.js";
 
-// Mirrors the Svelte barrel's non-component lines (internals-api.md §8).
+// The Svelte barrel's non-component lines (internals-api.md §8), minus its
+// registry block: `registry`, `categories`, `getComponent` and the other
+// eleven selectors are the docs site's own tooling and are not ported.
 export * from "./sound/index.js";
 export type * from "./internals/ai-types.js";
 export type * from "./internals/motion/types.js";
