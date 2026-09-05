@@ -1,4 +1,5 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import VoiceInput from "./VoiceInput.svelte";
 import Harness from "./VoiceInputHarness.test.svelte";
@@ -170,6 +171,55 @@ describe("VoiceInput", () => {
 		expect(onStop).toHaveBeenCalledTimes(1);
 		expect(onCancel).not.toHaveBeenCalled();
 		expect(mic(container)).not.toBeNull();
+	});
+
+	describe("focus", () => {
+		it("hands focus to Cancel when the mic opens the panel", async () => {
+			const { container } = render(VoiceInput);
+			const button = mic(container) as HTMLButtonElement;
+			button.focus();
+
+			await fireEvent.click(button);
+			await tick();
+
+			expect(document.activeElement).toBe(cancelButton(container));
+		});
+
+		it("hands focus back to the mic when cancel closes the panel", async () => {
+			const { container } = render(VoiceInput, { props: { active: true } });
+			cancelButton(container).focus();
+
+			await fireEvent.click(cancelButton(container));
+			await tick();
+
+			expect(document.activeElement).toBe(mic(container));
+		});
+
+		it("hands focus back to the mic when confirm closes the panel", async () => {
+			const { container } = render(VoiceInput, { props: { active: true } });
+			confirmButton(container).focus();
+
+			await fireEvent.click(confirmButton(container));
+			await tick();
+
+			expect(document.activeElement).toBe(mic(container));
+		});
+
+		it("leaves focus alone when active is driven from outside", async () => {
+			const { rerender } = render(VoiceInput, { props: { active: false } });
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			outside.focus();
+
+			try {
+				await rerender({ active: true });
+				await tick();
+
+				expect(document.activeElement).toBe(outside);
+			} finally {
+				outside.remove();
+			}
+		});
 	});
 
 	it("opens on an externally driven active without claiming the user started it", () => {

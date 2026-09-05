@@ -80,6 +80,26 @@
 		}
 	});
 
+	// `anchorPosition` recomputes on three occasions only: its first run, a
+	// scroll or resize, and a rebuild of the options object below — which is
+	// what fires the action's `update()`. `anchor` is a getter the action
+	// calls itself, lazily and outside any reactive scope, so nothing read
+	// *inside* it is tracked, and the coordinates the virtual anchor span
+	// sits at were invisible to this call site. A second right-click while
+	// the menu is open — the normal path, since the pointerdown dismisses and
+	// the `contextmenu` event then reopens the still-mounted panel mid-exit —
+	// slid the anchor to the new point and left the panel at its previous
+	// `left`/`top` until an unrelated scroll or resize happened to fire.
+	//
+	// Taking the point as an argument reads it while the options object is
+	// built, which is what makes it a tracked dependency of that object: the
+	// reposition now reaches `update()` in the same flush. The returned getter
+	// still resolves the anchor lazily, so the action keeps tracking a moving
+	// target on scroll and resize exactly as before.
+	function anchorAt(_point: { x: number; y: number }): () => HTMLElement | null {
+		return () => root.anchorRef;
+	}
+
 	function handleKeydown(event: KeyboardEvent): void {
 		handleMenuContentKeydown(event, menuContext, {
 			onTab: () => root.close({ returnFocus: false }),
@@ -138,7 +158,7 @@
 		class={classes}
 		use:portal
 		use:anchorPosition={{
-			anchor: () => root.anchorRef,
+			anchor: anchorAt(root.point),
 			side: root.side,
 			align: root.align,
 			offset: root.offset,

@@ -159,7 +159,24 @@
 	// The single place new files enter the list, from either the native
 	// picker or a drop — both funnel through here so maxSize/maxFiles/accept
 	// are enforced identically regardless of path.
-	function addFiles(incoming: File[]) {
+	// Setting `liveMessage` to a value it already holds is a no-op — the
+	// $state string is unchanged, so nothing re-renders and the sr-only
+	// region's text node never mutates, so the announcement never fires.
+	// That bites a repeat of the exact same rejection (or two drops that
+	// both produce e.g. "notes.txt is not an accepted file type."): the
+	// second attempt is silent to a screen-reader user even though a sighted
+	// user sees the row. Clearing first and awaiting a tick before writing
+	// the real message forces a text-node mutation every time, identical
+	// message or not.
+	async function announceLive(message: string) {
+		if (message === liveMessage) {
+			liveMessage = "";
+			await tick();
+		}
+		liveMessage = message;
+	}
+
+	async function addFiles(incoming: File[]) {
 		if (effectiveDisabled || incoming.length === 0) return;
 
 		const selected = multiple ? incoming : incoming.slice(0, 1);
@@ -225,9 +242,9 @@
 		onFilesChange?.(next);
 
 		if (problems.length > 0) {
-			liveMessage = problems.join(" ");
+			await announceLive(problems.join(" "));
 		} else if (addedCount > 0) {
-			liveMessage = `${addedCount} file${addedCount === 1 ? "" : "s"} added.`;
+			await announceLive(`${addedCount} file${addedCount === 1 ? "" : "s"} added.`);
 		}
 	}
 

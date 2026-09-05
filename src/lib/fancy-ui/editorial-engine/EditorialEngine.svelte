@@ -66,7 +66,10 @@ None of this needs a new browser API or a standards process. It needs cached fon
 		class: className,
 	}: EditorialEngineProps = $props();
 
-	let stageRef: HTMLDivElement;
+	// The engine owns this layer exclusively (it calls `replaceChildren()` on
+	// teardown), which is why the accessible fallback is a sibling of it and
+	// not a child of the element the engine writes into.
+	let layerRef: HTMLDivElement;
 	let ready = $state(false);
 
 	// Re-created whenever the text props change, so the prepared measurements
@@ -80,7 +83,7 @@ None of this needs a new browser API or a standards process. It needs cached fon
 		// loaded first or widths come from the fallback font.
 		document.fonts.ready.then(() => {
 			if (cancelled) return;
-			destroy = createEditorialEngine(stageRef, options);
+			destroy = createEditorialEngine(layerRef, options);
 			ready = true;
 		});
 
@@ -91,19 +94,18 @@ None of this needs a new browser API or a standards process. It needs cached fon
 	});
 </script>
 
-<div
-	bind:this={stageRef}
-	class={cn("ee-stage", className)}
-	style:font-family={fontFamily}
-	class:ready
->
-	{#if !ready}
-		<!-- SSR / pre-engine fallback: keeps the content in the HTML -->
-		<div class="ee-fallback" aria-hidden="false">
-			<h2>{headline}</h2>
-			<p>{body}</p>
-		</div>
-	{/if}
+<div class={cn("ee-stage", className)} style:font-family={fontFamily} class:ready>
+	<!--
+		The accessible document, and the SSR / pre-engine fallback: visible until
+		the engine is ready, then visually hidden but never unmounted. The
+		positioned-line layer below is one span per visual line, with no heading
+		and no paragraph boundaries, so this stays the only accessible copy.
+	-->
+	<div class="ee-fallback" class:ee-sr-only={ready}>
+		<h2>{headline}</h2>
+		<p>{body}</p>
+	</div>
+	<div bind:this={layerRef} class="ee-layer" aria-hidden="true"></div>
 </div>
 
 <style>
@@ -117,6 +119,12 @@ None of this needs a new browser API or a standards process. It needs cached fon
 		touch-action: none;
 	}
 
+	.ee-layer {
+		position: absolute;
+		inset: 0;
+		touch-action: none;
+	}
+
 	.ee-fallback {
 		position: absolute;
 		inset: 0;
@@ -124,6 +132,20 @@ None of this needs a new browser API or a standards process. It needs cached fon
 		overflow: hidden;
 		opacity: 0.4;
 		font-size: 14px;
+	}
+
+	/* Visually hidden, still exposed to assistive tech. Scoped rather than the
+	   Tailwind `sr-only` utility because `.ee-fallback` above outranks it on
+	   specificity and would re-inflate the box. */
+	.ee-fallback.ee-sr-only {
+		inset: auto;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		border: 0;
+		clip-path: inset(50%);
+		white-space: nowrap;
 	}
 
 	.ee-stage :global(.ee-line) {

@@ -24,7 +24,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 
 	let {
 		value = 0,
@@ -54,6 +54,13 @@
 	}
 
 	function animate(target: number) {
+		// A previous chain may still be scheduling frames; cancel it so two loops
+		// never fight over `displayValue` (and so none survives unmount).
+		if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+
 		const start = displayValue;
 		const startTime = performance.now() + delay;
 
@@ -70,6 +77,8 @@
 
 			if (progress < 1) {
 				animationFrameId = requestAnimationFrame(tick);
+			} else {
+				animationFrameId = null;
 			}
 		}
 
@@ -100,7 +109,10 @@
 
 		return () => {
 			observer.disconnect();
-			if (animationFrameId) cancelAnimationFrame(animationFrameId);
+			if (animationFrameId !== null) {
+				cancelAnimationFrame(animationFrameId);
+				animationFrameId = null;
+			}
 		};
 	});
 
@@ -110,7 +122,10 @@
 		// Access derived to track changes
 		const target = animTarget;
 		if (hasAnimated) {
-			animate(target);
+			// `animate` reads `displayValue`/`duration`/`delay`; untrack so the effect
+			// depends on `animTarget` alone and a frame writing `displayValue` cannot
+			// re-enter and spawn another chain.
+			untrack(() => animate(target));
 		}
 	});
 </script>

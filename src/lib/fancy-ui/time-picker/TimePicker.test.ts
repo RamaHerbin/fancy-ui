@@ -228,6 +228,26 @@ describe("TimePicker", () => {
 		await waitFor(() => expect(panel()).toBeNull());
 	});
 
+	it("returns focus to the trigger after a pointer commit instead of stranding it on <body>", async () => {
+		const { container } = render(TimePicker, { props: { locale: "en-US" } });
+		const btn = trigger(container);
+		await fireEvent.click(btn);
+		expect(document.activeElement).toBe(btn);
+
+		const row = optionRows()[28];
+		// `fireEvent` does not move focus, so model what a real pointer press
+		// does first: the row carries `tabindex="-1"`, so it takes focus off
+		// the trigger, and the panel is portalled to `<body>` — once it goes
+		// there is no focusable ancestor left to inherit it.
+		row.focus();
+		expect(document.activeElement).toBe(row);
+
+		await fireEvent.click(row);
+		await waitFor(() => expect(panel()).toBeNull());
+
+		expect(document.activeElement).toBe(btn);
+	});
+
 	it("ArrowDown opens the panel and activates the slot nearest to the current value", async () => {
 		const { container } = render(TimePicker, { props: { locale: "en-US", value: "14:05" } });
 		const btn = trigger(container);

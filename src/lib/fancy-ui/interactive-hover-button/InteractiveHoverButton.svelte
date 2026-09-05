@@ -70,6 +70,7 @@
 	</div>
 
 	<div
+		aria-hidden="true"
 		class="text-primary-foreground absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 opacity-0 group-hover:-translate-x-5 group-hover:opacity-100 motion-safe:transition-all motion-safe:duration-300"
 	>
 		<span>

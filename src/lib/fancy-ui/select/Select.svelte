@@ -298,6 +298,9 @@
 		get value() {
 			return value;
 		},
+		get label() {
+			return label;
+		},
 		get activeIndex() {
 			return listbox.activeIndex;
 		},

@@ -104,6 +104,12 @@ describe("AnimatedTestimonials", () => {
 		expect(getByLabelText("Next testimonial")).toBeTruthy();
 	});
 
+	it("sets type=\"button\" on the nav buttons so they never submit a surrounding form", () => {
+		const { getByLabelText } = render(AnimatedTestimonials, { props: { testimonials } });
+		expect(getByLabelText("Previous testimonial").getAttribute("type")).toBe("button");
+		expect(getByLabelText("Next testimonial").getAttribute("type")).toBe("button");
+	});
+
 	describe("sound", () => {
 		let play: ReturnType<typeof vi.spyOn>;
 

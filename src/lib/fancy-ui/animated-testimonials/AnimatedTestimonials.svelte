@@ -158,6 +158,7 @@
 				<!-- Navigation -->
 				<div class="mt-8 flex gap-4">
 					<button
+						type="button"
 						onclick={() => navigate("prev", true)}
 						class="group/button flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
 						aria-label="Previous testimonial"
@@ -178,6 +179,7 @@
 						</svg>
 					</button>
 					<button
+						type="button"
 						onclick={() => navigate("next", true)}
 						class="group/button flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700"
 						aria-label="Next testimonial"

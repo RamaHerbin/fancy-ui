@@ -113,6 +113,20 @@ describe("Sheet", () => {
 		expect(dialog()!.hasAttribute("aria-labelledby")).toBe(false);
 	});
 
+	it("falls back to aria-label when there is no title", () => {
+		render(Sheet, { props: { open: true, ariaLabel: "Filters" } });
+		const el = dialog()!;
+		expect(el.getAttribute("aria-label")).toBe("Filters");
+		expect(el.hasAttribute("aria-labelledby")).toBe(false);
+	});
+
+	it("prefers aria-labelledby over ariaLabel when both a title and ariaLabel are given", () => {
+		render(Sheet, { props: { open: true, title: "Settings", ariaLabel: "Filters" } });
+		const el = dialog()!;
+		expect(el.hasAttribute("aria-labelledby")).toBe(true);
+		expect(el.hasAttribute("aria-label")).toBe(false);
+	});
+
 	it("wires aria-describedby to the real description id", () => {
 		render(Sheet, {
 			props: { open: true, title: "Settings", description: "Update your preferences." },

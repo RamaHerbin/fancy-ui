@@ -75,6 +75,19 @@
 		// at all.
 		if (!open) previouslyFocused = document.activeElement as HTMLElement | null;
 		point = { x, y };
+		// The `style:left`/`style:top` on the span below are the declarative
+		// source of truth for where this anchor sits, but they land in a render
+		// effect that has not flushed yet at the moment
+		// `ContextMenuContent`'s `anchorPosition` action recomputes off the same
+		// `point` change — the action would then measure this span at its
+		// PREVIOUS coordinates and park the panel there, which is exactly what a
+		// second right-click on an already-open menu used to do. Writing the two
+		// properties here, synchronously with the state change, guarantees the
+		// rect is already correct whenever the action asks for it; the directive
+		// sets the identical values on the next flush, so there is still only one
+		// value, never two that can disagree.
+		anchorRef?.style.setProperty("left", `${x}px`);
+		anchorRef?.style.setProperty("top", `${y}px`);
 		setOpen(true);
 	}
 

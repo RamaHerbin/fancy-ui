@@ -251,6 +251,11 @@
 											<span class="ft-num" aria-hidden="true">{row.line.newLine ?? ""}</span>
 										{/if}
 										<span class="ft-glyph" aria-hidden="true">{GLYPH[row.line.type]}</span>
+										{#if row.line.type === "add"}
+											<span class="sr-only select-none">Added line</span>
+										{:else if row.line.type === "del"}
+											<span class="sr-only select-none">Removed line</span>
+										{/if}
 										<span class="ft-code">{row.line.text}</span>
 									</div>
 								{/if}

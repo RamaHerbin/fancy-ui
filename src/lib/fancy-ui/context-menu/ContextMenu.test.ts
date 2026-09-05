@@ -194,6 +194,51 @@ describe("ContextMenu", () => {
 		expect(anchor().style.top).toBe("400px");
 	});
 
+	// Moving the anchor is only half of it — the panel has to FOLLOW it.
+	// jsdom zeroes every `getBoundingClientRect()`, so the span's inline
+	// `left`/`top` alone never reaches `anchorPosition`'s math; this teaches
+	// the virtual anchor to report the rect its own inline style describes,
+	// which is what a real layout engine would do, and then reads the
+	// coordinates `anchorPosition` writes onto the panel itself. Unless the
+	// pointer coordinates are a tracked dependency of the action's options,
+	// the second right-click leaves the panel parked at the first one's
+	// position until an unrelated scroll or resize fires.
+	it("a second right-click while the menu is open moves the panel, not just the anchor", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		const anchorEl = anchor();
+		vi.spyOn(anchorEl, "getBoundingClientRect").mockImplementation(() => {
+			const x = parseFloat(anchorEl.style.left) || 0;
+			const y = parseFloat(anchorEl.style.top) || 0;
+			return {
+				left: x,
+				top: y,
+				right: x,
+				bottom: y,
+				width: 0,
+				height: 0,
+				x,
+				y,
+				toJSON() {
+					return this;
+				},
+			} as DOMRect;
+		});
+
+		await fireEvent.contextMenu(region(container), { button: 2, clientX: 10, clientY: 10 });
+		await waitFor(() => expect(menu()).not.toBeNull());
+		// Default side "bottom", align "start", offset 2, against a zero-size
+		// point: the panel's own top-left lands on the pointer, 2px down.
+		expect(menu()?.style.left).toBe("10px");
+		expect(menu()?.style.top).toBe("12px");
+
+		await fireEvent.contextMenu(region(container), { button: 2, clientX: 300, clientY: 300 });
+		await tick();
+
+		expect(anchor().style.left).toBe("300px");
+		expect(menu()?.style.left).toBe("300px");
+		expect(menu()?.style.top).toBe("302px");
+	});
+
 	// jsdom does not compute layout, so `getBoundingClientRect()` on the
 	// virtual anchor is always zeroed regardless of the inline `left`/`top`
 	// this component sets — there is no way to drive a real flip/clamp

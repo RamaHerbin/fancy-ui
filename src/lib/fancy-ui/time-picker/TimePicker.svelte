@@ -252,6 +252,20 @@
 		},
 		commit(index: number) {
 			const committed = commitIndex(index);
+			// A POINTER commit is the one path that can strand focus. Pressing
+			// a row moves focus onto it (the row carries `tabindex="-1"`), and
+			// the panel is portalled to `<body>`, so it has no focusable
+			// ancestor to inherit focus once it goes inert for the exit and
+			// then unmounts — `document.activeElement` would fall back to
+			// `<body>` and the next Tab would restart from the top of the
+			// document. Dropping the row's `tabindex` would NOT fix that: a
+			// click on a non-focusable element blurs the trigger to `<body>`
+			// just the same. The combobox-with-listbox-popup contract is that
+			// focus never leaves the trigger, so put it back explicitly,
+			// before the close starts the exit. The keyboard path is
+			// unaffected — focus was on the trigger the whole time, and
+			// re-focusing an already-focused element is a no-op.
+			ref?.focus();
 			closePanel(committed ? "commit" : "dismiss");
 		},
 		// `dismissable` calls `onDismiss()` with zero arguments, so the default

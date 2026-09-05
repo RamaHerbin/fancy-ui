@@ -150,6 +150,16 @@ describe("Drawer", () => {
 		expect(dialog()!.hasAttribute("aria-labelledby")).toBe(false);
 	});
 
+	it("falls back to aria-label for an accessible name when there is no title", () => {
+		render(Drawer, { props: { open: true, ariaLabel: "Filters" } });
+		expect(dialog()!.getAttribute("aria-label")).toBe("Filters");
+	});
+
+	it("prefers aria-labelledby over ariaLabel when both are given", () => {
+		render(Drawer, { props: { open: true, title: "Filters", ariaLabel: "Ignored" } });
+		expect(dialog()!.hasAttribute("aria-label")).toBe(false);
+	});
+
 	it("wires aria-describedby to the real description id", () => {
 		render(Drawer, {
 			props: { open: true, title: "Filters", description: "Drag down to close." },

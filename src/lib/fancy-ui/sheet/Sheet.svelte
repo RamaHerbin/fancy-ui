@@ -15,6 +15,12 @@
 		title?: string;
 		/** Supporting text under the title, wired to `aria-describedby`. */
 		description?: string;
+		/**
+		 * Accessible name for the dialog when no `title` is rendered (e.g. a
+		 * custom header). Ignored when `title` is set, since `aria-labelledby`
+		 * already supplies the name.
+		 */
+		ariaLabel?: string;
 		/** Whether Escape, the scrim and the close button can close the sheet. */
 		dismissible?: boolean;
 		/** Panel width (left/right sides) or height (top/bottom sides). */
@@ -57,6 +63,7 @@
 		side = "right",
 		title,
 		description,
+		ariaLabel,
 		dismissible = true,
 		size = "md",
 		children,
@@ -242,6 +249,7 @@
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={titleId}
+		aria-label={titleId ? undefined : ariaLabel}
 		aria-describedby={descriptionId}
 		use:portal
 		use:scrollLock

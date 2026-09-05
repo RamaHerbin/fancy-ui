@@ -115,6 +115,16 @@ describe("Select", () => {
 		await waitFor(() => expect(panel()).toBeNull());
 	});
 
+	// WAI-ARIA APG's select-only combobox pattern names the listbox, not just
+	// the trigger — otherwise a screen reader announces it as an unnamed
+	// "listbox" the instant it expands.
+	it("gives the portalled listbox the same accessible name as the trigger's label prop", async () => {
+		const { container } = render(Select, { props: { options: OPTIONS, label: "Plan" } });
+		await fireEvent.click(trigger(container));
+
+		expect(panel()?.getAttribute("aria-label")).toBe("Plan");
+	});
+
 	it("renders every option as role=option with the right label, inside role=listbox", async () => {
 		const { container } = render(Select, { props: { options: OPTIONS } });
 		await fireEvent.click(trigger(container));

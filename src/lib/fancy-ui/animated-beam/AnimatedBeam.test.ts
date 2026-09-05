@@ -50,6 +50,24 @@ describe("AnimatedBeam", () => {
 		expect(svg?.className.baseVal).toContain("transform-gpu");
 	});
 
+	it("wires the delay prop onto the animate elements", () => {
+		const { container } = render(AnimatedBeam, { props: makeProps({ delay: 2 }) });
+		const animations = container.querySelectorAll("animate");
+		expect(animations.length).toBeGreaterThan(0);
+		for (const animation of animations) {
+			expect(animation).toHaveAttribute("begin", "2s");
+		}
+	});
+
+	it("defaults the animation start to no delay", () => {
+		const { container } = render(AnimatedBeam, { props: makeProps() });
+		const animations = container.querySelectorAll("animate");
+		expect(animations.length).toBeGreaterThan(0);
+		for (const animation of animations) {
+			expect(animation).toHaveAttribute("begin", "0s");
+		}
+	});
+
 	it('svg has fill="none" attribute', () => {
 		const { container } = render(AnimatedBeam, { props: makeProps() });
 		const svg = container.querySelector("svg");

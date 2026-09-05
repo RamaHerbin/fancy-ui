@@ -47,7 +47,7 @@
 </script>
 
 <script lang="ts">
-	import { onMount, untrack } from "svelte";
+	import { onMount, tick, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { createElapsed } from "../_internals/elapsed.svelte.js";
 	import { drawWaveformFrame, fakeWaveSample } from "../_internals/waveform-core.js";
@@ -81,6 +81,8 @@
 
 	let mounted = $state(false);
 	let canvasEl = $state<HTMLCanvasElement | null>(null);
+	let micEl = $state<HTMLButtonElement | null>(null);
+	let cancelEl = $state<HTMLButtonElement | null>(null);
 
 	const barHeight = $derived(
 		Number.isFinite(height) ? Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, height)) : 48
@@ -108,10 +110,27 @@
 		);
 	}
 
+	/*
+	 * Every one of the three buttons destroys itself by flipping `active`, and a
+	 * button that leaves the document takes the focus with it: `activeElement`
+	 * falls back to `<body>` and the next Tab restarts from the top of the page.
+	 * So each user-driven flip hands focus on to the control that replaces it —
+	 * Cancel when the panel opens, the mic when it closes — one `tick` later,
+	 * once the new branch is actually in the document. Only the buttons call
+	 * this: an `active` driven from outside leaves focus wherever the consumer
+	 * put it, exactly as it fires no callback.
+	 */
+	function handOffFocus() {
+		tick().then(() => {
+			(active ? cancelEl : micEl)?.focus();
+		});
+	}
+
 	function start() {
 		if (active) return;
 		active = true;
 		if (sound) soundFx.play("open");
+		handOffFocus();
 		onStart?.();
 	}
 
@@ -119,6 +138,7 @@
 		if (!active) return;
 		if (sound) soundFx.play("close");
 		active = false;
+		handOffFocus();
 		onCancel?.();
 	}
 
@@ -132,6 +152,7 @@
 		// it knows which.
 		if (sound) soundFx.play("select");
 		active = false;
+		handOffFocus();
 		onStop?.();
 	}
 
@@ -263,6 +284,7 @@
 
 	{#if !active}
 		<button
+			bind:this={micEl}
 			type="button"
 			class="ft-voice-mic text-muted-foreground hover:text-foreground hover:bg-foreground/5 inline-flex size-9 flex-none items-center justify-center rounded-full border transition-colors"
 			aria-label="Start voice input"
@@ -315,6 +337,7 @@
 			>
 
 			<button
+				bind:this={cancelEl}
 				type="button"
 				class="ft-voice-btn text-muted-foreground hover:text-foreground hover:bg-foreground/5 inline-flex size-7 flex-none items-center justify-center rounded-full transition-colors"
 				aria-label="Cancel voice input"

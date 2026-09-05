@@ -177,6 +177,7 @@
 		bind:this={ref}
 		id={sub.contentId}
 		role="menu"
+		aria-labelledby={sub.triggerId}
 		tabindex="-1"
 		class={classes}
 		use:portal

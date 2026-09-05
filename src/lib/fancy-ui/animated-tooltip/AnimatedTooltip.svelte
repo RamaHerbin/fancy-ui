@@ -48,21 +48,41 @@
 		hoveredIndex = null;
 		mouseX = 0;
 	}
+
+	function handleFocusIn(itemId: number | string) {
+		mouseX = 0;
+		hoveredIndex = itemId;
+	}
+
+	function handleFocusOut() {
+		hoveredIndex = null;
+		mouseX = 0;
+	}
+
+	function tooltipId(itemId: number | string) {
+		return `animated-tooltip-${itemId}`;
+	}
 </script>
 
 <div class={cn("flex flex-row items-center", className)}>
 	{#each items as item (item.id)}
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 		<div
 			class="group relative -mr-4"
 			onmouseenter={(e) => handleMouseEnter(e, item.id)}
 			onmouseleave={handleMouseLeave}
 			onmousemove={handleMouseMove}
-			role="button"
+			onfocusin={() => handleFocusIn(item.id)}
+			onfocusout={handleFocusOut}
 			tabindex="0"
+			aria-describedby={hoveredIndex === item.id ? tooltipId(item.id) : undefined}
 		>
 			<!-- Tooltip -->
 			{#if hoveredIndex === item.id}
 				<div
+					id={tooltipId(item.id)}
+					role="tooltip"
 					class="pointer-events-none absolute -top-16 left-1/2 z-50 flex flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs whitespace-nowrap shadow-xl"
 					style="transform: translateX(calc(-50% + {translation}px)) rotate({rotation}deg);"
 					transition:scale={{

@@ -37,3 +37,4 @@ Large text rendered as a Three.js plane whose surface bulges toward the viewer n
 - When `color` is not set, a `MutationObserver` watches `document.documentElement`'s `class` attribute (the app's dark-mode toggle) and regenerates the text texture — disposing the old one — whenever the resolved color actually changes. This observer is not created at all when `color` is set.
 - Cleanup on effect teardown: removes the `pointermove` and `resize` listeners, cancels the animation frame, disconnects the `MutationObserver`, removes the renderer's canvas from the DOM, and disposes the renderer, geometry, material, and texture.
 - No `prefers-reduced-motion` handling — the render loop and pointer tracking run regardless of user preference.
+- The container carries `role="img"` and `aria-label={text}` so the rasterized headline is exposed to assistive technology; the appended `<canvas>` itself stays decorative.

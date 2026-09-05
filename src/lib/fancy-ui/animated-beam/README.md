@@ -11,6 +11,7 @@ Creates animated SVG beams that connect two elements with smooth gradients and c
 - Configurable colors, opacity, and timing
 - Reversible animation direction
 - Position offsets for fine-tuning
+- `delay` (seconds) to stagger the start of several beams
 
 ## Demo
 See `/demo/animated-beam` for usage examples.

@@ -1,4 +1,4 @@
-import { render, cleanup } from "@testing-library/svelte";
+import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, describe, it, expect } from "vitest";
 import AnimatedTooltip from "./AnimatedTooltip.svelte";
 
@@ -73,5 +73,34 @@ describe("AnimatedTooltip", () => {
 		const imgs = container.querySelectorAll("img");
 		expect(imgs[0]?.className).toContain("rounded-full");
 		expect(imgs[1]?.className).toContain("rounded-full");
+	});
+
+	it("does not expose the avatar wrapper as role=button", () => {
+		const { container } = render(AnimatedTooltip, {
+			props: { items: mockItems },
+		});
+		const wrappers = container.querySelectorAll(".group");
+		wrappers.forEach((wrapper) => {
+			expect(wrapper).not.toHaveAttribute("role", "button");
+		});
+	});
+
+	it("shows a role=tooltip node referenced by aria-describedby on focus", async () => {
+		const { container } = render(AnimatedTooltip, {
+			props: { items: mockItems },
+		});
+		const wrapper = container.querySelector(".group") as HTMLElement;
+
+		// No tooltip association before interaction.
+		expect(wrapper).not.toHaveAttribute("aria-describedby");
+
+		await fireEvent.focusIn(wrapper);
+		const describedBy = wrapper.getAttribute("aria-describedby");
+		expect(describedBy).toBeTruthy();
+		const tooltip = container.querySelector(`#${describedBy}`);
+		expect(tooltip).toHaveAttribute("role", "tooltip");
+
+		await fireEvent.focusOut(wrapper);
+		expect(wrapper).not.toHaveAttribute("aria-describedby");
 	});
 });
