@@ -60,3 +60,13 @@ From the internals contract's register (§10), unchanged:
 follows the **resolved** one. That is what the source does; it is deliberate
 there (the attribute is the caller's own request, the origin is geometry) and
 is reproduced rather than "fixed".
+
+## Hook order is load-bearing
+
+In `PopoverContent`, `useAnchorPosition` is declared **before** `useFocusTrap`.
+Both arm in layout effects in the commit the panel node lands in, and layout
+effects run in hook-declaration order, so this is the React spelling of the
+source's action order (`use:anchorPosition` before `use:focusTrap`). The other
+way round, the trap focuses a panel that is still `position: static` at the end
+of `document.body` and the browser scrolls the page down to it. Pinned by
+_writes the panel's position before the focus trap focuses into it_.

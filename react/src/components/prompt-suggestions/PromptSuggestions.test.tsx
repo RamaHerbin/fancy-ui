@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { PromptSuggestions } from "./PromptSuggestions.js";
+import { sound } from "../../sound/sound.js";
 
 const SUGGESTIONS = ["Summarize this", "Explain the tradeoffs", "Draft a reply"];
 
@@ -168,5 +169,55 @@ describe("PromptSuggestions", () => {
 		expect(cls).toContain("flex");
 		expect(cls).toContain("flex-wrap");
 		expect(cls).toContain("mt-4");
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the select cue exactly once when a pill is picked with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<PromptSuggestions suggestions={SUGGESTIONS} sound />);
+
+			await fireEvent.click(pills(container)[1]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<PromptSuggestions suggestions={SUGGESTIONS} />);
+
+			await fireEvent.click(pills(container)[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("reports the right suggestion and index alongside the cue, one pick at a time", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(
+				<PromptSuggestions suggestions={SUGGESTIONS} sound onSelect={onSelect} />
+			);
+
+			await fireEvent.click(pills(container)[2]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledWith("Draft a reply", 2);
+		});
+
+		it("never plays when the staggered entrance replays — only a pick plays the cue", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(
+				<PromptSuggestions suggestions={SUGGESTIONS} sound visible={false} />
+			);
+
+			rerender(<PromptSuggestions suggestions={SUGGESTIONS} sound visible={true} />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

@@ -1,8 +1,9 @@
 import { Fragment, useState } from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import { computePosition } from "../../internals/anchor-position.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { __dismissableLayerCount } from "../../internals/dismissable.js";
 import { ContextMenu } from "./ContextMenu.js";
 import { ContextMenuTrigger } from "./ContextMenuTrigger.js";
@@ -47,6 +48,7 @@ interface HarnessProps {
 	triggerDisabled?: boolean;
 	withSubmenu?: boolean;
 	subItems?: ItemSpec[];
+	sound?: boolean;
 }
 
 /**
@@ -70,9 +72,10 @@ function Harness({
 	triggerDisabled = false,
 	withSubmenu = false,
 	subItems = [],
+	sound: soundProp = false,
 }: HarnessProps) {
 	return (
-		<ContextMenu open={open} onOpenChange={onOpenChange}>
+		<ContextMenu open={open} onOpenChange={onOpenChange} sound={soundProp}>
 			<ContextMenuTrigger disabled={triggerDisabled}>
 				<div data-testid="region">Right-click me</div>
 			</ContextMenuTrigger>
@@ -313,6 +316,51 @@ describe("ContextMenu", () => {
 		expect(document.querySelectorAll('[role="menu"]')).toHaveLength(1);
 		expect(anchor().style.left).toBe("300px");
 		expect(anchor().style.top).toBe("400px");
+		await settleLegs();
+	});
+
+	// Moving the anchor is only half of it — the panel has to FOLLOW it.
+	// jsdom zeroes every `getBoundingClientRect()`, so the span's inline
+	// `left`/`top` alone never reaches the positioning core's math; this
+	// teaches the virtual anchor to report the rect its own inline style
+	// describes, which is what a real layout engine would do, and then reads
+	// the coordinates the core writes onto the panel itself. Unless the
+	// pointer coordinates reach `useAnchorPosition` as a recompute trigger,
+	// the second right-click leaves the panel parked at the first one's
+	// position until an unrelated scroll or resize fires.
+	it("a second right-click while the menu is open moves the panel, not just the anchor", async () => {
+		const { container } = render(<Harness items={ITEMS} />);
+		const anchorEl = anchor();
+		vi.spyOn(anchorEl, "getBoundingClientRect").mockImplementation(() => {
+			const x = parseFloat(anchorEl.style.left) || 0;
+			const y = parseFloat(anchorEl.style.top) || 0;
+			return {
+				left: x,
+				top: y,
+				right: x,
+				bottom: y,
+				width: 0,
+				height: 0,
+				x,
+				y,
+				toJSON() {
+					return this;
+				},
+			} as DOMRect;
+		});
+
+		fireEvent.contextMenu(region(container), { button: 2, clientX: 10, clientY: 10 });
+		await waitFor(() => expect(menu()).not.toBeNull());
+		// Default side "bottom", align "start", offset 2, against a zero-size
+		// point: the panel's own top-left lands on the pointer, 2px down.
+		expect(menu()!.style.left).toBe("10px");
+		expect(menu()!.style.top).toBe("12px");
+
+		fireEvent.contextMenu(region(container), { button: 2, clientX: 300, clientY: 300 });
+
+		expect(anchor().style.left).toBe("300px");
+		expect(menu()!.style.left).toBe("300px");
+		expect(menu()!.style.top).toBe("302px");
 		await settleLegs();
 	});
 
@@ -582,8 +630,8 @@ describe("ContextMenu", () => {
 			// passing silently.
 			expect(animateSpy).toHaveBeenCalled();
 			const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
-			expect(keyframes.at(0)).toMatchObject({ opacity: "0", transform: "scale(0.92)" });
-			expect(keyframes.at(-1)).toMatchObject({ opacity: "1", transform: "scale(1)" });
+			expect(keyframes.at(0)).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
 		});
 
 		it("runs no animation at all under reduced motion, and the panel is there in the same tick", () => {
@@ -662,6 +710,184 @@ describe("ContextMenu", () => {
 			// all — no `waitFor` needed, and none allowed here.
 			expect(menu()).toBeNull();
 			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	// `useSoundCue` forwards its optional `options` argument through to
+	// `sound.play(cue, options)`, so the spy records two arguments where the
+	// source's call site passed one. The cue is the assertion; the trailing
+	// `undefined` is the hook's signature, not a behaviour change.
+	describe("sound", () => {
+		beforeEach(() => {
+			// The controller is a module singleton: a preference another suite
+			// stored, or an engine another suite created, would otherwise decide
+			// what these cases hear.
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("a right-click opens the menu and plays open exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} sound />);
+
+			rightClick(region(container));
+			await waitFor(() => expect(menu()).not.toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+			await settleLegs();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} />);
+
+			rightClick(region(container));
+			await waitFor(() => expect(menu()).not.toBeNull());
+			pressEscape();
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Dispatched synthetically, not through `fireEvent.contextMenu` — proves
+		// the guard lives in `ContextMenuTrigger`'s own `if (disabled) return`,
+		// not merely in something `fireEvent`'s own event construction happens
+		// to skip.
+		it("a disabled trigger plays nothing, even dispatched synthetically", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} triggerDisabled sound />);
+
+			act(() => {
+				region(container).dispatchEvent(
+					new MouseEvent("contextmenu", {
+						bubbles: true,
+						cancelable: true,
+						button: 2,
+						clientX: 50,
+						clientY: 50,
+					})
+				);
+			});
+
+			expect(play).not.toHaveBeenCalled();
+			expect(menu()).toBeNull();
+		});
+
+		// The matrix's own double-fire guard for `open`: the existing
+		// `open === next` early return in `setOpen` makes a reposition
+		// right-click — the menu is already open, only `point` moves — silent
+		// rather than replaying the open cue a second time.
+		it("a reposition right-click while already open is silent — no repeated open cue", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} sound />);
+			const el = region(container);
+
+			fireEvent.contextMenu(el, { button: 2, clientX: 10, clientY: 10 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			fireEvent.contextMenu(el, { button: 2, clientX: 300, clientY: 400 });
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("Escape dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} sound />);
+			rightClick(region(container));
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			pressEscape();
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("an outside click dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(<Harness items={ITEMS} sound />);
+			rightClick(region(container));
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			pointerDownOn(outside);
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			outside.remove();
+		});
+
+		// Select precedent: the item's own `select` cue already tells the story
+		// of this interaction — `closeAll({ silent: true })` must keep the close
+		// that follows it mute, or one activation would sound like two.
+		it("selecting an item plays select exactly once, never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} sound />);
+			rightClick(region(container));
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			fireEvent.click(itemByLabel(menu(), "Reload")!);
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("a disabled item plays nothing", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const withDisabled: ItemSpec[] = [{ label: "Previous", disabled: true }, { label: "Reload" }];
+			const { container } = render(<Harness items={withDisabled} sound />);
+			rightClick(region(container));
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			fireEvent.click(itemByLabel(menu(), "Previous")!);
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		// Submenu open/close come free from the shared `DropdownMenuSub`, which
+		// reads `sound` off whichever level's `MenuContext` it was mounted
+		// under — this proves that inheritance actually reaches this family's
+		// own context, not just DropdownMenu's.
+		it("a submenu inherits sound: opening plays open once, selecting inside plays select only", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<Harness items={ITEMS} withSubmenu subItems={[{ label: "Inspect" }]} sound />
+			);
+			rightClick(region(container));
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			const subBtn = menu()!.querySelector('[aria-haspopup="menu"]') as HTMLElement;
+			fireEvent.click(subBtn);
+			await waitFor(() => {
+				expect(document.querySelectorAll('[role="menu"]')).toHaveLength(2);
+			});
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+
+			play.mockClear();
+			const subMenuEl = Array.from(document.querySelectorAll('[role="menu"]')).find(
+				(el) => el !== menu()
+			) as HTMLElement;
+			fireEvent.click(itemByLabel(subMenuEl, "Inspect")!);
+			await waitFor(() => expect(document.querySelectorAll('[role="menu"]')).toHaveLength(0));
+
+			expect(play.mock.calls).toEqual([["select", undefined]]);
 		});
 	});
 });

@@ -1,6 +1,7 @@
-import { render, cleanup, fireEvent } from "@testing-library/react";
+import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 import { VoiceInput } from "./VoiceInput.js";
 
 function root(container: HTMLElement): HTMLElement {
@@ -329,5 +330,165 @@ describe("VoiceInput", () => {
 
 		expect(root(container).className).toContain("my-voice");
 		expect(root(container).className).toContain("ft-voice");
+	});
+
+	/**
+	 * Two synchronous dispatches with no flush between them, which is what the
+	 * `!active` guard exists for: both handlers close over the same `active`, so
+	 * only the guard inside the handler can stop the second one — the button
+	 * having left the DOM cannot, it is still mounted when the second dispatch
+	 * lands.
+	 */
+	function doubleClick(button: HTMLButtonElement) {
+		act(() => {
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		});
+	}
+
+	it("does not double-fire on a repeated cancel dispatch — the !active guard holds", () => {
+		const onCancel = vi.fn();
+		const onActiveChange = vi.fn();
+		const { container } = render(
+			<VoiceInput active onCancel={onCancel} onActiveChange={onActiveChange} />
+		);
+
+		doubleClick(cancelButton(container));
+
+		expect(onCancel).toHaveBeenCalledTimes(1);
+		expect(onActiveChange).toHaveBeenCalledTimes(1);
+	});
+
+	it("does not double-fire on a repeated confirm dispatch — the !active guard holds", () => {
+		const onStop = vi.fn();
+		const onActiveChange = vi.fn();
+		const { container } = render(
+			<VoiceInput active onStop={onStop} onActiveChange={onActiveChange} />
+		);
+
+		doubleClick(confirmButton(container));
+
+		expect(onStop).toHaveBeenCalledTimes(1);
+		expect(onActiveChange).toHaveBeenCalledTimes(1);
+	});
+
+	describe("focus", () => {
+		it("hands focus to Cancel when the mic opens the panel", () => {
+			const { container } = render(<VoiceInput />);
+			const button = mic(container) as HTMLButtonElement;
+			button.focus();
+
+			fireEvent.click(button);
+
+			expect(document.activeElement).toBe(cancelButton(container));
+		});
+
+		it("hands focus back to the mic when cancel closes the panel", () => {
+			const { container } = render(<VoiceInput active />);
+			cancelButton(container).focus();
+
+			fireEvent.click(cancelButton(container));
+
+			expect(document.activeElement).toBe(mic(container));
+		});
+
+		it("hands focus back to the mic when confirm closes the panel", () => {
+			const { container } = render(<VoiceInput active />);
+			confirmButton(container).focus();
+
+			fireEvent.click(confirmButton(container));
+
+			expect(document.activeElement).toBe(mic(container));
+		});
+
+		it("leaves focus alone when active is driven from outside", () => {
+			const { rerender } = render(<VoiceInput active={false} />);
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			outside.focus();
+
+			try {
+				rerender(<VoiceInput active={true} />);
+
+				expect(document.activeElement).toBe(outside);
+			} finally {
+				outside.remove();
+			}
+		});
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		it("plays open exactly once when the mic starts a recording", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<VoiceInput sound />);
+
+			fireEvent.click(mic(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<VoiceInput />);
+
+			fireEvent.click(mic(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays close exactly once when cancel abandons the recording", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<VoiceInput active sound />);
+
+			fireEvent.click(cancelButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays select, never close, when confirm ends the recording", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<VoiceInput active sound />);
+
+			fireEvent.click(confirmButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("does not double-fire on a repeated cancel dispatch — the !active guard holds", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<VoiceInput active sound />);
+
+			doubleClick(cancelButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("does not double-fire on a repeated confirm dispatch — the !active guard holds", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<VoiceInput active sound />);
+
+			doubleClick(confirmButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing when active is driven from outside rather than through the mic", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(<VoiceInput active={false} sound />);
+
+			rerender(<VoiceInput active={true} sound />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

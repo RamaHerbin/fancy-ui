@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ArtifactCard } from "./ArtifactCard.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 
 function root(container: HTMLElement): HTMLElement {
 	return container.firstElementChild as HTMLElement;
@@ -277,5 +278,121 @@ describe("ArtifactCard", () => {
 
 		expect(root(container).className).toContain("ft-artifact");
 		expect(root(container).className).toContain("my-card");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays press exactly once for the card-wide pointer shortcut", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onOpen = vi.fn();
+			const { container } = render(<ArtifactCard title="Q3 memo" onOpen={onOpen} sound />);
+
+			fireEvent.click(container.querySelector(".ft-artifact-title") as HTMLElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+			expect(onOpen).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays press exactly once for the Open button — dropping fromControl() would double it", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onOpen = vi.fn();
+			const { container } = render(<ArtifactCard title="Q3 memo" onOpen={onOpen} sound />);
+
+			// The click also bubbles to the card's own handler, which must be sent
+			// home by fromControl() rather than playing a second cue.
+			fireEvent.click(openCue(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+			expect(onOpen).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays select exactly once when stepping to the next version", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onVersionChange = vi.fn();
+			const { container } = render(
+				<ArtifactCard
+					title="Memo"
+					version={2}
+					versionCount={4}
+					onVersionChange={onVersionChange}
+					sound
+				/>,
+			);
+
+			fireEvent.click(nav(container, "Next version"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onOpen = vi.fn();
+			const { container } = render(<ArtifactCard title="Q3 memo" onOpen={onOpen} />);
+
+			fireEvent.click(openCue(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing from a version arrow clamped at its end, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onVersionChange = vi.fn();
+			const { container } = render(
+				<ArtifactCard
+					title="Memo"
+					version={1}
+					versionCount={4}
+					onVersionChange={onVersionChange}
+					sound
+				/>,
+			);
+
+			// The disabled arrow keeps pointer-events (see the component's own
+			// note), so a synthetic dispatch bypasses jsdom's disabled handling to
+			// prove the clamp inside step() itself stops the cue too.
+			nav(container, "Previous version").dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true }),
+			);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onVersionChange).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when a click lands on the version rail's own gaps or the actions rail", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onOpen = vi.fn();
+			const { container } = render(
+				<ArtifactCard
+					title="Memo"
+					version={1}
+					versionCount={4}
+					onVersionChange={vi.fn()}
+					onOpen={onOpen}
+					sound
+					actions={
+						<button type="button" className="custom-action">
+							Copy
+						</button>
+					}
+				/>,
+			);
+
+			fireEvent.click(container.querySelector(".ft-artifact-versions") as HTMLElement);
+			fireEvent.click(container.querySelector(".custom-action") as HTMLElement);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onOpen).not.toHaveBeenCalled();
+		});
 	});
 });

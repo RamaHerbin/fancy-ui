@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
 
 export interface SpringConfig {
@@ -30,10 +31,7 @@ export function SmoothCursor({ cursor, springConfig = {}, className = "" }: Smoo
 	const [visible, setVisible] = useState(false);
 
 	// Latest spring config, readable from inside the persistent rAF loop.
-	const configRef = useRef(config);
-	useEffect(() => {
-		configRef.current = config;
-	});
+	const configRef = useLiveRef(config);
 
 	// Mutable animation state — mirrors the Svelte component's plain (non-reactive)
 	// locals. Per-frame values never round-trip through React state.
@@ -209,6 +207,7 @@ export function SmoothCursor({ cursor, springConfig = {}, className = "" }: Smoo
 	return (
 		<div
 			ref={cursorElRef}
+			aria-hidden="true"
 			className={cn(
 				"pointer-events-none fixed top-0 left-0 z-[9999]",
 				visible ? "opacity-100" : "opacity-0",
@@ -218,7 +217,13 @@ export function SmoothCursor({ cursor, springConfig = {}, className = "" }: Smoo
 		>
 			{cursor || (
 				// Default cursor: arrow SVG
-				<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="32"
+					height="32"
+					viewBox="0 0 32 32"
+					focusable="false"
+				>
 					<path
 						fill="currentColor"
 						d="M9.391 2.32C8.42 1.56 7 2.253 7 3.486V28.41c0 1.538 1.966 2.18 2.874.938l6.225-8.523a2 2 0 0 1 1.615-.82h9.69c1.512 0 2.17-1.912.978-2.844z"

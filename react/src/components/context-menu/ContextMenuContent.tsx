@@ -74,11 +74,25 @@ export const ContextMenuContent = forwardRef<HTMLDivElement, ContextMenuContentP
 		// slid the panel along that axis — near a viewport edge the requested
 		// corner is no longer the one touching the anchor, and an entrance grown
 		// from it would expand from the far corner instead.
+		//
+		// `recomputeKey` carries the pointer coordinates. The anchor is one span
+		// kept mounted for the root's whole life, so a second right-click while
+		// the menu is open — the normal path, since the pointerdown dismisses
+		// and the `contextmenu` event then reopens the still-mounted panel
+		// mid-exit — moves that span without changing which ELEMENT the
+		// positioner is pointed at, and every geometry option stays put too.
+		// Without the key the panel would sit at the previous click's `left`/
+		// `top` until an unrelated scroll or resize fired. React commits the
+		// span's new inline `left`/`top` before layout effects run, so the rect
+		// this recompute reads is already the new one. The source makes
+		// `root.point` a tracked dependency of its own action options for the
+		// same effect.
 		const { side: resolvedSide, align: resolvedAlign } = useAnchorPosition(panel, {
 			anchor: () => root.anchorRef,
 			side: root.side,
 			align: root.align,
 			offset: root.offset,
+			recomputeKey: `${root.point.x},${root.point.y}`,
 		});
 
 		// `active: root.open` — a plain boolean where the source needed a
@@ -119,11 +133,12 @@ export const ContextMenuContent = forwardRef<HTMLDivElement, ContextMenuContentP
 				focus,
 				itemTextClass: "text-[12px]",
 				rootOpen: root.open,
+				sound: root.sound,
 				closeAll,
 				registerOpenSub,
 				closeSiblingSubs,
 			}),
-			[focus, root.open, closeAll, registerOpenSub, closeSiblingSubs]
+			[focus, root.open, root.sound, closeAll, registerOpenSub, closeSiblingSubs]
 		);
 
 		// The source waits a `tick()` here because its items register from

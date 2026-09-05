@@ -4,6 +4,7 @@ import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { runTransition } from "../../internals/motion/animate.js";
+import type { TransitionRun } from "../../internals/motion/animate.js";
 import { preset } from "../../internals/motion/transitions.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
@@ -47,8 +48,6 @@ export interface TabsContentProps {
 // pure function, so one instance serves every panel.
 const panelFade = preset("fade");
 
-function noop(): void {}
-
 /**
  * One tab's panel. Rendered only while its trigger is selected, unless
  * `forceMount` keeps it in the DOM behind the `hidden` attribute.
@@ -72,13 +71,17 @@ export const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
 		// The entrance plays on a real selection change only, not on first
 		// render: Svelte's local `in:` runs only once the block that owns it has
 		// already run, so a panel that starts selected simply appears. The React
-		// counterpart is this flag — the effect is keyed on the element's own
-		// existence, so the very first pass is the only one that has to be sat
-		// out. With `forceMount` every panel is mounted permanently and the
-		// entrance never plays at all after that first render — correct, since
-		// `forceMount` exists precisely to keep panels alive and there is no way
-		// to animate a `hidden` attribute flip.
-		const firstPassRef = useRef(true);
+		// counterpart is the false→true EDGE of `rendered`, seeded from the very
+		// first render — never a one-shot "have I run yet" latch, which
+		// StrictMode's mount → cleanup → mount rehearsal would consume on the
+		// first invocation and leave the second one animating a panel that
+		// started selected. Tracking the edge instead makes every repeated setup
+		// on the same `rendered` value a no-op, which is what a dev-only
+		// rehearsal has to be. With `forceMount` every panel is mounted
+		// permanently and the entrance never plays at all after that first
+		// render — correct, since `forceMount` exists precisely to keep panels
+		// alive and there is no way to animate a `hidden` attribute flip.
+		const prevRenderedRef = useRef(rendered);
 
 		// A layout effect, per the effect-phase policy: Svelte starts intros
 		// pre-paint, and a passive effect would paint one frame at rest first.
@@ -88,20 +91,34 @@ export const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
 		// construction and never during SSR. `duration: 0` makes `runTransition`
 		// finish synchronously and never touch `element.animate()`.
 		useIsomorphicLayoutEffect(() => {
-			const first = firstPassRef.current;
-			firstPassRef.current = false;
-			if (first || !rendered) return;
+			const wasRendered = prevRenderedRef.current;
+			prevRenderedRef.current = rendered;
+			if (wasRendered || !rendered) return;
 			const el = innerRef.current;
 			if (!el) return;
-			runTransition(
+			let run: TransitionRun | undefined;
+			run = runTransition(
 				el,
 				panelFade(el, { duration: prefersReducedMotion() ? 0 : DURATIONS.fast }, {
 					direction: "in",
 				}),
 				1,
 				undefined,
-				noop
+				() => {
+					// On enter finish, abort: that drops the `fill: forwards` so
+					// the panel falls back to its resting style instead of
+					// carrying a finished animation — whose output outranks
+					// author CSS — for the rest of its life.
+					run?.abort();
+					run = undefined;
+				}
 			);
+			// And a leg still in flight when the panel leaves is cancelled
+			// rather than left running against a detached node.
+			return () => {
+				run?.abort();
+				run = undefined;
+			};
 		}, [rendered]);
 
 		if (!rendered) return null;

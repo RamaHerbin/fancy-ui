@@ -4,10 +4,13 @@ import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useListbox } from "../../internals/listbox.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { filterByBounds, formatSlotLabel, generateSlots, nearestIndex } from "./time-utils.js";
 import { TimePickerPanel } from "./TimePickerPanel.js";
 import { TimePickerReactContext } from "./types.js";
@@ -45,6 +48,11 @@ export interface TimePickerProps {
 	locale?: string;
 	/** Additional CSS classes, merged onto the trigger button. */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -70,6 +78,7 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 		placeholder = "Select a time",
 		locale,
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -91,6 +100,8 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 	const uid = useFancyId();
 	const panelId = `${uid}-listbox`;
 	const optionId = useCallback((index: number) => `${uid}-option-${index}`, [uid]);
+
+	const playCue = useSoundCue(sound);
 
 	const [open, setOpen] = useState(false);
 
@@ -124,25 +135,51 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 	);
 	const selectedIndex = value ? slots.indexOf(value) : -1;
 
+	// One formatted label per slot, computed once for the life of a grid rather
+	// than once per render. The panel calls `labelFor` for every row it draws,
+	// and every pointer hover re-renders it to move the highlight — without
+	// this, each hover rebuilds all 48 labels (1440 at `step={1}`), and each
+	// label builds its own `Intl.DateTimeFormat`. Nothing on screen changes for
+	// that work.
+	//
+	// Filled on demand rather than up front: a picker that is never opened only
+	// ever formats the trigger's own value, and paying for the whole grid at
+	// mount would be a worse trade than the one this removes. Thrown away
+	// wholesale whenever the grid or the formatting inputs change, so an entry
+	// can never outlive what produced it.
+	const labelCache = useMemo(() => new Map<string, string>(), [slots, hour12, locale]);
+
+	// Still a function, so the context shape is unchanged. `value` can sit off
+	// the grid (a caller-supplied "14:05" against a 30-minute step), so the
+	// cache is keyed by slot rather than by index.
 	const labelFor = useCallback(
-		(slot: string) => formatSlotLabel(slot, hour12, locale),
-		[hour12, locale]
+		(slot: string) => {
+			const cached = labelCache.get(slot);
+			if (cached !== undefined) return cached;
+			const formatted = formatSlotLabel(slot, hour12, locale);
+			labelCache.set(slot, formatted);
+			return formatted;
+		},
+		[labelCache, hour12, locale]
 	);
 
 	// The single place `value` changes, in either direction (a consumer-owned
 	// `value` prop or `onValueChange`) — a plain function, never an effect, so
 	// it can never read and write `value` in the same pass and never fights a
 	// caller's own controlled write.
-	function setValue(next: string | null): void {
-		if (value === next) return;
+	/** Returns true when the value actually changed (and a `select` cue played). */
+	function setValue(next: string | null): boolean {
+		if (value === next) return false;
 		setValueState(next);
+		playCue("select");
 		onValueChange?.(next);
+		return true;
 	}
 
-	function commitIndex(index: number): void {
+	function commitIndex(index: number): boolean {
 		const slot = slots[index];
-		if (!slot) return;
-		setValue(slot);
+		if (!slot) return false;
+		return setValue(slot);
 	}
 
 	// Identity-stable: the listbox store is built once and reads this through a
@@ -178,18 +215,26 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 	// instead, which is right there — its options are an opaque caller-supplied
 	// list with no ordering to resolve a missing entry against, while these
 	// slots are times on a line.
+	//
+	// The listbox handle is read through a live ref rather than listed as a
+	// dependency: `useListbox` returns a fresh object whenever `activeIndex`
+	// moves, so depending on it would tear this effect down and re-run it on
+	// every hover and every arrow key, only to bail on the guard above. The
+	// grid changing shape is the one thing it reacts to.
+	const listboxRef = useLiveRef(listbox);
 	const previousSlotsRef = useRef(slots);
 	useEffect(() => {
 		const previous = previousSlotsRef.current;
 		previousSlotsRef.current = slots;
 		if (previous === slots) return;
 
-		const index = listbox.activeIndex;
+		const box = listboxRef.current;
+		const index = box.activeIndex;
 		if (index === -1) return;
 
 		const activeSlot = previous[index];
-		listbox.setActive(activeSlot === undefined ? -1 : nearestIndex(slots, activeSlot));
-	}, [listbox, slots]);
+		box.setActive(activeSlot === undefined ? -1 : nearestIndex(slots, activeSlot));
+	}, [listboxRef, slots]);
 
 	// The index owed a scroll as soon as the panel exists. The source spells
 	// this `tick().then(() => scrollActiveIntoView(index))`; here the panel is
@@ -201,9 +246,15 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 	// can land on the same index a previous session left active, which must
 	// still be visible the instant the panel appears rather than only after the
 	// next arrow press.
+	//
+	// A LAYOUT effect, not a passive one: this writes `scrollTop`, and a write
+	// that lands after the paint is a visible jump — a picker whose value sits
+	// late in the grid would show the list parked at 00:00 for a frame and then
+	// snap to the selection. The source's `tick()` runs after the DOM update
+	// and before the paint, which is this phase.
 	const pendingScrollRef = useRef<number | null>(null);
 
-	useEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const index = pendingScrollRef.current;
 		if (index === null || !panelNode) return;
 		pendingScrollRef.current = null;
@@ -216,19 +267,29 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 	function openPanel(): void {
 		if (effectiveDisabled) return;
 		setOpen(true);
+		playCue("open");
 		const index = nearestIndex(slots, value);
 		if (index === -1) return;
 		listbox.setActive(index);
 		pendingScrollRef.current = index;
 	}
 
-	function closePanel(): void {
+	// `reason` distinguishes a commit-flavoured close (a slot was just picked)
+	// from a plain dismiss (Escape, an outside click, or the trigger toggling
+	// the panel shut with nothing committed). Only a dismiss plays the `close`
+	// cue — a commit already played `select` inside `setValue` above, and the
+	// contract is one cue per interaction, never both.
+	function closePanel(reason: "commit" | "dismiss" = "dismiss"): void {
 		setOpen(false);
+		if (reason === "dismiss") playCue("close");
 	}
 
 	function commitActiveAndClose(): void {
-		if (listbox.activeIndex !== -1) commitIndex(listbox.activeIndex);
-		closePanel();
+		// The close reason follows the ACTUAL outcome: re-committing the slot
+		// already selected changes nothing, so it closes like a dismiss rather
+		// than being swallowed into silence.
+		const committed = listbox.activeIndex !== -1 && commitIndex(listbox.activeIndex);
+		closePanel(committed ? "commit" : "dismiss");
 	}
 
 	function handleTriggerClick(): void {
@@ -297,12 +358,25 @@ export const TimePicker = forwardRef<HTMLButtonElement, TimePickerProps>(functio
 		listbox.setActive(index);
 	});
 	const contextCommit = useEventCallback((index: number) => {
-		commitIndex(index);
-		closePanel();
+		const committed = commitIndex(index);
+		// A POINTER commit is the one path that can strand focus. Pressing a
+		// row moves focus onto it (the row carries `tabIndex={-1}`), and the
+		// panel is portalled to `<body>`, so it has no focusable ancestor to
+		// inherit focus once it goes inert for the exit and then unmounts —
+		// `document.activeElement` would fall back to `<body>` and the next Tab
+		// would restart from the top of the document. Dropping the row's
+		// `tabIndex` would NOT fix that: a click on a non-focusable element
+		// blurs the trigger to `<body>` just the same. The
+		// combobox-with-listbox-popup contract is that focus never leaves the
+		// trigger, so put it back explicitly, before the close starts the exit.
+		// The keyboard path is unaffected — focus was on the trigger the whole
+		// time, and re-focusing an already-focused element is a no-op.
+		triggerNode?.focus();
+		closePanel(committed ? "commit" : "dismiss");
 	});
-	// Wrapped so a caller passing an event object can never leak it in.
+	// Wrapped so a caller passing an event object can never leak it in as `reason`.
 	const contextClose = useEventCallback(() => {
-		closePanel();
+		closePanel("dismiss");
 	});
 
 	const activeIndex = listbox.activeIndex;

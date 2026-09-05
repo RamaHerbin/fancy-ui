@@ -3,6 +3,7 @@ import type { MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import type { StreamStatus } from "../../internals/ai-types.js";
 import { StreamingText } from "../streaming-text/StreamingText.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./artifact-card.css";
 
 /**
@@ -32,6 +33,11 @@ export interface ArtifactCardProps {
 	actions?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** Spoken beside the title, since the sweep and the tint say nothing out loud. */
@@ -83,9 +89,12 @@ export const ArtifactCard = forwardRef<HTMLDivElement, ArtifactCardProps>(functi
 		onOpen,
 		actions,
 		className,
+		sound = false,
 	},
 	ref,
 ) {
+	const playCue = useSoundCue(sound);
+
 	const isStreaming = status === "streaming";
 	const isError = status === "error";
 
@@ -114,6 +123,16 @@ export const ArtifactCard = forwardRef<HTMLDivElement, ArtifactCardProps>(functi
 	 */
 	function open(event: MouseEvent<HTMLDivElement>) {
 		if (fromControl(event)) return;
+		playCue("press");
+		onOpen?.();
+	}
+
+	// The Open button's own click bubbles up to the card handler above, which
+	// `fromControl()` sends home without playing anything — so the cue for that
+	// path lives here instead, or a click on the button would play nothing at
+	// all rather than playing twice.
+	function openFromButton() {
+		playCue("press");
 		onOpen?.();
 	}
 
@@ -121,6 +140,7 @@ export const ArtifactCard = forwardRef<HTMLDivElement, ArtifactCardProps>(functi
 		const current = version ?? 1;
 		const next = current + delta;
 		if (next < 1 || next > (versionCount ?? 1)) return;
+		playCue("select");
 		onVersionChange?.(next);
 	}
 
@@ -239,7 +259,7 @@ export const ArtifactCard = forwardRef<HTMLDivElement, ArtifactCardProps>(functi
 							type="button"
 							className="ft-artifact-open text-muted-foreground hover:text-foreground focus-visible:ring-ring ml-0.5 inline-flex cursor-pointer items-center gap-1 rounded text-xs transition-colors focus-visible:ring-1 focus-visible:outline-none"
 							aria-label={`Open ${title}`}
-							onClick={() => onOpen?.()}
+							onClick={openFromButton}
 						>
 							Open
 							<svg

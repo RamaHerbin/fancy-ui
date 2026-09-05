@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./approval-card.css";
 
 /** The three states of a human-in-the-loop gate. */
@@ -52,6 +53,11 @@ export interface ApprovalCardProps {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -75,6 +81,7 @@ export const ApprovalCard = forwardRef<HTMLDivElement, ApprovalCardProps>(functi
 		busy = false,
 		children,
 		className,
+		sound = false,
 	},
 	ref
 ) {
@@ -92,6 +99,7 @@ export const ApprovalCard = forwardRef<HTMLDivElement, ApprovalCardProps>(functi
 	/** Where focus lands once the buttons it might have held are gone. */
 	const resolvedRef = useRef<HTMLParagraphElement | null>(null);
 	const shouldFocusResolved = useRef(false);
+	const playCue = useSoundCue(sound);
 
 	useEffect(() => {
 		if (shouldFocusResolved.current) {
@@ -114,6 +122,9 @@ export const ApprovalCard = forwardRef<HTMLDivElement, ApprovalCardProps>(functi
 			setUncontrolledState(next);
 		}
 		onStateChange?.(next);
+		// Deny is a legitimate choice, not a failure — both sides of the gate
+		// play the same cue, never `error` for a refusal.
+		playCue("select");
 		if (next === "approved") onApprove?.(next);
 		else onDeny?.(next);
 		// The button just pressed is about to leave the DOM along with the
@@ -172,7 +183,14 @@ export const ApprovalCard = forwardRef<HTMLDivElement, ApprovalCardProps>(functi
 				</div>
 			</div>
 
-			{children && <div className="ft-approval-detail mt-3 min-w-0">{children}</div>}
+			{/*
+				Nullish and boolean children mean "no detail region"; every other
+				value renders inside the wrapper, so a numeric `0` cannot leak out
+				as bare text the way a plain truthiness test would let it.
+			*/}
+			{children != null && children !== false && (
+				<div className="ft-approval-detail mt-3 min-w-0">{children}</div>
+			)}
 
 			{/*
 				One footer element, mounted from the first render, so the live

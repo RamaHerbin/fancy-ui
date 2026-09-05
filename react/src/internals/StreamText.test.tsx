@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { render, cleanup } from "@testing-library/react";
 import { act } from "react";
@@ -41,7 +42,9 @@ describe("StreamText", () => {
 
 	it("preserves whitespace and newlines, in the settled text and in the delta", () => {
 		vi.useFakeTimers();
-		const { container, rerender } = render(<StreamText text={"line one\n  line two"} settleMs={100} />);
+		const { container, rerender } = render(
+			<StreamText text={"line one\n  line two"} settleMs={100} />
+		);
 		const wrapper = container.firstElementChild as HTMLElement;
 
 		expect(wrapper.textContent).toBe("line one\n  line two");
@@ -80,6 +83,26 @@ describe("StreamText", () => {
 		expect(wrapper.className).toContain("ft-stream");
 		expect(wrapper.className).toContain("text-sm");
 		expect(wrapper.getAttribute("style")).toContain("--ft-settle: 900ms");
+	});
+
+	/*
+	 * The source rule lived in a compiler-scoped `<style>` block, so it only
+	 * ever matched this component's own segments. A ported rule ships in a
+	 * plain stylesheet, where a bare `.ft-fresh` would hand the tint to any
+	 * consumer element carrying the class.
+	 */
+	it("scopes every rule in its stylesheet under the component root class", () => {
+		const css = readFileSync("src/internals/stream-text.css", "utf8");
+
+		expect(css).toContain(".ft-stream .ft-fresh");
+		// The selector list, minus the at-rules and the keyframe stops.
+		const selectors = [...css.matchAll(/^\s*([.#][^{@]*?)\s*\{/gm)].map(([, sel]) =>
+			(sel ?? "").trim()
+		);
+		expect(selectors.length).toBeGreaterThan(0);
+		for (const selector of selectors) {
+			expect(selector.startsWith(".ft-stream")).toBe(true);
+		}
 	});
 
 	it("tears down a pending settle on unmount", () => {

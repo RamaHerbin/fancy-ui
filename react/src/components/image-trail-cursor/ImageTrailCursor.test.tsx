@@ -1,11 +1,12 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, fireEvent } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { ImageTrailCursor } from "./ImageTrailCursor.js";
 import { variantMap, ImageTrailVariantPixelated, type VariantType } from "./trail-variants.js";
 
 describe("ImageTrailCursor", () => {
 	afterEach(cleanup);
+	afterEach(() => vi.restoreAllMocks());
 
 	it("renders a container div", () => {
 		const { container } = render(<ImageTrailCursor />);
@@ -30,6 +31,28 @@ describe("ImageTrailCursor", () => {
 		const { container } = render(<ImageTrailCursor images={[]} />);
 		const imgs = container.querySelectorAll(".content__img");
 		expect(imgs.length).toBe(0);
+	});
+
+	// `images` defaults to `[]`, and the variant instance is only rebuilt on a
+	// `variant` change, so an empty trail is a state a pointer can reach. The
+	// animation loop must stay off rather than index an empty image list.
+	it("survives pointer movement with no images", () => {
+		const frames: FrameRequestCallback[] = [];
+		vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+			frames.push(cb);
+			return frames.length;
+		});
+
+		const { container } = render(<ImageTrailCursor images={[]} />);
+		const root = container.firstElementChild as HTMLElement;
+		fireEvent.mouseMove(root, { clientX: 0, clientY: 0 });
+		fireEvent.mouseMove(root, { clientX: 500, clientY: 500 });
+
+		// Bounded drain: a running loop re-arms itself every frame.
+		const drain = () => {
+			for (let i = 0; i < 3 && frames.length > 0; i++) frames.shift()!(0);
+		};
+		expect(drain).not.toThrow();
 	});
 
 	it("applies custom class names", () => {

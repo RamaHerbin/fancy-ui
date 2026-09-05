@@ -6,6 +6,7 @@ import { Portal } from "../../internals/Portal.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { CONTEXT_MENU_KEY } from "./types.js";
 import type { ContextMenuRootContext } from "./types.js";
 import type { MenuCloseOptions } from "../dropdown-menu/types.js";
@@ -32,6 +33,11 @@ export interface ContextMenuProps {
 	loop?: boolean;
 	/** The `ContextMenuTrigger` and `ContextMenuContent`. */
 	children?: ReactNode;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -50,6 +56,7 @@ export function ContextMenu({
 	offset = 2,
 	loop = true,
 	children,
+	sound = false,
 }: ContextMenuProps) {
 	// `useFancyId()`, the counterpart of `$props.id()`. Never `uid()`, which
 	// throws on the server by design.
@@ -86,6 +93,10 @@ export function ContextMenu({
 
 	const openRef = useLiveRef(open);
 	const handleOpenChange = useEventCallback(onOpenChange);
+	// The `sound &&` guard moves into the hook, so `silent` keeps its exact
+	// meaning below and a cue is decided audible inside `sound.play()` at call
+	// time rather than at render time.
+	const playCue = useSoundCue(sound);
 
 	// The one place `open` changes, in either direction — a plain function,
 	// not an effect, so it never reads and writes `open` in the same pass and
@@ -95,11 +106,15 @@ export function ContextMenu({
 			if (openRef.current === next) return;
 			setOpenState(next);
 			handleOpenChange(next);
+			// `silent` is what keeps one activation to exactly one cue: an
+			// item's own `select` closes the whole menu, and this `close` would
+			// otherwise sound on top of it.
+			if (!options.silent) playCue(next ? "open" : "close");
 			if (!next && (options.returnFocus ?? true) && previouslyFocused.current?.isConnected) {
 				previouslyFocused.current.focus();
 			}
 		},
-		[openRef, handleOpenChange]
+		[openRef, handleOpenChange, playCue]
 	);
 
 	const openAt = useCallback(
@@ -146,6 +161,7 @@ export function ContextMenu({
 			loop,
 			open,
 			point,
+			sound,
 			get anchorRef() {
 				return anchorRef.current;
 			},
@@ -153,7 +169,7 @@ export function ContextMenu({
 			openAt,
 			close,
 		}),
-		[contentId, side, align, offset, loop, open, point, setAnchorRef, openAt, close]
+		[contentId, side, align, offset, loop, open, point, sound, setAnchorRef, openAt, close]
 	);
 
 	return (

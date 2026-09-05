@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { StrictMode, useState } from "react";
 import type { ReactNode } from "react";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 import type {
 	AttachmentData,
@@ -409,6 +411,147 @@ describe("Composer", () => {
 		run(() => on.context.addFiles([]));
 		expect(onAttach).not.toHaveBeenCalled();
 	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays press exactly once when the send button submits the draft", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSubmit = vi.fn();
+			const { container } = mount({ initialValue: "hello", onSubmit, sound: true });
+
+			fireEvent.click(sendButton(container));
+
+			expect(onSubmit).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays press exactly once when the stop button interrupts the stream", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onStop = vi.fn();
+			const { container } = mount({
+				initialValue: "hello",
+				streaming: true,
+				onStop,
+				sound: true,
+			});
+
+			fireEvent.click(sendButton(container));
+
+			expect(onStop).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSubmit = vi.fn();
+			const { container } = mount({ initialValue: "hello", onSubmit });
+
+			fireEvent.click(sendButton(container));
+
+			expect(onSubmit).toHaveBeenCalledTimes(1);
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic submit dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSubmit = vi.fn();
+			const { container } = mount({
+				initialValue: "hello",
+				disabled: true,
+				onSubmit,
+				sound: true,
+			});
+
+			// A synthetic dispatch on the form itself bypasses the send button's own
+			// native disabled state, proving the guard lives inside `submit()`.
+			fireEvent.submit(form(container));
+
+			expect(onSubmit).not.toHaveBeenCalled();
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on an empty or a whitespace-only draft", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = mount({ sound: true });
+
+			fireEvent.submit(form(container));
+			expect(play).not.toHaveBeenCalled();
+
+			type(container, "   \n  ");
+			fireEvent.submit(form(container));
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when stop is reached while idle — never streaming", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { context } = mount({ initialValue: "hello", sound: true });
+
+			run(() => context.stop());
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Streaming with no `onStop` is a real state: the root publishes a
+		// callable `stop()` regardless, and `ComposerSubmit` greys itself out
+		// because `stoppable` is false. A cue there would announce an
+		// interruption that cannot happen — the button the user would be
+		// hearing back from is disabled.
+		it("plays nothing when stop has no handler behind it, even while streaming", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container, context } = mount({
+				initialValue: "hello",
+				streaming: true,
+				sound: true,
+			});
+			// The disabled control is why the cue must stay silent — and it is
+			// also why this goes through the context: a click would never reach
+			// `stop()` at all, so it could not tell the two branches apart.
+			expect(sendButton(container).disabled).toBe(true);
+
+			run(() => context.stop());
+
+			expect(play).not.toHaveBeenCalled();
+
+			// Control: the same call, same state, one handler added — the cue is
+			// wired to the interruption actually happening, not to `streaming`.
+			cleanup();
+			const stoppable = mount({
+				initialValue: "hello",
+				streaming: true,
+				onStop: vi.fn(),
+				sound: true,
+			});
+			run(() => stoppable.context.stop());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("never double-fires — Enter and a click on the send button are the same funnel", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSubmit = vi.fn();
+			const { container } = mount({ initialValue: "hello", onSubmit, sound: true });
+
+			// Enter submits through ComposerInput's own handler, which calls the
+			// same context `submit()` a click on the send button reaches — proving
+			// the cue is wired to that one funnel, not duplicated onto a second path.
+			fireEvent.keyDown(textarea(container), { key: "Enter" });
+
+			expect(onSubmit).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+	});
 });
 
 describe("Composer.insertText", () => {
@@ -579,6 +722,31 @@ describe("ComposerInput", () => {
 		expect(el.style.overflowY).toBeTruthy();
 	});
 
+	it("re-fits the box when the ceiling itself moves", () => {
+		// jsdom measures nothing, so the content height is stood up by hand: with a
+		// tall enough scrollHeight the ceiling is the only thing deciding the box,
+		// which is exactly what a changed `maxRows` has to move.
+		Object.defineProperty(HTMLTextAreaElement.prototype, "scrollHeight", {
+			configurable: true,
+			get: () => 500,
+		});
+		try {
+			const { container, rerender } = render(<ComposerInput maxRows={3} />);
+			const el = textarea(container);
+			const low = Number.parseFloat(el.style.height);
+
+			rerender(<ComposerInput maxRows={8} />);
+
+			// Content taller than either ceiling, so the ceiling is the height: the
+			// box has to follow the new one straight away, not at the next keystroke.
+			expect(low).toBeGreaterThan(0);
+			expect(Number.parseFloat(el.style.height)).toBeGreaterThan(low);
+			expect(el.style.overflowY).toBe("auto");
+		} finally {
+			Reflect.deleteProperty(HTMLTextAreaElement.prototype, "scrollHeight");
+		}
+	});
+
 	it("registers itself into the context so the caret arithmetic can reach it", () => {
 		const { container, context } = mount({});
 		expect(context.textareaRef.current).toBe(textarea(container));
@@ -710,7 +878,7 @@ const MODELS: ModelOptionData[] = [
  * a partial stand-in would let a part start reading something this rig does not
  * provide without the test noticing.
  */
-function composerContext(disabled = false): ComposerContext {
+function composerContext(disabled = false, withSound = false): ComposerContext {
 	return {
 		value: { current: "" },
 		attachments: { current: [] },
@@ -718,6 +886,7 @@ function composerContext(disabled = false): ComposerContext {
 		streaming: false,
 		stoppable: false,
 		textareaRef: { current: null },
+		sound: withSound,
 		submit: () => {},
 		stop: () => {},
 		setValue: () => {},
@@ -1048,13 +1217,141 @@ describe("ComposerModelPicker", () => {
 		warn.mockRestore();
 		error.mockRestore();
 	});
+
+	// StrictMode runs every mount effect twice in development. The extra pass is
+	// only safe because the listener effect retracts its own registration, so the
+	// counts a consumer would see are the ones the non-strict cases already pin.
+	it("keeps one document listener per open under StrictMode, and none after close", () => {
+		const add = vi.spyOn(document, "addEventListener");
+		const remove = vi.spyOn(document, "removeEventListener");
+		const live = () =>
+			add.mock.calls.filter(([type]) => type === "mousedown").length -
+			remove.mock.calls.filter(([type]) => type === "mousedown").length;
+		const { container, unmount } = render(
+			<StrictMode>
+				<ComposerModelPicker models={MODELS} />
+			</StrictMode>
+		);
+
+		expect(live()).toBe(0);
+
+		const list = openPicker(container);
+		expect(live()).toBe(1);
+
+		fireEvent.keyDown(list, { key: "Escape" });
+		expect(live()).toBe(0);
+
+		// Re-opening after the double-invoked mount still lands on one listener,
+		// and unmounting while open leaves nothing behind.
+		openPicker(container);
+		expect(live()).toBe(1);
+		unmount();
+		expect(live()).toBe(0);
+
+		add.mockRestore();
+		remove.mockRestore();
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when the trigger opens the menu", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = renderPicker({}, composerContext(false, true));
+
+			fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+		});
+
+		it("plays select once (never close) when a different model is picked", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = renderPicker({}, composerContext(false, true));
+			openPicker(container);
+			play.mockClear();
+
+			fireEvent.click(options(container)[2]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays close, not select, when re-picking the already-selected model", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = renderPicker({ value: "pro" }, composerContext(false, true));
+			openPicker(container);
+			play.mockClear();
+
+			fireEvent.click(options(container)[1]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays close exactly once on Escape", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = renderPicker({}, composerContext(false, true));
+			const list = openPicker(container);
+			play.mockClear();
+
+			fireEvent.keyDown(list, { key: "Escape" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays close exactly once on a press outside", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = renderPicker({}, composerContext(false, true));
+			openPicker(container);
+			play.mockClear();
+
+			fireEvent.mouseDown(document.body);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays nothing by default (no composer context wiring sound on)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = renderPicker();
+
+			fireEvent.click(trigger(container));
+			fireEvent.click(options(container)[1]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = renderPicker({}, composerContext(true, true));
+
+			// A synthetic dispatch bypasses the trigger's native disabled attribute,
+			// proving the guard lives inside `openMenu()` itself.
+			trigger(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+	});
 });
 
 // =============================================================================
 // ComposerAttachments, ComposerAttachment
 // =============================================================================
 
-function fakeComposer(options: { attachments?: AttachmentData[]; disabled?: boolean } = {}) {
+function fakeComposer(
+	options: { attachments?: AttachmentData[]; disabled?: boolean; sound?: boolean } = {}
+) {
 	const attachments = options.attachments ?? [];
 	const addFiles = vi.fn();
 	const removeAttachment = vi.fn();
@@ -1065,6 +1362,7 @@ function fakeComposer(options: { attachments?: AttachmentData[]; disabled?: bool
 		streaming: false,
 		stoppable: false,
 		textareaRef: { current: null },
+		sound: options.sound ?? false,
 		submit: vi.fn(),
 		stop: vi.fn(),
 		setValue: vi.fn(),
@@ -1147,6 +1445,34 @@ describe("ComposerAttachments", () => {
 		expect(names(container)).toEqual(["first.png", "second.png"]);
 		expect(error).not.toHaveBeenCalled();
 		error.mockRestore();
+	});
+
+	it("keeps a chip's own DOM node when a chip ahead of it is removed", () => {
+		const three: AttachmentData[] = [
+			{ id: "a1", name: "one.png" },
+			{ id: "a2", name: "two.png" },
+			{ id: "a3", name: "three.png" },
+		];
+		const { context } = fakeComposer({ attachments: three });
+		const { container, rerender } = render(
+			<Provide context={context}>
+				<ComposerAttachments />
+			</Provide>
+		);
+		const before = chips(container);
+
+		const { context: fewer } = fakeComposer({ attachments: three.slice(1) });
+		rerender(
+			<Provide context={fewer}>
+				<ComposerAttachments />
+			</Provide>
+		);
+
+		// The survivors are the same elements, not fresh ones: a remount would
+		// replay the slot's 180ms enter keyframe down the whole tail of the row.
+		expect(names(container)).toEqual(["two.png", "three.png"]);
+		expect(chips(container)[0]).toBe(before[1]);
+		expect(chips(container)[1]).toBe(before[2]);
 	});
 
 	it("keeps its line inside a composer with nothing attached yet", () => {
@@ -1427,7 +1753,7 @@ describe("ComposerAttachment", () => {
 	});
 
 	it("cannot be removed while the composer is disabled", () => {
-		const { context } = fakeComposer({ disabled: true });
+		const { context, removeAttachment } = fakeComposer({ disabled: true });
 		const { container } = render(
 			<Provide context={context}>
 				<ComposerAttachment attachment={{ id: "a1", name: "notes.pdf" }} />
@@ -1435,6 +1761,15 @@ describe("ComposerAttachment", () => {
 		);
 
 		expect(removeButton(container).disabled).toBe(true);
+
+		// A synthetic dispatch aims straight at the cross, past the native disabled
+		// attribute: the handler has to refuse the removal on its own rather than
+		// leaving the invariant to the attribute.
+		removeButton(container).dispatchEvent(
+			new MouseEvent("click", { bubbles: true, cancelable: true })
+		);
+
+		expect(removeAttachment).not.toHaveBeenCalled();
 	});
 
 	it("renders standalone, with the cross inert until something can answer it", () => {
@@ -1490,6 +1825,75 @@ describe("ComposerAttachment", () => {
 			expect(sizeText(container), `${size} bytes`).toBe(expected);
 			cleanup();
 		}
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when a chip is removed, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { context } = fakeComposer({ sound: true });
+			const { container } = render(
+				<Provide context={context}>
+					<ComposerAttachment attachment={{ id: "a1", name: "notes.pdf" }} />
+				</Provide>
+			);
+
+			fireEvent.click(removeButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default, even when the composer removes it", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { context } = fakeComposer();
+			const { container } = render(
+				<Provide context={context}>
+					<ComposerAttachment attachment={{ id: "a1", name: "notes.pdf" }} />
+				</Provide>
+			);
+
+			fireEvent.click(removeButton(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { context } = fakeComposer({ disabled: true, sound: true });
+			const { container } = render(
+				<Provide context={context}>
+					<ComposerAttachment attachment={{ id: "a1", name: "notes.pdf" }} />
+				</Provide>
+			);
+
+			// A synthetic dispatch bypasses jsdom's own disabled handling, proving
+			// the guard lives inside `remove()` itself, not merely on the attribute.
+			removeButton(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent outside a composer — attaching stays silent, and so does an inert cross", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<ComposerAttachment attachment={{ id: "a1", name: "notes.pdf" }} />
+			);
+
+			expect(() => fireEvent.click(removeButton(container))).not.toThrow();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });
 
@@ -1567,7 +1971,7 @@ interface Rig {
 
 const mountedTextareas: HTMLTextAreaElement[] = [];
 
-function rig(triggerChar = "/", registerTextarea = true): Rig {
+function rig(triggerChar = "/", registerTextarea = true, withSound = false): Rig {
 	const el = document.createElement("textarea");
 	document.body.appendChild(el);
 	mountedTextareas.push(el);
@@ -1594,6 +1998,7 @@ function rig(triggerChar = "/", registerTextarea = true): Rig {
 				return registerTextarea ? el : null;
 			},
 		},
+		sound: withSound,
 		submit() {},
 		stop() {},
 		setValue(next: string) {
@@ -1922,6 +2327,126 @@ describe("ComposerCommandMenu", () => {
 		removed.mockRestore();
 		docAdded.mockRestore();
 		docRemoved.mockRestore();
+	});
+
+	// StrictMode runs the mount effect twice in development. The second pass is
+	// only harmless because the first one's cleanup already retracted every
+	// listener, so the live count stays at one of each and the menu still works.
+	it("takes and lets go of exactly its own listeners under StrictMode", () => {
+		render(<div />);
+		cleanup();
+
+		const composer = rig();
+		const added = vi.spyOn(composer.el, "addEventListener");
+		const removed = vi.spyOn(composer.el, "removeEventListener");
+		const docAdded = vi.spyOn(document, "addEventListener");
+		const docRemoved = vi.spyOn(document, "removeEventListener");
+
+		const count = (spy: typeof added, name: string) =>
+			spy.mock.calls.filter(([type]) => type === name).length;
+		const live = (name: string) =>
+			count(added, name) + count(docAdded, name) - count(removed, name) - count(docRemoved, name);
+
+		const { container, unmount } = render(
+			<StrictMode>
+				<Provide context={composer.context}>
+					<ComposerCommandMenu trigger="/" items={ITEMS} />
+				</Provide>
+			</StrictMode>
+		);
+
+		for (const name of ["input", "keydown", "blur", "selectionchange"]) {
+			expect(live(name), name).toBe(1);
+		}
+
+		// One registration each is also enough for the menu to work at all.
+		typeInto(composer, "/de");
+		expect(commandList(container)).not.toBeNull();
+
+		unmount();
+
+		for (const name of ["input", "keydown", "blur", "selectionchange"]) {
+			expect(live(name), name).toBe(0);
+		}
+
+		added.mockRestore();
+		removed.mockRestore();
+		docAdded.mockRestore();
+		docRemoved.mockRestore();
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when a row is clicked, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const composer = rig("/", true, true);
+			const { container } = mountMenu(composer.context);
+			typeInto(composer, "/de");
+
+			fireEvent.click(rows(container)[1]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays select exactly once when a row is completed on Enter", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const composer = rig("/", true, true);
+			const { container } = mountMenu(composer.context);
+			typeInto(composer, "/de");
+
+			fireEvent.keyDown(composer.el, { key: "Enter" });
+
+			expect(commandList(container)).toBeNull();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound off on the composer context)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const composer = rig();
+			const { container } = mountMenu(composer.context);
+			typeInto(composer, "/de");
+
+			fireEvent.click(rows(container)[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("opening and closing the menu itself stays silent — only a pick plays a cue", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const composer = rig("/", true, true);
+			const { container } = mountMenu(composer.context);
+
+			typeInto(composer, "/");
+			expect(commandList(container)).not.toBeNull();
+			expect(play).not.toHaveBeenCalled();
+
+			fireEvent.keyDown(composer.el, { key: "Escape" });
+			expect(commandList(container)).toBeNull();
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when Enter has nothing to complete — the !item guard holds", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const composer = rig("/", true, true);
+			mountMenu(composer.context);
+			typeInto(composer, "/zzz");
+
+			const consumed = fireEvent.keyDown(composer.el, { key: "Enter" });
+
+			// Nothing to complete: Enter goes back to meaning send, and plays nothing.
+			expect(consumed).toBe(true);
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });
 

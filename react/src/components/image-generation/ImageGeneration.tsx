@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
 import { PixelLoader } from "../pixel-loader/index.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./image-generation.css";
 
 /**
@@ -25,6 +26,12 @@ export interface ImageGenerationProps {
 	onLoad?: () => void;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the press cue through the sound controller when retry is
+	 * pressed. Off by default; only audible once the user has enabled
+	 * sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -42,9 +49,11 @@ export const ImageGeneration = forwardRef<HTMLDivElement, ImageGenerationProps>(
 			onRetry,
 			onLoad,
 			className,
+			sound,
 		},
 		ref
 	) {
+		const playCue = useSoundCue(sound);
 		/*
 		 * A plain ref, not `useElementRef`: the only thing that reads this node is
 		 * the mount effect below, and reading it at mount is the whole point. An
@@ -129,6 +138,15 @@ export const ImageGeneration = forwardRef<HTMLDivElement, ImageGenerationProps>(
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, []);
 
+		// Retry only ever renders while status === "error" and onRetry is set —
+		// there is no in-flight/disabled state to guard here, unlike ChatError's
+		// retry. No cue plays from handleLoad/handleError or a status transition:
+		// those are outcomes the component observes, never a gesture it resolves.
+		function handleRetry() {
+			playCue("press");
+			onRetry?.();
+		}
+
 		return (
 			<div
 				ref={ref}
@@ -186,7 +204,7 @@ export const ImageGeneration = forwardRef<HTMLDivElement, ImageGenerationProps>(
 								<button
 									type="button"
 									className="ft-imagegen-retry rounded border px-2.5 py-1 text-xs font-medium transition-colors"
-									onClick={onRetry}
+									onClick={handleRetry}
 								>
 									Retry
 								</button>

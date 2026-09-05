@@ -269,4 +269,62 @@ describe("Sparkles", () => {
 		expect(same).toEqual(first);
 		expect(seeded).not.toEqual(first);
 	});
+
+	// jsdom hands out a zero-sized rect and a ratio of 1, which collapses every
+	// draw coordinate to 0 and hides how the percentage field is projected. This
+	// gives the container a real size and a 2x display so the projection shows.
+	function withDisplay(dpr: number, width: number, height: number, run: () => void) {
+		const originalRatio = Object.getOwnPropertyDescriptor(window, "devicePixelRatio");
+		const originalRect = Element.prototype.getBoundingClientRect;
+
+		Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: dpr });
+		Element.prototype.getBoundingClientRect = () =>
+			({
+				x: 0,
+				y: 0,
+				top: 0,
+				left: 0,
+				right: width,
+				bottom: height,
+				width,
+				height,
+				toJSON() {},
+			}) as DOMRect;
+
+		try {
+			run();
+		} finally {
+			if (originalRatio) Object.defineProperty(window, "devicePixelRatio", originalRatio);
+			Element.prototype.getBoundingClientRect = originalRect;
+		}
+	}
+
+	// The context carries a `devicePixelRatio` transform, so the draw calls sit
+	// in CSS-pixel space: projecting the percentage field through the raw
+	// backing-store size would scale it by the ratio a second time and pen the
+	// whole field into the top-left corner of a HiDPI canvas.
+	it("projects the field into CSS pixels, so a 2x display lays it out identically", () => {
+		let atRatio1: Sparkle[] = [];
+		let atRatio2: Sparkle[] = [];
+
+		withDisplay(1, 200, 100, () => {
+			atRatio1 = sparklesDrawn(<Sparkles particleDensity={12} />, 2);
+		});
+		withDisplay(2, 200, 100, () => {
+			atRatio2 = sparklesDrawn(<Sparkles particleDensity={12} />, 2);
+		});
+
+		expect(atRatio1.length).toBe(24);
+		expect(atRatio1.some((sparkle) => sparkle.x > 0)).toBe(true);
+		expect(atRatio2).toEqual(atRatio1);
+
+		// The field wraps at -2/102 percent, so it never leaves the surface by
+		// more than that margin whatever the ratio.
+		for (const sparkle of atRatio2) {
+			expect(sparkle.x).toBeGreaterThanOrEqual(-4);
+			expect(sparkle.x).toBeLessThanOrEqual(204);
+			expect(sparkle.y).toBeGreaterThanOrEqual(-2);
+			expect(sparkle.y).toBeLessThanOrEqual(102);
+		}
+	});
 });

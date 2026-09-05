@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { SubagentList } from "./SubagentList.js";
 import type { SubagentData } from "../../internals/ai-types.js";
+import { sound } from "../../sound/sound.js";
 
 const agents: SubagentData[] = [
 	{
@@ -371,5 +372,78 @@ describe("SubagentList", () => {
 		expect(
 			[...collision.container.querySelectorAll(".ft-subagents-name")].map((el) => el.textContent)
 		).toEqual(["First", "Second", "Third"]);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when a row is activated, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(<SubagentList agents={agents} sound onSelect={onSelect} />);
+
+			fireEvent.click(container.querySelectorAll("button")[0] as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(<SubagentList agents={agents} onSelect={onSelect} />);
+
+			fireEvent.click(container.querySelectorAll("button")[0] as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when onSelect is absent — rows are plain spans, not buttons", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<SubagentList agents={agents} sound />);
+
+			expect(container.querySelectorAll("button")).toHaveLength(0);
+			fireEvent.click(rows(container)[0] as HTMLElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when a row's status changes — only a pick fires the cue", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { rerender } = render(<SubagentList agents={agents} sound onSelect={onSelect} />);
+
+			rerender(
+				<SubagentList
+					agents={[
+						{ ...agents[0]!, status: "done", progress: undefined },
+						agents[1]!,
+						agents[2]!,
+					]}
+					sound
+					onSelect={onSelect}
+				/>
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when a new worker is spawned — mounting a row is not a pick", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { rerender } = render(<SubagentList agents={agents} sound onSelect={onSelect} />);
+
+			rerender(
+				<SubagentList
+					agents={[...agents, agent({ id: "d", name: "Auditor" })]}
+					sound
+					onSelect={onSelect}
+				/>
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

@@ -194,6 +194,13 @@ describe("MosaicGlow", () => {
 		expect(container.querySelector(".mosaic-glow__content")).toBeNull();
 	});
 
+	it("keeps the content wrapper for a falsy but provided child", () => {
+		const { container } = render(<MosaicGlow>{0}</MosaicGlow>);
+		const content = container.querySelector(".mosaic-glow__content");
+		expect(content).not.toBeNull();
+		expect(content?.textContent).toBe("0");
+	});
+
 	it("accepts a ref binding and exposes the host as a div", () => {
 		const ref = createRef<HTMLDivElement>();
 		const { container } = render(<MosaicGlow ref={ref} />);

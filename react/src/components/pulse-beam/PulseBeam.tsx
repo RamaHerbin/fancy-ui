@@ -1,6 +1,5 @@
 import {
 	forwardRef,
-	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -10,6 +9,7 @@ import {
 	type ReactNode,
 	type TransitionEvent as ReactTransitionEvent,
 } from "react";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { cn } from "../../utils.js";
 import {
 	LAYER_PRESETS,
@@ -112,14 +112,9 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 	onfadeoutRef.current = onfadeout;
 
 	const hostRef = useRef<HTMLDivElement | null>(null);
-	const setHostRef = useCallback(
-		(node: HTMLDivElement | null) => {
-			hostRef.current = node;
-			if (typeof forwardedRef === "function") forwardedRef(node);
-			else if (forwardedRef) (forwardedRef as { current: HTMLDivElement | null }).current = node;
-		},
-		[forwardedRef]
-	);
+	// The shared composer owns the version-correct attach/detach handling, so a
+	// consumer callback ref that hands back a teardown gets it run.
+	const setHostRef = useComposedRefs<HTMLDivElement>(forwardedRef, hostRef);
 
 	const setPhase = (next: Phase) => {
 		phaseRef.current = next;
@@ -136,7 +131,15 @@ export const PulseBeam = forwardRef<HTMLDivElement, PulseBeamProps>(function Pul
 	const motion = useMemo(() => motionPreset(variant, tone, speed), [variant, tone, speed]);
 	const oscillators = useMemo(() => buildOscillators(motion), [motion]);
 	const hueEnabled = hueShift && !isMono;
-	const backgrounds = buildLayerBackgrounds({ variant, palette, colors, tone, op: motion.op });
+	// Keyed on the colour CONTENTS, not the array identity: `colors` is usually
+	// an inline literal, so a fresh array arrives on every parent render and an
+	// identity dependency would rebuild the ~29 gradients each time for nothing.
+	const colorsKey = colors?.join("|");
+	const backgrounds = useMemo(
+		() => buildLayerBackgrounds({ variant, palette, colors, tone, op: motion.op }),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[variant, palette, colorsKey, tone, motion.op]
+	);
 	const clampedStrength = Math.min(1, Math.max(0, Number.isFinite(strength) ? strength : 1));
 	const running = phase !== "idle";
 

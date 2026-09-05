@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
 
 export interface TextGenerateEffectProps {
@@ -20,6 +21,10 @@ export function TextGenerateEffect({
 }: TextGenerateEffectProps) {
 	const wordsArray = words.split(" ");
 	const scopeRef = useRef<HTMLDivElement>(null);
+	// The reveal reads these when each timeout fires, not when it was scheduled,
+	// so a prop changed mid-reveal applies to the words still to come.
+	const filterRef = useLiveRef(filter);
+	const staggerRef = useLiveRef(stagger);
 
 	useEffect(() => {
 		const scope = scopeRef.current;
@@ -30,8 +35,8 @@ export function TextGenerateEffect({
 			spans.forEach((span, index) => {
 				const wordTimeout = setTimeout(() => {
 					span.style.opacity = "1";
-					span.style.filter = filter ? "blur(0px)" : "none";
-				}, index * stagger);
+					span.style.filter = filterRef.current ? "blur(0px)" : "none";
+				}, index * staggerRef.current);
 
 				// Store timeout ID for cleanup
 				(span as HTMLSpanElement & { _tid?: ReturnType<typeof setTimeout> })._tid = wordTimeout;

@@ -19,6 +19,7 @@ describe("TerminalText", () => {
 	afterEach(() => {
 		cleanup();
 		vi.useRealTimers();
+		vi.restoreAllMocks();
 	});
 
 	it("renders nothing until the first scheduled tick, then streams characters over time and completes", async () => {
@@ -134,6 +135,72 @@ describe("TerminalText", () => {
 		const { unmount } = render(<TerminalText lines={["glitchy line"]} speed={5} glitch={true} />);
 		await advance(5000);
 		expect(() => unmount()).not.toThrow();
+	});
+
+	describe("glitch loop lifecycle", () => {
+		it("keeps glitching after the lines change restarts the stream", async () => {
+			vi.useFakeTimers();
+			// Pinning Math.random makes the loop deterministic: a 2000ms interval,
+			// the first line with content, its first character, the first glyph.
+			vi.spyOn(Math, "random").mockReturnValue(0);
+			const { container, rerender } = render(
+				<TerminalText lines={["ab"]} speed={10} cursor={false} glitch />
+			);
+			const wrapper = container.firstElementChild as HTMLElement;
+
+			// push@0, a@10, b@20, done@50.
+			await advance(50);
+			expect(text(wrapper)).toBe("ab");
+
+			// t=2000: the first glitch swap lands.
+			await advance(1960);
+			expect(text(wrapper)).toBe("アb");
+
+			// t=2100: the 100ms restore puts the original character back.
+			await advance(200);
+			expect(text(wrapper)).toBe("ab");
+
+			// A new transcript restarts the stream; the glitch loop must survive it.
+			rerender(<TerminalText lines={["cd"]} speed={10} cursor={false} glitch />);
+			await advance(60);
+			expect(text(wrapper)).toBe("cd");
+
+			// t=4000: the loop's next tick still fires against the new transcript.
+			await advance(1790);
+			expect(text(wrapper)).toBe("アd");
+		});
+
+		it("runs exactly one chain after glitch is toggled off and back on", async () => {
+			vi.useFakeTimers();
+			vi.spyOn(Math, "random").mockReturnValue(0);
+			const { container, rerender } = render(
+				<TerminalText lines={["ab"]} speed={10} cursor={false} glitch />
+			);
+			const wrapper = container.firstElementChild as HTMLElement;
+
+			// The stream has run to completion; the only pending timer is the
+			// glitch loop's next tick, armed at mount and due at t=2000.
+			await advance(50);
+			expect(vi.getTimerCount()).toBe(1);
+
+			// Turning glitch off tears the chain down instead of leaving it running.
+			rerender(<TerminalText lines={["ab"]} speed={10} cursor={false} glitch={false} />);
+			expect(vi.getTimerCount()).toBe(0);
+
+			// t=150: turning it back on starts exactly one chain, due at t=2150.
+			await advance(100);
+			rerender(<TerminalText lines={["ab"]} speed={10} cursor={false} glitch />);
+			expect(vi.getTimerCount()).toBe(1);
+
+			// t=2000: the chain from before the toggle is gone, so nothing fires
+			// here. A stacked second chain would swap a glyph in.
+			await advance(1850);
+			expect(text(wrapper)).toBe("ab");
+
+			// t=2150: the one live chain fires, on its own phase.
+			await advance(150);
+			expect(text(wrapper)).toBe("アb");
+		});
 	});
 
 	it("does not re-serialize `lines` on renders that reuse the same array reference", () => {

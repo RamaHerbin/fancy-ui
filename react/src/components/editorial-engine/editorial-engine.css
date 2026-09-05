@@ -15,6 +15,12 @@
 	touch-action: none;
 }
 
+.ee-stage .ee-layer {
+	position: absolute;
+	inset: 0;
+	touch-action: none;
+}
+
 .ee-stage .ee-fallback {
 	position: absolute;
 	inset: 0;
@@ -22,6 +28,22 @@
 	overflow: hidden;
 	opacity: 0.4;
 	font-size: 14px;
+}
+
+/*
+ * Visually hidden, still exposed to assistive tech. Scoped rather than the
+ * Tailwind `sr-only` utility because `.ee-stage .ee-fallback` above outranks
+ * it on specificity and would re-inflate the box.
+ */
+.ee-stage .ee-fallback.ee-sr-only {
+	inset: auto;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	clip-path: inset(50%);
+	white-space: nowrap;
 }
 
 .ee-stage .ee-line {

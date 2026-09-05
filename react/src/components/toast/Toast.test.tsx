@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DURATIONS } from "../../internals/motion/tokens.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { Toaster } from "./Toaster.js";
 import { dismissToast, toast, toastStore } from "./store.js";
 import type { ToastOptions } from "./store.js";
@@ -455,6 +456,36 @@ describe("Toast / Toaster", () => {
 		expect(toastPanels()).toHaveLength(1);
 	});
 
+	// The counterpart of the source rule that a local transition never plays on
+	// the initial render of the block that owns it. The two documented paths in
+	// are a toast raised before any viewport existed (here) and one inherited by
+	// a viewport that replaced another (below) — both must simply be there, not
+	// rise into place, or a viewport swap visibly re-animates the whole stack.
+	it("paints a toast queued before the viewport existed at rest, with no entrance", async () => {
+		toast({ title: "Early bird", duration: Infinity });
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+		render(<Toaster />);
+		await advance(0);
+
+		expect(toastPanels()).toHaveLength(1);
+		expect(animateSpy).not.toHaveBeenCalled();
+	});
+
+	it("paints a toast inherited from a replaced viewport at rest, with no entrance", async () => {
+		const { unmount } = render(<Toaster />);
+		raise({ title: "Handed over", duration: Infinity });
+		await advance(0);
+		unmount();
+
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(<Toaster />);
+		await advance(0);
+
+		expect(toastPanels()).toHaveLength(1);
+		expect(animateSpy).not.toHaveBeenCalled();
+	});
+
 	// --- Motion -----------------------------------------------------------
 	//
 	// The exit is the only reason a dismissed toast is not gone from the DOM in
@@ -546,5 +577,171 @@ describe("Toast / Toaster", () => {
 
 		expect(id).toBe("");
 		expect(toastStore.items).toHaveLength(0);
+	});
+
+	// --- Sound ------------------------------------------------------------
+	//
+	// Transposed case for case from the source suite. The controller is spied
+	// on directly rather than the hook, so what these pin is the cue that
+	// actually reaches the singleton; the second argument is the play options
+	// object, which this component never passes.
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays success exactly once when a success toast arrives", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Toaster sound />);
+
+			raise({ title: "Theme saved", variant: "success" });
+			await advance(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("success", undefined);
+		});
+
+		it("plays error exactly once when an error toast arrives", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Toaster sound />);
+
+			raise({ title: "Failed to send", variant: "error" });
+			await advance(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("error", undefined);
+		});
+
+		it("plays nothing for info or loading toasts, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Toaster sound />);
+
+			raise({ title: "Heads up", variant: "info" });
+			raise({ title: "Publishing…", variant: "loading" });
+			await advance(0);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Toaster />);
+
+			raise({ title: "Theme saved", variant: "success" });
+			raise({ title: "Failed to send", variant: "error" });
+			await advance(0);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not sound the toast's own close or action button", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Toaster sound />);
+			const onClick = vi.fn();
+			raise({
+				title: "Failed to send",
+				variant: "error",
+				duration: Infinity,
+				action: { label: "Retry", onClick },
+			});
+			await advance(0);
+			play.mockClear(); // only the arrival cue is under test here
+
+			const actionButton = toastPanels()[0]!.querySelector(
+				"button.ft-toast-action"
+			) as HTMLButtonElement;
+			fireEvent.click(actionButton);
+			expect(play).not.toHaveBeenCalled();
+
+			const closeButton = toastPanels()[0]!.querySelector(
+				'button[aria-label="Dismiss"]'
+			) as HTMLButtonElement;
+			fireEvent.click(closeButton);
+			expect(play).not.toHaveBeenCalled();
+
+			// Drains the dismissed toast's exit inside `act`, so nothing the
+			// presence clock schedules lands after the test has finished.
+			await settleExit();
+		});
+
+		// The seen-id dedupe (`announcedIds`) is what keeps the announcement
+		// effect — which reruns on every store change, dismissals included —
+		// from replaying a cue for a toast already announced. Ids are
+		// monotonic and never reused, so this is the same guard the live
+		// region relies on.
+		it("plays the cue for each toast exactly once, even as the store changes around it — the seen-id dedupe", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Toaster sound />);
+
+			const firstId = raise({ title: "First", variant: "success", duration: Infinity });
+			await advance(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			// Dismissing a toast reruns the same effect over the remaining
+			// (already-announced) items — must not replay their cue.
+			dismiss(firstId);
+			await advance(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			raise({ title: "Second", variant: "error", duration: Infinity });
+			await advance(0);
+			expect(play).toHaveBeenCalledTimes(2);
+			expect(play).toHaveBeenNthCalledWith(2, "error", undefined);
+		});
+
+		// `sound` is a live prop, so a consumer can flip it on mid-session (a
+		// settings switch, a first user gesture unlocking audio). The cue marks
+		// a toast *appearing*, so outcomes already on screen when the switch is
+		// thrown have had their moment and must stay silent — which is why an
+		// outcome toast's id is recorded whether or not sound is currently
+		// opted in, rather than only when the cue actually plays.
+		it("does not sound outcome toasts already on screen when sound is switched on", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(<Toaster sound={false} />);
+
+			raise({ title: "Theme saved", variant: "success", duration: Infinity });
+			raise({ title: "Failed to send", variant: "error", duration: Infinity });
+			await advance(0);
+			expect(play).not.toHaveBeenCalled();
+
+			// Same instance, same two toasts still on screen — only the prop moves.
+			rerender(<Toaster sound />);
+			await advance(0);
+			expect(play).not.toHaveBeenCalled();
+
+			// …while a toast that genuinely arrives after the flip does sound,
+			// proving the silence above is the seen-id record and not a switch
+			// that never took effect.
+			raise({ title: "Draft published", variant: "success", duration: Infinity });
+			await advance(0);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("success", undefined);
+		});
+
+		// The seen-id dedupe above (`announcedIds`) is per-instance and thrown
+		// away on unmount, while `toastStore.items` is a module-level singleton
+		// that survives it — so a `<Toaster>` remount while a toast is still on
+		// screen must not replay its cue, even though the fresh instance's own
+		// `announcedIds` starts empty.
+		it("does not replay a cue for a still-visible toast when <Toaster> remounts", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { unmount } = render(<Toaster sound />);
+
+			raise({ title: "Uploading…", variant: "success", duration: Infinity });
+			await advance(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			unmount();
+			render(<Toaster sound />);
+			await advance(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

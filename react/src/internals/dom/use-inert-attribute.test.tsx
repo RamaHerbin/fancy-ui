@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { StrictMode, useState } from "react";
 import { render, cleanup, act } from "@testing-library/react";
 import { afterEach, describe, it, expect } from "vitest";
 import { useInertAttribute } from "./use-inert-attribute.js";
@@ -60,6 +60,21 @@ describe("useInertAttribute", () => {
 		const next = getByTestId("panel");
 		expect(next.getAttribute("data-key")).toBe("1");
 		expect(next.hasAttribute("inert")).toBe(true);
+	});
+
+	it("survives StrictMode's mount rehearsal with the attribute still applied", () => {
+		// §9.4's StrictMode row. The rehearsal detaches the ref and re-attaches
+		// it, and the layout effect's dependency never changed — so only the
+		// callback ref's own write can put the attribute back, and this is the
+		// case that proves it does.
+		const { getByTestId, unmount } = render(
+			<StrictMode>
+				<Panel inert />
+			</StrictMode>
+		);
+
+		expect(getByTestId("panel").hasAttribute("inert")).toBe(true);
+		unmount();
 	});
 
 	it("hands back one stable ref identity for the life of the component", () => {

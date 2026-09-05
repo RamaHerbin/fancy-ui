@@ -1,6 +1,6 @@
 import { StrictMode, useEffect, useRef, useState } from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import { TimePicker } from "./TimePicker.js";
 import {
@@ -13,6 +13,7 @@ import {
 } from "./time-utils.js";
 import { FieldProvider, type FieldContext } from "../../internals/field.js";
 import { __dismissableLayerCount, attachDismissable } from "../../internals/dismissable.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 /**
  * jsdom has no `inert` IDL property, so `el.inert = true` would otherwise be a
@@ -510,6 +511,26 @@ describe("TimePicker", () => {
 		await waitFor(() => expect(panel()).toBeNull());
 	});
 
+	it("returns focus to the trigger after a pointer commit instead of stranding it on <body>", async () => {
+		const { container } = render(<TimePicker locale="en-US" />);
+		const btn = trigger(container);
+		fireEvent.click(btn);
+		expect(document.activeElement).toBe(btn);
+
+		const row = optionRow(28);
+		// `fireEvent` does not move focus, so model what a real pointer press
+		// does first: the row carries `tabIndex={-1}`, so it takes focus off the
+		// trigger, and the panel is portalled to `<body>` — once it goes there
+		// is no focusable ancestor left to inherit it.
+		row.focus();
+		expect(document.activeElement).toBe(row);
+
+		fireEvent.click(row);
+		await waitFor(() => expect(panel()).toBeNull());
+
+		expect(document.activeElement).toBe(btn);
+	});
+
 	it("ArrowDown opens the panel and activates the slot nearest to the current value", async () => {
 		const { container } = render(<TimePicker locale="en-US" value="14:05" />);
 		const btn = trigger(container);
@@ -916,6 +937,156 @@ describe("TimePicker", () => {
 		});
 	});
 
+	// `useSoundCue` forwards its optional second argument, so every recorded
+	// call carries an explicit `undefined` where the source's
+	// `soundFx.play("open")` passed one argument. The cue itself — the only
+	// thing these assertions are about — is unchanged.
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when opened by a trigger click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" sound />);
+
+			fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+			await settleLegs();
+		});
+
+		it("picking a new slot by row click plays select exactly once and never close, for the same click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" value="09:00" sound />);
+			fireEvent.click(trigger(container));
+			play.mockClear();
+
+			fireEvent.click(optionRow(0)); // 00:00, differs from 09:00
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+			await settleLegs();
+		});
+
+		it("re-picking the already-selected slot plays close (a dismiss), never a second select — the highest-risk guard: ctx.commit must thread the outcome into closePanel", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" value="00:00" sound />);
+			fireEvent.click(trigger(container));
+			play.mockClear();
+
+			fireEvent.click(optionRow(0)); // 00:00 again — no change
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		it("Enter commit plays select exactly once and never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" value="09:00" sound />);
+			const btn = trigger(container);
+			fireEvent.click(btn); // opens, activates nearest to 09:00
+			fireEvent.keyDown(btn, { key: "Home" }); // moves to 00:00
+			play.mockClear();
+			fireEvent.keyDown(btn, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+			await settleLegs();
+		});
+
+		it("Escape plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" sound />);
+			fireEvent.click(trigger(container));
+			play.mockClear();
+
+			pressEscape();
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("an outside click plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(<TimePicker locale="en-US" sound />);
+			fireEvent.click(trigger(container));
+			play.mockClear();
+
+			pointerDownOn(outside);
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			outside.remove();
+		});
+
+		it("toggling the trigger shut with nothing committed plays close, not select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" sound />);
+			const btn = trigger(container);
+			fireEvent.click(btn); // open
+			play.mockClear();
+
+			fireEvent.click(btn); // toggled shut
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		// Listbox move/moveToEdge and row pointer-enter only ever set the active
+		// index — they never reach `setValue`, so they stay silent even while
+		// the panel is open and a row is highlighted.
+		it("arrow navigation and row hover never play", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" sound />);
+			const btn = trigger(container);
+			fireEvent.click(btn); // open — plays "open"
+			play.mockClear();
+
+			fireEvent.keyDown(btn, { key: "ArrowDown" });
+			fireEvent.keyDown(btn, { key: "End" });
+			fireEvent.pointerOver(optionRow(0));
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" value="09:00" />);
+			fireEvent.click(trigger(container));
+
+			fireEvent.click(optionRow(0));
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TimePicker locale="en-US" disabled sound />);
+			const btn = trigger(container);
+
+			fireEvent.click(btn);
+			fireEvent.keyDown(btn, { key: "ArrowDown" });
+			fireEvent.keyDown(btn, { key: "Enter" });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+	});
+
 	// One addition this port needs and the source did not, pinning a
 	// React-specific hazard rather than new behaviour: the double invoke must
 	// leave exactly one panel, one dismiss layer (asserted back to zero by this
@@ -934,6 +1105,70 @@ describe("TimePicker", () => {
 
 			pressEscape();
 			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// Hovering a row moves `activeIndex`, which re-renders the whole panel
+		// — the React shape of what the source expresses as a per-row class
+		// effect. The row TEXT must not be recomputed by that: the source's
+		// label text nodes never re-run on an active-index change, and each
+		// recomputation here would build one `Intl.DateTimeFormat` per row
+		// (48 at the default step, 1440 at `step={1}`) for output that is
+		// byte-identical.
+		it("formats each slot label once per grid, not once per pointer hover", async () => {
+			const { container } = render(<TimePicker locale="en-US" />);
+			fireEvent.click(trigger(container));
+			expect(optionRows()).toHaveLength(48);
+
+			const DateTimeFormat = Intl.DateTimeFormat;
+			const constructed = vi.fn();
+			// A subclass rather than `vi.spyOn`: `Intl.DateTimeFormat` is called
+			// with `new`, and the component reaches it through the module-scope
+			// binding rather than off `Intl`.
+			Intl.DateTimeFormat = class extends DateTimeFormat {
+				constructor(...args: ConstructorParameters<typeof DateTimeFormat>) {
+					super(...args);
+					constructed();
+				}
+			} as unknown as typeof Intl.DateTimeFormat;
+			try {
+				fireEvent.pointerOver(optionRow(3));
+				fireEvent.pointerOver(optionRow(9));
+
+				expect(constructed).not.toHaveBeenCalled();
+			} finally {
+				Intl.DateTimeFormat = DateTimeFormat;
+			}
+			await settleLegs();
+		});
+
+		// The open-time scroll is a `scrollTop` write, so it runs in a LAYOUT
+		// effect (contract §4): a write that lands after the paint is a visible
+		// jump, and a picker whose value sits late in the grid (23:00 is row 46
+		// of 48) would show the list parked at 00:00 for one frame and then snap
+		// to the selection.
+		//
+		// jsdom cannot tell the two phases apart — it never paints, and React 19
+		// drains a discrete event's render, its layout effects and its passive
+		// effects inside the same microtask checkpoint, so a spy fires at the same
+		// observable moment either way. What this pins is the outcome the phase
+		// exists to protect: by the time the click's own flush is over, the
+		// selection has already been scrolled to, with nothing awaited in between.
+		// The frame itself belongs in the browser-only plan, not here.
+		it("has already scrolled the selection into view when the opening click returns", async () => {
+			const original = HTMLElement.prototype.scrollIntoView;
+			const scrollSpy = vi.fn();
+			HTMLElement.prototype.scrollIntoView = scrollSpy;
+			try {
+				const { container } = render(<TimePicker locale="en-US" value="23:00" />);
+
+				fireEvent.click(trigger(container));
+
+				expect(scrollSpy).toHaveBeenCalled();
+				expect(panel()).not.toBeNull();
+			} finally {
+				HTMLElement.prototype.scrollIntoView = original;
+			}
+			await settleLegs();
 		});
 	});
 });

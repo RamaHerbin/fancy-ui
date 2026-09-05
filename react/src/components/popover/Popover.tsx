@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { Side, Align } from "../../internals/anchor-position.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { PopoverContent } from "./PopoverContent.js";
 import { POPOVER_KEY } from "./types.js";
 import type { PopoverContext } from "./types.js";
@@ -41,6 +42,11 @@ export interface PopoverProps {
 	children?: ReactNode;
 	/** Additional CSS classes, merged onto the panel. */
 	className?: string;
+	/**
+	 * Plays the matching open/close cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -62,6 +68,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
 		trigger,
 		children,
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -103,13 +110,21 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
 	// what makes a dismiss that changes nothing fire nothing: a second Escape
 	// during the fade must not call `onOpenChange(false)` a second time.
 	const openRef = useLiveRef(open);
+	const playCue = useSoundCue(sound);
 	const setOpen = useCallback(
 		(next: boolean) => {
 			if (openRef.current === next) return;
 			setOpenState(next);
+			// Behind the same guard as `onOpenChange`, so a dismiss that changes
+			// nothing — a second Escape racing the exit — stays silent instead
+			// of doubling the cue. Every open/close path in the family routes
+			// through here: the trigger's `toggle()`, and every dismissal
+			// through the context's `close()`. `playCue` is a no-op while the
+			// prop is off, so no second guard is needed here.
+			playCue(next ? "open" : "close");
 			onOpenChange?.(next);
 		},
-		[openRef, onOpenChange]
+		[openRef, onOpenChange, playCue]
 	);
 
 	function toggle() {

@@ -1,10 +1,11 @@
-import { forwardRef, useCallback, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
-import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { useFloat } from "../../internals/use-float.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import type { FloatRect } from "../../internals/float.js";
 import type { TokenUsageData } from "../../internals/ai-types.js";
 import "./context-ring.css";
@@ -31,6 +32,11 @@ export interface ContextRingProps {
 	expandable?: boolean;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** Shown in the popover when a caller asked for one but sent no rows. */
@@ -87,15 +93,21 @@ export const ContextRing = forwardRef<HTMLDivElement, ContextRingProps>(function
 		label = "Context usage",
 		expandable = false,
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
 	const uid = useFancyId();
 	const panelId = `${uid}-breakdown`;
 
-	const [rootEl, rootRef] = useElementRef<HTMLDivElement>();
+	// Plain refs, not `useElementRef` (the exception convention C-1 carves out):
+	// both elements are rendered unconditionally for the configuration that uses
+	// them and the nodes are only ever read inside an event handler or the float
+	// anchor getter, never by a hook keyed on their arrival.
+	const rootRef = useRef<HTMLDivElement | null>(null);
 	const composedRootRef = useComposedRefs(forwardedRef, rootRef);
-	const rootLive = useLiveRef(rootEl);
+
+	const playCue = useSoundCue(sound);
 
 	// -------------------------------------------------------------------------
 	// Numbers
@@ -145,7 +157,7 @@ export const ContextRing = forwardRef<HTMLDivElement, ContextRingProps>(function
 	const sweep = filled ? fraction : 0;
 	const dashOffset = circumference * (1 - sweep);
 
-	useEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		// Reduced motion wants the settled arc, not a fast one: write it in the same
 		// breath so there is never a frame of empty ring to notice.
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -176,18 +188,41 @@ export const ContextRing = forwardRef<HTMLDivElement, ContextRingProps>(function
 	// -------------------------------------------------------------------------
 
 	const [open, setOpen] = useState(false);
-	const [triggerEl, triggerRef] = useElementRef<HTMLButtonElement>();
-	const triggerLive = useLiveRef(triggerEl);
+	const triggerRef = useRef<HTMLButtonElement | null>(null);
+	// The open flag as the handlers read it, written in the same breath as the
+	// state so a second dismissal in the same tick is already guarded — the
+	// state itself is a render behind until React flushes.
+	const openRef = useRef(false);
 
-	function toggle() {
-		setOpen((current) => !current);
-	}
+	// One place every dismissal funnels through, so the toggle, Escape and an
+	// outside pointerdown all give exactly one `close` cue rather than each
+	// wiring its own.
+	const close = useCallback(() => {
+		if (!openRef.current) return;
+		openRef.current = false;
+		setOpen(false);
+		playCue("close");
+	}, [playCue]);
+
+	const toggle = useCallback(() => {
+		if (!openRef.current) {
+			openRef.current = true;
+			setOpen(true);
+			playCue("open");
+			return;
+		}
+		close();
+	}, [close, playCue]);
 
 	// Taking expandability away takes the panel with it. Left open, it would keep
 	// its window listeners with no trigger on screen, and turning expandability
-	// back on would reopen a panel nobody asked to see again.
+	// back on would reopen a panel nobody asked to see again. Bookkeeping rather
+	// than a dismissal, so it writes the flag directly and stays silent.
 	useEffect(() => {
-		if (!expandable) setOpen(false);
+		if (!expandable) {
+			openRef.current = false;
+			setOpen(false);
+		}
 	}, [expandable]);
 
 	// Escape and a click elsewhere both dismiss. Bound to the window rather than to
@@ -198,14 +233,14 @@ export const ContextRing = forwardRef<HTMLDivElement, ContextRingProps>(function
 
 		const onKeydown = (event: KeyboardEvent) => {
 			if (event.key !== "Escape") return;
-			setOpen(false);
+			close();
 			// Focus goes back to what opened the panel, not to the top of the page.
-			triggerLive.current?.focus();
+			triggerRef.current?.focus();
 		};
 		const onPointerDown = (event: Event) => {
 			const target = event.target as Node | null;
-			if (target && rootLive.current?.contains(target)) return;
-			setOpen(false);
+			if (target && rootRef.current?.contains(target)) return;
+			close();
 		};
 
 		window.addEventListener("keydown", onKeydown);
@@ -214,14 +249,14 @@ export const ContextRing = forwardRef<HTMLDivElement, ContextRingProps>(function
 			window.removeEventListener("keydown", onKeydown);
 			window.removeEventListener("pointerdown", onPointerDown, true);
 		};
-	}, [open, rootLive, triggerLive]);
+	}, [open, close]);
 
 	// The anchor is read through a getter so the float re-measures the trigger on
 	// every scroll and resize tick rather than holding a stale rect.
 	// Identity-stable, so the float is never re-synced for the getter alone.
 	const anchor = useCallback(
-		(): FloatRect | null => triggerLive.current?.getBoundingClientRect() ?? null,
-		[triggerLive]
+		(): FloatRect | null => triggerRef.current?.getBoundingClientRect() ?? null,
+		[]
 	);
 	// In the DOM only while it is on screen, so the hook is handed `null` — and
 	// does nothing at all — for as long as the panel is closed.

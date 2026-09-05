@@ -1,6 +1,21 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { InteractiveGridPattern } from "./InteractiveGridPattern.js";
+
+/* Counts cn() evaluations so a hover can be asserted to re-render only the squares
+   whose fill changed, not the whole grid. */
+const cnCalls = vi.hoisted(() => ({ count: 0 }));
+
+vi.mock("../../utils.js", async () => {
+	const actual = await vi.importActual<typeof import("../../utils.js")>("../../utils.js");
+	return {
+		...actual,
+		cn: (...inputs: Parameters<typeof actual.cn>) => {
+			cnCalls.count += 1;
+			return actual.cn(...inputs);
+		},
+	};
+});
 
 describe("InteractiveGridPattern", () => {
 	afterEach(cleanup);
@@ -69,6 +84,27 @@ describe("InteractiveGridPattern", () => {
 		expect(rect.getAttribute("class")).toContain("fill-gray-300/30");
 		await fireEvent.mouseLeave(rect);
 		expect(rect.getAttribute("class")).toContain("fill-transparent");
+	});
+
+	it("re-renders only the squares whose fill changed on hover", async () => {
+		const { container } = render(<InteractiveGridPattern squares={[8, 8]} />);
+		const rects = container.querySelectorAll("rect");
+		expect(rects.length).toBe(64);
+		const first = rects[0] as SVGRectElement;
+		const sixth = rects[5] as SVGRectElement;
+
+		cnCalls.count = 0;
+		await fireEvent.mouseEnter(first);
+		expect(first.getAttribute("class")).toContain("fill-gray-300/30");
+		// the svg container plus the one square that flipped — never the whole grid
+		expect(cnCalls.count).toBeLessThanOrEqual(4);
+
+		cnCalls.count = 0;
+		await fireEvent.mouseEnter(sixth);
+		expect(first.getAttribute("class")).toContain("fill-transparent");
+		expect(sixth.getAttribute("class")).toContain("fill-gray-300/30");
+		// the svg container plus the two squares that flipped
+		expect(cnCalls.count).toBeLessThanOrEqual(5);
 	});
 
 	it("does not change fill state on hover when interactive is false", async () => {

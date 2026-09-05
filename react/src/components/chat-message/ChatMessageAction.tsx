@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
+import { CHAT_MESSAGE_CONTEXT_KEY } from "./types.js";
 
 /**
  * Props for ChatMessageAction
@@ -32,6 +34,11 @@ export function ChatMessageAction({
 	children,
 	className,
 }: ChatMessageActionProps) {
+	// A loose action button — used outside a `ChatMessage` root — is silent:
+	// there is no root `sound` prop to read, so this falls through to `false`.
+	const message = useContext(CHAT_MESSAGE_CONTEXT_KEY);
+	const playCue = useSoundCue(message?.sound ?? false);
+
 	const [confirmed, setConfirmed] = useState(false);
 	// A ref, not state: the timer must not wake anything that writes it.
 	const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -47,6 +54,9 @@ export function ChatMessageAction({
 	useEffect(() => clearTimer, []);
 
 	function handleClick(event: MouseEvent<HTMLButtonElement>) {
+		// Press, never toggle-on/off: `active` is fully controlled by the caller,
+		// so the post-click state is unknowable here.
+		playCue("press");
 		onClick?.(event);
 		if (!confirmLabel) return;
 		setConfirmed(true);

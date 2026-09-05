@@ -645,7 +645,7 @@ export const MosaicGlow = forwardRef<HTMLDivElement, MosaicGlowProps>(function M
 				className="pointer-events-none absolute inset-0 block h-full w-full"
 				aria-hidden="true"
 			/>
-			{children ? (
+			{children != null ? (
 				<div className="mosaic-glow__content relative z-[1] h-full w-full">{children}</div>
 			) : null}
 		</div>

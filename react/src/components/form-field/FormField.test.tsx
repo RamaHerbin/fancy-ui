@@ -1,9 +1,25 @@
 import { render, cleanup } from "@testing-library/react";
-import { createRef } from "react";
+import { createRef, StrictMode } from "react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { FormField } from "./FormField.js";
 import type { FormFieldProps } from "./FormField.js";
 import { useField } from "../../internals/field.js";
+import { FakeAnimation } from "../../test-setup.js";
+
+/**
+ * The animation stub finishes on a MICROTASK, and `runTransition` chains a
+ * leading dummy animation into the real one, so one turn of the queue advances
+ * a leg by exactly one step: after the first the dummy has finished and the
+ * main animation exists, after the second the main animation has finished and
+ * `onFinish` has run. Kept as an explicit step rather than `vi.waitFor`, which
+ * would drain both and make the mid-flight assertions unreachable.
+ */
+const nextLeg = () => Promise.resolve();
+
+/** Every animation the stub recorded for `el`, in creation order. */
+function animationsOn(el: Element): FakeAnimation[] {
+	return FakeAnimation.instances.filter((animation) => animation.target === el);
+}
 
 function root(container: HTMLElement): HTMLElement {
 	return container.firstElementChild as HTMLElement;
@@ -210,6 +226,15 @@ describe("FormField", () => {
 		expect(p?.querySelector('[aria-hidden="true"]')).not.toBeNull();
 		expect(control(container).getAttribute("aria-describedby")).toBe(p?.id);
 		expect(control(container).getAttribute("aria-invalid")).toBe("true");
+		// An error arriving while focus is already inside the control is a
+		// change to described-by content, which is not reliably re-announced —
+		// the live region is what makes it audible at the moment it appears.
+		expect(p?.getAttribute("role")).toBe("alert");
+	});
+
+	it("leaves the help text out of the live region — only the error announces itself", () => {
+		const { container } = render(<Harness description="Never shown publicly." />);
+		expect(message(container)?.hasAttribute("role")).toBe(false);
 	});
 
 	it("lets the error replace the help text rather than stacking under it", () => {
@@ -426,6 +451,90 @@ describe("FormField", () => {
 			} finally {
 				animateSpy.mockRestore();
 			}
+		});
+
+		it("under StrictMode, a field mounted already-valid still does not pop its checkmark", async () => {
+			// StrictMode replays the mount layout effect (run → cleanup → run)
+			// with the same props. The entrance is gated on `valid` actually
+			// flipping while the help text is on screen, so the rehearsal is a
+			// no-op — a dev-only double invoke may not make a field perform on
+			// arrival.
+			stubReducedMotion(false);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container, rerender } = render(
+					<StrictMode>
+						<Harness description="Used for sign-in." valid />
+					</StrictMode>
+				);
+				expect(container.querySelector(".ft-form-field-valid-glyph")).not.toBeNull();
+				expect(animateSpy).not.toHaveBeenCalled();
+
+				// And the real flip still animates inside StrictMode: the guard
+				// silences the rehearsal, not the event.
+				rerender(
+					<StrictMode>
+						<Harness description="Used for sign-in." valid={false} />
+					</StrictMode>
+				);
+				rerender(
+					<StrictMode>
+						<Harness description="Used for sign-in." valid />
+					</StrictMode>
+				);
+
+				await vi.waitFor(() => {
+					expect(container.querySelector(".ft-form-field-valid-glyph")).not.toBeNull();
+				});
+				expect(animateSpy).toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("aborts the entrance when it finishes, so no fill: forwards is left on the paragraph", async () => {
+			// `runTransition` ends every leg with `fill: "forwards"`, which would
+			// otherwise pin `opacity: 1; transform: scale(1)` on the message for
+			// good — a permanent containing block, and an animation-level
+			// override of any consumer rule on `.ft-form-field-message`. Only
+			// aborting the handle drops it.
+			stubReducedMotion(false);
+
+			const { container, rerender } = render(<Harness />);
+			rerender(<Harness error="Minimum 3 characters." />);
+
+			const p = message(container) as HTMLElement;
+			expect(animationsOn(p)).toHaveLength(1); // the leading dummy
+
+			await nextLeg();
+			const main = animationsOn(p)[1] as FakeAnimation;
+			// `abort()` nulls the effect; seeding it proves the null came from
+			// the abort rather than from the stub's own initial value.
+			main.effect = { pending: true };
+
+			await nextLeg();
+			expect(main.effect).toBeNull();
+		});
+
+		it("aborts a leg still in flight when the field unmounts", async () => {
+			// A message swapped out — or a whole field torn down — inside the
+			// 150ms window must not leave a run animating a detached node.
+			stubReducedMotion(false);
+
+			const { container, rerender, unmount } = render(<Harness />);
+			rerender(<Harness error="Minimum 3 characters." />);
+
+			const p = message(container) as HTMLElement;
+			expect(animationsOn(p)).toHaveLength(1);
+
+			unmount();
+			await nextLeg();
+			await nextLeg();
+
+			// Aborted during the dummy's leg, so the main animation never came
+			// into existence at all.
+			expect(animationsOn(p)).toHaveLength(1);
 		});
 	});
 

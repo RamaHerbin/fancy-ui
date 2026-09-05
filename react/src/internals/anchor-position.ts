@@ -250,22 +250,44 @@ export function attachAnchorPosition(
 	let reportedSide: Side | null = null;
 	let reportedAlign: Align | null = null;
 
+	/**
+	 * The floating element's size as LAID OUT, never as PAINTED.
+	 *
+	 * `getBoundingClientRect()` reports the box AFTER transforms, and every
+	 * anchored surface in this package is mid-entrance the first time this
+	 * runs. The presence clock pins `transform: scale(0.92)` on the panel in
+	 * the commit its node attaches; the node reaches this module one commit
+	 * later, because the transition takes it through a plain ref callback and
+	 * the position takes it through state. Measuring the painted box would
+	 * size the panel 8% small, place it that much off its anchor, and leave it
+	 * there — the entrance settles and nothing recomputes.
+	 *
+	 * `offsetWidth`/`offsetHeight` are layout metrics: a transform does not
+	 * touch them. They round to whole pixels, a quarter pixel of placement
+	 * against the several the transform costs. Zero means there is no layout
+	 * box to read — a detached node, a `display: none` ancestor, or jsdom,
+	 * where every element measures zero — so the rect answers for that case,
+	 * and the two agree everywhere else.
+	 */
+	function measureFloating(): { width: number; height: number } {
+		const rect = node.getBoundingClientRect();
+		return {
+			width: node.offsetWidth || rect.width,
+			height: node.offsetHeight || rect.height,
+		};
+	}
+
 	function update(): void {
 		const anchorEl = options.anchor();
 		if (!anchorEl) return;
 
 		const anchorRect = anchorEl.getBoundingClientRect();
-		const floatingRect = node.getBoundingClientRect();
-		const { x, y, side, align } = computePosition(
-			anchorRect,
-			{ width: floatingRect.width, height: floatingRect.height },
-			{
-				side: options.side,
-				align: options.align,
-				offset: options.offset,
-				viewport: { width: window.innerWidth, height: window.innerHeight },
-			}
-		);
+		const { x, y, side, align } = computePosition(anchorRect, measureFloating(), {
+			side: options.side,
+			align: options.align,
+			offset: options.offset,
+			viewport: { width: window.innerWidth, height: window.innerHeight },
+		});
 
 		node.style.position = "fixed";
 		node.style.left = `${x}px`;

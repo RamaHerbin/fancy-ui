@@ -1,10 +1,11 @@
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ChatMessage } from "./ChatMessage.js";
 import { ChatMessageAction } from "./ChatMessageAction.js";
 import { ChatMessageActions } from "./ChatMessageActions.js";
 import { ChatMessageBranches } from "./ChatMessageBranches.js";
 import { ChatMessageHarness } from "./ChatMessageHarness.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 function article(container: HTMLElement): HTMLElement {
 	return container.querySelector("article") as HTMLElement;
@@ -357,6 +358,37 @@ describe("ChatMessageBranches", () => {
 		expect((getByLabelText("Previous version") as HTMLButtonElement).disabled).toBe(true);
 		expect((getByLabelText("Next version") as HTMLButtonElement).disabled).toBe(true);
 	});
+
+	/*
+	 * The two cases below use an index the `disabled` attributes do not catch:
+	 * a fractional position leaves the arrow enabled while its target sits
+	 * outside 1..count. React refuses to deliver a click — synthetic dispatch
+	 * included — to a disabled button, so this is the route that reaches the
+	 * range re-check the arrows funnel through.
+	 */
+	it("never reports a target below the first version", () => {
+		const onNavigate = vi.fn();
+		const { getByLabelText } = render(
+			<ChatMessageBranches index={1.5} count={3} onNavigate={onNavigate} />
+		);
+
+		expect((getByLabelText("Previous version") as HTMLButtonElement).disabled).toBe(false);
+		fireEvent.click(getByLabelText("Previous version"));
+
+		expect(onNavigate).not.toHaveBeenCalled();
+	});
+
+	it("never reports a target past the last version", () => {
+		const onNavigate = vi.fn();
+		const { getByLabelText } = render(
+			<ChatMessageBranches index={2.5} count={3} onNavigate={onNavigate} />
+		);
+
+		expect((getByLabelText("Next version") as HTMLButtonElement).disabled).toBe(false);
+		fireEvent.click(getByLabelText("Next version"));
+
+		expect(onNavigate).not.toHaveBeenCalled();
+	});
 });
 
 describe("ChatMessageActions", () => {
@@ -433,5 +465,104 @@ describe("ChatMessageActions", () => {
 		expect(error).not.toHaveBeenCalled();
 		warn.mockRestore();
 		error.mockRestore();
+	});
+});
+
+describe("sound", () => {
+	beforeEach(() => {
+		resetSoundForTests();
+		window.localStorage.clear();
+	});
+
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+		vi.useRealTimers();
+	});
+
+	describe("ChatMessageAction", () => {
+		it("plays the press cue exactly once when a message action is clicked, with sound enabled on the root", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ChatMessageHarness sound />);
+
+			fireEvent.click(button(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default (the root's sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ChatMessageHarness />);
+
+			fireEvent.click(button(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing for a loose action button outside a ChatMessage root", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ChatMessageAction label="Copy" />);
+
+			fireEvent.click(button(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one click plays one cue, and the confirmLabel window is untouched", () => {
+			vi.useFakeTimers();
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ChatMessageHarness sound />);
+
+			fireEvent.click(button(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(button(container).getAttribute("aria-label")).toBe("Copied");
+		});
+	});
+
+	describe("ChatMessageBranches", () => {
+		it("plays the select cue exactly once when a version is stepped, with sound enabled on the root", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByLabelText } = render(<ChatMessageHarness sound index={2} count={3} />);
+
+			fireEvent.click(getByLabelText("Next version"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (the root's sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByLabelText } = render(<ChatMessageHarness index={2} count={3} />);
+
+			fireEvent.click(getByLabelText("Next version"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at the start edge, even via a synthetic dispatch that bypasses the native disabled attribute", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onNavigate = vi.fn();
+			const { getByLabelText } = render(
+				<ChatMessageHarness sound index={1} count={3} onNavigate={onNavigate} />
+			);
+
+			getByLabelText("Previous version").dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onNavigate).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one step plays one cue, not two", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByLabelText } = render(<ChatMessageHarness sound index={2} count={3} />);
+
+			fireEvent.click(getByLabelText("Next version"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

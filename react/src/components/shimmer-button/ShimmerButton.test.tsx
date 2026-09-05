@@ -1,6 +1,7 @@
-import { render, screen, cleanup } from "@testing-library/react";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ShimmerButton } from "./ShimmerButton.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 describe("ShimmerButton", () => {
 	afterEach(cleanup);
@@ -75,5 +76,59 @@ describe("ShimmerButton", () => {
 		const button = screen.getByRole("button");
 		expect(button).toBeDisabled();
 		expect(button).toHaveAttribute("aria-label", "Submit");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<ShimmerButton sound />);
+
+			fireEvent.click(screen.getByRole("button"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<ShimmerButton />);
+
+			fireEvent.click(screen.getByRole("button"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<ShimmerButton sound disabled />);
+			const button = screen.getByRole("button");
+
+			// Synthetic dispatch bypasses jsdom's native-disabled short-circuit,
+			// proving the guard is the JS `restProps.disabled` check.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("forwards a consumer onClick alongside the cue instead of the spread onClick silently overwriting handleClick", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onClick = vi.fn();
+			render(<ShimmerButton sound onClick={onClick} />);
+
+			fireEvent.click(screen.getByRole("button"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+			expect(onClick).toHaveBeenCalledTimes(1);
+		});
 	});
 });

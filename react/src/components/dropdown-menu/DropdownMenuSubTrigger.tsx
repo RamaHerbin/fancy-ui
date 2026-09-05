@@ -125,6 +125,7 @@ export function DropdownMenuSubTrigger({
 	return (
 		<button
 			ref={ref}
+			id={sub.triggerId}
 			type="button"
 			role="menuitem"
 			tabIndex={-1}

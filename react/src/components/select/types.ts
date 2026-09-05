@@ -42,6 +42,12 @@ export interface SelectContext {
 	readonly options: SelectOption[];
 	/** The current value, `""` when nothing is selected. */
 	readonly value: string;
+	/** The trigger's own accessible name (the `label` prop), so the portalled
+	 *  panel can carry the same name as `aria-label` — without this, a screen
+	 *  reader announces the listbox as unnamed the instant it expands, even
+	 *  though the combobox itself is named. `undefined` renders no attribute at
+	 *  all, matching the trigger's own `aria-label={label}`. */
+	readonly label: string | undefined;
 	/** Index of the highlighted option, or -1 when nothing is active. */
 	readonly activeIndex: number;
 	/** Side of the trigger to place the panel on. */

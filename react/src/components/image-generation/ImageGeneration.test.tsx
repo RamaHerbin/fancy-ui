@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent, screen } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ImageGeneration } from "./ImageGeneration.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 // A 1x1 transparent GIF: a real, non-empty src that jsdom will never actually
 // fetch, so `complete` stays false and the load event is ours to dispatch.
@@ -278,5 +279,69 @@ describe("ImageGeneration", () => {
 
 		expect(root.className).toContain("my-frame");
 		expect(root.className).toContain("ft-imagegen");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when retry is pressed, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onRetry = vi.fn();
+			const { container } = render(
+				<ImageGeneration status="error" alt="A red barn" onRetry={onRetry} sound />
+			);
+
+			await fireEvent.click(container.querySelector(".ft-imagegen-retry") as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+			expect(onRetry).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<ImageGeneration status="error" alt="A red barn" onRetry={() => {}} />
+			);
+
+			await fireEvent.click(container.querySelector(".ft-imagegen-retry") as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on load, error or a status transition to done — those are observed outcomes, not a gesture", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onLoad = vi.fn();
+			const { container, rerender } = render(
+				<ImageGeneration status="generating" alt="A red barn" onLoad={onLoad} sound />
+			);
+
+			rerender(
+				<ImageGeneration status="done" src={SRC} alt="A red barn" onLoad={onLoad} sound />
+			);
+			const img = image(container) as HTMLImageElement;
+			await fireEvent.load(img);
+			await fireEvent.error(img);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one retry click plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<ImageGeneration status="error" alt="A red barn" onRetry={() => {}} sound />
+			);
+
+			await fireEvent.click(container.querySelector(".ft-imagegen-retry") as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

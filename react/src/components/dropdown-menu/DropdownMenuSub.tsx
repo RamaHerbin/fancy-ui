@@ -30,7 +30,12 @@ export function DropdownMenuSub({ children }: DropdownMenuSubProps) {
 	// level.
 	const parentMenu = useMenuContext();
 
-	const contentId = useFancyId();
+	// One id per submenu, split into the two the pair needs: the panel carries
+	// the first, its own row the second, and the panel points back at that row
+	// with `aria-labelledby` so a submenu announces which item opened it.
+	const uid = useFancyId();
+	const contentId = `${uid}-content`;
+	const triggerId = `${uid}-trigger`;
 
 	const [open, setOpen] = useState(false);
 	// A synchronous mirror of `open`, written at the same instant `setOpen` is
@@ -134,6 +139,7 @@ export function DropdownMenuSub({ children }: DropdownMenuSubProps) {
 		() => ({
 			open,
 			contentId,
+			triggerId,
 			resolvedSide,
 			resolvedAlign,
 			get triggerRef() {
@@ -149,6 +155,7 @@ export function DropdownMenuSub({ children }: DropdownMenuSubProps) {
 		[
 			open,
 			contentId,
+			triggerId,
 			resolvedSide,
 			resolvedAlign,
 			setTriggerRef,

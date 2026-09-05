@@ -61,18 +61,29 @@ export function ComposerAttachments({
 		composer?.addFiles(files);
 	}
 
+	// Two uploads of the same file can arrive carrying the same id, and a duplicate
+	// key is a crash — so the second and later sightings of an id take an
+	// occurrence suffix. The first sighting keeps the bare id, which is what holds
+	// a chip's identity steady when a chip ahead of it is removed: keying on the
+	// position would change every key after the gap and replay the enter keyframe
+	// down the whole tail of the row.
+	const seen = new Map<string, number>();
+	const keyed = attachments.map((attachment) => {
+		const occurrence = seen.get(attachment.id) ?? 0;
+		seen.set(attachment.id, occurrence + 1);
+		return {
+			attachment,
+			key: occurrence === 0 ? attachment.id : `${attachment.id}#${occurrence}`,
+		};
+	});
+
 	if (empty) return null;
 
 	return (
 		<div className={cn("ft-composer-attachments flex flex-wrap items-center gap-1.5", className)}>
 			{children ??
-				// The index rides along in the key: two uploads of the same file can
-				// arrive carrying the same id, and a duplicate key is a crash.
-				attachments.map((attachment, index) => (
-					<div
-						key={`${attachment.id}#${index}`}
-						className="ft-composer-attachment-slot flex min-w-0"
-					>
+				keyed.map(({ attachment, key }) => (
+					<div key={key} className="ft-composer-attachment-slot flex min-w-0">
 						<ComposerAttachment attachment={attachment} />
 					</div>
 				))}

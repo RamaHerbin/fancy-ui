@@ -47,7 +47,7 @@ export const Label = forwardRef<HTMLLabelElement, LabelProps>(function Label(
 			htmlFor={resolvedFor}
 			className={cn("ft-label text-[13px] font-medium", className)}
 		>
-			{children}
+			{children}{" "}
 			{resolvedRequired ? (
 				<span aria-hidden="true" className="text-destructive">
 					*

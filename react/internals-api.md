@@ -1,7 +1,8 @@
 # React internals API contract — `fancy-ui-react`
 
-**Status:** binding design contract, pre-implementation. Every one of the ~137 component
-ports codes against this document and nothing else.
+**Status:** binding contract, implemented and shipped. All 144 component ports were written
+against this document; it is now maintained against the code, and §10 is the register of every
+place the two deliberately differ from the Svelte originals.
 **Law:** `react/PORTING.md`. Fidelity over improvement. Where this contract departs from the
 Svelte *implementation*, it never departs from the Svelte *observable behaviour*, and every
 such departure is listed in §10.
@@ -113,8 +114,10 @@ Rollup. Do not add one, and do not "fix" the build config.
 
 ## 2. Foundations — `react/src/internals/dom/`
 
-Six files. All dependency-free, all side-effect-free at module scope. They land first; nothing
-else compiles without them.
+Eight files, as shipped: `types.ts`, `use-element-ref.ts`, `use-event-callback.ts`,
+`use-live-ref.ts`, `use-composed-refs.ts`, `use-inert-attribute.ts`, `ssr.ts`, `context.ts`. All
+dependency-free, all side-effect-free at module scope. They land first; nothing else compiles
+without them.
 
 ### `types.ts`
 
@@ -183,12 +186,32 @@ export function useLiveRef<T>(value: T): { readonly current: T };
 /** Merges any number of refs into one callback ref. Skips nullish entries. */
 export function useComposedRefs<T>(...refs: Array<Ref<T> | undefined | null>): RefCallback<T>;
 
-/** Non-hook form, for use inside an existing callback ref. */
-export function assignRef<T>(ref: Ref<T> | undefined | null, node: T | null): void;
+/** Non-hook form, for use inside an existing callback ref. Returns the cleanup a React 19
+ *  callback ref may hand back, or `undefined`. */
+export function assignRef<T>(ref: Ref<T> | undefined | null, node: T | null): (() => void) | undefined;
 ```
 
-`assignRef` already exists inline at `react/src/components/ripple-button/RippleButton.tsx:24`.
-Lift it here and have that component import it.
+`assignRef` was lifted out of `RippleButton`, which now imports it.
+
+**`useComposedRefs` returns nothing, on both React versions.** React 18 logs "Unexpected return
+value from a callback ref" once per attach for a callback ref that returns a function, which is
+dev-console noise for every element wired through here and a hard failure in any consumer whose
+CI fails on `console.error`. React 19's cleanup channel would accept one, but it buys nothing:
+the detach at the head of the callback plus the `node === null` branch already release the
+previous attachment on both versions, and detach is idempotent. Recorded as a consumer-visible
+note in `react/README.md`.
+
+### `use-inert-attribute.ts`
+
+```ts
+/** Writes `inert` straight to the node. Returns the callback ref to attach. */
+export function useInertAttribute<T extends HTMLElement>(inert: boolean): RefCallback<T>;
+```
+
+The only supported way to write `inert` across the `^18 || ^19` peer range: React 18 drops
+`inert={true}` (with a warning) and React 19 rejects `inert=""`, so no single JSX prop spelling
+covers both. Used by `code-diff`, `reasoning-panel`, `sources` and `tool-call`. Consequence: the
+attribute is absent from server HTML, where the Svelte sources SSR it.
 
 ### `ssr.ts`
 
@@ -282,10 +305,22 @@ export interface AnchorPositionHandle {
 	recompute(): void;
 	destroy(): void;
 }
-/** The action body, unchanged: passive+capture `scroll`, passive `resize`, the
- *  `reportedSide`/`reportedAlign` dedupe, and the `onPlacement`-identity reset. */
+/** The action body, with the two edits recorded as D-14 below: passive+capture `scroll`,
+ *  passive `resize`, the `reportedSide`/`reportedAlign` dedupe, and the
+ *  `onPlacement`-identity reset are unchanged. */
 export function attachAnchorPosition(node: HTMLElement, options: AnchorPositionOptions): AnchorPositionHandle;
 ```
+
+**Two edits to the action body, not verbatim (D-14).** First, the floating element is measured
+from `offsetWidth`/`offsetHeight`, falling back to `getBoundingClientRect()` when those read zero
+(a detached node, a `display: none` ancestor, or jsdom). The Svelte core reads the rect
+unconditionally, but the rect reports the box AFTER transforms and every anchored surface here is
+mid-entrance the first time this runs: the presence clock pins `transform: scale(0.92)` in the
+commit the node attaches, and the node reaches this module one commit later. Measuring the
+painted box would size the panel 8% small, place it that much off its anchor, and leave it there.
+Second, `destroy()` calls a `reset()` that clears the inline `position`/`left`/`top` it wrote, so
+a surface with `enabled: false` returns to normal flow instead of freezing at stale coordinates;
+the Svelte action leaves the styles.
 
 ```ts
 // use-anchor-position.ts
@@ -295,6 +330,10 @@ export interface UseAnchorPositionOptions {
 	side?: Side; align?: Align; offset?: number;
 	/** Stop positioning without unmounting. Default true. */
 	enabled?: boolean;
+	/** An opaque value the caller bumps to force a recompute when something the geometry
+	 *  depends on moved but no option did — a context menu's pointer coordinates. Only
+	 *  `ContextMenuContent` passes one; the other eleven anchored surfaces pass nothing. */
+	recomputeKey?: string | number;
 	/** Fires on first placement, then only when the resolved side or align actually
 	 *  changes. Most consumers want the RETURN VALUE instead. */
 	onPlacement?: (side: Side, align: Align) => void;
@@ -330,7 +369,7 @@ locally.
 may move the origin.
 
 **Mechanics.** One `useIsomorphicLayoutEffect` keyed `[node, enabled]` mounts and destroys the
-core; a second, keyed `[node, side, align, offset]`, calls `handle.update()`. `anchor` and
+core; a second, keyed `[node, side, align, offset, recomputeKey]`, calls `handle.update()`. `anchor` and
 `onPlacement` go through `useEventCallback`/`useLiveRef`, so a scroll listener is never rebuilt
 for a changed callback. `setPlacement` is called with a fresh object only when a value actually
 changed, so a scroll storm produces zero re-renders.
@@ -466,11 +505,18 @@ Svelte side does.
 
 ### 3.4 `internals/focus-trap.ts`
 
-`FOCUSABLE_SELECTOR`, `isVisible` (with its jsdom rationale), `getFocusableElements`,
-`focusContainerFallback`, `focusInitial`, the Tab/Shift+Tab cycling handler, `rearm()`'s
-`activeElement` recapture with its `document.body` exclusion, and the **three-step return chain**
-(original element if connected → `fallbackFocus()` if connected → `document.body` with an
-explicitly set `tabindex="-1"`) with its `returned` latch are all **verbatim**.
+`FOCUSABLE_SELECTOR`, `getFocusableElements`, `focusContainerFallback`, `focusInitial`, the
+Tab/Shift+Tab cycling handler, `rearm()`'s `activeElement` recapture with its `document.body`
+exclusion, and the **three-step return chain** (original element if connected →
+`fallbackFocus()` if connected → `document.body` with an explicitly set `tabindex="-1"`) with its
+`returned` latch are all **verbatim**.
+
+`isVisible` keeps its jsdom rationale but is **not** verbatim: it walks the ancestor chain for a
+`display: none` (D-13). `display` does not inherit, so a control inside a hidden subtree computes
+its own `display` as `block` and looks focusable in isolation, while the subtree is absent from
+the layout tree and `.focus()` on it is a silent no-op — which would leave focus outside the
+modal, the one thing the module exists to prevent. `visibility` is still read from the element's
+own computed style, because it does inherit and a descendant may opt back in.
 
 ```ts
 export interface FocusTrapOptions {
@@ -692,6 +738,14 @@ cannot forget (D-5).
 is left alone, never activated" rule, `move`'s "-1 is not a position" rule, the edge walks, and
 the whole typeahead block (repeat cycle, buffer collapse, the deliberate `"sse"` → `"se"`
 decision) are **verbatim**.
+
+One addition, recorded in `react/README.md`: `setActive` also rejects an index outside
+`0..count()-1`, before `enabled` is consulted at all. An out-of-range index names no option, so
+there is nothing for a caller-supplied `enabled(index)` to answer about, and the default
+permissive predicate would wave it through to `commitActive` — publishing an option id with no
+matching row in `aria-activedescendant`. `move`, `moveToEdge` and `typeahead` are bounded by
+`count()` already; `setActive` is the one way in that takes an index from outside the module. The
+Svelte core commits it. Landing the same guard upstream would close the divergence.
 
 ```ts
 export interface ListboxOptions {
@@ -1269,9 +1323,14 @@ export interface RafThrottled<A extends unknown[]> { (...args: A): void; cancel(
 /** Verbatim, including the store-latest-args choice over cancel-and-reschedule (so a
  *  continuous stream cannot starve the callback) and the per-call rAF availability check. */
 export function rafThrottle<A extends unknown[]>(fn: (...args: A) => void): RafThrottled<A>;
-/** Stable identity for the component's life; `fn` latched; pending frame cancelled on unmount. */
-export function useRafThrottle<A extends unknown[]>(fn: (...args: A) => void): RafThrottled<A>;
 ```
+
+**`useRafThrottle` was deliberately not ported.** The hook wrapper this section once specified
+has no caller: `Magnetic` and `ScrollProgress` are the only two consumers, and each builds a
+`rafThrottle` inside its own effect and calls `.cancel()` in that effect's cleanup, which is the
+guarantee the wrapper existed to provide. `motion/raf.ts` exports the non-hook `rafThrottle`
+only. A component that owns a rAF loop across renders should add the hook back rather than
+hand-roll a third copy.
 
 ```ts
 export interface InViewOptions {
@@ -1320,7 +1379,7 @@ has.
 (`export * from "./sound/index.js"`). The controller file keeps the name `sound.ts` — only the
 `.svelte` infix is dropped, exactly as with `field.ts`, `menu.ts`, `listbox.ts`.
 
-### 6.1 Copied verbatim, zero edits
+### 6.1 Copied verbatim, one edit
 
 `types.ts` (`SOUND_CUES`, `SoundCue`, `SOUND_THEME_NAMES`, `SoundPlayOptions`,
 `SoundPreferences`, `DEFAULT_SOUND_PREFERENCES`, `SoundPreferencesV1`, `SOUND_STORAGE_KEY`, the
@@ -1334,6 +1393,14 @@ cue only if all its layers fit, and **no module-evaluation access to `window`/`n
 
 This is the point of maximum leverage in the entire port: the risky ~900 lines of Web Audio are
 not ported, they are moved. `engine.test.ts` and `themes.test.ts` transpose with no React at all.
+
+**The one edit, confirmed by a full diff of the two files.** `engine.ts` clamps a layer's
+duration to `SOUND_LIMITS.MAX_LAYER_MS` before scheduling it. `MAX_LAYER_MS` is documented as a
+non-configurable hard guard, but only `validateSoundTheme()` enforces it, and a theme handed
+straight to `createSoundEngine({ theme })` or `engine.setTheme()` — both public barrel exports —
+is never validated, so a huge finite duration could hold a source and a voice slot alive for
+minutes. Consumer-visible: such a theme's layer plays in full under Svelte and truncated at
+400 ms here. Recorded in `react/README.md` and in the matrix's `sound` row.
 
 ### 6.2 `sound/sound.ts` — the singleton
 
@@ -1407,9 +1474,14 @@ behaviour change, and the comment is rewritten to record why they are gone.
 **Snapshot caching is mandatory.** `useSyncExternalStore` calls `getSnapshot` on every render and
 infinite-loops if the identity changes without a real change. `sound.preferences` and
 `getSoundStatus()` return a fresh object every call *by design* and keep doing so — the cache is
-additive, rebuilt only inside `notify()`. It also serves the purpose the Svelte `statusView`
-getter object served: a reader depends only on what it actually touches, not on `lastPlayedAt`
-being written on every cue.
+additive, rebuilt only inside `notify()`.
+
+It does **not** serve the purpose the Svelte `statusView` getter object served. `markPlayed()`
+bumps the version, so the next `getSoundSnapshot()` mints a fresh `status` object and every
+`useSoundStatus()` subscriber re-renders on every cue played anywhere on the page. Depending only
+on what you actually touch is the job of a field selector, which is what `useSoundEnabled` and
+`useSoundEngineState` do; reach for those rather than the whole-status reader. Pinned by
+`use-sound.test.tsx`.
 
 **localStorage read timing — the precise rule:**
 
@@ -1487,8 +1559,12 @@ export interface SoundFeedbackOptions {
 export const DEFAULT_SOUND_FEEDBACK_ON: Readonly<Record<string, SoundCue>>;
 
 /** Law-2 core, verbatim. */
-export function attachSoundFeedback(node: HTMLElement, options?: SoundFeedbackOptions): { update(o?: SoundFeedbackOptions): void; destroy(): void };
+export function attachSoundFeedback(node: HTMLElement, options?: SoundFeedbackOptions): SoundFeedbackHandle;
+
+/** Two shapes, one implementation. Pass a node you already hold (convention C-1) and it
+ *  returns nothing; pass options alone and it returns a callback ref to put on the element. */
 export function useSoundFeedback(node: HTMLElement | null, options?: SoundFeedbackOptions): void;
+export function useSoundFeedback<T extends HTMLElement>(options?: SoundFeedbackOptions): RefCallback<T>;
 export function resetSoundFeedbackForTests(): void;   // not in index.ts
 /** Test-only leak counter for the shared document-level pointermove listener. */
 export function __soundFeedbackHoverInstances(): number;
@@ -1569,14 +1645,14 @@ initializer; no `Math.random()`/`Date.now()` in a render path; every DOM-mutatin
 ## 8. File layout, naming, CSS, barrel
 
 ```
-react/src/internals/
-├── index.ts                      # internal barrel; NOT re-exported wholesale
+react/src/internals/               # no barrel: every consumer deep-imports the module it needs
 ├── dom/
 │   ├── types.ts                  # ElementRef
 │   ├── use-element-ref.ts
 │   ├── use-event-callback.ts
 │   ├── use-live-ref.ts
 │   ├── use-composed-refs.ts      # + assignRef
+│   ├── use-inert-attribute.ts    # the only `inert` spelling that works on 18 AND 19
 │   ├── ssr.ts                    # useIsomorphicLayoutEffect, useIsHydrated, useConstant
 │   └── context.ts                # createInternalContext
 ├── anchor-position.ts            # computePosition (VERBATIM) + attachAnchorPosition
@@ -1595,8 +1671,7 @@ react/src/internals/
 ├── use-elapsed.ts, use-autoscroll.ts, relative-time.ts,
 │   use-text-stream.ts / StreamText.tsx / stream-text.css,
 │   host.ts, calendar-core.ts, use-copy.ts, diff.ts, waveform-core.ts
-└── motion/
-    ├── index.ts
+└── motion/                        # no barrel here either
     ├── types.ts  tokens.ts  easing.ts  presets.ts  stagger.ts  haptics.ts
     ├── transitions.ts   anchored.ts        (verbatim)
     ├── animate.ts       # runTransition, cssToKeyframe
@@ -1759,6 +1834,8 @@ the bug and note it" discipline applied to mechanisms that cannot be ported.
 | D-10 | Portal-before-focus-trap ordering ceremony dropped | `createPortal` renders children already attached; effects run after commit | none — the silent-no-op `.focus()` hazard cannot occur |
 | D-11 | `dismissable` layer push order can invert for two overlays mounting in the **same** commit | React runs child effects before parent effects. Documented, not sorted — a document-order sort would change dismissal semantics for the ordinary case | reachable only when an ancestor and a descendant overlay open together on first paint |
 | D-12 | `useElementRef` costs one extra render at mount for every hook-using component | Eliminates the null-node-at-effect-time bug class by construction (C-1) | none visible; the extra render lands before paint |
+| D-13 | `focus-trap`'s `isVisible` walks the ancestor chain for `display: none`; the Svelte core reads the control's own computed style only (§3.4) | `display` does not inherit, so a control in a hidden subtree looks focusable in isolation while `.focus()` on it is a silent no-op — leaving focus outside the modal | a control under a hidden ancestor is skipped here and focused (ineffectively) there, so initial focus and Tab cycling can land on different elements |
+| D-14 | `attachAnchorPosition` measures the floating element's LAYOUT box (`offsetWidth`/`offsetHeight`, rect as fallback) and clears the inline `position`/`left`/`top` on `destroy()` (§3.1) | The rect reports the box after transforms, and the presence clock pins the entrance transform one commit before this module receives the node; the reset keeps an `enabled: false` surface out of stale fixed coordinates | without the layout box every anchored panel would sit 8% of its own size off its anchor; the reset is reachable only through the React-only `enabled: false` path, where the surface returns to flow instead of freezing |
 
 **Not a divergence, and recorded as such:** `Button`, `Checkbox`, `CopyButton`, `DropdownMenu`,
 `RadioGroup`, `Select` and `Switch` each statically import the sound controller (and through it
@@ -1906,7 +1983,8 @@ parser, verbatim, with its 9 KB of tests transposing assertion-for-assertion and
 
 **`waveform-core.ts`.** `WaveformStyle`, `drawWaveformFrame(ctx, …)` and `fakeWaveSample(i, tMs)`
 — pure canvas-drawing helpers taking a `CanvasRenderingContext2D`, verbatim. The consuming
-component owns the `<canvas>` node and the rAF loop, through `useRafThrottle` or an effect-owned
-`requestAnimationFrame`, and gets the context from an effect rather than during render.
+component owns the `<canvas>` node and the rAF loop, through an effect-owned
+`requestAnimationFrame` or a `rafThrottle` cancelled in that effect's cleanup, and gets the
+context from an effect rather than during render.
 `fakeWaveSample` is deterministic in `(i, tMs)` — no `Math.random()` — so it satisfies convention
 C-7 as-is.

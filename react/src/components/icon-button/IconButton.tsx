@@ -36,11 +36,16 @@ export interface IconButtonProps {
 	/** Anchor `rel`. Widened, never narrowed — see `target`. */
 	rel?: string;
 	/** Fires on activation. Never called while `disabled` or `loading`. */
-	onclick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
+	onClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
 	/** The icon, rendered centred with no label alongside it. */
 	children?: ReactNode;
 	/** Additional CSS classes. */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 // A fixed square replaces Button's own horizontal padding — an icon-only
@@ -73,9 +78,10 @@ export const IconButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Icon
 			href = undefined,
 			target = undefined,
 			rel = undefined,
-			onclick,
+			onClick,
 			children,
 			className,
+			sound = false,
 		},
 		ref
 	) => {
@@ -99,7 +105,8 @@ export const IconButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Icon
 				target={target}
 				rel={rel}
 				label={label}
-				onclick={onclick}
+				onClick={onClick}
+				sound={sound}
 				iconStart={children}
 				className={classes}
 			/>

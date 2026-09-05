@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent } from "react";
 
 import { cn } from "../../utils.js";
@@ -11,6 +11,7 @@ import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { anchored, originFor } from "../../internals/motion/anchored.js";
 import { usePresence } from "../../internals/motion/presence.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import {
 	getMonthGrid,
 	addMonths,
@@ -71,6 +72,11 @@ export interface DatePickerProps {
 	isDateDisabled?: (date: Date) => boolean;
 	/** Additional CSS classes, merged onto the trigger button. */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off
+	 * by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -101,6 +107,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 		locale,
 		isDateDisabled,
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -150,12 +157,23 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 	const [viewDate, setViewDate] = useState<Date | null>(null);
 	const [focusedDate, setFocusedDateState] = useState<Date | null>(null);
 
+	const playCue = useSoundCue(sound);
+
 	function isDayDisabled(date: Date): boolean {
 		return !isDayInRange(date, min, max) || (isDateDisabled?.(date) ?? false);
 	}
 
-	const weekdayNames = getWeekdayNames(weekStartsOn, locale);
-	const monthLabel = viewDate ? formatMonthYear(viewDate, locale) : "";
+	// Memoised like the source's own `$derived`: an arrow-key focus move within
+	// the same month re-renders but must not reallocate the grid or reformat
+	// these locale-derived labels, since neither actually changed.
+	const weekdayNames = useMemo(
+		() => getWeekdayNames(weekStartsOn, locale),
+		[weekStartsOn, locale]
+	);
+	const monthLabel = useMemo(
+		() => (viewDate ? formatMonthYear(viewDate, locale) : ""),
+		[viewDate, locale]
+	);
 	const triggerLabel = formatTriggerDate(value, locale);
 
 	// Re-focuses the DOM to whichever cell matches `focusedDate` whenever it
@@ -185,6 +203,7 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 		setViewDate(new Date(seed.getFullYear(), seed.getMonth(), 1));
 		setFocusedDateState(seed);
 		setOpen(true);
+		playCue("open");
 	}
 
 	// Closing always returns focus to the trigger, whether the close came from
@@ -195,8 +214,15 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 	// loss for a keyboard user, not just a cosmetic one. A plain function, so
 	// it returns focus in the same tick as the dismiss — this component needs
 	// no focus-trap handle to satisfy the eager-return rule.
-	function closePanel() {
+	//
+	// `reason` distinguishes a commit-flavoured close (a day was just picked)
+	// from a plain dismiss (Escape, an outside click, the trigger toggling
+	// shut, or re-picking the day already in force). Only a dismiss plays the
+	// `close` cue — a real commit already played `select` inside `commit`
+	// above, and the contract is one cue per interaction, never both.
+	function closePanel(reason: "commit" | "dismiss" = "dismiss") {
 		setOpen(false);
+		if (reason === "dismiss") playCue("close");
 		triggerNode?.focus();
 	}
 
@@ -207,9 +233,14 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 
 	function commit(date: Date) {
 		if (isDayDisabled(date)) return;
+		// Captured before `value` is overwritten: re-picking the day already in
+		// force changes nothing, so it closes like a dismiss (`close`) instead
+		// of playing a second `select` for a no-op.
+		const changed = !value || !isSameDay(value, date);
 		if (!isControlled) setUncontrolledValue(date);
+		if (changed) playCue("select");
 		onValueChange?.(date);
-		closePanel();
+		closePanel(changed ? "commit" : "dismiss");
 	}
 
 	function moveDays(delta: number) {
@@ -336,11 +367,16 @@ export const DatePicker = forwardRef<HTMLButtonElement, DatePickerProps>(functio
 		className
 	);
 
-	// Only year/month are ever read off `viewDate`; the grid is rebuilt fresh
-	// each render, exactly as the source's `$derived` recomputes it.
-	const weeks = viewDate
-		? getMonthGrid(viewDate.getFullYear(), viewDate.getMonth(), weekStartsOn)
-		: [];
+	// Only year/month are ever read off `viewDate`, which is also what the
+	// memo keys on — an arrow-key focus move that lands in the same month
+	// must not reallocate the 6x7 grid, exactly as the source's `$derived`
+	// only recomputes on a real dependency change.
+	const weeks = useMemo(
+		() =>
+			viewDate ? getMonthGrid(viewDate.getFullYear(), viewDate.getMonth(), weekStartsOn) : [],
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[viewDate?.getFullYear(), viewDate?.getMonth(), weekStartsOn]
+	);
 
 	/*
 		`data-state` on the panel is an ordinary React attribute (divergence

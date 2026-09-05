@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./navbar-link.css";
 
 export interface NavbarLinkProps {
@@ -25,6 +26,11 @@ export interface NavbarLinkProps {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the select cue through the sound controller. Off by default;
+	 * only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -35,7 +41,11 @@ export interface NavbarLinkProps {
  * per PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  */
 export const NavbarLink = forwardRef<HTMLAnchorElement, NavbarLinkProps>(
-	({ href, current = false, external = false, disabled = false, onClick, children, className }, ref) => {
+	(
+		{ href, current = false, external = false, disabled = false, onClick, children, className, sound = false },
+		ref
+	) => {
+		const playCue = useSoundCue(sound);
 		const classes = cn(
 			"ft-navbar-link inline-flex shrink-0 items-center rounded-[4px] px-0.5 pb-[3px] text-[13px] whitespace-nowrap transition-colors",
 			"focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none",
@@ -54,6 +64,7 @@ export const NavbarLink = forwardRef<HTMLAnchorElement, NavbarLinkProps>(
 				event.preventDefault();
 				return;
 			}
+			if (!current) playCue("select");
 			onClick?.(event);
 		}
 

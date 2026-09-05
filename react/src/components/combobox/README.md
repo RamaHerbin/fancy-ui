@@ -97,6 +97,15 @@ No `readOnly` and no no-op `onChange` was added: React's controlled-value
 warning exempts `type="hidden"`, verified against this folder's suite, so the
 emitted DOM matches the source exactly.
 
+### StrictMode gate, with no source counterpart
+
+The suite mounts `Combobox` inside `<StrictMode>` and drives open, navigate,
+dismiss and unmount, asserting one panel, one row set, an intact listbox store
+and a dismiss-layer count back to zero. Svelte has no double-invoked-effect
+mode, so the source suite has nothing equivalent; this component registers a
+document-level dismiss listener, a listbox singleton and anchored-positioning
+effects, which is exactly the shape a double invoke duplicates.
+
 ## Styling
 
 `combobox.css` is the source's `<style>` block verbatim, already anchored on

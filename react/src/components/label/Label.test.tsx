@@ -93,6 +93,11 @@ describe("Label", () => {
 		expect(asterisk?.textContent).toBe("*");
 	});
 
+	it("separates the required asterisk from the label content with a space", () => {
+		const { container } = render(<Label required>Email</Label>);
+		expect(label(container).textContent).toBe("Email *");
+	});
+
 	it("merges the className prop", () => {
 		const { container } = render(<Label className="mt-2" />);
 		const cls = label(container).className;

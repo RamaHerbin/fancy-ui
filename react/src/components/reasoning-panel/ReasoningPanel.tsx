@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useInsertionEffect, useRef, useState } from "react";
 import { cn } from "../../utils.js";
 import { StreamText } from "../../internals/StreamText.js";
 import { useAutoscroll } from "../../internals/use-autoscroll.js";
@@ -8,6 +8,8 @@ import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useInertAttribute } from "../../internals/dom/use-inert-attribute.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./reasoning-panel.css";
 
 /**
@@ -38,6 +40,11 @@ export interface ReasoningPanelProps {
 	onToggle?: (open: boolean) => void;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** How long a finished trace stays on screen before folding itself away. */
@@ -58,6 +65,7 @@ export const ReasoningPanel = forwardRef<HTMLDivElement, ReasoningPanelProps>(
 			maxHeight = "12rem",
 			onToggle,
 			className,
+			sound = false,
 		},
 		ref
 	) {
@@ -83,9 +91,28 @@ export const ReasoningPanel = forwardRef<HTMLDivElement, ReasoningPanelProps>(
 
 		const isOpen = openState ?? autoOpen;
 
+		// The state the last COMMITTED render published, readable from outside a
+		// render. Written in an insertion effect rather than the render body, so a
+		// render React starts and throws away can never publish a value the
+		// component never showed.
+		const isOpenRef = useLiveRef(isOpen);
+		// What `commit` last decided, parked here until the render carrying it
+		// lands: React publishes state one render later, and two commits inside a
+		// single batch — a mount effect rehearsed by StrictMode, an effect and a
+		// timer in the same flush — must see the first one's answer rather than
+		// the render's. Cleared on every commit, so it never outlives the render
+		// that carries it.
+		const decidedOpen = useRef<boolean | undefined>(undefined);
+		useInsertionEffect(() => {
+			decidedOpen.current = undefined;
+		});
+
+		/** The panel's state as `commit`/`toggle` see it, between renders. */
+		function currentOpen(): boolean {
+			return decidedOpen.current ?? isOpenRef.current;
+		}
+
 		// Plain refs: none of these should wake an effect that writes them.
-		const isOpenRef = useRef(isOpen);
-		isOpenRef.current = isOpen;
 		const userToggled = useRef(false);
 		const wasStreaming = useRef(false);
 		const collapseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -95,9 +122,10 @@ export const ReasoningPanel = forwardRef<HTMLDivElement, ReasoningPanelProps>(
 		const lastNotifiedOpen = useRef(isOpen);
 
 		const elapsed = useElapsed();
-		const elapsedMsRef = useRef(elapsed.ms);
-		elapsedMsRef.current = elapsed.ms;
+		const elapsedMsRef = useLiveRef(elapsed.ms);
 		const { start: startElapsed, stop: stopElapsed } = elapsed;
+
+		const playCue = useSoundCue(sound);
 
 		const duration = durationMs ?? measuredMs;
 		const summary = streaming
@@ -114,8 +142,8 @@ export const ReasoningPanel = forwardRef<HTMLDivElement, ReasoningPanelProps>(
 		}
 
 		const commit = useEventCallback((next: boolean) => {
-			if (isOpenRef.current === next) return;
-			isOpenRef.current = next;
+			if (currentOpen() === next) return;
+			decidedOpen.current = next;
 			setOpenState(next);
 			setAutoOpen(next);
 			lastNotifiedOpen.current = next;
@@ -127,7 +155,12 @@ export const ReasoningPanel = forwardRef<HTMLDivElement, ReasoningPanelProps>(
 			// on its own behind their back.
 			userToggled.current = true;
 			clearCollapseTimer();
-			commit(!isOpenRef.current);
+			const next = !currentOpen();
+			// Only this click plays a cue — the streaming auto-open and the 600ms
+			// auto-collapse both fold through `commit`, and must stay silent, so the
+			// play sits here rather than in `commit` or the effect that watches it.
+			playCue(next ? "open" : "close");
+			commit(next);
 		}
 
 		// Open on the first chunk, fold away a beat after the last one — until

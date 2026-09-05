@@ -1,5 +1,6 @@
 import { forwardRef, type ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./chat-error.css";
 
 /**
@@ -22,6 +23,12 @@ export interface ChatErrorProps {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the press cue through the sound controller when retry is
+	 * pressed. Off by default; only audible once the user has enabled
+	 * sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -37,9 +44,22 @@ export const ChatError = forwardRef<HTMLDivElement, ChatErrorProps>(function Cha
 		icon,
 		children,
 		className,
+		sound = false,
 	},
 	ref
 ) {
+	const playCue = useSoundCue(sound);
+
+	// Mirrors Button's own guard: `retrying` disables the button natively, but
+	// a synthetic click (or any dispatch that bypasses jsdom's disabled
+	// handling) walks straight past that, so the handler checks again before
+	// playing anything or calling out.
+	function handleRetry() {
+		if (retrying) return;
+		playCue("press");
+		onRetry?.();
+	}
+
 	return (
 		<div
 			ref={ref}
@@ -87,7 +107,7 @@ export const ChatError = forwardRef<HTMLDivElement, ChatErrorProps>(function Cha
 					type="button"
 					className="ft-error-retry text-foreground/80 hover:text-foreground hover:bg-foreground/5 -my-0.5 flex flex-none items-center gap-1.5 rounded px-2 py-1 text-xs font-medium transition-colors disabled:pointer-events-none disabled:opacity-60"
 					disabled={retrying}
-					onClick={onRetry}
+					onClick={handleRetry}
 				>
 					{retrying && <span className="ft-error-dot" aria-hidden="true"></span>}
 					{retryLabel}

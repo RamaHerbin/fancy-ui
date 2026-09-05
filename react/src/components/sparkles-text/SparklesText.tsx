@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
 import "./sparkles-text.css";
 
@@ -90,10 +91,7 @@ export function SparklesText({
 
 	// Regenerated stars read the CURRENT colors, as the source's reactive
 	// closure does, without restarting the interval when colors change.
-	const colorsRef = useRef(colors);
-	useEffect(() => {
-		colorsRef.current = colors;
-	});
+	const colorsRef = useLiveRef(colors);
 
 	useEffect(() => {
 		// Regeneration happens only after mount, so it never has to agree with

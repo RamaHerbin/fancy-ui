@@ -3,7 +3,13 @@
  * behind the query there is no animation to shorten or fall back from.
  */
 @media (prefers-reduced-motion: no-preference) {
-	.ft-fresh {
+	/*
+	 * Anchored on the component's own root class. The source rule lived in a
+	 * compiler-scoped block, so it only ever matched this component's own
+	 * segments; a bare `.ft-fresh` in a shipped stylesheet would hand the
+	 * 350ms tint to any consumer element that happens to carry the class.
+	 */
+	.ft-stream .ft-fresh {
 		animation: ft-tint var(--ft-settle, 350ms) ease-out;
 	}
 

@@ -1,6 +1,7 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { NoiseReveal } from "./NoiseReveal.js";
+import { FakeIntersectionObserver } from "../../test-setup.js";
 
 // Holds the last renderer instance created by the mock
 const lastMock = { renderer: null as any };
@@ -131,6 +132,116 @@ describe("NoiseReveal", () => {
 			const renderer = lastMock.renderer;
 			unmount();
 			expect(renderer.dispose).toHaveBeenCalled();
+		});
+	});
+	describe("render loop visibility gating", () => {
+		/** The observer that gates the render loop — `threshold: 0`, unlike the
+		 * reveal trigger's `0.1`. */
+		function gateObserver(): FakeIntersectionObserver {
+			const gate = FakeIntersectionObserver.instances.find((o) => o.options?.threshold === 0);
+			return gate as FakeIntersectionObserver;
+		}
+
+		/** Takes the frame queue over so a test can pump it one frame at a time. */
+		function installFrameHarness() {
+			let pending: FrameRequestCallback | null = null;
+			const raf = vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+				pending = cb;
+				return 1;
+			});
+			const caf = vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {
+				pending = null;
+			});
+			return {
+				get pending() {
+					return pending;
+				},
+				step() {
+					const cb = pending;
+					pending = null;
+					cb?.(0);
+				},
+				restore() {
+					raf.mockRestore();
+					caf.mockRestore();
+				},
+			};
+		}
+
+		function setHidden(hidden: boolean) {
+			Object.defineProperty(document, "hidden", { configurable: true, value: hidden });
+		}
+
+		function restoreHidden() {
+			delete (document as unknown as { hidden?: boolean }).hidden;
+		}
+
+		it("stops the loop while the container is out of view and resumes it on the way back", () => {
+			const frames = installFrameHarness();
+			try {
+				render(<NoiseReveal src={src} />);
+				const renderer = lastMock.renderer;
+				expect(renderer.render).toHaveBeenCalledTimes(1);
+
+				frames.step();
+				expect(renderer.render).toHaveBeenCalledTimes(2);
+
+				act(() => gateObserver().trigger(false));
+
+				// The queued frame was cancelled and no replacement scheduled, so pumping
+				// the queue paints nothing at all.
+				expect(frames.pending).toBeNull();
+				frames.step();
+				expect(renderer.render).toHaveBeenCalledTimes(2);
+
+				act(() => gateObserver().trigger(true));
+				expect(renderer.render).toHaveBeenCalledTimes(3);
+			} finally {
+				frames.restore();
+			}
+		});
+
+		it("does not queue a second loop when the observer reports visible while already running", () => {
+			const frames = installFrameHarness();
+			try {
+				render(<NoiseReveal src={src} />);
+				const renderer = lastMock.renderer;
+
+				act(() => gateObserver().trigger(true));
+				act(() => gateObserver().trigger(true));
+
+				// A second loop would paint two frames per pump.
+				frames.step();
+				expect(renderer.render).toHaveBeenCalledTimes(2);
+			} finally {
+				frames.restore();
+			}
+		});
+
+		it("stops the loop while the tab is hidden and resumes it when it comes back", () => {
+			const frames = installFrameHarness();
+			try {
+				render(<NoiseReveal src={src} />);
+				const renderer = lastMock.renderer;
+				expect(renderer.render).toHaveBeenCalledTimes(1);
+
+				setHidden(true);
+				act(() => {
+					document.dispatchEvent(new Event("visibilitychange"));
+				});
+				expect(frames.pending).toBeNull();
+				frames.step();
+				expect(renderer.render).toHaveBeenCalledTimes(1);
+
+				setHidden(false);
+				act(() => {
+					document.dispatchEvent(new Event("visibilitychange"));
+				});
+				expect(renderer.render).toHaveBeenCalledTimes(2);
+			} finally {
+				restoreHidden();
+				frames.restore();
+			}
 		});
 	});
 });

@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { STEPPER_KEY } from "./types.js";
 import type { StepperContext } from "./types.js";
 
@@ -24,6 +25,11 @@ export interface StepperProps {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the select cue through the sound controller. Off by default;
+	 * only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -45,6 +51,7 @@ export const Stepper = forwardRef<HTMLOListElement, StepperProps>(function Stepp
 		onStepClick,
 		children,
 		className,
+		sound = false,
 	},
 	ref
 ) {
@@ -98,14 +105,20 @@ export const Stepper = forwardRef<HTMLOListElement, StepperProps>(function Stepp
 	// scheduled for.
 	const indexOf = useCallback((id: string): number => registered.indexOf(id), [registered]);
 
+	const playCue = useSoundCue(sound);
+
 	const select = useCallback(
 		(index: number) => {
 			if (!clickable) return;
+			// Changed-only, and ahead of every callback: re-picking the step that
+			// is already current still reports through `onStepClick` and
+			// `onCurrentChange`, but makes no sound — the rail did not move.
+			if (activeIndex !== index) playCue("select");
 			onStepClick?.(index);
 			if (!isControlled) setUncontrolledCurrent(index);
 			onCurrentChange?.(index);
 		},
-		[clickable, isControlled, onStepClick, onCurrentChange]
+		[clickable, isControlled, onStepClick, onCurrentChange, activeIndex, playCue]
 	);
 
 	// Rebuilt when any of its inputs actually changes — that rebuild is what
@@ -126,8 +139,15 @@ export const Stepper = forwardRef<HTMLOListElement, StepperProps>(function Stepp
 
 	return (
 		<STEPPER_KEY.Provider value={context}>
+			{/*
+				`role="list"` is stated rather than left implicit: `list-style: none`
+				strips list semantics in Safari, and a step's position in the count is
+				the only thing telling a reader it is "2 of 5" — the visible number is
+				`aria-hidden`.
+			*/}
 			<ol
 				ref={ref}
+				role="list"
 				className={cn(
 					"ft-stepper flex list-none",
 					orientation === "vertical" ? "flex-col" : "w-full items-start",

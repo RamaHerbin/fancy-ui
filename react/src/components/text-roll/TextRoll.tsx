@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, HTMLAttributes, RefCallback } from "react";
 import { cn } from "../../utils.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
@@ -63,10 +63,10 @@ const DEFAULT_DURATION = DURATIONS.base;
  * detached accent, and shreds a ZWJ family emoji into seven broken
  * pieces); when the API is unavailable the string is not split at all —
  * one cell, the whole value crossfades as a unit — never a code-unit
- * fallback that would silently corrupt those cases. Checked fresh on
- * every call (never cached at module scope) so a test can delete
- * `Intl.Segmenter` and see the fallback take effect on the very next
- * render.
+ * fallback that would silently corrupt those cases. The
+ * `typeof Intl.Segmenter` probe lives INSIDE the function and nothing is
+ * cached at module scope, so a test that deletes `Intl.Segmenter` and
+ * mounts a fresh instance sees the fallback take effect immediately.
  */
 function segmentGraphemes(text: string): string[] {
 	if (typeof Intl.Segmenter !== "function") return [text];
@@ -187,7 +187,13 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 	const effDuration = reduced ? 0 : duration;
 	const effStagger = reduced ? 0 : stagger;
 
-	const graphemes = segmentGraphemes(value);
+	// Cached on `value` alone, the source's `$derived(segmentGraphemes(value))`
+	// dependency exactly. It matters more here than there: a roll re-renders
+	// this component once per settled cell leg (each WAAPI `onfinish` lands
+	// `endTransition` in its own task, so those updates are not batched), and
+	// an uncached call would build a fresh `Intl.Segmenter` and re-walk the
+	// whole string on every one of them, inside the animation window.
+	const graphemes = useMemo(() => segmentGraphemes(value), [value]);
 
 	// `generation` is the mechanism behind "same length ⇒ minimal diff,
 	// different length ⇒ safe full re-roll": every cell's key is prefixed
@@ -208,11 +214,18 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 	const [inFlight, setInFlight] = useState(0);
 	const rollState = inFlight > 0 ? "rolling" : "idle";
 
-	const cells: CurrentCell[] = graphemes.map((grapheme, index) => ({
-		key: `${generation}:${index}:${grapheme}`,
-		grapheme,
-		index,
-	}));
+	// Same caching rationale as `graphemes` above, and the same dependencies
+	// the source's `$derived` has: the key list can only move when the
+	// graphemes or the generation move, never because a leg settled.
+	const cells: CurrentCell[] = useMemo(
+		() =>
+			graphemes.map((grapheme, index) => ({
+				key: `${generation}:${index}:${grapheme}`,
+				grapheme,
+				index,
+			})),
+		[graphemes, generation]
+	);
 
 	// Derived-during-render state: the rendered list is re-merged
 	// synchronously in the render whose keys changed, BEFORE React commits —
@@ -221,7 +234,7 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 	const [rendered, setRendered] = useState<RenderCell[]>(() =>
 		cells.map((c) => ({ ...c, phase: "idle" as const }))
 	);
-	const keysSignature = cells.map((c) => c.key).join("\u0000");
+	const keysSignature = useMemo(() => cells.map((c) => c.key).join("\u0000"), [cells]);
 	const [prevKeysSignature, setPrevKeysSignature] = useState(keysSignature);
 	if (keysSignature !== prevKeysSignature) {
 		setPrevKeysSignature(keysSignature);
@@ -264,7 +277,11 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 				const leg = legsRef.current.get(key);
 				leg?.run?.abort();
 				legsRef.current.delete(key);
-				refCallbacksRef.current.delete(key);
+				// Evict by identity: a newer callback for a key that came back
+				// mid-exit must not be dropped by the old one's detach.
+				if (refCallbacksRef.current.get(key) === callback) {
+					refCallbacksRef.current.delete(key);
+				}
 			};
 			refCallbacksRef.current.set(key, callback);
 		}
@@ -347,17 +364,27 @@ export const TextRoll = forwardRef<HTMLSpanElement, TextRollProps>(function Text
 	// declared BEFORE the orchestrator, so the legs started for this very
 	// value change already read the freshly resolved direction.
 	const priorValueForDirectionRef = useRef(value);
-	const directionFirstRunRef = useRef(true);
+	const priorRequestedDirectionRef = useRef(direction);
 	useIsomorphicLayoutEffect(() => {
 		const nextValue = value;
 		const requested = direction;
-		if (directionFirstRunRef.current) {
-			directionFirstRunRef.current = false;
-			priorValueForDirectionRef.current = nextValue;
+		// Keyed on the value/direction EDGE, not on "first run": the seed run and
+		// a StrictMode replay both see the values the refs were seeded with and
+		// do nothing, so a double-invoked mount cannot resolve against a stale
+		// (or missing) prior value.
+		if (
+			priorValueForDirectionRef.current === nextValue &&
+			priorRequestedDirectionRef.current === requested
+		) {
 			return;
 		}
-		const resolved = resolveDirection(priorValueForDirectionRef.current, nextValue, requested);
+		const resolved = resolveDirection(
+			priorValueForDirectionRef.current ?? "",
+			nextValue ?? "",
+			requested
+		);
 		priorValueForDirectionRef.current = nextValue;
+		priorRequestedDirectionRef.current = requested;
 		dirRef.current = resolved;
 		setResolvedDirection(resolved);
 	}, [value, direction]);

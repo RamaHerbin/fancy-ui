@@ -1,10 +1,11 @@
 import { createElement, forwardRef, useEffect, useRef, useState } from "react";
 import type { CSSProperties, FocusEvent, HTMLAttributes, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
-import { observeInView } from "../../internals/motion/in-view.js";
+import { useInView } from "../../internals/motion/in-view.js";
 import { staggerDelay } from "../../internals/motion/stagger.js";
 import { STAGGER_CAPS } from "../../internals/motion/tokens.js";
 import type { RevealPresetName, StaggerFrom } from "../../internals/motion/types.js";
@@ -142,28 +143,42 @@ export const Reveal = forwardRef<HTMLElement, RevealProps>(function Reveal(
 	// that should re-fire (or, worse, re-run every time `state` changes
 	// afterward, which listing `state` as a dependency of an effect that also
 	// WRITES it would do).
-	useEffect(() => {
+	//
+	// A LAYOUT effect, not a passive one (contract §4): Svelte's `onMount`
+	// completes before the browser's first paint and this flip has to as
+	// well. The armed rule carries no transition, so a flip that landed
+	// after a paint would show the content, snap it to hidden, and only
+	// then fade it back in — a blink the Svelte component never produces.
+	// Nothing else in this component is relied on to pull the flip forward.
+	// The server path is untouched: the initializer still emits `idle` in
+	// the server HTML, which is the whole point of `initial="visible"`.
+	useIsomorphicLayoutEffect(() => {
 		if (stateRef.current === "idle") commitState("armed");
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot mount bookkeeping
 	}, []);
 
-	// trigger="view": the IntersectionObserver path. Keyed on the node itself
-	// (convention C-1) plus the observer's real inputs; `markVisible` and
-	// `markArmed` are identity-stable, so this rebuilds exactly when the
-	// Svelte $effect would.
-	useEffect(() => {
-		if (trigger !== "view" || !node) return;
-		const handle = observeInView(node, {
-			once,
-			threshold,
-			rootMargin,
-			onChange: (inViewNow) => {
-				if (inViewNow) markVisible();
-				else if (!once) markArmed();
-			},
-		});
-		return () => handle.destroy();
-	}, [trigger, node, once, threshold, rootMargin, markVisible, markArmed]);
+	// trigger="view": the IntersectionObserver path, driven through the
+	// internals hook rather than the framework-free core. The hook takes the
+	// NODE (convention C-1), observes only while `enabled`, and — the reason
+	// it is not a hand-rolled effect here — runs in the LAYOUT phase
+	// (contract §4): the core's no-IntersectionObserver branch answers
+	// `onChange(true)` synchronously, so on a browser without one a passive
+	// effect would paint a frame of hidden content before the fail-visible
+	// answer landed. It also owns the `once` bookkeeping this component would
+	// otherwise duplicate: `once` is read live on every fire (a rebuild would
+	// throw away the core's already-fired guard), which is why it is not a
+	// dependency. The returned state is unused — `data-state` is this
+	// component's own three-state machine, not the observer's boolean.
+	useInView(node, {
+		enabled: trigger === "view",
+		once,
+		threshold,
+		rootMargin,
+		onChange: (inViewNow) => {
+			if (inViewNow) markVisible();
+			else if (!once) markArmed();
+		},
+	});
 
 	// trigger="mount": reveal on the next animation frame after mount, so
 	// the hidden→visible transition actually has a "from" frame to start

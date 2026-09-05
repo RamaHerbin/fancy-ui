@@ -1,8 +1,9 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Toggle } from "./Toggle.js";
 import { ToggleHarness } from "./ToggleHarness.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 function button(container: HTMLElement): HTMLButtonElement {
 	return container.querySelector("button") as HTMLButtonElement;
@@ -177,5 +178,55 @@ describe("Toggle", () => {
 		// the rendered button is what proves the two are the same element.
 		const { container } = render(<ToggleHarness />);
 		expect(button(container).getAttribute("data-bound-ref")).toBe("yes");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays toggle-on exactly once when activating while off, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Toggle sound pressed={false} />);
+
+			await fireEvent.click(button(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on", undefined);
+		});
+
+		it("plays toggle-off exactly once when activating while on, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Toggle sound pressed={true} />);
+
+			await fireEvent.click(button(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Toggle pressed={false} />);
+
+			await fireEvent.click(button(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Toggle sound disabled pressed={false} />);
+			const el = button(container);
+
+			el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

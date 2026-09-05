@@ -16,6 +16,7 @@ import { renderToString } from "react-dom/server";
 import { act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetSoundForTests } from "./sound.js";
+import { SoundToggle } from "./SoundToggle.js";
 import { useSound, useSoundEnabled, useSoundStatus } from "./use-sound.js";
 import { SOUND_STORAGE_KEY } from "./types.js";
 
@@ -46,8 +47,13 @@ function storeEnabled(volume = 0.75) {
 
 /**
  * Server-renders `ui`, hydrates that exact HTML, and returns the live
- * container. Teardown is registered rather than returned: a failed assertion
- * must not strand a mounted subscriber for the next test to wake.
+ * container plus everything React reported while doing it. Teardown is
+ * registered rather than returned: a failed assertion must not strand a
+ * mounted subscriber for the next test to wake.
+ *
+ * `recoverable` is the load-bearing half. React 19 routes a hydration
+ * mismatch to `onRecoverableError`, NOT to `console.error`, so a suite that
+ * only watches the console spy would go green on a real mismatch.
  */
 const teardowns: Array<() => void> = [];
 
@@ -57,9 +63,14 @@ function hydrate(ui: ReactElement) {
 	container.innerHTML = html;
 	document.body.appendChild(container);
 
+	const recoverable: unknown[] = [];
 	let root!: ReturnType<typeof hydrateRoot>;
 	act(() => {
-		root = hydrateRoot(container, ui);
+		root = hydrateRoot(container, ui, {
+			onRecoverableError: (error) => {
+				recoverable.push(error);
+			},
+		});
 	});
 
 	teardowns.push(() => {
@@ -69,7 +80,7 @@ function hydrate(ui: ReactElement) {
 		container.remove();
 	});
 
-	return { html, container };
+	return { html, container, recoverable };
 }
 
 function spyOnConsoleError() {
@@ -96,13 +107,14 @@ describe("sound — hydration", () => {
 	it("hydrates a stored-on preference with no console error and no DOM-shape change", () => {
 		storeEnabled();
 
-		const { html, container } = hydrate(<Toggleish />);
+		const { html, container, recoverable } = hydrate(<Toggleish />);
 
 		// The server never learns the stored preference.
 		expect(html).toContain('data-state="off"');
 		expect(html).toContain("Sound off");
 
 		// …and the client agrees, right up until the hydration effect runs.
+		expect(recoverable).toEqual([]);
 		expect(errors).not.toHaveBeenCalled();
 
 		const button = container.querySelector("button");
@@ -114,16 +126,18 @@ describe("sound — hydration", () => {
 	it("hydrates the full store hook with no console error", () => {
 		storeEnabled(0.25);
 
-		const { html, container } = hydrate(<Lab />);
+		const { html, container, recoverable } = hydrate(<Lab />);
 
 		expect(html).toContain("false/0.5/fancy");
+		expect(recoverable).toEqual([]);
 		expect(errors).not.toHaveBeenCalled();
 		expect(container.querySelector("[data-testid=lab]")?.textContent).toBe("true/0.25/fancy");
 	});
 
 	it("hydrates cleanly when nothing is stored at all", () => {
-		const { container } = hydrate(<Toggleish />);
+		const { container, recoverable } = hydrate(<Toggleish />);
 
+		expect(recoverable).toEqual([]);
 		expect(errors).not.toHaveBeenCalled();
 		expect(container.querySelector("button")?.dataset.state).toBe("off");
 	});
@@ -131,14 +145,54 @@ describe("sound — hydration", () => {
 	it("hydrates cleanly under StrictMode", () => {
 		storeEnabled();
 
-		const { container } = hydrate(
+		const { container, recoverable } = hydrate(
 			<StrictMode>
 				<Toggleish />
 			</StrictMode>
 		);
 
+		expect(recoverable).toEqual([]);
 		expect(errors).not.toHaveBeenCalled();
 		expect(container.querySelector("button")?.dataset.state).toBe("on");
+	});
+
+	/**
+	 * The server-markup contract of the real component, asserted where its CSS
+	 * import and a populated `localStorage` both exist. `sound.ssr.test.ts`
+	 * makes the same claim in the DOM-less node environment; this one adds the
+	 * half that only a browser environment can pose — storage already holds
+	 * "on" and the server pass must still emit "off".
+	 */
+	it("server-renders SoundToggle as off even with a stored-on preference", () => {
+		storeEnabled();
+
+		const html = renderToString(<SoundToggle />);
+
+		expect(html).toContain('role="switch"');
+		expect(html).toContain('aria-checked="false"');
+		expect(html).toContain('data-state="off"');
+		expect(html).toContain("data-sound-toggle");
+		expect(html).toContain('aria-label="Sound"');
+		expect(html).not.toContain('aria-checked="true"');
+		// Both glyphs are in the markup, so hydration only changes CSS state.
+		expect(html).toContain("ft-sound-toggle-glyph-on");
+		expect(html).toContain("ft-sound-toggle-glyph-off");
+	});
+
+	it("hydrates the real SoundToggle to the stored preference with no console error", () => {
+		storeEnabled();
+
+		const { html, container, recoverable } = hydrate(<SoundToggle />);
+
+		expect(html).toContain('data-state="off"');
+		expect(recoverable).toEqual([]);
+		expect(errors).not.toHaveBeenCalled();
+
+		const button = container.querySelector("button");
+		expect(button?.dataset.state).toBe("on");
+		expect(button?.getAttribute("aria-checked")).toBe("true");
+		// The accessible name never announces the state — aria-checked does.
+		expect(button?.getAttribute("aria-label")).toBe("Sound");
 	});
 
 	it("never reads storage during the render pass itself", () => {

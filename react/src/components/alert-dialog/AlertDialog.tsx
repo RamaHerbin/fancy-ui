@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { Button } from "../button/index.js";
 import { DialogSurface } from "../dialog/DialogSurface.js";
 
@@ -33,6 +34,11 @@ export interface AlertDialogProps {
 	trigger?: ReactNode;
 	/** Additional classes for the panel. */
 	className?: string;
+	/**
+	 * Plays the matching open/select/close cue through the sound controller.
+	 * Off by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 export const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(function AlertDialog(
@@ -48,6 +54,7 @@ export const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(function
 		initialFocus = null,
 		trigger,
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -67,6 +74,9 @@ export const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(function
 		setOpenState(openProp ?? false);
 	}
 
+	// A no-op while `sound` is false, so the call sites below stay unguarded.
+	const playCue = useSoundCue(sound);
+
 	// Same guard, and the same reason, as Dialog's own `setOpen`: a dismiss
 	// that changes nothing fires nothing, so a second Escape during the close
 	// cannot fire `onOpenChange` — or, through `handleCancel` below,
@@ -85,6 +95,7 @@ export const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(function
 
 	function openFromTrigger() {
 		if (open) return;
+		playCue("open");
 		setOpen(true);
 	}
 
@@ -95,11 +106,20 @@ export const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(function
 	// meant to back out, the same thing clicking Cancel means, so both fire
 	// the same callback.
 	function handleCancel() {
+		// Restates `setOpen`'s own dedupe locally: this runs before `setOpen`,
+		// so a second Escape/Cancel arriving while `open` is already false
+		// (mid-exit) must not play a second `close`.
+		if (open) playCue("close");
 		onCancel?.();
 		setOpen(false);
 	}
 
 	function handleConfirm() {
+		// Commit-close is silent — `setOpen` below carries no cue of its own —
+		// so `select` is the only sound a confirm ever plays. The internal
+		// Cancel/Confirm Buttons are never handed `sound` either: one
+		// activation must play one cue, not this one plus a Button `press`.
+		playCue("select");
 		onConfirm?.();
 		setOpen(false);
 	}
@@ -134,10 +154,10 @@ export const AlertDialog = forwardRef<HTMLDivElement, AlertDialogProps>(function
 					satisfy "cancel, not confirm, is focused first" for the common case
 					of no override.
 				*/}
-				<Button variant="outline" size="sm" onclick={handleCancel}>
+				<Button variant="outline" size="sm" onClick={handleCancel}>
 					{cancelLabel}
 				</Button>
-				<Button variant="destructive" size="sm" onclick={handleConfirm}>
+				<Button variant="destructive" size="sm" onClick={handleConfirm}>
 					{confirmLabel}
 				</Button>
 			</div>

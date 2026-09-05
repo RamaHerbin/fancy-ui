@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { StickyScroll } from "./StickyScroll.js";
 
 interface Item {
@@ -112,6 +112,31 @@ function StickyScrollHarness({
 	);
 }
 
+/**
+ * Module-level render props, so their identity survives a re-render the way a
+ * consumer's own snippets do — the condition the row memo is there to exploit.
+ * Every `item` invocation records its row index, which is how the tests below
+ * count re-renders without reaching into React internals.
+ */
+const itemRenders: number[] = [];
+
+function countingItem(it: Item, i: number, active: boolean) {
+	itemRenders.push(i);
+	return (
+		<span className="row" data-active={active}>
+			{i}:{it.label}
+		</span>
+	);
+}
+
+function plainPanel(it: Item, i: number) {
+	return (
+		<div className="panel-content">
+			panel {i}:{it.label}
+		</div>
+	);
+}
+
 function sections(container: HTMLElement): HTMLElement[] {
 	return [...container.querySelectorAll(".ft-stickyscroll-item")] as HTMLElement[];
 }
@@ -128,6 +153,7 @@ describe("StickyScroll", () => {
 	beforeEach(() => {
 		vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 		MockIntersectionObserver.instances = [];
+		itemRenders.length = 0;
 	});
 
 	afterEach(() => {
@@ -381,5 +407,88 @@ describe("StickyScroll", () => {
 		for (const instance of MockIntersectionObserver.instances) {
 			expect(instance.disconnect).toHaveBeenCalledTimes(1);
 		}
+	});
+	it("an internal activation re-invokes the item render only for the two rows whose active flipped", async () => {
+		// Uncontrolled, with render props that keep their identity: the
+		// activation re-renders StickyScroll alone, exactly as the source's
+		// `activeIndex` write re-runs only the two snippets whose `i ===
+		// activeIndex` actually changed.
+		render(<StickyScroll items={items(5)} item={countingItem} panel={plainPanel} />);
+		itemRenders.length = 0;
+
+		act(() => {
+			MockIntersectionObserver.instances[3]!.trigger(true);
+		});
+		await act(async () => {});
+
+		expect([...itemRenders].sort()).toEqual([0, 3]);
+	});
+
+	it("a leaving observer fire re-renders nothing: the row never subscribes to the observer's visible state", async () => {
+		render(<StickyScroll items={items(3)} item={countingItem} panel={plainPanel} />);
+
+		act(() => {
+			MockIntersectionObserver.instances[1]!.trigger(true);
+		});
+		await act(async () => {});
+		itemRenders.length = 0;
+
+		// The fire the source's `use:inView` action deliberately does nothing
+		// with — it must cost React nothing either.
+		act(() => {
+			MockIntersectionObserver.instances[1]!.trigger(false);
+		});
+		await act(async () => {});
+
+		expect(itemRenders).toEqual([]);
+	});
+
+	it("a render React throws away does not consume the index change — the crossfade still plays on the retry", async () => {
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		let settled = false;
+		let release: () => void = () => {};
+		const gate = new Promise<void>((resolve) => {
+			release = () => {
+				settled = true;
+				resolve();
+			};
+		});
+
+		/** Suspends once, AFTER StickyScroll has rendered — so React unwinds a
+		 *  render in which the swap bookkeeping has already run, then retries
+		 *  it from the last committed state. */
+		function Gate({ armed }: { armed: boolean }) {
+			if (armed && !settled) throw gate;
+			return null;
+		}
+
+		function Tree({ index, armed }: { index: number; armed: boolean }) {
+			return (
+				<Suspense fallback={<span data-testid="fallback" />}>
+					<StickyScroll
+						items={items(3)}
+						activeIndex={index}
+						item={countingItem}
+						panel={plainPanel}
+					/>
+					<Gate armed={armed} />
+				</Suspense>
+			);
+		}
+
+		const { container, rerender } = render(<Tree index={0} armed={false} />);
+		await act(async () => {});
+		animateSpy.mockClear();
+
+		rerender(<Tree index={1} armed />);
+		await act(async () => {});
+
+		await act(async () => {
+			release();
+			await gate;
+		});
+
+		expect(container.querySelector(".panel-content")?.textContent).toBe("panel 1:Item 1");
+		expect(animateSpy).toHaveBeenCalled();
 	});
 });

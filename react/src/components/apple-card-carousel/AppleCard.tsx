@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { cn } from "../../utils.js";
 
 export interface AppleCardData {
@@ -27,6 +29,11 @@ export interface AppleCardProps {
 	onExpand: (index: number) => void;
 	onCollapse: () => void;
 	className?: string;
+	/**
+	 * Plays the matching open/close cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 interface Rect {
@@ -44,6 +51,7 @@ export function AppleCard({
 	onExpand,
 	onCollapse,
 	className = "",
+	sound = false,
 }: AppleCardProps) {
 	const cardEl = useRef<HTMLDivElement | null>(null);
 	const dialogEl = useRef<HTMLDivElement | null>(null);
@@ -54,13 +62,22 @@ export function AppleCard({
 	const [overlayVisible, setOverlayVisible] = useState(false);
 	const [fullyExpanded, setFullyExpanded] = useState(false);
 
+	// Collapse-in-progress latch. Not state: nothing renders off it — it only
+	// dedupes handleCollapse calls (Escape + backdrop click) during the exit
+	// window, and gates the close cue on the overlay actually being open
+	// rather than on the entrance animation having finished.
+	const closing = useRef(false);
+
 	// Read at expand time so the animation branch is decided once per expand,
 	// exactly like the source's imperative handler.
 	const reducedMotionRef = useRef(reducedMotion);
 	reducedMotionRef.current = reducedMotion;
 
+	const playCue = useSoundCue(sound);
+
 	function handleExpand() {
 		if (expandedIndex !== -1) return;
+		playCue("open");
 		previousFocus.current = document.activeElement as HTMLElement;
 		const r = cardEl.current!.getBoundingClientRect();
 		setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
@@ -68,15 +85,23 @@ export function AppleCard({
 		onExpand(index);
 	}
 
-	// After the overlay is in the DOM: focus the close button, then flip to the
-	// fully expanded geometry (double rAF so the initial card-rect frame paints).
-	useEffect(() => {
+	// Once the overlay is in the DOM, focus lands in the layout phase — before
+	// the user's first painted frame, where the source's `await tick()` puts
+	// it. The reduced-motion branch has no entrance leg, so its still frame is
+	// committed here too.
+	useIsomorphicLayoutEffect(() => {
 		if (!overlayVisible) return;
 		closeBtn.current?.focus();
 		if (reducedMotionRef.current) {
 			setFullyExpanded(true);
-			return;
 		}
+	}, [overlayVisible]);
+
+	// Flip to the fully expanded geometry (double rAF so the initial card-rect
+	// frame paints) — a painted first frame is the point, so this one stays
+	// passive.
+	useEffect(() => {
+		if (!overlayVisible || reducedMotionRef.current) return;
 		let raf2 = 0;
 		const raf1 = requestAnimationFrame(() => {
 			raf2 = requestAnimationFrame(() => {
@@ -90,10 +115,17 @@ export function AppleCard({
 	}, [overlayVisible]);
 
 	function handleCollapse() {
+		if (!overlayVisible || closing.current) return;
+		closing.current = true;
+		// Gated on the overlay being open, not on `fullyExpanded` — a dismissal
+		// during the two entrance frames (Escape right after Enter) must still
+		// pair the `open` cue with a `close`.
+		playCue("close");
 		setFullyExpanded(false);
 		const delay = reducedMotion ? 0 : TRANSITION_MS;
 		setTimeout(() => {
 			setOverlayVisible(false);
+			closing.current = false;
 			onCollapse();
 			setRect(null);
 			previousFocus.current?.focus();

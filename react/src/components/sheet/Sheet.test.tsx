@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { StrictMode, useState } from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import { Sheet } from "./Sheet.js";
 import type { SheetSide, SheetSize } from "./Sheet.js";
+import { __dismissableLayerCount } from "../../internals/dismissable.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 // Transposed assertion-for-assertion from the source suite. The source mocks
 // its scroll-lock module because `use:scrollLock` is an action; here the lock
@@ -104,7 +106,13 @@ function stubReducedMotion(matches: boolean) {
  * test; here the two bindings become a controlled `open` written back from
  * `onOpenChange`, and a callback ref standing in for `bind:ref`.
  */
-function SheetHarness({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
+function SheetHarness({
+	onOpenChange,
+	sound,
+}: {
+	onOpenChange?: (open: boolean) => void;
+	sound?: boolean;
+}) {
 	const [open, setOpen] = useState(false);
 	return (
 		<>
@@ -113,6 +121,7 @@ function SheetHarness({ onOpenChange }: { onOpenChange?: (open: boolean) => void
 			</button>
 			<Sheet
 				open={open}
+				sound={sound}
 				onOpenChange={(value) => {
 					setOpen(value);
 					onOpenChange?.(value);
@@ -135,6 +144,11 @@ describe("Sheet", () => {
 		// which jsdom does not implement — unmocked it floods the run with
 		// "Not implemented" console noise on every release.
 		vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+		// The sound controller is a module singleton: a preference or an engine
+		// left behind by an earlier test would decide whether a cue is audible
+		// in this one.
+		resetSoundForTests();
+		window.localStorage.clear();
 	});
 
 	afterEach(() => {
@@ -427,6 +441,138 @@ describe("Sheet", () => {
 		expect(dialog()).toBeNull();
 		expect(scrim()).toBeNull();
 		expect(animateSpy).not.toHaveBeenCalled();
+	});
+
+	// The source suite's `describe("sound")` cases, transposed one for one.
+	// The spy sits on the CONTROLLER, not the hook, so what is asserted is the
+	// cue that actually reached the singleton; the second argument is the
+	// options object `useSoundCue` forwards, which is `undefined` here.
+	describe("sound", () => {
+		it("plays close exactly once when the close button dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Sheet open title="Settings" sound />);
+
+			fireEvent.click(closeButton()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		it("plays close exactly once on Escape, and close exactly once on a scrim click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Sheet open title="Settings" sound />);
+
+			pressEscape();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+
+			await settleLegs();
+			cleanup();
+			play.mockClear();
+
+			render(<Sheet open title="Settings" sound />);
+			pointerDownOn(scrim()!);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Sheet open title="Settings" />);
+
+			fireEvent.click(closeButton()!);
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing when dismissible is false, even via a synthetic dispatch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Sheet open title="Settings" dismissible={false} sound />);
+
+			pressEscape();
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		// The `if (!open) return` guard inside close() — a second Escape landing
+		// during the exit must not double the cue.
+		it("ignores a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Sheet open title="Settings" sound />);
+
+			pressEscape();
+			expect(dialog()).toBeTruthy(); // still sliding out
+
+			pressEscape();
+			pressEscape();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		// A parent write opening the sheet plays nothing (no open cue exists by
+		// design); the close button on the same instance still plays close.
+		it("a parent-driven open stays silent; the close button on that same instance still plays close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByTestId } = render(<SheetHarness sound />);
+
+			fireEvent.click(getByTestId("trigger"));
+			expect(dialog()).not.toBeNull();
+			expect(play).not.toHaveBeenCalled();
+
+			fireEvent.click(closeButton()!);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+	});
+
+	// The leak counters for the effect shape this component shares with the
+	// sibling overlays — a reference-counted scroll lock, a document-level
+	// Escape listener, a focus trap — driven through a StrictMode
+	// double-invoke.
+	it("holds the scroll lock, drains the dismiss stack and closes once under StrictMode", async () => {
+		const onOpenChange = vi.fn();
+		const { unmount } = render(
+			<StrictMode>
+				<Sheet open title="Settings" onOpenChange={onOpenChange} />
+			</StrictMode>
+		);
+
+		// acquire → release → acquire leaves the refcount at 1, before paint.
+		expect(document.body.style.position).toBe("fixed");
+		// push → splice → push leaves a stack of one at the same depth.
+		expect(__dismissableLayerCount()).toBe(1);
+
+		// One listener, one close — not two.
+		pressEscape();
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+
+		unmount();
+		await waitFor(() => expect(document.body.style.position).toBe(""));
+		expect(__dismissableLayerCount()).toBe(0);
+	});
+
+	// R9: a modal dialog with no `title` had no way to carry an accessible
+	// name at all — `aria-labelledby` can only point at a rendered heading.
+	it("puts ariaLabel on the panel so a title-less sheet still has an accessible name", () => {
+		render(<Sheet open ariaLabel="Settings" />);
+		const el = dialog()!;
+		expect(el.getAttribute("aria-label")).toBe("Settings");
+		expect(el.hasAttribute("aria-labelledby")).toBe(false);
+	});
+
+	it("prefers aria-labelledby over ariaLabel when both a title and ariaLabel are given", () => {
+		render(<Sheet open title="Settings" ariaLabel="Filters" />);
+		const el = dialog()!;
+		expect(el.hasAttribute("aria-labelledby")).toBe(true);
+		expect(el.hasAttribute("aria-label")).toBe(false);
 	});
 
 	it("works with a plain non-bound open plus a callback: the callback observes the close, and the panel still unmounts", async () => {

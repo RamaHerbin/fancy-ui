@@ -66,16 +66,16 @@ describe("Button", () => {
 		expect(root(container).className).toContain("w-full");
 	});
 
-	it("calls onclick when activated", async () => {
-		const onclick = vi.fn();
+	it("calls onClick when activated", async () => {
+		const onClick = vi.fn();
 		const { container } = render(
-			<Button onclick={onclick}>
+			<Button onClick={onClick}>
 				<span>Go</span>
 			</Button>
 		);
 
 		await fireEvent.click(root(container));
-		expect(onclick).toHaveBeenCalledTimes(1);
+		expect(onClick).toHaveBeenCalledTimes(1);
 	});
 
 	it("renders iconStart before the label when not loading", () => {
@@ -123,21 +123,21 @@ describe("Button", () => {
 	});
 
 	it("blocks the click callback while loading", () => {
-		const onclick = vi.fn();
+		const onClick = vi.fn();
 		const { container } = render(
-			<Button loading onclick={onclick}>
+			<Button loading onClick={onClick}>
 				<span>Save</span>
 			</Button>
 		);
 
 		root(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-		expect(onclick).not.toHaveBeenCalled();
+		expect(onClick).not.toHaveBeenCalled();
 	});
 
 	it("disables the native button and blocks the click callback", () => {
-		const onclick = vi.fn();
+		const onClick = vi.fn();
 		const { container } = render(
-			<Button disabled onclick={onclick}>
+			<Button disabled onClick={onClick}>
 				<span>Go</span>
 			</Button>
 		);
@@ -148,7 +148,7 @@ describe("Button", () => {
 		// jsdom, unlike a real press — this is what proves the JS-level guard, not
 		// just the HTML attribute, is doing the blocking.
 		el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-		expect(onclick).not.toHaveBeenCalled();
+		expect(onClick).not.toHaveBeenCalled();
 	});
 
 	it("renders an anchor instead of a button when href is set", () => {
@@ -164,9 +164,9 @@ describe("Button", () => {
 	});
 
 	it("strips href and adds aria-disabled/tabindex=-1 on a disabled anchor, and swallows the click", () => {
-		const onclick = vi.fn();
+		const onClick = vi.fn();
 		const { container } = render(
-			<Button href="https://example.com" disabled onclick={onclick}>
+			<Button href="https://example.com" disabled onClick={onClick}>
 				<span>Visit</span>
 			</Button>
 		);
@@ -179,17 +179,17 @@ describe("Button", () => {
 		expect(el.getAttribute("data-disabled")).toBe("true");
 
 		el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-		expect(onclick).not.toHaveBeenCalled();
+		expect(onClick).not.toHaveBeenCalled();
 	});
 
 	it("makes a loading anchor inert: strips href, marks it aria-disabled, and drops it from the tab order", () => {
 		// This is the regression case for the anchor-branch loading bug: href and
 		// target drive real browser behaviour — middle-click, "open link in new
-		// tab" from the context menu — that never reaches `onclick` at all, so
+		// tab" from the context menu — that never reaches `onClick` at all, so
 		// `disabled ? undefined : href` alone left a loading link fully navigable.
-		const onclick = vi.fn();
+		const onClick = vi.fn();
 		const { container } = render(
-			<Button href="https://example.com" loading onclick={onclick}>
+			<Button href="https://example.com" loading onClick={onClick}>
 				<span>Pay</span>
 			</Button>
 		);
@@ -202,7 +202,7 @@ describe("Button", () => {
 		expect(el.getAttribute("aria-busy")).toBe("true");
 
 		el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-		expect(onclick).not.toHaveBeenCalled();
+		expect(onClick).not.toHaveBeenCalled();
 	});
 
 	it("does not dim a loading (not disabled) anchor the way a disabled one is dimmed", () => {
@@ -324,9 +324,9 @@ describe("Button", () => {
 		});
 
 		it("does not double-fire on keyboard activation — a single click, however triggered, plays one cue", async () => {
-			const onclick = vi.fn();
+			const onClick = vi.fn();
 			const { container } = render(
-				<Button sound onclick={onclick}>
+				<Button sound onClick={onClick}>
 					<span>Go</span>
 				</Button>
 			);
@@ -338,7 +338,7 @@ describe("Button", () => {
 			await fireEvent.keyDown(el, { key: "Enter" });
 			await fireEvent.click(el);
 
-			expect(onclick).toHaveBeenCalledTimes(1);
+			expect(onClick).toHaveBeenCalledTimes(1);
 			expect(play).toHaveBeenCalledTimes(1);
 			expect(play).toHaveBeenCalledWith("press");
 		});

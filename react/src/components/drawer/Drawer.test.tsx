@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { StrictMode, useState } from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 // The source suite mocks the scroll-lock module wholesale, and this transposition
 // keeps that: the acquire/release assertions below are about WHEN the lock is
@@ -36,6 +36,8 @@ vi.mock("../../internals/scroll-lock.js", async () => {
 });
 
 import { Drawer } from "./Drawer.js";
+import { __dismissableLayerCount } from "../../internals/dismissable.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 /**
  * jsdom has no `inert` IDL property, so `el.inert = true` would otherwise be a
@@ -187,7 +189,13 @@ function dragReleasingInsideTheExit(deltaY: number, pointerId = 1) {
  * own state can, in turn, open the drawer) rather than merely changing what
  * the drawer draws internally.
  */
-function Harness({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
+function Harness({
+	onOpenChange,
+	sound,
+}: {
+	onOpenChange?: (open: boolean) => void;
+	sound?: boolean;
+}) {
 	const [open, setOpen] = useState(false);
 	return (
 		<>
@@ -201,6 +209,7 @@ function Harness({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
 			</button>
 			<Drawer
 				open={open}
+				sound={sound}
 				onOpenChange={(next) => {
 					setOpen(next);
 					onOpenChange?.(next);
@@ -220,6 +229,14 @@ function Harness({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
 }
 
 describe("Drawer", () => {
+	beforeEach(() => {
+		// The sound controller is a module singleton: a preference or an engine
+		// left behind by an earlier test would decide whether a cue is audible
+		// in this one.
+		resetSoundForTests();
+		window.localStorage.clear();
+	});
+
 	afterEach(() => {
 		cleanup();
 		document.body.innerHTML = "";
@@ -589,6 +606,141 @@ describe("Drawer", () => {
 			expect(dialog()!.style.transform).toBe("translateY(0px)");
 			await settleLegs();
 		});
+	});
+
+	// The source suite's `describe("sound")` cases, transposed one for one.
+	// The spy sits on the CONTROLLER, not the hook, so what is asserted is the
+	// cue that actually reached the singleton; the second argument is the
+	// options object `useSoundCue` forwards, which is `undefined` here.
+	describe("sound", () => {
+		it("plays close exactly once when the close button dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Drawer open title="Filters" sound />);
+
+			fireEvent.click(closeButton()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		it("plays close exactly once on a swipe committed past the threshold", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Drawer open title="Filters" sound />);
+
+			drag(DISMISS_THRESHOLD_PX + 1);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		// The spring-back branch — a release short of the threshold — never
+		// calls close() at all, so it must stay silent even with sound enabled.
+		it("plays nothing when a swipe springs back short of the threshold", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Drawer open title="Filters" sound />);
+
+			drag(40);
+
+			expect(dialog()).not.toBeNull();
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Drawer open title="Filters" />);
+
+			fireEvent.click(closeButton()!);
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing when dismissible is false, even via a synthetic dispatch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Drawer open title="Filters" dismissible={false} sound />);
+
+			pressEscape();
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		// The `if (!open) return` guard inside close() — a second Escape landing
+		// during the exit must not double the cue.
+		it("ignores a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Drawer open title="Filters" sound />);
+
+			pressEscape();
+			expect(dialog()).toBeTruthy(); // still sliding out
+
+			pressEscape();
+			pressEscape();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		// A parent write closing the drawer bypasses close() entirely (see
+		// "starts the exit from the live drag offset" above) — it must stay
+		// silent, exactly like a controlled-prop open would.
+		it("a parent write that closes the drawer from outside plays nothing", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByTestId } = render(<Harness sound />);
+			fireEvent.click(getByTestId("trigger"));
+
+			fireEvent.click(getByTestId("close-from-parent"));
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+	});
+
+	// The leak counters for the effect shape this component shares with the
+	// sibling overlays — a reference-counted scroll lock, a document-level
+	// Escape listener — driven through a StrictMode double-invoke. The
+	// mocked lock is not itself reference-counted, so what is asserted is the
+	// BALANCE between acquisitions and releases rather than a raw call count.
+	it("holds a single net scroll lock, drains the dismiss stack and closes once under StrictMode", async () => {
+		const onOpenChange = vi.fn();
+		const { unmount } = render(
+			<StrictMode>
+				<Drawer open title="Filters" onOpenChange={onOpenChange} />
+			</StrictMode>
+		);
+
+		// acquire → release → acquire leaves exactly one lock held, before paint.
+		expect(lockScrollMock.mock.calls.length - releaseMock.mock.calls.length).toBe(1);
+		// push → splice → push leaves a stack of one at the same depth.
+		expect(__dismissableLayerCount()).toBe(1);
+
+		// One listener, one close — not two.
+		pressEscape();
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+
+		await waitFor(() => expect(dialog()).toBeNull());
+		expect(lockScrollMock.mock.calls.length - releaseMock.mock.calls.length).toBe(0);
+		expect(__dismissableLayerCount()).toBe(0);
+		unmount();
+	});
+
+	// R9: a modal dialog with no `title` had no way to carry an accessible
+	// name at all — `aria-labelledby` can only point at a rendered heading.
+	it("puts ariaLabel on the panel so a title-less drawer still has an accessible name", () => {
+		render(<Drawer open ariaLabel="Filters" />);
+		const el = dialog()!;
+		expect(el.getAttribute("aria-label")).toBe("Filters");
+		expect(el.hasAttribute("aria-labelledby")).toBe(false);
+	});
+
+	it("prefers aria-labelledby over ariaLabel when both are given", () => {
+		render(<Drawer open title="Filters" ariaLabel="Ignored" />);
+		expect(dialog()!.hasAttribute("aria-label")).toBe(false);
 	});
 
 	it("works with a plain non-bound open plus a callback: the callback observes the close, and the panel still unmounts", async () => {

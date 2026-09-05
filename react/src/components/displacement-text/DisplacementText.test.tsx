@@ -103,6 +103,16 @@ describe("DisplacementText", () => {
 		expect(container.querySelector("div")).toBeTruthy();
 	});
 
+	it("exposes the text to assistive technology via an accessible img role", () => {
+		const { getByRole } = render(<DisplacementText text="Hello" />);
+		expect(getByRole("img", { name: "Hello" })).toBeTruthy();
+	});
+
+	it("exposes the default text when no text prop is given", () => {
+		const { getByRole } = render(<DisplacementText />);
+		expect(getByRole("img").getAttribute("aria-label")).toBe("Hover Me");
+	});
+
 	describe("cleanup on unmount", () => {
 		it("removes resize listener", () => {
 			const spy = vi.spyOn(window, "removeEventListener");

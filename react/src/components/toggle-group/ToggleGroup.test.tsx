@@ -1,6 +1,7 @@
 import { createRef, useState } from "react";
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { ToggleGroup } from "./ToggleGroup.js";
 import { ToggleGroupItem } from "./ToggleGroupItem.js";
 
@@ -34,6 +35,7 @@ interface HarnessProps {
 	size?: "sm" | "md" | "lg";
 	orientation?: "horizontal" | "vertical";
 	label?: string;
+	sound?: boolean;
 }
 
 function Harness({
@@ -45,6 +47,7 @@ function Harness({
 	size = "md",
 	orientation = "horizontal",
 	label = "Test group",
+	sound = false,
 }: HarnessProps) {
 	// Seeded from the prop and owned from then on, exactly as the Svelte
 	// harness's `$bindable` initial value is.
@@ -62,6 +65,7 @@ function Harness({
 			size={size}
 			orientation={orientation}
 			label={label}
+			sound={sound}
 		>
 			{items.map((item) => (
 				<ToggleGroupItem key={item.value} value={item.value} disabled={item.disabled}>
@@ -527,5 +531,91 @@ describe("ToggleGroup", () => {
 		// There is no group to toggle; this must not throw.
 		fireEvent.click(el);
 		expect(el.getAttribute("aria-pressed")).toBe("false");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when picking an item in type=single, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} sound />);
+
+			fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays select again on clear-on-repick — activating the already-selected item in type=single", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} value="left" sound />);
+
+			fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays toggle-on exactly once when activating an unselected item in type=multiple", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} type="multiple" sound />);
+
+			fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on", undefined);
+		});
+
+		it("plays toggle-off exactly once when deactivating a selected item in type=multiple", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<Harness items={ITEMS} type="multiple" value={["left"]} sound />
+			);
+
+			fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} />);
+
+			fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the group is disabled, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Harness items={ITEMS} disabled sound />);
+
+			// A synthetic dispatch rather than a real gesture: the native
+			// `disabled` attribute is the outer gate, and `toggle`'s own
+			// `if (disabled) return` is the one this pins.
+			byLabel(container, "Left").dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not wire the cue in ToggleGroupItem's click handler — an item outside a group plays nothing", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ToggleGroupItem value="solo" label="Solo" />);
+			const el = container.querySelector("button") as HTMLButtonElement;
+
+			fireEvent.click(el);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

@@ -7,6 +7,7 @@ import type {
 	ReactNode,
 } from "react";
 import { cn } from "../../utils.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { canVibrate, vibrate } from "../../internals/motion/haptics.js";
 import type { HapticPattern } from "../../internals/motion/types.js";
 import "./pressable.css";
@@ -66,6 +67,17 @@ export const Pressable = forwardRef<HTMLDivElement, PressableProps>(
 		ref
 	) => {
 		const rootRef = useRef<HTMLDivElement | null>(null);
+
+		// The package composer, not an inline arrow: an arrow declared in the
+		// render body is a new function on every render, and React answers a
+		// changed callback-ref identity by calling the old one with `null` and
+		// the new one with the node. Pressable re-renders on every press,
+		// release and `disabled` flip, so a consumer passing a callback ref
+		// (one that measures the node, or installs an observer) would be torn
+		// down and re-armed twice per press. `useComposedRefs` pins the
+		// identity to the incoming refs, matching the Svelte `bind:this` that
+		// never churns.
+		const setRootRef = useComposedRefs<HTMLDivElement>(ref, rootRef);
 
 		// Plain state, not a media-query-gated one: the press *state* always
 		// tracks pointer/keyboard activity regardless of `prefers-reduced-motion`.
@@ -159,11 +171,7 @@ export const Pressable = forwardRef<HTMLDivElement, PressableProps>(
 
 		return (
 			<div
-				ref={(node) => {
-					rootRef.current = node;
-					if (typeof ref === "function") ref(node);
-					else if (ref) ref.current = node;
-				}}
+				ref={setRootRef}
 				className={cn("ft-pressable", className)}
 				{...restProps}
 				style={mergedStyle}

@@ -108,6 +108,10 @@ export function FlipWords({ words, duration = 3000, className }: FlipWordsProps)
 								{letter}
 							</span>
 						))}
+						{/* Explicit space: the source markup carries a collapsible space between
+						    the letters and the trailing non-breaking space, and JSX drops the
+						    newline-bearing whitespace that would otherwise stand in for it. */}
+						{" "}
 						<span className="inline-block">&nbsp;</span>
 					</span>
 				))}

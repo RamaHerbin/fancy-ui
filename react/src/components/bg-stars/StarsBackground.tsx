@@ -104,23 +104,32 @@ export function StarsBackground({
 	const target = useRef({ x: 0, y: 0 });
 	const velocity = useRef({ x: 0, y: 0 });
 	const spring = useRef({ x: 0, y: 0 });
-	const factorRef = useRef(factor);
-	factorRef.current = factor;
+	// Wakes the spring loop back up. The loop parks itself once the spring has
+	// settled, so a new pointer target has to restart it. Assigned by the
+	// effect below; a no-op while the component is unmounted.
+	const wakeSpring = useRef(() => {});
 
 	function handleMouseMove(e: MouseEvent<HTMLDivElement>) {
 		const centerX = window.innerWidth / 2;
 		const centerY = window.innerHeight / 2;
-		target.current.x = -(e.clientX - centerX) * factorRef.current;
-		target.current.y = -(e.clientY - centerY) * factorRef.current;
+		target.current.x = -(e.clientX - centerX) * factor;
+		target.current.y = -(e.clientY - centerY) * factor;
+		wakeSpring.current();
 	}
 
 	// The spring loop. Spring position and velocity live in refs, so a restart
 	// on a stiffness/damping change (its only actual inputs) resumes from the
 	// in-flight position instead of snapping back to rest.
 	useEffect(() => {
-		let animationFrame: number;
+		// Sub-pixel: under this the spring neither moves the layer nor sits
+		// visibly away from its target, so the loop parks instead of writing
+		// the same transform every frame for the page's whole life.
+		const REST_EPSILON = 0.01;
+		let animationFrame = 0;
 
 		function updateSpring() {
+			animationFrame = 0;
+
 			// Simple spring physics
 			const forceX = (target.current.x - spring.current.x) * (stiffness / 1000);
 			const forceY = (target.current.y - spring.current.y) * (stiffness / 1000);
@@ -131,17 +140,60 @@ export function StarsBackground({
 			spring.current.x += velocity.current.x;
 			spring.current.y += velocity.current.y;
 
+			const atRest =
+				Math.abs(velocity.current.x) < REST_EPSILON &&
+				Math.abs(velocity.current.y) < REST_EPSILON &&
+				Math.abs(target.current.x - spring.current.x) < REST_EPSILON &&
+				Math.abs(target.current.y - spring.current.y) < REST_EPSILON;
+
+			if (atRest) {
+				// Land exactly on the target so the parked transform matches
+				// the one the loop would have converged to.
+				velocity.current.x = 0;
+				velocity.current.y = 0;
+				spring.current.x = target.current.x;
+				spring.current.y = target.current.y;
+			}
+
 			if (parallaxEl.current) {
 				parallaxEl.current.style.transform = `translate(${spring.current.x}px, ${spring.current.y}px)`;
 			}
 
+			if (!atRest) {
+				animationFrame = requestAnimationFrame(updateSpring);
+			}
+		}
+
+		function start() {
+			// Idempotent: a second wake while a frame is already queued, or
+			// while the page is in a background tab, changes nothing.
+			if (animationFrame !== 0 || document.hidden) return;
 			animationFrame = requestAnimationFrame(updateSpring);
 		}
 
-		animationFrame = requestAnimationFrame(updateSpring);
+		function stop() {
+			if (animationFrame !== 0) {
+				cancelAnimationFrame(animationFrame);
+				animationFrame = 0;
+			}
+		}
+
+		function handleVisibilityChange() {
+			if (document.hidden) {
+				stop();
+			} else {
+				start();
+			}
+		}
+
+		wakeSpring.current = start;
+		start();
+		document.addEventListener("visibilitychange", handleVisibilityChange);
 
 		return () => {
-			cancelAnimationFrame(animationFrame);
+			wakeSpring.current = () => {};
+			stop();
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
 		};
 	}, [stiffness, damping]);
 

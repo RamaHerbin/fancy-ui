@@ -7,16 +7,23 @@ export {
 	type SoundToggleSize,
 	type SoundToggleVariant,
 } from "./SoundToggle.js";
-export { sound, getSoundStatus, type SoundController } from "./sound.js";
+export { sound, getSoundStatus, type SoundController, type SoundSnapshot } from "./sound.js";
 export {
 	attachSoundFeedback,
 	useSoundFeedback,
 	DEFAULT_SOUND_FEEDBACK_ON,
 	type SoundFeedbackOptions,
+	type SoundFeedbackHandle,
 	type SoundCueResolver,
 	type SoundCueSpec,
 } from "./sound-feedback.js";
-export { useSound, useSoundCue, useSoundEnabled, useSoundStatus } from "./use-sound.js";
+export {
+	useSound,
+	useSoundCue,
+	useSoundEnabled,
+	useSoundStatus,
+	type SoundControls,
+} from "./use-sound.js";
 export { createSoundEngine, type SoundEngine, type SoundEngineOptions } from "./engine.js";
 export { FANCY_SOUND_THEME, SOUND_THEMES, getSoundTheme, validateSoundTheme } from "./themes.js";
 export {

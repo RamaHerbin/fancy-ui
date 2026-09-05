@@ -13,10 +13,10 @@
  * while `toggle` / `unlock` / `play` stay spied exactly as before.
  */
 import { cleanup, fireEvent, render } from "@testing-library/react";
-import { act, createRef } from "react";
+import { Profiler, act, createRef } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SoundToggle } from "./SoundToggle.js";
-import { resetSoundForTests, sound } from "./sound.js";
+import { getSoundStatus, resetSoundForTests, sound } from "./sound.js";
 import { SOUND_STORAGE_KEY } from "./types.js";
 import { installFakeAudioContext } from "./web-audio-mock.js";
 
@@ -308,5 +308,36 @@ describe("SoundToggle", () => {
 		const { container } = render(<SoundToggle ref={ref} />);
 
 		expect(ref.current).toBe(button(container));
+	});
+
+	// No controller mock here: the toggle reads the real store, and a real cue
+	// has to reach `markPlayed()` for the assertion to mean anything.
+	it("does not re-render when a cue is played elsewhere on the page", async () => {
+		let commits = 0;
+		render(
+			<Profiler
+				id="sound-toggle"
+				onRender={() => {
+					commits += 1;
+				}}
+			>
+				<SoundToggle />
+			</Profiler>
+		);
+
+		await act(async () => {
+			sound.enable();
+			await sound.unlock();
+		});
+		const initial = commits;
+
+		act(() => {
+			sound.play("press");
+		});
+
+		// The cue landed, so `status.lastCue`/`lastPlayedAt` moved — and the
+		// toggle, which renders neither, stayed put.
+		expect(getSoundStatus().lastCue).toBe("press");
+		expect(commits).toBe(initial);
 	});
 });

@@ -200,6 +200,10 @@ abstract class BaseVariant implements ImageTrailVariant {
 
 	private startRafLoop() {
 		if (this.rafStarted) return;
+		// Nothing to animate when the container holds no trail elements: leaving the
+		// loop unstarted keeps `showNextImage` from indexing an empty image list every
+		// frame (`images` defaults to `[]`, so this is a reachable state).
+		if (this.imagesTotal === 0) return;
 		this.rafStarted = true;
 		// Remove initRender listeners since we're starting the loop
 		if (this.initRender) {
@@ -319,7 +323,8 @@ export class ImageTrailVariant1 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		gsap.killTweensOf(img.DOM.el);
 		gsap
@@ -365,7 +370,8 @@ export class ImageTrailVariant2 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		gsap.killTweensOf(img.DOM.el);
 		gsap
@@ -423,7 +429,8 @@ export class ImageTrailVariant3 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		gsap.killTweensOf(img.DOM.el);
 		gsap
@@ -484,7 +491,8 @@ export class ImageTrailVariant4 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
 
 		const vel = this.getTouchVelocity();
@@ -587,7 +595,8 @@ export class ImageTrailVariant5 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
 
 		gsap
@@ -675,7 +684,8 @@ export class ImageTrailVariant6 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		const scaleFactor = this.mapSpeedToSize(speed, 0.3, 2);
 		const brightnessValue = this.mapSpeedToBrightness(speed, 0, 1.3);
@@ -755,7 +765,8 @@ export class ImageTrailVariant7 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 		++this.visibleImagesCount;
 
 		gsap.killTweensOf(img.DOM.el);
@@ -844,7 +855,8 @@ export class ImageTrailVariant8 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
 
 		gsap
@@ -908,7 +920,8 @@ export class ImageTrailVariantPixelated extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
-		const img = this.images[this.imgPosition]!;
+		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		gsap.killTweensOf(img.DOM.el);
 		gsap

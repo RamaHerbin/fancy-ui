@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ToolCall } from "./ToolCall.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import type { ToolCallData } from "../../internals/ai-types.js";
 
 function call(overrides: Partial<ToolCallData> = {}): ToolCallData {
@@ -285,5 +286,72 @@ describe("ToolCall", () => {
 
 		expect(root.className).toContain("my-card");
 		expect(root.className).toContain("ft-toolcall");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when the reader expands the payloads, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ToolCall call={call()} sound />);
+
+			await fireEvent.click(header(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+		});
+
+		it("plays close exactly once when the reader folds the payloads back", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ToolCall call={call()} sound />);
+
+			await fireEvent.click(header(container));
+			play.mockClear();
+			await fireEvent.click(header(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ToolCall call={call()} />);
+
+			await fireEvent.click(header(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when a running call auto-opens itself on failure", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(<ToolCall call={call({ status: "running" })} sound />);
+
+			rerender(<ToolCall call={call({ status: "error", error: "boom" })} sound />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent on the SSR autoOpen seed for a call that starts failed", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<ToolCall call={call({ status: "error", error: "boom" })} sound />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when a consumer writes to the open prop directly", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(<ToolCall call={call()} open={false} sound />);
+
+			rerender(<ToolCall call={call()} open={true} sound />);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

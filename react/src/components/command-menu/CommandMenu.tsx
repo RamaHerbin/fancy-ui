@@ -25,6 +25,7 @@ import { DURATIONS } from "../../internals/motion/tokens.js";
 import { usePresence } from "../../internals/motion/presence.js";
 import { createListbox } from "../../internals/listbox.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { defaultFilter, getMatchRange } from "./match.js";
 import type { CommandItem } from "./types.js";
 import "./command-menu.css";
@@ -58,6 +59,11 @@ export interface CommandMenuProps {
 	icon?: (item: CommandItem) => ReactNode;
 	/** Rendered in place of the list when nothing matches, instead of `emptyMessage`. */
 	empty?: ReactNode;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 // How long the query has to sit still before the live region reports a
@@ -150,6 +156,7 @@ export const CommandMenu = forwardRef<HTMLDivElement, CommandMenuProps>(function
 		className,
 		icon,
 		empty,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -340,6 +347,10 @@ export const CommandMenu = forwardRef<HTMLDivElement, CommandMenuProps>(function
 
 	const emitQueryChange = useEventCallback(onQueryChange);
 
+	// Identity-stable, and a no-op while `sound` is falsy — the enabled check
+	// lives inside the hook, so the call sites below read as the source's do.
+	const playCue = useSoundCue(sound);
+
 	// Whatever the very first paint's `query` was is worth keeping — a caller
 	// that mounts the menu already open with a prefilled query is seeding it
 	// on purpose. Only actual *reopenings* (closed, now open again) are what a
@@ -348,11 +359,25 @@ export const CommandMenu = forwardRef<HTMLDivElement, CommandMenuProps>(function
 	// exactly that one first transition.
 	const hasOpenedBefore = useRef(false);
 
+	// The `open` value this effect last acted on, `null` before it has ever
+	// run. `hasOpenedBefore` alone is a latch that survives a StrictMode
+	// remount, so a dev-mode double invoke would run the body twice for ONE
+	// open and the second pass would take the reopen branch — wiping a query
+	// the caller seeded on the very first mount and pushing `onQueryChange("")`
+	// back at it. Keying the work on the open EDGE instead makes a repeated
+	// invoke at an unchanged `open` a no-op, which is what makes the dev-only
+	// remount indistinguishable from a single mount. Deliberately not a
+	// cleanup that rewinds `hasOpenedBefore`: that would fire on every real
+	// close and turn every reopen back into a first mount.
+	const lastHandledOpen = useRef<boolean | null>(null);
+
 	// The React counterpart of the source's `untrack` block: this effect
 	// re-fires on `open` alone — not on a keystroke, not on an `items` swap.
 	// Every other value it touches is reached through an identity-stable ref
 	// or handle, so the dependency array below is both honest and minimal.
 	useEffect(() => {
+		if (lastHandledOpen.current === open) return;
+		lastHandledOpen.current = open;
 		if (!open) return;
 		if (hasOpenedBefore.current) {
 			queryRef.current = "";
@@ -399,17 +424,26 @@ export const CommandMenu = forwardRef<HTMLDivElement, CommandMenuProps>(function
 	const resultsMessage =
 		announcedCount === null ? "" : announcedCount === 1 ? "1 result" : `${announcedCount} results`;
 
-	function setOpen(next: boolean): void {
+	function setOpen(next: boolean, options: { silent?: boolean } = {}): void {
 		if (open === next) return;
 		setOpenState(next);
 		onOpenChange?.(next);
+		// No `open` cue here on purpose — this menu is opened programmatically
+		// by the consumer (⌘K and the like), never by an interaction this
+		// component itself handles, so there is no gesture here to attach one
+		// to. Only a dismissal (Escape, an outside click) plays `close`; a
+		// commit-driven close passes `{ silent: true }` from `commitItem` below
+		// so a committed row's own `select` cue is the only one that plays —
+		// the same commit/dismiss split `Select`'s panel close uses.
+		if (!next && !options.silent) playCue("close");
 	}
 
 	function commitItem(item: CommandItem): void {
 		if (item.disabled) return;
+		playCue("select");
 		item.onSelect?.();
 		onSelect?.(item);
-		setOpen(false);
+		setOpen(false, { silent: true });
 	}
 
 	function setQuery(next: string): void {

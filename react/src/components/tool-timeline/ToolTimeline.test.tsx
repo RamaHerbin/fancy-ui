@@ -1,8 +1,9 @@
-import { render, cleanup, act } from "@testing-library/react";
+import { render, cleanup, act, fireEvent } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { ToolTimeline } from "./ToolTimeline.js";
 import { formatRelativeTime } from "../../internals/relative-time.js";
 import type { ToolTimelineItemData } from "../../internals/ai-types.js";
+import { sound } from "../../sound/sound.js";
 
 const T0 = new Date("2026-01-01T00:00:00.000Z").getTime();
 
@@ -194,5 +195,79 @@ describe("ToolTimeline", () => {
 			vi.advanceTimersByTime(60_000);
 		});
 		expect(label()).toBe("1 minute ago");
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once when an entry is activated, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(<ToolTimeline items={items} sound onSelect={onSelect} />);
+
+			fireEvent.click(container.querySelectorAll("button")[1]!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { container } = render(<ToolTimeline items={items} onSelect={onSelect} />);
+
+			fireEvent.click(container.querySelectorAll("button")[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when onSelect is absent — rows are plain spans, not buttons", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ToolTimeline items={items} sound />);
+
+			expect(container.querySelectorAll("button")).toHaveLength(0);
+			container
+				.querySelector(".ft-tooltimeline-row")
+				?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when a new entry is appended — mounting a row is not a pick", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			const { rerender } = render(<ToolTimeline items={items} sound onSelect={onSelect} />);
+
+			rerender(
+				<ToolTimeline
+					items={[...items, { id: "d", verb: "Read", target: "new.ts" }]}
+					sound
+					onSelect={onSelect}
+				/>
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the shared clock ticks — the interval never plays a cue", () => {
+			vi.useFakeTimers();
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onSelect = vi.fn();
+			render(
+				<ToolTimeline
+					items={[{ id: "a", verb: "Read", target: "a.ts", timestamp: Date.now() }]}
+					sound
+					onSelect={onSelect}
+				/>
+			);
+
+			act(() => {
+				vi.advanceTimersByTime(60_000);
+			});
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

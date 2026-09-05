@@ -1,5 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { cn } from "../../utils.js";
 import { NumberTicker } from "../number-ticker/index.js";
 import "./recommendation-card.css";
@@ -55,6 +57,11 @@ export interface RecommendationCardProps {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -80,6 +87,7 @@ export const RecommendationCard = forwardRef<HTMLDivElement, RecommendationCardP
 			badge,
 			children,
 			className,
+			sound = false,
 		},
 		ref
 	) {
@@ -106,6 +114,18 @@ export const RecommendationCard = forwardRef<HTMLDivElement, RecommendationCardP
 		const [filled, setFilled] = useState(false);
 		const [reduced, setReduced] = useState(false);
 
+		const playCue = useSoundCue(sound);
+
+		// `current` inside `decide` is the value of the render that built the
+		// closure, so two clicks dispatched in one synchronous batch would both read
+		// "open" and resolve the proposal twice. The ref carries the answer across
+		// that gap, and is put back in step with `current` on every commit so a
+		// proposal reopened from outside can be answered again.
+		const currentRef = useRef<RecommendationState>(current);
+		useIsomorphicLayoutEffect(() => {
+			currentRef.current = current;
+		}, [current]);
+
 		/** Where focus lands once the buttons it might have held are gone. */
 		const resolvedRef = useRef<HTMLParagraphElement | null>(null);
 		const shouldFocusResolved = useRef(false);
@@ -120,7 +140,11 @@ export const RecommendationCard = forwardRef<HTMLDivElement, RecommendationCardP
 		// duration rather than by a media query: it lands on the number immediately.
 		const tickerMs = Math.max(0.01, reduced ? 0 : TICKER_MS);
 
-		useEffect(() => {
+		// A layout effect, not a passive one: the reduced-motion branch below writes
+		// the settled arc, and it has to land in the commit that mounts the card or
+		// the browser paints the empty ring for a frame first — the very artefact
+		// the branch exists to remove.
+		useIsomorphicLayoutEffect(() => {
 			const isReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 			setReduced(isReduced);
 
@@ -165,11 +189,15 @@ export const RecommendationCard = forwardRef<HTMLDivElement, RecommendationCardP
 		 * Re-entry is refused rather than re-announced: a proposal resolves once.
 		 */
 		function decide(next: "accepted" | "dismissed") {
-			if (current !== "open") return;
+			if (currentRef.current !== "open") return;
+			currentRef.current = next;
 			if (!isControlled) {
 				setUncontrolledState(next);
 			}
 			onStateChange?.(next);
+			// The deliberate asymmetry with ApprovalCard: accepting is a commit
+			// (`select`), dismissing is a close (`close`), never `error` either way.
+			playCue(next === "accepted" ? "select" : "close");
 			if (next === "accepted") onAccept?.();
 			else onDismiss?.();
 			shouldFocusResolved.current = true;
@@ -257,7 +285,14 @@ export const RecommendationCard = forwardRef<HTMLDivElement, RecommendationCardP
 					)}
 				</div>
 
-				{children && <div className="ft-rec-detail mt-3 min-w-0">{children}</div>}
+				{/*
+					Nullish and boolean children mean "no detail region"; every other
+					value renders inside the wrapper, so a numeric `0` cannot leak out
+					as bare text the way a plain truthiness test would let it.
+				*/}
+				{children != null && children !== false && (
+					<div className="ft-rec-detail mt-3 min-w-0">{children}</div>
+				)}
 
 				{/*
 					One footer element, mounted from the first render, so the live region

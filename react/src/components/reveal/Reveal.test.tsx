@@ -1,4 +1,7 @@
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
+import type { ReactElement } from "react";
+import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Reveal, type RevealProps } from "./Reveal.js";
@@ -368,6 +371,51 @@ describe("Reveal", () => {
 
 			const { container } = render(<Reveal initial="visible">{CHILD}</Reveal>);
 			expect(container.querySelector(".ft-reveal")?.getAttribute("data-state")).toBe("armed");
+		});
+	});
+
+	describe("effect phase (what the first painted frame shows)", () => {
+		/**
+		 * Renders through `createRoot` inside `flushSync` rather than
+		 * `render()`: testing-library flushes PASSIVE effects before it
+		 * returns, which makes a layout effect and a passive one look
+		 * identical from the DOM. `flushSync` commits the render, every
+		 * layout effect, and any state a layout effect commits — and leaves
+		 * passive effects pending. So `data-state` at that moment is exactly
+		 * what a browser would paint on the first frame, which is what
+		 * both of these are about (contract §4).
+		 */
+		function firstPaintState(element: ReactElement) {
+			const container = document.createElement("div");
+			document.body.appendChild(container);
+			const root = createRoot(container);
+			// React warns about updates made outside `act()` in a test
+			// environment; observing the commit `act()` would hide is the
+			// whole point here, so the flag is off for the render itself.
+			const globals = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean };
+			const previousActEnvironment = globals.IS_REACT_ACT_ENVIRONMENT;
+			globals.IS_REACT_ACT_ENVIRONMENT = false;
+			try {
+				flushSync(() => {
+					root.render(element);
+				});
+				return container.querySelector(".ft-reveal")?.getAttribute("data-state");
+			} finally {
+				flushSync(() => {
+					root.unmount();
+				});
+				globals.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
+				container.remove();
+			}
+		}
+
+		it("initial='visible': the idle→armed flip is committed before the first paint, so the content never blinks in and out", () => {
+			expect(firstPaintState(<Reveal initial="visible">{CHILD}</Reveal>)).toBe("armed");
+		});
+
+		it("no IntersectionObserver at all: the fail-visible answer lands before the first paint, so nothing paints hidden", () => {
+			vi.stubGlobal("IntersectionObserver", undefined);
+			expect(firstPaintState(<Reveal>{CHILD}</Reveal>)).toBe("visible");
 		});
 	});
 

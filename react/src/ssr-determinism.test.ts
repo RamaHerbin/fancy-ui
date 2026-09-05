@@ -1,9 +1,7 @@
 // @vitest-environment node
-import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import * as pkg from "./index.js";
-import * as cam from "./cameleon/index.js";
+import { NEEDS_PROPS, exportedComponents, tree } from "./ssr-sweep.fixtures.js";
 
 /**
  * Package-wide render-purity gate (convention C-7): a component's server HTML
@@ -16,37 +14,41 @@ import * as cam from "./cameleon/index.js";
  * Runs in the node environment, with no DOM globals, so a component that
  * touches `window` during render fails to render at all rather than quietly
  * succeeding against jsdom.
+ *
+ * One case per export rather than one case for the whole sweep, so a component
+ * that diverges — or hangs — names itself instead of failing a single
+ * three-minute case that says only that something, somewhere, went wrong.
  */
+
+const swept = exportedComponents();
+
+/** The sweep's coverage floor: the per-case assertions pass on empty input too. */
+const CHECKED_FLOOR = 150;
+
 describe("ssr determinism", () => {
-	it("renders identically twice", () => {
-		const diverged: string[] = [];
-		/** Exports whose render throws from `{ children: "x" }` alone: they need
-		 * props or a context provider this sweep does not supply, and are covered
-		 * by their own colocated suites. */
-		const skipped: string[] = [];
-		let checked = 0;
+	const checked: string[] = [];
+	const skipped: string[] = [];
 
-		for (const [name, value] of Object.entries({ ...pkg, ...cam })) {
-			if (typeof value !== "function" && typeof value !== "object") continue;
-			if (typeof value === "object" && !(value && "$$typeof" in (value as object))) continue;
-			if (!/^[A-Z]/.test(name)) continue;
-			let a: string;
-			let b: string;
-			try {
-				a = renderToStaticMarkup(createElement(value as never, { children: "x" } as never));
-				b = renderToStaticMarkup(createElement(value as never, { children: "x" } as never));
-			} catch {
-				skipped.push(name);
-				continue;
-			}
-			checked += 1;
-			if (a !== b) diverged.push(`${name}\n  A=${a.slice(0, 300)}\n  B=${b.slice(0, 300)}`);
+	it.each(swept)("%s renders identically twice", (name, value) => {
+		let a: string;
+		let b: string;
+		try {
+			a = renderToStaticMarkup(tree(value));
+			b = renderToStaticMarkup(tree(value));
+		} catch {
+			// Needs props or a provider this sweep does not supply. Recorded rather
+			// than dropped: the frozen list below is what stops the hole growing.
+			skipped.push(name);
+			expect(NEEDS_PROPS as readonly string[]).toContain(name);
+			return;
 		}
+		checked.push(name);
+		expect(NEEDS_PROPS as readonly string[]).not.toContain(name);
+		expect(a).toEqual(b);
+	});
 
-		expect(diverged).toEqual([]);
-		// Coverage floor: the assertion above also passes on an empty sweep, so a
-		// broken barrel or a render that throws for everything would read as green.
-		expect(checked).toBeGreaterThan(150);
-		expect(skipped.length).toBeLessThan(checked);
+	it("sweeps the whole barrel, and the frozen list has no stale names", () => {
+		expect([...skipped].sort()).toEqual([...NEEDS_PROPS].sort());
+		expect(checked.length).toBeGreaterThan(CHECKED_FLOOR);
 	});
 });

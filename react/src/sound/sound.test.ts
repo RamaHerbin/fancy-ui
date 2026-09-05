@@ -242,6 +242,57 @@ describe("sound controller", () => {
 		expect(sound.enabled).toBe(true);
 	});
 
+	// The cross-tab listener is attached once for the life of the module and
+	// released only by `resetSoundForTests()`. Every suite that touches sound
+	// resets between cases, so a listener that outlived its reset would leak
+	// one live handler per test file and let a stale tab rewrite preferences.
+	it("attaches exactly one storage listener however often hydration is reached", () => {
+		const addSpy = vi.spyOn(window, "addEventListener");
+		try {
+			void sound.enabled;
+			hydrateSound();
+			hydrateSound();
+			void sound.volume;
+			sound.setEnabled(true);
+
+			expect(addSpy.mock.calls.filter(([type]) => type === "storage")).toHaveLength(1);
+		} finally {
+			addSpy.mockRestore();
+		}
+	});
+
+	it("resetSoundForTests detaches the storage listener, so a later event is inert", () => {
+		void sound.enabled; // hydrate + attach
+		const removeSpy = vi.spyOn(window, "removeEventListener");
+
+		try {
+			resetSoundForTests();
+
+			expect(removeSpy.mock.calls.filter(([type]) => type === "storage")).toHaveLength(1);
+
+			// A leaked listener would wake the store and rewrite the preferences.
+			// `getSoundSnapshot()` is the one reader that never re-hydrates, so it
+			// can observe the leak instead of papering over it.
+			const woken = vi.fn();
+			const unsubscribe = subscribeSound(woken);
+			try {
+				window.dispatchEvent(
+					new StorageEvent("storage", {
+						key: SOUND_STORAGE_KEY,
+						newValue: JSON.stringify({ v: 1, enabled: true, volume: 0.9, theme: "fancy" }),
+					})
+				);
+
+				expect(woken).not.toHaveBeenCalled();
+				expect(getSoundSnapshot().enabled).toBe(false);
+			} finally {
+				unsubscribe();
+			}
+		} finally {
+			removeSpy.mockRestore();
+		}
+	});
+
 	it("setItem throwing still updates in-memory state and reports storage: error", () => {
 		setItemSpy.mockImplementation(() => {
 			throw new Error("quota exceeded");
@@ -513,7 +564,7 @@ describe("sound controller — the React store surface", () => {
 		}
 	});
 
-	it("keeps the status object identity between mutations, so a status reader can bail out", () => {
+	it("keeps the status object identity across reads and mints a new one on a mutation", () => {
 		const first = getSoundSnapshot().status;
 		expect(getSoundSnapshot().status).toBe(first);
 

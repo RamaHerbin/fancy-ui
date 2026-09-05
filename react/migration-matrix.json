@@ -13,7 +13,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -88,7 +88,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": [
         "button",
         "dialog"
@@ -172,8 +172,10 @@
     "complexity": "js-anim",
     "deps": {
       "internals": [],
-      "motion": [],
-      "sound": false,
+      "motion": [
+        "media-query"
+      ],
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -191,7 +193,10 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "The pending 300 ms navigation clamps to index 0 when the collection empties mid-flight, and the wrap reads the live length rather than the one captured when the button was pressed; the Svelte source computes `% 0` = NaN and stays broken once items come back.",
+      "Autoplay pauses on keyboard focus inside the region as well as on pointer hover, and does not start at all under `prefers-reduced-motion` — temporarily ahead of the Svelte source, which mirrors it next."
+    ],
     "lastFailure": null
   },
   {
@@ -245,7 +250,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -271,8 +276,9 @@
       "AppleCardData.content is a ReactNode instead of a Svelte Snippet (rendered directly rather than invoked).",
       "AppleCard's props interface is now exported as AppleCardProps (the Svelte side kept it a local, unexported interface) to satisfy the <Name>Props tooling contract.",
       "TRANSITION_MS is exported from AppleCard.tsx (as in the Svelte module script) but, matching the Svelte index, is not re-exported from the folder's index.ts.",
-      "Svelte's await tick() + inline rAF chain after expand became a useEffect keyed on overlayVisible: focus close button, then double-rAF flip to fullyExpanded; the rAFs are cancelled on cleanup (Svelte had no cancellation, but the timing/behaviour is identical). The reduced-motion branch is read from a ref so it is decided once per expand, like the source handler.",
-      "The collapse setTimeout is not cleared on unmount, mirroring the Svelte source verbatim (React 18+ makes the late setState a no-op)."
+      "Svelte's await tick() + inline rAF chain after expand became two effects keyed on overlayVisible: a layout effect that focuses the close button (and commits the reduced-motion still frame), then a passive effect whose double rAF flips fullyExpanded; the rAFs are cancelled on cleanup (Svelte had no cancellation, but the timing/behaviour is identical). The reduced-motion branch is read from a ref so it is decided once per expand, like the source handler.",
+      "The collapse setTimeout is not cleared on unmount, mirroring the Svelte source verbatim (React 18+ makes the late setState a no-op).",
+      "AppleCardCarousel reads the reduced-motion preference through the package's useReducedMotion() (useSyncExternalStore over matchMedia) rather than the source's onMount + matchMedia state, so the preference is correct on the first committed render and there is no hydration-mismatch surface."
     ],
     "lastFailure": null
   },
@@ -290,7 +296,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -331,7 +337,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": [
         "streaming-text"
       ]
@@ -382,7 +388,7 @@
       "motion": [
         "anchored"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -457,7 +463,8 @@
     "svelteFiles": 3,
     "attempts": 1,
     "divergences": [
-      "BentoGridItemProps uses Omit<HTMLAttributes<HTMLDivElement>, 'title'> to avoid a TS conflict between the DOM 'title' attribute and the Svelte 'title' snippet prop (same intersection pattern PORTING.md prescribes for RainbowButton)."
+      "BentoGridItemProps uses Omit<HTMLAttributes<HTMLDivElement>, 'title'> to avoid a TS conflict between the DOM 'title' attribute and the Svelte 'title' snippet prop (same intersection pattern PORTING.md prescribes for RainbowButton).",
+      "BentoGridItemProps and BentoGridCardProps extend HTMLAttributes<HTMLDivElement>, so they accept every div attribute — including a `children` the components render fixed JSX in place of and therefore silently drop; the Svelte parts declare a closed prop list."
     ],
     "lastFailure": null
   },
@@ -718,7 +725,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -775,7 +782,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "`onclick` is renamed `onClick` and typed with React's synthetic MouseEvent, matching the event-prop casing NavbarLink, Sidebar, ChatMessageAction, Toggle and ToggleGroupItem already use."
+    ],
     "lastFailure": null
   },
   {
@@ -921,7 +930,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -962,7 +971,7 @@
         "elapsed"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": [
         "streaming-text"
       ]
@@ -1028,7 +1037,7 @@
         "autoscroll"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -1053,7 +1062,9 @@
     ],
     "svelteFiles": 2,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "ChatEmptyState's `icon` fallback uses `??`, so a nullish `icon` falls back to the default sparkle but a falsy-but-defined node such as `icon={false}` or `icon={\"\"}` renders an empty decorative span where the Svelte `{#if icon}` branch still draws the sparkle; pass `undefined` to get the default mark."
+    ],
     "lastFailure": null
   },
   {
@@ -1116,7 +1127,7 @@
         "diff"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -1137,7 +1148,7 @@
     "divergences": [
       "`collapsed` bindable prop becomes `collapsed?: boolean` (master-switch seed, re-seeds on prop change) + `onCollapsedChange?: (collapsed: boolean) => void` reporting the aggregate a header click produces — the established pattern for bindable booleans in this package.",
       "Root class `fancy-code-diff` is a PORT-ADDED anchor (PORTING.md styling rule 2): the Svelte <style> block had no root class, so all .ft-* rules are anchored under it in code-diff.css.",
-      "`inert` is rendered as a boolean JSX attribute: React 19 emits the bare attribute, React 18 drops it with a warning — same peer-range caveat already documented on sources/dialog.",
+      "`inert` is written to the collapsed views imperatively through internals/dom/use-inert-attribute, because React 18 drops `inert={true}` and React 19 rejects `inert=\"\"`; it is therefore absent from server HTML where Svelte SSRs it. A local DiffBody sub-component hosts the hook — markup unchanged.",
       "Test transposition: `body().inert` property assertions became `hasAttribute(\"inert\")` (jsdom has no inert IDL; matches sources/dialog tests), the user-select rule regex now matches the anchored selectors in code-diff.css, and the `await tick()` after rerender is unnecessary (RTL flushes effects)."
     ],
     "lastFailure": null
@@ -1202,7 +1213,7 @@
       "motion": [
         "anchored"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -1268,7 +1279,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -1298,7 +1309,8 @@
       "`icon: Snippet<[CommandItem]>` -> `icon?: (item: CommandItem) => ReactNode` (parameterised snippet becomes a render function).",
       "`empty: Snippet` -> `empty?: ReactNode` (no-argument snippet is just a node).",
       "`data-state` is an ordinary React attribute carrying `presence.surfaceState` (\"open\" | \"closing\") instead of the Svelte static literal mutated by `markSurfaceState` — same DOM values, never \"opening\" (contract C-5 / D-2).",
-      "The portal-before-focus-trap ordering ceremony is gone: `createPortal` commits children before any effect runs, so the detached-`.focus()` hazard cannot recur (contract D-10)."
+      "The portal-before-focus-trap ordering ceremony is gone: `createPortal` commits children before any effect runs, so the detached-`.focus()` hazard cannot recur (contract D-10).",
+      "Filter/display/group pipeline and per-row match ranges recompute on every render, including the arrow-key re-renders the source caches through `$derived`/`{@const}`; identical output, no memoisation."
     ],
     "lastFailure": null,
     "minors": [
@@ -1346,7 +1358,8 @@
     "attempts": 1,
     "divergences": [
       "StarField gains a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the Svelte side's render-path Math.random(), per PORTING.md's SSR rule; two StarFields with the same starsCount and seed render identical skies, and stars only reshuffle when starsCount or seed changes.",
-      "StarField's root cn() gains the port-added anchor class `fancy-star-field` (PORTING.md styling rule 2 sanctioned addition) so the formerly compiler-scoped `.star` rules don't leak globally; keyframe names `twinkle`/`drift` kept identical."
+      "StarField's root cn() gains the port-added anchor class `fancy-star-field` (PORTING.md styling rule 2 sanctioned addition) so the formerly compiler-scoped `.star` rules don't leak globally; keyframe names `twinkle`/`drift` kept identical.",
+      "The autoplay loop is started once: the Svelte source starts it twice (onMount plus the $effect tracking hover and drag), so two rAF loops run there and `onpercentagechange` fires twice per frame. The divider position is identical on both sides, but a consumer counting or debouncing that callback sees half the invocations here."
     ],
     "lastFailure": null
   },
@@ -1367,7 +1380,7 @@
         "float"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -1386,7 +1399,8 @@
       "ComposerModelPicker",
       "ComposerAttachments",
       "ComposerAttachment",
-      "ComposerCommandMenu"
+      "ComposerCommandMenu",
+      "COMPOSER_CONTEXT_KEY"
     ],
     "loc": 2028,
     "testFiles": [
@@ -1434,7 +1448,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -1461,7 +1475,7 @@
       "`fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.",
       "Context key stays private. Svelte publishes on the string key `\"ConfettiContext\"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.",
       "`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.",
-      "No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options` and `children` on a bare `<button>`."
+      "No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options`, `children` and `sound` on a bare `<button>`."
     ],
     "lastFailure": null,
     "minors": [
@@ -1541,7 +1555,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 2,
-    "divergences": [],
+    "divergences": [
+      "ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> and spreads rest onto the root, so id/onClick/data-*/aria-* reach the element where the Svelte component drops them; the inherited `children` is type-accepted and dropped, since the component renders its own."
+    ],
     "lastFailure": null
   },
   {
@@ -1565,7 +1581,7 @@
       "motion": [
         "anchored"
       ],
-      "sound": false,
+      "sound": true,
       "components": [
         "dropdown-menu"
       ]
@@ -1589,7 +1605,8 @@
       "ContextMenuLabel",
       "ContextMenuSub",
       "ContextMenuSubTrigger",
-      "ContextMenuSubContent"
+      "ContextMenuSubContent",
+      "CONTEXT_MENU_KEY"
     ],
     "loc": 462,
     "testFiles": [
@@ -1600,17 +1617,11 @@
     "attempts": 1,
     "divergences": [
       "ContextMenuRootContext.close() is typed with the shared MenuCloseOptions ({ returnFocus?, silent? }) instead of the Svelte side's narrower { returnFocus?: boolean }. `silent` is ignored (this family plays no sound), so behaviour is identical; the widening is what lets MenuContext.closeAll forward its options object unchanged, exactly as the Svelte source does at runtime.",
-      "ContextMenu takes no `sound` prop — matching the Svelte ContextMenu, which has none — while the React DropdownMenu does. The shared leaves (ContextMenuItem/Sub/SubTrigger/SubContent) read `MenuContext.sound`, which this family leaves undefined, so they stay silent exactly as under the Svelte ContextMenu.",
-      "ContextMenuTrigger is forwardRef<HTMLDivElement> and ContextMenuContent forwardRef<HTMLDivElement> (both Svelte sides declare `ref = $bindable(null)`); ContextMenu itself takes no ref, as in the source. Neither trigger nor content spreads rest props — the Svelte sources declare none."
+      "ContextMenuTrigger is forwardRef<HTMLDivElement> and ContextMenuContent forwardRef<HTMLDivElement> (both Svelte sides declare `ref = $bindable(null)`); ContextMenu itself takes no ref, as in the source. Neither trigger nor content spreads rest props — the Svelte sources declare none.",
+      "Post-open focus is moved in a passive effect where the source moves it in a `tick()` microtask, so the panel paints one frame before the focus ring lands on the first or last item; the anchored entrance is still animating at that point."
     ],
     "lastFailure": null,
-    "minors": [
-      {
-        "file": "react/src/components/context-menu/index.ts",
-        "problem": "Drops CONTEXT_MENU_KEY and ContextMenuRootContext, which the Svelte context-menu/index.ts exports (line 51) and which the sibling React dropdown-menu/index.ts deliberately keeps as its documented 'public escape hatch for a consumer composing their own menu leaf' (DROPDOWN_MENU_KEY / DropdownMenuRootContext, lines 20-29). The divergence note justifies the omission by a star-barrel collision, but those two names are unique to this family, and even the shared MENU_KEY/SUB_KEY/MenuContext/SubContext re-exports resolve to the same declaration in dropdown-menu/types.js, which is exactly why the Svelte top barrel already does `export *` from both folders without ambiguity. Consequence is a narrower published API than the Svelte source and an asymmetry between the two menu families; no rendering, test, or type impact.",
-        "severity": "minor"
-      }
-    ]
+    "minors": []
   },
   {
     "slug": "context-ring",
@@ -1628,7 +1639,7 @@
         "float"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -1727,7 +1738,7 @@
       "motion": [
         "anchored"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -1782,7 +1793,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -1882,7 +1893,8 @@
       "fade transitions on the overlay and caption are reproduced via usePresence + a local fade300 TransitionSpec (WAAPI mechanism per internals-api §5) instead of a framework transition directive — same 300ms linear opacity curve",
       "overlay class freezes at the last hovered direction during the fade-out (explicit lastDirectionRef) to reproduce the source's inert-outro-branch behavior, since React keeps re-rendering the exiting node",
       "isMobile lives in a ref rather than state — it is only read in event handlers and never drives markup, so resize events no longer trigger re-renders (no observable difference)",
-      "non-null assertion added on event.touches[0] to satisfy the React tsconfig's indexed-access checking (no runtime change)"
+      "non-null assertion added on event.touches[0] to satisfy the React tsconfig's indexed-access checking (no runtime change)",
+      "Reduced-motion and <=768px touch-target rules are re-anchored from the source's `:global(*)` and shared `group/card` selectors onto the port-added `.direction-aware-hover` root class, so the aggregated dist/styles.css cannot reach apps that never render the component. The root element carries both classes, so the targeted element is unchanged."
     ],
     "lastFailure": null
   },
@@ -1976,7 +1988,9 @@
       "`DockContext.mouseX`/`mouseY` keep the exact `{ current: number }` shape, but the box is REBUILT by Dock on every pointer frame instead of being mutated in place — a mutated object is invisible to React and the new identity is what re-renders the icons.",
       "Media queries go through `useMediaQuery`/`useReducedMotion` (useSyncExternalStore) instead of `createMediaQuery().start()` in an `$effect` — internals-contract divergence D-4. SSR and the hydration render still answer `false`/`false` (identical to the Svelte fallback), but on a client-only first render `magnify` is already correct instead of settling one effect pass later.",
       "Dock tracks and cancels any rAF still queued at unmount; the Svelte source relies on its scheduler tearing the component down first. No observable behaviour change — a cancelled frame had nothing left to paint into.",
-      "index.ts re-exports the three components plus their Props types AND the `DataOrientation`, `Direction`, `DockContext` types, mirroring the Svelte index.ts exactly (a superset of the three components + Props types requested in the brief; DockProps references `Direction`/`DataOrientation`, so consumers need them)."
+      "index.ts re-exports the three components plus their Props types AND the `DataOrientation`, `Direction`, `DockContext` types, mirroring the Svelte index.ts exactly (a superset of the three components + Props types requested in the brief; DockProps references `Direction`/`DataOrientation`, so consumers need them).",
+      "React adds an `ariaLabel` prop (rendered as `aria-label` on the toolbar) and emits `aria-orientation` matching `orientation`; the Svelte source has neither, so this is a temporary React-only addition until the Svelte side mirrors it.",
+      "While the pointer is inside the dock every animation frame produces a new context value, so the Dock root and every DockSeparator re-render and re-run their `cn()` calls where Svelte mutates two `{ current }` boxes and re-renders neither; visual output is identical."
     ],
     "lastFailure": null
   },
@@ -2002,7 +2016,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -2031,7 +2045,8 @@
       "`data-state` is an ordinary attribute carrying `surfaceState`'s two values instead of a static literal mutated by `markSurfaceState` (contract divergence D-2); `inert` during the exit is set by `usePresence`, not the framework",
       "No portal-before-focus-trap ordering ceremony (contract divergence D-10): createPortal commits before effects, so the trap always focuses a connected node",
       "Scroll lock is `useScrollLock(presence.mounted)` rather than an outro-delayed action destroy — identical release timing (page unlocks when the slide-out finishes)",
-      "Per-frame drag offset lives in a ref with direct element.style writes instead of reactive state (group guidance); the spring-back class is applied via flushSync so the CSS transition and the transform reset land in the same frame, matching Svelte's batched flush"
+      "Per-frame drag offset lives in a ref with direct element.style writes instead of reactive state (group guidance); the spring-back class is applied via flushSync so the CSS transition and the transform reset land in the same frame, matching Svelte's batched flush",
+      "React adds an `ariaLabel` prop (no Svelte counterpart yet) so a title-less panel can carry an accessible name; the Svelte side is tracked to mirror it."
     ],
     "lastFailure": null
   },
@@ -2078,7 +2093,10 @@
       "DropdownMenuLabel",
       "DropdownMenuSub",
       "DropdownMenuSubTrigger",
-      "DropdownMenuSubContent"
+      "DropdownMenuSubContent",
+      "DROPDOWN_MENU_KEY",
+      "MENU_KEY",
+      "SUB_KEY"
     ],
     "loc": 1414,
     "testFiles": [
@@ -2087,7 +2105,9 @@
     ],
     "svelteFiles": 9,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "Post-open focus is moved in a passive effect where the source moves it in a `tick()` microtask, so the panel paints one frame before the focus ring lands on the first or last item; the anchored entrance is still animating at that point."
+    ],
     "lastFailure": null,
     "minors": [
       {
@@ -2172,7 +2192,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -2195,7 +2215,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "The native file input is reset on picker-open (not on change) so `name`/`required` see a real FileList; `removeFile` clears it again when a removal invalidates it. A cancelled picker leaves the input empty while the row list keeps the earlier pick; dropped files never feed the native input, as in the Svelte source."
+    ],
     "lastFailure": null
   },
   {
@@ -2272,7 +2294,10 @@
     "effort": "xhigh",
     "complexity": "canvas2d",
     "deps": {
-      "internals": [],
+      "internals": [
+        "dom/use-element-ref",
+        "dom/use-live-ref"
+      ],
       "motion": [],
       "sound": false,
       "components": []
@@ -2378,8 +2403,10 @@
     "attempts": 1,
     "divergences": [
       "Svelte `class` prop becomes `className` (standard port mapping)",
-      "Timer scheduling moved inside useEffect closures (refs for timeout ids); observable timing behavior identical (duration wait -> 600ms exit -> next word)",
-      "Compiler-scoped `.flip-words-enter` / `.flip-words-exit` rules are anchored under the `.flip-words` root class in the colocated CSS (global keyframe names kept identical)"
+      "Timer scheduling moved inside useEffect closures (refs for timeout ids).",
+      "Compiler-scoped `.flip-words-enter` / `.flip-words-exit` rules are anchored under the `.flip-words` root class in the colocated CSS (global keyframe names kept identical)",
+      "The flip cycle is keyed on `words.length`, not on the `words` array identity the Svelte $effect tracks, so a parent handing down a new array reference (or a same-length content swap) no longer clears the pending timer and re-arms a full `duration` wait.",
+      "The next-index computation guards an empty `words` list: if the array empties while the 600 ms exit is in flight the React component falls back to index 0 and resumes when the list is repopulated, where the Svelte source computes `(index + 1) % 0` = NaN and stays blank forever."
     ],
     "lastFailure": null
   },
@@ -2395,7 +2422,9 @@
     "effort": "max",
     "complexity": "webgl",
     "deps": {
-      "internals": [],
+      "internals": [
+        "dom/use-live-ref"
+      ],
       "motion": [],
       "sound": false,
       "components": []
@@ -2644,7 +2673,7 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "Svelte binds `style={styles}` as a raw attribute string; React's `style` prop only accepts an object and would reformat/reorder the CSS text (breaking the exact `--glow-duration: 5s` substring the tests check). Ported by writing the identical raw style string via a ref + useLayoutEffect (`ref.current.style.cssText = styles`) instead of React's style object — visually and textually identical output, same reactivity (re-runs when derived values change), no SSR/hydration mismatch risk since it only touches the DOM after mount."
+      "Svelte binds `style={styles}` as a raw attribute string; React's `style` prop only accepts an object, so the custom properties are built as a React style object during render and are present in the server HTML. Byte order of the serialised attribute differs; the rendered result is identical."
     ],
     "lastFailure": null
   },
@@ -2700,7 +2729,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -2718,7 +2747,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 0,
-    "divergences": [],
+    "divergences": [
+      "GradientButton forwards a ref to the underlying `<button>` even though the Svelte source declares no bindable ref; additive only, recorded rather than removed."
+    ],
     "lastFailure": null
   },
   {
@@ -2810,7 +2841,8 @@
     "attempts": 1,
     "divergences": [
       "HyperText adds a `seed` prop (default 1): the scramble characters come from a deterministic mulberry32 PRNG instead of the source's bare `Math.random()` (PORTING.md seed-prop rule); the distribution and visual effect are unchanged.",
-      "When `text` shrinks mid-animation, an already-revealed index past the new length keeps its previous letter (`target[i] ?? l`) instead of rendering the string \"undefined\" as the Svelte code would — strict-TS guard, practically unobservable since the text-sync effect resets `displayText` on any `text` change."
+      "When `text` shrinks mid-animation, an already-revealed index past the new length keeps its previous letter (`target[i] ?? l`) instead of rendering the string \"undefined\" as the Svelte code would — strict-TS guard, practically unobservable since the text-sync effect resets `displayText` on any `text` change.",
+      "`displayText` seeds from `text.split(\"\")` instead of `[]`, so the character spans are present in the server render and on the first client commit; the Svelte source fills them only in a post-mount `$effect`. Post-mount DOM is identical."
     ],
     "lastFailure": null,
     "minors": [
@@ -2835,7 +2867,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": [
         "button"
       ]
@@ -2859,7 +2891,8 @@
       "`class` prop is `className` (PORTING.md rename); Tailwind literals, SIZE_CLASSES/VARIANT_EXTRA_CLASSES tables and the `cn()` argument order are copied verbatim.",
       "`ref = $bindable(null)` becomes `forwardRef<HTMLButtonElement | HTMLAnchorElement, IconButtonProps>` and is therefore not a member of `IconButtonProps` (the Svelte interface listed it).",
       "`onclick` is typed `(event: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void` instead of the DOM `MouseEvent` — same choice already made by the ported `Button`.",
-      "`children?: Snippet` becomes `children?: ReactNode`, still forwarded as Button's `iconStart` (not as Button's children), so the loading spinner replaces the icon exactly as in Svelte."
+      "`children?: Snippet` becomes `children?: ReactNode`, still forwarded as Button's `iconStart` (not as Button's children), so the loading spinner replaces the icon exactly as in Svelte.",
+      "`onclick` is renamed `onClick` and typed with React's synthetic MouseEvent, the same rename Button carries; it is forwarded to the underlying Button unchanged."
     ],
     "lastFailure": null,
     "minors": []
@@ -2878,7 +2911,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": [
         "pixel-loader"
       ]
@@ -2944,7 +2977,8 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "Root `touch-action: none` is emitted through React's inline-style object instead of Svelte's literal style string. Identical in browsers (style=\"touch-action: none;\"), but jsdom's cssstyle does not implement `touch-action` and silently drops any CSSOM write, so the transposed assertion reads the server markup (renderToStaticMarkup contains style=\"touch-action:none\") rather than the live node's style attribute. Same fact, jsdom-observable form."
+      "Root `touch-action: none` is emitted through React's inline-style object instead of Svelte's literal style string. Identical in browsers (style=\"touch-action: none;\"), but jsdom's cssstyle does not implement `touch-action` and silently drops any CSSOM write, so the transposed assertion reads the server markup (renderToStaticMarkup contains style=\"touch-action:none\") rather than the live node's style attribute. Same fact, jsdom-observable form.",
+      "`ImageItem.defaultStyle` is `private` here where the Svelte class declares it `public`: a public TweenVars member emits a bare animation-library namespace reference into the shipped .d.ts that a deep-importing consumer cannot resolve. The member is read only by `initEvents()`, and `ImageItem` is not re-exported from index.ts on either side."
     ],
     "lastFailure": null,
     "minors": []
@@ -3106,7 +3140,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -3208,7 +3242,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "LetterPullupProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, so id/style/onClick/role/aria-*/data-* reach the element; the Svelte component's surface is exactly {words, delay, class} and it spreads nothing."
+    ],
     "lastFailure": null
   },
   {
@@ -3225,7 +3261,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -3243,7 +3279,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "Props extend AnchorHTMLAttributes minus className and spread ...rest onto the `<a>`, per PORTING.md's rest-props-spread rule; the Svelte side exposed a fixed prop list and spread nothing."
+    ],
     "lastFailure": null
   },
   {
@@ -3258,7 +3296,10 @@
     "effort": "xhigh",
     "complexity": "pretext",
     "deps": {
-      "internals": [],
+      "internals": [
+        "dom/use-element-ref",
+        "dom/use-live-ref"
+      ],
       "motion": [],
       "sound": false,
       "components": []
@@ -3284,7 +3325,8 @@
     "attempts": 1,
     "divergences": [
       "`class` -> `className` (standard PORTING.md rename); no ref/forwardRef and no rest-prop spread, matching the Svelte source which declares neither.",
-      "Port-added root anchor class `line-reveal` (first token of the root `cn()`), so the compiler-scoped `.line-mask` / `.line` / `.revealed` rules do not leak globally — same treatment as `fancy-marquee` and `ripple-button`; README's 'Compiler-scoped selectors ... gained one' bullet should list `line-reveal` too."
+      "Port-added root anchor class `line-reveal` (first token of the root `cn()`), so the compiler-scoped `.line-mask` / `.line` / `.revealed` rules do not leak globally — same treatment as `fancy-marquee` and `ripple-button`; README's 'Compiler-scoped selectors ... gained one' bullet should list `line-reveal` too.",
+      "LineReveal creates one ResizeObserver per mounted instance where the Svelte `bind:clientWidth` routes through the framework's process-wide observer singleton; each disconnects on unmount and nothing leaks."
     ],
     "lastFailure": null,
     "minors": []
@@ -3338,7 +3380,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -3358,7 +3400,8 @@
     "attempts": 1,
     "divergences": [
       "Native click handler is `onClick` (React convention/rest-props spread) rather than Svelte's `onclick` prop name.",
-      "Props extend AnchorHTMLAttributes (minus className) and spread ...rest onto the <a>, per PORTING.md's rest-props-spread rule; Svelte side only exposed a fixed prop list plus onclick."
+      "Props extend AnchorHTMLAttributes (minus className) and spread ...rest onto the <a>, per PORTING.md's rest-props-spread rule; Svelte side only exposed a fixed prop list plus onclick.",
+      "The new-tab announcement and the safe-`rel` tokens are gated on the RESOLVED target, not on the bare `external` flag, so an `external` link whose `target` is overridden to `_self`/`_parent`/`_top` stays silent and keeps the caller's own `rel`; the Svelte source announces a new tab whenever `external` is set."
     ],
     "lastFailure": null
   },
@@ -3417,7 +3460,10 @@
     "effort": "xhigh",
     "complexity": "webgl",
     "deps": {
-      "internals": [],
+      "internals": [
+        "dom/ssr",
+        "dom/use-live-ref"
+      ],
       "motion": [],
       "sound": false,
       "components": []
@@ -3448,7 +3494,8 @@
       "`class` prop is `className` (PORTING.md API contract). Every other prop name, default and type is identical to the Svelte surface; no ref is exposed (the Svelte source declares no `$bindable` ref) and no rest props are spread (the Svelte root has none).",
       "`liquid-text.css`: the `.liquid-text-fallback` rule is anchored as `.liquid-text .liquid-text-fallback` (PORTING.md styling rule 2 — Svelte scoped it at compile time; as flat CSS the bare class would leak). Class names and the `.liquid-text` root rule are unchanged, and the fallback span is always a child of the root, so the computed styling is identical.",
       "New internal dependency the Svelte side does not have: `useLiveRef` from `internals/dom/use-live-ref.js`. It reproduces Svelte's live `$props()` reads inside the long-lived sim closures (pointer handler, rAF loop, observers), so `interactive`, `forceGain`, `radius`, `dissipation`, `viscosity`, `strength`, `chromaticRatio`, `pauseWhenHidden`, `text` and `fontWeight` still take effect after mount without re-initialising GL. Matrix row lists `deps.internals: []`; it is now `[\"dom/use-live-ref\"]`.",
-      "Test-only: `LiquidText.test.tsx` adds one throwaway `render(...).unmount()` before the listener-balance spies are installed. react-dom attaches its delegated `selectionchange` listener to the owner document the first time any root is created and never removes it; without the warm-up the transposed balance assertion fails when the test is run in isolation (`-t`). No production-code effect."
+      "Test-only: `LiquidText.test.tsx` adds one throwaway `render(...).unmount()` before the listener-balance spies are installed. react-dom attaches its delegated `selectionchange` listener to the owner document the first time any root is created and never removes it; without the warm-up the transposed balance assertion fails when the test is run in isolation (`-t`). No production-code effect.",
+      "The WebGL teardown deliberately diverges: the port does not call `WEBGL_lose_context.loseContext()` on a normal unmount (only on a failed init), because React re-runs the mount effect on the same `<canvas>` under StrictMode and Fast Refresh and a lost context is never re-acquired. Every GL object is still deleted explicitly and the context is reclaimed with the canvas."
     ],
     "lastFailure": null,
     "minors": []
@@ -3506,7 +3553,11 @@
     "effort": "medium",
     "complexity": "pointer",
     "deps": {
-      "internals": [],
+      "internals": [
+        "dom/use-composed-refs",
+        "dom/use-element-ref",
+        "dom/use-live-ref"
+      ],
       "motion": [
         "in-view",
         "raf",
@@ -3535,7 +3586,8 @@
     "attempts": 1,
     "divergences": [
       "style merging: the inline --ft-magnetic-radius var merges into React's style object (a consumer-passed `style` prop is spread first, the var wins), instead of Svelte's style-attribute + style: directive merge",
-      "reduced motion is read via useReducedMotion() (useSyncExternalStore); the Svelte createReducedMotion().start() lifecycle has no counterpart (internals contract D-4) — observable behavior identical, including runtime flips tearing the field down"
+      "reduced motion is read via useReducedMotion() (useSyncExternalStore); the Svelte createReducedMotion().start() lifecycle has no counterpart (internals contract D-4) — observable behavior identical, including runtime flips tearing the field down",
+      "The halo `::before` rule is plain CSS at specificity (0,1,1) where the Svelte compiler emitted a scoped selector at (0,2,1), so a consumer rule of equal specificity can now win on source order and override `pointer-events: none` on the halo."
     ],
     "lastFailure": null
   },
@@ -3572,7 +3624,9 @@
     ],
     "svelteFiles": 2,
     "attempts": 0,
-    "divergences": [],
+    "divergences": [
+      "`ReviewCardProps` is exported as a named type from the folder barrel; the Svelte README states the prop shape is deliberately not re-exported, so a consumer writing their own card need not match it."
+    ],
     "lastFailure": null
   },
   {
@@ -3587,8 +3641,13 @@
     "effort": "xhigh",
     "complexity": "canvas2d",
     "deps": {
-      "internals": [],
-      "motion": [],
+      "internals": [
+        "dom/use-element-ref",
+        "dom/use-live-ref"
+      ],
+      "motion": [
+        "in-view"
+      ],
       "sound": false,
       "components": []
     },
@@ -3720,7 +3779,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -3784,7 +3843,9 @@
       "NavigationMenuItem",
       "NavigationMenuTrigger",
       "NavigationMenuContent",
-      "NavigationMenuLink"
+      "NavigationMenuLink",
+      "NAVIGATION_MENU_KEY",
+      "NAVIGATION_MENU_ITEM_KEY"
     ],
     "loc": 870,
     "testFiles": [
@@ -3839,7 +3900,8 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "`neon-border.css` carries the Svelte `<style>` rules unanchored (`.neon-layer-one`, `.neon-layer-two`, `.neon-animated`) instead of nesting them under the root class, so they are global where the Svelte compiler scoped them. Known deviation from PORTING.md styling rule 2, shared with `meteors.css`."
+      "`neon-border.css` carries the Svelte `<style>` rules unanchored (`.neon-layer-one`, `.neon-layer-two`, `.neon-animated`) instead of nesting them under the root class, so they are global where the Svelte compiler scoped them. Known deviation from PORTING.md styling rule 2, shared with `meteors.css`.",
+      "NeonBorderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so id/role/onClick/data-* reach the element; the Svelte component declares a closed six-prop list and spreads nothing."
     ],
     "lastFailure": null,
     "minors": [
@@ -3889,7 +3951,8 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "`class` prop renamed to `className` (package-wide PORTING.md convention); every other prop name, type and default is identical."
+      "`class` prop renamed to `className` (package-wide PORTING.md convention); every other prop name, type and default is identical.",
+      "The viewport-trigger effect lists `delay` in its dependency array, which the Svelte `$effect` does not track, so changing `delay` after the element has intersected cancels a reveal already waiting out its delay and re-observes; `delay` is a mount-time setting."
     ],
     "lastFailure": null,
     "minors": []
@@ -3912,7 +3975,7 @@
       "motion": [
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -3985,7 +4048,10 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "Duration and delay are captured when the animation starts; the Svelte source re-reads both props each frame, so a mid-animation duration change re-times the count there and not here.",
+      "The re-animate effect depends on the animation target only; the Svelte $effect also re-runs on displayValue and on delay, so a delay-only change restarts the count in Svelte and not in React."
+    ],
     "lastFailure": null
   },
   {
@@ -4002,7 +4068,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -4055,7 +4121,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -4085,7 +4151,8 @@
       "The icon cross-fade's bidirectional `transition:` pair is reproduced with two `usePresence` clocks feeding the same `preset(\"fade\")` through the WAAPI sampler — same 80ms micro duration, same reduced-motion duration-0 instant-swap path, both layers animate during the swap",
       "The closing icon layer gets `inert` set by usePresence's default during its 80ms exit (mirrors Svelte 5's own outro inert behaviour; both glyphs are aria-hidden so it is observable only as an attribute)",
       "Svelte's `await tick()` selection restore becomes a layout effect keyed on `revealed`: selection captured in the click handler, restored after the new `type` commits — same setSelectionRange(start, end, direction) call",
-      "handleInput's disabled guard additionally writes the model value back into the DOM (Input-port pattern) so a synthetic input on a disabled control cannot leave the visible text diverged from React's controlled value"
+      "handleInput's disabled guard additionally writes the model value back into the DOM (Input-port pattern) so a synthetic input on a disabled control cannot leave the visible text diverged from React's controlled value",
+      "During the 80 ms icon cross-fade the two layers share one grid cell with no z-index, so paint order follows DOM order: the React layers sit in a fixed order (eye-off first, eye second) where the Svelte `{#if}`/`{:else}` always inserts the entering branch after the outgoing one, so the entering glyph paints on top in both directions there and in only one direction here. Both glyphs are aria-hidden and the overlap lasts 80 ms."
     ],
     "lastFailure": null
   },
@@ -4121,7 +4188,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "PixelLoaderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so a consumer's `style` can override the component's own `--ft-pixel-*` custom properties; the Svelte component accepts exactly nine props and spreads nothing."
+    ],
     "lastFailure": null
   },
   {
@@ -4145,7 +4214,7 @@
       "motion": [
         "anchored"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -4279,7 +4348,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -4417,7 +4486,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -4456,7 +4525,7 @@
         "elapsed"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -4478,7 +4547,7 @@
     "attempts": 1,
     "divergences": [
       "`open` is not bindable in React: a changed `open` prop is adopted as the new state during render and announced through `onToggle` — same observable behaviour as a consumer writing to `bind:open`, but the component cannot push its automatic open/collapse back into a parent-held variable; a consumer holding `open` in state should update it from `onToggle`.",
-      "`inert` is rendered as a boolean attribute (React 19 semantics) instead of Svelte's property assignment; React 18 does not know the attribute and drops it with a warning — same trade CodeDiff already made.",
+      "`inert` is applied imperatively through internals/dom/use-inert-attribute rather than as a JSX attribute, because React 18 drops `inert={true}` and React 19 rejects `inert=\"\"`; it is absent from server HTML where Svelte SSRs it.",
       "Root anchor class `fancy-reasoning-panel` added as the first cn() token (PORTING.md styling rule 2 sanctioned addition) to scope the formerly compiler-scoped .ft-body/.ft-chevron/.ft-shimmer rules."
     ],
     "lastFailure": null
@@ -4497,7 +4566,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": [
         "number-ticker"
       ]
@@ -4629,7 +4698,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -4649,7 +4718,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 0,
-    "divergences": [],
+    "divergences": [
+      "Port-added `ref`: RippleButton is a forwardRef publishing the root `<button>`, which the Svelte source does not expose; the consumer's ref is composed through `useComposedRefs`, so it attaches once and is never churned by the ripple state."
+    ],
     "lastFailure": null
   },
   {
@@ -4668,7 +4739,7 @@
         "autoscroll"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -4693,7 +4764,8 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "`class` prop is `className`; the `ref = $bindable` root ref is exposed via forwardRef (standard port mapping, no behavioral change)"
+      "`class` prop is `className`; the `ref = $bindable` root ref is exposed via forwardRef (standard port mapping, no behavioral change)",
+      "The initial pin-geometry read runs in a passive `useEffect` rather than Svelte's pre-paint `$effect`, so a region that mounts already overflowing shows the return pill one frame later; no behavioural difference."
     ],
     "lastFailure": null
   },
@@ -4756,7 +4828,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -4866,7 +4938,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -4895,7 +4967,8 @@
       "`children`/`footer` snippets become ReactNode props",
       "`data-state` is an ordinary reactive attribute carrying surfaceState's two values (contract D-2/C-5) instead of the source's static literal rewritten by markSurfaceState",
       "no portal-before-focus-trap ordering ceremony (contract D-10): createPortal commits before effects run",
-      "scroll lock keyed on `presence.mounted` via useScrollLock instead of the action's outro-delayed destroy — same observable release timing"
+      "scroll lock keyed on `presence.mounted` via useScrollLock instead of the action's outro-delayed destroy — same observable release timing",
+      "React adds an `ariaLabel` prop (no Svelte counterpart yet) so a title-less panel can carry an accessible name; the Svelte side is tracked to mirror it."
     ],
     "lastFailure": null
   },
@@ -4913,7 +4986,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -4948,7 +5021,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -5042,7 +5115,7 @@
         "field"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -5152,7 +5225,14 @@
       "SOUND_STORAGE_KEY",
       "SOUND_MIN_INTERVAL_MS",
       "SOUND_LIMITS",
-      "DEFAULT_SOUND_PREFERENCES"
+      "DEFAULT_SOUND_PREFERENCES",
+      "useSound",
+      "useSoundCue",
+      "useSoundEnabled",
+      "useSoundStatus",
+      "SoundFeedbackHandle",
+      "SoundSnapshot",
+      "SoundControls"
     ],
     "loc": 1966,
     "testFiles": [
@@ -5169,7 +5249,9 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "Svelte's `use:soundFeedback` action has no React counterpart: it ships as `attachSoundFeedback(element, options)` (the imperative attach/detach core, callable from a ref callback) plus the `useSoundFeedback(options)` hook that returns a ref callback for the common case. The action name `soundFeedback` is therefore absent from the package root."
+      "Svelte's `use:soundFeedback` action has no React counterpart: it ships as `attachSoundFeedback(element, options)` (the imperative attach/detach core, callable from a ref callback) plus the `useSoundFeedback(options)` hook that returns a ref callback for the common case. The action name `soundFeedback` is therefore absent from the package root.",
+      "The React engine clamps a custom theme's layer duration to `SOUND_LIMITS.MAX_LAYER_MS` before scheduling; the Svelte engine schedules the declared duration. Only `validateSoundTheme()` enforces the limit on the Svelte side, so a theme passed straight to `engine.setTheme()` with a layer longer than 400 ms plays in full under Svelte and truncated under React.",
+      "The sound family adds `useSound`, `useSoundCue`, `useSoundEnabled` and `useSoundStatus` — the React counterpart of reading the `sound` controller's runes directly."
     ],
     "lastFailure": null
   },
@@ -5189,7 +5271,7 @@
         "ai-types"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -5217,7 +5299,7 @@
       "`open` is controlled/uncontrolled rather than Svelte's `bind:open`: passing `open` makes the component controlled, so a consumer who passes `open` without acting on `onToggle` gets a list that no longer toggles on click (the Svelte bindable prop still flips its local copy).",
       "`SOURCES_CONTEXT_KEY` is exported as a `React.Context<SourcesContext | undefined>` object (read with `useContext`), not a Svelte `Symbol` context key. Name kept per the barrel contract.",
       "`SourcesContext.open` keeps its `{ current: boolean }` box shape from the Svelte getter contract, but it is a snapshot on a context value rebuilt when `open`/`sources`/`listId`/`onToggle` change — not a live getter.",
-      "`SourcesList` writes `inert` as a React boolean attribute: React 19 emits the bare attribute, React 18 (the low end of the peer range) does not know it and drops it with a warning. The transposed assertion checks `hasAttribute(\"inert\")` instead of the Svelte test's `.inert` IDL property, which jsdom does not implement at all on the pinned version.",
+      "`SourcesList` applies `inert` to a collapsed list imperatively through internals/dom/use-inert-attribute rather than as a JSX attribute (React 18 drops `inert={true}`, React 19 rejects `inert=\"\"`); it is absent from server HTML where Svelte SSRs it, and the transposed assertion checks `hasAttribute(\"inert\")` instead of the Svelte test's `.inert` IDL property, which jsdom does not implement.",
       "Snippet props become ReactNode: `SourceCard.icon` is `ReactNode`, `SourcesList.item` is `(source: SourceData, index: number) => ReactNode`, and `Sources.children` is React `children`.",
       "`class` is `className` on all four parts, per the package-wide rule."
     ],
@@ -5380,7 +5462,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -5411,11 +5493,6 @@
     ],
     "lastFailure": null,
     "minors": [
-      {
-        "file": "react/src/components/stepper/Step.tsx",
-        "problem": "Registration runs in a passive `useEffect` (Step.tsx:59) rather than a pre-paint layout effect. Svelte's `$effect` flushes before paint, so the Svelte stepper never paints an unregistered frame; in React the first client paint can show every step with `index === -1` — bullets numbered \"0\", all steps `flex-1` instead of the first being `flex-none`, a leading connector before step 1, and no done/current colours — before the effect flush re-renders it correctly. Not a blocker: it matches the in-repo precedent (ToggleGroupItem.tsx:84 registers in `useEffect` too), it is one frame at mount only, and internals-api.md §4's table does not cover component-level registration. But §4's own rationale rows (\"a passive effect paints one frame at rest\", \"shows one frame of hidden content\") apply more strongly here than for a toggle group, where registration only affects invisible roving tabindex.",
-        "severity": "minor"
-      },
       {
         "file": "react/src/components/stepper/Stepper.tsx",
         "problem": "Controlled/uncontrolled pair semantics differ from `$bindable` in one edge case: a consumer that passes `current` but no `onCurrentChange` gets a stepper that never moves on click, whereas the Svelte side's `current = index` assignment (Stepper.svelte:78) updates the component's own copy and visibly advances even when the prop is not bound. This is the sanctioned React idiom for `bind:`, is the pattern used across this port, and was declared as divergence #1 — recorded for completeness, not as a defect.",
@@ -5470,7 +5547,9 @@
       "`item`/`panel` snippets become render-prop functions `(item, index, active) => ReactNode` / `(item, index) => ReactNode`, per PORTING.md snippet mapping.",
       "The `{#key panelIndex}` crossfade is rebuilt on usePresence + preset(\"fade\") (per internals-api.md §5.1 row 1); an exiting frame freezes the panel content from the render BEFORE the index changed (the counterpart of Svelte freezing the outgoing keyed block's DOM), so during the one render where the swap is detected the still-live frame briefly shows the new index's content — invisible in practice (same commit, pre-paint swap).",
       "Exiting frames are marked `inert` by usePresence's default, matching Svelte's own outroing-block inert marking.",
-      "`children` is omitted from the rest-prop attribute surface: the Svelte source renders no children snippet, and a React children spread onto the root div would render where Svelte rendered nothing."
+      "`children` is omitted from the rest-prop attribute surface: the Svelte source renders no children snippet, and a React children spread onto the root div would render where Svelte rendered nothing.",
+      "A panel frame interrupted mid-entrance reverses from its current opacity over a proportionally shortened duration rather than snapping back to full and restarting the fade, because `usePresence` owns one bidirectional leg per node where the Svelte source used a split `in:`/`out:` pair.",
+      "`StickyScroll`'s exported type is restored by assertion, because forwardRef erases a render function's type parameter and ref-as-prop is React-19-only while the peer range includes 18; the same idiom restores the type parameter on the memoised internal row."
     ],
     "lastFailure": null,
     "minors": [
@@ -5537,7 +5616,7 @@
         "ai-types"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -5625,7 +5704,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -5654,7 +5733,8 @@
     "attempts": 1,
     "divergences": [
       "TabsTrigger: the focus reclaim waits for `focusedValue` to stop naming this trigger before acting, because React lands the unregister state update one render after the commit that disabled the button, where Svelte's cleanup has already completed by the time its effect body runs. Same observable behaviour; the flag is now consumed on the empty-registry answer too, so no reclaim can survive into a later re-enable.",
-      "TabsTrigger: the `document.activeElement` sample is kept continuously by `handleFocus`/`handleBlur` (plus an activeElement read in the layout effect) because React has no pre-mutation phase equivalent to `$effect.pre`. Pre-existing in the port; unchanged by this fix."
+      "TabsTrigger: the `document.activeElement` sample is kept continuously by `handleFocus`/`handleBlur` (plus an activeElement read in the layout effect) because React has no pre-mutation phase equivalent to `$effect.pre`. Pre-existing in the port; unchanged by this fix.",
+      "`TABS_KEY` is a `React.Context<TabsContext | undefined>` object (displayName \"TabsContext\") rather than the Svelte `unique symbol` context key — read it with `useContext(TABS_KEY)`. `TabsContext`'s `value`, `orientation`, `activation`, `variant` and `focusedValue` are plain readonly fields on an object the root rebuilds every render, not Svelte getters."
     ],
     "lastFailure": null,
     "minors": [
@@ -5703,7 +5783,8 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "No consumer-visible divergence: header snippet becomes ReactNode; ref becomes forwardRef per PORTING.md; autoscroll uses react/src/internals/use-autoscroll.js's useAutoscroll(node, options) hook (already implemented for this repo) instead of the Svelte `use:autoscroll` action, targeting the log div via useElementRef."
+      "No consumer-visible divergence: header snippet becomes ReactNode; ref becomes forwardRef per PORTING.md; autoscroll uses react/src/internals/use-autoscroll.js's useAutoscroll(node, options) hook (already implemented for this repo) instead of the Svelte `use:autoscroll` action, targeting the log div via useElementRef.",
+      "TerminalBlockProps extends HTMLAttributes<HTMLDivElement> minus className and spreads ...rest onto the root div; the Svelte source declares a closed prop list and forwards nothing."
     ],
     "lastFailure": null
   },
@@ -5740,7 +5821,8 @@
     "svelteFiles": 1,
     "attempts": 1,
     "divergences": [
-      "Root class gains a port-added `terminal-text` anchor token (sanctioned by PORTING.md styling rule 2: the Svelte <style> was compiler-scoped with no root class; `.cursor-blink` is anchored under it, keyframe name `blink` kept identical)."
+      "Root class gains a port-added `terminal-text` anchor token (sanctioned by PORTING.md styling rule 2: the Svelte <style> was compiler-scoped with no root class; `.cursor-blink` is anchored under it, keyframe name `blink` kept identical).",
+      "The stream restarts on `lines` CONTENT change, not on array identity: a re-allocated equal-content array keeps the current stream running, where the Svelte side restarts it."
     ],
     "lastFailure": null
   },
@@ -5868,7 +5950,9 @@
     "divergences": [
       "Mid-roll DOM order inside the aria-hidden cell layer: exiting cells are appended after the current cells instead of holding their original sibling position (explicit grid-column/grid-row placement makes the painted result identical; only DOM inspection during the roll window can tell)",
       "On a length-changing update the generation bump lands in a post-commit effect (mirroring the source's after-DOM-update $effect), so one committed frame may briefly reuse a positionally-matching node before the full re-roll — same two-phase behavior as Svelte, but the intermediate frame is a real React commit",
-      "rollIn/rollOut return the package's local TransitionSpec (delay always present) instead of svelte/transition's TransitionConfig — visible only to direct importers of roll-transitions.ts, which neither package exports from its index"
+      "rollIn/rollOut return the package's local TransitionSpec (delay always present) instead of svelte/transition's TransitionConfig — visible only to direct importers of roll-transitions.ts, which neither package exports from its index",
+      "On a `direction=\"auto\"` reversal both legs of the same roll travel the same way, because the port resolves the direction before the leg orchestrator runs; the reference starts the outro with the previous direction, so its two glyphs cross.",
+      "A grapheme whose key returns while its old cell is still rolling out eases back from wherever the exit leg had got to, because the shared transition sampler hands the in-flight run to the reversing leg as its counterpart; the reference replays the whole entrance from fully hidden."
     ],
     "lastFailure": null,
     "minors": [
@@ -5964,7 +6048,8 @@
     "divergences": [
       "`class` prop becomes `className`.",
       "`done` snippet becomes a `done?: ReactNode` prop.",
-      "`ref = $bindable(null)` becomes `forwardRef<HTMLDivElement>`."
+      "`ref = $bindable(null)` becomes `forwardRef<HTMLDivElement>`.",
+      "`useElapsed`'s server snapshot is a deterministic `0`, so a server-rendered ThinkingIndicator shows \"0s\"; Svelte's `createElapsed({ since })` seeds from the server's wall clock, which no hydration render can reproduce. The live duration arrives in the layout phase, before the first paint."
     ],
     "lastFailure": null,
     "minors": [
@@ -5993,7 +6078,7 @@
         "ai-types"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -6015,7 +6100,7 @@
     "divergences": [
       "`bind:activeId` becomes the standard controlled/uncontrolled split: `activeId` is controlled when passed (pair it with `onSelect` to move the highlight); omit it and the list owns its own selection, reporting every pick through `onSelect`.",
       "A Svelte consumer passing a non-bound initial `activeId` and expecting clicks to still move the highlight must instead omit the prop (uncontrolled) or update it from `onSelect` — there is no defaultActiveId, matching the Tabs precedent.",
-      "Timestamps read `useNow()`'s shared module clock instead of a per-instance `createNow`; behaviour is identical (one interval per page, none under SSR), but the SSR/first render shows times relative to epoch 0 for one pre-paint frame, corrected in the layout phase before paint.",
+      "Timestamps read `useNow()`'s shared module clock instead of a per-instance `createNow`; one interval per page, none under SSR.",
       "SSR relative timestamps: Svelte's `createNow` seeds itself with `Date.now()` at construction, so its server HTML carries real relative labels. React's shared clock cannot — the hydration render has no way to reproduce the server's timestamp, and sampling the wall clock on a render path breaks convention C-7 — so `useNow()` returns a `NaN` sentinel until the clock is retained in the layout phase, and `formatRelativeTime` renders a non-finite `now` as `\"\"`. The server HTML therefore ships an empty label (never a wrong one) and it fills in before the first paint. Pinned by `react/src/internals/use-elapsed.ssr.test.ts`."
     ],
     "lastFailure": null,
@@ -6049,7 +6134,7 @@
       "motion": [
         "anchored"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -6084,7 +6169,9 @@
       "The Svelte `{#if open}` around `<TimePickerPanel>` moves INSIDE the panel as a `usePresence` mount gate: `TimePicker` renders `<TimePickerPanel>` unconditionally so the portal target is resolved before the opening commit and the panel survives its own exit.",
       "Open-time scroll: `tick().then(() => scrollActiveIntoView(index))` becomes a parked pending-index ref paid out by an effect keyed on `[panelNode, open]` (the panel mounts a commit later under presence, and a reopen can reuse the same node).",
       "`TimePickerPanel`'s `class`/`ref` props survive as `className` + `forwardRef`, but the component is not exported from `index.ts` (matching the Svelte barrel).",
-      "Behaviourally unchanged elsewhere: reduced-motion fast path, the `anchored` transition, `data-side`/`data-align` and `transform-origin` — `data-align` stays the statically requested \"start\" while `data-side` is the resolved one, the same asymmetry the source ships."
+      "Apart from the active-slot reconciliation recorded below, behaviourally unchanged elsewhere: reduced-motion fast path, the `anchored` transition, `data-side`/`data-align` and `transform-origin` — `data-align` stays the statically requested \"start\" while `data-side` is the resolved one, the same asymmetry the source ships.",
+      "React re-resolves the highlighted slot onto the same TIME when `step`, `min` or `max` change the grid (and therefore scrolls an open panel); the Svelte source keeps the raw numeric index, which can leave `aria-activedescendant` citing a removed row.",
+      "TimePicker formats its trigger and slot labels with Intl.DateTimeFormat and the runtime's default locale when `locale` is omitted, so a server render and its hydration can produce different text; pass an explicit `locale` for SSR-stable output."
     ],
     "lastFailure": null,
     "minors": []
@@ -6150,7 +6237,7 @@
         "anchored",
         "tokens"
       ],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -6175,7 +6262,10 @@
     ],
     "svelteFiles": 2,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "The per-toast entrance and exit are owned by `<Toaster>`'s per-item presence clock rather than by `<Toast>` itself, so a `<Toast>` rendered directly outside a `<Toaster>` is static where the Svelte one still plays its 300 ms rise in and 200 ms sink out.",
+      "A dismissed toast is `inert` for the length of its exit (the presence clock's default), so its Retry and Dismiss buttons stop answering clicks and focus inside it is released; the Svelte toast root carries no `inert` and stays interactive until the outro destroys it."
+    ],
     "lastFailure": null
   },
   {
@@ -6192,7 +6282,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -6231,7 +6321,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -6285,7 +6375,7 @@
     "deps": {
       "internals": [],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -6343,7 +6433,7 @@
         "elapsed.svelte"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],
@@ -6364,7 +6454,8 @@
     "divergences": [
       "Svelte's `item` Snippet<[ToolTimelineItemData, number]> prop becomes a render-prop function `(item, index) => ReactNode` per PORTING.md snippet-to-ReactNode mapping.",
       "Svelte source has no rest-prop spread on the root div, so the React port matches it exactly (no ...rest) rather than adding one speculatively.",
-      "SSR relative timestamps: Svelte's `createNow` seeds itself with `Date.now()` at construction, so its server HTML carries real relative labels. React's shared clock cannot — the hydration render has no way to reproduce the server's timestamp, and sampling the wall clock on a render path breaks convention C-7 — so `useNow()` returns a `NaN` sentinel until the clock is retained in the layout phase, and `formatRelativeTime` renders a non-finite `now` as `\"\"`. The server HTML therefore ships an empty label (never a wrong one) and it fills in before the first paint. Pinned by `react/src/internals/use-elapsed.ssr.test.ts`."
+      "SSR relative timestamps: Svelte's `createNow` seeds itself with `Date.now()` at construction, so its server HTML carries real relative labels. React's shared clock cannot — the hydration render has no way to reproduce the server's timestamp, and sampling the wall clock on a render path breaks convention C-7 — so `useNow()` returns a `NaN` sentinel until the clock is retained in the layout phase, and `formatRelativeTime` renders a non-finite `now` as `\"\"`. The server HTML therefore ships an empty label (never a wrong one) and it fills in before the first paint. Pinned by `react/src/internals/use-elapsed.ssr.test.ts`.",
+      "The root `cn()` argument order differs from the Svelte class/class: emission order (compact class before className, where Svelte emits className then class:); class order affects neither specificity nor matching."
     ],
     "lastFailure": null
   },
@@ -6452,7 +6543,10 @@
     "testFiles": [],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "Per-frame spring values are written imperatively to the gradient node in the rAF loop (setAttribute \"y1\"/\"y2\") instead of round-tripping through state, so the component and its children never re-render during the animation; the rendered JSX keeps y1/y2 at their 0 seed, which is also what the server markup emits.",
+      "The SVG gradient id is minted per instance with useFancyId(\"tracing-beam-gradient\") and referenced as url(#id), where the source hardcodes the id; the React side therefore supports several beams on one page."
+    ],
     "lastFailure": null,
     "minors": []
   },
@@ -6488,7 +6582,9 @@
     ],
     "svelteFiles": 1,
     "attempts": 1,
-    "divergences": [],
+    "divergences": [
+      "TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, so a consumer can pass id/onClick/data-* or override role/aria-live/style; the Svelte component declares a fixed prop list and spreads nothing."
+    ],
     "lastFailure": null
   },
   {
@@ -6508,7 +6604,7 @@
         "waveform-core"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [
@@ -6536,7 +6632,8 @@
       "`class` → `className` (PORTING.md).",
       "The `ref = $bindable(null)` prop is gone; the root `HTMLDivElement` arrives through `forwardRef` (PORTING.md / C-4).",
       "No `mounted` state: a React effect never runs on the server, and the canvas node arrives through `useElementRef`, which together give exactly the guarantee the Svelte flag existed for. Not consumer-visible.",
-      "No `untrack()` around the reduced-motion still frame and the ResizeObserver repaint — there is no reactivity graph to escape. The same guarantee (incoming `samples`/`demo` cannot restart the loop) comes from reading them through `useLiveRef` instead of effect dependencies. Effect deps are `[active, canvasEl, barHeight, color]`, matching the Svelte effect's tracked set exactly."
+      "No `untrack()` around the reduced-motion still frame and the ResizeObserver repaint — there is no reactivity graph to escape. The same guarantee (incoming `samples`/`demo` cannot restart the loop) comes from reading them through `useLiveRef` instead of effect dependencies. Effect deps are `[active, canvasEl, barHeight, color]`, matching the Svelte effect's tracked set exactly.",
+      "`samples` is a prop in React, so a consumer bridging a 60 Hz audio pipeline re-renders the component and reconciles the panel subtree once per frame; the Svelte source reads `samples` inside the untracked rAF callback and re-renders nothing. The rAF loop itself is unaffected — `samples` is read through a live ref, so the canvas effect never restarts."
     ],
     "lastFailure": null
   },
@@ -6558,7 +6655,7 @@
         "markdown"
       ],
       "motion": [],
-      "sound": false,
+      "sound": true,
       "components": []
     },
     "browserAPIs": [],

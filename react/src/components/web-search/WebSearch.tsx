@@ -5,6 +5,7 @@ import type { SearchResultData } from "../../internals/ai-types.js";
 import { hostOf, monogram } from "../../internals/host.js";
 import { sanitizeHref } from "../../internals/markdown.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./web-search.css";
 
 /**
@@ -27,6 +28,11 @@ export interface WebSearchProps {
 	label?: string;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -67,11 +73,13 @@ export const WebSearch = forwardRef<HTMLDivElement, WebSearchProps>(function Web
 		maxVisible = 0,
 		label = "Web search",
 		className,
+		sound,
 	},
 	ref
 ) {
 	const uid = useFancyId();
 	const listId = `${uid}-list`;
+	const playCue = useSoundCue(sound);
 
 	const [expanded, setExpanded] = useState(false);
 
@@ -93,6 +101,18 @@ export const WebSearch = forwardRef<HTMLDivElement, WebSearchProps>(function Web
 	useEffect(() => {
 		if (results.length === 0) setExpanded(false);
 	}, [results.length]);
+
+	function pick(result: SearchResultData, index: number) {
+		playCue("select");
+		onSelect?.(result, index);
+	}
+
+	/** Disclosure, not a menu: `open`/`close` follow the same toggle either way. */
+	function toggleExpanded() {
+		const next = !isExpanded;
+		playCue(next ? "open" : "close");
+		setExpanded(next);
+	}
 
 	return (
 		<div
@@ -180,7 +200,7 @@ export const WebSearch = forwardRef<HTMLDivElement, WebSearchProps>(function Web
 									<button
 										type="button"
 										className={cn(ROW_BASE, ROW_INTERACTIVE)}
-										onClick={() => onSelect?.(result, index)}
+										onClick={() => pick(result, index)}
 									>
 										{body}
 									</button>
@@ -193,6 +213,7 @@ export const WebSearch = forwardRef<HTMLDivElement, WebSearchProps>(function Web
 										href={safeHref}
 										target="_blank"
 										rel="noopener noreferrer nofollow ugc"
+										onClick={() => pick(result, index)}
 									>
 										{body}
 									</a>
@@ -215,7 +236,7 @@ export const WebSearch = forwardRef<HTMLDivElement, WebSearchProps>(function Web
 					className="ft-websearch-more text-muted-foreground hover:text-foreground focus-visible:ring-ring mt-1 cursor-pointer rounded-md px-2 py-1 text-xs transition-colors focus-visible:ring-1 focus-visible:outline-none"
 					aria-expanded={isExpanded}
 					aria-controls={listId}
-					onClick={() => setExpanded(!isExpanded)}
+					onClick={toggleExpanded}
 				>
 					{isExpanded ? "Show less" : `Show ${hiddenCount} more`}
 				</button>

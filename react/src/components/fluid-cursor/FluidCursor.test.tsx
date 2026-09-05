@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 import { render, cleanup } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { FluidCursor } from "./FluidCursor.js";
@@ -190,5 +191,174 @@ describe("FluidCursor", () => {
 				handle.burst(0.5, 0.5, 10, 10, { r: 1, g: 0, b: 0 });
 			}).not.toThrow();
 		});
+	});
+});
+
+// A minimal fake WebGL2 context: jsdom has none, so the GL path is otherwise
+// never exercised. Every allocation is tracked so a test can assert that the
+// engine hands its objects back when the effect is cleaned up.
+const GL_KINDS = ["texture", "framebuffer", "program", "shader", "buffer"] as const;
+type GlKind = (typeof GL_KINDS)[number];
+
+interface FakeGl {
+	gl: WebGL2RenderingContext;
+	live: Record<GlKind, Set<object>>;
+	deleted: Record<GlKind, number>;
+}
+
+function createFakeGl(): FakeGl {
+	const live: Record<GlKind, Set<object>> = {
+		texture: new Set(),
+		framebuffer: new Set(),
+		program: new Set(),
+		shader: new Set(),
+		buffer: new Set(),
+	};
+	const deleted: Record<GlKind, number> = {
+		texture: 0,
+		framebuffer: 0,
+		program: 0,
+		shader: 0,
+		buffer: 0,
+	};
+
+	const constants = new Map<string, number>();
+	let nextConstant = 0x1000;
+	let nextId = 1;
+	const constant = (name: string) => {
+		let value = constants.get(name);
+		if (value === undefined) {
+			value = nextConstant++;
+			constants.set(name, value);
+		}
+		return value;
+	};
+
+	const create = (kind: GlKind) => () => {
+		const object = { kind, id: nextId++ };
+		live[kind].add(object);
+		return object;
+	};
+	const destroy = (kind: GlKind) => (object: object | null) => {
+		if (object && live[kind].delete(object)) deleted[kind]++;
+	};
+
+	const methods: Record<string, (...args: never[]) => unknown> = {
+		createTexture: create("texture"),
+		createFramebuffer: create("framebuffer"),
+		createProgram: create("program"),
+		createShader: create("shader"),
+		createBuffer: create("buffer"),
+		deleteTexture: destroy("texture"),
+		deleteFramebuffer: destroy("framebuffer"),
+		deleteProgram: destroy("program"),
+		deleteShader: destroy("shader"),
+		deleteBuffer: destroy("buffer"),
+		getExtension: () => ({ HALF_FLOAT_OES: constant("HALF_FLOAT_OES"), loseContext: () => {} }),
+		checkFramebufferStatus: () => constant("FRAMEBUFFER_COMPLETE"),
+		getProgramParameter: () => 0,
+		getActiveUniform: () => null,
+		getUniformLocation: () => null,
+	};
+
+	const state: Record<string, unknown> = { drawingBufferWidth: 64, drawingBufferHeight: 64 };
+	const gl = new Proxy(state, {
+		// Feature probes (`"drawBuffers" in gl`) resolve to the WebGL2 path.
+		has: () => true,
+		get(target, property) {
+			if (typeof property !== "string") return undefined;
+			if (property in target) return target[property];
+			if (property in methods) return methods[property];
+			// Uppercase names are GL enums; everything else is a no-op call.
+			if (/^[A-Z][A-Z0-9_]*$/.test(property)) return constant(property);
+			return () => undefined;
+		},
+	}) as unknown as WebGL2RenderingContext;
+
+	return { gl, live, deleted };
+}
+
+function stubWebGlContext() {
+	const contexts = new Map<HTMLCanvasElement, FakeGl>();
+	vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (
+		this: HTMLCanvasElement,
+		contextId: string
+	) {
+		if (contextId !== "webgl2" && contextId !== "webgl" && contextId !== "experimental-webgl") {
+			return null;
+		}
+		let fake = contexts.get(this);
+		if (!fake) {
+			fake = createFakeGl();
+			contexts.set(this, fake);
+		}
+		return fake.gl;
+	} as unknown as HTMLCanvasElement["getContext"]);
+	return contexts;
+}
+
+const countLive = (fake: FakeGl) => GL_KINDS.reduce((total, kind) => total + fake.live[kind].size, 0);
+
+describe("GL resource disposal", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it("frees every GL object it allocated when the component unmounts", () => {
+		const contexts = stubWebGlContext();
+		const { container, unmount } = render(<FluidCursor />);
+		const fake = contexts.get(container.querySelector("canvas")!)!;
+
+		expect(countLive(fake)).toBeGreaterThan(0);
+
+		unmount();
+
+		expect(countLive(fake)).toBe(0);
+		for (const kind of GL_KINDS) {
+			expect(fake.deleted[kind]).toBeGreaterThan(0);
+		}
+	});
+
+	it("does not double the GPU allocation when StrictMode mounts the effect twice", () => {
+		const plainContexts = stubWebGlContext();
+		const plain = render(<FluidCursor />);
+		const plainLive = countLive(plainContexts.get(plain.container.querySelector("canvas")!)!);
+		plain.unmount();
+
+		const strictContexts = stubWebGlContext();
+		const strict = render(<FluidCursor />, { wrapper: StrictMode });
+		const strictFake = strictContexts.get(strict.container.querySelector("canvas")!)!;
+
+		// Both effect passes share the one canvas — and therefore the one
+		// context — so the first pass's cleanup must have freed its own set
+		// before the second pass allocated its own.
+		expect(strictFake.deleted.framebuffer).toBeGreaterThan(0);
+		expect(strictFake.deleted.texture).toBeGreaterThan(0);
+		expect(strictFake.deleted.program).toBeGreaterThan(0);
+		expect(countLive(strictFake)).toBeLessThanOrEqual(plainLive);
+
+		strict.unmount();
+		expect(countLive(strictFake)).toBe(0);
+	});
+
+	it("cancels the splatOnMount arc chain when the component unmounts", () => {
+		stubWebGlContext();
+		const frameIds: number[] = [];
+		let nextFrameId = 0;
+		vi.spyOn(window, "requestAnimationFrame").mockImplementation(() => {
+			const id = ++nextFrameId;
+			frameIds.push(id);
+			return id;
+		});
+		const cancel = vi.spyOn(window, "cancelAnimationFrame");
+
+		const { unmount } = render(<FluidCursor splatOnMount />);
+		// The frame loop schedules itself first, the arc chain second.
+		expect(frameIds.length).toBeGreaterThan(1);
+		const splatFrameId = frameIds[frameIds.length - 1]!;
+
+		unmount();
+
+		expect(cancel).toHaveBeenCalledWith(splatFrameId);
 	});
 });

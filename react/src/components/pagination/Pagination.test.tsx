@@ -1,9 +1,10 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { useEffect, useRef, useState } from "react";
 import { Pagination } from "./Pagination.js";
 import { buildPageRange } from "./pagination-range.js";
 import type { PageItem } from "./pagination-range.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 
 describe("buildPageRange", () => {
 	it("returns an empty array for zero pages", () => {
@@ -487,5 +488,66 @@ describe("Pagination", () => {
 
 		await fireEvent.click(pageButton(container, 3));
 		expect(pageButton(container, 3).getAttribute("aria-current")).toBe("page");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and the page actually changes", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Pagination count={12} page={1} sound />);
+
+			await fireEvent.click(pageButton(container, 3));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Pagination count={12} page={1} />);
+
+			await fireEvent.click(pageButton(container, 3));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Pagination count={12} page={5} disabled sound />);
+			const next = byLabel(container, "Next page");
+
+			// jsdom does not synthesize a click from a real gesture on a native
+			// `disabled` button; a synthetic dispatch bypasses that and reaches
+			// `goTo`'s own `if (disabled) return` guard instead.
+			next.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the click lands on the already-current page — the changed-only guard", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Pagination count={12} page={5} sound />);
+
+			await fireEvent.click(pageButton(container, 5));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing for a synthetic click at either boundary, alongside the boundary guard it rides with", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Pagination count={12} page={1} sound />);
+
+			await fireEvent.click(byLabel(container, "Previous page"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

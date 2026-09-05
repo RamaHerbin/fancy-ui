@@ -209,6 +209,7 @@ export const DropdownMenuSubContent = forwardRef<HTMLDivElement, DropdownMenuSub
 							ref={panelRef}
 							id={sub.contentId}
 							role="menu"
+							aria-labelledby={sub.triggerId}
 							tabIndex={-1}
 							className={classes}
 							data-state={presence.surfaceState}

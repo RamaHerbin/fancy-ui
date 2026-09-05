@@ -1,5 +1,6 @@
 import { forwardRef, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./prompt-suggestions.css";
 
 export interface PromptSuggestionsProps {
@@ -19,6 +20,11 @@ export interface PromptSuggestionsProps {
 	item?: (suggestion: string, index: number) => ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off
+	 * by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** Mirrors the CSS fallback on `--ft-suggestions-delay` below. */
@@ -28,9 +34,19 @@ const MAX_STAGGER_MS = 400;
 
 export const PromptSuggestions = forwardRef<HTMLDivElement, PromptSuggestionsProps>(
 	function PromptSuggestions(
-		{ suggestions, onSelect, visible = true, staggerMs, label = "Suggestions", item, className },
+		{
+			suggestions,
+			onSelect,
+			visible = true,
+			staggerMs,
+			label = "Suggestions",
+			item,
+			className,
+			sound = false,
+		},
 		ref
 	) {
+		const playCue = useSoundCue(sound);
 		// A negative stagger would drop later pills in mid-entrance rather than
 		// delaying them, which reads as a glitch instead of a cascade. `undefined`
 		// is left alone: the inline custom property is only ever written when the
@@ -68,6 +84,13 @@ export const PromptSuggestions = forwardRef<HTMLDivElement, PromptSuggestionsPro
 			...(visible ? {} : { display: "none" }),
 		} as React.CSSProperties;
 
+		// A pick is an activation, not a change of a selected value — no
+		// changed-only guard.
+		function pick(suggestion: string, index: number) {
+			playCue("select");
+			onSelect?.(suggestion, index);
+		}
+
 		return (
 			<div
 				ref={ref}
@@ -86,7 +109,7 @@ export const PromptSuggestions = forwardRef<HTMLDivElement, PromptSuggestionsPro
 								"--ft-suggestions-delay": `calc(var(--ft-suggestions-stagger, ${DEFAULT_STAGGER_MS}ms) * ${i})`,
 							} as React.CSSProperties
 						}
-						onClick={() => onSelect?.(suggestion, i)}
+						onClick={() => pick(suggestion, i)}
 					>
 						{item ? item(suggestion, i) : suggestion}
 					</button>

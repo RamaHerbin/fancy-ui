@@ -47,6 +47,12 @@ function DetachedProbe({ options }: { options?: SoundFeedbackOptions }) {
 	return <button type="button" data-testid="target" />;
 }
 
+/** The README's shape: the hook owns the node and hands back a callback ref. */
+function RefProbe({ options, show = true }: { options?: SoundFeedbackOptions; show?: boolean }) {
+	const soundRef = useSoundFeedback(options);
+	return show ? <button type="button" ref={soundRef} data-testid="target" /> : null;
+}
+
 function target() {
 	return screen.getByTestId("target");
 }
@@ -230,6 +236,86 @@ describe("useSoundFeedback", () => {
 		click(node);
 
 		expect(play).not.toHaveBeenCalled();
+	});
+
+	describe("the callback-ref shape", () => {
+		it("binds the default click → press through the returned ref", () => {
+			render(<RefProbe />);
+
+			click(target());
+
+			expect(play).toHaveBeenCalledWith("press", { volume: undefined, pitch: undefined });
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("honours `on`, `volume` and `pitch` exactly like the node shape", () => {
+			render(<RefProbe options={{ on: { click: "select" }, volume: 0.4, pitch: -3 }} />);
+
+			click(target());
+
+			expect(play).toHaveBeenCalledWith("select", { volume: 0.4, pitch: -3 });
+		});
+
+		it("keeps one ref identity across re-renders, so React never reattaches", () => {
+			const seen: unknown[] = [];
+			function IdentityProbe() {
+				const soundRef = useSoundFeedback({ on: { click: "press" } });
+				seen.push(soundRef);
+				return <button type="button" ref={soundRef} data-testid="target" />;
+			}
+
+			const { rerender } = render(<IdentityProbe />);
+			rerender(<IdentityProbe />);
+			rerender(<IdentityProbe />);
+
+			expect(seen.length).toBeGreaterThan(1);
+			for (const ref of seen) expect(ref).toBe(seen[0]);
+		});
+
+		it("unbinds when the element it published goes away", () => {
+			const { rerender } = render(<RefProbe options={{ on: { click: "press" } }} />);
+			const node = target();
+
+			rerender(<RefProbe options={{ on: { click: "press" } }} show={false} />);
+			click(node);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("unbinds on unmount", () => {
+			const { unmount } = render(<RefProbe options={{ on: { click: "press" } }} />);
+			const node = target();
+
+			unmount();
+			click(node);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("leaves the shared hover counter at rest through a StrictMode cycle", () => {
+			const { unmount } = render(
+				<StrictMode>
+					<RefProbe options={{ on: { pointerenter: "hover" }, allowUntrusted: true }} />
+				</StrictMode>
+			);
+
+			expect(__soundFeedbackHoverInstances()).toBe(1);
+
+			unmount();
+			expect(__soundFeedbackHoverInstances()).toBe(0);
+		});
+
+		it("the node shape returns nothing, so the two are never confused", () => {
+			let returned: unknown = "not called";
+			function NodeShapeProbe() {
+				returned = useSoundFeedback(null);
+				return <button type="button" data-testid="target" />;
+			}
+
+			render(<NodeShapeProbe />);
+
+			expect(returned).toBeUndefined();
+		});
 	});
 
 	it("returns the shared hover-tracking counter to rest through a StrictMode cycle", () => {

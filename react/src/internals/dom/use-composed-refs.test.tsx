@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { StrictMode, useRef } from "react";
 import type { Ref } from "react";
 import { render, renderHook, cleanup } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
@@ -154,5 +154,92 @@ describe("useComposedRefs", () => {
 
 		rerender({ second: vi.fn() });
 		expect(result.current).not.toBe(first);
+	});
+
+	/*
+	 * The peer range is `^18 || ^19`, and React 18 has no ref-cleanup channel:
+	 * it logs "Unexpected return value from a callback ref" for every callback
+	 * ref that returns a function, on every attach. With 48 modules wired
+	 * through this hook, one <Tabs> alone produced five of those, and a
+	 * consumer whose CI fails on console.error could not use the package at
+	 * all. Returning nothing costs React 19 nothing: the `null` call detaches
+	 * on both versions, and it is the only detach channel now.
+	 */
+	it("never hands React a cleanup function — React 18 warns about one", () => {
+		const withCleanup = vi.fn((_node: HTMLDivElement | null) => () => {});
+
+		const { result } = renderHook(() => useComposedRefs<HTMLDivElement>(withCleanup));
+		const node = document.createElement("div");
+
+		expect(result.current(node)).toBeUndefined();
+		expect(result.current(null)).toBeUndefined();
+	});
+
+	it("detaches exactly once across a mount → null → mount cycle", () => {
+		const released = vi.fn();
+		const withCleanup = vi.fn((_node: HTMLDivElement | null) => released);
+		const plain = vi.fn();
+		const objectRef: { current: HTMLDivElement | null } = { current: null };
+
+		const { result } = renderHook(() =>
+			useComposedRefs<HTMLDivElement>(withCleanup, plain, objectRef)
+		);
+		const first = document.createElement("div");
+		const second = document.createElement("div");
+
+		expect(result.current(first)).toBeUndefined();
+		expect(objectRef.current).toBe(first);
+		expect(released).not.toHaveBeenCalled();
+
+		expect(result.current(null)).toBeUndefined();
+		expect(released).toHaveBeenCalledTimes(1);
+		expect(plain).toHaveBeenLastCalledWith(null);
+		expect(objectRef.current).toBeNull();
+
+		// Idempotent: a second detach of the same attachment releases nothing
+		// a second time, which is what lets both React versions funnel through
+		// the one channel without double-running a consumer's teardown.
+		result.current(null);
+		expect(released).toHaveBeenCalledTimes(1);
+
+		result.current(second);
+		expect(objectRef.current).toBe(second);
+		expect(released).toHaveBeenCalledTimes(1);
+	});
+
+	/*
+	 * §9.4's StrictMode row: the leak counter returns to rest. Here the counter
+	 * is outstanding attachments — attaches minus detaches — and this is the
+	 * one module where both React versions' attach/detach channels are
+	 * reconciled, so the mount/cleanup/mount rehearsal is exactly where an
+	 * unbalanced edit would show up.
+	 */
+	it("leaves exactly one live attachment under StrictMode, and none after unmount", () => {
+		const released = vi.fn();
+		const withCleanup = vi.fn((_node: HTMLDivElement | null) => released);
+		const plain = vi.fn();
+		const objectRef: { current: HTMLDivElement | null } = { current: null };
+
+		function Probe() {
+			const composed = useComposedRefs<HTMLDivElement>(withCleanup, plain, objectRef);
+			return <div ref={composed} data-testid="target" />;
+		}
+
+		const { unmount, getByTestId } = render(
+			<StrictMode>
+				<Probe />
+			</StrictMode>
+		);
+		const node = getByTestId("target");
+
+		expect(withCleanup.mock.calls.length - released.mock.calls.length).toBe(1);
+		// No stale node left behind by the rehearsal, on either ref shape.
+		expect(plain).toHaveBeenLastCalledWith(node);
+		expect(objectRef.current).toBe(node);
+
+		unmount();
+		expect(released).toHaveBeenCalledTimes(withCleanup.mock.calls.length);
+		expect(plain).toHaveBeenLastCalledWith(null);
+		expect(objectRef.current).toBeNull();
 	});
 });

@@ -244,7 +244,7 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 				label={iconOnly ? currentLabel : undefined}
 				className={classes}
 				iconStart={hasChildren ? undefined : statusIcon}
-				onclick={handleClick}
+				onClick={handleClick}
 			>
 				{children}
 				{/*

@@ -1,9 +1,10 @@
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 
 import { cn } from "../../utils.js";
-import { useConstant } from "../../internals/dom/ssr.js";
+import { useConstant, useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import type { AttachmentData } from "../../internals/ai-types.js";
 import { findTokenStart } from "./caret.js";
 import { ComposerInput } from "./ComposerInput.js";
@@ -50,6 +51,11 @@ export interface ComposerProps {
 	accessory?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /** Shared empty list, so the uncontrolled seed is one allocation for the module. */
@@ -76,6 +82,7 @@ export const Composer = forwardRef<HTMLFormElement, ComposerProps>(function Comp
 		children,
 		accessory,
 		className,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -84,6 +91,8 @@ export const Composer = forwardRef<HTMLFormElement, ComposerProps>(function Comp
 	// component keep writing its own copy. React has no such channel, so each
 	// prop is controlled when it is passed and the local copy takes over when it
 	// is not. Either way the `on*Change` callback fires with the same payload.
+	const playCue = useSoundCue(sound);
+
 	const [uncontrolledValue, setUncontrolledValue] = useState("");
 	const value = valueProp !== undefined ? valueProp : uncontrolledValue;
 
@@ -144,6 +153,7 @@ export const Composer = forwardRef<HTMLFormElement, ComposerProps>(function Comp
 		// With nobody listening there is nowhere for the draft to go, and clearing
 		// it would throw away text the reader has no way of getting back.
 		if (!onSubmit) return;
+		playCue("press");
 		// A copy, so a consumer stashing the payload does not end up holding the
 		// live list it is about to mutate.
 		onSubmit({ text, attachments: [...attachments] });
@@ -154,6 +164,9 @@ export const Composer = forwardRef<HTMLFormElement, ComposerProps>(function Comp
 
 	const stop = useEventCallback(() => {
 		if (!streaming) return;
+		// No handler, no interruption — the cue must not announce a stop that
+		// cannot happen (ComposerSubmit disables itself in that state too).
+		if (onStop) playCue("press");
 		onStop?.();
 	});
 
@@ -206,7 +219,9 @@ export const Composer = forwardRef<HTMLFormElement, ComposerProps>(function Comp
 
 	// No dependency list: the caret restore has to run on the commit that carried
 	// the insertion, whichever render that turns out to be. It disarms itself.
-	useEffect(() => {
+	// A layout effect, so the first painted frame after an insertion already has
+	// the caret where the source's `tick()` puts it (contract §4).
+	useIsomorphicLayoutEffect(() => {
 		const pending = pendingCaretRef.current;
 		if (!pending) return;
 		pendingCaretRef.current = null;
@@ -223,6 +238,7 @@ export const Composer = forwardRef<HTMLFormElement, ComposerProps>(function Comp
 		disabled,
 		streaming,
 		stoppable: typeof onStop === "function",
+		sound,
 		// Declared read-only on ComposerContext so no other part writes it; the
 		// setter exists for ComposerInput alone, which registers its element here
 		// on mount. See the note at the top of types.ts.

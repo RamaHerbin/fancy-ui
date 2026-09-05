@@ -163,10 +163,16 @@ export const ComposerInput = forwardRef<HTMLTextAreaElement, ComposerInputProps>
 		// Growth has to answer to programmatic writes too — an inserted slash command
 		// or a restored draft never passes through the input handler. Reads the draft,
 		// writes only the element's style, so it can never wake itself.
+		//
+		// The line counts are dependencies, not constants: a consumer that raises or
+		// lowers `maxRows` after mount — an expand toggle, a breakpoint — must see the
+		// box re-fit to the new ceiling straight away rather than at the next
+		// keystroke. `grow` itself is deliberately absent: it is rebuilt every render
+		// and reads nothing else reactive.
 		useEffect(() => {
 			grow();
 			// eslint-disable-next-line react-hooks/exhaustive-deps
-		}, [value, node]);
+		}, [value, node, minLines, maxLines]);
 
 		return (
 			<textarea

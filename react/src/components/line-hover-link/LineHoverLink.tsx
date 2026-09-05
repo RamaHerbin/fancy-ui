@@ -1,5 +1,6 @@
-import type { AnchorHTMLAttributes, ReactNode } from "react";
+import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./line-hover-link.css";
 
 /**
@@ -40,6 +41,11 @@ export interface LineHoverLinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchor
 	/** Additional CSS classes */
 	className?: string;
 	children?: ReactNode;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 export function LineHoverLink({
@@ -49,10 +55,18 @@ export function LineHoverLink({
 	rel,
 	className = "",
 	children,
+	sound = false,
+	onClick,
 	...restProps
 }: LineHoverLinkProps) {
 	const needsSpan = ["strike", "bounce", "arc", "scribble"].includes(variant);
 	const relValue = target === "_blank" ? (rel ?? "noopener noreferrer") : rel;
+	const playCue = useSoundCue(sound);
+
+	function handleClick(event: MouseEvent<HTMLAnchorElement>) {
+		playCue("press");
+		onClick?.(event);
+	}
 
 	return (
 		<a
@@ -61,6 +75,7 @@ export function LineHoverLink({
 			target={target}
 			rel={relValue}
 			className={cn("link-hover", `link-hover--${variant}`, className)}
+			onClick={handleClick}
 		>
 			{needsSpan ? <span>{children}</span> : children}
 

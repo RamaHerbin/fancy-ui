@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { ChatError } from "./ChatError.js";
+import { sound, resetSoundForTests } from "../../sound/sound.js";
 
 function retryButton(container: HTMLElement): HTMLButtonElement | null {
 	return container.querySelector(".ft-error-retry");
@@ -47,6 +48,7 @@ describe("ChatError", () => {
 
 		await fireEvent.click(button);
 		expect(onRetry).toHaveBeenCalledTimes(1);
+		expect(onRetry).toHaveBeenCalledWith();
 	});
 
 	it("uses a custom retry label", () => {
@@ -66,6 +68,20 @@ describe("ChatError", () => {
 		// `.click()` honours the disabled state the way a real press does, unlike a
 		// synthetic `fireEvent.click`, which dispatches straight past it.
 		retryButton(container)?.click();
+		expect(onRetry).not.toHaveBeenCalled();
+	});
+
+	it("does not call onRetry on a synthetic click while retrying", () => {
+		const onRetry = vi.fn();
+		const { container } = render(<ChatError onRetry={onRetry} retrying />);
+
+		// A synthetic dispatch bypasses jsdom's own disabled handling, unlike
+		// `.click()` — this is what actually proves the handler's own guard,
+		// not just the native `disabled` attribute.
+		retryButton(container)?.dispatchEvent(
+			new MouseEvent("click", { bubbles: true, cancelable: true })
+		);
+
 		expect(onRetry).not.toHaveBeenCalled();
 	});
 
@@ -107,5 +123,62 @@ describe("ChatError", () => {
 
 		expect(root.className).toContain("my-error");
 		expect(root.className).toContain("ft-error");
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when retry is pressed, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onRetry = vi.fn();
+			const { container } = render(<ChatError onRetry={onRetry} sound />);
+
+			await fireEvent.click(retryButton(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+			expect(onRetry).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ChatError onRetry={() => {}} />);
+
+			await fireEvent.click(retryButton(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while retrying, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onRetry = vi.fn();
+			const { container } = render(<ChatError onRetry={onRetry} retrying sound />);
+
+			// A synthetic dispatch bypasses jsdom's own disabled handling, unlike
+			// `.click()` — this is what actually proves the handler's own guard,
+			// not just the native `disabled` attribute.
+			retryButton(container)?.dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onRetry).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one click plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<ChatError onRetry={() => {}} sound />);
+
+			await fireEvent.click(retryButton(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { cn } from "../../utils.js";
 import "./interactive-grid-pattern.css";
 
@@ -18,6 +18,53 @@ export interface InteractiveGridPatternProps {
 	/** Whether squares respond to hover. When false, renders a static graph-paper grid with no listeners */
 	interactive?: boolean;
 }
+
+interface SquareProps {
+	index: number;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	hovered: boolean;
+	strokeClassName?: string;
+	squaresClassName?: string;
+	onEnter?: (index: number) => void;
+	onLeave?: () => void;
+}
+
+/**
+ * One grid cell. Memoised so a pointer move re-renders only the squares whose fill
+ * actually flipped instead of the whole grid (cols * rows rects on every event).
+ */
+const Square = memo(function Square({
+	index,
+	x,
+	y,
+	width,
+	height,
+	hovered,
+	strokeClassName,
+	squaresClassName,
+	onEnter,
+	onLeave,
+}: SquareProps) {
+	return (
+		<rect
+			x={x}
+			y={y}
+			width={width}
+			height={height}
+			className={cn(
+				"interactive-grid-square transition-all duration-100 ease-in-out",
+				strokeClassName,
+				hovered ? "fill-gray-300/30" : "fill-transparent",
+				squaresClassName
+			)}
+			onMouseEnter={onEnter ? () => onEnter(index) : undefined}
+			onMouseLeave={onLeave}
+		/>
+	);
+});
 
 export function InteractiveGridPattern({
 	className,
@@ -44,6 +91,9 @@ export function InteractiveGridPattern({
 		return Math.floor(index / cols) * height;
 	}
 
+	const handleEnter = useCallback((index: number) => setHoveredSquare(index), []);
+	const handleLeave = useCallback(() => setHoveredSquare(null), []);
+
 	return (
 		<svg
 			width={gridWidth}
@@ -54,20 +104,18 @@ export function InteractiveGridPattern({
 			)}
 		>
 			{Array.from({ length: totalSquares }, (_, index) => (
-				<rect
+				<Square
 					key={index}
+					index={index}
 					x={getX(index)}
 					y={getY(index)}
 					width={width}
 					height={height}
-					className={cn(
-						"interactive-grid-square transition-all duration-100 ease-in-out",
-						strokeClassName,
-						hoveredSquare === index ? "fill-gray-300/30" : "fill-transparent",
-						squaresClassName
-					)}
-					onMouseEnter={interactive ? () => setHoveredSquare(index) : undefined}
-					onMouseLeave={interactive ? () => setHoveredSquare(null) : undefined}
+					hovered={hoveredSquare === index}
+					strokeClassName={strokeClassName}
+					squaresClassName={squaresClassName}
+					onEnter={interactive ? handleEnter : undefined}
+					onLeave={interactive ? handleLeave : undefined}
 				/>
 			))}
 		</svg>

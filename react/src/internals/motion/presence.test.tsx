@@ -21,29 +21,15 @@ import { FakeAnimation } from "../../test-setup.js";
 // `FakeAnimation.instances` is what lets a reversal be checked against the
 // actual sampled keyframes rather than against a timer.
 
-/**
- * jsdom (verified: `"inert" in HTMLElement.prototype === false` in this repo's
- * pinned version) has no `inert` IDL property at all — setting `el.inert = true`
- * creates a plain expando with no attribute reflection, so a test that only
- * reads `el.inert` back can pass even if the real browser behaviour (an `inert`
- * ATTRIBUTE, which is what `:not([inert])` selectors and assistive tech key on)
- * was never touched. This shim makes the property reflect to the attribute,
- * matching every real browser, so a test reading `hasAttribute("inert")`
- * observes the same thing production code produces. Guarded so it is a no-op
- * the moment jsdom ships the real property.
- */
-if (!("inert" in HTMLElement.prototype)) {
-	Object.defineProperty(HTMLElement.prototype, "inert", {
-		configurable: true,
-		get(this: HTMLElement) {
-			return this.hasAttribute("inert");
-		},
-		set(this: HTMLElement, value: boolean) {
-			if (value) this.setAttribute("inert", "");
-			else this.removeAttribute("inert");
-		},
-	});
-}
+// No `inert` shim here, deliberately. jsdom (verified: `"inert" in
+// HTMLElement.prototype === false` in this repo's pinned version) implements no
+// `inert` IDL property, so this file used to install a prototype getter/setter
+// that reflected the property to the attribute — which meant the `inert` cases
+// below were passing against the shim rather than against what the hook writes.
+// `usePresence` now writes the ATTRIBUTE through `toggleAttribute`, the same
+// mechanism `useInertAttribute` uses, so `hasAttribute("inert")` observes
+// production behaviour directly and the shim would only hide the next
+// regression.
 
 afterEach(() => {
 	// Every test that spies on Element.prototype.animate needs a FRESH spy with

@@ -321,7 +321,7 @@ interface SurfaceProps extends Omit<DismissableOptions, "exclude"> {
 /** One dismissable surface with a trigger next to it — the shape every overlay has. */
 function Surface({ label = "surface", excludeTrigger, ...options }: SurfaceProps) {
 	const [node, publishNode] = useElementRef<HTMLDivElement>();
-	const trigger = useRef<HTMLButtonElement>(null);
+	const trigger = useRef<HTMLButtonElement | null>(null);
 
 	useDismissable(node, {
 		...options,

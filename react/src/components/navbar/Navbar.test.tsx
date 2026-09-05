@@ -1,8 +1,9 @@
 import { createRef } from "react";
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { Navbar } from "./Navbar.js";
 import { NavbarLink } from "./NavbarLink.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 function nav(container: HTMLElement): HTMLElement {
 	return container.querySelector("nav") as HTMLElement;
@@ -205,5 +206,53 @@ describe("NavbarLink", () => {
 		const ref = createRef<HTMLAnchorElement>();
 		const { container } = render(<NavbarLink href="/docs" ref={ref} />);
 		expect(ref.current).toBe(link(container));
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a non-current link is activated", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NavbarLink href="/docs" sound />);
+
+			await fireEvent.click(link(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NavbarLink href="/docs" />);
+
+			await fireEvent.click(link(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NavbarLink href="/docs" disabled sound />);
+
+			link(container).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the link is already current — the changed-only guard", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<NavbarLink href="/docs" current sound />);
+
+			await fireEvent.click(link(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

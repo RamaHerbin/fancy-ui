@@ -1,9 +1,9 @@
 import { Fragment, useState } from "react";
 import { StrictMode } from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
-import { sound } from "../../sound/sound.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { __dismissableLayerCount } from "../../internals/dismissable.js";
 import { FakeAnimation } from "../../test-setup.js";
 
@@ -20,6 +20,7 @@ vi.mock("../../internals/anchor-position.js", async (importOriginal) => {
 });
 
 import { attachAnchorPosition } from "../../internals/anchor-position.js";
+import type { Align } from "../../internals/anchor-position.js";
 import { DropdownMenu } from "./DropdownMenu.js";
 import { DropdownMenuTrigger } from "./DropdownMenuTrigger.js";
 import { DropdownMenuContent } from "./DropdownMenuContent.js";
@@ -64,6 +65,7 @@ interface HarnessProps {
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
 	onSelect?: (label: string) => void;
+	align?: Align;
 	loop?: boolean;
 	triggerDisabled?: boolean;
 	labelText?: string;
@@ -89,6 +91,7 @@ function Harness({
 	open,
 	onOpenChange,
 	onSelect,
+	align,
 	loop = true,
 	triggerDisabled = false,
 	labelText,
@@ -99,7 +102,13 @@ function Harness({
 	sound: soundProp = false,
 }: HarnessProps) {
 	return (
-		<DropdownMenu open={open} onOpenChange={onOpenChange} loop={loop} sound={soundProp}>
+		<DropdownMenu
+			open={open}
+			onOpenChange={onOpenChange}
+			align={align}
+			loop={loop}
+			sound={soundProp}
+		>
 			<DropdownMenuTrigger disabled={triggerDisabled}>Open menu</DropdownMenuTrigger>
 			<DropdownMenuContent>
 				{labelText ? <DropdownMenuLabel>{labelText}</DropdownMenuLabel> : null}
@@ -156,16 +165,23 @@ function menus(): HTMLElement[] {
 	return Array.from(document.querySelectorAll('[role="menu"]'));
 }
 
-// The root content is the only one carrying `aria-labelledby` (it points at
-// the real trigger button; a submenu has no equivalent single label to point
-// at) — the one reliable way to tell the two apart when both are portalled to
-// `document.body` at once.
+// Both the root panel and a submenu panel carry `aria-labelledby` — the root
+// points at the real trigger button, a submenu points at its own sub-trigger
+// row — so telling the two apart when both are portalled to `document.body`
+// at once comes down to what kind of element each one's label actually is:
+// the root trigger carries the trigger class, a sub-trigger is a
+// `role="menuitem"` row instead.
+function labelFor(el: HTMLElement): HTMLElement | null {
+	const id = el.getAttribute("aria-labelledby");
+	return id ? document.getElementById(id) : null;
+}
+
 function rootMenu(): HTMLElement | null {
-	return menus().find((el) => el.hasAttribute("aria-labelledby")) ?? null;
+	return menus().find((el) => labelFor(el)?.classList.contains("ft-dropdown-menu-trigger")) ?? null;
 }
 
 function subMenu(): HTMLElement | null {
-	return menus().find((el) => !el.hasAttribute("aria-labelledby")) ?? null;
+	return menus().find((el) => labelFor(el)?.getAttribute("role") === "menuitem") ?? null;
 }
 
 function items(root: HTMLElement | null): HTMLElement[] {
@@ -643,6 +659,23 @@ describe("DropdownMenu", () => {
 			);
 		});
 
+		// WAI-ARIA's menu-button/submenu pattern requires a submenu panel to be
+		// named by the row that opened it — without it, a screen-reader user who
+		// arrows into a submenu hears only an anonymous "menu" and loses which
+		// item they drilled into.
+		it("names the submenu panel after its own sub-trigger via aria-labelledby", async () => {
+			render(<Harness items={ITEMS} withSubmenu subItems={SUB_ITEMS} />);
+			fireEvent.click(trigger());
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			const subBtn = subTriggerEl(rootMenu())!;
+
+			fireEvent.click(subBtn);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			expect(subBtn.id).not.toBe("");
+			expect(subMenu()!.getAttribute("aria-labelledby")).toBe(subBtn.id);
+		});
+
 		// `DropdownMenuSubContent` is portalled independently of the root panel
 		// — once both are open they're DOM *siblings* under `document.body`,
 		// not ancestor/descendant, so the submenu can't pick up `text-[13px]`
@@ -855,6 +888,14 @@ describe("DropdownMenu", () => {
 	// source's call site passed one. The cue is the assertion; the trailing
 	// `undefined` is the hook's signature, not a behaviour change.
 	describe("sound", () => {
+		beforeEach(() => {
+			// The controller is a module singleton: a preference another suite
+			// stored, or an engine another suite created, would otherwise decide
+			// what these cases hear.
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
 		afterEach(() => {
 			vi.restoreAllMocks();
 		});
@@ -1100,6 +1141,69 @@ describe("DropdownMenu", () => {
 			// `bottom` + `start`: the panel's own top-left corner, the one
 			// touching the trigger it drops out of.
 			expect(panel.style.transformOrigin).toBe("left top");
+		});
+
+		// The entrance pins `transform: scale(0.92)` on the panel in the commit
+		// its node attaches, and the node reaches the positioning core one
+		// commit later — so a placement measured off `getBoundingClientRect()`
+		// would size the panel 8% small and leave it there, since the entrance
+		// settles and nothing recomputes. The core measures `offsetWidth`/
+		// `offsetHeight` instead, which a transform does not touch. Here the
+		// painted rect is jsdom's zeroed one and the layout box is 200x100:
+		// with `align="end"` the panel's RIGHT edge is what lands on the
+		// trigger's, so the width it was measured at is legible in `left`.
+		it("places the panel from its LAYOUT box, not the box the entrance transform paints", async () => {
+			const originalWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+			const originalHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight");
+			const isPanel = (el: HTMLElement) => el.classList.contains("ft-dropdown-menu-content");
+			Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+				configurable: true,
+				get(this: HTMLElement) {
+					return isPanel(this) ? 200 : 0;
+				},
+			});
+			Object.defineProperty(HTMLElement.prototype, "offsetHeight", {
+				configurable: true,
+				get(this: HTMLElement) {
+					return isPanel(this) ? 100 : 0;
+				},
+			});
+
+			try {
+				render(<Harness items={ITEMS} align="end" />);
+				const btn = trigger();
+				vi.spyOn(btn, "getBoundingClientRect").mockReturnValue({
+					left: 400,
+					top: 100,
+					right: 500,
+					bottom: 140,
+					width: 100,
+					height: 40,
+					x: 400,
+					y: 100,
+					toJSON() {
+						return this;
+					},
+				} as DOMRect);
+
+				fireEvent.click(btn);
+				await waitFor(() => expect(rootMenu()).not.toBeNull());
+
+				// `align="end"`: 500 (the trigger's right edge) minus the panel's
+				// own 200 of layout width. A painted measurement reads 0 here and
+				// would park the panel at 500px.
+				expect(rootMenu()!.style.left).toBe("300px");
+				// `side="bottom"` with this family's default 4px offset.
+				expect(rootMenu()!.style.top).toBe("144px");
+				await settleLegs();
+			} finally {
+				if (originalWidth) {
+					Object.defineProperty(HTMLElement.prototype, "offsetWidth", originalWidth);
+				}
+				if (originalHeight) {
+					Object.defineProperty(HTMLElement.prototype, "offsetHeight", originalHeight);
+				}
+			}
 		});
 
 		it("moves the growth origin to the other edge when the placement flips", async () => {

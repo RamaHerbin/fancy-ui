@@ -1,5 +1,5 @@
-import { render, cleanup } from "@testing-library/react";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, cleanup, act } from "@testing-library/react";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { Focus } from "./Focus.js";
 
 describe("Focus", () => {
@@ -48,5 +48,24 @@ describe("Focus", () => {
 		const words = container.querySelectorAll(".focus-word");
 		// Second word should be blurred
 		expect((words[1] as HTMLElement).style.filter).toBe("blur(8px)");
+	});
+
+	it("keeps the cycle on the cadence captured at mount when timing props change", () => {
+		vi.useFakeTimers();
+		try {
+			const { container, rerender } = render(
+				<Focus sentence="A B" animationDuration={0.5} pauseBetweenAnimations={1} />,
+			);
+			// A later timing change must not restart or re-time the interval, as the
+			// Svelte `onMount` closure reads its props once.
+			rerender(<Focus sentence="A B" animationDuration={5} pauseBetweenAnimations={5} />);
+			act(() => {
+				vi.advanceTimersByTime(1500);
+			});
+			const words = container.querySelectorAll(".focus-word");
+			expect((words[1] as HTMLElement).style.filter).toBe("blur(0px)");
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 });

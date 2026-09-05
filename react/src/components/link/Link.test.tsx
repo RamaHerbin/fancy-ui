@@ -1,6 +1,7 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { Link } from "./Link.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 describe("Link", () => {
 	afterEach(cleanup);
@@ -261,5 +262,56 @@ describe("Link", () => {
 
 		expect(tokens).toContain("text-lg");
 		expect(tokens).not.toContain("text-sm");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the link is clicked", () => {
+			render(<Link href="/docs" sound />);
+
+			fireEvent.click(screen.getByRole("link"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			render(<Link href="/docs" />);
+
+			fireEvent.click(screen.getByRole("link"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls the caller's onClick alongside the cue, exactly once", () => {
+			const onClick = vi.fn();
+			render(<Link href="/docs" sound onClick={onClick} />);
+
+			fireEvent.click(screen.getByRole("link"));
+
+			expect(onClick).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("never plays on hover or focus alone — only activation", () => {
+			render(<Link href="/docs" sound />);
+			const anchor = screen.getByRole("link");
+
+			fireEvent.mouseOver(anchor);
+			anchor.focus();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

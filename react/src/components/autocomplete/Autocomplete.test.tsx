@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import { Autocomplete } from "./Autocomplete.js";
 import { attachDismissable } from "../../internals/dismissable.js";
 import { FieldProvider, type FieldContext } from "../../internals/field.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 // The source suite's two `.test.svelte` harnesses collapse into the two
 // components below — a `.test.svelte` file exists only because a Svelte
@@ -792,6 +793,129 @@ describe("Autocomplete", () => {
 
 			expect(panel()).toBeNull();
 			expect(animate).not.toHaveBeenCalled();
+		});
+	});
+	// `useSoundCue` forwards its optional second argument, so every recorded
+	// call carries an explicit `undefined` where the source's
+	// `soundFx.play("select")` passed one argument. The cue itself — the only
+	// thing these assertions are about — is unchanged.
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once on a row click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Autocomplete suggestions={CITIES} sound />);
+			fireEvent.change(input(container), { target: { value: "par" } });
+
+			fireEvent.click(options()[0]!); // Paris
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+			await settleLegs();
+		});
+
+		it("plays select exactly once on Enter, and typing/focus/blur stay silent", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Autocomplete suggestions={CITIES} sound />);
+			const el = input(container);
+
+			fireEvent.change(el, { target: { value: "par" } }); // typing/open — silent
+			expect(play).not.toHaveBeenCalled();
+
+			fireEvent.keyDown(el, { key: "ArrowDown" }); // navigate — silent
+			fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+
+			play.mockClear();
+			fireEvent.blur(el); // closes — silent
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Autocomplete suggestions={CITIES} />);
+			fireEvent.change(input(container), { target: { value: "par" } });
+
+			fireEvent.click(options()[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Autocomplete suggestions={CITIES} disabled sound />);
+			const el = input(container);
+
+			fireEvent.change(el, { target: { value: "par" } });
+			fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Guardrail: an emptied panel closing through the effect that watches
+		// the filtered list must never itself play — only a real commit does.
+		it("never plays when the panel auto-closes because the filtered list empties out", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Autocomplete suggestions={CITIES} sound />);
+			const el = input(container);
+			fireEvent.change(el, { target: { value: "par" } });
+			expect(panel()).not.toBeNull();
+			play.mockClear();
+
+			fireEvent.change(el, { target: { value: "zzz" } }); // no matches — auto-closes
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when re-picking the suggestion already the value — the changed-only guard", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(
+				<Autocomplete suggestions={CITIES} value="Paris" sound />
+			);
+			fireEvent.focus(input(container)); // opens: "Paris" already matches itself
+
+			fireEvent.click(options()[0]!); // Paris — already the value
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("still calls onValueChange/onSelect on the very same click that the changed-only guard silences", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onValueChange = vi.fn();
+			const onSelect = vi.fn();
+			const { container } = render(
+				<Autocomplete
+					suggestions={CITIES}
+					value="Paris"
+					sound
+					onValueChange={onValueChange}
+					onSelect={onSelect}
+				/>
+			);
+			fireEvent.focus(input(container));
+
+			fireEvent.click(options()[0]!); // Paris — already the value
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("Paris");
+			expect(onSelect).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledWith("Paris");
+			await settleLegs();
 		});
 	});
 });

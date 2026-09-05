@@ -1,7 +1,8 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, act } from "@testing-library/react";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { FireworksHdr } from "./FireworksHdr.js";
 import { startWebGl2Fireworks, STRETCH } from "./webgl2-renderer.js";
+import type { FireworksEngineHandle } from "./webgpu-renderer.js";
 import {
 	F,
 	STRIDE,
@@ -43,6 +44,27 @@ import {
 	KEEP_CLEAR_DESKTOP,
 	type Rect,
 } from "./fireworks-shared.js";
+
+// The GPU seam, stubbed on demand. jsdom vends neither WebGPU nor WebGL2, so the
+// component normally never reaches `activate()` and nothing downstream of the boot
+// is exercised. The WebGL2 factory is wrapped so a case can hand back a fake engine
+// and drive the wired path; with no override in place it delegates to the real
+// factory, which is what every other case in this file still gets.
+const engineSeam = vi.hoisted(() => ({ override: null as null | (() => unknown) }));
+
+vi.mock("./webgl2-renderer.js", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("./webgl2-renderer.js")>();
+	return {
+		...actual,
+		startWebGl2Fireworks: (
+			canvas: HTMLCanvasElement,
+			opts: Parameters<typeof actual.startWebGl2Fireworks>[1]
+		) =>
+			engineSeam.override
+				? (engineSeam.override() as FireworksEngineHandle | null)
+				: actual.startWebGl2Fireworks(canvas, opts),
+	};
+});
 
 /** Deterministic rng (mulberry32) so probabilistic tests are reproducible. */
 function mulberry32(seed: number): () => number {
@@ -135,6 +157,67 @@ describe("FireworksHdr", () => {
 			expect(container.querySelector("canvas")).toBeInTheDocument();
 			unmount();
 		}
+	});
+});
+
+// The pointer listener lives on `window` and is wired inside `activate()`, which
+// jsdom never reaches on its own — these run against the stubbed engine above.
+describe("FireworksHdr pointer listener lifecycle (stubbed engine)", () => {
+	afterEach(() => {
+		cleanup();
+		engineSeam.override = null;
+		vi.restoreAllMocks();
+	});
+
+	function fakeEngine(): FireworksEngineHandle {
+		return {
+			frame() {},
+			resizeIfNeeded() {},
+			setRenderScale() {},
+			extendedToneMapping: false,
+			renderLevel: "webgl-sdr",
+			lost: false,
+			instanceCapacity: 1280,
+			destroy() {},
+		};
+	}
+
+	it("unhooks the window pointerdown listener at unmount after `interactive` flips true→false", async () => {
+		engineSeam.override = fakeEngine;
+		const addSpy = vi.spyOn(window, "addEventListener");
+		const removeSpy = vi.spyOn(window, "removeEventListener");
+
+		const { rerender, unmount } = render(<FireworksHdr interactive />);
+		// `boot()` is async, so the engine activates — and wires the listener — a
+		// microtask after mount.
+		await act(async () => {});
+
+		const added = addSpy.mock.calls.find(([type]) => type === "pointerdown");
+		expect(added).toBeDefined();
+
+		rerender(<FireworksHdr interactive={false} />);
+		unmount();
+
+		expect(
+			removeSpy.mock.calls.some(([type, fn]) => type === "pointerdown" && fn === added![1])
+		).toBe(true);
+	});
+
+	it("never arms the pointerdown listener when it mounted with interactive={false}", async () => {
+		engineSeam.override = fakeEngine;
+		const addSpy = vi.spyOn(window, "addEventListener");
+		const removeSpy = vi.spyOn(window, "removeEventListener");
+
+		const { rerender, unmount } = render(<FireworksHdr interactive={false} />);
+		await act(async () => {});
+		// The wiring happens once, at engine activation: `interactive` is a
+		// mount-time decision, so a later flip stays inert.
+		rerender(<FireworksHdr interactive />);
+		await act(async () => {});
+		expect(addSpy.mock.calls.some(([type]) => type === "pointerdown")).toBe(false);
+		unmount();
+
+		expect(removeSpy.mock.calls.some(([type]) => type === "pointerdown")).toBe(false);
 	});
 });
 

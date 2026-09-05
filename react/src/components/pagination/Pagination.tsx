@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { buildPageRange } from "./pagination-range.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./pagination.css";
 
 export interface PaginationProps {
@@ -31,6 +32,11 @@ export interface PaginationProps {
 	nextLabel?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the select cue through the sound controller. Off by default;
+	 * only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 const pageButtonBase =
@@ -60,9 +66,11 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
 			previousLabel,
 			nextLabel,
 			className,
+			sound = false,
 		},
 		forwardedRef
 	) => {
+		const playCue = useSoundCue(sound);
 		// The Svelte source's `page` is `$bindable(1)`: a consumer can bind it,
 		// or leave it alone and let the component keep writing its own copy.
 		// React has no such channel, so the prop is controlled when it is
@@ -118,6 +126,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(
 			const clamped = Math.max(1, Math.min(Math.floor(next), Math.max(safeCount, 1)));
 			if (clamped === page) return;
 			if (!isControlled) setUncontrolledPage(clamped);
+			playCue("select");
 			onPageChange?.(clamped);
 		}
 

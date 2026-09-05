@@ -2,6 +2,7 @@ import { forwardRef, useContext } from "react";
 import type { MouseEvent, ReactNode, Ref } from "react";
 
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { SIDEBAR_KEY } from "./types.js";
 import "./sidebar-item.css";
 
@@ -30,15 +31,33 @@ export interface SidebarItemProps {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the select cue through the sound controller. Off by default;
+	 * only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 export const SidebarItem = forwardRef<HTMLAnchorElement | HTMLButtonElement, SidebarItemProps>(
 	function SidebarItem(
-		{ href, current = false, badge, badgeLabel, disabled = false, onClick, icon, children, className },
+		{
+			href,
+			current = false,
+			badge,
+			badgeLabel,
+			disabled = false,
+			onClick,
+			icon,
+			children,
+			className,
+			sound = false,
+		},
 		ref
 	) {
 		const sidebar = useContext(SIDEBAR_KEY);
 		const collapsed = sidebar?.collapsed ?? false;
+
+		const playCue = useSoundCue(sound);
 
 		const hasBadge = badge !== undefined && badge !== null && badge !== "";
 
@@ -63,6 +82,10 @@ export const SidebarItem = forwardRef<HTMLAnchorElement | HTMLButtonElement, Sid
 				event.preventDefault();
 				return;
 			}
+			// One shared handler covers both the anchor and the button branch,
+			// so the cue reaches both. It marks moving to a DIFFERENT item:
+			// re-activating the one already current plays nothing.
+			if (!current) playCue("select");
 			onClick?.(event);
 		}
 
@@ -79,7 +102,7 @@ export const SidebarItem = forwardRef<HTMLAnchorElement | HTMLButtonElement, Sid
 				{hasBadge ? (
 					<span className={cn("ft-sidebar-item-badge shrink-0", collapsed && "sr-only")}>
 						{badge}
-						{badgeLabel ? <span className="sr-only">{" "}{badgeLabel}</span> : null}
+						{badgeLabel ? <span className="sr-only"> {badgeLabel}</span> : null}
 					</span>
 				) : null}
 			</>

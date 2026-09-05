@@ -9,6 +9,8 @@ import { preset } from "../../internals/motion/transitions.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { DURATIONS, JS_EASINGS } from "../../internals/motion/tokens.js";
 import { runTransition, type TransitionRun } from "../../internals/motion/animate.js";
+import { useSoundCue } from "../../sound/use-sound.js";
+import type { SoundCue } from "../../sound/types.js";
 import "./file-upload.css";
 
 /** One file FileUpload is tracking — selected, uploading, or settled. */
@@ -59,13 +61,20 @@ export interface FileUploadProps {
 	hint?: string;
 	/** Additional CSS classes. */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 // A split enter/exit pair rather than one bidirectional transition, which is
-// the house rule everywhere else. The list is keyed, and a row id is never
-// reused (`createRowId` only counts up), so the reversal smoothing a
-// bidirectional transition buys is smoothing nothing: a leaving row can never
-// come back mid-exit. Splitting also lets the exit be its own, quieter gesture
+// the house rule everywhere else. The list is keyed, and an id this component
+// mints is never reused (`createRowId` only counts up), so the reversal
+// smoothing a bidirectional transition buys is smoothing nothing. A controlled
+// consumer that supplies its own ids CAN bring one back mid-exit; the
+// reconciler revives that row in place rather than reversing a leg for it.
+// Splitting also lets the exit be its own, quieter gesture
 // rather than the entrance played backwards: a row arrives by rising into
 // place and leaves by simply fading, so nothing appears to travel back out of
 // the list.
@@ -146,6 +155,7 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 			label,
 			hint,
 			className,
+			sound = false,
 		},
 		ref
 	) => {
@@ -173,6 +183,8 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 		const effectiveRequired = field?.required ?? required;
 		const effectiveInvalid = field?.invalid ?? invalid;
 
+		const playCue = useSoundCue(sound);
+
 		const hintId = `${effectiveId}-hint`;
 		const describedBy =
 			[field?.describedBy, hint ? hintId : undefined].filter(Boolean).join(" ") || undefined;
@@ -195,6 +207,16 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 		// text alone — that text sits in the DOM but nothing moves focus to it,
 		// so a screen reader only reaches it if this also speaks.
 		const [liveMessage, setLiveMessage] = useState("");
+
+		// A live region only speaks when its text actually CHANGES. Rejecting
+		// the very same file twice produces byte-identical text, so writing it
+		// straight back would leave the text node untouched and the second
+		// rejection silent. Clearing first and writing the message one commit
+		// later forces the mutation an assistive technology listens for.
+		function announce(message: string) {
+			setLiveMessage("");
+			queueMicrotask(() => setLiveMessage(message));
+		}
 
 		const nextRowIdRef = useRef(0);
 		// Minted inside event handlers only — never in a render path — so the
@@ -231,7 +253,17 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 						rowElsRef.current.set(rowId, node);
 					} else {
 						rowElsRef.current.delete(rowId);
-						rowRefCallbacksRef.current.delete(rowId);
+						// Evicted by identity: a detach runs on the OLD
+						// callback, and by then the cache may already hold its
+						// replacement. Deleting unconditionally would throw
+						// that replacement away and mint a new callback on
+						// every render for the rest of the component's life,
+						// making React detach and re-attach every row's ref
+						// each time — the exact churn this cache exists to
+						// prevent.
+						if (rowRefCallbacksRef.current.get(rowId) === callback) {
+							rowRefCallbacksRef.current.delete(rowId);
+						}
 					}
 				};
 				rowRefCallbacksRef.current.set(rowId, callback);
@@ -239,8 +271,11 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 			return callback;
 		}
 
-		function commitFiles(next: UploadFile[]) {
+		// `cue` is played between the commit and the consumer callback, the
+		// same slot the Svelte source plays it in.
+		function commitFiles(next: UploadFile[], cue?: SoundCue) {
 			if (!isControlled) setUncontrolledFiles(next);
+			if (cue) playCue(cue);
 			onFilesChange?.(next);
 		}
 
@@ -256,6 +291,8 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 			const fileIds = new Set(files.map((entry) => entry.id));
 			const next: RenderedRow[] = [];
 			let fileIndex = 0;
+			// Ids whose row was mid-exit when the same id came back.
+			const revived: string[] = [];
 
 			const pushFresh = (entry: UploadFile) => {
 				next.push({ entry, exiting: false });
@@ -263,11 +300,19 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 			};
 
 			for (const row of prev) {
-				if (!row.exiting && fileIds.has(row.entry.id)) {
+				if (fileIds.has(row.entry.id)) {
 					while (fileIndex < files.length && files[fileIndex]!.id !== row.entry.id) {
 						pushFresh(files[fileIndex]!);
 						fileIndex += 1;
 					}
+					// A row still playing its exit whose id is back in `files`
+					// is revived IN PLACE, never re-added alongside itself: two
+					// rows under one key would share a single ref callback, and
+					// the id filter in `finishExit` would take both away when
+					// the exit landed — losing the entry the consumer had just
+					// put back. The keyed block on the Svelte side resumes the
+					// leaving element for a returning key for the same reason.
+					if (row.exiting) revived.push(row.entry.id);
 					// The `fileIds.has` guard above guarantees this index lands on
 					// the matching entry.
 					next.push({ entry: files[fileIndex]!, exiting: false });
@@ -279,6 +324,13 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 			while (fileIndex < files.length) {
 				pushFresh(files[fileIndex]!);
 				fileIndex += 1;
+			}
+
+			for (const rowId of revived) {
+				runsRef.current.get(rowId)?.abort();
+				runsRef.current.delete(rowId);
+				exitStartedRef.current.delete(rowId);
+				rowElsRef.current.get(rowId)?.removeAttribute("inert");
 			}
 
 			if (!sameRendered(prev, next)) {
@@ -312,7 +364,7 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 				// same instant the Svelte outro marks a leaving element inert.
 				// A closing row is not something a pointer or a screen reader
 				// should be able to reach.
-				element.inert = true;
+				element.toggleAttribute("inert", true);
 				const spec = rowLeave(
 					element,
 					{
@@ -324,7 +376,15 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 				const run = runTransition(element, spec, 0, runsRef.current.get(rowId), () =>
 					finishExit(rowId)
 				);
-				runsRef.current.set(rowId, run);
+				// Registered only while the leg is still live. On the
+				// reduced-motion path `runTransition` finishes SYNCHRONOUSLY,
+				// so `finishExit` has already dropped this row from the map by
+				// the time we get here — writing the spent handle back would
+				// leave a dead entry behind for good, and hand it to the next
+				// exit of the same id as a counterpart whose `t()` collapses
+				// that exit to no keyframes at all. `finishExit` clears the
+				// same flag, so this reads as "did the leg outlive the call".
+				if (exitStartedRef.current.has(rowId)) runsRef.current.set(rowId, run);
 			}
 
 			if (enterIdsRef.current.size > 0) {
@@ -347,7 +407,9 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 					// before the binding is assigned — `run?.` covers that, and
 					// there is nothing to abort there anyway.
 					let run: TransitionRun | undefined;
+					let settled = false;
 					run = runTransition(element, spec, 1, undefined, () => {
+						settled = true;
 						runsRef.current.delete(rowId);
 						// On ENTER finish, abort the run: that removes the
 						// `fill: forwards` so the row falls back to its resting
@@ -358,7 +420,10 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 						// fill-forwards would flash the row back for a frame.
 						run?.abort();
 					});
-					runsRef.current.set(rowId, run);
+					// Same live-leg guard as the exit above: a duration-0
+					// entrance has already finished and deleted itself, so
+					// registering it again would strand a dead handle.
+					if (!settled) runsRef.current.set(rowId, run);
 				}
 			}
 		}, [rendered]);
@@ -429,12 +494,19 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 				addedCount += 1;
 			}
 
-			commitFiles(next);
+			// Mirrors the liveMessage precedence right below: a rejection
+			// anywhere in this batch wins the cue over an acceptance, and a
+			// batch that added nothing plays nothing at all. Never `success` —
+			// this component only tracks a selection/drop, it does not perform
+			// the upload itself.
+			const cue: SoundCue | undefined =
+				problems.length > 0 ? "error" : addedCount > 0 ? "select" : undefined;
+			commitFiles(next, cue);
 
 			if (problems.length > 0) {
-				setLiveMessage(problems.join(" "));
+				announce(problems.join(" "));
 			} else if (addedCount > 0) {
-				setLiveMessage(`${addedCount} file${addedCount === 1 ? "" : "s"} added.`);
+				announce(`${addedCount} file${addedCount === 1 ? "" : "s"} added.`);
 			}
 		}
 
@@ -462,6 +534,11 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 		 * input empty, so the native submission loses a pick the row list still
 		 * shows. Restoring it would need a `DataTransfer` round-trip. Drag-drop
 		 * has never fed the native input at all, on either side.
+		 *
+		 * The other end of that policy lives in `removeFile`, which clears the
+		 * input again the moment a removal takes one of its files out of the
+		 * list — the two together are what keep `required` from validating
+		 * against a file the reader can see is gone.
 		 */
 		function handleInputClick(event: MouseEvent<HTMLInputElement>) {
 			event.currentTarget.value = "";
@@ -502,6 +579,19 @@ export const FileUpload = forwardRef<HTMLInputElement, FileUploadProps>(
 
 			const next = files.filter((entry) => entry.id !== fileId);
 			commitFiles(next);
+
+			// The input keeps its picked FileList (see `handleInputClick`), and
+			// that list is what a native submit posts and what `required`
+			// validates against — so a removal that takes a picked file out of
+			// the list has to take it off the input too. Without this, removing
+			// the file just picked leaves `required` satisfied by a file the
+			// reader can plainly see is gone, and a submit posts it.
+			const input = inputRef.current;
+			if (input && input.files && input.files.length > 0) {
+				const remaining = new Set(next.map((entry) => entry.file));
+				const stale = Array.from(input.files).some((file) => !remaining.has(file));
+				if (stale) input.value = "";
+			}
 
 			// The removed row's own button can't keep focus. Move it to the row
 			// that slid into its place, the row before it if this was the last

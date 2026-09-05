@@ -1,5 +1,6 @@
-import { render, cleanup } from "@testing-library/react";
+import { render, cleanup, act } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { LiquidGlass } from "./LiquidGlass.js";
 
@@ -16,7 +17,22 @@ describe("LiquidGlass", () => {
 		);
 	});
 
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+	});
+
+	/** Counts only the encodings of the displacement map, ignoring any other caller. */
+	function spyOnDisplacementEncoding() {
+		const encode = globalThis.encodeURIComponent;
+		return vi
+			.spyOn(globalThis, "encodeURIComponent")
+			.mockImplementation((value: string | number | boolean) => encode(value));
+	}
+
+	function countDisplacementEncodings(spy: ReturnType<typeof spyOnDisplacementEncoding>) {
+		return spy.mock.calls.filter(([value]) => String(value).startsWith("<svg viewBox=")).length;
+	}
 
 	it("renders the component", () => {
 		const { container } = render(<LiquidGlass />);
@@ -99,5 +115,52 @@ describe("LiquidGlass", () => {
 		expect(html).toContain("liquid-glass-slot");
 		expect(html).not.toContain("liquid-glass-filter");
 		expect(html).not.toContain("backdrop-filter");
+	});
+
+	// The displacement map is cached on its inputs, the way the Svelte source
+	// caches it in `$derived.by` and only reads it inside `{#if filterId}`.
+	describe("displacement map caching", () => {
+		it("builds no displacement map while no filter is rendered", () => {
+			const spy = spyOnDisplacementEncoding();
+			renderToStaticMarkup(<LiquidGlass />);
+			expect(countDisplacementEncodings(spy)).toBe(0);
+		});
+
+		it("does not rebuild the displacement map when only the parent re-renders", () => {
+			let bump = () => {};
+
+			function Parent() {
+				const [, setTick] = useState(0);
+				bump = () => setTick((tick) => tick + 1);
+				return <LiquidGlass />;
+			}
+
+			const { container } = render(<Parent />);
+			const href = container.querySelector("feImage")?.getAttribute("href");
+			expect(href).toMatch(/^data:image\/svg\+xml,/);
+
+			const spy = spyOnDisplacementEncoding();
+			act(() => bump());
+			act(() => bump());
+			act(() => bump());
+
+			expect(countDisplacementEncodings(spy)).toBe(0);
+			expect(container.querySelector("feImage")?.getAttribute("href")).toBe(href);
+		});
+
+		it("rebuilds the displacement map when an input prop changes", () => {
+			function Parent({ radius }: { radius: number }) {
+				return <LiquidGlass radius={radius} />;
+			}
+
+			const { container, rerender } = render(<Parent radius={16} />);
+			const href = container.querySelector("feImage")?.getAttribute("href");
+
+			const spy = spyOnDisplacementEncoding();
+			rerender(<Parent radius={24} />);
+
+			expect(countDisplacementEncodings(spy)).toBe(1);
+			expect(container.querySelector("feImage")?.getAttribute("href")).not.toBe(href);
+		});
 	});
 });

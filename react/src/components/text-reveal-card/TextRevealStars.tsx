@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from "react";
+import { memo, useMemo, type CSSProperties } from "react";
 import { cn } from "../../utils.js";
 import "./text-reveal-stars.css";
 
@@ -62,7 +62,17 @@ function createStars(starsCount: number, seed: number): StarData[] {
 	}));
 }
 
-export function TextRevealStars({ starsCount = 130, className, seed = 1 }: TextRevealStarsProps) {
+/**
+ * Memoised so a pointer scrub over TextRevealCard — which re-renders the card on
+ * every mouse/touch move — leaves the star field alone. Without it the whole
+ * field (130 spans by default) is re-created and diffed on every pointer event;
+ * the star markup only ever depends on `starsCount`, `className` and `seed`.
+ */
+export const TextRevealStars = memo(function TextRevealStars({
+	starsCount = 130,
+	className,
+	seed = 1,
+}: TextRevealStarsProps) {
 	// Recomputed only when `starsCount` or `seed` changes — the same dependency
 	// the Svelte source's `$derived` tracks. A plain render-time call would
 	// reshuffle the field on every unrelated re-render.
@@ -93,4 +103,4 @@ export function TextRevealStars({ starsCount = 130, className, seed = 1 }: TextR
 			))}
 		</div>
 	);
-}
+});

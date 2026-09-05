@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { CHAT_MESSAGE_CONTEXT_KEY } from "./types.js";
 
 /**
@@ -26,11 +27,22 @@ export function ChatMessageBranches({
 	onNavigate,
 	className,
 }: ChatMessageBranchesProps) {
-	// Only used to decide which edge the navigator hugs; absent context is fine.
+	// Used to decide which edge the navigator hugs, and to read the root's
+	// `sound` prop; absent context is fine for both.
 	const message = useContext(CHAT_MESSAGE_CONTEXT_KEY);
+	const playCue = useSoundCue(message?.sound ?? false);
 
 	const atStart = index <= 1;
 	const atEnd = index >= count;
+
+	// One extracted step both arrows call: the edges are already disabled
+	// natively, but a synthetic click bypasses that, so `next` is re-checked
+	// against the real range before anything plays or fires.
+	function navigate(next: number) {
+		if (next < 1 || next > count) return;
+		playCue("select");
+		onNavigate(next);
+	}
 
 	return (
 		<div
@@ -47,7 +59,7 @@ export function ChatMessageBranches({
 				className={buttonClass}
 				aria-label="Previous version"
 				disabled={atStart}
-				onClick={() => onNavigate(index - 1)}
+				onClick={() => navigate(index - 1)}
 			>
 				<svg
 					className="size-3.5"
@@ -72,7 +84,7 @@ export function ChatMessageBranches({
 				className={buttonClass}
 				aria-label="Next version"
 				disabled={atEnd}
-				onClick={() => onNavigate(index + 1)}
+				onClick={() => navigate(index + 1)}
 			>
 				<svg
 					className="size-3.5"

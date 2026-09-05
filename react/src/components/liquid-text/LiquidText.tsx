@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { cn } from "../../utils.js";
 import "./liquid-text.css";
@@ -704,7 +705,13 @@ export function LiquidText({
 	// only reading them inside the helpers above) means any of them changing
 	// after mount re-derives the resolved font/size/color and, on the canvas
 	// path, re-rasterizes.
-	useEffect(() => {
+	//
+	// A layout effect, not a passive one: the fitted font size drives the root
+	// height and the fallback text's size, so running it after paint would show
+	// one frame at the previous (or default 64px) size on every text/font
+	// change. The Svelte `$effect` this mirrors flushes before the browser
+	// paints.
+	useIsomorphicLayoutEffect(() => {
 		if (!rootRef.current) return;
 		applyThemeColor(activeThemeColor());
 		fitFontSize();
@@ -725,7 +732,14 @@ export function LiquidText({
 	// closure and not listed as a dependency: the Svelte source checks it once
 	// against `window.innerWidth` in `onMount`, so crossing the breakpoint
 	// later does not retroactively swap modes.
-	useEffect(() => {
+	//
+	// A layout effect, not a passive one: both of the paint-visible decisions
+	// this makes — the auto-fitted font size (which sets the root height) and
+	// the static -> canvas promotion — would otherwise land one painted frame
+	// late, so the default `fontSize={0}` path would flash 64px text before
+	// jumping to its fitted size. The Svelte `onMount` this mirrors flushes
+	// before the first paint.
+	useIsomorphicLayoutEffect(() => {
 		const root = rootRef.current;
 		const canvas = canvasRef.current;
 		if (!root || !canvas) return;
@@ -1142,12 +1156,20 @@ export function LiquidText({
 
 				disposeOnFailure.length = 0;
 
+				// Port divergence from the Svelte cleanup, which additionally
+				// calls WEBGL_lose_context.loseContext() here: React runs this
+				// effect setup -> cleanup -> setup on the SAME <canvas> node
+				// (StrictMode in development, and Fast Refresh), and a lost
+				// context is never re-acquired — getContext hands the dead one
+				// back, every texture allocation returns null and the sim can
+				// never restart. teardownSim() above already deletes every
+				// program, texture, FBO and buffer; the context itself is
+				// reclaimed with the canvas. The failure path below still loses
+				// it, since there the canvas is being abandoned for this mount.
 				return () => {
 					canvas.removeEventListener("webglcontextlost", onContextLost);
 					canvas.removeEventListener("webglcontextrestored", onContextRestored);
 					teardownSim();
-					const loseContext = gl.getExtension("WEBGL_lose_context");
-					loseContext?.loseContext();
 				};
 			} catch {
 				// Best-effort cleanup of whatever GL resources were already
@@ -1180,6 +1202,15 @@ export function LiquidText({
 			cleanupCanvasSim = setupCanvasSim(canvas, root, startFallbackResize);
 		}
 		if (!cleanupCanvasSim) {
+			// `setMode("static")` as well as the observer: setupCanvasSim's
+			// early `!acquired` return happens before its try/catch, so it is
+			// the one failure path that does not reset the mode itself. Without
+			// this, an effect re-run whose GL acquisition fails after an earlier
+			// pass already promoted to "canvas" would strand `mode === "canvas"`
+			// — an empty canvas, no sim, and the visible text replaced by the
+			// sr-only span. A no-op on a first mount, where the mode is already
+			// "static".
+			setMode("static");
 			startFallbackResize();
 		}
 
@@ -1226,7 +1257,10 @@ export function LiquidText({
 					className="liquid-text-fallback block"
 					style={{
 						color: themeColor,
-						fontFamily: resolvedFont,
+						// An empty family must not reach the style object: React 18's
+						// hydration comparator renders it as `font-family:` and reports a
+						// mismatch against the server markup that omitted it.
+						fontFamily: resolvedFont || undefined,
 						fontSize: `${displayFontSize}px`,
 						fontWeight,
 					}}

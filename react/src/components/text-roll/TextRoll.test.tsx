@@ -1,5 +1,5 @@
 import { act, cleanup, render, waitFor } from "@testing-library/react";
-import { createRef, forwardRef, useImperativeHandle, useState } from "react";
+import { StrictMode, createRef, forwardRef, useImperativeHandle, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { REDUCED_MOTION_QUERY } from "../../internals/motion/media-query.js";
 import { DURATIONS, STAGGER_CAPS } from "../../internals/motion/tokens.js";
@@ -190,6 +190,36 @@ describe("TextRoll", () => {
 			} finally {
 				// The lib types mark Intl.Segmenter read-only; restore through a
 				// type-erased handle, mirroring how it was removed above.
+				(Intl as unknown as { Segmenter: typeof Intl.Segmenter }).Segmenter = real;
+			}
+		});
+
+		it("segments once per value, not once per settled cell leg", async () => {
+			// A roll re-renders this component several times — the render-phase
+			// key re-merge, then one `endTransition` per settled leg, each in
+			// its own task. The grapheme split must be cached on `value` the
+			// way the source's `$derived` is, or every one of those renders
+			// builds a fresh `Intl.Segmenter` and re-walks the whole string
+			// inside the animation window.
+			const real = Intl.Segmenter;
+			let constructed = 0;
+			const counting = new Proxy(real, {
+				construct(target, args: ConstructorParameters<typeof Intl.Segmenter>) {
+					constructed += 1;
+					return new target(...args);
+				},
+			});
+			(Intl as unknown as { Segmenter: typeof Intl.Segmenter }).Segmenter = counting;
+
+			try {
+				const { rerender } = render(<TextRoll value="12:00" />);
+				constructed = 0;
+
+				rerender(<TextRoll value="12:01" />);
+				await settleLegs();
+
+				expect(constructed).toBe(1);
+			} finally {
 				(Intl as unknown as { Segmenter: typeof Intl.Segmenter }).Segmenter = real;
 			}
 		});
@@ -625,5 +655,27 @@ describe("TextRoll", () => {
 
 			expect(() => unmount()).not.toThrow();
 		});
+	});
+});
+
+describe("StrictMode", () => {
+	it("mounts and changes value under StrictMode without resolving against a stale prior value", async () => {
+		const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+		const { container, rerender } = render(
+			<StrictMode>
+				<TextRoll value="1" />
+			</StrictMode>
+		);
+		// The double-invoked layout effect must not throw on the seed run…
+		expect(container).toHaveTextContent("1");
+		// …and a real change still rolls to the new value.
+		rerender(
+			<StrictMode>
+				<TextRoll value="2" />
+			</StrictMode>
+		);
+		await waitFor(() => expect(container).toHaveTextContent("2"));
+		expect(errors).not.toHaveBeenCalled();
+		errors.mockRestore();
 	});
 });

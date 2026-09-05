@@ -1,4 +1,5 @@
-import { act, renderHook } from "@testing-library/react";
+import { StrictMode } from "react";
+import { act, render, renderHook } from "@testing-library/react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -52,6 +53,7 @@ function stubMatchMedia(matches: boolean) {
 
 	return {
 		matchMedia,
+		addEventListener,
 		removeEventListener,
 		fireChange(next: boolean) {
 			currentMatches = next;
@@ -138,6 +140,53 @@ describe("useMediaQuery", () => {
 		expect(result.current).toBe(true);
 	});
 
+	it("allocates one MediaQueryList per query, not one per snapshot", () => {
+		// `getSnapshot` runs on every render and again after every store
+		// change. Resolving `window.matchMedia(query)` inside it minted a fresh
+		// MediaQueryList each time, which is per-frame garbage for a
+		// `useReducedMotion()` sitting in a scroll-driven tree.
+		const stub = stubMatchMedia(false);
+		const { rerender } = renderHook(() => useMediaQuery("(min-width: 1px)"));
+
+		rerender();
+		rerender();
+		expect(stub.matchMedia).toHaveBeenCalledTimes(1);
+
+		// A real change event drops the memoised list and resolves exactly one
+		// more. That is what keeps the hook honest against a MediaQueryList
+		// whose `matches` was captured at construction rather than live.
+		act(() => stub.fireChange(true));
+		expect(stub.matchMedia).toHaveBeenCalledTimes(2);
+	});
+
+	/*
+	 * §9.4's StrictMode row. The leak counter here is live change listeners:
+	 * the rehearsal subscribes, unsubscribes and subscribes again, so exactly
+	 * one registration may be outstanding while mounted and none after
+	 * unmount. A `useSyncExternalStore` subscriber that forgot its own
+	 * unsubscribe would double-register here and nowhere else in this file.
+	 */
+	it("leaves exactly one live change listener under StrictMode, and none after unmount", () => {
+		const stub = stubMatchMedia(false);
+		function Probe() {
+			useMediaQuery("(min-width: 1px)");
+			return null;
+		}
+
+		const { unmount } = render(
+			<StrictMode>
+				<Probe />
+			</StrictMode>
+		);
+
+		expect(stub.addEventListener.mock.calls.length - stub.removeEventListener.mock.calls.length).toBe(
+			1
+		);
+
+		unmount();
+		expect(stub.removeEventListener).toHaveBeenCalledTimes(stub.addEventListener.mock.calls.length);
+	});
+
 	it("re-subscribes when the query changes", () => {
 		const stub = stubMatchMedia(false);
 		const { rerender } = renderHook(({ query }) => useMediaQuery(query), {
@@ -189,9 +238,20 @@ describe("hydration", () => {
 		container.innerHTML = html;
 		document.body.appendChild(container);
 
+		// React 19 routes a hydration mismatch to `onRecoverableError`, not to
+		// console.error, so the console spy on its own would let one through
+		// unnoticed. Both are asserted empty, as `use-elapsed.test.ts` does.
+		const recoverable: unknown[] = [];
 		const errors = vi.spyOn(console, "error").mockImplementation(() => {});
-		const root = await act(async () => hydrateRoot(container, <Probe />));
+		const root = await act(async () =>
+			hydrateRoot(container, <Probe />, {
+				onRecoverableError: (error) => {
+					recoverable.push(error);
+				},
+			})
+		);
 
+		expect(recoverable).toEqual([]);
 		expect(errors).not.toHaveBeenCalled();
 		// The real answer arrives after hydration, in the same commit that
 		// subscribes — never during it.

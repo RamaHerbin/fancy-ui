@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { rafThrottle } from "../../internals/motion/raf.js";
 
 export interface TimelineItem {
 	id: string;
@@ -19,15 +21,38 @@ export interface TimelineProps {
 	content?: (item: TimelineItem) => ReactNode;
 }
 
+/**
+ * The two declarations the scroll position actually moves. Written straight to
+ * the node instead of through state: a scroll can fire once per frame, and a
+ * re-render would rebuild every item row and re-invoke the `content` render
+ * prop for the whole list to move a 2px gradient line.
+ */
+function writeProgressLine(line: HTMLElement | null, progress: number, height: number): void {
+	if (!line) return;
+	line.style.height = `${progress * height}px`;
+	line.style.opacity = String(Math.min(progress / 0.1, 1));
+}
+
 export function Timeline({ items = [], title, description, className, content }: TimelineProps) {
 	const timelineRef = useRef<HTMLDivElement | null>(null);
+	const progressRef = useRef<HTMLDivElement | null>(null);
+	// Measured height and scroll fraction live in refs so the progress line can
+	// be written imperatively; `timelineHeight` mirrors the measurement into
+	// state only because the background rail's height is part of the render
+	// output, and it moves at resize frequency, not per frame.
+	const heightRef = useRef(0);
+	const progressValueRef = useRef(0);
 	const [timelineHeight, setTimelineHeight] = useState(0);
-	const [scrollProgress, setScrollProgress] = useState(0);
 
-	const progressHeight = scrollProgress * timelineHeight;
-	const progressOpacity = Math.min(scrollProgress / 0.1, 1);
+	// Layout effect: the measurement and the first progress write are
+	// paint-visible geometry. In a passive effect the rail and the progress
+	// line would paint at 0px for a frame and then pop to size.
+	useIsomorphicLayoutEffect(() => {
+		function measure(el: HTMLDivElement) {
+			heightRef.current = el.getBoundingClientRect().height;
+			setTimelineHeight(heightRef.current);
+		}
 
-	useEffect(() => {
 		function updateProgress() {
 			const el = timelineRef.current;
 			if (!el) return;
@@ -45,34 +70,42 @@ export function Timeline({ items = [], title, description, className, content }:
 			const total = end - start;
 
 			if (total <= 0) {
-				setScrollProgress(0);
-				return;
+				progressValueRef.current = 0;
+			} else {
+				const progress = -start / total;
+				progressValueRef.current = Math.max(0, Math.min(1, progress));
 			}
 
-			const progress = -start / total;
-			setScrollProgress(Math.max(0, Math.min(1, progress)));
+			writeProgressLine(progressRef.current, progressValueRef.current, heightRef.current);
 		}
 
 		const el = timelineRef.current;
 		if (el) {
-			setTimelineHeight(el.getBoundingClientRect().height);
+			measure(el);
 		}
 
 		const resizeObserver = new ResizeObserver(() => {
 			if (timelineRef.current) {
-				setTimelineHeight(timelineRef.current.getBoundingClientRect().height);
+				measure(timelineRef.current);
+				// The progress line's height is a fraction OF the measured
+				// height, so a resize moves it too — the same recompute the
+				// Svelte source gets for free from its derived value.
+				writeProgressLine(progressRef.current, progressValueRef.current, heightRef.current);
 			}
 		});
 
 		if (el) {
 			resizeObserver.observe(el);
 		}
-		window.addEventListener("scroll", updateProgress, { passive: true });
+
+		const onScroll = rafThrottle(updateProgress);
+		window.addEventListener("scroll", onScroll, { passive: true });
 		updateProgress();
 
 		return () => {
+			onScroll.cancel();
 			resizeObserver.disconnect();
-			window.removeEventListener("scroll", updateProgress);
+			window.removeEventListener("scroll", onScroll);
 		};
 	}, []);
 
@@ -80,9 +113,7 @@ export function Timeline({ items = [], title, description, className, content }:
 		<div className={cn("w-full font-sans md:px-10", className)}>
 			{(title || description) && (
 				<div className="mx-auto max-w-7xl px-4 py-20 md:px-8 lg:px-10">
-					{title && (
-						<h2 className="text-foreground mb-4 max-w-4xl text-lg md:text-4xl">{title}</h2>
-					)}
+					{title && <h2 className="text-foreground mb-4 max-w-4xl text-lg md:text-4xl">{title}</h2>}
 					{description && (
 						<p className="text-muted-foreground max-w-sm text-sm md:text-base">{description}</p>
 					)}
@@ -114,7 +145,8 @@ export function Timeline({ items = [], title, description, className, content }:
 				>
 					{/* Animated progress line */}
 					<div
-						style={{ height: `${progressHeight}px`, opacity: progressOpacity }}
+						ref={progressRef}
+						style={{ height: "0px", opacity: 0 }}
 						className="absolute inset-x-0 top-0 w-[2px] rounded-full bg-gradient-to-t from-purple-500 from-0% via-blue-500 via-10% to-transparent"
 					></div>
 				</div>

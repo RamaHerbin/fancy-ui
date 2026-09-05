@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 import { Dialog } from "./Dialog.js";
 import { __dismissableLayerCount, attachDismissable } from "../../internals/dismissable.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { FakeAnimation } from "../../test-setup.js";
 
 // Shape 4 (component) from the internals contract §9.3: `render()` plus the
@@ -123,6 +124,11 @@ describe("Dialog", () => {
 		// "Not implemented" console noise on every release. Re-installed per
 		// test because `vi.restoreAllMocks()` below tears it down again.
 		vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+		// The sound controller is a module singleton: a preference or an engine
+		// left behind by an earlier test would decide whether a cue is audible
+		// in this one.
+		resetSoundForTests();
+		window.localStorage.clear();
 	});
 
 	afterEach(() => {
@@ -571,6 +577,96 @@ describe("Dialog", () => {
 		expect(targets).toContain(scrim());
 
 		await settleLegs();
+	});
+
+	// The source suite's `describe("sound")` cases, transposed one for one.
+	// The spy sits on the CONTROLLER, not the hook, so what is asserted is the
+	// cue that actually reached the singleton; the second argument is the
+	// options object `useSoundCue` forwards, which is `undefined` here.
+	describe("sound", () => {
+		it("plays open exactly once when the trigger opens the dialog", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Dialog sound title="Invite" trigger={TRIGGER} />);
+
+			fireEvent.click(trigger());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open", undefined);
+			await settleLegs();
+		});
+
+		it("plays close exactly once when the close button dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Dialog sound open title="Invite" />);
+
+			fireEvent.click(closeButton()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		it("plays close exactly once on Escape and close exactly once on an outside click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Dialog sound open title="Invite" />);
+
+			pressEscape();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+
+			// The source re-opens the same instance with a `rerender`; here the
+			// controlled prop has not changed, so the second half needs a fresh
+			// mount rather than a re-render of the closed one.
+			await settleLegs();
+			cleanup();
+			play.mockClear();
+
+			render(<Dialog sound open title="Invite" />);
+			pointerDownOn(scrim()!);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Dialog open title="Invite" />);
+
+			fireEvent.click(closeButton()!);
+			pressEscape();
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		it("swallows a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<Dialog sound open title="Invite" />);
+
+			pressEscape();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		// The source's `bind:open` case: a dialog driven purely by the
+		// controlled prop never reaches `setOpen`'s open branch, so it opens
+		// silently by design.
+		it("a dialog driven purely by the controlled open prop opens silently — no trigger and no gesture ever reaches setOpen's open branch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(<Dialog sound open={false} title="Invite" />);
+
+			rerender(<Dialog sound open title="Invite" />);
+			expect(panel()).toBeTruthy();
+
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
 	});
 
 	// The two leak counters the contract names for this pairing, driven

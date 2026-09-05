@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { TOGGLE_GROUP_KEY } from "./types.js";
 import type { ToggleGroupContext } from "./types.js";
 import "./toggle-group.css";
@@ -29,6 +30,11 @@ export interface ToggleGroupProps {
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off by
+	 * default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 /**
@@ -54,6 +60,7 @@ export const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
 			label,
 			children,
 			className,
+			sound = false,
 		},
 		forwardedRef
 	) => {
@@ -100,6 +107,8 @@ export const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
 
 		const [focusedValueState, setFocusedValueState] = useState<string | null>(null);
 
+		const playCue = useSoundCue(sound);
+
 		function isSelected(itemValue: string): boolean {
 			return selected.includes(itemValue);
 		}
@@ -119,6 +128,13 @@ export const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
 			if (disabled) return;
 			const current = toArray(value);
 			const isOn = current.includes(itemValue);
+			// Three cues, chosen from the PRE-commit state and played before it:
+			// a multiple-select rail reports the direction it is moving in, a
+			// single-select one reports a pick — including the clear-on-repick
+			// case below, which is still a pick from the reader's point of view.
+			// The cue lives here rather than in the item's click handler, so an
+			// item outside a group stays silent.
+			playCue(type === "multiple" ? (isOn ? "toggle-off" : "toggle-on") : "select");
 			if (type === "single") {
 				// Activating the already-active item clears the selection instead of
 				// no-op-ing — the one state a native radio group can't express, and

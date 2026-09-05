@@ -2,10 +2,12 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import type { KeyboardEvent } from "react";
 
 import { cn } from "../../utils.js";
+import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
 import { useEventCallback } from "../../internals/dom/use-event-callback.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useFancyId } from "../../internals/use-id.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import { useFloat } from "../../internals/use-float.js";
 import type { FloatRect } from "../../internals/float.js";
 import type { ModelOptionData } from "../../internals/ai-types.js";
@@ -54,6 +56,7 @@ export function ComposerModelPicker({
 	// Undefined when the picker is used outside a Composer: it then behaves as a
 	// standalone select rather than throwing, and nothing switches it off.
 	const composer = useContext(COMPOSER_CONTEXT_KEY);
+	const playCue = useSoundCue(composer?.sound);
 
 	const uid = useFancyId();
 	const menuId = `${uid}-menu`;
@@ -103,15 +106,24 @@ export function ComposerModelPicker({
 		const current = models.findIndex((model) => model.id === selectedId);
 		setActiveIndex(current >= 0 ? current : 0);
 		setOpen(true);
+		playCue("open");
 	});
 
-	const closeMenu = useEventCallback((returnFocus: boolean) => {
-		if (!open) return;
-		setOpen(false);
-		// Focus was moved into the listbox on open; leaving it there would drop the
-		// keyboard user at the top of the document when the listbox disappears.
-		if (returnFocus) triggerLive.current?.focus();
-	});
+	// `reason` distinguishes a commit-flavoured close (a model was just picked)
+	// from a plain dismiss (Escape, Tab, an outside press, or the trigger
+	// toggling the menu shut). Only a dismiss plays `close` — a commit already
+	// played `select` inside `select()` below, and the contract is one cue per
+	// interaction, never both.
+	const closeMenu = useEventCallback(
+		(returnFocus: boolean, reason: "commit" | "dismiss" = "dismiss") => {
+			if (!open) return;
+			setOpen(false);
+			if (reason === "dismiss") playCue("close");
+			// Focus was moved into the listbox on open; leaving it there would drop the
+			// keyboard user at the top of the document when the listbox disappears.
+			if (returnFocus) triggerLive.current?.focus();
+		}
+	);
 
 	const move = useEventCallback((delta: number) => {
 		if (models.length === 0) return;
@@ -125,7 +137,11 @@ export function ComposerModelPicker({
 		if (!model || isDisabled) return;
 		const changed = model.id !== selectedId;
 		applyValue(model.id);
-		closeMenu(true);
+		// Re-picking the model already in force plays no `select` — same as
+		// `onChange` below — and the menu closes as a dismissal instead, with
+		// `close`, rather than in silence (RadioGroup/Select parity).
+		if (changed) playCue("select");
+		closeMenu(true, changed ? "commit" : "dismiss");
 		// `onChange` reports a change, not an interaction: re-picking the model
 		// already in force has nothing to announce.
 		if (changed) onChange?.(model.id);
@@ -187,7 +203,9 @@ export function ComposerModelPicker({
 		return () => document.removeEventListener("mousedown", onPointerDown, true);
 	}, [open, closeMenu, menuLive, triggerLive]);
 
-	useEffect(() => {
+	// A layout effect, so the first painted frame of the opened menu already has
+	// focus inside the listbox rather than still on the trigger (contract §4).
+	useIsomorphicLayoutEffect(() => {
 		if (!open) return;
 		// Focus moves into the listbox instead of staying on the trigger: the
 		// element pointing at the active option with `aria-activedescendant` must be

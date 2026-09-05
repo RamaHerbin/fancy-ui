@@ -12,8 +12,9 @@
  * and `useNow` do this for you.
  */
 
-import { useEffect, useReducer, useRef, useSyncExternalStore } from "react";
+import { useEffect, useReducer, useSyncExternalStore } from "react";
 import { useConstant, useIsomorphicLayoutEffect } from "./dom/ssr.js";
+import { useLiveRef } from "./dom/use-live-ref.js";
 
 const MINUTE = 60_000;
 const HOUR = 3_600_000;
@@ -235,8 +236,14 @@ export function useElapsed(options: ElapsedOptions = {}): UseElapsedResult {
 		() => false
 	);
 
-	const rendered = useRef(ms);
-	rendered.current = ms;
+	// Written in an insertion effect, never in the render body: an insertion
+	// effect runs before every layout effect in the same commit, so the
+	// comparison below still reads the value this commit rendered, and a
+	// concurrent render React throws away can no longer publish one the commit
+	// never used. A stale value here either bumps for nothing or, in the
+	// missed direction, skips the bump and paints the very frame it exists to
+	// close.
+	const rendered = useLiveRef(ms);
 	const [, bump] = useReducer(bumpReducer, 0);
 
 	useIsomorphicLayoutEffect(() => {
@@ -381,8 +388,9 @@ function bumpReducer(n: number): number {
  */
 export function useNow(refreshMs = 30_000): number {
 	const value = useSyncExternalStore(sharedClock.subscribe, sharedClock.getValue, getServerNow);
-	const rendered = useRef(value);
-	rendered.current = value;
+	// An insertion effect rather than the render body, for the reason spelled
+	// out on `useElapsed`'s copy above.
+	const rendered = useLiveRef(value);
 	const [, bump] = useReducer(bumpReducer, 0);
 
 	useIsomorphicLayoutEffect(() => {

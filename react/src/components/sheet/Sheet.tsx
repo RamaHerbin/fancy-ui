@@ -12,6 +12,7 @@ import { useFancyId } from "../../internals/use-id.js";
 import { anchored, prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { DURATIONS, JS_EASINGS } from "../../internals/motion/tokens.js";
 import { usePresence } from "../../internals/motion/presence.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import type { TransitionSpec } from "../../internals/motion/transitions.js";
 
 export type SheetSide = "left" | "right" | "top" | "bottom";
@@ -38,6 +39,20 @@ export interface SheetProps {
 	footer?: ReactNode;
 	/** Additional CSS classes merged onto the panel. */
 	className?: string;
+	/**
+	 * Accessible name for the panel when there is no `title`. A modal dialog
+	 * must be named, and `aria-labelledby` can only point at a rendered
+	 * heading — pass this when the header is built from `children` instead.
+	 * Ignored once `title` is set, since `aria-labelledby` already supplies
+	 * the name.
+	 */
+	ariaLabel?: string;
+	/**
+	 * Plays the `close` cue through the sound controller when the sheet is
+	 * dismissed. Off by default; only audible once the user has enabled
+	 * sound.
+	 */
+	sound?: boolean;
 }
 
 // The one place this component owns motion. Not `anchored`: that helper is
@@ -107,6 +122,8 @@ export const Sheet = forwardRef<HTMLDivElement, SheetProps>(function Sheet(
 		children,
 		footer,
 		className,
+		ariaLabel,
+		sound = false,
 	},
 	forwardedRef
 ) {
@@ -122,9 +139,17 @@ export const Sheet = forwardRef<HTMLDivElement, SheetProps>(function Sheet(
 		setOpenState(openProp ?? false);
 	}
 
+	// A no-op while `sound` is false, so the call site below stays unguarded.
+	const playCue = useSoundCue(sound);
+
 	function close() {
+		// The same guard keeps the cue honest: every dismissal — Escape, the
+		// scrim, the close button — funnels through here, while a parent
+		// writing `open` to false never does, and a second Escape landing
+		// during the exit is already gone by the time it arrives.
 		if (!open) return;
 		setOpenState(false);
+		playCue("close");
 		onOpenChange?.(false);
 	}
 
@@ -240,6 +265,7 @@ export const Sheet = forwardRef<HTMLDivElement, SheetProps>(function Sheet(
 						className={panelClasses}
 						role="dialog"
 						aria-modal="true"
+						aria-label={titleId ? undefined : ariaLabel}
 						aria-labelledby={titleId}
 						aria-describedby={descriptionId}
 						data-state={presence.surfaceState}

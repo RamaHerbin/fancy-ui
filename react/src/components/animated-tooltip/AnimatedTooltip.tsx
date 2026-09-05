@@ -1,7 +1,8 @@
-import { useInsertionEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 import { cn } from "../../utils.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { usePresence } from "../../internals/motion/presence.js";
 import type { TransitionSpec } from "../../internals/motion/transitions.js";
 
@@ -59,80 +60,145 @@ interface TooltipPose {
 	translation: number;
 }
 
-/**
- * The pose to draw this item's tooltip at — live while the item is hovered, and
- * FROZEN at its own last hovered pose for the whole exit.
- *
- * `rotation`/`translation` are shared by the whole row, but the source reads
- * them INSIDE the item's conditional block, and that block is paused the instant
- * its item stops being the hovered one. A paused block does not update and its
- * DOM subtree is inert, so the leaving tooltip keeps the transform it was last
- * drawn at while the shared mouse position carries on moving underneath it — the
- * pointer has crossed onto the neighbouring avatar (the `-mr-4` overlap makes
- * that the ordinary traversal), or has left the row and reset the position to 0.
- *
- * Without the freeze the exit plays from the row's CURRENT pose, and not for one
- * frame: `tooltipScale` samples `getComputedStyle` at leg start, which is after
- * the wrong inline transform has been committed, so the wrong pose is baked into
- * every keyframe of the 200ms leg.
- *
- * The remembered pose is written in an insertion effect rather than during
- * render, for `useLiveRef`'s reason: a concurrent render React throws away must
- * never be able to publish a pose that was never painted.
- */
-function useTooltipPose(hovered: boolean, rotation: number, translation: number): TooltipPose {
-	const lastHovered = useRef<TooltipPose>({ rotation, translation });
+/** Where the pointer sits inside one avatar, mapped through the source's
+ *  `(mouseX / 100) * 50`: the offset from the avatar's own centre, so a row of
+ *  overlapping avatars poses each tooltip against the item under the pointer. */
+function poseAt(event: ReactMouseEvent<HTMLElement>): TooltipPose {
+	const rect = event.currentTarget.getBoundingClientRect();
+	const halfWidth = rect.width / 2;
+	const mouseX = event.clientX - rect.left - halfWidth;
+	const value = (mouseX / 100) * 50;
+	return { rotation: value, translation: value };
+}
 
-	useInsertionEffect(() => {
-		if (hovered) lastHovered.current = { rotation, translation };
-	}, [hovered, rotation, translation]);
+/** The inline transform one pose draws as. */
+function transformFor(pose: TooltipPose): string {
+	return `translateX(calc(-50% + ${pose.translation}px)) rotate(${pose.rotation}deg)`;
+}
 
-	return hovered ? { rotation, translation } : lastHovered.current;
+/** The id the tooltip is published under, so the wrapper can point
+ *  `aria-describedby` at it while it is shown. */
+function tooltipId(itemId: number | string): string {
+	return `animated-tooltip-${itemId}`;
 }
 
 interface AvatarItemProps {
 	item: TooltipItem;
 	hovered: boolean;
-	rotation: number;
-	translation: number;
-	onMouseEnter: (event: ReactMouseEvent<HTMLDivElement>) => void;
-	onMouseMove: (event: ReactMouseEvent<HTMLDivElement>) => void;
-	onMouseLeave: () => void;
+	onHoverStart: (itemId: number | string) => void;
+	onHoverEnd: () => void;
 }
 
 /** One avatar and its conditional tooltip. A separate component because each
  *  item owns a presence clock (the mount/unmount timing the source's
  *  transition-aware conditional block owned natively). */
-function AvatarItem({
-	item,
-	hovered,
-	rotation,
-	translation,
-	onMouseEnter,
-	onMouseMove,
-	onMouseLeave,
-}: AvatarItemProps) {
-	const presence = usePresence(hovered);
-	const tooltipRef = presence.register(tooltipScale);
-	const pose = useTooltipPose(hovered, rotation, translation);
+function AvatarItem({ item, hovered, onHoverStart, onHoverEnd }: AvatarItemProps) {
+	/**
+	 * The pointer-tracked pose, and the node it is drawn on. Both refs, never
+	 * state: the source reads the shared mouse position INSIDE the hovered
+	 * item's conditional block, so one pointer sample rewrites one style
+	 * attribute on one node. Holding the pose in React state would re-render
+	 * every avatar in the row — and re-run each one's presence bookkeeping — on
+	 * every mousemove, work that grows with `items.length` where the source's
+	 * does not.
+	 *
+	 * The imperative write is also what gives the FREEZE for free. The source's
+	 * block is paused the instant its item stops being the hovered one: a paused
+	 * block does not update, so the leaving tooltip keeps the transform it was
+	 * last drawn at while the pointer carries on moving underneath it — onto the
+	 * neighbouring avatar (the `-mr-4` overlap makes that the ordinary
+	 * traversal), or off the row entirely. Here a leaving item simply stops
+	 * receiving writes, and the node keeps its last value. Without the freeze the
+	 * exit plays from the row's CURRENT pose, and not for one frame:
+	 * `tooltipScale` samples `getComputedStyle` at leg start, so the wrong pose
+	 * would be baked into every keyframe of the 200ms leg.
+	 */
+	const pose = useRef<TooltipPose>({ rotation: 0, translation: 0 });
+	const tooltip = useRef<HTMLElement | null>(null);
+
+	/**
+	 * The spec the leg currently in flight was built from, reused by any leg
+	 * that reverses it. The source keeps the same options object for as long as
+	 * a transition is ongoing — "so that reversible transitions reverse smoothly,
+	 * rather than jumping to a new spot" — and clears it at `introend`. Rebuilt
+	 * per leg instead, `tooltipScale` would capture the transform and opacity the
+	 * running animation is currently PAINTING (already scaled, already faded) and
+	 * compose another `scale(1 - sd·u)` on top of it, so sweeping off an avatar
+	 * inside the 200ms entrance popped the tooltip to a doubly-shrunk pose.
+	 */
+	const spec = useRef<TransitionSpec | null>(null);
+
+	const presence = usePresence(hovered, {
+		onEnterEnd: () => {
+			spec.current = null;
+		},
+	});
+
+	// Block body, never a concise arrow: React 19 reads a returned value as a
+	// cleanup function (convention C-3). Composed BEFORE `presence.register`'s
+	// ref so the pose is on the node before anything samples its computed style.
+	const attach = useCallback((node: HTMLElement | null) => {
+		tooltip.current = node;
+		if (node) {
+			// A freshly mounted tooltip carries no transform yet, and its
+			// entrance leg reads the computed style from the layout effect that
+			// runs right after this ref attaches.
+			node.style.transform = transformFor(pose.current);
+			return;
+		}
+		// The node is gone; the next mount is a new element with a new capture.
+		spec.current = null;
+	}, []);
+
+	const tooltipRef = useComposedRefs(
+		attach,
+		presence.register((node) => (spec.current ??= tooltipScale(node)))
+	);
+
+	function draw(next: TooltipPose): void {
+		pose.current = next;
+		if (tooltip.current) tooltip.current.style.transform = transformFor(next);
+	}
+
+	function handleMouseEnter(event: ReactMouseEvent<HTMLDivElement>): void {
+		// Reset the pose first to prevent offset from previous item. A first
+		// entry finds no tooltip and `attach` draws the pose on mount; a
+		// re-entry during the exit finds one still mounted and redraws it here.
+		draw(poseAt(event));
+		onHoverStart(item.id);
+	}
+
+	function handleMouseMove(event: ReactMouseEvent<HTMLDivElement>): void {
+		if (!hovered) return;
+		draw(poseAt(event));
+	}
+
+	// Keyboard and touch users reach the designation too: focus opens the same
+	// tooltip hover does. There is no pointer to sample, so the pose resets to
+	// the centred, unrotated one the source draws at `mouseX = 0`.
+	function handleFocus(): void {
+		draw({ rotation: 0, translation: 0 });
+		onHoverStart(item.id);
+	}
 
 	return (
 		<div
 			className="group relative -mr-4"
-			onMouseEnter={onMouseEnter}
-			onMouseLeave={onMouseLeave}
-			onMouseMove={onMouseMove}
-			role="button"
+			onMouseEnter={handleMouseEnter}
+			onMouseLeave={onHoverEnd}
+			onMouseMove={handleMouseMove}
+			onFocus={handleFocus}
+			onBlur={onHoverEnd}
 			tabIndex={0}
+			aria-describedby={hovered ? tooltipId(item.id) : undefined}
 		>
 			{/* Tooltip */}
 			{presence.mounted && (
 				<div
 					ref={tooltipRef}
+					id={tooltipId(item.id)}
+					role="tooltip"
 					className="pointer-events-none absolute -top-16 left-1/2 z-50 flex flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs whitespace-nowrap shadow-xl"
-					style={{
-						transform: `translateX(calc(-50% + ${pose.translation}px)) rotate(${pose.rotation}deg)`,
-					}}
 				>
 					{/* Gradient lines */}
 					<div className="absolute right-1/2 -bottom-px z-30 me-1 h-px w-2/5 translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-500 to-transparent"></div>
@@ -156,31 +222,14 @@ function AvatarItem({
 
 export function AnimatedTooltip({ items, className }: AnimatedTooltipProps) {
 	const [hoveredIndex, setHoveredIndex] = useState<number | string | null>(null);
-	const [mouseX, setMouseX] = useState(0);
 
-	// Calculate rotation and translation based on mouse position
-	const rotation = (mouseX / 100) * 50;
-	const translation = (mouseX / 100) * 50;
-
-	function handleMouseEnter(event: ReactMouseEvent<HTMLDivElement>, itemId: number | string) {
-		// Reset mouseX first to prevent offset from previous item
-		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-		const halfWidth = rect.width / 2;
-		setMouseX(event.clientX - rect.left - halfWidth);
+	const handleHoverStart = useCallback((itemId: number | string): void => {
 		setHoveredIndex(itemId);
-	}
+	}, []);
 
-	function handleMouseMove(event: ReactMouseEvent<HTMLDivElement>) {
-		if (hoveredIndex === null) return;
-		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-		const halfWidth = rect.width / 2;
-		setMouseX(event.clientX - rect.left - halfWidth);
-	}
-
-	function handleMouseLeave() {
+	const handleHoverEnd = useCallback((): void => {
 		setHoveredIndex(null);
-		setMouseX(0);
-	}
+	}, []);
 
 	return (
 		<div className={cn("flex flex-row items-center", className)}>
@@ -189,11 +238,8 @@ export function AnimatedTooltip({ items, className }: AnimatedTooltipProps) {
 					key={item.id}
 					item={item}
 					hovered={hoveredIndex === item.id}
-					rotation={rotation}
-					translation={translation}
-					onMouseEnter={(e) => handleMouseEnter(e, item.id)}
-					onMouseMove={handleMouseMove}
-					onMouseLeave={handleMouseLeave}
+					onHoverStart={handleHoverStart}
+					onHoverEnd={handleHoverEnd}
 				/>
 			))}
 		</div>

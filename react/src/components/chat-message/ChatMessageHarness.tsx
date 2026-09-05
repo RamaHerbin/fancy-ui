@@ -20,6 +20,7 @@ export interface ChatMessageHarnessProps {
 	count?: number;
 	onNavigate?: (index: number) => void;
 	onCopy?: () => void;
+	sound?: boolean;
 }
 
 export function ChatMessageHarness({
@@ -30,11 +31,13 @@ export function ChatMessageHarness({
 	count = 3,
 	onNavigate = () => {},
 	onCopy = () => {},
+	sound = false,
 }: ChatMessageHarnessProps) {
 	return (
 		<ChatMessage
 			role={role}
 			content={content}
+			sound={sound}
 			actions={
 				<ChatMessageActions alwaysVisible={alwaysVisible}>
 					<ChatMessageAction label="Copy" confirmLabel="Copied" onClick={onCopy}>

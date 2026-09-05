@@ -45,6 +45,34 @@ export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
 		// and none of them would ever arm — silently.
 		const [panel, setPanelNode] = useElementRef<HTMLDivElement>();
 
+		// The placement as ACTUALLY resolved — the requested side and align
+		// until `computePosition` flips or clamps it away from a viewport edge.
+		// Seeded with the REQUESTED values by the hook itself rather than a
+		// hardcoded "bottom"/"center", so a panel that never flips reads the
+		// right growth origin without depending on whether the first placement
+		// has run yet, and the common case never shows a one-frame origin jump.
+		//
+		// `resolvedAlign` differs from the requested alignment whenever
+		// clamping slid the panel along the cross axis — near a viewport edge
+		// the requested corner is no longer the one touching the anchor, and an
+		// entrance grown from it would expand from the far corner instead.
+		//
+		// DECLARED BEFORE `useFocusTrap`, and that order is load-bearing: both
+		// arm in layout effects in the commit the panel node lands in, and
+		// layout effects run in hook-declaration order. Positioning first means
+		// the trap's `.focus()` lands on a panel that already has coordinates.
+		// The other way round it would focus a `position: static` node sitting
+		// at the end of `document.body`, and the browser would scroll the page
+		// down to it — a jump that survives the switch to `position: fixed` one
+		// effect later. The source gets this from its action order
+		// (`use:anchorPosition` before `use:focusTrap`).
+		const { side: resolvedSide, align: resolvedAlign } = useAnchorPosition(panel, {
+			anchor: () => ctx.triggerRef,
+			side: ctx.side,
+			align: ctx.align,
+			offset: ctx.offset,
+		});
+
 		// Returns the two functions the source hands out through `onActivate`
 		// (divergence D-3): the eager return, and the re-arm. Two module-level
 		// `let`s, two handler functions and an `onActivate` closure collapse to
@@ -69,24 +97,6 @@ export const PopoverContent = forwardRef<HTMLDivElement, PopoverContentProps>(
 			// life of the instance.
 			onEnterStart: () => trap.rearm(),
 			onExitStart: () => trap.returnFocusNow(),
-		});
-
-		// The placement as ACTUALLY resolved — the requested side and align
-		// until `computePosition` flips or clamps it away from a viewport edge.
-		// Seeded with the REQUESTED values by the hook itself rather than a
-		// hardcoded "bottom"/"center", so a panel that never flips reads the
-		// right growth origin without depending on whether the first placement
-		// has run yet, and the common case never shows a one-frame origin jump.
-		//
-		// `resolvedAlign` differs from the requested alignment whenever
-		// clamping slid the panel along the cross axis — near a viewport edge
-		// the requested corner is no longer the one touching the anchor, and an
-		// entrance grown from it would expand from the far corner instead.
-		const { side: resolvedSide, align: resolvedAlign } = useAnchorPosition(panel, {
-			anchor: () => ctx.triggerRef,
-			side: ctx.side,
-			align: ctx.align,
-			offset: ctx.offset,
 		});
 
 		// `active: ctx.open` — a plain boolean where the source needed a getter

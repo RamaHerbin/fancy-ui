@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import * as Fancy from "fancy-ui-react";
+import { BOOK_COLOR_MAP, SOUND_CUES, cn } from "fancy-ui-react";
 
 /**
  * SERVER COMPONENT — there is deliberately no "use client" in this file.
@@ -9,14 +10,28 @@ import * as Fancy from "fancy-ui-react";
  *  1. `import * as Fancy from "fancy-ui-react"` pulls the ENTIRE barrel through
  *     the RSC compiler. Every component module (and the sound engine) is
  *     resolved on the server; anything that touched `window`/`document` at
- *     module scope, or shipped without the package's "use client" banner
- *     surviving the build, would blow up right here at prerender time.
- *  2. Client components render fine when the *caller* is a Server Component,
+ *     module scope, or that landed on the wrong side of the package's
+ *     "use client" split, would blow up right here at prerender time.
+ *  2. The split really is a split. `cn()` is CALLED below and `SOUND_CUES` and
+ *     `BOOK_COLOR_MAP` are READ, on the server, at build time. Those three ship
+ *     from modules the build leaves without the directive; were they behind it,
+ *     each would arrive here as a client reference and this page would fail with
+ *     "Attempted to call cn() from the server". Everything else in the package
+ *     is a client module and stays one.
+ *  3. Client components render fine when the *caller* is a Server Component,
  *     as long as no prop is a function. Nothing below passes a handler — the
  *     interactive proofs live in /interactive instead.
- *  3. Overlays (Dialog, Tooltip) are safe to prerender in their CLOSED default
+ *  4. Overlays (Dialog, Tooltip) are safe to prerender in their CLOSED default
  *     state: neither paints a panel until a client-side interaction opens it.
  */
+
+/**
+ * Called during the server render, not memoised into a constant a bundler could
+ * evaluate away: the point is that the real `cn` runs in this process. The
+ * conflict is deliberate — tailwind-merge keeps the last of two `p-*` classes,
+ * so a client reference (or a stub) would produce a different string.
+ */
+const serverMergedClass = cn("p-2 text-neutral-500", "p-3", "font-mono text-[11px]");
 
 export const metadata = {
 	title: "Census — fancy-ui-react under RSC",
@@ -74,7 +89,7 @@ export default function CensusPage() {
 					module in the barrel is compiled and prerendered here, then renders 34
 					representative components spanning every bucket in the library.
 				</p>
-				<dl className="mt-4 grid grid-cols-1 gap-3 text-xs sm:grid-cols-3">
+				<dl className="mt-4 grid grid-cols-1 gap-3 text-xs sm:grid-cols-4">
 					<div className="rounded-md border border-neutral-800 bg-neutral-950 p-3">
 						<dt className="text-neutral-500">Barrel exports enumerated</dt>
 						<dd className="mt-1 font-mono text-base text-neutral-100">
@@ -92,6 +107,17 @@ export default function CensusPage() {
 						<dd className="mt-1 text-[11px] leading-snug text-neutral-500">
 							Each one reached through the namespace object, so the module behind it really
 							was resolved.
+						</dd>
+					</div>
+					<div className="rounded-md border border-neutral-800 bg-neutral-950 p-3">
+						<dt className="text-neutral-500">Values read on the server</dt>
+						<dd className="mt-1 font-mono text-base text-neutral-100">
+							{Object.keys(SOUND_CUES).length + Object.keys(BOOK_COLOR_MAP).length}
+						</dd>
+						<dd className={serverMergedClass}>{serverMergedClass}</dd>
+						<dd className="mt-1 text-[11px] leading-snug text-neutral-500">
+							<code>cn()</code> ran in this process and the two constant tables are real
+							objects here, not client references.
 						</dd>
 					</div>
 					<div className="rounded-md border border-neutral-800 bg-neutral-950 p-3">

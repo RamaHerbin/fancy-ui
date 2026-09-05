@@ -4,14 +4,17 @@
 	"description": "Animated UI components for React — the React counterpart of fancy-ui-svelte. WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"license": "MIT",
 	"type": "module",
-	"homepage": "https://fancy-ui.rama.app",
+	"homepage": "https://github.com/RamaHerbin/fancy-ui/tree/main/react",
+	"bugs": {
+		"url": "https://github.com/RamaHerbin/fancy-ui/issues"
+	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/RamaHerbin/fancy-ui.git",
 		"directory": "react"
 	},
 	"scripts": {
-		"build": "vite build && tsc -p tsconfig.build.json && node scripts/check-dist-names.mjs",
+		"build": "vite build && tsc -p tsconfig.build.json && node scripts/strip-dts-css-imports.mjs && node scripts/check-dist-names.mjs && node scripts/check-dist-shape.mjs && node scripts/smoke-dist.mjs",
 		"check": "tsc --noEmit",
 		"check:matrix": "node scripts/check-matrix.mjs",
 		"test": "vitest run",
@@ -23,7 +26,8 @@
 	},
 	"files": [
 		"dist",
-		"tailwind.css"
+		"tailwind.css",
+		"PORTING.md"
 	],
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -39,7 +43,8 @@
 			"default": "./dist/cameleon/index.js"
 		},
 		"./styles.css": "./dist/styles.css",
-		"./tailwind.css": "./tailwind.css"
+		"./tailwind.css": "./tailwind.css",
+		"./package.json": "./package.json"
 	},
 	"typesVersions": {
 		"*": {
@@ -54,7 +59,13 @@
 	"peerDependencies": {
 		"react": "^18.0.0 || ^19.0.0",
 		"react-dom": "^18.0.0 || ^19.0.0",
-		"tailwindcss": "^4.0.0"
+		"tailwindcss": "^4.0.0",
+		"typescript": ">=5.0.0"
+	},
+	"peerDependenciesMeta": {
+		"typescript": {
+			"optional": true
+		}
 	},
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.5",

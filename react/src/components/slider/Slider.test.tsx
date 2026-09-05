@@ -1,9 +1,10 @@
 import { render, cleanup, fireEvent } from "@testing-library/react";
 import { StrictMode } from "react";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { Slider } from "./Slider.js";
 import { SliderHarness } from "./SliderHarness.js";
 import { SliderFieldHarness } from "./SliderFieldHarness.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 function slider(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input[type=range]") as HTMLInputElement;
@@ -220,5 +221,59 @@ describe("Slider", () => {
 		expect(el.getAttribute("aria-describedby")).toBe("ctx-help ctx-error");
 		expect(el.getAttribute("aria-invalid")).toBe("true");
 		expect(el.disabled).toBe(true);
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the tick cue exactly once when a value is committed via change, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Slider sound />);
+			const el = slider(container);
+
+			fireEvent.change(el, { target: { value: "40" } });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Slider />);
+			const el = slider(container);
+
+			fireEvent.change(el, { target: { value: "40" } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Slider sound disabled />);
+			const el = slider(container);
+
+			el.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on plain input events while dragging — only a committed change plays", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<Slider sound />);
+			const el = slider(container);
+
+			fireEvent.input(el, { target: { value: "10" } });
+			fireEvent.input(el, { target: { value: "20" } });
+			fireEvent.input(el, { target: { value: "30" } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

@@ -19,7 +19,13 @@ import {
 	type SoundController,
 	type SoundSnapshot,
 } from "./sound.js";
-import type { SoundCue, SoundPlayOptions, SoundStatus, SoundThemeName } from "./types.js";
+import type {
+	SoundCue,
+	SoundEngineState,
+	SoundPlayOptions,
+	SoundStatus,
+	SoundThemeName,
+} from "./types.js";
 
 /** The imperative half of `useSound()`'s return value. */
 export type SoundControls = Pick<
@@ -65,6 +71,8 @@ const getEnabled = (): boolean => getSoundSnapshot().enabled;
 const getServerEnabled = (): boolean => getSoundServerSnapshot().enabled;
 const getStatus = (): SoundStatus => getSoundSnapshot().status;
 const getServerStatus = (): SoundStatus => getSoundServerSnapshot().status;
+const getEngineState = (): SoundEngineState => getSoundSnapshot().status.engine;
+const getServerEngineState = (): SoundEngineState => getSoundServerSnapshot().status.engine;
 
 /**
  * The one place storage is read. It runs in an effect, so the server render
@@ -129,9 +137,30 @@ export function useSoundEnabled(): boolean {
 	return enabled;
 }
 
-/** The live status object (identity-cached by the store). */
+/**
+ * The live status object (identity-cached by the store).
+ *
+ * A reader of the WHOLE object wakes for every field, `lastCue` and
+ * `lastPlayedAt` included — so a component using this re-renders on every cue
+ * played anywhere on the page. Read a single field through a selector hook
+ * (`useSoundEnabled`, `useSoundEngineState`) unless you genuinely render more
+ * than one.
+ */
 export function useSoundStatus(): SoundStatus {
 	const status = useSyncExternalStore(subscribeSound, getStatus, getServerStatus);
 	useHydrateSound();
 	return status;
+}
+
+/**
+ * Just the engine's state. Internal to the family — SoundToggle renders this
+ * one field of `status`, and `markPlayed()` rewrites the whole status object on
+ * every cue, so selecting the scalar is what keeps a toggle from re-rendering
+ * because a button elsewhere on the page made a sound. Same `Object.is`
+ * bail-out `useSoundEnabled` relies on.
+ */
+export function useSoundEngineState(): SoundEngineState {
+	const engineState = useSyncExternalStore(subscribeSound, getEngineState, getServerEngineState);
+	useHydrateSound();
+	return engineState;
 }

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { scrollToBottom, useAutoscroll } from "../../internals/use-autoscroll.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./scroll-anchor.css";
 
 /**
@@ -29,6 +30,12 @@ export interface ScrollAnchorProps {
 	children: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the press cue through the sound controller when the
+	 * return-to-latest pill is activated. Off by default; only audible
+	 * once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 function prefersReducedMotion(): boolean {
@@ -46,6 +53,7 @@ export const ScrollAnchor = forwardRef<HTMLDivElement, ScrollAnchorProps>(functi
 		onStickChange,
 		children,
 		className,
+		sound = false,
 	},
 	ref
 ) {
@@ -53,6 +61,8 @@ export const ScrollAnchor = forwardRef<HTMLDivElement, ScrollAnchorProps>(functi
 	// Content that fits, or a container already at its bottom edge, counts as
 	// pinned — the same opening assumption the autoscroll core makes.
 	const [stuck, setStuck] = useState(true);
+
+	const playCue = useSoundCue(sound);
 
 	/**
 	 * The autoscroll core is the one that decides; this only mirrors its answer
@@ -92,6 +102,7 @@ export const ScrollAnchor = forwardRef<HTMLDivElement, ScrollAnchorProps>(functi
 
 	function jump() {
 		if (!region) return;
+		playCue("press");
 		// The button is about to unmount under the pointer, which would drop the
 		// keyboard back to the document body. Focus goes to the region it just
 		// scrolled, so the arrow keys carry on where the button left off.

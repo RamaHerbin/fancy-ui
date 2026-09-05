@@ -32,9 +32,10 @@ import {
  *
  * Two API shapes worth knowing before reading the JSX:
  *
- *  - `Button` spells its handler `onclick`, lowercase. It omits React's `onClick`
- *    from its props on purpose — it is the transposition of the Svelte source's
- *    own `onclick`, and the package keeps the source's API surface as the contract.
+ *  - `Button` spells its handler `onClick`, like every other component here and
+ *    like React itself. The Svelte source calls it `onclick`; the port renames
+ *    it, because a lowercase handler on a React component reads as a typo and
+ *    the whole point of the prop is that a React consumer reaches for it first.
  *  - The bound props are `onValueChange` / `onCheckedChange` / `onPressedChange`,
  *    the React spelling of the Svelte side's `bind:value` / `bind:checked`.
  */
@@ -95,7 +96,7 @@ export default function InteractivePage() {
 				<section className="rounded-lg border border-neutral-800 bg-neutral-950 p-4">
 					<h2 className="mb-3 font-mono text-sm">Dialog</h2>
 					<div className="flex flex-wrap items-center gap-3">
-						<Button variant="primary" size="sm" onclick={() => setDialogOpen(true)}>
+						<Button variant="primary" size="sm" onClick={() => setDialogOpen(true)}>
 							Open dialog
 						</Button>
 						<span className="font-mono text-xs text-neutral-500">
@@ -110,14 +111,14 @@ export default function InteractivePage() {
 						description="Escape, the close button and an outside click all report back through onOpenChange."
 						footer={
 							<div className="flex justify-end gap-2">
-								<Button variant="ghost" size="sm" onclick={() => setDialogOpen(false)}>
+								<Button variant="ghost" size="sm" onClick={() => setDialogOpen(false)}>
 									Cancel
 								</Button>
 								<Button
 									variant="primary"
 									size="sm"
 									sound
-									onclick={() => {
+									onClick={() => {
 										setDialogOpen(false);
 										setLastToastId(
 											toast({
@@ -147,7 +148,7 @@ export default function InteractivePage() {
 						<Button
 							variant="outline"
 							size="sm"
-							onclick={() =>
+							onClick={() =>
 								setLastToastId(
 									toast({
 										title: "Build finished",
@@ -162,7 +163,7 @@ export default function InteractivePage() {
 						<Button
 							variant="outline"
 							size="sm"
-							onclick={() =>
+							onClick={() =>
 								setLastToastId(
 									toast({
 										title: "Hydration mismatch",
@@ -184,7 +185,7 @@ export default function InteractivePage() {
 							variant="ghost"
 							size="sm"
 							disabled={lastToastId === ""}
-							onclick={() => {
+							onClick={() => {
 								dismissToast(lastToastId);
 								setLastToastId("");
 							}}

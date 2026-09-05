@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
-import type { AnchorHTMLAttributes, ReactNode } from "react";
+import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
+import { useSoundCue } from "../../sound/use-sound.js";
 import "./link.css";
 
 export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "className"> {
@@ -25,6 +26,11 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
 	children?: ReactNode;
 	/** Additional CSS classes */
 	className?: string;
+	/**
+	 * Plays the matching interface cue through the sound controller. Off
+	 * by default; only audible once the user has enabled sound.
+	 */
+	sound?: boolean;
 }
 
 // Per the HTML standard, *any* target naming a browsing context that doesn't
@@ -44,10 +50,21 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 		rel,
 		children,
 		className,
+		sound = false,
+		onClick,
 		...rest
 	},
 	ref
 ) {
+	const playCue = useSoundCue(sound);
+
+	// The single call site for the cue: never a second listener, and never
+	// `preventDefault` — navigation is untouched, this only rides alongside it.
+	function handleClick(event: MouseEvent<HTMLAnchorElement>) {
+		playCue("press");
+		onClick?.(event);
+	}
+
 	// `external` only *defaults* the tab target — a caller who passes both
 	// `external` and an explicit `target` (e.g. a named frame) still wins.
 	const computedTarget = external ? (target ?? "_blank") : target;
@@ -89,6 +106,7 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 			target={computedTarget}
 			rel={computedRel}
 			className={classes}
+			onClick={handleClick}
 			{...rest}
 		>
 			{children}

@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { SearchInput } from "./SearchInput.js";
 import { FieldProvider, type FieldContext } from "../../internals/field.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
+import { FakeAnimation } from "../../test-setup.js";
 
 function input(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input") as HTMLInputElement;
@@ -377,6 +379,45 @@ describe("SearchInput", () => {
 				animateSpy.mockRestore();
 			}
 		});
+
+		it("aborts the intro once it lands, leaving no fill:forwards animation pinned on the button", async () => {
+			// The source aborts its intro at `introend` for two reasons: the
+			// abort is what removes `fill: forwards`, so the button's resting
+			// CSS wins again instead of being overridden at animation priority
+			// forever, and it releases the Animation object. The runner creates
+			// two animations per leg — a dummy for the delay, then the real
+			// keyframes — so the leg to check is the last one recorded.
+			stubReducedMotion(false);
+			const cancelled: FakeAnimation[] = [];
+			const realCancel = FakeAnimation.prototype.cancel;
+			const cancelSpy = vi
+				.spyOn(FakeAnimation.prototype, "cancel")
+				.mockImplementation(function (this: FakeAnimation) {
+					cancelled.push(this);
+					realCancel.call(this);
+				});
+
+			try {
+				const { container } = render(<SearchInput defaultValue="" />);
+
+				fireEvent.input(input(container), { target: { value: "s" } });
+
+				await waitFor(() => {
+					expect(clearButton(container)).not.toBeNull();
+				});
+				// Two microtask hops: the dummy's finish is where the real
+				// keyframe leg is created, and that leg's finish is where the
+				// abort belongs.
+				await Promise.resolve();
+				await Promise.resolve();
+
+				const intro = FakeAnimation.instances.at(-1);
+				expect(intro).toBeDefined();
+				expect(cancelled).toContain(intro);
+			} finally {
+				cancelSpy.mockRestore();
+			}
+		});
 	});
 
 	describe("Escape", () => {
@@ -488,6 +529,87 @@ describe("SearchInput", () => {
 			vi.advanceTimersByTime(1000);
 
 			expect(onSearch).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when cleared via the clear button, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<SearchInput sound defaultValue="svelte" />);
+
+			fireEvent.click(clearButton(container)!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays the press cue exactly once when cleared via Escape, with sound enabled", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<SearchInput sound defaultValue="svelte" />);
+			const el = input(container);
+
+			fireEvent.keyDown(el, { key: "Escape" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<SearchInput defaultValue="svelte" />);
+
+			fireEvent.click(clearButton(container)!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch bypassing jsdom's own disabled-input event suppression", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<SearchInput sound disabled defaultValue="svelte" />);
+			const el = input(container);
+
+			// The clear button never renders while disabled (canClear excludes
+			// it), and a real disabled input never dispatches keydown at all —
+			// a raw dispatchEvent is what actually reaches handleKeydown here.
+			el.dispatchEvent(
+				new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: once the field is already empty, Escape is a no-op and plays nothing more", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<SearchInput sound defaultValue="svelte" />);
+			const el = input(container);
+
+			fireEvent.keyDown(el, { key: "Escape" });
+			expect(play).toHaveBeenCalledTimes(1);
+
+			// canClear is now false (value === ""), so a second Escape must not
+			// play a second cue for a clear that cannot happen again.
+			fireEvent.keyDown(el, { key: "Escape" });
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing while typing, on the debounced settle, or on Enter", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<SearchInput sound defaultValue="" />);
+			const el = input(container);
+
+			fireEvent.input(el, { target: { value: "svelte" } });
+			fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

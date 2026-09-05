@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { CommandMenu } from "./CommandMenu.js";
 import type { CommandItem } from "./types.js";
 import { __dismissableLayerCount } from "../../internals/dismissable.js";
+import { resetSoundForTests, sound } from "../../sound/sound.js";
 import { FakeAnimation } from "../../test-setup.js";
 
 /**
@@ -602,6 +603,25 @@ describe("CommandMenu", () => {
 		expect(rows()[0]!.textContent).toContain("Rainbow");
 	});
 
+	// The same contract under the dev-time double invoke: the reset-on-open
+	// effect keys on the open EDGE, so running its body twice for one mount is
+	// a no-op the second time. A latch that merely survives the simulated
+	// remount would take the reopen branch on the replay, clear the seeded
+	// query, and report a value the caller never typed.
+	it("keeps a prefilled query on the very first mount under StrictMode, and fires no onQueryChange", () => {
+		const onQueryChange = vi.fn();
+		render(
+			<StrictMode>
+				<CommandMenu items={ITEMS} open query="rain" onQueryChange={onQueryChange} />
+			</StrictMode>
+		);
+
+		expect(input()!.value).toBe("rain");
+		expect(rows()).toHaveLength(1);
+		expect(rows()[0]!.textContent).toContain("Rainbow");
+		expect(onQueryChange).not.toHaveBeenCalled();
+	});
+
 	it("resets the query and active index on every reopen after the first", async () => {
 		const { rerender } = render(<CommandMenu items={ITEMS} open />);
 
@@ -792,6 +812,121 @@ describe("CommandMenu", () => {
 			expect(scrim()).toBeNull();
 			expect(document.body.style.position).toBe("");
 			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		beforeEach(() => {
+			// The controller is a module singleton and reads the stored
+			// preference lazily, so each case starts from a forgotten engine and
+			// an empty store rather than inheriting whatever ran before it.
+			resetSoundForTests();
+			window.localStorage.clear();
+		});
+
+		// No local `afterEach` restoring mocks: the suite's own already does,
+		// AFTER `cleanup()`. Restoring here first would take the `window.scrollTo`
+		// stub away before the scroll lock releases on unmount, and jsdom does
+		// not implement it — the run would fill with "Not implemented" noise.
+
+		it("committing the active item with Enter plays select exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<CommandMenu items={ITEMS} open sound />);
+			const el = input()!;
+			await waitFor(() => expect(el.getAttribute("aria-activedescendant")).toBe(rows()[0]!.id));
+
+			fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+			await settleLegs();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<CommandMenu items={ITEMS} open />);
+
+			fireEvent.click(rows()[0]!);
+			expect(play).not.toHaveBeenCalled();
+			await settleLegs();
+		});
+
+		// Dispatched synthetically, not through `fireEvent.click` — proves the
+		// guard lives in `commitItem`'s own `if (item.disabled) return`, not
+		// merely in something a native `disabled` attribute or the event helper's
+		// own event construction happens to skip.
+		it("a disabled row plays nothing, even dispatched synthetically", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<CommandMenu items={ITEMS_WITH_DISABLED} open sound />);
+
+			const disabledRow = rows().find((r) => r.textContent?.includes("Bravo"))!;
+			act(() => {
+				disabledRow.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			});
+
+			expect(play).not.toHaveBeenCalled();
+			expect(panel()).toBeTruthy();
+		});
+
+		// The double-fire guard: `commitItem`'s own `setOpen(false)` passes
+		// `{ silent: true }`, so a committed row's `select` cue is the only one
+		// that plays — closing on top of it never also plays `close`.
+		it("a row click commits, closes, and plays select only — never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<CommandMenu items={ITEMS} open sound />);
+
+			const row = rows().find((r) => r.textContent?.includes("Icon Button"))!;
+			fireEvent.click(row);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select", undefined);
+			await settleLegs();
+		});
+
+		it("Escape dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<CommandMenu items={ITEMS} open sound />);
+
+			pressEscape();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		it("an outside click on the scrim dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<CommandMenu items={ITEMS} open sound />);
+
+			pointerDownOn(scrim()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close", undefined);
+			await settleLegs();
+		});
+
+		// The search field stays silent, and so does arrow-browsing the
+		// highlight.
+		it("typing in the search field and arrow-browsing the list stay silent", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<CommandMenu items={ITEMS} open sound />);
+
+			const el = input()!;
+			fireEvent.change(el, { target: { value: "rain" } });
+			fireEvent.keyDown(el, { key: "ArrowDown" });
+			fireEvent.keyDown(el, { key: "ArrowUp" });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("Enter with no active item plays nothing", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(<CommandMenu items={ITEMS} open sound />);
+
+			fireEvent.change(input()!, { target: { value: "zzzzz" } });
+			fireEvent.keyDown(input()!, { key: "Enter" });
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 
