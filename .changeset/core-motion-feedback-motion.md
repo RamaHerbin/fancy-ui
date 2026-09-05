@@ -1,5 +1,0 @@
----
-"fancy-ui-svelte": minor
----
-
-Skeletons now fade their placeholder bones away over the real content instead of cutting to it: the moment loading ends the content lands in its final position and the bones linger on top of it for 200ms while they dissolve, so the panel never jumps between one layer's height and the other's, and the content is readable and clickable from the first frame. Tab panels arrive with a short fade rather than a hard cut — an entrance only, so the panel you leave still goes in the same instant it stops being selected. And stepping a number field with the arrow keys now gives the same feedback a click does: the matching stepper acknowledges the step for a beat, from the very rule a press already uses, whichever way the step was asked for. Under reduced motion all three collapse to the instant behaviour they had before. One layout-property exception, named: the skeleton root becomes `position: relative` so the outgoing bones can pin themselves to it while they fade, which only matters if you were relying on that root not being the containing block for an absolutely positioned element of your own.

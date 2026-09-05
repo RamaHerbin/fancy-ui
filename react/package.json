@@ -1,6 +1,6 @@
 {
 	"name": "fancy-ui-react",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Animated UI components for React — the React counterpart of fancy-ui-svelte. WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"license": "MIT",
 	"type": "module",
