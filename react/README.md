@@ -68,26 +68,24 @@ unlayered `:root` in your app overrides whatever the import order.
 
 ## Dark mode
 
-The package opts into **class-based** dark mode: put `dark` on `<html>` (or on
-any ancestor of the subtree you want dark) and both halves follow. Nothing else
-to configure.
+Out of the box the package follows the operating-system preference: `dark:`
+utilities and the components' `light-dark()` colours both switch with
+`prefers-color-scheme`, so an app that never touches dark mode already looks
+right on a dark desktop. To control it yourself, put `dark` or `light` on
+`<html>` (or on any ancestor of the subtree you want to force) and both halves
+follow the class instead:
 
 ```html
 <html class="dark">
 ```
 
 `tailwind.css` is what makes that work, in three parts: it declares the `.dark`
-token block, it declares `@custom-variant dark (&:where(.dark, .dark *))` so
-Tailwind's `dark:` utilities key off the class instead of the
-`prefers-color-scheme` media query, and it sets `color-scheme` on both `:root`
-and `.dark` so the components' `light-dark()` colours — and the browser's own
-scrollbars, form controls and caret — resolve to the right branch.
-
-An app that already declares its own `dark` variant keeps it: the variant is
-declared at zero specificity through `:where()`, and your CSS imports this file
-rather than the other way round. An app that prefers the media query can
-declare `@custom-variant dark (@media (prefers-color-scheme: dark))` after the
-import and set `color-scheme` to match.
+token block, it declares a `dark` variant that matches a `.dark` ancestor OR
+the media query (unless a `.light` ancestor opts out), and it sets
+`color-scheme: light dark` on `:root` with `.dark` / `.light` overrides so the
+components' `light-dark()` colours — and the browser's own form controls,
+scrollbars and caret — resolve the same way. An app that declares its own
+`@custom-variant dark` after the import keeps its own definition.
 
 ## Server Components
 

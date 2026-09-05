@@ -12,19 +12,29 @@
 @source "./dist";
 
 /*
- * Class-based dark mode, declared here because this file is the one that
- * defines `.dark` (below). Tailwind v4's built-in `dark:` variant keys off the
- * `prefers-color-scheme` media query, so without this line a consumer who
- * follows the Setup section — import the two stylesheets, toggle `.dark` on
- * <html> — gets the token block flipped while every `dark:*` utility the
- * components emit stays on its light branch. `:where()` keeps the variant at
- * zero specificity, so it never outranks a consumer's own rule.
+ * Dark mode, declared here because this file is the one that defines the
+ * `.dark` token block (below). Tailwind v4's built-in `dark:` variant keys off
+ * the `prefers-color-scheme` media query alone, so a consumer who toggles
+ * `.dark` on <html> would get the token block flipped while every `dark:*`
+ * utility the components emit stayed on its light branch. This variant keeps
+ * BOTH behaviours coherent: a `.dark` ancestor forces dark, a `.light`
+ * ancestor forces light, and with neither the OS preference decides — which
+ * is what an app that never touches dark mode expects. `:where()` keeps the
+ * variant at zero specificity, so it never outranks a consumer's own rule.
  *
- * An app that already declares its own `@custom-variant dark` keeps it: the
- * last declaration in the cascade order wins, and the consumer's CSS imports
- * this file rather than the other way round.
+ * An app that declares its own `@custom-variant dark` after importing this
+ * file keeps it: the last declaration wins.
  */
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark {
+	&:where(.dark, .dark *) {
+		@slot;
+	}
+	@media (prefers-color-scheme: dark) {
+		&:where(:not(.light, .light *)) {
+			@slot;
+		}
+	}
+}
 
 /*
  * The semantic colour names the components actually spend. None of them exist
@@ -77,53 +87,46 @@
 		/*
 		 * `color-scheme` is what decides which branch every `light-dark()` call
 		 * in dist/styles.css resolves to (133 of them), and it also sets the
-		 * UA colours for scrollbars, form controls and the caret. Without it
-		 * the browser answers "light" whatever `.dark` says, so the tokens
-		 * above would flip while the components' own `light-dark()` colours
-		 * stayed light.
+		 * UA colours for scrollbars, form controls and the caret. `light dark`
+		 * lets the OS preference decide by default, exactly like the `dark:`
+		 * variant above; `.dark` and `.light` (below) force one branch, so the
+		 * tokens, the utilities and the components' own `light-dark()` colours
+		 * always agree.
 		 */
-		color-scheme: light;
+		color-scheme: light dark;
 
-		--background: oklch(1 0 0);
-		--foreground: oklch(0.129 0.042 264.695);
-		--card: oklch(1 0 0);
-		--card-foreground: oklch(0.129 0.042 264.695);
-		--popover: oklch(1 0 0);
-		--popover-foreground: oklch(0.129 0.042 264.695);
-		--primary: oklch(0.208 0.042 265.755);
-		--primary-foreground: oklch(0.984 0.003 247.858);
-		--secondary: oklch(0.968 0.007 247.896);
-		--secondary-foreground: oklch(0.208 0.042 265.755);
-		--muted: oklch(0.968 0.007 247.896);
-		--muted-foreground: oklch(0.554 0.046 257.417);
-		--accent: oklch(0.968 0.007 247.896);
-		--accent-foreground: oklch(0.208 0.042 265.755);
-		--destructive: oklch(0.577 0.245 27.325);
-		--border: oklch(0.929 0.013 255.508);
-		--input: oklch(0.929 0.013 255.508);
-		--ring: oklch(0.704 0.04 256.788);
+		--background: light-dark(oklch(1 0 0), oklch(0.05 0 0));
+		--foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.984 0.003 247.858));
+		--card: light-dark(oklch(1 0 0), oklch(0.1 0.005 265));
+		--card-foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.984 0.003 247.858));
+		--popover: light-dark(oklch(1 0 0), oklch(0.1 0.005 265));
+		--popover-foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.984 0.003 247.858));
+		--primary: light-dark(oklch(0.208 0.042 265.755), oklch(0.929 0.013 255.508));
+		--primary-foreground: light-dark(oklch(0.984 0.003 247.858), oklch(0.05 0 0));
+		--secondary: light-dark(oklch(0.968 0.007 247.896), oklch(0.15 0.005 260));
+		--secondary-foreground: light-dark(oklch(0.208 0.042 265.755), oklch(0.984 0.003 247.858));
+		--muted: light-dark(oklch(0.968 0.007 247.896), oklch(0.15 0.005 260));
+		--muted-foreground: light-dark(oklch(0.554 0.046 257.417), oklch(0.704 0.04 256.788));
+		--accent: light-dark(oklch(0.968 0.007 247.896), oklch(0.15 0.005 260));
+		--accent-foreground: light-dark(oklch(0.208 0.042 265.755), oklch(0.984 0.003 247.858));
+		--destructive: light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216));
+		--border: light-dark(oklch(0.929 0.013 255.508), oklch(1 0 0 / 8%));
+		--input: light-dark(oklch(0.929 0.013 255.508), oklch(1 0 0 / 10%));
+		--ring: light-dark(oklch(0.704 0.04 256.788), oklch(0.551 0.027 264.364));
 	}
 
+	/*
+	 * The tokens above are `light-dark()` pairs, so forcing a branch is one
+	 * declaration: `.dark` and `.light` only switch `color-scheme`, and every
+	 * token — plus the components' own `light-dark()` colours and the UA
+	 * controls — follows.
+	 */
 	.dark {
 		color-scheme: dark;
+	}
 
-		--background: oklch(0.05 0 0);
-		--foreground: oklch(0.984 0.003 247.858);
-		--card: oklch(0.1 0.005 265);
-		--card-foreground: oklch(0.984 0.003 247.858);
-		--popover: oklch(0.1 0.005 265);
-		--popover-foreground: oklch(0.984 0.003 247.858);
-		--primary: oklch(0.929 0.013 255.508);
-		--primary-foreground: oklch(0.05 0 0);
-		--secondary: oklch(0.15 0.005 260);
-		--secondary-foreground: oklch(0.984 0.003 247.858);
-		--muted: oklch(0.15 0.005 260);
-		--muted-foreground: oklch(0.704 0.04 256.788);
-		--accent: oklch(0.15 0.005 260);
-		--accent-foreground: oklch(0.984 0.003 247.858);
-		--destructive: oklch(0.704 0.191 22.216);
-		--border: oklch(1 0 0 / 8%);
-		--input: oklch(1 0 0 / 10%);
-		--ring: oklch(0.551 0.027 264.364);
+	/* Opt out of the OS preference for a subtree that must stay light. */
+	.light {
+		color-scheme: light;
 	}
 }
