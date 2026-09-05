@@ -1,6 +1,13 @@
-import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, beforeEach, describe, it, expect } from "vitest";
+import { render, cleanup, waitFor } from "@testing-library/svelte";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import EditorialEngine from "./EditorialEngine.svelte";
+
+// The real engine measures text against the canvas font engine, which jsdom
+// has no context for. Stubbing the module out is the only way to exercise the
+// post-boot branch (`ready === true`) at all.
+vi.mock("./engine.js", () => ({
+	createEditorialEngine: vi.fn(() => () => {}),
+}));
 
 // The real engine measures text via @chenglou/pretext, which needs a canvas
 // 2d context or OffscreenCanvas — neither exists under jsdom
@@ -14,6 +21,15 @@ function stubNeverReadyFonts() {
 		configurable: true,
 		writable: true,
 		value: { ready: new Promise<void>(() => {}) },
+	});
+}
+
+// Lets the effect boot the (mocked) engine, so `ready` flips to true.
+function stubReadyFonts() {
+	Object.defineProperty(document, "fonts", {
+		configurable: true,
+		writable: true,
+		value: { ready: Promise.resolve() },
 	});
 }
 
@@ -52,6 +68,30 @@ describe("EditorialEngine", () => {
 		const { container } = render(EditorialEngine);
 		const stage = container.querySelector(".ee-stage") as HTMLElement;
 		expect(stage.classList.contains("ready")).toBe(false);
+	});
+
+	it("keeps the headline heading and the body paragraph once the engine is ready", async () => {
+		stubReadyFonts();
+		const { container, getByRole, getByText } = render(EditorialEngine, {
+			props: { headline: "HELLO WORLD", body: "Some body copy." },
+		});
+
+		await waitFor(() =>
+			expect((container.querySelector(".ee-stage") as HTMLElement).classList).toContain("ready")
+		);
+
+		// Document semantics survive the boot: still a heading, still a
+		// paragraph — only visually hidden.
+		expect(getByRole("heading", { name: "HELLO WORLD" })).toBeTruthy();
+		expect(getByText("Some body copy.").tagName).toBe("P");
+		expect(container.querySelector(".ee-fallback")?.classList).toContain("ee-sr-only");
+	});
+
+	it("hides the positioned-line layer from assistive tech", () => {
+		const { container } = render(EditorialEngine);
+		const layer = container.querySelector(".ee-layer");
+		expect(layer).toBeTruthy();
+		expect(layer?.getAttribute("aria-hidden")).toBe("true");
 	});
 
 	it("unmounts cleanly", () => {

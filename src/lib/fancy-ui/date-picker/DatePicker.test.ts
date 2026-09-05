@@ -1,8 +1,11 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import DatePicker from "./DatePicker.svelte";
 import ValueHarness from "./DatePickerHarness.test.svelte";
 import FieldHarness from "./DatePickerFieldHarness.test.svelte";
+import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function trigger(container: HTMLElement): HTMLButtonElement {
 	return container.querySelector(".ft-date-picker-trigger") as HTMLButtonElement;
@@ -25,10 +28,42 @@ function announcement(): string {
 	return document.querySelector('[role="status"]')?.textContent ?? "";
 }
 
+/** Replaces `window.matchMedia` wholesale. The panel's entrance reads the
+ * preference fresh at the instant the transition starts, so an override
+ * installed before the panel opens is the one it sees. */
+function stubReducedMotion(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** Dispatches Escape SYNCHRONOUSLY, unlike `fireEvent.keyDown`, which awaits a
+ * tick of its own. The exit window is two microtasks under the WAAPI stub, so
+ * anything awaited between the dismiss and the assertion has already drained
+ * it and the test would pass for the wrong reason. */
+function pressEscape(): void {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
+}
+
 describe("DatePicker", () => {
 	afterEach(() => {
 		cleanup();
 		document.querySelectorAll(".ft-date-picker-panel").forEach((el) => el.remove());
+		vi.unstubAllGlobals();
+		// A spy on `Element.prototype.animate` has to be fresh in every test:
+		// `vi.spyOn` on an already-mocked property reuses the existing mock
+		// rather than layering a new one, so without this a later
+		// `expect(spy).not.toHaveBeenCalled()` would see an earlier test's calls.
+		vi.restoreAllMocks();
 	});
 
 	it("renders closed by default, with a placeholder and aria-expanded false", () => {
@@ -482,5 +517,253 @@ describe("DatePicker", () => {
 	it("resolves the accessible name from the label prop", () => {
 		const { container } = render(DatePicker, { props: { label: "Deadline" } });
 		expect(trigger(container).getAttribute("aria-label")).toBe("Deadline");
+	});
+
+	it("publishes the resolved placement and grows from the panel corner nearest the trigger", async () => {
+		// The positive counterpart to the reduced-motion test below: under the
+		// default stub (`matches: false`, i.e. no-preference) the entrance really
+		// does run, which is what makes that test's `not.toHaveBeenCalled()`
+		// discriminating instead of vacuously true. Without this line, dropping
+		// the `in:` directive altogether would leave both tests green.
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+		const { container } = render(DatePicker, {});
+		await fireEvent.click(trigger(container));
+		await waitFor(() => expect(panel()).not.toBeNull());
+
+		expect(animateSpy).toHaveBeenCalled();
+
+		// jsdom measures every rect as 0x0, so `computePosition` never sees an
+		// overflow and never flips: the resolved side is the requested one. That
+		// is the un-flipped case, and the one that can be asserted
+		// deterministically here. `bottom` + `align: "start"` puts the growth
+		// origin on the panel's top-left corner — the corner nearest the trigger.
+		expect(panel()!.getAttribute("data-side")).toBe("bottom");
+		expect(panel()!.getAttribute("data-align")).toBe("start");
+		expect(panel()!.style.transformOrigin).toBe("left top");
+	});
+
+	it("runs no animation at all under reduced motion, and still shows the panel", async () => {
+		stubReducedMotion(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+		const { container } = render(DatePicker, {});
+		await fireEvent.click(trigger(container));
+		await waitFor(() => expect(panel()).not.toBeNull());
+		await tick();
+
+		// A zero duration makes Svelte skip `element.animate()` entirely rather
+		// than run a zero-length animation, so the panel is simply there.
+		expect(animateSpy).not.toHaveBeenCalled();
+		expect(panel()).not.toBeNull();
+	});
+
+	// The panel now leaves on the same shared transition it arrives on, so
+	// between the dismiss and the unmount there is a window — 150 ms in a
+	// browser, a couple of microtasks under the WAAPI stub. These pin what
+	// must be true inside it. `open`, `value` and `onValueChange` all still
+	// settle synchronously, which is why every assertion on them stayed
+	// unwrapped.
+	describe("exit", () => {
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(DatePicker, {});
+			const btn = trigger(container);
+			await fireEvent.click(btn);
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = panel();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`. A reactive
+			// `data-state={…}` would never reach the DOM: Svelte marks the
+			// branch inert before it plays the outro and the scheduler skips
+			// inert effects.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a `transition:`,
+			// for the whole exit — which is what stops a day cell taking a
+			// click on its way out.
+			expect(closing!.inert).toBe(true);
+			// The trigger has already been told the panel is gone.
+			expect(btn.getAttribute("aria-expanded")).toBe("false");
+
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// `closePanel()` is a plain function outside the `{#if}`, so it returns
+		// focus in the same tick as the dismiss — this component needs no
+		// `focusTrap` handle to satisfy the eager-return rule. The assertion
+		// deliberately runs INSIDE the exit window, while the panel is still on
+		// screen and Svelte has already marked it `inert`: that is exactly the
+		// moment a late return would have stranded a keyboard user on `<body>`.
+		it("returns focus to the trigger at the dismiss, not when the fade ends", async () => {
+			const { container } = render(DatePicker, {});
+			const btn = trigger(container);
+			await fireEvent.click(btn);
+
+			pressEscape();
+			await tick();
+
+			expect(panel()).toBeTruthy(); // still fading
+			expect(document.activeElement).toBe(btn);
+		});
+
+		// The `active: () => open` gate. A layer on its way out must not
+		// swallow the key: the dismiss stack scans past it and hands Escape to
+		// whatever is underneath.
+		it("lets an Escape during the exit reach the layer underneath instead of swallowing it", async () => {
+			// Registered BEFORE the picker, so the panel sits above it on the
+			// shared layer stack.
+			const beneath = document.createElement("div");
+			document.body.appendChild(beneath);
+			const onBeneath = vi.fn();
+			const beneathAction = dismissable(beneath, { onDismiss: onBeneath });
+
+			const { container } = render(DatePicker, {});
+			await fireEvent.click(trigger(container));
+
+			pressEscape(); // the panel is the top LIVE layer and takes this one
+			await tick();
+			expect(onBeneath).not.toHaveBeenCalled();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape(); // the panel is inactive now, so this falls through
+			expect(onBeneath).toHaveBeenCalledTimes(1);
+
+			beneathAction?.destroy?.();
+			beneath.remove();
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The reduced-motion fast path: a zero duration makes Svelte call
+		// `on_finish()` synchronously and never touch `element.animate()`, so
+		// a visitor who asked for less motion gets exactly the synchronous
+		// close this panel had before the exit existed.
+		it("closes synchronously and never animates under reduced motion", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(DatePicker, {});
+			await fireEvent.click(trigger(container));
+			expect(panel()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			expect(panel()).toBeNull();
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when opened by a trigger click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, { props: { sound: true } });
+
+			await fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("picking a new day plays select exactly once and never close, for the same click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, {
+				props: { value: new Date(2026, 6, 24), locale: "en-US", sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(cellFor("2026-07-24")).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(cellFor("2026-07-25")!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("re-picking the already-selected day plays close (a dismiss), never a second select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, {
+				props: { value: new Date(2026, 6, 24), locale: "en-US", sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(cellFor("2026-07-24")).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(cellFor("2026-07-24")!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("Escape plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, { props: { sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			pressEscape();
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("an outside click plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(DatePicker, { props: { sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.pointerDown(outside);
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			outside.remove();
+		});
+
+		it("toggling the trigger shut with nothing picked plays close, not select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, { props: { sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn); // open
+			play.mockClear();
+
+			await fireEvent.click(btn); // toggled shut
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, {
+				props: { value: new Date(2026, 6, 24), locale: "en-US" },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(cellFor("2026-07-24")).not.toBeNull());
+
+			await fireEvent.click(cellFor("2026-07-25")!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(DatePicker, { props: { disabled: true, sound: true } });
+
+			trigger(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

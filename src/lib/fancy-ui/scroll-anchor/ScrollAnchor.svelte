@@ -27,6 +27,12 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the press cue through the sound controller when the
+		 * return-to-latest pill is activated. Off by default; only audible
+		 * once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -34,6 +40,7 @@
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { autoscroll, scrollToBottom } from "../_internals/autoscroll.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		active = true,
@@ -45,6 +52,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ScrollAnchorProps = $props();
 
 	let region = $state<HTMLDivElement | null>(null);
@@ -100,6 +108,7 @@
 	function jump() {
 		const node = region;
 		if (!node) return;
+		if (sound) soundFx.play("press");
 		// The button is about to unmount under the pointer, which would drop the
 		// keyboard back to the document body. Focus goes to the region it just
 		// scrolled, so the arrow keys carry on where the button left off.

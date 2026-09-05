@@ -1,5 +1,5 @@
-import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { createRawSnippet } from "svelte";
+import { render, cleanup, createEvent, fireEvent, waitFor } from "@testing-library/svelte";
+import { createRawSnippet, flushSync } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 
 // `vi.mock` factories are hoisted above imports and may not close over
@@ -14,10 +14,17 @@ const { lockScrollMock, releaseMock } = vi.hoisted(() => {
 
 vi.mock("../_internals/scroll-lock.js", () => ({
 	lockScroll: lockScrollMock,
+	// The action form goes through the same mock so the existing
+	// acquire/release assertions keep meaning what they meant — and it has to
+	// be here at all now: the component locks the page with `use:scrollLock`
+	// rather than an `$effect`, so a factory exporting only `lockScroll`
+	// leaves the action `undefined` and the component throws on open.
+	scrollLock: () => ({ destroy: lockScrollMock() }),
 }));
 
 import Drawer from "./Drawer.svelte";
 import Harness from "./DrawerHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 // Mirrors Drawer.svelte's own (not exported) DISMISS_THRESHOLD_PX — kept as a
 // named constant here too so the boundary tests below read as "exactly at"
@@ -44,8 +51,40 @@ function pressEscape() {
 	return fireEvent.keyDown(document, { key: "Escape" });
 }
 
+/**
+ * Escape, dispatched WITHOUT awaiting testing-library's own flush.
+ *
+ * `fireEvent` awaits a promise of its own on top of `tick()`, and those extra
+ * microtask turns are exactly long enough for the stubbed Web Animations API
+ * to fire `onfinish` and let Svelte destroy the branch — so a test that awaits
+ * it can never observe the exit window it is trying to assert on. A bare
+ * dispatch followed by `flushSync()` runs the whole close synchronously and
+ * stops there, right inside the window.
+ */
+function dispatchEscape() {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
+}
+
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
+}
+
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh on every call, so an
+ * override installed before a render is visible to the very next read. */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
 }
 
 // Drives the same handle a real touch/mouse drag would: down at clientY 0,
@@ -58,10 +97,29 @@ async function drag(deltaY: number, pointerId = 1) {
 	await fireEvent.pointerUp(dragSurface(), { pointerId, clientY: deltaY, pointerType: "touch" });
 }
 
+/**
+ * The same gesture, but the release is dispatched raw and flushed
+ * synchronously — see `dispatchEscape` for why awaiting `fireEvent` here would
+ * step straight over the exit window. `createEvent` is what makes the raw
+ * dispatch equivalent to the awaited one: it fills in `pointerId`/`clientY` on
+ * a jsdom `PointerEvent` that would otherwise drop them, and the component
+ * checks both.
+ */
+async function dragReleasingInsideTheExit(deltaY: number, pointerId = 1) {
+	const surface = dragSurface();
+	await fireEvent.pointerDown(surface, { pointerId, clientY: 0, pointerType: "touch" });
+	await fireEvent.pointerMove(surface, { pointerId, clientY: deltaY, pointerType: "touch" });
+	surface.dispatchEvent(
+		createEvent.pointerUp(surface, { pointerId, clientY: deltaY, pointerType: "touch" })
+	);
+	flushSync();
+}
+
 describe("Drawer", () => {
 	afterEach(() => {
 		cleanup();
 		document.body.innerHTML = "";
+		vi.unstubAllGlobals();
 		lockScrollMock.mockClear();
 		releaseMock.mockClear();
 	});
@@ -92,6 +150,16 @@ describe("Drawer", () => {
 		expect(dialog()!.hasAttribute("aria-labelledby")).toBe(false);
 	});
 
+	it("falls back to aria-label for an accessible name when there is no title", () => {
+		render(Drawer, { props: { open: true, ariaLabel: "Filters" } });
+		expect(dialog()!.getAttribute("aria-label")).toBe("Filters");
+	});
+
+	it("prefers aria-labelledby over ariaLabel when both are given", () => {
+		render(Drawer, { props: { open: true, title: "Filters", ariaLabel: "Ignored" } });
+		expect(dialog()!.hasAttribute("aria-label")).toBe(false);
+	});
+
 	it("wires aria-describedby to the real description id", () => {
 		render(Drawer, {
 			props: { open: true, title: "Filters", description: "Drag down to close." },
@@ -113,8 +181,11 @@ describe("Drawer", () => {
 
 		await pressEscape();
 
+		// `open` still flips synchronously — nothing a caller can observe
+		// waits for the slide-out — but the panel stays mounted while it
+		// plays, so its removal is what has to be awaited.
 		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(dialog()).toBeNull();
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("does not close on Escape when dismissible is false", async () => {
@@ -136,7 +207,7 @@ describe("Drawer", () => {
 		await fireEvent.pointerDown(scrim()!);
 
 		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(dialog()).toBeNull();
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("renders a close button that closes the drawer on click", async () => {
@@ -146,7 +217,7 @@ describe("Drawer", () => {
 		await fireEvent.click(closeButton()!);
 
 		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(dialog()).toBeNull();
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("omits the close button when dismissible is false", () => {
@@ -169,6 +240,12 @@ describe("Drawer", () => {
 
 		await pressEscape();
 
+		// Deliberately UNWRAPPED. The return happens at the dismiss instant,
+		// not when the slide-out ends: the focus trap hands the component a
+		// handle it calls from `onoutrostart`. Wrapping this in `waitFor`
+		// would silently accept a return that only lands once the panel is
+		// gone — which in a browser is 200 ms of a keyboard user sitting on
+		// `<body>`, because the closing panel is made inert immediately.
 		expect(document.activeElement).toBe(trigger);
 		trigger.remove();
 	});
@@ -194,11 +271,34 @@ describe("Drawer", () => {
 	it("acquires the scroll lock on open and releases it on close", async () => {
 		render(Drawer, { props: { open: true, title: "Filters" } });
 
+		// Stays synchronous: `use:scrollLock` acquires at mount, so the lock is
+		// in place by the time the panel is on screen.
 		expect(lockScrollMock).toHaveBeenCalledTimes(1);
 		expect(releaseMock).not.toHaveBeenCalled();
 
 		await pressEscape();
-		expect(releaseMock).toHaveBeenCalledTimes(1);
+		// The release is deliberately NOT synchronous any more: the action's
+		// `destroy()` is delayed by the exit transition, which is what keeps
+		// the page locked until the panel has actually finished sliding out.
+		await waitFor(() => expect(releaseMock).toHaveBeenCalledTimes(1));
+	});
+
+	it("ignores a second Escape during the exit — onOpenChange fires exactly once", async () => {
+		const onOpenChange = vi.fn();
+		render(Drawer, { props: { open: true, title: "Filters", onOpenChange } });
+
+		dispatchEscape();
+		flushSync();
+		expect(dialog()).toBeTruthy(); // still sliding out
+
+		// The dismiss layer stops answering the moment `open` is false, so
+		// neither of these reaches the drawer at all.
+		dispatchEscape();
+		dispatchEscape();
+		flushSync();
+
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledWith(false);
 	});
 
 	it("releases the scroll lock on unmount even if still open", () => {
@@ -217,7 +317,7 @@ describe("Drawer", () => {
 			await drag(150);
 
 			expect(onOpenChange).toHaveBeenCalledWith(false);
-			expect(dialog()).toBeNull();
+			await waitFor(() => expect(dialog()).toBeNull());
 		});
 
 		it("springs back at exactly the threshold — only a drag strictly past it dismisses", async () => {
@@ -237,7 +337,7 @@ describe("Drawer", () => {
 			await drag(DISMISS_THRESHOLD_PX + 1);
 
 			expect(onOpenChange).toHaveBeenCalledWith(false);
-			expect(dialog()).toBeNull();
+			await waitFor(() => expect(dialog()).toBeNull());
 		});
 
 		it("captures the pointer on drag start and releases it on drag end, with the same pointerId", async () => {
@@ -314,7 +414,85 @@ describe("Drawer", () => {
 			await pressEscape();
 
 			expect(onOpenChange).toHaveBeenCalledWith(false);
+			await waitFor(() => expect(dialog()).toBeNull());
+		});
+
+		// The interaction-design half of the exit: a drag past the threshold
+		// used to zero the offset and close in the same tick, which was
+		// invisible only because removal was instant. With a slide-out that
+		// would snap the panel back up to rest and then slide it down — two
+		// gestures where the user made one.
+		it("hands a past-threshold release straight to the exit, without snapping back first", async () => {
+			render(Drawer, { props: { open: true, title: "Filters" } });
+
+			await dragReleasingInsideTheExit(150);
+
+			const closing = dialog();
+			expect(closing).toBeTruthy();
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			expect(closing!.inert).toBe(true);
+			// The offset is still exactly where the finger left it. That is
+			// the exit's start point — the transition interpolates from here
+			// to a full height below the viewport rather than from rest.
+			expect(closing!.style.transform).toBe("translateY(150px)");
+
+			await waitFor(() => expect(dialog()).toBeNull());
+			expect(scrim()).toBeNull();
+		});
+
+		it("removes the drawer synchronously on a past-threshold release when the user asked for reduced motion", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			render(Drawer, { props: { open: true, title: "Filters" } });
+
+			await dragReleasingInsideTheExit(150);
+
 			expect(dialog()).toBeNull();
+			expect(scrim()).toBeNull();
+			expect(animateSpy).not.toHaveBeenCalled();
+			animateSpy.mockRestore();
+		});
+
+		// A parent writing the bound `open` to false mid-drag bypasses the
+		// component's own `close()` entirely. The exit start used to be
+		// captured there and nowhere else, so it was still 0 while the panel's
+		// inline transform sat at the finger's position — the drawer snapped
+		// back up to rest and only then slid out.
+		it("starts the exit from the live drag offset when a parent closes it mid-drag", async () => {
+			const { getByTestId } = render(Harness);
+			await fireEvent.click(getByTestId("trigger"));
+
+			const surface = dragSurface();
+			await fireEvent.pointerDown(surface, { pointerId: 1, clientY: 0, pointerType: "touch" });
+			await fireEvent.pointerMove(surface, { pointerId: 1, clientY: 90, pointerType: "touch" });
+			expect(dialog()!.style.transform).toBe("translateY(90px)");
+
+			// No pointerup: the drag is still live when the parent closes.
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			await fireEvent.click(getByTestId("close-from-parent"));
+
+			const exit = animateSpy.mock.calls
+				.map((call) => (call[0] as Keyframe[])?.[0]?.transform)
+				.find((transform) => typeof transform === "string" && transform.includes("translateY"));
+
+			expect(exit).toContain("90px");
+			animateSpy.mockRestore();
+		});
+
+		// The drag offset is deliberately left where the finger put it, and
+		// it cannot be cleared from inside the closing block — Svelte marks
+		// that branch inert before the outro. It is reset on the way back IN
+		// instead, so a drawer swiped shut does not reopen already pushed
+		// down by the last swipe's distance.
+		it("reopens at rest after a swipe-to-close, not at the last drag offset", async () => {
+			const { getByTestId } = render(Harness);
+
+			await fireEvent.click(getByTestId("trigger"));
+			await drag(150);
+			await waitFor(() => expect(dialog()).toBeNull());
+
+			await fireEvent.click(getByTestId("trigger"));
+			expect(dialog()!.style.transform).toBe("translateY(0px)");
 		});
 	});
 
@@ -326,7 +504,7 @@ describe("Drawer", () => {
 
 		expect(onOpenChange).toHaveBeenCalledTimes(1);
 		expect(onOpenChange).toHaveBeenCalledWith(false);
-		expect(dialog()).toBeNull();
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("works with the callback alone (no open prop passed at all)", () => {
@@ -348,13 +526,106 @@ describe("Drawer", () => {
 		expect(getByTestId("bound-open").textContent).toBe("true");
 
 		await fireEvent.click(closeButton()!);
-		expect(dialog()).toBeNull();
+		// The bound value flips straight away; only the panel's removal waits
+		// for the slide-out.
 		expect(getByTestId("bound-open").textContent).toBe("false");
+		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
 	it("round-trips the panel element through bind:ref", async () => {
 		const { getByTestId } = render(Harness);
 		await fireEvent.click(getByTestId("trigger"));
 		expect(dialog()!.getAttribute("data-bound-ref")).toBe("yes");
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays close exactly once when the close button dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters", sound: true } });
+
+			await fireEvent.click(closeButton()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on a swipe committed past the threshold", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters", sound: true } });
+
+			await drag(DISMISS_THRESHOLD_PX + 1);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		// The spring-back branch — a release short of the threshold — never
+		// calls close() at all, so it must stay silent even with sound enabled.
+		it("plays nothing when a swipe springs back short of the threshold", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters", sound: true } });
+
+			await drag(40);
+
+			expect(dialog()).not.toBeNull();
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters" } });
+
+			await fireEvent.click(closeButton()!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when dismissible is false, even via a synthetic dispatch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, {
+				props: { open: true, title: "Filters", dismissible: false, sound: true },
+			});
+
+			document.dispatchEvent(
+				new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// The `if (!open) return` guard inside close() — a second Escape landing
+		// during the exit must not double the cue.
+		it("ignores a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Drawer, { props: { open: true, title: "Filters", sound: true } });
+
+			dispatchEscape();
+			flushSync();
+			expect(dialog()).toBeTruthy(); // still sliding out
+
+			dispatchEscape();
+			dispatchEscape();
+			flushSync();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		// A bind:open write closing the drawer mid-drag bypasses close() entirely
+		// (see "starts the exit from the live drag offset" above) — it must stay
+		// silent, exactly like a bind:open-driven open would on Dialog/Popover.
+		it("a bind:open write that closes the drawer from outside plays nothing", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { getByTestId } = render(Harness, { props: { sound: true } });
+			await fireEvent.click(getByTestId("trigger"));
+
+			await fireEvent.click(getByTestId("close-from-parent"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

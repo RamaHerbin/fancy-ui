@@ -38,10 +38,11 @@
 	let particles: Particle[] = [];
 	let ctx: CanvasRenderingContext2D | null = null;
 	let rafId: number;
+	let dpr = 1;
 
 	function resizeCanvas() {
 		if (!canvasRef || !containerRef) return;
-		const dpr = window.devicePixelRatio || 1;
+		dpr = window.devicePixelRatio || 1;
 		const rect = containerRef.getBoundingClientRect();
 		canvasRef.width = rect.width * dpr;
 		canvasRef.height = rect.height * dpr;
@@ -82,9 +83,11 @@
 			const opacity = 0.3 + (Math.sin(p.phase) * 0.3 + 0.3);
 
 			ctx.beginPath();
+			// canvasRef.width/height are device pixels while the context already
+			// carries the dpr transform, so divide it back out to draw in CSS pixels.
 			ctx.arc(
-				(p.x * canvasRef.width) / 100,
-				(p.y * canvasRef.height) / 100,
+				(p.x * canvasRef.width) / (100 * dpr),
+				(p.y * canvasRef.height) / (100 * dpr),
 				p.size,
 				0,
 				Math.PI * 2

@@ -1,10 +1,12 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { DURATIONS } from "../_internals/motion/tokens.js";
 import Tabs from "./Tabs.svelte";
 import TabsTrigger from "./TabsTrigger.svelte";
 import TabsContent from "./TabsContent.svelte";
 import Harness from "./TabsHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 interface Item {
 	value: string;
@@ -38,8 +40,100 @@ function tabbable(container: HTMLElement): HTMLButtonElement | undefined {
 	return tabs(container).find((b) => b.getAttribute("tabindex") === "0");
 }
 
+function indicator(container: HTMLElement): HTMLElement {
+	return container.querySelector(".ft-tabs-indicator") as HTMLElement;
+}
+
+/** Mirrors `TabsList`'s own backstop: the transition's token plus a slack
+ * margin. Imported rather than hardcoded so the two cannot drift apart. */
+const WILL_CHANGE_RELEASE = DURATIONS.fast + 50;
+
+const GEOMETRY_PROPS = ["offsetLeft", "offsetTop", "offsetWidth", "offsetHeight"] as const;
+
+interface GeometryOptions {
+	/** Every trigger's size across the rail — its height in a horizontal
+	 * tablist, its width in a vertical one. */
+	thickness?: number;
+	/** Stack the triggers down the rail instead of across it. */
+	vertical?: boolean;
+}
+
+/**
+ * jsdom lays nothing out, so every `offset*` reads 0 and the indicator's
+ * arithmetic has nothing to chew on. Installs geometry the same way this
+ * suite's neighbours install an observer — a configurable prototype getter,
+ * restored by the function returned here, never left behind for the next
+ * test file in the same worker.
+ *
+ * `sizes` is keyed by each trigger's `value` and measures along the rail's
+ * own axis; every trigger's offset is the sum of the ones before it in DOM
+ * order, which is what a flex row (or column) with no gap actually produces.
+ * Only elements carrying `data-ft-tabs-trigger` get a size — the indicator
+ * and the list itself keep jsdom's zeroes.
+ */
+function stubGeometry(
+	sizes: Record<string, number>,
+	{ thickness = 32, vertical = false }: GeometryOptions = {}
+): () => void {
+	const originals = GEOMETRY_PROPS.map((prop) =>
+		Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)
+	);
+
+	const isTrigger = (el: HTMLElement) => el.hasAttribute("data-ft-tabs-trigger");
+	const sizeOf = (el: HTMLElement) => sizes[el.dataset.value ?? ""] ?? 0;
+
+	function offsetAlongRail(el: HTMLElement): number {
+		const siblings = Array.from(
+			el.parentElement?.querySelectorAll<HTMLElement>("[data-ft-tabs-trigger]") ?? []
+		);
+		const index = siblings.indexOf(el);
+		if (index === -1) return 0;
+		return siblings.slice(0, index).reduce((sum, prev) => sum + sizeOf(prev), 0);
+	}
+
+	function define(prop: (typeof GEOMETRY_PROPS)[number], read: (el: HTMLElement) => number) {
+		Object.defineProperty(HTMLElement.prototype, prop, {
+			configurable: true,
+			get(this: HTMLElement) {
+				return isTrigger(this) ? read(this) : 0;
+			},
+		});
+	}
+
+	define("offsetWidth", (el) => (vertical ? thickness : sizeOf(el)));
+	define("offsetHeight", (el) => (vertical ? sizeOf(el) : thickness));
+	define("offsetLeft", (el) => (vertical ? 0 : offsetAlongRail(el)));
+	define("offsetTop", (el) => (vertical ? offsetAlongRail(el) : 0));
+
+	return () => {
+		GEOMETRY_PROPS.forEach((prop, index) => {
+			const original = originals[index];
+			if (original) Object.defineProperty(HTMLElement.prototype, prop, original);
+		});
+	};
+}
+
+/** Replaces `window.matchMedia` wholesale. `prefersReducedMotion()` resolves
+ * it fresh on every call, so an override installed before the selection moves
+ * is the one the placement effect sees. */
+function stubReducedMotion(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
 describe("Tabs", () => {
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
 	// Regression guard for the same reactivity loop ToggleGroup already paid
 	// for: register/unregister run inside each trigger's own `$effect`, and
@@ -122,6 +216,58 @@ describe("Tabs", () => {
 	it("makes the active panel focusable so Tab from the tablist lands in content", () => {
 		const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
 		expect(panels(container)[0].getAttribute("tabindex")).toBe("0");
+	});
+
+	// The panel entrance is `in:` only, deliberately: an outgoing panel has
+	// nowhere to be stacked (these are siblings the caller places by hand), so
+	// it cuts away exactly as it always did while the arriving one fades in.
+	// That is also why not one assertion above had to learn to wait — `in:`
+	// never delays an unmount.
+	describe("panel entrance", () => {
+		it("fades the arriving panel in, and leaves the first render alone", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				await tick();
+				// A panel that starts selected simply appears: a local `in:`
+				// runs only once the block that owns it has already run.
+				expect(animateSpy).not.toHaveBeenCalled();
+
+				// A raw click, then ONE tick: `fireEvent` awaits a tick of its
+				// own, which is enough for the stubbed Web Animations API to
+				// resolve and for the assertion below to miss the window.
+				byLabel(container, "Security").click();
+				await tick();
+
+				const arrived = panels(container);
+				// The panel being left is gone in the same tick, not lingering
+				// behind the new one for the length of the fade.
+				expect(arrived).toHaveLength(1);
+				expect(arrived[0].textContent).toBe("Panel Security");
+				expect(animateSpy.mock.contexts).toContain(arrived[0]);
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("reduced motion: the arriving panel is swapped in without animating at all", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				await tick();
+
+				byLabel(container, "Security").click();
+				await tick();
+
+				expect(panels(container)[0].textContent).toBe("Panel Security");
+				// `duration: 0` makes Svelte call its own finish callback
+				// synchronously and never touch `element.animate()`.
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
 	});
 
 	it("selects on click and moves both the roving tabindex and DOM focus there", async () => {
@@ -481,5 +627,346 @@ describe("Tabs", () => {
 		const panel = forced.querySelector('[role="tabpanel"]');
 		expect(panel).toBeTruthy();
 		expect(panel?.hasAttribute("hidden")).toBe(true);
+	});
+
+	describe("sliding indicator", () => {
+		// Every assertion below pins the *exact* inline transform string
+		// rather than a substring: the whole point of the indicator is that
+		// one transform carries both where the bar is and how long it is, so
+		// a partial match would let either half rot silently.
+
+		it("renders one aria-hidden bar carrying the tablist's own variant and orientation", () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", variant: "segmented" },
+			});
+			const bar = indicator(container);
+
+			expect(bar).toBeTruthy();
+			expect(container.querySelectorAll(".ft-tabs-indicator")).toHaveLength(1);
+			expect(bar.getAttribute("aria-hidden")).toBe("true");
+			expect(bar.hasAttribute("role")).toBe(false);
+			expect(bar.hasAttribute("tabindex")).toBe(false);
+			expect(bar.dataset.variant).toBe(tablist(container).dataset.variant);
+			expect(bar.dataset.orientation).toBe(tablist(container).dataset.orientation);
+		});
+
+		it("snaps to the selected trigger on first paint, leaving the element transitionable afterwards", () => {
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				const bar = indicator(container);
+
+				expect(bar.style.transform).toBe("translateX(0px) scaleX(80)");
+				expect(bar.style.opacity).toBe("1");
+				// The suspend/restore ran to completion: had the restore been
+				// skipped, `transition: none` would still be sitting here and
+				// the bar would never tween again.
+				expect(bar.style.transition).toBe("");
+				// First paint is a snap, so the compositor was never armed.
+				expect(bar.style.willChange).toBe("");
+			} finally {
+				restore();
+			}
+		});
+
+		it("slides to the newly selected trigger and hints the compositor for the tween", async () => {
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				const bar = indicator(container);
+
+				await fireEvent.click(byLabel(container, "Security"));
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+				expect(bar.style.willChange).toBe("transform");
+
+				await fireEvent.click(byLabel(container, "Billing"));
+				expect(bar.style.transform).toBe("translateX(170px) scaleX(70)");
+			} finally {
+				restore();
+			}
+		});
+
+		it("measures the vertical axis, never the horizontal one, in a vertical tablist", async () => {
+			const restore = stubGeometry({ account: 30, security: 34, billing: 28 }, { vertical: true });
+			try {
+				const { container } = render(Harness, {
+					props: { items: ITEMS, value: "account", orientation: "vertical" },
+				});
+				const bar = indicator(container);
+
+				expect(bar.style.transform).toBe("translateY(0px) scaleY(30)");
+
+				await fireEvent.click(byLabel(container, "Security"));
+				expect(bar.style.transform).toBe("translateY(30px) scaleY(34)");
+				expect(bar.style.transform).not.toContain("translateX");
+			} finally {
+				restore();
+			}
+		});
+
+		it("stretches on both axes for the segmented variant and publishes its scale factors", async () => {
+			const restore = stubGeometry({ account: 60, security: 40, billing: 70 }, { thickness: 26 });
+			try {
+				const { container } = render(Harness, {
+					props: { items: ITEMS, value: "account", variant: "segmented" },
+				});
+				const bar = indicator(container);
+
+				await fireEvent.click(byLabel(container, "Security"));
+
+				expect(bar.style.transform).toBe("translate(60px, 0px) scale(40, 26)");
+				// These two feed the `calc()` that divides the pill's radius
+				// back down, so a stretched 1x1 box still renders a 6px corner.
+				expect(bar.style.getPropertyValue("--ft-tabs-indicator-sx")).toBe("40");
+				expect(bar.style.getPropertyValue("--ft-tabs-indicator-sy")).toBe("26");
+			} finally {
+				restore();
+			}
+		});
+
+		it("snaps rather than slides when the geometry itself changes", async () => {
+			const restore = stubGeometry({ account: 60, security: 40, billing: 70 }, { thickness: 26 });
+			try {
+				const { container, rerender } = render(Harness, {
+					props: { items: ITEMS, value: "account" },
+				});
+				const bar = indicator(container);
+
+				expect(bar.style.transform).toBe("translateX(0px) scaleX(60)");
+
+				await fireEvent.click(byLabel(container, "Security"));
+				expect(bar.style.willChange).toBe("transform");
+
+				// Both at once — a new selection *and* a new variant. A variant
+				// change on its own already snaps for the duller reason that the
+				// selection did not move; this is the case the `geometryChanged`
+				// guard alone catches. A different variant is a different
+				// geometry, not a journey: the bar stops measuring one axis and
+				// starts measuring two, so there is no path between the two
+				// transforms worth tweening.
+				await rerender({ items: ITEMS, value: "billing", variant: "segmented" });
+				expect(bar.style.transform).toBe("translate(100px, 0px) scale(70, 26)");
+				expect(bar.style.willChange).toBe("");
+				expect(bar.style.transition).toBe("");
+			} finally {
+				restore();
+			}
+		});
+
+		it("leaves a slide in flight alone while focus walks to another tab", async () => {
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container } = render(Harness, {
+					props: { items: ITEMS, value: "account", activation: "manual" },
+				});
+				const bar = indicator(container);
+
+				await fireEvent.click(byLabel(container, "Security"));
+				expect(bar.style.willChange).toBe("transform");
+
+				// Manual activation moves focus without moving the selection, and
+				// the placement effect watches the roving registry, so it re-runs
+				// here. Re-placing the bar would suspend its transition mid-flight
+				// and teleport it to the destination it is already travelling to —
+				// and, in a browser, force a layout on every arrow keystroke.
+				await fireEvent.keyDown(byLabel(container, "Security"), { key: "ArrowRight" });
+				await tick();
+
+				expect(document.activeElement).toBe(byLabel(container, "Billing"));
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+				expect(bar.style.willChange).toBe("transform");
+			} finally {
+				restore();
+			}
+		});
+
+		it("stays hidden and writes no transform while nothing has a measurable size", () => {
+			// No geometry stub at all: this is jsdom's own zero, and it stands
+			// in for the real case the guard exists for — a first paint the
+			// browser has not laid out yet, or a `display: none` ancestor.
+			const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+			const bar = indicator(container);
+
+			expect(bar.style.opacity).toBe("0");
+			expect(bar.style.transform).toBe("");
+		});
+
+		it("still tracks the selection under reduced motion, without arming the compositor", async () => {
+			stubReducedMotion(true);
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				const bar = indicator(container);
+
+				await fireEvent.click(byLabel(container, "Security"));
+
+				// It tracks: the bar is under the right tab, it just got there
+				// without a tween.
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+				expect(bar.style.willChange).toBe("");
+				expect(bar.style.transition).toBe("");
+			} finally {
+				restore();
+			}
+		});
+
+		it("disconnects the ResizeObserver and clears the will-change timer on unmount", async () => {
+			const disconnect = vi.fn();
+			// Overrides `test-setup.ts`'s no-op class for this test only, so
+			// the teardown can be observed rather than assumed.
+			vi.stubGlobal(
+				"ResizeObserver",
+				class {
+					observe() {}
+					unobserve() {}
+					disconnect = disconnect;
+				}
+			);
+			const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+			const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container, unmount } = render(Harness, {
+					props: { items: ITEMS, value: "account" },
+				});
+				await fireEvent.click(byLabel(container, "Security"));
+
+				expect(indicator(container).style.willChange).toBe("transform");
+
+				// jsdom books 0 ms timers of its own whenever something takes
+				// focus (it collapses the selection), so the indicator's
+				// release is picked out by the delay it was booked with rather
+				// than by counting whatever happens to be pending.
+				const booked = setTimeoutSpy.mock.calls.findIndex(
+					(call) => call[1] === WILL_CHANGE_RELEASE
+				);
+				expect(booked).toBeGreaterThanOrEqual(0);
+				const handle = setTimeoutSpy.mock.results[booked]?.value;
+
+				unmount();
+
+				expect(disconnect).toHaveBeenCalledTimes(1);
+				expect(clearTimeoutSpy).toHaveBeenCalledWith(handle);
+			} finally {
+				restore();
+				setTimeoutSpy.mockRestore();
+				clearTimeoutSpy.mockRestore();
+			}
+		});
+
+		it("hides the bar when nothing is selected, and still tracks a selected trigger that went disabled", async () => {
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container, rerender } = render(Harness, { props: { items: ITEMS, value: "" } });
+				const bar = indicator(container);
+
+				expect(bar.style.opacity).toBe("0");
+				expect(bar.style.transform).toBe("");
+
+				// Disabling the selected trigger changes neither the selection
+				// nor the visible panel, so the bar must not desert it either —
+				// a bar that vanished here would say "nothing is selected",
+				// which is not what happened.
+				await rerender({ items: ITEMS, value: "security" });
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+				// This is the first *successful* placement, so there is no
+				// transform to leave from: it snaps. Were it to tween, it would
+				// tween from the identity matrix — a 1x1 box flying in from the
+				// list's own origin.
+				expect(bar.style.willChange).toBe("");
+
+				await rerender({
+					items: ITEMS.map((item) =>
+						item.value === "security" ? { ...item, disabled: true } : item
+					),
+					value: "security",
+				});
+				expect(bar.style.opacity).toBe("1");
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+			} finally {
+				restore();
+			}
+		});
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a click actually changes the active tab", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.click(byLabel(container, "Security"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+
+			await fireEvent.click(byLabel(container, "Security"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the clicked trigger is disabled, even with sound enabled", () => {
+			const items: Item[] = [
+				{ value: "account", label: "Account" },
+				{ value: "security", label: "Security", disabled: true },
+			];
+			const { container } = render(Harness, { props: { items, value: "account", sound: true } });
+			const trigger = byLabel(container, "Security");
+
+			// jsdom does not synthesize a click from a real gesture on a native
+			// `disabled` button; a synthetic dispatch bypasses that and reaches
+			// the handler's own `if (isDisabled) return` guard instead.
+			trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when re-activating the already-active tab — the changed-only guard", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.click(byLabel(container, "Account"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls onValueChange on the very same click that the changed-only guard silences", async () => {
+			const onValueChange = vi.fn();
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true, onValueChange },
+			});
+
+			await fireEvent.click(byLabel(container, "Account"));
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("account");
+		});
+
+		it("plays select on an automatic-activation arrow step that commits a different tab", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.keyDown(byLabel(container, "Account"), { key: "ArrowRight" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
 	});
 });

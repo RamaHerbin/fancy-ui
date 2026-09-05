@@ -10,9 +10,10 @@
 <script lang="ts">
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 	import { TIME_PICKER_KEY, type TimePickerContext } from "./types.js";
 
 	let { class: className, ref = $bindable(null) }: TimePickerPanelProps = $props();
@@ -21,6 +22,21 @@
 	// so the context is always present by the time this runs — there is no
 	// standalone-usage fallback to design for, the same as SelectPanel.
 	const ctx = getContext<TimePickerContext>(TIME_PICKER_KEY);
+
+	// The side the panel was ACTUALLY placed on, which `anchorPosition` reports
+	// through `onPlacement` and which differs from the requested one whenever a
+	// flip avoided the viewport edge. Seeded with the requested side rather than
+	// left undefined so an un-flipped panel never depends on directive ordering:
+	// the growth origin is already right on the first frame, and `onPlacement`
+	// only ever has to correct a real flip.
+	let resolvedSide = $state<Side>("bottom");
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>("start");
 
 	function rowClasses(index: number): string {
 		return cn(
@@ -36,6 +52,22 @@
 	only ever communicated through `aria-activedescendant` on the button
 	above, which is why this panel carries `role="listbox"` and `role="option"`
 	rows instead of a plain menu, and why nothing here ever calls `.focus()`.
+
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair: a
+	bidirectional directive hands the in-flight counterpart's current position
+	to the fresh call, so a panel reopened mid-exit continues from where it is
+	instead of snapping to invisible first. `entering: ctx.open` is what tells
+	it which way it is going — Svelte reports `direction: "both"` for one
+	bidirectional directive and cannot tell the two apart on its own, and the
+	`{#if}` that mounts this component lives one level up in `TimePicker`, so
+	the flag has to arrive through the context.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays the
+	outro and the scheduler skips inert effects, so a reactive `data-state={…}`
+	would never reach the DOM on a real close. `inert` itself is never written
+	by hand: Svelte sets it on any element carrying a `transition:` for the
+	whole exit, which is what stops a row taking a click on its way out.
 -->
 <div
 	bind:this={ref}
@@ -46,8 +78,28 @@
 		className
 	)}
 	use:portal
-	use:anchorPosition={{ anchor: () => ctx.triggerRef, side: "bottom", align: "start", offset: 4 }}
-	use:dismissable={{ onDismiss: ctx.close, exclude: () => [ctx.triggerRef] }}
+	use:anchorPosition={{
+		anchor: () => ctx.triggerRef,
+		side: "bottom",
+		align: "start",
+		offset: 4,
+		onPlacement: (side, align) => {
+			resolvedSide = side;
+			resolvedAlign = align;
+		},
+	}}
+	use:dismissable={{
+		onDismiss: ctx.close,
+		exclude: () => [ctx.triggerRef],
+		active: () => ctx.open,
+	}}
+	transition:anchored={{ side: resolvedSide, entering: ctx.open }}
+	data-state="open"
+	data-side={resolvedSide}
+	data-align="start"
+	style:transform-origin={originFor(resolvedSide, resolvedAlign)}
+	onintrostart={(e) => markSurfaceState(e, "open")}
+	onoutrostart={(e) => markSurfaceState(e, "closing")}
 >
 	{#if ctx.slots.length === 0}
 		<!-- Reachable when `min`/`max` exclude every generated slot — see the
@@ -83,23 +135,6 @@
 </div>
 
 <style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-time-picker-panel {
-			animation: ft-time-picker-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-time-picker-in {
-		from {
-			opacity: 0;
-			transform: scale(0.97);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-
 	.ft-time-picker-option {
 		--ft-field-accent: var(
 			--ft-accent,

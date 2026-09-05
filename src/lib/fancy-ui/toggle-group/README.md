@@ -109,18 +109,19 @@ component.
 
 ### ToggleGroup
 
-| Prop            | Type                                  | Default        | Description                                                     |
-| --------------- | ------------------------------------- | -------------- | --------------------------------------------------------------- |
-| `type`          | `"single" \| "multiple"`              | `"single"`     | Whether one item can be active at a time, or several            |
-| `value`         | `string \| string[]`                  | `""`           | The active value(s), bindable — shape follows `type`            |
-| `onValueChange` | `(value: string \| string[]) => void` | —              | Called with the new value, shaped to match `type`               |
-| `disabled`      | `boolean`                             | `false`        | Disables every item in the group                                |
-| `size`          | `"sm" \| "md" \| "lg"`                | `"md"`         | Sizes every item                                                |
-| `orientation`   | `"horizontal" \| "vertical"`          | `"horizontal"` | The rail's stacking axis — both arrow-key pairs work either way |
-| `label`         | `string`                              | —              | Accessible name for the group                                   |
-| `children`      | `Snippet`                             | —              | The `ToggleGroupItem`s                                          |
-| `class`         | `string`                              | —              | Additional CSS classes                                          |
-| `ref`           | `HTMLDivElement \| null`              | `null`         | Bindable element reference                                      |
+| Prop            | Type                                  | Default        | Description                                                      |
+| --------------- | ------------------------------------- | -------------- | ---------------------------------------------------------------- |
+| `type`          | `"single" \| "multiple"`              | `"single"`     | Whether one item can be active at a time, or several             |
+| `value`         | `string \| string[]`                  | `""`           | The active value(s), bindable — shape follows `type`             |
+| `onValueChange` | `(value: string \| string[]) => void` | —              | Called with the new value, shaped to match `type`                |
+| `disabled`      | `boolean`                             | `false`        | Disables every item in the group                                 |
+| `size`          | `"sm" \| "md" \| "lg"`                | `"md"`         | Sizes every item                                                 |
+| `orientation`   | `"horizontal" \| "vertical"`          | `"horizontal"` | The rail's stacking axis — both arrow-key pairs work either way  |
+| `label`         | `string`                              | —              | Accessible name for the group                                    |
+| `children`      | `Snippet`                             | —              | The `ToggleGroupItem`s                                           |
+| `class`         | `string`                              | —              | Additional CSS classes                                           |
+| `ref`           | `HTMLDivElement \| null`              | `null`         | Bindable element reference                                       |
+| `sound`         | `boolean`                             | `false`        | Plays toggle-on/off or select on a change, once sound is enabled |
 
 ### ToggleGroupItem
 
@@ -149,6 +150,29 @@ to a `light-dark()` accent pair local to the component — the same shape
 
 Set `--ft-accent` higher up the tree to retint the focus ring on every
 `ToggleGroupItem` beneath it.
+
+Two optional variables tune the press feedback on an item:
+
+| Variable                          | Default | What it controls                                    |
+| --------------------------------- | ------- | --------------------------------------------------- |
+| `--ft-toggle-group-press-scale`   | `0.97`  | How far an item shrinks while held down             |
+| `--ft-toggle-group-press-opacity` | `0.85`  | The pressed fade used instead, under reduced motion |
+
+## Motion
+
+- Pressing an item scales it to `0.97` for as long as it is held, over 150 ms.
+  The colour change beside it runs on the same clock and the same easing.
+- The focus ring is deliberately not in any transition list: it is painted
+  with `box-shadow`, and a focus ring that fades in is a ring the keyboard
+  user has to wait for.
+- **Reduced motion.** The press scale is declared inside
+  `@media (prefers-reduced-motion: no-preference)`. Without that preference
+  the press is acknowledged with an `opacity: 0.85` fade instead — never both
+  at once. The colour change is not motion and is not gated.
+- **Touch and coarse pointers.** `:active` is exactly the affordance a finger
+  gets, so the press feedback is not suppressed on touch. Every item carries
+  `touch-action: manipulation`, which removes the browser's ~300 ms tap delay
+  without blocking scrolling.
 
 ## Implementation Notes
 
@@ -204,3 +228,17 @@ Set `--ft-accent` higher up the tree to retint the focus ring on every
 - Every item still owns its own `disabled` prop on top of the group's — a
   group that is otherwise enabled can disable one option without disabling
   the rest.
+
+## Sound
+
+`sound?: boolean` (default `false`, set on `ToggleGroup`, not on individual
+items) plays a cue whenever `toggle()` actually commits a change: in
+`type="multiple"`, `toggle-on` for activating an unselected item and
+`toggle-off` for deactivating a selected one; in `type="single"`, `select`
+for picking an item — including the clear-on-repick case, which is still a
+real commit and still plays. Nothing plays while the group is `disabled`, and
+the cue lives entirely in `ToggleGroup`'s own `toggle()` — `ToggleGroupItem`
+never plays anything itself, so an item rendered outside a group stays
+silent. Off by default; the cue is only audible once the user has separately
+turned sound on. See `sound/README.md` for how the preference and playback
+work.

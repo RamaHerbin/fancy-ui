@@ -4,6 +4,7 @@ import SearchInput from "./SearchInput.svelte";
 import ValueHarness from "./SearchInputHarness.test.svelte";
 import FieldHarness from "./SearchInputFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function input(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input") as HTMLInputElement;
@@ -11,6 +12,25 @@ function input(container: HTMLElement): HTMLInputElement {
 
 function clearButton(container: HTMLElement): HTMLButtonElement | null {
 	return container.querySelector("button");
+}
+
+/**
+ * jsdom has no `matchMedia`; `src/test-setup.ts` installs one that answers
+ * `matches: false` to everything, which is the "full motion" branch. This
+ * swaps in a stub that discriminates on the query string, so a test can pick
+ * the branch it means rather than turning every media query true at once.
+ */
+function stubReducedMotion(reduce: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: reduce && query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
 }
 
 describe("SearchInput", () => {
@@ -232,6 +252,71 @@ describe("SearchInput", () => {
 			const { container } = render(SearchInput, { props: { value: "svelte", readonly: true } });
 			expect(clearButton(container)).toBeNull();
 		});
+
+		it("leaves the DOM in the same tick as the focus handoff, with no outro holding it there", async () => {
+			// The reason the clear button animates in but not out: `clearValue()`
+			// calls `ref?.focus()` synchronously right after emptying the field,
+			// and an outro would keep a button that is already logically gone
+			// mounted (and focusable) across that handoff. This pins the
+			// ordering, not the pixels.
+			const { container } = render(SearchInput, { props: { value: "svelte" } });
+			const el = input(container);
+
+			await fireEvent.click(clearButton(container)!);
+
+			expect(clearButton(container)).toBeNull();
+			expect(document.activeElement).toBe(el);
+		});
+	});
+
+	describe("motion", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
+		it("animates the clear button in when it appears mid-typing", async () => {
+			// A button already present on first render never animates — Svelte
+			// skips a local intro on a block's first run — so the value has to
+			// arrive through a real input event for the transition to exist at
+			// all. That is also the only moment a user ever sees it appear.
+			stubReducedMotion(false);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(SearchInput, { props: { value: "" } });
+				expect(clearButton(container)).toBeNull();
+
+				await fireEvent.input(input(container), { target: { value: "s" } });
+
+				await vi.waitFor(() => {
+					expect(clearButton(container)).not.toBeNull();
+				});
+				expect(animateSpy).toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("with prefers-reduced-motion: reduce, the clear button still appears — it just never animates", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(SearchInput, { props: { value: "" } });
+
+				await fireEvent.input(input(container), { target: { value: "s" } });
+
+				// Present and usable: the affordance is never what gets dropped,
+				// only its travel. `duration: 0` is what makes Svelte take its own
+				// synchronous fast path instead of calling into the WAAPI.
+				const btn = clearButton(container);
+				expect(btn).not.toBeNull();
+				expect(btn?.getAttribute("aria-label")).toBe("Clear search");
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
 	});
 
 	describe("Escape", () => {
@@ -341,6 +426,84 @@ describe("SearchInput", () => {
 			vi.advanceTimersByTime(1000);
 
 			expect(onSearch).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when cleared via the clear button, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(SearchInput, { props: { sound: true, value: "svelte" } });
+
+			await fireEvent.click(clearButton(container)!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays the press cue exactly once when cleared via Escape, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(SearchInput, { props: { sound: true, value: "svelte" } });
+			const el = input(container);
+
+			await fireEvent.keyDown(el, { key: "Escape" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(SearchInput, { props: { value: "svelte" } });
+
+			await fireEvent.click(clearButton(container)!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch bypassing jsdom's own disabled-input event suppression", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(SearchInput, {
+				props: { sound: true, disabled: true, value: "svelte" },
+			});
+			const el = input(container);
+
+			// The clear button never renders while disabled (canClear excludes
+			// it), and a real disabled input never dispatches keydown at all —
+			// a raw dispatchEvent is what actually reaches handleKeydown here.
+			el.dispatchEvent(
+				new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: once the field is already empty, Escape is a no-op and plays nothing more", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(SearchInput, { props: { sound: true, value: "svelte" } });
+			const el = input(container);
+
+			await fireEvent.keyDown(el, { key: "Escape" });
+			expect(play).toHaveBeenCalledTimes(1);
+
+			// canClear is now false (value === ""), so a second Escape must not
+			// play a second cue for a clear that cannot happen again.
+			await fireEvent.keyDown(el, { key: "Escape" });
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing while typing, on the debounced settle, or on Enter", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(SearchInput, { props: { sound: true, value: "" } });
+			const el = input(container);
+
+			await fireEvent.input(el, { target: { value: "svelte" } });
+			await fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

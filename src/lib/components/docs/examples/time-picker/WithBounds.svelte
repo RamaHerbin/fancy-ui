@@ -5,6 +5,7 @@
 </script>
 
 <TimePicker
+	sound
 	bind:value={time}
 	min="09:00"
 	max="17:00"

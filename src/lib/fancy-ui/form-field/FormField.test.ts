@@ -1,5 +1,5 @@
 import { render, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import FormField from "./FormField.svelte";
 import Harness from "./FormFieldHarness.test.svelte";
 import PairHarness from "./FormFieldPairHarness.test.svelte";
@@ -22,6 +22,25 @@ function controls(container: HTMLElement): HTMLInputElement[] {
 
 function message(container: HTMLElement): HTMLElement | null {
 	return container.querySelector("p");
+}
+
+/**
+ * jsdom has no `matchMedia`; `src/test-setup.ts` installs one that answers
+ * `matches: false` to everything, which is the "full motion" branch. This
+ * swaps in a stub that discriminates on the query string, so a test can pick
+ * the branch it means rather than turning every media query true at once.
+ */
+function stubReducedMotion(reduce: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: reduce && query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
 }
 
 describe("FormField", () => {
@@ -229,6 +248,120 @@ describe("FormField", () => {
 
 		expect(el.className).toContain("ft-form-field");
 		expect(el.className).toContain("mt-4");
+	});
+
+	describe("motion", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
+		it("animates a message in when it appears after first render", async () => {
+			stubReducedMotion(false);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container, rerender } = render(Harness, { props: {} });
+				expect(message(container)).toBeNull();
+
+				await rerender({ error: "Minimum 3 characters." });
+
+				await vi.waitFor(() => {
+					expect(message(container)).not.toBeNull();
+				});
+				expect(animateSpy).toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("swaps error for description with no overlap: exactly one paragraph, and aria-describedby lands on it in the same tick", async () => {
+			// The reason both branches use `in:` and neither uses `transition:`.
+			// An outro here would leave the error paragraph on screen carrying
+			// `errorId` while the control had already moved `aria-describedby`
+			// onto the description — a message a screen reader is no longer
+			// pointed at, still visible. This is the assertion that would go red
+			// if someone "improved" it into a cross-fade.
+			stubReducedMotion(false);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container, rerender } = render(Harness, {
+					props: { description: "Never shown publicly.", error: "Minimum 3 characters." },
+				});
+
+				await rerender({ description: "Never shown publicly.", error: undefined });
+
+				expect(container.querySelectorAll("p")).toHaveLength(1);
+				const p = message(container);
+				expect(p?.textContent?.trim()).toBe("Never shown publicly.");
+				expect(control(container).getAttribute("aria-describedby")).toBe(p?.id);
+
+				// The `{:else if}` branch is nested as a transparent block, so its intro
+				// resolves against the OUTER `{#if}` — which has already run. The
+				// description pops on the swap exactly as the error does. Pinned on the
+				// paragraph itself rather than on the spy in general, so the assertion
+				// cannot be satisfied by some other element animating: `mock.contexts`
+				// holds the `this` of each call — the element `animate()` ran on — and
+				// `in:pop` sits directly on this `<p>`.
+				expect(animateSpy).toHaveBeenCalled();
+				expect(animateSpy.mock.contexts).toContain(p);
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("with prefers-reduced-motion: reduce, messages and the valid glyph still arrive — they just never animate", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container, rerender } = render(Harness, { props: {} });
+
+				await rerender({ description: "Used for sign-in." });
+				expect(message(container)?.textContent?.trim()).toBe("Used for sign-in.");
+
+				// The glyph is the `micro` (80ms) beat rather than the paragraph's
+				// 150ms one, and it only ever animates when `valid` flips while
+				// the help text is already mounted — which is exactly what this
+				// second rerender does.
+				await rerender({ description: "Used for sign-in.", valid: true });
+				const glyph = container.querySelector(".ft-form-field-valid-glyph");
+				expect(glyph?.textContent).toBe("✓");
+
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("animates the valid glyph in only once the help text is already on screen", async () => {
+			stubReducedMotion(false);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				// Rendered already-valid: the glyph's `{#if}` block is created in
+				// the same pass as the paragraph that owns it, so Svelte skips a
+				// local intro. A field that loads in a valid state should not
+				// perform on arrival.
+				const { container, rerender } = render(Harness, {
+					props: { description: "Used for sign-in.", valid: true },
+				});
+				expect(container.querySelector(".ft-form-field-valid-glyph")).not.toBeNull();
+				expect(animateSpy).not.toHaveBeenCalled();
+
+				// Flipping `valid` off and back on, with the paragraph mounted
+				// throughout, is the real event — and that one does animate.
+				await rerender({ description: "Used for sign-in.", valid: false });
+				await rerender({ description: "Used for sign-in.", valid: true });
+
+				await vi.waitFor(() => {
+					expect(container.querySelector(".ft-form-field-valid-glyph")).not.toBeNull();
+				});
+				expect(animateSpy).toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
 	});
 
 	it("binds the root element", () => {

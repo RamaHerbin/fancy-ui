@@ -28,5 +28,5 @@
 </script>
 
 <div class="flex min-h-[400px] items-center justify-center">
-	<AnimatedTestimonials {testimonials} />
+	<AnimatedTestimonials sound {testimonials} />
 </div>

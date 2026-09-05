@@ -14,9 +14,10 @@
 	interface Props {
 		open?: boolean;
 		onOpenChange?: (open: boolean) => void;
+		sound?: boolean;
 	}
 
-	let { open = $bindable(false), onOpenChange }: Props = $props();
+	let { open = $bindable(false), onOpenChange, sound = false }: Props = $props();
 
 	let panelRef = $state<HTMLDivElement | null>(null);
 	$effect(() => {
@@ -25,7 +26,10 @@
 </script>
 
 <button type="button" data-testid="trigger" onclick={() => (open = true)}>Open</button>
+<!-- A close driven from OUTSIDE the drawer: the bound-write path, which never
+     goes through the component's own `close()`. -->
+<button type="button" data-testid="close-from-parent" onclick={() => (open = false)}>Close</button>
 
-<Drawer bind:open bind:ref={panelRef} {onOpenChange} title="Filters">Body content</Drawer>
+<Drawer bind:open bind:ref={panelRef} {onOpenChange} {sound} title="Filters">Body content</Drawer>
 
 <span data-testid="bound-open">{open}</span>

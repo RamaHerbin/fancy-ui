@@ -1,7 +1,8 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import ArtifactCard from "./ArtifactCard.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function root(container: HTMLElement): HTMLElement {
 	return container.firstElementChild as HTMLElement;
@@ -276,5 +277,106 @@ describe("ArtifactCard", () => {
 
 		expect(root(container).className).toContain("ft-artifact");
 		expect(root(container).className).toContain("my-card");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays press exactly once for the card-wide pointer shortcut", async () => {
+			const onOpen = vi.fn();
+			const { container } = render(ArtifactCard, {
+				props: { title: "Q3 memo", onOpen, sound: true },
+			});
+
+			await fireEvent.click(container.querySelector(".ft-artifact-title") as HTMLElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+			expect(onOpen).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays press exactly once for the Open button — dropping fromControl() would double it", async () => {
+			const onOpen = vi.fn();
+			const { container } = render(ArtifactCard, {
+				props: { title: "Q3 memo", onOpen, sound: true },
+			});
+
+			// The click also bubbles to the card's own handler, which must be sent
+			// home by fromControl() rather than playing a second cue.
+			await fireEvent.click(openCue(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+			expect(onOpen).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays select exactly once when stepping to the next version", async () => {
+			const onVersionChange = vi.fn();
+			const { container } = render(ArtifactCard, {
+				props: { title: "Memo", version: 2, versionCount: 4, onVersionChange, sound: true },
+			});
+
+			await fireEvent.click(nav(container, "Next version"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const onOpen = vi.fn();
+			const { container } = render(ArtifactCard, { props: { title: "Q3 memo", onOpen } });
+
+			await fireEvent.click(openCue(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing from a version arrow clamped at its end, even with sound enabled", () => {
+			const onVersionChange = vi.fn();
+			const { container } = render(ArtifactCard, {
+				props: { title: "Memo", version: 1, versionCount: 4, onVersionChange, sound: true },
+			});
+
+			// The disabled arrow keeps pointer-events (see the component's own
+			// note), so a synthetic dispatch bypasses jsdom's disabled handling to
+			// prove the clamp inside step() itself stops the cue too.
+			nav(container, "Previous version").dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onVersionChange).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when a click lands on the version rail's own gaps or the actions rail", async () => {
+			const onOpen = vi.fn();
+			const { container } = render(ArtifactCard, {
+				props: {
+					title: "Memo",
+					version: 1,
+					versionCount: 4,
+					onVersionChange: vi.fn(),
+					onOpen,
+					sound: true,
+					actions: createRawSnippet(() => ({
+						render: () => `<button type="button" class="custom-action">Copy</button>`,
+					})),
+				},
+			});
+
+			await fireEvent.click(container.querySelector(".ft-artifact-versions") as HTMLElement);
+			await fireEvent.click(container.querySelector(".custom-action") as HTMLElement);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onOpen).not.toHaveBeenCalled();
+		});
 	});
 });

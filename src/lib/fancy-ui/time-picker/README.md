@@ -75,9 +75,27 @@ Display in 12-hour form without changing what the app reads or stores:
 | `locale`        | `string`                          | —                 | BCP 47 locale for slot and trigger-label formatting                       |
 | `class`         | `string`                          | —                 | Additional CSS classes, merged onto the trigger button                    |
 | `ref`           | `HTMLButtonElement \| null`       | `null`            | Bindable element reference to the trigger button                          |
+| `sound`         | `boolean`                         | `false`           | Plays interface cues through the sound controller. See [Sound](#sound)    |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<TimePicker bind:value={time} sound />
+```
+
+`open` plays when the slot list opens from the trigger; `select` plays once
+a slot commits — a row click, or Enter/Space on the active row — and changes
+the value. Escape, an outside click, toggling the trigger shut, and
+re-picking the slot already selected all play `close` instead, never both:
+a commit is one cue, a dismiss is the other, never `select` followed by
+`close` for the same pick. Arrow-key navigation and hovering a row only move
+the highlight and stay silent.
 
 ## Theming
 
@@ -94,6 +112,33 @@ pair local to the component:
 
 Set `--ft-accent` higher up the tree to retint the trigger's focus ring and
 the selected row's checkmark.
+
+## Motion
+
+The panel arrives and leaves on one bidirectional transition — the shared `fast`
+rung, 150 ms in each direction, applied in JS (there is no `--ft-*` variable to
+override it). It rises from a `0.92` scale floor on the out-curve and collapses
+to `0.96` on the in-curve: leaving is a smaller gesture than arriving, and a
+full-depth collapse on dismiss reads as the panel being sucked away rather than
+simply closing.
+
+The growth origin follows the side the panel was actually placed on — flipped
+placements included — so it always appears to come out of the trigger rather
+than out of its own centre, and to go back into it. Exposed as `data-side` /
+`data-align` for consumers that want to key their own styling off the resolved
+placement. While the panel is on screen it also carries `data-state="open"`; for
+the length of the exit it carries `data-state="closing"` and is `inert`, so a
+row cannot be clicked on its way out.
+
+- **Reduced motion** — no animation in either direction; the panel appears and
+  disappears instantly and the close is synchronous again. Visibility never
+  depended on the animation.
+- **Touch and coarse pointers** — unchanged; neither direction is pointer-gated.
+- **Committing or dismissing is still immediate.** `value`, `onValueChange` and
+  `aria-expanded` all settle in the tick you act; only the panel's removal from
+  the DOM waits for the fade. A second Escape inside that window is not
+  swallowed by the panel already leaving — it reaches whatever sits underneath.
+  Reopening mid-fade reverses the exit rather than starting over.
 
 ## Implementation Notes
 
@@ -133,7 +178,12 @@ the selected row's checkmark.
   `select/Select.svelte` and `select/SelectPanel.svelte` use, down to reusing
   the same `_internals/listbox.svelte.ts` core for the move/wrap/edge
   mechanics (per-slot disabling is not part of this component's surface, so
-  every slot is always enabled to that shared core).
+  every slot is always enabled to that shared core). A **pointer** commit is
+  the one path that can move focus off the trigger — pressing a row focuses
+  the row, and the panel is portalled to `<body>`, so it has no focusable
+  ancestor to hand focus back to once it unmounts. The commit puts focus on
+  the trigger itself before closing, so a click leaves the tab order exactly
+  where a keyboard commit does rather than stranding it on `<body>`.
 - **The highlighted slot is scrolled into view the instant the panel opens**,
   not only on the next arrow press — `openPanel` calls the scroll explicitly
   after the DOM updates, rather than relying solely on the listbox core's

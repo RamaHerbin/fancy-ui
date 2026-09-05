@@ -1,0 +1,38 @@
+/*
+ * Svelte scoped these rules to the component; plain CSS is global. The source
+ * root carries no class of its own, so `.ft-typing` is added by the port purely
+ * as an anchor — without it a bare `.ft-dot` in a consumer's page would inherit
+ * the dot geometry and the wave.
+ */
+.ft-typing .ft-dot {
+	display: block;
+	width: var(--ft-typing-size);
+	height: var(--ft-typing-size);
+	border-radius: 9999px;
+	background-color: var(--ft-typing-color-resolved);
+	/*
+	 * Reduced motion holds the dots here: three static dots still read as
+	 * presence. Keeping the wave entirely behind the no-preference query means
+	 * there is nothing to override.
+	 */
+	opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-typing .ft-dot {
+		animation: ft-typing-pulse var(--ft-typing-speed) ease-in-out infinite;
+	}
+
+	@keyframes ft-typing-pulse {
+		0%,
+		60%,
+		100% {
+			transform: translateY(0);
+			opacity: 0.45;
+		}
+		30% {
+			transform: translateY(-25%);
+			opacity: 1;
+		}
+	}
+}

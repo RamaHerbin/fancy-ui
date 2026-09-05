@@ -14,8 +14,30 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { dismissToast, pauseToast, resumeToast } from "./store.svelte.js";
+	import { preset } from "../_internals/motion/transitions.js";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
 
 	let { item, class: className, ref = $bindable(null) }: ToastProps = $props();
+
+	// Entrance and exit are two SEPARATE directives, never one bidirectional
+	// `transition:`. `<Toaster>`'s `{#each … (item.id)}` is keyed, which is the
+	// whole reason a dismissed toast can animate out at all: its item block is
+	// *paused* rather than destroyed, and this outro is what holds it on screen
+	// for its last 200ms. A keyed each reports `direction: "both"` to a single
+	// `transition:` function, though, and there is no local "am I entering?"
+	// flag here to disambiguate it with — the trick `Presence` uses does not
+	// apply, because a toast has no `open` boolean: its existence IS its open
+	// state. Splitting the two is also what lets the exit be its own, shorter,
+	// shallower gesture rather than the entrance played backwards — see the two
+	// params objects on the root element below.
+	//
+	// The one thing the split costs is Svelte's reversal smoothing — a toast
+	// interrupted mid-exit restarts instead of reversing — and that costs
+	// nothing in practice: `toast()` never reuses an id, so the store can never
+	// re-add a toast that is currently leaving. Do not "simplify" this back
+	// into one directive.
+	const slide = preset("fade-up");
 
 	// Pause while *either* the pointer or focus is on the toast, and only
 	// resume once *both* have left. Two independent booleans instead of one
@@ -87,6 +109,16 @@
 	onpointerleave={handlePointerLeave}
 	onfocusin={handleFocusIn}
 	onfocusout={handleFocusOut}
+	in:slide={{
+		duration: prefersReducedMotion() ? 0 : DURATIONS.base,
+		distance: 8,
+		easing: JS_EASINGS.out,
+	}}
+	out:slide={{
+		duration: prefersReducedMotion() ? 0 : DURATIONS.exit,
+		distance: 4,
+		easing: JS_EASINGS.in,
+	}}
 >
 	<span
 		class={cn("ft-toast-icon flex-none text-[14px]", VARIANT_ICON_CLASSES[item.variant])}
@@ -178,26 +210,11 @@
 		.ft-toast-spinner {
 			animation: ft-toast-spin 0.8s linear infinite;
 		}
-
-		.ft-toast[data-state="open"] {
-			animation: ft-toast-in 180ms ease-out;
-		}
 	}
 
 	@keyframes ft-toast-spin {
 		to {
 			transform: rotate(360deg);
-		}
-	}
-
-	@keyframes ft-toast-in {
-		from {
-			opacity: 0;
-			transform: translateY(8px) scale(0.98);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0) scale(1);
 		}
 	}
 </style>

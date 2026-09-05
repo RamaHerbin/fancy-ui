@@ -32,6 +32,11 @@
 		class?: string;
 		/** Bindable reference to the input element. */
 		ref?: HTMLInputElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -43,6 +48,7 @@
 	import { defaultFilter } from "./match.js";
 	import { COMBOBOX_KEY, type ComboboxContext } from "./types.js";
 	import ComboboxPanel from "./ComboboxPanel.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		options,
@@ -59,6 +65,7 @@
 		emptyMessage = "No results",
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: ComboboxProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -153,9 +160,15 @@
 	// `$effect`, so it doesn't fight a caller's own `bind:value` write.
 	function selectOption(option: ComboboxOption) {
 		if (effectiveDisabled || option.disabled) return;
+		// Re-picking the row already committed changes nothing — matching the
+		// changed-only rule every other value-holding component follows
+		// (Select, Tabs, DatePicker, ...) even where, as here, there is no
+		// second cue to fall back on.
+		const changed = value !== option.value;
 		value = option.value;
 		query = option.label;
 		open = false;
+		if (sound && changed) soundFx.play("select");
 		onValueChange?.(option.value);
 	}
 
@@ -229,6 +242,9 @@
 	}
 
 	const context: ComboboxContext = {
+		get open() {
+			return open;
+		},
 		get panelId() {
 			return panelId;
 		},

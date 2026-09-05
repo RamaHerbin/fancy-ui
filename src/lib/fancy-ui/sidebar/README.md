@@ -88,6 +88,7 @@ below for what happens to an item that has no icon.
 | `children`   | `Snippet`                                        | —       | The item's label. Moves to `sr-only` text while collapsed — never removed               |
 | `class`      | `string`                                         | —       | Additional CSS classes                                                                  |
 | `ref`        | `HTMLAnchorElement \| HTMLButtonElement \| null` | `null`  | Bindable element reference                                                              |
+| `sound`      | `boolean`                                        | `false` | Plays the `select` cue on activation, once the user has enabled sound                   |
 
 ### SidebarSeparator
 
@@ -147,6 +148,16 @@ distinct, meaningful icon for every entry, don't collapse this sidebar, or
 override the collapsed row's own styling to show something else through
 `class`.
 
+## Sound
+
+Set `sound` on a `SidebarItem` to play the `select` cue when it is activated (either the `<a>` or the `<button>` branch — one shared handler), through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<SidebarItem href="/dashboard" sound current>Dashboard</SidebarItem>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the item **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` blocks the cue exactly like it blocks `onclick`. Activating an item that is already `current` also plays nothing — the cue marks moving to a different item, not re-clicking the one already open. Collapsing/expanding the rail is driven entirely from outside the compound (see "Implementation Notes"), so there is nothing here for `sound` to hook into for that interaction — a consumer wiring their own collapse trigger owns that cue, if any, themselves.
+
 ## Theming
 
 `Sidebar` and `SidebarItem` **both** declare `--ft-nav-accent`, each with
@@ -195,6 +206,37 @@ readable:
 	--ft-accent-foreground: oklch(0.15 0 0);
 }
 ```
+
+Two optional variables tune the motion. Each falls back to the library-wide
+token, which falls back to a literal, so setting neither is the supported
+default:
+
+| Variable                         | Default                          | What it controls                                       |
+| -------------------------------- | -------------------------------- | ------------------------------------------------------ |
+| `--ft-sidebar-collapse-duration` | `var(--ft-duration-fast, 150ms)` | How long the rail takes to collapse or expand          |
+| `--ft-sidebar-signal-duration`   | `var(--ft-duration-fast, 150ms)` | How long the current item's accent bar takes to arrive |
+
+## Motion
+
+- The current item's accent bar grows from `scaleY(0.4)` to full height and
+  fades in over 150 ms, on the same easing as the colour change beside it,
+  instead of appearing a frame ahead of it.
+- The bar is painted by a `::before` pseudo-element rather than by the item's
+  own `box-shadow`. That leaves the item's shadow free to be its focus ring —
+  a focus ring must never animate, and until this change the current item's
+  own accent bar was suppressing its focus ring entirely.
+- Collapsing the rail animates `width` over 150 ms. This is a **named
+  exception** to the library's "only opacity and transform animate" rule: a
+  collapsing sidebar is a layout change, and no transform reflows the content
+  beside it. The curve is the reversible one, not an arrival curve, so the
+  collapse and the expand read the same.
+- **Reduced motion.** Both the bar's growth and the width transition are
+  declared inside `@media (prefers-reduced-motion: no-preference)`. Without
+  that preference the bar simply appears at full height and the rail changes
+  width in one step. Nothing is hidden; nothing travels.
+- **Touch and coarse pointers.** Nothing here is pointer-driven — the accent
+  bar follows `current`, and the rail follows `collapsed` — so a coarse
+  pointer needs no special handling.
 
 ## Implementation Notes
 

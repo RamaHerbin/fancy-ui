@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { flushSync } from "svelte";
 import AnimatedTestimonials from "./AnimatedTestimonials.svelte";
 import type { Testimonial } from "./AnimatedTestimonials.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 const testimonials: Testimonial[] = [
 	{ quote: "First quote", name: "Alice", designation: "CEO", src: "alice.jpg" },
@@ -101,5 +102,96 @@ describe("AnimatedTestimonials", () => {
 		const { getByLabelText } = render(AnimatedTestimonials, { props: { testimonials } });
 		expect(getByLabelText("Previous testimonial")).toBeTruthy();
 		expect(getByLabelText("Next testimonial")).toBeTruthy();
+	});
+
+	it("sets type=\"button\" on the nav buttons so they never submit a surrounding form", () => {
+		const { getByLabelText } = render(AnimatedTestimonials, { props: { testimonials } });
+		expect(getByLabelText("Previous testimonial").getAttribute("type")).toBe("button");
+		expect(getByLabelText("Next testimonial").getAttribute("type")).toBe("button");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when the Next control moves to another testimonial, with sound enabled", () => {
+			const { getByLabelText } = render(AnimatedTestimonials, {
+				props: { testimonials, sound: true },
+			});
+
+			fireEvent.click(getByLabelText("Next testimonial"));
+			flushSync(() => vi.advanceTimersByTime(300));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select exactly once when the Previous control moves to another testimonial, with sound enabled", () => {
+			const { getByLabelText } = render(AnimatedTestimonials, {
+				props: { testimonials, sound: true },
+			});
+
+			fireEvent.click(getByLabelText("Previous testimonial"));
+			flushSync(() => vi.advanceTimersByTime(300));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", () => {
+			const { getByLabelText } = render(AnimatedTestimonials, { props: { testimonials } });
+
+			fireEvent.click(getByLabelText("Next testimonial"));
+			flushSync(() => vi.advanceTimersByTime(300));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("never plays for the autoplay-driven advance — only a user gesture triggers the cue", () => {
+			render(AnimatedTestimonials, {
+				props: { testimonials, sound: true, autoplay: true, interval: 3000 },
+			});
+
+			flushSync(() => {
+				vi.advanceTimersByTime(3000);
+				vi.advanceTimersByTime(300);
+			});
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on a rapid second click while a transition is already in flight (isAnimating guard)", () => {
+			const { getByLabelText } = render(AnimatedTestimonials, {
+				props: { testimonials, sound: true },
+			});
+			const next = getByLabelText("Next testimonial");
+
+			fireEvent.click(next);
+			flushSync();
+			// isAnimating is now true, mid-transition; a second click in the same
+			// window must be swallowed by the existing early-return, playing nothing.
+			fireEvent.click(next);
+			flushSync(() => vi.advanceTimersByTime(300));
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays nothing for a single-testimonial carousel, which wraps to the same index", () => {
+			const { getByLabelText } = render(AnimatedTestimonials, {
+				props: { testimonials: [testimonials[0]], sound: true },
+			});
+
+			fireEvent.click(getByLabelText("Next testimonial"));
+			flushSync(() => vi.advanceTimersByTime(300));
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

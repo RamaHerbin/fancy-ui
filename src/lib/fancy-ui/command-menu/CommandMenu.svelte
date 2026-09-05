@@ -33,6 +33,11 @@
 		icon?: Snippet<[CommandItem]>;
 		/** Rendered in place of the list when nothing matches, instead of `emptyMessage`. */
 		empty?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -42,9 +47,12 @@
 	import { portal } from "../_internals/portal.js";
 	import { focusTrap } from "../_internals/focus-trap.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { lockScroll } from "../_internals/scroll-lock.js";
+	import { scrollLock } from "../_internals/scroll-lock.js";
+	import { anchored, markSurfaceState } from "../_internals/motion/anchored.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
 	import { createListbox } from "../_internals/listbox.svelte.js";
 	import { defaultFilter, getMatchRange } from "./match.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -61,6 +69,7 @@
 		ref = $bindable(null),
 		icon,
 		empty,
+		sound = false,
 	}: CommandMenuProps = $props();
 
 	// How long the query has to sit still before the live region reports a
@@ -180,15 +189,31 @@
 
 	onDestroy(() => listbox.destroy());
 
-	// Acquired the instant the panel opens, released the instant it closes
-	// or unmounts — reference-counted, so a Popover or another modal opened
-	// from inside this menu stacks its own lock on top rather than losing
-	// track of this one. Same effect shape `dialog/DialogSurface.svelte`
-	// uses.
-	$effect(() => {
-		if (!open) return;
-		return lockScroll();
-	});
+	// Handed over by `focusTrap` the moment the trap arms; called at
+	// `outrostart`, which is the dismiss instant on EVERY close path
+	// (Escape, an outside click on the scrim, committing a row, a caller's
+	// own `bind:open` write). Waiting for the trap's own `destroy()` would
+	// leave a keyboard user on `<body>` for the whole length of the fade,
+	// because Svelte sets `inert` on this panel the instant the exit starts.
+	let returnFocusNow: (() => void) | null = null;
+
+	// The other half of that handover, called at `introstart`. A menu
+	// reopened DURING its fade reverses the outro instead of remounting, so
+	// `use:focusTrap` is never re-created: without this the panel would come
+	// back `aria-modal` and interactive with focus left on whatever was
+	// focused before it opened, Tab walking the page rather than the panel,
+	// and the eager return already spent for the life of the instance.
+	let rearmFocusTrap: (() => void) | null = null;
+
+	function handleIntroStart(event: Event): void {
+		markSurfaceState(event, "open");
+		rearmFocusTrap?.();
+	}
+
+	function handleOutroStart(event: Event): void {
+		markSurfaceState(event, "closing");
+		returnFocusNow?.();
+	}
 
 	// Whatever the very first paint's `query` was is worth keeping — a
 	// caller that mounts the menu already open with a prefilled query is
@@ -264,17 +289,26 @@
 		announcedCount === null ? "" : announcedCount === 1 ? "1 result" : `${announcedCount} results`
 	);
 
-	function setOpen(next: boolean): void {
+	function setOpen(next: boolean, options: { silent?: boolean } = {}): void {
 		if (open === next) return;
 		open = next;
 		onOpenChange?.(next);
+		// No `open` cue here on purpose — this menu is opened programmatically
+		// by the consumer (⌘K and the like), never by an interaction this
+		// component itself handles, so there is no gesture here to attach one
+		// to. Only a dismissal (Escape, an outside click) plays `close`; a
+		// commit-driven close passes `{ silent: true }` from `commitItem` below
+		// so a committed row's own `select` cue is the only one that plays —
+		// the same commit/dismiss split `Select`'s `closePanel` uses.
+		if (sound && !next && !options.silent) soundFx.play("close");
 	}
 
 	function commitItem(item: CommandItem): void {
 		if (item.disabled) return;
+		if (sound) soundFx.play("select");
 		item.onSelect?.();
 		onSelect?.(item);
-		setOpen(false);
+		setOpen(false, { silent: true });
 	}
 
 	function setQuery(next: string): void {
@@ -338,10 +372,23 @@
 </script>
 
 {#if open}
+	<!--
+		The scrim fades on opacity alone (`scale: false`) — a full-viewport
+		fixed element has no business acquiring a compositing layer for a
+		transform it does not use. It shares the panel's clock exactly, so
+		the two leave together and Svelte's "destroy the branch when the LAST
+		transition finishes" rule is a tie rather than a straggler.
+	-->
 	<div
 		use:portal
 		class="ft-command-menu-scrim fixed inset-0 z-50 bg-black/60"
 		aria-hidden="true"
+		transition:anchored={{
+			entering: open,
+			scale: false,
+			duration: DURATIONS.base,
+			exitDuration: DURATIONS.exit,
+		}}
 	></div>
 	<!--
 		`use:portal` runs first and reparents this node to `document.body`
@@ -353,17 +400,64 @@
 		node not yet attached to `document` — a silent no-op everywhere,
 		jsdom included. `dialog/DialogSurface.svelte` is the reference this
 		follows.
+
+		`use:scrollLock` sits here rather than on the scrim, and is an action
+		rather than an `$effect`, for the release timing: an action's
+		`destroy()` is delayed by the outro, so the page stays locked until
+		the backdrop is actually gone instead of unlocking the instant `open`
+		flips and leaving the page scrollable under a scrim still on screen.
+
+		ONE bidirectional `transition:` directive per surface, never a split
+		`in:`/`out:` pair: a bidirectional directive passes the in-flight
+		counterpart's current position into the fresh call, so a menu
+		reopened mid-exit continues from where it is instead of snapping to
+		invisible first. `entering: open` is the direction signal — Svelte
+		reports `direction: "both"` here and cannot distinguish the two on
+		its own. This is the MODAL rung (`base` in, `exit` out), not the
+		anchored rung the dropdown and context menus are on: a centred,
+		scrim-backed, focus-trapped surface belongs with Dialog, not with a
+		menu hanging off a button.
+
+		The rung also retires a bug. The old `@keyframes` restated
+		`translateX(-50%)` as a `transform` on a node whose centring comes
+		from Tailwind v4's separate `translate` property; the two composed,
+		so the panel drifted in from half its own width to the left.
+		`transform: scale(…)` alone composes after `translate` and scales the
+		panel about its own centre without touching the centring.
+
+		`data-state` is a STATIC literal, changed only by `markSurfaceState`
+		from the two handlers below. Svelte marks this branch inert before it
+		plays the outro and the scheduler skips inert effects, so a reactive
+		`data-state={…}` would never reach the DOM on a real close. `inert`
+		itself is not written by hand: Svelte sets it on any element carrying
+		a `transition:` for the whole exit, which is exactly what a closing
+		modal wants — and it is what keeps the live region below from
+		announcing a stale count while the panel fades.
 	-->
 	<div
 		bind:this={ref}
-		use:portal
-		use:focusTrap={{}}
-		use:dismissable={{ onDismiss: () => setOpen(false) }}
 		role="dialog"
 		aria-modal="true"
 		aria-label={label}
 		tabindex="-1"
 		class={classes}
+		use:portal
+		use:scrollLock
+		use:focusTrap={{
+			onActivate: (returnNow, rearm) => {
+				returnFocusNow = returnNow;
+				rearmFocusTrap = rearm;
+			},
+		}}
+		use:dismissable={{ onDismiss: () => setOpen(false), active: () => open }}
+		transition:anchored={{
+			entering: open,
+			duration: DURATIONS.base,
+			exitDuration: DURATIONS.exit,
+		}}
+		data-state="open"
+		onintrostart={handleIntroStart}
+		onoutrostart={handleOutroStart}
 	>
 		<div class="border-border flex h-[42px] shrink-0 items-center gap-[10px] border-b px-[14px]">
 			<span aria-hidden="true" class="text-muted-foreground text-[13px]">⌕</span>
@@ -511,37 +605,18 @@
 	}
 
 	/*
-	 * No base `opacity: 0` outside the media query: the resting state is
-	 * always fully visible, so a visitor with motion reduced sees the panel
-	 * appear immediately rather than staying invisible for an animation that
-	 * never runs.
+	 * No `@keyframes` and no `@media (prefers-reduced-motion)` block here any
+	 * more: both surfaces are driven by the shared JS transition on the
+	 * markup above, which collapses its own duration to 0 when the user has
+	 * asked for reduced motion — the framework then skips `element.animate()`
+	 * entirely and the menu appears and disappears instantly, with the close
+	 * staying synchronous.
+	 *
+	 * The keyframes this replaced also carried a bug worth naming: the
+	 * panel's `from` restated `translateX(-50%)` as a `transform`, on a node
+	 * whose centring comes from Tailwind v4's separate `translate` property.
+	 * The two composed, so the panel drifted in from half its own width to
+	 * the left. `transform: scale(…)` alone composes after `translate` and
+	 * scales the panel about its own centre without touching the centring.
 	 */
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-command-menu {
-			animation: ft-command-menu-in 0.15s ease-out;
-		}
-
-		.ft-command-menu-scrim {
-			animation: ft-command-menu-scrim-in 0.15s ease-out;
-		}
-	}
-
-	@keyframes ft-command-menu-scrim-in {
-		from {
-			opacity: 0;
-		}
-	}
-
-	/*
-	 * The panel's resting transform centers it horizontally
-	 * (`-translate-x-1/2` off `left-1/2`) — this keyframe's `from` keeps that
-	 * same translate and only animates opacity and scale on top of it, so
-	 * the panel eases in from a hair smaller without ever jumping position.
-	 */
-	@keyframes ft-command-menu-in {
-		from {
-			opacity: 0;
-			transform: translateX(-50%) scale(0.98);
-		}
-	}
 </style>

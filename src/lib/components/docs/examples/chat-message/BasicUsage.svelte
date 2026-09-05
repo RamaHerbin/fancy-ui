@@ -74,7 +74,7 @@
 		{/snippet}
 	</ChatMessage>
 
-	<ChatMessage role="assistant" content={reply} {streaming} timestamp={askedAt + 6000}>
+	<ChatMessage sound role="assistant" content={reply} {streaming} timestamp={askedAt + 6000}>
 		{#snippet avatar()}
 			<span
 				class="flex size-8 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-semibold text-indigo-500"

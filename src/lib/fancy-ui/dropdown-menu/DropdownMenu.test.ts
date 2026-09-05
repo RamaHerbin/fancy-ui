@@ -40,16 +40,23 @@ function menus(): HTMLElement[] {
 	return Array.from(document.querySelectorAll('[role="menu"]'));
 }
 
-// The root content is the only one carrying `aria-labelledby` (it points at
-// the real trigger button; a submenu has no equivalent single label to
-// point at) — the one reliable way to tell the two apart when both are
-// portalled to `document.body` at once.
+// Both the root panel and a submenu panel carry `aria-labelledby` — the root
+// points at the real trigger button, a submenu points at its own sub-trigger
+// row — so telling the two apart when both are portalled to `document.body`
+// at once comes down to what kind of element each one's label actually is:
+// the root trigger carries the trigger class, a sub-trigger is a
+// `role="menuitem"` row instead.
+function labelFor(el: HTMLElement): HTMLElement | null {
+	const id = el.getAttribute("aria-labelledby");
+	return id ? document.getElementById(id) : null;
+}
+
 function rootMenu(): HTMLElement | null {
-	return menus().find((el) => el.hasAttribute("aria-labelledby")) ?? null;
+	return menus().find((el) => labelFor(el)?.classList.contains("ft-dropdown-menu-trigger")) ?? null;
 }
 
 function subMenu(): HTMLElement | null {
-	return menus().find((el) => !el.hasAttribute("aria-labelledby")) ?? null;
+	return menus().find((el) => labelFor(el)?.getAttribute("role") === "menuitem") ?? null;
 }
 
 function items(root: HTMLElement | null): HTMLElement[] {
@@ -81,6 +88,34 @@ function itemByLabel(root: HTMLElement | null, label: string): HTMLElement | und
 
 function subTriggerEl(root: HTMLElement | null): HTMLElement | undefined {
 	return root?.querySelector<HTMLElement>('[aria-haspopup="menu"]') ?? undefined;
+}
+
+// Dispatched synchronously, never through `fireEvent` — `fireEvent` awaits a
+// tick of its own, which under the WAAPI stub is enough to drain the whole
+// exit and leave a test that means to look inside the fade looking at an
+// empty document instead. A raw dispatch plus ONE `await tick()` lands in the
+// window.
+function pressEscape() {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
+}
+
+// Replaces `window.matchMedia` wholesale, the pattern the rest of the repo
+// uses. `anchored()` resolves it fresh every time a transition starts, so an
+// override installed before the panel opens is the one that decides whether
+// the motion runs at all — entrance and exit alike.
+function stubMatchMedia(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
 }
 
 describe("DropdownMenu", () => {
@@ -434,6 +469,25 @@ describe("DropdownMenu", () => {
 			);
 		});
 
+		// WAI-ARIA's menu-button/submenu pattern requires a submenu panel to be
+		// named by the row that opened it — without it, a screen-reader user who
+		// arrows into a submenu hears only an anonymous "menu" and loses which
+		// item they drilled into.
+		it("names the submenu panel after its own sub-trigger via aria-labelledby", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems: SUB_ITEMS },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			const subBtn = subTriggerEl(rootMenu())!;
+
+			await fireEvent.click(subBtn);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			expect(subBtn.id).not.toBe("");
+			expect(subMenu()!.getAttribute("aria-labelledby")).toBe(subBtn.id);
+		});
+
 		// `DropdownMenuSubContent` is portalled independently of the root
 		// panel — once both are open they're DOM *siblings* under
 		// `document.body`, not ancestor/descendant, so the submenu can't pick
@@ -511,7 +565,12 @@ describe("DropdownMenu", () => {
 			await fireEvent.click(itemByLabel(subMenu(), "Screenshot")!);
 			expect(onSelect).toHaveBeenCalledWith("Screenshot");
 			await waitFor(() => expect(subMenu()).toBeNull());
-			expect(rootMenu()).toBeNull();
+			// Both levels fade on the same clock and the branch is destroyed
+			// only once the LAST transition in it finishes, so the root's
+			// removal is not guaranteed to have landed by the time the
+			// submenu's has — this waits for it rather than relying on the
+			// order two exits happen to resolve in.
+			await waitFor(() => expect(rootMenu()).toBeNull());
 		});
 
 		it("a disabled submenu trigger does not open on click or ArrowRight", async () => {
@@ -554,7 +613,7 @@ describe("DropdownMenu", () => {
 			const opts = call![1];
 			expect(subBtn.textContent).toContain("›");
 
-			opts.onPlacement?.("left");
+			opts.onPlacement?.("left", "start");
 			await tick();
 			expect(subBtn.textContent).toContain("‹");
 		});
@@ -836,6 +895,279 @@ describe("DropdownMenu", () => {
 			await fireEvent.click(itemByLabel(subMenu(), "Screenshot")!);
 			await waitFor(() => expect(rootMenu()).toBeNull());
 			expect(play.mock.calls).toEqual([["select"]]);
+		});
+	});
+
+	// The entrance itself lives in `_internals/motion/anchored.ts` and is
+	// tested there. What is component-specific — and so what these cover — is
+	// the plumbing: which side the panel asked for, which side it was told it
+	// actually got, and the growth origin that follows from the pair.
+	describe("anchored entrance", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("publishes its resolved placement and grows from the panel edge nearest the trigger", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+
+			// Svelte samples the transition's `css(t, u)` into a plain
+			// `Keyframe[]` and hands it straight to `element.animate()`, so the
+			// spy's own arguments are a readable record of what the entrance
+			// animates: opacity and transform, nothing else, from the shared
+			// `0.92` floor. This doubles as the positive control for the
+			// reduced-motion test at the bottom of this block — without it,
+			// `not.toHaveBeenCalled()` down there could be measuring a jsdom
+			// quirk rather than the preference.
+			expect(animateSpy).toHaveBeenCalled();
+			const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+			expect(keyframes[0]).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
+
+			// jsdom reports every rect as zeroes, so `computePosition` never
+			// overflows and never flips — which makes the un-flipped case the
+			// deterministic one to assert here, precisely because there is no
+			// layout engine to disagree with it.
+			const panel = rootMenu()!;
+			expect(panel.getAttribute("data-side")).toBe("bottom");
+			expect(panel.getAttribute("data-align")).toBe("start");
+			// `bottom` + `start`: the panel's own top-left corner, the one
+			// touching the trigger it drops out of.
+			expect(panel.style.transformOrigin).toBe("left top");
+		});
+
+		it("moves the growth origin to the other edge when the placement flips", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+
+			// Same technique as the submenu caret test above: `anchorPosition`
+			// ran for real (it is spied on, not replaced), so this drives its
+			// own `onPlacement` callback directly — jsdom's zeroed rects can
+			// never produce a genuine flip.
+			const call = vi.mocked(anchorPosition).mock.calls.find(([, opts]) => opts.side === "bottom");
+			expect(call).toBeTruthy();
+			call![1].onPlacement?.("top", "start");
+			await tick();
+
+			const panel = rootMenu()!;
+			expect(panel.getAttribute("data-side")).toBe("top");
+			// A panel that flipped above its trigger has to grow downwards
+			// out of its own bottom edge, or it would appear to come from the
+			// wrong direction entirely.
+			expect(panel.style.transformOrigin).toBe("left bottom");
+		});
+
+		it("gives the submenu's caret, data-side and growth origin one single source of truth", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			const subBtn = subTriggerEl(rootMenu())!;
+			const beforeSubOpened = animateSpy.mock.calls.length;
+			await fireEvent.click(subBtn);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			// The submenu's own positive control, and the reason it lives here
+			// rather than in a test of its own: everything else this test
+			// reads — `data-side`, `data-align`, `transform-origin`, the caret
+			// — comes off `SubContext.resolvedSide`, so all of it would still
+			// be correct if `transition:anchored` were dropped from
+			// `DropdownMenuSubContent` entirely, and the reduced-motion test
+			// below only asserts an absence. Counting the call that opening
+			// the submenu added, checking it was made on the submenu panel
+			// itself, and reading its keyframes is what actually pins the
+			// entrance to this component.
+			expect(animateSpy.mock.calls.length).toBeGreaterThan(beforeSubOpened);
+			expect(animateSpy.mock.contexts.at(-1)).toBe(subMenu());
+			const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+			expect(keyframes[0]).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
+
+			expect(subMenu()!.getAttribute("data-side")).toBe("right");
+			expect(subMenu()!.getAttribute("data-align")).toBe("start");
+			expect(subMenu()!.style.transformOrigin).toBe("left top");
+			expect(subBtn.textContent).toContain("›");
+
+			// `SubContext.resolvedSide` feeds the caret glyph AND the panel's
+			// origin — one flip has to move both, which is why this panel
+			// keeps no local placement state of its own.
+			const call = vi.mocked(anchorPosition).mock.calls.find(([, opts]) => opts.side === "right");
+			call![1].onPlacement?.("left", "start");
+			await tick();
+
+			expect(subBtn.textContent).toContain("‹");
+			expect(subMenu()!.getAttribute("data-side")).toBe("left");
+			expect(subMenu()!.style.transformOrigin).toBe("right top");
+		});
+
+		// Closing the ROOT while a submenu is open flips only the root's own
+		// state, so `sub.open` stays true for the whole global outro. Reading
+		// it as liveness made the submenu leave on the ENTRANCE curve — the
+		// 0.92 floor, the arrival easing — while its parent faded out beside
+		// it on the exit curve. The same predicate gates `dismissable`, so a
+		// fading submenu also went on claiming the top layer.
+		it("leaves on the exit curve when the ROOT closes underneath it", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			const panel = subMenu()!;
+			const beforeRootClosed = animateSpy.mock.calls.length;
+
+			// Selecting a root item closes the whole menu — the submenu is
+			// never told anything of its own.
+			itemByLabel(rootMenu(), "Rename")!.click();
+			await tick();
+
+			const subExit = animateSpy.mock.calls
+				.map((call, index) => ({ call, context: animateSpy.mock.contexts[index] }))
+				.filter(({ context }, index) => context === panel && index >= beforeRootClosed)
+				.at(-1);
+
+			expect(subExit).toBeTruthy();
+			const keyframes = subExit!.call[0] as Keyframe[];
+			// The exit floor (0.96), not the entrance floor (0.92).
+			expect(keyframes[0]).toEqual({ opacity: "1", transform: "scale(1)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "0", transform: "scale(0.96)" });
+			animateSpy.mockRestore();
+		});
+
+		it("runs no animation at all under reduced motion, and both panels are there in the same tick", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems },
+			});
+
+			await fireEvent.click(trigger(container));
+			await tick();
+			expect(rootMenu()).not.toBeNull();
+
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await tick();
+			expect(subMenu()).not.toBeNull();
+
+			// A zero duration makes Svelte skip `element.animate()` outright
+			// rather than run a zero-length animation, so the absence of any
+			// call is the honest proof that nothing was scheduled.
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	// The exit is new, and with it a window between the dismiss and the
+	// unmount — 150 ms in a browser, a couple of microtasks under the WAAPI
+	// stub. These pin what has to be true inside it. Everything a consumer
+	// can observe still flips at the dismiss instant: `open`, the trigger's
+	// `aria-expanded`, and the focus return (which this family does from
+	// `DropdownMenu`'s own `setOpen`, outside the `{#if}`, and so needs no
+	// eager-return handle of its own — see §3.2 of the motion contract).
+	describe("animated exit", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			expect(rootMenu()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = rootMenu();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`: a reactive
+			// `data-state` would never reach the DOM, because Svelte marks
+			// the branch inert before it plays the outro.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a
+			// `transition:`, for the whole exit. Asserted here so nobody
+			// removes the transition without noticing that a menu on its way
+			// out would start taking clicks again.
+			expect(closing!.inert).toBe(true);
+
+			await waitFor(() => expect(rootMenu()).toBeNull());
+		});
+
+		it("fades both levels of a nested menu together, neither blinking out ahead of the other", async () => {
+			const subItems: ItemSpec[] = [{ label: "Screenshot" }];
+			const { container } = render(Harness, {
+				props: { items: ITEMS, withSubmenu: true, subItems },
+			});
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			await fireEvent.click(subTriggerEl(rootMenu())!);
+			await waitFor(() => expect(subMenu()).not.toBeNull());
+
+			// Closing the root unmounts the submenu's block with it, and a
+			// branch is destroyed only once its LAST transition finishes — so
+			// both panels are still on screen, both marked closing, for the
+			// same window.
+			// Raw `.click()`, not `fireEvent.click`, for the same reason
+			// `pressEscape` exists: an awaited helper drains the stub's exit
+			// and there would be nothing left to look at.
+			itemByLabel(rootMenu(), "Rename")!.click();
+			await tick();
+
+			expect(rootMenu()!.getAttribute("data-state")).toBe("closing");
+			expect(subMenu()!.getAttribute("data-state")).toBe("closing");
+
+			await waitFor(() => expect(rootMenu()).toBeNull());
+			await waitFor(() => expect(subMenu()).toBeNull());
+		});
+
+		it("swallows a second Escape during the exit — onOpenChange fires exactly once", async () => {
+			const onOpenChange = vi.fn();
+			const { container } = render(Harness, { props: { items: ITEMS, onOpenChange } });
+			await fireEvent.click(trigger(container));
+			await waitFor(() => expect(rootMenu()).not.toBeNull());
+			onOpenChange.mockClear();
+
+			pressEscape();
+			await tick();
+			expect(rootMenu()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(onOpenChange).toHaveBeenCalledTimes(1);
+			expect(onOpenChange).toHaveBeenCalledWith(false);
+		});
+
+		it("removes the panel in the same tick again under reduced motion", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.click(trigger(container));
+			await tick();
+			expect(rootMenu()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			// A zero duration makes Svelte call the transition's `on_finish`
+			// synchronously and never touch `element.animate()`, so the close
+			// is exactly as instant as it was before this component animated
+			// out at all — no `waitFor` needed, and none allowed here.
+			expect(rootMenu()).toBeNull();
+			expect(animateSpy).not.toHaveBeenCalled();
 		});
 	});
 });

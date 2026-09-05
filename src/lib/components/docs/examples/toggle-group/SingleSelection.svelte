@@ -5,7 +5,7 @@
 </script>
 
 <div class="flex flex-col items-start gap-2">
-	<ToggleGroup bind:value={view} label="Calendar view">
+	<ToggleGroup sound bind:value={view} label="Calendar view">
 		<ToggleGroupItem value="day">Day</ToggleGroupItem>
 		<ToggleGroupItem value="week">Week</ToggleGroupItem>
 		<ToggleGroupItem value="month">Month</ToggleGroupItem>

@@ -87,11 +87,30 @@ and `disabled`, the same as `Input`:
 | `emptyMessage`  | `string`                                             | `"No results"`                        | Shown in the panel when no option matches the current query              |
 | `class`         | `string`                                             | —                                     | Additional CSS classes                                                   |
 | `ref`           | `HTMLInputElement \| null`                           | `null`                                | Bindable reference to the input element                                  |
+| `sound`         | `boolean`                                            | `false`                               | Plays the `select` cue through the sound controller. See [Sound](#sound) |
 
 `ComboboxOption` is `{ value: string; label: string; disabled?: boolean }`.
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<Combobox options={frameworks} bind:value={framework} sound />
+```
+
+`select` plays once an option commits — by a row click or Enter on the
+active row — and only when it actually changes `value`; re-picking the
+option already selected plays nothing, the same changed-only rule every
+other value-holding component follows (Select, Tabs, DatePicker, ...),
+`onValueChange` still fires either way. Opening the panel on focus, typing,
+arrow navigation, and resolving/closing on blur or Escape all stay silent —
+there is no `close` cue here, since the panel's open and close paths ride
+along focus and blur rather than a discrete toggle.
 
 ## Theming
 
@@ -110,6 +129,39 @@ Set `--ft-accent` higher up the tree to retint the focus ring on every
 `text-popover-foreground` / `border-border` tokens, same as `Popover`, and
 the active row uses `bg-accent` / `text-accent-foreground` — no
 component-local tokens of its own.
+
+## Motion
+
+The panel arrives and leaves on one bidirectional transition — the shared `fast`
+rung, 150 ms in each direction, applied in JS (there is no `--ft-*` variable to
+override it). It rises from a `0.92` scale floor on the out-curve and collapses
+to `0.96` on the in-curve: leaving is a smaller gesture than arriving, and a
+full-depth collapse on dismiss reads as the list being sucked away rather than
+simply closing. It is the same motion every floating surface in the library
+uses.
+
+The growth origin follows the side the panel was **actually** placed on, so a
+list that flips above the input when the input sits low in the viewport grows
+from its bottom edge rather than its top, and always appears to come out of the
+field and go back into it.
+
+The resolved placement is published on the panel as `data-side` and
+`data-align`, for consumers that want to key their own styling off where it
+landed. While the panel is on screen it carries `data-state="open"`; for the
+length of the exit it carries `data-state="closing"` and is `inert`, so a row
+cannot be clicked on its way out.
+
+- **Reduced motion** — no animation in either direction; the panel appears and
+  disappears instantly and the close is synchronous again. Its visibility never
+  depended on the animation, so nothing is lost.
+- **Touch and coarse pointers** — unchanged; neither direction is pointer-gated
+  and both play identically on touch.
+- **Committing or dismissing is still immediate.** `value`, `onValueChange`, the
+  input's own text and `aria-expanded` all settle in the tick you act; only the
+  panel's removal from the DOM waits for the fade. A second Escape inside that
+  window is not swallowed by the panel already leaving — it reaches whatever
+  sits underneath. Reopening mid-fade reverses the exit rather than starting
+  over.
 
 ## Implementation Notes
 

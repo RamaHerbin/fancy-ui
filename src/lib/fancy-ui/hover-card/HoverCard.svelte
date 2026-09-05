@@ -45,11 +45,12 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
 	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 
 	let {
 		open = $bindable(false),
@@ -126,6 +127,23 @@
 
 	let panelEl = $state<HTMLDivElement | null>(null);
 
+	// Seeded with the REQUESTED side rather than a hardcoded `"bottom"`, so a
+	// card that never flips reads the right growth origin without depending on
+	// whether `anchorPosition`'s `onPlacement` has run yet. `untrack` silences
+	// the compiler's `state_referenced_locally` warning and is honest about
+	// the shape: this read of `side` is deliberately one-shot, and every later
+	// value — a flip, or a change to the `side` prop itself — arrives through
+	// `onPlacement` below, which is the one source of truth for where the card
+	// actually landed.
+	let resolvedSide = $state<Side>(untrack(() => side));
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(untrack(() => align));
+
 	// The documented contract is that nothing inside the card is interactive
 	// (see the README), so in the shape this component was designed for,
 	// focus never moves from the trigger into the card and this check never
@@ -162,43 +180,72 @@
 	{@render trigger?.(open ? panelId : undefined)}
 </div>
 
+<!--
+	ONE bidirectional `transition:` directive, never a split `in:`/`out:` pair.
+	This is the directive that earns its keep most on a hover surface: pointers
+	change their mind, and a bidirectional directive passes the in-flight
+	counterpart's current position into the fresh call, so a card the pointer
+	comes back to mid-fade continues from where it is instead of snapping to
+	invisible and starting the entrance over. `entering: open` is what tells
+	the transition which way it is going — Svelte reports `direction: "both"`
+	for a bidirectional directive and cannot tell the two apart on its own —
+	and the params are read fresh, outside any reactive context, at the moment
+	each direction starts.
+
+	`closeDelay` and the exit are two different waits and both are wanted.
+	`closeDelay` is the grace period the pointer gets to travel from the
+	trigger to the card, spent BEFORE anything visible happens; the exit is the
+	card leaving, spent after. `open` still flips at the end of the delay, so
+	`onOpenChange(false)` and the caller's `bind:open` are exactly where they
+	were — only the removal now trails it by 150 ms, during which Svelte marks
+	this node `inert` so the card the pointer has already abandoned cannot be
+	interacted with on its way out. `dismissable` is disarmed at that same
+	instant through `active`, so an Escape during the fade reaches whatever
+	layer is underneath rather than being swallowed by a card that is leaving.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays the
+	outro and the scheduler skips inert effects, so a reactive `data-state={…}`
+	would never reach the DOM on a real close.
+
+	Reduced motion needs no rule of its own: `anchored` collapses the duration
+	to 0, Svelte's own falsy-duration fast path then skips `element.animate()`
+	entirely, and the card appears and disappears in the frame it mounts and
+	unmounts — the close is fully synchronous again. Its visibility never
+	depended on the animation — `{#if open}` alone decides that — so nothing is
+	reachable only through motion.
+-->
 {#if open}
 	<div
 		bind:this={panelEl}
 		id={panelId}
 		class={classes}
-		data-state="open"
 		use:portal
-		use:anchorPosition={{ anchor: () => ref, side, align, offset }}
-		use:dismissable={{ onDismiss: () => setOpen(false), exclude: () => [ref] }}
+		use:anchorPosition={{
+			anchor: () => ref,
+			side,
+			align,
+			offset,
+			onPlacement: (placed, placedAlign) => {
+				resolvedSide = placed;
+				resolvedAlign = placedAlign;
+			},
+		}}
+		use:dismissable={{
+			onDismiss: () => setOpen(false),
+			exclude: () => [ref],
+			active: () => open,
+		}}
+		transition:anchored={{ side: resolvedSide, entering: open }}
+		data-state="open"
+		data-side={resolvedSide}
+		data-align={align}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onpointerenter={clearCloseTimer}
 		onpointerleave={scheduleClose}
+		onintrostart={(e) => markSurfaceState(e, "open")}
+		onoutrostart={(e) => markSurfaceState(e, "closing")}
 	>
 		{@render children?.()}
 	</div>
 {/if}
-
-<style>
-	/*
-	 * Reduced motion keeps the resting state (fully opaque, untransformed) as
-	 * the base, so a card that only ever becomes visible via this animation
-	 * still appears immediately when motion is off — the keyframe is added on
-	 * top, not required to reach the visible state.
-	 */
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-hover-card-panel[data-state="open"] {
-			animation: ft-hover-card-in 150ms ease-out;
-		}
-	}
-
-	@keyframes ft-hover-card-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96) translateY(4px);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1) translateY(0);
-		}
-	}
-</style>

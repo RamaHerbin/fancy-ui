@@ -28,12 +28,20 @@
 		class?: string;
 		/** Reference to the underlying `<input>`. */
 		ref?: HTMLInputElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
+	import { onDestroy } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value = $bindable(null),
@@ -50,6 +58,7 @@
 		label,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: NumberInputProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -145,13 +154,46 @@
 		effectiveDisabled || readonly || (value !== null && max !== undefined && value >= max)
 	);
 
+	// Which stepper just fired, for `DURATIONS.micro` (80ms) afterwards, or
+	// `null` between steps. A pointer gets its press feedback from `:active`
+	// for free; a keyboard press has no `:active` to give, so this flag hands
+	// the very same rule to the arrow keys. One shared visual answer to "that
+	// stepper just fired", whichever device fired it — no second keyframe, and
+	// so no animation-restart problem on a held key.
+	//
+	// Nothing here touches the `<input>`: a transform on the field would blur
+	// the digits the reader is checking and fight the caret.
+	let steppingDirection = $state<1 | -1 | null>(null);
+	let steppingTimer: ReturnType<typeof setTimeout> | null = null;
+
+	// Re-armed, never stacked: a held ArrowUp repeats faster than 80ms, and a
+	// second timer on top of the first would clear the flag mid-repeat.
+	function flagStepping(direction: 1 | -1) {
+		steppingDirection = direction;
+		if (steppingTimer !== null) clearTimeout(steppingTimer);
+		steppingTimer = setTimeout(() => {
+			steppingTimer = null;
+			steppingDirection = null;
+		}, DURATIONS.micro);
+	}
+
+	onDestroy(() => {
+		if (steppingTimer !== null) clearTimeout(steppingTimer);
+	});
+
 	// Shared by the buttons and the keyboard handler below, so button-driven
-	// and arrow-key-driven stepping can never drift apart in rounding.
+	// and arrow-key-driven stepping can never drift apart in rounding — and,
+	// since `flagStepping` is called from here and from nowhere else, so that
+	// the feedback can only ever fire on an actual step. Typing goes through
+	// `handleInput`, which cannot reach it: a field that flashed a stepper on
+	// every keystroke would be reporting something that did not happen.
 	function applyStep(direction: 1 | -1) {
 		const next = nextStepValue(direction);
 		value = next;
 		rawText = String(next);
+		if (sound) soundFx.play("tick");
 		onValueChange?.(next);
+		flagStepping(direction);
 	}
 
 	function handleDecrement() {
@@ -232,11 +274,19 @@
 		className
 	)}
 >
+	<!--
+		`ft-number-input-step` exists so the scoped `<style>` can reach these two
+		buttons at all — they carried no `ft-*` class before. It also replaces
+		`transition-colors`, which a scoped `transition` shorthand on the same
+		element would have overridden silently; see the stylesheet for the
+		colour channel written back by hand.
+	-->
 	<button
 		type="button"
-		class="text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground flex w-[34px] shrink-0 cursor-pointer items-center justify-center border-r transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+		class="ft-number-input-step text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground flex w-[34px] shrink-0 cursor-pointer items-center justify-center border-r focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
 		aria-label="Decrease value"
 		disabled={decrementDisabled}
+		data-stepping={steppingDirection === -1 ? "true" : undefined}
 		onclick={handleDecrement}
 	>
 		−
@@ -262,9 +312,10 @@
 	/>
 	<button
 		type="button"
-		class="text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground flex w-[34px] shrink-0 cursor-pointer items-center justify-center border-l transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+		class="ft-number-input-step text-muted-foreground border-input hover:bg-accent hover:text-accent-foreground flex w-[34px] shrink-0 cursor-pointer items-center justify-center border-l focus-visible:outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
 		aria-label="Increase value"
 		disabled={incrementDisabled}
+		data-stepping={steppingDirection === 1 ? "true" : undefined}
 		onclick={handleIncrement}
 	>
 		+
@@ -278,5 +329,61 @@
 			light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
 		);
 		box-shadow: inset 0 0 0 1px var(--ft-number-input-accent);
+	}
+
+	.ft-number-input-step {
+		/* One local alias so the token pair is typed once rather than seven times.
+		   150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout */
+		--ft-number-input-motion: var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+		/* Replaces the `transition-colors` utility removed from the class string
+		   above. Colour is a state change, not motion, so it stays outside the
+		   reduced-motion query. `text-decoration-color`, `fill` and `stroke`
+		   never change on these two buttons, so the three that do are the
+		   faithful subset of what the utility covered. */
+		transition:
+			color var(--ft-number-input-motion),
+			background-color var(--ft-number-input-motion),
+			border-color var(--ft-number-input-motion);
+		/* Kills the ~300ms tap delay without blocking scroll — the same rule,
+		   for the same reason, as `.ft-pressable`. Stepping a value is exactly
+		   the interaction a finger repeats, so the delay is felt here. */
+		touch-action: manipulation;
+	}
+
+	/*
+	 * Universal fallback — a press must be acknowledged under reduced motion
+	 * too, and a UA that supports neither query still needs some affordance.
+	 * `:not(:disabled)` is redundant against `disabled:pointer-events-none`
+	 * and deliberately kept: a bound-reached stepper must read as inert, and
+	 * that should not depend on a utility staying in the class string.
+	 */
+	.ft-number-input-step:active:not(:disabled),
+	.ft-number-input-step[data-stepping="true"]:not(:disabled) {
+		opacity: var(--ft-number-input-press-opacity, 0.85);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-number-input-step {
+			/* The individual `scale` property, not `transform: scale()`: this
+			   scoped rule is unlayered, so a `transform` here would beat any
+			   transform utility a consumer passes through the public `class`
+			   prop — a `rotate-45` would silently vanish, at rest AND under
+			   the press. `scale` composes with the consumer's `transform`
+			   instead of replacing it. */
+			scale: 1;
+			transition:
+				color var(--ft-number-input-motion),
+				background-color var(--ft-number-input-motion),
+				border-color var(--ft-number-input-motion),
+				scale var(--ft-number-input-motion);
+		}
+
+		.ft-number-input-step:active:not(:disabled),
+		.ft-number-input-step[data-stepping="true"]:not(:disabled) {
+			scale: var(--ft-number-input-press-scale, 0.97);
+			/* Full motion = scale only; reduced motion = opacity only. Never both. */
+			opacity: 1;
+		}
 	}
 </style>

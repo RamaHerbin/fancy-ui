@@ -31,6 +31,7 @@
 		onSubmit?: (payload: { text: string; attachments: AttachmentData[] }) => void;
 		onStop?: () => void;
 		onAttach?: (files: File[]) => void;
+		sound?: boolean;
 	}
 
 	let {
@@ -46,6 +47,7 @@
 		onSubmit,
 		onStop,
 		onAttach,
+		sound = false,
 	}: Props = $props();
 
 	// Read once, on purpose: the mode and the seeds are fixed for a mounted rig,
@@ -81,6 +83,7 @@
 		bind:attachments
 		{disabled}
 		{streaming}
+		{sound}
 		{onSubmit}
 		{onStop}
 		onAttach={handleAttach}

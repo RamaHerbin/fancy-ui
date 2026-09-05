@@ -5,6 +5,7 @@ import PasswordInput from "./PasswordInput.svelte";
 import ValueHarness from "./PasswordInputHarness.test.svelte";
 import FieldHarness from "./PasswordInputFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function input(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input") as HTMLInputElement;
@@ -16,6 +17,29 @@ function toggleButton(container: HTMLElement): HTMLButtonElement | null {
 
 function strengthLabel(container: HTMLElement): HTMLElement | null {
 	return container.querySelector(".ft-password-strength span[id]");
+}
+
+function eyeLayers(container: HTMLElement): HTMLElement[] {
+	return Array.from(container.querySelectorAll<HTMLElement>(".ft-password-input-eye-layer"));
+}
+
+/**
+ * jsdom has no `matchMedia`; `src/test-setup.ts` installs one that answers
+ * `matches: false` to everything, which is the "full motion" branch. This
+ * swaps in a stub that discriminates on the query string, so a test can pick
+ * the branch it means rather than turning every media query true at once.
+ */
+function stubReducedMotion(reduce: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: reduce && query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
 }
 
 describe("PasswordInput", () => {
@@ -339,6 +363,23 @@ describe("PasswordInput", () => {
 			expect(strengthLabel(container)?.textContent?.trim()).toBe("Custom tier");
 		});
 
+		it("gives every segment the ft-password-strength-bar hook the colour transition attaches to", () => {
+			// The four segments carry no `ft-*` class of their own beyond the
+			// strong-tier modifier, so the shared hook is what the scoped
+			// `transition: background-color` rule selects. A `cn()` merge that
+			// dropped it would silently take the easing away with it, and
+			// nothing else in this file would notice.
+			const { container } = render(PasswordInput, {
+				props: { showStrength: true, value: "Abcdefghijkl1!" },
+			});
+			const bars = container.querySelectorAll(".ft-password-strength-bar");
+
+			expect(bars).toHaveLength(4);
+			// The strong tier's own modifier still rides alongside the hook
+			// rather than replacing it.
+			expect(bars[0].classList.contains("ft-password-strength-bar--strong")).toBe(true);
+		});
+
 		it("wires the strength label into aria-describedby once shown", () => {
 			const { container } = render(PasswordInput, {
 				props: { showStrength: true, value: "Abcdefghijkl1!" },
@@ -348,6 +389,191 @@ describe("PasswordInput", () => {
 
 			expect(label.id).not.toBe("");
 			expect(el.getAttribute("aria-describedby")).toBe(label.id);
+		});
+	});
+
+	describe("motion", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
+		it("renders exactly one icon layer at rest, inside the shared grid cell", () => {
+			stubReducedMotion(false);
+			const { container } = render(PasswordInput, { props: {} });
+
+			expect(container.querySelector(".ft-password-input-eye")).not.toBeNull();
+			expect(eyeLayers(container)).toHaveLength(1);
+		});
+
+		it("cross-fades the two icons on toggle and settles back to a single layer, with no accumulation across repeats", async () => {
+			// The cross-fade is the one bidirectional `transition:` in this pass:
+			// both layers are mounted at once for 80ms. The failure it could
+			// cause is a layer that never leaves — so this toggles three times
+			// and pins the count back to one after each, which is what an
+			// aborted or leaked outro would break.
+			stubReducedMotion(false);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+				const btn = toggleButton(container)!;
+
+				const labels = ["Hide password", "Show password", "Hide password"];
+				for (const [i, expected] of labels.entries()) {
+					await fireEvent.click(btn);
+
+					// The accessible name never overlaps the way the glyphs do:
+					// it lives on the <button>, not on either layer, and flips in
+					// the same update as `revealed`.
+					expect(btn.getAttribute("aria-label")).toBe(expected);
+					expect(container.querySelectorAll("button")).toHaveLength(1);
+
+					if (i === 0) {
+						// ONE toggle animates TWO layers: the incoming one and the one
+						// on its way out. That is what "cross-fade" means, and it is the
+						// only assertion here an `in:`-only directive could not satisfy —
+						// with `in:` the outgoing layer never animates at all, so this set
+						// holds exactly one element. This is what pins §10 #6's sanctioned
+						// exception against a future sweep that applies "`in:` only"
+						// mechanically. Read off the spy's receivers rather than by counting
+						// DOM nodes mid-flight, since the overlap is a microtask wide.
+						// `mock.contexts` is the `this` of each call — the element
+						// `animate()` ran on. It is typed `unknown` (lib.dom declares no
+						// `this` parameter), hence the narrowing.
+						await vi.waitFor(() => {
+							const animatedLayers = new Set(
+								animateSpy.mock.contexts.filter(
+									(el): el is Element =>
+										el instanceof Element && el.classList.contains("ft-password-input-eye-layer")
+								)
+							);
+							expect(animatedLayers.size).toBe(2);
+						});
+					}
+
+					await vi.waitFor(() => {
+						expect(eyeLayers(container)).toHaveLength(1);
+					});
+				}
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("with prefers-reduced-motion: reduce, the icon swaps instantly — one layer throughout, no animation", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+				const el = input(container);
+				const btn = toggleButton(container)!;
+
+				await fireEvent.click(btn);
+
+				// `duration: 0` makes Svelte take its own synchronous path, so the
+				// outgoing layer is gone in the same tick the incoming one mounts
+				// — the swap still happens, it just does not fade.
+				expect(eyeLayers(container)).toHaveLength(1);
+				expect(el.type).toBe("text");
+				expect(btn.getAttribute("aria-label")).toBe("Hide password");
+				expect(btn.getAttribute("aria-pressed")).toBe("true");
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("keeps the strength meter's colour easing outside the reduced-motion branch — the bars still restate on every tier change", async () => {
+			// The meter's only transition is `background-color`, which is exempt
+			// from reduced-motion gating: a colour change is not motion. Nothing
+			// about the meter goes through the Web Animations API either way, so
+			// a tier change under `reduce` is byte-for-byte the same DOM as
+			// under full motion.
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(PasswordInput, {
+					props: { showStrength: true, value: "a" },
+				});
+				expect(strengthLabel(container)?.textContent?.trim()).toBe("Very weak");
+
+				await fireEvent.input(input(container), { target: { value: "Abcdefghijkl1!" } });
+
+				expect(strengthLabel(container)?.textContent?.trim()).toBe("Strong");
+				expect(container.querySelectorAll(".ft-password-strength-bar")).toHaveLength(4);
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays toggle-on exactly once when revealing the password, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+
+			await fireEvent.click(toggleButton(container)!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays toggle-off exactly once when hiding it again, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+			const btn = toggleButton(container)!;
+
+			await fireEvent.click(btn); // reveal
+			play.mockClear();
+			await fireEvent.click(btn); // hide
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+
+			await fireEvent.click(toggleButton(container)!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatchEvent", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, {
+				props: { sound: true, disabled: true, value: "hunter2" },
+			});
+			const btn = toggleButton(container)!;
+
+			btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays synchronously inside the click, before the async selection-restore work — no unlock() needed", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+			const btn = toggleButton(container)!;
+
+			// Dispatched without awaiting: toggleReveal is async (it awaits
+			// tick() to restore the caret), but the cue must land in the
+			// synchronous portion of the handler, before that await — landing it
+			// after would break the in-gesture rule the way an unlocked
+			// AudioContext relies on. A raw, un-awaited dispatch is what proves
+			// `play` already fired before this line returns.
+			btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
 		});
 	});
 });

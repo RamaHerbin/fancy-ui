@@ -1,0 +1,35 @@
+/*
+ * Padding lives here rather than on every cell so a consumer can retune the
+ * whole grid with one custom property instead of restyling each element.
+ */
+.ft-datatable-table th,
+.ft-datatable-table td {
+	padding-block: var(--ft-table-pad-y, 0.5rem);
+	padding-inline: var(--ft-table-pad-x, 0.75rem);
+}
+
+.ft-datatable-table.ft-datatable-dense th,
+.ft-datatable-table.ft-datatable-dense td {
+	padding-block: var(--ft-table-dense-pad-y, 0.25rem);
+}
+
+/*
+ * Zebra sits on the row and the tint on the cell, so the two never fight over
+ * one background: a tinted cell simply paints over the stripe underneath it.
+ * Both are mixes of `currentColor`, which is how they stay legible on a light
+ * page and a dark one without knowing which they are on.
+ */
+.ft-datatable-zebra {
+	background: var(--ft-table-zebra, color-mix(in oklab, currentColor 3%, transparent));
+}
+
+.ft-datatable-highlight {
+	background: var(--ft-table-highlight, color-mix(in oklab, currentColor 5%, transparent));
+}
+
+.ft-datatable-true {
+	color: var(
+		--ft-table-true,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}

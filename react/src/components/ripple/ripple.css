@@ -1,0 +1,13 @@
+@keyframes ripple-effect {
+	0%,
+	100% {
+		transform: translate(-50%, -50%) scale(1);
+	}
+	50% {
+		transform: translate(-50%, -50%) scale(0.9);
+	}
+}
+
+.animate-ripple-circle {
+	animation: ripple-effect 2s ease-in-out infinite;
+}

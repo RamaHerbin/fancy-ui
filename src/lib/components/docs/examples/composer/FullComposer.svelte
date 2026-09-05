@@ -271,6 +271,7 @@
 	{/each}
 
 	<Composer
+		sound
 		bind:value={draft}
 		bind:attachments
 		{streaming}
@@ -313,7 +314,7 @@
 				<!-- The spacer is the split: everything after it sits on the right. -->
 				<div class="flex-1"></div>
 
-				<ContextRing {usage} size={22} strokeWidth={3} showLabel={false} expandable />
+				<ContextRing sound {usage} size={22} strokeWidth={3} showLabel={false} expandable />
 				<ComposerSubmit />
 			</ComposerToolbar>
 
@@ -336,6 +337,7 @@
 	     what it holds and how it is dismissed are the consumer's to decide. -->
 	<div class="bg-background flex h-full items-center rounded-xl border p-2">
 		<VoiceInput
+			sound
 			bind:active={recording}
 			transcript={heard}
 			demo

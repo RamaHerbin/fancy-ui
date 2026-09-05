@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { tick } from "svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import CodeDiff from "./CodeDiff.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 /** One file, two hunks: 4 additions, 3 deletions, 10 line rows in total. */
 const MULTI_HUNK = [
@@ -163,6 +164,17 @@ describe("CodeDiff", () => {
 
 		const glyphs = Array.from(container.querySelectorAll(".ft-glyph")).map((g) => g.textContent);
 		expect(glyphs).toEqual([" ", "−", "+"]);
+	});
+
+	it("exposes the add/del verdict to assistive tech, not just colour and glyph", () => {
+		const { container, getByText } = render(CodeDiff, { props: { diff: BARE_HUNK } });
+
+		const addRow = rowsOfKind(container, "add")[0];
+		const delRow = rowsOfKind(container, "del")[0];
+		expect(getByText("Added line")).toBeTruthy();
+		expect(getByText("Removed line")).toBeTruthy();
+		expect(addRow.textContent).toContain("Added line");
+		expect(delRow.textContent).toContain("Removed line");
 	});
 
 	it("starts open, folds the body on click, and reports it through aria-expanded", async () => {
@@ -372,6 +384,77 @@ describe("CodeDiff", () => {
 			// header it re-renders is a flush behind `rerender` itself.
 			await tick();
 			expect(headers(container)[0].getAttribute("aria-expanded")).toBe("true");
+		});
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays close exactly once when a file folds, with sound enabled", async () => {
+			const { container } = render(CodeDiff, { props: { diff: MULTI_HUNK, sound: true } });
+
+			await fireEvent.click(headers(container)[0]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays open exactly once when a folded file unfolds, with sound enabled", async () => {
+			const { container } = render(CodeDiff, {
+				props: { diff: MULTI_HUNK, collapsed: true, sound: true },
+			});
+
+			await fireEvent.click(headers(container)[0]);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays open exactly once when a clamped file reveals its remaining lines", async () => {
+			const { getByText } = render(CodeDiff, {
+				props: { diff: MULTI_HUNK, maxLines: 4, sound: true },
+			});
+
+			await fireEvent.click(getByText("Show 6 more lines"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(CodeDiff, { props: { diff: MULTI_HUNK } });
+
+			await fireEvent.click(headers(container)[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when the collapsed-prop $effect wipes the fold state, not just the click handler", async () => {
+			const { rerender } = render(CodeDiff, { props: { diff: MULTI_HUNK, sound: true } });
+
+			// Flips the master switch from outside — the $effect that resets
+			// `folded` runs here, with no click involved.
+			await rerender({ diff: MULTI_HUNK, collapsed: true, sound: true });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when a streaming patch re-runs the signature $effect", async () => {
+			const { rerender } = render(CodeDiff, { props: { diff: BARE_HUNK, sound: true } });
+
+			// Same file, more content: the signature effect resets `folded` and
+			// `unclamped` on every chunk, and none of that may play a cue.
+			await rerender({ diff: `${BARE_HUNK}+const c = 4;\n`, sound: true });
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

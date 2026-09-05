@@ -13,5 +13,5 @@
 	description="At least 8 characters, mixing upper, lower and a number."
 	class="w-full max-w-sm"
 >
-	<PasswordInput bind:value={password} autocomplete="new-password" showStrength />
+	<PasswordInput sound bind:value={password} autocomplete="new-password" showStrength />
 </FormField>

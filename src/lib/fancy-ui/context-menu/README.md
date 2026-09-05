@@ -154,6 +154,7 @@ What is **not** shared, because it is genuinely different:
 | `offset`       | `number`                                 | `2`        | Gap in pixels between the pointer and the menu                         |
 | `loop`         | `boolean`                                | `true`     | Whether arrow-key navigation wraps at the ends                         |
 | `children`     | `Snippet`                                | —          | The `ContextMenuTrigger` and `ContextMenuContent`                      |
+| `sound`        | `boolean`                                | `false`    | Plays `open`/`close`/`select` cues — see [Sound](#sound) below         |
 
 ### ContextMenuTrigger
 
@@ -174,6 +175,33 @@ Same shape as `DropdownMenuContent` (`children`, `class`, `ref`) — see
 Identical props to their `DropdownMenu*` counterparts — see
 `dropdown-menu/README.md`'s Props section; these are the same components.
 
+## Sound
+
+Set `sound` on the root to opt into interface cues, off by default and
+silent until the user has enabled sound in their own preferences:
+
+```svelte
+<ContextMenu sound>
+	<ContextMenuTrigger>...</ContextMenuTrigger>
+	<ContextMenuContent>...</ContextMenuContent>
+</ContextMenu>
+```
+
+`open` plays when a right-click (or its keyboard equivalents) opens the
+menu; a second right-click while it is already open only repositions the
+panel and plays nothing again, the same `open === next` early return that
+makes the panel itself idempotent. `close` plays when Escape, an outside
+click or Tab dismisses it. Selecting an item plays `select` instead of
+`close`, never both — the shared `DropdownMenuItem` this family's items
+really are plays `select` first, then closes the menu silently
+(`{ silent: true }`), so one activation is always exactly one cue. A
+submenu — `dropdown-menu`'s own `DropdownMenuSub`, re-exported under this
+family's names — inherits `sound` through the same `MenuContext` and sounds
+like the panel it is: opening it plays `open`, closing it yourself (ArrowLeft,
+Escape, the pointer leaving) plays `close`, and a close driven by the parent
+(the whole tree closing after a selection, or a sibling submenu opening)
+stays silent.
+
 ## Theming
 
 This family declares no `--ft-nav-accent` of its own: unlike
@@ -193,6 +221,58 @@ property from an ancestor inside the page once mounted — only one set at or
 above `body`. Neither reads `--ft-nav-accent`, so this doesn't currently
 bite here; see `dropdown-menu/README.md`'s Theming section for the full
 reasoning if you add a portalled read of the accent to either later.
+
+## Motion
+
+The panel rises over 150 ms on the shared arrival curve (`DURATIONS.fast` and
+`JS_EASINGS.out`, the rung every floating surface in the library is on),
+growing from a `0.92` floor, and reverses over the same 150 ms on the
+departure curve (`JS_EASINGS.in`) — collapsing only to `0.96`, half the depth,
+because leaving is a smaller gesture than arriving. The growth origin follows
+the placement the panel actually got — flipped sides included, and the
+cross-axis alignment as it ended up rather than as it was requested, since a
+menu opened near a viewport edge is clamped sideways until the corner touching
+the pointer is no longer the one asked for. Either way it appears to come out
+of the click, and to fold back into it, rather than out of its own centre.
+`data-side` / `data-align` carry the resolved side and the requested alignment
+for consumers keying their own styling off placement.
+
+One bidirectional Svelte transition drives both directions, not a keyframe, so
+there is no `--ft-*` variable on the panel to retime it; reduced motion is the
+one switch.
+
+- This is the panel where the origin earns its keep. The anchor is a
+  zero-size point at the pointer, so a right-click low in the viewport, or
+  far to the right of it, flips the placement as a matter of routine — and
+  the corner the menu grows from, and collapses back into, flips with it.
+- Only `opacity` and `transform` animate, and only on the panel itself.
+- A submenu opened from here is `dropdown-menu`'s `SubContent` (see "Shared
+  implementation"), so it gets exactly the same motion, growing from the edge
+  nearest the row that opened it and leaving on the same clock as the panel
+  that owns it.
+- **The close is not deferred, only the removal is.** `open` still flips the
+  instant you dismiss, and `onOpenChange` fires once and immediately. What
+  waits is the panel leaving the DOM.
+- **Focus is never animated, and never waits.** The first item is focused in
+  the same tick the panel mounts; on the way out, whatever had focus before
+  the right-click gets it back at the dismiss instant rather than at the end
+  of the fade — `ContextMenu`'s own `setOpen` does that, so this surface needs
+  no focus trap. `data-state="closing"` is set on the panel for the length of
+  the exit, and the framework marks it `inert` for the same window, so a menu
+  on its way out cannot take a click.
+- **A second Escape during the fade reaches whatever is underneath.** The
+  dismiss layer stops answering the moment `open` is false, so it neither
+  fires again nor swallows the key on its way to the surface below. A second
+  right-click mid-fade reopens the same panel by reversing the exit, rather
+  than stacking another one on top of it.
+- **Reduced motion** — no animation at all in either direction; the panel
+  simply appears and disappears, and the close is fully synchronous again,
+  exactly as it was before this component animated out. Visibility never
+  depended on the animation: `{#if root.open}` owns the panel's DOM existence,
+  and the motion is layered on top of that.
+- **Touch and coarse pointers** — unchanged; neither direction is
+  pointer-gated. A long-press-driven `contextmenu` event opens exactly as a
+  right-click does.
 
 ## Implementation notes
 
@@ -216,8 +296,12 @@ reasoning if you add a portalled read of the accent to either later.
 - `ContextMenuContent` carries no `focusTrap`/`lockScroll`, same as
   `DropdownMenuContent` — not modal, the rest of the page stays reachable.
 - `{#if root.open}` gates the panel's entire DOM existence, same reasoning
-  as `DropdownMenuContent` — the reduced-motion entrance animation is
-  layered on top, not load-bearing for whether the panel exists at all.
+  as `DropdownMenuContent` — the shared motion (one bidirectional
+  `transition:anchored`, from `_internals/motion/anchored.js`) is layered
+  on top, not load-bearing for whether the panel exists at all. The one
+  thing the exit changes is _when_ the panel leaves: `root.open` still
+  flips at the dismiss instant, but the node stays mounted (and `inert`)
+  until the fade finishes.
 - Item font-size lives on `ContextMenuContent` (`text-[12px]`, this
   family's own density), not on the shared item components — see
   `dropdown-menu/README.md`'s Implementation notes for the full reasoning,

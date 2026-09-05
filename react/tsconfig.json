@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"jsx": "react-jsx",
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		// vite.config.ts imports scripts/client-boundary.mjs — the single
+		// definition of where the "use client" boundary falls, shared with the
+		// post-build check that re-derives it from dist. Types are inferred from
+		// the JSDoc there; `checkJs` stays off, so the build scripts are not
+		// type-checked as if they were library sources.
+		"allowJs": true,
+		"noEmit": true,
+		"types": ["vitest/globals", "@testing-library/jest-dom"]
+	},
+	"include": ["src", "vite.config.ts", "vitest.config.ts"]
+}

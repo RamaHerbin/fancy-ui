@@ -113,7 +113,11 @@
 		border-width: 1.5px;
 		position: relative;
 		cursor: pointer;
-		transition: border-color 0.15s ease;
+		/* 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout.
+		   Colour is a state change, not motion, so it stays outside the
+		   reduced-motion query — only the dot below travels. */
+		transition: border-color var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 
 	.ft-radio-item-control:disabled {
@@ -129,8 +133,13 @@
 	 * native input stays the only focusable, checkable element, per the
 	 * "restyle, don't replace" rule. It is also a shape change, not only a
 	 * colour change, so the checked state still reads without colour.
+	 *
+	 * The pseudo exists in both states, scaled to nothing while unchecked,
+	 * rather than only while `:checked` — a pseudo-element that does not
+	 * exist yet has no previous value to travel from, so a dot created on
+	 * selection could only ever appear, never grow.
 	 */
-	.ft-radio-item-control:checked::after {
+	.ft-radio-item-control::after {
 		content: "";
 		position: absolute;
 		inset: 0;
@@ -139,6 +148,26 @@
 		height: 9px;
 		border-radius: 50%;
 		background: var(--ft-radio-accent);
+		transform: scale(0);
+	}
+
+	.ft-radio-item-control:checked::after {
+		transform: scale(1);
+	}
+
+	/*
+	 * `--ft-ease-out` and not `inout`: the dot arrives, it does not toggle
+	 * back and forth in place — what leaves is the previously-selected
+	 * item's own dot, one element over. Outside this query the two
+	 * `transform` rules above still apply, so reduced motion gets the dot
+	 * at full size the instant the item is selected.
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-radio-item-control::after {
+			/* 150ms = tokens.DURATIONS.fast, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out */
+			transition: transform var(--ft-radio-dot-duration, var(--ft-duration-fast, 150ms))
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+		}
 	}
 
 	.ft-radio-item-control:focus-visible {

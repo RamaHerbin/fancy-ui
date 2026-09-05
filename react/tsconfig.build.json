@@ -1,0 +1,29 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": false,
+		"emitDeclarationOnly": true,
+		"declaration": true,
+		"outDir": "dist",
+		"rootDir": "src",
+		"types": []
+	},
+	"include": ["src"],
+	// Test-only modules must not reach dist. The `*.test.*` patterns cover the
+	// suites themselves; `ssr-sweep.fixtures.ts` is the two SSR sweeps' shared
+	// frozen lists; the last three cover the rigs the suites import, which
+	// the Svelte package keeps out by naming them `<Name>Harness.test.svelte`.
+	// The React port dropped that `.test.` infix, so without these lines tsc
+	// emits 14 declaration files for modules Rollup never bundles — dangling
+	// d.ts in the consumer's node_modules, typing an import that cannot load.
+	// `react/scripts/check-dist-shape.mjs` re-checks the result on every build.
+	"exclude": [
+		"src/**/*.test.tsx",
+		"src/**/*.test.ts",
+		"src/test-setup.ts",
+		"src/ssr-sweep.fixtures.ts",
+		"src/**/*Harness.tsx",
+		"src/**/*Harness.ts",
+		"src/**/web-audio-mock.ts"
+	]
+}

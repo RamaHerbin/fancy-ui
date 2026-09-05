@@ -1,6 +1,7 @@
-import { render, screen, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import InteractiveHoverButton from "./InteractiveHoverButton.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 describe("InteractiveHoverButton", () => {
 	afterEach(cleanup);
@@ -26,6 +27,12 @@ describe("InteractiveHoverButton", () => {
 		render(InteractiveHoverButton, { props: { text: "Subscribe" } });
 		const matches = screen.getAllByText("Subscribe");
 		expect(matches).toHaveLength(2);
+	});
+
+	it("exposes the label once in the accessible name, not twice", () => {
+		render(InteractiveHoverButton, { props: { text: "Subscribe" } });
+		const button = screen.getByRole("button", { name: "Subscribe" });
+		expect(button.getAttribute("aria-label")).not.toBe("Subscribe Subscribe");
 	});
 
 	it("renders the arrow SVG icon", () => {
@@ -71,5 +78,87 @@ describe("InteractiveHoverButton", () => {
 		const button = screen.getByRole("button");
 		const overlay = button.querySelector(".translate-x-12.opacity-0");
 		expect(overlay).toBeInTheDocument();
+	});
+
+	// The reduced-motion branch is pure CSS: `motion-safe:` is Tailwind's
+	// spelling of `@media (prefers-reduced-motion: no-preference)`, and jsdom
+	// computes neither the media query nor the utility behind it. What a test
+	// can pin is that the gate is actually on every transition utility, and on
+	// none of the transforms — the hover state must still arrive under reduced
+	// motion, it just must not travel there.
+	it("gates every transition utility behind motion-safe, and no transform with it", () => {
+		render(InteractiveHoverButton);
+		const button = screen.getByRole("button");
+
+		const animated = Array.from(button.querySelectorAll<HTMLElement>("*")).filter((el) =>
+			/\btransition-|\bduration-/.test(el.className)
+		);
+		expect(animated).toHaveLength(3);
+
+		for (const el of animated) {
+			expect(el.className).not.toMatch(/(^|\s)transition-/);
+			expect(el.className).not.toMatch(/(^|\s)duration-/);
+			expect(el.className).toContain("motion-safe:transition-all");
+			expect(el.className).toContain("motion-safe:duration-300");
+		}
+
+		// The state itself is never gated — these are the classes that make the
+		// hover readable at all, and one of them is what the overlay test above
+		// already pins.
+		expect(button.querySelector(".group-hover\\:scale-\\[100\\.8\\]")).toBeInTheDocument();
+		expect(button.querySelector(".translate-x-12.opacity-0")).toBeInTheDocument();
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", async () => {
+			render(InteractiveHoverButton, { props: { sound: true } });
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			render(InteractiveHoverButton);
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			render(InteractiveHoverButton, { props: { sound: true, disabled: true } });
+			const button = screen.getByRole("button");
+
+			// Synthetic dispatch bypasses jsdom's native-disabled short-circuit,
+			// proving the guard is the JS `restProps.disabled` check.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// This component's signature interaction is a hover reveal, but the hover
+		// cue is reserved for use:soundFeedback (guardrail 13) — the identity
+		// gesture must stay silent even though it's the whole point of the button.
+		it("plays nothing on hover — the hover reveal stays silent even with sound enabled", async () => {
+			render(InteractiveHoverButton, { props: { sound: true } });
+			const button = screen.getByRole("button");
+
+			await fireEvent.mouseEnter(button);
+			await fireEvent.pointerEnter(button);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

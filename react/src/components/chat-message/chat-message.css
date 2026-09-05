@@ -1,0 +1,17 @@
+/*
+ * A user turn is a bubble; an assistant turn is plain flow, the way a written
+ * answer reads. Only the bubble is capped, so a long answer uses the column it
+ * was given instead of being squeezed into a column-and-a-bit.
+ *
+ * Both rules are anchored on `.ft-message`, the component's own root class:
+ * the Svelte compiler scoped them, plain CSS is global, and the descendant
+ * selector restores exactly the reach the scoped rules had.
+ */
+.ft-message .ft-message-capped {
+	max-inline-size: var(--ft-message-max-width, 85%);
+}
+
+.ft-message .ft-message-bubble {
+	background: var(--ft-message-user-bg, color-mix(in oklab, currentColor 8%, transparent));
+	color: var(--ft-message-user-fg, inherit);
+}

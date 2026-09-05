@@ -54,12 +54,22 @@ export interface MenuContext {
 	readonly itemTextClass: string;
 	/**
 	 * Whether this menu family plays sound cues — forwarded from the root's
-	 * own `sound` prop. Optional so `ContextMenu`, which builds its own
-	 * `MenuContext` without this field, keeps compiling unchanged; reads as
-	 * falsy there, which is the correct "no sound" behaviour for a family
-	 * that has no `sound` prop of its own (yet).
+	 * own `sound` prop by `DropdownMenu` and by `ContextMenuContent`.
+	 * Optional so a part rendered outside either root reads falsy, which is
+	 * the correct "no sound" answer there.
 	 */
 	readonly sound?: boolean;
+	/**
+	 * Whether the menu TREE this level belongs to is still open — not just
+	 * this level's own `{#if}`. Closing the root flips only the root's state
+	 * and tears every nested level down with it, so a submenu's own
+	 * `sub.open` stays true for the whole of that outro. Anything asking "is
+	 * this panel a live top layer?" — an exit transition picking its curve,
+	 * a `dismissable` deciding whether an Escape is its to swallow — has to
+	 * read this instead. A `*SubContent` republishes it as its own liveness,
+	 * so the answer composes down a chain of nested submenus.
+	 */
+	readonly rootOpen: boolean;
 	/** Closes the whole menu, root included. What selecting an item and pressing Tab both do. */
 	closeAll(options?: MenuCloseOptions): void;
 	/** Registers a currently-open submenu at this level, keyed by its trigger element. Returns an unregister function. */
@@ -78,6 +88,8 @@ export const MENU_KEY: unique symbol = Symbol("menu-context");
 export interface SubContext {
 	readonly open: boolean;
 	readonly contentId: string;
+	/** The sub-trigger's own id — read by `SubContent` for `aria-labelledby`, so the submenu panel announces the row that opened it. */
+	readonly triggerId: string;
 	readonly triggerRef: HTMLElement | null;
 	/**
 	 * The side the submenu actually rendered on, as last reported by
@@ -87,8 +99,17 @@ export interface SubContext {
 	 * regardless of which side that visually is.
 	 */
 	readonly resolvedSide: Side;
+	/**
+	 * The cross-axis alignment the submenu actually rendered with, as last
+	 * reported by `onPlacement`. `"start"` until a clamp near a viewport edge
+	 * slides the panel along that axis, after which the requested corner is
+	 * no longer the one touching the trigger. `SubContent` reads this for its
+	 * entrance origin, so the panel grows from the corner nearest the trigger
+	 * rather than from the far one.
+	 */
+	readonly resolvedAlign: Align;
 	setTriggerRef(el: HTMLElement | null): void;
-	setResolvedSide(side: Side): void;
+	setPlacement(side: Side, align: Align): void;
 	/** Opens the submenu. Idempotent — does nothing if already open. */
 	openSub(): void;
 	/** Closes the submenu, optionally returning DOM focus to its trigger. */

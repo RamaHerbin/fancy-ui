@@ -1,8 +1,25 @@
-import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { createRawSnippet, tick } from "svelte";
+import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
+import { createRawSnippet, flushSync, tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import Dialog from "./Dialog.svelte";
 import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
+
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh on every call, so an
+ * override installed before a render is visible to the very next read. */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
 
 function panel(): HTMLElement | null {
 	return document.body.querySelector('[role="dialog"]');
@@ -34,6 +51,8 @@ describe("Dialog", () => {
 	afterEach(() => {
 		cleanup();
 		document.body.innerHTML = "";
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
 	});
 
 	it("renders nothing when closed", () => {
@@ -282,11 +301,163 @@ describe("Dialog", () => {
 	it("locks the page scroll while open and releases it on close", async () => {
 		const { rerender } = render(Dialog, { props: { open: true, title: "Invite" } });
 		await tick();
+		// Stays synchronous: `use:scrollLock` acquires at mount, so the lock is
+		// in place by the time the panel is on screen. Wrapping this would
+		// silently delete that requirement.
 		expect(document.body.style.position).toBe("fixed");
 
 		await rerender({ open: false, title: "Invite" });
+		// The release is deliberately NOT synchronous any more: the action's
+		// `destroy()` is delayed by the exit transition, which is what keeps
+		// the page locked until the backdrop has actually finished fading.
+		await waitFor(() => expect(document.body.style.position).toBe(""));
+	});
+
+	// The close protocol's own regression guards. Between the dismiss and the
+	// unmount there is now a window — 200 ms in a browser, a couple of
+	// microtasks under the WAAPI stub — and these three pin what must be true
+	// inside it.
+	it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+		render(Dialog, { props: { open: true, title: "Invite" } });
 		await tick();
-		expect(document.body.style.position).toBe("");
+		expect(panel()!.getAttribute("data-state")).toBe("open");
+
+		pressEscape();
+		await tick();
+
+		const closing = panel();
+		expect(closing).toBeTruthy();
+		// Written imperatively from `onoutrostart` — a reactive `data-state`
+		// would never reach the DOM, because Svelte marks the branch inert
+		// before it plays the outro.
+		expect(closing!.getAttribute("data-state")).toBe("closing");
+		// Svelte sets this itself on any element carrying a `transition:`, for
+		// the whole exit. The assertion is here so nobody removes the
+		// transition without noticing that a closing modal would go
+		// interactive again.
+		expect(closing!.inert).toBe(true);
+
+		await waitFor(() => expect(panel()).toBeNull());
+		expect(scrim()).toBeNull();
+	});
+
+	it("swallows a second Escape during the exit — onOpenChange fires exactly once", async () => {
+		const onOpenChange = vi.fn();
+		render(Dialog, { props: { open: true, title: "Invite", onOpenChange } });
+		await tick();
+
+		pressEscape();
+		await tick();
+		expect(panel()).toBeTruthy(); // still fading
+
+		pressEscape();
+		pressEscape();
+		await tick();
+
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+	});
+
+	// A reopen inside the exit window reverses the outro instead of
+	// remounting, so `use:focusTrap` is never re-created: its initial focus
+	// move does not re-run and its "focus already returned" latch is still
+	// set. Left alone that leaves an `aria-modal` panel open with focus on
+	// the trigger BEHIND it — untrapped, since the Tab handler is bound to
+	// the panel — and permanently spends the eager return, so no later close
+	// of this instance returns focus at all. `focusTrap`'s re-arm handle,
+	// called from `onintrostart`, is what undoes both.
+	it("re-arms the focus trap when the dialog is reopened during its exit", async () => {
+		render(Dialog, {
+			props: {
+				open: false,
+				title: "Invite",
+				trigger: snippet('<button type="button" data-testid="open-trigger">Invite</button>'),
+			},
+		});
+
+		const trigger = document.body.querySelector<HTMLButtonElement>('[data-testid="open-trigger"]')!;
+		trigger.focus();
+		await fireEvent.click(trigger);
+		await tick();
+		expect(panel()).toBeTruthy();
+
+		// Dismiss: focus comes back to the trigger immediately, while the
+		// panel is still on screen fading.
+		pressEscape();
+		await tick();
+		expect(panel()).toBeTruthy();
+		expect(document.activeElement).toBe(trigger);
+
+		// Reopen mid-fade — reachable precisely BECAUSE the eager return just
+		// put focus on the trigger: Enter or Space on it, which the scrim does
+		// not block the way it blocks a pointer.
+		//
+		// Dispatched and flushed SYNCHRONOUSLY on purpose. In a browser the
+		// exit window is 200 ms; under the WAAPI stub it is two microtasks,
+		// and any awaited helper (`fireEvent`, `tick`) drains them — the
+		// branch is then destroyed and re-created, which mounts a brand-new
+		// `focusTrap` and quietly tests nothing. `flushSync` resumes the same
+		// branch instead, which is the reversal this pins.
+		trigger.click();
+		flushSync();
+
+		const reopened = panel();
+		expect(reopened).toBeTruthy();
+		expect(reopened!.getAttribute("data-state")).toBe("open");
+		expect(reopened!.contains(document.activeElement)).toBe(true);
+
+		// And the next genuine dismiss still returns focus, rather than
+		// stranding it on a node about to be removed.
+		pressEscape();
+		await tick();
+		expect(document.activeElement).toBe(trigger);
+	});
+
+	// A layer that is on its way out must not swallow the key: the dismiss
+	// stack scans past it and hands Escape to whatever is underneath.
+	it("lets an Escape during the exit reach the layer underneath instead of swallowing it", async () => {
+		// Registered BEFORE the dialog, so the dialog sits above it on the
+		// shared layer stack — the shape of a dialog opened from inside
+		// another dismissable surface.
+		const beneath = document.createElement("div");
+		document.body.appendChild(beneath);
+		const onBeneath = vi.fn();
+		const beneathAction = dismissable(beneath, { onDismiss: onBeneath });
+
+		const onOpenChange = vi.fn();
+		render(Dialog, { props: { open: true, title: "Invite", onOpenChange } });
+		await tick();
+
+		pressEscape(); // the dialog is the top LIVE layer and takes this one
+		await tick();
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+		expect(onBeneath).not.toHaveBeenCalled();
+		expect(panel()).toBeTruthy();
+
+		pressEscape(); // the dialog is inactive now, so this falls through
+		expect(onBeneath).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+
+		beneathAction?.destroy?.();
+	});
+
+	// The §1.2 fast path: `duration: 0` makes Svelte call `on_finish()`
+	// synchronously and never touch `element.animate()`, so a visitor who
+	// asked for less motion gets exactly the synchronous close this component
+	// had before the exit existed.
+	it("closes synchronously and never animates when the user asked for reduced motion", async () => {
+		stubReducedMotion(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(Dialog, { props: { open: true, title: "Invite" } });
+		await tick();
+		expect(panel()).toBeTruthy();
+
+		pressEscape();
+		await tick();
+
+		expect(panel()).toBeNull();
+		expect(scrim()).toBeNull();
+		expect(animateSpy).not.toHaveBeenCalled();
 	});
 
 	it("round-trips through bind:open", async () => {
@@ -363,5 +534,110 @@ describe("Dialog", () => {
 		});
 		await tick();
 		expect(ref).toBe(panel());
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when the trigger opens the dialog", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Dialog, {
+				props: {
+					sound: true,
+					title: "Invite",
+					trigger: snippet('<button type="button" data-testid="open-trigger">Invite</button>'),
+				},
+			});
+
+			const trigger = document.body.querySelector<HTMLButtonElement>(
+				'[data-testid="open-trigger"]'
+			)!;
+			await fireEvent.click(trigger);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays close exactly once when the close button dismisses", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Dialog, { props: { sound: true, open: true, title: "Invite" } });
+			await tick();
+
+			await fireEvent.click(closeButton()!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays close exactly once on Escape and close exactly once on an outside click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(Dialog, { props: { sound: true, open: true, title: "Invite" } });
+			await tick();
+
+			pressEscape();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+
+			play.mockClear();
+			await rerender({ sound: true, open: true, title: "Invite" });
+			await tick();
+			pointerDownOn(scrim()!);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Dialog, { props: { open: true, title: "Invite" } });
+			await tick();
+
+			await fireEvent.click(closeButton()!);
+			pressEscape();
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("swallows a second Escape during the exit — close plays exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Dialog, { props: { sound: true, open: true, title: "Invite" } });
+			await tick();
+
+			pressEscape();
+			await tick();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("a dialog driven purely by bind:open opens silently — no trigger and no gesture ever reaches setOpen's open branch", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			let open = false;
+			const { rerender } = render(Dialog, {
+				props: {
+					sound: true,
+					title: "Invite",
+					get open() {
+						return open;
+					},
+					set open(value: boolean) {
+						open = value;
+					},
+				},
+			});
+
+			open = true;
+			await rerender({ sound: true, open: true, title: "Invite" });
+			await tick();
+			expect(panel()).toBeTruthy();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

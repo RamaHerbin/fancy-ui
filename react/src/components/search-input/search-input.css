@@ -1,0 +1,31 @@
+/*
+ * The brand accent has no semantic token, so it is declared locally with a
+ * light-dark() fallback — the same shape Input and Textarea use for their
+ * own accent ring. The ring lives on the wrapper via :focus-within rather
+ * than on the bare input, because the input itself has no border or
+ * background of its own here — the wrapper is the visual field surface.
+ */
+.ft-search-input:focus-within {
+	--ft-field-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+	border-color: var(--ft-field-accent);
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-field-accent) 25%, transparent);
+}
+
+/*
+ * `type="search"` (rather than `type="text"`) is deliberate: it maps to
+ * the `searchbox` accessibility role instead of a plain textbox, and on a
+ * mobile keyboard it labels the return key "search" — both real wins Enter
+ * already acts on via `onSearch`. The cost is that some browsers draw their
+ * own native clear "x" once the field has text, which would sit right next
+ * to this component's own clear button. It is suppressed here rather than
+ * switching to `type="text"`, so there is exactly one clear affordance,
+ * not two.
+ */
+.ft-search-input .ft-search-input-field::-webkit-search-cancel-button,
+.ft-search-input .ft-search-input-field::-webkit-search-decoration {
+	-webkit-appearance: none;
+	appearance: none;
+}

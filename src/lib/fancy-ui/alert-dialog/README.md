@@ -37,20 +37,21 @@ A confirmation dialog for consequential, hard-to-undo actions — deleting a pro
 
 ## Props
 
-| Prop           | Type                      | Default     | Description                                                                 |
-| -------------- | ------------------------- | ----------- | --------------------------------------------------------------------------- |
-| `open`         | `boolean`                 | `false`     | Whether the alert dialog is open. Bindable.                                 |
-| `onOpenChange` | `(open: boolean) => void` | —           | Fires whenever `open` changes — Confirm, Cancel, or Escape.                 |
-| `title`        | `string`                  | —           | The heading. Omitted entirely (not just visually) when not given.           |
-| `description`  | `string`                  | —           | The warning copy under the title. Same omission rule as `title`.            |
-| `confirmLabel` | `string`                  | `"Confirm"` | Label of the destructive action.                                            |
-| `cancelLabel`  | `string`                  | `"Cancel"`  | Label of the safe action.                                                   |
-| `onConfirm`    | `() => void`              | —           | Called when the destructive action is activated, before the surface closes. |
-| `onCancel`     | `() => void`              | —           | Called when the safe action is activated, and also when Escape closes it.   |
-| `initialFocus` | `HTMLElement \| null`     | —           | Element to focus once the surface opens. Defaults to the Cancel button.     |
-| `trigger`      | `Snippet`                 | —           | Optional trigger; renders in place and opens the surface on activation.     |
-| `class`        | `string`                  | —           | Additional CSS classes for the panel.                                       |
-| `ref`          | `HTMLDivElement \| null`  | `null`      | Bindable element reference to the panel.                                    |
+| Prop           | Type                      | Default     | Description                                                                                                     |
+| -------------- | ------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------- |
+| `open`         | `boolean`                 | `false`     | Whether the alert dialog is open. Bindable.                                                                     |
+| `onOpenChange` | `(open: boolean) => void` | —           | Fires whenever `open` changes — Confirm, Cancel, or Escape.                                                     |
+| `title`        | `string`                  | —           | The heading. Omitted entirely (not just visually) when not given.                                               |
+| `description`  | `string`                  | —           | The warning copy under the title. Same omission rule as `title`.                                                |
+| `confirmLabel` | `string`                  | `"Confirm"` | Label of the destructive action.                                                                                |
+| `cancelLabel`  | `string`                  | `"Cancel"`  | Label of the safe action.                                                                                       |
+| `onConfirm`    | `() => void`              | —           | Called when the destructive action is activated, before the surface closes.                                     |
+| `onCancel`     | `() => void`              | —           | Called when the safe action is activated, and also when Escape closes it.                                       |
+| `initialFocus` | `HTMLElement \| null`     | —           | Element to focus once the surface opens. Defaults to the Cancel button.                                         |
+| `trigger`      | `Snippet`                 | —           | Optional trigger; renders in place and opens the surface on activation.                                         |
+| `class`        | `string`                  | —           | Additional CSS classes for the panel.                                                                           |
+| `ref`          | `HTMLDivElement \| null`  | `null`      | Bindable element reference to the panel.                                                                        |
+| `sound`        | `boolean`                 | `false`     | Plays `open` on the trigger, `select` on Confirm and `close` on Cancel/Escape, once the user has enabled sound. |
 
 ## The dismiss decision, and why
 
@@ -67,6 +68,36 @@ The one thing this component will not do is let a destructive action complete wi
 - **Cancel is focused first, not Confirm** — see the dismiss decision above for the reasoning behind treating Cancel as the default answer. No extra wiring is needed for this: Cancel renders before Confirm in the panel's markup, which is what makes it the shared focus-trap primitive's default target (the first focusable descendant) whenever `initialFocus` is not given.
 - The warning icon (`⚠`) is `aria-hidden` — it is reinforcement for sighted users, not the thing that communicates the stakes; `title` and `description` carry that for everyone.
 - Confirm renders through `Button`'s `destructive` variant, so its color signal (not its only signal — the label and the description both say what it does) matches every other destructive action in the library.
+
+## Motion
+
+Identical to `Dialog`'s, because it is the same surface: panel and backdrop arrive together over 300 ms on the shared arrival curve and leave together over 200 ms on the departure curve, the panel scaling from a `0.92` floor in and to a `0.96` floor out, the backdrop fading on opacity alone. See `Dialog`'s README for the full description; two things are worth restating here, because this component's dismiss rules make them matter more:
+
+- **Escape during the fade cannot cancel twice.** Escape is wired to the same `handleCancel` path the Cancel button calls, so a repeated press while the panel is leaving would otherwise fire `onCancel` again. The dismiss layer stops answering the moment `open` is false, and `onOpenChange`/`onCancel` are additionally guarded against a no-op change — a destructive prompt reports exactly one cancellation per dismissal.
+- **Focus returns at the dismiss instant**, not when the fade ends, so a keyboard user who backs out of a destructive prompt is on the trigger immediately rather than stranded on `<body>` for the length of the animation.
+
+- **Reduced motion** — every transition collapses to a duration of zero and the framework skips the animation entirely: the surface appears and disappears instantly and the close is fully synchronous, exactly as it behaved before it animated.
+- **Touch and coarse pointers** — unchanged; neither direction is pointer-gated.
+
+## Sound
+
+Set `sound` to play a cue for each of the three outcomes, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<AlertDialog
+	sound
+	{trigger}
+	title="Delete this project?"
+	confirmLabel="Delete"
+	onConfirm={deleteProject}
+/>
+```
+
+- **`open`** — the trigger opens the prompt.
+- **`select`** — the destructive action is confirmed. This is a commit, so the close underneath it is silent — never both `select` and `close` for one Confirm.
+- **`close`** — Cancel or Escape backs out. Both route through the same `handleCancel`, so a repeated Escape during the exit plays `close` at most once, never twice.
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the alert dialog **and** the user has turned sound on globally. The cue is never forwarded to the internal Cancel/Confirm buttons — they render as plain `Button`s with no `sound` prop of their own, so an activation plays exactly one cue, not two.
 
 ## Implementation notes
 

@@ -1,6 +1,8 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { computePosition } from "../_internals/anchor-position.js";
+import { sound } from "../sound/sound.svelte.js";
 import Harness from "./ContextMenuHarness.test.svelte";
 
 interface ItemSpec {
@@ -28,6 +30,47 @@ function itemsIn(root: HTMLElement | null): HTMLElement[] {
 
 function itemByLabel(root: HTMLElement | null, label: string): HTMLElement | undefined {
 	return itemsIn(root).find((el) => el.textContent?.trim().startsWith(label));
+}
+
+// Dispatched synchronously, never through `fireEvent` — `fireEvent` awaits a
+// tick of its own, which under the WAAPI stub is enough to drain the whole
+// exit and leave a test that means to look inside the fade looking at an
+// empty document instead. A raw dispatch plus ONE `await tick()` lands in the
+// window.
+function pressEscape() {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
+}
+
+// Opens the menu without awaiting anything, for the same reason.
+function rightClick(target: HTMLElement) {
+	target.dispatchEvent(
+		new MouseEvent("contextmenu", {
+			bubbles: true,
+			cancelable: true,
+			button: 2,
+			clientX: 50,
+			clientY: 50,
+		})
+	);
+}
+
+// Replaces `window.matchMedia` wholesale, the pattern the rest of the repo
+// uses. The transition resolves it fresh the instant it starts, so an
+// override installed before the right-click is the one that decides whether
+// the panel animates at all — in either direction.
+function stubMatchMedia(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
 }
 
 describe("ContextMenu", () => {
@@ -149,6 +192,51 @@ describe("ContextMenu", () => {
 		expect(document.querySelectorAll('[role="menu"]')).toHaveLength(1);
 		expect(anchor().style.left).toBe("300px");
 		expect(anchor().style.top).toBe("400px");
+	});
+
+	// Moving the anchor is only half of it — the panel has to FOLLOW it.
+	// jsdom zeroes every `getBoundingClientRect()`, so the span's inline
+	// `left`/`top` alone never reaches `anchorPosition`'s math; this teaches
+	// the virtual anchor to report the rect its own inline style describes,
+	// which is what a real layout engine would do, and then reads the
+	// coordinates `anchorPosition` writes onto the panel itself. Unless the
+	// pointer coordinates are a tracked dependency of the action's options,
+	// the second right-click leaves the panel parked at the first one's
+	// position until an unrelated scroll or resize fires.
+	it("a second right-click while the menu is open moves the panel, not just the anchor", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		const anchorEl = anchor();
+		vi.spyOn(anchorEl, "getBoundingClientRect").mockImplementation(() => {
+			const x = parseFloat(anchorEl.style.left) || 0;
+			const y = parseFloat(anchorEl.style.top) || 0;
+			return {
+				left: x,
+				top: y,
+				right: x,
+				bottom: y,
+				width: 0,
+				height: 0,
+				x,
+				y,
+				toJSON() {
+					return this;
+				},
+			} as DOMRect;
+		});
+
+		await fireEvent.contextMenu(region(container), { button: 2, clientX: 10, clientY: 10 });
+		await waitFor(() => expect(menu()).not.toBeNull());
+		// Default side "bottom", align "start", offset 2, against a zero-size
+		// point: the panel's own top-left lands on the pointer, 2px down.
+		expect(menu()?.style.left).toBe("10px");
+		expect(menu()?.style.top).toBe("12px");
+
+		await fireEvent.contextMenu(region(container), { button: 2, clientX: 300, clientY: 300 });
+		await tick();
+
+		expect(anchor().style.left).toBe("300px");
+		expect(menu()?.style.left).toBe("300px");
+		expect(menu()?.style.top).toBe("302px");
 	});
 
 	// jsdom does not compute layout, so `getBoundingClientRect()` on the
@@ -369,5 +457,306 @@ describe("ContextMenu", () => {
 		await fireEvent.click(itemByLabel(subMenuEl, "Inspect")!);
 		expect(onSelect).toHaveBeenCalledWith("Inspect");
 		await waitFor(() => expect(document.querySelectorAll('[role="menu"]')).toHaveLength(0));
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("a right-click opens the menu and plays open exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			await fireEvent.keyDown(document, { key: "Escape" });
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Dispatched synthetically, not through `fireEvent.contextMenu` — proves
+		// the guard lives in `ContextMenuTrigger`'s own `if (disabled) return`,
+		// not merely in something `fireEvent`'s own event construction happens
+		// to skip.
+		it("a disabled trigger plays nothing, even dispatched synthetically", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, {
+				props: { items: ITEMS, triggerDisabled: true, sound: true },
+			});
+
+			region(container).dispatchEvent(
+				new MouseEvent("contextmenu", {
+					bubbles: true,
+					cancelable: true,
+					button: 2,
+					clientX: 50,
+					clientY: 50,
+				})
+			);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(menu()).toBeNull();
+		});
+
+		// The matrix's own double-fire guard for `open`: the existing
+		// `open === next` early return in `setOpen` makes a reposition
+		// right-click — the menu is already open, only `point` moves — silent
+		// rather than replaying the open cue a second time.
+		it("a reposition right-click while already open is silent — no repeated open cue", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			const el = region(container);
+
+			await fireEvent.contextMenu(el, { button: 2, clientX: 10, clientY: 10 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.contextMenu(el, { button: 2, clientX: 300, clientY: 400 });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("Escape dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.keyDown(document, { key: "Escape" });
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("an outside click dismisses the menu and plays close exactly once", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.pointerDown(outside);
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			outside.remove();
+		});
+
+		// Select precedent: the item's own `select` cue already tells the story
+		// of this interaction — `closeAll({ silent: true })` must keep the close
+		// that follows it mute, or one activation would sound like two.
+		it("selecting an item plays select exactly once, never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(menu(), "Reload")!);
+			await waitFor(() => expect(menu()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("a disabled item plays nothing", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const withDisabled: ItemSpec[] = [{ label: "Previous", disabled: true }, { label: "Reload" }];
+			const { container } = render(Harness, { props: { items: withDisabled, sound: true } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			await fireEvent.click(itemByLabel(menu(), "Previous")!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Submenu open/close come free from the shared `DropdownMenuSub`, which
+		// reads `sound` off whichever level's `MenuContext` it was mounted
+		// under — this proves that inheritance actually reaches this family's
+		// own context, not just DropdownMenu's.
+		it("a submenu inherits sound: opening plays open once, selecting inside plays select only", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Harness, {
+				props: {
+					items: ITEMS,
+					withSubmenu: true,
+					subItems: [{ label: "Inspect" }],
+					sound: true,
+				},
+			});
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			play.mockClear();
+
+			const subBtn = menu()!.querySelector('[aria-haspopup="menu"]') as HTMLElement;
+			await fireEvent.click(subBtn);
+			await waitFor(() => {
+				const subMenus = Array.from(document.querySelectorAll('[role="menu"]'));
+				expect(subMenus).toHaveLength(2);
+			});
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+
+			play.mockClear();
+			const subMenuEl = Array.from(document.querySelectorAll('[role="menu"]')).find(
+				(el) => el !== menu()
+			) as HTMLElement;
+			await fireEvent.click(itemByLabel(subMenuEl, "Inspect")!);
+			await waitFor(() => expect(document.querySelectorAll('[role="menu"]')).toHaveLength(0));
+
+			expect(play.mock.calls).toEqual([["select"]]);
+		});
+	});
+
+	// The entrance itself lives in `_internals/motion/anchored.ts` and is
+	// tested there. What is component-specific is the plumbing between
+	// `anchorPosition`'s resolved placement and the growth origin — which
+	// matters more here than anywhere else, because this panel's anchor is a
+	// point at the pointer and a right-click low or far right in the viewport
+	// flips it as a matter of routine.
+	describe("anchored entrance", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("publishes its resolved placement and grows from the corner nearest the click", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 120, clientY: 80 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+
+			// jsdom has no layout engine — every rect reads as zeroes — so
+			// `computePosition` never overflows and never flips. That makes
+			// the un-flipped case the deterministic one to assert here.
+			expect(menu()!.getAttribute("data-side")).toBe("bottom");
+			expect(menu()!.getAttribute("data-align")).toBe("start");
+			// `bottom` + `start`: the panel's own top-left corner, which sits
+			// under the pointer that opened it.
+			expect(menu()!.style.transformOrigin).toBe("left top");
+
+			// The positive control for the reduced-motion case below: with no
+			// preference expressed, opening really does schedule an animation
+			// — and Svelte hands `element.animate()` the sampled `css(t, u)`
+			// verbatim, so the spy's arguments are a readable record of what
+			// that animation touches: opacity and transform only, from the
+			// shared `0.92` floor. Asserting the keyframes rather than a bare
+			// call count means a panel animating the wrong property, or off
+			// the wrong scale, fails here instead of passing silently.
+			expect(animateSpy).toHaveBeenCalled();
+			const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+			expect(keyframes[0]).toEqual({ opacity: "0", transform: "scale(0.92)" });
+			expect(keyframes.at(-1)).toEqual({ opacity: "1", transform: "scale(1)" });
+		});
+
+		it("runs no animation at all under reduced motion, and the panel is there in the same tick", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 120, clientY: 80 });
+			await tick();
+			expect(menu()).not.toBeNull();
+
+			// A zero duration makes Svelte skip `element.animate()` outright
+			// rather than run a zero-length animation, so no call at all is
+			// the honest proof that nothing was scheduled.
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	// The exit is new, and with it a window between the dismiss and the
+	// unmount — 150 ms in a browser, a couple of microtasks under the WAAPI
+	// stub. These pin what has to be true inside it. Nothing a consumer can
+	// observe waits for it: `open` still flips at the dismiss instant, and so
+	// does the focus return, which `ContextMenu`'s own `setOpen` does from a
+	// plain function outside the `{#if}`.
+	describe("animated exit", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			expect(menu()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = menu();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`: a reactive
+			// `data-state` would never reach the DOM, because Svelte marks
+			// the branch inert before it plays the outro.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a
+			// `transition:`, for the whole exit — a menu on its way out must
+			// not start taking clicks again.
+			expect(closing!.inert).toBe(true);
+
+			await waitFor(() => expect(menu()).toBeNull());
+		});
+
+		it("swallows a second Escape during the exit — onOpenChange fires exactly once", async () => {
+			const onOpenChange = vi.fn();
+			const { container } = render(Harness, { props: { items: ITEMS, onOpenChange } });
+			await fireEvent.contextMenu(region(container), { button: 2, clientX: 50, clientY: 50 });
+			await waitFor(() => expect(menu()).not.toBeNull());
+			onOpenChange.mockClear();
+
+			pressEscape();
+			await tick();
+			expect(menu()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(onOpenChange).toHaveBeenCalledTimes(1);
+			expect(onOpenChange).toHaveBeenCalledWith(false);
+		});
+
+		it("removes the panel in the same tick again under reduced motion", async () => {
+			stubMatchMedia(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			rightClick(region(container));
+			await tick();
+			expect(menu()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			// A zero duration makes Svelte call the transition's `on_finish`
+			// synchronously and never touch `element.animate()`, so the close
+			// is exactly as instant as it was before this panel animated out
+			// at all — no `waitFor` needed, and none allowed here.
+			expect(menu()).toBeNull();
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
 	});
 });

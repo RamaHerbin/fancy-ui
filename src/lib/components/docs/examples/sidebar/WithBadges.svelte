@@ -4,15 +4,15 @@
 
 <Sidebar>
 	<SidebarGroup label="General">
-		<SidebarItem href="#dashboard" current>Dashboard</SidebarItem>
-		<SidebarItem href="#projects">Projects</SidebarItem>
-		<SidebarItem href="#inbox" badge={4} badgeLabel="unread">Inbox</SidebarItem>
-		<SidebarItem href="#settings">Settings</SidebarItem>
+		<SidebarItem sound href="#dashboard" current>Dashboard</SidebarItem>
+		<SidebarItem sound href="#projects">Projects</SidebarItem>
+		<SidebarItem sound href="#inbox" badge={4} badgeLabel="unread">Inbox</SidebarItem>
+		<SidebarItem sound href="#settings">Settings</SidebarItem>
 	</SidebarGroup>
 
 	<SidebarSeparator />
 
 	<SidebarGroup label="Danger zone">
-		<SidebarItem href="#archived" badge="12">Archived</SidebarItem>
+		<SidebarItem sound href="#archived" badge="12">Archived</SidebarItem>
 	</SidebarGroup>
 </Sidebar>

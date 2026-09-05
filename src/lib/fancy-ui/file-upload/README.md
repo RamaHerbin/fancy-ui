@@ -102,6 +102,7 @@ and `disabled`:
 | `hint`          | `string`                        | —       | Constraint text under the drop zone, e.g. `"PNG, SVG — 4 MB max"`                     |
 | `class`         | `string`                        | —       | Additional CSS classes                                                                |
 | `ref`           | `HTMLInputElement \| null`      | `null`  | Bindable reference to the underlying file input                                       |
+| `sound`         | `boolean`                       | `false` | Plays `select`/`error` on an accepted or rejected selection/drop, once sound is on    |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context — see Implementation
@@ -145,6 +146,66 @@ together:
 }
 ```
 
+## Motion
+
+The determinate progress bar is a `scaleX` transform driven by a custom
+property, never a `width`. Writing progress as `width: 70%` forces the browser
+to lay the row out again on every value a consumer pushes in — a transform is
+handled by the compositor and costs nothing per frame. The bar also _eases_
+toward each new value over 150ms on the library's arrival curve instead of
+snapping to it, which is what makes a report every few hundred milliseconds read
+as a bar filling rather than as a bar twitching. The property carries a 0–1
+ratio, so `progress: 70` reaches CSS as `--ft-fileupload-progress: 0.7`.
+
+While `progress` is `null` the same element becomes an indeterminate block that
+sweeps across the track on a 1.4s loop. That sweep is a `translateX` too, for
+the same reason; the block's own 40% width is plain layout, set once and never
+animated.
+
+Rows animate in and out. A new row rises 8px into place over 150ms on the
+arrival curve; a removed row simply fades over 200ms on the departure curve —
+shorter, and with no travel, so nothing appears to fly back out of the list.
+The removal transition is `|global` so the LAST row fades like every other
+one: emptying the list destroys the whole `<ul>`, and Svelte only collects a
+_local_ transition through transparent children — a nested `{#if}` is not one,
+so a local outro there would never run. The entrance stays local, which is
+what keeps a restored list from animating every row in at once.
+
+Removal stays instant as far as your code is concerned: `files` and
+`onFilesChange` both update in the same tick they always did, and the row only
+lingers on screen for the length of its fade. It is `inert` for that whole
+window, so a leaving row's remove button cannot be clicked or tabbed into.
+Focus moves immediately, to the row that took the removed one's place — chosen
+by id from the new list, not by counting what is currently on screen, precisely
+because the leaving row is still on screen and unfocusable.
+
+- **Reduced motion** — every one of these collapses. Rows appear and disappear
+  in the same frame, exactly as they did before this component animated at all;
+  the progress bar jumps straight to each reported value; the indeterminate
+  sweep stops, leaving a static block that still marks the bar as busy. Nothing
+  about validation, announcements, or focus depends on any of it.
+- **Touch and coarse pointers** — unchanged. Nothing here is pointer-gated, and
+  no motion sits between a tap on a remove button and the row leaving the list.
+
+## Sound
+
+Set `sound` to play a cue through the shared sound controller (see
+[`sound/README.md`](../sound/README.md)) on the outcome of a selection or
+drop: `select` when every file in the batch is accepted, `error` when at
+least one is rejected:
+
+```svelte
+<FileUpload bind:files sound accept=".png,.jpg" />
+```
+
+Exactly one cue plays per selection/drop — on a mixed batch, `error` wins
+over `select` rather than firing both. Never `success`: this component only
+tracks a selection, it does not perform the upload itself. Removing a row
+stays silent, and the "browse" label and the drag bookkeeping events
+(`dragenter`/`dragover`/`dragleave`) never play. Off by default; nothing
+plays unless both `sound` is set here **and** the user has turned sound on
+globally. Nothing plays while `disabled`.
+
 ## Implementation Notes
 
 - **A real `<input type="file">` does the work; drag-and-drop is layered on
@@ -180,15 +241,18 @@ together:
   count is above zero, which survives crossing into a child cleanly.
 - **`role="progressbar"` carries `aria-valuemin`/`aria-valuemax` always, and
   `aria-valuenow` only when `progress` is a number.** While `progress` is
-  `null` the bar renders as a static indeterminate fill (with an animation
-  gated behind `prefers-reduced-motion: no-preference` — the fill itself
-  never depends on the animation to be visible) and the element never claims
-  a numeric value it doesn't have.
+  `null` the bar renders as an indeterminate fill (with the sweep gated behind
+  `prefers-reduced-motion: no-preference` — the block itself is visible either
+  way) and the element never claims a numeric value it doesn't have.
 - **Each row's remove button is named after the file** (`aria-label="Remove
 <filename>"`), not a bare `✕`. Removing a row moves focus to the row that
   slides into its place, the row before it if the removed one was last, or
   back to the file input once the list is empty — never left on a button that
-  just left the DOM.
+  is on its way out. The target is looked up by row id in the new list rather
+  than by position among the buttons currently rendered: the removed row is
+  still in the DOM while it fades, and it is `inert`, so a positional lookup
+  would aim focus at an element the browser refuses to focus and drop it on
+  `<body>` instead.
 - **`disabled` blocks both paths in JS, not just via the native attribute.** A
   disabled native input already refuses focus and clicks, but a synthetic
   `drop` dispatch walks straight past that the same way a synthetic click

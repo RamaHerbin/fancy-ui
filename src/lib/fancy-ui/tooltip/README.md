@@ -93,6 +93,32 @@ high-contrast pairing a primary `Button` uses, which is what gives it the
 surface. There's no separate tooltip token to override; retint `--primary`
 to change it.
 
+## Motion
+
+The bubble fades in over 150 ms on the shared arrival curve (`DURATIONS.fast`
+and `JS_EASINGS.out` from the motion foundation). Opacity only — deliberately.
+A tooltip is a label, not a surface, so it has no "grew out of the trigger"
+story that a scale would tell; every other floating panel in the library does
+scale, and this is the one that does not. The growth origin is still written,
+and the resolved placement is still exposed as `data-side` / `data-align`, so a
+consumer styling off the side the bubble actually landed on gets the same
+information everywhere.
+
+The entrance is a JS transition, not a CSS animation, so there is no `--ft-*`
+variable to override here; the timing comes from the shared token ladder and
+moves with it.
+
+`openDelay` is a scheduling delay, not part of the entrance: nothing is mounted
+while it runs. The fade starts when the bubble appears, whatever made it appear.
+
+- **Reduced motion** — no entrance animation at all; the bubble simply appears.
+  Its visibility never depended on the animation.
+- **Touch and coarse pointers** — unchanged; the entrance is not pointer-gated.
+- Closing is instant, deliberately — a tooltip is a label, and an animated
+  dismissal makes the pointer feel sticky. The entrance is declared with `in:`,
+  never `transition:`, so it can never delay the unmount that `closeDelay`,
+  Escape and blur all expect to be immediate.
+
 ## Implementation Notes
 
 - Three booleans (`triggerHovered`, `contentHovered`, `focused`) plus one

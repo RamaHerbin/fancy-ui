@@ -63,6 +63,7 @@ and `disabled`:
 | `strength`      | `(value: string) => { score: 0\|1\|2\|3\|4; label: string }` | —                    | Overrides the built-in heuristic scorer — see Implementation Notes            |
 | `class`         | `string`                                                     | —                    | Additional CSS classes, merged onto the field surface, not the bare `<input>` |
 | `ref`           | `HTMLInputElement \| null`                                   | `null`               | Bindable element reference                                                    |
+| `sound`         | `boolean`                                                    | `false`              | Plays `toggle-on`/`toggle-off` when the password is revealed or hidden        |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context — see Implementation
@@ -87,6 +88,57 @@ success token `FormField`, `CopyButton` and other components read:
 	--ft-status-done: oklch(0.72 0.15 145);
 }
 ```
+
+One optional variable tunes the motion. It falls back to the library-wide
+token, which falls back to a literal, so leaving it unset is the supported
+default:
+
+| Variable                          | Default                          | What it controls                                   |
+| --------------------------------- | -------------------------------- | -------------------------------------------------- |
+| `--ft-password-strength-duration` | `var(--ft-duration-fast, 150ms)` | How long a strength segment takes to change colour |
+
+## Motion
+
+- **The strength meter eases its colour**, 150 ms per segment, so a password
+  crossing a tier boundary mid-typing does not read as a flash. The segments
+  never change size: they are a four-segment meter, and growing them would
+  read as a progress bar filling rather than a tier changing.
+- **The reveal toggle cross-fades its two icons** over 80 ms rather than
+  cutting between them — at 16 px, a hard swap reads as a flicker. Both
+  glyphs are stacked in one grid cell, so they can overlap during the fade
+  without either one moving the other or changing the button's width.
+- **Reduced motion.** The icon cross-fade collapses to zero duration, which
+  makes Svelte skip the animation outright rather than run a zero-length one;
+  the glyph still swaps, instantly. The strength meter's colour easing is
+  deliberately **not** gated: a colour change is not motion, nothing about it
+  travels or scales, and gating it would make a tier change snap for exactly
+  the users who asked for a calmer interface.
+- Nothing about the accessible state depends on the fade. `aria-label` and
+  `aria-pressed` live on the `<button>`, not on either icon layer, and flip
+  in the same update as the reveal itself; both glyphs are `aria-hidden`, so
+  a screen reader never sees the overlap. The field's focus ring is a
+  `box-shadow` and is never animated.
+- **Touch and coarse pointers.** Nothing here follows the pointer or depends
+  on hover. The reveal toggle is a real `<button>`, reachable and operable
+  from the keyboard, and the selection restore that follows a toggle works
+  the same on touch.
+
+## Sound
+
+Set `sound` to play `toggle-on`/`toggle-off` through the shared sound
+controller (see [`sound/README.md`](../sound/README.md)) whenever the reveal
+button flips the field between hidden and shown:
+
+```svelte
+<PasswordInput bind:value={password} sound label="Password" />
+```
+
+The cue lands synchronously inside the click, before `toggleReveal`'s own
+`await tick()` that restores the caret — never after it, which would break
+the in-gesture rule the way an unresumed `AudioContext` would on a reload.
+Typing and the strength meter never play. Off by default; nothing plays
+unless both `sound` is set here **and** the user has turned sound on
+globally. Nothing plays while `disabled`.
 
 ## Implementation Notes
 

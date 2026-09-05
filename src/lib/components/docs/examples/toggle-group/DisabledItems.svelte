@@ -5,7 +5,7 @@
 </script>
 
 <div class="flex flex-col items-start gap-2">
-	<ToggleGroup bind:value={plan} label="Plan">
+	<ToggleGroup sound bind:value={plan} label="Plan">
 		<ToggleGroupItem value="starter">Starter</ToggleGroupItem>
 		<ToggleGroupItem value="team" disabled>Team</ToggleGroupItem>
 		<ToggleGroupItem value="enterprise">Enterprise</ToggleGroupItem>

@@ -1,4 +1,4 @@
-import { render, cleanup } from "@testing-library/svelte";
+import { render, cleanup, screen } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import DisplacementText from "./DisplacementText.svelte";
 
@@ -101,6 +101,11 @@ describe("DisplacementText", () => {
 	it("renders with custom text prop", () => {
 		const { container } = render(DisplacementText, { props: { text: "FancyUI" } });
 		expect(container.querySelector("div")).toBeTruthy();
+	});
+
+	it("exposes the text to assistive technology via an accessible img role", () => {
+		render(DisplacementText, { props: { text: "Hello" } });
+		expect(screen.getByRole("img", { name: "Hello" })).toBeTruthy();
 	});
 
 	describe("cleanup on unmount", () => {

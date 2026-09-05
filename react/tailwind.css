@@ -1,0 +1,132 @@
+/*
+ * Tailwind v4 integration for fancy-ui-react consumers.
+ *
+ * Usage in the consuming app's CSS:
+ *   @import "tailwindcss";
+ *   @import "fancy-ui-react/tailwind.css";
+ *
+ * The @source directive points Tailwind at this package's shipped output so
+ * every utility class the components use is generated in the consumer's build.
+ * Mirrors fancy-ui-svelte/tailwind.css.
+ */
+@source "./dist";
+
+/*
+ * Dark mode, declared here because this file is the one that defines the
+ * `.dark` token block (below). Tailwind v4's built-in `dark:` variant keys off
+ * the `prefers-color-scheme` media query alone, so a consumer who toggles
+ * `.dark` on <html> would get the token block flipped while every `dark:*`
+ * utility the components emit stayed on its light branch. This variant keeps
+ * BOTH behaviours coherent: a `.dark` ancestor forces dark, a `.light`
+ * ancestor forces light, and with neither the OS preference decides — which
+ * is what an app that never touches dark mode expects. `:where()` keeps the
+ * variant at zero specificity, so it never outranks a consumer's own rule.
+ *
+ * An app that declares its own `@custom-variant dark` after importing this
+ * file keeps it: the last declaration wins.
+ */
+@custom-variant dark {
+	&:where(.dark, .dark *) {
+		@slot;
+	}
+	@media (prefers-color-scheme: dark) {
+		&:where(:not(.light, .light *)) {
+			@slot;
+		}
+	}
+}
+
+/*
+ * The semantic colour names the components actually spend. None of them exist
+ * in Tailwind's default palette, and Tailwind v4 emits NO rule at all for an
+ * undeclared colour name — so without this block `border-border` and friends
+ * are inert: a Dialog gets no border, a Combobox popover no background.
+ *
+ * The list below is the full shadcn token set the components use, kept in sync
+ * with the utilities present in ./dist — every one of the 18 names is spent by
+ * at least one component.
+ *
+ * `@theme inline` on purpose: each utility resolves `var(--primary)` at USE
+ * time rather than baking a value in, so an app that already defines the
+ * shadcn token set (the common case, and where these names come from) keeps
+ * its own colours with no configuration here. The defaults below only fill in
+ * when nothing else defines them.
+ */
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+}
+
+/*
+ * Defaults, in `@layer base` rather than a bare `:root`: a consumer's own
+ * token block is almost always unlayered, and unlayered rules beat layered
+ * ones whatever the import order. So these apply when the app defines
+ * nothing, and lose the moment it does — no `!important`, no ordering
+ * requirement in the app's CSS. Values match the shadcn defaults the Svelte
+ * package's own docs site runs on, so the two packages look alike out of the
+ * box. `.dark` mirrors what the docs site switches to.
+ */
+@layer base {
+	:root {
+		/*
+		 * `color-scheme` is what decides which branch every `light-dark()` call
+		 * in dist/styles.css resolves to (133 of them), and it also sets the
+		 * UA colours for scrollbars, form controls and the caret. `light dark`
+		 * lets the OS preference decide by default, exactly like the `dark:`
+		 * variant above; `.dark` and `.light` (below) force one branch, so the
+		 * tokens, the utilities and the components' own `light-dark()` colours
+		 * always agree.
+		 */
+		color-scheme: light dark;
+
+		--background: light-dark(oklch(1 0 0), oklch(0.05 0 0));
+		--foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.984 0.003 247.858));
+		--card: light-dark(oklch(1 0 0), oklch(0.1 0.005 265));
+		--card-foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.984 0.003 247.858));
+		--popover: light-dark(oklch(1 0 0), oklch(0.1 0.005 265));
+		--popover-foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.984 0.003 247.858));
+		--primary: light-dark(oklch(0.208 0.042 265.755), oklch(0.929 0.013 255.508));
+		--primary-foreground: light-dark(oklch(0.984 0.003 247.858), oklch(0.05 0 0));
+		--secondary: light-dark(oklch(0.968 0.007 247.896), oklch(0.15 0.005 260));
+		--secondary-foreground: light-dark(oklch(0.208 0.042 265.755), oklch(0.984 0.003 247.858));
+		--muted: light-dark(oklch(0.968 0.007 247.896), oklch(0.15 0.005 260));
+		--muted-foreground: light-dark(oklch(0.554 0.046 257.417), oklch(0.704 0.04 256.788));
+		--accent: light-dark(oklch(0.968 0.007 247.896), oklch(0.15 0.005 260));
+		--accent-foreground: light-dark(oklch(0.208 0.042 265.755), oklch(0.984 0.003 247.858));
+		--destructive: light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216));
+		--border: light-dark(oklch(0.929 0.013 255.508), oklch(1 0 0 / 8%));
+		--input: light-dark(oklch(0.929 0.013 255.508), oklch(1 0 0 / 10%));
+		--ring: light-dark(oklch(0.704 0.04 256.788), oklch(0.551 0.027 264.364));
+	}
+
+	/*
+	 * The tokens above are `light-dark()` pairs, so forcing a branch is one
+	 * declaration: `.dark` and `.light` only switch `color-scheme`, and every
+	 * token — plus the components' own `light-dark()` colours and the UA
+	 * controls — follows.
+	 */
+	.dark {
+		color-scheme: dark;
+	}
+
+	/* Opt out of the OS preference for a subtree that must stay light. */
+	.light {
+		color-scheme: light;
+	}
+}

@@ -13,6 +13,7 @@
 {/snippet}
 
 <AlertDialog
+	sound
 	{trigger}
 	title="Sign out of all devices?"
 	description="Every other session, on every device, ends immediately."

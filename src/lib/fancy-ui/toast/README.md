@@ -80,6 +80,8 @@ At most 4 toasts are visible at once. Pushing a 5th dismisses the oldest to
 make room — toasts are a transient, glanceable channel, not a queue a user
 is expected to work through in order, so silently dropping the stalest one
 is preferable to either rejecting the newest or growing the stack unbounded.
+The evicted toast overlaps the newcomer for the length of its exit, so five
+panels share the screen for that moment — see [Motion](#motion).
 The list is keyed by each toast's own id, not its position, since dismissal
 frequently removes from the middle of the stack.
 
@@ -94,11 +96,12 @@ loading toast and raise a fresh one. No positioning per-toast; `<Toaster>`'s
 
 ### `<Toaster />`
 
-| Prop       | Type                     | Default          | Description                                                |
-| ---------- | ------------------------ | ---------------- | ---------------------------------------------------------- |
-| `position` | `ToasterPosition`        | `"bottom-right"` | Corner (or edge-center) the stack anchors to               |
-| `class`    | `string`                 | —                | Additional classes for the viewport that stacks the toasts |
-| `ref`      | `HTMLDivElement \| null` | `null`           | Bindable reference to the root node                        |
+| Prop       | Type                     | Default          | Description                                                                                   |
+| ---------- | ------------------------ | ---------------- | --------------------------------------------------------------------------------------------- |
+| `position` | `ToasterPosition`        | `"bottom-right"` | Corner (or edge-center) the stack anchors to                                                  |
+| `class`    | `string`                 | —                | Additional classes for the viewport that stacks the toasts                                    |
+| `ref`      | `HTMLDivElement \| null` | `null`           | Bindable reference to the root node                                                           |
+| `sound`    | `boolean`                | `false`          | Plays `success`/`error` when a toast of that variant appears, once the user has enabled sound |
 
 `ToasterPosition` is one of `"top-left"`, `"top-center"`, `"top-right"`,
 `"bottom-left"`, `"bottom-center"`, `"bottom-right"`.
@@ -123,7 +126,9 @@ outside the browser.
 ### `dismissToast(id)`
 
 Dismisses a toast immediately and clears its timer. Safe to call with an id
-that no longer exists.
+that no longer exists. "Immediately" is the store's word, not the screen's —
+the item leaves `toastStore.items` in the same tick, then the panel plays its
+exit before it leaves the DOM (see [Motion](#motion)).
 
 ### `<Toast />`
 
@@ -178,3 +183,54 @@ works with no consumer setup at all:
 
 The panel itself uses `bg-popover`/`text-popover-foreground`/`border-border`
 — tokens a consumer's theme is already expected to define, unlike the accent.
+
+## Sound
+
+Set `sound` on `<Toaster>` to play `success`/`error` when a toast of that variant arrives, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Toaster sound />
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the toaster **and** the user has turned sound on globally. `info` and `loading` toasts are always silent, and there is no per-call override — `sound` lives on `<Toaster>`, never as a `toast()` option, so one flag controls every toast this viewport raises. The cue rides the same seen-id dedupe the live-region announcement already uses, so each toast sounds exactly once, on arrival: nothing plays again for eviction, auto-dismiss, pausing/resuming, or the toast's own close/action buttons.
+
+## Motion
+
+A toast rises 8px into place over 300ms on the library's arrival curve, and
+sinks 4px away over 200ms on its departure curve when it is dismissed — half
+the travel and a shorter clock, because leaving reads faster than arriving.
+Both durations come from the library's shared scale — `base` for the
+arrival, `exit` for the departure — and only `opacity` and `transform`
+animate.
+
+A toast that already exists when its `<Toaster>` mounts appears without the
+entrance — the rise is for toasts raised into a viewport that is already on
+screen. That covers the two paths where a toast outlives its viewport: one
+raised before any `<Toaster>` had mounted, and one inherited by a viewport
+that replaced another. Both still appear; they just do not travel.
+
+Dismissal stays instant as far as your code is concerned. `dismissToast()` —
+and the toast's own close button, and the auto-dismiss deadline — removes the
+toast from the store in the same tick it always did; `toastStore.items` never
+lags. Only the panel stays on screen, for the length of its exit, and it is
+`inert` for that whole window: a leaving toast's close and action buttons
+cannot be clicked or tabbed into, so a dismissed toast can never act on a
+late click.
+
+- **Reduced motion** — both directions collapse to zero duration, which skips
+  the animation entirely rather than shortening it: a toast appears and
+  disappears in the same frame, exactly as it did before this component had a
+  transition at all. Nothing about a toast's content, its countdown, or its
+  announcement depends on the animation.
+- **Touch and coarse pointers** — unchanged. Neither direction is
+  pointer-gated, and the countdown still pauses on hover _or_ focus, so a
+  touch user reaching for an action gets the same protection.
+- **The loading spinner** is the one loop here, and it is gated the same way —
+  a `loading` toast under reduced motion shows a still ring rather than a
+  spinning one, and stays readable either way.
+- The travel direction is the same for every `<Toaster>` position: toasts rise
+  in and sink out wherever the stack is anchored. Making the entrance follow
+  the stack's own edge — a `top-*` toaster's toasts dropping in from above —
+  would mean teaching `<Toast>` about `position`, which is `<Toaster>`'s prop
+  and not part of `ToastProps`. Worth doing; not something this widens the
+  public surface for today.

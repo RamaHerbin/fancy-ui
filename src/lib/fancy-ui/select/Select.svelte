@@ -286,6 +286,9 @@
 	}
 
 	const context: SelectContext = {
+		get open() {
+			return open;
+		},
 		get panelId() {
 			return panelId;
 		},
@@ -294,6 +297,9 @@
 		},
 		get value() {
 			return value;
+		},
+		get label() {
+			return label;
 		},
 		get activeIndex() {
 			return listbox.activeIndex;

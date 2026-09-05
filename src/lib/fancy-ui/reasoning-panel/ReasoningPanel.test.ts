@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import ReasoningPanel from "./ReasoningPanel.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 /** Longer than the component's internal auto-collapse delay. */
 const PAST_AUTO_COLLAPSE = 1000;
@@ -201,5 +202,67 @@ describe("ReasoningPanel", () => {
 		await rerender({ text: "trace", open: false, onToggle });
 		expect(onToggle).toHaveBeenLastCalledWith(false);
 		expect(onToggle).toHaveBeenCalledTimes(2);
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays open exactly once when the reader expands the trace, with sound enabled", async () => {
+			vi.useFakeTimers();
+			const { container } = render(ReasoningPanel, { props: { text: "trace", sound: true } });
+
+			await fireEvent.click(header(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays close exactly once when the reader folds the trace back", async () => {
+			vi.useFakeTimers();
+			const { container } = render(ReasoningPanel, { props: { text: "trace", sound: true } });
+
+			await fireEvent.click(header(container));
+			play.mockClear();
+			await fireEvent.click(header(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			vi.useFakeTimers();
+			const { container } = render(ReasoningPanel, { props: { text: "trace" } });
+
+			await fireEvent.click(header(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when streaming opens the panel on its own", () => {
+			vi.useFakeTimers();
+			render(ReasoningPanel, { props: { text: "trace", streaming: true, sound: true } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("stays silent when the 600ms auto-collapse folds the panel on its own", async () => {
+			vi.useFakeTimers();
+			const { rerender } = render(ReasoningPanel, {
+				props: { text: "trace", streaming: true, sound: true },
+			});
+
+			await rerender({ text: "trace", streaming: false, sound: true });
+			await vi.advanceTimersByTimeAsync(PAST_AUTO_COLLAPSE);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

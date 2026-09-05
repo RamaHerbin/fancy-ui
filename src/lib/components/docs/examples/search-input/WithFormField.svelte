@@ -9,5 +9,5 @@
 </script>
 
 <FormField label="Find a component" description="Matches by name or tag." class="w-full max-w-sm">
-	<SearchInput bind:value={query} />
+	<SearchInput sound bind:value={query} />
 </FormField>

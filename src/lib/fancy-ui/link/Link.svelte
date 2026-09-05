@@ -25,11 +25,17 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLAnchorElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		href,
@@ -42,6 +48,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: LinkProps = $props();
 
 	// `external` only *defaults* the tab target — a caller who passes both
@@ -82,9 +89,23 @@
 			className
 		)
 	);
+
+	// The single call site for the cue: never a second listener, and never
+	// `preventDefault` — navigation is untouched, this only rides alongside it.
+	function handleClick(event: MouseEvent) {
+		if (sound) soundFx.play("press");
+		onclick?.(event);
+	}
 </script>
 
-<a bind:this={ref} {href} target={computedTarget} rel={computedRel} class={classes} {onclick}>
+<a
+	bind:this={ref}
+	{href}
+	target={computedTarget}
+	rel={computedRel}
+	class={classes}
+	onclick={handleClick}
+>
 	{@render children?.()}
 	{#if external}
 		<svg
@@ -141,5 +162,37 @@
 	.ft-link:focus-visible {
 		border-radius: 3px;
 		box-shadow: 0 0 0 3px color-mix(in oklch, var(--ft-link-accent) 35%, transparent);
+	}
+
+	/*
+	 * The external-link arrow nudges a pixel up and to the right on
+	 * interaction — the direction it points, so the gesture reads as "this
+	 * leaves the page" rather than as decoration. `--ft-ease-out` because the
+	 * arrow arrives; it does not toggle back and forth in place.
+	 *
+	 * `box-shadow` is deliberately absent from the transition list: it is the
+	 * focus ring above, and a focus ring must never animate.
+	 *
+	 * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-link-icon {
+			transition: transform var(--ft-link-icon-duration, var(--ft-duration-fast, 150ms))
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+		}
+
+		/* Keyboard parity is not optional, and it is not free-standing:
+		   `:focus-visible` is declared unconditionally while `:hover` is gated
+		   behind `(hover: hover)`, so a touch device that synthesises a sticky
+		   hover never leaves the arrow parked off-centre. */
+		.ft-link:focus-visible .ft-link-icon {
+			transform: translate(1px, -1px);
+		}
+
+		@media (hover: hover) {
+			.ft-link:hover .ft-link-icon {
+				transform: translate(1px, -1px);
+			}
+		}
 	}
 </style>

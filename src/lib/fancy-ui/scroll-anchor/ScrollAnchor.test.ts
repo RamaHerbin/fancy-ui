@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import ScrollAnchor from "./ScrollAnchor.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 // jsdom has no layout, so scrollHeight/clientHeight are always 0 and every
 // container reads as "already at the bottom". Patching them onto the instance
@@ -261,5 +262,56 @@ describe("ScrollAnchor", () => {
 		// gives the percentage something to resolve against.
 		const { container } = render(ScrollAnchor, { props: { children } });
 		expect((container.firstElementChild as HTMLElement).className).toContain("h-full");
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the press cue exactly once when the return pill is activated, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ScrollAnchor, { props: { children, sound: true } });
+			measure(region(container));
+
+			await scrollTo(region(container), 100);
+			await fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ScrollAnchor, { props: { children } });
+			measure(region(container));
+
+			await scrollTo(region(container), 100);
+			await fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing from handleStick or the geometry effect — only the pill's own click plays", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ScrollAnchor, { props: { children, sound: true } });
+			measure(region(container));
+
+			await scrollTo(region(container), 100);
+			await scrollTo(region(container), BOTTOM);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not double-fire: one pill click plays one cue, not two", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(ScrollAnchor, { props: { children, sound: true } });
+			measure(region(container));
+
+			await scrollTo(region(container), 100);
+			await fireEvent.click(pill(container) as HTMLButtonElement);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

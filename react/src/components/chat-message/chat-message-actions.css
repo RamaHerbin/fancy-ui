@@ -1,0 +1,30 @@
+/*
+ * Hidden by opacity rather than display: the rail keeps its box, so revealing
+ * it never reflows the message underneath. It stays focusable while invisible,
+ * which is the point of the `:focus-within` rule — a keyboard user tabbing
+ * into it makes it appear.
+ */
+.ft-message-actions {
+	opacity: 0;
+}
+
+.ft-message-actions.ft-visible,
+.ft-message-actions:focus-within {
+	opacity: 1;
+}
+
+/*
+ * There is no hover on a touch screen, so gating on it would hide the actions
+ * for good. Those pointers get a permanently visible rail.
+ */
+@media (hover: none) {
+	.ft-message-actions {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-message-actions {
+		transition: opacity 150ms ease;
+	}
+}

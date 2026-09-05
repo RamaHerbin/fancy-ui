@@ -70,6 +70,7 @@ Pin the bar to the top of the viewport with `sticky`:
 | `children` | `Snippet`                     | —       | The link's label                                                                           |
 | `class`    | `string`                      | —       | Additional CSS classes                                                                     |
 | `ref`      | `HTMLAnchorElement \| null`   | `null`  | Bindable element reference                                                                 |
+| `sound`    | `boolean`                     | `false` | Plays the `select` cue on activation, once the user has enabled sound                      |
 
 ## Accessibility
 
@@ -118,6 +119,41 @@ itself:
 	--ft-accent: oklch(0.7 0.18 200);
 }
 ```
+
+One optional variable tunes the motion. It falls back to the library-wide
+token, which falls back to a literal, so leaving it unset is the supported
+default:
+
+| Variable                      | Default                          | What it controls                                      |
+| ----------------------------- | -------------------------------- | ----------------------------------------------------- |
+| `--ft-navbar-signal-duration` | `var(--ft-duration-fast, 150ms)` | How long the current link's underline takes to arrive |
+
+## Motion
+
+- The current link's accent underline grows from `scaleX(0.4)` to full width
+  and fades in over 150 ms, on the same easing as the colour change beside
+  it, instead of appearing a frame ahead of it. It grows from its centre
+  rather than from a leading edge: this bar never travels between links, and
+  a centred origin reads the same in both writing directions.
+- The underline is painted by a `::before` pseudo-element rather than by the
+  anchor's own `box-shadow`. That leaves the anchor's shadow free to be its
+  focus ring — a focus ring must never animate, and until this change the
+  current link's own underline was suppressing its focus ring entirely.
+- **Reduced motion.** The growth is declared inside
+  `@media (prefers-reduced-motion: no-preference)`. Without that preference
+  the underline simply appears at full width. Nothing is hidden.
+- **Touch and coarse pointers.** The underline follows `current`, never the
+  pointer, so a coarse pointer needs no special handling.
+
+## Sound
+
+Set `sound` on a `NavbarLink` to play the `select` cue when it is activated, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<NavbarLink href="/docs" sound current={pathname === "/docs"}>Docs</NavbarLink>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the link **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` blocks the cue exactly like it blocks `onclick`. Activating a link that is already `current` also plays nothing — the cue marks moving to a different page, not re-clicking the one already open. `Navbar` itself carries no `sound` prop; it is layout only.
 
 ## Implementation Notes
 

@@ -38,12 +38,40 @@
 		class?: string;
 		/** Element reference. */
 		ref?: HTMLInputElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { preset } from "../_internals/motion/transitions.js";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
+
+	// The clear button appears mid-interaction, the instant the field stops
+	// being empty — a 150ms grow-and-fade is what stops it materialising as a
+	// hard pop next to the caret the user is watching.
+	//
+	// `in:` and never `transition:`, deliberately: `clearValue()` calls
+	// `ref?.focus()` synchronously right after emptying the field, and the
+	// button's own `{#if}` goes false in the same update. An outro would keep
+	// the button mounted past that focus call, reordering focus against
+	// `onValueChange` for anything listening. The exit is left for a later
+	// pass that can move the focus handoff first.
+	//
+	// `prefersReducedMotion()` is called from the params expression at the
+	// call site rather than stored here, because Svelte re-evaluates a
+	// directive's params on every invocation: the preference is read at the
+	// instant the transition starts, never at construction and never during
+	// SSR. `duration: 0` makes Svelte skip `element.animate()` outright
+	// instead of running a zero-length animation.
+	const pop = preset("scale");
 
 	let {
 		value = $bindable(""),
@@ -61,6 +89,7 @@
 		clearable = true,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: SearchInputProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -155,6 +184,7 @@
 	function clearValue() {
 		if (effectiveDisabled || readonly) return;
 		value = "";
+		if (sound) soundFx.play("press");
 		onValueChange?.("");
 		clearDebounce();
 		// The button that triggered this is about to disappear (it only
@@ -208,6 +238,7 @@
 			class="ft-search-input-clear text-muted-foreground hover:bg-accent hover:text-accent-foreground flex size-[18px] shrink-0 items-center justify-center rounded-full"
 			aria-label="Clear search"
 			onclick={clearValue}
+			in:pop={{ duration: prefersReducedMotion() ? 0 : DURATIONS.fast }}
 		>
 			<svg
 				class="size-2.5"

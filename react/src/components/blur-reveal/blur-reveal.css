@@ -1,0 +1,67 @@
+.blur-reveal-wrapper > * {
+	opacity: 0;
+	filter: blur(var(--blur-reveal-blur, 20px));
+	transform: translateY(var(--blur-reveal-y, 20px));
+	transition:
+		opacity var(--blur-reveal-duration, 1s) ease-in-out,
+		filter var(--blur-reveal-duration, 1s) ease-in-out,
+		transform var(--blur-reveal-duration, 1s) ease-in-out;
+}
+
+.blur-reveal-wrapper.is-visible > * {
+	opacity: 1;
+	filter: blur(0px);
+	transform: translateY(0);
+}
+
+/* Stagger delays for direct children */
+.blur-reveal-wrapper.is-visible > :nth-child(1) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 0);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(2) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 1);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(3) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 2);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(4) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 3);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(5) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 4);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(6) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 5);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(7) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 6);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(8) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 7);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(9) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 8);
+}
+.blur-reveal-wrapper.is-visible > :nth-child(10) {
+	transition-delay: calc(var(--blur-reveal-delay, 0.2s) * 9);
+}
+
+/* Hard mode: no blur/translate softening, opacity snaps in via a stepped timing function */
+.blur-reveal-wrapper.mode-hard > * {
+	opacity: 0;
+	filter: none;
+	transform: none;
+	transition: opacity var(--blur-reveal-duration, 1s) steps(2, jump-none);
+}
+
+.blur-reveal-wrapper.mode-hard.is-visible > * {
+	opacity: 1;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.blur-reveal-wrapper > * {
+		transition-duration: 0.1s !important;
+		transition-delay: 0s !important;
+	}
+}

@@ -1,0 +1,31 @@
+/* `.direction-aware-hover` is a port-added anchor (PORTING.md styling rule 2):
+   the source's two rules were `:global()` inside a `<style>` block that only
+   reaches a page which imports the component, because the Svelte package ships
+   raw `.svelte` sources and no aggregated stylesheet. This package aggregates
+   every component `.css` into the single `dist/styles.css` that README tells
+   consumers to import once, so the same two rules would apply to every app that
+   imports the package — including apps that never render this component. Both
+   are therefore anchored on the component's own root class so their reach
+   matches the Svelte side's: the component and what it contains.
+
+   The first rule anchors here rather than on `.group\/card` because that name
+   is Tailwind's shared named-group vocabulary, not this component's identity —
+   any consumer element carrying `group/card` would otherwise be forced to a
+   44px minimum box. The root element carries both classes, so the element the
+   source targeted is still the element targeted. */
+
+/* Enhanced mobile touch targets */
+@media (max-width: 768px) {
+	.direction-aware-hover {
+		min-height: 44px;
+		min-width: 44px;
+	}
+}
+
+/* Smooth transitions for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+	.direction-aware-hover,
+	.direction-aware-hover * {
+		transition-duration: 0.1s !important;
+	}
+}

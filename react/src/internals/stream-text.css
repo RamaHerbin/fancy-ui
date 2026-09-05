@@ -1,0 +1,26 @@
+/*
+ * Reduced motion gets plain text at its final colour: with the whole rule
+ * behind the query there is no animation to shorten or fall back from.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	/*
+	 * Anchored on the component's own root class. The source rule lived in a
+	 * compiler-scoped block, so it only ever matched this component's own
+	 * segments; a bare `.ft-fresh` in a shipped stylesheet would hand the
+	 * 350ms tint to any consumer element that happens to carry the class.
+	 */
+	.ft-stream .ft-fresh {
+		animation: ft-tint var(--ft-settle, 350ms) ease-out;
+	}
+
+	@keyframes ft-tint {
+		from {
+			color: var(--ft-tint-color, oklch(0.65 0.15 250));
+			opacity: 0.6;
+		}
+		to {
+			color: inherit;
+			opacity: 1;
+		}
+	}
+}

@@ -51,6 +51,185 @@ jobs:
       - run: pnpm build
       - run: pnpm package
 
+  react:
+    name: React package
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # react/ is a workspace member — one install at the root covers it.
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter fancy-ui-react run check
+      - run: pnpm --filter fancy-ui-react run test
+      - run: pnpm --filter fancy-ui-react run build
+      # The port's record of truth is only true if something reads it: folders
+      # exist, matrix exports are reachable from the barrel, no divergence still
+      # claims a gap the tree has closed — and, the other way round, nothing the
+      # package publishes is missing from the record. That converse pass reads
+      # the runtime export list out of dist/index.js, because a regex over the
+      # source cannot tell `export type { X }` from a value a consumer can
+      # import, so the step runs after `build` and `--require-dist` makes a
+      # missing artifact a failure rather than a silent half-check.
+      - run: pnpm --filter fancy-ui-react exec node scripts/check-matrix.mjs --require-dist
+      - run: pnpm --filter fancy-ui-react exec publint
+
+      - name: Pack dry-run — allow-list sanity
+        working-directory: react
+        run: |
+          npm pack --dry-run --json > /tmp/pack.json
+          node -e "
+            const files = require('/tmp/pack.json')[0].files.map(f => f.path);
+            const stray = files.filter(p =>
+              !p.startsWith('dist/') &&
+              !['tailwind.css','PORTING.md','package.json','README.md','LICENSE'].includes(p));
+            if (stray.length) { console.error('stray files in pack:', stray); process.exit(1); }
+            // Three patterns, not one. The Svelte package names its rigs
+            // <Name>Harness.test.svelte, so '.test.' alone caught them; the React
+            // port renamed them <Name>Harness.tsx and 14 declaration files walked
+            // straight through this gate. tsconfig.build.json excludes them now —
+            // this is what notices if a future rename slips past it again.
+            const leaked = files.filter(p =>
+              p.includes('.test.') || p.includes('Harness.') || p.includes('web-audio-mock'));
+            if (leaked.length) { console.error('test files in pack:', leaked); process.exit(1); }
+            console.log(files.length + ' files, allow-list clean');
+          "
+
+      # The App Router example is the SSR/hydration gate: its prerender runs
+      # every imported module server-side, and the build fails if the
+      # "use client" boundary or any render path touches browser globals.
+      - run: pnpm --filter fancy-ui-react-example-next run build
+
+      # The "use client" boundary used to be checked here, by grepping two files
+      # for the banner. It is checked by `build` now, in
+      # react/scripts/check-dist-shape.mjs, which re-derives the whole split
+      # from dist and fails in either direction — a component that lost the
+      # directive, and a module that gained one it does not need. Two greps
+      # could not have caught the second, which is the one that silently breaks
+      # RSC consumers.
+      - name: Resolve every declared subpath
+        working-directory: react
+        run: |
+          node --input-type=module -e "
+            const subpaths = ['fancy-ui-react', 'fancy-ui-react/cameleon',
+              'fancy-ui-react/styles.css', 'fancy-ui-react/tailwind.css',
+              'fancy-ui-react/package.json'];
+            const failed = [];
+            for (const specifier of subpaths) {
+              try { import.meta.resolve(specifier); }
+              catch (error) { failed.push(specifier + ': ' + error.code); }
+            }
+            if (failed.length) { console.error('unresolvable subpaths:', failed); process.exit(1); }
+            console.log(subpaths.length + ' subpaths resolve');
+          "
+
+  react-18:
+    name: React package — React 18 floor
+    # peerDependencies advertise `react: ^18.0.0 || ^19.0.0`, and until this job
+    # existed nothing in the repo ever installed React 18: the workspace pins
+    # react 19.1 and @types/react 19, the example app pins 19, and the `react`
+    # job above runs one install. Any React-19-only detail that slipped in
+    # reached React 18 consumers as a console error or a broken component with a
+    # green pipeline behind it.
+    #
+    # Two halves, because neither reaches the other's surface. The workspace is
+    # re-installed on React 18 and the package's own suites run against it —
+    # that is the client runtime, where the 18/19 deltas live: ref-callback
+    # cleanup (use-element-ref guards it and nothing proved the guard),
+    # hydrateRoot's onRecoverableError routing the sweep depends on, `act`
+    # flushing, and useSyncExternalStore's server snapshot, which the sound
+    # hooks are built on. Then the tarball is installed into a throwaway
+    # consumer next to @types/react 18 and every emitted declaration is
+    # compiled with skipLibCheck off — the declaration surface, which no test
+    # reads.
+    #
+    # A whole-workspace override rather than a resolve alias: an alias moves
+    # `react` for the files Vite transforms and leaves `@testing-library/react`
+    # resolving the workspace's React 19 through Node, which puts two copies of
+    # React in one tree and fails 300 tests for a reason that is not the
+    # package's. Overriding makes the whole graph agree.
+    #
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Job-local, never committed: the checkout is thrown away with the runner.
+      - name: Pin the workspace to the React 18 floor
+        run: |
+          cat >> pnpm-workspace.yaml <<'YAML'
+
+          # Added by the react-18 CI job. Not committed.
+          overrides:
+            react: ^18.3.1
+            react-dom: ^18.3.1
+            "@types/react": ^18.3.0
+            "@types/react-dom": ^18.3.0
+          YAML
+
+      # --no-frozen-lockfile because the override is the point: the lockfile
+      # pins React 19 and must be allowed to re-resolve here.
+      - run: pnpm install --no-frozen-lockfile
+
+      - name: Confirm the workspace really is on React 18
+        working-directory: react
+        run: |
+          version=$(node -p "require('react/package.json').version")
+          types=$(node -p "require('@types/react/package.json').version")
+          echo "react@$version, @types/react@$types"
+          case "$version" in 18.*) ;; *) echo "expected React 18, got $version"; exit 1 ;; esac
+          case "$types" in 18.*) ;; *) echo "expected @types/react 18, got $types"; exit 1 ;; esac
+
+      # The source against @types/react 18: React 19 relaxed several type
+      # shapes (a mutable `RefObject.current`, `ReactNode` accepting a promise),
+      # and code written against the looser ones compiles here or it does not.
+      - run: pnpm --filter fancy-ui-react run check
+
+      - name: Package suites under React 18
+        working-directory: react
+        run: |
+          pnpm exec vitest run \
+            src/ssr-hydration.test.tsx src/ssr-determinism.test.ts \
+            src/internals src/sound
+
+      - run: pnpm --filter fancy-ui-react run build
+
+      - name: Consumer on React 18 — declarations and server render
+        working-directory: react
+        run: node scripts/react18-consumer.mjs
+
   changeset:
     name: Changeset present
     if: |

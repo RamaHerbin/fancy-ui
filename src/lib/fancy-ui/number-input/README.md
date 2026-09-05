@@ -65,6 +65,24 @@ the surrounding field supplies `controlId`, `aria-describedby`,
 | `label`         | `string`                          | —       | Accessible name — for a control with no visible Label next to it              |
 | `class`         | `string`                          | —       | Additional CSS classes, applied to the outer bordered wrapper                 |
 | `ref`           | `HTMLInputElement \| null`        | `null`  | Bindable reference to the underlying `<input>`                                |
+| `sound`         | `boolean`                         | `false` | Plays the `tick` cue on each step, once sound is on                           |
+
+## Sound
+
+Set `sound` to play the `tick` cue through the shared sound controller (see
+[`sound/README.md`](../sound/README.md)) each time the value steps by one
+increment — via the `−`/`+` buttons or the `ArrowUp`/`ArrowDown` keys, both
+of which funnel through the same `applyStep`:
+
+```svelte
+<NumberInput bind:value={quantity} sound label="Quantity" />
+```
+
+Typing a digit and the blur-time clamp to `min`/`max` never play — only an
+actual step does. Off by default; nothing plays unless both `sound` is set
+here **and** the user has turned sound on globally. Nothing plays while
+`disabled` or `readonly`, or once a step would cross `min`/`max` — the same
+guards that already grey out the stepper buttons.
 
 ## Implementation Notes
 
@@ -123,6 +141,9 @@ the surrounding field supplies `controlId`, `aria-describedby`,
 - Typing is not clamped keystroke-by-keystroke — that would make it
   impossible to type "50" past a lower number without every intermediate
   digit getting clipped. Clamping happens on blur instead.
+- **The one timer.** Stepping raises `data-stepping` for 80 ms (see
+  [Motion](#motion)) through a single `setTimeout` that is re-armed rather
+  than stacked, and cleared on unmount. Nothing else here schedules anything.
 
 ## Theming
 
@@ -139,3 +160,47 @@ and can be retinted from anywhere up the tree:
 Everything else — the field fill, the border, the disabled dimming, the step
 buttons — uses the theme's own semantic tokens, so it follows the light/dark
 switch and the theme generator with no per-theme overrides.
+
+Two optional variables tune the step buttons' press feedback. Both have a
+literal default, so setting neither is the supported default:
+
+| Variable                          | Default | What it controls                                    |
+| --------------------------------- | ------- | --------------------------------------------------- |
+| `--ft-number-input-press-scale`   | `0.97`  | How far a step button shrinks while held down       |
+| `--ft-number-input-press-opacity` | `0.85`  | The pressed fade used instead, under reduced motion |
+
+## Motion
+
+- Holding either step button scales it to `0.97` for as long as it is held, in
+  150 ms (`--ft-duration-fast`) on `--ft-ease-inout`. That is the whole of the
+  press feedback: repeating a step should feel like pressing a key, not like
+  starting an animation.
+- **The arrow keys get the same feedback, from the same rule.** A pointer press
+  paints itself through `:active`; a key press has no `:active` to paint, so
+  stepping with ArrowUp/ArrowDown raises `data-stepping="true"` on the matching
+  button for 80 ms (`DURATIONS.micro`) and the stylesheet extends the `:active`
+  selector to cover it. One shared visual answer to "that stepper just fired",
+  whichever device fired it — no second keyframe, and so nothing to restart
+  when a held key repeats. A held key re-arms the same timer rather than
+  stacking new ones, so the feedback holds for the whole repeat instead of
+  dropping out inside it. Typing never raises it: the flag is set on an actual
+  step and nowhere else.
+- The hover colour change on those buttons runs on the same 150 ms clock. It is
+  written by hand in the component's scoped stylesheet rather than by the
+  `transition-colors` utility, which the scoped `transition` shorthand on the
+  same element would have replaced silently.
+- **The value itself never animates.** Typing, arrow-key stepping and a button
+  press all land the new number instantly — a digit that pops on every
+  keystroke fights the typing instead of acknowledging it.
+- **Reduced motion.** The press scale is declared inside
+  `@media (prefers-reduced-motion: no-preference)`. With the preference set the
+  press is acknowledged with an `opacity: 0.85` fade instead — never both at
+  once — and that fade is declared outside the query, so a browser that
+  supports neither still shows a pressed state. `data-stepping` is a state
+  flag, not motion, so it is raised either way; the query only decides which of
+  those two declarations it drives.
+- **Touch and coarse pointers.** `:active` is exactly the affordance a finger
+  gets, so the press feedback is not suppressed on touch. Both buttons carry
+  `touch-action: manipulation`, which removes the browser's ~300 ms tap delay
+  without blocking scrolling — stepping a value is the one interaction here a
+  finger repeats, so that delay is felt.

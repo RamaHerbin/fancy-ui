@@ -73,9 +73,22 @@
 		);
 	}
 
+	/*
+	 * A NAMED exception to "only opacity and transform animate": a collapsing
+	 * sidebar is a layout change and there is no transform that reflows the
+	 * content beside it. Kept, retokenised, and declared as an exception rather
+	 * than quietly claiming compliance.
+	 *
+	 * The curve is `--ft-ease-inout`, not `--ft-ease-out`: a collapse is a
+	 * reversible state flip, not an arrival, and it has to read the same in
+	 * both directions.
+	 *
+	 * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout
+	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-sidebar {
-			transition: width 0.15s ease-out;
+			transition: width var(--ft-sidebar-collapse-duration, var(--ft-duration-fast, 150ms))
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 		}
 	}
 </style>

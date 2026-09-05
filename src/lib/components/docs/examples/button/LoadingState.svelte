@@ -10,6 +10,6 @@
 	}
 </script>
 
-<Button loading={saving} onclick={save}>
+<Button sound loading={saving} onclick={save}>
 	{saving ? "Saving..." : "Save changes"}
 </Button>

@@ -26,12 +26,19 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLElement | null;
+		/**
+		 * Plays the select cue through the sound controller. Off by default;
+		 * only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
+	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { buildPageRange } from "./pagination-range.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		page = $bindable(1),
@@ -46,6 +53,7 @@
 		nextLabel,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: PaginationProps = $props();
 
 	const items = $derived(buildPageRange(page, count, siblingCount, boundaryCount));
@@ -68,11 +76,31 @@
 	const isFirst = $derived(safePage <= 1);
 	const isLast = $derived(safePage >= safeCount);
 
+	// The current-page pill pops when the page changes — but a bare
+	// `[aria-current="page"] { animation: … }` also fires on first paint, for
+	// whichever page happens to already be current. That reads as a glitch on
+	// load, so the animation is armed only once the page has really moved, and
+	// the flag is a `data-*` attribute the CSS selects on rather than a class
+	// (nothing else keys off it, and it stays out of the merged class string).
+	//
+	// Armed off `safePage`, not from inside `goTo()`: a controlled `Pagination`
+	// whose `page` prop is changed from outside never calls `goTo`, and its pill
+	// should pop just the same. `untrack` seeds the baseline with the page the
+	// component started on without making the seed itself reactive.
+	let popArmed = $state(false);
+	let lastPage = untrack(() => safePage);
+	$effect(() => {
+		if (safePage === lastPage) return;
+		lastPage = safePage;
+		popArmed = true;
+	});
+
 	function goTo(next: number) {
 		if (disabled) return;
 		const clamped = Math.max(1, Math.min(Math.floor(next), Math.max(safeCount, 1)));
 		if (clamped === page) return;
 		page = clamped;
+		if (sound) soundFx.play("select");
 		onPageChange?.(clamped);
 	}
 
@@ -102,7 +130,12 @@
 		"inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50";
 </script>
 
-<nav bind:this={ref} aria-label={label} class={cn("ft-pagination", className)}>
+<nav
+	bind:this={ref}
+	aria-label={label}
+	data-armed={popArmed ? "true" : undefined}
+	class={cn("ft-pagination", className)}
+>
 	<ul class="flex items-center gap-1">
 		{#if showEdges}
 			<li>
@@ -222,5 +255,34 @@
 
 	.ft-pagination button:focus-visible {
 		box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-nav-accent) 35%, transparent);
+	}
+
+	/*
+	 * The newly-current page pops once, so the eye can find where it landed
+	 * without hunting for a colour change among nine identical squares.
+	 *
+	 * `transform` only: `box-shadow` on this same button is the focus ring
+	 * above, and a focus ring must never animate. `data-armed` keeps the pop
+	 * off the first paint (see the script). `--ft-ease-out` because the pill
+	 * arrives at its new place — it is not toggling in position.
+	 *
+	 * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-pagination[data-armed="true"] button[aria-current="page"] {
+			animation: ft-pagination-pop var(--ft-pagination-pop-duration, var(--ft-duration-fast, 150ms))
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+		}
+	}
+
+	/* 0.92 is the library's scale floor — the same value every entrance preset
+	   starts from, so a pop and a panel opening read as one vocabulary. */
+	@keyframes ft-pagination-pop {
+		from {
+			transform: scale(0.92);
+		}
+		to {
+			transform: scale(1);
+		}
 	}
 </style>

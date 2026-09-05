@@ -1,0 +1,84 @@
+/*
+ * Every colour is read at the point of use through two hooks: this card's own
+ * `--ft-rec-*`, then the `--ft-status-*` vocabulary the whole AI family shares,
+ * then the literal. Setting either anywhere up the tree retints the card
+ * without having to win a specificity fight against these rules, and the shared
+ * one recolours every sibling component at once.
+ */
+.ft-rec-badge {
+	letter-spacing: 0.08em;
+}
+
+.ft-rec-ring {
+	width: var(--ft-rec-ring-size, 1.75rem);
+	height: var(--ft-rec-ring-size, 1.75rem);
+}
+
+.ft-rec-ring-track {
+	stroke: var(--ft-rec-track, color-mix(in oklab, currentColor 15%, transparent));
+}
+
+/*
+ * The band is carried by the arc's length as much as by its hue — a quarter
+ * ring and a full ring are told apart without seeing colour at all, and the
+ * figure beside it says the number in words either way.
+ */
+.ft-rec-ring-value.ft-status-done {
+	stroke: var(
+		--ft-rec-high,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}
+
+.ft-rec-ring-value.ft-status-running {
+	stroke: var(
+		--ft-rec-medium,
+		var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+	);
+}
+
+.ft-rec-ring-value.ft-status-pending {
+	stroke: var(
+		--ft-rec-low,
+		var(--ft-status-pending, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260)))
+	);
+}
+
+/* A dismissal is not a failure, so it stays deliberately quiet. */
+.ft-rec-resolved {
+	color: var(--ft-rec-dismissed, color-mix(in oklab, currentColor 65%, transparent));
+}
+
+.ft-rec-resolved.ft-accepted {
+	color: var(
+		--ft-rec-accepted,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}
+
+/*
+ * Both moving parts live behind the query, so reduced motion is not a degraded
+ * variant to keep in sync: the ring is drawn at its final length and the
+ * footer simply swaps, with the same colours and the same words. The counter
+ * is JS-driven and collapses its own duration alongside.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-rec-ring-value {
+		transition: stroke-dashoffset 700ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.ft-rec-resolved {
+		animation: ft-rec-resolve-in 240ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}
+
+@keyframes ft-rec-resolve-in {
+	from {
+		opacity: 0;
+		transform: translateY(-3px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}

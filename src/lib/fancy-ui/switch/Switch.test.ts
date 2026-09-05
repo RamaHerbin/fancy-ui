@@ -243,6 +243,51 @@ describe("Switch", () => {
 		expect(el.disabled).toBe(true);
 	});
 
+	// The knob's slide is the only motion in this component and it is entirely
+	// CSS: the `translateX` that puts the knob at the far end of the track is
+	// declared outside `@media (prefers-reduced-motion: no-preference)`, and
+	// only the transition that animates the trip lives inside it — so under the
+	// preference the knob still lands in the right place, it just snaps. jsdom
+	// computes neither a media block nor a `::after`, so what a test can honestly
+	// pin is the contract the CSS keys off: `checked` / `aria-checked` /
+	// `data-size` flip exactly when they did, gated on nothing.
+	it("reduced motion: the checked and size contract driving the knob is unchanged", async () => {
+		// Discriminating stub: `(prefers-reduced-motion: reduce)` and
+		// `(prefers-reduced-motion: no-preference)` are complementary, so a blanket
+		// `matches: true` would answer yes to both and silently satisfy either branch
+		// the moment this component grows a `createReducedMotion()` read. Matching on
+		// the substring "reduce" does NOT discriminate — "prefers-reduced-motion"
+		// contains it — hence the anchored `: reduce` test.
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: /prefers-reduced-motion:\s*reduce\b/.test(query),
+			media: query,
+			onchange: null,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+
+		try {
+			const onCheckedChange = vi.fn();
+			const { container } = render(Switch, {
+				props: { checked: false, size: "lg", onCheckedChange, label: "Notifications" },
+			});
+			const el = toggle(container);
+
+			expect(el.getAttribute("data-size")).toBe("lg");
+
+			await fireEvent.click(el);
+
+			expect(el.checked).toBe(true);
+			expect(el.getAttribute("aria-checked")).toBe("true");
+			expect(onCheckedChange).toHaveBeenCalledWith(true);
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
 	describe("sound", () => {
 		afterEach(() => {
 			vi.restoreAllMocks();

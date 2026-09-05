@@ -419,6 +419,53 @@ describe("RadioGroup", () => {
 		expect(ref).toBe(group(container));
 	});
 
+	// The dot now scales in from a `::after` that exists in both states rather
+	// than being created by `:checked` — a pseudo-element that does not exist
+	// yet has nothing to grow from. Its resting `scale(0)` / `scale(1)` pair is
+	// declared outside `@media (prefers-reduced-motion: no-preference)` and only
+	// the transition between them inside it, so under the preference the dot is
+	// simply there the instant the item is selected. jsdom computes neither a
+	// pseudo-element nor a media block; what it can pin is the selector the CSS
+	// keys off — `:checked` on `.ft-radio-item-control` — and that the selection
+	// contract is gated on nothing.
+	it("reduced motion: selection still drives the :checked hook the dot is keyed off", async () => {
+		// Discriminating stub: `(prefers-reduced-motion: reduce)` and
+		// `(prefers-reduced-motion: no-preference)` are complementary, so a blanket
+		// `matches: true` would answer yes to both and silently satisfy either branch
+		// the moment this component grows a `createReducedMotion()` read. Matching on
+		// the substring "reduce" does NOT discriminate — "prefers-reduced-motion"
+		// contains it — hence the anchored `: reduce` test.
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: /prefers-reduced-motion:\s*reduce\b/.test(query),
+			media: query,
+			onchange: null,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+
+		try {
+			const onValueChange = vi.fn();
+			const { container } = render(Harness, { props: { items: ITEMS, onValueChange } });
+			const a = byLabel(container, "Option A");
+			const b = byLabel(container, "Option B");
+
+			expect(a.className).toContain("ft-radio-item-control");
+			expect(a.checked).toBe(false);
+
+			await fireEvent.click(b);
+			await tick();
+
+			expect(b.checked).toBe(true);
+			expect(a.checked).toBe(false);
+			expect(onValueChange).toHaveBeenCalledWith("b");
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
 	describe("sound", () => {
 		afterEach(() => {
 			vi.restoreAllMocks();

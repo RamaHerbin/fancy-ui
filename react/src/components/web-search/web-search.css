@@ -1,0 +1,111 @@
+.ft-websearch {
+	/* Neutral surfaces are mixes of currentColor, so one set of values reads
+	   correctly in both themes. The beam cannot do that — an accent that is a
+	   fade of the text colour is not an accent — so it is read at its point of
+	   use off the `--ft-status-*` vocabulary this family shares, whose defaults
+	   are per-theme `light-dark()` pairs. */
+	--ft-websearch-track: color-mix(in oklab, currentColor 12%, transparent);
+	--ft-websearch-monogram-bg: color-mix(in oklab, currentColor 10%, transparent);
+	--ft-websearch-scan-duration: 1.4s;
+	--ft-websearch-enter-duration: 260ms;
+	--ft-websearch-snippet-lines: 2;
+}
+
+.ft-websearch-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ft-websearch-scan {
+	position: relative;
+	height: 2px;
+	overflow: hidden;
+	border-radius: 9999px;
+	background: var(--ft-websearch-track);
+}
+
+/*
+ * Reduced motion gets a filled bar rather than a parked beam: a 40% sliver
+ * frozen at the left edge reads as a progress bar stuck at 40%, which is a
+ * claim this component cannot make.
+ */
+.ft-websearch-beam {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	border-radius: inherit;
+	background: var(
+		--ft-websearch-beam,
+		var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+	);
+	opacity: 0.45;
+}
+
+.ft-websearch-monogram {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	/* Sits on the middle of the title's line box rather than its top. */
+	margin-top: 0.0625rem;
+	width: 1.25rem;
+	height: 1.25rem;
+	border-radius: 9999px;
+	background: var(--ft-websearch-monogram-bg);
+	font-size: 0.625rem;
+	font-weight: 600;
+	line-height: 1;
+}
+
+/* The clamp owns `display`, so the snippet carries no display utility. */
+.ft-websearch-snippet {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: var(--ft-websearch-snippet-lines);
+	line-clamp: var(--ft-websearch-snippet-lines);
+	overflow: hidden;
+	line-height: 1.45;
+}
+
+/*
+ * Both animations live entirely inside `no-preference`, so reduced motion is
+ * not a degraded variant to keep in sync: a new row simply appears where it
+ * belongs, and the scanning bar is a steady tint instead of a sweep.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-websearch-item {
+		animation: ft-websearch-enter var(--ft-websearch-enter-duration) cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.ft-websearch-beam {
+		right: auto;
+		width: 40%;
+		opacity: 1;
+		animation: ft-websearch-scan var(--ft-websearch-scan-duration) ease-in-out infinite;
+	}
+}
+
+@keyframes ft-websearch-enter {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* 250% of a 40%-wide beam is one full track, so it leaves on the right exactly
+   as it entered on the left. */
+@keyframes ft-websearch-scan {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(250%);
+	}
+}

@@ -1,0 +1,180 @@
+.ft-subagents {
+	/* Track and badge are mixes of currentColor, so one set of values reads
+	   correctly in both themes. The dot and the bar fill cannot do that — they
+	   are the status vocabulary — so they are read at their point of use off the
+	   shared `--ft-status-*` names, whose defaults are `light-dark()` pairs. A
+	   dot is a graphical object and owes 3:1, which is why the light half of the
+	   grey pair is 0.5 rather than 0.55. */
+	--ft-subagents-row-pad: 0.375rem;
+	--ft-subagents-dot-size: 0.5rem;
+	--ft-subagents-track: color-mix(in oklab, currentColor 14%, transparent);
+	--ft-subagents-track-width: 3.5rem;
+	--ft-subagents-track-height: 0.25rem;
+	--ft-subagents-badge-bg: color-mix(in oklab, currentColor 8%, transparent);
+	--ft-subagents-enter-duration: 320ms;
+	--ft-subagents-fill-duration: 320ms;
+}
+
+.ft-subagents-compact {
+	--ft-subagents-row-pad: 0.1875rem;
+}
+
+.ft-subagents-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ft-subagents-body {
+	padding: var(--ft-subagents-row-pad) 0.5rem;
+}
+
+.ft-subagents-dot {
+	position: relative;
+	display: inline-block;
+	flex: none;
+	/* Half a 1.25rem line box minus half the dot: the dot sits on the middle of
+	   the name, not of the two-line row. */
+	margin-top: calc((1.25rem - var(--ft-subagents-dot-size)) / 2);
+	width: var(--ft-subagents-dot-size);
+	height: var(--ft-subagents-dot-size);
+	border-radius: 9999px;
+}
+
+/* Hollow: nothing has happened yet, or nothing ever will. */
+.ft-subagents-dot.ft-status-pending {
+	box-shadow: inset 0 0 0 1.5px
+		var(
+			--ft-subagents-pending,
+			color-mix(
+				in oklab,
+				var(--ft-status-pending, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260))) 55%,
+				transparent
+			)
+		);
+}
+
+.ft-subagents-dot.ft-status-cancelled {
+	box-shadow: inset 0 0 0 1.5px
+		var(
+			--ft-subagents-cancelled,
+			color-mix(
+				in oklab,
+				var(--ft-status-cancelled, light-dark(oklch(0.5 0.02 260), oklch(0.72 0.02 260))) 40%,
+				transparent
+			)
+		);
+}
+
+.ft-subagents-dot.ft-status-running {
+	background: var(
+		--ft-subagents-running,
+		var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+	);
+}
+
+.ft-subagents-dot.ft-status-done {
+	background: var(
+		--ft-subagents-done,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}
+
+.ft-subagents-dot.ft-status-error {
+	background: var(
+		--ft-subagents-error,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+}
+
+.ft-subagents-model {
+	border-radius: 0.25rem;
+	background: var(--ft-subagents-badge-bg);
+	padding: 0 0.25rem;
+	font-size: 0.625rem;
+	line-height: 1rem;
+}
+
+.ft-subagents-task {
+	font-size: 0.75rem;
+	line-height: 1.25;
+}
+
+.ft-subagents-meta {
+	/* Matches the name's line box, so the caption and the bar both land on the
+	   first line rather than in the middle of a two-line row. */
+	min-height: 1.25rem;
+	margin-left: auto;
+}
+
+.ft-subagents-state {
+	font-size: 0.75rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.ft-subagents-progress {
+	display: block;
+	width: var(--ft-subagents-track-width);
+	height: var(--ft-subagents-track-height);
+	overflow: hidden;
+	border-radius: 9999px;
+	background: var(--ft-subagents-track);
+}
+
+.ft-subagents-progress-fill {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: var(
+		--ft-subagents-bar,
+		var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+	);
+}
+
+/*
+ * Everything that moves lives behind the query, so reduced motion is not a
+ * degraded variant to keep in sync: with these rules gone a new worker simply
+ * appears at its final position, the bar jumps to its width, and a running dot
+ * is still a filled accent dot — it just stops breathing.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-subagents-row {
+		animation: ft-subagents-enter var(--ft-subagents-enter-duration) cubic-bezier(0.16, 1, 0.3, 1)
+			both;
+	}
+
+	.ft-subagents-progress-fill {
+		transition: width var(--ft-subagents-fill-duration) cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.ft-subagents-dot.ft-status-running::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: inherit;
+		animation: ft-subagents-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+	}
+}
+
+@keyframes ft-subagents-enter {
+	from {
+		opacity: 0;
+		transform: translateY(-0.25rem);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes ft-subagents-ping {
+	from {
+		opacity: 0.55;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(2.4);
+	}
+}

@@ -3,19 +3,26 @@
 	import type { Snippet } from "svelte";
 	import confetti from "canvas-confetti";
 	import type { Options as ConfettiOptions } from "canvas-confetti";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	interface Props {
 		options?: ConfettiOptions;
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 
-	let { options = {}, children }: Props = $props();
+	let { options = {}, children, sound = false }: Props = $props();
 
 	const confettiContext = getContext<{ fire: (opts?: ConfettiOptions) => void } | undefined>(
 		"ConfettiContext"
 	);
 
 	function handleClick(event: MouseEvent) {
+		if (sound) soundFx.play("press");
 		const target = event.currentTarget as HTMLElement;
 		const rect = target.getBoundingClientRect();
 		const x = rect.left + rect.width / 2;

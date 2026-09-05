@@ -19,6 +19,11 @@
 		class?: string;
 		/** Button content */
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	};
 
 	export type GradientButtonProps = BaseProps & Omit<HTMLButtonAttributes, keyof BaseProps>;
@@ -26,6 +31,7 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		class: className,
@@ -45,12 +51,19 @@
 		blur = 4,
 		bgColor = "#000",
 		children,
+		onclick,
+		sound = false,
 		...restProps
 	}: GradientButtonProps = $props();
 
 	const styleVars = $derived(
 		`--gb-colors: ${colors.join(", ")}; --gb-duration: ${duration}ms; --gb-border-width: ${borderWidth}px; --gb-border-radius: ${borderRadius}px; --gb-blur: ${blur}px; --gb-bg-color: ${bgColor}`
 	);
+
+	function handleClick(event: MouseEvent) {
+		if (sound && !restProps.disabled) soundFx.play("press");
+		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	}
 </script>
 
 <button
@@ -59,6 +72,7 @@
 		className
 	)}
 	style={styleVars}
+	onclick={handleClick}
 	{...restProps}
 >
 	<!-- Rotating conic-gradient pseudo-element -->

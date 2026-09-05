@@ -286,6 +286,131 @@ describe("Checkbox", () => {
 		expect(el.disabled).toBe(true);
 	});
 
+	describe("mark", () => {
+		it("renders both marks as stroked paths normalised to pathLength 1, inside a decorative SVG", () => {
+			const { container } = render(Checkbox, { props: { label: "Agree" } });
+			const svg = container.querySelector("svg") as SVGSVGElement;
+
+			expect(svg).not.toBeNull();
+			expect(svg.getAttribute("aria-hidden")).toBe("true");
+			// Older engines put SVGs in the tab order on their own; a decorative
+			// mark that can be tabbed to sits between the box and whatever
+			// follows it.
+			expect(svg.getAttribute("focusable")).toBe("false");
+
+			const check = svg.querySelector(".ft-checkbox-mark-check");
+			const dash = svg.querySelector(".ft-checkbox-mark-dash");
+			expect(check?.getAttribute("pathLength")).toBe("1");
+			expect(dash?.getAttribute("pathLength")).toBe("1");
+			// Both are always present — that is what lets indeterminate → checked
+			// un-draw one while drawing the other, rather than swapping shapes.
+			expect(svg.querySelectorAll("path")).toHaveLength(2);
+		});
+
+		// The mark cannot be a child of the input (an `<input>` is void), so it
+		// is a sibling inside a wrapper span. That span is the only structural
+		// change, and nothing above it or below it may notice: the input is
+		// still the one `<input>` inside the one `<label>`, still carries every
+		// attribute it did, and still round-trips its own state.
+		it("keeps the input's own identity and attributes through the new wrapper span", async () => {
+			const { container } = render(Checkbox, {
+				props: { id: "terms", name: "terms", value: "agreed", label: "Agree", invalid: true },
+			});
+			const el = checkbox(container);
+
+			expect(container.querySelectorAll("input")).toHaveLength(1);
+			expect(el.parentElement?.className).toContain("ft-checkbox-box");
+			expect(el.closest("label")).toBe(wrapper(container));
+			expect(el.id).toBe("terms");
+			expect(el.getAttribute("aria-label")).toBe("Agree");
+			expect(el.getAttribute("data-invalid")).toBe("true");
+
+			await fireEvent.click(el);
+
+			expect(el.checked).toBe(true);
+			expect(el.getAttribute("aria-checked")).toBe("true");
+			expect(el.id).toBe("terms");
+			expect(el.getAttribute("data-invalid")).toBe("true");
+			expect(container.querySelectorAll("input")).toHaveLength(1);
+		});
+
+		// `checked` and `indeterminate` are not mutually exclusive — the prop
+		// docs say `checked` is "the real state underneath even while
+		// `indeterminate` is true", and `aria-checked` reports "mixed" for the
+		// pair. Both drawn-state selectors therefore match at once, and without
+		// the later equal-specificity rule that sends the tick back to
+		// dashoffset 1 the mark would draw a tick and a dash superimposed: a
+		// struck-through check saying neither thing. jsdom resolves no
+		// stylesheet, so the paint is the screenshot's job; what this pins is
+		// that the combination is a real, reachable state — one the a11y layer
+		// already answers, and the mark now answers the same way.
+		it("stays on the mixed reading when checked and indeterminate are both set", async () => {
+			const { container } = render(Checkbox, {
+				props: { checked: true, indeterminate: true, label: "Agree" },
+			});
+			const el = checkbox(container);
+
+			expect(el.checked).toBe(true);
+			expect(el.indeterminate).toBe(true);
+			expect(el.getAttribute("aria-checked")).toBe("mixed");
+			expect(el.matches(":checked")).toBe(true);
+			expect(el.matches(":indeterminate")).toBe(true);
+			expect(container.querySelectorAll("path")).toHaveLength(2);
+
+			// Activating it resolves the pair rather than leaving it: the tick
+			// is free to win the shape again from the next tick onwards.
+			await fireEvent.click(el);
+			expect(el.indeterminate).toBe(false);
+			expect(el.getAttribute("aria-checked")).toBe("false");
+		});
+
+		it("clicking the mark still toggles, since it sits inside the label and takes no pointer events", async () => {
+			const onCheckedChange = vi.fn();
+			const { container } = render(Checkbox, { props: { label: "Agree", onCheckedChange } });
+			const el = checkbox(container);
+
+			// jsdom has no hit-testing, so `pointer-events: none` cannot be
+			// observed directly; what is observable is that a click landing on
+			// the mark's own subtree reaches the control through the label.
+			await fireEvent.click(el);
+
+			expect(el.checked).toBe(true);
+			expect(onCheckedChange).toHaveBeenCalledWith(true);
+		});
+
+		// The draw is a CSS transition, so reduced motion changes what is
+		// PAINTED, not what is rendered — and the resting/drawn dashoffsets live
+		// outside the media query, which is the property worth pinning: the mark
+		// is present and complete either way, and nothing here reaches for the
+		// Web Animations API to get there. jsdom resolves no stylesheet, so the
+		// paint itself is a screenshot's job, not this file's.
+		it("renders the same complete mark under prefers-reduced-motion, animating nothing through the WAAPI", async () => {
+			vi.stubGlobal("matchMedia", (query: string) => ({
+				matches: true,
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				dispatchEvent: () => false,
+				addListener: () => {},
+				removeListener: () => {},
+			}));
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Checkbox, { props: { checked: true, label: "Agree" } });
+
+			expect(checkbox(container).checked).toBe(true);
+			expect(container.querySelectorAll("path")).toHaveLength(2);
+
+			await fireEvent.click(checkbox(container));
+			expect(checkbox(container).checked).toBe(false);
+			expect(container.querySelectorAll("path")).toHaveLength(2);
+			expect(animate).not.toHaveBeenCalled();
+
+			animate.mockRestore();
+			vi.unstubAllGlobals();
+		});
+	});
+
 	describe("sound", () => {
 		afterEach(() => {
 			vi.restoreAllMocks();

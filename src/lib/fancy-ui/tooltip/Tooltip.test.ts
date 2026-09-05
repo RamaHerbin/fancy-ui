@@ -31,6 +31,52 @@ function bubble(): HTMLElement | null {
 	return document.querySelector(".ft-tooltip");
 }
 
+/** Replaces `window.matchMedia` wholesale, the pattern `media-query.svelte.ts`
+ * documents and `_internals/motion/anchored.test.ts` already uses — the
+ * transition resolves it fresh on every call, so an override installed before
+ * the bubble opens is what the entrance reads. */
+function stubMatchMedia(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** Pins every element's rect flush against the bottom edge of the viewport,
+ * which is the one condition `computePosition` needs to flip a `side: "bottom"`
+ * request to `"top"` (`anchor.bottom + offset + floating.height > viewport.height`).
+ * jsdom reports all-zero rects otherwise, so without this stub nothing in the
+ * suite ever exercises a flip — and a flip is the only case where the resolved
+ * side differs from the requested one the bubble seeds itself with.
+ *
+ * The rect is internally consistent (`top = bottom - height`) because the same
+ * value is read twice: once as the anchor and once as the floating element.
+ * `bottom` is read from `window.innerHeight` rather than hardcoded to jsdom's
+ * 768 so the overflow stays true whatever viewport the runner defaults to. The
+ * opposite side deliberately still fits (`top - height - offset > 0`), so the
+ * flip lands somewhere real instead of picking the lesser of two overflows.
+ * `vi.restoreAllMocks()` in `afterEach` removes it. */
+function pinRectsToViewportBottom() {
+	const bottom = window.innerHeight;
+	vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue({
+		top: bottom - 200,
+		bottom,
+		left: 0,
+		right: 100,
+		width: 100,
+		height: 200,
+		x: 0,
+		y: bottom - 200,
+		toJSON: () => ({}),
+	} as DOMRect);
+}
+
 describe("Tooltip", () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
@@ -42,6 +88,12 @@ describe("Tooltip", () => {
 		vi.useRealTimers();
 		document.body.querySelectorAll(".ft-tooltip").forEach((el) => el.remove());
 		vi.mocked(anchorPosition).mockClear();
+		vi.unstubAllGlobals();
+		// `vi.spyOn` on an already-mocked property reuses the existing mock
+		// rather than layering a new one, so without this a later
+		// `expect(animateSpy).not.toHaveBeenCalled()` would see an earlier
+		// test's calls too.
+		vi.restoreAllMocks();
 	});
 
 	it("does not render the bubble until opened", () => {
@@ -333,6 +385,86 @@ describe("Tooltip", () => {
 
 		expect(warn).not.toHaveBeenCalled();
 		warn.mockRestore();
+	});
+
+	it("publishes the resolved placement as data-side/data-align, with the matching growth origin", async () => {
+		render(Tooltip, {
+			props: {
+				content: "Add to favorites",
+				children: triggerSnippet(),
+				side: "right",
+				align: "start",
+			},
+		});
+
+		await fireEvent.focus(getTrigger());
+		await tick();
+
+		// jsdom reports every rect as zeroes, so `computePosition` never
+		// overflows and never flips — this pins the un-flipped path
+		// deterministically. `right` + `start` puts the origin on the
+		// bubble's left-top corner, the corner touching the trigger.
+		const el = bubble()!;
+		expect(el.getAttribute("data-side")).toBe("right");
+		expect(el.getAttribute("data-align")).toBe("start");
+		expect(el.style.transformOrigin).toBe("left top");
+	});
+
+	it("follows a flip: the resolved side wins over the requested one, and the origin moves with it", async () => {
+		pinRectsToViewportBottom();
+		render(Tooltip, {
+			props: { content: "Add to favorites", children: triggerSnippet(), side: "bottom" },
+		});
+
+		await fireEvent.focus(getTrigger());
+		await tick();
+
+		// The bubble seeds `resolvedSide` from the REQUESTED side, so this is
+		// the only assertion in the file that fails if `onPlacement` is
+		// deleted: the request was `bottom`, the bubble could not fit there,
+		// and `data-side` — the hook a consumer points a caret or a custom
+		// style at — must report where it actually landed. The origin is
+		// still written even though `scale: false` means nothing grows from
+		// it, so a consumer's own transform has the same anchor every other
+		// panel exposes.
+		const el = bubble()!;
+		expect(el.getAttribute("data-side")).toBe("top");
+		expect(el.style.transformOrigin).toBe("center bottom");
+	});
+
+	it("fades in without ever scaling — a label, not a surface", async () => {
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(Tooltip, { props: { content: "Add to favorites", children: triggerSnippet() } });
+
+		await fireEvent.focus(getTrigger());
+		await tick();
+
+		// Svelte samples the transition's `css(t, u)` into WAAPI keyframes, so
+		// the keyframes it hands `element.animate()` are the direct evidence
+		// of what the entrance animates. Tooltip is the one panel that passes
+		// `scale: false`: no `transform` key must ever appear here, or the
+		// bubble has quietly acquired a compositing layer and a "grew out of
+		// the trigger" gesture that a label should not have.
+		expect(animateSpy).toHaveBeenCalled();
+		const keyframes = animateSpy.mock.calls.at(-1)![0] as Keyframe[];
+		expect(keyframes.every((frame) => !("transform" in frame))).toBe(true);
+		expect(keyframes.at(0)).toMatchObject({ opacity: "0" });
+		expect(keyframes.at(-1)).toMatchObject({ opacity: "1" });
+	});
+
+	it("plays no entrance at all when the user asked for reduced motion", async () => {
+		stubMatchMedia(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(Tooltip, { props: { content: "Add to favorites", children: triggerSnippet() } });
+
+		await fireEvent.focus(getTrigger());
+		await tick();
+
+		// `anchored` collapses the duration to 0, and Svelte's own
+		// falsy-duration fast path then skips `element.animate()` entirely —
+		// the bubble is simply there, in the frame it mounted.
+		expect(animateSpy).not.toHaveBeenCalled();
+		expect(bubble()).not.toBeNull();
 	});
 
 	it("merges the class prop onto the trigger wrapper", () => {

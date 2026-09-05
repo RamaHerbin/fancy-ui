@@ -1,0 +1,65 @@
+/* Keyframe names are part of the visual contract (referenced by inline
+   style attributes) — keep them identical to the source. */
+@keyframes flipFadeInWord {
+	0% {
+		opacity: 0;
+		transform: translateY(10px);
+		filter: blur(8px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+		filter: blur(0);
+	}
+}
+
+@keyframes flipFadeInLetter {
+	0% {
+		opacity: 0;
+		transform: translateY(10px);
+		filter: blur(8px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+		filter: blur(0);
+	}
+}
+
+@keyframes flipEnterWord {
+	0% {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes flipExitWord {
+	0% {
+		opacity: 1;
+		transform: translateY(0);
+		filter: blur(0);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-10px);
+		filter: blur(8px);
+	}
+}
+
+.flip-words {
+	--flip-words-ms: 0.6s;
+}
+
+/* Rules anchored on the .flip-words root class (compiler scoping in the
+   source; plain CSS is global). */
+.flip-words .flip-words-enter {
+	animation: flipEnterWord var(--flip-words-ms) ease-in-out forwards;
+}
+
+.flip-words .flip-words-exit {
+	animation: flipExitWord var(--flip-words-ms) ease-in-out forwards;
+}

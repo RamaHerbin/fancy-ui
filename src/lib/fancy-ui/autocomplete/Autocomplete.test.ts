@@ -1,10 +1,12 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
-import { tick } from "svelte";
+import { flushSync, tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import Autocomplete from "./Autocomplete.svelte";
 import ValueHarness from "./AutocompleteHarness.test.svelte";
 import FieldHarness from "./AutocompleteFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
+import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
 
 const CITIES = ["Paris", "Parma", "Prague", "London"];
 
@@ -23,6 +25,32 @@ function options(): HTMLElement[] {
 
 function liveRegion(container: HTMLElement): HTMLElement {
 	return container.querySelector('[role="status"]') as HTMLElement;
+}
+
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh on every call, so an
+ * override installed before a render is visible to the very next read. */
+function stubReducedMotion(matches = true): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** Dispatches Escape SYNCHRONOUSLY, unlike `fireEvent.keyDown`, which awaits a
+ * tick of its own. The exit window is two microtasks under the WAAPI stub, so
+ * anything awaited between the dismiss and the assertion has already drained
+ * it and the test would pass for the wrong reason. */
+function pressEscape(): void {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
 }
 
 describe("Autocomplete", () => {
@@ -475,5 +503,274 @@ describe("Autocomplete", () => {
 		const event = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
 		options()[0].dispatchEvent(event);
 		expect(event.defaultPrevented).toBe(true);
+	});
+
+	// This panel had no entrance until the core motion pass; it now uses the
+	// shared `anchored` transition, whose growth origin follows the side the
+	// panel was ACTUALLY placed on. jsdom makes that deterministic: every
+	// rect measures 0×0, so the requested `bottom` never overflows the
+	// 768px-tall default viewport and never flips.
+	describe("entrance", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("publishes the resolved placement as data-side/data-align and grows from the matching origin", async () => {
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES } });
+
+			await fireEvent.input(input(container), { target: { value: "par" } });
+			await tick();
+
+			const el = panel() as HTMLElement;
+			expect(el.getAttribute("data-side")).toBe("bottom");
+			expect(el.getAttribute("data-align")).toBe("start");
+			expect(el.style.getPropertyValue("transform-origin")).toBe("left top");
+			// Pins the positive case too: without it the reduced-motion test
+			// below would pass for the wrong reason — an entrance that never
+			// runs at all under any preference.
+			expect(animate).toHaveBeenCalled();
+		});
+
+		it("runs no animation at all under prefers-reduced-motion, and the panel still appears", async () => {
+			stubReducedMotion();
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES } });
+
+			await fireEvent.input(input(container), { target: { value: "par" } });
+			await tick();
+
+			// A zero duration makes Svelte skip `element.animate()` outright
+			// instead of running a zero-length animation, and the panel's
+			// visibility never depended on the entrance in the first place.
+			expect(animate).not.toHaveBeenCalled();
+			expect(panel()).not.toBeNull();
+		});
+	});
+
+	// The list now leaves on the same shared transition it arrives on, so
+	// between the dismiss and the unmount there is a window — 150 ms in a
+	// browser, a couple of microtasks under the WAAPI stub. These pin what
+	// must be true inside it. `open`, `value` and `onValueChange` all still
+	// settle synchronously, which is why every assertion on them above stayed
+	// unwrapped.
+	describe("exit", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			vi.restoreAllMocks();
+		});
+
+		it("keeps the list mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES } });
+			const el = input(container);
+			await fireEvent.input(el, { target: { value: "par" } });
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = panel();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`. A reactive
+			// `data-state={…}` would never reach the DOM: Svelte marks the
+			// branch inert before it plays the outro and the scheduler skips
+			// inert effects.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a `transition:`,
+			// for the whole exit — which is what stops a row taking a click on
+			// its way out.
+			expect(closing!.inert).toBe(true);
+			// The input has already been told the list is gone.
+			expect(el.getAttribute("aria-expanded")).toBe("false");
+
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// This component closes and reopens on keystrokes, not only on an
+		// explicit dismiss: a query that stops matching closes the list, and
+		// the very next character that matches again lands inside the exit
+		// window. One bidirectional `transition:` reverses the outro in place;
+		// a split `in:`/`out:` pair would leave the old node fading while a
+		// second one faded in over it.
+		it("reverses in place when a keystroke re-matches during the exit, rather than mounting a second list", async () => {
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES } });
+			const el = input(container);
+			await fireEvent.input(el, { target: { value: "par" } });
+			expect(panel()).not.toBeNull();
+
+			// Dispatched and flushed SYNCHRONOUSLY on purpose: `fireEvent`
+			// awaits a tick of its own, which drains the stubbed animation and
+			// destroys the branch, so the reopen would mount a fresh panel and
+			// quietly test nothing.
+			function typeSync(value: string) {
+				el.value = value;
+				el.dispatchEvent(new Event("input", { bubbles: true }));
+				flushSync();
+			}
+
+			typeSync("parx"); // matches nothing — the list starts leaving
+			expect(panel()!.getAttribute("data-state")).toBe("closing");
+
+			typeSync("par"); // matches again, mid-exit
+			expect(document.querySelectorAll(".ft-autocomplete-panel")).toHaveLength(1);
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+			// `toBeFalsy`, not `toBe(false)`: the reversed intro restores the
+			// element's ORIGINAL `inert` value, which was never set, so it
+			// comes back as `undefined` rather than `false`. Either way the
+			// rows take clicks again.
+			expect(panel()!.inert).toBeFalsy();
+		});
+
+		// The `active: () => ctx.open` gate. A layer on its way out must not
+		// swallow the key: the dismiss stack scans past it and hands Escape to
+		// whatever is underneath.
+		it("lets an Escape during the exit reach the layer underneath instead of swallowing it", async () => {
+			// Registered BEFORE the autocomplete, so the list sits above it on
+			// the shared layer stack.
+			const beneath = document.createElement("div");
+			document.body.appendChild(beneath);
+			const onBeneath = vi.fn();
+			const beneathAction = dismissable(beneath, { onDismiss: onBeneath });
+
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES } });
+			await fireEvent.input(input(container), { target: { value: "par" } });
+
+			pressEscape(); // the list is the top LIVE layer and takes this one
+			await tick();
+			expect(onBeneath).not.toHaveBeenCalled();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape(); // the list is inactive now, so this falls through
+			expect(onBeneath).toHaveBeenCalledTimes(1);
+
+			beneathAction?.destroy?.();
+			beneath.remove();
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The reduced-motion fast path: a zero duration makes Svelte call
+		// `on_finish()` synchronously and never touch `element.animate()`, so
+		// a visitor who asked for less motion gets exactly the synchronous
+		// close this list had before the exit existed.
+		it("closes synchronously and never animates under prefers-reduced-motion", async () => {
+			stubReducedMotion();
+			const animate = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES } });
+			await fireEvent.input(input(container), { target: { value: "par" } });
+			expect(panel()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			expect(panel()).toBeNull();
+			expect(animate).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays select exactly once on a row click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES, sound: true } });
+			await fireEvent.input(input(container), { target: { value: "par" } });
+
+			await fireEvent.click(options()[0]!); // Paris
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select exactly once on Enter, and typing/focus/blur stay silent", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES, sound: true } });
+			const el = input(container);
+
+			await fireEvent.input(el, { target: { value: "par" } }); // typing/open — silent
+			expect(play).not.toHaveBeenCalled();
+
+			await fireEvent.keyDown(el, { key: "ArrowDown" }); // navigate — silent
+			await fireEvent.keyDown(el, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+
+			play.mockClear();
+			await fireEvent.blur(el); // closes — silent
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES } });
+			await fireEvent.input(input(container), { target: { value: "par" } });
+
+			await fireEvent.click(options()[0]!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, {
+				props: { suggestions: CITIES, disabled: true, sound: true },
+			});
+			const el = input(container);
+
+			el.dispatchEvent(new Event("input", { bubbles: true }));
+			el.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// Guardrail (riskFlag): an emptied panel closing via the `$effect` above
+		// must never itself play — only a real commit through `commit()` does.
+		it("never plays when the panel auto-closes because the filtered list empties out", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, { props: { suggestions: CITIES, sound: true } });
+			const el = input(container);
+			await fireEvent.input(el, { target: { value: "par" } });
+			expect(panel()).not.toBeNull();
+			play.mockClear();
+
+			await fireEvent.input(el, { target: { value: "zzz" } }); // no matches — panel auto-closes
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when re-picking the suggestion already the value — the changed-only guard", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Autocomplete, {
+				props: { suggestions: CITIES, value: "Paris", sound: true },
+			});
+			await fireEvent.focus(input(container)); // opens: "Paris" already matches itself
+
+			await fireEvent.click(options()[0]!); // Paris — already the value
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls onValueChange/onSelect on the very same click that the changed-only guard silences", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const onValueChange = vi.fn();
+			const onSelect = vi.fn();
+			const { container } = render(Autocomplete, {
+				props: { suggestions: CITIES, value: "Paris", sound: true, onValueChange, onSelect },
+			});
+			await fireEvent.focus(input(container));
+
+			await fireEvent.click(options()[0]!); // Paris — already the value
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("Paris");
+			expect(onSelect).toHaveBeenCalledTimes(1);
+			expect(onSelect).toHaveBeenCalledWith("Paris");
+		});
 	});
 });

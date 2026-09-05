@@ -9,6 +9,11 @@
 		class?: string;
 		/** Button content (overrides text prop) */
 		children?: Snippet;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	};
 
 	export type InteractiveHoverButtonProps = BaseProps & Omit<HTMLButtonAttributes, keyof BaseProps>;
@@ -16,28 +21,45 @@
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		text = "Button",
 		class: className,
 		children,
+		onclick,
+		sound = false,
 		...restProps
 	}: InteractiveHoverButtonProps = $props();
+
+	function handleClick(event: MouseEvent) {
+		if (sound && !restProps.disabled) soundFx.play("press");
+		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	}
 </script>
 
+<!--
+	Every `transition-*` utility below is prefixed `motion-safe:`, which Tailwind
+	compiles to `@media (prefers-reduced-motion: no-preference)`. The
+	`group-hover:` transforms are deliberately left unprefixed: a visitor who
+	asked for less motion still gets the whole hover state, it simply arrives
+	instead of travelling. Gating the transforms too would leave the button
+	looking broken on hover rather than calm.
+-->
 <button
 	class={cn(
 		"group bg-background relative w-auto cursor-pointer overflow-hidden rounded-full border p-2 px-6 text-center font-semibold",
 		className
 	)}
+	onclick={handleClick}
 	{...restProps}
 >
 	<div class="flex items-center gap-2">
 		<div
-			class="bg-primary size-2 rounded-lg transition-all duration-300 group-hover:scale-[100.8]"
+			class="bg-primary size-2 rounded-lg group-hover:scale-[100.8] motion-safe:transition-all motion-safe:duration-300"
 		></div>
 		<span
-			class="inline-block transition-all duration-300 group-hover:translate-x-12 group-hover:opacity-0"
+			class="inline-block group-hover:translate-x-12 group-hover:opacity-0 motion-safe:transition-all motion-safe:duration-300"
 		>
 			{#if children}
 				{@render children()}
@@ -48,7 +70,8 @@
 	</div>
 
 	<div
-		class="text-primary-foreground absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 opacity-0 transition-all duration-300 group-hover:-translate-x-5 group-hover:opacity-100"
+		aria-hidden="true"
+		class="text-primary-foreground absolute top-0 z-10 flex size-full translate-x-12 items-center justify-center gap-2 opacity-0 group-hover:-translate-x-5 group-hover:opacity-100 motion-safe:transition-all motion-safe:duration-300"
 	>
 		<span>
 			{#if children}

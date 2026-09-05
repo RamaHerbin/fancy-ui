@@ -1,0 +1,13 @@
+.border-beam::after {
+	content: "";
+	animation: border-beam-animation var(--border-beam-duration) infinite linear;
+}
+
+@keyframes border-beam-animation {
+	0% {
+		offset-distance: 0%;
+	}
+	100% {
+		offset-distance: 100%;
+	}
+}

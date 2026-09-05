@@ -21,4 +21,4 @@
 
 <Button onclick={() => (open = true)}>Open command menu</Button>
 
-<CommandMenu bind:open {items} filter={prefixFilter} />
+<CommandMenu sound bind:open {items} filter={prefixFilter} />

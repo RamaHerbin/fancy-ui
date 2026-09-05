@@ -1,6 +1,7 @@
-import { render, screen, cleanup } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import RainbowButton from "./RainbowButton.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 describe("RainbowButton", () => {
 	afterEach(cleanup);
@@ -58,5 +59,69 @@ describe("RainbowButton", () => {
 	it("allows custom type attribute", () => {
 		render(RainbowButton, { props: { type: "submit" } });
 		expect(screen.getByRole("button")).toHaveAttribute("type", "submit");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the button is clicked", async () => {
+			render(RainbowButton, { props: { sound: true } });
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			render(RainbowButton);
+
+			await fireEvent.click(screen.getByRole("button"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled", () => {
+			render(RainbowButton, { props: { sound: true, disabled: true } });
+			const button = screen.getByRole("button");
+
+			// Synthetic dispatch bypasses jsdom's native-disabled short-circuit.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// The anchor branch has no native `disabled` attribute at all — only
+		// `aria-disabled` — so the JS `if (disabled) return;` guard in
+		// handleClick is the ONLY thing keeping a disabled link silent. This
+		// proves that guard actually runs on the anchor branch, not just the
+		// button branch.
+		it("plays nothing on a disabled anchor, even with sound enabled", () => {
+			render(RainbowButton, { props: { sound: true, disabled: true, href: "/pricing" } });
+			const link = screen.getByRole("link");
+
+			link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// handleClick is bound separately on both render branches — this proves
+		// the anchor branch actually plays the cue too, not just the button.
+		it("plays the press cue on an enabled anchor as well as the button", async () => {
+			render(RainbowButton, { props: { sound: true, href: "/pricing" } });
+
+			await fireEvent.click(screen.getByRole("link"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
 	});
 });

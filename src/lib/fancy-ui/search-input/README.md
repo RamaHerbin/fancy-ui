@@ -57,6 +57,7 @@ and `disabled`:
 | `clearable`     | `boolean`                  | `true`     | Renders a clear button once there is something to clear                                |
 | `class`         | `string`                   | —          | Additional CSS classes, merged onto the field surface, not the bare `<input>`          |
 | `ref`           | `HTMLInputElement \| null` | `null`     | Bindable element reference                                                             |
+| `sound`         | `boolean`                  | `false`    | Plays the `press` cue when the field is cleared, once sound is on                      |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context — see Implementation
@@ -75,6 +76,49 @@ falls back to a `light-dark()` accent pair local to the component:
 
 Set `--ft-accent` higher up the tree to retint the focus ring beneath it —
 the same variable `Input`, `Textarea`, `Checkbox` and `Toggle` all read.
+
+## Motion
+
+- The clear button grows and fades in over 150 ms as the field stops being
+  empty, so it does not materialise as a hard pop beside the caret the user
+  is watching. Only `opacity` and `transform` animate.
+- It animates **in only, never out**. Clearing the field returns focus to the
+  input in the same tick the button disappears; an exit animation would keep
+  a button that is already logically gone mounted — and focusable — across
+  that handoff. The trade is deliberate: correct focus order beats a
+  symmetric animation.
+- A field that renders with content already in it gets no entrance. Svelte
+  skips a local intro on a block's first run, which is the behaviour you want
+  — a search box restored from a URL query should not perform on arrival.
+- **Reduced motion.** With `prefers-reduced-motion: reduce`, the entrance
+  collapses to zero duration, which makes Svelte skip the animation outright
+  rather than run a zero-length one. The button still appears, still has its
+  accessible name, still clears the field. The focus ring on the field
+  surface is a `box-shadow` and is never animated in either mode.
+- **Touch and coarse pointers.** Nothing here follows the pointer, so a
+  coarse pointer needs no special handling. The clear affordance itself is an
+  18 px `<button>` — under the 24 px WCAG 2.2 minimum, a pre-existing sizing
+  gap this pass does not change — and Escape clears the field through the same
+  code path for anyone on a keyboard.
+
+## Sound
+
+Set `sound` to play the `press` cue through the shared sound controller (see
+[`sound/README.md`](../sound/README.md)) whenever the query is cleared — via
+the clear button or Escape, both of which funnel through the same
+`clearValue`. This field owns no dismissable surface of its own (no menu,
+dialog, or popover), so a clear plays the same `press` cue as the other
+✕-removes-content-in-place controls in the library (`ComposerAttachment`,
+`ThreadList`), not `close`:
+
+```svelte
+<SearchInput bind:value={query} sound label="Search" />
+```
+
+Typing, the debounced settle, and Enter never play — only an actual clear
+does, once. Off by default; nothing plays unless both `sound` is set here
+**and** the user has turned sound on globally. Nothing plays while `disabled`
+or `readonly`, matching when the clear affordance itself is unavailable.
 
 ## Implementation Notes
 

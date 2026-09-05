@@ -35,6 +35,12 @@ jobs:
 
       - run: pnpm package
 
+      # Build the React package before publishing — its exports map points at
+      # dist/, and `changeset publish` does not run package build scripts.
+      # (react's prepublishOnly rebuilds anyway; this step makes the build
+      # visible and fail-fast.)
+      - run: pnpm --filter fancy-ui-react run build
+
       - uses: changesets/action@v1
         with:
           # Creates/updates the "Version Packages" PR instead of pushing directly to main.

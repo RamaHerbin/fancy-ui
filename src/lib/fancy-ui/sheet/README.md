@@ -62,19 +62,21 @@ Pin actions to the bottom of the panel with `footer`:
 
 ## Props
 
-| Prop           | Type                                     | Default   | Description                                                        |
-| -------------- | ---------------------------------------- | --------- | ------------------------------------------------------------------ |
-| `open`         | `boolean`                                | `false`   | Whether the sheet is open; bindable                                |
-| `onOpenChange` | `(open: boolean) => void`                | —         | Called with the new value whenever the sheet opens or closes       |
-| `side`         | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Edge of the viewport the panel slides in from                      |
-| `title`        | `string`                                 | —         | Heading rendered in the header and wired to `aria-labelledby`      |
-| `description`  | `string`                                 | —         | Supporting text under the title, wired to `aria-describedby`       |
-| `dismissible`  | `boolean`                                | `true`    | Whether Escape, the scrim and the close button can close the sheet |
-| `size`         | `"sm" \| "md" \| "lg"`                   | `"md"`    | Panel width (left/right sides) or height (top/bottom sides)        |
-| `children`     | `Snippet`                                | —         | Panel body content                                                 |
-| `footer`       | `Snippet`                                | —         | Content pinned below the body, e.g. actions                        |
-| `class`        | `string`                                 | —         | Additional CSS classes merged onto the panel                       |
-| `ref`          | `HTMLDivElement \| null`                 | `null`    | Bindable element reference to the panel                            |
+| Prop           | Type                                     | Default   | Description                                                                |
+| -------------- | ---------------------------------------- | --------- | -------------------------------------------------------------------------- |
+| `open`         | `boolean`                                | `false`   | Whether the sheet is open; bindable                                        |
+| `onOpenChange` | `(open: boolean) => void`                | —         | Called with the new value whenever the sheet opens or closes               |
+| `side`         | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Edge of the viewport the panel slides in from                              |
+| `title`        | `string`                                 | —         | Heading rendered in the header and wired to `aria-labelledby`              |
+| `description`  | `string`                                 | —         | Supporting text under the title, wired to `aria-describedby`               |
+| `ariaLabel`    | `string`                                 | —         | Accessible name when no `title` is rendered; ignored once `title` is set   |
+| `dismissible`  | `boolean`                                | `true`    | Whether Escape, the scrim and the close button can close the sheet         |
+| `size`         | `"sm" \| "md" \| "lg"`                   | `"md"`    | Panel width (left/right sides) or height (top/bottom sides)                |
+| `children`     | `Snippet`                                | —         | Panel body content                                                         |
+| `footer`       | `Snippet`                                | —         | Content pinned below the body, e.g. actions                                |
+| `class`        | `string`                                 | —         | Additional CSS classes merged onto the panel                               |
+| `ref`          | `HTMLDivElement \| null`                 | `null`    | Bindable element reference to the panel                                    |
+| `sound`        | `boolean`                                | `false`   | Plays `close` when the sheet is dismissed, once the user has enabled sound |
 
 ## Theming
 
@@ -82,15 +84,44 @@ The panel and scrim use semantic tokens (`bg-popover`, `text-popover-foreground`
 `border-border`, `bg-black/60`) that already exist in the app's theme layer —
 nothing to configure for the default look.
 
+## Motion
+
+The panel travels in from its own edge over 300 ms on the shared arrival curve (`DURATIONS.base` and `JS_EASINGS.out` from the motion foundation) and leaves the same way over 200 ms on the departure curve (`DURATIONS.exit`, `JS_EASINGS.in`). The scrim fades on opacity alone over the same two durations: a full-viewport fixed element has no business acquiring a compositing layer for a transform it never uses. Both run one clock, so they arrive and leave together.
+
+The travel is a full 100% of the panel's own size in both directions. Anchored surfaces halve their exit — leaving is a smaller gesture than arriving — but a sheet that slid half-way off the viewport and then vanished reads worse than one that simply clears its edge, so this is the deliberate exception. There is no opacity term on the panel: a sheet leaves by travelling, and fading it as well reads as two gestures fighting.
+
+Both are JS transitions, not CSS animations, so there is no `--ft-*` variable to override here; the timing comes from the shared token ladder and moves with it.
+
+The close is where the work is. `open` still flips the instant you dismiss — nothing a caller can observe waits for the slide-out — but the panel stays mounted while it plays, and four things happen at the dismiss instant rather than at the end of it:
+
+- **Focus comes back immediately.** The trigger (or the fallback chain behind it) is refocused as the exit starts, not when it finishes. Waiting would leave a keyboard user on `<body>` for the whole 200 ms, because the closing panel is made inert the moment the exit begins.
+- **A second Escape is a no-op, and reaches whatever is underneath.** The dismiss layer stops answering as soon as `open` is false, so it neither fires again nor swallows the key on its way to the surface below.
+- **The page stays locked until the sheet is gone.** The scroll lock is held by an action on the panel, and an action's teardown is delayed by the exit — so the page behind can never be scrolled while a scrim is still on screen.
+- **Reopening mid-exit reverses rather than stacking.** One bidirectional transition per surface, so a sheet reopened while it is leaving continues from wherever it is instead of snapping off-screen first. Focus follows it back: a reversed exit is not a fresh mount, so the focus trap is re-armed as the entrance restarts.
+
+- **Reduced motion** — every transition collapses to a duration of zero, which makes the framework skip the animation entirely. The sheet appears and disappears instantly, and the close is fully synchronous again — exactly the behaviour this component had before it animated out at all. Neither surface has a hidden resting state, so nothing is ever left off-screen waiting for an animation that will not run.
+- **Touch and coarse pointers** — unchanged; neither the entrance nor the exit is pointer-gated, and the sheet has no drag gesture of its own.
+
+## Sound
+
+Set `sound` to play `close` whenever the sheet is dismissed — the close button, Escape or the scrim — through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Sheet bind:open sound title="Settings">...</Sheet>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the sheet **and** the user has turned sound on globally. The cue is asymmetric by design — there is no `open` cue. The sheet has no internal open gesture of its own (opening is always programmatic, through `bind:open` or a caller-driven `open`/`onOpenChange` pair), and every dismiss path funnels through the same `close()`, whose own `if (!open) return` guard is what keeps a second Escape mid-exit — or any other redundant dismiss — silent rather than doubling the cue. `dismissible={false}` makes the sheet entirely silent, since none of its three dismiss paths can reach `close()` at all.
+
 ## Implementation Notes
 
 - **Modal**: rendered through `_internals/portal.ts` into `document.body`,
   focus is trapped inside with `_internals/focus-trap.ts` (moves in on open,
   returns to whatever had focus right before opening — typically the trigger
-  — once the panel unmounts), the page behind is scroll-locked with
-  `_internals/scroll-lock.ts` (reference-counted; a second overlay opening
-  on top does not fight this one for the lock), and Escape/outside click are
-  handled by `_internals/dismissable.ts`, gated together by `dismissible`.
+  — at the instant you dismiss, not when the panel finishes leaving), the
+  page behind is scroll-locked with `_internals/scroll-lock.ts`
+  (reference-counted; a second overlay opening on top does not fight this
+  one for the lock), and Escape/outside click are handled by
+  `_internals/dismissable.ts`, gated together by `dismissible`.
 - **Portal-before-focus-trap ordering**: the scrim and the panel are each
   portalled independently, rather than sharing one portal-wrapper `<div>`
   with the panel nested inside it. `use:` actions only run once their own
@@ -116,13 +147,18 @@ nothing to configure for the default look.
   runtime, because Tailwind's v4 scanner reads source files as plain text:
   a class name has to appear literally somewhere in the file to be
   generated, even though it's picked at runtime through a variable.
-- **The entrance slide survives `prefers-reduced-motion: reduce`.** The
-  panel's resting position (`translate(0, 0)`) is a plain, unconditional
-  CSS rule; only the "slide in from off-screen" keyframe animation lives
-  behind `@media (prefers-reduced-motion: no-preference)`. A panel that only
-  becomes visible via a transition would vanish entirely with motion
-  reduced — here it simply appears in place instead of sliding into place.
-- **No exit animation**: closing removes the panel from the DOM immediately
-  (an `{#if open}` block, not a Svelte `transition:`), keeping close
-  synchronous and deterministic rather than waiting on an animation to
-  finish before the rest of the app can react to `open` becoming `false`.
+- **The slide is a JS transition, not a keyframe animation.** The component
+  carries no scoped `<style>` block at all any more: the four per-side
+  `@keyframes`, the scrim fade and the `translate(0, 0)` resting rule they
+  needed are all one small transition function in the script instead, which
+  reads the requested side and emits a single percentage translate. That is
+  what makes the same code able to run backwards on close, and what lets it
+  collapse to zero duration under reduced motion without a media query.
+- **`data-side` outlived the keyframes it used to select.** It is part of the
+  component's semantics — consumers style and query against it — so it stays
+  on the panel, and stays correct for the whole exit.
+- **Closing is asynchronous, dismissing is not.** `open` flips, `onOpenChange`
+  fires and the dismiss layer stands down all in the same tick as the
+  dismissal; only the panel's removal from the DOM waits for the slide-out.
+  A test that asserted synchronous removal needs to await it (`waitFor`); a
+  test that asserts on `open`, on the callback or on focus does not.

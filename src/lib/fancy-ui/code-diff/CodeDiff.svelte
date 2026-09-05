@@ -22,6 +22,11 @@
 		class?: string;
 		/** The root element */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -29,6 +34,7 @@
 	import { untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { parseUnifiedDiff, type DiffFile, type DiffLine } from "../_internals/diff.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		diff,
@@ -39,6 +45,7 @@
 		wrap = false,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: CodeDiffProps = $props();
 
 	type Row = { kind: "sep"; text: string } | { kind: "line"; line: DiffLine };
@@ -112,7 +119,13 @@
 	}
 
 	function toggle(name: string) {
-		folded[name] = !isFolded(name);
+		// Captured before the write, so the cue that plays matches the state this
+		// click is actually producing — the $effects below that also touch
+		// `folded` (a collapsed-prop flip, a patch-signature change) never run
+		// through this function, so they can never trigger it either.
+		const nextFolded = !isFolded(name);
+		folded[name] = nextFolded;
+		if (sound) soundFx.play(nextFolded ? "close" : "open");
 		// `collapsed` reports the whole patch, so it is true only once nothing is left open.
 		const all = views.every((view) => folded[view.name] ?? collapsed);
 		lastCollapsed = all;
@@ -238,6 +251,11 @@
 											<span class="ft-num" aria-hidden="true">{row.line.newLine ?? ""}</span>
 										{/if}
 										<span class="ft-glyph" aria-hidden="true">{GLYPH[row.line.type]}</span>
+										{#if row.line.type === "add"}
+											<span class="sr-only select-none">Added line</span>
+										{:else if row.line.type === "del"}
+											<span class="sr-only select-none">Removed line</span>
+										{/if}
 										<span class="ft-code">{row.line.text}</span>
 									</div>
 								{/if}
@@ -248,7 +266,10 @@
 							<button
 								type="button"
 								class="text-muted-foreground hover:text-foreground hover:bg-muted/40 border-border w-full border-t px-3 py-1.5 text-left transition-colors"
-								onclick={() => (unclamped[view.name] = true)}
+								onclick={() => {
+									if (sound) soundFx.play("open");
+									unclamped[view.name] = true;
+								}}
 							>
 								Show {view.hidden} more {view.hidden === 1 ? "line" : "lines"}
 							</button>

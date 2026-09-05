@@ -15,6 +15,12 @@
 		title?: string;
 		/** Supporting text under the title, wired to `aria-describedby`. */
 		description?: string;
+		/**
+		 * Accessible name for the dialog when no `title` is rendered (e.g. a
+		 * custom header). Ignored when `title` is set, since `aria-labelledby`
+		 * already supplies the name.
+		 */
+		ariaLabel?: string;
 		/** Whether Escape, the scrim and the close button can close the sheet. */
 		dismissible?: boolean;
 		/** Panel width (left/right sides) or height (top/bottom sides). */
@@ -27,15 +33,29 @@
 		class?: string;
 		/** Bindable element reference to the panel. */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the `close` cue through the sound controller when the sheet is
+		 * dismissed. Off by default; only audible once the user has enabled
+		 * sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
+	import type { TransitionConfig } from "svelte/transition";
 	import { cn } from "$lib/utils.js";
 	import { portal } from "../_internals/portal.js";
 	import { focusTrap } from "../_internals/focus-trap.js";
 	import { dismissable } from "../_internals/dismissable.js";
-	import { lockScroll } from "../_internals/scroll-lock.js";
+	import { scrollLock } from "../_internals/scroll-lock.js";
+	import {
+		anchored,
+		markSurfaceState,
+		prefersReducedMotion,
+	} from "../_internals/motion/anchored.js";
+	import { DURATIONS, JS_EASINGS } from "../_internals/motion/tokens.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -43,12 +63,14 @@
 		side = "right",
 		title,
 		description,
+		ariaLabel,
 		dismissible = true,
 		size = "md",
 		children,
 		footer,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: SheetProps = $props();
 
 	// One seed per instance, suffixed for title/description — same approach
@@ -62,17 +84,76 @@
 	function close() {
 		if (!open) return;
 		open = false;
+		if (sound) soundFx.play("close");
 		onOpenChange?.(false);
 	}
 
-	// Acquired the instant the sheet opens, released the instant it closes or
-	// unmounts — lockScroll() is reference-counted on its own side, so a
-	// second overlay opening/closing on top of this one never fights it.
-	$effect(() => {
-		if (!open) return;
-		const release = lockScroll();
-		return release;
-	});
+	// Handed over by `focusTrap` the moment the trap arms; called at
+	// `outrostart`, which is the dismiss instant on EVERY close path (Escape,
+	// the scrim, the close button, a caller's own `bind:open` write). Waiting
+	// for the trap's own `destroy()` would leave a keyboard user on `<body>`
+	// for the whole length of the slide-out, because Svelte sets `inert` on
+	// this panel the instant the exit starts.
+	let returnFocusNow: (() => void) | null = null;
+
+	// The other half of that handover, called at `introstart`. A sheet
+	// reopened DURING its exit reverses the outro instead of remounting, so
+	// `use:focusTrap` is never re-created: without this the panel would come
+	// back `aria-modal` and interactive with focus left on the trigger
+	// behind it, and the eager return already spent for the life of the
+	// instance.
+	let rearmFocusTrap: (() => void) | null = null;
+
+	function handleIntroStart(event: Event) {
+		markSurfaceState(event, "open");
+		rearmFocusTrap?.();
+	}
+
+	function handleOutroStart(event: Event) {
+		markSurfaceState(event, "closing");
+		returnFocusNow?.();
+	}
+
+	// There is no scoped `<style>` block in this file any more. Every rule it
+	// used to carry was the entrance being replaced: four `@keyframes` slides,
+	// one scrim fade, the `@media (prefers-reduced-motion: no-preference)`
+	// gate around them, and the `.ft-sheet-panel { transform: translate(0,0) }`
+	// resting rule, which the JS transition below makes redundant — it emits
+	// no transform at rest. `data-side` survives that deletion because it
+	// drives POSITION_CLASSES semantics for consumers, not just the keyframes
+	// it used to select.
+	//
+	// The one place this component owns motion. Not `anchored`: that helper is
+	// scale+opacity by design and deliberately carries no translate term, and
+	// a sheet's whole gesture is travel. Not a pixel-distance preset either —
+	// a sheet has to clear its own edge whatever its size, which only `%`
+	// expresses.
+	//
+	// The exit does NOT halve its travel the way the scale rung does. A sheet
+	// that slid half-way off the viewport and then vanished would read worse
+	// than one that simply leaves; it is a named exception to the half-delta
+	// exit rule rather than an oversight.
+	function edgeSlide(
+		_node: Element,
+		params: { side: SheetSide; entering: boolean }
+	): TransitionConfig {
+		const reduced = prefersReducedMotion();
+		const entering = params.entering;
+		const axis = params.side === "left" || params.side === "right" ? "X" : "Y";
+		const sign = params.side === "left" || params.side === "top" ? -1 : 1;
+		return {
+			// Reduced motion collapses this to 0, which makes Svelte call
+			// `on_finish()` synchronously and never touch `element.animate()` —
+			// so the close is exactly as synchronous as it was before the sheet
+			// animated out at all.
+			duration: reduced ? 0 : entering ? DURATIONS.base : DURATIONS.exit,
+			easing: entering ? JS_EASINGS.out : JS_EASINGS.in,
+			// `u = 1 - t`: fully out at t=0, resting at t=1. No opacity term — a
+			// sheet leaves by travelling, and fading it as well reads as two
+			// gestures fighting.
+			css: (_t, u) => `transform: translate${axis}(${sign * 100 * u}%)`,
+		};
+	}
 
 	const POSITION_CLASSES: Record<SheetSide, string> = {
 		left: "inset-y-0 left-0 border-r border-border",
@@ -120,19 +201,75 @@
 	  ahead of `use:focusTrap` in source order, guarantees the panel is
 	  already attached to the document by the time focus-trap tries to focus
 	  into it.
+
+	  The scrim fades on opacity alone (`scale: false`) while the panel
+	  travels, and both run the same clock, so they leave together and
+	  Svelte's "destroy the branch when the LAST transition finishes" rule is
+	  a tie rather than a straggler.
 	-->
-	<div class="ft-sheet-scrim fixed inset-0 z-50 bg-black/60" use:portal aria-hidden="true"></div>
+	<div
+		class="ft-sheet-scrim fixed inset-0 z-50 bg-black/60"
+		use:portal
+		aria-hidden="true"
+		transition:anchored={{
+			entering: open,
+			scale: false,
+			duration: DURATIONS.base,
+			exitDuration: DURATIONS.exit,
+		}}
+	></div>
+	<!--
+	  `use:scrollLock` sits here rather than on the scrim, and is an action
+	  rather than an `$effect`, for the release timing: an action's
+	  `destroy()` is delayed by the outro, so the page stays locked until the
+	  panel has actually finished sliding out instead of unlocking the instant
+	  `open` flips and leaving the page scrollable under a scrim still on
+	  screen.
+
+	  ONE bidirectional `transition:` directive, never a split `in:`/`out:`
+	  pair: a bidirectional directive passes the in-flight counterpart's
+	  current position into the fresh call, so a sheet reopened mid-exit
+	  continues from where it is instead of snapping off-screen first.
+	  `entering: open` is what tells the transition which way it is going —
+	  Svelte reports `direction: "both"` for a bidirectional directive, and
+	  the params are read fresh (outside any reactive context) at the moment
+	  each direction starts.
+
+	  `data-state` is a STATIC literal, changed only by `markSurfaceState`
+	  from the two handlers below. Svelte marks this branch inert before it
+	  plays the outro and the scheduler skips inert effects, so a reactive
+	  `data-state={…}` would never reach the DOM on a real close. `inert`
+	  itself is not written by hand: Svelte sets it on any element carrying a
+	  `transition:` for the whole exit, which is exactly what a closing modal
+	  wants.
+	-->
 	<div
 		bind:this={ref}
 		class={panelClasses}
-		data-side={side}
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby={titleId}
+		aria-label={titleId ? undefined : ariaLabel}
 		aria-describedby={descriptionId}
 		use:portal
-		use:focusTrap
-		use:dismissable={{ onDismiss: close, escape: dismissible, outsideClick: dismissible }}
+		use:scrollLock
+		use:focusTrap={{
+			onActivate: (returnNow, rearm) => {
+				returnFocusNow = returnNow;
+				rearmFocusTrap = rearm;
+			},
+		}}
+		use:dismissable={{
+			onDismiss: close,
+			escape: dismissible,
+			outsideClick: dismissible,
+			active: () => open,
+		}}
+		transition:edgeSlide={{ side, entering: open }}
+		data-state="open"
+		data-side={side}
+		onintrostart={handleIntroStart}
+		onoutrostart={handleOutroStart}
 	>
 		{#if title || dismissible}
 			<div class="ft-sheet-header flex items-start justify-between gap-4">
@@ -166,75 +303,3 @@
 		{/if}
 	</div>
 {/if}
-
-<style>
-	/*
-	 * Resting position is a plain, unconditional rule — the sheet is fully
-	 * on-screen with or without the entrance animation below. Only the "from"
-	 * offset lives inside the reduced-motion gate, so a panel that only
-	 * becomes visible via the animation never disappears when motion is
-	 * turned off; it simply appears in place instead of sliding into place.
-	 */
-	.ft-sheet-panel {
-		transform: translate(0, 0);
-	}
-
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-sheet-panel[data-side="left"] {
-			animation: ft-sheet-in-left 0.22s ease-out;
-		}
-		.ft-sheet-panel[data-side="right"] {
-			animation: ft-sheet-in-right 0.22s ease-out;
-		}
-		.ft-sheet-panel[data-side="top"] {
-			animation: ft-sheet-in-top 0.22s ease-out;
-		}
-		.ft-sheet-panel[data-side="bottom"] {
-			animation: ft-sheet-in-bottom 0.22s ease-out;
-		}
-		.ft-sheet-scrim {
-			animation: ft-sheet-scrim-in 0.22s ease-out;
-		}
-	}
-
-	@keyframes ft-sheet-in-left {
-		from {
-			transform: translateX(-100%);
-		}
-		to {
-			transform: translateX(0);
-		}
-	}
-	@keyframes ft-sheet-in-right {
-		from {
-			transform: translateX(100%);
-		}
-		to {
-			transform: translateX(0);
-		}
-	}
-	@keyframes ft-sheet-in-top {
-		from {
-			transform: translateY(-100%);
-		}
-		to {
-			transform: translateY(0);
-		}
-	}
-	@keyframes ft-sheet-in-bottom {
-		from {
-			transform: translateY(100%);
-		}
-		to {
-			transform: translateY(0);
-		}
-	}
-	@keyframes ft-sheet-scrim-in {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-</style>

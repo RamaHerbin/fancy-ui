@@ -1,0 +1,49 @@
+.ft-composer-command-menu {
+	z-index: var(--ft-composer-menu-z, 50);
+	min-width: var(--ft-composer-menu-min-width, 14rem);
+	max-width: min(var(--ft-composer-menu-max-width, 24rem), calc(100vw - 1rem));
+	max-height: var(--ft-composer-menu-max-height, 15rem);
+	overflow-y: auto;
+	gap: 0.0625rem;
+	border-radius: var(--ft-composer-menu-radius, 0.625rem);
+	border: 1px solid
+		var(--ft-composer-menu-border, color-mix(in oklab, currentColor 14%, transparent));
+	/* Opaque on purpose: the menu covers the draft it is completing, and a
+	   translucent one would leave the reader deciphering two texts at once. */
+	background: var(--ft-composer-menu-bg, light-dark(oklch(1 0 0), oklch(0.21 0.01 264)));
+	box-shadow: var(--ft-composer-menu-shadow, 0 10px 30px -12px rgb(0 0 0 / 0.45));
+	padding: 0.25rem;
+	scrollbar-width: thin;
+}
+
+/*
+ * The active row is the one Enter would take, and it is set by the arrow keys
+ * rather than by the pointer — so it is painted, not left to `:hover`. Hover
+ * gets the same tint at half strength so the pointer still has a target.
+ */
+.ft-composer-command {
+	color: var(--ft-composer-menu-color, inherit);
+}
+
+.ft-composer-command:hover {
+	background: var(--ft-composer-menu-hover, color-mix(in oklab, currentColor 6%, transparent));
+}
+
+/*
+ * Eleven percent of the row's own colour is the strongest tint the secondary
+ * text can still be read on. The description and the hint are `foreground/70`,
+ * which lands at #5F5F5F over the tinted row on a light menu (4.5:1 needs
+ * #767676 or darker there) and at #C2C2C2 on a dark one — 5.2:1 and 5.8:1,
+ * both clear of the 4.5:1 a 12px caption owes. Pushing the tint further, or
+ * putting the muted token back on these two spans, drops the description under
+ * the threshold on exactly the row the reader is about to take.
+ */
+.ft-composer-command.ft-active {
+	background: var(--ft-composer-menu-active, color-mix(in oklab, currentColor 11%, transparent));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-composer-command {
+		transition: background-color 120ms ease;
+	}
+}

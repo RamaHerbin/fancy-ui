@@ -127,6 +127,7 @@
 					attributeName="x1"
 					values={x1}
 					dur="{duration}s"
+					begin="{delay}s"
 					keyTimes="0; 1"
 					keySplines="0.16 1 0.3 1"
 					calcMode="spline"
@@ -136,6 +137,7 @@
 					attributeName="x2"
 					values={x2}
 					dur="{duration}s"
+					begin="{delay}s"
 					keyTimes="0; 1"
 					keySplines="0.16 1 0.3 1"
 					calcMode="spline"
@@ -146,6 +148,7 @@
 					attributeName="y1"
 					values={y1}
 					dur="{duration}s"
+					begin="{delay}s"
 					keyTimes="0; 1"
 					keySplines="0.16 1 0.3 1"
 					calcMode="spline"
@@ -155,6 +158,7 @@
 					attributeName="y2"
 					values={y2}
 					dur="{duration}s"
+					begin="{delay}s"
 					keyTimes="0; 1"
 					keySplines="0.16 1 0.3 1"
 					calcMode="spline"

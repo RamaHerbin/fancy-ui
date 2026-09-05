@@ -14,9 +14,10 @@
 <script lang="ts">
 	import { setContext, getContext, tick } from "svelte";
 	import { cn } from "$lib/utils.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, originFor, markSurfaceState } from "../_internals/motion/anchored.js";
 	import { createMenuFocus } from "../_internals/menu.svelte.js";
 	import { handleMenuContentKeydown, createOpenSubRegistry } from "../dropdown-menu/menu-shared.js";
 	import {
@@ -29,6 +30,22 @@
 	let { children, class: className, ref = $bindable(null) }: ContextMenuContentProps = $props();
 
 	const root = getContext<ContextMenuRootContext>(CONTEXT_MENU_KEY);
+
+	// The side the panel was ACTUALLY placed on, seeded with the requested one
+	// so an un-flipped open never depends on `onPlacement` having fired first.
+	// This is the panel where a flip is routine rather than exceptional: the
+	// anchor is a point at the pointer, and a right-click anywhere in the
+	// lower or right band of the viewport flips it. Growing from the corner
+	// nearest that point is what keeps the menu feeling attached to the click
+	// instead of erupting from its own middle.
+	let resolvedSide = $state<Side>(root.side);
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>(root.align);
 
 	const focus = createMenuFocus({
 		get loop() {
@@ -43,6 +60,12 @@
 			return focus;
 		},
 		itemTextClass: "text-[12px]",
+		get rootOpen() {
+			return root.open;
+		},
+		get sound() {
+			return root.sound;
+		},
 		closeAll(options) {
 			root.close(options);
 		},
@@ -56,6 +79,26 @@
 			void tick().then(() => focus.moveToEdge("first"));
 		}
 	});
+
+	// `anchorPosition` recomputes on three occasions only: its first run, a
+	// scroll or resize, and a rebuild of the options object below — which is
+	// what fires the action's `update()`. `anchor` is a getter the action
+	// calls itself, lazily and outside any reactive scope, so nothing read
+	// *inside* it is tracked, and the coordinates the virtual anchor span
+	// sits at were invisible to this call site. A second right-click while
+	// the menu is open — the normal path, since the pointerdown dismisses and
+	// the `contextmenu` event then reopens the still-mounted panel mid-exit —
+	// slid the anchor to the new point and left the panel at its previous
+	// `left`/`top` until an unrelated scroll or resize happened to fire.
+	//
+	// Taking the point as an argument reads it while the options object is
+	// built, which is what makes it a tracked dependency of that object: the
+	// reposition now reaches `update()` in the same flush. The returned getter
+	// still resolves the anchor lazily, so the action keeps tracking a moving
+	// target on scroll and resize exactly as before.
+	function anchorAt(_point: { x: number; y: number }): () => HTMLElement | null {
+		return () => root.anchorRef;
+	}
 
 	function handleKeydown(event: KeyboardEvent): void {
 		handleMenuContentKeydown(event, menuContext, {
@@ -85,7 +128,26 @@
 	last right-click's coordinates — instead of a real trigger element, but
 	`anchorPosition`'s flip/clamp behaviour needs nothing different for that:
 	a zero-size `DOMRect` at the pointer flips and clamps at the viewport
-	edges exactly the same way a real element's rect does.
+	edges exactly the same way a real element's rect does — and the growth
+	origin below follows that same resolved side, so a menu that flipped to
+	sit *above* a click near the bottom of the viewport grows out of its own
+	bottom edge, the one still touching the pointer, instead of its top. The
+	exit collapses back into that same corner.
+
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair, with
+	`entering: root.open` as the direction signal: a bidirectional directive
+	hands the in-flight counterpart's current position to the fresh call, so
+	a menu reopened mid-exit continues from where it is rather than snapping
+	to invisible first, and Svelte's own `direction: "both"` cannot tell an
+	arrival from a departure. Only `opacity` and `transform` animate.
+
+	Focus needs nothing here: `ContextMenu`'s own `setOpen` returns focus to
+	whatever was focused before the right-click, from a plain function
+	outside this `{#if}`, so the return still happens at the dismiss instant
+	rather than waiting out the fade. `data-state` is a static literal moved
+	only by `markSurfaceState` from the two handlers below — a reactive
+	attribute inside a closing block never reaches the DOM — and `inert`
+	comes free with the `transition:` for the whole exit.
 -->
 {#if root.open}
 	<div
@@ -96,35 +158,28 @@
 		class={classes}
 		use:portal
 		use:anchorPosition={{
-			anchor: () => root.anchorRef,
+			anchor: anchorAt(root.point),
 			side: root.side,
 			align: root.align,
 			offset: root.offset,
+			onPlacement: (side, align) => {
+				resolvedSide = side;
+				resolvedAlign = align;
+			},
 		}}
 		use:dismissable={{
 			onDismiss: () => root.close(),
+			active: () => root.open,
 		}}
+		transition:anchored={{ side: resolvedSide, entering: root.open }}
+		data-state="open"
+		data-side={resolvedSide}
+		data-align={root.align}
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
 		onkeydown={handleKeydown}
+		onintrostart={(e) => markSurfaceState(e, "open")}
+		onoutrostart={(e) => markSurfaceState(e, "closing")}
 	>
 		{@render children?.()}
 	</div>
 {/if}
-
-<style>
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-context-menu-content {
-			animation: ft-context-menu-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-context-menu-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
-	}
-</style>

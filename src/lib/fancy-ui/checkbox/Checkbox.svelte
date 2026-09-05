@@ -131,29 +131,68 @@
 </script>
 
 <label class={wrapperClasses}>
-	<input
-		bind:this={ref}
-		type="checkbox"
-		class="ft-checkbox-control border-input"
-		id={effectiveId}
-		{name}
-		{value}
-		{checked}
-		disabled={effectiveDisabled}
-		required={effectiveRequired}
-		aria-checked={indeterminate ? "mixed" : checked}
-		aria-invalid={effectiveInvalid ? "true" : undefined}
-		aria-describedby={field?.describedBy}
-		aria-label={label}
-		data-invalid={effectiveInvalid ? "true" : undefined}
-		onchange={handleChange}
-	/>
+	<!--
+		The mark is a SIBLING overlaid on the input, not a child of it: the
+		control is a real `<input type="checkbox">`, and an `<input>` is a void
+		element that cannot contain an SVG. This `<span>` is the only box the
+		markup gains — the positioning context the overlay needs. Clicking the
+		mark still toggles, both because it sits inside the `<label>` and
+		because `pointer-events: none` hands the event straight to the input
+		underneath.
+	-->
+	<span class="ft-checkbox-box">
+		<input
+			bind:this={ref}
+			type="checkbox"
+			class="ft-checkbox-control border-input"
+			id={effectiveId}
+			{name}
+			{value}
+			{checked}
+			disabled={effectiveDisabled}
+			required={effectiveRequired}
+			aria-checked={indeterminate ? "mixed" : checked}
+			aria-invalid={effectiveInvalid ? "true" : undefined}
+			aria-describedby={field?.describedBy}
+			aria-label={label}
+			data-invalid={effectiveInvalid ? "true" : undefined}
+			onchange={handleChange}
+		/>
+		<!--
+			`focusable="false"` alongside `aria-hidden`: older engines put SVG
+			elements in the tab order on their own, and a decorative mark that
+			can be tabbed to is a keyboard trap between the box and whatever
+			follows it.
+		-->
+		<svg class="ft-checkbox-mark" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+			<path
+				class="ft-checkbox-mark-check"
+				d="M4 9.2 7.2 12.4 14 5.6"
+				pathLength="1"
+				vector-effect="non-scaling-stroke"
+			/>
+			<path
+				class="ft-checkbox-mark-dash"
+				d="M4.5 9h9"
+				pathLength="1"
+				vector-effect="non-scaling-stroke"
+			/>
+		</svg>
+	</span>
 	{#if children}
 		{@render children()}
 	{/if}
 </label>
 
 <style>
+	/* The positioning context for the mark, and nothing else — the box's own
+	   geometry still lives entirely on the input below. */
+	.ft-checkbox-box {
+		position: relative;
+		display: inline-flex;
+		flex: none;
+	}
+
 	.ft-checkbox-control {
 		--ft-checkbox-accent: var(
 			--ft-accent,
@@ -166,11 +205,16 @@
 		margin: 0;
 		border-radius: 5px;
 		border-width: 1.5px;
-		position: relative;
 		cursor: pointer;
+		/* Colour only, so it stays OUTSIDE the reduced-motion query on purpose:
+		   a colour change is not motion, and gating it would make the fill snap
+		   for exactly the users who asked for less movement. 150ms =
+		   tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) =
+		   tokens.EASINGS.inout. */
 		transition:
-			background-color 0.15s ease,
-			border-color 0.15s ease;
+			background-color var(--ft-duration-fast, 150ms)
+				var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+			border-color var(--ft-duration-fast, 150ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	}
 
 	.ft-checkbox-control:disabled {
@@ -184,32 +228,85 @@
 	}
 
 	/*
-	 * A rotated corner of a square border, not a background image or an inline
-	 * SVG — it inherits white for free and needs no asset. Checked and
-	 * indeterminate each get their own distinct shape (corner vs. flat dash)
-	 * rather than only a colour difference between the two.
+	 * The mark, overlaid on the filled box. Checked and indeterminate each get
+	 * their own distinct shape (a drawn tick vs. a flat dash) rather than only
+	 * a colour difference between the two — and both are real stroked paths
+	 * now, which is what makes the tick draw itself instead of appearing whole.
 	 */
-	.ft-checkbox-control:checked::after {
-		content: "";
-		position: absolute;
-		left: 5px;
-		top: 2px;
-		width: 5px;
-		height: 9px;
-		border: solid white;
-		border-width: 0 1.5px 1.5px 0;
-		transform: rotate(45deg);
-	}
-
-	.ft-checkbox-control:indeterminate::after {
-		content: "";
+	.ft-checkbox-mark {
 		position: absolute;
 		inset: 0;
-		margin: auto;
-		width: 9px;
-		height: 1.5px;
-		border-radius: 1px;
-		background: white;
+		width: 18px;
+		height: 18px;
+		pointer-events: none;
+		/* `stroke: currentColor` below plus a colour set HERE is also the whole
+		   forced-colors story: in forced-colors mode the UA overrides `color`
+		   and `background-color` from the same system palette, so the mark and
+		   the box behind it are re-coloured together and can never disagree.
+		   No `@media (forced-colors: active)` block, and nothing to keep in
+		   sync with one. */
+		color: white;
+	}
+
+	.ft-checkbox-mark path {
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		/* The pathLength-normalised dash trick, the same idiom StatusMorph's
+		   check and cross already use: `pathLength="1"` on the path makes the
+		   dash units fractions of its own length, so a single dash exactly as
+		   long as the path (dasharray 1) is hidden at dashoffset 1 and fully
+		   drawn at 0. Never `getTotalLength()` — that needs layout, and this
+		   needs none. */
+		stroke-dasharray: 1;
+		stroke-dashoffset: 1;
+	}
+
+	/* Both paths are always present, each waiting at dashoffset 1 until its own
+	   state matches. That is what makes indeterminate → checked one gesture:
+	   the dash un-draws while the tick draws, over the same window, instead of
+	   one shape being swapped for another. */
+	.ft-checkbox-control:checked + .ft-checkbox-mark .ft-checkbox-mark-check,
+	.ft-checkbox-control:indeterminate + .ft-checkbox-mark .ft-checkbox-mark-dash {
+		stroke-dashoffset: 0;
+	}
+
+	/* `checked` and `indeterminate` can legitimately both be true — the prop
+	   docs say so ("`checked` is the real state underneath even while
+	   `indeterminate` is true"), and `aria-checked` reports "mixed" for it. The
+	   two selectors above are independent, so on their own that combination
+	   draws the tick and the dash superimposed: a struck-through check that
+	   says neither thing. The mark has to agree with what the control already
+	   announces, so the dash wins the shape. Equal specificity, later in
+	   source, which is exactly enough to win — and the indeterminate → checked
+	   gesture is untouched, because `handleChange` clears `indeterminate` in
+	   the same tick it sets `checked`. */
+	.ft-checkbox-control:indeterminate + .ft-checkbox-mark .ft-checkbox-mark-check {
+		stroke-dashoffset: 1;
+	}
+
+	/*
+	 * The draw is the only thing gated: the resting and drawn dashoffsets above
+	 * are outside the query, so without motion the mark is simply there, whole,
+	 * the instant the box is checked. It is never invisible for want of an
+	 * animation.
+	 *
+	 * The fill runs `fast` (150ms) and the draw runs `base` (300ms), which is
+	 * not one state change announcing itself twice at two speeds: the two are
+	 * ordered, the box fills and then the mark is drawn onto the filled box —
+	 * the same shape, and the same 300ms/--ft-ease-out clock, StatusMorph's own
+	 * check already ships. One check-draw in the library, at one speed.
+	 * `--ft-checkbox-draw-duration` is the one knob if a given surface wants
+	 * the tick faster than the family default.
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-checkbox-mark path {
+			/* 300ms = tokens.DURATIONS.base, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out */
+			transition: stroke-dashoffset var(--ft-checkbox-draw-duration, var(--ft-duration-base, 300ms))
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+		}
 	}
 
 	.ft-checkbox-control:focus-visible {

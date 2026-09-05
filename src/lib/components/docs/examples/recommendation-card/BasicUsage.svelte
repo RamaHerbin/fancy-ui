@@ -17,6 +17,7 @@
 
 <div class="flex w-full max-w-xl flex-col gap-3 p-6">
 	<RecommendationCard
+		sound
 		badge="Suggestion"
 		title="Add an index on orders.customer_id"
 		description="The three slowest queries this week all scanned the whole table."
@@ -32,6 +33,7 @@
 	</RecommendationCard>
 
 	<RecommendationCard
+		sound
 		badge="Speculative"
 		title="Cache the pricing lookup for 60 seconds"
 		description="Prices changed twice last quarter, so staleness is cheap — but the traffic here is modest."

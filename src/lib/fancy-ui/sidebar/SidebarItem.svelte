@@ -28,6 +28,11 @@
 		class?: string;
 		/** Element reference */
 		ref?: HTMLAnchorElement | HTMLButtonElement | null;
+		/**
+		 * Plays the select cue through the sound controller. Off by default;
+		 * only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -35,6 +40,7 @@
 	import { getContext } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { SIDEBAR_KEY, type SidebarContext } from "./types.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		href,
@@ -47,6 +53,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: SidebarItemProps = $props();
 
 	const sidebar = getContext<SidebarContext | undefined>(SIDEBAR_KEY);
@@ -77,6 +84,7 @@
 			event.preventDefault();
 			return;
 		}
+		if (sound && !current) soundFx.play("select");
 		onclick?.(event);
 	}
 </script>
@@ -146,10 +154,52 @@
 			--ft-accent,
 			light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
 		);
+		/* The accent bar below is an absolutely-positioned pseudo, which needs a
+		   containing block. A flex item taking `position: relative` changes no
+		   layout. */
+		position: relative;
 	}
 
-	.ft-sidebar-item--current {
+	/*
+	 * The accent bar, character-for-character the declaration that used to sit
+	 * on `.ft-sidebar-item--current` itself — same inset shadow, same inherited
+	 * radius, so the resting look is unchanged. It lives one layer down for two
+	 * reasons. It can now be transitioned without transitioning the focus ring,
+	 * which shares the `box-shadow` property and must never animate. And it
+	 * frees the host's own `box-shadow`, which Tailwind's `focus-visible:ring-2`
+	 * compiles to: unlayered scoped CSS beats `@layer utilities` regardless of
+	 * specificity, so until now the current item's own accent bar was
+	 * suppressing its focus ring entirely.
+	 */
+	.ft-sidebar-item::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		pointer-events: none;
 		box-shadow: inset 2px 0 0 var(--ft-nav-accent);
+		opacity: 0;
+	}
+
+	.ft-sidebar-item--current::before {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		/* 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout */
+		.ft-sidebar-item::before {
+			transition:
+				opacity var(--ft-sidebar-signal-duration, var(--ft-duration-fast, 150ms))
+					var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+				transform var(--ft-sidebar-signal-duration, var(--ft-duration-fast, 150ms))
+					var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+			transform: scaleY(0.4);
+			transform-origin: center;
+		}
+
+		.ft-sidebar-item--current::before {
+			transform: scaleY(1);
+		}
 	}
 
 	.ft-sidebar-item-badge {

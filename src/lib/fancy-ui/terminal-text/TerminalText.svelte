@@ -33,6 +33,24 @@
 
 	let timeouts: ReturnType<typeof setTimeout>[] = [];
 
+	// The glitch chain keeps its OWN handles instead of joining the stream's
+	// pool: `clearAllTimeouts` runs on every lines/speed/delay change, which
+	// would otherwise kill the loop's pending self-reschedule for good — the
+	// glitch effect depends on `glitch` alone and never re-runs to restart it.
+	let glitchLoopId: ReturnType<typeof setTimeout> | null = null;
+	let glitchRestoreId: ReturnType<typeof setTimeout> | null = null;
+
+	function stopGlitchLoop() {
+		if (glitchLoopId !== null) {
+			clearTimeout(glitchLoopId);
+			glitchLoopId = null;
+		}
+		if (glitchRestoreId !== null) {
+			clearTimeout(glitchRestoreId);
+			glitchRestoreId = null;
+		}
+	}
+
 	function scheduleTimeout(fn: () => void, ms: number) {
 		const id = setTimeout(fn, ms);
 		timeouts.push(id);
@@ -107,7 +125,9 @@
 				return line.slice(0, charIdx) + fakeGlyph + line.slice(charIdx + 1);
 			});
 
-			scheduleTimeout(() => {
+			if (glitchRestoreId !== null) clearTimeout(glitchRestoreId);
+			glitchRestoreId = setTimeout(() => {
+				glitchRestoreId = null;
 				if (glitchState && glitchState.lineIdx === i && glitchState.charIdx === charIdx) {
 					displayedLines = displayedLines.map((line, idx) => {
 						if (idx !== i) return line;
@@ -121,12 +141,15 @@
 		function scheduleGlitch() {
 			// Random interval between 2s and 4s
 			const interval = 2000 + Math.random() * 2000;
-			scheduleTimeout(() => {
+			glitchLoopId = setTimeout(() => {
+				glitchLoopId = null;
 				if (glitch) glitchOnce();
 				scheduleGlitch();
 			}, interval);
 		}
 
+		// Never stack a second chain on top of a live one.
+		stopGlitchLoop();
 		scheduleGlitch();
 	}
 
@@ -152,6 +175,12 @@
 		} else {
 			glitchState = null;
 		}
+
+		return () => {
+			// Exactly one chain is ever alive: the teardown stops the current
+			// one on a `glitch` flip and on unmount.
+			stopGlitchLoop();
+		};
 	});
 </script>
 

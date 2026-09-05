@@ -19,6 +19,7 @@
 		count?: number;
 		onNavigate?: (index: number) => void;
 		onCopy?: () => void;
+		sound?: boolean;
 	}
 
 	let {
@@ -29,10 +30,11 @@
 		count = 3,
 		onNavigate = () => {},
 		onCopy = () => {},
+		sound = false,
 	}: Props = $props();
 </script>
 
-<ChatMessage {role} {content}>
+<ChatMessage {role} {content} {sound}>
 	{#snippet actions()}
 		<ChatMessageActions {alwaysVisible}>
 			<ChatMessageAction label="Copy" confirmLabel="Copied" onclick={onCopy}>

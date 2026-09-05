@@ -1,8 +1,24 @@
-import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import AlertDialog from "./AlertDialog.svelte";
 import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
+
+/** See Dialog.test.ts's identical helper — `prefersReducedMotion()` re-reads
+ * `window.matchMedia` on every call, so a wholesale override is enough. */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
 
 function panel(): HTMLElement | null {
 	return document.body.querySelector('[role="alertdialog"]');
@@ -42,6 +58,8 @@ describe("AlertDialog", () => {
 	afterEach(() => {
 		cleanup();
 		document.body.innerHTML = "";
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
 	});
 
 	it("renders nothing when closed", () => {
@@ -251,11 +269,69 @@ describe("AlertDialog", () => {
 	it("locks the page scroll while open and releases it on close", async () => {
 		const { rerender } = render(AlertDialog, { props: { open: true, title: "Delete project" } });
 		await tick();
+		// Acquire stays synchronous — `use:scrollLock` runs at mount.
 		expect(document.body.style.position).toBe("fixed");
 
 		await rerender({ open: false, title: "Delete project" });
+		// Release is not: the action's `destroy()` is delayed by the exit, so
+		// the page stays locked until the backdrop is actually gone.
+		await waitFor(() => expect(document.body.style.position).toBe(""));
+	});
+
+	// The close protocol's own guards, mirroring Dialog's. `onCancel` is the
+	// one that matters most here: Escape routes through the same handler the
+	// Cancel button calls, so a repeated Escape during the fade must not read
+	// as the user cancelling twice.
+	it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+		render(AlertDialog, { props: { open: true, title: "Delete project" } });
 		await tick();
-		expect(document.body.style.position).toBe("");
+		expect(panel()!.getAttribute("data-state")).toBe("open");
+
+		pressEscape();
+		await tick();
+
+		const closing = panel();
+		expect(closing).toBeTruthy();
+		expect(closing!.getAttribute("data-state")).toBe("closing");
+		expect(closing!.inert).toBe(true);
+
+		await waitFor(() => expect(panel()).toBeNull());
+		expect(scrim()).toBeNull();
+	});
+
+	it("calls onCancel exactly once when Escape is pressed twice during the exit", async () => {
+		const onCancel = vi.fn();
+		const onOpenChange = vi.fn();
+		render(AlertDialog, {
+			props: { open: true, title: "Delete project", onCancel, onOpenChange },
+		});
+		await tick();
+
+		pressEscape();
+		await tick();
+		expect(panel()).toBeTruthy(); // still fading
+
+		pressEscape();
+		pressEscape();
+		await tick();
+
+		expect(onCancel).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+	});
+
+	it("closes synchronously and never animates when the user asked for reduced motion", async () => {
+		stubReducedMotion(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(AlertDialog, { props: { open: true, title: "Delete project" } });
+		await tick();
+		expect(panel()).toBeTruthy();
+
+		pressEscape();
+		await tick();
+
+		expect(panel()).toBeNull();
+		expect(scrim()).toBeNull();
+		expect(animateSpy).not.toHaveBeenCalled();
 	});
 
 	it("round-trips through bind:open", async () => {
@@ -300,5 +376,106 @@ describe("AlertDialog", () => {
 		});
 		await tick();
 		expect(ref).toBe(panel());
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays open exactly once when the trigger opens the prompt", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(AlertDialog, {
+				props: {
+					sound: true,
+					title: "Delete project",
+					trigger: snippet('<button type="button" data-testid="open-trigger">Delete</button>'),
+				},
+			});
+
+			const trigger = document.body.querySelector<HTMLButtonElement>(
+				'[data-testid="open-trigger"]'
+			)!;
+			await fireEvent.click(trigger);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("plays select exactly once on Confirm, never close for the same activation", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(AlertDialog, {
+				props: { sound: true, open: true, title: "Delete project", confirmLabel: "Delete" },
+			});
+			await tick();
+
+			await fireEvent.click(confirmButton());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays close exactly once on Cancel, and close exactly once on Escape", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(AlertDialog, {
+				props: { sound: true, open: true, title: "Delete project" },
+			});
+			await tick();
+
+			await fireEvent.click(cancelButton());
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+
+			play.mockClear();
+			await rerender({ sound: true, open: true, title: "Delete project" });
+			await tick();
+			pressEscape();
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(AlertDialog, {
+				props: { open: true, title: "Delete project", confirmLabel: "Delete" },
+			});
+			await tick();
+
+			await fireEvent.click(confirmButton());
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// The internal Cancel/Confirm Buttons never receive `sound` — a single
+		// activation must play exactly one cue, not the alert dialog's own plus
+		// a doubled Button `press`.
+		it("never double-fires — activating Confirm plays exactly one cue total", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(AlertDialog, {
+				props: { sound: true, open: true, title: "Delete project", confirmLabel: "Delete" },
+			});
+			await tick();
+
+			await fireEvent.click(confirmButton());
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("plays close exactly once when Escape is pressed twice during the exit", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(AlertDialog, { props: { sound: true, open: true, title: "Delete project" } });
+			await tick();
+
+			pressEscape();
+			await tick();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape();
+			pressEscape();
+			await tick();
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
 	});
 });

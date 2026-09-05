@@ -1,8 +1,9 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import ApprovalCard from "./ApprovalCard.svelte";
 import Harness from "./ApprovalCardHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 const TITLE = "Run database migration";
 
@@ -226,5 +227,74 @@ describe("ApprovalCard", () => {
 
 		expect(root(container).className).toContain("my-gate");
 		expect(root(container).className).toContain("ft-approval");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when approved, with sound enabled", async () => {
+			const { container } = render(ApprovalCard, { props: { title: TITLE, sound: true } });
+
+			await fireEvent.click(approve(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select — never error — when denied, with sound enabled", async () => {
+			// Guardrail 9: deny is a legitimate choice, not a failure. Mapping it to
+			// `error` would be the wrong turn.
+			const { container } = render(ApprovalCard, { props: { title: TITLE, sound: true } });
+
+			await fireEvent.click(deny(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(ApprovalCard, { props: { title: TITLE } });
+
+			await fireEvent.click(approve(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while busy, even with sound enabled", () => {
+			const { container } = render(ApprovalCard, {
+				props: { title: TITLE, sound: true, busy: true },
+			});
+
+			// Both buttons are disabled while busy; a synthetic dispatch bypasses
+			// jsdom's own disabled handling to prove the guard inside decide()
+			// itself, not merely the native attribute.
+			approve(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("resolves once — a second decision on an already-resolved gate does not double-fire", () => {
+			const { container } = render(ApprovalCard, { props: { title: TITLE, sound: true } });
+			const button = approve(container);
+
+			// Two synchronous dispatches, with no flush between them: the gate's own
+			// `state !== "pending"` guard is what has to stop the second one, not
+			// the approve button having already left the DOM.
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
 	});
 });

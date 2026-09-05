@@ -1,0 +1,12 @@
+.liquid-text {
+	line-height: 1;
+}
+
+/* Anchored on the root class (the descendant selector is the port addition —
+   the Svelte compiler scoped this rule; as plain CSS `.liquid-text-fallback`
+   on its own would leak into any consumer element carrying that class).
+   See PORTING.md, styling rule 2. */
+.liquid-text .liquid-text-fallback {
+	margin: 0;
+	white-space: nowrap;
+}

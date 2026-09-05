@@ -1,3 +1,16 @@
+# Workspace membership. The "." entry is LOAD-BEARING: changesets resolves
+# packages through @manypkg/get-packages, which only versions/publishes glob
+# matches — without ".", fancy-ui-svelte (the root package) silently drops out
+# of the release pipeline. Do not remove it until the app physically moves to
+# packages/svelte.
+packages:
+  - "."
+  - "react"
+  - "examples/*"
+
+# esbuild postinstall allowance — also load-bearing (installs break without
+# it), and pnpm has repeatedly rewritten this stanza into a placeholder.
+# If it ever reads "set this to true or false", restore `true`.
 allowBuilds:
   esbuild: true
 onlyBuiltDependencies:

@@ -1,0 +1,28 @@
+/* Anchored on the root class (added in the port — the Svelte compiler scoped
+   these rules; as plain CSS they would leak into any consumer element named
+   .animate-marquee). See PORTING.md, styling rule 2. */
+.fancy-marquee .animate-marquee {
+	animation: marquee var(--duration) linear infinite;
+}
+
+.fancy-marquee .animate-marquee-vertical {
+	animation: marquee-vertical var(--duration) linear infinite;
+}
+
+@keyframes marquee {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(calc(-100% - var(--gap)));
+	}
+}
+
+@keyframes marquee-vertical {
+	from {
+		transform: translateY(0);
+	}
+	to {
+		transform: translateY(calc(-100% - var(--gap)));
+	}
+}

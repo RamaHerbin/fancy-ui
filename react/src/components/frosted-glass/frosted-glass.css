@@ -1,0 +1,109 @@
+/* Anchored on the root class: the Svelte compiler scoped these rules, plain CSS
+   would leak them into every consumer element sharing the class name. The rule
+   ORDER below is the source order - the fallback block's overlay override is
+   deliberately left where the source puts it (see the note on it). */
+.frosted-glass {
+	position: relative;
+	display: flex;
+	background: transparent;
+	overflow: hidden;
+	contain: layout paint;
+	box-shadow:
+		0 2px 4px rgba(0, 0, 0, 0.1),
+		0 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.frosted-glass.frosted-glass-border::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 4;
+	border-radius: inherit;
+	padding: 1px;
+	background:
+		conic-gradient(
+			from -75deg at 50% 50%,
+			rgba(20, 60, 120, 0.5),
+			rgba(150, 200, 255, 0.1) 5% 40%,
+			rgba(20, 60, 120, 0.5) 50%,
+			rgba(150, 200, 255, 0.1) 60% 95%,
+			rgba(20, 60, 120, 0.5)
+		),
+		linear-gradient(180deg, rgba(220, 240, 255, 0.5), rgba(240, 250, 255, 0.5));
+	box-shadow: inset 0 0 0 0.5px rgba(220, 240, 255, 0.5);
+	pointer-events: none;
+	mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	mask-composite: exclude;
+}
+
+/* backdrop-filter: blur(0) pulls the backdrop into this layer so the SVG
+   displacement filter can distort it */
+.frosted-glass .frosted-glass-filter {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	backdrop-filter: blur(0);
+	isolation: isolate;
+	transform: translateZ(0);
+	will-change: filter;
+	animation: frosted-glass-settle 0.22s ease-out;
+}
+
+@keyframes frosted-glass-settle {
+	0% {
+		opacity: 0;
+	}
+}
+
+/* Safari can't combine filter:url() with backdrop-filter, so it needs a plain-blur
+   fallback. -webkit-named-image is a WebKit-only feature query (Chromium and Firefox
+   return false). Ship the -webkit- prefixed backdrop-filter too for Safari and iOS 17 and older. */
+@supports (background: -webkit-named-image(i)) {
+	.frosted-glass .frosted-glass-filter {
+		filter: none !important;
+		-webkit-backdrop-filter: blur(var(--fg-fallback-blur)) saturate(var(--fg-fallback-saturation));
+		backdrop-filter: blur(var(--fg-fallback-blur)) saturate(var(--fg-fallback-saturation));
+	}
+
+	/* Same specificity as the unconditional `.frosted-glass-overlay` rule further
+	   down, which therefore wins on source order and leaves this one inert. Kept
+	   verbatim, in place: the Svelte source has the same dead override and the port
+	   copies behaviour, bugs included. */
+	.frosted-glass .frosted-glass-overlay {
+		background: hsla(0, 0%, 100%, 0.5);
+	}
+}
+
+.frosted-glass .frosted-glass-defs {
+	position: absolute;
+	width: 0;
+	height: 0;
+}
+
+.frosted-glass .frosted-glass-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	background: var(--fg-tint);
+}
+
+.frosted-glass .frosted-glass-specular {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	border-radius: inherit;
+	overflow: hidden;
+	box-shadow:
+		inset 1px 1px 0 var(--fg-highlight),
+		inset 0 0 5px var(--fg-highlight);
+}
+
+.frosted-glass .frosted-glass-content {
+	position: relative;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	width: 100%;
+}

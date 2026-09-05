@@ -1,7 +1,10 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { tick } from "svelte";
 import Toaster from "./Toaster.svelte";
 import { toast, dismissToast, toastStore } from "./store.svelte.js";
+import { DURATIONS } from "../_internals/motion/tokens.js";
+import { sound } from "../sound/sound.svelte.js";
 
 /** The store is a module-level singleton — clear it between tests so none leak into the next. */
 function resetStore() {
@@ -22,6 +25,42 @@ function toastPanels(): HTMLElement[] {
 	return Array.from(document.querySelectorAll(".ft-toast"));
 }
 
+/**
+ * Waits out a dismissed toast's exit transition.
+ *
+ * The store still removes an item synchronously — every `toastStore.items`
+ * assertion below is untouched — but the DOM now lags it by `DURATIONS.exit`,
+ * because `Toaster`'s keyed `{#each}` keeps the dismissed toast mounted for
+ * the length of `Toast`'s `out:` directive. Any assertion that a panel is
+ * *gone* has to wait for that; any assertion that the store forgot it does
+ * not.
+ *
+ * `advanceTimersByTimeAsync` rather than `waitFor`: this suite runs on fake
+ * timers throughout, and `test-setup.ts`'s WAAPI stub resolves `onfinish` on a
+ * microtask rather than a timer — an async timer advance drains microtasks
+ * between callbacks, so it settles both halves deterministically, where
+ * `waitFor` polling against a frozen clock would not.
+ */
+async function settleExit(): Promise<void> {
+	await vi.advanceTimersByTimeAsync(DURATIONS.exit);
+}
+
+/** Replaces `window.matchMedia` wholesale — the pattern the rest of the repo
+ * uses. `prefersReducedMotion()` resolves it fresh on every transition, so an
+ * override installed before the first toast is visible to it. */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: matches && query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
 describe("Toast / Toaster", () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
@@ -33,6 +72,9 @@ describe("Toast / Toaster", () => {
 		document.body.innerHTML = "";
 		vi.useRealTimers();
 		vi.unstubAllGlobals();
+		// `transitions.test.ts` documents the trap this avoids: re-spying an
+		// already-mocked prototype property across tests.
+		vi.restoreAllMocks();
 	});
 
 	it("mounts both live regions empty, before any toast exists", () => {
@@ -132,6 +174,7 @@ describe("Toast / Toaster", () => {
 
 		panel.dispatchEvent(new PointerEvent("pointerleave", { bubbles: true }));
 		await vi.advanceTimersByTimeAsync(1000);
+		await settleExit();
 		expect(toastPanels()).toHaveLength(0);
 	});
 
@@ -155,6 +198,7 @@ describe("Toast / Toaster", () => {
 
 		panel.dispatchEvent(new PointerEvent("pointerleave", { bubbles: true }));
 		await vi.advanceTimersByTimeAsync(1000);
+		await settleExit();
 		expect(toastPanels()).toHaveLength(0);
 	});
 
@@ -177,6 +221,7 @@ describe("Toast / Toaster", () => {
 
 		actionButton.blur();
 		await vi.advanceTimersByTimeAsync(1000);
+		await settleExit();
 		expect(toastPanels()).toHaveLength(0);
 	});
 
@@ -207,7 +252,8 @@ describe("Toast / Toaster", () => {
 		expect(toastPanels()).toHaveLength(1);
 
 		dismissToast(id);
-		await vi.advanceTimersByTimeAsync(0);
+		expect(toastStore.items).toHaveLength(0); // the store forgets it in the same tick…
+		await settleExit(); // …the panel takes its exit to leave the DOM
 		expect(toastPanels()).toHaveLength(0);
 	});
 
@@ -220,6 +266,7 @@ describe("Toast / Toaster", () => {
 			'button[aria-label="Dismiss"]'
 		) as HTMLButtonElement;
 		await fireEvent.click(closeButton);
+		await settleExit();
 
 		expect(toastPanels()).toHaveLength(0);
 	});
@@ -231,7 +278,9 @@ describe("Toast / Toaster", () => {
 		toast({ title: "Three", duration: Infinity });
 		toast({ title: "Four", duration: Infinity });
 		toast({ title: "Five", duration: Infinity });
-		await vi.advanceTimersByTimeAsync(0);
+		// The evicted "One" is dismissed like any other toast, so it lingers
+		// through its exit — this is a *count* assertion, so it has to wait.
+		await settleExit();
 
 		const panels = toastPanels();
 		expect(panels).toHaveLength(4);
@@ -251,7 +300,7 @@ describe("Toast / Toaster", () => {
 
 		const [aEl, , cEl] = toastPanels();
 		dismissToast(bId);
-		await vi.advanceTimersByTimeAsync(0);
+		await settleExit();
 
 		const remaining = toastPanels();
 		expect(remaining).toHaveLength(2);
@@ -267,7 +316,7 @@ describe("Toast / Toaster", () => {
 		expect(toastPanels()).toHaveLength(2);
 
 		dismissToast(firstId);
-		await vi.advanceTimersByTimeAsync(0);
+		await settleExit();
 
 		expect(toastPanels()).toHaveLength(1);
 		expect(toastStore.items[0]?.id).toBe(secondId);
@@ -330,6 +379,96 @@ describe("Toast / Toaster", () => {
 		expect(toastPanels()).toHaveLength(1);
 	});
 
+	// --- Motion -----------------------------------------------------------
+	//
+	// The exit is the only reason a dismissed toast is not gone from the DOM in
+	// the same tick the store forgets it. Everything below either proves that
+	// window exists, or proves it collapses to nothing when the user asked for
+	// less movement.
+
+	it("animates a toast in when it is raised into an already-mounted viewport", async () => {
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+		render(Toaster);
+		animateSpy.mockClear(); // the viewport itself animates nothing
+
+		toast({ title: "Hello", duration: Infinity });
+		await vi.advanceTimersByTimeAsync(0);
+
+		expect(toastPanels()).toHaveLength(1);
+		expect(animateSpy).toHaveBeenCalled();
+	});
+
+	it("keeps a dismissed toast mounted — and inert — for the length of its exit", async () => {
+		render(Toaster);
+		const id = toast({ title: "Bye", duration: Infinity });
+		await vi.advanceTimersByTimeAsync(0);
+		const panel = toastPanels()[0];
+
+		// Svelte dispatches `outrostart` on the node carrying `out:`, right
+		// after it sets `inert` on it — so this listener samples the exact
+		// moment the exit begins, with no timing guesswork.
+		let mountedAtOutroStart: boolean | undefined;
+		let inertAtOutroStart: boolean | undefined;
+		panel.addEventListener("outrostart", () => {
+			mountedAtOutroStart = document.body.contains(panel);
+			inertAtOutroStart = panel.inert;
+		});
+
+		dismissToast(id);
+		expect(toastStore.items).toHaveLength(0); // the store never lags
+
+		await settleExit();
+
+		expect(mountedAtOutroStart).toBe(true);
+		// A leaving toast must not be reachable: its close and action buttons
+		// are still in the DOM for another 200ms, and clicking or tabbing into
+		// one of them would act on a toast the user already dismissed. Svelte
+		// sets `inert` natively for the length of an outro, which is exactly
+		// the guarantee needed here — no `data-state="closing"` protocol
+		// required (that lands with the shared close protocol, for surfaces
+		// that need to key styling off it).
+		expect(inertAtOutroStart).toBe(true);
+		expect(toastPanels()).toHaveLength(0);
+	});
+
+	it("reduced motion: a dismissed toast leaves in the same tick, with no Element.prototype.animate call", async () => {
+		stubReducedMotion(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+		render(Toaster);
+		const id = toast({ title: "No motion, please", duration: Infinity });
+		await vi.advanceTimersByTimeAsync(0);
+		expect(toastPanels()).toHaveLength(1);
+
+		dismissToast(id);
+		await tick();
+
+		// `duration: 0` reaches Svelte's own falsy-duration fast path, which
+		// finishes the transition synchronously and never touches the WAAPI —
+		// so a reduced-motion user's timings are exactly what they were before
+		// this component had any transition at all.
+		expect(toastPanels()).toHaveLength(0);
+		expect(animateSpy).not.toHaveBeenCalled();
+	});
+
+	it("dismissing one toast does not disturb a sibling that is still entering", async () => {
+		render(Toaster);
+		const firstId = toast({ title: "Leaving", duration: Infinity });
+		await vi.advanceTimersByTimeAsync(0);
+
+		// Two keyed items, one entering and one leaving in the same tick: pausing
+		// one item's block must not cancel or steal the other's intro. `preset()`
+		// itself is stateless, so this guards the each-block bookkeeping, not the
+		// transition factory.
+		toast({ title: "Arriving", duration: Infinity });
+		dismissToast(firstId);
+		await settleExit();
+
+		const remaining = toastPanels();
+		expect(remaining).toHaveLength(1);
+		expect(remaining[0].textContent).toContain("Arriving");
+	});
+
 	it("is a no-op outside the browser", () => {
 		vi.stubGlobal("window", undefined);
 
@@ -337,5 +476,155 @@ describe("Toast / Toaster", () => {
 
 		expect(id).toBe("");
 		expect(toastStore.items).toHaveLength(0);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays success exactly once when a success toast arrives", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+
+			toast({ title: "Theme saved", variant: "success" });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("success");
+		});
+
+		it("plays error exactly once when an error toast arrives", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+
+			toast({ title: "Failed to send", variant: "error" });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("error");
+		});
+
+		it("plays nothing for info or loading toasts, even with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+
+			toast({ title: "Heads up", variant: "info" });
+			toast({ title: "Publishing…", variant: "loading" });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster);
+
+			toast({ title: "Theme saved", variant: "success" });
+			toast({ title: "Failed to send", variant: "error" });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not sound the toast's own close or action button", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+			const onClick = vi.fn();
+			toast({
+				title: "Failed to send",
+				variant: "error",
+				duration: Infinity,
+				action: { label: "Retry", onClick },
+			});
+			await vi.advanceTimersByTimeAsync(0);
+			play.mockClear(); // only the arrival cue is under test here
+
+			const actionButton = toastPanels()[0].querySelector(
+				"button.ft-toast-action"
+			) as HTMLButtonElement;
+			await fireEvent.click(actionButton);
+			expect(play).not.toHaveBeenCalled();
+
+			const closeButton = toastPanels()[0].querySelector(
+				'button[aria-label="Dismiss"]'
+			) as HTMLButtonElement;
+			await fireEvent.click(closeButton);
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		// The seen-id dedupe (`announcedIds`) is what keeps the announcement
+		// effect — which reruns on every store change, dismissals included —
+		// from replaying a cue for a toast already announced. Ids are
+		// monotonic and never reused, so this is the same guard the live
+		// region relies on.
+		it("plays the cue for each toast exactly once, even as the store changes around it — the seen-id dedupe", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			render(Toaster, { props: { sound: true } });
+
+			const firstId = toast({ title: "First", variant: "success", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			// Dismissing a toast reruns the same $effect over the remaining
+			// (already-announced) items — must not replay their cue.
+			dismissToast(firstId);
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			toast({ title: "Second", variant: "error", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(2);
+			expect(play).toHaveBeenNthCalledWith(2, "error");
+		});
+
+		// `sound` is a live prop, so a consumer can flip it on mid-session (a
+		// settings switch, a first user gesture unlocking audio). The cue marks
+		// a toast *appearing*, so outcomes already on screen when the switch is
+		// thrown have had their moment and must stay silent — which is why an
+		// outcome toast's id is recorded whether or not sound is currently
+		// opted in, rather than only when the cue actually plays.
+		it("does not sound outcome toasts already on screen when sound is switched on", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { rerender } = render(Toaster, { props: { sound: false } });
+
+			toast({ title: "Theme saved", variant: "success", duration: Infinity });
+			toast({ title: "Failed to send", variant: "error", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).not.toHaveBeenCalled();
+
+			// Same instance, same two toasts still on screen — only the prop moves.
+			await rerender({ sound: true });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).not.toHaveBeenCalled();
+
+			// …while a toast that genuinely arrives after the flip does sound,
+			// proving the silence above is the seen-id record and not a switch
+			// that never took effect.
+			toast({ title: "Draft published", variant: "success", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("success");
+		});
+
+		// The seen-id dedupe above (`announcedIds`) is per-instance and thrown
+		// away on unmount, while `toastStore.items` is a module-level singleton
+		// that survives it — so a `<Toaster>` remount while a toast is still on
+		// screen must not replay its cue, even though the fresh instance's own
+		// `announcedIds` starts empty.
+		it("does not replay a cue for a still-visible toast when <Toaster> remounts", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { unmount } = render(Toaster, { props: { sound: true } });
+
+			toast({ title: "Uploading…", variant: "success", duration: Infinity });
+			await vi.advanceTimersByTimeAsync(0);
+			expect(play).toHaveBeenCalledTimes(1);
+
+			unmount();
+			render(Toaster, { props: { sound: true } });
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(play).toHaveBeenCalledTimes(1);
+		});
 	});
 });

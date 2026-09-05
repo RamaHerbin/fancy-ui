@@ -221,4 +221,9 @@
 	});
 </script>
 
-<div bind:this={container} class={cn("relative h-[400px] w-full", className)}></div>
+<div
+	bind:this={container}
+	class={cn("relative h-[400px] w-full", className)}
+	role="img"
+	aria-label={text}
+></div>

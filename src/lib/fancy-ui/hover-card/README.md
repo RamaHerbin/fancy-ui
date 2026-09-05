@@ -56,10 +56,56 @@ escapes any ancestor `overflow: hidden` or stacking context.
 
 Not modal — no backdrop, no scroll lock, no focus trap. While open, Escape
 closes it and an outside click closes it too (both via the shared
-`dismissable` action, which only reacts on the top-most open layer).
+`dismissable` action, which only reacts on the top-most _live_ layer — a card
+that is already fading out stays on the stack until it is gone but stops
+answering, so a second Escape reaches whatever is underneath instead).
 
 ## Props
 
 See `HoverCardProps` in `HoverCard.svelte` for the full, documented list:
 `open` (bindable) + `onOpenChange`, `side`, `align`, `offset`, `openDelay`,
 `closeDelay`, `trigger`, `children`, `class`, `ref`.
+
+## Motion
+
+The card enters with a 150 ms opacity + scale rise on the shared arrival curve
+(`DURATIONS.fast` and `JS_EASINGS.out` from the motion foundation), growing
+from a `0.92` floor. The growth origin follows the side the card was actually
+placed on — flipped placements included — so it always appears to come out of
+the trigger rather than out of its own centre. The resolved placement is
+exposed as `data-side` / `data-align` for consumers that want to key their own
+styling off it.
+
+The card used to slide 4px on top of a shallower `0.96` scale. Both are gone:
+the travel now lives in the growth origin, which says "this came out of that"
+far more clearly than four pixels of movement ever did, and the floor is the
+one the whole floating-panel family shares.
+
+It leaves the same way in reverse: 150 ms again, on the departure curve
+(`JS_EASINGS.in`), collapsing to a `0.96` floor — half the entrance's delta,
+because leaving is a smaller gesture than arriving. Both directions come from a
+single bidirectional transition, which is what a hover surface needs most:
+pointers change their mind, and a card the pointer comes back to mid-fade
+reverses on the same element instead of a second card mounting behind the first.
+
+The two waits are different things and both are wanted. `closeDelay` is the
+grace period the pointer gets to travel from the trigger to the card, and it is
+spent _before_ anything visible happens; the exit is the card actually leaving,
+and it is spent after. `open` still flips at the end of `closeDelay`, so
+`onOpenChange(false)` and a caller's `bind:open` land exactly where they always
+did — only the removal now trails them by the length of the fade. During that
+window the card is `inert`, so it cannot be interacted with on its way out, and
+it carries `data-state="closing"` (it is `data-state="open"` the rest of the
+time) for a consumer that wants to key its own styling off the exit.
+
+Both directions are JS transitions, not CSS animations, so there is no `--ft-*`
+variable to override here; the timing comes from the shared token ladder and
+moves with it. `openDelay` is a scheduling delay, not part of the entrance —
+nothing is mounted while it runs.
+
+- **Reduced motion** — no animation in either direction; the card appears and
+  disappears instantly, and the close is fully synchronous again. Its
+  visibility never depended on the animation, so nothing is reachable only
+  through motion.
+- **Touch and coarse pointers** — unchanged; neither direction is
+  pointer-gated.

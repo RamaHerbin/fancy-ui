@@ -34,6 +34,11 @@
 		class?: string;
 		/** Bindable reference to the trigger button. */
 		ref?: HTMLButtonElement | null;
+		/**
+		 * Plays the matching interface cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -41,9 +46,10 @@
 	import { tick } from "svelte";
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
-	import { anchorPosition } from "../_internals/anchor-position.js";
+	import { anchorPosition, type Side, type Align } from "../_internals/anchor-position.js";
 	import { portal } from "../_internals/portal.js";
 	import { dismissable } from "../_internals/dismissable.js";
+	import { anchored, markSurfaceState, originFor } from "../_internals/motion/anchored.js";
 	import {
 		getMonthGrid,
 		addMonths,
@@ -62,6 +68,7 @@
 		getWeekdayNames,
 		isDayInRange,
 	} from "./date-utils.js";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		value = $bindable(null),
@@ -80,6 +87,7 @@
 		isDateDisabled,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: DatePickerProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -99,6 +107,21 @@
 
 	let open = $state(false);
 	let panelRef: HTMLDivElement | null = $state(null);
+
+	// The side the panel was ACTUALLY placed on, which `anchorPosition` reports
+	// through `onPlacement` and which differs from the requested one whenever a
+	// flip avoided the viewport edge. Seeded with the requested side rather than
+	// left undefined so an un-flipped panel never depends on directive ordering:
+	// the growth origin is already right on the first frame, and `onPlacement`
+	// only ever has to correct a real flip.
+	let resolvedSide = $state<Side>("bottom");
+
+	// The cross-axis alignment as ACTUALLY placed, reported by `anchorPosition`
+	// alongside the side. It differs from the requested alignment whenever
+	// clamping slid the panel along that axis — near a viewport edge the
+	// requested corner is no longer the one touching the anchor, and an
+	// entrance grown from it would expand from the far corner instead.
+	let resolvedAlign = $state<Align>("start");
 
 	// The displayed month (only year/month are read off this) and the day
 	// currently carrying the grid's one `tabindex="0"` — the roving-focus
@@ -145,6 +168,7 @@
 		viewDate = new Date(seed.getFullYear(), seed.getMonth(), 1);
 		focusedDate = seed;
 		open = true;
+		if (sound) soundFx.play("open");
 	}
 
 	// Closing always returns focus to the trigger, whether the close came from
@@ -153,8 +177,15 @@
 	// Escape press would leave focus on a grid cell about to be removed from
 	// the DOM, which browsers resolve by dropping focus to `<body>` — a real
 	// loss for a keyboard user, not just a cosmetic one.
-	function closePanel() {
+	//
+	// `reason` distinguishes a commit-flavoured close (a day was just picked)
+	// from a plain dismiss (Escape, an outside click, the trigger toggling
+	// shut, or re-picking the day already in force). Only a dismiss plays the
+	// `close` cue — a real commit already played `select` inside `commit`
+	// above, and the contract is one cue per interaction, never both.
+	function closePanel(reason: "commit" | "dismiss" = "dismiss") {
 		open = false;
+		if (sound && reason === "dismiss") soundFx.play("close");
 		ref?.focus();
 	}
 
@@ -165,9 +196,14 @@
 
 	function commit(date: Date) {
 		if (isDayDisabled(date)) return;
+		// Captured before `value` is overwritten: re-picking the day already in
+		// force changes nothing, so it closes like a dismiss (`close`) instead
+		// of playing a second `select` for a no-op.
+		const changed = !value || !isSameDay(value, date);
 		value = date;
+		if (sound && changed) soundFx.play("select");
 		onValueChange?.(date);
-		closePanel();
+		closePanel(changed ? "commit" : "dismiss");
 	}
 
 	function moveDays(delta: number) {
@@ -293,14 +329,47 @@
 	/>
 {/if}
 
+<!--
+	ONE bidirectional `transition:`, never a split `in:`/`out:` pair: a
+	bidirectional directive hands the in-flight counterpart's current position
+	to the fresh call, so a calendar reopened mid-exit continues from where it
+	is instead of snapping to invisible first. `entering: open` is what tells it
+	which way it is going — Svelte reports `direction: "both"` for one
+	bidirectional directive and cannot tell the two apart on its own. Unlike its
+	four sibling panels this one lives in the same file as its own `{#if}`, so
+	it reads `open` directly rather than through a context.
+
+	`data-state` is a STATIC literal, changed only by `markSurfaceState` from
+	the two handlers below. Svelte marks this branch inert before it plays the
+	outro and the scheduler skips inert effects, so a reactive `data-state={…}`
+	would never reach the DOM on a real close. `inert` itself is never written
+	by hand: Svelte sets it on any element carrying a `transition:` for the
+	whole exit, which is what stops a day cell taking a click on its way out.
+-->
 {#if open}
 	<div
 		bind:this={panelRef}
 		id={panelId}
 		class="ft-date-picker-panel border-border bg-popover text-popover-foreground flex w-max flex-col gap-2 rounded-[10px] border p-[12px] shadow-lg outline-none"
 		use:portal
-		use:anchorPosition={{ anchor: () => ref, side: "bottom", align: "start", offset: 8 }}
-		use:dismissable={{ onDismiss: closePanel, exclude: () => [ref] }}
+		use:anchorPosition={{
+			anchor: () => ref,
+			side: "bottom",
+			align: "start",
+			offset: 8,
+			onPlacement: (side, align) => {
+				resolvedSide = side;
+				resolvedAlign = align;
+			},
+		}}
+		use:dismissable={{ onDismiss: () => closePanel(), exclude: () => [ref], active: () => open }}
+		transition:anchored={{ side: resolvedSide, entering: open }}
+		data-state="open"
+		data-side={resolvedSide}
+		data-align="start"
+		style:transform-origin={originFor(resolvedSide, resolvedAlign)}
+		onintrostart={(e) => markSurfaceState(e, "open")}
+		onoutrostart={(e) => markSurfaceState(e, "closing")}
 	>
 		<div class="flex items-center justify-between gap-2 text-[12px] font-semibold">
 			<button
@@ -400,22 +469,5 @@
 	.ft-date-picker-nav:focus-visible {
 		outline: none;
 		box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-date-picker-accent) 35%, transparent);
-	}
-
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-date-picker-panel {
-			animation: ft-date-picker-in 0.12s ease-out;
-		}
-	}
-
-	@keyframes ft-date-picker-in {
-		from {
-			opacity: 0;
-			transform: scale(0.96);
-		}
-		to {
-			opacity: 1;
-			transform: scale(1);
-		}
 	}
 </style>

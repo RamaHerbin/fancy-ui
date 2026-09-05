@@ -28,12 +28,26 @@ export interface SelectOption {
  * a selection can be made (Enter, Tab, closed-state typeahead).
  */
 export interface SelectContext {
+	/** Whether the panel is open. Read by the panel's own exit transition to
+	 *  tell an entrance from a departure — Svelte reports `direction: "both"`
+	 *  for a single bidirectional `transition:` and cannot distinguish them.
+	 *  Also the panel's dismissable `active` gate: the instant this flips
+	 *  false the layer stops answering Escape, so a second Escape during the
+	 *  fade reaches whatever is underneath instead of being swallowed by a
+	 *  panel that is already leaving. */
+	readonly open: boolean;
 	/** The panel's own id — also what the trigger's `aria-controls` points at while open. */
 	readonly panelId: string;
 	/** The options to render as rows, in order. */
 	readonly options: SelectOption[];
 	/** The current value, `""` when nothing is selected. */
 	readonly value: string;
+	/** The trigger's own accessible name (the `label` prop), so the portalled
+	 *  panel can carry the same name as `aria-label` — without this, a screen
+	 *  reader announces the listbox as unnamed the instant it expands, even
+	 *  though the combobox itself is named. `undefined` renders no attribute
+	 *  at all, matching the trigger's own `aria-label={label}`. */
+	readonly label: string | undefined;
 	/** Index of the highlighted option, or -1 when nothing is active. */
 	readonly activeIndex: number;
 	/** Side of the trigger to place the panel on. */

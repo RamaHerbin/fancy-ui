@@ -28,6 +28,13 @@ describe("SmoothCursor", () => {
 		expect(container.querySelector("svg")).toBeTruthy();
 	});
 
+	it("hides the decorative cursor layer from the accessibility tree", () => {
+		const { container, queryAllByRole } = render(SmoothCursor);
+		const cursor = container.firstElementChild as HTMLElement;
+		expect(cursor.getAttribute("aria-hidden")).toBe("true");
+		expect(queryAllByRole("img")).toHaveLength(0);
+	});
+
 	it("renders a custom cursor snippet instead of the default arrow", () => {
 		const { container } = render(SmoothCursor, {
 			props: { cursor: textSnippet("<div data-testid='custom-cursor'></div>") },

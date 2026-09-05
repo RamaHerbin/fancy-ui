@@ -177,6 +177,29 @@ beneath it. The resting ring and the invalid tint use the app's own
 those already carry a conventional name a consumer's theme is expected to
 define.
 
+One optional variable tunes the motion. It falls back to the library-wide
+token, which falls back to a literal, so setting it is never required:
+
+| Variable                  | Default                          | What it controls                          |
+| ------------------------- | -------------------------------- | ----------------------------------------- |
+| `--ft-radio-dot-duration` | `var(--ft-duration-fast, 150ms)` | How long the checked dot takes to grow in |
+
+## Motion
+
+- Picking an option grows its dot from nothing to full size in 150 ms
+  (`--ft-duration-fast`) on `--ft-ease-out` — the arrival curve, because the
+  dot arrives; what leaves is the previously-selected item's own dot, one
+  element over.
+- The ring's colour change runs on the same 150 ms clock (`--ft-ease-inout`),
+  so the ring and the dot resolve together.
+- **Reduced motion.** The dot's `scale(0)` / `scale(1)` pair is declared
+  outside `@media (prefers-reduced-motion: no-preference)` and only the
+  transition between them inside it, so without the preference the dot is
+  simply there, at full size, the instant the item is selected. The ring's
+  colour change is not gated at all — a colour is a state, not motion.
+- **Touch and coarse pointers.** Nothing here is pointer-gated; the dot grows
+  identically for a tap, a click and a keyboard arrow-key selection.
+
 ## Implementation Notes
 
 - `name` is generated with Svelte's `$props.id()`, not `_internals/id.js`'s
@@ -191,7 +214,10 @@ define.
 - The checked dot is a `::after` pseudo-element on the input itself, not a
   second DOM node — the native input stays the only focusable, checkable
   element. It is also a shape change, not only a colour change, so "checked"
-  still reads without colour.
+  still reads without colour. The pseudo exists in both states, scaled to
+  nothing while unchecked, rather than being created by `:checked` — a
+  pseudo-element that does not exist yet has no previous value to travel
+  from, so a dot created on selection could only ever appear, never grow.
 - `RadioGroupItem` never sets `tabindex`. That silence is deliberate — see
   "Why native radios" above — and is covered by a regression test, because
   wrapping the input in a `<label>` is exactly the kind of change that can

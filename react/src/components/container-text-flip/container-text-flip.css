@@ -1,0 +1,20 @@
+/* Keyframe names are part of the visual contract — keep them identical to
+   the source. */
+@keyframes text-flip-in {
+	0% {
+		opacity: 0;
+		filter: blur(10px);
+	}
+	100% {
+		opacity: 1;
+		filter: blur(0px);
+	}
+}
+
+/* `.container-text-flip` is a port-added anchor: the source has no root class
+   and relied on compiler scoping, while plain CSS is global. */
+.container-text-flip .text-flip-letter {
+	animation: text-flip-in ease-in-out forwards;
+	opacity: 0;
+	filter: blur(10px);
+}

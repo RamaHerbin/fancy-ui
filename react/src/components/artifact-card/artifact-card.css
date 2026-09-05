@@ -1,0 +1,85 @@
+/*
+ * Both colours are read at the point of use through the component's own
+ * `--ft-artifact-*` hook, then the `--ft-status-*` vocabulary the whole AI
+ * family shares, then the literal. Setting either anywhere up the tree retints
+ * the card without having to out-specify these rules.
+ */
+.ft-artifact-error {
+	color: var(
+		--ft-artifact-error,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+	background: color-mix(
+		in oklab,
+		var(
+				--ft-artifact-error,
+				var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+			)
+			7%,
+		transparent
+	);
+}
+
+.ft-artifact-preview {
+	background: var(--ft-artifact-preview-bg, color-mix(in oklab, currentColor 4%, transparent));
+}
+
+/*
+ * A teaser, not the document: six lines of it, with the last one dissolving so
+ * the cut never reads as the end of the text.
+ */
+.ft-artifact-clamp {
+	max-height: var(--ft-artifact-preview-height, 9rem);
+	overflow: hidden;
+	line-height: 1.5;
+	-webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+	mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+}
+
+.ft-artifact-sweep {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-start: 0;
+	block-size: 2px;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.ft-artifact-sweep::after {
+	content: "";
+	position: absolute;
+	inset-block: 0;
+	inline-size: 45%;
+	/* Parked off the left edge: with no animation running, nothing shows. */
+	transform: translateX(-110%);
+	background: linear-gradient(
+		90deg,
+		transparent,
+		var(
+			--ft-artifact-running,
+			var(--ft-status-running, light-dark(oklch(0.5 0.18 265), oklch(0.72 0.15 265)))
+		),
+		transparent
+	);
+}
+
+/*
+ * The sweep is the only thing that moves, and it lives entirely behind the
+ * query: reduced motion gets the same card with a still top edge, and the
+ * cursor in the preview stops blinking on StreamingText's own terms.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-artifact-sweep::after {
+		animation: ft-artifact-sweep var(--ft-artifact-sweep-duration, 1.9s) linear infinite;
+	}
+
+	/* 45% of the card wide, so 240% of itself is one full pass and a short beat. */
+	@keyframes ft-artifact-sweep {
+		from {
+			transform: translateX(-110%);
+		}
+		to {
+			transform: translateX(240%);
+		}
+	}
+}

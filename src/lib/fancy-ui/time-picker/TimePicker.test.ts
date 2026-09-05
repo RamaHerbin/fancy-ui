@@ -5,6 +5,8 @@ import TimePicker from "./TimePicker.svelte";
 import ValueHarness from "./TimePickerHarness.test.svelte";
 import FieldHarness from "./TimePickerFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
+import { dismissable } from "../_internals/dismissable.js";
+import { sound } from "../sound/sound.svelte.js";
 
 function trigger(container: HTMLElement): HTMLButtonElement {
 	return container.querySelector('[role="combobox"]') as HTMLButtonElement;
@@ -19,10 +21,42 @@ function optionRows(): HTMLElement[] {
 	return Array.from(document.querySelectorAll('[role="option"]'));
 }
 
+/** Replaces `window.matchMedia` wholesale. The panel's entrance reads the
+ * preference fresh at the instant the transition starts, so an override
+ * installed before the panel opens is the one it sees. */
+function stubReducedMotion(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** Dispatches Escape SYNCHRONOUSLY, unlike `fireEvent.keyDown`, which awaits a
+ * tick of its own. The exit window is two microtasks under the WAAPI stub, so
+ * anything awaited between the dismiss and the assertion has already drained
+ * it and the test would pass for the wrong reason. */
+function pressEscape(): void {
+	document.dispatchEvent(
+		new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })
+	);
+}
+
 describe("TimePicker", () => {
 	afterEach(() => {
 		cleanup();
 		document.body.querySelectorAll('[role="listbox"]').forEach((el) => el.remove());
+		vi.unstubAllGlobals();
+		// A spy on `Element.prototype.animate` has to be fresh in every test:
+		// `vi.spyOn` on an already-mocked property reuses the existing mock
+		// rather than layering a new one, so without this a later
+		// `expect(spy).not.toHaveBeenCalled()` would see an earlier test's calls.
+		vi.restoreAllMocks();
 	});
 
 	it("renders closed by default, role=combobox with aria-expanded false and aria-haspopup listbox", () => {
@@ -194,6 +228,26 @@ describe("TimePicker", () => {
 		await waitFor(() => expect(panel()).toBeNull());
 	});
 
+	it("returns focus to the trigger after a pointer commit instead of stranding it on <body>", async () => {
+		const { container } = render(TimePicker, { props: { locale: "en-US" } });
+		const btn = trigger(container);
+		await fireEvent.click(btn);
+		expect(document.activeElement).toBe(btn);
+
+		const row = optionRows()[28];
+		// `fireEvent` does not move focus, so model what a real pointer press
+		// does first: the row carries `tabindex="-1"`, so it takes focus off
+		// the trigger, and the panel is portalled to `<body>` — once it goes
+		// there is no focusable ancestor left to inherit it.
+		row.focus();
+		expect(document.activeElement).toBe(row);
+
+		await fireEvent.click(row);
+		await waitFor(() => expect(panel()).toBeNull());
+
+		expect(document.activeElement).toBe(btn);
+	});
+
 	it("ArrowDown opens the panel and activates the slot nearest to the current value", async () => {
 		const { container } = render(TimePicker, { props: { locale: "en-US", value: "14:05" } });
 		const btn = trigger(container);
@@ -242,8 +296,10 @@ describe("TimePicker", () => {
 		await fireEvent.keyDown(btn, { key: "ArrowDown" }); // 14:30
 
 		await fireEvent.keyDown(btn, { key: "Enter" });
+		// The commit is synchronous; the panel's REMOVAL is not — it plays a
+		// 150 ms exit first.
 		expect(onValueChange).toHaveBeenCalledWith("14:30");
-		expect(panel()).toBeNull();
+		await waitFor(() => expect(panel()).toBeNull());
 	});
 
 	it("Escape closes without committing, even after arrowing to a different slot", async () => {
@@ -326,6 +382,124 @@ describe("TimePicker", () => {
 	it("resolves the accessible name from the label prop", () => {
 		const { container } = render(TimePicker, { props: { locale: "en-US", label: "Start time" } });
 		expect(trigger(container).getAttribute("aria-label")).toBe("Start time");
+	});
+
+	it("publishes the resolved placement and grows from the panel corner nearest the trigger", async () => {
+		// The positive counterpart to the reduced-motion test below: under the
+		// default stub (`matches: false`, i.e. no-preference) the entrance really
+		// does run, which is what makes that test's `not.toHaveBeenCalled()`
+		// discriminating instead of vacuously true. Without this line, dropping
+		// the `in:` directive altogether would leave both tests green.
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+		const { container } = render(TimePicker, { props: { locale: "en-US" } });
+		await fireEvent.click(trigger(container));
+		await waitFor(() => expect(panel()).not.toBeNull());
+
+		expect(animateSpy).toHaveBeenCalled();
+
+		// jsdom measures every rect as 0x0, so `computePosition` never sees an
+		// overflow and never flips: the resolved side is the requested one. That
+		// is the un-flipped case, and the one that can be asserted
+		// deterministically here. `bottom` + `align: "start"` puts the growth
+		// origin on the panel's top-left corner — the corner nearest the trigger.
+		expect(panel()!.getAttribute("data-side")).toBe("bottom");
+		expect(panel()!.getAttribute("data-align")).toBe("start");
+		expect(panel()!.style.transformOrigin).toBe("left top");
+	});
+
+	it("runs no animation at all under reduced motion, and still shows the panel", async () => {
+		stubReducedMotion(true);
+		const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+		const { container } = render(TimePicker, { props: { locale: "en-US" } });
+		await fireEvent.click(trigger(container));
+		await waitFor(() => expect(panel()).not.toBeNull());
+		await tick();
+
+		// A zero duration makes Svelte skip `element.animate()` entirely rather
+		// than run a zero-length animation, so the panel is simply there.
+		expect(animateSpy).not.toHaveBeenCalled();
+		expect(panel()).not.toBeNull();
+	});
+
+	// The panel now leaves on the same shared transition it arrives on, so
+	// between the dismiss and the unmount there is a window — 150 ms in a
+	// browser, a couple of microtasks under the WAAPI stub. These pin what
+	// must be true inside it. `open`, `value` and `onValueChange` all still
+	// settle synchronously, which is why every assertion on them stayed
+	// unwrapped.
+	describe("exit", () => {
+		it("keeps the panel mounted, inert and marked closing for the length of the exit", async () => {
+			const { container } = render(TimePicker, { props: { locale: "en-US" } });
+			const btn = trigger(container);
+			await fireEvent.click(btn);
+			expect(panel()!.getAttribute("data-state")).toBe("open");
+
+			pressEscape();
+			await tick();
+
+			const closing = panel();
+			expect(closing).toBeTruthy();
+			// Written imperatively from `onoutrostart`. A reactive
+			// `data-state={…}` would never reach the DOM: Svelte marks the
+			// branch inert before it plays the outro and the scheduler skips
+			// inert effects.
+			expect(closing!.getAttribute("data-state")).toBe("closing");
+			// Svelte sets this itself on any element carrying a `transition:`,
+			// for the whole exit — which is what stops a row taking a click on
+			// its way out.
+			expect(closing!.inert).toBe(true);
+			// The trigger has already been told the panel is gone.
+			expect(btn.getAttribute("aria-expanded")).toBe("false");
+
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The `active: () => ctx.open` gate. A layer on its way out must not
+		// swallow the key: the dismiss stack scans past it and hands Escape to
+		// whatever is underneath.
+		it("lets an Escape during the exit reach the layer underneath instead of swallowing it", async () => {
+			// Registered BEFORE the picker, so the panel sits above it on the
+			// shared layer stack.
+			const beneath = document.createElement("div");
+			document.body.appendChild(beneath);
+			const onBeneath = vi.fn();
+			const beneathAction = dismissable(beneath, { onDismiss: onBeneath });
+
+			const { container } = render(TimePicker, { props: { locale: "en-US" } });
+			await fireEvent.click(trigger(container));
+
+			pressEscape(); // the panel is the top LIVE layer and takes this one
+			await tick();
+			expect(onBeneath).not.toHaveBeenCalled();
+			expect(panel()).toBeTruthy(); // still fading
+
+			pressEscape(); // the panel is inactive now, so this falls through
+			expect(onBeneath).toHaveBeenCalledTimes(1);
+
+			beneathAction?.destroy?.();
+			beneath.remove();
+			await waitFor(() => expect(panel()).toBeNull());
+		});
+
+		// The reduced-motion fast path: a zero duration makes Svelte call
+		// `on_finish()` synchronously and never touch `element.animate()`, so
+		// a visitor who asked for less motion gets exactly the synchronous
+		// close this panel had before the exit existed.
+		it("closes synchronously and never animates under reduced motion", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			const { container } = render(TimePicker, { props: { locale: "en-US" } });
+			await fireEvent.click(trigger(container));
+			expect(panel()).not.toBeNull();
+
+			pressEscape();
+			await tick();
+
+			expect(panel()).toBeNull();
+			expect(animateSpy).not.toHaveBeenCalled();
+		});
 	});
 
 	describe("form participation", () => {
@@ -431,6 +605,143 @@ describe("TimePicker", () => {
 			expect(btn.disabled).toBe(true);
 			expect(btn.getAttribute("aria-required")).toBe("true");
 			expect(btn.getAttribute("aria-invalid")).toBe("true");
+		});
+	});
+
+	describe("sound", () => {
+		it("plays open exactly once when opened by a trigger click, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+
+			await fireEvent.click(trigger(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("open");
+		});
+
+		it("picking a new slot by row click plays select exactly once and never close, for the same click", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, {
+				props: { locale: "en-US", value: "09:00", sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.click(optionRows()[0]); // 00:00, differs from 09:00
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("re-picking the already-selected slot plays close (a dismiss), never a second select — the highest-risk guard: ctx.commit must thread the outcome into closePanel", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, {
+				props: { locale: "en-US", value: "00:00", sound: true },
+			});
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.click(optionRows()[0]); // 00:00 again — no change
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("Enter commit plays select exactly once and never close", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, {
+				props: { locale: "en-US", value: "09:00", sound: true },
+			});
+			const btn = trigger(container);
+			await fireEvent.click(btn); // opens, activates nearest to 09:00
+			await fireEvent.keyDown(btn, { key: "Home" }); // moves to 00:00
+			play.mockClear();
+			await fireEvent.keyDown(btn, { key: "Enter" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("Escape plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			pressEscape();
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		it("an outside click plays close exactly once and never select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const outside = document.createElement("button");
+			document.body.appendChild(outside);
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+			await fireEvent.click(trigger(container));
+			play.mockClear();
+
+			await fireEvent.pointerDown(outside);
+			await waitFor(() => expect(panel()).toBeNull());
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+			outside.remove();
+		});
+
+		it("toggling the trigger shut with nothing committed plays close, not select", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn); // open
+			play.mockClear();
+
+			await fireEvent.click(btn); // toggled shut
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("close");
+		});
+
+		// Listbox move/moveToEdge and row pointerenter only ever set the active
+		// index — they never reach `setValue`, so they stay silent even while
+		// the panel is open and a row is highlighted.
+		it("arrow navigation and row hover never play", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", sound: true } });
+			const btn = trigger(container);
+			await fireEvent.click(btn); // open — plays "open"
+			play.mockClear();
+
+			await fireEvent.keyDown(btn, { key: "ArrowDown" });
+			await fireEvent.keyDown(btn, { key: "End" });
+			await fireEvent.pointerEnter(optionRows()[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing at all with the default prop", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, { props: { locale: "en-US", value: "09:00" } });
+			await fireEvent.click(trigger(container));
+
+			await fireEvent.click(optionRows()[0]);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(TimePicker, {
+				props: { locale: "en-US", disabled: true, sound: true },
+			});
+
+			trigger(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
 		});
 	});
 });

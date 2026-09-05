@@ -1,0 +1,156 @@
+/* Ported verbatim from the Svelte source's <style> block. Every rule was
+   already anchored on the component's own `ft-checkbox-*` class names, so no
+   port-added anchor was needed. */
+
+/* The positioning context for the mark, and nothing else — the box's own
+   geometry still lives entirely on the input below. */
+.ft-checkbox-box {
+	position: relative;
+	display: inline-flex;
+	flex: none;
+}
+
+.ft-checkbox-control {
+	--ft-checkbox-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+	appearance: none;
+	flex: none;
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	border-radius: 5px;
+	border-width: 1.5px;
+	cursor: pointer;
+	/* Colour only, so it stays OUTSIDE the reduced-motion query on purpose:
+	   a colour change is not motion, and gating it would make the fill snap
+	   for exactly the users who asked for less movement. 150ms =
+	   tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) =
+	   tokens.EASINGS.inout. */
+	transition:
+		background-color var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1)),
+		border-color var(--ft-duration-fast, 150ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.ft-checkbox-control:disabled {
+	cursor: not-allowed;
+}
+
+.ft-checkbox-control:checked,
+.ft-checkbox-control:indeterminate {
+	border-color: transparent;
+	background-color: var(--ft-checkbox-accent);
+}
+
+/*
+ * The mark, overlaid on the filled box. Checked and indeterminate each get
+ * their own distinct shape (a drawn tick vs. a flat dash) rather than only
+ * a colour difference between the two — and both are real stroked paths
+ * now, which is what makes the tick draw itself instead of appearing whole.
+ */
+.ft-checkbox-mark {
+	position: absolute;
+	inset: 0;
+	width: 18px;
+	height: 18px;
+	pointer-events: none;
+	/* `stroke: currentColor` below plus a colour set HERE is also the whole
+	   forced-colors story: in forced-colors mode the UA overrides `color`
+	   and `background-color` from the same system palette, so the mark and
+	   the box behind it are re-coloured together and can never disagree.
+	   No `@media (forced-colors: active)` block, and nothing to keep in
+	   sync with one. */
+	color: white;
+}
+
+.ft-checkbox-mark path {
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	/* The pathLength-normalised dash trick, the same idiom StatusMorph's
+	   check and cross already use: `pathLength="1"` on the path makes the
+	   dash units fractions of its own length, so a single dash exactly as
+	   long as the path (dasharray 1) is hidden at dashoffset 1 and fully
+	   drawn at 0. Never `getTotalLength()` — that needs layout, and this
+	   needs none. */
+	stroke-dasharray: 1;
+	stroke-dashoffset: 1;
+}
+
+/* Both paths are always present, each waiting at dashoffset 1 until its own
+   state matches. That is what makes indeterminate → checked one gesture:
+   the dash un-draws while the tick draws, over the same window, instead of
+   one shape being swapped for another. */
+.ft-checkbox-control:checked + .ft-checkbox-mark .ft-checkbox-mark-check,
+.ft-checkbox-control:indeterminate + .ft-checkbox-mark .ft-checkbox-mark-dash {
+	stroke-dashoffset: 0;
+}
+
+/* `checked` and `indeterminate` can legitimately both be true — the prop
+   docs say so ("`checked` is the real state underneath even while
+   `indeterminate` is true"), and `aria-checked` reports "mixed" for it. The
+   two selectors above are independent, so on their own that combination
+   draws the tick and the dash superimposed: a struck-through check that
+   says neither thing. The mark has to agree with what the control already
+   announces, so the dash wins the shape. Equal specificity, later in
+   source, which is exactly enough to win — and the indeterminate → checked
+   gesture is untouched, because the change handler clears `indeterminate`
+   in the same tick it sets `checked`. */
+.ft-checkbox-control:indeterminate + .ft-checkbox-mark .ft-checkbox-mark-check {
+	stroke-dashoffset: 1;
+}
+
+/*
+ * The draw is the only thing gated: the resting and drawn dashoffsets above
+ * are outside the query, so without motion the mark is simply there, whole,
+ * the instant the box is checked. It is never invisible for want of an
+ * animation.
+ *
+ * The fill runs `fast` (150ms) and the draw runs `base` (300ms), which is
+ * not one state change announcing itself twice at two speeds: the two are
+ * ordered, the box fills and then the mark is drawn onto the filled box —
+ * the same shape, and the same 300ms/--ft-ease-out clock, StatusMorph's own
+ * check already ships. One check-draw in the library, at one speed.
+ * `--ft-checkbox-draw-duration` is the one knob if a given surface wants
+ * the tick faster than the family default.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-checkbox-mark path {
+		/* 300ms = tokens.DURATIONS.base, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out */
+		transition: stroke-dashoffset var(--ft-checkbox-draw-duration, var(--ft-duration-base, 300ms))
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+	}
+}
+
+.ft-checkbox-control:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-checkbox-accent) 25%, transparent);
+}
+
+/*
+ * Echoes aria-invalid on the resting border, same as Input and
+ * RadioGroupItem. On its own this would vanish exactly when the box
+ * fills in for checked/indeterminate, since the border goes transparent
+ * under the fill — the outline ring below is what survives that.
+ */
+.ft-checkbox-control[data-invalid="true"]:not(:checked):not(:indeterminate) {
+	border-color: var(--color-destructive, oklch(0.63 0.24 25));
+}
+
+/*
+ * A ring outside the box, not a colour change to the fill or border — this
+ * is what keeps the invalid cue visible once checked or indeterminate
+ * fills the box and makes its own border transparent. It is unconditional
+ * (not scoped to :checked), so resting, checked and indeterminate all
+ * carry the same shape cue rather than only the resting look getting one.
+ * Offset past the focus-visible halo (0–3px) so the two rings never
+ * visually merge into one blurred band when both are active at once.
+ */
+.ft-checkbox-control[data-invalid="true"] {
+	outline: 1.5px solid var(--color-destructive, oklch(0.63 0.24 25));
+	outline-offset: 3px;
+}

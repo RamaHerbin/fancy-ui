@@ -1,8 +1,11 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
+import { tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { DURATIONS } from "../_internals/motion/tokens.js";
 import NumberInput from "./NumberInput.svelte";
 import ValueHarness from "./NumberInputHarness.test.svelte";
 import FieldHarness from "./NumberInputFieldHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function field(container: HTMLElement): HTMLInputElement {
 	return container.querySelector(".ft-number-input-field") as HTMLInputElement;
@@ -46,6 +49,72 @@ describe("NumberInput", () => {
 
 		expect(decrementButton(container).getAttribute("aria-label")).toBe("Decrease value");
 		expect(incrementButton(container).getAttribute("aria-label")).toBe("Increase value");
+	});
+
+	// `ft-number-input-step` is the hook the scoped press feedback selects on,
+	// and it is new: before it these two buttons carried no `ft-*` class at all,
+	// so nothing in the scoped stylesheet could reach them. A class that exists
+	// only to be styled needs a test, or a tidy-up removes it without a single
+	// suite going red.
+	it("gives both step buttons the ft-number-input-step hook the press feedback is keyed off", () => {
+		const { container } = render(NumberInput, { props: {} });
+
+		expect(decrementButton(container).className).toContain("ft-number-input-step");
+		expect(incrementButton(container).className).toContain("ft-number-input-step");
+		expect(container.querySelectorAll(".ft-number-input-step")).toHaveLength(2);
+	});
+
+	// The scoped `<style>` now declares a `transition` shorthand on these same
+	// buttons. Svelte's scoped CSS is unlayered and Tailwind's utilities sit in
+	// `@layer utilities`, so leaving `transition-colors` on the class string
+	// would read as a colour transition that silently never ran — the colour
+	// channel is re-declared by hand instead.
+	it("drops the transition-colors utility from the step buttons in favour of the hand-written channel", () => {
+		const { container } = render(NumberInput, { props: {} });
+
+		expect(decrementButton(container).className).not.toContain("transition-colors");
+		expect(incrementButton(container).className).not.toContain("transition-colors");
+	});
+
+	// Press feedback is `:active` on the two steppers only — the field itself
+	// gains nothing, because a value that pops on every keystroke would fight
+	// the typing rather than acknowledge it. Under reduced motion the scale is
+	// replaced by an opacity fade (declared outside the media query, so it is
+	// the fallback), and neither is observable in jsdom: what is observable is
+	// that stepping itself is gated on the preference in no way at all, from
+	// either the buttons or the arrow keys.
+	it("reduced motion: stepping still works from both the buttons and the arrow keys", async () => {
+		// Discriminating stub: `(prefers-reduced-motion: reduce)` and
+		// `(prefers-reduced-motion: no-preference)` are complementary, so a blanket
+		// `matches: true` would answer yes to both and silently satisfy either branch
+		// the moment this component grows a `createReducedMotion()` read. Matching on
+		// the substring "reduce" does NOT discriminate — "prefers-reduced-motion"
+		// contains it — hence the anchored `: reduce` test.
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: /prefers-reduced-motion:\s*reduce\b/.test(query),
+			media: query,
+			onchange: null,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		}));
+
+		try {
+			const onValueChange = vi.fn();
+			const { container } = render(NumberInput, { props: { value: 4, onValueChange } });
+
+			await fireEvent.click(incrementButton(container));
+			expect(field(container).value).toBe("5");
+			expect(onValueChange).toHaveBeenLastCalledWith(5);
+
+			await fireEvent.keyDown(field(container), { key: "ArrowDown" });
+			expect(field(container).value).toBe("4");
+			expect(onValueChange).toHaveBeenLastCalledWith(4);
+		} finally {
+			vi.unstubAllGlobals();
+		}
 	});
 
 	it("steps up and down by `step`", async () => {
@@ -432,5 +501,210 @@ describe("NumberInput", () => {
 		expect(el.getAttribute("aria-invalid")).toBe("true");
 		expect(el.required).toBe(true);
 		expect(el.disabled).toBe(true);
+	});
+	// The keyboard half of the press feedback. A pointer press paints itself
+	// through `:active`; an arrow key has no `:active` to paint, so stepping
+	// from the keyboard raises `data-stepping` on the button that fired for
+	// `DURATIONS.micro`, and the stylesheet hands that attribute the very same
+	// rule `:active` gets. jsdom applies no stylesheet, so what is testable
+	// here is the flag itself and its lifetime — which is the part a
+	// refactor can silently break.
+	describe("stepper feedback for the keyboard", () => {
+		function stepping(container: HTMLElement): string[] {
+			return Array.from(container.querySelectorAll<HTMLElement>("[data-stepping]")).map(
+				(el) => el.getAttribute("aria-label") ?? ""
+			);
+		}
+
+		it("raises data-stepping on the button that fired, and clears it after 80ms", async () => {
+			vi.useFakeTimers();
+			try {
+				const { container } = render(NumberInput, { props: { value: 4 } });
+
+				await fireEvent.keyDown(field(container), { key: "ArrowUp" });
+				expect(stepping(container)).toEqual(["Increase value"]);
+
+				vi.advanceTimersByTime(DURATIONS.micro);
+				await tick();
+				expect(stepping(container)).toEqual([]);
+
+				// And the other way round, on the other button.
+				await fireEvent.keyDown(field(container), { key: "ArrowDown" });
+				expect(stepping(container)).toEqual(["Decrease value"]);
+			} finally {
+				vi.useRealTimers();
+			}
+		});
+
+		// The trap this design sidesteps structurally: the flag is raised
+		// inside `applyStep` and nowhere else, and typing never goes through
+		// `applyStep`. A field that flashed a stepper on every keystroke would
+		// be reporting something that did not happen.
+		it("raises it on neither button while the value is typed", async () => {
+			vi.useFakeTimers();
+			try {
+				const { container } = render(NumberInput, { props: { value: 4 } });
+
+				await fireEvent.input(field(container), { target: { value: "42" } });
+				expect(stepping(container)).toEqual([]);
+
+				// Nor for a key that is not a step key.
+				await fireEvent.keyDown(field(container), { key: "7" });
+				expect(stepping(container)).toEqual([]);
+			} finally {
+				vi.useRealTimers();
+			}
+		});
+
+		// A held ArrowUp repeats far faster than 80ms. Each repeat re-arms the
+		// same timer rather than stacking a new one — stacked timers would
+		// leave the earliest one to clear the flag mid-repeat, so the feedback
+		// would drop out under exactly the input that needs it most.
+		it("re-arms rather than stacks a timer under key repeat, and outlives the whole repeat", async () => {
+			vi.useFakeTimers();
+			try {
+				const { container } = render(NumberInput, { props: { value: 0 } });
+				const el = field(container);
+
+				for (let i = 0; i < 5; i += 1) {
+					await fireEvent.keyDown(el, { key: "ArrowUp", repeat: i > 0 });
+					vi.advanceTimersByTime(30);
+					await tick();
+					expect(stepping(container)).toEqual(["Increase value"]);
+					expect(vi.getTimerCount()).toBe(1);
+				}
+
+				vi.advanceTimersByTime(DURATIONS.micro);
+				await tick();
+				expect(stepping(container)).toEqual([]);
+				expect(vi.getTimerCount()).toBe(0);
+			} finally {
+				vi.useRealTimers();
+			}
+		});
+
+		it("clears a pending timer on unmount", async () => {
+			vi.useFakeTimers();
+			try {
+				const { container, unmount } = render(NumberInput, { props: { value: 4 } });
+
+				await fireEvent.keyDown(field(container), { key: "ArrowUp" });
+				expect(vi.getTimerCount()).toBe(1);
+
+				unmount();
+				expect(vi.getTimerCount()).toBe(0);
+			} finally {
+				vi.useRealTimers();
+			}
+		});
+
+		// The flag is a state signal, not motion: it is raised under either
+		// preference, and the media query decides which declaration it drives
+		// — the scale, or the opacity fallback that stands in for it.
+		it("reduced motion: the flag still toggles, because it is a state flag", async () => {
+			vi.useFakeTimers();
+			vi.stubGlobal("matchMedia", (query: string) => ({
+				matches: /prefers-reduced-motion:\s*reduce\b/.test(query),
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				dispatchEvent: () => false,
+				addListener: () => {},
+				removeListener: () => {},
+			}));
+			try {
+				const { container } = render(NumberInput, { props: { value: 4 } });
+
+				await fireEvent.keyDown(field(container), { key: "ArrowUp" });
+				expect(stepping(container)).toEqual(["Increase value"]);
+
+				vi.advanceTimersByTime(DURATIONS.micro);
+				await tick();
+				expect(stepping(container)).toEqual([]);
+			} finally {
+				vi.unstubAllGlobals();
+				vi.useRealTimers();
+			}
+		});
+
+		// A click already has `:active`, but it goes through the same
+		// `applyStep`, so it raises the same flag — one answer for both
+		// devices is the whole point, and a pointer press that skipped it
+		// would be two answers again.
+		it("raises the same flag for a click, so both devices share one rule", async () => {
+			vi.useFakeTimers();
+			try {
+				const { container } = render(NumberInput, { props: { value: 4 } });
+
+				await fireEvent.click(decrementButton(container));
+				expect(stepping(container)).toEqual(["Decrease value"]);
+
+				vi.advanceTimersByTime(DURATIONS.micro);
+				await tick();
+				expect(stepping(container)).toEqual([]);
+			} finally {
+				vi.useRealTimers();
+			}
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the tick cue exactly once when stepped via the increment button, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, { props: { sound: true, value: 4 } });
+
+			await fireEvent.click(incrementButton(container));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick");
+		});
+
+		it("plays the tick cue exactly once when stepped via ArrowUp, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, { props: { sound: true, value: 4 } });
+
+			await fireEvent.keyDown(field(container), { key: "ArrowUp" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, { props: { value: 4 } });
+
+			await fireEvent.click(incrementButton(container));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch on the button", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, {
+				props: { sound: true, disabled: true, value: 4 },
+			});
+
+			incrementButton(container).dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while typing or on blur clamp — only an actual step plays", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(NumberInput, { props: { sound: true, max: 10 } });
+			const el = field(container);
+
+			await fireEvent.input(el, { target: { value: "42" } });
+			await fireEvent.blur(el);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

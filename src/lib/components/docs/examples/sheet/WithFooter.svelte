@@ -14,6 +14,7 @@
 <Button onclick={() => (open = true)}>Invite a member</Button>
 
 <Sheet
+	sound
 	bind:open
 	title="Invite a member"
 	description="Send an email invitation to join the workspace."

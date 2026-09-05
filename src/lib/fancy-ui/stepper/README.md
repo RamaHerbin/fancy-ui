@@ -68,6 +68,7 @@ Clickable, so a reader can jump between steps directly:
 | `children`        | `Snippet`                    | —              | The `Step`s                                                                            |
 | `class`           | `string`                     | —              | Additional CSS classes                                                                 |
 | `ref`             | `HTMLOListElement \| null`   | `null`         | Bindable element reference                                                             |
+| `sound`           | `boolean`                    | `false`        | Plays the `select` cue whenever a clickable step moves to a different step             |
 
 ### Step
 
@@ -78,6 +79,20 @@ Clickable, so a reader can jump between steps directly:
 | `children`    | `Snippet`               | —       | Overrides the bullet's default content (checkmark / number / outline) |
 | `class`       | `string`                | —       | Additional CSS classes                                                |
 | `ref`         | `HTMLLIElement \| null` | `null`  | Bindable element reference                                            |
+
+## Sound
+
+Set `sound` on `Stepper` to play the `select` cue whenever a clickable step moves the active step to a different one, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<Stepper bind:current clickable sound>
+	<Step label="Account" />
+	<Step label="Profile" />
+	<Step label="Confirmation" />
+</Stepper>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on `Stepper` **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue lives inside `select()`, gated behind its existing `if (!clickable) return` — a non-`clickable` `Stepper` never plays anything, the same as it never fires `onStepClick`. Re-clicking the already-current step plays nothing (the changed-only guard), even though `onStepClick`/`onCurrentChange` still fire on that same click exactly as they always did — the guard gates only the cue.
 
 ## Theming
 
@@ -118,6 +133,31 @@ Both defaults are `light-dark()` pairs, so **your theme must declare
 	color-scheme: light dark;
 }
 ```
+
+One optional variable tunes the motion. It falls back to the library-wide
+token, which falls back to a literal, so leaving it unset is the supported
+default:
+
+| Variable                    | Default                          | What it controls                                     |
+| --------------------------- | -------------------------------- | ---------------------------------------------------- |
+| `--ft-step-signal-duration` | `var(--ft-duration-fast, 150ms)` | How long a step's colour and halo take to cross-fade |
+
+## Motion
+
+- A step's whole visible state — the bullet's fill, its label colour, the
+  halo around the current bullet, and the connector segment behind it — now
+  cross-fades over 150 ms instead of arriving in a single frame. This is the
+  component's first motion of any kind.
+- **Reduced motion.** This transition is deliberately **not** gated behind
+  `prefers-reduced-motion`. None of the three properties moves anything: a
+  colour that cross-fades and a static halo that appears are state changes,
+  not travel, and suppressing them would make an advancing stepper flicker
+  rather than settle.
+- The focus ring is untouched by this, because it lives on a different
+  element (`.ft-step-trigger`) from every signal. No focus indicator is ever
+  animated.
+- **Touch and coarse pointers.** Nothing here is pointer-driven — the whole
+  effect follows `current` — so a coarse pointer needs no special handling.
 
 ## Implementation Notes
 

@@ -76,6 +76,7 @@ Only `id`, `name`, `task` and `status` are required. `progress` and `model` rend
 | `compact`  | `boolean`                                      | `false`     | Tighter rows with the task line dropped                              |
 | `class`    | `string`                                       | `undefined` | Additional CSS classes                                               |
 | `ref`      | `HTMLDivElement \| null`                       | `null`      | Bindable reference to the root element                               |
+| `sound`    | `boolean`                                      | `false`     | Plays the `select` cue on row activation                             |
 
 ## Snippets
 
@@ -105,6 +106,16 @@ Left unset, `label` is computed from the statuses, because the one number a fan-
 "Settled" covers `error` and `cancelled` as well as `done` — a worker that failed is no longer out there. The count is the running tally in the first row of that table and the headcount everywhere else, and singular reads as `"1 agent running"`. Pass `label` and it wins outright, unchanged.
 
 The label is the list's accessible name only; it is not rendered. Put your own heading above the list if you want the count on screen.
+
+## Sound
+
+Set `sound` to play the `select` cue when a worker row is activated, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<SubagentList {agents} onSelect={(agent) => inspect(agent)} sound />
+```
+
+It only fires from the `{#if onSelect}` button branch — without `onSelect` the rows are plain, inert spans and nothing plays. A worker spawning, finishing, or reporting new progress never plays it either: only an actual row activation does, whatever else is changing around it. Off by default; only audible once the user has separately turned sound on.
 
 ## Implementation notes
 

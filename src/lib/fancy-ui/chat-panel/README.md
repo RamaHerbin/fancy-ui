@@ -142,6 +142,7 @@ change what the region holds without moving anything.
 | `label`       | `string`                 | `"Conversation"`   | Accessible name for the panel as a whole               |
 | `class`       | `string`                 | `undefined`        | Additional CSS classes                                 |
 | `ref`         | `HTMLDivElement \| null` | `null`             | Bindable reference to the root element                 |
+| `sound`       | `boolean`                | `false`            | Plays `press` on the jump-to-latest pill, once enabled |
 
 ### Snippets
 
@@ -181,6 +182,20 @@ dropping it into the panel's `emptyState` needs no wrapper:
 The mark above the greeting is hidden from the accessibility tree whether it is
 the default sparkle or one of yours: the greeting carries the meaning, and an
 icon repeated out loud in front of it is noise.
+
+## Sound
+
+Set `sound` to play the `press` cue when the jump-to-latest pill is activated, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<ChatPanel sound>
+	{#snippet composer()}
+		<Composer sound onSend={send} />
+	{/snippet}
+</ChatPanel>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the panel **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). Scroll handling, the `MutationObserver`/`ResizeObserver` sync and the initial snap to the latest turn are all programmatic and stay silent — only the pill's own click plays. A panel commonly hosts a `Composer` in its `composer` snippet; enable `sound` on each component separately so one gesture never plays two cues.
 
 ## Styling
 

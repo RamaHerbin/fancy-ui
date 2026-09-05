@@ -18,14 +18,25 @@ A button that spawns a Material-style expanding ripple circle from the exact cli
 
 ## Props
 
-| Prop          | Type      | Default     | Description                        |
-| ------------- | --------- | ----------- | ---------------------------------- |
-| `rippleColor` | `string`  | `"#ADD8E6"` | Color of the ripple effect         |
-| `duration`    | `number`  | `600`       | Animation duration in milliseconds |
-| `class`       | `string`  | —           | Additional CSS classes             |
-| `children`    | `Snippet` | —           | Button content                     |
+| Prop          | Type      | Default     | Description                                                          |
+| ------------- | --------- | ----------- | -------------------------------------------------------------------- |
+| `rippleColor` | `string`  | `"#ADD8E6"` | Color of the ripple effect                                           |
+| `duration`    | `number`  | `600`       | Animation duration in milliseconds                                   |
+| `class`       | `string`  | —           | Additional CSS classes                                               |
+| `children`    | `Snippet` | —           | Button content                                                       |
+| `sound`       | `boolean` | `false`     | Plays the `press` cue on activation, once the user has enabled sound |
 
 `RippleButtonProps` also extends `HTMLButtonAttributes` (minus `class`), and any attributes not explicitly listed above (e.g. `type`, `aria-*`, `data-*`) are spread onto the rendered `<button>` via `...restProps`.
+
+## Sound
+
+Set `sound` to play the `press` cue on activation, through the shared sound controller (see [`sound/README.md`](../sound/README.md)):
+
+```svelte
+<RippleButton sound onclick={() => console.log("clicked")}>Click me</RippleButton>
+```
+
+It is opt-in and silent by default: nothing plays unless both `sound` is set on the button **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). `disabled` blocks the cue exactly like it blocks a native click. The cue plays once per click alongside the ripple; the ripple's own removal timeout never triggers a second cue.
 
 ## Implementation notes
 

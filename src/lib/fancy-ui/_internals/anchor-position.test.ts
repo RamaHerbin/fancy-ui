@@ -143,6 +143,85 @@ describe("computePosition", () => {
 	});
 });
 
+// The requested alignment says which corner the caller ASKED for; only the
+// clamped coordinates say which corner the anchor actually ends up near. A
+// transform origin taken from the request grows the panel out of the corner
+// farthest from the click whenever a clamp moved it.
+describe("computePosition — resolved cross-axis align", () => {
+	it("reports the requested align back when nothing clamped it", () => {
+		// Mid-viewport on purpose: at x=100 the end-aligned panel would start at
+		// -50 and be clamped to 0, which is the very case the tests below cover.
+		const anchor = rect({ x: 400, y: 100, width: 50, height: 20 });
+
+		expect(
+			computePosition(anchor, { width: 200, height: 40 }, { align: "start", viewport }).align
+		).toBe("start");
+		expect(
+			computePosition(anchor, { width: 200, height: 40 }, { align: "center", viewport }).align
+		).toBe("center");
+		expect(
+			computePosition(anchor, { width: 200, height: 40 }, { align: "end", viewport }).align
+		).toBe("end");
+	});
+
+	// The reported case: a right-click near the viewport's right edge, opened
+	// bottom/start. The panel is clamped leftward until its RIGHT edge is the
+	// one at the pointer, so the origin has to be "end", not the requested
+	// "start".
+	it("reports 'end' when a start-aligned panel is clamped off the right edge", () => {
+		const anchor = rect({ x: 1010, y: 100, width: 0, height: 0 });
+		const result = computePosition(
+			anchor,
+			{ width: 200, height: 40 },
+			{ side: "bottom", align: "start", viewport }
+		);
+
+		expect(result.x).toBe(viewport.width - 200); // clamped, not anchor.left
+		expect(result.align).toBe("end");
+	});
+
+	it("reports 'start' when an end-aligned panel is clamped off the left edge", () => {
+		const anchor = rect({ x: 4, y: 100, width: 0, height: 0 });
+		const result = computePosition(
+			anchor,
+			{ width: 200, height: 40 },
+			{ side: "bottom", align: "end", viewport }
+		);
+
+		expect(result.x).toBe(0);
+		expect(result.align).toBe("start");
+	});
+
+	// Same failure on the other axis: a side-placed panel clamped against the
+	// bottom of the viewport.
+	it("resolves against the vertical axis for left/right sides", () => {
+		const anchor = rect({ x: 100, y: 760, width: 20, height: 0 });
+		const result = computePosition(
+			anchor,
+			{ width: 200, height: 300 },
+			{ side: "right", align: "start", viewport }
+		);
+
+		expect(result.y).toBe(viewport.height - 300);
+		expect(result.align).toBe("end");
+	});
+
+	// Every element measures zero in jsdom, so this is the path the component
+	// tests take. With no measurable box nothing was clamped either, so the
+	// requested alignment is the honest answer — and the one that keeps an
+	// unlaid-out first frame pointing where the caller asked.
+	it("falls back to the requested align for a zero-size element", () => {
+		const anchor = rect({ x: 100, y: 100, width: 50, height: 20 });
+
+		expect(
+			computePosition(anchor, { width: 0, height: 0 }, { align: "start", viewport }).align
+		).toBe("start");
+		expect(computePosition(anchor, { width: 0, height: 0 }, { align: "end", viewport }).align).toBe(
+			"end"
+		);
+	});
+});
+
 describe("anchorPosition — onPlacement", () => {
 	afterEach(() => {
 		document.body.innerHTML = "";
@@ -276,7 +355,7 @@ describe("anchorPosition — onPlacement", () => {
 		});
 
 		expect(second).toHaveBeenCalledTimes(1);
-		expect(second).toHaveBeenCalledWith("bottom");
+		expect(second).toHaveBeenCalledWith("bottom", "center");
 		expect(first).toHaveBeenCalledTimes(1);
 		action?.destroy?.();
 	});

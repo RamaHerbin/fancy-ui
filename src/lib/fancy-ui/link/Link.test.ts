@@ -1,7 +1,8 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Link from "./Link.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function textChildren(text: string) {
 	return createRawSnippet(() => ({
@@ -203,6 +204,41 @@ describe("Link", () => {
 		expect(onclick.mock.calls[0][0]).toBeInstanceOf(MouseEvent);
 	});
 
+	// The external arrow nudges a pixel up and to the right on hover and on
+	// keyboard focus. jsdom computes neither `:hover`, `:focus-visible` nor the
+	// `@media` blocks the rules live in, so what a test can pin is the class the
+	// whole effect selects on — without `ft-link-icon` on the glyph, the rule
+	// would match nothing.
+	it("names the external arrow so the nudge has something to select on", () => {
+		render(Link, { props: { href: "https://example.com", external: true } });
+		const icon = screen.getByRole("link").querySelector(".ft-link-icon");
+
+		expect(icon).toBeInTheDocument();
+		expect(icon?.getAttribute("aria-hidden")).toBe("true");
+	});
+
+	it("reduced motion: the arrow is still rendered, it simply does not move", () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			// Both the transition and the hover/focus `translate` live inside
+			// `@media (prefers-reduced-motion: no-preference)`, so under this
+			// preference the arrow simply sits where it always sat. Nothing about
+			// the markup — or the "(opens in a new tab)" note beside it — changes.
+			render(Link, { props: { href: "https://example.com", external: true } });
+			const anchor = screen.getByRole("link");
+
+			expect(anchor.querySelector(".ft-link-icon")).toBeInTheDocument();
+			expect(anchor.textContent).toContain("(opens in a new tab)");
+		} finally {
+			window.matchMedia = real;
+		}
+	});
+
 	it("merges a custom class with the base classes", () => {
 		render(Link, { props: { href: "/docs", class: "mt-2" } });
 		const cls = screen.getByRole("link").className;
@@ -221,5 +257,54 @@ describe("Link", () => {
 
 		expect(tokens).toContain("text-lg");
 		expect(tokens).not.toContain("text-sm");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the press cue exactly once when sound is enabled and the link is clicked", async () => {
+			render(Link, { props: { href: "/docs", sound: true } });
+
+			await fireEvent.click(screen.getByRole("link"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("press");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			render(Link, { props: { href: "/docs" } });
+
+			await fireEvent.click(screen.getByRole("link"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls the caller's onclick alongside the cue, exactly once", async () => {
+			const onclick = vi.fn();
+			render(Link, { props: { href: "/docs", sound: true, onclick } });
+
+			await fireEvent.click(screen.getByRole("link"));
+
+			expect(onclick).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledTimes(1);
+		});
+
+		it("never plays on hover or focus alone — only activation", async () => {
+			render(Link, { props: { href: "/docs", sound: true } });
+			const anchor = screen.getByRole("link");
+
+			await fireEvent.mouseOver(anchor);
+			anchor.focus();
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

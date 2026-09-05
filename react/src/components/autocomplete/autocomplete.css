@@ -1,0 +1,13 @@
+/* Ported from the `<style>` block of `Autocomplete.svelte`. Svelte's compiler
+   scoped this rule to the component; plain CSS is global, so it stays anchored
+   on `.ft-autocomplete` — the class the source already carries as the first
+   token of the input's own `cn()` call, so nothing was added for the anchor's
+   sake. */
+.ft-autocomplete:focus-visible {
+	--ft-field-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+	border-color: var(--ft-field-accent);
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-field-accent) 25%, transparent);
+}

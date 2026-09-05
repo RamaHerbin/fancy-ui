@@ -27,6 +27,11 @@
 		class?: string;
 		/** Bindable reference to the panel element. */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching open/close cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
@@ -34,6 +39,7 @@
 	import { setContext } from "svelte";
 	import { POPOVER_KEY, type PopoverContext } from "./types.js";
 	import PopoverContent from "./PopoverContent.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -46,6 +52,7 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: PopoverProps = $props();
 
 	// The trigger's `aria-controls` target. The panel isn't mounted at all
@@ -65,6 +72,7 @@
 	function setOpen(next: boolean) {
 		if (open === next) return;
 		open = next;
+		if (sound) soundFx.play(next ? "open" : "close");
 		onOpenChange?.(next);
 	}
 
@@ -94,6 +102,15 @@
 		},
 		get triggerRef() {
 			return triggerRef;
+		},
+		// A getter, and read at the moment each direction of the panel's
+		// transition starts — not a value copied into the context once. The
+		// panel is mid-exit for 150 ms after `open` flips false, and during
+		// that window Svelte has marked the branch inert and stopped running
+		// its effects, so nothing reactive inside the panel would ever see a
+		// new value. Reading through this getter always does.
+		get open() {
+			return open;
 		},
 		close,
 	};

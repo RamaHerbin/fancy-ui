@@ -30,16 +30,17 @@ The input is plain unified-diff text — whatever `git diff` printed, headers an
 
 ## Props
 
-| Prop          | Type                     | Default     | Description                                                   |
-| ------------- | ------------------------ | ----------- | ------------------------------------------------------------- |
-| `diff`        | `string`                 | —           | Raw unified diff text. Required.                              |
-| `filename`    | `string`                 | `undefined` | Header label when the patch names no file, or names just one  |
-| `lineNumbers` | `boolean`                | `true`      | Whether to show the old/new line-number gutters               |
-| `collapsed`   | `boolean`                | `false`     | Whether the bodies are folded away. Bindable                  |
-| `maxLines`    | `number`                 | `0`         | Lines shown before the rest hide behind a button. 0 shows all |
-| `wrap`        | `boolean`                | `false`     | Whether long lines wrap instead of scrolling sideways         |
-| `class`       | `string`                 | `undefined` | Additional CSS classes                                        |
-| `ref`         | `HTMLDivElement \| null` | `null`      | Bindable reference to the root element                        |
+| Prop          | Type                     | Default     | Description                                                                                                       |
+| ------------- | ------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| `diff`        | `string`                 | —           | Raw unified diff text. Required.                                                                                  |
+| `filename`    | `string`                 | `undefined` | Header label when the patch names no file, or names just one                                                      |
+| `lineNumbers` | `boolean`                | `true`      | Whether to show the old/new line-number gutters                                                                   |
+| `collapsed`   | `boolean`                | `false`     | Whether the bodies are folded away. Bindable                                                                      |
+| `maxLines`    | `number`                 | `0`         | Lines shown before the rest hide behind a button. 0 shows all                                                     |
+| `wrap`        | `boolean`                | `false`     | Whether long lines wrap instead of scrolling sideways                                                             |
+| `class`       | `string`                 | `undefined` | Additional CSS classes                                                                                            |
+| `ref`         | `HTMLDivElement \| null` | `null`      | Bindable reference to the root element                                                                            |
+| `sound`       | `boolean`                | `false`     | Plays `open`/`close` as a file folds, and `open` when clamped lines are revealed, once the user has enabled sound |
 
 ## Folding
 
@@ -54,6 +55,16 @@ Every file header is a toggle, and `collapsed` is the master switch above them: 
 Lines are monochrome. A diff in a chat transcript is read for _what moved_, and layering token colours on top of the add/delete tints turns the one distinction that matters into the hardest one to see. It also means no language detection, no grammar payloads, and no highlighter to keep current — the component stays the same size whatever the patch is written in.
 
 Every readable signal is carried twice: an add row gets the green tint _and_ a `+`, a delete row the red tint _and_ a `−`, so the rows survive a monochrome print or a reader who does not separate those hues.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the user has enabled sound in their own preferences:
+
+```svelte
+<CodeDiff diff={patch} sound />
+```
+
+`open` plays when a folded file's header unfolds it, and again when a clamped file's "Show N more lines" button reveals the rest; `close` plays when a header folds a file back away. The cue lives inside the click handlers alone — the `$effects` that silently reset fold and clamp state (`collapsed` flipped from outside, a streaming patch's signature changing) never play anything, so a chunk arriving mid-stream stays quiet. Binding `collapsed` to fold or unfold the whole patch from outside is one of those silent resets too. See [`sound/README.md`](../sound/README.md) for how the preference and playback work.
 
 ## Theming
 

@@ -1,0 +1,172 @@
+/*
+ * `.fancy-code-diff` is a PORT-ADDED anchor (PORTING.md, styling rule 2). The
+ * source's <style> block was compiler-scoped and had no root class; plain CSS
+ * is global, so every rule here stays anchored under the root to keep names
+ * like `.ft-row` from leaking into every consumer's page. The anchor is the
+ * first token of the root `cn()` call.
+ */
+
+/*
+ * 0fr → 1fr on a one-row grid transitions "auto" height without measuring
+ * anything; the inner wrapper does the clipping.
+ */
+.fancy-code-diff .ft-body {
+	display: grid;
+	grid-template-rows: 0fr;
+}
+
+.fancy-code-diff .ft-body.ft-open {
+	grid-template-rows: 1fr;
+}
+
+.fancy-code-diff .ft-chevron.ft-open {
+	transform: rotate(90deg);
+}
+
+.fancy-code-diff .ft-scroll {
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding-block: 0.25rem;
+}
+
+.fancy-code-diff .ft-scroll.ft-wrap {
+	overflow-x: hidden;
+}
+
+/*
+ * `max-content` with a 100% floor keeps a row's tint running the full scroll
+ * width instead of stopping where the shortest line ends.
+ */
+.fancy-code-diff .ft-row,
+.fancy-code-diff .ft-sep {
+	width: max-content;
+	min-width: 100%;
+}
+
+.fancy-code-diff .ft-wrap .ft-row,
+.fancy-code-diff .ft-wrap .ft-sep {
+	width: auto;
+}
+
+.fancy-code-diff .ft-row {
+	display: flex;
+	align-items: flex-start;
+	line-height: 1.6;
+}
+
+.fancy-code-diff .ft-sep {
+	padding: 0.375rem 0.75rem;
+	white-space: pre;
+	opacity: 0.55;
+}
+
+/*
+ * Tint and glyph both carry the verdict, so the rows stay readable when the
+ * hues do not land — colour is never the only signal. Both tints are mixed
+ * from the `--ft-status-*` vocabulary this component family shares, so a
+ * theme that recolours success and failure once recolours the diff too.
+ */
+.fancy-code-diff .ft-add {
+	background-color: var(
+		--ft-diff-add-bg,
+		color-mix(
+			in oklab,
+			var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145))) 12%,
+			transparent
+		)
+	);
+}
+
+.fancy-code-diff .ft-del {
+	background-color: var(
+		--ft-diff-del-bg,
+		color-mix(
+			in oklab,
+			var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25))) 12%,
+			transparent
+		)
+	);
+}
+
+.fancy-code-diff .ft-context {
+	background-color: transparent;
+}
+
+.fancy-code-diff .ft-meta {
+	font-style: italic;
+	opacity: 0.6;
+}
+
+.fancy-code-diff .ft-stat-add {
+	color: var(
+		--ft-diff-add-fg,
+		var(--ft-status-done, light-dark(oklch(0.5 0.14 145), oklch(0.72 0.15 145)))
+	);
+}
+
+.fancy-code-diff .ft-stat-del {
+	color: var(
+		--ft-diff-del-fg,
+		var(--ft-status-error, light-dark(oklch(0.5 0.19 25), oklch(0.7 0.18 25)))
+	);
+}
+
+.fancy-code-diff .ft-badge {
+	flex: none;
+	border-radius: 0.25rem;
+	padding: 0.0625rem 0.375rem;
+	font-size: 0.6875rem;
+	background-color: var(--ft-diff-badge-bg, color-mix(in oklab, currentColor 12%, transparent));
+}
+
+/* Gutters, glyphs and hunk headers are chrome: skipping them keeps a copied
+   selection compilable — no line numbers, no markers, no dangling `@@`. */
+.fancy-code-diff .ft-num,
+.fancy-code-diff .ft-glyph,
+.fancy-code-diff .ft-sep {
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.fancy-code-diff .ft-num,
+.fancy-code-diff .ft-glyph {
+	flex: none;
+}
+
+.fancy-code-diff .ft-num {
+	min-width: 4ch;
+	padding-inline: 0.5rem 0;
+	text-align: right;
+	opacity: 0.45;
+	font-variant-numeric: tabular-nums;
+}
+
+.fancy-code-diff .ft-glyph {
+	width: 2.5ch;
+	text-align: center;
+	opacity: 0.7;
+}
+
+.fancy-code-diff .ft-code {
+	flex: 1 1 auto;
+	min-width: 0;
+	white-space: pre;
+	padding-inline-end: 0.75rem;
+}
+
+.fancy-code-diff .ft-wrap .ft-code {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+/* Everything that moves lives behind the query; reduced motion gets the same
+   states with nothing to shorten. */
+@media (prefers-reduced-motion: no-preference) {
+	.fancy-code-diff .ft-body {
+		transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.fancy-code-diff .ft-chevron {
+		transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}

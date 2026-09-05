@@ -347,6 +347,53 @@ panel, `bg-accent`/`text-accent-foreground` for the hovered/focused row,
 `text-destructive` for the destructive variant, `text-muted-foreground` for
 shortcuts/carets/group labels.
 
+## Motion
+
+The panel rises over 150 ms on the shared arrival curve (`DURATIONS.fast` and
+`JS_EASINGS.out`, the rung every floating surface in the library is on),
+growing from a `0.92` floor, and reverses over the same 150 ms on the
+departure curve (`JS_EASINGS.in`) — collapsing only to `0.96`, half the depth,
+because leaving is a smaller gesture than arriving. The growth origin follows
+the side the panel was actually placed on — flipped placements included — so
+it appears to come out of the trigger, and to go back into it, rather than out
+of its own centre. Exposed as `data-side` / `data-align` for consumers that
+want to key their own styling off the resolved placement.
+
+One bidirectional Svelte transition drives both directions, not a keyframe, so
+there is no `--ft-*` variable on the panel to retime it; reduced motion is the
+one switch.
+
+- A submenu grows from the edge nearest the row that opened it, and that edge
+  and the row's caret glyph read the one same `SubContext.resolvedSide`
+  value: a submenu that flips to the left of its trigger turns the caret and
+  moves the origin in the same update, never one without the other.
+- **A submenu leaves with the menu that owns it.** Closing the root tears down
+  the submenu's block too, and both fade on the same clock — neither hangs on
+  at full strength while the other goes, and the DOM is torn down only once
+  the last of them has finished.
+- Only `opacity` and `transform` animate, and only on the panel itself.
+- **The close is not deferred, only the removal is.** `open` still flips the
+  instant you dismiss, `aria-expanded` with it, and `onOpenChange` fires once
+  and immediately. What waits is the panel leaving the DOM.
+- **Focus is never animated, and never waits.** Roving focus lands on the
+  first (or last) item in the same tick the panel mounts; on the way out, the
+  trigger is refocused at the dismiss instant rather than at the end of the
+  fade — this family does that from `DropdownMenu`'s own `setOpen`, so it
+  needs no focus trap and no deferred-return machinery. `data-state="closing"`
+  is set on the panel for the length of the exit, and the framework marks it
+  `inert` for the same window, so a menu on its way out cannot take a click.
+- **A second Escape during the fade reaches whatever is underneath.** The
+  dismiss layer stops answering the moment `open` is false, so it neither
+  fires again nor swallows the key on its way to the surface below. Reopening
+  mid-fade reverses the exit rather than stacking a second panel on top of it.
+- **Reduced motion** — no animation at all in either direction; the panel
+  simply appears and disappears, and the close is fully synchronous again,
+  exactly as it was before this component animated out. Visibility never
+  depended on the animation: `{#if root.open}` / `{#if sub.open}` own the
+  panel's DOM existence, and the motion is layered on top of that.
+- **Touch and coarse pointers** — unchanged; neither direction is
+  pointer-gated.
+
 ## Implementation notes
 
 - `computePosition`/the `anchorPosition` action (`_internals/anchor-position.js`)
@@ -396,11 +443,39 @@ shortcuts/carets/group labels.
   word). Since these two components already satisfy the convention the
   fallback relies on, they don't set it.
 - `{#if root.open}`/`{#if sub.open}` gate every panel's entire DOM
-  existence, not just its visual appearance — the `@media
-(prefers-reduced-motion: no-preference)` entrance animation is layered on
-  top of that, so a panel that would only ever _appear_ via a transition
-  still exists (and is reachable) under reduced motion; it just doesn't
-  animate in.
+  existence, not just its visual appearance — the shared motion
+  (`_internals/motion/anchored.js`, applied as ONE bidirectional
+  `transition:`) is layered on top of that, so a panel that would only ever
+  _appear_ via a transition still exists (and is reachable) under reduced
+  motion; it just doesn't animate. One bidirectional directive rather than a
+  split `in:`/`out:` pair is deliberate: a bidirectional call is handed the
+  in-flight counterpart's position, so a menu reopened mid-fade continues
+  from where it is instead of snapping to invisible first. The one thing it
+  changes is _when_ the panel leaves — `open` still flips at the dismiss
+  instant, but the node stays mounted (and `inert`) until the fade finishes.
+- **`DropdownMenuSubContent`'s transition carries `|global`, and it is the
+  only one in the library that does.** Svelte's outro collector gathers a
+  _local_ transition only while walking through transparent children; a
+  component boundary is transparent, a nested `{#if}` block is not. So when
+  the root panel's own `{#if}` closes, a local transition on the submenu is
+  never collected — the submenu would sit at full strength beside a parent
+  already fading, then pop out of existence with it. `|global` puts it in
+  the collector's hands whichever `{#if}` is closing. The usual cost of
+  `|global` (an intro that also plays when an ancestor block first renders)
+  is not paid here, because `sub.open` starts false and this block's DOM
+  only ever exists on a real open.
+- **A submenu'"'"'s liveness is `sub.open && parentMenu.rootOpen`, not `sub.open`
+  alone.**
+  Closing the root — selecting a root item, or a caller'"'"'s own `bind:open`
+  write — flips only the root'"'"'s state, so `sub.open` stays true for the whole
+  of that global outro. Both things that ask "is this panel a live top
+  layer?" read the combined value: the transition, which would otherwise run
+  the ARRIVAL curve on the way out, and `dismissable`, which would otherwise
+  let a fading submenu swallow an Escape or an outside click meant for
+  whatever sits underneath. `rootOpen` lives on `MenuContext`, the contract
+  both families implement, because `DropdownMenuSubContent` is shared with
+  `ContextMenu` — and each `*SubContent` republishes its own liveness under
+  that name, so the answer composes down a chain of nested submenus.
 - `{#each}` blocks in this family's own examples key on each item's own
   identity (a label, a value), never a positional index — a reordering or a
   duplicate-looking label stays correct.

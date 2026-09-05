@@ -1,0 +1,13 @@
+/* Keyframes referenced by the inline `animation` shorthand on each
+   `.hyper-text-char`. The name is part of the visual contract — the Svelte
+   source declares it as a global keyframes block — so it is kept identical. */
+@keyframes hyperFadeIn {
+	0% {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}

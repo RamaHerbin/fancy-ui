@@ -5,6 +5,7 @@
 </script>
 
 <PasswordInput
+	sound
 	bind:value={password}
 	label="Password"
 	placeholder="Enter your password"

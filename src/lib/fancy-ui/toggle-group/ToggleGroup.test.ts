@@ -1,9 +1,10 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import ToggleGroup from "./ToggleGroup.svelte";
 import ToggleGroupItem from "./ToggleGroupItem.svelte";
 import Harness from "./ToggleGroupHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 interface Item {
 	value: string;
@@ -457,6 +458,49 @@ describe("ToggleGroup", () => {
 		expect(container.querySelector('[data-testid="glyph"]')).toBeTruthy();
 	});
 
+	// The scoped `<style>` now declares a `transition` shorthand on the item.
+	// Svelte's scoped CSS is unlayered and Tailwind's utilities sit in
+	// `@layer utilities`, so leaving `transition-colors` on the class string
+	// would read as a colour transition that silently never ran.
+	it("drops the transition-colors utility from the item in favour of the hand-written channel", () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		expect(byLabel(container, "Left").className).not.toContain("transition-colors");
+		expect(byLabel(container, "Left").className).toContain("ft-toggle-group-item");
+	});
+
+	// The press feedback is a `:active` rule keyed on `.ft-toggle-group-item`.
+	// jsdom computes neither `:active` nor `@media`, so what a test can pin is
+	// that the class the CSS hangs off is on every item, selected or not.
+	it("keeps the press-feedback class hook on every item regardless of selection", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS, value: "left" } });
+
+		for (const el of buttons(container)) {
+			expect(el.className).toContain("ft-toggle-group-item");
+		}
+	});
+
+	it("reduced motion: selection still round-trips through aria-pressed", async () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+			const left = byLabel(container, "Left");
+
+			// Reduced motion swaps the press scale for an opacity fade; neither is
+			// observable in jsdom. What is observable is that nothing about the
+			// state contract is gated on the preference.
+			expect(left.getAttribute("aria-pressed")).toBe("false");
+			await fireEvent.click(left);
+			expect(left.getAttribute("aria-pressed")).toBe("true");
+		} finally {
+			window.matchMedia = real;
+		}
+	});
+
 	it("renders an item outside a group harmlessly, unselected and without a roving tabindex", async () => {
 		const { container } = render(ToggleGroupItem, { props: { value: "solo", label: "Solo" } });
 		const el = container.querySelector("button") as HTMLButtonElement;
@@ -467,5 +511,88 @@ describe("ToggleGroup", () => {
 		// There is no group to toggle; this must not throw.
 		await fireEvent.click(el);
 		expect(el.getAttribute("aria-pressed")).toBe("false");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays select exactly once when picking an item in type=single, with sound enabled", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, sound: true } });
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays select again on clear-on-repick — activating the already-selected item in type=single", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, sound: true, value: "left" },
+			});
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays toggle-on exactly once when activating an unselected item in type=multiple", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, type: "multiple", sound: true },
+			});
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on");
+		});
+
+		it("plays toggle-off exactly once when deactivating a selected item in type=multiple", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, type: "multiple", sound: true, value: ["left"] },
+			});
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS } });
+
+			await fireEvent.click(byLabel(container, "Left"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the group is disabled, even with sound enabled", () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, sound: true, disabled: true },
+			});
+
+			byLabel(container, "Left").dispatchEvent(
+				new MouseEvent("click", { bubbles: true, cancelable: true })
+			);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("does not wire the cue in ToggleGroupItem.handleClick — an item outside a group plays nothing", async () => {
+			const { container } = render(ToggleGroupItem, { props: { value: "solo", label: "Solo" } });
+			const el = container.querySelector("button") as HTMLButtonElement;
+
+			await fireEvent.click(el);
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

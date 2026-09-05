@@ -52,7 +52,12 @@
 
 	const classes = $derived(
 		cn(
-			"ft-toggle-group-item inline-flex shrink-0 cursor-pointer items-center justify-center font-medium transition-colors",
+			// No `transition-colors`: the scoped style block below puts a `transition`
+			// shorthand on this same element, and Svelte's scoped CSS is unlayered
+			// while Tailwind utilities live in `@layer utilities`, so the utility
+			// would have been replaced without a trace. The colour channel is
+			// re-declared by hand there instead.
+			"ft-toggle-group-item inline-flex shrink-0 cursor-pointer items-center justify-center font-medium",
 			"focus-visible:outline-none",
 			"disabled:pointer-events-none disabled:opacity-50",
 			SIZE_CLASSES[size],
@@ -165,9 +170,56 @@
 			--ft-accent,
 			light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
 		);
+		/* One local alias so the token pair is typed once rather than six times.
+		   150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) = tokens.EASINGS.inout */
+		--ft-toggle-group-motion: var(--ft-duration-fast, 150ms)
+			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+		/* Replaces the `transition-colors` utility removed from the class string
+		   above. Colour is a state change, not motion, so it stays outside the
+		   reduced-motion query. `text-decoration-color`, `fill` and `stroke`
+		   never change on this control, so the three that do are the faithful
+		   subset of what the utility covered. */
+		transition:
+			color var(--ft-toggle-group-motion),
+			background-color var(--ft-toggle-group-motion),
+			border-color var(--ft-toggle-group-motion);
+		/* Kills the ~300ms tap delay without blocking scroll — the same rule,
+		   for the same reason, as `.ft-pressable`. */
+		touch-action: manipulation;
 	}
 
+	/* The focus ring stays an untransitioned `box-shadow`: a ring that fades in
+	   is a ring a keyboard user has to wait for. */
 	.ft-toggle-group-item:focus-visible {
 		box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-toggle-group-accent) 35%, transparent);
+	}
+
+	/* Universal fallback — press feedback must survive reduced motion, and a UA
+	   that supports neither query still needs some pressed affordance. */
+	.ft-toggle-group-item:active:not(:disabled) {
+		opacity: var(--ft-toggle-group-press-opacity, 0.85);
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-toggle-group-item {
+			/* The individual `scale` property, not `transform: scale()`: this
+			   scoped rule is unlayered, so a `transform` here would beat any
+			   transform utility a consumer passes through the public `class`
+			   prop — a `rotate-45` would silently vanish, at rest AND under
+			   the press. `scale` composes with the consumer's `transform`
+			   instead of replacing it. */
+			scale: 1;
+			transition:
+				color var(--ft-toggle-group-motion),
+				background-color var(--ft-toggle-group-motion),
+				border-color var(--ft-toggle-group-motion),
+				scale var(--ft-toggle-group-motion);
+		}
+
+		.ft-toggle-group-item:active:not(:disabled) {
+			scale: var(--ft-toggle-group-press-scale, 0.97);
+			/* Full motion = scale only; reduced motion = opacity only. Never both. */
+			opacity: 1;
+		}
 	}
 </style>

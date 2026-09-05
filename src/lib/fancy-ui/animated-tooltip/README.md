@@ -38,3 +38,4 @@ A row of overlapping avatars that pop a name/role tooltip above the hovered item
 - The tooltip is conditionally rendered (`{#if hoveredIndex === item.id}`) rather than always mounted and toggled with opacity, so it uses Svelte's `transition:scale` (200ms, `start: 0.6`) on enter/exit instead of a CSS-only transition.
 - Avatars overlap via a `-mr-4` negative margin on each item and `group-hover:z-30`/`scale-105` to lift the hovered one above its neighbors.
 - No `prefers-reduced-motion` handling — the scale transition and position/rotation tracking run regardless of user preference.
+- Each avatar wrapper is keyboard-focusable (`tabindex="0"`) and shows the tooltip on `focusin`/`focusout` as well as mouse hover, so keyboard and touch users can reach the designation, not just mouse users. The tooltip carries `role="tooltip"` and an id, referenced by the wrapper's `aria-describedby` only while it is shown.

@@ -1,0 +1,143 @@
+/*
+ * Ported verbatim from the Svelte source's <style> block. The compiler scoped
+ * those rules; plain CSS is global, so the `[data-variant]`/`[data-animation]`
+ * selectors are anchored on the component's root class (`.ft-skeleton`, which
+ * is where those data attributes live) — the anchoring is port-added, the
+ * declarations are not.
+ */
+
+.ft-skeleton {
+	display: block;
+	/* NEW, and a named layout-property exception: the containing block for
+	   the outgoing bones overlay. `display: block` is unchanged; this
+	   changes nothing for a consumer unless they were relying on the
+	   skeleton root NOT being a containing block for an absolutely
+	   positioned descendant of their own content. */
+	position: relative;
+}
+
+/* The outgoing bones, for the length of the fade only. Out of flow, so the
+   content underneath is what sizes the root and the container never
+   overshoots and settles; `inset: 0` then hands the bones exactly the
+   content's own box to fade out over. Not interactive for a single frame
+   of it — the revealed content is clickable from the moment it lands. */
+.ft-skeleton .ft-skeleton-bones-out {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.ft-skeleton .ft-skeleton-bone {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	background-color: var(
+		--ft-skeleton-base,
+		light-dark(oklch(0.93 0 0), oklch(0.32 0 0))
+	); /* tokens.* n/a: component-owned */
+	border-radius: var(--ft-skeleton-radius, 0.375rem); /* tokens.* n/a: component-owned */
+}
+
+/* `rect` is the DEFAULT variant and has no other height rule anywhere — a
+   `display: block` bone with no content is otherwise 0px tall. `100%`
+   resolves against the root the consumer already sizes (`class="h-4"`);
+   `min-height` is the same 0.85em floor `text` gets, for the case the root
+   itself has no explicit height (an auto-height wrapper in wrapping mode)
+   so a bone is never literally invisible. Deliberately not applied to
+   `circle`, which sizes itself via `aspect-ratio` instead. */
+.ft-skeleton[data-variant="rect"] .ft-skeleton-bone {
+	height: 100%;
+	min-height: 0.85em;
+}
+
+.ft-skeleton[data-variant="text"] .ft-skeleton-bone {
+	border-radius: 0.25rem;
+	height: 0.85em;
+}
+/* Line spacing isn't part of the frozen contract; without it, stacked text
+   bones would visually touch. Kept minimal and relative to font size so it
+   scales with whatever text size the caller's `class` sets. */
+.ft-skeleton[data-variant="text"] .ft-skeleton-bone + .ft-skeleton-bone {
+	margin-top: 0.5em;
+}
+.ft-skeleton .ft-skeleton-bone--short {
+	width: 60%;
+}
+
+.ft-skeleton[data-variant="circle"] .ft-skeleton-bone {
+	border-radius: 9999px;
+	aspect-ratio: 1 / 1;
+}
+
+/*
+ * Shimmer is a translated ::after overlay — transform only, per the
+ * family's "opacity/transform animate, nothing else" rule. Animating
+ * `background-position` (ThinkingIndicator's own text-shimmer technique)
+ * would violate that rule for a plain background property, so the sweep
+ * here is a separate absolutely-positioned layer that only ever moves via
+ * `translateX`.
+ */
+.ft-skeleton[data-animation="shimmer"] .ft-skeleton-bone::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	transform: translateX(-100%);
+	background-image: linear-gradient(
+		90deg,
+		transparent,
+		var(--ft-skeleton-highlight, color-mix(in oklab, currentColor 12%, transparent)),
+		transparent
+	);
+}
+
+/* :dir(rtl) reverses the sweep by playing the SAME keyframe backward rather
+   than authoring a mirrored one — half the CSS, same visual result (the
+   highlight still starts at the reading-direction's leading edge). Kept as
+   a plain custom-property override on the root (matching ScrollProgress's
+   own `:dir(rtl)` rule) rather than chained onto the `::after` selector
+   itself, matching the Svelte source. */
+.ft-skeleton:dir(rtl) {
+	--ft-skeleton-shimmer-direction: reverse;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-skeleton[data-animation="shimmer"] .ft-skeleton-bone::after {
+		animation: ft-skeleton-shimmer var(--ft-skeleton-duration, 1.6s) linear infinite; /* tokens.* n/a: component-owned */
+		animation-delay: var(--ft-skeleton-phase, 0s);
+		animation-direction: var(--ft-skeleton-shimmer-direction, normal);
+	}
+	.ft-skeleton[data-animation="pulse"] .ft-skeleton-bone {
+		animation: ft-skeleton-pulse var(--ft-skeleton-duration, 1.6s) ease-in-out infinite; /* tokens.* n/a: a symmetric breathe wants a symmetric curve, not the asymmetric --ft-ease-inout */
+	}
+}
+
+@keyframes ft-skeleton-shimmer {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(100%);
+	}
+}
+
+@keyframes ft-skeleton-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.6;
+	}
+}
+
+/* A forced-colors palette (Windows High Contrast) replaces `background-color`
+   wholesale — the bone's only visual — so without this every bone repaints
+   to `Canvas` and vanishes against the page (the shimmer/pulse are forced
+   too). The sr-only label still announces, but the visible placeholder is
+   the entire point of a skeleton, so an outline stands in for the bone. */
+@media (forced-colors: active) {
+	.ft-skeleton .ft-skeleton-bone {
+		outline: 1px solid CanvasText;
+		outline-offset: -1px;
+	}
+}

@@ -1,9 +1,10 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
-import { afterEach, describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Stepper from "./Stepper.svelte";
 import Step from "./Step.svelte";
 import Harness from "./StepperHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 interface Item {
 	label: string;
@@ -45,6 +46,18 @@ describe("Stepper", () => {
 		expect(items(container)).toHaveLength(3);
 		await tick();
 		expect(items(container)).toHaveLength(3);
+	});
+
+	// list-style: none strips the implicit list role from an <ol> in
+	// WebKit, so a screen reader announces neither "list, N items" nor
+	// "item M of N" — the only remaining positional cue, since the visible
+	// step number is `aria-hidden`. ThreadList/SubagentList already state
+	// `role="list"` for the same reason; Stepper's <ol> must too.
+	it("states role=list on the ol so its list semantics survive list-style:none", () => {
+		const { container, getByRole, getAllByRole } = render(Harness, { props: { items: ITEMS } });
+
+		expect(getByRole("list")).toBe(list(container));
+		expect(getAllByRole("listitem")).toHaveLength(ITEMS.length);
 	});
 
 	it("renders an ol containing one li per Step, in order", () => {
@@ -240,6 +253,52 @@ describe("Stepper", () => {
 		expect(stepContainer.querySelector("li")?.className).toContain("pl-2");
 	});
 
+	// The bullet fill, its label colour, the halo around the current bullet and
+	// the connector behind it now crossfade over 150 ms instead of snapping.
+	// The transition hangs off the two base classes rather than off each status
+	// modifier, so this pins that both base classes are actually on the
+	// elements — without them the rule would select nothing and the whole
+	// change would silently do nothing.
+	it("carries the base bullet and connector classes the transition hangs off", () => {
+		const { container } = render(Harness, { props: { items: ITEMS, current: 1 } });
+
+		const bullets = Array.from(container.querySelectorAll(".ft-step-bullet"));
+		expect(bullets).toHaveLength(ITEMS.length);
+		expect(connectors(container).length).toBeGreaterThan(0);
+
+		// The status modifiers still ride on top of the base class, not instead
+		// of it.
+		expect(bullets.some((b) => b.className.includes("ft-step-bullet-current"))).toBe(true);
+		expect(bullets.some((b) => b.className.includes("ft-step-bullet-done"))).toBe(true);
+	});
+
+	it("reduced motion: the status colours still cross-fade, because none of them is travel", () => {
+		const real = window.matchMedia;
+		window.matchMedia = ((query: string) => ({
+			...real(query),
+			matches: true,
+		})) as typeof window.matchMedia;
+
+		try {
+			// Deliberate: the bullet/connector transition is colour and a static
+			// halo, neither of which moves anything, so it is declared outside any
+			// `prefers-reduced-motion` query. Suppressing it would make the stepper
+			// flicker rather than settle. jsdom cannot read the rule, so what this
+			// pins is that advancing a step still produces the same class contract
+			// under the preference.
+			const { container } = render(Harness, { props: { items: ITEMS, current: 0 } });
+			expect(stepByLabel(container, "Account").dataset.status).toBe("current");
+
+			const { container: laterContainer } = render(Harness, {
+				props: { items: ITEMS, current: 2 },
+			});
+			expect(stepByLabel(laterContainer, "Account").dataset.status).toBe("done");
+			expect(stepByLabel(laterContainer, "Confirmation").dataset.status).toBe("current");
+		} finally {
+			window.matchMedia = real;
+		}
+	});
+
 	it("works uncontrolled, with neither current nor onCurrentChange passed in", async () => {
 		const { container } = render(Harness, { props: { items: ITEMS, clickable: true } });
 		expect(stepByLabel(container, "Account").getAttribute("aria-current")).toBe("step");
@@ -247,5 +306,65 @@ describe("Stepper", () => {
 		const profileButton = stepByLabel(container, "Profile").querySelector("button")!;
 		await fireEvent.click(profileButton);
 		expect(stepByLabel(container, "Profile").getAttribute("aria-current")).toBe("step");
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a clickable step moves to a different step", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 0, clickable: true, sound: true },
+			});
+
+			const confirmationButton = stepByLabel(container, "Confirmation").querySelector("button")!;
+			await fireEvent.click(confirmationButton);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 0, clickable: true },
+			});
+
+			const confirmationButton = stepByLabel(container, "Confirmation").querySelector("button")!;
+			await fireEvent.click(confirmationButton);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when the root is not clickable, even dispatched directly at the trigger", () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 0, clickable: false, sound: true },
+			});
+
+			const trigger = stepByLabel(container, "Confirmation").querySelector(".ft-step-trigger")!;
+			trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on a re-click of the already-current step, though onStepClick still fires — the changed-only guard", async () => {
+			const onStepClick = vi.fn();
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 1, clickable: true, sound: true, onStepClick },
+			});
+
+			const profileButton = stepByLabel(container, "Profile").querySelector("button")!;
+			await fireEvent.click(profileButton);
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onStepClick).toHaveBeenCalledTimes(1);
+			expect(onStepClick).toHaveBeenCalledWith(1);
+		});
 	});
 });

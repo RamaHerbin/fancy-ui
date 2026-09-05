@@ -4,4 +4,4 @@
 	let page = $state(1);
 </script>
 
-<Pagination bind:page count={12} />
+<Pagination sound bind:page count={12} />

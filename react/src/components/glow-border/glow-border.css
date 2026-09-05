@@ -1,0 +1,21 @@
+@keyframes glow {
+	0% {
+		background-position: 0% 0%;
+	}
+	50% {
+		background-position: 100% 100%;
+	}
+	100% {
+		background-position: 0% 0%;
+	}
+}
+
+.animate-glow {
+	animation: glow var(--glow-duration) linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.animate-glow {
+		animation: none;
+	}
+}

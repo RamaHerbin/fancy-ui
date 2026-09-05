@@ -24,12 +24,18 @@
 		class?: string;
 		/** Element reference to the panel. */
 		ref?: HTMLDivElement | null;
+		/**
+		 * Plays the matching open/close cue through the sound controller. Off by
+		 * default; only audible once the user has enabled sound.
+		 */
+		sound?: boolean;
 	}
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import DialogSurface from "./DialogSurface.svelte";
+	import { sound as soundFx } from "../sound/sound.svelte.js";
 
 	let {
 		open = $bindable(false),
@@ -43,13 +49,23 @@
 		trigger,
 		class: className,
 		ref = $bindable(null),
+		sound = false,
 	}: DialogProps = $props();
 
 	// The only place `open` changes on this side of the wire — a plain
 	// function, not an `$effect`, so it never fights a caller's own
 	// `bind:open` write and never reads/writes `open` in the same pass.
 	function setOpen(next: boolean) {
+		// A dismiss that changes nothing fires nothing. Belt and braces beside
+		// the dismiss layer's own `active` gate — `active` stops the listener,
+		// this stops the callback — and it fixes a real defect on its own: a
+		// second Escape during the close used to fire `onOpenChange(false)` a
+		// second time. The same early return is what keeps a bind:open write
+		// bypassing this function silent, on purpose — see the README's Sound
+		// section.
+		if (open === next) return;
 		open = next;
+		if (sound) soundFx.play(next ? "open" : "close");
 		onOpenChange?.(next);
 	}
 

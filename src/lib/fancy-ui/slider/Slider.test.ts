@@ -3,6 +3,7 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import Slider from "./Slider.svelte";
 import ValueHarness from "./SliderHarness.test.svelte";
 import FieldHarness from "./SliderFieldHarness.test.svelte";
+import { sound } from "../sound/sound.svelte.js";
 
 function slider(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input[type=range]") as HTMLInputElement;
@@ -206,5 +207,54 @@ describe("Slider", () => {
 		expect(el.getAttribute("aria-describedby")).toBe("ctx-help ctx-error");
 		expect(el.getAttribute("aria-invalid")).toBe("true");
 		expect(el.disabled).toBe(true);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the tick cue exactly once when a value is committed via change, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Slider, { props: { sound: true } });
+			const el = slider(container);
+
+			await fireEvent.change(el, { target: { value: "40" } });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Slider, { props: {} });
+			const el = slider(container);
+
+			await fireEvent.change(el, { target: { value: "40" } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Slider, { props: { sound: true, disabled: true } });
+			const el = slider(container);
+
+			el.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on plain input events while dragging — only a committed change plays", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Slider, { props: { sound: true } });
+			const el = slider(container);
+
+			await fireEvent.input(el, { target: { value: "10" } });
+			await fireEvent.input(el, { target: { value: "20" } });
+			await fireEvent.input(el, { target: { value: "30" } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
 	});
 });

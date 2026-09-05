@@ -133,6 +133,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Cards to display in the carousel",
 				required: true,
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open when a card expands and close when it is dismissed, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -261,6 +268,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "5000",
 				description: "Interval between auto-advances in ms",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when the previous or next control moves to another testimonial, once the user has enabled sound",
 			},
 		],
 	},
@@ -574,6 +588,12 @@ export const registry: Record<string, ComponentMeta> = {
 			{ name: "target", type: "string", description: "Link target attribute" },
 			{ name: "rel", type: "string", description: "Link rel attribute" },
 			{ name: "aria-label", type: "string", description: "Accessible label" },
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "Link text content" }],
 	},
@@ -747,6 +767,12 @@ export const registry: Record<string, ComponentMeta> = {
 		props: [
 			{ name: "speed", type: "number", default: "2", description: "Animation speed in seconds" },
 			{ name: "href", type: "string", description: "Render as anchor element when provided" },
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "Button label content" }],
 	},
@@ -773,6 +799,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "600",
 				description: "Animation duration in milliseconds",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
 			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
@@ -817,6 +849,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"rgba(0, 0, 0, 1)"',
 				description: "Button background color",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
 			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
@@ -1262,6 +1300,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"#000"',
 				description: "Background color of the button content area",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
 	},
@@ -1286,6 +1330,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Button"',
 				description: "Button label text (used when children slot is not provided)",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
 			},
 		],
 		slots: [{ name: "children", description: "Button content (overrides text prop)" }],
@@ -1396,6 +1446,111 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				description: "Fixed height in pixels (defaults to container height)",
 			},
+		],
+	},
+	"mosaic-glow": {
+		name: "MosaicGlow",
+		slug: "mosaic-glow",
+		description:
+			"Canvas mosaic of small tiles on a dark surface where a soft halo follows the cursor with a lag, lighting tiles to random gold intensities that decay into a comet trail, with an additive bloom over the gaps, a glassy per-tile highlight, ambient flicker and an autonomous drift when idle",
+		category: "backgrounds",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"canvas",
+			"grid",
+			"mosaic",
+			"glow",
+			"cursor",
+			"halo",
+			"trail",
+			"background",
+			"interactive",
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Content rendered above the canvas; give the host a height",
+			},
+		],
+		props: [
+			{ name: "tileSize", type: "number", default: "18", description: "Tile edge in CSS px" },
+			{ name: "gap", type: "number", default: "2", description: "Gap between tiles in CSS px" },
+			{
+				name: "color",
+				type: "string",
+				default: '"#f2c318"',
+				description: "Halo and tile colour, hex or rgb()",
+			},
+			{
+				name: "background",
+				type: "string",
+				default: '"#0a0a0a"',
+				description: "Surface colour behind the tiles, hex or rgb()",
+			},
+			{ name: "radius", type: "number", default: "170", description: "Halo radius in CSS px" },
+			{
+				name: "intensity",
+				type: "number",
+				default: "1",
+				description: "Overall brightness of lit tiles, 0 to 1",
+			},
+			{
+				name: "trail",
+				type: "number",
+				default: "0.6",
+				description: "How long lit tiles linger after the halo moves on, 0 to 1",
+			},
+			{
+				name: "smoothing",
+				type: "number",
+				default: "0.15",
+				description: "Pointer lag, 0 (instant) to 1 (very laggy)",
+			},
+			{
+				name: "noise",
+				type: "number",
+				default: "0.7",
+				description: "Spread of per-tile random brightness inside the halo, 0 to 1",
+			},
+			{
+				name: "ambient",
+				type: "number",
+				default: "0.35",
+				description: "Visibility of the random faint tiles outside the halo, 0 to 1",
+			},
+			{
+				name: "flicker",
+				type: "boolean",
+				default: "true",
+				description: "Slowly re-roll the faint tiles over time",
+			},
+			{
+				name: "idle",
+				type: '"drift" | "none"',
+				default: '"drift"',
+				description:
+					"With no pointer for 1.5s: drift wanders the halo on a slow path, none switches it off",
+			},
+			{
+				name: "interactive",
+				type: "boolean",
+				default: "true",
+				description: "Follow the pointer. Off leaves only the idle behaviour",
+			},
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description: "Seed for the per-tile randomness; same seed, same mosaic",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable host element",
+			},
+			{ name: "class", type: "string", description: "Additional classes on the host" },
 		],
 	},
 
@@ -2191,6 +2346,103 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"pulse-beam": {
+		name: "PulseBeam",
+		slug: "pulse-beam",
+		description:
+			"Breathing border glow that wraps any card: colour blobs drift along the edges as a crisp 1px ring, a feathered inner glow and a blurred bloom, with slow hue rotation, fade in/out on an active flag, four palettes and an outside halo variant",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["border", "glow", "pulse", "gradient", "mask", "animation", "ai", "loading"],
+		slots: [
+			{
+				name: "children",
+				description: "Content the glow wraps; give it an opaque background and the same radius",
+			},
+		],
+		props: [
+			{
+				name: "active",
+				type: "boolean",
+				default: "true",
+				description:
+					"Show the glow. Turning it off fades out over 500ms and stops the animation loop; turning it on fades in over 600ms",
+			},
+			{
+				name: "variant",
+				type: '"inner" | "outside"',
+				default: '"inner"',
+				description:
+					"inner paints a 1px ring, a 28px feather and a bloom inside the box; outside keeps the ring and adds a blurred halo behind the content",
+			},
+			{
+				name: "palette",
+				type: '"colorful" | "mono" | "ocean" | "sunset"',
+				default: '"colorful"',
+				description:
+					"Built-in nine-slot colour set. mono halves the opacities and disables hue drift",
+			},
+			{
+				name: "colors",
+				type: "string[]",
+				description: "Up to nine CSS colours overriding the palette slots in order",
+			},
+			{ name: "strength", type: "number", default: "1", description: "Overall intensity, 0 to 1" },
+			{
+				name: "radius",
+				type: "number",
+				default: "16",
+				description: "Corner radius in px applied to the wrapper and every layer",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1",
+				description: "Multiplier for the breathing and drift periods",
+			},
+			{
+				name: "tone",
+				type: '"dark" | "light"',
+				default: '"dark"',
+				description: "Opacity, brightness and saturation preset for the surface the card sits on",
+			},
+			{
+				name: "hueShift",
+				type: "boolean",
+				default: "true",
+				description: "Slowly rotate all hues over a 14 to 16 second cycle",
+			},
+			{
+				name: "brightness",
+				type: "number",
+				description: "Override the preset brightness filter",
+			},
+			{
+				name: "saturation",
+				type: "number",
+				description: "Override the preset saturation filter",
+			},
+			{
+				name: "onfadein",
+				type: "() => void",
+				description: "Called once the fade-in has completed",
+			},
+			{
+				name: "onfadeout",
+				type: "() => void",
+				description: "Called once the fade-out has completed and the loop has stopped",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable wrapper element",
+			},
+			{ name: "class", type: "string", description: "Additional classes on the wrapper" },
+		],
+	},
+
 	sparkles: {
 		name: "Sparkles",
 		slug: "sparkles",
@@ -2264,6 +2516,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description: "Prevent auto-firing on mount; call fire() manually",
+			},
+			{
+				name: "ConfettiButton.sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the press cue when the confetti button fires a burst, once the user has enabled sound",
 			},
 		],
 		slots: [{ name: "children", description: "ConfettiButton or other trigger elements" }],
@@ -2910,6 +3169,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "(open: boolean) => void",
 				description: "Called on every open/close, by click or on the panel's own initiative",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open or close when the reader toggles the reasoning trace, once the user has enabled sound",
+			},
 		],
 	},
 	"chat-message": {
@@ -2954,6 +3220,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "Date | number",
 				description:
 					"When the turn was produced; rendered relative, with the exact time as its tooltip",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays press on a message action and select on a branch step, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3012,6 +3285,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"Suggestions"',
 				description: "Accessible name of the group wrapping the pills",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select when a suggestion is picked, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3059,6 +3338,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "false",
 				description: "Whether a retry is in flight: disables the button and marks the row busy",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on retry, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3099,6 +3384,13 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "onToggle",
 				type: "(open: boolean) => void",
 				description: "Called on every open/close, by click or on the card's own initiative",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open or close when the reader toggles the payloads, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3143,6 +3435,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Activity"',
 				description: "Accessible name for the list",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a timeline entry is activated, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3268,6 +3567,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "false",
 				description: "Whether long lines wrap instead of scrolling sideways",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open or close as a file folds, and open when clamped lines are revealed, once the user has enabled sound",
+			},
 		],
 	},
 	sources: {
@@ -3298,6 +3604,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "(open: boolean) => void",
 				description:
 					"Called when the pill is clicked, with the state it moved to; driving open yourself does not fire it",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open/close when the source list is expanded or collapsed, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3408,6 +3721,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"Web search"',
 				description: "Accessible name for the whole block",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select on a picked result and open/close on the expander, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3472,6 +3792,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "() => void",
 				description: "Called once the generated image has finished loading",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on retry, once the user has enabled sound",
+			},
 		],
 	},
 	"agent-plan": {
@@ -3509,6 +3835,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "onSelect",
 				type: "(step: PlanStepData) => void",
 				description: "Called when a row is activated; supplying it turns every row into a button",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select when a plan row is activated, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3553,6 +3885,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description: "Tighter rows with the task line dropped",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a subagent row is activated, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3627,6 +3966,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description:
 					"The consumer is executing the decision: both buttons go disabled and the card is marked aria-busy",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select on both approve and deny, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3699,6 +4044,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				description: 'Small kicker above the title, e.g. "Suggestion"',
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select on accept and close on dismiss, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3766,6 +4117,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "() => void",
 				description:
 					"Asked to open the document; supplying it makes the whole card activatable by click, Enter, or Space",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays press when the document is opened and select on a version step, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -3896,6 +4254,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description:
 					"Called with the files handed to the picker. Upload them, then push the results onto attachments — the composer never uploads anything itself",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays press on send and stop, select on a model or command pick and open/close on the model menu, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -3976,6 +4341,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description:
 					"Any CSS colour for the bars, including a var() or currentColor — written onto the canvas as its CSS color and read back resolved, because a 2D context understands neither",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on start, close on cancel and select on a confirmed recording, once the user has enabled sound",
+			},
 		],
 	},
 	"context-ring": {
@@ -4044,6 +4416,12 @@ export const registry: Record<string, ComponentMeta> = {
 				description:
 					"Turns the ring into a button that toggles a popover listing usage.breakdown; closes on Escape, on a click outside, or on a second press",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays open/close on the breakdown popover, once the user has enabled sound",
+			},
 		],
 	},
 	"scroll-anchor": {
@@ -4094,6 +4472,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "(stuck: boolean) => void",
 				description: "Called when the region pins itself or lets go, never on every scroll",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays press on the return-to-latest pill, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The scrolling content" }],
 	},
@@ -4135,6 +4519,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Conversations"',
 				description: "Accessible name for the list",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a different conversation is picked and press when one is deleted, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -4178,6 +4569,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Jump to latest"',
 				description: "Label on the pill offered once the reader scrolls away from the bottom",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays press on the jump-to-latest pill, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -4371,6 +4768,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The icon, rendered centred" }],
 	},
@@ -4473,6 +4876,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The link's text or content" }],
 	},
@@ -4531,6 +4940,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLButtonElement | null",
 				default: "null",
 				description: "Bindable element reference",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays toggle-on or toggle-off on activation, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -4605,6 +5020,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Bindable reference to the root element.",
 			},
 			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on/toggle-off on a multi-select item or select on a single-select change, once the user has enabled sound",
+			},
+			{
 				name: "ToggleGroupItem.value",
 				type: "string",
 				required: true,
@@ -4646,11 +5068,11 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "CopyButton",
 		slug: "copy-button",
 		description:
-			"Button preset wired to the clipboard, swapping its icon and label to a success skin for a moment after a successful copy",
+			"Button preset wired to the clipboard, morphing its icon and label to a success or failure state for a moment after each copy attempt",
 		category: "actions",
 		group: "core",
 		status: "done",
-		dependencies: ["button"],
+		dependencies: ["button", "status-morph"],
 		tags: ["copy", "clipboard", "button", "success"],
 		props: [
 			{
@@ -4670,6 +5092,12 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "string",
 				default: '"Copied"',
 				description: "Label shown for resetMs after a successful copy",
+			},
+			{
+				name: "errorLabel",
+				type: "string",
+				default: '"Copy failed"',
+				description: "Label and announcement shown after a failed copy",
 			},
 			{
 				name: "resetMs",
@@ -5394,6 +5822,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Reference to the underlying input type=range",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the tick cue on a committed value change, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -5475,6 +5910,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Reference to the underlying input type=number",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays the tick cue on each step, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -5536,6 +5977,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the panel element",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open when the trigger opens the dialog and close on every dismissal, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -5621,6 +6069,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the panel element",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on the trigger, select on a confirmed action and close on Cancel or Escape, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -5690,6 +6145,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference to the panel",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays close when the sheet is dismissed, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{ name: "children", description: "Panel body content" },
@@ -5751,6 +6212,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable element reference to the panel",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays close when the drawer is dismissed, including a committed swipe, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -5815,6 +6283,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the panel element",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open when the trigger opens the panel and close on a dismissal, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -6005,6 +6480,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the <Toaster /> root node",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays success or error when a toast of that variant appears, once the user has enabled sound",
 			},
 			{
 				name: "toast().title",
@@ -6232,6 +6714,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the input element.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the select cue when an option is committed, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -6337,6 +6826,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the input element.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the select cue when a suggestion is committed, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -6434,6 +6930,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLInputElement | null",
 				default: "null",
 				description: "Bindable element reference",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays the press cue when the field is cleared, once the user has enabled sound",
 			},
 		],
 	},
@@ -6538,6 +7041,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable element reference",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on/toggle-off when the password is revealed or hidden, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -6633,6 +7143,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLInputElement | null",
 				default: "null",
 				description: "Bindable reference to the underlying file input",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select on an accepted selection or drop and error on a rejection, once the user has enabled sound",
 			},
 		],
 	},
@@ -6735,6 +7252,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the trigger button.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on opening, select on a picked day and close on a dismissal, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -6836,6 +7360,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the trigger button.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open on opening, select on a picked slot and close on a dismissal, once the user has enabled sound",
+			},
 		],
 	},
 
@@ -6923,6 +7454,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLAnchorElement | null",
 				default: "null",
 				description: "Bindable reference to the anchor element.",
+			},
+			{
+				name: "NavbarLink.sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a navbar link that is not already current is activated, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -7024,6 +7562,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Bindable reference to the item's interactive element.",
 			},
 			{
+				name: "SidebarItem.sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a sidebar item that is not already current is activated, once the user has enabled sound",
+			},
+			{
 				name: "SidebarSeparator.class",
 				type: "string",
 				description: "Additional CSS classes, merged onto the hairline.",
@@ -7117,6 +7662,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when the active tab actually changes, once the user has enabled sound",
 			},
 			{
 				name: "TabsList.class",
@@ -7248,6 +7800,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the nav element.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a default-rendered crumb link is activated, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{
@@ -7326,6 +7885,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "null",
 				description: "Bindable reference to the nav element.",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description: "Plays select when the page actually changes, once the user has enabled sound",
+			},
 		],
 		slots: [
 			{ name: "previousLabel", description: "Overrides the Previous button's content." },
@@ -7382,6 +7947,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLOListElement | null",
 				default: "null",
 				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select when a clickable step changes the current step, once the user has enabled sound",
 			},
 			{
 				name: "Step.label",
@@ -7517,6 +8089,13 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "true",
 				description: "Whether arrow-key navigation wraps at the ends",
 			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays open/close on the menu and its submenus and select on an item, once the user has enabled sound",
+			},
 		],
 		slots: [{ name: "children", description: "The ContextMenuTrigger and ContextMenuContent" }],
 	},
@@ -7599,6 +8178,13 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "HTMLDivElement | null",
 				default: "null",
 				description: "Bindable reference to the panel element.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays select on a committed row and close on a dismissal, once the user has enabled sound",
 			},
 		],
 		slots: [
@@ -7792,6 +8378,689 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+
+	// ===========================================================================
+	// Micro-interactions — small composable motion primitives sharing the
+	// `_internals/motion` foundation (one timing scale, four easing tokens,
+	// reduced-motion gating by CSS, touch-aware pointer handling).
+	// ===========================================================================
+
+	reveal: {
+		name: "Reveal",
+		slug: "reveal",
+		description:
+			"Content-agnostic entrance animation triggered by scroll, mount, or a manual switch, with six directional/scale presets and an arbitrary-length JS-computed stagger for direct children",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["animation", "reveal", "scroll", "stagger", "entrance", "micro-interaction"],
+		props: [
+			{
+				name: "preset",
+				type: '"fade" | "fade-up" | "fade-down" | "fade-left" | "fade-right" | "scale"',
+				default: '"fade-up"',
+				description: "Which directional/scale look to animate with",
+			},
+			{
+				name: "trigger",
+				type: '"view" | "mount" | "manual"',
+				default: '"view"',
+				description:
+					"What starts the reveal — viewport, next frame after mount, or the active prop",
+			},
+			{
+				name: "active",
+				type: "boolean",
+				default: "false",
+				description: 'Read only when trigger="manual" — true reveals, false re-arms',
+			},
+			{
+				name: "once",
+				type: "boolean",
+				default: "true",
+				description:
+					'Disconnects the observer after the first reveal; false re-arms on leaving the viewport (trigger="view" only)',
+			},
+			{
+				name: "threshold",
+				type: "number",
+				default: "0.1",
+				description: 'IntersectionObserver threshold (trigger="view" only)',
+			},
+			{
+				name: "rootMargin",
+				type: "string",
+				default: '"0px 0px -10% 0px"',
+				description: 'IntersectionObserver rootMargin (trigger="view" only)',
+			},
+			{ name: "duration", type: "number", default: "600", description: "Entrance duration in ms" },
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: "Delay before the entrance starts, in ms",
+			},
+			{
+				name: "easing",
+				type: "string",
+				default: '"cubic-bezier(0.16, 1, 0.3, 1)"',
+				description: "CSS easing for the entrance",
+			},
+			{
+				name: "distance",
+				type: "number",
+				default: "16",
+				description: "Travel distance in px for the four directional presets — ignored by scale",
+			},
+			{
+				name: "stagger",
+				type: "number",
+				default: "0",
+				description:
+					"Milliseconds per stagger step; 0 animates the root, any positive value animates direct element children instead",
+			},
+			{
+				name: "from",
+				type: '"first" | "last" | "center" | number',
+				default: '"first"',
+				description:
+					"Where the stagger counts distance from — only meaningful when stagger is greater than 0",
+			},
+			{
+				name: "initial",
+				type: '"hidden" | "visible"',
+				default: '"hidden"',
+				description:
+					'Server-rendered starting state: "hidden" paints the content hidden until it reveals (no flash); "visible" paints it visible and hides it on mount, accepting a flash in exchange for no-JS and non-hydrated safety',
+			},
+			{
+				name: "as",
+				type: "keyof HTMLElementTagNameMap",
+				default: '"div"',
+				description: "The element tag Reveal renders as, via <svelte:element>",
+			},
+			{
+				name: "onReveal",
+				type: "() => void",
+				description:
+					"Fires once per reveal, the moment the state reaches visible — every re-reveal when once is false",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [{ name: "children", description: "Content to reveal" }],
+	},
+
+	presence: {
+		name: "Presence",
+		slug: "presence",
+		description:
+			"Mounts and unmounts content with a real entrance and exit through one direction-aware Svelte transition, tracking opening/open/closing state, marking the panel inert while it closes, and firing lifecycle callbacks",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: ["animation", "presence", "transition", "mount", "exit", "micro-interaction"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				required: true,
+				description: "Whether the content is mounted and, once the entrance settles, visible",
+			},
+			{
+				name: "preset",
+				type: '"fade" | "fade-up" | "fade-down" | "fade-left" | "fade-right" | "scale" | "blur" | "zoom"',
+				default: '"fade"',
+				description: "The entrance/exit look",
+			},
+			{ name: "duration", type: "number", default: "300", description: "Entrance duration in ms" },
+			{
+				name: "exitDuration",
+				type: "number",
+				default: "200",
+				description:
+					"Exit duration in ms — shorter than the entrance by default; leaving reads faster than arriving",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: "Delay in ms before the entrance starts; applied to the exit too",
+			},
+			{
+				name: "distance",
+				type: "number",
+				default: "16",
+				description:
+					"Entrance travel distance in px for the four directional presets — the exit travels half as far",
+			},
+			{
+				name: "inert",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the panel is inert while closing (Svelte already does this natively for any transitioning element — false is an explicit opt-out)",
+			},
+			{
+				name: "onEnterEnd",
+				type: "() => void",
+				description: "Fires once the entrance transition settles (onintroend)",
+			},
+			{
+				name: "onExitEnd",
+				type: "() => void",
+				description:
+					"Fires once the exit transition settles (onoutroend) — not guaranteed if the component is destroyed mid-exit",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element — null while closed",
+			},
+		],
+		slots: [{ name: "children", description: "Panel content" }],
+	},
+
+	magnetic: {
+		name: "Magnetic",
+		slug: "magnetic",
+		description:
+			"A generic wrapper that pulls its child toward the pointer once it enters an activation field larger than the child's own box, and springs back to rest the instant the pointer leaves — a fine-pointer affordance with no touch or keyboard equivalent",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["pointer", "hover", "cursor", "magnetic", "micro-interaction"],
+		props: [
+			{
+				name: "strength",
+				type: "number",
+				default: "0.35",
+				description: "Pull multiplier applied to the pointer's offset from the child's centre.",
+			},
+			{
+				name: "radius",
+				type: "number",
+				default: "40",
+				description:
+					"Pixels the activation field extends beyond the outer element's own box, on every side. Also sizes the (transparent by default) `::before` halo.",
+			},
+			{
+				name: "max",
+				type: "number",
+				default: "24",
+				description:
+					"Per-axis clamp (px) on the translated offset — a hard travel cap independent of element geometry, radius, or strength.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description:
+					"Disables the pull: no listeners are attached at all, and both translation vars are pinned at `0px`. Never touches the wrapped child's own `disabled` state.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the static outer wrapper.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the outer (static, untransformed) wrapper element.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "The single wrapped element — a button, icon link, or card.",
+			},
+		],
+	},
+
+	pressable: {
+		name: "Pressable",
+		slug: "pressable",
+		description:
+			"A wrapper that gives any interactive child a consistent, cross-browser press animation — scale down on pointerdown/keydown, back to rest on release, with a static opacity fallback under reduced motion",
+		category: "buttons",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["press", "tap", "scale", "haptic", "animation", "micro-interaction"],
+		props: [
+			{
+				name: "scale",
+				type: "number",
+				default: "0.97",
+				description: "Target scale() factor while pressed",
+			},
+			{
+				name: "haptic",
+				type: 'false | "light" | "medium" | "heavy" | "success" | "error"',
+				default: "false",
+				description: "Touch-only vibration pattern fired on pointerdown; false never vibrates",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Suppresses every listener; data-pressed never appears",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the wrapper",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the wrapper element",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description: "Exactly one interactive child (documented, not enforced at runtime)",
+			},
+		],
+	},
+
+	"dim-siblings": {
+		name: "DimSiblings",
+		slug: "dim-siblings",
+		description:
+			"Wraps a group of cards, links, or list items so hovering or keyboard-focusing one dims (or blurs) every other one — a pure CSS :has() affordance with zero pointer-tracking JavaScript",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["hover", "focus", "dim", "blur", "has-selector", "css-only", "micro-interaction"],
+		props: [
+			{
+				name: "effect",
+				type: '"dim" | "blur" | "both"',
+				default: '"dim"',
+				description: "Which visual property the non-active siblings lose",
+			},
+			{
+				name: "opacity",
+				type: "number",
+				default: "0.4",
+				description: "Opacity the non-active siblings settle to — a floor, not zero",
+			},
+			{
+				name: "blur",
+				type: "number",
+				default: "2",
+				description: "Blur radius in px, applied only when effect includes blur",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "150",
+				description: "Transition duration in ms for the opacity/blur change",
+			},
+			{
+				name: "as",
+				type: "keyof HTMLElementTagNameMap",
+				default: '"div"',
+				description:
+					'The rendered root element — "ul"/"ol" for a list whose CSS list semantics need to survive the wrapper',
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The sibling group — every direct child participates" },
+		],
+	},
+
+	"scroll-progress": {
+		name: "ScrollProgress",
+		slug: "scroll-progress",
+		description:
+			"Thin reading-progress bar that fills as the page — or a target element — scrolls, driven by a zero-JS CSS scroll-timeline where supported and a throttled scroll listener everywhere else, with an optional accessible progressbar label",
+		category: "navigation",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: [
+			"scroll",
+			"progress",
+			"reading-progress",
+			"navigation",
+			"scroll-timeline",
+			"micro-interaction",
+		],
+		props: [
+			{
+				name: "target",
+				type: "HTMLElement | null",
+				default: "null",
+				description:
+					"An element to track instead of the document. Forces JS mode — reactively, so a target that only becomes available after mount is still picked up correctly.",
+			},
+			{
+				name: "position",
+				type: '"top" | "bottom" | "inline"',
+				default: '"top"',
+				description:
+					'"top"/"bottom" pin the bar to that viewport edge (position: fixed); "inline" renders it in normal flow.',
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					'Announces the bar as role="progressbar" with this accessible name. Forces JS mode; omitted, the bar is aria-hidden.',
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+	},
+
+	"sticky-scroll": {
+		name: "StickyScroll",
+		slug: "sticky-scroll",
+		description:
+			"Two-column scroll narrative with a scrolling item list and a sticky panel that swaps its content to the item centred in view, stacking to a single top-sticky panel over the items on narrow containers",
+		category: "layout",
+		group: "fancy",
+		status: "done",
+		credits: [{ source: "Amicro", url: "https://amicro.vercel.app" }],
+		tags: ["scroll", "layout", "sticky", "narrative", "scrollytelling", "micro-interaction"],
+		props: [
+			{
+				name: "items",
+				type: "T[]",
+				description: "Required. The items rendered down the scrolling column.",
+				required: true,
+			},
+			{
+				name: "activeIndex",
+				type: "number",
+				default: "0",
+				description:
+					"Bindable. The active item's index. Holds its last value when nothing intersects the centre line.",
+			},
+			{
+				name: "panelSide",
+				type: '"start" | "end"',
+				default: '"end"',
+				description: 'Which logical side the panel sits on. Flips physically under dir="rtl".',
+			},
+			{
+				name: "crossfade",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the panel crossfades between items. Effective value is always false under reduced motion.",
+			},
+			{
+				name: "panelClass",
+				type: "string",
+				description: "Additional CSS classes for the sticky panel wrapper.",
+			},
+			{
+				name: "panelHidden",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the panel is aria-hidden. Set false when the panel holds content found nowhere else.",
+			},
+			{
+				name: "onChange",
+				type: "(index: number, item: T) => void",
+				description: "Called only when the active index actually changes.",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes for the root" },
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [
+			{
+				name: "item",
+				description:
+					"Renders one row, given the item, its index, and whether it's the active one: (item, index, active). (Snippet<[T, number, boolean]>)",
+			},
+			{
+				name: "panel",
+				description:
+					"Renders the sticky panel's content for the active item: (item, index). (Snippet<[T, number]>)",
+			},
+		],
+	},
+
+	skeleton: {
+		name: "Skeleton",
+		slug: "skeleton",
+		description:
+			"Placeholder bones — a block, one or more text lines, or a circular avatar — with a phase-synced shimmer sweep or opacity pulse, that swaps to real content once loading finishes while keeping aria-busy semantics correct throughout",
+		category: "feedback",
+		group: "core",
+		status: "done",
+		tags: ["skeleton", "loading", "placeholder", "shimmer", "pulse", "micro-interaction"],
+		props: [
+			{
+				name: "variant",
+				type: '"rect" | "text" | "circle"',
+				default: '"rect"',
+				description: "Bone shape: a block, one or more text lines, or a circular avatar",
+			},
+			{
+				name: "lines",
+				type: "number",
+				default: "1",
+				description:
+					'Number of text lines to render; only read when variant is "text". The last line renders at 60% width so a paragraph placeholder doesn\'t read as a perfect rectangle',
+			},
+			{
+				name: "animation",
+				type: '"shimmer" | "pulse" | "none"',
+				default: '"shimmer"',
+				description:
+					"Shimmer sweep, opacity pulse, or a static muted bone (still a valid loading cue on its own)",
+			},
+			{
+				name: "loading",
+				type: "boolean",
+				default: "true",
+				description:
+					"Whether the placeholder is currently showing. In wrapping mode (children supplied) drives the swap to real content; in standalone mode drives whether anything renders at all",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Loading"',
+				description: 'The one screen-reader announcement. Pass "" to silence it entirely',
+			},
+			{
+				name: "class",
+				type: "string",
+				description:
+					"Additional CSS classes; also the sizing hook, since rect/text bones have no intrinsic size",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element; null whenever nothing is rendered",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"Real content to reveal once loading is false. Its mere presence (not its value) switches Skeleton from standalone to wrapping mode",
+			},
+		],
+	},
+
+	"status-morph": {
+		name: "StatusMorph",
+		slug: "status-morph",
+		description:
+			"A 1em SVG status icon that morphs between idle, loading, success, and error, closing its spinning ring into a drawn check or cross with a portalled live region announcing each state",
+		category: "feedback",
+		group: "fancy",
+		status: "done",
+		tags: ["status", "icon", "loading", "success", "error", "morph", "micro-interaction"],
+		props: [
+			{
+				name: "state",
+				type: '"idle" | "loading" | "success" | "error"',
+				default: '"idle"',
+				description:
+					'Current state, two-way bound. The component only ever writes it back to "idle" itself, when resetAfter fires — every other write is the caller\'s, and is always honoured',
+			},
+			{
+				name: "resetAfter",
+				type: "number",
+				default: "1800",
+				description:
+					'Milliseconds until an automatic reset to "idle" after "success" or "error". 0 disables the timer entirely (manual reset only)',
+			},
+			{
+				name: "labels",
+				type: "{ loading?: string; success?: string; error?: string }",
+				default: '{ loading: "Loading", success: "Done", error: "Failed" }',
+				description: "Live-region text per state; unset keys fall back to the defaults",
+			},
+			{
+				name: "tone",
+				type: '"current" | "semantic"',
+				default: '"current"',
+				description:
+					'"current" paints every glyph in currentColor; "semantic" reads the shared --ft-status-running/-done/-error vocabulary instead',
+			},
+			{
+				name: "haptic",
+				type: "boolean",
+				default: "false",
+				description:
+					"Best-effort tactile feedback (the success/error haptic patterns) on entering those states; silently a no-op wherever the Vibration API is unsupported or refused",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLSpanElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+		slots: [
+			{
+				name: "idle",
+				description:
+					"Custom idle content, rendered in the same calc(1em + 1px) footprint instead of the default transparent scaffold, so swapping to it never shifts layout",
+			},
+		],
+	},
+
+	"text-roll": {
+		name: "TextRoll",
+		slug: "text-roll",
+		description:
+			"Single-line text that rolls to its new value per grapheme, odometer-style, whenever the value prop changes — while the real, unsplit text stays selectable and readable",
+		category: "text",
+		group: "fancy",
+		status: "done",
+		tags: ["text", "animation", "roll", "counter", "micro-interaction"],
+		props: [
+			{
+				name: "value",
+				type: "string",
+				description:
+					"The text to display; a change after mount triggers a per-grapheme roll to the new value",
+				required: true,
+			},
+			{
+				name: "direction",
+				type: '"auto" | "up" | "down"',
+				default: '"auto"',
+				description:
+					'Which way the cells travel; "auto" compares the trimmed old and new values as numbers and falls back to "up" for a tie, a non-numeric change, or an empty side',
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "300",
+				description: "Roll duration in ms, collapsed to 0 under reduced motion",
+			},
+			{
+				name: "stagger",
+				type: "number",
+				default: "15",
+				description: "Per-cell stagger step in ms, compressed to a 200ms total spread",
+			},
+			{
+				name: "from",
+				type: '"first" | "last" | "center" | number',
+				default: '"first"',
+				description: "Stagger origin",
+			},
+			{
+				name: "tabular",
+				type: "boolean",
+				default: "false",
+				description:
+					"font-variant-numeric: tabular-nums on both layers, to keep digit width locked",
+			},
+			{
+				name: "live",
+				type: '"off" | "polite" | "assertive"',
+				default: '"off"',
+				description: "Live-region role/aria-live pair on the real text layer; off by default",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes" },
+			{
+				name: "ref",
+				type: "HTMLSpanElement | null",
+				default: "null",
+				description: "Bindable reference to the root element",
+			},
+		],
+	},
 };
 
 // =============================================================================
@@ -7924,4 +9193,14 @@ export function hasComponent(slug: string): boolean {
  */
 export function getComponentCategory(slug: string): ComponentCategory | undefined {
 	return registry[slug]?.category;
+}
+
+/**
+ * Whether a component takes an opt-in `sound` prop. Read from the props table rather than a
+ * hand-kept list so a newly wired component turns its docs sound switch on by documenting the
+ * prop. Sub-component props are namespaced (`NavbarLink.sound`), which still counts — the family
+ * makes a sound, which is what the docs need to know.
+ */
+export function hasSoundProp(slug: string): boolean {
+	return registry[slug]?.props?.some((prop) => /^(?:[A-Za-z]+\.)?sound$/.test(prop.name)) ?? false;
 }

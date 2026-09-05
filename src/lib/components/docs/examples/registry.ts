@@ -196,6 +196,22 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "SpeedVariations", title: "Speed Variations" },
 		{ name: "Playground", title: "Interactive Playground" },
 	],
+	"pulse-beam": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WorkingState",
+			title: "Working State",
+			description: "Toggle `active` to fade the glow in and out around a task list.",
+		},
+		{
+			name: "OutsideVariant",
+			title: "Outside Variant",
+			description: "Ring plus a blurred halo behind the card.",
+		},
+		{ name: "Palettes", title: "Palettes", description: "Colorful, mono, ocean and sunset." },
+		{ name: "PillButton", title: "Pill Button", description: "Outside halo on a small control." },
+		{ name: "Playground", title: "Interactive Playground" },
+	],
 	"glowing-effect": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "WhiteVariant", title: "White Variant" },
@@ -235,6 +251,21 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColor", title: "Custom Color" },
 		{ name: "AnimationSpeed", title: "Animation Speed" },
+	],
+	"mosaic-glow": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Colors",
+			title: "Colors",
+			description: "Any hex or rgb() colour for the halo and the surface.",
+		},
+		{ name: "DenseGrid", title: "Dense Grid", description: "Smaller tiles for a finer mosaic." },
+		{
+			name: "TrailAndIdle",
+			title: "Trail and Idle",
+			description: "A short, cursor-only trail versus a long comet that keeps drifting.",
+		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"matrix-rain": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -1217,6 +1248,124 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			name: "WithMenus",
 			title: "With Menus",
 			description: "Select and DropdownMenu — open, close and select, one cue per interaction.",
+		},
+		{
+			name: "WithSlider",
+			title: "With Slider",
+			description:
+				"Slider and NumberInput — one tick per committed step, never one per pixel of a drag.",
+		},
+		{
+			name: "WithOverlays",
+			title: "With Overlays",
+			description:
+				"Dialog open/close and Toaster outcomes — success and error chime, info and loading stay silent.",
+		},
+		{
+			name: "WithComposer",
+			title: "With Composer",
+			description:
+				"One sound prop on the root: sending plays press, the model picker and command menu play their own cues.",
+		},
+		{
+			name: "WithAgentCards",
+			title: "With Agent Cards",
+			description:
+				"ApprovalCard and RecommendationCard — approve and deny share one select cue; dismiss closes.",
+		},
+	],
+
+	// Micro-interactions
+	reveal: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Stagger",
+			title: "Stagger",
+			description: "Cascading reveal timed from the center outward.",
+		},
+		{
+			name: "ManualTrigger",
+			title: "Manual Trigger",
+			description: "Drive the reveal from any external boolean, not the viewport.",
+		},
+	],
+	presence: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Presets",
+			title: "Presets",
+			description: "Switch between the entrance/exit looks.",
+		},
+	],
+	magnetic: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A single outlined button that leans toward the cursor.",
+		},
+		{
+			name: "Strength",
+			title: "Strength",
+			description: "The same button at three pull strengths, side by side.",
+		},
+	],
+	pressable: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithHaptics",
+			title: "With Haptics",
+			description: "Touch-only vibration patterns alongside the press scale.",
+		},
+	],
+	"scroll-progress": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Labelled",
+			title: "Labelled",
+			description: 'Accessible role="progressbar" with a live percentage readout.',
+		},
+	],
+	skeleton: [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Variants",
+			title: "Variants",
+			description: "Rect, text, and circle bones across all three animations.",
+		},
+		{
+			name: "WithChildren",
+			title: "With Children",
+			description: "Wrapping mode: real content swaps in once loading is false.",
+		},
+	],
+	"status-morph": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Standalone",
+			title: "Standalone",
+			description: "The full ring → check/cross morph, outside the Button composition.",
+		},
+		{
+			name: "ToneSemantic",
+			title: "Semantic Tone",
+			description: 'tone="semantic" reads the shared status colors.',
+		},
+	],
+	"text-roll": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "AutoTicker",
+			title: "Auto Ticker",
+			description: "An auto-incrementing counter, only the changed digits roll.",
+		},
+	],
+	"sticky-scroll": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"dim-siblings": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithBlur",
+			title: "With Blur",
+			description: "Blur non-active siblings in addition to dimming them.",
 		},
 	],
 };

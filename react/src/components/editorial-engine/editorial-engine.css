@@ -1,0 +1,100 @@
+/*
+ * Every rule is anchored on `.ee-stage`, the root class the component already
+ * carries. Svelte scoped these rules at compile time; plain CSS is global, so
+ * the descendants (`.ee-line`, `.ee-orb`, …) are namespaced under the root
+ * rather than shipped as bare class selectors.
+ */
+
+.ee-stage {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background: radial-gradient(ellipse at 50% 40%, #0f0f14 0%, #0a0a0c 100%);
+	color: #e8e4dc;
+	touch-action: none;
+}
+
+.ee-stage .ee-layer {
+	position: absolute;
+	inset: 0;
+	touch-action: none;
+}
+
+.ee-stage .ee-fallback {
+	position: absolute;
+	inset: 0;
+	padding: 48px;
+	overflow: hidden;
+	opacity: 0.4;
+	font-size: 14px;
+}
+
+/*
+ * Visually hidden, still exposed to assistive tech. Scoped rather than the
+ * Tailwind `sr-only` utility because `.ee-stage .ee-fallback` above outranks
+ * it on specificity and would re-inflate the box.
+ */
+.ee-stage .ee-fallback.ee-sr-only {
+	inset: auto;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.ee-stage .ee-line {
+	position: absolute;
+	white-space: pre;
+	z-index: 1;
+	color: #e8e4dc;
+	user-select: text;
+	-webkit-user-select: text;
+}
+
+.ee-stage .ee-headline-line {
+	position: absolute;
+	white-space: pre;
+	font-weight: 700;
+	color: #fff;
+	letter-spacing: -0.5px;
+	z-index: 2;
+	user-select: text;
+	-webkit-user-select: text;
+}
+
+.ee-stage .ee-drop-cap {
+	position: absolute;
+	pointer-events: none;
+	z-index: 2;
+	font-weight: 700;
+	color: #c4a35a;
+}
+
+.ee-stage .ee-orb {
+	position: absolute;
+	border-radius: 50%;
+	pointer-events: none;
+	z-index: 10;
+	will-change: transform;
+}
+
+.ee-stage .ee-pullquote-box {
+	position: absolute;
+	pointer-events: none;
+	z-index: 3;
+	border-left: 3px solid #6b5a3d;
+	padding-left: 14px;
+}
+
+.ee-stage .ee-pullquote-line {
+	position: absolute;
+	white-space: pre;
+	font-style: italic;
+	color: #b8a070;
+	user-select: text;
+	-webkit-user-select: text;
+}

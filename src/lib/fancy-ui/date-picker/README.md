@@ -92,9 +92,27 @@ and `disabled`:
 | `isDateDisabled` | `(date: Date) => boolean`       | —               | Rejects individual days beyond `min`/`max` — e.g. weekends, holidays                   |
 | `class`          | `string`                        | —               | Additional CSS classes, merged onto the trigger button                                 |
 | `ref`            | `HTMLButtonElement \| null`     | `null`          | Bindable element reference to the trigger button                                       |
+| `sound`          | `boolean`                       | `false`         | Plays interface cues through the sound controller. See [Sound](#sound)                 |
 
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context.
+
+## Sound
+
+Set `sound` to opt into interface cues, off by default and silent until the
+user has enabled sound in their own preferences:
+
+```svelte
+<DatePicker bind:value={date} sound />
+```
+
+`open` plays when the calendar opens from the trigger; `select` plays once a
+day commits — a click, or Enter/Space on the focused cell — and changes the
+value. Escape, an outside click, toggling the trigger shut, and re-picking
+the day already selected all play `close` instead, never both: a commit is
+one cue, a dismiss is the other, never `select` followed by `close` for the
+same pick. Month paging and arrow-key movement across the grid stay silent —
+only a real commit or a real dismissal makes a sound.
 
 ## Theming
 
@@ -112,6 +130,38 @@ every day's own focus ring. The selected day's fill and the panel surface
 itself come from the shared `bg-accent`/`text-accent-foreground` and
 `bg-popover`/`text-popover-foreground`/`border-border` tokens, not a
 component-local variable — retint those globally to change them.
+
+## Motion
+
+The panel arrives and leaves on one bidirectional transition — the shared `fast`
+rung, 150 ms in each direction, applied in JS (there is no `--ft-*` variable to
+override it). It rises from a `0.92` scale floor on the out-curve and collapses
+to `0.96` on the in-curve: leaving is a smaller gesture than arriving, and a
+full-depth collapse on dismiss reads as the calendar being sucked away rather
+than simply closing.
+
+The growth origin follows the side the panel was actually placed on — flipped
+placements included — so it always appears to come out of the trigger rather
+than out of its own centre, and to go back into it. Exposed as `data-side` /
+`data-align` for consumers that want to key their own styling off the resolved
+placement. While the panel is on screen it also carries `data-state="open"`; for
+the length of the exit it carries `data-state="closing"` and is `inert`, so a
+day cell cannot be clicked on its way out.
+
+- **Reduced motion** — no animation in either direction; the panel appears and
+  disappears instantly and the close is synchronous again. Visibility never
+  depended on the animation.
+- **Touch and coarse pointers** — unchanged; neither direction is pointer-gated.
+- **Focus comes back at the dismiss, not at the end of the fade.** `closePanel`
+  is a plain function outside the `{#if}`, so it returns focus to the trigger in
+  the same tick you press Escape or pick a day — the panel is still on screen,
+  and already `inert`, by the time focus has left it. That is why this component
+  needs no focus trap and no handover handle of its own, unlike a dialog.
+- **Committing or dismissing is still immediate.** `value`, `onValueChange` and
+  `aria-expanded` all settle in the tick you act; only the panel's removal from
+  the DOM waits for the fade. A second Escape inside that window is not
+  swallowed by the panel already leaving — it reaches whatever sits underneath.
+  Reopening mid-fade reverses the exit rather than starting over.
 
 ## Implementation Notes
 
