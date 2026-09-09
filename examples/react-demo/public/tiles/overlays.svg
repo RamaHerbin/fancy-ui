@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="overlays-base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0a"/>
+      <stop offset="1" stop-color="#1c1c1c"/>
+    </linearGradient>
+    <radialGradient id="overlays-a">
+      <stop offset="0" stop-color="#a142ff" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#a142ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="overlays-b">
+      <stop offset="0" stop-color="#42a1ff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#42a1ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="overlays-c">
+      <stop offset="0" stop-color="#a142ff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#a142ff" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="overlays-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="1600" height="1000" fill="url(#overlays-base)"/>
+  <circle cx="1180" cy="260" r="560" fill="url(#overlays-a)"/>
+  <ellipse cx="420" cy="760" rx="680" ry="440" fill="url(#overlays-b)"/>
+  <circle cx="640" cy="140" r="340" fill="url(#overlays-c)"/>
+  <ellipse cx="1260" cy="940" rx="520" ry="280" fill="url(#overlays-b)"/>
+  <rect x="0" y="0" width="1600" height="1000" fill="url(#overlays-grid)"/>
+</svg>

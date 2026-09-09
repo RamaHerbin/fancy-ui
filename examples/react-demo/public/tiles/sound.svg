@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sound-base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0a"/>
+      <stop offset="1" stop-color="#1c1c1c"/>
+    </linearGradient>
+    <radialGradient id="sound-a">
+      <stop offset="0" stop-color="#ff4242" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#ff4242" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sound-b">
+      <stop offset="0" stop-color="#a142ff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#a142ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="sound-c">
+      <stop offset="0" stop-color="#ff4242" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ff4242" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="sound-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="1600" height="1000" fill="url(#sound-base)"/>
+  <circle cx="800" cy="520" r="560" fill="url(#sound-a)"/>
+  <ellipse cx="260" cy="220" rx="680" ry="440" fill="url(#sound-b)"/>
+  <circle cx="1360" cy="840" r="340" fill="url(#sound-c)"/>
+  <ellipse cx="1300" cy="180" rx="520" ry="280" fill="url(#sound-b)"/>
+  <rect x="0" y="0" width="1600" height="1000" fill="url(#sound-grid)"/>
+</svg>

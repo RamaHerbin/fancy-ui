@@ -139,7 +139,13 @@ pnpm install                              # at the repo root
 pnpm --filter fancy-ui-react test         # vitest + testing-library
 pnpm --filter fancy-ui-react check        # tsc --noEmit
 pnpm --filter fancy-ui-react build        # vite lib build + d.ts via tsc, then the dist gates
+pnpm --filter fancy-ui-react-demo dev     # the demo site (examples/react-demo) on http://localhost:3200
 ```
+
+Two consumer apps live under `examples/`: `next-app`, the App Router census
+that CI builds as the SSR/hydration gate, and `react-demo`, a one-page demo
+site built as a static export (`next build` → `examples/react-demo/out/`).
+Both resolve `fancy-ui-react` to `react/dist`, so run `build` first.
 
 `build` does more than build. After Vite and `tsc` it runs four scripts in
 `react/scripts/`, each guarding something no other gate can see:

@@ -1,0 +1,179 @@
+/* Design system of the demo home, transposed from the Svelte reference site's
+   layout.css. Three imports, then the app's own tokens.
+
+   Order matters only for the @custom-variant below: the package's tailwind.css
+   declares a dual `dark` variant (class OR OS preference); this app redeclares
+   it class-only AFTER the import, and the last declaration wins. The theme
+   script in app/layout.tsx resolves the OS preference into the class before
+   first paint, so one source of truth remains: `.dark` on <html>. */
+@import "tailwindcss";
+@import "fancy-ui-react/tailwind.css";
+@import "fancy-ui-react/styles.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Tell the UA which palette to render its own widgets in. Ordered by
+   specificity, not source order: `:root.dark` (0,2,0) beats `:root` (0,1,0). */
+:root {
+	color-scheme: light;
+}
+:root.dark {
+	color-scheme: dark;
+}
+
+:root {
+	/* Font — the real, cascading definition; @theme inline below only points at it. */
+	--app-font-sans: var(--font-bricolage), "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+
+	/* Layout */
+	--radius: 0.625rem;
+
+	/* Animation timing */
+	--animation-fast: 150ms;
+	--animation-normal: 300ms;
+	--animation-slow: 500ms;
+	--animation-slower: 1000ms;
+
+	/* Easing */
+	--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+	--ease-out: cubic-bezier(0, 0, 0.2, 1);
+	--ease-in: cubic-bezier(0.4, 0, 1, 1);
+	--ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+	/* Rainbow colours (gradient effects) */
+	--rainbow-1: hsl(0 100% 63%);
+	--rainbow-2: hsl(270 100% 63%);
+	--rainbow-3: hsl(210 100% 63%);
+	--rainbow-4: hsl(195 100% 63%);
+	--rainbow-5: hsl(90 100% 63%);
+
+	/* Gradient tokens */
+	--gradient-start: var(--primary);
+	--gradient-end: var(--accent);
+	--gradient-primary: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+	--gradient-rainbow: linear-gradient(
+		90deg,
+		var(--rainbow-1),
+		var(--rainbow-5),
+		var(--rainbow-3),
+		var(--rainbow-4),
+		var(--rainbow-2)
+	);
+
+	/* Base colours — neutral greys. Unlayered on purpose: these beat the
+	   package's @layer base defaults regardless of import order. */
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.145 0 0);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.145 0 0);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.145 0 0);
+	--primary: oklch(0.205 0 0);
+	--primary-foreground: oklch(0.985 0 0);
+	--secondary: oklch(0.97 0 0);
+	--secondary-foreground: oklch(0.205 0 0);
+	--muted: oklch(0.97 0 0);
+	--muted-foreground: oklch(0.556 0 0);
+	--accent: oklch(0.97 0 0);
+	--accent-foreground: oklch(0.205 0 0);
+	--destructive: oklch(0.577 0.245 27.325);
+	--border: oklch(0.922 0 0);
+	--input: oklch(0.922 0 0);
+	--ring: oklch(0.708 0 0);
+
+	/* "Work" tokens: warm accent (AA on white) and the media-frame surface */
+	--accent-work: oklch(0.5 0.045 95);
+	--surface-raised: oklch(0.97 0 0);
+}
+
+.dark {
+	--background: oklch(0.145 0 0);
+	--foreground: oklch(0.985 0 0);
+	--card: oklch(0.145 0 0);
+	--card-foreground: oklch(0.985 0 0);
+	--popover: oklch(0.145 0 0);
+	--popover-foreground: oklch(0.985 0 0);
+	--primary: oklch(0.985 0 0);
+	--primary-foreground: oklch(0.205 0 0);
+	--secondary: oklch(0.269 0 0);
+	--secondary-foreground: oklch(0.985 0 0);
+	--muted: oklch(0.269 0 0);
+	--muted-foreground: oklch(0.708 0 0);
+	--accent: oklch(0.269 0 0);
+	--accent-foreground: oklch(0.985 0 0);
+	--destructive: oklch(0.396 0.141 25.723);
+	--border: oklch(0.269 0 0);
+	--input: oklch(0.269 0 0);
+	--ring: oklch(0.439 0 0);
+
+	--accent-work: #e3d9bf;
+	--surface-raised: oklch(0.17 0 0);
+}
+
+/* Referenced through Tailwind arbitrary animations, so they must be global. */
+@keyframes blink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.25;
+	}
+}
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@theme inline {
+	--font-sans: var(--app-font-sans);
+
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+
+	--animate-duration-fast: var(--animation-fast);
+	--animate-duration-normal: var(--animation-normal);
+	--animate-duration-slow: var(--animation-slow);
+	--animate-duration-slower: var(--animation-slower);
+
+	--animate-ease-in-out: var(--ease-in-out);
+	--animate-ease-out: var(--ease-out);
+	--animate-ease-in: var(--ease-in);
+	--animate-ease-bounce: var(--ease-bounce);
+
+	--color-rainbow-1: var(--rainbow-1);
+	--color-rainbow-2: var(--rainbow-2);
+	--color-rainbow-3: var(--rainbow-3);
+	--color-rainbow-4: var(--rainbow-4);
+	--color-rainbow-5: var(--rainbow-5);
+
+	--color-accent-work: var(--accent-work);
+	--color-surface-raised: var(--surface-raised);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	body {
+		@apply bg-background text-foreground font-sans;
+	}
+	/* Smooth in-page anchor scrolling (the hero CTA → #projects), off under reduced motion. */
+	@media (prefers-reduced-motion: no-preference) {
+		html {
+			scroll-behavior: smooth;
+		}
+	}
+}
+
+/* Draw the scribble CTA on hover of the WHOLE showcase card, not only the link:
+   replicate LineHoverLink's drawn state under the card's group-hover. */
+.group\/card:hover .link-hover__graphic--scribble path {
+	stroke-dashoffset: 0;
+}
