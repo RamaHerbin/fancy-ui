@@ -194,6 +194,12 @@ export interface WebGpuFluidOptions {
 	pauseWhenHidden: boolean;
 	splatOnMount: boolean;
 	generateColor: () => ColorRGB;
+	/**
+	 * Multiplier a click applies to the (already intensity-scaled) colour
+	 * `generateColor()` returns — `clickBoost(colorIntensity)` from
+	 * fluid-shared, so the peak is the same whatever the intensity.
+	 */
+	clickBoost: number;
 }
 
 const WGSL = /* wgsl */ `
@@ -246,7 +252,11 @@ fn fs_splat(in: VSOut) -> @location(0) vec4f {
 	p.x = p.x * u.aspect;
 	let splat = exp(-dot(p, p) / u.radius) * u.color.rgb;
 	let base = textureSample(tex0, smpLinear, in.uv).rgb;
-	return vec4f(base + splat, 1.0);
+	// color.a is the click flag: a click splat lifts each texel to its own
+	// profile instead of adding to it, so a burst of clicks paints the same
+	// disc once instead of summing towards white and widening every click.
+	let sum = select(base + splat, max(base, splat), u.color.a > 0.5);
+	return vec4f(sum, 1.0);
 }
 
 @fragment
@@ -400,7 +410,8 @@ const OFF_SHADING = 15;
 interface UniformValues {
 	texelSize?: [number, number];
 	point?: [number, number];
-	color?: [number, number, number];
+	/** rgb, plus an optional 4th component the splat pass reads as its click flag. */
+	color?: [number, number, number] | [number, number, number, number];
 	dt?: number;
 	dissipation?: number;
 	curlStrength?: number;
@@ -424,7 +435,15 @@ interface DoubleTex {
 }
 
 interface FluidEngine {
-	splat: (x: number, y: number, dx: number, dy: number, color: ColorRGB) => void;
+	/** `saturate` is the click mode: dye caps at `color` instead of adding to it. */
+	splat: (
+		x: number,
+		y: number,
+		dx: number,
+		dy: number,
+		color: ColorRGB,
+		saturate?: boolean
+	) => void;
 	resizeIfNeeded: () => void;
 	frame: (dt: number) => void;
 	readonly lost: boolean;
@@ -622,7 +641,8 @@ async function createWebGpuFluid(
 				scratch[OFF_COLOR] = v.color[0];
 				scratch[OFF_COLOR + 1] = v.color[1];
 				scratch[OFF_COLOR + 2] = v.color[2];
-				scratch[OFF_COLOR + 3] = 1;
+				// Only the splat pass reads .a (as its click flag); it defaults off.
+				scratch[OFF_COLOR + 3] = v.color[3] ?? 0;
 			}
 			scratch[OFF_DT] = v.dt ?? 0;
 			scratch[OFF_DISSIPATION] = v.dissipation ?? 0;
@@ -815,7 +835,14 @@ async function createWebGpuFluid(
 			}
 		}
 
-		function splat(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
+		function splat(
+			x: number,
+			y: number,
+			dx: number,
+			dy: number,
+			color: ColorRGB,
+			saturate = false
+		) {
 			if (destroyed || lost || !velocity || !dye) return;
 			let radius = correctRadius(opts.splatRadius / 100, canvas.width, canvas.height);
 			if (opts.contained) {
@@ -831,7 +858,7 @@ async function createWebGpuFluid(
 			});
 			writeUniforms(uSplatDye, {
 				point: [x, y],
-				color: [color.r, color.g, color.b],
+				color: [color.r, color.g, color.b, saturate ? 1 : 0],
 				aspect,
 				radius,
 			});
@@ -1084,13 +1111,20 @@ export async function startWebGpuFluid(
 	}
 
 	function clickSplat(pointer: Pointer) {
-		const color = opts.generateColor();
-		color.r *= 10;
-		color.g *= 10;
-		color.b *= 10;
+		// COPY, never scale in place: with `fluidColor` / `fluidColors` set,
+		// generateColor() hands back the cached palette object itself, and scaling
+		// that multiplied the palette again on every click.
+		const base = opts.generateColor();
+		const color = {
+			r: base.r * opts.clickBoost,
+			g: base.g * opts.clickBoost,
+			b: base.b * opts.clickBoost,
+		};
 		const dx = 10 * (Math.random() - 0.5);
 		const dy = 30 * (Math.random() - 0.5);
-		engine.splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color);
+		// Saturating: a burst of clicks on one spot pools at this colour rather
+		// than summing towards white (a click has next to no velocity).
+		engine.splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color, true);
 	}
 
 	function multipleSplats(steps: number) {
@@ -1167,6 +1201,12 @@ export async function startWebGpuFluid(
 		clickSplat(pointer);
 	}
 
+	// The release half of mousedown / touchstart — `down` used to latch true for
+	// the life of the engine.
+	function handlePointerUp() {
+		pointers[0]!.down = false;
+	}
+
 	function handleFirstMouseMove(e: MouseEvent) {
 		const pointer = pointers[0]!;
 		const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
@@ -1219,11 +1259,14 @@ export async function startWebGpuFluid(
 
 	if (opts.interactive) {
 		window.addEventListener("mousedown", handleMouseDown);
+		window.addEventListener("mouseup", handlePointerUp);
 		document.body.addEventListener("mousemove", handleFirstMouseMove);
 		window.addEventListener("mousemove", handleMouseMove);
 		document.body.addEventListener("touchstart", handleFirstTouchStart);
 		window.addEventListener("touchstart", handleTouchStart, false);
 		window.addEventListener("touchmove", handleTouchMove, false);
+		window.addEventListener("touchend", handlePointerUp);
+		window.addEventListener("touchcancel", handlePointerUp);
 	}
 
 	let observer: IntersectionObserver | null = null;
@@ -1318,11 +1361,14 @@ export async function startWebGpuFluid(
 			if (autoSplatTimer) clearInterval(autoSplatTimer);
 			if (opts.interactive) {
 				window.removeEventListener("mousedown", handleMouseDown);
+				window.removeEventListener("mouseup", handlePointerUp);
 				document.body.removeEventListener("mousemove", handleFirstMouseMove);
 				window.removeEventListener("mousemove", handleMouseMove);
 				document.body.removeEventListener("touchstart", handleFirstTouchStart);
 				window.removeEventListener("touchstart", handleTouchStart);
 				window.removeEventListener("touchmove", handleTouchMove);
+				window.removeEventListener("touchend", handlePointerUp);
+				window.removeEventListener("touchcancel", handlePointerUp);
 			}
 			if (opts.contained) {
 				window.removeEventListener("resize", updateCanvasRectCache);
