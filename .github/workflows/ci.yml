@@ -116,6 +116,12 @@ jobs:
       # "use client" boundary or any render path touches browser globals.
       - run: pnpm --filter fancy-ui-react-example-next run build
 
+      # Second consumer gate, the static demo site: `output: "export"` prerenders
+      # the whole home at build time with no request and no browser, so the
+      # WebGL hero, the glass nav, the dialogs and the cameleon panels must all
+      # survive a server render, and the theme script must inline cleanly.
+      - run: pnpm --filter fancy-ui-react-demo run build
+
       # The "use client" boundary used to be checked here, by grepping two files
       # for the banner. It is checked by `build` now, in
       # react/scripts/check-dist-shape.mjs, which re-derives the whole split

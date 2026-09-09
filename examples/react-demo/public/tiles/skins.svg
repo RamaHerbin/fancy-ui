@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="skins-base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0a"/>
+      <stop offset="1" stop-color="#1c1c1c"/>
+    </linearGradient>
+    <radialGradient id="skins-a">
+      <stop offset="0" stop-color="#a1ff42" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#a1ff42" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="skins-b">
+      <stop offset="0" stop-color="#42d0ff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#42d0ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="skins-c">
+      <stop offset="0" stop-color="#a1ff42" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#a1ff42" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="skins-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="1600" height="1000" fill="url(#skins-base)"/>
+  <circle cx="300" cy="700" r="560" fill="url(#skins-a)"/>
+  <ellipse cx="1240" cy="300" rx="680" ry="440" fill="url(#skins-b)"/>
+  <circle cx="900" cy="880" r="340" fill="url(#skins-c)"/>
+  <ellipse cx="360" cy="120" rx="520" ry="280" fill="url(#skins-b)"/>
+  <rect x="0" y="0" width="1600" height="1000" fill="url(#skins-grid)"/>
+</svg>

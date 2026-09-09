@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 345" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="trail04-base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a142ff"/>
+      <stop offset="1" stop-color="#42d0ff"/>
+    </linearGradient>
+    <radialGradient id="trail04-glow">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="380" height="345" fill="url(#trail04-base)"/>
+  <circle cx="260" cy="240" r="260" fill="url(#trail04-glow)"/>
+  <rect x="0.5" y="0.5" width="379" height="344" rx="0" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1"/>
+</svg>
