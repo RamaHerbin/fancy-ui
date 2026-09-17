@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.13.0
+
+### Minor Changes
+
+- c665256: Buttons cross-fade between their icon and the loading spinner instead of cutting, and give way very slightly under a press. The leading icon and the spinner now share one fixed-size cell, so flipping `loading` fades one into the other in place over 80 ms rather than swapping them in a single frame — the cell never resizes, so the label beside it never shifts. Holding a button scales it to 0.97 for as long as the press lasts, on the same 150 ms reversible-state curve the colour beside it already used; a disabled or loading button is excluded, because a press that does nothing should not pretend to. The focus ring is deliberately left out of that transition — it is painted with a box-shadow, and a focus ring must never animate. With reduced motion the cross-fade collapses to nothing and the swap is instant again, the press stops moving entirely, and the colour channel keeps working in both cases, since a colour change is not motion. One layout exception to name: the shared lead cell is a fixed `calc(1em + 1px)` box rather than one that measures whichever child is currently mounted, which is exactly what keeps the label still while both are on screen.
+
+### Patch Changes
+
+- a541ed0: Docs site: the Theme menu now offers System, Light and Dark only. The eleven named colour themes are gone — cameleon skins own art direction now. The docs-only theme registry no longer ships in the package files (it was never exported).
+- bae13a4: FluidCursor: clicking no longer brightens the fluid forever when `fluidColor` or `fluidColors` is set. A click scaled the colour it was handed _in place_, and with a palette configured that colour is the cached palette entry itself — so every click multiplied the palette by ten again: the fifth click painted with a colour ten thousand times brighter, a few more overflowed to NaN and the fluid went blank. Random colours are fresh objects, which is why the default palette never showed it. The click now scales a copy, and the cached palette entries are frozen so a future in-place edit fails loudly instead of compounding.
+
+  Two smaller click changes ride along. The click boost is now `min(10, 1.5 / colorIntensity)` instead of a flat ×10 on top of the already intensity-scaled colour, so raising `colorIntensity` — which the dither mode asks you to do — no longer raises the click's peak with it; the default intensity is byte-identical. And a click now _lifts_ each texel to its own profile rather than adding to it, so a burst of clicks on one spot paints the same disc once instead of summing towards white. Move splats are unchanged and still additive. No prop was added.
+
+  Also on the WebGL path (Svelte): unmounting now deletes the engine's programs, shaders, textures, framebuffers and buffers and loses the context, instead of leaving a whole simulation's worth of GPU memory to the garbage collector and one more live context in the browser's budget on every re-key. And on all four engines, `mouseup` / `touchend` / `touchcancel` now mark the pointer released — `down` used to stay `true` for the life of the engine.
+
+- 518894c: Docs site landing: the version badge reads the package version; the frame's primitives stay on the dark palette for light-mode visitors (the active tab was near-black on black); the primitives row no longer overflows between 1024 and 1280 px; the accent is ivory instead of violet, the calls to action are the library Button, and the "amazing?" headline and the slider drop their gradients; the image-trail panel shows landscape photographs; ⌘K and the search cell open the docs palette.
+
 ## 0.12.0
 
 ### Minor Changes
