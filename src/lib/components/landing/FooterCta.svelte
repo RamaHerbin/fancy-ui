@@ -85,16 +85,15 @@
 			<p class="text-sm text-white/60 sm:text-[14.5px]">
 				Join developers building beautiful apps with FancyUI.
 			</p>
-			<!-- The library's own Button, squared to the frame's corners (lp-btn). -->
+			<!-- The library's own Button, as it ships. -->
 			<div class="mt-3 flex flex-wrap items-center justify-center gap-3.5">
-				<Button href={DOCS_URL} size="lg" class="lp-btn">Get Started →</Button>
+				<Button href={DOCS_URL} size="lg">Get Started →</Button>
 				<Button
 					href={GITHUB_URL}
 					target="_blank"
 					rel="noopener noreferrer"
 					variant="outline"
 					size="lg"
-					class="lp-btn"
 				>
 					★ Star on GitHub
 				</Button>

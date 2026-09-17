@@ -88,11 +88,8 @@
 	color: var(--lp-ink);
 }
 
-/* Actions are the library's own Button (primary = ink on near-black, outline
-   = hairline); the page only squares its corners to match the grid. */
-.lp-btn {
-	border-radius: 2px;
-}
+/* Actions are the library's own Button, exactly as it ships (primary = ink on
+   near-black, outline = hairline): the page adds nothing to it. */
 
 /* The Slider ships a two-hue fill; the second stop is declared on the control
    itself, so it is retargeted here rather than through --ft-accent. */

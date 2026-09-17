@@ -70,6 +70,6 @@
 	</a>
 
 	<span class="lp-line flex items-center border-l px-3.5">
-		<Button href="/docs" class="lp-btn">Get Started</Button>
+		<Button href="/docs">Get Started</Button>
 	</span>
 </header>

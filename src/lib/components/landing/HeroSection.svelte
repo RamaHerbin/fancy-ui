@@ -59,7 +59,7 @@
 			Open-source Svelte components for expressive, motion-first interfaces.
 		</p>
 		<div class="mt-[22px] flex flex-wrap gap-3.5">
-			<Button href="/docs/components" size="lg" class="lp-btn gap-3">
+			<Button href="/docs/components" size="lg">
 				Explore components <span aria-hidden="true">→</span>
 			</Button>
 			<Button
@@ -68,7 +68,6 @@
 				rel="noopener noreferrer"
 				variant="outline"
 				size="lg"
-				class="lp-btn gap-2.5"
 			>
 				GitHub <span class="text-[12px]" style="color:var(--lp-grey-3)" aria-hidden="true">↗</span>
 			</Button>
