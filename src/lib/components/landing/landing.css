@@ -2,8 +2,8 @@
  * Landing-page tokens and surface utilities — the "13a" art direction.
  *
  * The landing no longer re-skins: it wears one fixed technical-editorial look —
- * near-black canvas, ivory ink, a single violet accent, and hairline borders
- * that draw the page as a measured grid. Every colour on the page comes from
+ * near-black canvas, ivory ink, ivory as the one accent (no second hue), and
+ * hairline borders that draw the page as a measured grid. Every colour on the page comes from
  * these variables so the palette can be tuned in one place.
  *
  * These live in a stylesheet rather than as Tailwind arbitrary values because
@@ -15,8 +15,13 @@
 	--lp-bg: #080808;
 	--lp-panel: #060606;
 	--lp-ink: #f2f1ec;
-	--lp-accent: #7357ff;
-	--lp-accent-hover: #8168ff;
+	/* The accent IS the ink: buttons, underlines, reticles and the library
+	   primitives' fills all read as one monochrome instrument. */
+	--lp-accent: #f2f1ec;
+	--lp-accent-hover: #ffffff;
+	/* Library components (Slider, Switch, Tabs…) derive their fill from
+	   --ft-accent when it is set; on this page that is the ink too. */
+	--ft-accent: var(--lp-accent);
 	--lp-line: rgba(242, 241, 236, 0.13);
 	--lp-line-strong: rgba(242, 241, 236, 0.25);
 	/* Grey ramp, brightest to dimmest: body copy → labels → hints → rulers. */
@@ -83,26 +88,13 @@
 	color: var(--lp-ink);
 }
 
-/* The one solid-violet action (Get Started, Explore components). */
-.lp-btn-accent {
-	background: var(--lp-accent);
-	color: #ffffff;
-	transition: background 0.15s ease;
-}
+/* Actions are the library's own Button, exactly as it ships (primary = ink on
+   near-black, outline = hairline): the page adds nothing to it. */
 
-.lp-btn-accent:hover {
-	background: var(--lp-accent-hover);
-}
-
-/* Its quiet sibling: an outlined action whose border wakes up on hover. */
-.lp-btn-outline {
-	border: 1px solid var(--lp-line-strong);
-	color: var(--lp-ink);
-	transition: border-color 0.15s ease;
-}
-
-.lp-btn-outline:hover {
-	border-color: rgba(242, 241, 236, 0.5);
+/* The Slider ships a two-hue fill; the second stop is declared on the control
+   itself, so it is retargeted here rather than through --ft-accent. */
+.lp-root .ft-slider-wrap {
+	--ft-slider-accent-end: var(--ft-slider-accent);
 }
 
 /* Instructional overlay inside a live panel ("MOVE YOUR CURSOR HERE"): laid

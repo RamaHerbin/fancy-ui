@@ -141,6 +141,29 @@ export function scaleRadiusForContainer(
 	return Math.max(radius, Math.min(radius * k, 0.09));
 }
 
+/**
+ * Dye a click deposits at its centre, in multiples of the hue: the engine's
+ * default `colorIntensity` (0.15) times the ×10 boost the solver has always
+ * given a click — the amount that reads as a bright pop on every renderer.
+ */
+export const CLICK_PEAK = 1.5;
+
+/**
+ * The boost a click applies to an already intensity-scaled colour, chosen so
+ * the peak lands on CLICK_PEAK whatever `colorIntensity` is.
+ *
+ * The historical fixed ×10 compounded `colorIntensity`. At the default 0.15
+ * that is a 1.5 peak; but the dither pass asks consumers to raise the
+ * intensity to ≈0.4+, and at 0.6 the same ×10 stacked 5.4 per click into an
+ * unclamped half-float dye buffer that the dither display then clamps to 1
+ * and quantises — every click grew a flat, saturated disc that never read as
+ * a splat. Capping the boost at 10 keeps intensities ≤ 0.15 byte-identical.
+ */
+export function clickBoost(colorIntensity: number): number {
+	if (!(colorIntensity > 0)) return 0;
+	return Math.min(10, CLICK_PEAK / colorIntensity);
+}
+
 export function correctDeltaX(delta: number, width: number, height: number) {
 	const aspectRatio = width / height;
 	if (aspectRatio < 1) return delta * aspectRatio;

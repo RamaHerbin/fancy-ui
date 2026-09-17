@@ -1,19 +1,26 @@
 <!--
 	Top strip of the 13a frame: every element sits in its own bordered cell so
 	the nav reads as the first row of the page's grid rather than floating
-	chrome. The search field is a link to the docs (there is no site-wide
-	search), and the star count is the live GitHub number.
+	chrome. The search cell opens the docs command palette (⌘K works here too,
+	the palette owns the shortcut), and the star count is the live GitHub number.
 -->
 <script lang="ts">
+	import { Button } from "$lib/fancy-ui";
 	import Logo from "$lib/components/Logo.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
 	import { GITHUB_URL } from "$lib/site.js";
+
+	interface Props {
+		onSearchClick?: () => void;
+	}
+
+	let { onSearchClick }: Props = $props();
 
 	const navLinks: { label: string; href: string }[] = [
 		{ label: "Docs", href: "/docs/getting-started/introduction" },
 		{ label: "Components", href: "/docs/components" },
 		{ label: "Themes", href: "/docs/getting-started/theming" },
-		{ label: "Blog", href: "/docs/getting-started/changelog" },
+		{ label: "Changelog", href: "/docs/getting-started/changelog" },
 	];
 </script>
 
@@ -34,10 +41,11 @@
 
 	<span class="flex-1"></span>
 
-	<a
-		href="/docs/components"
-		class="lp-line hidden items-center border-l px-4 md:flex"
-		aria-label="Browse components"
+	<button
+		type="button"
+		onclick={onSearchClick}
+		class="lp-line hidden cursor-pointer items-center border-l px-4 md:flex"
+		aria-label="Search the docs"
 	>
 		<span
 			class="lp-line-strong flex w-[214px] items-center gap-2 rounded-[2px] border px-3 py-2 text-[12.5px]"
@@ -49,7 +57,7 @@
 				style="border-color:rgba(242,241,236,.14)">⌘ K</span
 			>
 		</span>
-	</a>
+	</button>
 
 	<a
 		href={GITHUB_URL}
@@ -62,8 +70,6 @@
 	</a>
 
 	<span class="lp-line flex items-center border-l px-3.5">
-		<a href="/docs" class="lp-btn-accent rounded-[2px] px-[18px] py-[9px] text-[13px] font-medium">
-			Get Started
-		</a>
+		<Button href="/docs">Get Started</Button>
 	</span>
 </header>
