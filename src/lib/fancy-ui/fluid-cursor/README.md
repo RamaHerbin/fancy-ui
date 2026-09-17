@@ -134,4 +134,6 @@ Notes:
 - Like the other simulation props, dither props are applied at mount; re-key the
   component to change them at runtime.
 - Raise `colorIntensity` (≈ `0.4`+) so the dye reliably crosses the first
-  quantization step; at the default `0.15` dots stay sparse.
+  quantization step; at the default `0.15` dots stay sparse. A click's extra
+  brightness is capped independently of `colorIntensity`, so raising it does not
+  make clicks pool into a solid disc.

@@ -11,6 +11,7 @@
 		HSVtoRGB,
 		scaleRadiusForContainer,
 		wrap,
+		clickBoost,
 	} from "./fluid-shared.js";
 	import { startWebGpuFluid } from "./webgpu-engine.js";
 
@@ -106,6 +107,9 @@
 	}: Props = $props();
 
 	const clampedColorIntensity = Math.max(0, Math.min(1, colorIntensity));
+	// A click's extra brightness, capped so it never compounds colorIntensity
+	// into the dither pass's clamp — see clickBoost() for the arithmetic.
+	const clickColorBoost = clickBoost(clampedColorIntensity);
 	const clampedHdrBoost = Math.max(1, Math.min(4, hdrBoost));
 	const clampedDitherPixelSize = Math.max(1, ditherPixelSize);
 	const clampedDitherLevels = Math.max(2, Math.min(16, Math.floor(ditherLevels)));
@@ -122,13 +126,17 @@
 	let cachedFluidColorsRef: string[] | undefined;
 	let cachedFluidColorsScaled: ColorRGB[] = [];
 
+	// Frozen: these objects are cached and handed out by reference to every
+	// pointer and every click, so an in-place `color.r *= …` anywhere downstream
+	// would scale the palette itself — and in strict mode the freeze turns that
+	// into a TypeError at the culprit instead of a fluid that brightens forever.
 	function getScaledColor(hex: string): ColorRGB {
 		const { r, g, b } = hexToRgb(hex);
-		return {
+		return Object.freeze({
 			r: r * clampedColorIntensity,
 			g: g * clampedColorIntensity,
 			b: b * clampedColorIntensity,
-		};
+		});
 	}
 
 	function getCachedFluidColor(hex: string): ColorRGB {
@@ -265,6 +273,7 @@
 				pauseWhenHidden,
 				splatOnMount,
 				generateColor,
+				clickBoost: clickColorBoost,
 			})
 				.then((handle) => {
 					if (disposed) {
@@ -315,6 +324,15 @@
 			const autopilotPointer = onReady ? pointerPrototype() : null;
 			if (autopilotPointer) pointers.push(autopilotPointer);
 			let penWasUp = true;
+			// Every GL object the engine allocates registers its own deleter here so
+			// `cleanup()` can hand the memory back — and then lose the context
+			// itself. Nothing here ever released a program, a texture or the
+			// context before, so every unmount (a re-key on a skin switch, a route
+			// change) left a whole simulation's worth of GPU memory owned by a
+			// context only GC would eventually drop, and each new mount took one
+			// more slot from the browser's ~16-context budget.
+			const glDisposers: Array<() => void> = [];
+			let glDisposed = false;
 
 			// Get WebGL context
 			const context = getWebGLContext(canvas);
@@ -514,6 +532,7 @@
 				const shaderSource = addKeywords(source, keywords);
 				const shader = gl.createShader(type);
 				if (!shader) return null;
+				glDisposers.push(() => gl.deleteShader(shader));
 				gl.shaderSource(shader, shaderSource);
 				gl.compileShader(shader);
 				return shader;
@@ -526,6 +545,7 @@
 				if (!vertexShader || !fragmentShader) return null;
 				const program = gl.createProgram();
 				if (!program) return null;
+				glDisposers.push(() => gl.deleteProgram(program));
 				gl.attachShader(program, vertexShader);
 				gl.attachShader(program, fragmentShader);
 				gl.linkProgram(program);
@@ -741,13 +761,19 @@
 			uniform vec3 color;
 			uniform vec2 point;
 			uniform float radius;
+			uniform float saturate;
 
 			void main () {
 				vec2 p = vUv - point.xy;
 				p.x *= aspectRatio;
 				vec3 splat = exp(-dot(p, p) / radius) * color;
 				vec3 base = texture2D(uTarget, vUv).xyz;
-				gl_FragColor = vec4(base + splat, 1.0);
+				// A click splat lifts each texel to its own profile instead of adding
+				// to it: what is already there never rises past what one click would
+				// leave at that spot, so a burst of clicks paints the same disc once
+				// instead of summing towards white and widening with every click.
+				vec3 sum = saturate > 0.5 ? max(base, splat) : base + splat;
+				gl_FragColor = vec4(sum, 1.0);
 			}
 		`
 			);
@@ -955,6 +981,7 @@
 
 			const blit = (() => {
 				const buffer = gl.createBuffer()!;
+				glDisposers.push(() => gl.deleteBuffer(buffer));
 				gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 				gl.bufferData(
 					gl.ARRAY_BUFFER,
@@ -962,6 +989,7 @@
 					gl.STATIC_DRAW
 				);
 				const elemBuffer = gl.createBuffer()!;
+				glDisposers.push(() => gl.deleteBuffer(elemBuffer));
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elemBuffer);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 1, 2, 0, 2, 3]), gl.STATIC_DRAW);
 				gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
@@ -1014,6 +1042,7 @@
 			): FBO {
 				gl.activeTexture(gl.TEXTURE0);
 				const texture = gl.createTexture()!;
+				glDisposers.push(() => gl.deleteTexture(texture));
 				gl.bindTexture(gl.TEXTURE_2D, texture);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, param);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, param);
@@ -1021,6 +1050,7 @@
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 				gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, w, h, 0, format, type, null);
 				const fbo = gl.createFramebuffer()!;
+				glDisposers.push(() => gl.deleteFramebuffer(fbo));
 				gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 				gl.viewport(0, 0, w, h);
@@ -1481,16 +1511,41 @@
 			}
 
 			function clickSplat(pointer: Pointer) {
-				const color = generateColor();
-				color.r *= 10;
-				color.g *= 10;
-				color.b *= 10;
+				// generateColor() is already intensity-scaled; the boost is capped so
+				// the peak stays at CLICK_PEAK rather than compounding colorIntensity.
+				// COPY, never scale in place: with `fluidColor` / `fluidColors` set,
+				// generateColor() hands back the cached palette object itself, and
+				// scaling that multiplied the palette again on every click — the
+				// 10th click painted with a colour 10^10 times brighter — which is
+				// what turned a few clicks into a giant disc and a few more into
+				// NaN and nothing at all.
+				const base = generateColor();
+				const color = {
+					r: base.r * clickColorBoost,
+					g: base.g * clickColorBoost,
+					b: base.b * clickColorBoost,
+				};
 				const dx = 10 * (Math.random() - 0.5);
 				const dy = 30 * (Math.random() - 0.5);
-				splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color);
+				// Saturating: a burst of clicks on one spot pools at this colour
+				// rather than summing — a click has next to no velocity to carry
+				// the dye away, so additive stacking used to turn into a white disc.
+				splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color, true);
 			}
 
-			function splat(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
+			/**
+			 * Inject velocity and dye at a point. `saturate` is the click mode: the
+			 * dye pass then caps each texel at the splat colour instead of adding
+			 * to it (velocity is always additive — a click's push is negligible).
+			 */
+			function splat(
+				x: number,
+				y: number,
+				dx: number,
+				dy: number,
+				color: ColorRGB,
+				saturate = false
+			) {
 				splatProgram.bind();
 				if (splatProgram.uniforms.uTarget) {
 					gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0));
@@ -1503,6 +1558,9 @@
 				}
 				if (splatProgram.uniforms.color) {
 					gl.uniform3f(splatProgram.uniforms.color, dx, dy, 0);
+				}
+				if (splatProgram.uniforms.saturate) {
+					gl.uniform1f(splatProgram.uniforms.saturate, 0);
 				}
 				if (splatProgram.uniforms.radius) {
 					let radius = correctRadius(config.SPLAT_RADIUS / 100)!;
@@ -1519,6 +1577,9 @@
 				}
 				if (splatProgram.uniforms.color) {
 					gl.uniform3f(splatProgram.uniforms.color, color.r, color.g, color.b);
+				}
+				if (splatProgram.uniforms.saturate) {
+					gl.uniform1f(splatProgram.uniforms.saturate, saturate ? 1 : 0);
 				}
 				blit(dye.write);
 				dye.swap();
@@ -1652,6 +1713,13 @@
 				clickSplat(pointer);
 			}
 
+			// The release half of mousedown / touchstart. `down` used to latch true
+			// for the life of the engine — nothing on this path reads it, but the
+			// pointer is part of the handle's contract and should tell the truth.
+			function handlePointerUp() {
+				pointers[0].down = false;
+			}
+
 			function handleFirstMouseMove(e: MouseEvent) {
 				const pointer = pointers[0];
 				const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
@@ -1697,11 +1765,14 @@
 			// Add event listeners
 			if (interactive) {
 				window.addEventListener("mousedown", handleMouseDown);
+				window.addEventListener("mouseup", handlePointerUp);
 				document.body.addEventListener("mousemove", handleFirstMouseMove);
 				window.addEventListener("mousemove", handleMouseMove);
 				document.body.addEventListener("touchstart", handleFirstTouchStart);
 				window.addEventListener("touchstart", handleTouchStart, false);
 				window.addEventListener("touchmove", handleTouchMove, false);
+				window.addEventListener("touchend", handlePointerUp);
+				window.addEventListener("touchcancel", handlePointerUp);
 			}
 
 			// Pause animation when scrolled out of view
@@ -1747,16 +1818,31 @@
 				if (autoSplatTimer) clearInterval(autoSplatTimer);
 				if (interactive) {
 					window.removeEventListener("mousedown", handleMouseDown);
+					window.removeEventListener("mouseup", handlePointerUp);
 					document.body.removeEventListener("mousemove", handleFirstMouseMove);
 					window.removeEventListener("mousemove", handleMouseMove);
 					document.body.removeEventListener("touchstart", handleFirstTouchStart);
 					window.removeEventListener("touchstart", handleTouchStart);
 					window.removeEventListener("touchmove", handleTouchMove);
+					window.removeEventListener("touchend", handlePointerUp);
+					window.removeEventListener("touchcancel", handlePointerUp);
 				}
 				if (contained) {
 					window.removeEventListener("resize", updateCanvasRectCache);
 					window.removeEventListener("scroll", updateCanvasRectCache);
 				}
+				// Hand the GPU memory back, then the context itself. Unlike the React
+				// port, a Svelte unmount discards the <canvas> — nothing will call
+				// getContext on it again — so a lost context costs nothing, while a
+				// live one would hold a slot in the browser's context budget until
+				// GC. Guarded: the singleton runs the previous instance's cleanup
+				// when a newer one mounts, and the component runs it again on its
+				// own unmount.
+				if (glDisposed) return;
+				glDisposed = true;
+				for (const dispose of glDisposers) dispose();
+				glDisposers.length = 0;
+				gl.getExtension("WEBGL_lose_context")?.loseContext();
 			}
 
 			// Register before notifying: a throwing callback must not cost us the

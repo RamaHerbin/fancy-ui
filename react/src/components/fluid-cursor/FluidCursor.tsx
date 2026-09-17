@@ -12,6 +12,7 @@ import {
 	HSVtoRGB,
 	scaleRadiusForContainer,
 	wrap,
+	clickBoost,
 } from "./fluid-shared.js";
 import { startWebGpuFluid } from "./webgpu-engine.js";
 
@@ -104,15 +105,21 @@ export function FluidCursor({
 	// re-derives them. A lazy state initializer reproduces that exactly — and
 	// keeps the invalid-hex warning from `hexToRgb` firing once per instance
 	// instead of on every re-render.
-	const [derived] = useState(() => ({
-		clampedColorIntensity: Math.max(0, Math.min(1, colorIntensity)),
-		clampedHdrBoost: Math.max(1, Math.min(4, hdrBoost)),
-		clampedDitherPixelSize: Math.max(1, ditherPixelSize),
-		clampedDitherLevels: Math.max(2, Math.min(16, Math.floor(ditherLevels))),
-		resolvedBackColor: (typeof backColor === "string"
-			? hexToRgb(backColor)
-			: backColor) as ColorRGB,
-	}));
+	const [derived] = useState(() => {
+		const clampedColorIntensity = Math.max(0, Math.min(1, colorIntensity));
+		return {
+			clampedColorIntensity,
+			// A click's extra brightness, capped so it never compounds
+			// colorIntensity into the dither pass's clamp — see clickBoost().
+			clickColorBoost: clickBoost(clampedColorIntensity),
+			clampedHdrBoost: Math.max(1, Math.min(4, hdrBoost)),
+			clampedDitherPixelSize: Math.max(1, ditherPixelSize),
+			clampedDitherLevels: Math.max(2, Math.min(16, Math.floor(ditherLevels))),
+			resolvedBackColor: (typeof backColor === "string"
+				? hexToRgb(backColor)
+				: backColor) as ColorRGB,
+		};
+	});
 
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -156,11 +163,15 @@ export function FluidCursor({
 
 	function getScaledColor(hex: string): ColorRGB {
 		const { r, g, b } = hexToRgb(hex);
-		return {
+		// Frozen: these objects are cached and handed out by reference to every
+		// pointer and every click, so an in-place `color.r *= …` downstream would
+		// scale the palette itself — the freeze turns that into a TypeError at
+		// the culprit instead of a fluid that brightens forever.
+		return Object.freeze({
 			r: r * derived.clampedColorIntensity,
 			g: g * derived.clampedColorIntensity,
 			b: b * derived.clampedColorIntensity,
-		};
+		});
 	}
 
 	function getCachedFluidColor(hex: string): ColorRGB {
@@ -310,6 +321,7 @@ export function FluidCursor({
 				pauseWhenHidden,
 				splatOnMount,
 				generateColor,
+				clickBoost: derived.clickColorBoost,
 			})
 				.then((handle) => {
 					if (disposed) {
@@ -802,13 +814,19 @@ export function FluidCursor({
 			uniform vec3 color;
 			uniform vec2 point;
 			uniform float radius;
+			uniform float saturate;
 
 			void main () {
 				vec2 p = vUv - point.xy;
 				p.x *= aspectRatio;
 				vec3 splat = exp(-dot(p, p) / radius) * color;
 				vec3 base = texture2D(uTarget, vUv).xyz;
-				gl_FragColor = vec4(base + splat, 1.0);
+				// A click splat lifts each texel to its own profile instead of adding
+				// to it: what is already there never rises past what one click would
+				// leave at that spot, so a burst of clicks paints the same disc once
+				// instead of summing towards white and widening with every click.
+				vec3 sum = saturate > 0.5 ? max(base, splat) : base + splat;
+				gl_FragColor = vec4(sum, 1.0);
 			}
 		`
 			);
@@ -1546,16 +1564,41 @@ export function FluidCursor({
 			}
 
 			function clickSplat(pointer: Pointer) {
-				const color = generateColor();
-				color.r *= 10;
-				color.g *= 10;
-				color.b *= 10;
+				// generateColor() is already intensity-scaled; the boost is capped so
+				// the peak stays at CLICK_PEAK rather than compounding colorIntensity.
+				// COPY, never scale in place: with `fluidColor` / `fluidColors` set,
+				// generateColor() hands back the cached palette object itself, and
+				// scaling that multiplied the palette again on every click — the
+				// 10th click painted with a colour 10^10 times brighter — which is
+				// what turned a few clicks into a giant disc and a few more into
+				// NaN and nothing at all.
+				const base = generateColor();
+				const color = {
+					r: base.r * derived.clickColorBoost,
+					g: base.g * derived.clickColorBoost,
+					b: base.b * derived.clickColorBoost,
+				};
 				const dx = 10 * (Math.random() - 0.5);
 				const dy = 30 * (Math.random() - 0.5);
-				splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color);
+				// Saturating: a burst of clicks on one spot pools at this colour
+				// rather than summing — a click has next to no velocity to carry
+				// the dye away, so additive stacking used to turn into a white disc.
+				splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color, true);
 			}
 
-			function splat(x: number, y: number, dx: number, dy: number, color: ColorRGB) {
+			/**
+			 * Inject velocity and dye at a point. `saturate` is the click mode: the
+			 * dye pass then caps each texel at the splat colour instead of adding
+			 * to it (velocity is always additive — a click's push is negligible).
+			 */
+			function splat(
+				x: number,
+				y: number,
+				dx: number,
+				dy: number,
+				color: ColorRGB,
+				saturate = false
+			) {
 				splatProgram.bind();
 				if (splatProgram.uniforms.uTarget) {
 					gl.uniform1i(splatProgram.uniforms.uTarget, velocity.read.attach(0));
@@ -1568,6 +1611,9 @@ export function FluidCursor({
 				}
 				if (splatProgram.uniforms.color) {
 					gl.uniform3f(splatProgram.uniforms.color, dx, dy, 0);
+				}
+				if (splatProgram.uniforms.saturate) {
+					gl.uniform1f(splatProgram.uniforms.saturate, 0);
 				}
 				if (splatProgram.uniforms.radius) {
 					let radius = correctRadius(config.SPLAT_RADIUS / 100);
@@ -1584,6 +1630,9 @@ export function FluidCursor({
 				}
 				if (splatProgram.uniforms.color) {
 					gl.uniform3f(splatProgram.uniforms.color, color.r, color.g, color.b);
+				}
+				if (splatProgram.uniforms.saturate) {
+					gl.uniform1f(splatProgram.uniforms.saturate, saturate ? 1 : 0);
 				}
 				blit(dye.write);
 				dye.swap();
@@ -1722,6 +1771,13 @@ export function FluidCursor({
 				clickSplat(pointer);
 			}
 
+			// The release half of mousedown / touchstart. `down` used to latch true
+			// for the life of the engine — nothing on this path reads it, but the
+			// pointer is part of the handle's contract and should tell the truth.
+			function handlePointerUp() {
+				pointers[0]!.down = false;
+			}
+
 			function handleFirstMouseMove(e: MouseEvent) {
 				const pointer = pointers[0]!;
 				const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
@@ -1770,11 +1826,14 @@ export function FluidCursor({
 			// Add event listeners
 			if (interactive) {
 				window.addEventListener("mousedown", handleMouseDown);
+				window.addEventListener("mouseup", handlePointerUp);
 				document.body.addEventListener("mousemove", handleFirstMouseMove);
 				window.addEventListener("mousemove", handleMouseMove);
 				document.body.addEventListener("touchstart", handleFirstTouchStart);
 				window.addEventListener("touchstart", handleTouchStart, false);
 				window.addEventListener("touchmove", handleTouchMove, false);
+				window.addEventListener("touchend", handlePointerUp);
+				window.addEventListener("touchcancel", handlePointerUp);
 			}
 
 			// Pause animation when scrolled out of view
@@ -1821,11 +1880,14 @@ export function FluidCursor({
 				if (autoSplatTimer) clearInterval(autoSplatTimer);
 				if (interactive) {
 					window.removeEventListener("mousedown", handleMouseDown);
+					window.removeEventListener("mouseup", handlePointerUp);
 					document.body.removeEventListener("mousemove", handleFirstMouseMove);
 					window.removeEventListener("mousemove", handleMouseMove);
 					document.body.removeEventListener("touchstart", handleFirstTouchStart);
 					window.removeEventListener("touchstart", handleTouchStart);
 					window.removeEventListener("touchmove", handleTouchMove);
+					window.removeEventListener("touchend", handlePointerUp);
+					window.removeEventListener("touchcancel", handlePointerUp);
 				}
 				if (contained) {
 					window.removeEventListener("resize", updateCanvasRectCache);
