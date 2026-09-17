@@ -9,15 +9,16 @@
 	import PanelChrome from "./PanelChrome.svelte";
 	import { PACKAGE_NAME } from "$lib/site.js";
 
-	/* Component OG previews double as trail imagery — on-brand and already
-	   shipped with the site, so the panel costs no new assets. */
+	/* Six landscape photographs (static/landing/trail, credits alongside):
+	   the trail wants imagery with depth and colour, which component
+	   previews — flat UI screenshots — never gave it. */
 	const TRAIL_IMAGES = [
-		"/og/border-beam.jpg",
-		"/og/card-3d.jpg",
-		"/og/bg-stars.jpg",
-		"/og/apple-card-carousel.jpg",
-		"/og/animated-testimonials.jpg",
-		"/og/bento-grid.jpg",
+		"/landing/trail/01.webp",
+		"/landing/trail/02.webp",
+		"/landing/trail/03.webp",
+		"/landing/trail/04.webp",
+		"/landing/trail/05.webp",
+		"/landing/trail/06.webp",
 	];
 
 	/* The staircase of outlined rectangles in the overlay — echoes the path
@@ -40,7 +41,7 @@
 
 <div class="lp-line grid border-b lg:h-[322px] lg:grid-cols-[38fr_29fr_33fr]">
 	<!-- 02 — Image Trail -->
-	<div class="lp-line border-b lg:border-r lg:border-b-0">
+	<div class="lp-line min-w-0 border-b lg:border-r lg:border-b-0">
 		<PanelChrome
 			index="02"
 			title="IMAGE TRAIL CURSOR"
@@ -73,7 +74,7 @@
 	</div>
 
 	<!-- 03 — LiquidGlass -->
-	<div class="lp-line border-b lg:border-r lg:border-b-0">
+	<div class="lp-line min-w-0 border-b lg:border-r lg:border-b-0">
 		<PanelChrome
 			index="03"
 			title="LIQUIDGLASS"
@@ -137,7 +138,7 @@
 	</div>
 
 	<!-- 04 — Rainbow Button -->
-	<div>
+	<div class="min-w-0">
 		<PanelChrome
 			index="04"
 			title="RAINBOW BUTTON"
