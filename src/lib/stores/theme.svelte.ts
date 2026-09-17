@@ -1,28 +1,26 @@
 /**
  * Theme Store
  *
- * Manages the active theme (light/dark/system + named themes) and user
- * preferences. A theme is identified by name; the registry lives in
- * `$lib/fancy-ui/themes`. Applying a theme toggles the `.dark` class, sets a
- * `data-theme` attribute, and writes the theme's CSS-variable overrides inline
- * on `<html>` (on top of the base tokens in `src/routes/layout.css`).
+ * Manages the light/dark/system preference of the docs site. Applying a theme
+ * toggles the `.dark` class on `<html>` (which drives every `dark:` utility and
+ * the base token sets in `src/routes/layout.css`) and syncs the mobile
+ * `theme-color` meta. Art direction beyond light/dark belongs to the cameleon
+ * skins (`$lib/stores/skin.svelte.ts`), not here.
  */
 
 import { browser } from "$app/environment";
-import { themes, getTheme as getThemeDef, MANAGED_VARS } from "$lib/fancy-ui/themes.js";
 
 // =============================================================================
 // Types
 // =============================================================================
 
-/** A theme name from the registry, or the special "system" value. */
-export type Theme = string;
+export type Theme = "light" | "dark" | "system";
 export type ResolvedTheme = "light" | "dark";
 
 export interface ThemeState {
-	/** Current theme setting (registry name or "system"). */
+	/** Current theme setting. */
 	theme: Theme;
-	/** Resolved light/dark (from the theme's colorScheme, or the system preference). */
+	/** Resolved light/dark (the system preference when `theme` is "system"). */
 	resolvedTheme: ResolvedTheme;
 	/** Whether the user prefers reduced motion. */
 	reducedMotion: boolean;
@@ -34,16 +32,19 @@ export interface ThemeState {
 
 const STORAGE_KEY = "fancy-ui-theme";
 
+/** Accepted stored values. The anti-FOUC script in src/app.html mirrors this set. */
+const THEMES: ReadonlySet<string> = new Set<Theme>(["light", "dark", "system"]);
+
+function isTheme(value: unknown): value is Theme {
+	return typeof value === "string" && THEMES.has(value);
+}
+
 let theme = $state<Theme>("system");
 let systemPrefersDark = $state(false);
 let reducedMotion = $state(false);
 
 const resolvedTheme = $derived<ResolvedTheme>(
-	theme === "system"
-		? systemPrefersDark
-			? "dark"
-			: "light"
-		: (getThemeDef(theme)?.colorScheme ?? "light")
+	theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme
 );
 
 // =============================================================================
@@ -53,9 +54,10 @@ const resolvedTheme = $derived<ResolvedTheme>(
 function initialize() {
 	if (!browser) return;
 
-	// Load saved theme (a registry name or "system"); ignore unknown values.
+	// Load the saved preference; anything else (including a theme name from an
+	// older build) falls back to "system" without touching storage.
 	const saved = localStorage.getItem(STORAGE_KEY);
-	if (saved && (saved === "system" || getThemeDef(saved))) {
+	if (isTheme(saved)) {
 		theme = saved;
 	}
 
@@ -84,35 +86,16 @@ function applyTheme() {
 
 	const root = document.documentElement;
 	const resolved: ResolvedTheme =
-		theme === "system"
-			? systemPrefersDark
-				? "dark"
-				: "light"
-			: (getThemeDef(theme)?.colorScheme ?? "light");
+		theme === "system" ? (systemPrefersDark ? "dark" : "light") : theme;
 
 	// Light/dark class (drives every component's `dark:` utilities).
 	if (resolved === "dark") root.classList.add("dark");
 	else root.classList.remove("dark");
 
-	// Clear any inline overrides from a previously-applied named theme.
-	for (const v of MANAGED_VARS) root.style.removeProperty(v);
-
-	// Apply the named theme's token overrides (light/dark/system carry none).
-	const def = theme === "system" ? undefined : getThemeDef(theme);
-	if (def && Object.keys(def.tokens).length > 0) {
-		for (const [key, value] of Object.entries(def.tokens)) {
-			root.style.setProperty(key, value);
-		}
-		root.setAttribute("data-theme", def.name);
-	} else {
-		root.removeAttribute("data-theme");
-	}
-
 	// Update meta theme-color for mobile browsers.
 	const metaThemeColor = document.querySelector('meta[name="theme-color"]');
 	if (metaThemeColor) {
-		const bg = def?.tokens["--background"] ?? (resolved === "dark" ? "#0a0a0a" : "#ffffff");
-		metaThemeColor.setAttribute("content", bg);
+		metaThemeColor.setAttribute("content", resolved === "dark" ? "#0a0a0a" : "#ffffff");
 	}
 }
 
@@ -120,7 +103,7 @@ function applyTheme() {
 // Public API
 // =============================================================================
 
-/** Set the active theme by name (registry name or "system"). */
+/** Set the active theme. */
 export function setTheme(newTheme: Theme) {
 	theme = newTheme;
 	if (browser) {
@@ -129,7 +112,7 @@ export function setTheme(newTheme: Theme) {
 	}
 }
 
-/** Flip between the base light and dark themes. */
+/** Flip between light and dark. */
 export function toggleTheme() {
 	setTheme(resolvedTheme === "dark" ? "light" : "dark");
 }
@@ -198,10 +181,6 @@ export function createThemeState() {
 		},
 		get isLight() {
 			return resolvedTheme === "light";
-		},
-		/** The full theme registry, for building a switcher. */
-		get themes() {
-			return themes;
 		},
 		setTheme,
 		toggleTheme,

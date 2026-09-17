@@ -1,37 +1,44 @@
 <script lang="ts">
-	import { createThemeState, t } from "$lib/stores";
+	import { createThemeState, t, type Theme } from "$lib/stores";
 
 	const themeState = createThemeState();
 
 	let open = $state(false);
 	let selectedIndex = $state(0);
 
-	type Entry = { name: string; label: string; swatch: [string, string, string, string] };
+	type Swatch = [string, string, string, string];
+	type Entry = { name: Theme; label: string; swatch: Swatch };
 
-	const systemSwatch: [string, string, string, string] = [
-		"#a3a3a3",
-		"#525252",
-		"#e5e5e5",
-		"#171717",
+	// Light/dark are the base looks defined by `:root` / `.dark` in layout.css;
+	// art direction beyond that is the SkinSwitcher's job.
+	const systemSwatch: Swatch = ["#a3a3a3", "#525252", "#e5e5e5", "#171717"];
+	const lightSwatch: Swatch = [
+		"oklch(0.208 0.042 265.755)",
+		"oklch(0.65 0.15 265)",
+		"oklch(0.929 0.013 255.508)",
+		"#ffffff",
+	];
+	const darkSwatch: Swatch = [
+		"oklch(0.929 0.013 255.508)",
+		"oklch(0.7 0.15 265)",
+		"oklch(0.15 0.005 260)",
+		"#0a0a0a",
 	];
 
 	const entries = $derived<Entry[]>([
 		{ name: "system", label: t("theme.system"), swatch: systemSwatch },
-		...themeState.themes.map((th) => ({ name: th.name, label: th.label, swatch: th.swatch })),
+		{ name: "light", label: "Light", swatch: lightSwatch },
+		{ name: "dark", label: "Dark", swatch: darkSwatch },
 	]);
 
 	const activeName = $derived(themeState.theme);
 
-	const activeSwatch = $derived.by<[string, string, string, string]>(() => {
-		const e = entries.find((x) => x.name === activeName);
-		if (e && e.name !== "system") return e.swatch;
-		const base = themeState.themes.find(
-			(t) => t.name === (themeState.resolvedTheme === "dark" ? "dark" : "light")
-		);
-		return base?.swatch ?? systemSwatch;
-	});
+	// The trigger shows the resolved look, so "system" reads as light or dark.
+	const activeSwatch = $derived<Swatch>(
+		themeState.resolvedTheme === "dark" ? darkSwatch : lightSwatch
+	);
 
-	function pick(name: string) {
+	function pick(name: Theme) {
 		themeState.setTheme(name);
 		open = false;
 	}
