@@ -21,15 +21,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      # pnpm 11 publishes through npm's trusted publishing: with no auth token
+      # configured it exchanges this job's OIDC id-token (permissions above) for
+      # a short-lived publish token, so no npm secret lives in this repo.
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
+      # No `registry-url` on purpose: setup-node would write an .npmrc whose
+      # _authToken points at an env var that no longer exists.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          registry-url: https://registry.npmjs.org
 
       - run: pnpm install --frozen-lockfile
 
@@ -51,4 +55,7 @@ jobs:
           title: "Version Packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Both packages list this repository's release.yml as their trusted
+          # publisher on the registry; the action logs "No NPM_TOKEN found" and
+          # lets pnpm authenticate through OIDC. Provenance is attested as well.
+          NPM_CONFIG_PROVENANCE: "true"
