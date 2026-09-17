@@ -21,19 +21,28 @@
 	const FOCUSED_DIGIT = 3;
 </script>
 
+<!-- The label strip is one line by contract: the name truncates before it
+     wraps, and the docs link collapses to its arrow until the row has the
+     full frame width (2xl), where "View docs" fits beside every name. -->
 {#snippet cellLabel(index: string, name: string, slug: string)}
 	<span
-		class="lp-mono flex items-center text-[9.5px] tracking-[0.1em]"
+		class="lp-mono flex items-center gap-2 text-[9.5px] tracking-[0.1em] whitespace-nowrap"
 		style="color:var(--lp-grey-3)"
 	>
-		{index} — {name}
-		<a href="/docs/components/{slug}" class="lp-link ml-auto" style="color:var(--lp-grey-5)"
-			>View docs ↗</a
+		<span class="min-w-0 truncate">{index} — {name}</span>
+		<a
+			href="/docs/components/{slug}"
+			class="lp-link ml-auto shrink-0"
+			style="color:var(--lp-grey-5)"
+			aria-label="View {name.toLowerCase()} docs"
+			><span class="hidden 2xl:inline">View docs </span>↗</a
 		>
 	</span>
 {/snippet}
 
-<div class="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.08fr_1.05fr_1.14fr_.98fr_.94fr_1fr]">
+<div
+	class="lp-cells grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1fr_1fr_1.3fr_.95fr_.95fr_1.16fr]"
+>
 	<!-- 05 — Input -->
 	<div class="lp-cell">
 		{@render cellLabel("05", "INPUT", "input")}
@@ -54,10 +63,10 @@
 	<div class="lp-cell">
 		{@render cellLabel("07", "VERIFICATION CODE", "input")}
 		<span class="flex flex-1 items-center">
-			<span class="flex gap-[7px]" aria-hidden="true">
+			<span class="flex gap-[6px] 2xl:gap-[7px]" aria-hidden="true">
 				{#each CODE_DIGITS as digit, index (index)}
 					<span
-						class="lp-mono flex h-11 w-[33px] items-center justify-center rounded-[2px] border text-[17px]"
+						class="lp-mono flex h-10 w-[30px] items-center justify-center rounded-[2px] border text-[16px] 2xl:h-11 2xl:w-[33px] 2xl:text-[17px]"
 						style={index === FOCUSED_DIGIT
 							? "border-color:var(--lp-accent);box-shadow:0 0 0 1px var(--lp-accent)"
 							: "border-color:rgba(242,241,236,.18)"}>{digit}</span
@@ -114,9 +123,37 @@
 		border-bottom: 1px solid var(--lp-line);
 	}
 
-	/* At the full six-across width the row is the frame's last band: the frame
-	   draws the outer edge, so the cells drop their own closing borders. */
-	@media (min-width: 64rem) {
+	/* The frame draws the outer edge, so whichever cells touch it drop their own
+	   closing borders — which cells those are depends on the column count:
+	   one across below sm, two to lg, three to xl, six from xl (the full band). */
+	@media (max-width: 39.99rem) {
+		.lp-cell {
+			border-right: none;
+		}
+		.lp-cell:last-child {
+			border-bottom: none;
+		}
+	}
+
+	@media (min-width: 40rem) and (max-width: 63.99rem) {
+		.lp-cell:nth-child(2n) {
+			border-right: none;
+		}
+		.lp-cell:nth-last-child(-n + 2) {
+			border-bottom: none;
+		}
+	}
+
+	@media (min-width: 64rem) and (max-width: 79.99rem) {
+		.lp-cell:nth-child(3n) {
+			border-right: none;
+		}
+		.lp-cell:nth-last-child(-n + 3) {
+			border-bottom: none;
+		}
+	}
+
+	@media (min-width: 80rem) {
 		.lp-cell {
 			border-bottom: none;
 		}

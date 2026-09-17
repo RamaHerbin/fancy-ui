@@ -22,7 +22,7 @@ describe("+page.svelte", () => {
 	it("renders the nav links", () => {
 		render(Page);
 		const header = screen.getByRole("banner");
-		for (const label of ["Docs", "Components", "Themes", "Blog"]) {
+		for (const label of ["Docs", "Components", "Themes", "Changelog"]) {
 			expect(within(header).getByRole("link", { name: label })).toBeInTheDocument();
 		}
 	});

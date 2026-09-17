@@ -46,7 +46,9 @@
 
 <div class="flex h-full min-w-0 flex-col">
 	<div class="lp-panel-head">
-		<span class="flex items-center px-4" style="color:var(--lp-grey-1)">{index} — {title}</span>
+		<span class="flex min-w-0 items-center px-4" style="color:var(--lp-grey-1)"
+			><span class="truncate whitespace-nowrap">{index} — {title}</span></span
+		>
 		{#if hint}
 			<span
 				class="hidden flex-1 items-center justify-center sm:flex"
@@ -56,7 +58,9 @@
 			<span class="flex-1"></span>
 		{/if}
 		<span
-			class="lp-line flex items-center gap-[7px] border-l {compact ? 'px-3' : 'px-3.5'}"
+			class="lp-line hidden items-center gap-[7px] border-l whitespace-nowrap sm:flex {compact
+				? 'px-3'
+				: 'px-3.5'}"
 			style="color:var(--lp-grey-2)"
 		>
 			<span
@@ -66,16 +70,20 @@
 		>
 		<a
 			href="/docs/components/{slug}"
-			class="lp-link lp-line flex items-center gap-1.5 border-l {compact ? 'px-3' : 'px-3.5'}"
-			>View docs ↗</a
+			class="lp-link lp-line flex items-center gap-1.5 border-l whitespace-nowrap {compact
+				? 'px-3'
+				: 'px-3.5'}"
+			><span class="hidden sm:inline">View</span> docs ↗</a
 		>
 		<button
 			type="button"
-			class="lp-link lp-line flex items-center gap-1.5 border-l {compact ? 'px-3' : 'px-3.5'}"
+			class="lp-link lp-line flex items-center gap-1.5 border-l whitespace-nowrap {compact
+				? 'px-3'
+				: 'px-3.5'}"
 			onclick={copy}
 			aria-label="Copy import for {title}"
 		>
-			{#if copied}✓{:else}{compact ? "⧉" : "Copy ⧉"}{/if}
+			{#if copied}✓{:else if compact}⧉{:else}<span class="hidden sm:inline">Copy</span> ⧉{/if}
 		</button>
 	</div>
 

@@ -4,6 +4,7 @@
 	import SignatureGrid from "$lib/components/landing/SignatureGrid.svelte";
 	import PrimitivesRow from "$lib/components/landing/PrimitivesRow.svelte";
 	import FooterCta from "$lib/components/landing/FooterCta.svelte";
+	import CommandSearch from "$lib/components/docs/CommandSearch.svelte";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
 	import "$lib/components/landing/landing.css";
@@ -19,6 +20,8 @@
 		SITE_URL,
 		absoluteUrl,
 	} from "$lib/site.js";
+
+	let searchOpen = $state(false);
 
 	const description = `${COMPONENT_COUNT} animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript.`;
 
@@ -67,11 +70,17 @@
 	panels and the primitives row are rows of a single measured grid, drawn on
 	the fixed near-black "13a" art direction (see landing.css). The synthwave
 	footer keeps its own scene below the frame.
+
+	`dark` is load-bearing: the art direction is always near-black, but the
+	library primitives in the frame (Input, Select, Tabs…) paint with the
+	semantic tokens, which follow the visitor's light/dark preference. Scoping
+	the `.dark` token set to this root keeps them on the dark palette for a
+	light-mode visitor — otherwise the active tab is near-black on black.
 -->
-<div class="lp-root">
+<div class="lp-root dark">
 	<div class="p-3.5">
 		<div class="lp-line mx-auto flex max-w-[1536px] flex-col border lg:min-h-[calc(100vh-28px)]">
-			<LandingHeader />
+			<LandingHeader onSearchClick={() => (searchOpen = true)} />
 			<main class="flex min-h-0 flex-1 flex-col">
 				<HeroSection />
 				<SignatureGrid />
@@ -81,3 +90,5 @@
 	</div>
 	<FooterCta />
 </div>
+
+<CommandSearch bind:open={searchOpen} />

@@ -5,9 +5,9 @@
 -->
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { FluidCursor } from "$lib/fancy-ui";
+	import { Button, FluidCursor } from "$lib/fancy-ui";
 	import PanelChrome from "./PanelChrome.svelte";
-	import { GITHUB_URL, PACKAGE_NAME } from "$lib/site.js";
+	import { GITHUB_URL, PACKAGE_NAME, PACKAGE_VERSION } from "$lib/site.js";
 
 	// The WebGPU/WebGL fluid simulation is the heaviest thing on the page — hold it
 	// back until the browser is idle so it never competes with first paint, and skip
@@ -48,36 +48,34 @@
 			class="lp-mono self-start text-[11.5px] tracking-[0.18em]"
 			style="color:var(--lp-grey-2)"
 		>
-			<span class="border-b-2 pb-[7px]" style="border-color:var(--lp-accent)">FANCY UI</span> / v1.2
+			<span class="border-b-2 pb-[7px]" style="border-color:var(--lp-accent)">FANCY UI</span> / v{PACKAGE_VERSION}
 		</span>
 		<h1
 			class="mt-[22px] text-[clamp(46px,5vw,76px)] leading-[0.94] font-[750] tracking-[-0.035em] text-balance"
 		>
-			Interfaces<br />that feel<br /><span class="serif-accent">alive.</span>
+			Interfaces <br />that feel <br /><span class="serif-accent">alive.</span>
 		</h1>
 		<p class="mt-4 max-w-[310px] text-[15.5px] leading-[1.5]" style="color:#a09f9a">
 			Open-source Svelte components for expressive, motion-first interfaces.
 		</p>
 		<div class="mt-[22px] flex flex-wrap gap-3.5">
-			<a
-				href="/docs/components"
-				class="lp-btn-accent inline-flex items-center gap-3 rounded-[2px] px-5 py-[13px] text-[14px] font-medium"
-			>
+			<Button href="/docs/components" size="lg">
 				Explore components <span aria-hidden="true">→</span>
-			</a>
-			<a
+			</Button>
+			<Button
 				href={GITHUB_URL}
 				target="_blank"
 				rel="noopener noreferrer"
-				class="lp-btn-outline inline-flex items-center gap-2.5 rounded-[2px] px-[22px] py-[13px] text-[14px] font-medium"
+				variant="outline"
+				size="lg"
 			>
 				GitHub <span class="text-[12px]" style="color:var(--lp-grey-3)" aria-hidden="true">↗</span>
-			</a>
+			</Button>
 		</div>
 	</div>
 
 	<!-- Panel 01 — Fluid Cursor -->
-	<div class="lp-line hidden border-l sm:block">
+	<div class="lp-line hidden min-w-0 border-l sm:block">
 		<PanelChrome
 			index="01"
 			title="FLUID CURSOR"

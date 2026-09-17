@@ -1,6 +1,7 @@
 <script lang="ts">
 	import SynthwaveScene from "$lib/components/landing/synthwave/SynthwaveScene.svelte";
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
+	import { Button } from "$lib/fancy-ui";
 	import Logo from "$lib/components/Logo.svelte";
 	import { GITHUB_URL } from "$lib/site.js";
 
@@ -79,34 +80,23 @@
 		></div>
 		<div class="relative flex flex-col items-center gap-4 text-center">
 			<h2 class="text-3xl font-extrabold tracking-tight text-white sm:text-[38px]">
-				Ready to build something
-				<span class="bg-gradient-to-r from-[#a78bfa] to-[#5b8cff] bg-clip-text text-transparent"
-					>amazing?</span
-				>
+				Ready to build something amazing?
 			</h2>
 			<p class="text-sm text-white/60 sm:text-[14.5px]">
 				Join developers building beautiful apps with FancyUI.
 			</p>
-			<!--
-				The CTAs share the frame's fixed art direction (lp-btn-* from
-				landing.css) — the landing no longer re-skins, so nothing here
-				needs a recipe.
-			-->
+			<!-- The library's own Button, as it ships. -->
 			<div class="mt-3 flex flex-wrap items-center justify-center gap-3.5">
-				<a
-					href={DOCS_URL}
-					class="lp-btn-accent inline-flex items-center rounded-[2px] px-6 py-3.5 text-[14.5px] font-medium"
-				>
-					Get Started →
-				</a>
-				<a
+				<Button href={DOCS_URL} size="lg">Get Started →</Button>
+				<Button
 					href={GITHUB_URL}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="lp-btn-outline inline-flex items-center rounded-[2px] px-6 py-3.5 text-[14.5px] font-medium"
+					variant="outline"
+					size="lg"
 				>
 					★ Star on GitHub
-				</a>
+				</Button>
 			</div>
 		</div>
 	</div>
@@ -135,7 +125,7 @@
 			<div class="relative flex w-full flex-col gap-3.5 lg:w-[300px]">
 				<span class="flex items-center gap-2 text-lg font-bold text-white">
 					<Logo size={22} />
-					<span>Fancy<span class="text-[#8b7bff]">UI</span></span>
+					<span>FancyUI</span>
 				</span>
 				<span class="text-[13px] leading-relaxed text-[#9aa3b2]">
 					A modern component library for Svelte 5.
