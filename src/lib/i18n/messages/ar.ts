@@ -302,6 +302,7 @@ export default {
 	"skin.standard": "قياسي",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "تجريبي",
 	"a11y.changeSkin": "تغيير المظهر",
 	"a11y.sound": "الصوت",
 	"retro.explorer": "المستكشف",

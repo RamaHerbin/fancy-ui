@@ -7,12 +7,12 @@
 	let open = $state(false);
 	let selectedIndex = $state(0);
 
-	type Entry = { name: DocsSkin; label: string };
+	type Entry = { name: DocsSkin; label: string; beta?: boolean };
 
 	const entries = $derived<Entry[]>([
 		{ name: "standard", label: t("skin.standard") },
-		{ name: "brutal", label: t("skin.brutal") },
-		{ name: "retro-os", label: t("skin.retroOs") },
+		{ name: "brutal", label: t("skin.brutal"), beta: true },
+		{ name: "retro-os", label: t("skin.retroOs"), beta: true },
 	]);
 
 	const activeName = $derived(skinState.skin);
@@ -102,7 +102,7 @@
 
 	{#if open}
 		<div
-			class="bg-popover border-border absolute right-0 z-[60] mt-1 max-h-80 w-40 overflow-y-auto rounded-lg border p-1.5 shadow-lg"
+			class="bg-popover border-border absolute right-0 z-[60] mt-1 max-h-80 w-48 overflow-y-auto rounded-lg border p-1.5 shadow-lg"
 			role="menu"
 			aria-label={t("skin.heading")}
 		>
@@ -123,6 +123,13 @@
 				>
 					{@render swatch(entry.name)}
 					<span class="flex-1 text-left">{entry.label}</span>
+					{#if entry.beta}
+						<span
+							class="border-border text-muted-foreground rounded-[4px] border px-1 py-px font-mono text-[9px] leading-[1.4] font-bold tracking-wider uppercase"
+						>
+							{t("skin.beta")}
+						</span>
+					{/if}
 					{#if entry.name === activeName}
 						<svg
 							width="14"

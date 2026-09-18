@@ -311,6 +311,7 @@ export default {
 	"skin.standard": "استاندارد",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "بتا",
 	"a11y.changeSkin": "تغییر پوسته",
 	"a11y.sound": "صدا",
 	"retro.explorer": "کاوشگر",

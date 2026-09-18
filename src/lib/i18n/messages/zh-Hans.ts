@@ -275,6 +275,7 @@ export default {
 	"skin.standard": "标准",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "测试版",
 	"a11y.changeSkin": "切换皮肤",
 	"a11y.sound": "声音",
 	"retro.explorer": "资源管理器",

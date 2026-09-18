@@ -308,6 +308,7 @@ export default {
 	"skin.standard": "मानक",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "बीटा",
 	"a11y.changeSkin": "स्किन बदलें",
 	"a11y.sound": "ध्वनि",
 	"retro.explorer": "एक्सप्लोरर",

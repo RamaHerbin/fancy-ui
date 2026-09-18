@@ -312,6 +312,7 @@ export default {
 	"skin.standard": "Standardowa",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "Beta",
 	"a11y.changeSkin": "Zmień skórkę",
 	"a11y.sound": "Dźwięk",
 	"retro.explorer": "Eksplorator",
