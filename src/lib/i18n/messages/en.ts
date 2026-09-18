@@ -36,6 +36,7 @@ export const en = {
 	"skin.standard": "Standard",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "Beta",
 	"a11y.changeSkin": "Change skin",
 	"a11y.sound": "Sound",
 

@@ -314,6 +314,7 @@ export default {
 	"skin.standard": "Estándar",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "Beta",
 	"a11y.changeSkin": "Cambiar el skin",
 	"a11y.sound": "Sonido",
 	// Retro OS docs chrome

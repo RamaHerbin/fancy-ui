@@ -308,6 +308,7 @@ export default {
 	"skin.standard": "Standardní",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "Beta",
 	"a11y.changeSkin": "Změnit vzhled",
 	"a11y.sound": "Zvuk",
 	"retro.explorer": "Průzkumník",

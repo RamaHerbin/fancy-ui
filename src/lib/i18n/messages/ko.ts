@@ -306,6 +306,7 @@ export default {
 	"skin.standard": "표준",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "베타",
 	"a11y.changeSkin": "스킨 변경",
 	"a11y.sound": "사운드",
 	"retro.explorer": "탐색기",

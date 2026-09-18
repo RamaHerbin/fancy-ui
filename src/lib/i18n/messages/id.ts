@@ -310,6 +310,7 @@ export default {
 	"skin.standard": "Standar",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "Beta",
 	"a11y.changeSkin": "Ganti skin",
 	"a11y.sound": "Suara",
 	"retro.explorer": "Penjelajah",
