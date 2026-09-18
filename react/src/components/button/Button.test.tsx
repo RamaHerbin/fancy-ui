@@ -27,14 +27,17 @@ describe("Button", () => {
 		["ghost", "hover:bg-accent"],
 		["accent", "ft-btn--accent"],
 		["destructive", "border-destructive/35"],
-	] satisfies Array<[ButtonVariant, string]>)("variant %s carries its own class (%s)", (variant, marker) => {
-		const { container } = render(
-			<Button variant={variant}>
-				<span>Go</span>
-			</Button>
-		);
-		expect(root(container).className).toContain(marker);
-	});
+	] satisfies Array<[ButtonVariant, string]>)(
+		"variant %s carries its own class (%s)",
+		(variant, marker) => {
+			const { container } = render(
+				<Button variant={variant}>
+					<span>Go</span>
+				</Button>
+			);
+			expect(root(container).className).toContain(marker);
+		}
+	);
 
 	it.each([
 		["sm", "px-[12px]", "text-[12px]", "rounded-[6px]"],
@@ -248,7 +251,7 @@ describe("Button", () => {
 
 	it("merges a caller class alongside the base classes, letting it win over a conflicting utility", () => {
 		const { container } = render(
-			<Button variant="primary" className="bg-red-500 my-button">
+			<Button variant="primary" className="my-button bg-red-500">
 				<span>Go</span>
 			</Button>
 		);
@@ -261,6 +264,21 @@ describe("Button", () => {
 		// part. `hover:bg-primary/90` is a different variant group, so it is left
 		// alone; only the base `bg-primary` is a real conflict with `bg-red-500`.
 		expect(classList).not.toContain("bg-primary");
+	});
+
+	// `button.css` declares a `transition` shorthand on this same element, so the
+	// press scale can join the colour channel under
+	// `prefers-reduced-motion: no-preference`. Leaving `transition-colors` on the
+	// class string would put a second declaration over the same three properties,
+	// and whichever one lost would read as a colour transition that never ran.
+	it("drops the transition-colors utility in favour of the hand-written channel", () => {
+		const { container } = render(
+			<Button>
+				<span>Go</span>
+			</Button>
+		);
+
+		expect(root(container).className).not.toContain("transition-colors");
 	});
 
 	describe("sound", () => {

@@ -1,11 +1,19 @@
-import { forwardRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import {
+	forwardRef,
+	type AnchorHTMLAttributes,
+	type ButtonHTMLAttributes,
+	type MouseEvent,
+	type ReactNode,
+} from "react";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import type { ButtonVariant, ButtonSize } from "./types.js";
 import "./button.css";
 
-export interface ButtonProps
-	extends Omit<ButtonHTMLAttributes<HTMLButtonElement> & AnchorHTMLAttributes<HTMLAnchorElement>, "onClick" | "className" | "type"> {
+export interface ButtonProps extends Omit<
+	ButtonHTMLAttributes<HTMLButtonElement> & AnchorHTMLAttributes<HTMLAnchorElement>,
+	"onClick" | "className" | "type"
+> {
 	/** Visual treatment. */
 	variant?: ButtonVariant;
 	/** Padding / font-size / radius scale. */
@@ -61,7 +69,8 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 	// Colour lives in the colocated CSS: the brand purple has no semantic
 	// Tailwind token, so it is a family-level CSS custom property instead.
 	accent: "ft-btn--accent",
-	destructive: "border border-destructive/35 bg-destructive/10 text-destructive hover:bg-destructive/20",
+	destructive:
+		"border border-destructive/35 bg-destructive/10 text-destructive hover:bg-destructive/20",
 };
 
 export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
@@ -90,7 +99,11 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 		const classes = cn(
 			"ft-btn",
 			"inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium",
-			"cursor-pointer transition-colors",
+			// No `transition-colors` here: the colour channel is declared in
+			// `button.css` instead, alongside the press, so one rule owns the
+			// whole transition list. The utility would only add a second,
+			// competing declaration over the same three properties.
+			"cursor-pointer",
 			"focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[var(--ft-btn-accent)]/35",
 			// `data-disabled` covers the anchor branch, which has no native `:disabled`
 			// pseudo-class to hang the same dimmed treatment off. It tracks `disabled`
@@ -143,11 +156,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 
 		const content = (
 			<>
-				{loading ? (
-					<span className="ft-btn-spinner" aria-hidden="true"></span>
-				) : (
-					iconStart
-				)}
+				{loading ? <span className="ft-btn-spinner" aria-hidden="true"></span> : iconStart}
 				{children}
 				{iconEnd}
 			</>

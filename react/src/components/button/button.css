@@ -1,5 +1,79 @@
 .ft-btn {
-	--ft-btn-accent: var(--ft-accent, light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75)));
+	--ft-btn-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+	/* 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) =
+	   tokens.EASINGS.inout — the reversible-state pair. It runs the colour
+	   channel, and the release half of the press: letting go settles, it does
+	   not snap back. */
+	--ft-btn-motion: var(--ft-duration-fast, 150ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+	/* The down-stroke only. 150ms = tokens.DURATIONS.fast,
+	   cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out — the arrival curve,
+	   which spends most of the scale in the first frames, so the press bites
+	   instead of easing in. Pressing is an arrival; releasing is what resolves
+	   either way. */
+	--ft-btn-press: var(--ft-duration-fast, 150ms) var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+	/*
+	 * Replaces the `transition-colors` utility removed from the class string,
+	 * at exactly the values that utility already resolved to. Colour is a state
+	 * change, not motion, so it stays OUTSIDE the reduced-motion query — gating
+	 * it would only make a theme flip look broken for the people who asked for
+	 * less movement.
+	 *
+	 * `box-shadow` is deliberately absent, and must stay absent: this button's
+	 * focus ring is `focus-visible:ring-*`, which compiles to a `box-shadow`,
+	 * and a focus ring must never animate.
+	 */
+	transition:
+		color var(--ft-btn-motion),
+		background-color var(--ft-btn-motion),
+		border-color var(--ft-btn-motion);
+	/* Kills the ~300ms tap delay without blocking scroll. A press that answers
+	   a third of a second late is not press feedback. */
+	touch-action: manipulation;
+}
+
+/*
+ * The press. Pressable's contract inlined as a plain rule on the native
+ * control rather than wrapping a `<button>` in a `<Pressable>` div — same
+ * `0.97`, same clock, one element instead of two.
+ *
+ * Only the property list is re-declared in here: `transform` joins the colour
+ * channel under `no-preference` and nowhere else, so with motion reduced the
+ * colours still cross and the button simply does not move. The resting state
+ * (no `transform` at all) is the ungated fallback.
+ *
+ * The two strokes are timed apart. The rule below carries the release curve,
+ * because that is the transition the button runs on its way back to rest;
+ * `:active` overrides `transform` with the arrival curve for the way down.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-btn {
+		transition:
+			color var(--ft-btn-motion),
+			background-color var(--ft-btn-motion),
+			border-color var(--ft-btn-motion),
+			transform var(--ft-btn-motion);
+	}
+
+	/* Both inert states are excluded so a press that does nothing does not
+	   pretend to. `[data-disabled]` is the anchor branch, which has no native
+	   `:disabled` to hang this off; `[aria-busy]` is the loading one, on both
+	   branches. A native disabled `<button>` never matches `:active` anyway —
+	   the attribute selectors are what make the anchor behave like it. */
+	.ft-btn:not([data-disabled="true"]):not([aria-busy="true"]):active {
+		transform: scale(0.97);
+		/* The whole list is re-declared rather than just
+		   `transition-timing-function`, which has no per-property form here: a
+		   single value would retime the colour channel too. Only `transform`
+		   differs from the rule above. */
+		transition:
+			color var(--ft-btn-motion),
+			background-color var(--ft-btn-motion),
+			border-color var(--ft-btn-motion),
+			transform var(--ft-btn-press);
+	}
 }
 
 .ft-btn--accent {
