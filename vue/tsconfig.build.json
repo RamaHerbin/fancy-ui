@@ -1,0 +1,30 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": false,
+		"emitDeclarationOnly": true,
+		"declaration": true,
+		"outDir": "dist",
+		"rootDir": "src",
+		"types": []
+	},
+	"include": ["src/**/*.ts", "src/**/*.vue"],
+	// Test-only modules must not reach dist. The `*.test.*` patterns cover the
+	// suites themselves; `ssr-sweep.fixtures.ts` is the two SSR sweeps' shared
+	// frozen lists; the last three cover the rigs the suites import, which the
+	// Svelte package keeps out by naming them `<Name>Harness.test.svelte`. The
+	// React port dropped that `.test.` infix, so without these lines vue-tsc
+	// emits dangling declaration files for modules Rollup never bundles —
+	// dangling d.ts in the consumer's node_modules, typing an import that
+	// cannot load. `vue/scripts/check-dist-shape.mjs` re-checks the result on
+	// every build.
+	"exclude": [
+		"src/**/*.test.ts",
+		"src/**/*.test.vue",
+		"src/test-setup.ts",
+		"src/ssr-sweep.fixtures.ts",
+		"src/**/*Harness.vue",
+		"src/**/*Harness.ts",
+		"src/**/web-audio-mock.ts"
+	]
+}
