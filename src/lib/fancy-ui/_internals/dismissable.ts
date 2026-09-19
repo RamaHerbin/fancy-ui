@@ -73,7 +73,9 @@ export const dismissable: DismissableAction<DismissableOptions> = (node, opts) =
 	// the top is the one that owns the interaction.
 	function isTopLayer(): boolean {
 		for (let i = layers.length - 1; i >= 0; i -= 1) {
-			if (layers[i].isActive()) return layers[i].node === node;
+			// In range by the loop bounds; spelled out for index-access strictness.
+			const candidate = layers[i]!;
+			if (candidate.isActive()) return candidate.node === node;
 		}
 		return false;
 	}
@@ -127,3 +129,8 @@ export const dismissable: DismissableAction<DismissableOptions> = (node, opts) =
 		},
 	};
 };
+
+/** Test-only. Not exported from index.ts. */
+export function __dismissableLayerCount(): number {
+	return layers.length;
+}
