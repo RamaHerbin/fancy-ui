@@ -319,12 +319,12 @@
 	{
 		"id": "_internals/motion/anchored.ts",
 		"kind": "pure-helper",
-		"shared": true,
-		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"shared": false,
+		"reason": "Differs from the ports by one import specifier and two comment lines only: the Svelte file imports REDUCED_MOTION_QUERY from the rune module ./media-query.svelte.js, a name the framework ports cannot carry; they import ./media-query.js. The ports' copies are gated against each other (see the (ports) entry).",
 		"paths": {
 			"svelte": "src/lib/fancy-ui/_internals/motion/anchored.ts",
-			"react": null,
-			"vue": "vue/src/internals/motion/anchored.ts"
+			"react": "react/src/internals/motion/anchored.ts",
+			"vue": null
 		}
 	},
 	{
@@ -836,6 +836,17 @@
 			"svelte": null,
 			"react": "react/src/test-setup.ts",
 			"vue": "vue/src/test-setup.ts"
+		}
+	},
+	{
+		"id": "motion/anchored.ts (ports)",
+		"kind": "pure-helper",
+		"shared": true,
+		"note": "The Svelte anchored.ts with the media-query specifier and its two comment references rewritten to ./media-query.js; shared by the framework ports only.",
+		"paths": {
+			"svelte": null,
+			"react": "react/src/internals/motion/anchored.ts",
+			"vue": "vue/src/internals/motion/anchored.ts"
 		}
 	}
 ]
