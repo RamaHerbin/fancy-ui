@@ -609,14 +609,14 @@
 	{
 		"id": "cameleon/skins/retro-os/kit/accents.ts",
 		"kind": "data",
-		"shared": true,
+		"shared": false,
 		"note": "The retro-os `kit/` subfolder is not ported to React yet; the path is the intended location, absent copies are skipped unless --require-react.",
 		"paths": {
 			"svelte": "src/lib/cameleon/skins/retro-os/kit/accents.ts",
 			"react": null,
-			"vue": "vue/src/cameleon/skins/retro-os/kit/accents.ts"
+			"vue": null
 		},
-		"reason": "React ships no retro-kit subpath (documented package delta); Svelte↔Vue only."
+		"reason": "Neither framework port ships the retro-kit subpath (documented package delta); Svelte-only."
 	},
 	{
 		"id": "cameleon/skins/retro-os/meta.ts",
@@ -754,14 +754,14 @@
 	{
 		"id": "cameleon/skins/retro-os/kit/kit.css",
 		"kind": "css",
-		"shared": true,
+		"shared": false,
 		"note": "The retro-os `kit/` subfolder is not ported to React yet; the path is the intended location, absent copies are skipped unless --require-react.",
 		"paths": {
 			"svelte": "src/lib/cameleon/skins/retro-os/kit/kit.css",
 			"react": null,
-			"vue": "vue/src/cameleon/skins/retro-os/kit/kit.css"
+			"vue": null
 		},
-		"reason": "React ships no retro-kit subpath (documented package delta); Svelte↔Vue only."
+		"reason": "Neither framework port ships the retro-kit subpath (documented package delta); Svelte-only."
 	},
 	{
 		"id": "cameleon/skins/retro-os/retro-os.css",
