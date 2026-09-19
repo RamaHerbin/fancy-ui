@@ -4,7 +4,13 @@
 // live outside the node but should not count as "outside" (e.g. a trigger
 // button that toggles the dismissable element).
 
-import type { Action } from "svelte/action";
+type DismissableAction<P> = (
+	node: HTMLElement,
+	params: P,
+) => {
+	update?(params: P): void;
+	destroy?(): void;
+} | void;
 
 export interface DismissableOptions {
 	/** Called when the node should be dismissed. */
@@ -49,7 +55,7 @@ interface Layer {
 
 const layers: Layer[] = [];
 
-export const dismissable: Action<HTMLElement, DismissableOptions> = (node, opts) => {
+export const dismissable: DismissableAction<DismissableOptions> = (node, opts) => {
 	// Actions only run in the browser, but stay defensive for SSR contexts.
 	if (typeof document === "undefined") {
 		return {};

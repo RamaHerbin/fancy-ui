@@ -4,6 +4,11 @@
  * Everything the canvas loop needs that can be unit-tested without a browser:
  * a seeded PRNG, per-tile grid state, the halo falloff curve, the fps-independent
  * heat step, ambient flicker, the colour LUT and the idle drift path.
+ *
+ * Compiles under `noUncheckedIndexedAccess`, which widens every indexed read
+ * to `| undefined`. The `!` assertions below are all in bounds by construction
+ * (the loops are driven by the array's own length, the regex groups are
+ * guaranteed by a successful match), so they change no behaviour.
  */
 
 export type Rgb = [number, number, number];
@@ -143,7 +148,7 @@ export function updateTiles(g: MosaicGrid, halo: Halo | null, dt: number, p: Ste
 
 	if (!halo || halo.r <= 0) {
 		for (let i = 0; i < heat.length; i++) {
-			const h = heat[i];
+			const h = heat[i]!;
 			if (h === 0) continue;
 			const next = h - h * kRelease;
 			heat[i] = next < 1e-4 ? 0 : next;
@@ -160,13 +165,13 @@ export function updateTiles(g: MosaicGrid, halo: Halo | null, dt: number, p: Ste
 			const i = r * cols + c;
 			const dx = c * p.pitch + half - halo.x;
 			const d2 = (dx * dx + dy2) * invR2;
-			const target = d2 >= 1 ? 0 : falloff(Math.sqrt(d2)) * weight[i];
-			const h = heat[i];
+			const target = d2 >= 1 ? 0 : falloff(Math.sqrt(d2)) * weight[i]!;
+			const h = heat[i]!;
 			const delta = target - h;
 			if (delta === 0) continue;
 			const next = h + delta * (delta > 0 ? kAttack : kRelease);
 			heat[i] = next < 1e-4 ? 0 : next;
-			const rem = Math.abs(target - heat[i]);
+			const rem = Math.abs(target - heat[i]!);
 			if (rem > maxDelta) maxDelta = rem;
 		}
 	}
@@ -186,7 +191,7 @@ export function flickerTiles(
 	const k = rate(dt, 0.4);
 	for (let i = 0; i < amb.length; i++) {
 		if (rng() < p) ambientTarget[i] = ambientLevel(rng(), ambient);
-		amb[i] += (ambientTarget[i] - amb[i]) * k;
+		amb[i] = amb[i]! + (ambientTarget[i]! - amb[i]!) * k;
 	}
 }
 
@@ -197,8 +202,8 @@ export function parseRgb(input: string): Rgb | null {
 	const s = input.trim();
 	const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(s);
 	if (hex) {
-		let h = hex[1];
-		if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+		let h = hex[1]!;
+		if (h.length === 3) h = h[0]! + h[0]! + h[1]! + h[1]! + h[2]! + h[2]!;
 		const n = Number.parseInt(h, 16);
 		return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 	}

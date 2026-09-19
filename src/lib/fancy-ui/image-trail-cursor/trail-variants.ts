@@ -31,8 +31,10 @@ function getLocalPointerPos(e: MouseEvent | TouchEvent, rect: DOMRect): { x: num
 	let clientX = 0;
 	let clientY = 0;
 	if ("touches" in e && e.touches.length > 0) {
-		clientX = e.touches[0].clientX;
-		clientY = e.touches[0].clientY;
+		// Non-null: guarded by `e.touches.length > 0` on this same line.
+		const touch = e.touches[0]!;
+		clientX = touch.clientX;
+		clientY = touch.clientY;
 	} else if ("clientX" in e) {
 		clientX = e.clientX;
 		clientY = e.clientY;
@@ -67,7 +69,13 @@ export class ImageItem {
 		el: null as unknown as HTMLDivElement,
 		inner: null,
 	};
-	public defaultStyle: gsap.TweenVars = { scale: 1, x: 0, y: 0, opacity: 0 };
+	// `private`, not `public`: the animation library declares `TweenVars` inside a
+	// GLOBAL namespace with no module-level export, so a public `gsap.TweenVars`
+	// member emits a bare `gsap.` reference into the shipped .d.ts while tsc drops
+	// the value-only `import { gsap }` — deep-importing consumers then hit TS2503
+	// "Cannot find namespace 'gsap'". A private member emits no type at all, and it
+	// is read only by initEvents() below, so nothing outside this class loses access.
+	private defaultStyle: gsap.TweenVars = { scale: 1, x: 0, y: 0, opacity: 0 };
 	public rect: DOMRect | null = null;
 	private resizeHandler: (() => void) | null = null;
 
@@ -209,7 +217,8 @@ abstract class BaseVariant implements ImageTrailVariant {
 		const cutoff = now - BaseVariant.HISTORY_MAX_AGE;
 		while (
 			this.positionHistory.length > BaseVariant.HISTORY_MAX_LEN ||
-			(this.positionHistory.length > 1 && this.positionHistory[0].t < cutoff)
+			// Non-null: `length > 1` on this same clause proves index 0 exists.
+			(this.positionHistory.length > 1 && this.positionHistory[0]!.t < cutoff)
 		) {
 			this.positionHistory.shift();
 		}
@@ -227,8 +236,9 @@ abstract class BaseVariant implements ImageTrailVariant {
 		let dx = 0;
 		let dy = 0;
 		for (let i = 1; i < this.positionHistory.length; i++) {
-			dx += this.positionHistory[i].x - this.positionHistory[i - 1].x;
-			dy += this.positionHistory[i].y - this.positionHistory[i - 1].y;
+			// Non-null: `i < length` and `i - 1 >= 0` keep both indices in bounds.
+			dx += this.positionHistory[i]!.x - this.positionHistory[i - 1]!.x;
+			dy += this.positionHistory[i]!.y - this.positionHistory[i - 1]!.y;
 		}
 		return { dx, dy };
 	}
@@ -312,7 +322,11 @@ export class ImageTrailVariant1 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		gsap.killTweensOf(img.DOM.el);
 		gsap
@@ -358,7 +372,11 @@ export class ImageTrailVariant2 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		gsap.killTweensOf(img.DOM.el);
 		gsap
@@ -416,7 +434,11 @@ export class ImageTrailVariant3 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		gsap.killTweensOf(img.DOM.el);
 		gsap
@@ -477,7 +499,11 @@ export class ImageTrailVariant4 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
 
 		const vel = this.getTouchVelocity();
@@ -580,7 +606,11 @@ export class ImageTrailVariant5 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
 
 		gsap
@@ -668,7 +698,11 @@ export class ImageTrailVariant6 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		const scaleFactor = this.mapSpeedToSize(speed, 0.3, 2);
 		const brightnessValue = this.mapSpeedToBrightness(speed, 0, 1.3);
@@ -748,7 +782,11 @@ export class ImageTrailVariant7 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 		++this.visibleImagesCount;
 
 		gsap.killTweensOf(img.DOM.el);
@@ -782,7 +820,10 @@ export class ImageTrailVariant7 extends BaseVariant {
 
 		if (this.visibleImagesCount >= this.visibleImagesTotal) {
 			const lastInQueue = getNewPosition(this.imgPosition, this.visibleImagesTotal, this.images);
-			const oldImg = this.images[lastInQueue];
+			// Non-null: the `img` guard above proves `images` is non-empty, and
+			// getNewPosition() returns a value in [0, images.length) for a non-empty
+			// array, so this index is populated.
+			const oldImg = this.images[lastInQueue]!;
 			gsap.to(oldImg.DOM.el, {
 				duration: 0.4,
 				ease: "power4",
@@ -837,7 +878,11 @@ export class ImageTrailVariant8 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
 
 		gsap
@@ -901,7 +946,11 @@ export class ImageTrailVariantPixelated extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
+		if (!img) return;
 
 		gsap.killTweensOf(img.DOM.el);
 		gsap

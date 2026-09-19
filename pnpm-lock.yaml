@@ -270,6 +270,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.6.0
         version: 4.7.0(vite@7.3.1(@types/node@25.2.3)(jiti@2.7.0)(lightningcss@1.32.0))
+      '@webgpu/types':
+        specifier: ^0.1.71
+        version: 0.1.71
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0
