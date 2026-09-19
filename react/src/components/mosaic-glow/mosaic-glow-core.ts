@@ -5,12 +5,10 @@
  * a seeded PRNG, per-tile grid state, the halo falloff curve, the fps-independent
  * heat step, ambient flicker, the colour LUT and the idle drift path.
  *
- * Ported unchanged from the Svelte package's `mosaic-glow-core.ts`. The only
- * edits are the `!` assertions on typed-array, string and regex-group reads:
- * this package compiles with `noUncheckedIndexedAccess`, which widens every
- * indexed read to `| undefined`. Each one is in bounds by construction (the
- * loops are driven by the array's own length, the regex groups are guaranteed
- * by a successful match), so the assertions change no behaviour.
+ * Compiles under `noUncheckedIndexedAccess`, which widens every indexed read
+ * to `| undefined`. The `!` assertions below are all in bounds by construction
+ * (the loops are driven by the array's own length, the regex groups are
+ * guaranteed by a successful match), so they change no behaviour.
  */
 
 export type Rgb = [number, number, number];

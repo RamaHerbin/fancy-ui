@@ -1,14 +1,13 @@
 /**
  * Type-only aggregate of the shared unions component prop interfaces need to
- * reference. Re-exported from the package barrel as
- * `export type * from "./_internals/motion/types.js"` (Fable's edit, not
- * this file's) so a component's own `<ComponentName>Props` can `import type`
- * these from one place instead of reaching into individual foundation files
- * — and, per the common contract, so a component's `index.ts` barrel never
- * has to re-export a type itself (which would risk a name collision across
- * the ten components' barrels).
+ * reference. Re-exported from the package barrel with a wholesale
+ * `export type *` (the barrel's edit, not this file's) so a component's own
+ * `<ComponentName>Props` can `import type` these from one place instead of
+ * reaching into individual foundation files — and, per the common contract,
+ * so a component's `index.ts` barrel never has to re-export a type itself
+ * (which would risk a name collision across the ten components' barrels).
  *
- * `verbatimModuleSyntax` (this repo's tsconfig) means every line here is
+ * `verbatimModuleSyntax` (this package's tsconfig) means every line here is
  * `export type` and compiles to nothing at runtime — this module has zero
  * JS output, by design.
  */

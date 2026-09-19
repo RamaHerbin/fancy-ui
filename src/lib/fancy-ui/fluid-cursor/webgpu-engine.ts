@@ -8,7 +8,7 @@
 // gamut (P3) displays colors are noticeably more saturated. Browsers that
 // ignore the `toneMapping` member simply clamp to SDR — the sim still runs.
 //
-// The math mirrors the GLSL shaders in FluidCursor.svelte pass for pass
+// The math mirrors the GLSL shaders of the WebGL path pass for pass
 // (splat, curl, vorticity, divergence, clear, pressure Jacobi iterations,
 // gradient subtract, advection, display). Any behavioral change here must be
 // mirrored in the WebGL path and vice versa.
@@ -345,11 +345,8 @@ async function createWebGpuFluid(
 			}
 			probe.configure(configuration);
 			probe.unconfigure();
-		} catch (error) {
+		} catch {
 			device.destroy();
-			if (import.meta.env.DEV) {
-				console.warn("[FluidCursor] WebGPU canvas configuration rejected:", error);
-			}
 			return null;
 		}
 
@@ -362,10 +359,9 @@ async function createWebGpuFluid(
 		context.configure(configuration);
 
 		// Browsers that do not support toneMapping drop the member, which
-		// getConfiguration() makes observable. Surface it as data (not just a
-		// DEV log) so callers can tell an extended-tone-mapping canvas from a
-		// clamped fallback; whether the display is HDR is checked separately by
-		// startWebGpuFluid.
+		// getConfiguration() makes observable. Surface it as data so callers can
+		// tell an extended-tone-mapping canvas from a clamped fallback; whether
+		// the display is HDR is checked separately by startWebGpuFluid.
 		let extendedToneMapping = false;
 		try {
 			const applied = context.getConfiguration?.() as
@@ -375,30 +371,12 @@ async function createWebGpuFluid(
 		} catch {
 			// getConfiguration unsupported (e.g. Safari): assume clamped output.
 		}
-		if (import.meta.env.DEV) {
-			console.info(
-				extendedToneMapping
-					? "[FluidCursor] extended tone mapping active (webgpu-hdr if the display reports high dynamic range)"
-					: "[FluidCursor] HDR level: webgpu-sdr (float16 + P3, tone mapping clamped by browser)"
-			);
-		}
 
 		let destroyed = false;
 		let lost = false;
-		device.lost.then((info) => {
+		device.lost.then(() => {
 			lost = true;
-			if (!destroyed && import.meta.env.DEV) {
-				console.warn(`[FluidCursor] WebGPU device lost (${info.reason}): ${info.message}`);
-			}
 		});
-		if (import.meta.env.DEV) {
-			device.addEventListener("uncapturederror", (event) => {
-				console.error(
-					"[FluidCursor] WebGPU uncaptured error:",
-					(event as GPUUncapturedErrorEvent).error.message
-				);
-			});
-		}
 
 		const module = device.createShaderModule({ code: WGSL });
 
@@ -857,10 +835,7 @@ async function createWebGpuFluid(
 				device.destroy();
 			},
 		};
-	} catch (error) {
-		if (import.meta.env.DEV) {
-			console.warn("[FluidCursor] WebGPU init failed, falling back to WebGL:", error);
-		}
+	} catch {
 		return null;
 	}
 }
@@ -883,7 +858,9 @@ export async function startWebGpuFluid(
 	if (!maybeEngine) return null;
 	const engine: FluidEngine = maybeEngine;
 
-	const pointers: Pointer[] = [pointerPrototype()];
+	// Non-empty by construction: index 0 is the real pointer for the life of
+	// the engine, autopilot only ever appends.
+	const pointers: [Pointer, ...Pointer[]] = [pointerPrototype()];
 	// Dedicated synthetic pointer driven programmatically through the handle. It
 	// lives alongside the mouse pointer in the same list, so updateFrame splats
 	// both and the two inputs coexist. Created on first programmatic use, so a
@@ -1073,8 +1050,10 @@ export async function startWebGpuFluid(
 		const touches = e.targetTouches;
 		const pointer = pointers[0];
 		for (let i = 0; i < touches.length; i++) {
-			const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
-			updatePointerDownData(pointer, touches[i].identifier, posX, posY);
+			const touch = touches[i];
+			if (!touch) continue;
+			const { x: posX, y: posY } = getCanvasPos(touch.clientX, touch.clientY);
+			updatePointerDownData(pointer, touch.identifier, posX, posY);
 		}
 		document.body.removeEventListener("touchstart", handleFirstTouchStart);
 	}
@@ -1083,8 +1062,10 @@ export async function startWebGpuFluid(
 		const touches = e.targetTouches;
 		const pointer = pointers[0];
 		for (let i = 0; i < touches.length; i++) {
-			const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
-			updatePointerDownData(pointer, touches[i].identifier, posX, posY);
+			const touch = touches[i];
+			if (!touch) continue;
+			const { x: posX, y: posY } = getCanvasPos(touch.clientX, touch.clientY);
+			updatePointerDownData(pointer, touch.identifier, posX, posY);
 		}
 	}
 
@@ -1092,7 +1073,9 @@ export async function startWebGpuFluid(
 		const touches = e.targetTouches;
 		const pointer = pointers[0];
 		for (let i = 0; i < touches.length; i++) {
-			const { x: posX, y: posY } = getCanvasPos(touches[i].clientX, touches[i].clientY);
+			const touch = touches[i];
+			if (!touch) continue;
+			const { x: posX, y: posY } = getCanvasPos(touch.clientX, touch.clientY);
 			updatePointerMoveData(pointer, posX, posY, pointer.color);
 		}
 	}
@@ -1118,7 +1101,9 @@ export async function startWebGpuFluid(
 	let observer: IntersectionObserver | null = null;
 	if (opts.pauseWhenHidden) {
 		observer = new IntersectionObserver(
-			([entry]) => {
+			(entries) => {
+				const entry = entries[0];
+				if (!entry) return;
 				const wasVisible = isVisible;
 				isVisible = entry.isIntersecting;
 				if (isVisible && !wasVisible && !stopped) {

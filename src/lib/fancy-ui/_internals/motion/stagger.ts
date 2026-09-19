@@ -4,10 +4,9 @@
  * so "stagger from the center" or "stagger from the last item" means the
  * same thing everywhere in this family.
  *
- * Deliberately pure: no DOM, no timers, no side effects. A caller (a
- * component's `$effect`) is expected to call this once per item and write
- * the result into a CSS custom property or a transition `delay` param —
- * this file never schedules anything itself.
+ * Deliberately pure: no DOM, no timers, no side effects. A caller is expected
+ * to call this once per item and write the result into a CSS custom property
+ * or a transition `delay` param — this file never schedules anything itself.
  */
 
 export type StaggerFrom = "first" | "last" | "center" | number;

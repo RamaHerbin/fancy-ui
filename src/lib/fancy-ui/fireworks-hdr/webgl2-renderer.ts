@@ -240,9 +240,6 @@ function compileShader(
 	gl.shaderSource(shader, source);
 	gl.compileShader(shader);
 	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-		if (import.meta.env.DEV) {
-			console.warn("[FireworksHdr] WebGL2 shader compile failed:", gl.getShaderInfoLog(shader));
-		}
 		gl.deleteShader(shader);
 		return null;
 	}
@@ -275,9 +272,6 @@ function linkProgram(
 	gl.deleteShader(vs);
 	gl.deleteShader(fs);
 	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-		if (import.meta.env.DEV) {
-			console.warn("[FireworksHdr] WebGL2 program link failed:", gl.getProgramInfoLog(program));
-		}
 		gl.deleteProgram(program);
 		return null;
 	}
@@ -350,13 +344,6 @@ export function startWebGl2Fireworks(
 			// Unsupported color space: the buffer stays sRGB (webgl-sdr).
 		}
 	}
-	if (import.meta.env.DEV) {
-		console.info(
-			renderLevel === "webgl-p3"
-				? "[FireworksHdr] WebGL2 fallback: webgl-p3 (wide-gamut drawing buffer)"
-				: "[FireworksHdr] WebGL2 fallback: webgl-sdr"
-		);
-	}
 
 	// Float accumulation needs RGBA16F to be color-renderable (this extension) —
 	// its absence selects the blend-based Path B. RGBA16F is texture-filterable
@@ -369,11 +356,6 @@ export function startWebGl2Fireworks(
 	// required readback — bail cleanly rather than render a flickering buffer.
 	// (No listeners/resources are allocated yet at this point.)
 	if (wantFloatAccum && !floatAccum) {
-		if (import.meta.env.DEV) {
-			console.warn(
-				"[FireworksHdr] WebGL2 float-accum probe/context mismatch; bailing to static fallback"
-			);
-		}
 		return null;
 	}
 
@@ -388,7 +370,6 @@ export function startWebGl2Fireworks(
 	function onContextLost(e: Event) {
 		e.preventDefault(); // a prevented default keeps restore possible; we just stop
 		lost = true;
-		if (import.meta.env.DEV) console.warn("[FireworksHdr] WebGL2 context lost");
 	}
 	canvas.addEventListener("webglcontextlost", onContextLost, false);
 
@@ -430,7 +411,6 @@ export function startWebGl2Fireworks(
 		? particleProgram && decayProgram && displayProgram
 		: particleProgram && fadeProgram;
 	if (!programsOk) {
-		if (import.meta.env.DEV) console.warn("[FireworksHdr] WebGL2 program setup failed");
 		cleanupPartial();
 		return null;
 	}
