@@ -14,7 +14,7 @@ import * as cam from "./cameleon/index.js";
  * alongside `test-setup.ts`, so no declaration for it reaches `dist`.
  */
 
-export type Exported = readonly [name: string, value: unknown];
+export type Exported = readonly [key: string, value: unknown]; // key = "<barrel>:<Export>"
 
 /**
  * Per-export prop fixtures for components that need more than the sweep's
@@ -24,23 +24,18 @@ export type Exported = readonly [name: string, value: unknown];
 export const fixtures: Record<string, Record<string, unknown>> = {
 	// `open` is required and renders nothing when falsy, so without it the sweep
 	// would compare two empty strings and prove nothing about the panel.
-	Presence: { open: true },
+	"root:Presence": { open: true },
 	// The skin engine's provider requires a skin; the default one is the neutral fixture.
-	FancyProvider: { skin: cam.defaultSkin },
-	// The cameleon Tooltip requires its content (the root barrel has no Tooltip yet).
-	Tooltip: { content: "x" },
-	// NO `Select` entry, deliberately, even though the component needs one: the
-	// key space below cannot address it. `exportedComponents()` merges the root
-	// barrel with the `./cameleon` barrel and spreads cameleon LAST, and both
-	// export the name `Select` — so the key `Select` resolves to the cameleon
-	// primitive (a native-control wrapper with a different prop shape), and a
-	// fixture written for the root component would be handed to that one
-	// instead: its unknown keys fall through as attributes and land on the
-	// primitive's own element. Measured by identity, not inferred. Whoever owns
-	// the sweep has to key the two barrels apart first; the root `Select` needs
-	// `{ options: [{ value, label }, …], value }` the moment it can be reached,
-	// since `options` is required and the trigger renders its label off it.
-
+	"cameleon:FancyProvider": { skin: cam.defaultSkin },
+	// The cameleon Tooltip requires its content.
+	"cameleon:Tooltip": { content: "x" },
+	// Keys are "<barrel>:<Export>" because the root barrel and the cameleon
+	// barrel both export names such as `Select` (a headless listbox vs a
+	// native-control primitive) with different prop shapes; a bare name could
+	// only address one of them.
+	// BEGIN generated fixtures (written by the registrar between waves from the port agents' reports; do not edit by hand)
+	"root:Select": {"options":[{"value":"a","label":"A"},{"value":"b","label":"B"}],"value":"a"},
+	// END generated fixtures
 	// NO `Dialog` entry, and the omission is deliberate rather than an oversight.
 	// An open dialog puts its panel behind a teleport, and the hydration sweep
 	// server-renders under jsdom — where `document` exists, so the teleport is
@@ -66,13 +61,18 @@ function isVueComponent(value: unknown): boolean {
 	return false;
 }
 
-/** Every capitalised Vue-component export of the root barrel and `./cameleon`. */
+/** Every capitalised Vue-component export of the root barrel and `./cameleon`, keyed by barrel. */
 export function exportedComponents(): Exported[] {
 	const out: Exported[] = [];
-	for (const [name, value] of Object.entries({ ...pkg, ...cam })) {
-		if (!/^[A-Z]/.test(name)) continue;
-		if (!isVueComponent(value)) continue;
-		out.push([name, value]);
+	for (const [barrel, mod] of [
+		["root", pkg],
+		["cameleon", cam],
+	] as const) {
+		for (const [name, value] of Object.entries(mod)) {
+			if (!/^[A-Z]/.test(name)) continue;
+			if (!isVueComponent(value)) continue;
+			out.push([`${barrel}:${name}`, value]);
+		}
 	}
 	return out;
 }
