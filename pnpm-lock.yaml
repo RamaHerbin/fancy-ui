@@ -200,7 +200,7 @@ importers:
         specifier: ^4.5.0
         version: 4.5.2(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@oxc-project/types@0.150.0)(@types/node@25.2.3)(@vue/compiler-sfc@3.5.43)(commander@14.0.3)(db0@0.3.4)(esbuild@0.28.2)(ioredis@5.11.1)(lightningcss@1.33.0)(magicast@0.5.5)(rolldown@1.2.9)(rollup-plugin-visualizer@7.1.1(rolldown@1.2.9)(rollup@4.63.3))(rollup@4.63.3)(srvx@0.11.22)(terser@5.51.2)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.7.0)(lightningcss@1.33.0)(terser@5.51.2))(vue-tsc@3.3.11(typescript@5.9.3))
       vue:
-        specifier: ^3.5.0
+        specifier: ^3.5.2
         version: 3.5.43(typescript@5.9.3)
     devDependencies:
       '@tailwindcss/vite':
@@ -375,7 +375,7 @@ importers:
         specifier: ^4.0.0
         version: 4.0.18(@types/node@25.2.3)(@vitest/browser-playwright@4.0.18)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.33.0)(terser@5.51.2)
       vue:
-        specifier: ^3.5.0
+        specifier: ^3.5.2
         version: 3.5.43(typescript@5.9.3)
       vue-tsc:
         specifier: ^3.3.0

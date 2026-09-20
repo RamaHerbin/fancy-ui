@@ -5,7 +5,7 @@ same components, same visual contract, ported from the Svelte 5 reference
 implementation that lives at the root of this repo, built on Vue 3.5 and
 Tailwind CSS v4.
 
-Status: 0 of 144 components of `fancy-ui-svelte` are ported so far, alongside
+Status: 3 of 144 components of `fancy-ui-svelte` are ported so far, alongside
 the `sound` family; the cameleon skin engine (FancyProvider + primitives +
 skins) will ship on the `fancy-ui-vue/cameleon` subpath. The Svelte package
 remains the reference; each Vue component is a faithful transpose (see
@@ -18,7 +18,7 @@ is listed under [Divergences](#divergences-from-the-svelte-api) below.
 npm install fancy-ui-vue
 ```
 
-Peer dependencies: `vue` 3.5 or later, `tailwindcss` 4. TypeScript is an
+Peer dependencies: `vue` 3.5.2 or later, `tailwindcss` 4. TypeScript is an
 optional peer at 5.0 or later.
 
 ## Tailwind setup
@@ -114,3 +114,23 @@ each component is ported.
   sentinel) so the server-rendered and hydrated output agree by
   construction, rather than committing a wrong clock value that Vue's
   production hydration would otherwise leave in place.
+- **dialog**: The `children`, `footer` and `trigger` snippet props are slots: the dialog's body is the default slot, the action row is `#footer`, and the optional trigger is `#trigger`. `{#if trigger}` becomes `v-if="$slots.trigger"`, so the `display: contents` wrapper is still emitted only when a trigger is supplied.
+- **dialog**: `open` is a two-way model rather than a bindable prop: write `v-model:open`. There is no `modelValue` alias. `onOpenChange` still fires on every change from any trigger, and a caller who passes `open` and no listener at all still gets a dialog that drives itself.
+- **dialog**: NEW, and the one shape where the model is not the bindable: a caller who passes `open` AND an `@update:open` listener that never writes the value back gets a dialog that does NOT close itself. The model defers to the parent whenever a listener is present, so the panel stays mounted and `data-state` stays `open` while the callback has already reported `false`. The bindable prop updates the component's own view in that same shape. Real `v-model:open` (or `open` with no listener) is unaffected. Measured both ways.
+- **dialog**: `ref` is not a prop. `ref` is a reserved vnode key in Vue, so the panel element is published on the instance (`defineExpose({ ref })`) and read through a template ref on `<Dialog>`; `DialogProps` carries no `ref` field.
+- **dialog**: `class` is typed `HTMLAttributes["class"]` rather than `string`, so the array and object class forms a Vue consumer expects are accepted. It is still merged onto the panel through the same `cn()` call sites, in the same argument order.
+- **dialog**: Native attributes and listeners put on `<Dialog>` land nowhere: neither source component spreads `{...restProps}`, so both are closed (`inheritAttrs: false`, no `v-bind="attrs"`). Package-level parity with the source, but it means `<Dialog id="x" data-foo="bar">` drops both silently.
+- **dialog**: The panel's `data-state` is an ordinary reactive binding instead of a static literal rewritten imperatively at transition time. Same attribute, same two values (`open` / `closing`), same timing.
+- **dialog**: `inert` on a closing panel is set by this package's presence clock as an ATTRIBUTE (`toggleAttribute`) rather than by the framework's own transition machinery. Same effect, and `hasAttribute("inert")` is what to assert against.
+- **dialog**: Generated ids come from Vue's own id generator and read `v-0-title` / `v-0-description` instead of the source's shape. They are stable across a server render and its hydration; nothing may depend on the shape, and none of them is ever used as a CSS selector.
+- **dialog**: Test-fixture divergence, recorded because the suite is part of the contract: the `falls back to document.body` case calls `trigger.focus()` before opening, which the source case does not. Without it the trap captures `document.body`, step 1 of the return chain succeeds on a still-connected node, and the case tests nothing.
+- **dialog**: Internal (not a consumer surface): `DialogSurfaceProps` drops the source's `children` and `ref` fields — the panel's content is the default slot and the panel element is exposed, not a prop.
+- **presence**: `PresenceProps` declares the component's own props only — native attributes and listeners (`id`, `role`, `aria-*`, `@click`, …) reach the root `<div>` through `$attrs` instead of through the props type, which the Svelte package folds in via `Omit<HTMLAttributes<HTMLDivElement>, …>`. Placement is unchanged: they are applied where Svelte spreads `{...restProps}`, so `data-state` still wins over a caller-supplied one.
+- **presence**: `ref` is not a prop and there is no `bind:ref`. The root element is published on the component instance (`defineExpose({ ref })`); read it with a template ref on the component, e.g. `<Presence ref="panel" />` then `panel.value.ref`. It is `null` while closed and `null` again once a close settles, exactly as the bindable was.
+- **presence**: The required `children` snippet becomes the required default slot: `<Presence :open="open"><div>…</div></Presence>`.
+- **presence**: `inert={false}` never touches the `inert` attribute at all, instead of letting the framework set it and then overriding it back to `false` as the exit starts. The observable result is the same — no `inert` on a closing panel — but the attribute is never written and then unwritten. `inert` is also written as the ATTRIBUTE (`toggleAttribute`), never the IDL property, so `:not([inert])` selectors and assistive technology see it under every runtime including jsdom.
+- **presence**: `onEnterEnd` / `onExitEnd` stay callback props rather than events; a consumer may equivalently write `@enter-end` / `@exit-end`, which the compiler turns back into the same props. They do not appear in the devtools event pane.
+- **select**: **`value` is two-way through `v-model:value`** rather than `bind:value`. The Svelte prop name is kept and there is no `modelValue` alias; the three documented call shapes (two-way, `onValueChange` alone, plain value plus callback) all work off the one implementation, and `@value-change` also reaches `onValueChange` because the compiler turns it into that prop.
+- **select**: **The trigger element is exposed as `defineExpose({ ref })`**, on the same `<button>` the Svelte `ref = $bindable(null)` pointed at, and `SelectProps` carries no `ref` field (`ref` is a reserved vnode key).
+- **select**: **`class` is typed `HTMLAttributes["class"]` instead of `string`**, so an array or object class value is accepted as well as a string; it is still merged onto the trigger through the same single `cn()` call, in the same argument position.
+- **select**: **The panel and option ids read `v-N-listbox` / `v-N-option-K`** rather than the Svelte id shape, because the seed comes from the package-level id helper. They are SSR-stable and are only ever `aria-controls` / `aria-activedescendant` targets — nothing may key CSS off them.

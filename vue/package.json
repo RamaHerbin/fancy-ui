@@ -14,7 +14,7 @@
 		"directory": "vue"
 	},
 	"scripts": {
-		"build": "vite build && vue-tsc -p tsconfig.build.json && node scripts/strip-dts-css-imports.mjs && node scripts/check-dist-names.mjs && node scripts/check-dist-shape.mjs && node scripts/smoke-dist.mjs && node scripts/ensure-styles-css.mjs",
+		"build": "vite build && vue-tsc -p tsconfig.build.json && node scripts/strip-dts-css-imports.mjs && node scripts/check-dist-names.mjs && node scripts/prune-orphan-dts.mjs && node scripts/check-dist-shape.mjs && node scripts/smoke-dist.mjs && node scripts/ensure-styles-css.mjs",
 		"check": "vue-tsc --noEmit -p tsconfig.json",
 		"check:matrix": "node scripts/check-matrix.mjs",
 		"test": "vitest run",
@@ -57,7 +57,7 @@
 		"**/*.css"
 	],
 	"peerDependencies": {
-		"vue": "^3.5.0",
+		"vue": "^3.5.2",
 		"tailwindcss": "^4.0.0",
 		"typescript": ">=5.0.0"
 	},
@@ -87,7 +87,7 @@
 		"typescript": "^5.8.0",
 		"vite": "^7.0.0",
 		"vitest": "^4.0.0",
-		"vue": "^3.5.0",
+		"vue": "^3.5.2",
 		"vue-tsc": "^3.3.0"
 	},
 	"engines": {

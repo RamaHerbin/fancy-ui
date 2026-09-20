@@ -333,7 +333,7 @@ jobs:
 
           # Added by the vue-3-5 CI job. Not committed.
           overrides:
-            vue: 3.5.0
+            vue: 3.5.2
           YAML
 
       # --no-frozen-lockfile because the override is the point: the lockfile
@@ -345,7 +345,7 @@ jobs:
         run: |
           version=$(node -p "require('vue/package.json').version")
           echo "vue@$version"
-          case "$version" in 3.5.0) ;; *) echo "expected vue 3.5.0, got $version"; exit 1 ;; esac
+          case "$version" in 3.5.2) ;; *) echo "expected vue 3.5.2, got $version"; exit 1 ;; esac
 
       - run: pnpm --filter fancy-ui-vue run check
       - run: pnpm --filter fancy-ui-vue run test
