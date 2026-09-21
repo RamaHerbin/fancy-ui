@@ -1,8 +1,9 @@
-// Behaviour shared by DropdownMenuContent and every DropdownMenuSubContent
-// nested inside it, so it exists once instead of twice. Lives here rather
-// than in `internals/` — which is frozen for this wave — because it is
-// specific to this component family, not a general-purpose primitive every
-// floating surface needs. See the folder README, "Shared implementation".
+// Behaviour shared by DropdownMenuContent and ContextMenuContent (and by
+// every DropdownMenuSubContent nested inside either), so it exists once
+// instead of twice. Lives here rather than in the frozen internals
+// directory for this wave, because it is specific to these two component
+// families, not a general-purpose primitive every floating surface needs.
+// Each package's own dropdown-menu README covers this file in more detail.
 
 import type { MenuContext } from "./types.js";
 
@@ -14,17 +15,25 @@ export interface MenuContentKeydownOptions {
 /**
  * Wires ArrowUp/Down, Home/End and single-character typeahead to a level's
  * `MenuFocus` core, and Tab to `options.onTab`. Identical semantics whether
- * the panel is a `DropdownMenuContent` or one of its nested `*SubContent`s
- * — the keys navigate whatever level currently holds real DOM focus, regardless of how that level's panel was opened or
+ * the panel is a `DropdownMenuContent`, a `ContextMenuContent`, or either
+ * one's nested `*SubContent` — the keys navigate whatever level currently
+ * holds real DOM focus, regardless of how that level's panel was opened or
  * positioned.
  *
  * ArrowRight/ArrowLeft are deliberately not handled here: their key strings
  * are more than one character, so the typeahead fallback below already
  * ignores them, and `*SubTrigger`/`*SubContent` each own their half of that
  * pair directly on the element the key is actually about.
+ *
+ * The parameter is typed structurally (the handful of members this function
+ * actually reads) rather than as the concrete DOM `KeyboardEvent`, so a
+ * caller can pass any event shape that satisfies it — including a
+ * framework's own synthetic event — with no unwrap or cast.
  */
 export function handleMenuContentKeydown(
-	event: KeyboardEvent,
+	event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "altKey"> & {
+		preventDefault(): void;
+	},
 	ctx: MenuContext,
 	options: MenuContentKeydownOptions = {}
 ): void {
@@ -63,6 +72,9 @@ export function handleMenuContentKeydown(
  * `*SubContent` owns one of these for its own direct children; it is never
  * shared across levels, which is what keeps a deeply nested submenu from
  * closing an unrelated one two levels up.
+ *
+ * Allocation-only: it installs no listener and starts no timer, so building
+ * one is safe to do exactly once per component instance.
  */
 export function createOpenSubRegistry(): {
 	registerOpenSub(triggerEl: HTMLElement, close: () => void): () => void;
