@@ -1,0 +1,155 @@
+<script lang="ts">
+import type { HTMLAttributes } from "vue";
+
+export interface DropdownMenuItemProps {
+	/** Called when the item is selected, by click or (in a real browser) by Enter/Space while it holds focus. */
+	onSelect?: () => void;
+	/** Disables the item: skipped by keyboard navigation and typeahead, inert to click. */
+	disabled?: boolean;
+	/** Visual/semantic variant. `"destructive"` renders in the destructive color. */
+	variant?: "default" | "destructive";
+	/** Display-only keyboard shortcut, rendered as a trailing `<kbd>`. This component binds no global keys for it. */
+	shortcut?: string;
+	/** Whether selecting the item closes the whole menu. Defaults to true. */
+	closeOnSelect?: boolean;
+	/** Additional CSS classes. */
+	class?: HTMLAttributes["class"];
+}
+</script>
+
+<script setup lang="ts">
+import { computed, useTemplateRef } from "vue";
+
+import { cn } from "../../utils.js";
+import { useMenuItem } from "../../internals/menu.js";
+import { sound as soundFx } from "../../sound/sound.js";
+import { MENU_KEY } from "./types.js";
+
+defineOptions({ name: "DropdownMenuItem", inheritAttrs: false });
+
+const {
+	onSelect,
+	disabled = false,
+	variant = "default",
+	shortcut,
+	closeOnSelect = true,
+	class: className,
+} = defineProps<DropdownMenuItemProps>();
+
+defineSlots<{
+	/** Leading icon. */
+	icon?: () => unknown;
+	/** The item's label. */
+	default?: () => unknown;
+}>();
+
+// `DropdownMenuContent`/`DropdownMenuSubContent` always provide this before
+// mounting their children, so there is no standalone-usage fallback to design
+// for — the same assumption every context-consuming sub-component in this
+// library makes about its own root.
+const ctx = MENU_KEY.useRequired();
+
+const item = useTemplateRef<HTMLButtonElement>("item");
+
+// The source's registration effect: registers on mount, unregisters on scope
+// dispose. Registration order is irrelevant — the core sorts by document
+// position at navigation time.
+useMenuItem(ctx.focus, item);
+
+// This item's own label — the `<span>` holding the default slot below, nothing
+// else — is already isolated from the icon and the shortcut (both separate
+// `aria-hidden` siblings), so the menu core's typeahead fallback (visible text,
+// skipping `aria-hidden` subtrees) already gets this markup right on its own.
+// An earlier version of this component set `data-typeahead-label` explicitly
+// instead, computed once in a mount effect — which put a second, staler source
+// of truth in front of a live computation that was already correct: a label
+// that changes again later without the item remounting (a count in the text, a
+// toggled "Show/Hide" word) would keep matching its mount-time text forever.
+// Removed for that reason. `data-typeahead-label` is still there in the core
+// for a consumer hand-building menu items who hasn't marked their own icons
+// `aria-hidden` — this component just doesn't need the escape hatch, because it
+// already satisfies the convention the fallback relies on.
+
+// A native `disabled` attribute already blocks a real click, but a synthetic
+// click in a test walks straight past it, so the handler guards again rather
+// than trusting the attribute alone.
+function handleClick(): void {
+	if (disabled) return;
+	if (ctx.sound) soundFx.play("select");
+	// Mouse hover already syncs the menu core's tracked focus position (see
+	// `handleMouseEnter` below), and the common `closeOnSelect` path makes this
+	// redundant too — closing moves focus back to the trigger regardless. The
+	// gap is `closeOnSelect: false` reached by something that skips
+	// `mouseenter` entirely, a touch tap being the realistic case: without
+	// this, the core's own idea of "focused" stays wherever it last was (or
+	// unset), and the next arrow key starts from the wrong place even though
+	// this row is what the user just interacted with.
+	if (item.value) ctx.focus.focusItem(item.value);
+	onSelect?.();
+	// `silent: true` — this click already played `select` above; closing the
+	// menu on top of it must never also play `close`, or one item activation
+	// would yield two cues instead of one.
+	if (closeOnSelect) ctx.closeAll({ silent: true });
+}
+
+// Real DOM focus IS the highlight in a `role="menu"` built on the menu-focus
+// core — so, unlike a listbox's rows, hovering an item deliberately moving
+// focus onto it is correct here, not the mousedown-steals-focus bug. There is
+// nothing to cancel: this is the behaviour a mouse user needs to stay in sync
+// with a keyboard user's own arrow-key highlight.
+function handleMouseEnter(): void {
+	if (disabled || !item.value) return;
+	ctx.focus.focusItem(item.value);
+}
+
+// No font-size here: it inherits from whichever panel renders this item
+// (`DropdownMenuContent` at 13px, or a `*SubContent` carrying its own family's
+// size through — see `MenuContext.itemTextClass`'s own doc for why a submenu
+// needs that context field rather than plain CSS inheritance). A hardcoded size
+// here would win over all of them.
+const classes = computed(() =>
+	cn(
+		"ft-dropdown-menu-item flex w-full cursor-pointer items-center justify-between gap-[10px] rounded-[6px] px-[10px] py-[7px] text-left text-foreground outline-none",
+		"hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground",
+		"disabled:pointer-events-none disabled:opacity-50",
+		variant === "destructive" &&
+			"text-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:bg-destructive/10 focus-visible:text-destructive",
+		className
+	)
+);
+</script>
+
+<template>
+	<button
+		ref="item"
+		type="button"
+		role="menuitem"
+		tabindex="-1"
+		:disabled="disabled"
+		:aria-disabled="disabled ? 'true' : undefined"
+		:data-variant="variant"
+		:class="classes"
+		@click="handleClick"
+		@mouseenter="handleMouseEnter"
+	>
+		<span class="flex items-center gap-[10px]">
+			<span v-if="$slots.icon" class="ft-dropdown-menu-item-icon" aria-hidden="true">
+				<slot name="icon" />
+			</span>
+			<span><slot /></span>
+		</span>
+		<!--
+			Real DOM text, not CSS `content` — that's what lets it participate in
+			the button's accessible name at all — but marked `aria-hidden`
+			anyway: raw symbol glyphs like "⌘R" don't announce usefully as
+			speech, and this item's own label text already carries the meaningful
+			accessible name on its own.
+		-->
+		<kbd
+			v-if="shortcut"
+			aria-hidden="true"
+			class="ft-dropdown-menu-item-shortcut text-muted-foreground font-mono text-[10px]"
+			>{{ shortcut }}</kbd
+		>
+	</button>
+</template>
