@@ -3,7 +3,7 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
 import * as pkg from "./index.js";
-import { exportedComponents, fixtures } from "./ssr-sweep.fixtures.js";
+import { exportedComponents, fixtures, PROVIDER_ONLY, PROVIDER_ERROR } from "./ssr-sweep.fixtures.js";
 
 /**
  * Package-wide render-purity gate (mirrors the React package's own): a
@@ -37,6 +37,12 @@ const RENDERED_FLOOR = 0;
 
 describe("ssr determinism", () => {
 	it.each(swept)("%s renders identically twice", async (name, value) => {
+		if (PROVIDER_ONLY.has(name)) {
+			// A compound sub-component: standalone it must refuse to render with the
+			// provider error, the same misuse crash the Svelte source has.
+			await expect(renderTwice(value, fixtures[name] ?? {})).rejects.toThrow(PROVIDER_ERROR);
+			return;
+		}
 		const [a, b] = await renderTwice(value, fixtures[name] ?? {});
 		expect(a).toEqual(b);
 	});
