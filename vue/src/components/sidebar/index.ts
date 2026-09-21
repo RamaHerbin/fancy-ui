@@ -1,0 +1,11 @@
+export { default as Sidebar } from "./Sidebar.vue";
+export type { SidebarProps } from "./Sidebar.vue";
+export { default as SidebarGroup } from "./SidebarGroup.vue";
+export type { SidebarGroupProps } from "./SidebarGroup.vue";
+export { default as SidebarItem } from "./SidebarItem.vue";
+export type { SidebarItemProps } from "./SidebarItem.vue";
+export { default as SidebarSeparator } from "./SidebarSeparator.vue";
+export type { SidebarSeparatorProps } from "./SidebarSeparator.vue";
+export { default as SidebarFooter } from "./SidebarFooter.vue";
+export type { SidebarFooterProps } from "./SidebarFooter.vue";
+export { SIDEBAR_KEY, type SidebarContext } from "./types.js";

@@ -4,7 +4,7 @@
 		"sveltePath": "src/lib/fancy-ui/agent-plan",
 		"reactPath": "react/src/components/agent-plan",
 		"vuePath": "vue/src/components/agent-plan",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -43,8 +43,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"The `item` Snippet<[PlanStepData, number]> becomes a named scoped slot `item` carrying object props `{ step, index }` (PORTING.md tuple-to-named-object rule) instead of positional snippet args.",
+			"No `ref` prop: Svelte's `ref = $bindable(null)` becomes `defineExpose({ ref })` on the root div, read through a template ref / `wrapper.vm.ref`, not a v-model-style prop. `ref` is absent from AgentPlanProps.",
+			"`class` is typed `HTMLAttributes[\"class\"]` rather than Svelte's `string`, so arrays/objects are accepted; `cn()` call site and argument order are unchanged."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -53,7 +57,7 @@
 		"sveltePath": "src/lib/fancy-ui/ai-data-table",
 		"reactPath": "react/src/components/ai-data-table",
 		"vuePath": "vue/src/components/ai-data-table",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -92,8 +96,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`cell` is no longer a prop: the snippet `Snippet<[unknown, { row: number; key: string }]>` becomes the scoped slot `cell`, tuple parameters named as object props — `<template #cell=\"{ value, at }\">`, with `at` = `{ row, key }`.",
+			"`ref` is not a prop: the Svelte bindable `ref = $bindable(null)` becomes `defineExpose({ ref })` on the scrolling root — read from the component instance, since `ref` is a reserved vnode key in Vue.",
+			"`class` is typed `HTMLAttributes[\"class\"]` rather than `string` (package-wide convention); still merged through `cn()` onto the scrolling root at the same call site.",
+			"`inheritAttrs: false` with no `v-bind=\"attrs\"` anywhere — the source spreads no restProps, so extra native attributes are dropped here as they are ignored there; same observable behaviour, but a Vue consumer's fallthrough attrs never land on the root."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -154,7 +163,7 @@
 		"sveltePath": "src/lib/fancy-ui/animated-beam",
 		"reactPath": "react/src/components/animated-beam",
 		"vuePath": "vue/src/components/animated-beam",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -193,8 +202,15 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`duration` no longer defaults to a random number. The Svelte default is `Math.random() * 3 + 4`, which a server render and its hydration would disagree on. A new optional `seed` prop (default `1`) feeds a deterministic PRNG that produces the default instead. Two beams with neither `duration` nor `seed` now share one pace — vary `seed` (or pass `duration`) to desynchronise them. Same prop and same default as the React package.",
+			"The gradient's `id` comes from `useFancyId()` (Vue's `useId()`), not from `\"beam-\" + Math.random().toString(36)`. The id is now stable across a server render and its hydration; its rendered shape (`v-0`, `v-1`, …) differs from the Svelte and React packages and nothing may depend on it.",
+			"`containerRef`, `fromRef` and `toRef` are typed `HTMLElement | null` rather than a required `HTMLElement`: a Vue template ref is `null` until the parent has mounted, so the idiomatic `:container-ref=\"container\"` binding passes `null` on the first render. They are still required props (pass `null`, not nothing).",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` (package-wide convention) instead of `string`.",
+			"`AnimatedBeamProps` lives in `AnimatedBeam.vue`'s sibling `<script lang=\"ts\">` block, not in a colocated `types.ts` — the Svelte folder's `types.ts` held nothing but that interface, and PORTING.md C-9 requires it in the SFC. The import path through the package barrel is unchanged.",
+			"Native attributes and listeners do not fall through to the `<svg>` (`inheritAttrs: false`, package-wide). The Svelte component spreads no `restProps` either, so no consumer behaviour changes."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -203,7 +219,7 @@
 		"sveltePath": "src/lib/fancy-ui/animated-testimonials",
 		"reactPath": "react/src/components/animated-testimonials",
 		"vuePath": "vue/src/components/animated-testimonials",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -242,8 +258,14 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` rather than Svelte's `string` — package-level, already documented in vue/README.md.",
+			"Native DOM attributes and listeners are not part of `AnimatedTestimonialsProps`; they flow through `$attrs`. Because the Svelte source spreads no rest props, this component sets `inheritAttrs: false` with no `v-bind=\"attrs\"`, so stray attributes are dropped exactly as in Svelte — package-level note, no component-specific wording needed.",
+			"The `select` cue reaches the shared controller through `useSoundCue`, which calls `sound.play(cue, options)` — so the spy sees `(\"select\", undefined)` where the Svelte component calls `soundFx.play(\"select\")`. Audibly identical; visible only to a test asserting exact arity. House-wide pattern (agent-plan, approval-card, breadcrumb, navbar, pagination all assert the same).",
+			"Autoplay watch sources are spelled out (`autoplay`, `isHovered`, `interval`, the `testimonials` identity AND its `length`) to reproduce Svelte's implicit `$effect` dependency set, including a parent that mutates a reactive array in place. No behavioural difference observed.",
+			"No component-specific line is required in vue/README.md: props, defaults, empty state, a11y attributes and the 300ms transition constant are all preserved, and the Svelte quirks are ported as-is (no `prefers-reduced-motion` handling, `TRANSITION_DURATION` still not a prop, a navigation during a transition is dropped rather than queued)."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -252,7 +274,7 @@
 		"sveltePath": "src/lib/fancy-ui/animated-tooltip",
 		"reactPath": "react/src/components/animated-tooltip",
 		"vuePath": "vue/src/components/animated-tooltip",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -291,8 +313,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` is typed `HTMLAttributes[\"class\"]` rather than `string` — the package-wide rule, no per-component wording needed.",
+			"Native attributes and listeners placed on `<AnimatedTooltip>` are dropped (`inheritAttrs: false`, no spread). This matches the Svelte component, which spreads no rest props either, so it is parity rather than a new divergence.",
+			"The tooltip's 200 ms scale/fade runs on the package presence clock instead of `transition:scale`. Same timing, easing (ease-out cubic), start scale (0.6) and composed transform; two consequences: the tooltip node appears one extra pre-paint render pass after the hover (still in the same flush, invisible to the user), and the leaving node carries an `inert` attribute — Svelte sets the reflected `inert` property, so the rendered markup matches."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -301,7 +327,7 @@
 		"sveltePath": "src/lib/fancy-ui/apple-card-carousel",
 		"reactPath": "react/src/components/apple-card-carousel",
 		"vuePath": "vue/src/components/apple-card-carousel",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -342,8 +368,13 @@
 		"usesTick": true,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`AppleCardData.content` is a Vue component or render function (`Component` from `vue`), rendered through `<component :is=\"card.content\">`, where the Svelte package takes a `Snippet`. It cannot become a slot: `content` lives inside an item of the `cards` array, not in a prop position, so there is no 1:1 snippet-to-slot mapping. Consumers pass `content: () => h('div', …)` or a small component instead of `{#snippet}`.",
+			"`AppleCard`'s own prop interface is exported as `AppleCardProps` from `AppleCard.vue`; the Svelte source keeps it as an unexported local `interface Props`. Required by the `<Name>Props` tooling contract (C-9). The folder barrel still does NOT re-export it, matching the Svelte `index.ts` and the README line that says the card's prop interface is not re-exported as a named type.",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` on both components (package-level rule), so it is pulled out of `$attrs` and merged once through `cn()` at the Svelte call site. Neither component spreads rest props in Svelte, so both stay closed: `inheritAttrs: false` with no `v-bind=\"attrs\"` anywhere.",
+			"`onExpand` / `onCollapse` on `AppleCard` remain callback props called directly, not emits (package-level rule); a consumer building a custom shell passes `:on-expand` / `:on-collapse` rather than listening for `@expand`."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -352,7 +383,7 @@
 		"sveltePath": "src/lib/fancy-ui/approval-card",
 		"reactPath": "react/src/components/approval-card",
 		"vuePath": "vue/src/components/approval-card",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -394,8 +425,19 @@
 		"usesTick": true,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`bind:state` becomes `v-model:state` (no `modelValue` alias). Vue's `defineModel` only emits while the consumer drives the model, so a private one-tick latch stands in for Svelte's synchronous bindable write: a gate still resolves exactly once, including two decisions dispatched in the same tick under a full `v-model:state`.",
+			"A fully-controlled consumer that never sends the decision back leaves the card pending with its buttons live, and a decision taken on a later tick is accepted rather than silently refused — Svelte's bindable always writes locally, so it would have shown the verdict regardless of the parent.",
+			"`ref` is not a prop. The root element is read through the component instance (`defineExpose({ ref })`), not `bind:ref` — package-level D-V2.",
+			"The `children` snippet becomes the default slot: put the detail region between the tags, `<ApprovalCard …><pre>…</pre></ApprovalCard>`; `children` is absent from `ApprovalCardProps`.",
+			"`ApprovalCardProps` declares the component's own props only; `class` is a declared prop typed `HTMLAttributes[\"class\"]` (D-V1 / package-level).",
+			"`inheritAttrs: false` with no attribute spread: an undeclared native attribute or listener lands nowhere, exactly as in the Svelte source, which spreads no rest props (D-V18).",
+			"`onApprove` / `onDeny` stay `() => void` with no argument — the Vue port keeps the Svelte signature that the React package had to widen to `(state) => void`.",
+			"HYGIENE (not this folder): `vue/src/components/tool-call/__probe_a.test.ts` is a leftover verifier probe and is currently contributing two errors to the shared `pnpm --filter fancy-ui-vue run check` run.",
+			"`bind:state` becomes `v-model:state` (no `modelValue` alias). Vue's `defineModel` only emits — it does not write its own copy — while the consumer drives the model, so a private one-tick latch stands in for Svelte's synchronous bindable write: a gate still resolves exactly once, including two decisions dispatched in the same tick under a full `v-model:state`.",
+			"`onApprove` / `onDeny` stay `() => void` with no argument — the Vue port restores the Svelte signature that the React package had to widen to `(state) => void`."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -519,7 +561,7 @@
 		"sveltePath": "src/lib/fancy-ui/bento-grid",
 		"reactPath": "react/src/components/bento-grid",
 		"vuePath": "vue/src/components/bento-grid",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -558,8 +600,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Snippet props become slots: BentoGrid's `children` is the default slot; BentoGridItem's `header`/`icon`/`title`/`description` and BentoGridCard's `icon`/`background` are named slots (`<template #icon>`), not props. Package-wide convention.",
+			"`class` is typed `HTMLAttributes[\"class\"]` (string | array | object) instead of Svelte's `string`; default `\"\"` and the cn() merge point are unchanged.",
+			"Native attributes and listeners do not fall through (inheritAttrs:false, no v-bind=\"attrs\") — this MATCHES the Svelte source, which spreads no restProps; listed only so the package-level $attrs note is not read as applying here.",
+			"Cosmetic: BentoGridCard's CTA anchor renders `Learn more →` with no surrounding whitespace, where Svelte emits newline+tab around `{cta} &rarr;`. HTML-collapsed, no visual difference; `link.textContent` still contains the cta string."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -568,7 +615,7 @@
 		"sveltePath": "src/lib/fancy-ui/bg-falling-stars",
 		"reactPath": "react/src/components/bg-falling-stars",
 		"vuePath": "vue/src/components/bg-falling-stars",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -608,8 +655,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"None found beyond the package-level Props-interface divergence already documented in vue/README.md (no ButtonHTMLAttributes-style intersection; class typed HTMLAttributes['class']). API surface (color, count, class) matches the Svelte wrapper exactly; no seed prop was added since the current Svelte source (over the core, in shared-cores worktree) has no seed prop either — Math.random/Date.now stay confined to the pre-existing core's internal random default param, never called directly by the wrapper."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -618,7 +667,7 @@
 		"sveltePath": "src/lib/fancy-ui/bg-stars",
 		"reactPath": "react/src/components/bg-stars",
 		"vuePath": "vue/src/components/bg-stars",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -657,8 +706,19 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`seed?: number` prop added (default 1), absent from the Svelte API. The Svelte wrapper scatters stars with `Math.random()` in a client-only effect; the port derives the three layers from a deterministic mulberry32 stream keyed on `seed`. One stream feeds all three `generateStars` calls in layer order, matching the React package, so the same `seed` + `starColor` names the same sky in both packages. Mandated by PORTING.md:68-74; recorded at vue/README.md:155.",
+			"The star box-shadows are present in the server-rendered HTML. The Svelte wrapper starts with empty box-shadow strings and paints the sky in an on-mount effect, so the port moves a ~1600-entry box-shadow payload into the SSR output (and removes the first-frame starless flash). Consequence of the seed+PRNG rule. Recorded at vue/README.md:156.",
+			"Package-level, already documented: `StarsBackgroundProps` declares the component's own props only, `class` typed `HTMLAttributes[\"class\"]`; the Svelte `children` snippet becomes the default slot, typed with `defineSlots`.",
+			"Package-level, already documented: with `inheritAttrs: false` and no `{...restProps}` on the Svelte side, native attributes passed to `<StarsBackground>` are dropped rather than landing on the root element (verified: `id` / `data-*` do not appear). Matches PORTING.md:108 but differs from the plain Vue `$attrs` fallthrough expectation.",
+			"Test-only, explicitly permitted by the standing rules: `bg-stars-core.test.ts` is the verbatim Svelte copy with one added non-null assertion (`y!.trimStart()`, line 37) because our tsconfig sets `noUncheckedIndexedAccess` and the Svelte one does not. `bg-stars-core.ts` itself stays byte-identical.",
+			"`seed?: number` prop added (default 1), absent from the Svelte API. The Svelte wrapper scatters stars with `Math.random()` in a client-only effect; the port derives the three layers from a deterministic mulberry32 stream keyed on `seed`. One stream feeds all three `generateStars` calls in layer order, matching the React package, so the same `seed` + `starColor` names the same sky in both packages. Mandated by PORTING.md:68-74. Already recorded at vue/README.md:155.",
+			"The star box-shadows are present in the server-rendered HTML. The Svelte wrapper starts with empty box-shadow strings and paints the sky in an on-mount effect, so the port moves a ~1600-entry box-shadow payload into the SSR output (and removes the first-frame starless flash). Consequence of the seed+PRNG rule. Already recorded at vue/README.md:156.",
+			"Package-level, already documented: `StarsBackgroundProps` declares the component's own props only, `class` typed `HTMLAttributes[\"class\"]`; the Svelte `children` snippet becomes the default slot (now typed with `defineSlots`).",
+			"Package-level, already documented: with `inheritAttrs: false` and no `{...restProps}` on the Svelte side, native attributes passed to `<StarsBackground>` are dropped rather than landing on the root element. Matches PORTING.md:108, differs from the plain Vue `$attrs` fallthrough expectation.",
+			"Test-only (explicitly permitted by the standing rules): `bg-stars-core.test.ts` is the verbatim Svelte copy with one added non-null assertion, `y!.trimStart()`, because our tsconfig sets `noUncheckedIndexedAccess` and the Svelte one does not. `bg-stars-core.ts` itself stays byte-identical to the shared-cores copy."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -667,7 +727,7 @@
 		"sveltePath": "src/lib/fancy-ui/blur-reveal",
 		"reactPath": "react/src/components/blur-reveal",
 		"vuePath": "vue/src/components/blur-reveal",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -706,8 +766,15 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`children?: Snippet` is not a prop: content goes through the default slot (`<slot />`), gated by `v-if=\"$slots.default\"` exactly where Svelte writes `{#if children}`. Slots are typed with defineSlots.",
+			"`class` is typed `HTMLAttributes[\"class\"]` rather than Svelte's `string`, and BlurRevealProps declares the component's own props only - the package-level convention.",
+			"Native attributes and listeners are NOT forwarded (`inheritAttrs: false`, no `v-bind=\"attrs\"`). This is parity, not a loss: the Svelte source destructures no `...restProps`, so it swallows unknown attrs too. Worth one README line because the rest of the package forwards through $attrs.",
+			"Server markup only: with no `class` prop Vue emits `class=\"\"` on the container, where Svelte's SSR `attr_class` (node_modules/svelte/src/internal/server/index.js:210-213) returns '' for an empty result and omits the attribute. Cosmetic, no hydration mismatch, and an artifact of the law-mandated `:class=\"cn(className)\"` call site shared by every port - not specific to this component.",
+			"Server markup only: the style attribute serialises without spaces after the colons (`--blur-reveal-duration:1s;`) where Svelte SSR emits `: 1s`. Purely textual; client-side both go through setProperty.",
+			"Scoped-style selectors use `:deep(*)` where Svelte used `:global(*)`, the compiler-mandated equivalent for slotted descendants; rule bodies are unchanged."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -716,7 +783,7 @@
 		"sveltePath": "src/lib/fancy-ui/book",
 		"reactPath": "react/src/components/book",
 		"vuePath": "vue/src/components/book",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -736,14 +803,14 @@
 		"usesTransition": false,
 		"ssrRisk": "none",
 		"exports": [
-			"BOOK_RADIUS_MAP",
-			"BOOK_SIZE_MAP",
-			"BOOK_SHADOW_SIZE_MAP",
-			"BOOK_COLOR_MAP",
 			"Book",
 			"BookHeader",
 			"BookTitle",
-			"BookDescription"
+			"BookDescription",
+			"BOOK_RADIUS_MAP",
+			"BOOK_SIZE_MAP",
+			"BOOK_SHADOW_SIZE_MAP",
+			"BOOK_COLOR_MAP"
 		],
 		"loc": 195,
 		"testFiles": [
@@ -760,8 +827,11 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"No restProps/attrs fallthrough was added since spec marked restSpread false and the Svelte component declares no ...restProps either; consumers needing extra DOM attrs on the outer div have no equivalent (matches Svelte, not a new gap).",
+			"Svelte source has no standalone types.ts; the color/size/radius/shadow maps and their derived types live directly in index.ts as in the Svelte original, so no separate types.ts file was created."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -770,7 +840,7 @@
 		"sveltePath": "src/lib/fancy-ui/border-beam",
 		"reactPath": "react/src/components/border-beam",
 		"vuePath": "vue/src/components/border-beam",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -807,8 +877,11 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Style attribute changed from a single semicolon-joined string ($derived) to an object :style binding (per PORTING.md rule: string style+custom properties drops props under jsdom); resulting inline style output is equivalent key:value pairs, same custom-property names and values.",
+			"BorderBeamProps.class typed as HTMLAttributes[\"class\"] instead of Svelte's `string`, per Vue port API contract; functionally equivalent (accepts string, still merged via cn())."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -817,7 +890,7 @@
 		"sveltePath": "src/lib/fancy-ui/box-reveal",
 		"reactPath": "react/src/components/box-reveal",
 		"vuePath": "vue/src/components/box-reveal",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -856,8 +929,14 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Content is the default slot instead of a Svelte `children: Snippet` prop; it is declared REQUIRED via `defineSlots<{ default(): unknown }>()`, matching the Svelte type `BoxRevealProps & { children: Snippet }` (and the sibling convention in DimSiblings/Presence, whose Svelte children are likewise required). Consumer shape: `<BoxReveal>…</BoxReveal>`.",
+			"IntersectionObserver wiring uses the shared `useInView` composable (threshold 0.1, once: true) instead of a hand-rolled onMount observer. Same semantics: fires once at 10% visibility, disconnects on first hit and on unmount.",
+			"Attach timing: Svelte calls `observer.observe()` synchronously inside `onMount`; the Vue port attaches one flush later, from `useInView`'s `flush:'post'` watcher on the template ref (mandated by C-1). Observable only to code inspecting the observer in the same tick as mount — hence the added `await nextTick()` in the observe test.",
+			"No-IntersectionObserver fallback, inherited from the shared core: `internals/motion/in-view.ts` calls `onChange(true)` when `IntersectionObserver` is undefined, so on a browser lacking the API the Vue port reveals immediately, where the Svelte source would throw.",
+			"Native attributes/listeners flow through `$attrs` (package-level divergence); Svelte declares no `...restProps`, so `inheritAttrs:false` with no `v-bind=\"attrs\"` keeps parity — no attribute is forwarded, exactly as in Svelte."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -866,7 +945,7 @@
 		"sveltePath": "src/lib/fancy-ui/breadcrumb",
 		"reactPath": "react/src/components/breadcrumb",
 		"vuePath": "vue/src/components/breadcrumb",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "headless",
@@ -905,8 +984,14 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"the `item` snippet is a scoped slot, `#item`, receiving one props object `{ item, index }` instead of the two positional snippet arguments - so `item` is no longer a member of `BreadcrumbProps`. Supplying it still replaces the default rendering for every crumb, the last one included, and `Breadcrumb` still owns truncation and separators.",
+			"the bindable `ref` is exposed with `defineExpose({ ref })` on the `<nav>` rather than being a bindable prop; read it off the component instance. `ref` is absent from `BreadcrumbProps`.",
+			"`BreadcrumbProps` declares the component's own props only, and `class` is one of them (typed `HTMLAttributes[\"class\"]`). The Svelte source spreads no rest props onto the `<nav>`, so - matching it - the component sets `inheritAttrs: false` with no `v-bind=\"attrs\"`: extra attributes and listeners put on `<Breadcrumb>` are not forwarded, exactly as in Svelte.",
+			"the decorative ellipsis `<li>` renders its glyph padded with single spaces where the Svelte and React packages emit it with none - a consequence of Vue's template whitespace condensing a multi-line text node. It is visually identical (the `<li>` is a blockified flex item, so edge whitespace collapses away) and the node stays `aria-hidden`, but a consumer test asserting an exact `textContent` must `.trim()`.",
+			"the `select` cue reaches the sound controller as `play(\"select\", undefined)` rather than `play(\"select\")`, because the shared `useSoundCue` player always forwards its optional options argument. Behaviourally identical; visible only to a spy asserting call arguments."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -962,7 +1047,7 @@
 		"sveltePath": "src/lib/fancy-ui/button-group",
 		"reactPath": "react/src/components/button-group",
 		"vuePath": "vue/src/components/button-group",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "compound",
@@ -983,7 +1068,7 @@
 		"ssrRisk": "none",
 		"exports": [
 			"ButtonGroup",
-			"BUTTON_GROUP_CONTEXT_KEY"
+			"BUTTON_GROUP_CONTEXT"
 		],
 		"loc": 157,
 		"testFiles": [
@@ -1002,8 +1087,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Context is exposed as BUTTON_GROUP_CONTEXT (an InternalContext<ButtonGroupContext> object with .provide/.useRequired/.useOptional), not the raw BUTTON_GROUP_CONTEXT_KEY symbol Svelte's setContext/getContext use — this follows the package's existing internals/dom/context.ts convention (same shape used by select, card-3d, confetti in this Vue port) so nested Vue consumers get typed inject() without redeclaring a Symbol per component.",
+			"children (Snippet) becomes an unnamed default <slot/>, per the porting contract; no scoped-slot params needed since ButtonGroup's Svelte children took no arguments.",
+			"ref: HTMLDivElement | null $bindable prop becomes defineExpose({ ref }) per PORTING.md law — not a prop, not in ButtonGroupProps, consistent with every other ported component in this package.",
+			"class prop typed HTMLAttributes[\"class\"] instead of Svelte's plain string, per the package-wide API contract (declared-props-only, no native-attribute intersection)."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1012,7 +1102,7 @@
 		"sveltePath": "src/lib/fancy-ui/card-3d",
 		"reactPath": "react/src/components/card-3d",
 		"vuePath": "vue/src/components/card-3d",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "compound",
@@ -1053,8 +1143,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Context key: Svelte used a string key \"card3d:mouseEntered\" via setContext/getContext; Vue uses a Symbol InjectionKey (CARD3D_CONTEXT.key) created with createInternalContext, per project convention - same getter-function shape (() => boolean), just not string-keyed. Not consumer-visible since CardItem/CardContainer are always used together.",
+			"CardItem's local `ref` variable (bind:this only, never read or exposed in the Svelte source) was dropped entirely rather than ported as a template ref, since it was a no-op capture and exposesRef is false for this unit.",
+			"as prop typed as plain `string` (matches Svelte's svelte:element `this={as}` typing) rather than a stricter element-tag union; rendered via Vue's <component :is>.",
+			"Card3D / CardItem: a `CardItem` rendered outside a `CardContainer` degrades to its rest transform (`translateX(0px) … rotateZ(0deg)`) instead of throwing. The Svelte source calls the `card3d:mouseEntered` context getter unguarded, so the same misuse crashes there with a TypeError. Vue treats a missing provider as \"the pointer has never entered\", which is exactly the transform the Svelte item renders before hover — so inside a container the behaviour is byte-identical, and only the misuse case differs. Suggested README wording under the Divergences section: \"**CardItem outside CardContainer** — Svelte throws (it calls the context getter unguarded); the Vue item renders its rest transform instead, which keeps it server-renderable standalone. Inside a `CardContainer` the two are identical.\""
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1063,7 +1158,7 @@
 		"sveltePath": "src/lib/fancy-ui/card-spotlight",
 		"reactPath": "react/src/components/card-spotlight",
 		"vuePath": "vue/src/components/card-spotlight",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -1102,8 +1197,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"None beyond the package-level ones already documented in vue/README.md (no ButtonHTMLAttributes intersection, native attrs via $attrs). No bindables, no exposed ref, no snippets-with-params, no restSpread beyond inheritAttrs:false — this component has none of those per the unit spec, so no new API surface differs from Svelte's CardSpotlight."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1112,7 +1209,7 @@
 		"sveltePath": "src/lib/fancy-ui/chat-error",
 		"reactPath": "react/src/components/chat-error",
 		"vuePath": "vue/src/components/chat-error",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -1149,8 +1246,14 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`icon` and `children` Snippet props become the named slot `icon` and the default slot (sanctioned snippet->slot rule). Consumer API changes from `icon={renderIcon}` / `<ChatError>text</ChatError>` to `<template #icon>` / default slot content.",
+			"Minor, inherent to that rule: Vue's <slot> fallback fires when a SUPPLIED slot renders nothing, where Svelte's `{#if children}` does not. Probed: `h(ChatError, null, { default: () => [] })` renders the built-in message/detail fallback; Svelte would render an empty body.",
+			"`ref` bindable becomes `defineExpose({ ref })` on the root div (useTemplateRef), not a prop — it is absent from ChatErrorProps. Probed: the exposed value is identical to the mounted root element.",
+			"Native attributes/listeners are NOT forwarded: the Svelte source has no `{...restProps}` (migration-matrix restSpread:false), so no `v-bind=\"attrs\"` was added and `inheritAttrs:false` keeps the component closed. Probed: `data-x`/`id` land nowhere, matching Svelte.",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` instead of `string`, per the package contract."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1380,7 +1483,7 @@
 		"sveltePath": "src/lib/fancy-ui/colourful-text",
 		"reactPath": "react/src/components/colourful-text",
 		"vuePath": "vue/src/components/colourful-text",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -1417,8 +1520,11 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Added `seed?: number` prop (default 1). The Svelte source shuffles with Math.random() at component init; Vue SSR requires the server render and its hydration to agree on every colour, so the initial shuffle draws from a seeded mulberry32 stream instead. Mirrors the React sibling's identical divergence (internals-api.md C-7 mandates keeping the seed props and mulberry32 helpers the React port introduced).",
+			"Shuffle algorithm changed from the source's `[...colors].sort(() => 0.5 - Math.random())` (an inconsistent comparator, so draw count/order is engine-dependent) to Fisher-Yates over the seeded stream, so a given seed deals the same permutation on every JS engine. Visual behaviour (a shuffled palette reshuffled every 5s) is unchanged; the exact resulting order differs slightly from the source's biased shuffle. Matches the React port's expected permutation exactly."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1557,7 +1663,7 @@
 		"sveltePath": "src/lib/fancy-ui/compare",
 		"reactPath": "react/src/components/compare",
 		"vuePath": "vue/src/components/compare",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -1597,8 +1703,14 @@
 		"usesTick": false,
 		"styleHazard": "inline-keyframe-ref",
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`StarField` gains a `seed` prop (default `1`) driving a deterministic mulberry32 PRNG in place of the Svelte source's render-path `Math.random()`, per PORTING.md's randomisation rule (same default as the React package). Consumer-visible: two `<StarField />` with the same `starsCount` and no `seed` now render an identical sky, where two Svelte instances each got their own.",
+			"`StarField` builds its star list once in setup, so a later `starsCount` or `seed` change does not reshuffle the sky — this matches the Svelte source exactly, and differs from the React port, which re-memoises on both.",
+			"Native attributes and listeners do NOT fall through on either `Compare` or `StarField` — the Svelte source declares no `...restProps`, so neither SFC spreads `$attrs`.",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` on both components (the package-level typing divergence).",
+			"the `firstContent`, `secondContent` and `handle` snippets become same-named slots (`<template #firstContent>` …); passing an empty `#handle` slot suppresses the built-in handlebar, exactly as defining an empty snippet does in Svelte."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1677,7 +1789,7 @@
 		"sveltePath": "src/lib/fancy-ui/confetti",
 		"reactPath": "react/src/components/confetti",
 		"vuePath": "vue/src/components/confetti",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "compound",
@@ -1719,8 +1831,14 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`Confetti`'s `fire()` reads the `options` prop at call time, but Vue hands a REASSIGNED `options` object to the child only on the parent's next render: a handler that does `options = { … }` and calls `fire()` in the same tick bursts with the PREVIOUS object, where the Svelte component bursts with the new one. Mutating the object already passed as `options` behaves identically on both sides, and the reassignment is deferred rather than lost — the next `fire()` after the parent re-renders uses it. Framework-inherent (Vue exposes no synchronous prop flush); pinned by ConfettiFire.test.ts:77-92.",
+			"`Confetti`'s imperative `fire()` is reached through the component's exposed instance — `const c = useTemplateRef('c'); c.value.fire()` — where Svelte reaches the `export function fire` through `bind:this`. PORTING.md:55 reserves `defineExpose` for a `$bindable` ref and is silent on a Svelte `export function`; exposing it is the only way to keep the API reachable, so it follows the file's \"where silent, mirror Svelte\" clause.",
+			"Neither `Confetti` nor `ConfettiButton` forwards `$attrs`: both set `inheritAttrs: false` and neither template carries `v-bind=\"attrs\"`, because neither Svelte source declares a rest spread. A consumer's `class`, `data-*` or `@click` placed on `<ConfettiButton>` is therefore dropped — exactly as it is in Svelte, so this is parity, not a loss, but it differs from the Vue default a consumer may expect (confirmed: SSR of `<ConfettiButton class=\"c\" data-x=\"1\">` emits a bare `<button>`).",
+			"`Confetti`'s `class` prop is typed `HTMLAttributes[\"class\"]` rather than the README's `string` — the package-wide typing rule (PORTING.md:47), accepting arrays and objects that the Svelte prop does not.",
+			"SSR-SWEEP HAZARD (not an API divergence, but it must reach the registrar): `root:Confetti` needs `{ manualStart: true }` in ssr-sweep.fixtures.ts. With no props the mount auto-fire drives the real canvas-confetti animation loop against a jsdom canvas and throws an uncaught `clearRect` TypeError out of a rAF callback, reddening the hydration sweep for a reason unrelated to the port. `manualStart: true` does not change the server-rendered markup at all, so the two-render comparison still proves what it is meant to prove."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1729,7 +1847,7 @@
 		"sveltePath": "src/lib/fancy-ui/container-scroll",
 		"reactPath": "react/src/components/container-scroll",
 		"vuePath": "vue/src/components/container-scroll",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -1768,8 +1886,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Snippets become named slots: Svelte's `titleContent` / `cardContent` snippet props are Vue named slots `<template #titleContent>` / `<template #cardContent>` (names kept identical).",
+			"`class` is typed `HTMLAttributes[\"class\"]` instead of Svelte's `string`, so arrays/objects are accepted in addition to a string; default stays `\"\"` and the `cn()` call site, argument order and literals are unchanged.",
+			"The props interface is exported as `ContainerScrollProps` (Svelte keeps its `Props` interface module-local and its index.ts exports only the component). Package-wide Vue convention; no runtime effect.",
+			"Package-level (already in the Vue README): the interface declares own props only and `inheritAttrs: false` is set with no `v-bind=\"attrs\"` — matching Svelte, which also has no `...restProps` here, so stray native attributes are dropped in both packages."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1778,7 +1901,7 @@
 		"sveltePath": "src/lib/fancy-ui/container-text-flip",
 		"reactPath": "react/src/components/container-text-flip",
 		"vuePath": "vue/src/components/container-text-flip",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -1815,8 +1938,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"The keyframe is not referenced from an inline style/custom property in this component (only a static animation-name), so it stays in one unscoped <style> block for simplicity; scoping it would also work but Svelte's :global{} wrapper maps most directly to an unscoped block.",
+			"Svelte's {#key currentWord} + {#each} remount is reproduced with v-for :key=\"`${currentWord}-${index}`\" per letter, which forces new DOM nodes (and animation restart) exactly like the keyed Svelte block.",
+			"No stale-closure guard was added for `words.length` inside the interval (the Svelte source has the same closure-over-reactive-prop behavior via runes); the React port's rerender-survives-interval-identity test was NOT ported since it targets a React-specific fix absent from the Svelte source — the Vue port intentionally matches Svelte's simpler behavior, not the React port's."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2139,7 +2266,7 @@
 		"sveltePath": "src/lib/fancy-ui/dim-siblings",
 		"reactPath": "react/src/components/dim-siblings",
 		"vuePath": "vue/src/components/dim-siblings",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -2177,8 +2304,15 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`children: Snippet` (required prop) becomes the default slot — `<DimSiblings><a/><a/></DimSiblings>` instead of a snippet prop.",
+			"`ref` is no longer a bindable prop: the root element is reached via `defineExpose({ ref })`, i.e. a template ref on the component (`dim.value.ref`), not `bind:ref`.",
+			"`DimSiblingsProps` declares the component's own props only — it no longer extends `Omit<HTMLAttributes<HTMLElement>, 'class'>`. Native attributes and listeners (`id`, `style`, `data-*`, `aria-*`, …) still land on the root through `$attrs`, but are untyped on the interface. Package-level divergence.",
+			"`class` is typed `HTMLAttributes['class']` (string | array | object) rather than `string`; `cn()` merges it at the same call site.",
+			"Scoped-CSS mapping: the child subject `:global(...)` becomes `:slotted(...)`, and the `:global()` wrappers inside `:has()`/`:not()` arguments are dropped (Vue never scopes pseudo-class arguments, and `:slotted()` there would emit invalid CSS). Net effect: Svelte scopes the root compound, Vue scopes the child compound — only direct children that arrived through the default slot dim. DOM injected into the root from outside the slot would not participate (Svelte's rule would still catch it).",
+			"The folder ships no dedicated renderToString-twice test; the Svelte source has none either and the package-wide sweep (ssr-sweep.fixtures.ts) covers this export. SSR determinism and clean hydration were verified here by throwaway probe, not by a checked-in test."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2187,7 +2321,7 @@
 		"sveltePath": "src/lib/fancy-ui/direction-aware-hover",
 		"reactPath": "react/src/components/direction-aware-hover",
 		"vuePath": "vue/src/components/direction-aware-hover",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -2227,8 +2361,15 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Content is a default `<slot />` instead of the `children` snippet: `<DirectionAwareHover imageUrl=\"…\"><p>Title</p></DirectionAwareHover>` is unchanged at the call site, but the prop is no longer addressable as `children`.",
+			"`DirectionAwareHoverProps` is exported as a type from the component's entry; the Svelte source keeps its `Props` interface module-private.",
+			"Extra native attributes and listeners are dropped, not forwarded: the Svelte source spreads no `{...restProps}`, so the Vue SFC sets `inheritAttrs: false` with no `v-bind=\"attrs\"`. Only `class` (a declared prop, merged through `cn()`) reaches the root element. Verified: `data-x` / `id` passed to the component do not appear in the rendered output.",
+			"The two `<style>` rules keep their declarations verbatim but lose their document-wide reach. The source wraps both in `:global()`, which — because this package aggregates scoped styles into one `dist/styles.css` every consumer imports once — would force a `.group\\/card` 44px min-box and a `*{transition-duration:0.1s!important}` reduced-motion override on every app importing the package, including apps that never render this component. Here they compile to `.group\\/card[data-v-…]` and `[data-v-…],[data-v-…-s]`: this component's own elements plus its whole slot subtree. Matches the React package's identical narrowing.",
+			"Under `prefers-reduced-motion: reduce` the 0.1s transition override therefore applies to this component and its slot content only, not to the rest of the host page.",
+			"While the overlay or the caption is fading out, the node carries the `inert` ATTRIBUTE; the source sets the `inert` IDL property at the same instant. Package-level presence-core convention, consumer-visible only to `:not([inert])` selectors."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2237,7 +2378,7 @@
 		"sveltePath": "src/lib/fancy-ui/displacement-text",
 		"reactPath": "react/src/components/displacement-text",
 		"vuePath": "vue/src/components/displacement-text",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -2281,8 +2422,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` is typed `HTMLAttributes[\"class\"]` instead of Svelte's `string` (package-wide convention); default stays `\"\"` and the `cn(\"relative h-[400px] w-full\", className)` call site is unchanged.",
+			"Native attributes and listeners are NOT declared props: the Svelte component spreads no `restProps`, so the SFC sets `inheritAttrs: false` and binds no `$attrs` anywhere — same closed-attrs surface as the Svelte component (package-level note).",
+			"WebGL-less hosts fail quiet instead of throwing. With no WebGL context available, the Vue wrapper swallows three's `Error creating WebGL context` and leaves the host as the server rendered it — an empty div still carrying `role=\"img\"` and `aria-label={text}`, so the text stays available to assistive tech. The Svelte reference lets the error escape its `$effect`. Same house behaviour the sibling three.js component already has (noise-reveal-core's `createRenderer()` returning null, commented \"fail quiet\"); the guard sits in the wrapper only because displacement-text-core.ts is byte-gated. Nothing is caught where WebGL exists, so the normal path is identical to the reference.",
+			"Suggested README wording: \"On a host without a WebGL context the scene is skipped and the labelled host box renders empty, rather than raising.\" (README not edited — outside the writable folder scope.)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2482,7 +2628,7 @@
 		"sveltePath": "src/lib/fancy-ui/editorial-engine",
 		"reactPath": "react/src/components/editorial-engine",
 		"vuePath": "vue/src/components/editorial-engine",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -2526,8 +2672,13 @@
 		"sharedCores": [
 			"engine.ts"
 		],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"pullquotes is tracked by ARRAY IDENTITY, like the Svelte $effect: an inline :pullquotes=\"['...']\" hands a new array on every parent update and the engine is torn down and re-measured. The React port deliberately keys on array CONTENT (pullquotes.join) instead, so React is the odd package out and Vue matches Svelte. Consumers who want stability should hoist the array to a constant.",
+			"class is a declared prop typed HTMLAttributes[\"class\"] rather than Svelte's class?: string (package-wide convention). The SFC is inheritAttrs:false with no v-bind=\"attrs\" anywhere, matching the Svelte wrapper, which spreads no restProps either, so no native-attribute forwarding is lost relative to Svelte.",
+			"The EditorialEngineProps doc comment uses the React port's wording (\"computed from cached font metrics\"), not the Svelte one, which names the upstream measurement library and links its demo. That credit still ships in the byte-gated engine.ts header and in the Svelte README; it is not repeated in the Vue SFC.",
+			"No consumer-visible divergence from the Svelte wrapper in a browser: `document.fonts` always exists there, so `fontsReady` is the same promise the Svelte effect awaits and boot timing is identical. The only difference appears in an environment with no font loading API, where the Svelte wrapper throws out of its effect and the Vue wrapper instead settles immediately and lets the engine try — widths then come from whatever font is already resolved. Recorded as a code comment on the guard; the vue/ component folders carry no README files (0 of them), so there is no README to word it in."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2596,7 +2747,7 @@
 		"sveltePath": "src/lib/fancy-ui/fireworks-hdr",
 		"reactPath": "react/src/components/fireworks-hdr",
 		"vuePath": "vue/src/components/fireworks-hdr",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -2651,8 +2802,16 @@
 			"webgl2-renderer.ts",
 			"webgpu-renderer.ts"
 		],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` accepts `HTMLAttributes[\"class\"]` (string, array or object) where the Svelte prop is `string` — the package-wide typing rule, a widening, not a behaviour change. FireworksHdr.vue:39.",
+			"Native attributes and listeners do NOT fall through: `inheritAttrs: false` with no `v-bind=\"attrs\"`, because the Svelte wrapper spreads no rest props. This is the already-documented package-level `$attrs` divergence, nothing specific to this component.",
+			"Reduced motion is read through `useReducedMotion()` (internals) instead of the Svelte wrapper's inline `window.matchMedia(...)`: same query string, same guards, same once-at-mount read. Side effect: a `change` listener stays attached for the component's lifetime (removed on unmount) that nothing reads, where Svelte attached none. Not consumer-visible. FireworksHdr.vue:92.",
+			"`debug` is `import.meta.env?.DEV === true` rather than Svelte's `import.meta.env.DEV`, so a plain-Node import without the bundler shim yields `false` instead of throwing. Matches the existing house pattern in FluidCursor.vue. FireworksHdr.vue:87.",
+			"The IntersectionObserver callback takes `(entries)` and returns early on an empty array, where Svelte destructures `([entry])` and would throw. Required by `noUncheckedIndexedAccess`; unreachable in practice. FireworksHdr.vue:123-127.",
+			"OBSERVATION (registrar scope, out of the author's lane): `FireworksHdr` does not yet appear in vue/src/index.ts, vue/src/ssr-sweep.fixtures.ts, vue/migration-matrix.json or vue/README.md.",
+			"OBSERVATION (other folders, not mine to delete): leftover probe files exist at vue/src/components/pulse-beam/__vprobe.test.ts, vue/src/components/text-generate-effect/__probe_ssr.test.ts and vue/src/components/terminal-text/__probe2.test.ts — the last one is a live vue-tsc error (TS2307, cannot find '@vue/compiler-sfc')."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2661,7 +2820,7 @@
 		"sveltePath": "src/lib/fancy-ui/flickering-grid",
 		"reactPath": "react/src/components/flickering-grid",
 		"vuePath": "vue/src/components/flickering-grid",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -2705,8 +2864,11 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"The shared-cores Svelte wrapper has no `seed` prop (unlike the React port's invented mulberry32+seed). Math.random is only invoked inside onMounted/resize/setInView, never during setup/render, so C-7 does not force determinism here. Ported as-is with no seed prop, matching the current Svelte wrapper exactly.",
+			"IntersectionObserver callback uses `entries[0]` + explicit undefined-guard instead of `([entry]) => ...` destructure, since vue-tsc's noUncheckedIndexedAccess flags the array-pattern form as possibly-undefined; identical behavior, same fix pattern the React port already uses for the same reason."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2715,7 +2877,7 @@
 		"sveltePath": "src/lib/fancy-ui/flip-card",
 		"reactPath": "react/src/components/flip-card",
 		"vuePath": "vue/src/components/flip-card",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -2752,7 +2914,7 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
+		"attempts": 1,
 		"divergences": [],
 		"minors": [],
 		"lastFailure": null
@@ -2762,7 +2924,7 @@
 		"sveltePath": "src/lib/fancy-ui/flip-words",
 		"reactPath": "react/src/components/flip-words",
 		"vuePath": "vue/src/components/flip-words",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -2799,8 +2961,13 @@
 		"usesTick": false,
 		"styleHazard": "inline-keyframe-ref",
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Native attributes and DOM listeners are not applied. The SFC sets `inheritAttrs: false` and, because the Svelte source spreads no `{...restProps}`, adds no `v-bind=\"$attrs\"` — matching Svelte, where undeclared props are dropped. (Package-level $attrs note.)",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` instead of Svelte's `string`, so arrays and objects are accepted in addition to a string. It is merged through the same `cn()` call, in the same argument position.",
+			"The four keyframes (`flipFadeInWord`, `flipFadeInLetter`, `flipEnterWord`, `flipExitWord`) ship from a second, unscoped `<style>` block rather than Svelte's `:global { … }` wrapper. Names and declarations are unchanged and both packages emit them globally; two of them are referenced from inline `style` attributes, which a scoped block would break.",
+			"Known, deliberately preserved source bug: if `words` becomes empty while an exit animation is in flight, `(index + 1) % 0` stores `NaN` and the component stays blank even after `words` is repopulated. Ported as-is from Svelte (the React package diverges here and guards it); under Vue this additionally logs a dev-only `[Vue warn]: VNode created with invalid key (NaN)`."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2809,7 +2976,7 @@
 		"sveltePath": "src/lib/fancy-ui/fluid-cursor",
 		"reactPath": "react/src/components/fluid-cursor",
 		"vuePath": "vue/src/components/fluid-cursor",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -2860,8 +3027,13 @@
 			"fluid-shared.ts",
 			"webgpu-engine.ts"
 		],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"The props interface is exported as `FluidCursorProps` (the Svelte component keeps its `Props` interface local and exports no props type). It is also re-exported as `FluidCursorAdvancedProps` for the deprecated `FluidCursorAdvanced` alias, matching the React barrel.",
+			"`class` is typed `HTMLAttributes[\"class\"]` instead of Svelte's `class?: string`, so arrays and objects are accepted as well as a string. Same `cn()` call site, same argument order.",
+			"Native attributes and listeners are not forwarded onto the root div: the component declares `inheritAttrs: false` and spreads no `$attrs` (the Svelte source has no `{...restProps}` either, so nothing reachable is lost).",
+			"Live-prop forwarding is narrower by construction: Svelte's `$effect` re-ran on ANY prop change and pushed the (unchanged) five live values, while the Vue `watch` tracks only `fluidColor`, `fluidColors`, `contained`, `interactive`, `allowMultiple` and stays silent when only a mount-only prop changes. The engine sees the same values either way; only a mocked core can observe the difference."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2870,7 +3042,7 @@
 		"sveltePath": "src/lib/fancy-ui/focus",
 		"reactPath": "react/src/components/focus",
 		"vuePath": "vue/src/components/focus",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -2909,8 +3081,11 @@
 		"usesTick": true,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"None beyond the package-level Vue convention already documented in vue/README.md (props-only interface, no HTMLAttributes intersection; class/native attrs flow via $attrs).",
+			"Word ref collection uses a plain ref<(HTMLSpanElement|null)[]> array written via a template ref-callback (:ref=\"(el) => setWordRef(el, index)\") instead of Svelte's bind:this inside #each — functionally identical, imperative-read-only sink, no consumer-visible API change."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2979,7 +3154,7 @@
 		"sveltePath": "src/lib/fancy-ui/frosted-glass",
 		"reactPath": "react/src/components/frosted-glass",
 		"vuePath": "vue/src/components/frosted-glass",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -3016,8 +3191,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`children?: Snippet` becomes the default slot: `<FrostedGlass><nav …/></FrostedGlass>` instead of a snippet prop. Vue renders nothing when no slot is passed, so the Svelte `{#if children}` guard is dropped as redundant.",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` (Svelte types it `string`); it still targets the content layer only, and `containerClass` still targets the outer container. Package-level convention, same merge point via cn().",
+			"The SVG filter id minted after mount reads `fg-dist-<counter>` (monotonic `uid()`), not `fg-dist-<random base36 suffix>`; the source's `Math.random()` is banned on this package's render paths. Same choice as the React port. DOM-visible only; the `filter: url(#…)` wiring is unchanged.",
+			"`FrostedGlassProps` declares the component's own props only — no native-attribute intersection — and the SFC sets `inheritAttrs: false`; the Svelte component never spread restProps either, so no native attribute reached the root there and none does here."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3026,7 +3206,7 @@
 		"sveltePath": "src/lib/fancy-ui/glare-card",
 		"reactPath": "react/src/components/glare-card",
 		"vuePath": "vue/src/components/glare-card",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -3065,8 +3245,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"cssVars is emitted as a Vue :style object ({'--m-x': '50%', ...}) instead of Svelte's single interpolated style string, per PORTING.md rule 'custom properties → object :style, never string interpolation (jsdom drops custom props via cssText)'. Rendered attribute value is behaviorally identical (tests assert substrings of the style attribute and pass). No consumer-visible API change — internal only."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3075,7 +3257,7 @@
 		"sveltePath": "src/lib/fancy-ui/glow-border",
 		"reactPath": "react/src/components/glow-border",
 		"vuePath": "vue/src/components/glow-border",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -3112,8 +3294,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Svelte builds the whole inline style as one template-literal string (mask, mask-composite, background-image, etc.). Per PORTING.md's string-style/custom-property trap, this port uses an object :style binding with the same properties/values instead of a cssText string — same rendered style, no consumer-visible difference, purely an implementation-safety divergence for SSR/jsdom parity."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3122,7 +3306,7 @@
 		"sveltePath": "src/lib/fancy-ui/glowing-effect",
 		"reactPath": "react/src/components/glowing-effect",
 		"vuePath": "vue/src/components/glowing-effect",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -3162,8 +3346,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"None in the public API: props, defaults, class names, CSS custom properties and disabled-gate behavior are identical to the Svelte GlowingEffect. `class` is typed HTMLAttributes[\"class\"] per PORTING.md instead of Svelte's `string`, a package-level convention, not a component-specific change."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3172,7 +3358,7 @@
 		"sveltePath": "src/lib/fancy-ui/gradient-button",
 		"reactPath": "react/src/components/gradient-button",
 		"vuePath": "vue/src/components/gradient-button",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -3209,8 +3395,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"disabled is now a declared Boolean prop (bound via :disabled) instead of flowing through restProps/$attrs, per PORTING.md's rule that a DOM attribute the component reads must be a declared prop (bare attrs.disabled would be the falsy string ''). onclick is likewise a declared prop (typed (event: MouseEvent) => void, matching the pattern used in Link.vue/InteractiveHoverButton.vue) rather than folded from HTMLButtonAttributes, since GradientButtonProps declares only its own props (no attribute-set intersection) per PORTING.md's API contract section.",
+			"CSS custom properties are set via an object :style binding ({'--gb-colors': ..., ...}) instead of a single interpolated style string, per PORTING.md's styling table (a string style goes through cssText and jsdom drops custom properties). The rendered inline style text is equivalent (same property names/values); tests assert via string .toContain() and pass unchanged.",
+			"Children render through the default <slot/> instead of a Snippet render call — mechanical Svelte-to-Vue slot mapping, no API shape change for object consumers passing a props object, but Vue consumers write <GradientButton>text</GradientButton> instead of children snippet syntax."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3282,7 +3472,7 @@
 		"sveltePath": "src/lib/fancy-ui/hyper-text",
 		"reactPath": "react/src/components/hyper-text",
 		"vuePath": "vue/src/components/hyper-text",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -3321,8 +3511,13 @@
 		"usesTick": false,
 		"styleHazard": "inline-keyframe-ref",
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"— the Svelte source scrambles with a bare `Math.random()`, which cannot run on a render path. The port draws its scramble characters from a seeded PRNG instead, so two instances with no `seed` scramble alike and the effect is reproducible in a test. Same prop, same default and same generator as the React package.",
+			"The Svelte source starts its character array empty and fills it from a post-mount effect, so its server render emits no characters at all; the port seeds the array in `setup`, which keeps the server render and its hydration identical. Visually the difference lasts one frame.",
+			"(package-level rule: `inheritAttrs: false`, no `$attrs` spread). This matches the Svelte component, which never spreads `restProps` either — it is listed only so the `class` prop is understood as the single styling entry point.",
+			"rather than the source's `string`, per the package-level rule — it accepts the array/object forms Vue allows and is merged by `cn()` at exactly the source's call site."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3429,7 +3624,7 @@
 		"sveltePath": "src/lib/fancy-ui/image-trail-cursor",
 		"reactPath": "react/src/components/image-trail-cursor",
 		"vuePath": "vue/src/components/image-trail-cursor",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -3473,8 +3668,12 @@
 		"sharedCores": [
 			"trail-variants.ts"
 		],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` is typed `HTMLAttributes[\"class\"]` (string | array | object) instead of the Svelte `class?: string`, per the package-wide rule that pulls `class` out of `$attrs` so `cn()` applies it once. Same call site, same base literals, same merge order.",
+			"Native attributes and listeners are NOT forwarded to the container. The Svelte component spreads no `restProps`, so it drops them too — parity, but the Vue SFC states it explicitly with `inheritAttrs: false` and no `v-bind=\"attrs\"`.",
+			"`touch-action: none` on the container is applied as a bound style object (`:style=\"{ touchAction: 'none' }\"`) rather than a literal style attribute string. Identical computed style in a browser and identical SSR output (`style=\"touch-action:none;\"`); only a DOM-string inspection under jsdom differs."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3596,7 +3795,7 @@
 		"sveltePath": "src/lib/fancy-ui/interactive-grid-pattern",
 		"reactPath": "react/src/components/interactive-grid-pattern",
 		"vuePath": "vue/src/components/interactive-grid-pattern",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -3635,7 +3834,7 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
+		"attempts": 1,
 		"divergences": [],
 		"minors": [],
 		"lastFailure": null
@@ -3645,7 +3844,7 @@
 		"sveltePath": "src/lib/fancy-ui/interactive-hover-button",
 		"reactPath": "react/src/components/interactive-hover-button",
 		"vuePath": "vue/src/components/interactive-hover-button",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -3682,8 +3881,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Svelte's `children` Snippet becomes the Vue default slot; `{#if children}…{:else}{text}{/if}` becomes `<slot>{{ text }}</slot>`, functionally identical (slot content wins, fallback is text) but the prop shape differs per the package-level slots-vs-snippets divergence already noted in README.",
+			"`InteractiveHoverButtonProps` declares only own props (text, class, sound, disabled, onclick) per the Vue package convention of not folding in ButtonHTMLAttributes; all other native button attributes (type, aria-label, name, form, etc.) flow through as unenforced `$attrs` rather than typed props — same divergence already recorded for the rest of the Vue package.",
+			"`disabled` is declared explicitly (not left to fall through $attrs) because the click handler reads it, matching the documented rule that a DOM attribute the component reads must become a declared prop."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3744,7 +3947,7 @@
 		"sveltePath": "src/lib/fancy-ui/letter-pullup",
 		"reactPath": "react/src/components/letter-pullup",
 		"vuePath": "vue/src/components/letter-pullup",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -3781,8 +3984,11 @@
 		"usesTick": false,
 		"styleHazard": "inline-keyframe-ref",
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"None functionally: 'class' prop is declared per Vue convention (HTMLAttributes['class']) instead of Svelte's bare string type; consumer-visible surface (words, delay, class) is identical.",
+			"Root <style> is left unscoped (not <style scoped>) because the @keyframes name is referenced only from an inline style attribute, per PORTING.md rule 3 — Vue's scoped compiler would otherwise rename the keyframe and break the inline animation reference. No .letter-pullup-char class styling exists in the Svelte source's <style> block to scope anyway (only the keyframes), so this has no visible effect."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3791,7 +3997,7 @@
 		"sveltePath": "src/lib/fancy-ui/line-hover-link",
 		"reactPath": "react/src/components/line-hover-link",
 		"vuePath": "vue/src/components/line-hover-link",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -3828,8 +4034,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`aria-label` is spelled `ariaLabel` in `LineHoverLinkProps`. Vue camelises declared prop names, so Svelte's hyphenated key can never be read back off `props` (it silently rendered nothing). Both `ariaLabel=\"…\"` and the template spelling `aria-label=\"…\"` reach the prop and emit `aria-label` on the anchor, matching Svelte's output.",
+			"`children?: Snippet` is the default slot, typed with `defineSlots<{ default?(): unknown }>()`, and is absent from `LineHoverLinkProps` (package-level snippet/slot divergence).",
+			"`class` is typed `HTMLAttributes[\"class\"]` rather than Svelte's `string` (package-level class-prop divergence); `cn()` still applies it exactly once, at the same call site."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3838,7 +4048,7 @@
 		"sveltePath": "src/lib/fancy-ui/line-reveal",
 		"reactPath": "react/src/components/line-reveal",
 		"vuePath": "vue/src/components/line-reveal",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -3882,8 +4092,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` is typed `HTMLAttributes[\"class\"]` (ClassValue: string | array | object) instead of Svelte's `class?: string`. Same merge point — `cn('relative w-full', className)` — just a wider accepted type.",
+			"No native attribute fallthrough: `inheritAttrs: false` with no `v-bind=\"attrs\"`, because the Svelte source declares no `...restProps` and spreads nothing. Extra attributes/listeners passed to `<LineReveal>` are dropped, exactly as in Svelte.",
+			"Line height survives a font-only change. Svelte's `style:font` / `style:line-height` directives re-apply only the declaration whose value changed, so switching to a different weight/family at the same px size re-applies the `font` shorthand (which resets `line-height`) without re-applying the longhand, and the lines drift inside their fixed-height masks. Vue's style patch re-applies every key of the style object on each patch, in declaration order (`font` then `line-height`), so the Svelte bug does not reproduce. Behavioural parity with the React port, reached without its folded `32px/38px` shorthand: the emitted style attribute still reads `font: …; line-height: …`, like Svelte's."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3892,7 +4106,7 @@
 		"sveltePath": "src/lib/fancy-ui/line-shadow-text",
 		"reactPath": "react/src/components/line-shadow-text",
 		"vuePath": "vue/src/components/line-shadow-text",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -3929,8 +4143,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Svelte's `let style = $derived(...)` produced a CSS string ('--shadow-color: red'); Vue uses an object :style binding ({'--shadow-color': shadowColor}) per PORTING.md's custom-property rule (string style loses custom props in jsdom/SSR). Same resulting computed style value, no consumer-visible difference in tests.",
+			"The @keyframes line-shadow block was inside Svelte's `:global {}` wrapper (compiler-only syntax); ported to a second unscoped <style> block in the SFC since it's referenced from the animation shorthand inside the scoped ::after rule, per PORTING.md rule 3.",
+			"Svelte source has no ...restProps spread and no rest destructure, so no v-bind=\"attrs\" was added to the rendered element — attrs still fall through as native Vue attribute inheritance is disabled via inheritAttrs:false with no explicit fallthrough binding, mirroring that Svelte never forwarded extra attributes here either."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3939,7 +4157,7 @@
 		"sveltePath": "src/lib/fancy-ui/link",
 		"reactPath": "react/src/components/link",
 		"vuePath": "vue/src/components/link",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -3976,8 +4194,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`children?: Snippet` becomes the default `<slot />` (typed with `defineSlots`) and is absent from `LinkProps` — the package-level snippet/slot divergence.",
+			"`ref` is reached through `defineExpose({ ref })` on the `<a>` rather than the Svelte bindable `ref` prop, and is absent from `LinkProps` (`ref` is a reserved vnode key) — the package-level exposed-ref divergence.",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` instead of Svelte's `class?: string`, so it is merged by `cn()` exactly once — the package-level class divergence.",
+			"Native attributes and listeners do NOT fall through on this component: the Svelte source declares no `{...restProps}`, so per law there is no `v-bind=\"attrs\"` and `inheritAttrs` is false. Verified by probe: `id`, `aria-label` and a consumer `@click` are all dropped. This is Svelte-faithful, but it is the one component where the package README's general \"native attrs flow through $attrs\" bullet does not apply — a Vue consumer must pass `:onclick=\"fn\"` (the declared prop), not `@click`. Worth one README bullet."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3986,7 +4209,7 @@
 		"sveltePath": "src/lib/fancy-ui/liquid-glass",
 		"reactPath": "react/src/components/liquid-glass",
 		"vuePath": "vue/src/components/liquid-glass",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -4025,8 +4248,15 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` is typed `HTMLAttributes[\"class\"]` instead of Svelte's `string` (package rule so `cn()` merges it once and it leaves `$attrs`). `containerClass` keeps Svelte's `string`.",
+			"Native attributes and listeners do not reach the root: `inheritAttrs: false` with no `v-bind=\"attrs\"`, because the Svelte source spreads no `restProps`. Same observable surface as Svelte, but Vue would otherwise auto-inherit them.",
+			"The filter id is minted from the package's incrementing client-only counter (`lg-1`, `lg-2`, …) instead of Svelte's `Math.random().toString(36)`. Still minted in `onMounted`, still unique per instance, never present in server HTML; only the literal id text in the DOM differs.",
+			"The root `style` is applied as an object rather than Svelte's string, so the browser/jsdom reports the same declarations in the same order but `cssText` is never used (a style string drops custom properties under jsdom). `backdrop-filter` still appears only once the filter exists.",
+			"The `children` snippet becomes the default slot (`<LiquidGlass>…</LiquidGlass>` is unchanged for consumers).",
+			"`index.ts` also re-exports the `LiquidGlassProps` type; the Svelte `index.ts` exports only the component."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4035,7 +4265,7 @@
 		"sveltePath": "src/lib/fancy-ui/liquid-text",
 		"reactPath": "react/src/components/liquid-text",
 		"vuePath": "vue/src/components/liquid-text",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -4082,8 +4312,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` is typed `HTMLAttributes[\"class\"]` (Vue) rather than `string` (Svelte), per the package-wide rule; any Vue class value is accepted and merged through `cn()` at the same call site.",
+			"Native attributes/listeners put on `<LiquidText>` are not forwarded (`inheritAttrs: false`, no `v-bind=\"attrs\"`) — matching the Svelte component, which spreads no rest props either. Nothing added or removed from the public surface.",
+			"When `font` is left at its default `\"\"` and no computed family is resolved yet, the fallback span omits `font-family` from its inline style instead of emitting an empty declaration. Vue's SSR stringifier would otherwise write `font-family:;`, which the client-side style patch drops — a server/hydration divergence on the one style value that is empty by default. Rendered-attribute detail only; the resolved family applies identically once measured."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4092,7 +4326,7 @@
 		"sveltePath": "src/lib/fancy-ui/logo-cloud",
 		"reactPath": "react/src/components/logo-cloud",
 		"vuePath": "vue/src/components/logo-cloud",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -4132,8 +4366,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"None found consumer-visible: props, defaults, markup structure and class names match the Svelte components exactly (title/logos/wordmarks/class). The React port added an aria-hidden/empty-alt accessibility fix to AnimatedLogoCloud's cloned marquee tracks that is NOT in the Svelte source; per PORTING.md the Svelte folder is the reference, so this Vue port intentionally mirrors Svelte (no aria-hidden), not the React improvement."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4200,7 +4436,7 @@
 		"sveltePath": "src/lib/fancy-ui/marquee",
 		"reactPath": "react/src/components/marquee",
 		"vuePath": "vue/src/components/marquee",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -4238,8 +4474,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`MarqueeProps` and `ReviewCardProps` are exported as named types from the folder's `index.ts`; the Svelte package exports neither (its `index.ts` re-exports only the two components, and its README states ReviewCard's \"own prop type isn't re-exported as a named type, so consumers writing their own card don't need to match its shape exactly\"). The type export is mandated by PORTING's `<Name>Props` tooling contract, so the port is right and the Svelte README wording is the thing that no longer describes the Vue package — worth one README line.",
+			"Native DOM attributes and listeners put on `<Marquee>` or `<ReviewCard>` are dropped rather than landing on the root element: both SFCs set `inheritAttrs: false` and neither adds `v-bind=\"attrs\"`, because neither Svelte file spreads `{...restProps}`. Same observable result as Svelte, but it is the package-level `$attrs` divergence already listed in vue/README.md applying here.",
+			"`ReviewCard` declares no `class` prop (matching the Svelte component, which has none), so unlike every other ported component a `class` passed to it is ignored rather than merged. Intentional fidelity, but it is the one exception to the package README's \"`class` is a declared prop on every component\" bullet.",
+			"Svelte's `children?: Snippet` becomes the default slot (package-level snippet→slot divergence); `Marquee`'s content is therefore supplied as slot children, not as a `children` prop."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4248,7 +4489,7 @@
 		"sveltePath": "src/lib/fancy-ui/matrix-rain",
 		"reactPath": "react/src/components/matrix-rain",
 		"vuePath": "vue/src/components/matrix-rain",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -4293,8 +4534,11 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"None found consumer-visible: props (color, speed, density, glyphSize, fadeOpacity, class), defaults, and canvas markup/classes match the Svelte wrapper exactly. No bindables, no exposed ref, no slots in the source, so none added.",
+			"Not ported (by design, following the CURRENT shared-cores Svelte wrapper which has no such gating): the sibling React port added an IntersectionObserver-based pause/resume of the rAF loop when the canvas scrolls out of view. The Svelte wrapper being ported here has no such gating and the engine core exposes no start/stop primitive to hang it off (only setOptions/resize/destroy), so adding it would require editing the frozen core. Left unported per PORTING.md 'port pixel-for-pixel, note Svelte's own gaps rather than improving' — flagged here for the registrar's awareness, not treated as a bug in this port."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4303,7 +4547,7 @@
 		"sveltePath": "src/lib/fancy-ui/meteors",
 		"reactPath": "react/src/components/meteors",
 		"vuePath": "vue/src/components/meteors",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -4340,7 +4584,7 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
+		"attempts": 1,
 		"divergences": [],
 		"minors": [],
 		"lastFailure": null
@@ -4350,7 +4594,7 @@
 		"sveltePath": "src/lib/fancy-ui/mosaic-glow",
 		"reactPath": "react/src/components/mosaic-glow",
 		"vuePath": "vue/src/components/mosaic-glow",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -4397,8 +4641,13 @@
 		"sharedCores": [
 			"mosaic-glow-core.ts"
 		],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`MosaicGlowProps` declares the component's own props only. Svelte's type is `BaseProps & Omit<HTMLAttributes<HTMLDivElement>, keyof BaseProps>`; in Vue native div attributes and listeners reach the host through `$attrs` (`inheritAttrs: false` + `v-bind=\"attrs\"` on the host, exactly where Svelte spreads `{...restProps}`), so they are not typed members of the props interface.",
+			"`children?: Snippet` is gone: content goes in the default slot (`<MosaicGlow>…</MosaicGlow>`). The `.mosaic-glow__content` wrapper is still emitted only when slot content is present (`v-if=\"$slots.default\"`).",
+			"`ref?: HTMLDivElement | null` is no longer a bindable prop: the host element is exposed with `defineExpose({ ref })`. Consumers read it off the component instance (`mosaicRef.value.ref`), not via `bind:ref`.",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` (so it accepts arrays/objects as well as a string) and is merged by `cn(\"mosaic-glow relative overflow-hidden\", className)` at the same call site as Svelte."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4407,7 +4656,7 @@
 		"sveltePath": "src/lib/fancy-ui/navbar",
 		"reactPath": "react/src/components/navbar",
 		"vuePath": "vue/src/components/navbar",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -4445,8 +4694,14 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"FOR vue/README.md: Navbar's `brand`, `children` and `actions` snippets become slots, not props — `#brand`, the default slot, and `#actions`. Each region's wrapper `<div>` is still omitted entirely when its slot is absent (`v-if=\"$slots.brand\"` etc.), so the no-empty-wrapper guarantee is unchanged.",
+			"FOR vue/README.md: NavbarLink's `children` snippet becomes the default slot.",
+			"FOR vue/README.md: NavbarLink's `onclick` stays a declared prop (`:onclick=\"fn\"`), per the package-level callback-props rule. Neither Navbar nor NavbarLink spreads rest attributes (the Svelte source spreads none), so with `inheritAttrs: false` a consumer's `@click` / stray native attributes reach neither element — same surface as the Svelte components.",
+			"FOR vue/README.md: `ref` is exposed via `defineExpose({ ref })` on the `<nav>` (Navbar) and the `<a>` (NavbarLink) — the package-level rule, noted here for the two nodes it lands on.",
+			"Not consumer-visible: the cue goes through `useSoundCue(() => sound)` per internals-api §6.3 rather than calling `soundFx.play(\"select\")` directly, so a `vi.spyOn(sound, \"play\")` observes `(\"select\", undefined)` — the React port's assertion shape. Guard order is unchanged: disabled → preventDefault, then `if (!current) playCue(\"select\")`, then `onclick?.(event)`."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4522,7 +4777,7 @@
 		"sveltePath": "src/lib/fancy-ui/neon-border",
 		"reactPath": "react/src/components/neon-border",
 		"vuePath": "vue/src/components/neon-border",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -4559,8 +4814,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"NeonBorderProps drops the Svelte `children?: Snippet` field per house convention (slot content flows through Vue's default <slot/>, not a typed prop) — same pattern as other ported components; consumer-visible API is unchanged (default slot still works)."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4569,7 +4826,7 @@
 		"sveltePath": "src/lib/fancy-ui/noise-reveal",
 		"reactPath": "react/src/components/noise-reveal",
 		"vuePath": "vue/src/components/noise-reveal",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -4612,8 +4869,13 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` instead of Svelte's `class?: string` (package-wide convention). Default `\"\"` and the `cn('relative h-[400px] w-full', className)` call site are unchanged.",
+			"`inheritAttrs: false` with no `v-bind=\"attrs\"` — the Svelte root spreads no `restProps`, so extra native attributes/listeners are dropped in both packages; parity, but it means `@click` or `id` on `<NoiseReveal>` never reaches the root div.",
+			"The `trigger=\"view\"` IntersectionObserver is attached one microtask after mount instead of in the mount flush: the engine is published into a `shallowRef` from `onMounted`, and the post-flush watcher that owns the observer runs on the following flush. Only observable to code that fires an observer synchronously after render; real viewport entry is unaffected.",
+			"`prefers-reduced-motion` is read through `useReducedMotion()` (started in `onMounted`) rather than a direct `window.matchMedia()` call inside the scene effect. Same value at scene-build time, and like Svelte it is read once at build and not forwarded live through `setOptions`."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4677,7 +4939,7 @@
 		"sveltePath": "src/lib/fancy-ui/number-ticker",
 		"reactPath": "react/src/components/number-ticker",
 		"vuePath": "vue/src/components/number-ticker",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -4716,8 +4978,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"No <style> block in the Svelte source, so nothing to port to <style scoped> — component is unstyled beyond the Tailwind literal.",
+			"Svelte's untrack(() => animate(target)) inside $effect has no direct Vue API; used watch(source, cb) with flush:'post' whose callback body is untracked by construction (per PORTING.md rune table), functionally equivalent.",
+			"Svelte's two $effects (initial-value set + re-animate) both became watch() with flush:'post'; the initial displayValue assignment is additionally set synchronously at setup time (SSR-safe, no DOM access) so server-rendered text matches direction='down' immediately without waiting for a post-flush watcher."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4726,7 +4992,7 @@
 		"sveltePath": "src/lib/fancy-ui/pagination",
 		"reactPath": "react/src/components/pagination",
 		"vuePath": "vue/src/components/pagination",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "headless",
@@ -4767,8 +5033,23 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`page` is a `v-model:page` binding (`defineModel('page', { default: 1 })`), not a plain prop, so it is absent from the exported `PaginationProps` interface and a consumer reading the type no longer sees `page` documented. Passing `:page` together with `@update:page` puts the component in fully controlled mode — the parent must echo the new value back or the nav will not move. Passing `:page` alone keeps it uncontrolled: the prop acts as an initial value that still tracks later prop changes.",
+			"The source's bindable `ref` becomes `defineExpose({ ref })` pointing at the `<nav>`: read it off the component instance (a template ref's `.ref`, or `wrapper.vm.ref` in tests) rather than passing it as a prop. It is therefore absent from `PaginationProps`.",
+			"The `previousLabel` / `nextLabel` snippet props become the named slots `#previousLabel` / `#nextLabel`, with the same `‹ Previous` / `Next ›` fallback content. As Vue slot fallbacks they are wrapped in fragment anchor comments (`<!--[-->…<!--]-->`) in the SSR string; text content and layout are unchanged.",
+			"`PaginationProps` declares the component's own props only — no native attribute set is folded in (package-level convention). With `inheritAttrs: false` and no `v-bind=\"attrs\"` (the source spreads no rest props), stray native attributes are dropped rather than landing on the `<nav>`. This matches the source, which ignores them too.",
+			"The decorative “stands for a run of hidden pages” comment sits immediately before the `v-if` / `v-else` pair instead of inside the ellipsis branch, so in dev builds it is emitted into every `<li>`, page-number ones included (visible in the dev SSR HTML). Comment nodes only — no visual or a11y effect — and production builds strip comments on both sides. Moving it inside the branch would need a `<template v-if>` wrapper, whose fragment anchors are a real DOM/SSR divergence, so the comment placement is the cheaper of the two.",
+			"The `ft-pagination-pop` keyframe is renamed by the scoped-style compiler to `ft-pagination-pop-<hash>`. The single reference is rewritten in lockstep and the documented `--ft-pagination-pop-duration` custom property is untouched, but a consumer cannot redefine the keyframe by its source name.",
+			"`goTo` keeps the source's `if (sound) playCue(\"select\")` double guard — `useSoundCue(() => sound)` already holds the `sound &&` gate, whose canonical shape per internals-api.md:1456-1460 is a bare `playCue(\"select\")`. Behaviourally identical; the only observable difference is that the cue reaches the controller as `play(\"select\", undefined)` rather than `play(\"select\")`.",
+			"`page` is a `v-model:page` binding (`defineModel('page', { default: 1 })`), not a plain prop, so it is absent from the exported `PaginationProps` interface. Passing `:page` together with `@update:page` puts the component in fully controlled mode (the parent must echo the new value back); passing `:page` alone keeps it uncontrolled, with the prop acting as an initial value that still tracks later prop changes.",
+			"The `previousLabel` / `nextLabel` snippet props become the named slots `#previousLabel` / `#nextLabel`, with the same `‹ Previous` / `Next ›` fallback content.",
+			"`PaginationProps` declares the component's own props only — no native attribute set is folded in (package-level convention). With `inheritAttrs: false` and no `v-bind=\"attrs\"` (the source spreads no rest props), stray native attributes are dropped rather than landing on the `<nav>`, matching the source, which ignores them too.",
+			"The decorative “stands for a run of hidden pages” comment sits immediately before the `v-if` / `v-else` pair instead of inside the ellipsis branch, so in dev builds it is emitted into every `<li>`, including the page-number ones. Comment nodes only — no visual or a11y effect. Moving it inside the branch would require wrapping the branch in a `<template v-if>`, and that fragment adds its own anchor nodes to the DOM and `<!--[-->` markers to the SSR output, which would be a real rendering divergence; the comment placement is the cheaper of the two.",
+			"The `ft-pagination-pop` keyframe is renamed by the scoped-style compiler to `ft-pagination-pop-<hash>`. The single reference to it is rewritten in lockstep and the documented `--ft-pagination-pop-duration` custom property is untouched, but a consumer cannot redefine the keyframe by its source name.",
+			"`goTo` keeps the source's `if (sound) playCue(\"select\")` double guard — `useSoundCue(() => sound)` already holds the `sound &&` gate, whose canonical shape is a bare `playCue(\"select\")`. Behaviourally identical; the only observable difference from the canonical shape is that the cue reaches the controller as `play(\"select\", undefined)` rather than `play(\"select\")`. Kept because it mirrors `Pagination.svelte` line for line.",
+			"`pagination-range.ts` is not listed in `shared-cores.json`, so it is not byte-gated; it differs from the Svelte copy by one comment word only (line 1: “no Svelte” → “no framework”). If the registrar ever adds the file to the hash gate, that line has to be reconciled on the Svelte side first."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4837,7 +5118,7 @@
 		"sveltePath": "src/lib/fancy-ui/pixel-loader",
 		"reactPath": "react/src/components/pixel-loader",
 		"vuePath": "vue/src/components/pixel-loader",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -4874,8 +5155,11 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"No restProps/native-attrs fold-in: PixelLoaderProps declares only its own props per Vue port convention; native attrs/listeners flow through $attrs (package-level divergence documented elsewhere in README).",
+			"ref: Svelte's bindable `ref` becomes defineExpose({ ref }) via useTemplateRef, not a prop — consumers read it via component instance ref (`.value.ref`) rather than binding."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5059,7 +5343,7 @@
 		"sveltePath": "src/lib/fancy-ui/prompt-suggestions",
 		"reactPath": "react/src/components/prompt-suggestions",
 		"vuePath": "vue/src/components/prompt-suggestions",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -5098,8 +5382,14 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Snippet arguments become scoped-slot object props: Svelte's `{#snippet item(suggestion, index)}` becomes `<template #item=\"{ suggestion, index }\">`. Slot name and both value names are kept; only the positional-vs-object shape differs (already covered package-wide in vue/README.md).",
+			"`ref` is not a prop. Svelte's `bind:this` / `ref = $bindable(null)` becomes `defineExpose({ ref })` on the same root `<div role=\"group\">`; read it from the component instance (`wrapper.vm.ref`), and note it is absent from `PromptSuggestionsProps`.",
+			"`PromptSuggestionsProps` declares the component's own props only. Unlike the Svelte version there is no native-attribute intersection, and — because the Svelte source spreads no rest props — the component also declares `inheritAttrs: false` with no `v-bind=\"$attrs\"`, so stray native attributes are dropped exactly as Svelte drops them. `class` is a declared prop so `cn()` applies it once.",
+			"`onSelect` stays a callback prop (called as `props.onSelect?.(suggestion, index)`), not a Vue event; `@select` still works because the compiler maps it to the `onSelect` prop, but no event appears in devtools.",
+			"Pre-flush timing: `$effect.pre` becomes `watch(() => visible, cb, { flush: 'pre', immediate: true })`. The immediate run happens in `setup` (before the first render) rather than in Svelte's first post-render flush. It is inert by construction — the first run only records the mounted value — so the mount, the SSR output and the false→true replay are unchanged; only a parent that flipped `visible` synchronously between setup and the first flush could tell the difference."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5108,7 +5398,7 @@
 		"sveltePath": "src/lib/fancy-ui/pulse-beam",
 		"reactPath": "react/src/components/pulse-beam",
 		"vuePath": "vue/src/components/pulse-beam",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -5151,8 +5441,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`PulseBeamProps` declares the component's own props only — it no longer intersects `HTMLAttributes<HTMLDivElement>`. Native attributes and DOM listeners still reach the wrapper through `$attrs` (package-level divergence)."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5217,7 +5509,7 @@
 		"sveltePath": "src/lib/fancy-ui/rainbow-button",
 		"reactPath": "react/src/components/rainbow-button",
 		"vuePath": "vue/src/components/rainbow-button",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -5254,8 +5546,15 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`ref` is no longer a bindable prop: Svelte's `ref = $bindable(null)` becomes `defineExpose({ ref })`. Read it off the component instance (`rainbowButtonRef.value.ref`), not via a prop. Package-level convention.",
+			"`RainbowButtonProps` declares the component's own props only — no `HTMLButtonAttributes` / `HTMLAnchorAttributes` intersection. Editor completion for native attributes is gone, but runtime behaviour is unchanged: the Svelte component never spread them either, and `inheritAttrs: false` with no `v-bind=\"attrs\"` keeps them off the element exactly as before.",
+			"The `children` snippet becomes the default slot (`<RainbowButton>Get started</RainbowButton>` is unchanged for consumers).",
+			"`@keyframes rainbow` and the `.animate-rainbow` rule ship UNSCOPED in the package stylesheet, because a scoped block renames its keyframes and would break the `before:animate-rainbow` utility. Svelte hash-prefixes the keyframe name; here a consumer stylesheet declaring its own `rainbow` keyframe or `.animate-rainbow` class will collide. (The `.animate-rainbow` class itself was already global in Svelte via `:global()`.)",
+			"The `press` cue goes through the package's `useSoundCue` composable, so `sound.play` is called as `play(\"press\", undefined)` rather than `play(\"press\")`. Behaviour is identical; only a spy's recorded arity differs.",
+			"Inline style is written as an object, so the server-rendered attribute reads `style=\"--rainbow-speed:2s;\"` (no space after the colon) where Svelte emits `style=\"--rainbow-speed: 2s\"`. The parsed value is identical and hydration does not warn."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5430,7 +5729,7 @@
 		"sveltePath": "src/lib/fancy-ui/ripple",
 		"reactPath": "react/src/components/ripple",
 		"vuePath": "vue/src/components/ripple",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -5467,8 +5766,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"None found: Ripple is a pure presentational, static-props component (no bindables, no ref, no slots, no sound, no motion deps beyond CSS animate + motion-reduce). API surface matches the Svelte component exactly (same prop names/defaults)."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5477,7 +5778,7 @@
 		"sveltePath": "src/lib/fancy-ui/ripple-button",
 		"reactPath": "react/src/components/ripple-button",
 		"vuePath": "vue/src/components/ripple-button",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -5516,8 +5817,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"RippleButtonProps declares only its own props (class, rippleColor, duration, sound, disabled, onclick) with no HTMLButtonAttributes intersection, per the package-level Vue divergence: native attrs/listeners flow through $attrs via v-bind=\"attrs\" (inheritAttrs:false) instead of a folded attribute type.",
+			"`disabled` is a declared Boolean prop (bound via :disabled) rather than living inside Svelte's ...restProps, because the component reads it to guard the sound cue; a bare `<RippleButton disabled>` would otherwise reach $attrs as the falsy string \"\" per the porting convention for DOM attributes the component reads.",
+			"`onclick` stays a declared callback prop (matching Svelte's explicit destructure) and is invoked manually in handleClick after ripple creation, rather than relying on Vue's native listener merging via attrs — mirrors GradientButton's existing pattern in this package for the identical Svelte shape."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5819,7 +6124,7 @@
 		"sveltePath": "src/lib/fancy-ui/shimmer-button",
 		"reactPath": "react/src/components/shimmer-button",
 		"vuePath": "vue/src/components/shimmer-button",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -5856,8 +6161,18 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Button content is the default slot. Svelte's `children` snippet prop becomes `<slot>`; `children` is absent from `ShimmerButtonProps`.",
+			"Svelte's `onclick` callback prop becomes plain `$attrs` fallthrough: the template binds `@click=\"handleClick\"` before `v-bind=\"attrs\"`, so the press cue runs first and the consumer's listener merges after it in source order — the same order as Svelte's `soundFx.play(\"press\"); onclick?.(event)`. No Vue event is declared.",
+			"`disabled` is a declared Boolean prop rather than read off `$attrs`, because `$attrs.disabled` for a bare `<ShimmerButton disabled>` would be the falsy string `\"\"` and would let the cue play. Covered by the package-level bullet at vue/README.md:78-81.",
+			"`ShimmerButtonProps` holds the component's own props only — no `HTMLButtonAttributes` intersection; native button attributes flow through `$attrs`. Covered by the package-level bullet at vue/README.md:44-48.",
+			"The CSS custom properties are bound as a style OBJECT, as PORTING.md requires for custom properties (a string `style` goes through `cssText`, where jsdom drops custom properties). SSR therefore emits `--spread:90deg;` where Svelte emits `--spread: 90deg;`. Cosmetic; hydration is clean either way.",
+			"A consumer-supplied `style` MERGES with the component's custom properties (Vue `mergeProps`), where Svelte's `{...restProps}` after `style={styleVars}` would overwrite them and break the animation. Inherent to `inheritAttrs:false` + `v-bind=\"attrs\"`, package-wide, and strictly safer than the Svelte behaviour.",
+			"Svelte's `onclick` callback prop becomes plain `$attrs` fallthrough: the template binds `@click=\"handleClick\"` before `v-bind=\"attrs\"`, so the cue runs first and the consumer's listener merges after it in source order. No Vue event is declared.",
+			"`disabled` is a declared Boolean prop rather than read off `$attrs`, so a bare `<ShimmerButton disabled>` correctly suppresses the press cue where the Svelte source's `restProps.disabled === \"\"` is falsy and lets it play. Covered by the package-level bullet at vue/README.md:78-81.",
+			"The CSS custom properties are bound as a style OBJECT rather than the Svelte source's style string, so SSR emits `--spread:90deg;` where Svelte emits `--spread: 90deg;`. Cosmetic; hydration is clean either way."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5866,7 +6181,7 @@
 		"sveltePath": "src/lib/fancy-ui/sidebar",
 		"reactPath": "react/src/components/sidebar",
 		"vuePath": "vue/src/components/sidebar",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "compound",
@@ -5909,8 +6224,15 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"The `children` snippet props are default slots — `Sidebar`'s body, `SidebarGroup`'s item list, `SidebarItem`'s label and `SidebarFooter`'s name text are all written as default slot content.",
+			"`SidebarItem`'s `icon` snippet is the `#icon` slot and `SidebarFooter`'s `avatar` snippet is the `#avatar` slot. `{#if icon}` / `{#if avatar}` become `v-if=\"$slots.icon\"` / `v-if=\"$slots.avatar\"`, so the `aria-hidden=\"true\"` decorative wrapper is still emitted only when a glyph or avatar is actually supplied.",
+			"`SidebarItem` writes the shared `content` snippet out in full in both the `<a>` and `<button>` branches of its `v-if`/`v-else`, because a Vue template has no snippet to hoist. Only one branch ever renders and the emitted markup is identical to the Svelte output.",
+			"`SIDEBAR_KEY` is an `InjectionKey<SidebarContext>` used with `provide`/`inject` rather than a bare `unique symbol` used with `setContext`/`getContext`. It is still read optionally (`inject(SIDEBAR_KEY, undefined)`), so a `SidebarGroup`, `SidebarItem` or `SidebarFooter` mounted outside a `Sidebar` degrades to `collapsed: false` instead of throwing, exactly as before.",
+			"`SidebarItem`'s `onclick` stays an ordinary prop (`:onclick=\"fn\"`), not a Vue event. With `inheritAttrs: false` and no rest spread in the source, an `@click` written on the component is dropped — the same outcome an undeclared prop has on the Svelte side. Bind `:onclick` to receive activations.",
+			"`SidebarGroup`'s heading id comes from `useFancyId()` (Vue's `useId()`, e.g. `v-0`) instead of `$props.id()`. It stays SSR-stable and is still the target of the list's `aria-labelledby`; only the id string's shape differs — covered by the package-level id bullet."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6024,7 +6346,7 @@
 		"sveltePath": "src/lib/fancy-ui/smooth-cursor",
 		"reactPath": "react/src/components/smooth-cursor",
 		"vuePath": "vue/src/components/smooth-cursor",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -6064,8 +6386,15 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"The `cursor` snippet prop becomes a named slot: `<SmoothCursor><template #cursor>…</template></SmoothCursor>` instead of `cursor={snippet}`. `SmoothCursorProps` therefore has no `cursor` member.",
+			"`class` is typed `HTMLAttributes[\"class\"]` (string | array | object) rather than the Svelte `string`; it is still merged through the same `cn()` call site.",
+			"Native attributes and listeners are not forwarded to the root element (`inheritAttrs: false`, no `v-bind=\"attrs\"`). This matches the Svelte source, which spreads no rest props — nothing is lost relative to it.",
+			"`prefers-reduced-motion` is read through the package's shared `useReducedMotion()` composable rather than a locally-created `matchMedia`. The mount-time answer is still handed to the engine as a plain creation option (no snap) and only a genuine media-query change is routed through `setOptions({ reducedMotion })`, so both of the source's reduced-motion entry points are preserved.",
+			"Svelte's `$effect` additionally fires once right after mount with the same `springConfig` the engine was created with; the Vue watcher is non-immediate (LAW: an immediate watch would run in SSR setup) and skips that redundant call. `setOptions({ springConfig })` is a pure assignment in the core, so no observable behaviour changes.",
+			"Teardown order is mirrored rather than identical: Svelte removes the media-query listener and then destroys the engine, while Vue destroys the engine in `onBeforeUnmount` and the composable's `onScopeDispose` detaches the listener as the scope stops. The core's `destroyed` guard makes the interleaving unobservable."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6213,7 +6542,7 @@
 		"sveltePath": "src/lib/fancy-ui/sparkles",
 		"reactPath": "react/src/components/sparkles",
 		"vuePath": "vue/src/components/sparkles",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "graphics",
@@ -6253,7 +6582,7 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
+		"attempts": 1,
 		"divergences": [],
 		"minors": [],
 		"lastFailure": null
@@ -6263,7 +6592,7 @@
 		"sveltePath": "src/lib/fancy-ui/sparkles-text",
 		"reactPath": "react/src/components/sparkles-text",
 		"vuePath": "vue/src/components/sparkles-text",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -6300,8 +6629,12 @@
 		"usesTick": false,
 		"styleHazard": "inline-keyframe-ref",
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Added an optional `seed` prop (default 1), absent from the Svelte API, mirroring the React port's default so both ports agree with no seed given. The Svelte source calls Math.random()/Date.now() inside generateStar() during component init — forbidden on a Vue render path since SSR and hydration would disagree. The initial field and the post-mount regeneration stream each use a seeded mulberry32 PRNG (seed and seed+1).",
+			"Sparkle ids no longer include Date.now(): the source's `${x}-${y}-${Date.now()}-${Math.random()}` mixes a wall-clock read into markup, an SSR hazard on its own. The id is `${x}-${y}-${random()}` (one extra PRNG draw), unique within a field for v-for keying, same as the React port.",
+			"Native attributes and listeners reach the root through $attrs rather than a declared attribute-set intersection (package-level convention, `inheritAttrs: false` with no spread since the Svelte source spreads no restProps)."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6367,7 +6700,7 @@
 		"sveltePath": "src/lib/fancy-ui/stepper",
 		"reactPath": "react/src/components/stepper",
 		"vuePath": "vue/src/components/stepper",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "compound",
@@ -6409,8 +6742,22 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`ref` is not a prop. Svelte's `bind:ref` on `Stepper` / `Step` becomes the component instance's exposed `ref` (`defineExpose({ ref })`), read through a template ref on the component — `ref` stays a reserved vnode key and is absent from `StepperProps` / `StepProps`.",
+			"`current` is a v-model: `<Stepper v-model:current=\"i\">` replaces `bind:current`. The Svelte name is kept and there is no `modelValue` alias. `onCurrentChange` still fires alongside the model write, in Svelte's order (clickable guard -> sound changed-only guard -> onStepClick -> write current -> onCurrentChange).",
+			"Native attributes and listeners are NOT forwarded. `StepperProps` / `StepProps` declare the component's own props only, and both SFCs set `inheritAttrs: false` with no `v-bind=\"attrs\"` because the Svelte source spreads nothing — so an `id` or `data-*` put on `<Stepper>` / `<Step>` is dropped rather than landing on the `<ol>` / `<li>`. This matches Svelte's closed attribute surface and the landed ToggleGroup / ToggleGroupItem / ButtonGroup ports. (Corrects the previous report, which claimed these fall through `$attrs`; verified by probe.)",
+			"`Step`'s `children` snippet is the default slot: `<Step label=\"x\"><MyGlyph /></Step>` overrides the bullet's checkmark/number. `Stepper`'s `children` is likewise its default slot.",
+			"`STEPPER_KEY` is not a bare symbol. Svelte exports `STEPPER_KEY: unique symbol`; the Vue barrel exports a context handle from `createInternalContext(\"StepperContext\")` carrying `.key`, `.provide()`, `.useRequired()` and `.useOptional()`. Consumers wiring their own provider/consumer use the handle, not `provide(KEY, …)` directly. Same shape as the package's other compound components.",
+			"Registration settles one `nextTick()` after `render()`, not synchronously. Vue defers a sibling's re-render through its async update scheduler, so index-derived output (step number, `data-status`, `aria-current`, connector colour, the dropped leading connector) repaints on the next tick rather than before `render()` returns as in Svelte. The `<li>` count itself is right immediately. Still pre-paint, so no visual difference — but tests must `await nextTick()`.",
+			"Maintenance divergence (not consumer-visible): Svelte factors the bullet and the label/description into two `{#snippet}`s rendered from four call sites. Vue SFCs have no in-file reusable template fragment, so the Vue template inlines both — the bullet markup appears 3x and the text markup 4x. Rendered output is identical, but any future edit to a bullet or a label must be repeated in up to four places.",
+			"`current` is a v-model: `<Stepper v-model:current=\"i\">` replaces `bind:current`. The Svelte name is kept and there is no `modelValue` alias. `onCurrentChange` still fires alongside the model write, in Svelte's order (sound guard -> onStepClick -> write current -> onCurrentChange).",
+			"Native attributes and listeners are not declared props. `StepperProps` / `StepProps` declare the component's own props only; everything else falls through `$attrs` onto the `<ol>` / `<li>`. (Package-level divergence, same as every other port.)",
+			"`STEPPER_KEY` is not a bare symbol. Svelte exports `STEPPER_KEY: unique symbol`; the Vue barrel exports a context handle from `createInternalContext(\"StepperContext\")` carrying `.key`, `.provide()`, `.useRequired()` and `.useOptional()`. Consumers wiring their own provider/consumer use the handle, not `provide(KEY, …)` directly. This matches the package's other compound components (select, toggle-group, button-group).",
+			"Registration settles one `nextTick()` after `render()`, not synchronously. Vue defers a sibling's re-render through its async update scheduler, so index-derived output (step number, `data-status`, `aria-current`, connector colour, the dropped leading connector) repaints on the next tick rather than before `render()` returns as in Svelte. The `<li>` count itself is right immediately. No visual difference — it still lands pre-paint — but tests must `await nextTick()`.",
+			"Vue's template whitespace condensing removes the single space Svelte's compiler emits between the bullet glyph and its `sr-only` status span, and between the label and description spans. Every affected parent is a flex container (`.ft-step-bullet` is `inline-flex`, `.ft-step-trigger` and the text wrapper are `flex`), so whitespace-only siblings were never rendered and nothing moves; only `textContent` concatenation differs (\"3not started\" vs \"3 not started\").",
+			"Maintenance divergence (not consumer-visible): Svelte factors the bullet and the label/description into two `{#snippet}`s rendered from four call sites. Vue SFCs have no in-file reusable template fragment, so the Vue template inlines both — the bullet markup appears 3x and the text markup 4x. Rendered output is identical; a future edit to a bullet or a label must be repeated in up to four places. Factoring them into local sub-components would restore the Svelte shape at the cost of extra files in the folder."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6749,7 +7096,7 @@
 		"sveltePath": "src/lib/fancy-ui/terminal-text",
 		"reactPath": "react/src/components/terminal-text",
 		"vuePath": "vue/src/components/terminal-text",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -6786,8 +7133,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"The stream is keyed on the CONTENT of `lines`, never on the array's identity. An inline `:lines=\"['a', 'b']\"` hands the component a freshly allocated array on every parent re-render; keying on identity would clear the pending timeouts, wipe the typed-out text and restart the whole animation each time. The source restarts only when a tracked value really changes, and an inline array literal in a Svelte template is not one. The array is serialised rather than joined, so `['ab']` and `['a', 'b']` — which stream differently — never collide on the same key. An in-place mutation of a reactive `lines` array still restarts the stream, matching the source's tracked index reads. The one remaining gap: a re-allocated array with equal content keeps the current stream running, where the Svelte side would restart it. Same trade-off as the React port.",
+			"`TerminalTextProps` holds the component's own props only and the SFC sets `inheritAttrs: false` with no `v-bind=\"attrs\"`, matching the Svelte source's closed prop list — native attributes and listeners are dropped rather than landing on the root div (package-wide rule; same observable outcome as Svelte here, which spreads nothing).",
+			"The stream is keyed on the CONTENT of `lines`, never on the array's identity. An inline `:lines=\"['a', 'b']\"` hands the component a freshly allocated array on every parent re-render; keying on identity would clear the pending timeouts, wipe the typed-out text and restart the whole animation each time. The source restarts only when a tracked value really changes, and an inline array literal in a Svelte template is not one. The array is serialised rather than joined, so `['ab']` and `['a', 'b']` — which stream differently — never collide on the same key. The one remaining gap: a re-allocated array with equal content keeps the current stream running, where the Svelte side would restart it. Same trade-off as the React port."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6796,7 +7147,7 @@
 		"sveltePath": "src/lib/fancy-ui/text-generate-effect",
 		"reactPath": "react/src/components/text-generate-effect",
 		"vuePath": "vue/src/components/text-generate-effect",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -6833,8 +7184,14 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Native DOM attributes and listeners are NOT forwarded: with `inheritAttrs: false` and no `v-bind=\"attrs\"`, anything not declared is dropped. This is exact parity with the Svelte source (it spreads no `restProps`) and with the React port, but it narrows the package-level bullet in vue/README.md that says undeclared native attributes flow through `$attrs` — for this component they go nowhere. Worth a README qualifier such as \"on components whose Svelte counterpart spreads `{...restProps}`\"; no code change.",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` rather than `string` — the existing package-level bullet already covers it; no component-specific wording needed.",
+			"Implementation note, not an API change: the per-span `style` is bound as a string, not an object, because Vue re-applies every key of an object style on each patch and would reset words the reveal had already shown. Consumers who read the style attribute see the identical value Svelte writes.",
+			"No other consumer-visible difference: props, defaults, prop names, the rendered two-div/span structure, the `&nbsp;` suffix and the Svelte README's props table all match 1:1. Nothing to add under \"Divergences from the Svelte API\" for this component.",
+			"Housekeeping (outside my folder, reporting only): leftover throwaway probes from earlier verifiers are still on disk and account for several of the tree-wide vue-tsc errors — vue/src/components/direction-aware-hover/__probe-style.test.ts, vue/src/components/fireworks-hdr/__probe_hydrate.test.ts, vue/src/components/link/__probe_ssr.test.ts."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6843,7 +7200,7 @@
 		"sveltePath": "src/lib/fancy-ui/text-reveal-card",
 		"reactPath": "react/src/components/text-reveal-card",
 		"vuePath": "vue/src/components/text-reveal-card",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -6883,8 +7240,17 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"TextRevealStars takes a new `seed?: number` prop (default 1). The Svelte source scatters the star field with `Math.random()` on the render path; the port derives the layout from a deterministic mulberry32 PRNG keyed on `seed`, so a server render and its hydration are identical. Same seed = same field; the generator and its call order are bit-identical to the React package's, so a given seed yields the same field in both ports. Matches react/README.md:337.",
+			"TextRevealCard takes a new `starsSeed?: number` prop, forwarded to the star field, so two cards on one page can be given different layouts. It has no default of its own, so an unset `starsSeed` inherits TextRevealStars' default seed of 1 — two cards with no seed share a layout. Matches react/README.md:336.",
+			"Snippets become slots: Svelte's `children` snippet is the default slot, `text` and `revealText` are named slots (`<template #text>` / `<template #revealText>`). Package-level convention.",
+			"Native attributes and listeners do not reach the root of either component (`inheritAttrs: false`, no `v-bind=\"attrs\"`). This matches the Svelte source exactly — neither Svelte component spreads restProps — so it is only the standing package-level divergence, not a component-specific one.",
+			"No styling divergence: `@keyframes star-drift` is published globally under its source name from a second, unscoped `<style>` block, and `.star-animate` stays scoped (PORTING.md Styling rule 3). Unlike the React port, no anchor class is invented — Vue's scoped compiler gives the guarantee Svelte's does. Nothing to record here.",
+			"TextRevealStars takes a new `seed?: number` prop (default 1). The Svelte source scatters the star field with `Math.random()` on the render path; the port derives the layout from a deterministic mulberry32 PRNG keyed on `seed`, so a server render and its hydration are identical. Same seed = same field; the generator's call order matches the Svelte one. Matches the React port.",
+			"TextRevealCard takes a new `starsSeed?: number` prop, forwarded to the star field, so two cards on one page can be given different layouts. Matches the React port.",
+			"No styling divergence: the `star-drift` keyframe is published globally under its source name, as in the Svelte and React packages (PORTING.md §Styling rule 3 second-unscoped-block pattern). Nothing for the registrar to record beyond the two seed bullets above."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -7170,7 +7536,7 @@
 		"sveltePath": "src/lib/fancy-ui/timeline",
 		"reactPath": "react/src/components/timeline",
 		"vuePath": "vue/src/components/timeline",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -7212,8 +7578,12 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"the `content` snippet is the named scoped slot `#content`, receiving one object prop `{ item }` instead of Svelte's positional `Snippet<[TimelineItem]>` argument — `<template #content=\"{ item }\">…</template>`. (Instance of the package-level snippet-argument bullet; the React port keeps it as a `content` render prop.)",
+			"`class` is a declared prop typed `HTMLAttributes[\"class\"]` (Svelte types it `string`), merged by `cn()` at the same single call site on the outer wrapper. (Package-level bullet.)",
+			"the Svelte source declares no rest props, so the Vue port carries `inheritAttrs: false` with no `v-bind=\"attrs\"` — native attributes put on `<Timeline>` are not forwarded to the root element, exactly as in Svelte. Confirmed: an SSR render with `id`/`data-x` emits neither."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -7282,7 +7652,7 @@
 		"sveltePath": "src/lib/fancy-ui/toggle",
 		"reactPath": "react/src/components/toggle",
 		"vuePath": "vue/src/components/toggle",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -7322,8 +7692,21 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`children` (Svelte `Snippet`) becomes the default slot: `<Toggle label=\"Bold\"><strong>B</strong></Toggle>`. No scoped parameters, so nothing else changes.",
+			"`pressed` is a Vue model: `v-model:pressed=\"bold\"` replaces `bind:pressed={bold}`. The Svelte name is kept and there is no `modelValue` alias. It is declared by `defineModel`, so it does not appear in the exported `ToggleProps` interface; passing `:pressed=\"true\"` with no listener still works and the component still drives itself (uncontrolled usage unchanged).",
+			"`ref` is not a prop. `bind:ref={el}` becomes a template ref on the component plus the exposed ref: `<Toggle ref=\"toggleRef\" />`, then `toggleRef.value?.ref` is the `HTMLButtonElement`. `ref` is a reserved vnode key in Vue, so `ToggleProps` carries no `ref` field.",
+			"`class` is typed `HTMLAttributes[\"class\"]` instead of Svelte's `string`. No change for a consumer passing a string; arrays and objects are additionally accepted.",
+			"Native attributes and listeners put on `<Toggle>` land nowhere — same as the Svelte component, which spreads no `{...restProps}`. `inheritAttrs: false` with no `v-bind=\"attrs\"` reproduces that exactly, so this is parity with the source rather than the package-level `$attrs` divergence.",
+			"`ToggleHarness.test.svelte` has no Vue counterpart file; its role is an inline `defineComponent` at Toggle.test.ts:15-29 per the PORTING.md test rules. Not exported, not consumer-visible.",
+			"Prop declaration order in `ToggleProps` differs from the Svelte interface (`disabled` first rather than `pressed`), a consequence of `pressed`/`ref`/`children` moving out of the interface. No runtime effect; it only affects docs-table ordering if that table is generated from the interface.",
+			"`pressed` is a Vue model: `v-model:pressed=\"bold\"` replaces `bind:pressed={bold}`. The name is kept and there is no `modelValue` alias. It is declared by `defineModel`, so it is absent from the exported `ToggleProps` interface; passing `:pressed=\"true\"` without `v-model` still works and the component still owns its own state (uncontrolled usage is unchanged).",
+			"`ref` is not a prop. `bind:ref={el}` becomes a template ref on the component plus the exposed `ref`: `<Toggle ref=\"toggleRef\" />`, then `toggleRef.value?.ref` is the `HTMLButtonElement`. `ref` is a reserved vnode key in Vue, so it cannot appear in `ToggleProps`.",
+			"`class` is typed `HTMLAttributes[\"class\"]` instead of `string`. No change for a consumer passing a string; arrays and objects are additionally accepted.",
+			"Native button attributes still do not fall through — same as the Svelte component, which has no `{...restProps}`. `inheritAttrs: false` with no `v-bind=\"attrs\"` reproduces that exactly, so this is parity rather than the package-level `$attrs` divergence.",
+			"`ToggleHarness.test.svelte` has no Vue counterpart file; its role is filled by an inline `defineComponent` in `Toggle.test.ts` per the PORTING.md test rules. Not exported, not consumer-visible."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -7332,7 +7715,7 @@
 		"sveltePath": "src/lib/fancy-ui/toggle-group",
 		"reactPath": "react/src/components/toggle-group",
 		"vuePath": "vue/src/components/toggle-group",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "compound",
@@ -7376,8 +7759,16 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Native attributes and listeners are not forwarded. Neither Svelte component spreads `{...restProps}`, so both SFCs carry `inheritAttrs: false` with no `v-bind=\"attrs\"`: anything beyond the declared props (an `id`, a `data-*`, an extra listener) is dropped rather than landing on the root. Same behaviour as the Svelte source; covered by the package-level `$attrs` note.",
+			"`value` is a model, not a prop: Svelte's `bind:value` becomes `v-model:value`, declared with `defineModel('value', { default: '' })` and therefore absent from the exported `ToggleGroupProps` interface. `onValueChange` is still called, after the model write, in Svelte's order.",
+			"`ref` is exposed on the instance instead of being a bindable prop: `defineExpose({ ref })` on the same `<div>` / `<button>` Svelte bound, read as `wrapper.vm.ref`, and absent from `ToggleGroupProps` / `ToggleGroupItemProps` (`ref` is a reserved vnode key).",
+			"The `children` snippet becomes the default slot on both components; `ToggleGroupItem`'s `label ?? value` text fallback is the slot's fallback content, so it shows only when no slot content is supplied.",
+			"The roving tab stop lands one microtask after mount rather than inside the mounting turn. Each item joins the roving order in `onMounted` — the only Vue phase carrying both halves of Svelte's `$effect` (never runs on the server, first client run lands after the DOM exists). The registry is therefore still empty while the tree first renders, so server and client agree on `tabindex=\"-1\"` for every item and the correct `0` is patched in on the next microtask: before paint, with no hydration mismatch. Only a synchronous assertion straight after `render()` can observe the gap, which is why four mount-time `tabindex` tests await one tick; nothing driven by an event needs it.",
+			"`TOGGLE_GROUP_KEY` changes shape. Svelte exports a bare `unique symbol` read with `getContext(TOGGLE_GROUP_KEY)`; the Vue package exports an `InternalContext<ToggleGroupContext>` object, so a hand-written item reads the group with `TOGGLE_GROUP_KEY.useOptional()` (and the raw `InjectionKey` stays available as `TOGGLE_GROUP_KEY.key`). The `ToggleGroupContext` interface itself is unchanged.",
+			"The roving tab stop lands one microtask after mount rather than in the mounting turn. Each item joins the roving order in `onMounted` — the only Vue phase carrying both halves of Svelte's `$effect` (never runs on the server, first client run lands after the DOM exists). The registry is therefore still empty while the tree first renders, so server and client agree on `tabindex=\"-1\"` for every item and the correct `0` is patched in on the next microtask: before paint, with no hydration mismatch, exactly as Svelte's post-hydration effect flush behaves. Only a synchronous assertion straight after `render()` can observe the gap, which is why four mount-time `tabindex` tests await one tick (`settleRovingOrder()`); nothing driven by an event needs it."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -7386,7 +7777,7 @@
 		"sveltePath": "src/lib/fancy-ui/tool-call",
 		"reactPath": "react/src/components/tool-call",
 		"vuePath": "vue/src/components/tool-call",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "headless",
@@ -7428,8 +7819,19 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"`input`, `output` and `icon` are slots rather than snippet props. `input` and `output` are scoped slots: the snippet's single tuple parameter arrives as a named object prop — `<template #input=\"{ value }\">` / `<template #output=\"{ value }\">`.",
+			"`open` is two-way through `v-model:open` instead of `bind:open`; the Svelte name is kept and there is no `modelValue` alias. `onToggle` stays a callback prop and is also reachable as `@toggle`.",
+			"`ref` is not a prop: the root `HTMLDivElement` is exposed on the component instance as `ref` (template ref on `<ToolCall>`, then `.ref`) instead of Svelte's bindable `ref` prop.",
+			"Native attributes and listeners are NOT forwarded to the root element (`inheritAttrs: false`, no `v-bind=\"$attrs\"`). This matches the Svelte source, which declares no rest spread and forwards nothing either — parity, not a new restriction.",
+			"Slot presence (`input`/`output` provided or not) is read non-reactively off `useSlots()`, so a slot added or removed by a parent `v-if` after mount will not re-evaluate the `hasRequest`/`hasOutput` gates. In Svelte those are reactive prop reads. Edge case only.",
+			"Generated ids read `v-0-header`, `v-0-body`, … (`useFancyId()` wrapping Vue's `useId()`), not the Svelte `$props.id()` shape. Package-level convention; nothing may depend on the shape.",
+			"The auto-open for a failure is keyed on the `call.status` VALUE (`onMounted` + `watch(() => call.status, …, { flush: 'post' })`), not on the `call` object identity. Handing the card a fresh `call` object whose status is still `\"error\"` does not re-fire the auto-open, where Svelte's prop-identity tracking would re-run its `$effect`. Same behaviour as the React port. Observable only when a consumer drives `open` from outside AND re-creates the `call` object.",
+			"MINOR (cosmetic, no visual effect): Vue's whitespace condensing leaves a space either side of two multi-line text nodes — the \"Request\" section label and the \"Nothing recorded yet.\" placeholder render as `> Request <` / `> Nothing recorded yet. <` where Svelte emits them tight. HTML collapses the whitespace; textContent differs by the surrounding spaces.",
+			"`input`, `output` and `icon` are slots rather than snippet props. `input` and `output` are scoped slots: the snippet's single tuple parameter arrives as a named object prop, `<template #input=\"{ value }\">` / `<template #output=\"{ value }\">`.",
+			"The source's mount-time `$effect` is reproduced as `onMounted(openOnFailure)` alongside the `flush: 'post'` watcher on `call.status` (a watcher cannot carry `immediate: true` here: it would run in SSR setup and write `open` / fire `onToggle` on the server). Behaviour is identical to Svelte; the auto-open for an already-failed call therefore lands after hydration when `open` is bound from outside, exactly as in the source."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -7547,7 +7949,7 @@
 		"sveltePath": "src/lib/fancy-ui/tracing-beam",
 		"reactPath": "react/src/components/tracing-beam",
 		"vuePath": "vue/src/components/tracing-beam",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "motion",
@@ -7585,8 +7987,10 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Multiple TracingBeam instances on one page share the literal gradient id 'tracing-beam-gradient', so the second instance's beam is driven by the first instance's spring values — this reproduces the Svelte source's own bug rather than the React port's per-instance useFancyId fix, per the porting law to preserve Svelte behavior and note it rather than silently diverge."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -7595,7 +7999,7 @@
 		"sveltePath": "src/lib/fancy-ui/typing-indicator",
 		"reactPath": "react/src/components/typing-indicator",
 		"vuePath": "vue/src/components/typing-indicator",
-		"status": "pending",
+		"status": "ported",
 		"wave": "A",
 		"tier": 1,
 		"group": "trivial",
@@ -7632,8 +8036,11 @@
 		"usesTick": false,
 		"styleHazard": null,
 		"sharedCores": [],
-		"attempts": 0,
-		"divergences": [],
+		"attempts": 1,
+		"divergences": [
+			"Native attrs/listeners flow through $attrs (package-level divergence, not component-specific).",
+			"No bindables other than `ref`; component is otherwise API-identical to the Svelte version."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
