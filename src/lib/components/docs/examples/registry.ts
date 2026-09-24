@@ -180,9 +180,23 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	],
 	"glow-border": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "CustomColors", title: "Custom Colors", description: "Change glow colors." },
+		{
+			name: "Presets",
+			title: "Presets",
+			description: "Iridescent chrome, cool steel or warm gold.",
+		},
+		{
+			name: "Strength",
+			title: "Strength",
+			description: "How bright the glint and its glow are.",
+		},
+		{
+			name: "CustomColors",
+			title: "Custom Colors",
+			description: "One colour tints the metal's reflections.",
+		},
 		{ name: "MultiColorGradient", title: "Multi-Color Gradient" },
-		{ name: "BorderWidth", title: "Border Width", description: "Adjust glow thickness." },
+		{ name: "BorderWidth", title: "Border Width", description: "Adjust the ring's thickness." },
 		{ name: "CardExample", title: "Card Example" },
 	],
 	"neon-border": [
