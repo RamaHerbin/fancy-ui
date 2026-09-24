@@ -814,7 +814,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"shimmer-button": {
 		name: "ShimmerButton",
 		slug: "shimmer-button",
-		description: "Button with a rotating conic-gradient shimmer border effect",
+		description:
+			"Pill button with a satin sheen: a soft band of light sweeps across the face and lifts the label, then rests; on hover the highlight follows the pointer",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -825,13 +826,13 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "shimmerColor",
 				type: "string",
 				default: '"#ffffff"',
-				description: "Shimmer highlight color",
+				description: "Colour of the sheen, rim and hover highlight",
 			},
 			{
 				name: "shimmerSize",
 				type: "string",
 				default: '"0.05em"',
-				description: "Thickness of the shimmer border",
+				description: "Thickness of the rim that catches the sheen",
 			},
 			{
 				name: "borderRadius",
@@ -843,7 +844,7 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "shimmerDuration",
 				type: "string",
 				default: '"3s"',
-				description: "Duration of the shimmer animation cycle",
+				description: "Duration of one sheen cycle: the sweep, then a pause",
 			},
 			{
 				name: "background",
