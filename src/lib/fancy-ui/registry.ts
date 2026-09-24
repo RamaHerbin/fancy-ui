@@ -758,12 +758,13 @@ export const registry: Record<string, ComponentMeta> = {
 	"rainbow-button": {
 		name: "RainbowButton",
 		slug: "rainbow-button",
-		description: "Animated button with a rainbow gradient border effect",
+		description:
+			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/rainbow-button" }],
-		tags: ["button", "animation", "rainbow", "gradient", "cta"],
+		tags: ["button", "animation", "rainbow", "gradient", "cta", "beam", "hover", "glow"],
 		props: [
 			{ name: "speed", type: "number", default: "2", description: "Animation speed in seconds" },
 			{ name: "href", type: "string", description: "Render as anchor element when provided" },
