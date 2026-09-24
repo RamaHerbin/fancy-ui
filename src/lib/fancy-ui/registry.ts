@@ -2035,11 +2035,12 @@ export const registry: Record<string, ComponentMeta> = {
 	"flip-card": {
 		name: "FlipCard",
 		slug: "flip-card",
-		description: "Card that flips to reveal back content on hover using CSS 3D transforms",
+		description:
+			"Card that flips in 3D to reveal its back, on hover (plus focus and tap) or as a click toggle; it lifts and lands with a slight overshoot, keeps turning the way the pointer travels, and its faces catch a sweeping sheen and shade edge-on",
 		category: "cards",
 		group: "fancy",
 		status: "done",
-		tags: ["card", "flip", "3d", "hover", "animation", "interactive"],
+		tags: ["card", "flip", "3d", "hover", "click", "toggle", "animation", "interactive"],
 		props: [
 			{
 				name: "rotate",
@@ -2047,10 +2048,46 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"y"',
 				description: "Axis of rotation for the flip effect",
 			},
+			{
+				name: "trigger",
+				type: '"hover" | "click"',
+				default: '"hover"',
+				description:
+					"Hover flips on pointer hover, keyboard focus and tap; click makes the card a toggle button (click, tap, Enter, Space)",
+			},
+			{
+				name: "flipped",
+				type: "boolean",
+				default: "false",
+				description: "Whether the back is showing. Bindable",
+			},
+			{
+				name: "onflip",
+				type: "(flipped: boolean) => void",
+				description: "Called with the new state after every flip",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "700",
+				description: "Length of one flip in milliseconds",
+			},
+			{
+				name: "glare",
+				type: "boolean",
+				default: "true",
+				description: "Light the faces as they turn: a sweeping sheen and an edge-on shade",
+			},
+			{ name: "label", type: "string", description: "Accessible name for the card" },
+			{
+				name: "class",
+				type: "string",
+				description: "Additional classes; size the card here (default h-72 w-56)",
+			},
 		],
 		slots: [
 			{ name: "children", description: "Front face content" },
-			{ name: "back", description: "Back face content revealed on hover" },
+			{ name: "back", description: "Back face content" },
 		],
 	},
 
