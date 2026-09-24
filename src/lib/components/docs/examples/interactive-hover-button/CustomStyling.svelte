@@ -6,11 +6,11 @@
 	<InteractiveHoverButton
 		sound
 		text="Danger"
-		class="border-red-500/30 [&_div>.size-2]:bg-red-500 [&>div:last-child]:text-white"
+		class="border-red-500/30 [--ihb-fill-foreground:#fff] [--ihb-fill:#ef4444]"
 	/>
 	<InteractiveHoverButton
 		sound
 		text="Success"
-		class="border-green-500/30 [&_div>.size-2]:bg-green-500 [&>div:last-child]:text-white"
+		class="border-green-500/30 [--ihb-fill-foreground:#fff] [--ihb-fill:#22c55e]"
 	/>
 </div>

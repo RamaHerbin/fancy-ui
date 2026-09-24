@@ -1313,7 +1313,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"interactive-hover-button": {
 		name: "InteractiveHoverButton",
 		slug: "interactive-hover-button",
-		description: "Button with interactive hover effect revealing alternate content",
+		description:
+			"Button whose dot opens into a circle that fills it on hover, while the label rolls up and out and returns with an arrow",
 		category: "buttons",
 		group: "fancy",
 		status: "done",

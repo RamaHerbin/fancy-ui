@@ -1,6 +1,6 @@
 # InteractiveHoverButton
 
-Button with a hover animation: text slides out to the right while an arrow and duplicate text slide in from the right. A small `bg-primary` dot scales up to fill the button background.
+Button with a hover animation. A small dot beside the label opens into a circle that fills the button; the resting label rolls up and out with a slight blur, and the hover label rolls up into place with an arrow a beat behind it. Keyboard focus plays the same animation.
 
 ## Props
 
@@ -15,23 +15,29 @@ Also accepts all standard `<button>` attributes via `...restProps`.
 
 ## Animation details
 
-All animations are pure CSS via Tailwind `group-hover` utilities, no JS required:
+Pure CSS, in the component's `<style>` block (no JS):
 
-- **Dot**: `scale-1` -> `scale-[100.8]` fills the button background with `bg-primary`
-- **Initial text**: slides right (`translate-x-12`) and fades out (`opacity-0`)
-- **Hover text + arrow**: slides in from right (`-translate-x-5`) and fades in (`opacity-100`)
-- All transitions use `duration-300`
+- **Dot and fill** are one layer, `.ihb-fill`: a full-size background in `--ihb-fill`, clipped to `circle(4px at var(--ihb-dot-x) 50%)`. On hover or `:focus-visible` the circle opens to `circle(150% …)` over 600 ms, so the dot itself becomes the fill and stays crisp at every size.
+- **Resting label** (`.ihb-rest`, with an 8 px `.ihb-dot-space` for the dot) rolls up to `translateY(-70%)` with a 4 px blur and fades out.
+- **Hover label** (`.ihb-hover`, `aria-hidden`) rolls up from `translateY(70%)` 60 ms later, in `--ihb-fill-foreground`; its **arrow** slides in from the left 160 ms after the fill starts.
+- One easing throughout, `cubic-bezier(0.22, 1, 0.36, 1)` (a quick start, a long soft landing). The delays apply only on the way in, so leaving reverses at once. Pressing scales the button to 0.97.
+
+## Colours
+
+The fill defaults to the theme's primary colour (`--primary`, then `--color-primary`) and the hover label to its foreground. Override both from `class`:
+
+```svelte
+<InteractiveHoverButton text="Delete" class="[--ihb-fill-foreground:#fff] [--ihb-fill:#ef4444]" />
+```
 
 ## Motion
 
-- **Reduced motion.** Every `transition-*` utility is prefixed
-  `motion-safe:`, which Tailwind compiles to
-  `@media (prefers-reduced-motion: no-preference)`. The `group-hover:`
-  transforms are deliberately left unprefixed: a visitor who asked for less
-  motion still gets the whole hover state — the dot fills the button, the
-  label swaps for the arrow — it simply arrives instead of travelling.
-  Gating the transforms too would leave the button looking broken on hover
-  rather than calm.
+- **Reduced motion.** Every transition sits inside
+  `@media (prefers-reduced-motion: no-preference)`. The hover state itself is
+  not gated: a visitor who asked for less motion still gets it — the button
+  fills, the label swaps for the arrow — it simply arrives instead of
+  travelling. Gating the state too would leave the button looking broken on
+  hover rather than calm.
 - **Touch and coarse pointers.** The effect is `:hover`-driven and purely
   decorative: the button's label is present and readable in both states, so
   a device that never fires hover loses nothing but the animation.
@@ -50,4 +56,4 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set on 
 
 - Direct port, no structural changes needed
 - Inline SVG arrow (no Lucide dependency)
-- Uses theme tokens: `bg-background`, `bg-primary`, `text-primary-foreground`
+- Uses theme tokens: `bg-background` for the face, `--primary` / `--primary-foreground` for the fill and hover label
