@@ -310,6 +310,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"flip-card": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "XAxisRotation", title: "X-Axis Rotation", description: "Flip vertically." },
+		{
+			name: "ClickToFlip",
+			title: "Click to Flip",
+			description:
+				"A toggle: click, tap, Enter or Space. The link on the back stays clickable, and bind:flipped drives it from outside.",
+		},
 		{ name: "MultipleCards", title: "Multiple Cards" },
 	],
 	book: [
