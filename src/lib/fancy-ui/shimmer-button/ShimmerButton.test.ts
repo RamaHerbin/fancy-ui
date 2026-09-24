@@ -1,5 +1,6 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { createRawSnippet } from "svelte";
 import ShimmerButton from "./ShimmerButton.svelte";
 import { sound } from "../sound/sound.svelte.js";
 
@@ -57,18 +58,32 @@ describe("ShimmerButton", () => {
 		expect(button.className).toContain("overflow-hidden");
 	});
 
-	it("contains shimmer layer div", () => {
+	it("renders the rim, face, sheen and hover spot layers, hidden from assistive tech", () => {
 		render(ShimmerButton);
 		const button = screen.getByRole("button");
-		const shimmerLayer = button.querySelector(".shimmer-slide");
-		expect(shimmerLayer).toBeInTheDocument();
+		for (const cls of ["rim", "face", "sheen", "spot"]) {
+			const layer = button.querySelector(`.shimmer-button__${cls}`);
+			expect(layer).toBeInTheDocument();
+			expect(layer).toHaveAttribute("aria-hidden", "true");
+		}
 	});
 
-	it("contains spin-around element", () => {
-		render(ShimmerButton);
+	it("keeps the label as the accessible name", () => {
+		render(ShimmerButton, {
+			props: { children: createRawSnippet(() => ({ render: () => "<span>Save</span>" })) },
+		});
+		expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+	});
+
+	it("tracks the pointer for the hover sheen and forwards a consumer onpointermove", async () => {
+		const onpointermove = vi.fn();
+		render(ShimmerButton, { props: { onpointermove } });
 		const button = screen.getByRole("button");
-		const spinAround = button.querySelector(".spin-around");
-		expect(spinAround).toBeInTheDocument();
+		button.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 40 }) as DOMRect;
+		await fireEvent.pointerMove(button, { clientX: 40, clientY: 35 });
+		expect(button.style.getPropertyValue("--mx")).toBe("30px");
+		expect(button.style.getPropertyValue("--my")).toBe("15px");
+		expect(onpointermove).toHaveBeenCalledTimes(1);
 	});
 
 	it("forwards native button attributes", () => {
