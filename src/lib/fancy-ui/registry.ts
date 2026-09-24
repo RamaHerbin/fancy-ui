@@ -7955,7 +7955,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "Pagination",
 		slug: "pagination",
 		description:
-			"A page-number control with Previous/Next, ellipsis collapsing for long runs, and optional First/Last jump buttons.",
+			"A page-number control with Previous/Next, ellipsis collapsing for long runs, and optional First/Last jump buttons; the current-page pill slides between numbers and the numbers glide when the visible run shifts.",
 		category: "navigation",
 		group: "core",
 		status: "done",
