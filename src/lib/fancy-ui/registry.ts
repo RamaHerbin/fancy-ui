@@ -1448,6 +1448,139 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"datamosh-transition": {
+		name: "DatamoshTransition",
+		slug: "datamosh-transition",
+		description:
+			"Page-transition overlay that looks like a corrupted video decode: a fixed grid of columns, narrow on the left and wide on the right, fills with flat blocks of saturated colour that fall, snap open through the middle of the frame and squeeze shut again; cover() drops the columns over the page right to left and reveal() lets them fall away, both as promises for any router's navigation hook",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"page transition",
+			"route",
+			"navigation",
+			"overlay",
+			"canvas",
+			"datamosh",
+			"glitch",
+			"columns",
+		],
+		props: [
+			{
+				name: "colors",
+				type: '"broadcast" | "sunset" | "thermal" | "mono" | "acid" | string[]',
+				default: '"broadcast"',
+				description:
+					"Palette preset or colour list, hex or rgb(); the lightest and darkest colours recur most often",
+			},
+			{
+				name: "variant",
+				type: '"curtain" | "rise" | "split" | "interlace"',
+				default: '"curtain"',
+				description:
+					"Shape of the cover: drop from the top, climb from the bottom, open from the centre line, or alternate curtain and rise per column",
+			},
+			{
+				name: "sweep",
+				type: '"right" | "left" | "center" | "edges" | "random"',
+				default: '"right"',
+				description:
+					"Order the columns move in: from the right, from the left, out from the middle, in from both sides, or a seeded shuffle",
+			},
+			{
+				name: "source",
+				type: "string | HTMLImageElement | HTMLCanvasElement",
+				description:
+					"Picture to decode: tiles take their colours from it, auto-levelled and saturated, instead of the palette; URLs must be same-origin or CORS-enabled",
+			},
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description: "Seed for the colour order; same seed, same strip",
+			},
+			{
+				name: "columns",
+				type: "number",
+				default: "11",
+				description: "Number of columns",
+			},
+			{
+				name: "power",
+				type: "number",
+				default: "1.65",
+				description:
+					"Column edge exponent: 1 is a uniform grid, higher widens the columns to the right",
+			},
+			{
+				name: "tiles",
+				type: "number",
+				default: "15",
+				description: "Tiles per column stack, forced odd so one tile takes the centre",
+			},
+			{
+				name: "coverDuration",
+				type: "number",
+				default: "380",
+				description: "Time for one column to cover, in ms",
+			},
+			{
+				name: "revealDuration",
+				type: "number",
+				default: "480",
+				description: "Time for one column to clear, in ms",
+			},
+			{
+				name: "stagger",
+				type: "number",
+				default: "28",
+				description: "Delay between neighbouring columns in ms, rightmost first",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1",
+				description: "Speed of the falling tiles",
+			},
+			{
+				name: "contained",
+				type: "boolean",
+				default: "false",
+				description: "Fill the positioned parent instead of the viewport",
+			},
+			{
+				name: "zIndex",
+				type: "number",
+				default: "9999",
+				description: "Stacking order of the overlay",
+			},
+			{
+				name: "phase",
+				type: '"idle" | "covering" | "covered" | "revealing"',
+				default: '"idle"',
+				description: "Current phase; bindable, read-only",
+			},
+			{
+				name: "oncovered",
+				type: "() => void",
+				description: "Called once the page is fully covered",
+			},
+			{
+				name: "onrevealed",
+				type: "() => void",
+				description: "Called once the page is fully revealed",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable overlay element",
+			},
+			{ name: "class", type: "string", description: "Additional classes on the overlay" },
+		],
+	},
+
 	"mosaic-glow": {
 		name: "MosaicGlow",
 		slug: "mosaic-glow",

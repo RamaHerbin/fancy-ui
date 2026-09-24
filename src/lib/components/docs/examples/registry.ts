@@ -252,6 +252,20 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "CustomColor", title: "Custom Color" },
 		{ name: "AnimationSpeed", title: "Animation Speed" },
 	],
+	"datamosh-transition": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Variants",
+			title: "Variants",
+			description: "Every cover shape, column sweep and palette preset.",
+		},
+		{
+			name: "Sunset",
+			title: "Sunset",
+			description:
+				"A vector trace of a sunset photo that sets into dusk. With the picture source on, the tiles decode the scene being left.",
+		},
+	],
 	"mosaic-glow": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{
