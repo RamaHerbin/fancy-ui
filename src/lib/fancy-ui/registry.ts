@@ -1227,34 +1227,54 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "GlowBorder",
 		slug: "glow-border",
 		description:
-			"Glowing ring that animates around a container's edge by sweeping a radial gradient's position, masked with CSS mask-composite so only the border ring is painted, supporting single or multi-color gradients",
+			"Liquid-metal ring for a container's edge: two metallic conic fields turning against each other make iridescent reflections flow along a dark chrome border, while a glint rides around it and spills a soft glow; chromatic, silver and gold presets or custom tints",
 		category: "effects",
 		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/background-gradient" },
+			{ source: "metal-fx", url: "https://github.com/Jakubantalik/metal-fx" },
 		],
-		tags: ["border", "glow", "animation", "gradient", "decoration"],
+		tags: ["border", "glow", "animation", "gradient", "decoration", "metal", "chrome", "beam"],
 		props: [
 			{
-				name: "borderRadius",
-				type: "number",
-				default: "10",
-				description: "Border radius in pixels",
+				name: "preset",
+				type: '"chromatic" | "silver" | "gold"',
+				default: '"chromatic"',
+				description: "Metal palette: iridescent chrome, cool steel or warm gold",
 			},
 			{
 				name: "color",
 				type: "string | string[]",
-				default: '"#FFF"',
-				description: "Glow color or array of colors for gradient",
+				description:
+					"Custom tints for the metal's reflections, woven with neutral metal tones; overrides preset",
 			},
-			{ name: "borderWidth", type: "number", default: "2", description: "Border width in pixels" },
+			{
+				name: "strength",
+				type: "number",
+				default: "0.8",
+				description: "Intensity of the glint and its glow, 0 to 1",
+			},
+			{
+				name: "borderRadius",
+				type: "number",
+				default: "10",
+				description: "Border radius in pixels; the ring also inherits its parent's radius",
+			},
+			{
+				name: "borderWidth",
+				type: "number",
+				default: "1.5",
+				description: "Width of the metal ring in pixels",
+			},
 			{
 				name: "duration",
 				type: "number",
 				default: "10",
-				description: "Animation duration in seconds",
+				description:
+					"Length of one flow cycle of the metal in seconds; the glint laps in 0.4x that",
 			},
+			{ name: "class", type: "string", description: "Additional classes on the overlay" },
 		],
 	},
 
