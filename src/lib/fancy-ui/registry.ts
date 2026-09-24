@@ -781,7 +781,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "RippleButton",
 		slug: "ripple-button",
 		description:
-			"Button that spawns an expanding, fading ripple circle centered on the click point, with configurable color and duration",
+			"Button that answers each click with a ripple of light from the click point, a soft glow and two fine rings spreading out like a wave; on hover a glow follows the pointer with a faint ring pulsing from it",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -791,13 +791,13 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "rippleColor",
 				type: "string",
-				default: '"#ADD8E6"',
-				description: "Color of the ripple effect",
+				default: '"#60a5fa"',
+				description: "Colour of the ripple: its glow, its rings and the border tint",
 			},
 			{
 				name: "duration",
 				type: "number",
-				default: "600",
+				default: "900",
 				description: "Animation duration in milliseconds",
 			},
 			{
