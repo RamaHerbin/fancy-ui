@@ -1259,46 +1259,51 @@ export const registry: Record<string, ComponentMeta> = {
 	"gradient-button": {
 		name: "GradientButton",
 		slug: "gradient-button",
-		description: "Button with a rotating conic-gradient rainbow border effect",
+		description:
+			"Dark button with a beam of light that travels around its border and casts a soft coloured glow inside the face; the glow brightens on hover",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/buttons/gradient-button" },
 		],
-		tags: ["button", "gradient", "animation", "rainbow", "border", "cta"],
+		tags: ["button", "gradient", "animation", "rainbow", "border", "beam", "glow", "cta"],
 		props: [
 			{
 				name: "colors",
 				type: "string[]",
-				default:
-					'["#FF0000","#FFA500","#FFFF00","#008000","#0000FF","#4B0082","#EE82EE","#FF0000"]',
-				description: "Gradient colors for the conic-gradient border",
+				default: '["#34d399","#22d3ee","#6366f1","#d946ef","#f43f5e","#f59e0b"]',
+				description: "Colours of the beam, spread along its arc",
 			},
 			{
 				name: "duration",
 				type: "number",
-				default: "2500",
-				description: "Animation duration in milliseconds",
+				default: "3000",
+				description: "Time for the beam to travel once around the button, in milliseconds",
 			},
-			{ name: "borderWidth", type: "number", default: "2", description: "Border width in pixels" },
+			{
+				name: "borderWidth",
+				type: "number",
+				default: "1.5",
+				description: "Width of the lit border in pixels",
+			},
 			{
 				name: "borderRadius",
 				type: "number",
-				default: "8",
+				default: "12",
 				description: "Border radius in pixels",
 			},
 			{
 				name: "blur",
 				type: "number",
 				default: "4",
-				description: "Blur amount for the gradient in pixels",
+				description: "Softness of the glow the beam casts inside the button, in pixels",
 			},
 			{
 				name: "bgColor",
 				type: "string",
-				default: '"#000"',
-				description: "Background color of the button content area",
+				default: '"#161616"',
+				description: "Background color of the button face",
 			},
 			{
 				name: "sound",
