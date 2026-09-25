@@ -393,6 +393,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Custom Content",
 			description: "Use snippets instead of images.",
 		},
+		{
+			name: "BeamColors",
+			title: "Beam Colors",
+			description: "Tint the seam with your own colours.",
+		},
 	],
 	"fluid-cursor": [
 		{ name: "BasicUsage", title: "Basic Usage" },

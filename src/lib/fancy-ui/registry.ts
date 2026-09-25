@@ -401,7 +401,8 @@ export const registry: Record<string, ComponentMeta> = {
 	compare: {
 		name: "Compare",
 		slug: "compare",
-		description: "Before/after image comparison slider with hover and drag modes",
+		description:
+			"Before/after image comparison slider split by a blade of light: a white-hot seam with a chromatic fringe, pulses running along it and a trail that stretches with the speed of the gesture",
 		category: "media",
 		group: "fancy",
 		status: "done",
@@ -473,6 +474,18 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "5000",
 				description: "Duration of one autoplay cycle in ms",
+			},
+			{
+				name: "beamColors",
+				type: "string[]",
+				default: '["#22d3ee", "#818cf8", "#f472b6"]',
+				description: "Beam colours: left fringe, centre, right fringe (one or more colours)",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Comparison slider"',
+				description: "Accessible name of the slider",
 			},
 		],
 		slots: [
