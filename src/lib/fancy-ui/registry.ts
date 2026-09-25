@@ -1718,7 +1718,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"neon-border": {
 		name: "NeonBorder",
 		slug: "neon-border",
-		description: "Dual-color neon glow border effect with optional rotation animation",
+		description:
+			"Two-colour neon tube around its content: two beams with white-hot cores chase each other along a faint tube, their glow spilling inside and outside the edge, humming slowly after a flicker on ignition",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -1733,13 +1734,14 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "animationType",
 				type: '"none" | "half" | "full"',
 				default: '"half"',
-				description: "Animation type: none (static), half (50% coverage), full (100% coverage)",
+				description:
+					"How much of the tube is lit: none (two lit corners, static), half (two short beams chasing), full (two long beams that nearly close the ring)",
 			},
 			{
 				name: "duration",
 				type: "number",
 				default: "6",
-				description: "Animation duration in seconds",
+				description: "Time for the beams to travel once around, in seconds",
 			},
 		],
 		slots: [
