@@ -65,7 +65,7 @@ Set `sound` to play the `select` cue whenever any control actually moves the pag
 <Pagination bind:page count={12} sound />
 ```
 
-It is opt-in and silent by default: nothing plays unless both `sound` is set on `Pagination` **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue lives inside `goTo()`, the single funnel every control — First, Previous, a page number, Next, Last — calls through, after both of its existing early-returns: `disabled` blocks the cue exactly like it blocks the page change, and landing on the already-current page (clicking the current pill, or Previous on page 1) plays nothing either, the same boundary check that already no-ops the change itself. The pop animation on the newly-current pill is armed off the page value alone and stays silent regardless of `sound` — a controlled `Pagination` whose `page` prop is changed from outside never plays a cue, since it never calls `goTo`.
+It is opt-in and silent by default: nothing plays unless both `sound` is set on `Pagination` **and** the user has turned sound on globally (through `SoundToggle` or `sound.enable()`). The cue lives inside `goTo()`, the single funnel every control — First, Previous, a page number, Next, Last — calls through, after both of its existing early-returns: `disabled` blocks the cue exactly like it blocks the page change, and landing on the already-current page (clicking the current pill, or Previous on page 1) plays nothing either, the same boundary check that already no-ops the change itself. The pill's slide to the newly-current page is armed off the page value alone and stays silent regardless of `sound` — a controlled `Pagination` whose `page` prop is changed from outside never plays a cue, since it never calls `goTo`.
 
 ## Theming
 
@@ -96,32 +96,42 @@ the shared `--ft-accent` further up — `--ft-nav-accent` falls back to it, and
 this component never redeclares `--ft-accent` itself, so a value set on an
 ancestor keeps flowing through untouched.
 
-One optional variable tunes the motion. It falls back to the library-wide
-token, which falls back to a literal, so leaving it unset is the supported
+Two optional variables tune the pill. Each falls back to a library-wide
+token, which falls back to a literal, so leaving them unset is the supported
 default:
 
-| Variable                       | Default                          | What it controls                   |
-| ------------------------------ | -------------------------------- | ---------------------------------- |
-| `--ft-pagination-pop-duration` | `var(--ft-duration-fast, 150ms)` | How long the active-page pop lasts |
+| Variable                          | Default                          | What it controls                                                                                        |
+| --------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `--ft-pagination-slide-duration`  | `var(--ft-duration-base, 300ms)` | How long the pill takes to slide to the new page (the older `--ft-pagination-pop-duration` still works) |
+| `--ft-pagination-indicator-color` | `var(--color-accent)`            | The pill's fill                                                                                         |
 
 ## Motion
 
-- When the page changes, the newly-current pill pops once from `scale(0.92)`
-  to full size over 150 ms, so the eye can find where it landed instead of
-  hunting for a colour change among a row of identical squares.
-- The pop is **armed**: it never fires on first paint, only once the page has
-  really moved. A page arriving already-current is not an event, and
-  animating it would read as a glitch on load. Arming follows the page
-  itself, so a controlled `Pagination` whose `page` prop changes from outside
-  pops exactly like a clicked one.
-- Only `transform` animates. The focus ring on those same buttons is painted
-  with `box-shadow` and is deliberately left out of every animation.
-- **Reduced motion.** The keyframe is declared inside
-  `@media (prefers-reduced-motion: no-preference)`. Without that preference
-  the pill simply changes place — the colour and `aria-current` change
-  exactly as before.
-- **Touch and coarse pointers.** The pop follows the page, never the pointer,
-  so a coarse pointer needs no special handling.
+- When the page changes, the current-page pill **slides** from the old
+  number to the new one (`transform` only, 300 ms, the library's `out`
+  curve). It is one `aria-hidden` element under the numbers, measured onto
+  the current button.
+- When the run of numbers itself shifts — a jump opens a new window, an
+  ellipsis moves — the numbers glide to their new places with
+  `animate:flip` on the same duration and curve, and numbers that just
+  appeared fade in a beat later. The pill lands on its number as the
+  number lands.
+- The slide is **armed**: it never plays on first paint, only once the page
+  has really moved (`data-armed`). Arming follows the page itself, so a
+  controlled `Pagination` whose `page` prop changes from outside slides
+  exactly like a clicked one. Resizes re-place the pill without a slide.
+- The pill is an enhancement, not the signal: the current button keeps
+  `aria-current="page"` and its own `bg-accent`, which is only hidden once
+  the pill has actually been measured and placed (`data-indicator`). A
+  render without JS or without layout still shows the current page.
+- The focus ring on the buttons is painted with `box-shadow` and is left out
+  of every animation.
+- **Reduced motion.** The slide transition is declared inside
+  `@media (prefers-reduced-motion: no-preference)` and the flip duration
+  drops to 0: the pill and the numbers still follow the page, they just
+  arrive.
+- **Touch and coarse pointers.** The motion follows the page, never the
+  pointer, so a coarse pointer needs no special handling.
 
 ## Implementation Notes
 

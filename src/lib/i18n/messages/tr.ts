@@ -54,6 +54,10 @@ export default {
 	"table.default": "Varsayılan",
 	"table.description": "Açıklama",
 	"table.slot": "Slot",
+	"table.event": "Olay",
+	"table.payload": "Veri",
+	"comp.events": "Olaylar",
+	"comp.copyMarkdown": "Markdown olarak kopyala",
 
 	// Copy buttons
 	"action.copy": "Kopyala",
@@ -314,6 +318,7 @@ export default {
 	"skin.standard": "Standart",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "Beta",
 	"a11y.changeSkin": "Görünümü değiştir",
 	"a11y.sound": "Ses",
 	"retro.explorer": "Gezgin",

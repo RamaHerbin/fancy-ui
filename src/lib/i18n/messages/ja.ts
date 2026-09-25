@@ -54,6 +54,10 @@ export default {
 	"table.default": "デフォルト",
 	"table.description": "説明",
 	"table.slot": "スロット",
+	"table.event": "イベント",
+	"table.payload": "ペイロード",
+	"comp.events": "イベント",
+	"comp.copyMarkdown": "Markdown としてコピー",
 
 	// Copy buttons
 	"action.copy": "コピー",
@@ -314,6 +318,7 @@ export default {
 	"skin.standard": "スタンダード",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "ベータ",
 	"a11y.changeSkin": "スキンを変更",
 	"a11y.sound": "サウンド",
 	"retro.explorer": "エクスプローラー",

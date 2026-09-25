@@ -279,10 +279,18 @@
 			light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
 		);
 		/* 150ms = tokens.DURATIONS.fast, cubic-bezier(0.4, 0, 0.2, 1) =
-		   tokens.EASINGS.inout — the reversible-state pair, because a press
-		   resolves either way (released, or the interaction carries on). */
+		   tokens.EASINGS.inout — the reversible-state pair. It runs the colour
+		   channel, and the release half of the press: letting go settles, it
+		   does not snap back. */
 		--ft-btn-motion: var(--ft-duration-fast, 150ms)
 			var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+		/* The down-stroke only. 150ms = tokens.DURATIONS.fast,
+		   cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out — the arrival
+		   curve, which spends most of the scale in the first frames. Same clock
+		   as the release, but the button is already down by the time the eye
+		   reads it, so the press bites instead of easing in. Pressing is an
+		   arrival; releasing is what resolves either way. */
+		--ft-btn-press: var(--ft-duration-fast, 150ms) var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 		/*
 		 * Replaces the `transition-colors` utility removed from the class string
 		 * above, at exactly the values that utility already resolved to. Colour is
@@ -315,6 +323,10 @@
 	 * channel under `no-preference` and nowhere else, so with motion reduced the
 	 * colours still cross and the button simply does not move. The resting state
 	 * (no `transform` at all) is the ungated fallback.
+	 *
+	 * The two strokes are timed apart. The rule below carries the release curve,
+	 * because that is the transition the button runs on its way back to rest;
+	 * `:active` overrides `transform` with the arrival curve for the way down.
 	 */
 	@media (prefers-reduced-motion: no-preference) {
 		.ft-btn {
@@ -332,6 +344,16 @@
 		   the attribute selectors are what make the anchor behave like it. */
 		.ft-btn:not([data-disabled="true"]):not([aria-busy="true"]):active {
 			transform: scale(0.97);
+			/* The whole list is re-declared rather than just
+			   `transition-timing-function`, which has no per-property form here:
+			   a single value would retime the colour channel too, and a
+			   four-value one would restate the same three curves to change the
+			   fourth. Only `transform` differs from the rule above. */
+			transition:
+				color var(--ft-btn-motion),
+				background-color var(--ft-btn-motion),
+				border-color var(--ft-btn-motion),
+				transform var(--ft-btn-press);
 		}
 	}
 

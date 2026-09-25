@@ -54,6 +54,10 @@ export default {
 	"table.default": "پیش‌فرض",
 	"table.description": "توضیح",
 	"table.slot": "اسلات",
+	"table.event": "رویداد",
+	"table.payload": "داده",
+	"comp.events": "رویدادها",
+	"comp.copyMarkdown": "کپی به‌صورت Markdown",
 
 	// Copy buttons
 	"action.copy": "کپی",
@@ -311,6 +315,7 @@ export default {
 	"skin.standard": "استاندارد",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "بتا",
 	"a11y.changeSkin": "تغییر پوسته",
 	"a11y.sound": "صدا",
 	"retro.explorer": "کاوشگر",

@@ -35,8 +35,13 @@
 </script>
 
 <script lang="ts">
-	import { untrack } from "svelte";
+	import { tick, untrack } from "svelte";
+	import { flip } from "svelte/animate";
+	import { fade } from "svelte/transition";
+	import { expoOut } from "svelte/easing";
 	import { cn } from "$lib/utils.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
+	import { DURATIONS } from "../_internals/motion/tokens.js";
 	import { buildPageRange } from "./pagination-range.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
 
@@ -76,16 +81,15 @@
 	const isFirst = $derived(safePage <= 1);
 	const isLast = $derived(safePage >= safeCount);
 
-	// The current-page pill pops when the page changes — but a bare
-	// `[aria-current="page"] { animation: … }` also fires on first paint, for
-	// whichever page happens to already be current. That reads as a glitch on
-	// load, so the animation is armed only once the page has really moved, and
-	// the flag is a `data-*` attribute the CSS selects on rather than a class
-	// (nothing else keys off it, and it stays out of the merged class string).
+	// The current-page pill slides from the old page to the new one — but it
+	// must not fly in on first paint, from wherever an unplaced box sits. So
+	// the slide is armed only once the page has really moved, and the flag is
+	// a `data-*` attribute the CSS selects on rather than a class (nothing
+	// else keys off it, and it stays out of the merged class string).
 	//
 	// Armed off `safePage`, not from inside `goTo()`: a controlled `Pagination`
 	// whose `page` prop is changed from outside never calls `goTo`, and its pill
-	// should pop just the same. `untrack` seeds the baseline with the page the
+	// should slide just the same. `untrack` seeds the baseline with the page the
 	// component started on without making the seed itself reactive.
 	let popArmed = $state(false);
 	let lastPage = untrack(() => safePage);
@@ -93,6 +97,90 @@
 		if (safePage === lastPage) return;
 		lastPage = safePage;
 		popArmed = true;
+	});
+
+	/*
+	 * ---------------------------------------------------------------------
+	 * The sliding pill
+	 * ---------------------------------------------------------------------
+	 *
+	 * One `aria-hidden` box under the numbers, moved with `translate()` alone
+	 * to the current page's button (every page button is the same size, so
+	 * position is all it needs). When the run of numbers itself shifts — a new
+	 * window after a jump, an ellipsis moving — the numbers glide to their new
+	 * places with `animate:flip` on the same duration, so the pill and its
+	 * number arrive together.
+	 *
+	 * A progressive enhancement, never the only signal: the current button
+	 * keeps `aria-current="page"` and its own `bg-accent`, which the CSS only
+	 * hides once the pill has actually been placed (`data-indicator`). A
+	 * JS-off render, a forced-colors user and a screen reader all still get it.
+	 */
+	const SLIDE_MS = DURATIONS.base;
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
+	let indicatorRef = $state<HTMLSpanElement | null>(null);
+	let indicatorPlaced = $state(false);
+	const flipDuration = $derived(reduced.current ? 0 : SLIDE_MS);
+
+	function placeIndicator(animate: boolean) {
+		const el = indicatorRef;
+		const current = ref?.querySelector<HTMLElement>('button[aria-current="page"]');
+		if (!el || !current || current.offsetWidth === 0) {
+			indicatorPlaced = false;
+			return;
+		}
+		// Sum offsets up to the nav rather than trusting `offsetLeft` alone:
+		// while `animate:flip` runs, each `<li>` carries a transform, which
+		// makes it the button's `offsetParent` (offset ≈ 0). Offsets ignore
+		// transforms, so the sum is the button's final place — where the pill
+		// must land, together with the number gliding there.
+		let x = 0;
+		let y = 0;
+		for (let n: HTMLElement | null = current; n && n !== ref; ) {
+			x += n.offsetLeft;
+			y += n.offsetTop;
+			n = n.offsetParent as HTMLElement | null;
+		}
+		const transform = `translate(${x}px, ${y}px)`;
+		el.style.width = `${current.offsetWidth}px`;
+		el.style.height = `${current.offsetHeight}px`;
+		if (el.style.transform === transform) {
+			indicatorPlaced = true;
+			return;
+		}
+		if (animate && el.style.transform) {
+			el.style.transform = transform;
+		} else {
+			// Snap: suspend the transition, write, force a reflow, restore.
+			const previous = el.style.transition;
+			el.style.transition = "none";
+			el.style.transform = transform;
+			void el.offsetWidth;
+			el.style.transition = previous;
+		}
+		indicatorPlaced = true;
+	}
+
+	// Re-place after every page or range change, once the DOM has the new
+	// buttons. Slides once armed; the first placement snaps.
+	$effect(() => {
+		void safePage;
+		void items;
+		void indicatorRef;
+		const animate = untrack(() => popArmed);
+		tick().then(() => placeIndicator(animate));
+	});
+
+	// Resizes, font loads and zoom move the buttons without a page change:
+	// follow them with a snap, never a slide.
+	$effect(() => {
+		const nav = ref;
+		if (!nav || typeof ResizeObserver === "undefined") return;
+		const ro = new ResizeObserver(() => placeIndicator(false));
+		ro.observe(nav);
+		return () => ro.disconnect();
 	});
 
 	function goTo(next: number) {
@@ -134,6 +222,7 @@
 	bind:this={ref}
 	aria-label={label}
 	data-armed={popArmed ? "true" : undefined}
+	data-indicator={indicatorPlaced ? "" : undefined}
 	class={cn("ft-pagination", className)}
 >
 	<ul class="flex items-center gap-1">
@@ -170,7 +259,10 @@
 		</li>
 
 		{#each items as item, i (item === "ellipsis" ? `ellipsis-${i}` : `page-${item}`)}
-			<li>
+			<li
+				animate:flip={{ duration: flipDuration, easing: expoOut }}
+				in:fade={{ duration: flipDuration ? DURATIONS.fast : 0, delay: flipDuration ? 60 : 0 }}
+			>
 				{#if item === "ellipsis"}
 					<!-- Decorative only: it stands for a run of hidden pages, not a
 					     control, so it must not take focus or be reachable by Tab. -->
@@ -233,6 +325,8 @@
 			</li>
 		{/if}
 	</ul>
+
+	<span bind:this={indicatorRef} class="ft-pagination-indicator" aria-hidden="true"></span>
 </nav>
 
 <style>
@@ -258,31 +352,50 @@
 	}
 
 	/*
-	 * The newly-current page pops once, so the eye can find where it landed
-	 * without hunting for a colour change among nine identical squares.
-	 *
-	 * `transform` only: `box-shadow` on this same button is the focus ring
-	 * above, and a focus ring must never animate. `data-armed` keeps the pop
-	 * off the first paint (see the script). `--ft-ease-out` because the pill
-	 * arrives at its new place — it is not toggling in position.
-	 *
-	 * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out
+	 * The nav is the page buttons' `offsetParent` (no `<ul>`/`<li>` in between
+	 * is positioned), so `offsetLeft`/`offsetTop` and the pill's own
+	 * `left: 0; top: 0` share one origin. `isolation` lets the pill sit at
+	 * `z-index: -1` — above the nav's background, under the buttons.
 	 */
-	@media (prefers-reduced-motion: no-preference) {
-		.ft-pagination[data-armed="true"] button[aria-current="page"] {
-			animation: ft-pagination-pop var(--ft-pagination-pop-duration, var(--ft-duration-fast, 150ms))
-				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
-		}
+	.ft-pagination {
+		position: relative;
+		isolation: isolate;
 	}
 
-	/* 0.92 is the library's scale floor — the same value every entrance preset
-	   starts from, so a pop and a panel opening read as one vocabulary. */
-	@keyframes ft-pagination-pop {
-		from {
-			transform: scale(0.92);
-		}
-		to {
-			transform: scale(1);
+	.ft-pagination-indicator {
+		position: absolute;
+		left: 0;
+		top: 0;
+		z-index: -1;
+		pointer-events: none;
+		border-radius: var(--radius-md, 0.375rem);
+		background: var(--ft-pagination-indicator-color, var(--color-accent));
+		opacity: 0;
+	}
+
+	.ft-pagination[data-indicator] .ft-pagination-indicator {
+		opacity: 1;
+	}
+
+	/* The pill has taken over: the current button's own fill steps aside. */
+	.ft-pagination[data-indicator] button[aria-current="page"] {
+		background: transparent;
+	}
+
+	/*
+	 * 300ms = tokens.DURATIONS.base, cubic-bezier(0.16, 1, 0.3, 1) =
+	 * tokens.EASINGS.out — the same curve and length as the numbers' own
+	 * `animate:flip`, so the pill lands with its number. Gated: under reduced
+	 * motion the pill still follows the page, it just arrives.
+	 */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-pagination[data-armed="true"] .ft-pagination-indicator {
+			transition: transform
+				var(
+					--ft-pagination-slide-duration,
+					var(--ft-pagination-pop-duration, var(--ft-duration-base, 300ms))
+				)
+				var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 		}
 	}
 </style>

@@ -4,7 +4,7 @@ React counterpart of [`fancy-ui-svelte`](https://www.npmjs.com/package/fancy-ui-
 same components, same visual contract, ported from the Svelte 5 reference
 implementation that lives at the root of this repo.
 
-Status: at parity. All 144 components of `fancy-ui-svelte` are ported and
+Status: at parity. All 145 components of `fancy-ui-svelte` are ported and
 exported from the package root, alongside the `sound` family; the cameleon
 skin engine (FancyProvider + primitives + skins) ships on the
 `fancy-ui-react/cameleon` subpath. The Svelte package remains the reference;
@@ -240,6 +240,9 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **confetti**: No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options`, `children` and `sound` on a bare `<button>`.
 - **confetti**: `Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.
 - **confetti**: `fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.
+- **datamosh-transition**: `cover()`, `reveal()` and `play()` reach consumers through the ref channel, not a component instance. Svelte declares them with `export function` (callable via `bind:this`) and also binds the overlay element through `ref = $bindable(null)`; React has no instance, so `DatamoshTransition` is a `forwardRef<DatamoshTransitionHandle, DatamoshTransitionProps>` whose ref carries `{ cover, reveal, play, element }` — the three methods plus the overlay element that the Svelte `ref` published.
+- **datamosh-transition**: The read-only bindable `phase` becomes an `onPhaseChange(phase)` callback, called on every change (`covering`, `covered`, `revealing`, `idle`); `data-state` on the overlay carries the same value on both sides.
+- **datamosh-transition**: SSR markup: React serialises the overlay's inline style as `style="z-index:9999"` (no space after the colon) where Svelte emits `z-index: 9999`. Same declaration, different byte string.
 - **direction-aware-hover**: fade transitions on the overlay and caption are reproduced via usePresence + a local fade300 TransitionSpec (WAAPI mechanism per internals-api §5) instead of a framework transition directive — same 300ms linear opacity curve
 - **direction-aware-hover**: isMobile lives in a ref rather than state — it is only read in event handlers and never drives markup, so resize events no longer trigger re-renders (no observable difference)
 - **direction-aware-hover**: non-null assertion added on event.touches[0] to satisfy the React tsconfig's indexed-access checking (no runtime change)

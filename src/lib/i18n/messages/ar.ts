@@ -54,6 +54,10 @@ export default {
 	"table.default": "الافتراضي",
 	"table.description": "الوصف",
 	"table.slot": "الفتحة",
+	"table.event": "الحدث",
+	"table.payload": "البيانات",
+	"comp.events": "الأحداث",
+	"comp.copyMarkdown": "نسخ بصيغة Markdown",
 
 	// Copy buttons
 	"action.copy": "نسخ",
@@ -302,6 +306,7 @@ export default {
 	"skin.standard": "قياسي",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "تجريبي",
 	"a11y.changeSkin": "تغيير المظهر",
 	"a11y.sound": "الصوت",
 	"retro.explorer": "المستكشف",

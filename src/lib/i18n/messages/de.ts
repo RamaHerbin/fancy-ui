@@ -54,6 +54,10 @@ export default {
 	"table.default": "Standard",
 	"table.description": "Beschreibung",
 	"table.slot": "Slot",
+	"table.event": "Event",
+	"table.payload": "Daten",
+	"comp.events": "Events",
+	"comp.copyMarkdown": "Als Markdown kopieren",
 
 	// Copy buttons
 	"action.copy": "Kopieren",
@@ -314,6 +318,7 @@ export default {
 	"skin.standard": "Standard",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "Beta",
 	"a11y.changeSkin": "Skin wechseln",
 	"a11y.sound": "Ton",
 	"retro.explorer": "Explorer",

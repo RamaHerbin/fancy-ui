@@ -1,6 +1,6 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import GradientButton from "./GradientButton.svelte";
+import GradientButton, { beamGradient } from "./GradientButton.svelte";
 import { sound } from "../sound/sound.svelte.js";
 
 describe("GradientButton", () => {
@@ -15,11 +15,30 @@ describe("GradientButton", () => {
 		render(GradientButton);
 		const button = screen.getByRole("button");
 		const style = button.getAttribute("style") ?? "";
-		expect(style).toContain("--gb-duration: 2500ms");
-		expect(style).toContain("--gb-border-width: 2px");
-		expect(style).toContain("--gb-border-radius: 8px");
+		expect(style).toContain("--gb-duration: 3000ms");
+		expect(style).toContain("--gb-border-width: 1.5px");
+		expect(style).toContain("--gb-border-radius: 12px");
 		expect(style).toContain("--gb-blur: 4px");
-		expect(style).toContain("--gb-bg-color: #000");
+		expect(style).toContain("--gb-bg-color: #161616");
+		expect(style).toContain("--gb-beam: conic-gradient(from var(--gb-angle)");
+	});
+
+	it("builds the beam as a main arc of every colour plus a fainter echo", () => {
+		const beam = beamGradient(["#ff0000", "#00ff00"]);
+		expect(beam.startsWith("conic-gradient(from var(--gb-angle),")).toBe(true);
+		// main arc: full-strength colours
+		expect(beam).toContain("#ff0000 14.0%");
+		expect(beam).toContain("#00ff00 28.0%");
+		// echo: the same colours, faded
+		expect(beam).toContain("color-mix(in srgb, #ff0000 45%, transparent)");
+		expect(beamGradient([])).toContain("#ffffff");
+	});
+
+	it("renders the inner glow layer, hidden from assistive tech", () => {
+		render(GradientButton);
+		const glow = screen.getByRole("button").querySelector(".gradient-glow");
+		expect(glow).toBeInTheDocument();
+		expect(glow).toHaveAttribute("aria-hidden", "true");
 	});
 
 	it("applies custom colors", () => {

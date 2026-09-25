@@ -54,6 +54,10 @@ export default {
 	"table.default": "डिफ़ॉल्ट",
 	"table.description": "विवरण",
 	"table.slot": "स्लॉट",
+	"table.event": "इवेंट",
+	"table.payload": "डेटा",
+	"comp.events": "इवेंट्स",
+	"comp.copyMarkdown": "Markdown के रूप में कॉपी करें",
 
 	// Copy buttons
 	"action.copy": "कॉपी करें",
@@ -308,6 +312,7 @@ export default {
 	"skin.standard": "मानक",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "बीटा",
 	"a11y.changeSkin": "स्किन बदलें",
 	"a11y.sound": "ध्वनि",
 	"retro.explorer": "एक्सप्लोरर",

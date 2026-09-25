@@ -54,6 +54,10 @@ export default {
 	"table.default": "Valeur par défaut",
 	"table.description": "Description",
 	"table.slot": "Slot",
+	"table.event": "Événement",
+	"table.payload": "Données",
+	"comp.events": "Événements",
+	"comp.copyMarkdown": "Copier en Markdown",
 
 	// Copy buttons
 	"action.copy": "Copier",
@@ -319,6 +323,7 @@ export default {
 	"skin.standard": "Standard",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "Beta",
 	"a11y.changeSkin": "Changer de skin",
 	"a11y.sound": "Son",
 	// Retro OS docs chrome

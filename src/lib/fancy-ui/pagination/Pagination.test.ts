@@ -1,6 +1,6 @@
 import { render, cleanup, fireEvent, waitFor } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { createRawSnippet } from "svelte";
+import { createRawSnippet, tick } from "svelte";
 import Pagination from "./Pagination.svelte";
 import Harness from "./PaginationHarness.test.svelte";
 import { sound } from "../sound/sound.svelte.js";
@@ -26,7 +26,8 @@ function byLabel(container: HTMLElement, label: string): HTMLButtonElement {
 }
 
 function ellipses(container: HTMLElement): HTMLElement[] {
-	return Array.from(container.querySelectorAll('[aria-hidden="true"]'));
+	// Scoped to the list: the sliding pill is aria-hidden too, but lives outside it.
+	return Array.from(container.querySelectorAll('li [aria-hidden="true"]'));
 }
 
 function snippet(html: string) {
@@ -238,18 +239,72 @@ describe("Pagination", () => {
 		expect(nav(container).getAttribute("data-bound-ref")).toBe("yes");
 	});
 
-	// The current-page pill pops when the page changes. A bare
-	// `[aria-current="page"] { animation: … }` would also fire on first paint,
+	// The current-page pill slides when the page changes. Sliding on first
+	// paint would fly it in from the origin,
 	// for whichever page happened to already be current, which reads as a glitch
 	// on load — so the animation is armed only once the page has really moved.
 	// `data-armed` is the switch, and it is the one part of this that jsdom can
 	// see.
-	it("does not arm the active-page pop on first render", () => {
+	it("renders the sliding pill outside the list, hidden from assistive tech", () => {
+		const { container } = render(Pagination, { props: { count: 5, page: 2 } });
+		const pill = nav(container).querySelector(".ft-pagination-indicator");
+		expect(pill).toBeInTheDocument();
+		expect(pill).toHaveAttribute("aria-hidden", "true");
+		expect(pill?.closest("ul")).toBeNull();
+	});
+
+	it("keeps the current page's own fill while the pill cannot be measured (jsdom, JS-off layouts)", async () => {
+		const { container } = render(Pagination, { props: { count: 5, page: 2 } });
+		await tick();
+		await tick();
+		// jsdom lays nothing out: offsetWidth is 0, so the pill never takes over.
+		expect(nav(container).hasAttribute("data-indicator")).toBe(false);
+		expect(pageButton(container, 2).className).toContain("bg-accent");
+	});
+
+	it("places the pill on the current page once measured, and follows the page", async () => {
+		const proto = HTMLElement.prototype as unknown as Record<string, unknown>;
+		const width = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth");
+		const left = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetLeft");
+		Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
+			configurable: true,
+			get: () => 32,
+		});
+		Object.defineProperty(HTMLElement.prototype, "offsetLeft", {
+			configurable: true,
+			get(this: HTMLElement) {
+				// 40px per page: page n sits at (n - 1) * 40.
+				const n = Number(this.textContent?.trim());
+				return Number.isFinite(n) ? (n - 1) * 40 : 0;
+			},
+		});
+		try {
+			const { container } = render(Pagination, { props: { count: 5, page: 2 } });
+			await tick();
+			await tick();
+			const pill = nav(container).querySelector<HTMLElement>(".ft-pagination-indicator")!;
+			expect(nav(container).hasAttribute("data-indicator")).toBe(true);
+			expect(pill.style.transform).toBe("translate(40px, 0px)");
+			expect(pill.style.width).toBe("32px");
+
+			await fireEvent.click(pageButton(container, 4));
+			await tick();
+			await tick();
+			expect(pill.style.transform).toBe("translate(120px, 0px)");
+		} finally {
+			if (width) Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
+			else delete proto.offsetWidth;
+			if (left) Object.defineProperty(HTMLElement.prototype, "offsetLeft", left);
+			else delete proto.offsetLeft;
+		}
+	});
+
+	it("does not arm the active-page slide on first render", () => {
 		const { container } = render(Pagination, { props: { count: 12, page: 4 } });
 		expect(nav(container).hasAttribute("data-armed")).toBe(false);
 	});
 
-	it("arms the active-page pop once the page has actually changed", async () => {
+	it("arms the active-page slide once the page has actually changed", async () => {
 		const { container } = render(Pagination, { props: { count: 12, page: 1 } });
 		expect(nav(container).hasAttribute("data-armed")).toBe(false);
 
@@ -257,7 +312,7 @@ describe("Pagination", () => {
 		expect(nav(container).getAttribute("data-armed")).toBe("true");
 	});
 
-	it("arms the pop for a controlled page change too, not just a click", async () => {
+	it("arms the slide for a controlled page change too, not just a click", async () => {
 		// A controlled `Pagination` whose `page` prop moves from outside never
 		// calls `goTo`, which is exactly why the flag is armed off the derived
 		// page rather than from inside the click handler.
@@ -268,7 +323,7 @@ describe("Pagination", () => {
 		await waitFor(() => expect(nav(container).getAttribute("data-armed")).toBe("true"));
 	});
 
-	it("reduced motion: the page still changes, the pill simply does not pop", async () => {
+	it("reduced motion: the page still changes, the pill simply does not slide", async () => {
 		const real = window.matchMedia;
 		window.matchMedia = ((query: string) => ({
 			...real(query),

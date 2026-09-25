@@ -48,6 +48,10 @@ export default {
 	"table.default": "默认值",
 	"table.description": "说明",
 	"table.slot": "插槽",
+	"table.event": "事件",
+	"table.payload": "数据",
+	"comp.events": "事件",
+	"comp.copyMarkdown": "复制为 Markdown",
 
 	"action.copy": "复制",
 	"action.copied": "已复制！",
@@ -275,6 +279,7 @@ export default {
 	"skin.standard": "标准",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
+	"skin.beta": "测试版",
 	"a11y.changeSkin": "切换皮肤",
 	"a11y.sound": "声音",
 	"retro.explorer": "资源管理器",
