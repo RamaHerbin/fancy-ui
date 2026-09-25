@@ -1,13 +1,18 @@
 # Compare
 
-A before/after image comparison slider with smooth interactions.
+A before/after image comparison slider split by a blade of light.
 
 ## Features
 
 - **Two slide modes**: `hover` (follows cursor) or `drag` (click and drag)
 - **Autoplay**: Automatic back-and-forth animation
 - **Custom content**: Supports images or custom snippets for both sides
-- **Decorative effects**: Includes gradient line, glow effects, and star field
+- **A seam of light**: a white-hot core with a chromatic fringe and a glow that spills onto both sides; pulses of light run along it, faster while you interact
+- **Motion trail**: moving the seam leaves a trail behind it that stretches with the speed of the gesture and settles when it stops
+- **Glass handle**: a frosted bead with a ring of light round it
+- **Keyboard**: arrow keys move by 2%, Shift+arrows and Page Up/Down by 10%, Home/End jump to the ends
+- **Soft return**: in hover mode the seam glides back to its resting place when the pointer leaves
+- **Reduced motion**: no pulses, no trail, no glide
 - **Touch support**: Works on mobile devices
 
 ## Props
@@ -26,6 +31,8 @@ A before/after image comparison slider with smooth interactions.
 | `showHandlebar` | `boolean` | `true` | Show the drag handle |
 | `autoplay` | `boolean` | `false` | Enable auto-animation |
 | `autoplayDuration` | `number` | `5000` | Duration of one autoplay cycle (ms) |
+| `beamColors` | `string[]` | `['#22d3ee', '#818cf8', '#f472b6']` | Beam colours: left fringe, centre, right fringe (one or more colours) |
+| `label` | `string` | `'Comparison slider'` | Accessible name of the slider |
 
 ## Events (Callbacks)
 
