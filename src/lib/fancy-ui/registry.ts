@@ -1410,14 +1410,35 @@ export const registry: Record<string, ComponentMeta> = {
 	meteors: {
 		name: "Meteors",
 		slug: "meteors",
-		description: "Animated meteor shower effect with randomized positions and delays",
+		description:
+			"Meteor shower in depth: seeded meteors with glowing heads and tapering tails fall diagonally in parallax (near ones larger, brighter and faster), fading in and burning out, a few flaring before they go",
 		category: "effects",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/meteors" }],
-		tags: ["animation", "meteors", "particles", "decoration", "space"],
+		tags: ["animation", "meteors", "particles", "decoration", "space", "shooting stars"],
 		props: [
 			{ name: "count", type: "number", default: "20", description: "Number of meteors to render" },
+			{
+				name: "angle",
+				type: "number",
+				default: "215",
+				description: "Direction of travel in degrees (215 = down and to the right)",
+			},
+			{ name: "speed", type: "number", default: "1", description: "Speed multiplier" },
+			{
+				name: "color",
+				type: "string",
+				description:
+					"Head and tail colour; defaults to pale blue-white on dark pages and slate on light ones",
+			},
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description: "Seed for the field; same seed, same shower on server and client",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes on each meteor" },
 		],
 	},
 
