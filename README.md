@@ -24,7 +24,7 @@ Animated UI components for **Svelte 5** and **React**, styled with Tailwind CSS 
 
 <p align="center">
   <a href="https://fancy-ui.rama.app">
-    <img src=".github/fancyui-reel.webp" alt="fancy-ui components in motion: a rainbow beam on a button, a ripple of light, a sliding pagination pill, a before/after slider split by a blade of light, a flip card, a liquid-metal border and a neon tube" width="800" />
+    <img src=".github/fancyui-reel.webp" alt="fancy-ui in motion: an HDR fluid cursor painting over the title, fireworks launched from a gradient button, a datamosh page transition, a before/after slider split by a blade of light and a rainbow-beam button" width="800" />
   </a>
 </p>
 
