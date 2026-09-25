@@ -54,6 +54,10 @@ export default {
 	"table.default": "الافتراضي",
 	"table.description": "الوصف",
 	"table.slot": "الفتحة",
+	"table.event": "الحدث",
+	"table.payload": "البيانات",
+	"comp.events": "الأحداث",
+	"comp.copyMarkdown": "نسخ بصيغة Markdown",
 
 	// Copy buttons
 	"action.copy": "نسخ",

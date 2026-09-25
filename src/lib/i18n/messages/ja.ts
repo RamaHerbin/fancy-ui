@@ -54,6 +54,10 @@ export default {
 	"table.default": "デフォルト",
 	"table.description": "説明",
 	"table.slot": "スロット",
+	"table.event": "イベント",
+	"table.payload": "ペイロード",
+	"comp.events": "イベント",
+	"comp.copyMarkdown": "Markdown としてコピー",
 
 	// Copy buttons
 	"action.copy": "コピー",
