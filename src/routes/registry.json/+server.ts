@@ -1,12 +1,12 @@
-import { generateLlmsTxt } from "$lib/server/llms.js";
+import { generateRegistryJson } from "$lib/server/llms.js";
 import type { RequestHandler } from "./$types";
 
 export const prerender = true;
 
 export const GET: RequestHandler = () => {
-	return new Response(generateLlmsTxt(), {
+	return new Response(JSON.stringify(generateRegistryJson()), {
 		headers: {
-			"Content-Type": "text/plain; charset=utf-8",
+			"Content-Type": "application/json; charset=utf-8",
 			"Cache-Control": "public, max-age=3600",
 		},
 	});

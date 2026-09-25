@@ -19,6 +19,7 @@
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
 	import { SITE_URL, SITE_NAME } from "$lib/site.js";
+	import { toConsumerImports } from "$lib/docs/code.js";
 	import type { PageData } from "./$types";
 
 	const REPO_URL = "https://github.com/RamaHerbin/fancy-ui";
@@ -35,6 +36,7 @@
 		`https://github.com/ramaherbin/fancy-ui/tree/main/src/lib/fancy-ui/${component.slug}`
 	);
 	let path = $derived(`/docs/components/${component.slug}`);
+	let markdownPath = $derived(`${path}.md`);
 	let pageUrl = $derived(`${SITE_URL}${path}`);
 	let ogImage = $derived(`/og/${component.slug}.jpg`);
 
@@ -66,20 +68,36 @@
 		author: { "@type": "Organization", name: SITE_NAME },
 		publisher: { "@type": "Organization", name: SITE_NAME },
 		image: `${SITE_URL}${ogImage}`,
+		keywords: component.tags?.join(", "),
 		about: {
 			"@type": "SoftwareSourceCode",
 			name: component.name,
-			programmingLanguage: "Svelte",
+			description: component.description,
+			programmingLanguage: ["Svelte", "TypeScript"],
+			runtimePlatform: "Svelte 5",
 			codeRepository: REPO_URL,
+			codeSampleType: "code snippet",
 			license: `${REPO_URL}/blob/main/LICENSE`,
+			keywords: component.tags?.join(", "),
+		},
+		encoding: {
+			"@type": "MediaObject",
+			encodingFormat: "text/markdown",
+			contentUrl: `${SITE_URL}${markdownPath}`,
 		},
 	});
 
+	// The names the package really exports (card-3d exports CardContainer…, not Card3D).
+	let importList = $derived(data.importNames.join(", "));
+	let usageTag = $derived(
+		data.importNames.includes(component.name) ? component.name : data.importNames[0]
+	);
+
 	let basicUsageCode = $derived(`<script lang="ts">
-  import { ${component.name} } from 'fancy-ui-svelte';
+  import { ${importList} } from 'fancy-ui-svelte';
 <\/script>
 
-<${component.name} />`);
+<${usageTag} />`);
 
 	// Raw source of every docs example, so the Code tab can mirror whatever the Preview
 	// actually renders (a PREVIEW_EXAMPLE override, a BasicUsage.svelte for skipDirectRender
@@ -99,12 +117,6 @@
 				typeof value === "string" ? `${key}="${value}"` : `${key}={${JSON.stringify(value)}}`
 			)
 			.join(" ");
-	}
-
-	// Docs examples import via the repo-internal $lib path; consumers must import the
-	// package, so raw example source is rewritten before display.
-	function toConsumerImports(src: string): string {
-		return src.replace(/(["'])\$lib\/fancy-ui(?:\/[^"']*)?\1/g, "$1fancy-ui-svelte$1");
 	}
 
 	let previewCode = $derived.by(() => {
@@ -130,10 +142,10 @@
 		if (props && Object.keys(props).length > 0) {
 			const attrs = serializeProps(props);
 			return `<script lang="ts">
-  import { ${component.name} } from 'fancy-ui-svelte';
+  import { ${importList} } from 'fancy-ui-svelte';
 <\/script>
 
-<${component.name} ${attrs} />`;
+<${usageTag} ${attrs} />`;
 		}
 
 		// 4. Fallback: generic single-tag usage.
@@ -141,7 +153,25 @@
 	});
 
 	let previewTab = $state<"preview" | "code">("preview");
+
+	let markdownCopied = $state(false);
+	async function copyMarkdown() {
+		const res = await fetch(markdownPath);
+		if (!res.ok) return;
+		await navigator.clipboard.writeText(await res.text());
+		markdownCopied = true;
+		setTimeout(() => (markdownCopied = false), 2000);
+	}
 </script>
+
+<svelte:head>
+	<link
+		rel="alternate"
+		type="text/markdown"
+		href={markdownPath}
+		title="{component.name} (Markdown)"
+	/>
+</svelte:head>
 
 <Seo
 	title={componentDocTitle(component.name, component.category)}
@@ -186,7 +216,35 @@
 		{/if}
 	</div>
 
-	<h1 class="text-foreground mb-2 text-3xl font-bold" id="overview">{component.name}</h1>
+	<div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+		<h1 class="text-foreground text-3xl font-bold" id="overview">{component.name}</h1>
+		<div class="flex items-center gap-2 text-xs">
+			<button
+				type="button"
+				onclick={copyMarkdown}
+				class="retro-btn border-border text-muted-foreground hover:text-foreground hover:bg-accent inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium transition-colors"
+			>
+				<svg
+					width="13"
+					height="13"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					aria-hidden="true"
+					><rect x="9" y="9" width="13" height="13" rx="2" /><path
+						d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+					/></svg
+				>
+				{markdownCopied ? t("action.copied") : t("comp.copyMarkdown")}
+			</button>
+			<a
+				href={markdownPath}
+				class="text-muted-foreground hover:text-foreground font-mono underline-offset-2 hover:underline"
+				>.md</a
+			>
+		</div>
+	</div>
 	<p class="text-muted-foreground mb-6">{component.description}</p>
 
 	<!-- ═══ PREVIEW ═══ -->
@@ -256,7 +314,7 @@
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="installation">
 			{t("comp.installation")}
 		</h2>
-		<InstallBlock componentImport={"{ " + component.name + " }"} />
+		<InstallBlock componentImport={"{ " + importList + " }"} />
 	</section>
 
 	<!-- ═══ USAGE ═══ -->
@@ -301,6 +359,39 @@
 									</code>
 								</td>
 								<td class="text-muted-foreground px-4 py-3 text-xs">{slot.description}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	{/if}
+
+	<!-- ═══ EVENTS ═══ -->
+	{#if component.events && component.events.length > 0}
+		<section class="mb-10">
+			<h2 class="text-foreground mb-4 text-xl font-semibold" id="events">{t("comp.events")}</h2>
+			<div class="border-border overflow-x-auto rounded-lg border">
+				<table class="w-full text-left text-sm">
+					<thead>
+						<tr class="border-border border-b">
+							<th class="text-foreground px-4 py-3 font-semibold">{t("table.event")}</th>
+							<th class="text-foreground px-4 py-3 font-semibold">{t("table.payload")}</th>
+							<th class="text-foreground px-4 py-3 font-semibold">{t("table.description")}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each component.events as event}
+							<tr class="border-border border-b last:border-0">
+								<td class="px-4 py-3">
+									<code
+										class="bg-muted rounded px-1.5 py-0.5 font-mono text-xs font-medium text-purple-600 dark:text-purple-400"
+									>
+										{event.name}
+									</code>
+								</td>
+								<td class="px-4 py-3"><code class="font-mono text-xs">{event.detail}</code></td>
+								<td class="text-muted-foreground px-4 py-3 text-xs">{event.description}</td>
 							</tr>
 						{/each}
 					</tbody>
