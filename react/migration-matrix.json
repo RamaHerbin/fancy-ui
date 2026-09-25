@@ -1452,6 +1452,51 @@
 		"minors": []
 	},
 	{
+		"slug": "datamosh-transition",
+		"sveltePath": "src/lib/fancy-ui/datamosh-transition",
+		"reactPath": "react/src/components/datamosh-transition",
+		"status": "ported",
+		"wave": "H",
+		"tier": 1,
+		"group": "graphics",
+		"model": "opus",
+		"effort": "high",
+		"complexity": "canvas2d",
+		"deps": {
+			"internals": ["use-live-ref"],
+			"motion": ["media-query"],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": [
+			"canvas2d",
+			"ResizeObserver",
+			"matchMedia",
+			"visibilitychange",
+			"requestAnimationFrame"
+		],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "low",
+		"exports": ["DatamoshTransition", "DATAMOSH_PALETTES"],
+		"loc": 930,
+		"testFiles": [
+			"datamosh-transition-core.test.ts",
+			"DatamoshTransition.test.ts",
+			"DatamoshTransition.ssr.test.ts"
+		],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [
+			"`cover()`, `reveal()` and `play()` reach consumers through the ref channel, not a component instance. Svelte declares them with `export function` (callable via `bind:this`) and also binds the overlay element through `ref = $bindable(null)`; React has no instance, so `DatamoshTransition` is a `forwardRef<DatamoshTransitionHandle, DatamoshTransitionProps>` whose ref carries `{ cover, reveal, play, element }` — the three methods plus the overlay element that the Svelte `ref` published.",
+			"The read-only bindable `phase` becomes an `onPhaseChange(phase)` callback, called on every change (`covering`, `covered`, `revealing`, `idle`); `data-state` on the overlay carries the same value on both sides.",
+			"SSR markup: React serialises the overlay's inline style as `style=\"z-index:9999\"` (no space after the colon) where Svelte emits `z-index: 9999`. Same declaration, different byte string."
+		],
+		"lastFailure": null
+	},
+	{
 		"slug": "date-picker",
 		"sveltePath": "src/lib/fancy-ui/date-picker",
 		"reactPath": "react/src/components/date-picker",
