@@ -1,6 +1,7 @@
 import { render, cleanup } from "@testing-library/svelte";
 import { afterEach, describe, it, expect } from "vitest";
-import NeonBorder from "./NeonBorder.svelte";
+import { createRawSnippet } from "svelte";
+import NeonBorder, { beamArc, neonBeams, neonCorners } from "./NeonBorder.svelte";
 
 describe("NeonBorder", () => {
 	afterEach(cleanup);
@@ -11,28 +12,45 @@ describe("NeonBorder", () => {
 		expect(wrapper).toBeInTheDocument();
 	});
 
-	it("renders two neon layer divs", () => {
+	it("renders the tube, glow and core layers, all decorative", () => {
 		const { container } = render(NeonBorder);
-		const layerOne = container.querySelector(".neon-layer-one");
-		const layerTwo = container.querySelector(".neon-layer-two");
-		expect(layerOne).toBeInTheDocument();
-		expect(layerTwo).toBeInTheDocument();
+		for (const cls of ["neon-tube", "neon-light", "neon-glow", "neon-core"]) {
+			const el = container.querySelector(`.${cls}`);
+			expect(el).toBeInTheDocument();
+		}
+		expect(container.querySelector(".neon-tube")).toHaveAttribute("aria-hidden", "true");
+		expect(container.querySelector(".neon-light")).toHaveAttribute("aria-hidden", "true");
 	});
 
-	it('applies animation class when animationType is not "none"', () => {
-		const { container } = render(NeonBorder, {
-			props: { animationType: "half" },
-		});
-		const layerOne = container.querySelector(".neon-layer-one");
-		expect(layerOne?.className).toContain("neon-animated");
+	it("renders the content before the light layers", () => {
+		const children = createRawSnippet(() => ({ render: () => "<p>Inside</p>" }));
+		const { container } = render(NeonBorder, { props: { children } });
+		const wrapper = container.querySelector(".neon-border-container")!;
+		expect(wrapper.firstElementChild?.textContent).toBe("Inside");
 	});
 
-	it('does not apply animation class when animationType is "none"', () => {
-		const { container } = render(NeonBorder, {
-			props: { animationType: "none" },
-		});
-		const layerOne = container.querySelector(".neon-layer-one");
-		expect(layerOne?.className).not.toContain("neon-animated");
+	it('applies the travel animation when animationType is not "none"', () => {
+		const { container } = render(NeonBorder, { props: { animationType: "half" } });
+		expect(container.querySelector(".neon-border-container")?.className).toContain("neon-animated");
+	});
+
+	it('does not apply the travel animation when animationType is "none"', () => {
+		const { container } = render(NeonBorder, { props: { animationType: "none" } });
+		expect(container.querySelector(".neon-border-container")?.className).not.toContain(
+			"neon-animated"
+		);
+	});
+
+	it("chases two conic beams when animated, lights two corners when static", () => {
+		const animated = render(NeonBorder, { props: { color1: "#111111", color2: "#222222" } });
+		const a =
+			animated.container.querySelector(".neon-border-container")!.getAttribute("style") ?? "";
+		expect(a).toContain("--neon-beams: conic-gradient(from var(--neon-angle)");
+		expect(a).toContain("--neon-core: conic-gradient(from var(--neon-angle)");
+		cleanup();
+		const still = render(NeonBorder, { props: { animationType: "none" } });
+		const b = still.container.querySelector(".neon-border-container")!.getAttribute("style") ?? "";
+		expect(b).toContain("--neon-beams: linear-gradient(135deg");
 	});
 
 	it("sets CSS custom properties from props", () => {
@@ -85,7 +103,33 @@ describe("NeonBorder", () => {
 		const { container } = render(NeonBorder, { props: { class: "extra" } });
 		const wrapper = container.querySelector(".neon-border-container");
 		expect(wrapper?.className).toContain("relative");
-		expect(wrapper?.className).toContain("overflow-hidden");
 		expect(wrapper?.className).toContain("rounded-lg");
+		// the glow spills past the edge, so nothing may clip it
+		expect(wrapper?.className).not.toContain("overflow-hidden");
+	});
+});
+
+describe("neon gradients", () => {
+	it("covers more of the tube for full than for half", () => {
+		expect(beamArc("full")).toBeGreaterThan(beamArc("half"));
+	});
+
+	it("builds two beams half a turn apart, each ending in a sharp head", () => {
+		const g = neonBeams("#aa0000", "#0000aa", 20);
+		expect(g).toContain("transparent 0%");
+		expect(g).toContain("#aa0000 19.4%");
+		expect(g).toContain("transparent 20.0%");
+		expect(g).toContain("transparent 50%");
+		expect(g).toContain("#0000aa 69.4%");
+		expect(g).toContain("transparent 70.0%");
+	});
+
+	it("whitens the core of each colour", () => {
+		expect(neonBeams("#aa0000", "#0000aa", 20, true)).toContain(
+			"color-mix(in srgb, #aa0000 45%, #fff)"
+		);
+		expect(neonCorners("#aa0000", "#0000aa", true)).toContain(
+			"color-mix(in srgb, #0000aa 45%, #fff)"
+		);
 	});
 });
