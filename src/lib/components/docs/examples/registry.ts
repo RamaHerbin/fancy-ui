@@ -235,6 +235,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomCount", title: "Custom Count", description: "Control number of meteors." },
 		{ name: "CardExample", title: "Card Example" },
+		{
+			name: "Options",
+			title: "Options",
+			description: "Colour, direction, speed and seed.",
+		},
 	],
 	ripple: [
 		{ name: "BasicUsage", title: "Basic Usage" },
