@@ -7,6 +7,7 @@
 	import { onMount } from "svelte";
 	import { Button, FluidCursor } from "$lib/fancy-ui";
 	import PanelChrome from "./PanelChrome.svelte";
+	import LandingFonts from "./LandingFonts.svelte";
 	import { GITHUB_URL, PACKAGE_NAME, PACKAGE_VERSION } from "$lib/site.js";
 
 	// The WebGPU/WebGL fluid simulation is the heaviest thing on the page — hold it
@@ -32,14 +33,7 @@
 	});
 </script>
 
-<svelte:head>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-	<link
-		rel="stylesheet"
-		href="https://fonts.googleapis.com/css2?family=Geist:wght@400..800&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"
-	/>
-</svelte:head>
+<LandingFonts />
 
 <section class="lp-line grid border-b lg:h-[438px] lg:grid-cols-[38fr_62fr]">
 	<!-- Copy column -->

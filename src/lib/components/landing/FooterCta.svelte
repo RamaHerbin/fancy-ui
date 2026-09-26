@@ -15,6 +15,7 @@
 				links: [
 					{ label: "Getting Started", href: `${DOCS_URL}/getting-started/introduction` },
 					{ label: "Components", href: DEMO_URL },
+					{ label: "Finds", href: "/finds" },
 					{ label: "Theming", href: `${DOCS_URL}/getting-started/theming` },
 					{ label: "Installation", href: `${DOCS_URL}/getting-started/installation` },
 				],
