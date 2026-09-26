@@ -33,5 +33,9 @@ export function useFancyId(): string {
 	// only so when called outside `setup`, which Vue already warns about — while
 	// later releases type it as `string`. The fallback keeps both floors typed
 	// without changing what a correct call returns.
-	return useId() ?? "";
+	// Vue 3.5.2 (the peer floor) seeds its ids as `v:0`, later releases as `v-0`.
+	// The colon is a legal id character but needs escaping inside a selector,
+	// so it is normalised to the dash form: every id this package generates
+	// reads `v-N` on every supported Vue, on the server and on the client alike.
+	return (useId() ?? "").replace(/:/g, "-");
 }
