@@ -22,9 +22,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["AgentPlan"],
+		"exports": [
+			"AgentPlan"
+		],
 		"loc": 463,
-		"testFiles": ["AgentPlan.test.ts"],
+		"testFiles": [
+			"AgentPlan.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -56,9 +60,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["AiDataTable"],
+		"exports": [
+			"AiDataTable"
+		],
 		"loc": 229,
-		"testFiles": ["AiDataTable.test.ts"],
+		"testFiles": [
+			"AiDataTable.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -81,7 +89,10 @@
 			"internals": [],
 			"motion": [],
 			"sound": true,
-			"components": ["button", "dialog"]
+			"components": [
+				"button",
+				"dialog"
+			]
 		},
 		"browserAPIs": [],
 		"runtimeDeps": [],
@@ -89,9 +100,13 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["AlertDialog"],
+		"exports": [
+			"AlertDialog"
+		],
 		"loc": 147,
-		"testFiles": ["AlertDialog.test.ts"],
+		"testFiles": [
+			"AlertDialog.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -120,15 +135,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["ResizeObserver"],
+		"browserAPIs": [
+			"ResizeObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "high",
-		"exports": ["AnimatedBeam"],
+		"exports": [
+			"AnimatedBeam"
+		],
 		"loc": 187,
-		"testFiles": ["AnimatedBeam.test.ts"],
+		"testFiles": [
+			"AnimatedBeam.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -151,7 +172,9 @@
 		"complexity": "js-anim",
 		"deps": {
 			"internals": [],
-			"motion": ["media-query"],
+			"motion": [
+				"media-query"
+			],
 			"sound": true,
 			"components": []
 		},
@@ -161,9 +184,13 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["AnimatedTestimonials"],
+		"exports": [
+			"AnimatedTestimonials"
+		],
 		"loc": 198,
-		"testFiles": ["AnimatedTestimonials.test.ts"],
+		"testFiles": [
+			"AnimatedTestimonials.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -189,15 +216,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["AnimatedTooltip"],
+		"exports": [
+			"AnimatedTooltip"
+		],
 		"loc": 99,
-		"testFiles": ["AnimatedTooltip.test.ts"],
+		"testFiles": [
+			"AnimatedTooltip.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -220,15 +253,23 @@
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["matchMedia", "focus-management"],
+		"browserAPIs": [
+			"matchMedia",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["AppleCardCarousel", "AppleCard"],
+		"exports": [
+			"AppleCardCarousel",
+			"AppleCard"
+		],
 		"loc": 278,
-		"testFiles": ["AppleCardCarousel.test.ts"],
+		"testFiles": [
+			"AppleCardCarousel.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -258,15 +299,22 @@
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ApprovalCard"],
+		"exports": [
+			"ApprovalCard"
+		],
 		"loc": 300,
-		"testFiles": ["ApprovalCardHarness.test.svelte", "ApprovalCard.test.ts"],
+		"testFiles": [
+			"ApprovalCardHarness.test.svelte",
+			"ApprovalCard.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -290,17 +338,25 @@
 			"internals": [],
 			"motion": [],
 			"sound": true,
-			"components": ["streaming-text"]
+			"components": [
+				"streaming-text"
+			]
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ArtifactCard"],
+		"exports": [
+			"ArtifactCard"
+		],
 		"loc": 366,
-		"testFiles": ["ArtifactCard.test.ts"],
+		"testFiles": [
+			"ArtifactCard.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -322,18 +378,33 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["field", "listbox", "anchor-position", "portal", "dismissable"],
-			"motion": ["anchored"],
+			"internals": [
+				"field",
+				"listbox",
+				"anchor-position",
+				"portal",
+				"dismissable"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Autocomplete", "AUTOCOMPLETE_KEY"],
+		"exports": [
+			"Autocomplete",
+			"AUTOCOMPLETE_KEY"
+		],
 		"loc": 473,
 		"testFiles": [
 			"AutocompleteHarness.test.svelte",
@@ -380,9 +451,15 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["BentoGrid", "BentoGridItem", "BentoGridCard"],
+		"exports": [
+			"BentoGrid",
+			"BentoGridItem",
+			"BentoGridCard"
+		],
 		"loc": 133,
-		"testFiles": ["BentoGrid.test.ts"],
+		"testFiles": [
+			"BentoGrid.test.ts"
+		],
 		"svelteFiles": 3,
 		"attempts": 1,
 		"divergences": [
@@ -408,15 +485,22 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["canvas2d", "ResizeObserver"],
+		"browserAPIs": [
+			"canvas2d",
+			"ResizeObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["FallingStarsBg"],
+		"exports": [
+			"FallingStarsBg"
+		],
 		"loc": 165,
-		"testFiles": ["FallingStarsBg.test.ts"],
+		"testFiles": [
+			"FallingStarsBg.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -449,15 +533,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["StarsBackground"],
+		"exports": [
+			"StarsBackground"
+		],
 		"loc": 206,
-		"testFiles": ["StarsBackground.test.ts"],
+		"testFiles": [
+			"StarsBackground.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -485,15 +575,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["IntersectionObserver"],
+		"browserAPIs": [
+			"IntersectionObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["BlurReveal"],
+		"exports": [
+			"BlurReveal"
+		],
 		"loc": 144,
-		"testFiles": ["BlurReveal.test.ts"],
+		"testFiles": [
+			"BlurReveal.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -533,7 +629,9 @@
 			"BookDescription"
 		],
 		"loc": 195,
-		"testFiles": ["Book.test.ts"],
+		"testFiles": [
+			"Book.test.ts"
+		],
 		"svelteFiles": 4,
 		"attempts": 1,
 		"divergences": [],
@@ -562,9 +660,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["BorderBeam"],
+		"exports": [
+			"BorderBeam"
+		],
 		"loc": 88,
-		"testFiles": ["BorderBeam.test.ts"],
+		"testFiles": [
+			"BorderBeam.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 0,
 		"divergences": [],
@@ -587,15 +689,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["IntersectionObserver"],
+		"browserAPIs": [
+			"IntersectionObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["BoxReveal"],
+		"exports": [
+			"BoxReveal"
+		],
 		"loc": 76,
-		"testFiles": ["BoxReveal.test.ts"],
+		"testFiles": [
+			"BoxReveal.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -626,9 +734,13 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Breadcrumb"],
+		"exports": [
+			"Breadcrumb"
+		],
 		"loc": 149,
-		"testFiles": ["Breadcrumb.test.ts"],
+		"testFiles": [
+			"Breadcrumb.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -661,9 +773,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Button"],
+		"exports": [
+			"Button"
+		],
 		"loc": 430,
-		"testFiles": ["Button.test.ts"],
+		"testFiles": [
+			"Button.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -694,7 +810,10 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ButtonGroup", "BUTTON_GROUP_CONTEXT_KEY"],
+		"exports": [
+			"ButtonGroup",
+			"BUTTON_GROUP_CONTEXT_KEY"
+		],
 		"loc": 157,
 		"testFiles": [
 			"ButtonGroup.test.ts",
@@ -730,15 +849,23 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["CardContainer", "CardBody", "CardItem"],
+		"exports": [
+			"CardContainer",
+			"CardBody",
+			"CardItem"
+		],
 		"loc": 121,
-		"testFiles": ["CardContainer.test.ts"],
+		"testFiles": [
+			"CardContainer.test.ts"
+		],
 		"svelteFiles": 3,
 		"attempts": 1,
 		"divergences": [
@@ -766,15 +893,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["CardSpotlight"],
+		"exports": [
+			"CardSpotlight"
+		],
 		"loc": 60,
-		"testFiles": ["CardSpotlight.test.ts"],
+		"testFiles": [
+			"CardSpotlight.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -806,9 +939,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ChatError"],
+		"exports": [
+			"ChatError"
+		],
 		"loc": 199,
-		"testFiles": ["ChatError.test.ts"],
+		"testFiles": [
+			"ChatError.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -829,12 +966,19 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["relative-time", "elapsed"],
+			"internals": [
+				"relative-time",
+				"elapsed"
+			],
 			"motion": [],
 			"sound": true,
-			"components": ["streaming-text"]
+			"components": [
+				"streaming-text"
+			]
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
@@ -889,7 +1033,9 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["autoscroll"],
+			"internals": [
+				"autoscroll"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -906,9 +1052,14 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["ChatPanel", "ChatEmptyState"],
+		"exports": [
+			"ChatPanel",
+			"ChatEmptyState"
+		],
 		"loc": 389,
-		"testFiles": ["ChatPanel.test.ts"],
+		"testFiles": [
+			"ChatPanel.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -928,7 +1079,9 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["field"],
+			"internals": [
+				"field"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -939,7 +1092,9 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Checkbox"],
+		"exports": [
+			"Checkbox"
+		],
 		"loc": 344,
 		"testFiles": [
 			"Checkbox.test.ts",
@@ -968,7 +1123,9 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["diff"],
+			"internals": [
+				"diff"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -979,9 +1136,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["CodeDiff"],
+		"exports": [
+			"CodeDiff"
+		],
 		"loc": 432,
-		"testFiles": ["CodeDiff.test.ts"],
+		"testFiles": [
+			"CodeDiff.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1015,9 +1176,13 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "high",
-		"exports": ["ColourfulText"],
+		"exports": [
+			"ColourfulText"
+		],
 		"loc": 81,
-		"testFiles": ["ColourfulText.test.ts"],
+		"testFiles": [
+			"ColourfulText.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1038,18 +1203,33 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["field", "listbox", "anchor-position", "portal", "dismissable"],
-			"motion": ["anchored"],
+			"internals": [
+				"field",
+				"listbox",
+				"anchor-position",
+				"portal",
+				"dismissable"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Combobox", "COMBOBOX_KEY"],
+		"exports": [
+			"Combobox",
+			"COMBOBOX_KEY"
+		],
 		"loc": 577,
 		"testFiles": [
 			"Combobox.test.ts",
@@ -1088,20 +1268,38 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["listbox", "portal", "focus-trap", "dismissable", "scroll-lock"],
-			"motion": ["anchored", "tokens"],
+			"internals": [
+				"listbox",
+				"portal",
+				"focus-trap",
+				"dismissable",
+				"scroll-lock"
+			],
+			"motion": [
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom", "scroll"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom",
+			"scroll"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["CommandMenu"],
+		"exports": [
+			"CommandMenu"
+		],
 		"loc": 760,
-		"testFiles": ["CommandMenu.test.ts"],
+		"testFiles": [
+			"CommandMenu.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1140,15 +1338,22 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "high",
-		"exports": ["Compare", "StarField"],
+		"exports": [
+			"Compare",
+			"StarField"
+		],
 		"loc": 416,
-		"testFiles": ["Compare.test.ts"],
+		"testFiles": [
+			"Compare.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -1170,12 +1375,17 @@
 		"effort": "max",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["ai-types", "float"],
+			"internals": [
+				"ai-types",
+				"float"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["File"],
+		"browserAPIs": [
+			"File"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
@@ -1241,15 +1451,24 @@
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["canvas2d"],
-		"runtimeDeps": ["canvas-confetti"],
+		"browserAPIs": [
+			"canvas2d"
+		],
+		"runtimeDeps": [
+			"canvas-confetti"
+		],
 		"setContext": true,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Confetti", "ConfettiButton"],
+		"exports": [
+			"Confetti",
+			"ConfettiButton"
+		],
 		"loc": 103,
-		"testFiles": ["Confetti.test.ts"],
+		"testFiles": [
+			"Confetti.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -1284,15 +1503,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["scroll"],
+		"browserAPIs": [
+			"scroll"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["ContainerScroll"],
+		"exports": [
+			"ContainerScroll"
+		],
 		"loc": 83,
-		"testFiles": ["ContainerScroll.test.ts"],
+		"testFiles": [
+			"ContainerScroll.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -1321,9 +1546,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ContainerTextFlip"],
+		"exports": [
+			"ContainerTextFlip"
+		],
 		"loc": 79,
-		"testFiles": ["ContainerTextFlip.test.ts"],
+		"testFiles": [
+			"ContainerTextFlip.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 2,
 		"divergences": [
@@ -1343,12 +1572,25 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["anchor-position", "portal", "dismissable", "menu"],
-			"motion": ["anchored"],
+			"internals": [
+				"anchor-position",
+				"portal",
+				"dismissable",
+				"menu"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": true,
-			"components": ["dropdown-menu"]
+			"components": [
+				"dropdown-menu"
+			]
 		},
-		"browserAPIs": ["pointer-events", "portal-dom", "focus-management"],
+		"browserAPIs": [
+			"pointer-events",
+			"portal-dom",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": false,
@@ -1367,7 +1609,10 @@
 			"CONTEXT_MENU_KEY"
 		],
 		"loc": 462,
-		"testFiles": ["ContextMenu.test.ts", "ContextMenuHarness.test.svelte"],
+		"testFiles": [
+			"ContextMenu.test.ts",
+			"ContextMenuHarness.test.svelte"
+		],
 		"svelteFiles": 3,
 		"attempts": 1,
 		"divergences": [
@@ -1390,20 +1635,29 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["float"],
+			"internals": [
+				"float"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["matchMedia", "pointer-events"],
+		"browserAPIs": [
+			"matchMedia",
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["ContextRing"],
+		"exports": [
+			"ContextRing"
+		],
 		"loc": 411,
-		"testFiles": ["ContextRing.test.ts"],
+		"testFiles": [
+			"ContextRing.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -1422,20 +1676,31 @@
 		"effort": "high",
 		"complexity": "composite",
 		"deps": {
-			"internals": ["clipboard"],
+			"internals": [
+				"clipboard"
+			],
 			"motion": [],
 			"sound": true,
-			"components": ["button", "status-morph"]
+			"components": [
+				"button",
+				"status-morph"
+			]
 		},
-		"browserAPIs": ["clipboard"],
+		"browserAPIs": [
+			"clipboard"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["CopyButton"],
+		"exports": [
+			"CopyButton"
+		],
 		"loc": 305,
-		"testFiles": ["CopyButton.test.ts"],
+		"testFiles": [
+			"CopyButton.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1508,18 +1773,31 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["field", "anchor-position", "portal", "dismissable", "calendar-core"],
-			"motion": ["anchored"],
+			"internals": [
+				"field",
+				"anchor-position",
+				"portal",
+				"dismissable",
+				"calendar-core"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["focus-management", "portal-dom"],
+		"browserAPIs": [
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["DatePicker"],
+		"exports": [
+			"DatePicker"
+		],
 		"loc": 597,
 		"testFiles": [
 			"date-utils.test.ts",
@@ -1550,20 +1828,36 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["portal", "focus-trap", "dismissable", "scroll-lock"],
-			"motion": ["anchored", "tokens"],
+			"internals": [
+				"portal",
+				"focus-trap",
+				"dismissable",
+				"scroll-lock"
+			],
+			"motion": [
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["focus-management", "portal-dom", "pointer-events"],
+		"browserAPIs": [
+			"focus-management",
+			"portal-dom",
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Dialog"],
+		"exports": [
+			"Dialog"
+		],
 		"loc": 396,
-		"testFiles": ["Dialog.test.ts"],
+		"testFiles": [
+			"Dialog.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [],
@@ -1592,9 +1886,14 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["DimSiblings"],
+		"exports": [
+			"DimSiblings"
+		],
 		"loc": 188,
-		"testFiles": ["DimSiblings.test.ts", "DimSiblingsHarness.test.svelte"],
+		"testFiles": [
+			"DimSiblings.test.ts",
+			"DimSiblingsHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 2,
 		"divergences": [],
@@ -1617,15 +1916,22 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["matchMedia", "pointer-events"],
+		"browserAPIs": [
+			"matchMedia",
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["DirectionAwareHover"],
+		"exports": [
+			"DirectionAwareHover"
+		],
 		"loc": 233,
-		"testFiles": ["DirectionAwareHover.test.ts"],
+		"testFiles": [
+			"DirectionAwareHover.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1654,15 +1960,26 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["webgl2", "canvas2d", "pointer-events", "MutationObserver"],
-		"runtimeDeps": ["three"],
+		"browserAPIs": [
+			"webgl2",
+			"canvas2d",
+			"pointer-events",
+			"MutationObserver"
+		],
+		"runtimeDeps": [
+			"three"
+		],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["DisplacementText"],
+		"exports": [
+			"DisplacementText"
+		],
 		"loc": 226,
-		"testFiles": ["DisplacementText.test.ts"],
+		"testFiles": [
+			"DisplacementText.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1684,19 +2001,31 @@
 		"complexity": "pointer",
 		"deps": {
 			"internals": [],
-			"motion": ["media-query"],
+			"motion": [
+				"media-query"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["matchMedia", "pointer-events"],
+		"browserAPIs": [
+			"matchMedia",
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Dock", "DockIcon", "DockSeparator"],
+		"exports": [
+			"Dock",
+			"DockIcon",
+			"DockSeparator"
+		],
 		"loc": 228,
-		"testFiles": ["Dock.test.ts", "DockHarness.test.svelte"],
+		"testFiles": [
+			"Dock.test.ts",
+			"DockHarness.test.svelte"
+		],
 		"svelteFiles": 3,
 		"attempts": 1,
 		"divergences": [
@@ -1722,20 +2051,37 @@
 		"effort": "medium",
 		"complexity": "pointer",
 		"deps": {
-			"internals": ["portal", "focus-trap", "dismissable", "scroll-lock"],
-			"motion": ["anchored", "tokens"],
+			"internals": [
+				"portal",
+				"focus-trap",
+				"dismissable",
+				"scroll-lock"
+			],
+			"motion": [
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Drawer"],
+		"exports": [
+			"Drawer"
+		],
 		"loc": 418,
-		"testFiles": ["Drawer.test.ts", "DrawerHarness.test.svelte"],
+		"testFiles": [
+			"Drawer.test.ts",
+			"DrawerHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1761,12 +2107,23 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["anchor-position", "portal", "dismissable", "menu"],
-			"motion": ["anchored"],
+			"internals": [
+				"anchor-position",
+				"portal",
+				"dismissable",
+				"menu"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
@@ -1787,7 +2144,10 @@
 			"SUB_KEY"
 		],
 		"loc": 1414,
-		"testFiles": ["DropdownMenu.test.ts", "DropdownMenuHarness.test.svelte"],
+		"testFiles": [
+			"DropdownMenu.test.ts",
+			"DropdownMenuHarness.test.svelte"
+		],
 		"svelteFiles": 9,
 		"attempts": 1,
 		"divergences": [
@@ -1824,15 +2184,24 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "ResizeObserver"],
-		"runtimeDeps": ["@chenglou/pretext"],
+		"browserAPIs": [
+			"pointer-events",
+			"ResizeObserver"
+		],
+		"runtimeDeps": [
+			"@chenglou/pretext"
+		],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["EditorialEngine"],
+		"exports": [
+			"EditorialEngine"
+		],
 		"loc": 935,
-		"testFiles": ["EditorialEngine.test.ts"],
+		"testFiles": [
+			"EditorialEngine.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1860,18 +2229,29 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["field"],
-			"motion": ["transitions", "anchored", "tokens"],
+			"internals": [
+				"field"
+			],
+			"motion": [
+				"transitions",
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["File", "focus-management"],
+		"browserAPIs": [
+			"File",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["FileUpload"],
+		"exports": [
+			"FileUpload"
+		],
 		"loc": 589,
 		"testFiles": [
 			"FileUpload.test.ts",
@@ -1916,9 +2296,19 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["FireworksHdr", "heartOutline", "starOutline", "polygonOutline", "outlineBurst"],
+		"exports": [
+			"FireworksHdr",
+			"heartOutline",
+			"starOutline",
+			"polygonOutline",
+			"outlineBurst"
+		],
 		"loc": 3944,
-		"testFiles": ["fireworks-shared.test.ts", "FireworksHdr.test.ts", "webgl2-renderer.test.ts"],
+		"testFiles": [
+			"fireworks-shared.test.ts",
+			"FireworksHdr.test.ts",
+			"webgl2-renderer.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -1949,20 +2339,31 @@
 		"effort": "xhigh",
 		"complexity": "canvas2d",
 		"deps": {
-			"internals": ["dom/use-element-ref", "dom/use-live-ref"],
+			"internals": [
+				"dom/use-element-ref",
+				"dom/use-live-ref"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["canvas2d", "ResizeObserver", "IntersectionObserver"],
+		"browserAPIs": [
+			"canvas2d",
+			"ResizeObserver",
+			"IntersectionObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["FlickeringGrid"],
+		"exports": [
+			"FlickeringGrid"
+		],
 		"loc": 157,
-		"testFiles": ["FlickeringGrid.test.ts"],
+		"testFiles": [
+			"FlickeringGrid.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2001,9 +2402,13 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["FlipCard"],
+		"exports": [
+			"FlipCard"
+		],
 		"loc": 49,
-		"testFiles": ["FlipCard.test.ts"],
+		"testFiles": [
+			"FlipCard.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -2032,9 +2437,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["FlipWords"],
+		"exports": [
+			"FlipWords"
+		],
 		"loc": 170,
-		"testFiles": ["FlipWords.test.ts"],
+		"testFiles": [
+			"FlipWords.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2058,7 +2467,9 @@
 		"effort": "max",
 		"complexity": "webgl",
 		"deps": {
-			"internals": ["dom/use-live-ref"],
+			"internals": [
+				"dom/use-live-ref"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -2076,16 +2487,21 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["FluidCursor", "FluidCursorAdvanced"],
+		"exports": [
+			"FluidCursor",
+			"FluidCursorAdvanced"
+		],
 		"loc": 3166,
-		"testFiles": ["fluid-shared.test.ts", "FluidCursor.test.ts"],
+		"testFiles": [
+			"fluid-shared.test.ts",
+			"FluidCursor.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
 			"`FluidCursorAdvancedProps` is a new exported type (empty interface extending `FluidCursorProps`). The Svelte index exports the deprecated `FluidCursorAdvanced` alias with no Props type of its own; PORTING.md's `<Name>Props` tooling contract requires one.",
 			"Dev-only console diagnostics (singleton warning, WebGPU fallback/tone-mapping/device-lost logs, HDR-level info) are gated on a `typeof`-guarded `process.env.NODE_ENV !== \"production\"` instead of `import.meta.env.DEV` — the react package's tsconfig does not load Vite client types. In an unbundled browser load where `process` is undefined the diagnostics are silent. No non-diagnostic behavior differs; `hexToRgb`'s invalid-hex `console.warn` is NOT gated on either side (the test asserts it).",
-			"`interactive` and `contained` are captured at mount and used for BOTH listener registration and removal. The Svelte source re-reads them (reactive getters) at cleanup time, so flipping either prop mid-life leaks or mis-pairs listeners there; here add/remove always pair. Unobservable unless a consumer mutates those props on a live instance, which the props are documented not to support.",
-			"WebGPU is typed by module-scoped minimal interfaces instead of `@webgpu/types` (not declared in react/package.json; it is only reachable here by accident, transitively through `@types/three`). Type-level only — no runtime difference — but it also keeps the emitted `.d.ts` free of an external type reference consumers would have to install."
+			"`interactive` and `contained` are captured at mount and used for BOTH listener registration and removal. The Svelte source re-reads them (reactive getters) at cleanup time, so flipping either prop mid-life leaks or mis-pairs listeners there; here add/remove always pair. Unobservable unless a consumer mutates those props on a live instance, which the props are documented not to support."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -2123,15 +2539,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Focus"],
+		"exports": [
+			"Focus"
+		],
 		"loc": 178,
-		"testFiles": ["Focus.test.ts"],
+		"testFiles": [
+			"Focus.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -2149,18 +2571,30 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["field"],
-			"motion": ["transitions", "anchored", "tokens"],
+			"internals": [
+				"field"
+			],
+			"motion": [
+				"transitions",
+				"anchored",
+				"tokens"
+			],
 			"sound": false,
-			"components": ["label"]
+			"components": [
+				"label"
+			]
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["FormField"],
+		"exports": [
+			"FormField"
+		],
 		"loc": 202,
 		"testFiles": [
 			"FormFieldPairHarness.test.svelte",
@@ -2199,9 +2633,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["FrostedGlass"],
+		"exports": [
+			"FrostedGlass"
+		],
 		"loc": 205,
-		"testFiles": ["FrostedGlass.test.ts"],
+		"testFiles": [
+			"FrostedGlass.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2226,15 +2664,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["GlareCard"],
+		"exports": [
+			"GlareCard"
+		],
 		"loc": 134,
-		"testFiles": ["GlareCard.test.ts"],
+		"testFiles": [
+			"GlareCard.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -2263,9 +2707,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["GlowBorder"],
+		"exports": [
+			"GlowBorder"
+		],
 		"loc": 68,
-		"testFiles": ["GlowBorder.test.ts"],
+		"testFiles": [
+			"GlowBorder.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2290,15 +2738,22 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "scroll"],
+		"browserAPIs": [
+			"pointer-events",
+			"scroll"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["GlowingEffect"],
+		"exports": [
+			"GlowingEffect"
+		],
 		"loc": 183,
-		"testFiles": ["GlowingEffect.test.ts"],
+		"testFiles": [
+			"GlowingEffect.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -2327,9 +2782,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["GradientButton"],
+		"exports": [
+			"GradientButton"
+		],
 		"loc": 106,
-		"testFiles": ["GradientButton.test.ts"],
+		"testFiles": [
+			"GradientButton.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 0,
 		"divergences": [
@@ -2349,18 +2808,30 @@
 		"effort": "medium",
 		"complexity": "pointer",
 		"deps": {
-			"internals": ["portal", "dismissable", "anchor-position"],
-			"motion": ["anchored"],
+			"internals": [
+				"portal",
+				"dismissable",
+				"anchor-position"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["HoverCard"],
+		"exports": [
+			"HoverCard"
+		],
 		"loc": 254,
 		"testFiles": [
 			"HoverCard.test.ts",
@@ -2395,15 +2866,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["HyperText"],
+		"exports": [
+			"HyperText"
+		],
 		"loc": 115,
-		"testFiles": ["HyperText.test.ts"],
+		"testFiles": [
+			"HyperText.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2435,7 +2912,9 @@
 			"internals": [],
 			"motion": [],
 			"sound": true,
-			"components": ["button"]
+			"components": [
+				"button"
+			]
 		},
 		"browserAPIs": [],
 		"runtimeDeps": [],
@@ -2443,9 +2922,13 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["IconButton"],
+		"exports": [
+			"IconButton"
+		],
 		"loc": 114,
-		"testFiles": ["IconButton.test.ts"],
+		"testFiles": [
+			"IconButton.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2473,7 +2956,9 @@
 			"internals": [],
 			"motion": [],
 			"sound": true,
-			"components": ["pixel-loader"]
+			"components": [
+				"pixel-loader"
+			]
 		},
 		"browserAPIs": [],
 		"runtimeDeps": [],
@@ -2481,9 +2966,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ImageGeneration"],
+		"exports": [
+			"ImageGeneration"
+		],
 		"loc": 278,
-		"testFiles": ["ImageGeneration.test.ts"],
+		"testFiles": [
+			"ImageGeneration.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2511,15 +3000,24 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
-		"runtimeDeps": ["gsap"],
+		"browserAPIs": [
+			"pointer-events"
+		],
+		"runtimeDeps": [
+			"gsap"
+		],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ImageTrailCursor"],
+		"exports": [
+			"ImageTrailCursor"
+		],
 		"loc": 1034,
-		"testFiles": ["ImageTrailCursor.test.ts", "trail-variants.test.ts"],
+		"testFiles": [
+			"ImageTrailCursor.test.ts",
+			"trail-variants.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2541,20 +3039,33 @@
 		"effort": "high",
 		"complexity": "pointer",
 		"deps": {
-			"internals": ["float", "markdown"],
+			"internals": [
+				"float",
+				"markdown"
+			],
 			"motion": [],
 			"sound": false,
-			"components": ["sources"]
+			"components": [
+				"sources"
+			]
 		},
-		"browserAPIs": ["pointer-events", "focus-management"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["InlineCitation"],
+		"exports": [
+			"InlineCitation"
+		],
 		"loc": 293,
-		"testFiles": ["InlineCitation.test.ts", "InlineCitationHarness.test.svelte"],
+		"testFiles": [
+			"InlineCitation.test.ts",
+			"InlineCitationHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2579,20 +3090,30 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["field"],
+			"internals": [
+				"field"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Input"],
+		"exports": [
+			"Input"
+		],
 		"loc": 127,
-		"testFiles": ["Input.test.ts", "InputFieldHarness.test.svelte", "InputHarness.test.svelte"],
+		"testFiles": [
+			"Input.test.ts",
+			"InputFieldHarness.test.svelte",
+			"InputHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2627,15 +3148,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["InteractiveGridPattern"],
+		"exports": [
+			"InteractiveGridPattern"
+		],
 		"loc": 83,
-		"testFiles": ["InteractiveGridPattern.test.ts"],
+		"testFiles": [
+			"InteractiveGridPattern.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2666,9 +3193,13 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["InteractiveHoverButton"],
+		"exports": [
+			"InteractiveHoverButton"
+		],
 		"loc": 88,
-		"testFiles": ["InteractiveHoverButton.test.ts"],
+		"testFiles": [
+			"InteractiveHoverButton.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 0,
 		"divergences": [],
@@ -2686,20 +3217,29 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["field"],
+			"internals": [
+				"field"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Label"],
+		"exports": [
+			"Label"
+		],
 		"loc": 57,
-		"testFiles": ["Label.test.ts", "LabelHarness.test.svelte"],
+		"testFiles": [
+			"Label.test.ts",
+			"LabelHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2737,9 +3277,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["LetterPullup"],
+		"exports": [
+			"LetterPullup"
+		],
 		"loc": 61,
-		"testFiles": ["LetterPullup.test.ts"],
+		"testFiles": [
+			"LetterPullup.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2770,9 +3314,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["LineHoverLink"],
+		"exports": [
+			"LineHoverLink"
+		],
 		"loc": 587,
-		"testFiles": ["LineHoverLink.test.ts"],
+		"testFiles": [
+			"LineHoverLink.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2792,20 +3340,31 @@
 		"effort": "xhigh",
 		"complexity": "pretext",
 		"deps": {
-			"internals": ["dom/use-element-ref", "dom/use-live-ref"],
+			"internals": [
+				"dom/use-element-ref",
+				"dom/use-live-ref"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["IntersectionObserver"],
-		"runtimeDeps": ["@chenglou/pretext"],
+		"browserAPIs": [
+			"IntersectionObserver"
+		],
+		"runtimeDeps": [
+			"@chenglou/pretext"
+		],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["LineReveal"],
+		"exports": [
+			"LineReveal"
+		],
 		"loc": 170,
-		"testFiles": ["LineReveal.test.ts"],
+		"testFiles": [
+			"LineReveal.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2839,9 +3398,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["LineShadowText"],
+		"exports": [
+			"LineShadowText"
+		],
 		"loc": 65,
-		"testFiles": ["LineShadowText.test.ts"],
+		"testFiles": [
+			"LineShadowText.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -2870,9 +3433,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Link"],
+		"exports": [
+			"Link"
+		],
 		"loc": 181,
-		"testFiles": ["Link.test.ts"],
+		"testFiles": [
+			"Link.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2899,15 +3466,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["ResizeObserver"],
+		"browserAPIs": [
+			"ResizeObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["LiquidGlass"],
+		"exports": [
+			"LiquidGlass"
+		],
 		"loc": 222,
-		"testFiles": ["LiquidGlass.test.ts"],
+		"testFiles": [
+			"LiquidGlass.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2931,7 +3504,10 @@
 		"effort": "xhigh",
 		"complexity": "webgl",
 		"deps": {
-			"internals": ["dom/ssr", "dom/use-live-ref"],
+			"internals": [
+				"dom/ssr",
+				"dom/use-live-ref"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -2949,9 +3525,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["LiquidText"],
+		"exports": [
+			"LiquidText"
+		],
 		"loc": 1194,
-		"testFiles": ["LiquidText.test.ts"],
+		"testFiles": [
+			"LiquidText.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -2987,9 +3567,16 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["AnimatedLogoCloud", "StaticLogoCloud", "IconLogoCloud"],
+		"exports": [
+			"AnimatedLogoCloud",
+			"StaticLogoCloud",
+			"IconLogoCloud"
+		],
 		"loc": 180,
-		"testFiles": ["AnimatedLogoCloud.test.ts", "StaticLogoCloud.test.ts"],
+		"testFiles": [
+			"AnimatedLogoCloud.test.ts",
+			"StaticLogoCloud.test.ts"
+		],
 		"svelteFiles": 3,
 		"attempts": 1,
 		"divergences": [
@@ -3010,20 +3597,35 @@
 		"effort": "medium",
 		"complexity": "pointer",
 		"deps": {
-			"internals": ["dom/use-composed-refs", "dom/use-element-ref", "dom/use-live-ref"],
-			"motion": ["in-view", "raf", "media-query"],
+			"internals": [
+				"dom/use-composed-refs",
+				"dom/use-element-ref",
+				"dom/use-live-ref"
+			],
+			"motion": [
+				"in-view",
+				"raf",
+				"media-query"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["IntersectionObserver", "pointer-events"],
+		"browserAPIs": [
+			"IntersectionObserver",
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Magnetic"],
+		"exports": [
+			"Magnetic"
+		],
 		"loc": 340,
-		"testFiles": ["Magnetic.test.ts"],
+		"testFiles": [
+			"Magnetic.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3056,9 +3658,14 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Marquee", "ReviewCard"],
+		"exports": [
+			"Marquee",
+			"ReviewCard"
+		],
 		"loc": 97,
-		"testFiles": ["Marquee.test.ts"],
+		"testFiles": [
+			"Marquee.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 0,
 		"divergences": [
@@ -3078,20 +3685,32 @@
 		"effort": "xhigh",
 		"complexity": "canvas2d",
 		"deps": {
-			"internals": ["dom/use-element-ref", "dom/use-live-ref"],
-			"motion": ["in-view"],
+			"internals": [
+				"dom/use-element-ref",
+				"dom/use-live-ref"
+			],
+			"motion": [
+				"in-view"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["canvas2d", "ResizeObserver"],
+		"browserAPIs": [
+			"canvas2d",
+			"ResizeObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["MatrixRain"],
+		"exports": [
+			"MatrixRain"
+		],
 		"loc": 131,
-		"testFiles": ["MatrixRain.test.ts"],
+		"testFiles": [
+			"MatrixRain.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3124,9 +3743,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "high",
-		"exports": ["Meteors"],
+		"exports": [
+			"Meteors"
+		],
 		"loc": 62,
-		"testFiles": ["Meteors.test.ts"],
+		"testFiles": [
+			"Meteors.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 0,
 		"divergences": [],
@@ -3161,9 +3784,15 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["MosaicGlow"],
+		"exports": [
+			"MosaicGlow"
+		],
 		"loc": 815,
-		"testFiles": ["mosaic-glow-core.test.ts", "MosaicGlow.ssr.test.ts", "MosaicGlow.test.ts"],
+		"testFiles": [
+			"mosaic-glow-core.test.ts",
+			"MosaicGlow.ssr.test.ts",
+			"MosaicGlow.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3203,9 +3832,14 @@
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Navbar", "NavbarLink"],
+		"exports": [
+			"Navbar",
+			"NavbarLink"
+		],
 		"loc": 249,
-		"testFiles": ["Navbar.test.ts"],
+		"testFiles": [
+			"Navbar.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -3226,12 +3860,22 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["portal", "anchor-position", "dismissable"],
-			"motion": ["anchored"],
+			"internals": [
+				"portal",
+				"anchor-position",
+				"dismissable"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
@@ -3248,7 +3892,10 @@
 			"NAVIGATION_MENU_ITEM_KEY"
 		],
 		"loc": 870,
-		"testFiles": ["NavigationMenu.test.ts", "NavigationMenuHarness.test.svelte"],
+		"testFiles": [
+			"NavigationMenu.test.ts",
+			"NavigationMenuHarness.test.svelte"
+		],
 		"svelteFiles": 6,
 		"attempts": 1,
 		"divergences": [
@@ -3287,9 +3934,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["NeonBorder"],
+		"exports": [
+			"NeonBorder"
+		],
 		"loc": 138,
-		"testFiles": ["NeonBorder.test.ts"],
+		"testFiles": [
+			"NeonBorder.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3322,15 +3973,25 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["webgl2", "IntersectionObserver", "matchMedia"],
-		"runtimeDeps": ["three"],
+		"browserAPIs": [
+			"webgl2",
+			"IntersectionObserver",
+			"matchMedia"
+		],
+		"runtimeDeps": [
+			"three"
+		],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["NoiseReveal"],
+		"exports": [
+			"NoiseReveal"
+		],
 		"loc": 325,
-		"testFiles": ["NoiseReveal.test.ts"],
+		"testFiles": [
+			"NoiseReveal.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3352,8 +4013,12 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["field"],
-			"motion": ["tokens"],
+			"internals": [
+				"field"
+			],
+			"motion": [
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
@@ -3363,7 +4028,9 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["NumberInput"],
+		"exports": [
+			"NumberInput"
+		],
 		"loc": 385,
 		"testFiles": [
 			"NumberInput.test.ts",
@@ -3408,15 +4075,21 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["IntersectionObserver"],
+		"browserAPIs": [
+			"IntersectionObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["NumberTicker"],
+		"exports": [
+			"NumberTicker"
+		],
 		"loc": 126,
-		"testFiles": ["NumberTicker.test.ts"],
+		"testFiles": [
+			"NumberTicker.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3448,7 +4121,9 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Pagination"],
+		"exports": [
+			"Pagination"
+		],
 		"loc": 377,
 		"testFiles": [
 			"pagination-range.test.ts",
@@ -3482,18 +4157,29 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["field"],
-			"motion": ["transitions", "anchored", "tokens"],
+			"internals": [
+				"field"
+			],
+			"motion": [
+				"transitions",
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["PasswordInput"],
+		"exports": [
+			"PasswordInput"
+		],
 		"loc": 412,
 		"testFiles": [
 			"PasswordInput.test.ts",
@@ -3537,9 +4223,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["PixelLoader"],
+		"exports": [
+			"PixelLoader"
+		],
 		"loc": 115,
-		"testFiles": ["PixelLoader.test.ts"],
+		"testFiles": [
+			"PixelLoader.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3559,20 +4249,37 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["anchor-position", "portal", "focus-trap", "dismissable"],
-			"motion": ["anchored"],
+			"internals": [
+				"anchor-position",
+				"portal",
+				"focus-trap",
+				"dismissable"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["portal-dom", "focus-management", "pointer-events"],
+		"browserAPIs": [
+			"portal-dom",
+			"focus-management",
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Popover", "PopoverContent", "POPOVER_KEY"],
+		"exports": [
+			"Popover",
+			"PopoverContent",
+			"POPOVER_KEY"
+		],
 		"loc": 332,
-		"testFiles": ["Popover.test.ts"],
+		"testFiles": [
+			"Popover.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -3599,19 +4306,30 @@
 		"complexity": "js-anim",
 		"deps": {
 			"internals": [],
-			"motion": ["transitions", "media-query", "types"],
+			"motion": [
+				"transitions",
+				"media-query",
+				"types"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["matchMedia"],
+		"browserAPIs": [
+			"matchMedia"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Presence"],
+		"exports": [
+			"Presence"
+		],
 		"loc": 164,
-		"testFiles": ["Presence.test.ts", "PresenceHarness.test.svelte"],
+		"testFiles": [
+			"Presence.test.ts",
+			"PresenceHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -3630,19 +4348,29 @@
 		"complexity": "pointer",
 		"deps": {
 			"internals": [],
-			"motion": ["haptics", "types"],
+			"motion": [
+				"haptics",
+				"types"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Pressable"],
+		"exports": [
+			"Pressable"
+		],
 		"loc": 221,
-		"testFiles": ["Pressable.test.ts"],
+		"testFiles": [
+			"Pressable.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3673,9 +4401,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["PromptSuggestions"],
+		"exports": [
+			"PromptSuggestions"
+		],
 		"loc": 134,
-		"testFiles": ["PromptSuggestions.test.ts"],
+		"testFiles": [
+			"PromptSuggestions.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3702,15 +4434,25 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["matchMedia", "IntersectionObserver", "ResizeObserver"],
+		"browserAPIs": [
+			"matchMedia",
+			"IntersectionObserver",
+			"ResizeObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["PulseBeam"],
+		"exports": [
+			"PulseBeam"
+		],
 		"loc": 945,
-		"testFiles": ["pulse-beam-data.test.ts", "PulseBeam.ssr.test.ts", "PulseBeam.test.ts"],
+		"testFiles": [
+			"pulse-beam-data.test.ts",
+			"PulseBeam.ssr.test.ts",
+			"PulseBeam.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -3728,20 +4470,31 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["field"],
+			"internals": [
+				"field"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["RadioGroup", "RadioGroupItem", "RADIO_GROUP_KEY"],
+		"exports": [
+			"RadioGroup",
+			"RadioGroupItem",
+			"RADIO_GROUP_KEY"
+		],
 		"loc": 390,
-		"testFiles": ["RadioGroup.test.ts", "RadioGroupHarness.test.svelte"],
+		"testFiles": [
+			"RadioGroup.test.ts",
+			"RadioGroupHarness.test.svelte"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -3786,9 +4539,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["RainbowButton"],
+		"exports": [
+			"RainbowButton"
+		],
 		"loc": 99,
-		"testFiles": ["RainbowButton.test.ts"],
+		"testFiles": [
+			"RainbowButton.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 0,
 		"divergences": [],
@@ -3806,20 +4563,30 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["StreamText", "autoscroll", "elapsed"],
+			"internals": [
+				"StreamText",
+				"autoscroll",
+				"elapsed"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["scroll"],
+		"browserAPIs": [
+			"scroll"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ReasoningPanel"],
+		"exports": [
+			"ReasoningPanel"
+		],
 		"loc": 264,
-		"testFiles": ["ReasoningPanel.test.ts"],
+		"testFiles": [
+			"ReasoningPanel.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3844,17 +4611,26 @@
 			"internals": [],
 			"motion": [],
 			"sound": true,
-			"components": ["number-ticker"]
+			"components": [
+				"number-ticker"
+			]
 		},
-		"browserAPIs": ["matchMedia"],
+		"browserAPIs": [
+			"matchMedia"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["RecommendationCard"],
+		"exports": [
+			"RecommendationCard"
+		],
 		"loc": 379,
-		"testFiles": ["RecommendationCard.test.ts", "RecommendationCardHarness.test.svelte"],
+		"testFiles": [
+			"RecommendationCard.test.ts",
+			"RecommendationCardHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -3885,19 +4661,33 @@
 		"complexity": "js-anim",
 		"deps": {
 			"internals": [],
-			"motion": ["in-view", "stagger", "tokens", "types"],
+			"motion": [
+				"in-view",
+				"stagger",
+				"tokens",
+				"types"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["IntersectionObserver", "MutationObserver", "focus-management"],
+		"browserAPIs": [
+			"IntersectionObserver",
+			"MutationObserver",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Reveal"],
+		"exports": [
+			"Reveal"
+		],
 		"loc": 355,
-		"testFiles": ["Reveal.test.ts", "RevealHarness.test.svelte"],
+		"testFiles": [
+			"Reveal.test.ts",
+			"RevealHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -3926,9 +4716,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Ripple"],
+		"exports": [
+			"Ripple"
+		],
 		"loc": 65,
-		"testFiles": ["Ripple.test.ts"],
+		"testFiles": [
+			"Ripple.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -3951,15 +4745,21 @@
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["RippleButton"],
+		"exports": [
+			"RippleButton"
+		],
 		"loc": 114,
-		"testFiles": ["RippleButton.test.ts"],
+		"testFiles": [
+			"RippleButton.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 0,
 		"divergences": [
@@ -3979,7 +4779,9 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["autoscroll"],
+			"internals": [
+				"autoscroll"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -3996,9 +4798,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["ScrollAnchor"],
+		"exports": [
+			"ScrollAnchor"
+		],
 		"loc": 201,
-		"testFiles": ["ScrollAnchor.test.ts"],
+		"testFiles": [
+			"ScrollAnchor.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4020,19 +4826,27 @@
 		"complexity": "js-anim",
 		"deps": {
 			"internals": [],
-			"motion": ["raf"],
+			"motion": [
+				"raf"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["scroll"],
+		"browserAPIs": [
+			"scroll"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["ScrollProgress"],
+		"exports": [
+			"ScrollProgress"
+		],
 		"loc": 295,
-		"testFiles": ["ScrollProgress.test.ts"],
+		"testFiles": [
+			"ScrollProgress.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -4050,18 +4864,28 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["field"],
-			"motion": ["transitions", "anchored", "tokens"],
+			"internals": [
+				"field"
+			],
+			"motion": [
+				"transitions",
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "low",
-		"exports": ["SearchInput"],
+		"exports": [
+			"SearchInput"
+		],
 		"loc": 287,
 		"testFiles": [
 			"SearchInput.test.ts",
@@ -4090,20 +4914,37 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["field", "listbox", "anchor-position", "portal", "dismissable"],
-			"motion": ["anchored"],
+			"internals": [
+				"field",
+				"listbox",
+				"anchor-position",
+				"portal",
+				"dismissable"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "low",
-		"exports": ["Select"],
+		"exports": [
+			"Select"
+		],
 		"loc": 632,
-		"testFiles": ["Select.test.ts", "SelectHarness.test.svelte"],
+		"testFiles": [
+			"Select.test.ts",
+			"SelectHarness.test.svelte"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -4131,20 +4972,36 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["portal", "focus-trap", "dismissable", "scroll-lock"],
-			"motion": ["anchored", "tokens"],
+			"internals": [
+				"portal",
+				"focus-trap",
+				"dismissable",
+				"scroll-lock"
+			],
+			"motion": [
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["portal-dom", "focus-management"],
+		"browserAPIs": [
+			"portal-dom",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Sheet"],
+		"exports": [
+			"Sheet"
+		],
 		"loc": 292,
-		"testFiles": ["Sheet.test.ts", "SheetHarness.test.svelte"],
+		"testFiles": [
+			"Sheet.test.ts",
+			"SheetHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4182,9 +5039,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ShimmerButton"],
+		"exports": [
+			"ShimmerButton"
+		],
 		"loc": 120,
-		"testFiles": ["ShimmerButton.test.ts"],
+		"testFiles": [
+			"ShimmerButton.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 0,
 		"divergences": [],
@@ -4222,7 +5083,10 @@
 			"SIDEBAR_KEY"
 		],
 		"loc": 462,
-		"testFiles": ["Sidebar.test.ts", "SidebarHarness.test.svelte"],
+		"testFiles": [
+			"Sidebar.test.ts",
+			"SidebarHarness.test.svelte"
+		],
 		"svelteFiles": 5,
 		"attempts": 1,
 		"divergences": [
@@ -4249,7 +5113,11 @@
 		"complexity": "js-anim",
 		"deps": {
 			"internals": [],
-			"motion": ["transitions", "anchored", "tokens"],
+			"motion": [
+				"transitions",
+				"anchored",
+				"tokens"
+			],
 			"sound": false,
 			"components": []
 		},
@@ -4259,9 +5127,14 @@
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "low",
-		"exports": ["Skeleton"],
+		"exports": [
+			"Skeleton"
+		],
 		"loc": 396,
-		"testFiles": ["Skeleton.test.ts", "SkeletonRevealHarness.test.svelte"],
+		"testFiles": [
+			"Skeleton.test.ts",
+			"SkeletonRevealHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4282,7 +5155,9 @@
 		"effort": "low",
 		"complexity": "css-trivial",
 		"deps": {
-			"internals": ["field"],
+			"internals": [
+				"field"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -4293,9 +5168,15 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Slider"],
+		"exports": [
+			"Slider"
+		],
 		"loc": 258,
-		"testFiles": ["Slider.test.ts", "SliderFieldHarness.test.svelte", "SliderHarness.test.svelte"],
+		"testFiles": [
+			"Slider.test.ts",
+			"SliderFieldHarness.test.svelte",
+			"SliderHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4321,15 +5202,22 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["matchMedia", "pointer-events"],
+		"browserAPIs": [
+			"matchMedia",
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["SmoothCursor"],
+		"exports": [
+			"SmoothCursor"
+		],
 		"loc": 228,
-		"testFiles": ["SmoothCursor.test.ts"],
+		"testFiles": [
+			"SmoothCursor.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4355,7 +5243,10 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["webaudio", "localStorage"],
+		"browserAPIs": [
+			"webaudio",
+			"localStorage"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
@@ -4420,7 +5311,9 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["ai-types"],
+			"internals": [
+				"ai-types"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -4431,9 +5324,19 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Sources", "SourcesTrigger", "SourcesList", "SourceCard", "SOURCES_CONTEXT_KEY"],
+		"exports": [
+			"Sources",
+			"SourcesTrigger",
+			"SourcesList",
+			"SourceCard",
+			"SOURCES_CONTEXT_KEY"
+		],
 		"loc": 525,
-		"testFiles": ["Sources.test.ts", "SourcesParts.test.ts", "SourcesHarness.test.svelte"],
+		"testFiles": [
+			"Sources.test.ts",
+			"SourcesParts.test.ts",
+			"SourcesHarness.test.svelte"
+		],
 		"svelteFiles": 4,
 		"attempts": 1,
 		"divergences": [
@@ -4470,15 +5373,22 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["canvas2d", "ResizeObserver"],
+		"browserAPIs": [
+			"canvas2d",
+			"ResizeObserver"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["Sparkles"],
+		"exports": [
+			"Sparkles"
+		],
 		"loc": 124,
-		"testFiles": ["Sparkles.test.ts"],
+		"testFiles": [
+			"Sparkles.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4519,9 +5429,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "high",
-		"exports": ["SparklesText"],
+		"exports": [
+			"SparklesText"
+		],
 		"loc": 115,
-		"testFiles": ["SparklesText.test.ts"],
+		"testFiles": [
+			"SparklesText.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4543,20 +5457,32 @@
 		"effort": "low",
 		"complexity": "css-trivial",
 		"deps": {
-			"internals": ["portal"],
-			"motion": ["haptics"],
+			"internals": [
+				"portal"
+			],
+			"motion": [
+				"haptics"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["portal-dom", "focus-management"],
+		"browserAPIs": [
+			"portal-dom",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["StatusMorph"],
+		"exports": [
+			"StatusMorph"
+		],
 		"loc": 453,
-		"testFiles": ["StatusMorph.test.ts", "StatusMorphHarness.test.svelte"],
+		"testFiles": [
+			"StatusMorph.test.ts",
+			"StatusMorphHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4589,9 +5515,16 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Stepper", "Step", "STEPPER_KEY"],
+		"exports": [
+			"Stepper",
+			"Step",
+			"STEPPER_KEY"
+		],
 		"loc": 449,
-		"testFiles": ["Stepper.test.ts", "StepperHarness.test.svelte"],
+		"testFiles": [
+			"Stepper.test.ts",
+			"StepperHarness.test.svelte"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -4624,19 +5557,33 @@
 		"complexity": "pointer",
 		"deps": {
 			"internals": [],
-			"motion": ["in-view", "media-query", "transitions", "tokens"],
+			"motion": [
+				"in-view",
+				"media-query",
+				"transitions",
+				"tokens"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["IntersectionObserver", "scroll", "focus-management"],
+		"browserAPIs": [
+			"IntersectionObserver",
+			"scroll",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["StickyScroll"],
+		"exports": [
+			"StickyScroll"
+		],
 		"loc": 259,
-		"testFiles": ["StickyScroll.test.ts", "StickyScrollHarness.test.svelte"],
+		"testFiles": [
+			"StickyScroll.test.ts",
+			"StickyScrollHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4669,7 +5616,10 @@
 		"effort": "low",
 		"complexity": "css-trivial",
 		"deps": {
-			"internals": ["StreamText", "Markdown"],
+			"internals": [
+				"StreamText",
+				"Markdown"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -4680,9 +5630,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["StreamingText"],
+		"exports": [
+			"StreamingText"
+		],
 		"loc": 130,
-		"testFiles": ["StreamingText.test.ts"],
+		"testFiles": [
+			"StreamingText.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4702,7 +5656,9 @@
 		"effort": "low",
 		"complexity": "css-trivial",
 		"deps": {
-			"internals": ["ai-types"],
+			"internals": [
+				"ai-types"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -4713,9 +5669,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["SubagentList"],
+		"exports": [
+			"SubagentList"
+		],
 		"loc": 442,
-		"testFiles": ["SubagentList.test.ts"],
+		"testFiles": [
+			"SubagentList.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],
@@ -4740,7 +5700,9 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["field"],
+			"internals": [
+				"field"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -4751,9 +5713,15 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Switch"],
+		"exports": [
+			"Switch"
+		],
 		"loc": 259,
-		"testFiles": ["Switch.test.ts", "SwitchFieldHarness.test.svelte", "SwitchHarness.test.svelte"],
+		"testFiles": [
+			"Switch.test.ts",
+			"SwitchFieldHarness.test.svelte",
+			"SwitchHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4775,19 +5743,36 @@
 		"complexity": "compound-context",
 		"deps": {
 			"internals": [],
-			"motion": ["transitions", "anchored", "tokens"],
+			"motion": [
+				"transitions",
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["ResizeObserver", "MutationObserver", "focus-management"],
+		"browserAPIs": [
+			"ResizeObserver",
+			"MutationObserver",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Tabs", "TabsList", "TabsTrigger", "TabsContent", "TABS_KEY"],
+		"exports": [
+			"Tabs",
+			"TabsList",
+			"TabsTrigger",
+			"TabsContent",
+			"TABS_KEY"
+		],
 		"loc": 1070,
-		"testFiles": ["Tabs.test.ts", "TabsHarness.test.svelte"],
+		"testFiles": [
+			"Tabs.test.ts",
+			"TabsHarness.test.svelte"
+		],
 		"svelteFiles": 4,
 		"attempts": 1,
 		"divergences": [
@@ -4816,20 +5801,29 @@
 		"effort": "low",
 		"complexity": "css-trivial",
 		"deps": {
-			"internals": ["autoscroll"],
+			"internals": [
+				"autoscroll"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["scroll"],
+		"browserAPIs": [
+			"scroll"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["TerminalBlock"],
+		"exports": [
+			"TerminalBlock"
+		],
 		"loc": 455,
-		"testFiles": ["TerminalBlock.test.ts", "ansi.test.ts"],
+		"testFiles": [
+			"TerminalBlock.test.ts",
+			"ansi.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4861,9 +5855,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["TerminalText"],
+		"exports": [
+			"TerminalText"
+		],
 		"loc": 191,
-		"testFiles": ["TerminalText.test.ts"],
+		"testFiles": [
+			"TerminalText.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4895,9 +5893,13 @@
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["TextGenerateEffect"],
+		"exports": [
+			"TextGenerateEffect"
+		],
 		"loc": 68,
-		"testFiles": ["TextGenerateEffect.test.ts"],
+		"testFiles": [
+			"TextGenerateEffect.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -4923,15 +5925,22 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": [
+			"pointer-events"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "high",
-		"exports": ["TextRevealCard", "TextRevealStars"],
+		"exports": [
+			"TextRevealCard",
+			"TextRevealStars"
+		],
 		"loc": 190,
-		"testFiles": ["TextRevealCard.test.ts"],
+		"testFiles": [
+			"TextRevealCard.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -4955,19 +5964,31 @@
 		"complexity": "js-anim",
 		"deps": {
 			"internals": [],
-			"motion": ["media-query", "tokens", "stagger", "types"],
+			"motion": [
+				"media-query",
+				"tokens",
+				"stagger",
+				"types"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["matchMedia"],
+		"browserAPIs": [
+			"matchMedia"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "low",
-		"exports": ["TextRoll"],
+		"exports": [
+			"TextRoll"
+		],
 		"loc": 571,
-		"testFiles": ["TextRoll.test.ts", "TextRollHarness.test.svelte"],
+		"testFiles": [
+			"TextRoll.test.ts",
+			"TextRollHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5003,7 +6024,9 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["field"],
+			"internals": [
+				"field"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -5014,7 +6037,9 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Textarea"],
+		"exports": [
+			"Textarea"
+		],
 		"loc": 229,
 		"testFiles": [
 			"Textarea.test.ts",
@@ -5042,7 +6067,9 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["elapsed"],
+			"internals": [
+				"elapsed"
+			],
 			"motion": [],
 			"sound": false,
 			"components": []
@@ -5053,9 +6080,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ThinkingIndicator"],
+		"exports": [
+			"ThinkingIndicator"
+		],
 		"loc": 193,
-		"testFiles": ["ThinkingIndicator.test.ts"],
+		"testFiles": [
+			"ThinkingIndicator.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5085,7 +6116,11 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": ["elapsed", "relative-time", "ai-types"],
+			"internals": [
+				"elapsed",
+				"relative-time",
+				"ai-types"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -5096,9 +6131,14 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ThreadList"],
+		"exports": [
+			"ThreadList"
+		],
 		"loc": 344,
-		"testFiles": ["ThreadList.test.ts", "ThreadListHarness.test.svelte"],
+		"testFiles": [
+			"ThreadList.test.ts",
+			"ThreadListHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5128,18 +6168,32 @@
 		"effort": "high",
 		"complexity": "compound-context",
 		"deps": {
-			"internals": ["field", "listbox", "anchor-position", "portal", "dismissable"],
-			"motion": ["anchored"],
+			"internals": [
+				"field",
+				"listbox",
+				"anchor-position",
+				"portal",
+				"dismissable"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "portal-dom", "focus-management"],
+		"browserAPIs": [
+			"pointer-events",
+			"portal-dom",
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["TimePicker"],
+		"exports": [
+			"TimePicker"
+		],
 		"loc": 586,
 		"testFiles": [
 			"time-utils.test.ts",
@@ -5183,15 +6237,22 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["ResizeObserver", "scroll"],
+		"browserAPIs": [
+			"ResizeObserver",
+			"scroll"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Timeline"],
+		"exports": [
+			"Timeline"
+		],
 		"loc": 144,
-		"testFiles": ["Timeline.test.ts"],
+		"testFiles": [
+			"Timeline.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5212,20 +6273,37 @@
 		"effort": "medium",
 		"complexity": "js-anim",
 		"deps": {
-			"internals": ["portal"],
-			"motion": ["transitions", "anchored", "tokens"],
+			"internals": [
+				"portal"
+			],
+			"motion": [
+				"transitions",
+				"anchored",
+				"tokens"
+			],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": true,
 		"ssrRisk": "none",
-		"exports": ["Toast", "Toaster", "toast", "dismissToast"],
+		"exports": [
+			"Toast",
+			"Toaster",
+			"toast",
+			"dismissToast"
+		],
 		"loc": 582,
-		"testFiles": ["Toast.test.ts"],
+		"testFiles": [
+			"Toast.test.ts"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -5257,9 +6335,14 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Toggle"],
+		"exports": [
+			"Toggle"
+		],
 		"loc": 195,
-		"testFiles": ["Toggle.test.ts", "ToggleHarness.test.svelte"],
+		"testFiles": [
+			"Toggle.test.ts",
+			"ToggleHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5285,15 +6368,24 @@
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["focus-management"],
+		"browserAPIs": [
+			"focus-management"
+		],
 		"runtimeDeps": [],
 		"setContext": true,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ToggleGroup", "ToggleGroupItem", "TOGGLE_GROUP_KEY"],
+		"exports": [
+			"ToggleGroup",
+			"ToggleGroupItem",
+			"TOGGLE_GROUP_KEY"
+		],
 		"loc": 543,
-		"testFiles": ["ToggleGroup.test.ts", "ToggleGroupHarness.test.svelte"],
+		"testFiles": [
+			"ToggleGroup.test.ts",
+			"ToggleGroupHarness.test.svelte"
+		],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
@@ -5336,9 +6428,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ToolCall"],
+		"exports": [
+			"ToolCall"
+		],
 		"loc": 434,
-		"testFiles": ["ToolCall.test.ts"],
+		"testFiles": [
+			"ToolCall.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5376,7 +6472,10 @@
 		"effort": "low",
 		"complexity": "css-trivial",
 		"deps": {
-			"internals": ["relative-time", "elapsed.svelte"],
+			"internals": [
+				"relative-time",
+				"elapsed.svelte"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -5387,9 +6486,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["ToolTimeline"],
+		"exports": [
+			"ToolTimeline"
+		],
 		"loc": 267,
-		"testFiles": ["ToolTimeline.test.ts"],
+		"testFiles": [
+			"ToolTimeline.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5412,20 +6515,34 @@
 		"effort": "medium",
 		"complexity": "pointer",
 		"deps": {
-			"internals": ["anchor-position", "portal", "dismissable"],
-			"motion": ["anchored"],
+			"internals": [
+				"anchor-position",
+				"portal",
+				"dismissable"
+			],
+			"motion": [
+				"anchored"
+			],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events", "focus-management", "portal-dom"],
+		"browserAPIs": [
+			"pointer-events",
+			"focus-management",
+			"portal-dom"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["Tooltip"],
+		"exports": [
+			"Tooltip"
+		],
 		"loc": 339,
-		"testFiles": ["Tooltip.test.ts"],
+		"testFiles": [
+			"Tooltip.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5454,13 +6571,18 @@
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["ResizeObserver", "scroll"],
+		"browserAPIs": [
+			"ResizeObserver",
+			"scroll"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": false,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["TracingBeam"],
+		"exports": [
+			"TracingBeam"
+		],
 		"loc": 157,
 		"testFiles": [],
 		"svelteFiles": 1,
@@ -5495,9 +6617,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["TypingIndicator"],
+		"exports": [
+			"TypingIndicator"
+		],
 		"loc": 101,
-		"testFiles": ["TypingIndicator.test.ts"],
+		"testFiles": [
+			"TypingIndicator.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5517,20 +6643,32 @@
 		"effort": "xhigh",
 		"complexity": "canvas2d",
 		"deps": {
-			"internals": ["elapsed.svelte", "waveform-core"],
+			"internals": [
+				"elapsed.svelte",
+				"waveform-core"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["canvas2d", "ResizeObserver", "matchMedia"],
+		"browserAPIs": [
+			"canvas2d",
+			"ResizeObserver",
+			"matchMedia"
+		],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["VoiceInput"],
+		"exports": [
+			"VoiceInput"
+		],
 		"loc": 411,
-		"testFiles": ["VoiceInput.test.ts", "VoiceInputHarness.test.svelte"],
+		"testFiles": [
+			"VoiceInput.test.ts",
+			"VoiceInputHarness.test.svelte"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
@@ -5555,7 +6693,11 @@
 		"effort": "low",
 		"complexity": "css-trivial",
 		"deps": {
-			"internals": ["ai-types", "host", "markdown"],
+			"internals": [
+				"ai-types",
+				"host",
+				"markdown"
+			],
 			"motion": [],
 			"sound": true,
 			"components": []
@@ -5566,9 +6708,13 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["WebSearch"],
+		"exports": [
+			"WebSearch"
+		],
 		"loc": 339,
-		"testFiles": ["WebSearch.test.ts"],
+		"testFiles": [
+			"WebSearch.test.ts"
+		],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [],

@@ -5,13 +5,13 @@
  *
  * How the `easing` param actually reaches the screen is worth spelling out,
  * because it is easy to assume `css(t, u)` needs to apply the curve itself:
- * it does not. The sampler in `animate.ts` (`runTransition`) samples every
- * keyframe as `t = t1 + delta * easing(i / n)` BEFORE `css(t, 1 - t)` is
- * ever called — so the `t`/`u` a `css()` function receives are ALREADY
- * eased, and the curve lives entirely in the sample POSITIONS rather than in
- * a WAAPI `easing` option. `preset()` below does the same as the framework
- * built-ins it mirrors: `easing` is resolved once and returned as-is on the
- * spec; `cssFor` never touches it.
+ * it does not. Whichever runtime plays the transition samples every keyframe
+ * as `t = t1 + delta * easing(i / n)` BEFORE `css(t, 1 - t)` is ever called —
+ * so the `t`/`u` a `css()` function receives are ALREADY eased, and the curve
+ * lives entirely in the sample POSITIONS rather than in a WAAPI `easing`
+ * option. `preset()` below does the same as the framework built-ins it
+ * mirrors: `easing` is resolved once and returned as-is on the spec; `cssFor`
+ * never touches it.
  */
 
 import { DURATIONS, JS_EASINGS } from "./tokens.js";
@@ -19,9 +19,9 @@ import { PRESETS, type PresetName } from "./presets.js";
 
 /**
  * One transition's timing plus its per-frame CSS. Structurally identical to
- * the framework `TransitionConfig` the Svelte side imports, declared locally
- * so this package takes no runtime dependency on it. The `tick` field is
- * omitted: nothing in this library uses it.
+ * the `TransitionConfig` a framework transition runtime consumes, declared
+ * locally so this shared core takes no dependency on any one framework's
+ * types. The `tick` field is omitted: nothing in this library uses it.
  */
 export interface TransitionSpec {
 	delay: number;
@@ -36,7 +36,7 @@ export interface TransitionSpec {
 export type TransitionDirection = "in" | "out" | "both";
 
 /** A transition function's shape, preserved exactly — including the unused
- *  first parameter, so the existing test files transpose 1:1. */
+ *  first parameter, so the colocated test files transpose 1:1. */
 export type TransitionFn<P = unknown> = (
 	node: Element,
 	params?: P,
@@ -97,12 +97,12 @@ function cssFor(name: PresetName, t: number, u: number, distance: number): strin
 
 /**
  * Returns a transition function for the named preset, ready to hand to
- * `usePresence`. Resolution order for every param is caller-supplied
- * `params` → this function's own defaults; `duration` defaults to
- * `DURATIONS.base` and `distance` to 16px regardless of direction (a
- * component that wants a shorter/half-distance EXIT, like Presence, passes
- * those explicitly in its own `out`-side params — this factory does not
- * guess at that asymmetry).
+ * whichever presence/transition mechanism the host framework provides.
+ * Resolution order for every param is caller-supplied `params` → this
+ * function's own defaults; `duration` defaults to `DURATIONS.base` and
+ * `distance` to 16px regardless of direction (a component that wants a
+ * shorter/half-distance EXIT, like Presence, passes those explicitly in its
+ * own `out`-side params — this factory does not guess at that asymmetry).
  *
  * `easing` is the one default that DOES read `options.direction`: with no
  * explicit `params.easing`, an `"out"`-direction instance (an exit-only

@@ -35,7 +35,8 @@ export function hostOf(url: string | undefined): string {
 		const match = /^(?:[a-z][a-z0-9+.-]*:)?(?:\/\/)?([^/?#\s]+)/i.exec(url);
 		if (!match) return "";
 		// Whatever is left has to look like a host, or we are just echoing the
-		// path of a relative link back at the reader.
+		// path of a relative link back at the reader. Group 1 exists: `match`
+		// was checked truthy on the line above and the pattern has one group.
 		const host = match[1]!.split("@").pop() as string;
 		return host.includes(".") ? stripWww(host) : "";
 	}

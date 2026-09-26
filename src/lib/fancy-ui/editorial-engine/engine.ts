@@ -232,6 +232,21 @@ interface PullquoteRect extends RectObstacle {
 	colIdx: number;
 }
 
+/**
+ * A pullquote slot that survived the "was a pullquote actually supplied?"
+ * filter. Declared so the filter can carry a type predicate: this package
+ * compiles under `noUncheckedIndexedAccess`, where `pullquotes[1]` is
+ * `PreparedTextWithSegments | undefined` and a plain `.filter()` does not
+ * narrow it away.
+ */
+interface PullquoteSpec {
+	prepared: PreparedTextWithSegments;
+	colIdx: number;
+	yFrac: number;
+	wFrac: number;
+	side: string;
+}
+
 function hitTestOrbs(
 	orbs: Orb[],
 	px: number,
@@ -240,7 +255,7 @@ function hitTestOrbs(
 	radiusScale: number
 ): number {
 	for (let index = activeCount - 1; index >= 0; index--) {
-		const orb = orbs[index];
+		const orb = orbs[index]!;
 		const radius = orb.r * radiusScale;
 		const dx = px - orb.x;
 		const dy = py - orb.y;
@@ -252,7 +267,7 @@ function hitTestOrbs(
 function positionedLinesEqual(a: PositionedLine[], b: PositionedLine[]): boolean {
 	if (a.length !== b.length) return false;
 	for (let i = 0; i < a.length; i++) {
-		if (a[i].x !== b[i].x || a[i].y !== b[i].y || a[i].text !== b[i].text) return false;
+		if (a[i]!.x !== b[i]!.x || a[i]!.y !== b[i]!.y || a[i]!.text !== b[i]!.text) return false;
 	}
 	return true;
 }
@@ -282,7 +297,7 @@ export function createEditorialEngine(
 			pool.push(element);
 		}
 		for (let index = 0; index < pool.length; index++) {
-			pool[index].style.display = index < count ? "" : "none";
+			pool[index]!.style.display = index < count ? "" : "none";
 		}
 	}
 
@@ -313,12 +328,12 @@ export function createEditorialEngine(
 	const pullquoteSpecs = [
 		{ prepared: preparedPullquotes[0], colIdx: 0, yFrac: 0.48, wFrac: 0.52, side: "right" },
 		{ prepared: preparedPullquotes[1], colIdx: 1, yFrac: 0.32, wFrac: 0.5, side: "left" },
-	].filter((spec) => spec.prepared !== undefined);
+	].filter((spec): spec is PullquoteSpec => spec.prepared !== undefined);
 
 	const DROP_CAP_SIZE = BODY_LINE_HEIGHT * DROP_CAP_LINES - 4;
 	const dropCapFont = `700 ${DROP_CAP_SIZE}px ${fontFamily}`;
 	// Empty body: no drop cap, render (nothing) from the very first grapheme.
-	const dropCapText = body.length > 0 ? body[0] : "";
+	const dropCapText = body.length > 0 ? body[0]! : "";
 	let dropCapTotalW = 0;
 	if (dropCapText !== "") {
 		const preparedDropCap = prepareWithSegments(dropCapText, dropCapFont);
@@ -438,7 +453,7 @@ export function createEditorialEngine(
 		const draggedOrbIndex = drag?.orbIndex ?? -1;
 		let stillAnimating = false;
 		for (let index = 0; index < activeOrbCount; index++) {
-			const orb = orbs[index];
+			const orb = orbs[index]!;
 			const radius = orb.r * orbRadiusScale;
 			if (orb.paused || index === draggedOrbIndex) continue;
 			stillAnimating = true;
@@ -462,9 +477,9 @@ export function createEditorialEngine(
 			}
 		}
 		for (let i = 0; i < activeOrbCount; i++) {
-			const a = orbs[i];
+			const a = orbs[i]!;
 			for (let j = i + 1; j < activeOrbCount; j++) {
-				const b = orbs[j];
+				const b = orbs[j]!;
 				const dx = b.x - a.x;
 				const dy = b.y - a.y;
 				const dist = Math.sqrt(dx * dx + dy * dy);
@@ -486,7 +501,7 @@ export function createEditorialEngine(
 
 		const circleObstacles: CircleObstacle[] = [];
 		for (let index = 0; index < activeOrbCount; index++) {
-			const orb = orbs[index];
+			const orb = orbs[index]!;
 			circleObstacles.push({
 				cx: orb.x,
 				cy: orb.y,
@@ -592,8 +607,8 @@ export function createEditorialEngine(
 		if (changed) {
 			syncPool(headlinePool, headlineLines.length, () => makeLineEl("ee-headline-line"));
 			for (let i = 0; i < headlineLines.length; i++) {
-				const el = headlinePool[i];
-				const line = headlineLines[i];
+				const el = headlinePool[i]!;
+				const line = headlineLines[i]!;
 				el.textContent = line.text;
 				el.style.left = `${gutter + line.x}px`;
 				el.style.top = `${gutter + line.y}px`;
@@ -602,8 +617,8 @@ export function createEditorialEngine(
 			}
 			syncPool(bodyLinePool, allBodyLines.length, () => makeLineEl("ee-line"));
 			for (let i = 0; i < allBodyLines.length; i++) {
-				const el = bodyLinePool[i];
-				const line = allBodyLines[i];
+				const el = bodyLinePool[i]!;
+				const line = allBodyLines[i]!;
 				el.textContent = line.text;
 				el.style.left = `${line.x}px`;
 				el.style.top = `${line.y}px`;
@@ -612,8 +627,8 @@ export function createEditorialEngine(
 			}
 			syncPool(pullquoteLinePool, pullquoteLines.length, () => makeLineEl("ee-pullquote-line"));
 			for (let i = 0; i < pullquoteLines.length; i++) {
-				const el = pullquoteLinePool[i];
-				const line = pullquoteLines[i];
+				const el = pullquoteLinePool[i]!;
+				const line = pullquoteLines[i]!;
 				el.textContent = line.text;
 				el.style.left = `${line.x}px`;
 				el.style.top = `${line.y}px`;
@@ -637,8 +652,8 @@ export function createEditorialEngine(
 			return element;
 		});
 		for (let i = 0; i < pullquoteRects.length; i++) {
-			const pq = pullquoteRects[i];
-			const el = pullquoteBoxPool[i];
+			const pq = pullquoteRects[i]!;
+			const el = pullquoteBoxPool[i]!;
 			el.style.left = `${pq.x}px`;
 			el.style.top = `${pq.y}px`;
 			el.style.width = `${pq.w}px`;
@@ -646,8 +661,8 @@ export function createEditorialEngine(
 		}
 
 		for (let index = 0; index < orbs.length; index++) {
-			const orb = orbs[index];
-			const element = orbEls[index];
+			const orb = orbs[index]!;
+			const element = orbEls[index]!;
 			if (index >= activeOrbCount) {
 				element.style.display = "none";
 				continue;
@@ -676,7 +691,7 @@ export function createEditorialEngine(
 		const orbIndex = hitTestOrbs(orbs, point.x, point.y, activeOrbCount, radiusScale);
 		if (orbIndex !== -1) {
 			event.preventDefault();
-			const orb = orbs[orbIndex];
+			const orb = orbs[orbIndex]!;
 			drag = {
 				orbIndex,
 				startPointerX: point.x,
@@ -693,7 +708,7 @@ export function createEditorialEngine(
 		const point = stagePoint(event);
 		pointer = point;
 		if (drag !== null) {
-			const orb = orbs[drag.orbIndex];
+			const orb = orbs[drag.orbIndex]!;
 			orb.x = drag.startOrbX + (point.x - drag.startPointerX);
 			orb.y = drag.startOrbY + (point.y - drag.startPointerY);
 		}
@@ -708,7 +723,7 @@ export function createEditorialEngine(
 			const dy = point.y - drag.startPointerY;
 			// A motionless press toggles pause instead of dragging.
 			if (dx * dx + dy * dy < 16) {
-				orbs[drag.orbIndex].paused = !orbs[drag.orbIndex].paused;
+				orbs[drag.orbIndex]!.paused = !orbs[drag.orbIndex]!.paused;
 			}
 			drag = null;
 		}
