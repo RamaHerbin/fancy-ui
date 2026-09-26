@@ -57,6 +57,19 @@ describe("lockScroll", () => {
 		scrollToSpy.mockRestore();
 	});
 
+	it("restores the horizontal scroll position on release too", () => {
+		Object.defineProperty(window, "scrollX", { value: 180, configurable: true });
+		Object.defineProperty(window, "scrollY", { value: 64, configurable: true });
+		const scrollToSpy = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+
+		const release = lockScroll();
+		release();
+
+		expect(scrollToSpy).toHaveBeenCalledWith(180, 64);
+		scrollToSpy.mockRestore();
+		Object.defineProperty(window, "scrollX", { value: 0, configurable: true });
+	});
+
 	it("reference-counts nested acquisitions: only the last release unlocks", () => {
 		const releaseOuter = lockScroll(); // e.g. a Dialog opening
 		const releaseInner = lockScroll(); // e.g. a Popover opening inside it
@@ -170,4 +183,3 @@ describe("scrollLock — the action form", () => {
 		inner.remove();
 	});
 });
-
