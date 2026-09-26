@@ -118,11 +118,18 @@ watch(
 	{ flush: "post" }
 );
 
-// How many decimal digits a number carries, e.g. 2 for 0.25.
+// How many decimal digits a number carries, e.g. 2 for 0.25. Small steps
+// stringify in exponential notation (`1e-7`, `2.5e-8`) with no "." at all,
+// so the exponent is folded in: the mantissa's own fraction digits minus the
+// exponent. Reading only the digits after "." would report 0 there and round
+// every such step back to an integer. (Upstream fix; the source helper still
+// inspects only the digits after ".".)
 function decimalPlaces(n: number): number {
-	const s = String(n);
-	const dot = s.indexOf(".");
-	return dot === -1 ? 0 : s.length - dot - 1;
+	if (!Number.isFinite(n)) return 0;
+	const [mantissa = "", exponent = "0"] = String(n).toLowerCase().split("e");
+	const dot = mantissa.indexOf(".");
+	const fraction = dot === -1 ? 0 : mantissa.length - dot - 1;
+	return Math.max(0, fraction - Number(exponent));
 }
 
 // The step grid is anchored at `min` (or 0 with none set), not at

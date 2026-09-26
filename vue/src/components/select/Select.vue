@@ -135,6 +135,10 @@ function setValue(next: string): boolean {
 }
 
 function commitIndex(index: number): boolean {
+	// The root's disabled state gates every commit, not only the trigger's own
+	// handlers: a panel still open (or still fading out) when `disabled` flips
+	// true must not write `value` or call `onValueChange` on a disabled control.
+	if (effectiveDisabled.value) return false;
 	const option = props.options[index];
 	if (!option || option.disabled) return false;
 	return setValue(option.value);
@@ -177,6 +181,17 @@ watch(
 		if (activeIndex !== -1 && activeIndex >= count) {
 			listbox.setActive(-1);
 		}
+	},
+	{ flush: "post" }
+);
+
+// A control disabled while its listbox is open closes it, silently — this is a
+// programmatic change, not a user dismiss, so no `close` cue plays. Without it
+// the portalled panel stays open and interactive under a disabled trigger.
+watch(
+	effectiveDisabled,
+	(isDisabled) => {
+		if (isDisabled && open.value) open.value = false;
 	},
 	{ flush: "post" }
 );

@@ -1,7 +1,7 @@
 import { render, cleanup } from "@testing-library/vue";
 import { mount as vtuMount } from "@vue/test-utils";
 import { nextTick } from "vue";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import Magnetic from "./Magnetic.vue";
 
 // FOUNDATION GAP: this package's jsdom has no `PointerEvent` constructor,
@@ -450,5 +450,11 @@ describe("Magnetic", () => {
 		expect(removeDoc).toHaveBeenCalledWith("pointerleave", expect.any(Function));
 		expect(caf).toHaveBeenCalledTimes(1);
 		expect(outer.isConnected).toBe(false);
+	});
+});
+
+describe("Magnetic — slots contract", () => {
+	it("declares a typed default slot (the source's required children)", () => {
+		expectTypeOf<InstanceType<typeof Magnetic>["$slots"]["default"]>().not.toBeNullable();
 	});
 });

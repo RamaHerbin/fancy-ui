@@ -12,7 +12,7 @@ export interface TextGenerateEffectProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "TextGenerateEffect", inheritAttrs: false });
@@ -34,34 +34,56 @@ const {
 const wordsArray = computed(() => words.split(" "));
 const scopeRef = useTemplateRef<HTMLDivElement>("scopeRef");
 
-onMounted(() => {
+type RevealSpan = HTMLSpanElement & { _tid?: ReturnType<typeof setTimeout> };
+
+// The spans the running reveal targets, and its outer delay timer. Each span
+// carries its own word timeout id, so tearing a reveal down clears exactly the
+// nodes it scheduled, even after a `words` change replaced them in the DOM.
+let revealSpans: NodeListOf<RevealSpan> | null = null;
+let revealTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function stopReveal() {
+	if (revealTimeout) clearTimeout(revealTimeout);
+	revealTimeout = null;
+	revealSpans?.forEach((span) => {
+		if (span._tid) clearTimeout(span._tid);
+	});
+	revealSpans = null;
+}
+
+function startReveal() {
 	const scope = scopeRef.value;
 	if (!scope) return;
-	const spans = scope.querySelectorAll<HTMLSpanElement>("span");
+	const spans = scope.querySelectorAll<RevealSpan>("span");
+	revealSpans = spans;
 
-	const timeout = setTimeout(() => {
+	revealTimeout = setTimeout(() => {
+		revealTimeout = null;
 		spans.forEach((span, index) => {
-			const wordTimeout = setTimeout(() => {
+			// Store timeout ID for cleanup
+			span._tid = setTimeout(() => {
 				span.style.opacity = "1";
 				span.style.filter = filter ? "blur(0px)" : "none";
 			}, index * stagger);
-
-			// Store timeout ID for cleanup
-			(span as HTMLSpanElement & { _tid?: ReturnType<typeof setTimeout> })._tid = wordTimeout;
 		});
 	}, delay);
+}
 
-	// The span list is captured once, here: the reveal writes its timeout id onto
-	// the nodes that exist at mount, and those are the nodes the teardown has to
-	// clear — re-querying at unmount would miss any span a `words` change replaced.
-	onBeforeUnmount(() => {
-		clearTimeout(timeout);
-		spans.forEach((span) => {
-			const tid = (span as HTMLSpanElement & { _tid?: ReturnType<typeof setTimeout> })._tid;
-			if (tid) clearTimeout(tid);
-		});
-	});
-});
+onMounted(startReveal);
+
+// A new `words` value renders new spans at opacity 0: re-arm the reveal against
+// them once the DOM is patched, dropping the previous run's timers. Upstream
+// fix, beyond the Svelte source, whose reveal is mount-only.
+watch(
+	() => words,
+	() => {
+		stopReveal();
+		startReveal();
+	},
+	{ flush: "post" }
+);
+
+onBeforeUnmount(stopReveal);
 </script>
 
 <template>

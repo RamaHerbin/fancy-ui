@@ -1,5 +1,14 @@
 import { render, cleanup } from "@testing-library/vue";
-import { defineComponent, h, nextTick, ref, shallowRef, useTemplateRef, type PropType } from "vue";
+import {
+	createApp,
+	defineComponent,
+	h,
+	nextTick,
+	ref,
+	shallowRef,
+	useTemplateRef,
+	type PropType,
+} from "vue";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { useFocusTrap, type FocusTrapHandle, type FocusTrapOptions } from "./use-focus-trap.js";
 
@@ -32,8 +41,7 @@ describe("useFocusTrap", () => {
 			setup() {
 				const panel = useTemplateRef<HTMLDivElement>("panel");
 				useFocusTrap(panel);
-				return () =>
-					h("div", { ref: "panel" }, [h("button", "first"), h("button", "second")]);
+				return () => h("div", { ref: "panel" }, [h("button", "first"), h("button", "second")]);
 			},
 		});
 
@@ -74,8 +82,7 @@ describe("useFocusTrap", () => {
 			setup() {
 				const panel = useTemplateRef<HTMLDivElement>("panel");
 				useFocusTrap(panel);
-				return () =>
-					h("div", { ref: "panel" }, [h("button", "first"), h("button", "last")]);
+				return () => h("div", { ref: "panel" }, [h("button", "first"), h("button", "last")]);
 			},
 		});
 
@@ -279,6 +286,112 @@ describe("useFocusTrap — initialFocus as a WatchSource", () => {
 		expect(document.activeElement).toBe(container.querySelectorAll("button")[1]);
 	});
 
+	// The Dialog shape: the trap lives in a surface component and the target is
+	// a field the CALLER renders into the surface's slot. Mounted already open,
+	// the caller's ref is still `null` when the surface's trap attaches; it only
+	// reaches the surface in the caller's re-render right after. Mounted with
+	// `createApp` on an attached host: the testing-library wrapper moves the
+	// root node after a synchronous mount, which drops focus in jsdom.
+	it("moves focus to an initial target that resolves after the trap attached", async () => {
+		const Surface = defineComponent({
+			props: {
+				open: { type: Boolean, default: false },
+				initialFocus: { type: Object as PropType<HTMLElement | null>, default: null },
+			},
+			setup(props, { slots }) {
+				const panel = shallowRef<HTMLDivElement | null>(null);
+				const setPanel = (el: unknown) => (panel.value = el as HTMLDivElement | null);
+				useFocusTrap(panel, () => ({ initialFocus: props.initialFocus }));
+				return () => (props.open ? h("div", { ref: setPanel }, slots.default?.()) : null);
+			},
+		});
+		const open = ref(true);
+		const Caller = defineComponent({
+			setup() {
+				const field = shallowRef<HTMLInputElement | null>(null);
+				const setField = (el: unknown) => (field.value = el as HTMLInputElement | null);
+				return () =>
+					h(
+						Surface,
+						{ open: open.value, initialFocus: field.value },
+						{
+							default: () => [
+								h("button", { "data-testid": "close" }, "close"),
+								h("input", {
+									"data-testid": "field",
+									ref: setField,
+								}),
+							],
+						}
+					);
+			},
+		});
+
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		const app = createApp(Caller);
+		app.mount(host);
+		await nextTick();
+		await nextTick();
+		expect(document.activeElement).toBe(host.querySelector('[data-testid="field"]'));
+		app.unmount();
+		host.remove();
+	});
+
+	it("leaves focus alone when the user moved it before the target resolved", async () => {
+		const target = shallowRef<HTMLButtonElement | null>(null);
+		const Harness = defineComponent({
+			setup() {
+				const panel = useTemplateRef<HTMLDivElement>("panel");
+				useFocusTrap(panel, () => ({ initialFocus: () => target.value }));
+				return () =>
+					h("div", { ref: "panel" }, [
+						h("button", { "data-testid": "first" }, "first"),
+						h("button", { "data-testid": "second" }, "second"),
+						h("button", { "data-testid": "third" }, "third"),
+					]);
+			},
+		});
+
+		const { getByTestId } = render(Harness);
+		await nextTick();
+		expect(document.activeElement).toBe(getByTestId("first"));
+
+		getByTestId("second").focus();
+		target.value = getByTestId("third") as HTMLButtonElement;
+		await nextTick();
+		expect(document.activeElement).toBe(getByTestId("second"));
+	});
+
+	it("moves focus only on the first resolution, not on later retargets", async () => {
+		const target = shallowRef<HTMLButtonElement | null>(null);
+		const Harness = defineComponent({
+			setup() {
+				const panel = useTemplateRef<HTMLDivElement>("panel");
+				useFocusTrap(panel, () => ({ initialFocus: () => target.value }));
+				return () =>
+					h("div", { ref: "panel" }, [
+						h("button", { "data-testid": "first" }, "first"),
+						h("button", { "data-testid": "second" }, "second"),
+						h("button", { "data-testid": "third" }, "third"),
+					]);
+			},
+		});
+
+		const { getByTestId } = render(Harness);
+		await nextTick();
+		target.value = getByTestId("second") as HTMLButtonElement;
+		await nextTick();
+		expect(document.activeElement).toBe(getByTestId("second"));
+
+		getByTestId("first").focus();
+		target.value = null;
+		await nextTick();
+		target.value = getByTestId("third") as HTMLButtonElement;
+		await nextTick();
+		expect(document.activeElement).toBe(getByTestId("first"));
+	});
+
 	it("still accepts a bare element, exactly as the core does", async () => {
 		const outside = document.createElement("button");
 		document.body.appendChild(outside);
@@ -404,9 +517,7 @@ describe("useFocusTrap — the update path", () => {
 				const panel = useTemplateRef<HTMLDivElement>("panel");
 				handle = useFocusTrap(panel, () => options.value);
 				return () =>
-					h("div", { ref: "panel" }, [
-						h("button", { onFocus: focusSpy, tabindex: 0 }, "inside"),
-					]);
+					h("div", { ref: "panel" }, [h("button", { onFocus: focusSpy, tabindex: 0 }, "inside")]);
 			},
 		});
 

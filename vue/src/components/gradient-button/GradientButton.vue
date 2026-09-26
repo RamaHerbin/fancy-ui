@@ -37,16 +37,7 @@ defineOptions({ name: "GradientButton", inheritAttrs: false });
 
 const {
 	class: className,
-	colors = [
-		"#FF0000",
-		"#FFA500",
-		"#FFFF00",
-		"#008000",
-		"#0000FF",
-		"#4B0082",
-		"#EE82EE",
-		"#FF0000",
-	],
+	colors = ["#FF0000", "#FFA500", "#FFFF00", "#008000", "#0000FF", "#4B0082", "#EE82EE", "#FF0000"],
 	duration = 2500,
 	borderWidth = 2,
 	borderRadius = 8,
@@ -56,6 +47,8 @@ const {
 	sound = false,
 	disabled = false,
 } = defineProps<GradientButtonProps>();
+
+defineSlots<{ default?: () => unknown }>();
 
 const attrs = useAttrs();
 
@@ -72,6 +65,11 @@ function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
 	onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 }
+
+// `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds
+// `style={…}` as a plain attribute before `{...restProps}`, so a consumer
+// `style` wins there. `mergeProps` keeps that winner on a conflicting key
+// while still keeping the component's other custom properties.
 </script>
 
 <template>

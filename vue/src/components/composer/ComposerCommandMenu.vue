@@ -31,11 +31,12 @@ export interface ComposerCommandMenuProps {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, onScopeDispose, ref, useTemplateRef, watch } from "vue";
+import { computed, inject, ref, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
-import { float, type FloatOptions, type FloatRect } from "../../internals/float.js";
+import type { FloatRect } from "../../internals/float.js";
+import { useFloat } from "../../internals/use-float.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import { findTriggerToken, measureCaretRect } from "./caret.js";
 import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
@@ -100,72 +101,26 @@ const active = computed(() =>
 // re-reads its anchor on every scroll and resize, and a frozen rect would send
 // it repositioning against where the caret used to be. The closure is REBUILT
 // whenever the textarea or the token start changes, exactly as the source's
-// `$derived.by` rebuilds it: that fresh identity is what tells the binding
-// below to re-position a menu that stays open while `sync()` moves it onto
-// another trigger token.
+// `$derived.by` rebuilds it.
 const anchor = computed(() => {
 	const node = textarea.value;
 	const start = tokenStart.value;
 	return (): FloatRect => (node && start >= 0 ? measureCaretRect(node, start) : ORIGIN);
 });
 
-const floatOptions = computed<FloatOptions>(() => ({
+// That fresh identity is what re-positions a menu which stays open while
+// `sync()` moves it onto another trigger token: `useFloat` re-runs the core's
+// `update()` when the anchor's IDENTITY changes, the same re-run Svelte gives
+// the action when its `$derived` parameter does. Nothing else would — the rows
+// and the box can all be unchanged, so neither the scroll/resize listeners nor
+// the core's `ResizeObserver` (which never observes a getter anchor) schedules
+// a recompute, and the menu would hang over the previous caret. Arrowing
+// through the rows leaves the computed alone and costs no re-position.
+useFloat(el, () => ({
 	anchor: anchor.value,
 	placement: "top-start",
 	offset: 6,
 }));
-
-/*
- * FOUNDATION GAP — `useFloat` cannot express this binding, so the action's two
- * effects are spelled out here over the same verbatim `float` core.
- *
- * Svelte compiles `use:float={{ anchor, … }}` into an effect that calls the
- * action's `update()` whenever the parameter changes, and here the parameter
- * changes with the anchor: a `tokenStart` that moves to another token must
- * re-run `position()`. Nothing else would — the draft, the rows and the box
- * can all be unchanged, so neither the scroll/resize listeners nor the core's
- * `ResizeObserver` (which never observes a getter anchor) schedules a
- * recompute, and the menu would hang over the previous caret. `useFloat`
- * deliberately keeps `anchor` out of its re-sync sources and exposes no
- * handle, and `internals/use-float.ts` is out of scope for this unit.
- *
- * One watcher attaches and destroys, one re-syncs on a changed parameter —
- * the same split, same `flush: "post"`. `applied` keeps the pair idempotent:
- * opening the menu changes the node and the options in a single flush, and the
- * core should position once, not twice.
- */
-let handle: ReturnType<typeof float> | null = null;
-let applied: FloatOptions | null = null;
-
-watch(
-	el,
-	(node, _prev, onCleanup) => {
-		if (!node) return;
-		applied = floatOptions.value;
-		handle = float(node, applied);
-		onCleanup(() => {
-			handle?.destroy?.();
-			handle = null;
-			applied = null;
-		});
-	},
-	{ flush: "post", immediate: true }
-);
-
-watch(
-	floatOptions,
-	(options) => {
-		if (!handle || options === applied) return;
-		applied = options;
-		handle.update?.(options);
-	},
-	{ flush: "post" }
-);
-
-onScopeDispose(() => {
-	handle?.destroy?.();
-	handle = null;
-});
 
 /**
  * The menu never takes focus — the reader is typing, and a completion list that

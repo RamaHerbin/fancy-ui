@@ -22,6 +22,8 @@ defineOptions({ name: "ToggleGroupItem", inheritAttrs: false });
 
 const { value, disabled = false, label, class: className } = defineProps<ToggleGroupItemProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const el = useTemplateRef<HTMLButtonElement>("el");
 defineExpose({ ref: el });
 

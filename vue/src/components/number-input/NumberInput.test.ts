@@ -62,7 +62,11 @@ const ValueHarness = defineComponent({
 				label: "Quantity",
 				ref: numberRef,
 			}),
-			h("span", { "data-testid": "bound-value" }, value.value === null ? "null" : String(value.value)),
+			h(
+				"span",
+				{ "data-testid": "bound-value" },
+				value.value === null ? "null" : String(value.value)
+			),
 		];
 	},
 });
@@ -200,6 +204,31 @@ describe("NumberInput", () => {
 
 		await fireEvent.click(incrementButton(container));
 		expect(field(container).value).toBe("0.75");
+	});
+
+	// Upstream fix: `String(1e-7)` is "1e-7" with no "." in it, so a helper
+	// counting only digits after "." derived zero precision and rounded every
+	// such step back to 0. The exponent now feeds the grid's precision.
+	it("steps by a fractional step that stringifies in exponential notation", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(NumberInput, { props: { value: 0, step: 1e-7, onValueChange } });
+		const button = incrementButton(container);
+
+		await fireEvent.click(button);
+		expect(onValueChange).toHaveBeenLastCalledWith(1e-7);
+		await fireEvent.click(button);
+		expect(onValueChange).toHaveBeenLastCalledWith(2e-7);
+		await fireEvent.click(decrementButton(container));
+		expect(onValueChange).toHaveBeenLastCalledWith(1e-7);
+	});
+
+	it("keeps an exponential mantissa's own fraction digits in the grid precision", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(NumberInput, { props: { value: 0, step: 2.5e-8, onValueChange } });
+
+		await fireEvent.click(incrementButton(container));
+		await fireEvent.click(incrementButton(container));
+		expect(onValueChange).toHaveBeenLastCalledWith(5e-8);
 	});
 
 	it("ArrowUp/ArrowDown step through the keyboard, with the same rounding the buttons use", async () => {

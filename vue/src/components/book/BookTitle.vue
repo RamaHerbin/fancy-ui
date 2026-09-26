@@ -17,6 +17,8 @@ defineOptions({ name: "BookTitle", inheritAttrs: false });
 const props = withDefaults(defineProps<BookTitleProps>(), {
 	class: "",
 });
+
+defineSlots<{ default?(): unknown }>();
 </script>
 
 <template>

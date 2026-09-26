@@ -1,6 +1,6 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
 import { mount } from "@vue/test-utils";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import Tooltip from "./Tooltip.vue";
 import type { TooltipProps } from "./Tooltip.vue";
@@ -50,10 +50,7 @@ function nonFocusableSlot() {
  * every test here lets that land before touching the trigger. Nothing about
  * the component's behaviour changes: no user event can reach it inside that
  * microtask. */
-async function renderTooltip(
-	props: TooltipProps,
-	slots: Record<string, string> = triggerSlot()
-) {
+async function renderTooltip(props: TooltipProps, slots: Record<string, string> = triggerSlot()) {
 	const utils = render(Tooltip, { props, slots });
 	await nextTick();
 	return utils;
@@ -245,10 +242,10 @@ describe("Tooltip", () => {
 
 	it("toggling disabled mid-flight closes an open tooltip, and does not pop it back open on re-enable without a fresh hover", async () => {
 		const { rerender } = await renderTooltip({
-				content: "Add to favorites",
-				openDelay: 500,
-				disabled: false,
-			});
+			content: "Add to favorites",
+			openDelay: 500,
+			disabled: false,
+		});
 		const triggerEl = getTrigger();
 
 		await pointerEnter(triggerEl);
@@ -295,13 +292,77 @@ describe("Tooltip", () => {
 		expect(trigger.hasAttribute("aria-describedby")).toBe(false);
 	});
 
+	it("appends to a describedby the trigger already had, and gives it back untouched on close", async () => {
+		await renderTooltip(
+			{ content: "Add to favorites" },
+			{ default: '<button data-testid="trigger" aria-describedby="own-hint">♥</button>' }
+		);
+		const trigger = getTrigger();
+		expect(trigger.getAttribute("aria-describedby")).toBe("own-hint");
+
+		await fireEvent.focus(trigger);
+		const bubbleId = bubble()?.id;
+		expect(bubbleId).toBeTruthy();
+		expect(trigger.getAttribute("aria-describedby")).toBe(`own-hint ${bubbleId}`);
+
+		await fireEvent.blur(trigger);
+		expect(trigger.getAttribute("aria-describedby")).toBe("own-hint");
+
+		// A second open neither duplicates the id nor loses the trigger's own.
+		await fireEvent.focus(trigger);
+		expect(trigger.getAttribute("aria-describedby")).toBe(`own-hint ${bubbleId}`);
+		await fireEvent.blur(trigger);
+		expect(trigger.getAttribute("aria-describedby")).toBe("own-hint");
+	});
+
+	it("rewires onto a replacement trigger when the slot swaps its element", async () => {
+		const swapped = ref(false);
+		const Host = defineComponent({
+			setup() {
+				return () =>
+					h(Tooltip, { content: "Add to favorites" }, () =>
+						swapped.value
+							? h("button", { key: "next", "data-testid": "next" }, "B")
+							: h("button", { key: "first", "data-testid": "first" }, "A")
+					);
+			},
+		});
+		render(Host);
+		await nextTick();
+		const first = document.querySelector('[data-testid="first"]') as HTMLElement;
+		await fireEvent.focus(first);
+		expect(bubble()).not.toBeNull();
+		expect(first.getAttribute("aria-describedby")).toBe(bubble()?.id);
+
+		swapped.value = true;
+		// Re-render, then the observer's microtask, then the post-flush rewire.
+		await nextTick();
+		await Promise.resolve();
+		await nextTick();
+		const next = document.querySelector('[data-testid="next"]') as HTMLElement;
+		expect(next).not.toBeNull();
+		expect(next).not.toBe(first);
+		// The removed trigger fired no blur; its stale focus must not keep the
+		// bubble open over the new one.
+		expect(bubble()).toBeNull();
+
+		await fireEvent.focus(next);
+		expect(bubble()).not.toBeNull();
+		expect(next.getAttribute("aria-describedby")).toBe(bubble()?.id);
+		expect(first.hasAttribute("aria-describedby")).toBe(false);
+
+		await fireEvent.blur(next);
+		expect(bubble()).toBeNull();
+		expect(next.hasAttribute("aria-describedby")).toBe(false);
+	});
+
 	it("passes side, align and offset through to the anchorPosition core", async () => {
 		await renderTooltip({
-				content: "Add to favorites",
-				side: "right",
-				align: "start",
-				offset: 12,
-			});
+			content: "Add to favorites",
+			side: "right",
+			align: "start",
+			offset: 12,
+		});
 
 		await fireEvent.focus(getTrigger());
 		await nextTick();
@@ -328,10 +389,10 @@ describe("Tooltip", () => {
 		// race against — this exact test used to pass even with `hide()`'s
 		// own `clearTimers()` call deleted, for that reason.
 		await renderTooltip({
-				content: "Add to favorites",
-				openDelay: 500,
-				closeDelay: 100,
-			});
+			content: "Add to favorites",
+			openDelay: 500,
+			closeDelay: 100,
+		});
 		const trigger = getTrigger();
 
 		await pointerEnter(trigger); // schedules an open timer for t=500
@@ -415,10 +476,10 @@ describe("Tooltip", () => {
 
 	it("publishes the resolved placement as data-side/data-align, with the matching growth origin", async () => {
 		await renderTooltip({
-				content: "Add to favorites",
-				side: "right",
-				align: "start",
-			});
+			content: "Add to favorites",
+			side: "right",
+			align: "start",
+		});
 
 		await fireEvent.focus(getTrigger());
 		await nextTick();

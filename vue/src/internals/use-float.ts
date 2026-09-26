@@ -19,6 +19,43 @@ import type { FloatOptions, FloatPlacement } from "./float.js";
 
 const DEFAULT_PLACEMENT: FloatPlacement = "bottom-start";
 
+/**
+ * The option values the core was last handed. Every field is compared by
+ * identity, which is what makes a re-sync a real change rather than one more
+ * evaluation of `options()` — that getter returns a fresh object every call.
+ */
+interface AppliedOptions {
+	anchor: FloatOptions["anchor"];
+	placement: FloatOptions["placement"];
+	offset: FloatOptions["offset"];
+	padding: FloatOptions["padding"];
+	matchWidth: FloatOptions["matchWidth"];
+	enabled: FloatOptions["enabled"];
+}
+
+function snapshot(options: FloatOptions): AppliedOptions {
+	return {
+		anchor: options.anchor,
+		placement: options.placement,
+		offset: options.offset,
+		padding: options.padding,
+		matchWidth: options.matchWidth,
+		enabled: options.enabled,
+	};
+}
+
+function unchanged(applied: AppliedOptions | null, next: FloatOptions): boolean {
+	return (
+		applied !== null &&
+		applied.anchor === next.anchor &&
+		applied.placement === next.placement &&
+		applied.offset === next.offset &&
+		applied.padding === next.padding &&
+		applied.matchWidth === next.matchWidth &&
+		applied.enabled === next.enabled
+	);
+}
+
 export interface UseFloatResult {
 	/** The placement as actually resolved — flipped when the requested side ran out of room. */
 	readonly placement: FloatPlacement;
@@ -30,8 +67,8 @@ type FloatHandle = { update(options: FloatOptions): void; destroy(): void };
  * Positions `node` with `position: fixed` against `options().anchor`, using
  * the `float` core. Mirrors `useAnchorPosition`'s shape: one watcher mounts
  * and destroys the core, a second re-syncs whenever an option that affects
- * geometry changes, and the resolved placement is returned rather than
- * discarded.
+ * geometry changes — `anchor` included — and the resolved placement is
+ * returned rather than discarded.
  *
  * The core reports its resolved placement only by writing `data-placement`
  * on the node (it has no callback option — unlike `anchorPosition`'s
@@ -52,6 +89,8 @@ export function useFloat(
 
 	let handle: FloatHandle | null = null;
 	let observer: MutationObserver | null = null;
+	/** What the core currently holds; `null` whenever there is no core. */
+	let applied: AppliedOptions | null = null;
 
 	function readPlacement(node: HTMLElement): void {
 		const next = (node.dataset.placement as FloatPlacement | undefined) ?? DEFAULT_PLACEMENT;
@@ -67,7 +106,9 @@ export function useFloat(
 		el,
 		(node, _prev, onCleanup) => {
 			if (!node) return;
-			const h = float(node, options());
+			const initial = options();
+			applied = snapshot(initial);
+			const h = float(node, initial);
 			handle = (h ?? {}) as FloatHandle;
 			readPlacement(node);
 
@@ -81,17 +122,27 @@ export function useFloat(
 				observer = null;
 				handle?.destroy();
 				handle = null;
+				applied = null;
 			});
 		},
 		{ flush: "post", immediate: true }
 	);
 
-	// Re-sync on a real geometry change. `anchor` is NOT watched, exactly as
-	// in `useAnchorPosition`: the core re-reads a getter anchor on every
-	// recompute, and both the getter and the fixed-rect forms of the union
-	// are rebuilt on every evaluation of `options()` — watching them would
-	// fire this on any unrelated dependency the caller happens to read there,
-	// turning one tracked change into a full `sync()`.
+	// Re-sync on a real geometry change — `anchor` among them, which is the one
+	// place this parts from `useAnchorPosition`. The Svelte action's parameter
+	// is a single `$derived` object, and Svelte re-runs `update()` whenever it
+	// changes; an anchor that moves while the float stays open (a caret-anchored
+	// menu whose token shifts) changes nothing the core can hear for itself —
+	// neither the scroll/resize listeners nor the `ResizeObserver`, which never
+	// observes a getter anchor — so without this the float hangs over the old
+	// anchor.
+	//
+	// What keeps that from turning any dependency the caller reads inside
+	// `options()` into a full `sync()` is the identity check below: the getter
+	// and the fixed-rect forms of the anchor union are rebuilt on every
+	// evaluation, so the source alone is not evidence of a change. A caller
+	// whose anchor is a stable value — an element ref, or a getter held in a
+	// `computed` — re-evaluates to the same identity and is skipped.
 	//
 	// `enabled` sits HERE rather than in the attach watcher above, where
 	// `useAnchorPosition` keeps its own: float's core owns the option
@@ -100,6 +151,7 @@ export function useFloat(
 	// does too. Tearing the core down instead would be an invented behaviour.
 	watch(
 		[
+			() => options().anchor,
 			() => options().placement,
 			() => options().offset,
 			() => options().padding,
@@ -107,9 +159,17 @@ export function useFloat(
 			() => options().enabled,
 		],
 		() => {
-			handle?.update(options());
 			const node = readEl();
-			if (node) readPlacement(node);
+			// No core yet, or no element any more: the attach watcher is the one
+			// that creates and destroys, and when a float unmounts its options
+			// usually change in the very same flush. Re-positioning a node that
+			// has already left is a write to something about to be dropped.
+			if (!handle || !node) return;
+			const next = options();
+			if (unchanged(applied, next)) return;
+			applied = snapshot(next);
+			handle.update(next);
+			readPlacement(node);
 		},
 		{ flush: "post" }
 	);
@@ -119,6 +179,7 @@ export function useFloat(
 		observer = null;
 		handle?.destroy();
 		handle = null;
+		applied = null;
 	});
 
 	return result as Readonly<Ref<UseFloatResult>>;

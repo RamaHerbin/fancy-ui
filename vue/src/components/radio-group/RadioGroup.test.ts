@@ -1,6 +1,6 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
 import { mount } from "@vue/test-utils";
-import { defineComponent, nextTick, provide, ref, type PropType } from "vue";
+import { defineComponent, h, nextTick, provide, ref, type PropType } from "vue";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import RadioGroup from "./RadioGroup.vue";
 import RadioGroupItem from "./RadioGroupItem.vue";
@@ -117,6 +117,39 @@ const TwoGroups = defineComponent({
 		<div data-testid="one"><Harness :items="items" /></div>
 		<div data-testid="two"><Harness :items="items" /></div>
 	`,
+});
+
+/**
+ * A parent that binds `value` AND listens to `update:value` owns the selection
+ * (Vue's controlled `defineModel`), then vetoes every write unless `accept`
+ * says otherwise, in which case it writes back through `onValueChange`.
+ */
+const VetoHarness = defineComponent({
+	props: {
+		accept: { type: Boolean, default: false },
+		invalid: { type: Boolean, default: false },
+		onChange: { type: Function, default: undefined },
+	},
+	setup(props) {
+		const value = ref("a");
+		return () => [
+			h(
+				RadioGroup,
+				{
+					value: value.value,
+					"onUpdate:value": () => {},
+					onValueChange: (next: string) => {
+						props.onChange?.(next);
+						if (props.accept) value.value = next;
+					},
+					invalid: props.invalid,
+					label: "Owned group",
+				},
+				() => ITEMS.map((item) => h(RadioGroupItem, { key: item.value, ...item }))
+			),
+			h("span", { "data-testid": "owned-value" }, value.value),
+		];
+	},
 });
 
 describe("RadioGroup", () => {
@@ -258,6 +291,49 @@ describe("RadioGroup", () => {
 		await fireEvent.click(byLabel(container, "Option C"));
 		expect(onValueChange).toHaveBeenCalledWith("c");
 		expect(byLabel(container, "Option C").checked).toBe(true);
+	});
+
+	it("puts the native radios back on the model when a parent that owns value declines the write", async () => {
+		const onChange = vi.fn();
+		const { container, getByTestId } = render(VetoHarness, {
+			props: { onChange, invalid: true },
+		});
+		await nextTick();
+		const a = byLabel(container, "Option A");
+		const b = byLabel(container, "Option B");
+		expect(a.checked).toBe(true);
+
+		await fireEvent.click(b);
+		await nextTick();
+
+		expect(onChange).toHaveBeenCalledWith("b");
+		expect(getByTestId("owned-value").textContent).toBe("a");
+		// Native state agrees with the model the parent kept...
+		expect(a.checked).toBe(true);
+		expect(b.checked).toBe(false);
+		// ...and so does the invalid tint, which keys off the model.
+		expect(b.className).toContain("border-destructive");
+		expect(a.className).not.toContain("border-destructive");
+
+		// The same item stays pickable: the next press is a fresh request.
+		await fireEvent.click(b);
+		await nextTick();
+		expect(onChange).toHaveBeenCalledTimes(2);
+		expect(b.checked).toBe(false);
+	});
+
+	it("keeps the native radios when a parent that owns value accepts the write through the callback", async () => {
+		const { container, getByTestId } = render(VetoHarness, { props: { accept: true } });
+		await nextTick();
+		const a = byLabel(container, "Option A");
+		const b = byLabel(container, "Option B");
+
+		await fireEvent.click(b);
+		await nextTick();
+
+		expect(getByTestId("owned-value").textContent).toBe("b");
+		expect(a.checked).toBe(false);
+		expect(b.checked).toBe(true);
 	});
 
 	it("does not re-fire onValueChange when clicking the already-selected item", async () => {

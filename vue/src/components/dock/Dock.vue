@@ -39,6 +39,8 @@ const {
 	orientation = "horizontal",
 } = defineProps<DockProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 // Use object with `current` property so children can read reactive updates
 const mouseX = reactive({ current: Infinity });
 const mouseY = reactive({ current: Infinity });
@@ -96,9 +98,16 @@ provide(DOCK_CONTEXT_KEY, context);
 function onPointerMove(e: PointerEvent) {
 	if (!magnify.value) return;
 	if (e.pointerType === "touch" || !e.isPrimary) return;
+	// clientX/clientY, not pageX/pageY: `DockIcon` measures each icon with
+	// `getBoundingClientRect()`, whose coordinates are relative to the
+	// viewport. Page coordinates add the scroll offset, so on a scrolled page
+	// every icon's distance would be off by exactly that offset. The Svelte
+	// source reads `pageX`/`pageY` and shares the defect; fixed here as an
+	// upstream fix, matching the React port.
+	const { clientX, clientY } = e;
 	requestAnimationFrame(() => {
-		mouseX.current = e.pageX;
-		mouseY.current = e.pageY;
+		mouseX.current = clientX;
+		mouseY.current = clientY;
 	});
 }
 

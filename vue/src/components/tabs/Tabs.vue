@@ -42,6 +42,8 @@ const {
 	sound = false,
 } = defineProps<TabsProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 /** The active tab's value, bindable. */
 const value = defineModel<string>("value", { default: "" });
 

@@ -97,10 +97,28 @@ describe("AnimatedTooltip", () => {
 		await fireEvent.focusIn(wrapper);
 		const describedBy = wrapper.getAttribute("aria-describedby");
 		expect(describedBy).toBeTruthy();
-		const tooltip = container.querySelector(`#${describedBy}`);
+		const tooltip = document.getElementById(describedBy!);
 		expect(tooltip).toHaveAttribute("role", "tooltip");
 
 		await fireEvent.focusOut(wrapper);
 		expect(wrapper).not.toHaveAttribute("aria-describedby");
+	});
+
+	it("keeps tooltip ids single-token and unique across rows sharing item ids", async () => {
+		const spaced = [{ id: "first person", name: "Alice", designation: "Eng", image: "/a.jpg" }];
+		const { container } = render({
+			components: { AnimatedTooltip },
+			setup: () => ({ spaced }),
+			template: '<div><AnimatedTooltip :items="spaced" /><AnimatedTooltip :items="spaced" /></div>',
+		});
+		const [a, b] = [...container.querySelectorAll(".group")] as HTMLElement[];
+		await fireEvent.focusIn(a!);
+		await fireEvent.focusIn(b!);
+		const idA = a!.getAttribute("aria-describedby")!;
+		const idB = b!.getAttribute("aria-describedby")!;
+		expect(idA).not.toMatch(/\s/);
+		expect(idA).not.toBe(idB);
+		expect(document.getElementById(idA)?.parentElement).toBe(a);
+		expect(document.getElementById(idB)?.parentElement).toBe(b);
 	});
 });

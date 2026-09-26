@@ -39,7 +39,7 @@ export interface RadioGroupProps {
 </script>
 
 <script setup lang="ts">
-import { computed, provide, useTemplateRef } from "vue";
+import { computed, nextTick, provide, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -62,6 +62,11 @@ const {
 
 /** The selected value, two-way. `""` means nothing is selected. */
 const value = defineModel<string>("value", { default: "" });
+
+defineSlots<{
+	/** The group's `RadioGroupItem`s. */
+	default?: () => unknown;
+}>();
 
 const el = useTemplateRef<HTMLDivElement>("el");
 defineExpose({ ref: el });
@@ -101,6 +106,26 @@ function select(itemValue: string) {
 	// The `sound &&` half of the Svelte guard lives inside `useSoundCue`.
 	if (changed) playCue("select");
 	onValueChange?.(itemValue);
+	// A parent that binds `value` AND listens to `update:value` owns the
+	// selection: the write above only emits, and one that declines it leaves
+	// every item's `:checked` binding — so Vue's patch — untouched, while the
+	// browser has already moved the native check to the clicked radio. Once
+	// the flush that would have carried an accepted write is done, the native
+	// radios are put back on the model; a no-op whenever the write landed.
+	nextTick().then(syncNativeRadios);
+}
+
+// Only this group's own radios: the browser groups radios by `name`, so a
+// nested group (its own generated name) is never touched.
+function syncNativeRadios() {
+	const root = el.value;
+	if (!root) return;
+	const inputs = root.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+	for (const input of inputs) {
+		if (input.name !== resolvedName.value) continue;
+		const selected = input.value === value.value;
+		if (input.checked !== selected) input.checked = selected;
+	}
 }
 
 const context: RadioGroupContext = {

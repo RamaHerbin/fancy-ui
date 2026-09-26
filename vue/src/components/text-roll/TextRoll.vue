@@ -52,6 +52,7 @@ import {
 	onBeforeUpdate,
 	onMounted,
 	ref,
+	TransitionGroup,
 	useAttrs,
 	mergeProps,
 	useTemplateRef,
@@ -283,7 +284,9 @@ watch(
 	{ flush: "post" }
 );
 
-const liveRole = computed(() => (live === "off" ? undefined : live === "polite" ? "status" : "alert"));
+const liveRole = computed(() =>
+	live === "off" ? undefined : live === "polite" ? "status" : "alert"
+);
 const liveAriaLive = computed(() => (live === "off" ? undefined : live));
 
 // The style analogue of PORTING.md's documented empty-class trap: Vue
@@ -299,13 +302,27 @@ const liveAriaLive = computed(() => (live === "off" ? undefined : live));
 // — the exact call the template compiler would have emitted for two bindings,
 // so a consumer-supplied `style` in `attrs` still merges rather than being
 // clobbered, and an unset duration leaves no `style` key at all.
-const rootBind = computed(() =>
-	mergeProps(
-		attrs,
-		duration === DEFAULT_DURATION ? {} : { style: { "--ft-textroll-duration": `${duration}ms` } }
-	)
+//
+// The merge runs in the template (a plain call per render), never inside a
+// `computed`: the `useAttrs()` proxy only tracks on a property GET, and
+// `mergeProps` walks it with `for…in`, so a computed built while `attrs` was
+// empty would never depend on it — an `id`/`aria-*`/`data-*`/listener the
+// parent adds later would never reach the root. A parent-driven attrs change
+// always re-renders this component, so the render-time merge sees it.
+const durationBind = computed(() =>
+	duration === DEFAULT_DURATION ? {} : { style: { "--ft-textroll-duration": `${duration}ms` } }
 );
-const layerBind = computed(() => (tabular ? { style: { fontVariantNumeric: "tabular-nums" } } : {}));
+
+// The cell layer renders TransitionGroup through `<component :is>`, not a
+// literal `<TransitionGroup>` tag: the SSR compiler's TransitionGroup
+// transform hands EVERY non-`tag` prop to `ssrRenderAttrs`, so the server
+// HTML would carry a stray `css="false"` attribute the client vnode never has
+// (hydration neither warns about nor removes it). As a dynamic component the
+// server goes through TransitionGroup's own render, where `css` is a declared
+// prop and never reaches the element; the client behaves identically.
+const layerBind = computed(() =>
+	tabular ? { style: { fontVariantNumeric: "tabular-nums" } } : {}
+);
 
 function cellIndexOf(el: Element): number {
 	return Number.parseInt((el as HTMLElement).style.gridColumnStart, 10) - 1;
@@ -347,18 +364,16 @@ function onCellLeave(el: Element, done: () => void) {
 <template>
 	<span
 		ref="root"
-		v-bind="rootBind"
+		v-bind="mergeProps(attrs, durationBind)"
 		:class="cn('ft-textroll', className)"
 		:data-state="rollState"
 		:data-direction="resolvedDirection"
 	>
-		<span
-			class="ft-textroll-real"
-			v-bind="layerBind"
-			:role="liveRole"
-			:aria-live="liveAriaLive"
-			>{{ value }}</span
-		><TransitionGroup
+		<span class="ft-textroll-real" v-bind="layerBind" :role="liveRole" :aria-live="liveAriaLive">{{
+			value
+		}}</span
+		><component
+			:is="TransitionGroup"
 			tag="span"
 			class="ft-textroll-cells"
 			aria-hidden="true"
@@ -372,7 +387,7 @@ function onCellLeave(el: Element, done: () => void) {
 				class="ft-textroll-cell"
 				:style="{ gridColumnStart: cell.index + 1 }"
 				>{{ cell.grapheme }}</span
-			></TransitionGroup
+			></component
 		>
 	</span>
 </template>

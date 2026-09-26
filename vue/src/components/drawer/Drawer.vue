@@ -41,7 +41,7 @@ const SPRING_BACK_MS = 200;
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import Portal from "../../internals/Portal.vue";
@@ -204,28 +204,6 @@ const presence = usePresence(() => open.value, {
 	onExitStart: () => trap.returnFocusNow(),
 });
 
-// C-7, and the ONE thing this component adds to the D-V6 gate. A `<Teleport>`
-// has no server output of its own: the renderer writes a pair of anchors into
-// the stream and files the panel in a separate teleport buffer. Nothing in the
-// app subtree can hydrate that panel, so a drawer left OPEN across a server
-// render would have the client's hydration pass walk a subtree the server
-// never put in the app's own HTML — a mismatch Vue warns about in development
-// and, worse, does not repair in production.
-//
-// So the portal is withheld until the component is mounted: the server render
-// and the hydration render both emit nothing, which is parity, and the panel
-// arrives on the first post-hydration patch. This is exactly what the React
-// sibling does — its portal target resolves in a layout effect and the portal
-// renders `null` until then, so an open-on-the-server drawer paints after
-// mount there too. It costs nothing on the open path callers actually take
-// (`open` flips true long after mount, and `presence.mounted` is the gate that
-// matters), and it is not a stand-in for the mounted gate: both conditions are
-// required.
-const portalReady = ref(false);
-onMounted(() => {
-	portalReady.value = true;
-});
-
 // LAW: release at exit END, never at exit start. `presence.mounted` stays true
 // through the whole slide-out, so the page stays locked until the panel has
 // actually gone instead of unlocking the instant `open` flips and leaving the
@@ -360,10 +338,10 @@ const panelClasses = computed(() =>
 		document by the time the focus trap calls `.focus()` on it. The source
 		needed a declaration-order ceremony between two actions on this one element
 		to guarantee the same thing; here it is structural. A closed drawer emits
-		no scrim and no panel at all, on the server included — and `portalReady`
-		(see the script) withholds the portal until mount, so an OPEN drawer
-		emits nothing server-side either, rather than anchors the hydration pass
-		cannot match.
+		no scrim and no panel at all, on the server included. An OPEN one emits
+		nothing server-side either: `Portal` itself renders nothing on the server
+		and on the hydration pass, and portals on the first patch after mount
+		(D-V6), so there are no anchors for the hydration pass to trip over.
 
 		The scrim and the panel are two nodes on ONE presence clock, so they leave
 		together and the unmount is a tie rather than a straggler.
@@ -378,7 +356,7 @@ const panelClasses = computed(() =>
 		owns `transform` for the whole exit and hands back to the inline value only
 		once it is finished — by which point the panel is gone.
 	-->
-	<template v-if="presence.mounted && portalReady">
+	<template v-if="presence.mounted">
 		<Portal>
 			<div
 				:ref="scrimRef"

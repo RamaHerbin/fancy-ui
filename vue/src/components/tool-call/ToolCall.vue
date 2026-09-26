@@ -35,12 +35,7 @@ import { formatElapsed } from "../../internals/elapsed.js";
 
 defineOptions({ name: "ToolCall", inheritAttrs: false });
 
-const {
-	call,
-	onToggle,
-	class: className,
-	sound: soundProp = false,
-} = defineProps<ToolCallProps>();
+const { call, onToggle, class: className, sound: soundProp = false } = defineProps<ToolCallProps>();
 
 // The counterpart of the source's bindable `open`: writable from inside, kept
 // in step with a caller driving it from outside, and free to move on its own
@@ -96,13 +91,25 @@ const duration = computed(() =>
 );
 
 // A slot counts as content on its own: a caller who renders the payload
-// themselves may well have nothing on `call` for us to look at.
-const hasRequest = computed(() => slots.input !== undefined || call.input !== undefined);
-const hasOutput = computed(() => slots.output !== undefined || call.output !== undefined);
-const hasResult = computed(() => hasOutput.value || errorText.value !== "");
+// themselves may well have nothing on `call` for us to look at. Plain
+// functions called from the template, never computeds: outside development
+// the slots object is not reactive, so a computed over it would freeze these
+// at their first value while a parent re-render adds or drops a slot.
+function hasRequest(): boolean {
+	return slots.input !== undefined || call.input !== undefined;
+}
+function hasOutput(): boolean {
+	return slots.output !== undefined || call.output !== undefined;
+}
+function hasResult(): boolean {
+	return hasOutput() || errorText.value !== "";
+}
 
-const requestText = computed(() => (hasRequest.value ? formatPayload(call.input) : ""));
-const resultText = computed(() => (hasOutput.value ? formatPayload(call.output) : ""));
+// `formatPayload` already renders a missing payload as "", which is all the
+// old slot-aware guard ever contributed here: the fallback these feed only
+// renders when no slot replaced it.
+const requestText = computed(() => formatPayload(call.input));
+const resultText = computed(() => formatPayload(call.output));
 
 /**
  * The shared formatter floors to the second, which reads as "0s" for anything
@@ -202,9 +209,7 @@ watch(() => call.status, openOnFailure, { flush: "post" });
 <template>
 	<div
 		ref="el"
-		:class="
-			cn('ft-toolcall border-border bg-card/50 w-full rounded-lg border text-sm', className)
-		"
+		:class="cn('ft-toolcall border-border bg-card/50 w-full rounded-lg border text-sm', className)"
 		:data-status="call.status"
 	>
 		<button
@@ -283,7 +288,7 @@ watch(() => call.status, openOnFailure, { flush: "post" });
 					v-bind="isOpen ? {} : { inert: true }"
 					class="flex flex-col gap-3 px-3 pb-3"
 				>
-					<section v-if="hasRequest" :aria-labelledby="requestId">
+					<section v-if="hasRequest()" :aria-labelledby="requestId">
 						<div :id="requestId" class="text-muted-foreground mb-1 text-xs font-medium">
 							Request
 						</div>
@@ -292,20 +297,17 @@ watch(() => call.status, openOnFailure, { flush: "post" });
 						</slot>
 					</section>
 
-					<section v-if="hasResult" :aria-labelledby="resultId">
+					<section v-if="hasResult()" :aria-labelledby="resultId">
 						<div :id="resultId" class="text-muted-foreground mb-1 text-xs font-medium">Result</div>
 						<p v-if="errorText" class="ft-toolcall-error-text">{{ errorText }}</p>
 						<slot name="output" :value="call.output">
-							<pre
-								v-if="hasOutput"
-								class="ft-toolcall-payload"
-								:class="{ 'mt-2': errorText }"
-								>{{ resultText }}</pre
-							>
+							<pre v-if="hasOutput()" class="ft-toolcall-payload" :class="{ 'mt-2': errorText }">{{
+								resultText
+							}}</pre>
 						</slot>
 					</section>
 
-					<p v-if="!hasRequest && !hasResult" class="text-muted-foreground text-xs italic">
+					<p v-if="!hasRequest() && !hasResult()" class="text-muted-foreground text-xs italic">
 						Nothing recorded yet.
 					</p>
 				</div>

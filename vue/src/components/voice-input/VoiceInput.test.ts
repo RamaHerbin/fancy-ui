@@ -178,6 +178,43 @@ describe("VoiceInput", () => {
 		expect(getByTestId("bound-active").textContent).toBe("idle");
 	});
 
+	it("keeps hearing the mic when a parent that owns active declines the write", async () => {
+		const onStart = vi.fn();
+		const onUpdate = vi.fn();
+		const { container } = render(VoiceInput, {
+			props: { active: false, "onUpdate:active": onUpdate, onStart },
+		});
+
+		await fireEvent.click(mic(container) as HTMLButtonElement);
+		await nextTick();
+
+		expect(onUpdate).toHaveBeenCalledWith(true);
+		expect(onStart).toHaveBeenCalledTimes(1);
+		// The parent kept `active` false: the component still says so...
+		expect(root(container).dataset.active).toBe("false");
+		expect(mic(container)).toBeTruthy();
+
+		// ...and a later press is a new request, not swallowed by a stale guard.
+		await fireEvent.click(mic(container) as HTMLButtonElement);
+		await nextTick();
+		expect(onStart).toHaveBeenCalledTimes(2);
+		expect(onUpdate).toHaveBeenCalledTimes(2);
+	});
+
+	it("keeps hearing cancel when a parent that owns active declines the close", async () => {
+		const onCancel = vi.fn();
+		const { container } = render(VoiceInput, {
+			props: { active: true, "onUpdate:active": () => {}, onCancel },
+		});
+
+		await fireEvent.click(cancelButton(container));
+		await nextTick();
+		expect(root(container).dataset.active).toBe("true");
+
+		await fireEvent.click(cancelButton(container));
+		expect(onCancel).toHaveBeenCalledTimes(2);
+	});
+
 	it("follows an active prop driven from outside", async () => {
 		const { container, rerender } = render(VoiceInput, { props: { active: false } });
 		expect(mic(container)).not.toBeNull();

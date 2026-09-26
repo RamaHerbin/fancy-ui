@@ -29,6 +29,8 @@ const {
 	gradientOpacity = 0.8,
 } = defineProps<CardSpotlightProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const mouseX = ref(-gradientSize * 10);
 const mouseY = ref(-gradientSize * 10);
 

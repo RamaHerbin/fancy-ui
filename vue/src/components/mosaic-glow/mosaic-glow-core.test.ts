@@ -193,7 +193,8 @@ describe("mosaic-glow-core / colour", () => {
 		expect(lut[0]).toBe("rgb(22, 19, 11)");
 		const knee = Math.round(0.55 * 63);
 		const col = parseRgb(lut[knee]!)!;
-		for (let c = 0; c < 3; c++) expect(Math.abs(col[c]! - [242, 195, 24][c]!)).toBeLessThanOrEqual(3);
+		for (let c = 0; c < 3; c++)
+			expect(Math.abs(col[c]! - [242, 195, 24][c]!)).toBeLessThanOrEqual(3);
 		const peak = parseRgb(lut[63]!)!;
 		for (let c = 0; c < 3; c++) {
 			expect(peak[c]).toBeGreaterThan(col[c]!);

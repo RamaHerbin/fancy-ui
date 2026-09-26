@@ -27,6 +27,7 @@ export interface TooltipPointer {
 import { computed, ref } from "vue";
 
 import { composeRefs } from "../../internals/dom/compose-refs.js";
+import { useFancyId } from "../../internals/use-id.js";
 import { usePresence } from "../../internals/motion/presence.js";
 import type { TransitionSpec } from "../../internals/motion/transitions.js";
 import type { TooltipItem } from "./AnimatedTooltip.vue";
@@ -44,9 +45,12 @@ const props = defineProps<{
 	onItemFocusOut: () => void;
 }>();
 
-function tooltipId(itemId: number | string): string {
-	return `animated-tooltip-${itemId}`;
-}
+// One generated id per avatar instance, never derived from `item.id`: a
+// consumer's item id may contain whitespace (which splits `aria-describedby`
+// into several references) and repeats across two rows fed the same items,
+// which would point an avatar at another row's tooltip. (Upstream fix: the
+// Svelte source still builds `animated-tooltip-${item.id}`.)
+const tooltipId = `${useFancyId()}-tooltip`;
 
 /**
  * The pose this tooltip is DRAWN at: the row-wide pointer pose, sampled and
@@ -159,7 +163,7 @@ const tooltipRef = composeRefs<HTMLElement>(attach, presence.register(tooltipTra
 	<div
 		class="group relative -mr-4"
 		tabindex="0"
-		:aria-describedby="hovered ? tooltipId(item.id) : undefined"
+		:aria-describedby="hovered ? tooltipId : undefined"
 		@mouseenter="handleMouseEnter"
 		@mouseleave="onItemMouseLeave"
 		@mousemove="onItemMouseMove"
@@ -169,7 +173,7 @@ const tooltipRef = composeRefs<HTMLElement>(attach, presence.register(tooltipTra
 		<!-- Tooltip -->
 		<div
 			v-if="presence.mounted"
-			:id="tooltipId(item.id)"
+			:id="tooltipId"
 			:ref="tooltipRef"
 			role="tooltip"
 			class="pointer-events-none absolute -top-16 left-1/2 z-50 flex flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs whitespace-nowrap shadow-xl"

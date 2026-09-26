@@ -48,8 +48,20 @@ const previewId = `${uid}-preview`;
 // only an omitted prop falls through to the source's own URL. Whatever it
 // ends up being clears the same scheme check every link in this family runs
 // through, since a url on a source is as model-supplied as the prose around it.
-const resolvedHref = computed(() => sanitizeHref(href ?? source.url ?? "") ?? "");
+// A bare host ("docs.example.dev/guide") is promoted to `https://` first, the
+// way SourceCard does it for the preview this marker opens: left as is, the
+// browser resolves it against this app's own origin instead of the cited site.
+// A genuine relative path ("/local/guide") is left alone.
+const resolvedHref = computed(() => resolveHref(href ?? source.url ?? "") ?? "");
 const isLink = computed(() => resolvedHref.value !== "");
+
+function resolveHref(raw: string): string | null {
+	if (raw === "") return null;
+	const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(raw) || raw.startsWith("//");
+	const host = raw.split(/[/?#]/, 1)[0] as string;
+	const looksHostLike = !hasScheme && !raw.startsWith("/") && host.includes(".");
+	return sanitizeHref(looksHostLike ? `https://${raw}` : raw);
+}
 
 const open = ref(false);
 // Plain lets: the timers must not wake anything that writes them.
@@ -180,8 +192,10 @@ const markerLabel = computed(() => `Source ${index}: ${source.title}`);
 		the sentence does next — which is how `read[3].` becomes `read[3] .` in
 		every sentence ending on a citation. The marker's own `[n]` is written
 		flush against its tags for the same reason: the template compiler condenses
-		a run of indentation into a single space rather than dropping it. The test
-		named for it is the guard; keep them touching.
+		a run of indentation into a single space rather than dropping it. The
+		formatter treats a button's inner whitespace as insignificant and would
+		break it onto its own line, hence the ignore directive on that branch. The
+		tests named for it are the guard; keep them touching.
 	-->
 	<a
 		v-if="isLink"
@@ -196,7 +210,9 @@ const markerLabel = computed(() => `Source ${index}: ${source.title}`);
 		@mouseleave="scheduleHide"
 		@focus="show"
 		@blur="hide"
-	>[{{ index }}]</a>
+		>[{{ index }}]</a
+	>
+	<!-- prettier-ignore -->
 	<button
 		v-else
 		ref="marker"

@@ -1,4 +1,5 @@
 import { render, cleanup } from "@testing-library/vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import ThinkingIndicator from "./ThinkingIndicator.vue";
 
@@ -108,6 +109,36 @@ describe("ThinkingIndicator", () => {
 			props: { status: "Reading files" },
 			slots: { done: "<span>Thought for 12s</span>" },
 		});
+		expect(container.querySelector(".ft-thinking-done")).toBeFalsy();
+		expect(container.querySelector(".ft-thinking-label")?.textContent).toBe("Reading files");
+	});
+
+	// Slot presence is read during render: a computed over `useSlots()` is only
+	// recomputed when `running` changes, so a done slot that arrives (or goes)
+	// after the row has stopped would never swap the label in or out.
+	it("swaps between the status and the done slot when the slot appears or disappears while stopped", async () => {
+		const withDone = ref(false);
+		const Host = defineComponent({
+			setup() {
+				return () =>
+					h(
+						ThinkingIndicator,
+						{ status: "Reading files", running: false },
+						withDone.value ? { done: () => h("span", "Thought for 12s") } : {}
+					);
+			},
+		});
+		const { container } = render(Host);
+		expect(container.querySelector(".ft-thinking-done")).toBeFalsy();
+		expect(container.querySelector(".ft-thinking-label")?.textContent).toBe("Reading files");
+
+		withDone.value = true;
+		await nextTick();
+		expect(container.querySelector(".ft-thinking-label")).toBeFalsy();
+		expect(container.querySelector(".ft-thinking-done")?.textContent).toBe("Thought for 12s");
+
+		withDone.value = false;
+		await nextTick();
 		expect(container.querySelector(".ft-thinking-done")).toBeFalsy();
 		expect(container.querySelector(".ft-thinking-label")?.textContent).toBe("Reading files");
 	});

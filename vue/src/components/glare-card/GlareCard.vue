@@ -15,6 +15,8 @@ defineOptions({ name: "GlareCard", inheritAttrs: false });
 
 const { class: className = "" } = defineProps<GlareCardProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const refElement = useTemplateRef<HTMLDivElement>("refElement");
 
 let isPointerInside = false;

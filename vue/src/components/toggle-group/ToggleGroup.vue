@@ -43,6 +43,8 @@ const {
 	sound = false,
 } = defineProps<ToggleGroupProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const value = defineModel<string | string[]>("value", { default: "" });
 
 const el = useTemplateRef<HTMLDivElement>("el");

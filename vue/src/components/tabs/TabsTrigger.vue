@@ -20,6 +20,8 @@ defineOptions({ name: "TabsTrigger", inheritAttrs: false });
 
 const { value, disabled = false, class: className } = defineProps<TabsTriggerProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const el = useTemplateRef<HTMLButtonElement>("el");
 defineExpose({ ref: el });
 
@@ -99,7 +101,8 @@ function captureFocusBeforeDisabling(): void {
 	const nowDisabled = isDisabled.value;
 	const justDisabled = nowDisabled && !wasDisabled;
 	wasDisabled = nowDisabled;
-	hadFocusBeforeDisabling = justDisabled && el.value !== null && document.activeElement === el.value;
+	hadFocusBeforeDisabling =
+		justDisabled && el.value !== null && document.activeElement === el.value;
 }
 
 // Joins the roving-focus order whenever this trigger is enabled, and

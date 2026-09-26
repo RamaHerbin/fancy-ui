@@ -1,6 +1,8 @@
 import { render, cleanup, fireEvent, createEvent } from "@testing-library/vue";
 import { mount } from "@vue/test-utils";
 import { afterEach, describe, it, expect, vi } from "vitest";
+import { createSSRApp, h } from "vue";
+import { renderToString } from "vue/server-renderer";
 
 // FOUNDATION GAP: this package's jsdom (^26.1.0, vue/package.json) has no
 // PointerEvent constructor, unlike the Svelte package's jsdom that this test
@@ -353,5 +355,27 @@ describe("Pressable — cleanup on unmount", () => {
 				new PointerEvent("pointerup", { pointerId: 1, bubbles: true, cancelable: true })
 			)
 		).not.toThrow();
+	});
+});
+
+describe("Pressable — SSR", () => {
+	it("emits no style attribute at the default scale", async () => {
+		const html = await renderToString(createSSRApp({ render: () => h(Pressable) }));
+		expect(html).not.toContain("style=");
+	});
+
+	it("writes the scale custom property and keeps a caller style when scale differs", async () => {
+		const html = await renderToString(
+			createSSRApp({ render: () => h(Pressable, { scale: 0.9, style: { color: "red" } }) })
+		);
+		expect(html).toContain("--ft-pressable-scale:0.9");
+		expect(html).toContain("color:red");
+	});
+
+	it("passes a caller style through at the default scale", async () => {
+		const html = await renderToString(
+			createSSRApp({ render: () => h(Pressable, { style: { color: "red" } }) })
+		);
+		expect(html).toContain('style="color:red;"');
 	});
 });

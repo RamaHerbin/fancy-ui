@@ -74,7 +74,12 @@ const effectiveMs = computed(() => elapsedMs ?? elapsed.ms);
 const elapsedText = computed(() => formatElapsed(effectiveMs.value));
 // ISO 8601 duration, so the value is machine-readable and not just decorative.
 const elapsedDateTime = computed(() => `PT${Math.max(0, Math.floor(effectiveMs.value / 1000))}S`);
-const showDone = computed(() => !running && slots.done !== undefined);
+// Read during render, never cached in a computed: outside development the
+// slots object is not reactive, so a computed over it would only refresh when
+// `running` flips and miss a `done` slot a parent adds or drops later.
+function showDone(): boolean {
+	return !running && slots.done !== undefined;
+}
 </script>
 
 <template>
@@ -96,7 +101,9 @@ const showDone = computed(() => !running && slots.done !== undefined);
 			aria-hidden="true"
 		></span>
 
-		<span v-if="showDone" class="ft-thinking-done text-muted-foreground"><slot name="done" /></span>
+		<span v-if="showDone()" class="ft-thinking-done text-muted-foreground"
+			><slot name="done"
+		/></span>
 		<span
 			v-else
 			:class="['ft-thinking-label text-foreground', { 'ft-thinking-shimmer': running }]"

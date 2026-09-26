@@ -113,6 +113,31 @@ function icons(container: Element): HTMLElement[] {
 	return Array.from(container.querySelectorAll<HTMLElement>(".first-icon, .second-icon"));
 }
 
+/**
+ * The same move with page and viewport coordinates pulled apart — a page
+ * scrolled 1000px reports `pageX = clientX + 1000`. jsdom derives `pageX` from
+ * `clientX` itself (its scroll is pinned at 0), so the page values are written
+ * onto the instance directly, shadowing the prototype getters.
+ */
+async function movePointerScrolled(
+	container: Element,
+	{ client, page }: { client: number; page: number }
+) {
+	const dock = container.querySelector('[role="toolbar"]') as HTMLElement;
+	const event = new window.PointerEvent("pointermove", {
+		bubbles: true,
+		clientX: client,
+		clientY: client,
+		pointerType: "mouse",
+		isPrimary: true,
+	});
+	Object.defineProperty(event, "pageX", { get: () => page });
+	Object.defineProperty(event, "pageY", { get: () => page });
+	await fireEvent(dock, event);
+	vi.advanceTimersToNextFrame();
+	await nextTick();
+}
+
 /** Moves the pointer across the dock and lets the one queued frame run.
  * `Dock` defers every position write to `requestAnimationFrame`, so without
  * advancing a frame nothing would have been written yet and every assertion
@@ -244,6 +269,28 @@ describe("Dock", () => {
 			await movePointerTo(container, 20);
 
 			expect(icons(container)[0]!.style.width).not.toBe("40px");
+		});
+
+		// `DockIcon` measures with the viewport-relative `getBoundingClientRect()`,
+		// so the pointer must be read in the same space. jsdom reports a zero
+		// rect, so an icon sits at viewport 0 and a pointer at clientX = 0 is on
+		// top of it however far the page has scrolled.
+		it("magnifies from the viewport position, not the page position", async () => {
+			stubMatchMedia([]);
+			const { container } = render(Harness);
+
+			await movePointerScrolled(container, { client: 0, page: 1000 });
+
+			expect(icons(container)[0]!.style.width).toBe("100px");
+		});
+
+		it("magnifies a vertical dock from the viewport position too", async () => {
+			stubMatchMedia([]);
+			const { container } = render(Harness, { props: { orientation: "vertical" } });
+
+			await movePointerScrolled(container, { client: 0, page: 1000 });
+
+			expect(icons(container)[0]!.style.height).toBe("100px");
 		});
 
 		it("leaves every icon at its resting size under reduced motion", async () => {

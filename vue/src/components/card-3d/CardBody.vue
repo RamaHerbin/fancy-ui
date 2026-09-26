@@ -13,6 +13,8 @@ import { cn } from "../../utils.js";
 defineOptions({ name: "CardBody", inheritAttrs: false });
 
 const { class: className = "" } = defineProps<CardBodyProps>();
+
+defineSlots<{ default?(): unknown }>();
 </script>
 
 <template>

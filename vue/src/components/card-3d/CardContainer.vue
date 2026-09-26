@@ -19,6 +19,8 @@ defineOptions({ name: "CardContainer", inheritAttrs: false });
 
 const { class: className = "", containerClass = "" } = defineProps<CardContainerProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const containerRef = useTemplateRef<HTMLDivElement>("containerRef");
 const isMouseEntered = ref(false);
 
@@ -46,11 +48,17 @@ function handleMouseLeave() {
 </script>
 
 <template>
-	<div :class="cn('flex items-center justify-center p-2', containerClass)" style="perspective: 1000px">
+	<div
+		:class="cn('flex items-center justify-center p-2', containerClass)"
+		style="perspective: 1000px"
+	>
 		<div
 			ref="containerRef"
 			:class="
-				cn('relative flex items-center justify-center transition-all duration-200 ease-linear', className)
+				cn(
+					'relative flex items-center justify-center transition-all duration-200 ease-linear',
+					className
+				)
 			"
 			style="transform-style: preserve-3d"
 			@mouseenter="handleMouseEnter"

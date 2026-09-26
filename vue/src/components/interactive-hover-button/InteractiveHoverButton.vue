@@ -29,6 +29,8 @@ const props = withDefaults(defineProps<InteractiveHoverButtonProps>(), {
 	sound: false,
 });
 
+defineSlots<{ default?: () => unknown }>();
+
 const attrs = useAttrs();
 
 const playCue = useSoundCue(() => props.sound);

@@ -22,6 +22,11 @@ defineOptions({ name: "RadioGroupItem", inheritAttrs: false });
 
 const { value, disabled = false, label, class: className } = defineProps<RadioGroupItemProps>();
 
+defineSlots<{
+	/** Visible label content, in place of `label`/`value`. */
+	default?: () => unknown;
+}>();
+
 const el = useTemplateRef<HTMLInputElement>("el");
 defineExpose({ ref: el });
 

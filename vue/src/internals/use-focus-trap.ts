@@ -77,11 +77,20 @@ function resolve(options?: () => FocusTrapOptions): CoreFocusTrapOptions {
  */
 export function useFocusTrap(
 	el: WatchSource<HTMLElement | null>,
-	options?: () => FocusTrapOptions,
+	options?: () => FocusTrapOptions
 ): FocusTrapHandle {
 	let core: { update?(o: CoreFocusTrapOptions): void; destroy?(): void } | undefined;
 	let returnFocusNowImpl: (() => void) | undefined;
 	let rearmImpl: (() => void) | undefined;
+	// Set at attach when no initial target had resolved yet: the element the
+	// core fell back to (first focusable, or the container). A caller's
+	// template ref to a field INSIDE the trapped subtree is still `null` when
+	// the trap attaches — the caller only re-renders with the element after
+	// the same mount flush assigns the ref — so the core focuses the fallback.
+	// The first time the target resolves, focus moves to it, but only while it
+	// is still sitting on that fallback: a user who already moved it is left
+	// alone. Cleared after that one resolution; later retargets only update.
+	let pendingFallback: Element | null = null;
 
 	const handle: FocusTrapHandle = {
 		returnFocusNow() {
@@ -97,6 +106,7 @@ export function useFocusTrap(
 		core = undefined;
 		returnFocusNowImpl = undefined;
 		rearmImpl = undefined;
+		pendingFallback = null;
 	}
 
 	watch(
@@ -104,17 +114,21 @@ export function useFocusTrap(
 		(node) => {
 			teardown();
 			if (node) {
+				const resolved = resolve(options);
 				core =
 					focusTrap(node, {
-						...resolve(options),
+						...resolved,
 						onActivate: (returnFocusNow, rearm) => {
 							returnFocusNowImpl = returnFocusNow;
 							rearmImpl = rearm;
 						},
 					}) ?? undefined;
+				if (core && !resolved.initialFocus && node.contains(document.activeElement)) {
+					pendingFallback = document.activeElement;
+				}
 			}
 		},
-		{ flush: "post" },
+		{ flush: "post" }
 	);
 
 	// Keyed on exactly the three fields the core stores as locals and replaces
@@ -128,10 +142,14 @@ export function useFocusTrap(
 			() => options?.().returnFocus,
 			() => options?.().fallbackFocus,
 		],
-		() => {
+		([initialFocus]) => {
 			core?.update?.(resolve(options));
+			if (!pendingFallback || !initialFocus) return;
+			const fallback = pendingFallback;
+			pendingFallback = null;
+			if (document.activeElement === fallback) initialFocus.focus();
 		},
-		{ flush: "post" },
+		{ flush: "post" }
 	);
 
 	onScopeDispose(teardown);

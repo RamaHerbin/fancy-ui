@@ -167,6 +167,17 @@ describe("MosaicGlow", () => {
 		expect(container.querySelector(".mosaic-glow__content")).toBeNull();
 	});
 
+	it("keeps the background prop over a consumer style while keeping other consumer styles", () => {
+		const wrapper = mount(MosaicGlow, {
+			props: { background: "rgb(1, 2, 3)" },
+			attrs: { style: "background-color: red; color: blue" },
+		});
+		const el = wrapper.element as HTMLElement;
+		expect(el.style.backgroundColor).toBe("rgb(1, 2, 3)");
+		expect(el.style.color).toBe("blue");
+		wrapper.unmount();
+	});
+
 	it("exposes the host as a div", async () => {
 		const wrapper = mount(MosaicGlow);
 		await nextTick();

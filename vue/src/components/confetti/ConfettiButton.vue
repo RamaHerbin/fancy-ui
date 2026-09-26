@@ -46,8 +46,13 @@ function handleClick(event: MouseEvent) {
 }
 </script>
 
+<!--
+  `type="button"` is an upstream fix (the Svelte source renders a bare
+  `<button>`): without it the control defaults to `submit` inside a form, and
+  `inheritAttrs: false` leaves consumers no way to override it.
+-->
 <template>
-	<button @click="handleClick">
+	<button type="button" @click="handleClick">
 		<slot v-if="$slots.default" />
 	</button>
 </template>

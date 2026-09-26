@@ -50,6 +50,7 @@ export * from "./components/container-text-flip/index.js";
 export * from "./components/context-menu/index.js";
 export * from "./components/context-ring/index.js";
 export * from "./components/copy-button/index.js";
+export * from "./components/datamosh-transition/index.js";
 export * from "./components/date-picker/index.js";
 export * from "./components/dialog/index.js";
 export * from "./components/dim-siblings/index.js";

@@ -263,7 +263,9 @@ describe("Skeleton", () => {
 		// awaits a tick of its own, which would spend the one flush the fade
 		// lives in before the assertion ran.
 		function reveal(container: Element): Promise<void> {
-			within(container as HTMLElement).getByTestId("toggle").click();
+			within(container as HTMLElement)
+				.getByTestId("toggle")
+				.click();
 			return nextTick();
 		}
 
@@ -418,6 +420,37 @@ describe("Skeleton", () => {
 		expect(root(container).className).toContain("h-4");
 		expect(root(container).className).toContain("w-40");
 		expect(root(container).className).toContain("ft-skeleton");
+	});
+
+	// Slot presence has to be read during render, not cached in a computed:
+	// `useSlots()` is the raw slots object in production (its tracking proxy is
+	// dev-only, and even that is only triggered by HMR), so a computed over it
+	// never recomputes when a parent re-render adds or drops the slot.
+	it("switches between standalone and wrapping mode when the default slot appears or disappears", async () => {
+		const withSlot = ref(false);
+		const Host = defineComponent({
+			setup() {
+				return () =>
+					h(
+						Skeleton,
+						{ loading: true },
+						withSlot.value ? { default: () => h("p", "Real content") } : {}
+					);
+			},
+		});
+		const { container } = render(Host);
+		expect(root(container)).toHaveAttribute("role", "status");
+		expect(root(container)).not.toHaveAttribute("aria-busy");
+
+		withSlot.value = true;
+		await nextTick();
+		expect(root(container)).not.toHaveAttribute("role");
+		expect(root(container)).toHaveAttribute("aria-busy", "true");
+
+		withSlot.value = false;
+		await nextTick();
+		expect(root(container)).toHaveAttribute("role", "status");
+		expect(root(container)).not.toHaveAttribute("aria-busy");
 	});
 
 	describe("shimmer phase sync", () => {

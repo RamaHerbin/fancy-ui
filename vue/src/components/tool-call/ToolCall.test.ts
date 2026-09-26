@@ -279,6 +279,44 @@ describe("ToolCall", () => {
 		expect(container.querySelector(".custom-out")?.textContent).toBe("out: 3");
 	});
 
+	// Slot presence is read during render: `useSlots()` is not reactive in
+	// production, so a computed over it would freeze the sections a slot alone
+	// opens (a call with no `input`/`output` of its own) at their first value.
+	it("adds and removes the Request and Result sections as their slots come and go", async () => {
+		const withSlots = ref(false);
+		const Host = defineComponent({
+			setup() {
+				return () =>
+					h(
+						ToolCall,
+						{ call: call(), open: true },
+						withSlots.value
+							? {
+									input: () => h("p", { class: "custom-in" }, "in"),
+									output: () => h("p", { class: "custom-out" }, "out"),
+								}
+							: {}
+					);
+			},
+		});
+		const { container } = render(Host);
+		const sections = () => body(container).querySelectorAll("section").length;
+		expect(sections()).toBe(0);
+		expect(body(container).textContent).toContain("Nothing recorded yet.");
+
+		withSlots.value = true;
+		await nextTick();
+		expect(sections()).toBe(2);
+		expect(container.querySelector(".custom-in")?.textContent).toBe("in");
+		expect(container.querySelector(".custom-out")?.textContent).toBe("out");
+		expect(body(container).textContent).not.toContain("Nothing recorded yet.");
+
+		withSlots.value = false;
+		await nextTick();
+		expect(sections()).toBe(0);
+		expect(body(container).textContent).toContain("Nothing recorded yet.");
+	});
+
 	it("keeps the error line above an output slot", () => {
 		const { container } = render(ToolCall, {
 			props: {

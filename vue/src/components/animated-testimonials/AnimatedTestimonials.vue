@@ -68,14 +68,28 @@ function navigate(dir: "next" | "prev", fromUser = false) {
 	direction.value = dir;
 	isAnimating.value = true;
 	navigateTimer = setTimeout(() => {
+		// The list may have changed during the transition: read its live length
+		// and never divide by zero (0 % 0 is NaN, and NaN never recovers).
+		const count = testimonials.length;
 		activeIndex.value =
-			dir === "next"
-				? (activeIndex.value + 1) % testimonials.length
-				: (activeIndex.value - 1 + testimonials.length) % testimonials.length;
+			count === 0
+				? 0
+				: dir === "next"
+					? (activeIndex.value + 1) % count
+					: (activeIndex.value - 1 + count) % count;
 		isAnimating.value = false;
 		navigateTimer = null;
 	}, TRANSITION_DURATION);
 }
+
+// A shorter list must not leave the active index past its end, where the card
+// would render blank. Upstream fix, beyond the Svelte source.
+watch(
+	() => testimonials.length,
+	(count) => {
+		if (activeIndex.value >= count) activeIndex.value = count === 0 ? 0 : count - 1;
+	}
+);
 
 // Reactive autoplay: restarts whenever autoplay, interval, hover state or the
 // testimonials prop changes. Registered from onMounted, so the first run never

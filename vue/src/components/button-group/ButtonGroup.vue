@@ -21,6 +21,8 @@ defineOptions({ name: "ButtonGroup", inheritAttrs: false });
 
 const { orientation = "horizontal", label, class: className } = defineProps<ButtonGroupProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const el = useTemplateRef<HTMLDivElement>("el");
 defineExpose({ ref: el });
 

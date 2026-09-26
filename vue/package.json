@@ -19,7 +19,8 @@
 		"check:matrix": "node scripts/check-matrix.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"prepublishOnly": "pnpm run build && publint"
+		"prepublishOnly": "pnpm run build && publint",
+		"test:scripts": "node --test scripts/dist-gates.test.mjs"
 	},
 	"publishConfig": {
 		"access": "public"

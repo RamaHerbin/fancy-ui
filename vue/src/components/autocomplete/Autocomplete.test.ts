@@ -334,6 +334,37 @@ describe("Autocomplete", () => {
 		expect(el.value).toBe("par");
 	});
 
+	it("reconciles the active row when the suggestions change under an open panel", async () => {
+		const onSelect = vi.fn();
+		const { container, rerender } = render(Autocomplete, {
+			props: { suggestions: CITIES, onSelect },
+		});
+		const el = input(container);
+
+		await fireEvent.input(el, { target: { value: "p" } }); // Paris, Parma, Prague
+		await fireEvent.keyDown(el, { key: "ArrowUp" }); // wraps to "Prague", index 2
+		expect(el.getAttribute("aria-activedescendant")).toMatch(/-option-2$/);
+
+		// Same entries, fresh array: the highlight stays where it is.
+		await rerender({ suggestions: [...CITIES], onSelect });
+		expect(el.getAttribute("aria-activedescendant")).toMatch(/-option-2$/);
+
+		// The highlighted entry moves: the index follows it.
+		await rerender({ suggestions: ["Prague", "Paris", "Parma"], onSelect });
+		expect(el.getAttribute("aria-activedescendant")).toMatch(/-option-0$/);
+
+		// The list shrinks past the highlighted entry: nothing stays pointed at a
+		// row that no longer exists.
+		await rerender({ suggestions: ["Paris", "Parma"], onSelect });
+		expect(options()).toHaveLength(2);
+		expect(el.hasAttribute("aria-activedescendant")).toBe(false);
+
+		// And the next arrow starts from the top again rather than from a stale index.
+		await fireEvent.keyDown(el, { key: "ArrowDown" });
+		await fireEvent.keyDown(el, { key: "Enter" });
+		expect(onSelect).toHaveBeenCalledWith("Paris");
+	});
+
 	it("commits on a row click, calling onSelect but not before the click", async () => {
 		const onSelect = vi.fn();
 		const { container } = render(Autocomplete, { props: { suggestions: CITIES, onSelect } });

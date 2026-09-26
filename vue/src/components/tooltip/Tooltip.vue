@@ -247,16 +247,49 @@ watch(
 // Slot content is caller content, not something this component renders
 // itself, so there is no prop to declaratively attach the hover/focus
 // listeners to its root element — they're attached imperatively, to the
-// wrapper's first rendered child, once it exists. Only depends on the
-// wrapper node: re-attaching the same listeners every time `disabled`
-// merely toggles would be pure churn now that `disabled` has its own
-// watcher above.
+// wrapper's first rendered child, once it exists.
+//
+// The wrapper node alone is not enough to key on: a consumer swapping the
+// slot's element (a `v-if`/`v-else` pair, a keyed child) keeps the same
+// wrapper, so a watcher on it would leave the listeners and the
+// `aria-describedby` on a detached node. A `childList` observer on the
+// wrapper re-reads its first element child whenever the slot's children
+// change, and `triggerEl` — a shallow ref, so re-reading the same node is a
+// no-op — is what the listener wiring below keys on. Upstream fix: the source
+// keys its wiring effect on the wrapper only.
 watch(
 	wrapper,
 	(node, _prev, onCleanup) => {
-		if (!node) return;
-		const el = node.firstElementChild as HTMLElement | null;
-		triggerEl.value = el;
+		if (!node) {
+			triggerEl.value = null;
+			return;
+		}
+		const read = () => {
+			triggerEl.value = node.firstElementChild as HTMLElement | null;
+		};
+		read();
+		if (typeof MutationObserver === "undefined") return;
+		const observer = new MutationObserver(read);
+		observer.observe(node, { childList: true });
+		onCleanup(() => observer.disconnect());
+	},
+	{ flush: "post" }
+);
+
+// Only depends on the trigger element: re-attaching the same listeners every
+// time `disabled` merely toggles would be pure churn now that `disabled` has
+// its own watcher above.
+watch(
+	triggerEl,
+	(el, prev, onCleanup) => {
+		if (prev) {
+			// The previous trigger left the DOM with its hover/focus state
+			// still set — a removed element fires no `pointerleave` or `blur`.
+			// Start the new one from what is actually true of it.
+			triggerHovered = false;
+			focused = el !== null && el === document.activeElement;
+			updateVisibility();
+		}
 		if (!el) return;
 
 		if (DEV && !isFocusable(el)) {
@@ -280,19 +313,38 @@ watch(
 	{ flush: "post" }
 );
 
+/** `aria-describedby` is an ID REFERENCE LIST — whitespace-separated, and read
+ * in order — so the trigger's own description has to survive a tooltip
+ * appearing over it. */
+function describedByIds(el: HTMLElement): string[] {
+	return (el.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
+}
+
 // Separate from the listener-wiring watcher above: this one has to react
-// to `open` and `disabled`, not just the wrapper, so the attribute is only
+// to `open` and `disabled`, not just the trigger, so the attribute is only
 // ever present while there is really a mounted element behind it — the
 // `<div :id="tooltipId">` below shares the exact same gate. Reacting to
 // `open` here rather than in the wiring watcher also keeps the listeners
 // themselves from being torn down and re-attached on every open/close.
+//
+// The id is APPENDED to whatever the trigger already declared, and only this
+// component's own id is taken away again on close, so a trigger pointing at
+// its own hint or error text keeps it. Upstream fix: the source writes and
+// removes the whole attribute.
 watch(
 	[triggerEl, () => disabled, open] as const,
 	([el, isDisabled, isOpen], _prev, onCleanup) => {
 		if (!el || isDisabled || !isOpen) return;
-		el.setAttribute("aria-describedby", tooltipId);
+		const ids = describedByIds(el);
+		if (!ids.includes(tooltipId)) ids.push(tooltipId);
+		el.setAttribute("aria-describedby", ids.join(" "));
 		onCleanup(() => {
-			el.removeAttribute("aria-describedby");
+			// Read fresh rather than restoring a captured string: anything the
+			// consumer added while the tooltip was open is theirs to keep, and
+			// an attribute left empty is worse than no attribute at all.
+			const rest = describedByIds(el).filter((id) => id !== tooltipId);
+			if (rest.length > 0) el.setAttribute("aria-describedby", rest.join(" "));
+			else el.removeAttribute("aria-describedby");
 		});
 	},
 	{ flush: "post" }

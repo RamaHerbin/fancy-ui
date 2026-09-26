@@ -15,6 +15,7 @@
  * vitest suite, because CI runs `test` before `build` — a test importing
  * `dist/` would be asserting on a stale or missing directory.
  */
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
@@ -48,14 +49,17 @@ let total = 0;
 let exact = 0;
 const mangled = [];
 let sentinelSeen = false;
-let sentinelExpected = false;
 
-try {
-	await import(new URL("dist/components/marquee", root).href);
-	sentinelExpected = true;
-} catch {
-	// Marquee isn't ported yet — the sentinel check is not meaningful until it exists.
-}
+/**
+ * Whether the sentinel is ported, read off the SOURCE rather than off `dist`.
+ * The first version imported the `dist/components/marquee` directory, which
+ * Node's ESM loader always rejects, so a broad `catch` kept the sentinel
+ * "pending" forever. Importing `dist/components/marquee/index.js` is no better:
+ * a re-export-only barrel has no code of its own, so `preserveModules` never
+ * emits it. The source SFC is what decides whether the export must exist.
+ */
+const SENTINEL_SOURCE = "src/components/marquee/Marquee.vue";
+const sentinelExpected = existsSync(new URL(SENTINEL_SOURCE, root));
 
 for (const entry of ENTRIES) {
 	const href = new URL(entry, root).href;
@@ -70,7 +74,9 @@ for (const entry of ENTRIES) {
 		if (name === SENTINEL) {
 			sentinelSeen = true;
 			if (actual !== SENTINEL) {
-				console.error(`❌ sentinel: ${SENTINEL} ships as "${actual}" — the build is mangling names.`);
+				console.error(
+					`❌ sentinel: ${SENTINEL} ships as "${actual}" — the build is mangling names.`
+				);
 				process.exit(1);
 			}
 		}
@@ -78,7 +84,7 @@ for (const entry of ENTRIES) {
 }
 
 if (!sentinelExpected) {
-	console.log("ℹ️  sentinel pending (no components yet).");
+	console.log(`ℹ️  sentinel pending (${SENTINEL_SOURCE} not ported yet).`);
 } else if (!sentinelSeen) {
 	console.error(
 		`❌ sentinel export "${SENTINEL}" not found in ${ENTRIES.join(", ")} — ` +
@@ -96,4 +102,7 @@ if (mangled.length) {
 	process.exit(1);
 }
 
-console.log(`✅ dist names: ${total} component exports, none minified (${exact} match exactly).`);
+console.log(
+	`✅ dist names: ${total} component exports, none minified (${exact} match exactly)` +
+		(sentinelExpected ? `; sentinel ${SENTINEL} ships verbatim.` : ".")
+);

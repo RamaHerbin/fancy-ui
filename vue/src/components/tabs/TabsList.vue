@@ -18,6 +18,8 @@ defineOptions({ name: "TabsList", inheritAttrs: false });
 
 const { class: className } = defineProps<TabsListProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const el = useTemplateRef<HTMLDivElement>("el");
 defineExpose({ ref: el });
 
@@ -274,7 +276,12 @@ onMounted(runPlacement);
 
 watch(
 	() =>
-		[context?.value ?? "", context?.focusedValue ?? null, orientation.value, variant.value] as const,
+		[
+			context?.value ?? "",
+			context?.focusedValue ?? null,
+			orientation.value,
+			variant.value,
+		] as const,
 	runPlacement,
 	{ flush: "post" }
 );

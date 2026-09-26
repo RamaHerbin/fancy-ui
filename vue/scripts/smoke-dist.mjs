@@ -33,27 +33,34 @@ import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
+import { componentEntries, sweep } from "./dist-sweep.mjs";
 
 const root = new URL("../", import.meta.url);
 const dist = new URL("dist/", root);
 
 /**
- * Carried over from the sibling package's numbers, which sit at 412 kB of JS
- * and 66 kB of CSS for the same 145 components. Revisit both once this package
- * has built its full component set for the first time: the scoped-style model
- * aggregates differently from colocated stylesheets, and the real figures are
- * printed on every successful run below.
+ * Measured on this package's own build (2026-09-21): 501.2 kB of JS and
+ * 65.8 kB of CSS gzipped for the full ported component set. Ceilings sit
+ * ~15% above that measurement so they catch a regression (e.g. `three` or
+ * `gsap` losing its `external` entry) rather than policing normal growth;
+ * re-measure and move both numbers again the next time the build's actual
+ * size approaches either ceiling.
  */
-const BUDGET_GZIP_JS = 600 * 1024;
-const BUDGET_GZIP_CSS = 100 * 1024;
+const BUDGET_GZIP_JS = 580 * 1024;
+const BUDGET_GZIP_CSS = 80 * 1024;
 
 /**
  * Raised by every porting wave. It starts at zero so the gate is green on the
  * empty barrel this package bootstraps from; the moment a wave lands its
  * components, it is set to the number that wave rendered, and from then on a
  * barrel that stops reaching them is a failure rather than a smaller number.
+ *
+ * Measured on this package's own build (2026-09-26): 181 export(s) server
+ * render with no props (40 need real props to render), counting the root and
+ * cameleon halves of each colliding name separately — the earlier merged
+ * sweep counted 174 because it dropped the root half of every collision.
  */
-const RENDERED_FLOOR = 0;
+const RENDERED_FLOOR = 181;
 
 /** `dist/components/button/Button.vue.js` — how every message below names a file. */
 const label = (url) => fileURLToPath(url).slice(fileURLToPath(root).length);
@@ -76,19 +83,6 @@ async function exists(url) {
 	} catch {
 		return false;
 	}
-}
-
-/**
- * Component-shaped, as the runtime judges it: a function (functional component)
- * or an options object carrying one of the members that make it renderable. The
- * capitalised exports that are not components — constant tables, skin objects,
- * option presets — are plain data and fall out here, the way a context object
- * has to be excluded from the sweeps in `src`.
- */
-function isComponent(value) {
-	if (typeof value === "function") return true;
-	if (typeof value !== "object" || value === null) return false;
-	return "setup" in value || "render" in value || "template" in value || "__vccOpts" in value;
 }
 
 const failures = [];
@@ -123,50 +117,19 @@ try {
 const exportCounts = `${Object.keys(pkg).length} + ${Object.keys(cam).length} export(s)`;
 
 // ----------------------------------------------------------- 3. server render
-let rendered = 0;
-let needsProps = 0;
-let scopedMarkup = false;
-
-/**
- * The sweep renders components without the props several of them require, and
- * the runtime says so on `console.warn` / `console.error` before the render
- * either recovers or throws. Those messages are the expected shape of this
- * sweep rather than signal, so they are collected instead of printed — and one
- * of them IS signal: an export that reaches the renderer with neither template
- * nor render function produces a warning and an empty comment node rather than
- * a throw, which would otherwise count as a rendered component and lift the
- * floor on nothing.
- */
-const said = [];
-const speak = { warn: console.warn, error: console.error };
-console.warn = (...args) => said.push(args.join(" "));
-console.error = (...args) => said.push(args.join(" "));
-
-try {
-	for (const [name, value] of Object.entries({ ...pkg, ...cam })) {
-		if (!/^[A-Z]/.test(name)) continue;
-		if (!isComponent(value)) continue;
-		const before = said.length;
-		try {
-			const html = await renderToString(
-				createSSRApp({ render: () => h(value, {}, { default: () => "x" }) })
-			);
-			const hollow = said
-				.slice(before)
-				.some((line) => /missing template or render function/i.test(line));
-			if (hollow) {
-				needsProps += 1;
-			} else {
-				rendered += 1;
-				if (html.includes("data-v-")) scopedMarkup = true;
-			}
-		} catch {
-			needsProps += 1;
-		}
-	}
-} finally {
-	Object.assign(console, speak);
-}
+// The barrels are swept separately (keys "root:<Name>" / "cameleon:<Name>"):
+// both export `Button`, `Select` and more, and a merge would drop the root
+// half of every such pair from the sweep. Hollow renders (a non-component
+// reaching `h()` warns and emits an empty comment instead of throwing) count
+// as non-renders — see `dist-sweep.mjs`.
+const result = await sweep(componentEntries({ root: pkg, cameleon: cam }), {
+	createSSRApp,
+	h,
+	renderToString,
+});
+const rendered = result.rendered.length;
+const needsProps = result.hollow.length + result.threw.length;
+const scopedMarkup = result.scopedMarkup;
 
 if (rendered < RENDERED_FLOOR) {
 	failures.push(

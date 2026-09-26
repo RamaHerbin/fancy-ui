@@ -8,7 +8,7 @@ export interface DropdownMenuContentProps {
 </script>
 
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, watch } from "vue";
+import { computed, nextTick, onMounted, shallowRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import Portal from "../../internals/Portal.vue";
@@ -124,15 +124,21 @@ MENU_KEY.provide(menuContext);
 // (now-populated) core to move to an edge (D-V13). `presence.mounted` is part
 // of the source, not just `open`: it flips one pass later and it is that pass
 // which actually creates the items.
-watch(
-	[() => root.open, () => presence.mounted],
-	([open, mounted]) => {
-		if (!open || !mounted) return;
-		const edge = root.focusEdge;
-		void nextTick().then(() => focus.moveToEdge(edge));
-	},
-	{ flush: "post" }
-);
+function focusEdgeItem(): void {
+	if (!root.open || !presence.mounted) return;
+	const edge = root.focusEdge;
+	void nextTick().then(() => focus.moveToEdge(edge));
+}
+
+// The source's effect runs on MOUNT as well as on every later change, so a
+// dropdown whose root is already `open` on its first render (default-open or
+// controlled) focuses its edge item too. A non-immediate `watch` only fires on
+// a CHANGE, and `presence.mounted` is seeded from `open`, so neither source
+// moves in that case. `onMounted` is the initial run — and, unlike
+// `immediate: true`, it never executes during a server render.
+onMounted(focusEdgeItem);
+
+watch([() => root.open, () => presence.mounted], focusEdgeItem, { flush: "post" });
 
 function handleKeydown(event: KeyboardEvent): void {
 	handleMenuContentKeydown(event, menuContext, {
