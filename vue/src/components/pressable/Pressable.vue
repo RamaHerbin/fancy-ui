@@ -30,6 +30,7 @@ export interface PressableProps {
 
 <script setup lang="ts">
 import { computed, ref, useAttrs, useTemplateRef, watch } from "vue";
+import type { StyleValue } from "vue";
 import { cn } from "../../utils.js";
 import { canVibrate, vibrate } from "../../internals/motion/haptics.js";
 
@@ -65,6 +66,15 @@ const pressed = ref(false);
 const scaleStyle = computed(() =>
 	scale === DEFAULT_SCALE ? undefined : { "--ft-pressable-scale": String(scale) }
 );
+
+// Called from the template so it re-runs on every render (and so `attrs` is
+// read through a property get, which the attrs proxy tracks). The tuple is
+// typed as `StyleValue` explicitly: Vue 3.5.2's `HTMLAttributes` rejects the
+// inferred `unknown[]` where later releases accept it.
+function rootBind(): Record<string, unknown> {
+	if (!scaleStyle.value) return attrs;
+	return { ...attrs, style: [attrs.style, scaleStyle.value] as StyleValue };
+}
 
 // The keydown branch (not the keyup one — see below) only arms on a key
 // that actually landed inside this wrapper's own subtree. Because the
@@ -152,7 +162,7 @@ function handleKeyUp(event: KeyboardEvent) {
 	<div
 		ref="el"
 		:class="cn('ft-pressable', className)"
-		v-bind="{ ...attrs, ...(scaleStyle ? { style: [attrs.style, scaleStyle] } : {}) }"
+		v-bind="rootBind()"
 		:data-pressed="pressed ? 'true' : undefined"
 		:data-disabled="disabled ? 'true' : undefined"
 		@pointerdown="handlePointerDown"
