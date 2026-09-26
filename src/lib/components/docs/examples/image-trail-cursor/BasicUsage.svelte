@@ -22,6 +22,15 @@
 		{ type: "type6", label: "Speed-reactive" },
 		{ type: "type7", label: "Stacking" },
 		{ type: "type8", label: "3D Perspective" },
+		{ type: "scale", label: "Scale" },
+		{ type: "fall", label: "Image fall" },
+		{ type: "gravity", label: "Gravity" },
+		{ type: "flame", label: "Flame" },
+		{ type: "venetian", label: "Venetian" },
+		{ type: "curtain", label: "Curtain" },
+		{ type: "hexagon", label: "Hexagon" },
+		{ type: "liquid", label: "Liquid" },
+		{ type: "zoom-split", label: "Zoom split" },
 	];
 
 	let selectedVariant: VariantType = $state("type1");
