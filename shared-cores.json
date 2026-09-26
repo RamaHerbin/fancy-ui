@@ -999,7 +999,7 @@
 		"paths": {
 			"svelte": "src/lib/fancy-ui/datamosh-transition/datamosh-transition-core.ts",
 			"react": "react/src/components/datamosh-transition/datamosh-transition-core.ts",
-			"vue": null
+			"vue": "vue/src/components/datamosh-transition/datamosh-transition-core.ts"
 		}
 	}
 ]
