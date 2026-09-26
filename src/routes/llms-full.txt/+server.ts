@@ -5,6 +5,9 @@ export const prerender = true;
 
 export const GET: RequestHandler = () => {
 	return new Response(generateLlmsFullTxt(), {
-		headers: { "Content-Type": "text/plain; charset=utf-8" },
+		headers: {
+			"Content-Type": "text/plain; charset=utf-8",
+			"Cache-Control": "public, max-age=3600",
+		},
 	});
 };

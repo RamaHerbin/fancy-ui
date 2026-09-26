@@ -11,6 +11,19 @@ describe("RainbowButton", () => {
 		expect(screen.getByRole("button")).toBeInTheDocument();
 	});
 
+	it("renders the hover beam layers, hidden from assistive tech, on both branches", () => {
+		for (const props of [{}, { href: "/x" }]) {
+			const { container, unmount } = render(RainbowButton, { props });
+			const beam = container.querySelector(".rainbow-button__beam");
+			const glow = container.querySelector(".rainbow-button__glow");
+			expect(beam).toBeTruthy();
+			expect(glow).toBeTruthy();
+			expect(beam?.getAttribute("aria-hidden")).toBe("true");
+			expect(glow?.getAttribute("aria-hidden")).toBe("true");
+			unmount();
+		}
+	});
+
 	it("renders an anchor element when href is provided", () => {
 		render(RainbowButton, { props: { href: "/test" } });
 		expect(screen.getByRole("link")).toBeInTheDocument();

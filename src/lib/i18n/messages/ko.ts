@@ -54,6 +54,10 @@ export default {
 	"table.default": "기본값",
 	"table.description": "설명",
 	"table.slot": "슬롯",
+	"table.event": "이벤트",
+	"table.payload": "페이로드",
+	"comp.events": "이벤트",
+	"comp.copyMarkdown": "Markdown으로 복사",
 
 	// Copy buttons
 	"action.copy": "복사",

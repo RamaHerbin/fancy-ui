@@ -1,5 +1,15 @@
 # fancy-ui-react
 
+## 0.3.0
+
+### Minor Changes
+
+- 80399ef: Add DatamoshTransition, the page-transition overlay already in `fancy-ui-svelte`: a fixed grid of columns fills with flat blocks of saturated colour that fall, snap open through the middle and squeeze shut; `cover()` drops the columns over the page and `reveal()` lets them fall away. Variants (`variant`, `sweep`, palette presets through `colors`) and the picture `source` mode come with it. The methods travel through the forwarded ref (`DatamoshTransitionHandle`: `cover`, `reveal`, `play`, `element`), and the Svelte `bind:phase` becomes `onPhaseChange`.
+
+### Patch Changes
+
+- 9b63cbc: Button: the press bites. Holding the button still scales it to 0.97 over 150 ms, but the down-stroke now runs on the arrival curve instead of the reversible-state one, so the scale lands in the first frames; the release keeps the softer curve and settles. The React button gains the press it never had, along with the colour channel the Svelte source moved into CSS, so the two now behave the same on click.
+
 ## 0.2.1
 
 ### Patch Changes

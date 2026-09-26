@@ -77,6 +77,8 @@
 		tabindex={disabled ? -1 : undefined}
 		onclick={handleClick}
 	>
+		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>
+		<span class="rainbow-button__beam" aria-hidden="true"></span>
 		{@render children?.()}
 	</a>
 {:else}
@@ -88,6 +90,8 @@
 		{disabled}
 		onclick={handleClick}
 	>
+		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>
+		<span class="rainbow-button__beam" aria-hidden="true"></span>
 		{@render children?.()}
 	</button>
 {/if}
@@ -116,5 +120,109 @@
 
 	.rainbow-button::before {
 		animation: rainbow var(--rainbow-speed, 2s) infinite linear;
+	}
+
+	/*
+	 * Hover beam: a rainbow light that rides the border. One conic gradient,
+	 * turned through a registered angle, drawn twice — masked to the border ring
+	 * (the beam itself) and blurred around the button (its halo).
+	 */
+	@property --beam-angle {
+		syntax: "<angle>";
+		inherits: true;
+		initial-value: 0deg;
+	}
+
+	.rainbow-button {
+		--beam-width: 1.5px;
+		--glow-reach: 6px;
+		--glow-blur: 10px;
+		--beam: conic-gradient(
+			from var(--beam-angle),
+			transparent 0%,
+			var(--rainbow-4) 5%,
+			var(--rainbow-3) 10%,
+			var(--rainbow-2) 15%,
+			var(--rainbow-1) 20%,
+			hsl(35 100% 60%) 24%,
+			transparent 31%,
+			transparent 50%,
+			var(--rainbow-5) 55%,
+			var(--rainbow-4) 60%,
+			var(--rainbow-3) 64%,
+			transparent 71%
+		);
+	}
+
+	.rainbow-button__beam,
+	.rainbow-button__glow {
+		position: absolute;
+		border-radius: inherit;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.35s ease;
+	}
+
+	/* keep only the padding ring: the element minus its content box */
+	.rainbow-button__beam,
+	.rainbow-button__glow > span {
+		background: var(--beam);
+		-webkit-mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		mask-composite: exclude;
+	}
+
+	/* the beam itself, on the border */
+	.rainbow-button__beam {
+		inset: calc(-1 * var(--beam-width));
+		padding: var(--beam-width);
+		z-index: 1;
+	}
+
+	/* its halo: a wider ring, blurred AFTER masking so both edges go soft */
+	.rainbow-button__glow {
+		inset: 0;
+		filter: blur(var(--glow-blur));
+	}
+
+	.rainbow-button__glow > span {
+		position: absolute;
+		inset: calc(-1 * var(--glow-reach));
+		padding: var(--glow-reach);
+		border-radius: calc(0.75rem + var(--glow-reach));
+	}
+
+	.rainbow-button:hover .rainbow-button__beam,
+	.rainbow-button:focus-visible .rainbow-button__beam {
+		opacity: 1;
+	}
+
+	.rainbow-button:hover .rainbow-button__glow,
+	.rainbow-button:focus-visible .rainbow-button__glow {
+		opacity: 0.6;
+	}
+
+	.rainbow-button:hover,
+	.rainbow-button:focus-visible {
+		animation: beam-spin calc(var(--rainbow-speed, 2s) * 1.5) linear infinite;
+	}
+
+	@keyframes beam-spin {
+		to {
+			--beam-angle: 360deg;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rainbow-button:hover,
+		.rainbow-button:focus-visible {
+			animation: none;
+			--beam-angle: 200deg;
+		}
 	}
 </style>
