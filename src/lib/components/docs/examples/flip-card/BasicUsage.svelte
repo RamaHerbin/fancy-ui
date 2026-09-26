@@ -11,7 +11,7 @@
 	{#snippet back()}
 		<div class="flex size-full flex-col items-center justify-center">
 			<p class="text-lg font-semibold">Back Side</p>
-			<p class="mt-2 text-sm text-slate-400">Hover to flip</p>
+			<p class="text-muted-foreground mt-2 text-sm">Hover, focus or tap to flip</p>
 		</div>
 	{/snippet}
 </FlipCard>

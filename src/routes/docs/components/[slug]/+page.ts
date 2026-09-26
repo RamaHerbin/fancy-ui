@@ -4,12 +4,12 @@ import type { EntryGenerator, PageLoad } from "./$types";
 
 export const entries: EntryGenerator = () => getAllComponents().map(({ slug }) => ({ slug }));
 
-export const load: PageLoad = ({ params }) => {
+export const load: PageLoad = ({ params, data }) => {
 	const component = getComponent(params.slug);
 
 	if (!component) {
 		error(404, `Component "${params.slug}" not found`);
 	}
 
-	return { component };
+	return { ...data, component };
 };

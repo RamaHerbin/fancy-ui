@@ -83,24 +83,80 @@
 			copyText={`import { LiquidGlass } from "${PACKAGE_NAME}";`}
 		>
 			<!-- High-contrast test backdrop from the design: fine grid, ivory
-			     disc, barcode stripes — everything the glass can distort. -->
-			<div class="relative min-h-[260px] flex-1 overflow-hidden bg-[#0a0a0a] lg:min-h-0">
+			     disc, barcode stripes — everything the glass can distort. The
+			     backdrop scrolls and the pill does not, because chromatic
+			     displacement only reads as displacement when something travels
+			     underneath it; a still frame shows frost, not glass. -->
+			<div class="lp-stage relative min-h-[260px] flex-1 overflow-hidden bg-[#0a0a0a] lg:min-h-0">
+				<!--
+					The travelling backdrop. Scrollbar hidden for the same reason the
+					component's own docs examples hide it: the bar would draw a bright
+					rail straight down the specimen. No `overscroll-behavior` either —
+					once this reaches its end the wheel goes back to the page, which is
+					what someone scrolling past the panel rather than into it expects.
+				-->
 				<div
-					class="absolute inset-0 opacity-25"
-					style="background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.55) 0 1px,transparent 1px 26px),repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 1px,transparent 1px 26px)"
+					class="absolute inset-0 z-[1] overflow-y-auto"
+					style="scrollbar-width:none"
 					aria-hidden="true"
-				></div>
-				<div
-					class="absolute -top-[60px] -left-[150px] h-[380px] w-[320px] rounded-full bg-[#d6d5d0]"
-					aria-hidden="true"
-				></div>
-				<div
-					class="absolute top-0 right-0 bottom-0 w-[86px]"
-					style="background:repeating-linear-gradient(90deg,#e8e7e2 0 12px,#0c0c0c 12px 26px)"
-					aria-hidden="true"
-				></div>
+				>
+					<!-- Three stage-heights of travel (the band is capped at 322px, so
+					     the stage is ~256px at lg). The first screenful is the design's
+					     original composition, untouched: at rest the panel looks exactly
+					     as it did before it could scroll. -->
+					<div class="relative h-[840px]">
+						<!-- The grid rides the scrolling column rather than the stage, so
+						     it drifts through the lens instead of sitting still behind
+						     it. That drift is the clearest tell that the glass refracts. -->
+						<div
+							class="absolute inset-0 opacity-25"
+							style="background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.55) 0 1px,transparent 1px 26px),repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 1px,transparent 1px 26px)"
+						></div>
 
-				<div class="absolute top-1/2 left-1/2 w-[78%] -translate-x-1/2 -translate-y-1/2">
+						<!-- Screen one: the original disc and barcode column. -->
+						<div
+							class="absolute -top-[60px] -left-[150px] h-[380px] w-[320px] rounded-full bg-[#d6d5d0]"
+						></div>
+						<div
+							class="absolute top-0 right-0 h-[280px] w-[86px]"
+							style="background:repeating-linear-gradient(90deg,#e8e7e2 0 12px,#0c0c0c 12px 26px)"
+						></div>
+
+						<!-- Screen two: the same three motifs, re-staged. A horizontal
+						     barcode gives the lens a stripe direction the first screen
+						     never shows it. -->
+						<div
+							class="absolute top-[330px] left-0 h-[88px] w-[62%]"
+							style="background:repeating-linear-gradient(0deg,#e8e7e2 0 12px,#0c0c0c 12px 26px)"
+						></div>
+						<div
+							class="absolute top-[300px] -right-[80px] h-[300px] w-[300px] rounded-full bg-[#d6d5d0]"
+						></div>
+
+						<!-- Screen three: the finest pitch on the column, where the
+						     dispersion offsets separate most visibly. -->
+						<div
+							class="absolute top-[620px] right-0 left-0 h-[150px]"
+							style="background:repeating-linear-gradient(90deg,#e8e7e2 0 6px,#0c0c0c 6px 13px)"
+						></div>
+						<!-- Pushed off the left edge so the pill straddles the disc rather
+						     than floating in the middle of it: ivory under one half,
+						     6px stripes under the other, which is where the red/green/blue
+						     offsets separate instead of cancelling. -->
+						<div
+							class="absolute top-[660px] -left-[40px] h-[260px] w-[260px] rounded-full bg-[#d6d5d0]"
+						></div>
+					</div>
+				</div>
+
+				<!-- The pill sits above the scroller and stays put while the backdrop
+				     moves. `pointer-events-none` on the whole layer, with nothing
+				     re-enabling it: the pill is a static readout, and it covers the
+				     middle of the stage, so anything it captured would be a wheel
+				     gesture that failed to scroll the very thing it is demonstrating. -->
+				<div
+					class="pointer-events-none absolute top-1/2 left-1/2 z-10 w-[78%] -translate-x-1/2 -translate-y-1/2"
+				>
 					<!-- Softer than the component defaults: at pill size the default
 					     displacement (scale −180) and dispersion smear the backdrop
 					     into rainbow ghosting; the design wants readable glass. -->
@@ -132,6 +188,17 @@
 							<span class="text-[18px]">72%</span>
 						</div>
 					</LiquidGlass>
+				</div>
+
+				<!-- Same hover-fade instruction the other live panels use, pushed to
+				     the foot of the stage so it never lands on the pill. The
+				     alignment is inline, not a utility: `.lp-overlay` centres its
+				     column from landing.css, which is unlayered and would beat a
+				     `justify-end` sitting in Tailwind's `@layer utilities`. -->
+				<div class="lp-overlay z-20" style="justify-content:flex-end;padding-bottom:14px">
+					<span class="lp-mono text-[10.5px] tracking-[0.18em]" style="color:var(--lp-grey-4)"
+						>SCROLL TO DISTORT</span
+					>
 				</div>
 			</div>
 		</PanelChrome>

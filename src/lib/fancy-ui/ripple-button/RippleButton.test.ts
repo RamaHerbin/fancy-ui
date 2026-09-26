@@ -1,11 +1,60 @@
 import { render, screen, cleanup, fireEvent } from "@testing-library/svelte";
 import { flushSync } from "svelte";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import RippleButton from "./RippleButton.svelte";
+import RippleButton, { rippleGeometry } from "./RippleButton.svelte";
 import { sound } from "../sound/sound.svelte.js";
 
 describe("RippleButton", () => {
 	afterEach(cleanup);
+
+	it("grows a ripple from the pointer, wide enough to reach the farthest corner", () => {
+		const rect = { left: 100, top: 50, width: 200, height: 40 };
+		const g = rippleGeometry(rect, { clientX: 130, clientY: 70, detail: 1 });
+		// centre at (30, 20) inside the button; farthest corner is (200, 40)
+		const reach = Math.hypot(170, 20);
+		expect(g.size).toBeCloseTo(2 * reach, 6);
+		expect(g.x + g.size / 2).toBeCloseTo(30, 6);
+		expect(g.y + g.size / 2).toBeCloseTo(20, 6);
+	});
+
+	it("starts a keyboard-triggered ripple from the centre", () => {
+		const rect = { left: 100, top: 50, width: 200, height: 40 };
+		const g = rippleGeometry(rect, { clientX: 0, clientY: 0, detail: 0 });
+		expect(g.x + g.size / 2).toBeCloseTo(100, 6);
+		expect(g.y + g.size / 2).toBeCloseTo(20, 6);
+	});
+
+	it("exposes the ripple colour and marks the button while a ripple runs", async () => {
+		vi.useFakeTimers();
+		try {
+			render(RippleButton, { props: { rippleColor: "#ff00aa", duration: 500 } });
+			const button = screen.getByRole("button");
+			expect(button.getAttribute("style")).toContain("--ripple-color: #ff00aa");
+			expect(button.hasAttribute("data-rippling")).toBe(false);
+			await fireEvent.click(button);
+			flushSync();
+			expect(button.hasAttribute("data-rippling")).toBe(true);
+			vi.advanceTimersByTime(500);
+			flushSync();
+			expect(button.hasAttribute("data-rippling")).toBe(false);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("tracks the pointer for the hover glow and forwards a consumer onpointermove", async () => {
+		const onpointermove = vi.fn();
+		render(RippleButton, { props: { onpointermove } });
+		const button = screen.getByRole("button");
+		button.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 40 }) as DOMRect;
+		await fireEvent.pointerMove(button, { clientX: 60, clientY: 30 });
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("50px");
+		expect(button.style.getPropertyValue("--ripple-y")).toBe("10px");
+		expect(onpointermove).toHaveBeenCalledTimes(1);
+		const hover = button.querySelector(".ripple-hover");
+		expect(hover).toBeInTheDocument();
+		expect(hover).toHaveAttribute("aria-hidden", "true");
+	});
 
 	it("renders a button element", () => {
 		render(RippleButton);
