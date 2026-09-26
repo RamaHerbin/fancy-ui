@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createFireworksHdr, type FireworksHdrEngine } from "./fireworks-hdr-core.js";
 import { QUALITY, type FireworksHandle } from "./fireworks-shared.js";
-import type { FireworksEngineHandle } from "./webgpu-renderer.js";
+import { startWebGpuFireworks, type FireworksEngineHandle } from "./webgpu-renderer.js";
 
 // One frame the mocked renderer saw, snapshotted (the core reuses a single
 // uniforms object across frames, so the values must be copied on the spot).
@@ -314,15 +314,16 @@ describe("createFireworksHdr — setOptions", () => {
 		}
 	});
 
-	it("ignores mount-only keys (they are not part of LiveOptions)", async () => {
+	it("a new quality never resizes the live sim behind the caller", async () => {
 		const { engine, restoreGpu } = await bootActivated({ quality: "high" });
 		try {
 			const base = performance.now();
 			pumpFrame(base);
 			const highBuffer = frames[0]!.bufferLength;
-			// `quality` is a mount-time snapshot: pushing a new one through
-			// setOptions must not resize the instance buffer behind the caller.
-			engine.setOptions({ quality: "low" } as never);
+			// `quality` is only read when an engine activates (boot or recovery):
+			// pushing a new one through setOptions must not swap the instance
+			// buffer of the engine that is already running.
+			engine.setOptions({ quality: "low" });
 			pumpFrame(base + 16);
 			expect(frames[1]!.bufferLength).toBe(highBuffer);
 		} finally {
@@ -419,6 +420,143 @@ describe("createFireworksHdr — preserved invariants", () => {
 			// Second loss: the single recovery is spent, so the engine gives up.
 			pumpFrame(performance.now() + 16);
 			await vi.waitFor(() => expect(onLost).toHaveBeenCalledTimes(1));
+		} finally {
+			restoreGpu();
+		}
+	});
+});
+
+describe("createFireworksHdr — options read after async startup or recovery", () => {
+	it("a pending boot activates with the onReady, interactive and quality set meanwhile", async () => {
+		const restoreGpu = withFakeGpu();
+		const addSpy = vi.spyOn(window, "addEventListener");
+		try {
+			let resolveBoot!: (eng: FireworksEngineHandle) => void;
+			vi.mocked(startWebGpuFireworks).mockImplementationOnce(
+				() => new Promise<FireworksEngineHandle>((resolve) => (resolveBoot = resolve))
+			);
+			const stale = vi.fn();
+			const current = vi.fn();
+			canvas = makeCanvas();
+			created = createFireworksHdr(
+				{ canvas },
+				{ quality: "high", interactive: true, onReady: stale }
+			);
+			// The parent re-renders while the GPU is still coming up.
+			created!.setOptions({ onReady: current, interactive: false, quality: "low" });
+			resolveBoot(makeFakeEngine());
+			await vi.waitFor(() => expect(current).toHaveBeenCalledTimes(1));
+			expect(stale).not.toHaveBeenCalled();
+			expect(addSpy.mock.calls.some((call) => call[0] === "pointerdown")).toBe(false);
+			pumpFrame(performance.now());
+			expect(frames[0]!.bufferLength).toBe(QUALITY.low.maxParticles * 8);
+		} finally {
+			restoreGpu();
+		}
+	});
+
+	it("a recovery reports through the current callbacks and quality", async () => {
+		const restoreGpu = withFakeGpu();
+		try {
+			const firstReady = vi.fn();
+			const firstLost = vi.fn();
+			canvas = makeCanvas();
+			created = createFireworksHdr(
+				{ canvas },
+				{ quality: "high", onReady: firstReady, onLost: firstLost }
+			);
+			await vi.waitFor(() => expect(firstReady).toHaveBeenCalledTimes(1));
+
+			const nextReady = vi.fn();
+			const nextLost = vi.fn();
+			created!.setOptions({ onReady: nextReady, onLost: nextLost, quality: "low" });
+
+			fakeLost = true;
+			pumpFrame(performance.now());
+			await vi.waitFor(() => expect(nextReady).toHaveBeenCalledTimes(1));
+			expect(firstReady).toHaveBeenCalledTimes(1);
+
+			fakeLost = false;
+			frames.length = 0;
+			pumpFrame(performance.now() + 16);
+			expect(frames[0]!.bufferLength).toBe(QUALITY.low.maxParticles * 8);
+
+			fakeLost = true;
+			pumpFrame(performance.now() + 32);
+			await vi.waitFor(() => expect(nextLost).toHaveBeenCalledTimes(1));
+			expect(firstLost).not.toHaveBeenCalled();
+		} finally {
+			restoreGpu();
+		}
+	});
+
+	it("an undefined callback in setOptions clears it", async () => {
+		const restoreGpu = withFakeGpu();
+		try {
+			let resolveBoot!: (eng: FireworksEngineHandle) => void;
+			vi.mocked(startWebGpuFireworks).mockImplementationOnce(
+				() => new Promise<FireworksEngineHandle>((resolve) => (resolveBoot = resolve))
+			);
+			const onReady = vi.fn();
+			canvas = makeCanvas();
+			created = createFireworksHdr({ canvas }, { onReady });
+			created!.setOptions({ onReady: undefined });
+			resolveBoot(makeFakeEngine());
+			await vi.waitFor(() => expect(rafQueue.length).toBe(1));
+			expect(onReady).not.toHaveBeenCalled();
+		} finally {
+			restoreGpu();
+		}
+	});
+});
+
+describe("createFireworksHdr — onDestroy", () => {
+	it("fires once on destroy()", async () => {
+		const onDestroy = vi.fn();
+		const { engine, restoreGpu } = await bootActivated({ onDestroy });
+		try {
+			engine.destroy();
+			engine.destroy();
+			expect(onDestroy).toHaveBeenCalledTimes(1);
+		} finally {
+			restoreGpu();
+		}
+	});
+
+	it("fires on the handle's cleanup(), and a later destroy() does not repeat it", async () => {
+		const onDestroy = vi.fn();
+		const { engine, handle, restoreGpu } = await bootActivated({ onDestroy });
+		try {
+			handle.cleanup();
+			expect(onDestroy).toHaveBeenCalledTimes(1);
+			engine.destroy();
+			expect(onDestroy).toHaveBeenCalledTimes(1);
+		} finally {
+			restoreGpu();
+		}
+	});
+
+	it("fires when an unrecoverable loss gives up, before onLost", async () => {
+		const restoreGpu = withFakeGpu();
+		try {
+			const order: string[] = [];
+			const handles: FireworksHandle[] = [];
+			canvas = makeCanvas();
+			created = createFireworksHdr(
+				{ canvas },
+				{
+					onReady: (h) => handles.push(h),
+					onLost: () => order.push("lost"),
+					onDestroy: () => order.push("destroy"),
+				}
+			);
+			await vi.waitFor(() => expect(handles).toHaveLength(1));
+			fakeLost = true;
+			pumpFrame(performance.now());
+			await vi.waitFor(() => expect(handles).toHaveLength(2));
+			expect(order).toEqual([]);
+			pumpFrame(performance.now() + 16);
+			await vi.waitFor(() => expect(order).toEqual(["destroy", "lost"]));
 		} finally {
 			restoreGpu();
 		}

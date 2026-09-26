@@ -55,20 +55,14 @@ export interface FireworksHdrElements {
 }
 
 /**
- * Props the wrapper reads ONLY at mount. `FireworksHdr` has no `$effect`: it
- * snapshots these once and runtime control goes through the `onReady` handle,
- * so `setOptions` deliberately ignores every key listed here (see
- * {@link FireworksHdrLiveOptions} for what it does accept).
+ * Options read ONLY at creation: `setOptions` deliberately ignores every key
+ * listed here (see {@link FireworksHdrLiveOptions} for what it does accept).
  */
 export interface FireworksHdrInitOptions {
 	/** Brand hues (hex), sorted cool→warm by oklab hue angle at boot. */
 	palette?: string[];
 	/** Opt into the GPU engine. When false, no engine boots at all. */
 	hdr?: boolean;
-	/** Quality tier, or "auto" to pick from the render level + DPR. */
-	quality?: "auto" | "high" | "mid" | "low";
-	/** Launch a shell toward the pointer on window pointerdown. */
-	interactive?: boolean;
 	/** Shells the ambient scheduler may fire (self-drawing kinds only). */
 	ambientShells?: ShellKind[];
 	/**
@@ -79,19 +73,39 @@ export interface FireworksHdrInitOptions {
 	reducedMotion?: boolean;
 	/** Emit the dev-only console diagnostics (the wrapper passes its bundler DEV flag). */
 	debug?: boolean;
-	/** Called with an imperative handle whenever an engine goes live (incl. after a recovery). */
-	onReady?: (handle: FireworksHandle) => void;
-	/** Called once when the GPU context is lost and cannot be brought back. */
-	onLost?: () => void;
+	/**
+	 * Called exactly once when the engine tears down, whichever path got there:
+	 * `destroy()`, the handle's `cleanup()`, or the give-up after an
+	 * unrecoverable GPU loss. The wrapper releases its own observers here. It
+	 * can fire synchronously inside `createFireworksHdr` (a synchronous
+	 * `onReady` that calls `cleanup()`), so wire what it releases beforehand.
+	 */
+	onDestroy?: () => void;
 }
 
 /**
  * The state that can legitimately change after mount. `ambient`,
  * `ambientIntensity`, `exposure` and `keepClear` are exactly what the
  * `onReady` handle mutates; `visible` is the wrapper's IntersectionObserver
- * gate.
+ * gate. `quality`, `interactive`, `onReady` and `onLost` are the wrapper's
+ * current props, read when the (async) boot or a recovery needs them, so a
+ * late answer never acts on a stale value.
  */
 export interface FireworksHdrLiveOptions {
+	/**
+	 * Quality tier, or "auto" to pick from the render level + DPR. Read at each
+	 * engine activation (first boot and recovery); a live sim is never resized.
+	 */
+	quality?: "auto" | "high" | "mid" | "low";
+	/**
+	 * Launch a shell toward the pointer on window pointerdown. Read once, when
+	 * the first engine activates; the listener is not re-wired afterwards.
+	 */
+	interactive?: boolean;
+	/** Called with an imperative handle whenever an engine goes live (incl. after a recovery). */
+	onReady?: ((handle: FireworksHandle) => void) | undefined;
+	/** Called once when the GPU context is lost and cannot be brought back. */
+	onLost?: (() => void) | undefined;
 	/** Run the ambient auto-scheduler (AND-ed with `!reducedMotion`). */
 	ambient?: boolean;
 	/** Ambient intensity, clamped [0,1] — scales shell size/energy. */
@@ -105,7 +119,10 @@ export interface FireworksHdrLiveOptions {
 }
 
 export interface FireworksHdrEngine {
-	/** Apply live keys. Keys from {@link FireworksHdrInitOptions} are ignored. */
+	/**
+	 * Apply live keys. Keys from {@link FireworksHdrInitOptions} are ignored.
+	 * A present-but-undefined `onReady`/`onLost` clears that callback.
+	 */
 	setOptions(next: Partial<FireworksHdrLiveOptions>): void;
 	/** Re-read the canvas box: update the sim aspect and the drawing buffer. */
 	resize(): void;
@@ -188,19 +205,23 @@ export function createFireworksHdr(
 	const {
 		palette = DEFAULT_PALETTE_HEX,
 		hdr = true,
-		quality = "auto",
-		interactive = true,
 		ambientShells,
 		reducedMotion = false,
 		debug = false,
-		onReady,
-		onLost,
+		onDestroy,
 		ambient = true,
 		ambientIntensity = 0.35,
 		exposure = EXPOSURE_AMBIENT,
 		keepClear: initialKeepClear = KEEP_CLEAR_DESKTOP,
 		visible = true,
 	} = options;
+
+	// Read at call time, never destructured: the boot is async and a recovery
+	// can land long after mount, and both must see what setOptions last set.
+	let liveQuality = options.quality ?? "auto";
+	let liveInteractive = options.interactive ?? true;
+	let onReady = options.onReady;
+	let onLost = options.onLost;
 
 	let disposed = false;
 	let engine: FireworksEngineHandle | null = null;
@@ -489,6 +510,7 @@ export function createFireworksHdr(
 		engine = null;
 		sim = null;
 		instances = null;
+		onDestroy?.();
 	}
 
 	/** Drop the dead engine and its sim, keeping listeners alive. */
@@ -570,7 +592,7 @@ export function createFireworksHdr(
 		engine = eng;
 		const level = eng.renderLevel;
 		const minDim = Math.min(canvas.clientWidth, canvas.clientHeight);
-		const q = resolveQualityTier(quality, level, currentDpr(), minDim, lowPower);
+		const q = resolveQualityTier(liveQuality, level, currentDpr(), minDim, lowPower);
 
 		sim = createSim({
 			quality: q,
@@ -583,7 +605,7 @@ export function createFireworksHdr(
 		instances = new Float32Array(sim.capacity * 8);
 
 		if (!wired) {
-			if (interactive) {
+			if (liveInteractive) {
 				window.addEventListener("pointerdown", handlePointerDown);
 				pointerWired = true;
 			}
@@ -629,7 +651,7 @@ export function createFireworksHdr(
 			// resolve to the same tier, so the tier is resolved up front to size
 			// the instance buffer to the resolved tier (not high's 4096).
 			const minDim = Math.min(canvas.clientWidth, canvas.clientHeight);
-			const webglTier = resolveQualityTier(quality, "webgl-p3", currentDpr(), minDim, lowPower);
+			const webglTier = resolveQualityTier(liveQuality, "webgl-p3", currentDpr(), minDim, lowPower);
 			eng = startWebGl2Fireworks(canvas, {
 				maxInstances: QUALITY[webglTier].maxParticles,
 				renderScale: 1,
@@ -651,6 +673,10 @@ export function createFireworksHdr(
 	}
 
 	function setOptions(next: Partial<FireworksHdrLiveOptions>): void {
+		if (next.quality !== undefined) liveQuality = next.quality;
+		if (next.interactive !== undefined) liveInteractive = next.interactive;
+		if ("onReady" in next) onReady = next.onReady;
+		if ("onLost" in next) onLost = next.onLost;
 		if (next.ambient !== undefined) {
 			ambientOn = next.ambient && !prefersReduced;
 		}

@@ -211,6 +211,9 @@ export function createSmoothCursor(
 		cursor.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotation}deg)`;
 	}
 
+	// Capture the host's own inline cursor so teardown restores it exactly
+	// instead of wiping it (e.g. an app-set `crosshair`).
+	const previousBodyCursor = document.body.style.cursor;
 	document.body.style.cursor = "none";
 
 	document.addEventListener("mousemove", onMouseMove);
@@ -246,7 +249,7 @@ export function createSmoothCursor(
 		destroy() {
 			if (destroyed) return;
 			destroyed = true;
-			document.body.style.cursor = "";
+			document.body.style.cursor = previousBodyCursor;
 			document.removeEventListener("mousemove", onMouseMove);
 			document.documentElement.removeEventListener("mouseleave", onMouseLeave);
 			document.documentElement.removeEventListener("mouseenter", onMouseEnter);
