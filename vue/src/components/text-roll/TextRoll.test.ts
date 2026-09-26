@@ -107,7 +107,8 @@ const TextRollHarness = defineComponent({
 			},
 		});
 
-		return () => h(TextRoll, { value: value.value, direction: direction.value, duration: duration.value });
+		return () =>
+			h(TextRoll, { value: value.value, direction: direction.value, duration: duration.value });
 	},
 });
 
@@ -135,6 +136,44 @@ describe("TextRoll", () => {
 		const { container } = render(TextRoll, { props: { value: "x" }, attrs: { id: "score" } });
 
 		expect(root(container).id).toBe("score");
+	});
+
+	it("forwards attributes a parent adds AFTER mount to the root (empty attrs at mount)", async () => {
+		// Regression: the root's attrs merge used to live in a `computed`. The
+		// `useAttrs()` proxy only tracks on a property get and `mergeProps` walks
+		// it with `for…in`, so a computed first evaluated against empty attrs
+		// never depended on them — a late `id`/`aria-*`/`data-*`/listener was lost.
+		const extra = ref<Record<string, unknown>>({});
+		const onClick = vi.fn();
+		const Parent = defineComponent({
+			setup: () => () => h(TextRoll, { value: "x", ...extra.value }),
+		});
+		const { container } = render(Parent);
+		expect(root(container).hasAttribute("id")).toBe(false);
+
+		extra.value = { id: "late", "aria-label": "Score", "data-kind": "counter", onClick };
+		await nextTick();
+
+		expect(root(container).id).toBe("late");
+		expect(root(container).getAttribute("aria-label")).toBe("Score");
+		expect(root(container).dataset.kind).toBe("counter");
+		root(container).click();
+		expect(onClick).toHaveBeenCalledTimes(1);
+	});
+
+	it("still merges a late consumer style with the non-default duration var", async () => {
+		const extra = ref<Record<string, unknown>>({});
+		const Parent = defineComponent({
+			setup: () => () => h(TextRoll, { value: "x", duration: 500, ...extra.value }),
+		});
+		const { container } = render(Parent);
+		expect(root(container).style.getPropertyValue("--ft-textroll-duration")).toBe("500ms");
+
+		extra.value = { style: { color: "red" } };
+		await nextTick();
+
+		expect(root(container).style.color).toBe("red");
+		expect(root(container).style.getPropertyValue("--ft-textroll-duration")).toBe("500ms");
 	});
 
 	it("never lets restProps clobber the component's own data-state/data-direction", () => {
@@ -384,6 +423,13 @@ describe("TextRoll", () => {
 			await rerender({ value: "B" });
 			await vi.advanceTimersByTimeAsync(0);
 			expect(root(container).dataset.state).toBe("rolling");
+			// `:css="false"` semantics survive the dynamic-component TransitionGroup:
+			// the JS hooks drive the roll and no `v-enter-*`/`v-leave-*` class is
+			// ever applied to an entering or leaving cell.
+			expect(cellEls(container).length).toBeGreaterThan(1);
+			for (const cell of cellEls(container)) {
+				expect(Array.from(cell.classList)).toEqual(["ft-textroll-cell"]);
+			}
 
 			// Drain every in-flight cell animation ourselves — this is the
 			// enter/leave-end path, distinct from the dedicated backstop test

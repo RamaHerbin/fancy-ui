@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect } from "vitest";
-import { defineComponent, h, nextTick, ref } from "vue";
+import { computed, defineComponent, h, nextTick, ref } from "vue";
 import { mount } from "@vue/test-utils";
 import { useFloat } from "./use-float.js";
 import type { FloatPlacement, FloatRect } from "./float.js";
@@ -61,7 +61,6 @@ describe("useFloat", () => {
 		expect(wrapper.vm.result.placement).toBe("bottom-start");
 	});
 
-
 	it("reports a flip when the requested placement runs out of room", async () => {
 		// Near the bottom edge of jsdom's 768px viewport: a 120px float placed
 		// below would run off it, so the core flips to the top.
@@ -117,32 +116,32 @@ describe("useFloat", () => {
 		expect(wrapper.vm.result.placement).toBe("bottom-end");
 	});
 
-	// `anchor` is never watched (§3.1, which §12 binds this module to). Both
+	// `anchor` IS watched — by identity, which is the whole of the guard. Both
 	// the getter and the fixed-rect forms of the union are rebuilt on every
-	// evaluation of `options()`, so a watcher over them would never compare
-	// equal and would turn ANY tracked dependency the caller happens to read
-	// inside `options()` into a full `sync()` — the opposite of the property
-	// the design exists to hold.
-	it("does not re-sync when an unrelated dependency inside options() changes", async () => {
+	// evaluation of `options()`, so a source that merely re-ran is not evidence
+	// of a change; without the identity check ANY tracked dependency the caller
+	// happens to read inside `options()` would turn into a full `sync()`. A
+	// caller whose anchor is a stable value re-evaluates to the same identity
+	// and must be skipped.
+	it("does not re-sync when an unrelated dependency changes and the anchor is unchanged", async () => {
 		let anchorReads = 0;
 		const unrelated = ref(0);
 
 		const Cmp = defineComponent({
 			setup() {
 				const el = ref<HTMLElement | null>(null);
+				// Held, not rebuilt inline: one identity for the lifetime of the
+				// component, the way `ComposerCommandMenu` holds its caret getter
+				// in a `computed` and the three element-anchored call sites read
+				// nothing reactive at all while building theirs.
+				const anchor = () => {
+					anchorReads += 1;
+					return ANCHOR;
+				};
 				const result = useFloat(el, () => {
-					// A caller reading its own reactive state next to the
-					// options, with the anchor written the way all four Svelte
-					// call sites write it: an arrow literal inside the options
-					// object, rebuilt on every evaluation.
+					// A caller reading its own reactive state next to the options.
 					void unrelated.value;
-					return {
-						anchor: () => {
-							anchorReads += 1;
-							return ANCHOR;
-						},
-						placement: "bottom-start" as FloatPlacement,
-					};
+					return { anchor, placement: "bottom-start" as FloatPlacement };
 				});
 				return { el, result };
 			},
@@ -166,6 +165,58 @@ describe("useFloat", () => {
 		await nextTick();
 
 		expect(anchorReads).toBe(afterMount);
+	});
+
+	// The counterpart, and the reason `anchor` is in the sources at all: an
+	// anchor that MOVES while the float stays open — a caret-anchored menu whose
+	// token shifts — changes nothing the core can hear for itself. The scroll and
+	// resize listeners never fire, and its `ResizeObserver` never observes a
+	// getter anchor. This is the Svelte action's `update()` re-run when its
+	// `$derived` parameter changes.
+	it("re-syncs, once, when the anchor's identity changes", async () => {
+		let anchorReads = 0;
+
+		const Cmp = defineComponent({
+			setup() {
+				const top = ref(100);
+				const el = ref<HTMLElement | null>(null);
+				// A fresh closure whenever `top` moves, and the same one otherwise.
+				const anchor = computed(() => {
+					const y = top.value;
+					return (): FloatRect => {
+						anchorReads += 1;
+						return { x: 100, y, width: 200, height: 40 };
+					};
+				});
+				const result = useFloat(el, () => ({
+					anchor: anchor.value,
+					placement: "bottom-start" as FloatPlacement,
+				}));
+				return { el, result, top };
+			},
+			render() {
+				return h("div", {
+					ref: "el",
+					onVnodeMounted(vnode) {
+						stubBox(vnode.el as HTMLElement, { width: 200, height: 120 });
+					},
+				});
+			},
+		});
+
+		const wrapper = mount(Cmp, { attachTo: document.body });
+		await nextTick();
+		const node = wrapper.element as HTMLElement;
+		// 100 + 40 (anchor height) + 6 (default offset).
+		expect(node.style.top).toBe("146px");
+
+		const afterMount = anchorReads;
+		wrapper.vm.top = 300;
+		await nextTick();
+
+		// One re-position against the new anchor, not two.
+		expect(anchorReads).toBe(afterMount + 1);
+		expect(node.style.top).toBe("346px");
 	});
 
 	it("tears down the core on unmount without throwing", async () => {

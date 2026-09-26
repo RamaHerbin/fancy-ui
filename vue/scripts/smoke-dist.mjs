@@ -38,22 +38,26 @@ const root = new URL("../", import.meta.url);
 const dist = new URL("dist/", root);
 
 /**
- * Carried over from the sibling package's numbers, which sit at 412 kB of JS
- * and 66 kB of CSS for the same 145 components. Revisit both once this package
- * has built its full component set for the first time: the scoped-style model
- * aggregates differently from colocated stylesheets, and the real figures are
- * printed on every successful run below.
+ * Measured on this package's own build (2026-09-21): 501.2 kB of JS and
+ * 65.8 kB of CSS gzipped for the full ported component set. Ceilings sit
+ * ~15% above that measurement so they catch a regression (e.g. `three` or
+ * `gsap` losing its `external` entry) rather than policing normal growth;
+ * re-measure and move both numbers again the next time the build's actual
+ * size approaches either ceiling.
  */
-const BUDGET_GZIP_JS = 600 * 1024;
-const BUDGET_GZIP_CSS = 100 * 1024;
+const BUDGET_GZIP_JS = 580 * 1024;
+const BUDGET_GZIP_CSS = 80 * 1024;
 
 /**
  * Raised by every porting wave. It starts at zero so the gate is green on the
  * empty barrel this package bootstraps from; the moment a wave lands its
  * components, it is set to the number that wave rendered, and from then on a
  * barrel that stops reaching them is a failure rather than a smaller number.
+ *
+ * Measured on this package's own build (2026-09-21): 174 export(s) server
+ * render with no props (39 need real props to render).
  */
-const RENDERED_FLOOR = 0;
+const RENDERED_FLOOR = 174;
 
 /** `dist/components/button/Button.vue.js` — how every message below names a file. */
 const label = (url) => fileURLToPath(url).slice(fileURLToPath(root).length);

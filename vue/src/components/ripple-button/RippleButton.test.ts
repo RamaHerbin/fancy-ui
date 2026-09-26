@@ -146,3 +146,29 @@ describe("RippleButton", () => {
 		}
 	});
 });
+
+describe("RippleButton consumer style and slot", () => {
+	afterEach(cleanup);
+
+	it("lets a consumer style win a conflicting key (as the Svelte spread does) while keeping --ripple-duration", () => {
+		render(RippleButton, {
+			props: { duration: 900 },
+			attrs: { style: "color: red" },
+		});
+		const style = screen.getByRole("button").getAttribute("style") ?? "";
+		expect(style).toContain("--ripple-duration: 900ms");
+		expect(style).toContain("color: red");
+	});
+
+	it("gives a conflicting consumer --ripple-duration the last word", () => {
+		render(RippleButton, { props: { duration: 900 }, attrs: { style: "--ripple-duration: 50ms" } });
+		const style = screen.getByRole("button").getAttribute("style") ?? "";
+		expect(style).toContain("--ripple-duration: 50ms");
+		expect(style).not.toContain("900ms");
+	});
+
+	it("renders the optional default slot", () => {
+		render(RippleButton, { slots: { default: "Tap" } });
+		expect(screen.getByRole("button").textContent).toContain("Tap");
+	});
+});

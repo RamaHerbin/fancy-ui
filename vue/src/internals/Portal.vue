@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed } from "vue";
+import { computed, getCurrentInstance, inject, onMounted, ref, ssrContextKey } from "vue";
 import { resolvePortalTarget } from "./portal.js";
 
 export interface PortalProps {
@@ -22,19 +22,44 @@ defineOptions({ name: "Portal", inheritAttrs: false });
 const props = defineProps<PortalProps>();
 defineSlots<{ default?: () => unknown }>();
 
-// Evaluated at patch time, never in a lazy initializer (C-7). On the server
-// there is no `document` to resolve against, and the server output does not
-// go through the target anyway: an open surface is emitted inline in the
-// document body, ahead of the app root, wrapped in the teleport anchor
-// comments, and `#teleports` is emitted empty. So the server hands
-// `<Teleport>` the one target that is always true of that output and the
-// client resolves the real element on the first patch.
-const to = computed<HTMLElement | string>(() =>
-	typeof document === "undefined" ? "body" : resolvePortalTarget(props.target)
-);
+// The React package's portal contract: the server emits nothing, the
+// hydration render emits nothing, and the target is resolved once after
+// mount. A `<Teleport>` has no server output of its own that the app subtree
+// can hydrate — the renderer writes anchors into the stream and files the
+// children in a separate buffer — so a surface left OPEN across a server
+// render would otherwise hand the hydration pass a subtree it cannot match.
+// With the gate, every portalled surface behaves the same whether it starts
+// closed or open: nothing server-side, and the content arrives on the first
+// post-hydration patch.
+//
+// Why not simply `ref(false)` everywhere: a FRESH client mount (the path every
+// surface takes when `open` flips true long after hydration) must portal on
+// the very patch that creates it. The presence clock starts its entrance legs
+// from a post-flush watcher in that same flush; a portal that waited for its
+// own `onMounted` would attach the nodes one pass later, after the legs had
+// already found nothing to animate and settled — every entrance would be
+// silently skipped. So only the two passes that have to agree are gated:
+//
+// - the server, recognised by the SSR context the server renderer provides
+//   (no `document` read in setup, convention C-7);
+// - the hydration pass, recognised by the vnode already carrying the
+//   server-rendered node it is being matched against: Vue's hydration walk
+//   assigns `vnode.el` before it creates the component, a fresh mount never
+//   does. This is the Vue equivalent of React's `useIsHydrated`, which is
+//   `false` only on the server and during the hydration render.
+const onServer = inject(ssrContextKey, null) != null;
+const hydrating = getCurrentInstance()?.vnode.el != null;
+const portalReady = ref(!onServer && !hydrating);
+onMounted(() => {
+	portalReady.value = true;
+});
+
+// Only ever evaluated once `portalReady` is true, i.e. in the browser after
+// the gate above: never on the server, never in a lazy initializer (C-7).
+const to = computed<HTMLElement>(() => resolvePortalTarget(props.target));
 </script>
 
 <template>
-	<Teleport v-if="!disabled" :to="to"><slot /></Teleport>
-	<slot v-else />
+	<slot v-if="disabled" />
+	<Teleport v-else-if="portalReady" :to="to"><slot /></Teleport>
 </template>

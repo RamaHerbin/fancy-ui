@@ -139,3 +139,19 @@ describe("ShimmerButton", () => {
 		});
 	});
 });
+
+describe("ShimmerButton consumer style", () => {
+	afterEach(cleanup);
+
+	it("lets a consumer style win a conflicting key (as the Svelte spread does) while keeping the other custom properties", () => {
+		render(ShimmerButton, {
+			props: { shimmerDuration: "4s" },
+			attrs: { style: "--bg: red; color: blue" },
+		});
+		const style = screen.getByRole("button").getAttribute("style") ?? "";
+		expect(style).toContain("--bg: red");
+		expect(style).not.toContain("rgba(0, 0, 0, 1)");
+		expect(style).toContain("--speed: 4s");
+		expect(style).toContain("color: blue");
+	});
+});

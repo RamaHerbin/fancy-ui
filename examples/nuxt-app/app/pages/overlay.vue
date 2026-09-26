@@ -1,21 +1,43 @@
 <script setup lang="ts">
-import { cn } from "fancy-ui-vue";
+import { ref } from "vue";
+import { cn, Button, Dialog, Popover, Tooltip } from "fancy-ui-vue";
 
-// No library components exist yet (scaffold-only wave). This block stands in
-// for a dialog/overlay component that will land here later. It is rendered
-// open (not toggled) so that <Teleport> runs on the server during
-// `nuxt generate` and the SSR/hydration gate exercises portalled content.
+// SSR/hydration gate for portalled content: the dialog is rendered OPEN (not
+// toggled) so `nuxt generate` walks the open-by-default path. Portal renders
+// nothing on the server and on the hydration pass — the generated HTML holds
+// the trigger only and the panel appears after mount — so this page proves
+// that path prerenders and hydrates without a mismatch. The popover and
+// tooltip are exercised closed and cover the "closed on the server" branch.
+const dialogOpen = ref(true);
 </script>
 
 <template>
 	<main :class="cn('mx-auto max-w-2xl p-8')">
 		<h1 :class="cn('text-2xl font-semibold')">overlay</h1>
-		<Teleport to="body">
-			<div :class="cn('fixed inset-0 z-50 flex items-center justify-center bg-black/50')">
-				<div :class="cn('rounded-md bg-white p-6 text-sm dark:bg-neutral-900')">
-					Dialog placeholder (rendered open)
-				</div>
-			</div>
-		</Teleport>
+
+		<div :class="cn('mt-4 flex flex-col items-start gap-6')">
+			<Dialog
+				v-model:open="dialogOpen"
+				title="Dialog"
+				description="Rendered open for the SSR gate."
+			>
+				<template #trigger>
+					<Button>Open dialog</Button>
+				</template>
+				<p :class="cn('text-sm')">Dialog body content.</p>
+				<template #footer>
+					<Button variant="secondary" @click="dialogOpen = false">Close</Button>
+				</template>
+			</Dialog>
+
+			<Popover>
+				<template #trigger>Popover</template>
+				<p :class="cn('text-sm')">Popover panel content.</p>
+			</Popover>
+
+			<Tooltip content="Tooltip content">
+				<Button variant="secondary">Hover me</Button>
+			</Tooltip>
+		</div>
 	</main>
 </template>

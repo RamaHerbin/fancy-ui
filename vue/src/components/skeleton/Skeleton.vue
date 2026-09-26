@@ -28,7 +28,7 @@ export interface SkeletonProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useAttrs, useSlots, useTemplateRef, watch } from "vue";
+import { computed, mergeProps, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { composeRefs } from "../../internals/dom/compose-refs.js";
@@ -58,9 +58,12 @@ defineSlots<{
 
 // Presence of the default slot — not anything it renders — is what decides
 // the mode, mirroring the Svelte source's `children !== undefined` check.
-const slots = useSlots();
+// Read during render, never cached in a computed: outside development
+// `useSlots()` is the plain slots object, not a reactive one, so a computed
+// over it would freeze the mode at its first value while a parent re-render
+// adds or drops the slot. The template reads `$slots.default` directly for
+// the same reason.
 const attrs = useAttrs();
-const wrapping = computed(() => slots.default !== undefined);
 
 // `Math.floor` alone would let a non-finite `lines` (NaN, ±Infinity) leak
 // through `Math.max` unclamped (`Math.max(1, NaN)` is `NaN`, and
@@ -147,10 +150,9 @@ watch(
 // instance loops unsynced from 0%, still animates correctly" whenever it's
 // unavailable. Never a hard requirement, just a nicety where supported.
 //
-// Seeded `undefined` (the "omit the property" value the style object binding
-// expects, and the type `HTMLAttributes["style"]` actually accepts — plain
-// `null` does not) and written from `onMounted`, never read during render or
-// a computed: nothing may differ between a server render and its hydration.
+// Seeded `undefined` ("no phase yet": `rootAttrs()` below then binds no style
+// at all) and written from `onMounted`, never before: nothing may differ
+// between a server render and its hydration.
 const phaseValue = ref<string | undefined>(undefined);
 onMounted(() => {
 	if (typeof document === "undefined" || typeof document.timeline?.currentTime !== "number") {
@@ -164,6 +166,19 @@ onMounted(() => {
 	const phase = -(Number(document.timeline.currentTime) % durationMs);
 	phaseValue.value = `${phase}ms`;
 });
+
+// The root's fallthrough attributes, plus the phase once there is one to
+// write. Binding `style` with an object whose only entry is `undefined` (or
+// binding `undefined` itself next to `v-bind="attrs"`) still makes the server
+// renderer emit an empty `style=""`, where the Svelte source writes no
+// attribute at all — so the phase is merged in only once it exists, leaving
+// the server markup, and the first client render it hydrates against, without
+// the attribute. A caller's own `style` still merges with the phase.
+function rootAttrs() {
+	return phaseValue.value === undefined
+		? attrs
+		: mergeProps(attrs, { style: { "--ft-skeleton-phase": phaseValue.value } });
+}
 
 function boneClass(index: number): string {
 	return cn(
@@ -191,11 +206,10 @@ function boneClass(index: number): string {
 		once the slot content takes over, so nothing lingers to re-announce.
 	-->
 	<div
-		v-if="wrapping"
+		v-if="$slots.default !== undefined"
 		ref="el"
 		:class="cn('ft-skeleton', className)"
-		v-bind="attrs"
-		:style="{ '--ft-skeleton-phase': phaseValue }"
+		v-bind="rootAttrs()"
 		:aria-busy="loading ? 'true' : undefined"
 		:data-variant="variant"
 		:data-animation="animation"
@@ -245,8 +259,7 @@ function boneClass(index: number): string {
 		v-else-if="loading"
 		ref="el"
 		:class="cn('ft-skeleton', className)"
-		v-bind="attrs"
-		:style="{ '--ft-skeleton-phase': phaseValue }"
+		v-bind="rootAttrs()"
 		role="status"
 		aria-live="polite"
 		:data-variant="variant"

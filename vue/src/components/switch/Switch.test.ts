@@ -1,5 +1,5 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
-import { defineComponent, onMounted, ref, useTemplateRef } from "vue";
+import { defineComponent, h, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { afterEach, describe, it, expect, vi } from "vitest";
 
 import Switch from "./Switch.vue";
@@ -50,6 +50,35 @@ const ValueHarness = defineComponent({
 		<Switch ref="child" v-model:checked="checked" label="Notifications" />
 		<span data-testid="bound-checked">{{ checked }}</span>
 	`,
+});
+
+/**
+ * A parent that binds `checked` AND listens to `update:checked` owns the value
+ * (Vue's controlled `defineModel`), then vetoes every write unless `accept`
+ * says otherwise. `accept` also exercises the write-back arriving through
+ * `onCheckedChange` instead of the model's own emit.
+ */
+const VetoHarness = defineComponent({
+	props: {
+		accept: { type: Boolean, default: false },
+		onUpdate: { type: Function, default: undefined },
+		onChange: { type: Function, default: undefined },
+	},
+	setup(props) {
+		const checked = ref(false);
+		return () => [
+			h(Switch, {
+				checked: checked.value,
+				"onUpdate:checked": (next: boolean) => props.onUpdate?.(next),
+				onCheckedChange: (next: boolean) => {
+					props.onChange?.(next);
+					if (props.accept) checked.value = next;
+				},
+				label: "Notifications",
+			}),
+			h("span", { "data-testid": "owned-checked" }, String(checked.value)),
+		];
+	},
 });
 
 describe("Switch", () => {
@@ -159,6 +188,43 @@ describe("Switch", () => {
 		await fireEvent.click(el);
 		expect(getByTestId("bound-checked").textContent).toBe("true");
 		expect(el.checked).toBe(true);
+	});
+
+	it("puts the native box back on the model when a parent that owns checked declines the write", async () => {
+		const onUpdate = vi.fn();
+		const onChange = vi.fn();
+		const { container, getByTestId } = render(VetoHarness, { props: { onUpdate, onChange } });
+		const el = toggle(container);
+
+		await fireEvent.click(el);
+		await nextTick();
+
+		// The request is still reported, as a controlled component must...
+		expect(onUpdate).toHaveBeenCalledWith(true);
+		expect(onChange).toHaveBeenCalledWith(true);
+		// ...but nothing rendered disagrees with the model the parent kept.
+		expect(getByTestId("owned-checked").textContent).toBe("false");
+		expect(el.checked).toBe(false);
+		expect(el.getAttribute("aria-checked")).toBe("false");
+
+		// The next press is again a request to turn it ON, not off.
+		await fireEvent.click(el);
+		await nextTick();
+		expect(onChange).toHaveBeenCalledTimes(2);
+		expect(onChange).toHaveBeenLastCalledWith(true);
+		expect(el.checked).toBe(false);
+	});
+
+	it("keeps the native box when a parent that owns checked accepts the write through the callback", async () => {
+		const { container, getByTestId } = render(VetoHarness, { props: { accept: true } });
+		const el = toggle(container);
+
+		await fireEvent.click(el);
+		await nextTick();
+
+		expect(getByTestId("owned-checked").textContent).toBe("true");
+		expect(el.checked).toBe(true);
+		expect(el.getAttribute("aria-checked")).toBe("true");
 	});
 
 	it("round-trips the input element through the exposed ref", () => {

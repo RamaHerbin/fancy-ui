@@ -52,8 +52,11 @@ const TYPESCRIPT = "~5.8.0";
  * It starts at 0 because the package starts with no components, and "at least
  * one" would be an unmeetable gate on an empty barrel rather than a real one.
  * Raise it in the same commit that lands the components it counts.
+ *
+ * Measured on this package's own build (2026-09-21): 186 of 235 swept
+ * export(s) server render under the Vue 3.5.2 floor.
  */
-const RENDERED_FLOOR = 0;
+const RENDERED_FLOOR = 186;
 
 const scratch = mkdtempSync(join(tmpdir(), "fancy-ui-vue-floor-"));
 const run = (command, args, cwd) =>

@@ -3,7 +3,12 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
 import * as pkg from "./index.js";
-import { exportedComponents, fixtures, PROVIDER_ONLY, PROVIDER_ERROR } from "./ssr-sweep.fixtures.js";
+import {
+	exportedComponents,
+	fixtures,
+	PROVIDER_ONLY,
+	PROVIDER_ERROR,
+} from "./ssr-sweep.fixtures.js";
 
 /**
  * Package-wide render-purity gate (mirrors the React package's own): a
@@ -29,11 +34,12 @@ async function renderTwice(value: unknown, props: Record<string, unknown>) {
 }
 
 /**
- * Ratchet: the sweep's coverage floor. Zero until the first migration wave
- * lands a component; each wave that adds rendered exports raises this
- * constant to the new count it actually swept.
+ * Ratchet: the sweep's coverage floor — the exact number of barrel exports the
+ * sweep covered at parity (2026-09-26: 221 across the root and cameleon
+ * barrels). A change that removes an export from the sweep must lower it
+ * deliberately, in the same commit; a change that adds one raises it.
  */
-const RENDERED_FLOOR = 0;
+const RENDERED_FLOOR = 221;
 
 describe("ssr determinism", () => {
 	it.each(swept)("%s renders identically twice", async (name, value) => {

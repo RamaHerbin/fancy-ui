@@ -30,6 +30,8 @@ defineOptions({ name: "TabsContent", inheritAttrs: false });
 
 const { value, forceMount = false, class: className } = defineProps<TabsContentProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const el = useTemplateRef<HTMLDivElement>("el");
 defineExpose({ ref: el });
 
@@ -77,9 +79,13 @@ function handleEnter(element: Element, done: () => void): void {
 	run?.abort();
 	run = runTransition(
 		element,
-		panelFade(element, { duration: prefersReducedMotion() ? 0 : DURATIONS.fast }, {
-			direction: "in",
-		}),
+		panelFade(
+			element,
+			{ duration: prefersReducedMotion() ? 0 : DURATIONS.fast },
+			{
+				direction: "in",
+			}
+		),
 		1,
 		undefined,
 		() => {

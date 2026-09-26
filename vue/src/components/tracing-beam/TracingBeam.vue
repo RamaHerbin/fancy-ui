@@ -26,6 +26,8 @@ defineOptions({ name: "TracingBeam", inheritAttrs: false });
 
 const { class: className = "" } = defineProps<TracingBeamProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const tracingBeamRef = useTemplateRef<HTMLDivElement>("tracingBeamRef");
 const contentRef = useTemplateRef<HTMLDivElement>("contentRef");
 

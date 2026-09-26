@@ -35,6 +35,8 @@ const {
 	class: className,
 } = defineProps<NeonBorderProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 function getWidth(type: "none" | "half" | "full"): number {
 	switch (type) {
 		case "none":

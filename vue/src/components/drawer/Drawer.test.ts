@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/vue";
 import { mount } from "@vue/test-utils";
-import { defineComponent, h, nextTick, ref, watch } from "vue";
+import { createSSRApp, defineComponent, h, nextTick, ref, watch } from "vue";
+import { renderToString } from "vue/server-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -125,9 +126,7 @@ function stubReducedMotion(matches: boolean) {
 }
 
 function firePointer(target: HTMLElement, type: string, init: PointerEventInit) {
-	target.dispatchEvent(
-		new window.PointerEvent(type, { bubbles: true, cancelable: true, ...init })
-	);
+	target.dispatchEvent(new window.PointerEvent(type, { bubbles: true, cancelable: true, ...init }));
 }
 
 /**
@@ -786,6 +785,60 @@ describe("Drawer", () => {
 			await fireEvent.click(getByTestId("close-from-parent"));
 
 			expect(play).not.toHaveBeenCalled();
+		});
+	});
+
+	// The generated SSR fixture renders the drawer OPEN. The portal itself
+	// withholds its content on the server and on the hydration pass (D-V6), so
+	// the server string carries no scrim, no panel and no teleport anchors,
+	// hydration matches, and the panel arrives on the first patch after mount.
+	describe("server render and hydration, open by default", () => {
+		const App = defineComponent({
+			render: () =>
+				h("main", null, [
+					h(Drawer, { open: true, title: "Filters" }, { default: () => "Drawer body" }),
+				]),
+		});
+
+		it("emits nothing portalled on the server, deterministically", async () => {
+			const firstCtx: { teleports?: Record<string, string> } = {};
+			const first = await renderToString(createSSRApp(App), firstCtx);
+			const second = await renderToString(createSSRApp(App));
+
+			expect(first).not.toContain("Drawer body");
+			expect(first).not.toContain('role="dialog"');
+			expect(first).not.toContain("<!--teleport");
+			expect(Object.keys(firstCtx.teleports ?? {})).toEqual([]);
+			expect(first).toBe(second);
+		});
+
+		it("hydrates without a mismatch and shows the panel after mount", async () => {
+			const html = await renderToString(createSSRApp(App));
+			const host = document.createElement("div");
+			host.innerHTML = html;
+			document.body.appendChild(host);
+
+			const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+			const error = vi.spyOn(console, "error").mockImplementation(() => {});
+			const app = createSSRApp(App);
+			try {
+				app.mount(host);
+				const messages = [...warn.mock.calls, ...error.mock.calls].map((c) => String(c[0]));
+				expect(messages.filter((m) => /hydrat|mismatch/i.test(m))).toEqual([]);
+				expect(document.querySelector('[role="dialog"]')).toBeNull();
+
+				await nextTick();
+				const panel = document.querySelector('[role="dialog"]');
+				expect(panel).not.toBeNull();
+				expect(host.contains(panel)).toBe(false);
+				expect(panel?.textContent).toContain("Drawer body");
+				expect(panel?.getAttribute("data-state")).toBe("open");
+			} finally {
+				app.unmount();
+				host.remove();
+				warn.mockRestore();
+				error.mockRestore();
+			}
 		});
 	});
 });

@@ -85,23 +85,37 @@ const active = defineModel<boolean>("active", { default: false });
  * dispatched in the same task would then both clear the guard and fire the
  * callback, the cue and the focus hand-off twice.
  *
- * So the handlers latch the value they write and guard on the latch, which is
- * the synchronous read the source has. The latch is re-synced whenever the
- * model moves for any other reason — the emit coming back round, or a consumer
- * driving `active` from outside — so the two can never drift apart.
+ * So a write is held as `pending` until the flush that would carry it back is
+ * over, and the guard reads that in its place. It is never a second source of
+ * truth: it is dropped the moment the model moves (the emit coming back round,
+ * or a consumer driving `active` from outside) and, failing that, once the
+ * flush is done — so a consumer that owns `active` and declines the write
+ * leaves the guard reading the model again, and the next press is heard.
  */
-let activeLatch = active.value;
+let pending: boolean | undefined;
 watch(
 	active,
-	(next) => {
-		activeLatch = next;
+	() => {
+		pending = undefined;
 	},
 	{ flush: "sync" }
 );
 
+/** What the guards read: the write still in flight, else the model. */
+function isActive(): boolean {
+	return pending ?? active.value;
+}
+
 function setActive(next: boolean) {
-	activeLatch = next;
 	active.value = next;
+	// Decided after the write: when it applied locally the model already
+	// answers, and the flag only matters while the write is in the consumer's
+	// hands.
+	pending = active.value === next ? undefined : next;
+	if (pending === undefined) return;
+	nextTick().then(() => {
+		pending = undefined;
+	});
 }
 
 /** Bar geometry, in CSS pixels. Fixed: the waveform is a meter, not a chart. */
@@ -166,12 +180,12 @@ const playCue = useSoundCue(() => sound);
  */
 function handOffFocus() {
 	nextTick().then(() => {
-		(activeLatch ? cancelEl.value : micEl.value)?.focus();
+		(active.value ? cancelEl.value : micEl.value)?.focus();
 	});
 }
 
 function start() {
-	if (activeLatch) return;
+	if (isActive()) return;
 	setActive(true);
 	playCue("open");
 	handOffFocus();
@@ -179,7 +193,7 @@ function start() {
 }
 
 function cancel() {
-	if (!activeLatch) return;
+	if (!isActive()) return;
 	playCue("close");
 	setActive(false);
 	handOffFocus();
@@ -187,7 +201,7 @@ function cancel() {
 }
 
 function finish() {
-	if (!activeLatch) return;
+	if (!isActive()) return;
 	// This is a commit gesture, not an outcome: the component never opens a
 	// microphone or runs a recogniser (see the `samples`/`transcript` docs
 	// above), so it has nothing of its own to resolve. `select` matches every
@@ -326,11 +340,9 @@ function setupCanvas() {
 	};
 }
 
-watch(
-	() => [active.value, canvasEl.value, barHeight.value, color] as const,
-	setupCanvas,
-	{ flush: "post" }
-);
+watch(() => [active.value, canvasEl.value, barHeight.value, color] as const, setupCanvas, {
+	flush: "post",
+});
 
 onBeforeUnmount(teardownCanvas);
 </script>

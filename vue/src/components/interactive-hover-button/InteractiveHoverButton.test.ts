@@ -161,3 +161,15 @@ describe("InteractiveHoverButton", () => {
 		});
 	});
 });
+
+describe("InteractiveHoverButton default slot", () => {
+	it("renders the optional default slot in both label copies, replacing the text fallback", () => {
+		const { container } = render(InteractiveHoverButton, {
+			props: { text: "Fallback" },
+			slots: { default: "Custom" },
+		});
+		const button = container.querySelector("button")!;
+		expect(button.textContent?.match(/Custom/g)).toHaveLength(2);
+		expect(button.textContent).not.toContain("Fallback");
+	});
+});

@@ -1,5 +1,5 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import PulseBeam from "./PulseBeam.vue";
@@ -293,5 +293,54 @@ describe("PulseBeam", () => {
 			HTMLDivElement
 		);
 		wrapper.unmount();
+	});
+
+	it("lets the computed --pb-* values win over a consumer style, keeping its other keys", async () => {
+		const { container } = render(PulseBeam, {
+			props: { radius: 24 },
+			attrs: { style: { "--pb-radius": "2px", "--pb-strength": "0.1", color: "red" } },
+		});
+		await nextTick();
+		const host = getHost(container);
+		expect(host.style.getPropertyValue("--pb-radius")).toBe("24px");
+		expect(host.style.getPropertyValue("--pb-strength")).toBe("1");
+		expect(host.style.color).toBe("red");
+	});
+
+	it("calls the lowercase callbacks passed as :onfadein / :onfadeout; @fadein / @fadeout never reach them", async () => {
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		const lower = { in: vi.fn(), out: vi.fn() };
+		const camel = { in: vi.fn(), out: vi.fn() };
+		let active = true;
+		const Host = defineComponent({
+			props: { active: { type: Boolean, default: true } },
+			setup: (p) => () =>
+				h(PulseBeam, {
+					active: p.active,
+					// `:onfadein="fn"` compiles to the declared prop…
+					onfadein: lower.in,
+					onfadeout: lower.out,
+					// …while `@fadein="fn"` compiles to `onFadein`, an undeclared attr.
+					onFadein: camel.in,
+					onFadeout: camel.out,
+				}),
+		});
+		const { rerender } = render(Host, { props: { active } });
+		await nextTick();
+		vi.runAllTimers();
+		expect(lower.in).toHaveBeenCalledTimes(1);
+		active = false;
+		await rerender({ active });
+		await nextTick();
+		vi.runAllTimers();
+		expect(lower.out).toHaveBeenCalledTimes(1);
+		expect(camel.in).not.toHaveBeenCalled();
+		expect(camel.out).not.toHaveBeenCalled();
+	});
+
+	it("renders the default slot inside the wrapper, before the layers", () => {
+		const { container } = render(PulseBeam, { slots: { default: () => h("span", { id: "kid" }) } });
+		const host = getHost(container);
+		expect(host.firstElementChild?.id).toBe("kid");
 	});
 });

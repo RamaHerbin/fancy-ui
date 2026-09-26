@@ -43,6 +43,8 @@ const {
 	onclick,
 } = defineProps<RippleButtonProps>();
 
+defineSlots<{ default?: () => unknown }>();
+
 const attrs = useAttrs();
 
 const buttonRef = useTemplateRef<HTMLButtonElement>("buttonRef");
@@ -73,6 +75,11 @@ function createRipple(event: MouseEvent) {
 		ripples.value = ripples.value.filter((r) => r.key !== newRipple.key);
 	}, duration);
 }
+
+// `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds
+// `style={…}` as a plain attribute before `{...restProps}`, so a consumer
+// `style` wins there. `mergeProps` keeps that winner on a conflicting key
+// while still keeping the component's other custom properties.
 </script>
 
 <template>

@@ -24,6 +24,8 @@ defineOptions({ name: "DockIcon", inheritAttrs: false });
 
 const { class: className = "" } = defineProps<DockIconProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 const context = useDockContext();
 
 const iconRef = useTemplateRef<HTMLDivElement>("iconRef");

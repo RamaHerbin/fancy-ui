@@ -24,4 +24,18 @@ describe("MosaicGlow (SSR)", () => {
 		const b = await renderToString(createSSRApp(MosaicGlow, { seed: 3 }));
 		expect(a).toBe(b);
 	});
+	it("keeps the background prop over a consumer style while keeping other consumer styles", async () => {
+		const body = await renderToString(
+			createSSRApp({
+				render: () =>
+					h(MosaicGlow, {
+						background: "rgb(1,2,3)",
+						style: "background-color: red; color: blue",
+					}),
+			})
+		);
+		expect(body).toContain("background-color:rgb(1,2,3)");
+		expect(body).not.toContain("background-color:red");
+		expect(body).toContain("color:blue");
+	});
 });

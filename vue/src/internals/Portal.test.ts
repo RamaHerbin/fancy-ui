@@ -1,6 +1,6 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/vue";
-import { createSSRApp, defineComponent, h } from "vue";
+import { createSSRApp, defineComponent, h, nextTick, ref, watch } from "vue";
 import { renderToString } from "vue/server-renderer";
 import Portal from "./Portal.vue";
 
@@ -74,15 +74,12 @@ describe("Portal", () => {
 		expect(container.querySelector('[data-testid="portal-content"]')).not.toBeNull();
 	});
 
-
-	// The server branch of the `to` computed. There is no `document` to
-	// resolve against in bare Node, and the server output does not go
-	// through the target anyway — an open surface is emitted inline in the
-	// document body, ahead of the app root, with `#teleports` left empty —
-	// so the string `"body"` is what `<Teleport>` is handed there. Handing
-	// it a resolved element instead would stringify to `[object
-	// HTMLBodyElement]` in the SSR payload.
-	it("renders on the server with no document, deterministically", async () => {
+	// The React package's portal contract: the server emits nothing, the
+	// hydration render emits nothing, and the target is resolved once after
+	// mount. Nothing lands in the teleport buffer at all, so there is no
+	// anchor pair for the hydration pass to trip over, and two renders are
+	// byte-identical.
+	it("emits nothing on the server, with no document, deterministically", async () => {
 		vi.stubGlobal("document", undefined);
 		try {
 			const App = defineComponent({
@@ -98,17 +95,106 @@ describe("Portal", () => {
 			const first = await renderToString(createSSRApp(App), firstCtx);
 			const second = await renderToString(createSSRApp(App), secondCtx);
 
-			// The in-tree placeholder is a comment pair; the markup itself
-			// lands in the teleport buffer under the target STRING. `"body"`
-			// is that key — a resolved element would stringify to
-			// `[object HTMLBodyElement]` and no consumer could splice it.
-			expect(Object.keys(firstCtx.teleports ?? {})).toEqual(["body"]);
-			expect(firstCtx.teleports?.body).toContain("portal content");
+			expect(first).not.toContain("portal content");
+			expect(first).not.toContain("teleport");
+			expect(Object.keys(firstCtx.teleports ?? {})).toEqual([]);
 			expect(first).toBe(second);
-			expect(secondCtx.teleports).toEqual(firstCtx.teleports);
 		} finally {
 			vi.unstubAllGlobals();
 		}
+	});
+
+	// The server is recognised by its SSR context, not by a missing
+	// `document`: a server render in a DOM-shimmed runtime is gated as well.
+	it("emits nothing on the server even when a document exists", async () => {
+		const App = defineComponent({
+			render() {
+				return h(Portal, null, { default: () => h("div", null, "portal content") });
+			},
+		});
+		const ctx: { teleports?: Record<string, string> } = {};
+		const html = await renderToString(createSSRApp(App), ctx);
+
+		expect(html).not.toContain("portal content");
+		expect(html).not.toContain("teleport");
+		expect(Object.keys(ctx.teleports ?? {})).toEqual([]);
+	});
+
+	it("hydrates cleanly and portals on the first patch after mount", async () => {
+		const App = defineComponent({
+			render() {
+				return h("main", null, [
+					h(Portal, null, {
+						default: () => h("div", { "data-testid": "hydrated-content" }, "portal content"),
+					}),
+				]);
+			},
+		});
+
+		const html = await renderToString(createSSRApp(App));
+		const host = document.createElement("div");
+		host.innerHTML = html;
+		document.body.appendChild(host);
+		extraTargets.push(host);
+
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+		const app = createSSRApp(App);
+		try {
+			app.mount(host);
+
+			// The hydration render emits nothing: no mismatch, and nothing
+			// portalled yet.
+			expect(document.body.querySelector('[data-testid="hydrated-content"]')).toBeNull();
+			const messages = [...warn.mock.calls, ...error.mock.calls].map((c) => String(c[0]));
+			expect(messages.filter((m) => /hydrat|mismatch/i.test(m))).toEqual([]);
+
+			await nextTick();
+			const content = document.body.querySelector('[data-testid="hydrated-content"]');
+			expect(content).not.toBeNull();
+			// Portalled into the body, not left inside the app's own subtree.
+			expect(host.contains(content)).toBe(false);
+		} finally {
+			app.unmount();
+			warn.mockRestore();
+			error.mockRestore();
+		}
+	});
+
+	// A fresh client mount is NOT deferred: the content is attached during the
+	// patch that creates the portal, before any post-flush watcher runs. The
+	// presence clock starts its entrance legs from exactly such a watcher, so a
+	// portal that waited for its own `onMounted` would skip every entrance.
+	it("portals synchronously on a fresh client mount", async () => {
+		const show = ref(false);
+		const seen: Array<Element | null> = [];
+		const Wrapper = defineComponent({
+			setup() {
+				watch(
+					show,
+					() => {
+						seen.push(document.body.querySelector('[data-testid="fresh-content"]'));
+					},
+					{ flush: "post" }
+				);
+				return () =>
+					show.value
+						? h(Portal, null, {
+								default: () => h("div", { "data-testid": "fresh-content" }, "portal content"),
+							})
+						: null;
+			},
+		});
+
+		render(Wrapper);
+		expect(document.body.querySelector('[data-testid="fresh-content"]')).toBeNull();
+
+		show.value = true;
+		await nextTick();
+
+		// Already attached when the post-flush watcher of the same flush ran.
+		expect(seen).toHaveLength(1);
+		expect(seen[0]).not.toBeNull();
 	});
 
 	it("moves the content to a new target when the target prop changes", async () => {

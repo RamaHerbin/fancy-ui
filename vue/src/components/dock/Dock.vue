@@ -39,6 +39,8 @@ const {
 	orientation = "horizontal",
 } = defineProps<DockProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 // Use object with `current` property so children can read reactive updates
 const mouseX = reactive({ current: Infinity });
 const mouseY = reactive({ current: Infinity });

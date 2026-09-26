@@ -1,5 +1,5 @@
-import { render, cleanup } from "@testing-library/vue";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, cleanup, fireEvent } from "@testing-library/vue";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import Compare from "./Compare.vue";
 
 describe("Compare", () => {
@@ -62,5 +62,45 @@ describe("Compare", () => {
 		const slider = container.querySelector('[role="slider"]');
 		expect(slider).toHaveAttribute("aria-valuemin", "0");
 		expect(slider).toHaveAttribute("aria-valuemax", "100");
+	});
+
+	it("calls the lowercase callbacks passed as props; the @-spellings (onDragstart…) never reach them", async () => {
+		const names = [
+			"onpercentagechange",
+			"ondragstart",
+			"ondragend",
+			"onhoverenter",
+			"onhoverleave",
+		];
+		const lower = Object.fromEntries(names.map((n) => [n, vi.fn()]));
+		// `@drag-start` / `@dragstart` compile to `onDragStart` / `onDragstart`: undeclared attrs.
+		const camel = Object.fromEntries(
+			names.map((n) => ["on" + n[2]!.toUpperCase() + n.slice(3), vi.fn()])
+		);
+		const { container } = render(Compare, {
+			props: { slideMode: "drag", ...lower },
+			attrs: camel,
+		});
+		const slider = container.querySelector('[role="slider"]')!;
+		await fireEvent.mouseEnter(slider);
+		await fireEvent.mouseDown(slider);
+		await fireEvent.mouseUp(slider);
+		await fireEvent.mouseLeave(slider);
+		for (const n of ["ondragstart", "ondragend", "onhoverenter", "onhoverleave"]) {
+			expect(lower[n], n).toHaveBeenCalledTimes(1);
+		}
+		for (const fn of Object.values(camel)) expect(fn).not.toHaveBeenCalled();
+	});
+
+	it("reports the reset percentage through :onpercentagechange on hover leave", async () => {
+		const onpercentagechange = vi.fn();
+		const { container } = render(Compare, {
+			props: { initialSliderPercentage: 30, onpercentagechange },
+		});
+		const slider = container.querySelector('[role="slider"]')!;
+		onpercentagechange.mockClear();
+		await fireEvent.mouseEnter(slider);
+		await fireEvent.mouseLeave(slider);
+		expect(onpercentagechange).toHaveBeenLastCalledWith(30);
 	});
 });

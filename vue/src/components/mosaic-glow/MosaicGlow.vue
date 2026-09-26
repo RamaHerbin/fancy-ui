@@ -202,25 +202,27 @@ watch(
 	{ flush: "post" }
 );
 
-watch(
-	reducedMotion,
-	(rm) => engine?.setOptions({ reducedMotion: rm }),
-	{ flush: "post" }
-);
+watch(reducedMotion, (rm) => engine?.setOptions({ reducedMotion: rm }), { flush: "post" });
 
 watch(
 	() => interactive,
 	(on) => engine?.setOptions({ interactive: on }),
 	{ flush: "post" }
 );
+
+// `v-bind="attrs"` precedes `:style` on purpose: Svelte's
+// `style:background-color` directive always beats a spread `style`, and
+// `mergeProps` lets later keys win, so the prop must come last. The key is
+// kebab-case so it replaces a parsed consumer `background-color` string key
+// instead of being emitted alongside it.
 </script>
 
 <template>
 	<div
 		ref="host"
 		:class="cn('mosaic-glow relative overflow-hidden', className)"
-		:style="{ backgroundColor: background }"
 		v-bind="attrs"
+		:style="{ 'background-color': background }"
 	>
 		<canvas
 			ref="canvas"

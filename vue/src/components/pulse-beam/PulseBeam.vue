@@ -77,6 +77,11 @@ const {
 	onfadeout,
 } = defineProps<PulseBeamProps>();
 
+defineSlots<{
+	/** Content wrapped by the glow (Svelte's optional `children` snippet). */
+	default?(): unknown;
+}>();
+
 const FADE_IN_MS = 600;
 const FADE_OUT_MS = 500;
 /** Slack after the CSS duration before the JS fallback settles the fade. */
@@ -248,7 +253,6 @@ watch(
 );
 
 onBeforeUnmount(() => teardownResize());
-
 </script>
 
 <template>
@@ -256,10 +260,13 @@ onBeforeUnmount(() => teardownResize());
 	  The host carries only `:style` bound to an object — never a `style`
 	  string. A string `style` goes through `cssText`, which would wipe the
 	  custom properties the loop writes every frame; the object form patches
-	  per key.
+	  per key. `v-bind="attrs"` comes BEFORE `:style` so the computed --pb-*
+	  values win over a consumer `style`, as Svelte's `style:` directives beat
+	  a spread `style` attribute.
 	-->
 	<div
 		ref="el"
+		v-bind="attrs"
 		:class="cn('pulse-beam', className)"
 		:style="{
 			'--pb-strength': clampedStrength,
@@ -272,7 +279,6 @@ onBeforeUnmount(() => teardownResize());
 			'--pb-glow-blur': `${preset.glowBlur}px`,
 			'--pb-bloom-blur': `${preset.bloomBlur}px`,
 		}"
-		v-bind="attrs"
 		:data-variant="variant"
 		:data-state="phase"
 	>
@@ -285,13 +291,19 @@ onBeforeUnmount(() => teardownResize());
 		  identically and is the more precise property for what this actually
 		  is, so both jsdom and a real browser agree on it.
 		-->
-		<div class="pulse-beam__layer pulse-beam__glow" :style="{ backgroundImage: backgrounds.glow }"></div>
+		<div
+			class="pulse-beam__layer pulse-beam__glow"
+			:style="{ backgroundImage: backgrounds.glow }"
+		></div>
 		<div
 			class="pulse-beam__layer pulse-beam__stroke"
 			:style="{ backgroundImage: backgrounds.stroke }"
 			@transitionend="handleTransitionEnd"
 		></div>
-		<div class="pulse-beam__layer pulse-beam__bloom" :style="{ backgroundImage: backgrounds.bloom }"></div>
+		<div
+			class="pulse-beam__layer pulse-beam__bloom"
+			:style="{ backgroundImage: backgrounds.bloom }"
+		></div>
 	</div>
 </template>
 
@@ -371,8 +383,8 @@ onBeforeUnmount(() => teardownResize());
 	-webkit-mask: none;
 	mask: none;
 	transform: scale(0.95, 0.9);
-	filter: blur(var(--pb-glow-blur)) hue-rotate(var(--pb-hue, 0deg))
-		brightness(var(--pb-brightness)) saturate(var(--pb-saturation));
+	filter: blur(var(--pb-glow-blur)) hue-rotate(var(--pb-hue, 0deg)) brightness(var(--pb-brightness))
+		saturate(var(--pb-saturation));
 }
 
 .pulse-beam[data-variant="outside"] .pulse-beam__bloom {

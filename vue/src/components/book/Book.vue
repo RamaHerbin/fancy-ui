@@ -40,6 +40,8 @@ const props = withDefaults(defineProps<BookProps>(), {
 	shadowSize: "lg",
 });
 
+defineSlots<{ default?(): unknown }>();
+
 const computedGradient = computed(() => colorMap[props.color] || colorMap.zinc);
 </script>
 
@@ -74,11 +76,36 @@ const computedGradient = computed(() => colorMap[props.color] || colorMap.zinc);
 						radiusMap[radius]
 					)
 				"
-				style="transform: translateZ(25px); box-shadow: 5px 5px 20px var(--shadowColor);"
+				style="transform: translateZ(25px); box-shadow: 5px 5px 20px var(--shadowColor)"
 			>
 				<div
 					class="absolute top-0 left-0 h-full"
-					style="min-width: 8.2%; background: linear-gradient(90deg, hsla(0, 0%, 100%, 0), hsla(0, 0%, 100%, 0) 12%, hsla(0, 0%, 100%, .25) 29.25%, hsla(0, 0%, 100%, 0) 50.5%, hsla(0, 0%, 100%, 0) 75.25%, hsla(0, 0%, 100%, .25) 91%, hsla(0, 0%, 100%, 0)), linear-gradient(90deg, rgba(0, 0, 0, .03), rgba(0, 0, 0, .1) 12%, transparent 30%, rgba(0, 0, 0, .02) 50%, rgba(0, 0, 0, .2) 73.5%, rgba(0, 0, 0, .5) 75.25%, rgba(0, 0, 0, .15) 85.25%, transparent); opacity: 0.2;"
+					style="
+						min-width: 8.2%;
+						background:
+							linear-gradient(
+								90deg,
+								hsla(0, 0%, 100%, 0),
+								hsla(0, 0%, 100%, 0) 12%,
+								hsla(0, 0%, 100%, 0.25) 29.25%,
+								hsla(0, 0%, 100%, 0) 50.5%,
+								hsla(0, 0%, 100%, 0) 75.25%,
+								hsla(0, 0%, 100%, 0.25) 91%,
+								hsla(0, 0%, 100%, 0)
+							),
+							linear-gradient(
+								90deg,
+								rgba(0, 0, 0, 0.03),
+								rgba(0, 0, 0, 0.1) 12%,
+								transparent 30%,
+								rgba(0, 0, 0, 0.02) 50%,
+								rgba(0, 0, 0, 0.2) 73.5%,
+								rgba(0, 0, 0, 0.5) 75.25%,
+								rgba(0, 0, 0, 0.15) 85.25%,
+								transparent
+							);
+						opacity: 0.2;
+					"
 				></div>
 				<div class="pl-1">
 					<slot></slot>

@@ -58,7 +58,10 @@ const pressed = ref(false);
 
 // Mirrors the Svelte `style:--ft-pressable-scale={scale === DEFAULT_SCALE ? undefined : scale}`
 // directive: written inline only when it differs from the default, so a
-// stylesheet rule can still set it otherwise.
+// stylesheet rule can still set it otherwise. Spread into the root's
+// attribute object only when set (see the template): a bare `:style` bound to
+// `undefined` still makes Vue's SSR emit `style=""`, where the directive
+// emits nothing — the same trap as an empty `:class`.
 const scaleStyle = computed(() =>
 	scale === DEFAULT_SCALE ? undefined : { "--ft-pressable-scale": String(scale) }
 );
@@ -149,8 +152,7 @@ function handleKeyUp(event: KeyboardEvent) {
 	<div
 		ref="el"
 		:class="cn('ft-pressable', className)"
-		v-bind="attrs"
-		:style="scaleStyle"
+		v-bind="{ ...attrs, ...(scaleStyle ? { style: [attrs.style, scaleStyle] } : {}) }"
 		:data-pressed="pressed ? 'true' : undefined"
 		:data-disabled="disabled ? 'true' : undefined"
 		@pointerdown="handlePointerDown"

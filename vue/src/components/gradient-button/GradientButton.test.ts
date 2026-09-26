@@ -127,3 +127,24 @@ describe("GradientButton", () => {
 		});
 	});
 });
+
+describe("GradientButton consumer style and slot", () => {
+	afterEach(cleanup);
+
+	it("lets a consumer style win a conflicting key (as the Svelte spread does) while keeping the other custom properties", () => {
+		render(GradientButton, {
+			props: { duration: 1000 },
+			attrs: { style: "--gb-blur: 9px; color: red" },
+		});
+		const style = screen.getByRole("button").getAttribute("style") ?? "";
+		expect(style).toContain("--gb-blur: 9px");
+		expect(style).not.toContain("--gb-blur: 4px");
+		expect(style).toContain("--gb-duration: 1000ms");
+		expect(style).toContain("color: red");
+	});
+
+	it("renders the optional default slot inside the content area", () => {
+		render(GradientButton, { slots: { default: "Go" } });
+		expect(screen.getByRole("button").querySelector(".gradient-content")?.textContent).toBe("Go");
+	});
+});

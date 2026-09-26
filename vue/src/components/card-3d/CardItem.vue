@@ -40,6 +40,8 @@ const {
 	rotateZ = 0,
 } = defineProps<CardItemProps>();
 
+defineSlots<{ default?(): unknown }>();
+
 /**
  * The Svelte source reads `getContext("card3d:mouseEntered")` and calls it
  * unguarded, so a `CardItem` used outside a `CardContainer` crashes there. Vue

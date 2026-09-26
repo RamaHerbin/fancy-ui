@@ -68,6 +68,8 @@ const {
 	disabled = false,
 } = defineProps<MagneticProps>();
 
+defineSlots<{ default(): unknown }>();
+
 // The outer node is the stable reference frame every frame's
 // `getBoundingClientRect()` reads against; the inner node is the ONLY node
 // that ever receives `transform` — if the halo or the activation math lived

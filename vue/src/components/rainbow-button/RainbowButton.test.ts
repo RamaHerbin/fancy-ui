@@ -125,3 +125,15 @@ describe("RainbowButton", () => {
 		});
 	});
 });
+
+describe("RainbowButton default slot", () => {
+	afterEach(cleanup);
+
+	it("renders the optional default slot in both the button and anchor branches", () => {
+		render(RainbowButton, { slots: { default: "Shine" } });
+		expect(screen.getByRole("button").textContent).toBe("Shine");
+		cleanup();
+		render(RainbowButton, { props: { href: "#x" }, slots: { default: "Link" } });
+		expect(screen.getByRole("link").textContent).toBe("Link");
+	});
+});

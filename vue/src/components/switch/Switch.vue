@@ -40,7 +40,7 @@ export interface SwitchProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, nextTick, useTemplateRef } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -104,6 +104,17 @@ function handleChange(event: Event) {
 	checked.value = next;
 	if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 	onCheckedChange?.(next);
+	// A parent that binds `checked` AND listens to `update:checked` owns the
+	// value: the write above only emits, and a parent that declines it leaves
+	// the prop — so the vnode, so Vue's patch — unchanged, while the browser
+	// has already flipped the native box. `aria-checked` would then announce
+	// the model while the track shows the opposite. Once the flush that would
+	// have carried an accepted write is done, the native state is put back on
+	// the model; when the write was accepted (or applied locally) this is a
+	// no-op.
+	nextTick().then(() => {
+		input.checked = checked.value;
+	});
 }
 
 const wrapperClasses = computed(() =>

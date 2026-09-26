@@ -40,6 +40,8 @@ const props = withDefaults(defineProps<RainbowButtonProps>(), {
 	sound: false,
 });
 
+defineSlots<{ default?: () => unknown }>();
+
 const el = useTemplateRef<HTMLButtonElement | HTMLAnchorElement>("el");
 defineExpose({ ref: el });
 
@@ -85,7 +87,15 @@ const baseClasses = computed(() =>
 	>
 		<slot />
 	</a>
-	<button v-else ref="el" :class="baseClasses" :style="speedStyle" :type="type" :disabled="disabled" @click="handleClick">
+	<button
+		v-else
+		ref="el"
+		:class="baseClasses"
+		:style="speedStyle"
+		:type="type"
+		:disabled="disabled"
+		@click="handleClick"
+	>
 		<slot />
 	</button>
 </template>

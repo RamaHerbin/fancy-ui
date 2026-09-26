@@ -4,12 +4,12 @@
 this document; §10 is the register of every place the Vue package deliberately differs from the
 Svelte originals.
 **Law:** `vue/PORTING.md`. Fidelity over improvement. Where this contract departs from the Svelte
-*implementation*, it never departs from the Svelte *observable behaviour*, and every such
+_implementation_, it never departs from the Svelte _observable behaviour_, and every such
 departure is listed in §10.
 
 **Authoritative sources.** `src/lib/fancy-ui/_internals/**`, `src/lib/fancy-ui/sound/**` and the
 component sources in this worktree are the behaviour reference. `react/src/internals/**` and
-`react/src/sound/**` are the *divergence-parity* reference: where React already solved a problem
+`react/src/sound/**` are the _divergence-parity_ reference: where React already solved a problem
 the Svelte scheduler created (the `focus-trap` `isVisible` ancestor walk, `anchor-position`'s
 layout-box measurement and `reset()`, the `listbox` `setActive` range guard, the engine's
 `MAX_LAYER_MS` clamp), Vue takes the React answer — because those four edits land back on Svelte
@@ -24,14 +24,14 @@ Two files are **copied out of `react/`, not re-derived**: `motion/animate.ts` an
    collapses to a single rule (§4), and `useIsomorphicLayoutEffect`, `useIsHydrated` and
    `useConstant` have no analogue at all (§2).
 2. **`<Transition>` delays DOM removal, not component teardown.** `onBeforeUnmount` and the
-   effect-scope stop run at *leave start*. A scroll lock released on unmount would therefore
+   effect-scope stop run at _leave start_. A scroll lock released on unmount would therefore
    release the instant the dialog begins to fade, leaving the page scrollable under a scrim still
    on screen — the exact bug `DialogSurface.svelte`'s comment block exists to prevent. So
    `usePresence` (React's framework-free `createPresenceCore`, verbatim, plus a ~40-line Vue
    binding) is still required, and `<Transition>` is **not** the presence mechanism (§5.3).
 
 **Design angle.** Vue's reactivity is close enough to runes that the Svelte source usually ports
-*in shape*, not just in behaviour: a getter object published through `setContext` becomes the same
+_in shape_, not just in behaviour: a getter object published through `setContext` becomes the same
 getter object published through `provide`; a factory's `$state` becomes a `ref` and its signature
 does not move. So this document is shorter than React's, and its rule is the opposite of React's:
 **where React had to invent an ergonomic (a live ref, a snapshot cache, a `useSyncExternalStore`),
@@ -83,14 +83,20 @@ A composable that captures the element once instead of watching it never arms, s
 
 ### C-2 — Options keep the Svelte action's shape, and are passed as a getter
 
-The second argument is always `() => Options`, never a plain object, and the option *fields* keep
+The second argument is always `() => Options`, never a plain object, and the option _fields_ keep
 whatever shape the Svelte action gave them — including getter fields
 (`active: () => boolean`, `exclude: () => (HTMLElement | null)[]`, `count: () => number`,
 `fallbackFocus: () => HTMLElement | null`). React flattened those to plain values because it had
 to hold them in live refs (its D-6); Vue does not, so they stay (D-V14).
 
 ```ts
-useDismissable(panel, () => ({ onDismiss, escape, outsideClick, exclude, active: () => open.value }));
+useDismissable(panel, () => ({
+	onDismiss,
+	escape,
+	outsideClick,
+	exclude,
+	active: () => open.value,
+}));
 ```
 
 The reason the Svelte header gives for `active` being a getter — an action's `update()` never runs
@@ -103,7 +109,7 @@ with the exact object literal it already has.
 ```ts
 export const FIELD_KEY: InjectionKey<FieldContext> = Symbol("field-context");
 // provider, inside setup, synchronously:
-provide(FIELD_KEY, createFieldState({ controlId: () => controlId, /* … */ }));
+provide(FIELD_KEY, createFieldState({ controlId: () => controlId /* … */ }));
 // optional consumer:
 const field = inject(FIELD_KEY, undefined);
 ```
@@ -168,14 +174,16 @@ a Vue app ships it.
 defineOptions({ name: "ShimmerButton", inheritAttrs: false });
 const attrs = useAttrs();
 </script>
-<template><button v-bind="attrs" :class="cn('…', props.class)"><slot /></button></template>
+<template>
+	<button v-bind="attrs" :class="cn('…', props.class)"><slot /></button>
+</template>
 ```
 
 `name` is explicit on every SFC (plan ruling 5) so `check-dist-names.mjs` reads a real name rather
 than the compiler's `__name` inference. `inheritAttrs: false` is set everywhere (D-V18) and
 `v-bind="$attrs"` is written **only** on the element the Svelte source spreads `{...restProps}`
 onto; the other 126 components are closed, exactly as they are in Svelte and React. A DOM
-attribute the component *reads* (`disabled` is the live case) must become a declared prop — bare
+attribute the component _reads_ (`disabled` is the live case) must become a declared prop — bare
 `<X disabled>` reaches `$attrs` as `""`, which is falsy (D-V10).
 
 ### C-9 — Two script blocks: `<script setup>` for the component, `<script lang="ts">` for its types
@@ -184,14 +192,18 @@ attribute the component *reads* (`disabled` is the live case) must become a decl
 <script lang="ts">
 import type { HTMLAttributes } from "vue";
 export interface ShimmerButtonProps {
-  shimmerColor?: string;
-  class?: HTMLAttributes["class"];
-  sound?: boolean;
+	shimmerColor?: string;
+	class?: HTMLAttributes["class"];
+	sound?: boolean;
 }
 </script>
 <script setup lang="ts">
 defineOptions({ name: "ShimmerButton", inheritAttrs: false });
-const { class: className, shimmerColor = "#ffffff", sound = false } = defineProps<ShimmerButtonProps>();
+const {
+	class: className,
+	shimmerColor = "#ffffff",
+	sound = false,
+} = defineProps<ShimmerButtonProps>();
 </script>
 ```
 
@@ -205,16 +217,19 @@ interface next door is legal (Vue ≥3.3).
 
 ```vue
 <script setup lang="ts">
-defineSlots<{ default?: () => unknown; item?(props: { step: PlanStepData; index: number }): unknown }>();
+defineSlots<{
+	default?: () => unknown;
+	item?(props: { step: PlanStepData; index: number }): unknown;
+}>();
 </script>
 <template>
-  <slot name="item" :step="step" :index="index" />
-  <div v-if="$slots.default"><slot /></div>
+	<slot name="item" :step="step" :index="index" />
+	<div v-if="$slots.default"><slot /></div>
 </template>
 ```
 
 `children?: Snippet` → default slot; a named snippet → a named slot with the same name;
-`Snippet<[A, B]>` → a scoped slot whose *tuple becomes an object* (D-V4). `{#if children}` →
+`Snippet<[A, B]>` → a scoped slot whose _tuple becomes an object_ (D-V4). `{#if children}` →
 `v-if="$slots.default"`.
 
 ### C-11 — Callbacks stay props; every non-`ref` bindable becomes `defineModel`, name kept
@@ -222,7 +237,10 @@ defineSlots<{ default?: () => unknown; item?(props: { step: PlanStepData; index:
 ```ts
 const open = defineModel<boolean>("open", { default: false });
 const { onOpenChange } = defineProps<DialogProps>();
-function setOpen(next: boolean) { open.value = next; onOpenChange?.(next); }
+function setOpen(next: boolean) {
+	open.value = next;
+	onOpenChange?.(next);
+}
 ```
 
 `onOpenChange`, `onSelect`, `onDismiss` and friends remain **props**, called as `props.onX?.()`.
@@ -277,7 +295,9 @@ export type RefLike<T> = ((el: T | null) => void) | Ref<T | null> | undefined | 
  * detaches and reattaches the node on every patch — which, for a node carrying a
  * presence leg, throws the in-flight animation away.
  */
-export function composeRefs<T extends HTMLElement>(...refs: Array<RefLike<T>>): (el: ComposableRefTarget) => void;
+export function composeRefs<T extends HTMLElement>(
+	...refs: Array<RefLike<T>>
+): (el: ComposableRefTarget) => void;
 ```
 
 One element takes one `ref` attribute, and `DialogSurface`'s panel needs two sinks: the presence
@@ -296,10 +316,10 @@ import { inject, provide, type InjectionKey } from "vue";
  * `ToggleGroupItem` outside a `ToggleGroup`).
  */
 export function createInternalContext<T>(displayName: string): {
-  key: InjectionKey<T>;
-  provide(value: T): void;
-  useRequired(): T;
-  useOptional(): T | undefined;
+	key: InjectionKey<T>;
+	provide(value: T): void;
+	useRequired(): T;
+	useOptional(): T | undefined;
 };
 ```
 
@@ -333,20 +353,20 @@ a consumer concern and not this package's business.
 
 ### React foundations with no Vue analogue — the explicit list
 
-| React file | Why Vue has nothing |
-|---|---|
-| `dom/types.ts` (`ElementRef`) | Existed only because `@types/react` 18 and 19 disagree on `RefObject`'s mutable/readonly shape across a `^18 \|\| ^19` peer range. Vue's peer range is a single major, and `Ref<T \| null>` / `WatchSource<T \| null>` are stable types. |
-| `dom/use-element-ref.ts` | Its whole job was to turn a ref into *state* so a `[node]`-keyed effect re-runs when a conditional node appears. `watch(templateRef, cb, { flush: 'post' })` already does that, with no extra render (React's D-12 disappears). |
-| `dom/use-event-callback.ts` | Existed to give a listener a permanently stable identity that still calls the newest closure. C-2's options getter *is* that: the core holds `() => options().onX?.()` and reads through on every call. |
-| `dom/use-live-ref.ts` | Same reason. A getter over a `ref`/prop is the live read. |
-| `dom/use-composed-refs.ts` | Survives in reduced form as `dom/compose-refs.ts`: no hook rules, no `assignRef` cleanup channel, built once in `setup`. |
-| `dom/use-inert-attribute.ts` | Existed because React 18 drops `inert={true}` and React 19 rejects `inert=""`. Vue binds `:inert` as an ordinary attribute, and the only *dynamic* `inert` in this package is written imperatively by the presence core through `toggleAttribute`. |
-| `dom/ssr.ts` — `useIsomorphicLayoutEffect` | Vue fact 1: there is one phase (§4). |
-| `dom/ssr.ts` — `useIsHydrated` | Existed so `Portal` could render `null` on the server *and* the hydration render. Vue's `<Teleport>` resolves at patch time, and every portalled surface sits inside `v-if="presence.mounted"` (D-V6), so the hazard has no way in. |
-| `dom/ssr.ts` — `useConstant` | `setup` runs exactly once per instance. A `const` is the constant. |
-| `client-boundary` / `"use client"` banner | Vue has no server/client component split. `vue/vite.config.ts` is `react/vite.config.ts` minus that plugin. |
-| `markSurfaceState` | Existed because Svelte's scheduler skips effects in an inert (outroing) branch. Vue's leaving subtree stays mounted and reactive under `usePresence`, so `:data-state="presence.surfaceState"` is an ordinary binding (D-V7). |
-| all 73 `*.test.svelte` harnesses | A Svelte component needs its own file; a Vue test does not (§9.2). |
+| React file                                 | Why Vue has nothing                                                                                                                                                                                                                                |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dom/types.ts` (`ElementRef`)              | Existed only because `@types/react` 18 and 19 disagree on `RefObject`'s mutable/readonly shape across a `^18 \|\| ^19` peer range. Vue's peer range is a single major, and `Ref<T \| null>` / `WatchSource<T \| null>` are stable types.           |
+| `dom/use-element-ref.ts`                   | Its whole job was to turn a ref into _state_ so a `[node]`-keyed effect re-runs when a conditional node appears. `watch(templateRef, cb, { flush: 'post' })` already does that, with no extra render (React's D-12 disappears).                    |
+| `dom/use-event-callback.ts`                | Existed to give a listener a permanently stable identity that still calls the newest closure. C-2's options getter _is_ that: the core holds `() => options().onX?.()` and reads through on every call.                                            |
+| `dom/use-live-ref.ts`                      | Same reason. A getter over a `ref`/prop is the live read.                                                                                                                                                                                          |
+| `dom/use-composed-refs.ts`                 | Survives in reduced form as `dom/compose-refs.ts`: no hook rules, no `assignRef` cleanup channel, built once in `setup`.                                                                                                                           |
+| `dom/use-inert-attribute.ts`               | Existed because React 18 drops `inert={true}` and React 19 rejects `inert=""`. Vue binds `:inert` as an ordinary attribute, and the only _dynamic_ `inert` in this package is written imperatively by the presence core through `toggleAttribute`. |
+| `dom/ssr.ts` — `useIsomorphicLayoutEffect` | Vue fact 1: there is one phase (§4).                                                                                                                                                                                                               |
+| `dom/ssr.ts` — `useIsHydrated`             | Not ported as a hook. `Portal.vue` gates on the SSR context plus `vnode.el` at setup — the same false-on-server-and-hydration signal — and every portalled surface sits inside `v-if="presence.mounted"` (D-V6).                                   |
+| `dom/ssr.ts` — `useConstant`               | `setup` runs exactly once per instance. A `const` is the constant.                                                                                                                                                                                 |
+| `client-boundary` / `"use client"` banner  | Vue has no server/client component split. `vue/vite.config.ts` is `react/vite.config.ts` minus that plugin.                                                                                                                                        |
+| `markSurfaceState`                         | Existed because Svelte's scheduler skips effects in an inert (outroing) branch. Vue's leaving subtree stays mounted and reactive under `usePresence`, so `:data-state="presence.surfaceState"` is an ordinary binding (D-V7).                      |
+| all 73 `*.test.svelte` harnesses           | A Svelte component needs its own file; a Vue test does not (§9.2).                                                                                                                                                                                 |
 
 ---
 
@@ -382,39 +402,53 @@ the types `Side`, `Align`, `ComputePositionOptions`, `ComputePositionResult`.
 
 **`attachAnchorPosition` comes from React**, because it carries the two edits wave 0 upstreams to
 Svelte (D-14 → D-V17): the floating element is measured from `offsetWidth`/`offsetHeight` with the
-rect as a fallback (the rect reports the box *after* transforms, and every anchored surface is
+rect as a fallback (the rect reports the box _after_ transforms, and every anchored surface is
 mid-entrance — pinned at `scale(0.92)` by the presence clock — the first time this runs), and
 `destroy()` calls a `reset()` clearing the inline `position`/`left`/`top` it wrote.
 
 ```ts
 export interface AnchorPositionOptions {
-  anchor: () => HTMLElement | null;
-  side?: Side; align?: Align; offset?: number;
-  onPlacement?: (side: Side, align: Align) => void;
+	anchor: () => HTMLElement | null;
+	side?: Side;
+	align?: Align;
+	offset?: number;
+	onPlacement?: (side: Side, align: Align) => void;
 }
-export interface AnchorPositionHandle { update(options: AnchorPositionOptions): void; recompute(): void; destroy(): void }
-export function attachAnchorPosition(node: HTMLElement, options: AnchorPositionOptions): AnchorPositionHandle;
+export interface AnchorPositionHandle {
+	update(options: AnchorPositionOptions): void;
+	recompute(): void;
+	destroy(): void;
+}
+export function attachAnchorPosition(
+	node: HTMLElement,
+	options: AnchorPositionOptions
+): AnchorPositionHandle;
 
 // use-anchor-position.ts
 export interface UseAnchorPositionOptions {
-  /** A node, a ref, or a getter for a moving/virtual target. Keeps the Svelte getter. */
-  anchor: WatchSource<HTMLElement | null> | HTMLElement;
-  side?: Side; align?: Align; offset?: number;
-  /** Stop positioning without unmounting. Default true. */
-  enabled?: boolean;
-  /** Bumped to force a recompute when geometry moved but no option did — only
-   *  `ContextMenuContent` passes one. */
-  recomputeKey?: string | number;
-  /** First placement, then only on a real change. Most consumers want the RETURN VALUE. */
-  onPlacement?: (side: Side, align: Align) => void;
+	/** A node, a ref, or a getter for a moving/virtual target. Keeps the Svelte getter. */
+	anchor: WatchSource<HTMLElement | null> | HTMLElement;
+	side?: Side;
+	align?: Align;
+	offset?: number;
+	/** Stop positioning without unmounting. Default true. */
+	enabled?: boolean;
+	/** Bumped to force a recompute when geometry moved but no option did — only
+	 *  `ContextMenuContent` passes one. */
+	recomputeKey?: string | number;
+	/** First placement, then only on a real change. Most consumers want the RETURN VALUE. */
+	onPlacement?: (side: Side, align: Align) => void;
 }
-export interface ResolvedPlacement { readonly side: Side; readonly align: Align }
+export interface ResolvedPlacement {
+	readonly side: Side;
+	readonly align: Align;
+}
 
 /** Positions `node` with `position: fixed` against a live anchor. Returns the placement as
  *  ACTUALLY resolved — flipped and/or clamped. */
 export function useAnchorPosition(
-  el: WatchSource<HTMLElement | null>,
-  options: () => UseAnchorPositionOptions
+	el: WatchSource<HTMLElement | null>,
+	options: () => UseAnchorPositionOptions
 ): Readonly<Ref<ResolvedPlacement>>;
 ```
 
@@ -423,7 +457,7 @@ export function useAnchorPosition(
 that writes them. The ref collapses that to one line in all twelve. `onPlacement` is retained for
 `SubContext.setPlacement`, which publishes upward into a parent context instead of rendering locally.
 
-**Seeding.** The ref starts at the *requested* values —
+**Seeding.** The ref starts at the _requested_ values —
 `{ side: options().side ?? "bottom", align: options().align ?? "center" }` — matching
 `resolvedSide = $state<Side>(root.side)`. A hardcoded `"bottom"` seed is a one-frame
 `transform-origin` jump on every open.
@@ -431,9 +465,9 @@ that writes them. The ref collapses that to one line in all twelve. `onPlacement
 **Mechanics.** One watcher keyed `[el, () => options().enabled ?? true]`, `flush: 'post'`, attaches
 and destroys the core (plus `onScopeDispose`); a second over
 `[() => options().side, () => options().align, () => options().offset, () => options().recomputeKey]`
-calls `handle.update()`. `anchor` and `onPlacement` are never watched — the composable hands the core
-getter closures over `options()`, which is why React's `useEventCallback`/`useLiveRef` layer has no
-counterpart here. The placement is a `shallowRef` written only on a real change, so a scroll storm
+calls `handle.update()`. `anchor` and `onPlacement` are never watched **here** — the composable hands
+the core getter closures over `options()`, which is why React's `useEventCallback`/`useLiveRef` layer
+has no counterpart here (`useFloat` does watch its `anchor`, by identity — see §12). The placement is a `shallowRef` written only on a real change, so a scroll storm
 produces zero re-renders.
 
 **`:style` and SSR.** The core writes `position`/`left`/`top` imperatively; a port may bind
@@ -445,17 +479,17 @@ as in Svelte.
 
 ### 3.2 `internals/Portal.vue`
 
-The Svelte action *moves* an already-rendered node; `<Teleport>` *renders into* the target. Same
+The Svelte action _moves_ an already-rendered node; `<Teleport>` _renders into_ the target. Same
 resulting DOM, different route.
 
 ```vue
 <script lang="ts">
 export interface PortalProps {
-  /** Element, CSS selector, or undefined for `document.body`. A selector matching nothing
-   *  falls back to `document.body`. */
-  target?: HTMLElement | string;
-  /** Render children in place instead of portalling. */
-  disabled?: boolean;
+	/** Element, CSS selector, or undefined for `document.body`. A selector matching nothing
+	 *  falls back to `document.body`. */
+	target?: HTMLElement | string;
+	/** Render children in place instead of portalling. */
+	disabled?: boolean;
 }
 /** Verbatim `resolveTarget` from React's Portal.tsx. Browser-only. */
 export function resolvePortalTarget(target?: HTMLElement | string): HTMLElement;
@@ -466,29 +500,47 @@ defineOptions({ name: "Portal", inheritAttrs: false });
 const props = defineProps<PortalProps>();
 defineSlots<{ default?: () => unknown }>();
 
-// Evaluated at patch time, never in a lazy initializer. On the server there is no document
-// to resolve against and the selector is what Vue's SSR payload keys on, so the string is
-// handed through; the client resolves the same string to the same element.
-const to = computed(() =>
-  typeof document === "undefined" ? "body" : resolvePortalTarget(props.target)
-);
+// The React package's portal contract: the server emits nothing, the hydration render emits
+// nothing, and the target is resolved once after mount. Only those two passes are gated — a
+// FRESH client mount portals on the very patch that creates it (see below for why).
+const onServer = inject(ssrContextKey, null) != null;
+const hydrating = getCurrentInstance()?.vnode.el != null;
+const portalReady = ref(!onServer && !hydrating);
+onMounted(() => {
+	portalReady.value = true;
+});
+
+// Only ever evaluated once `portalReady` is true: in the browser, never on the server (C-7).
+const to = computed(() => resolvePortalTarget(props.target));
 </script>
 
 <template>
-  <Teleport v-if="!disabled" :to="to"><slot /></Teleport>
-  <slot v-else />
+	<slot v-if="disabled" />
+	<Teleport v-else-if="portalReady" :to="to"><slot /></Teleport>
 </template>
 ```
+
+**Server and hydration.** `Portal` follows the React package's contract: the server emits nothing,
+the hydration render emits nothing, and the target is resolved once after mount — whether the
+surface starts closed **or open**. A `<Teleport>` has no server output the app subtree can hydrate
+(the renderer writes anchors into the stream and files the children in a separate buffer), so an
+open-on-server surface would hand the hydration pass a subtree it cannot match. The server is
+recognised by the SSR context the server renderer provides; the hydration pass by the vnode already
+carrying the server node it is matched against (Vue's hydration walk assigns `vnode.el` before it
+creates the component; a fresh mount never does) — the Vue equivalent of React's `useIsHydrated`.
+A portal that always waited for its own `onMounted` would attach its nodes one pass after the
+presence clock's post-flush entrance pass had settled on nothing, so every entrance would be
+skipped — hence the gate is `false` only on those two passes.
 
 **Placement rule — the inverse of React's, and it is load-bearing.** `<Portal>` goes **inside**
 `v-if="presence.mounted"`, not around it:
 
 ```vue
 <template v-if="presence.mounted">
-  <Portal>
-    <div :ref="scrimRef" … />
-    <div :ref="panelRef" … />
-  </Portal>
+	<Portal>
+		<div :ref="scrimRef" … />
+		<div :ref="panelRef" … />
+	</Portal>
 </template>
 ```
 
@@ -497,43 +549,49 @@ effect and renders `null` on its first pass, silently swallowing the registered 
 entrance animation. `<Teleport>` has no such pass — it resolves its target during the patch that
 creates it, so children are attached before any post-flush watcher runs. Leaving it outside the gate
 instead costs a permanently-mounted empty container and an SSR payload for a closed surface, so the
-gate goes outermost (D-V6). SSR: a closed surface emits nothing; an open one is emitted **inline in
-the document body**, not into the `#teleports` payload. Measured on the example app's `/overlay`
-page (`nuxt generate`, Nuxt 4.5): the teleported markup lands ahead of `#__nuxt`, wrapped in
-`<!--teleport start anchor-->` / `<!--teleport anchor-->`, with `<!--teleport start--><!--teleport end-->`
-left as the in-tree placeholder and `<div id="teleports">` emitted **empty**. So do not reach for
-`#teleports` when reasoning about a portalled surface's server output, and do not treat an empty
-`#teleports` as evidence that a Teleport failed to render.
+gate goes outermost (D-V6). SSR: nothing is emitted for a portalled surface, closed **or** open.
+There are no teleport anchors and no `ctx.teleports` entry, so an open-by-default surface hydrates
+cleanly and paints on the first post-hydration patch. The placement rule still holds because a fresh
+mount portals synchronously.
 
 ---
 
 ### 3.3 `internals/dismissable.ts`
 
 The module-scope `Layer` interface, the `layers` array, `isTopLayer()`'s **downward scan past
-inactive layers**, both handlers, and the deliberate ordering of the `isActive()` guard *before*
+inactive layers**, both handlers, and the deliberate ordering of the `isActive()` guard _before_
 `stopImmediatePropagation()` are copied **verbatim from Svelte, comments included**. This module's
 entire value is the nested-overlay contract and it must not drift. A module-scope array declaration
 is not a side effect; `sideEffects: ["**/*.css"]` stays honest.
 
 ```ts
 export interface DismissableOptions {
-  onDismiss: () => void;
-  /** Escape dismisses. Default true. */
-  escape?: boolean;
-  /** A pointerdown outside dismisses. Default true. */
-  outsideClick?: boolean;
-  /** Elements that do not count as "outside" — typically the trigger. Getter, resolved at
-   *  event time. Verbatim Svelte. */
-  exclude?: () => (HTMLElement | null)[];
-  /** Whether this layer is still LIVE. Pass `() => open`. Default always-active. Stays a
-   *  GETTER (D-V14). */
-  active?: () => boolean;
-  /** Whether the layer is registered at all. Default true. Composable-level only. */
-  enabled?: boolean;
+	onDismiss: () => void;
+	/** Escape dismisses. Default true. */
+	escape?: boolean;
+	/** A pointerdown outside dismisses. Default true. */
+	outsideClick?: boolean;
+	/** Elements that do not count as "outside" — typically the trigger. Getter, resolved at
+	 *  event time. Verbatim Svelte. */
+	exclude?: () => (HTMLElement | null)[];
+	/** Whether this layer is still LIVE. Pass `() => open`. Default always-active. Stays a
+	 *  GETTER (D-V14). */
+	active?: () => boolean;
+	/** Whether the layer is registered at all. Default true. Composable-level only. */
+	enabled?: boolean;
 }
-export interface DismissableHandle { update(options: DismissableOptions): void; destroy(): void }
-export function attachDismissable(node: HTMLElement, options: DismissableOptions): DismissableHandle;
-export function useDismissable(el: WatchSource<HTMLElement | null>, options: () => DismissableOptions): void;
+export interface DismissableHandle {
+	update(options: DismissableOptions): void;
+	destroy(): void;
+}
+export function attachDismissable(
+	node: HTMLElement,
+	options: DismissableOptions
+): DismissableHandle;
+export function useDismissable(
+	el: WatchSource<HTMLElement | null>,
+	options: () => DismissableOptions
+): void;
 /** Test-only. Not exported from index.ts. */
 export function __dismissableLayerCount(): number;
 ```
@@ -570,27 +628,33 @@ to prevent. `visibility` is still read from the element's own computed style, be
 
 ```ts
 export interface FocusTrapOptions {
-  initialFocus?: WatchSource<HTMLElement | null> | HTMLElement | null;
-  /** Restore focus on unmount. Default true. Does NOT govern `returnFocusNow()` — asking for
-   *  the eager return IS asking for the return. (Verbatim contradiction rule.) */
-  returnFocus?: boolean;
-  fallbackFocus?: () => HTMLElement | null | undefined;
+	initialFocus?: WatchSource<HTMLElement | null> | HTMLElement | null;
+	/** Restore focus on unmount. Default true. Does NOT govern `returnFocusNow()` — asking for
+	 *  the eager return IS asking for the return. (Verbatim contradiction rule.) */
+	returnFocus?: boolean;
+	fallbackFocus?: () => HTMLElement | null | undefined;
 }
 /** The two functions Svelte hands out through `onActivate`. Vue simply RETURNS them: a
  *  composable can return a value, an action cannot (D-V8). */
 export interface FocusTrapHandle {
-  /** Runs the three-step return chain IMMEDIATELY and disarms the unmount return. Idempotent.
-   *  Called at the dismiss instant, by `usePresence`'s `onExitStart`. */
-  returnFocusNow(): void;
-  /** Undoes that latch and pulls focus back inside, recapturing the element it displaced.
-   *  Called at `onEnterStart` when a surface is reopened mid-exit. */
-  rearm(): void;
+	/** Runs the three-step return chain IMMEDIATELY and disarms the unmount return. Idempotent.
+	 *  Called at the dismiss instant, by `usePresence`'s `onExitStart`. */
+	returnFocusNow(): void;
+	/** Undoes that latch and pulls focus back inside, recapturing the element it displaced.
+	 *  Called at `onEnterStart` when a surface is reopened mid-exit. */
+	rearm(): void;
 }
-export interface FocusTrapCoreHandle extends FocusTrapHandle { update(options?: FocusTrapOptions): void; destroy(): void }
+export interface FocusTrapCoreHandle extends FocusTrapHandle {
+	update(options?: FocusTrapOptions): void;
+	destroy(): void;
+}
 export function attachFocusTrap(node: HTMLElement, options?: FocusTrapOptions): FocusTrapCoreHandle;
 /** Identity-stable handle, safe to hand to `usePresence` in `setup`. Attaches from a
  *  post-flush watcher, so focus lands before paint. */
-export function useFocusTrap(el: WatchSource<HTMLElement | null>, options?: () => FocusTrapOptions): FocusTrapHandle;
+export function useFocusTrap(
+	el: WatchSource<HTMLElement | null>,
+	options?: () => FocusTrapOptions
+): FocusTrapHandle;
 ```
 
 **The handle must be a stable façade.** `useFocusTrap` is called in `setup`, where the element is
@@ -602,7 +666,7 @@ a `computed`, is a port error.
 
 **Ruling: `onActivate` is not ported, and `active: boolean` is rejected.** `onActivate` exists only
 because a Svelte action has no return channel to its template (`focus-trap.ts:83`); returning the two
-functions is the *literal* port. An `active` boolean would need its own watcher plus a first-run
+functions is the _literal_ port. An `active` boolean would need its own watcher plus a first-run
 guard for the same two moments, and it drops the `returnFocus: false` + eager-return contradiction
 rule the source spells out. `DialogSurface`'s two module-level `let`s, two handlers and `onActivate`
 closure collapse to two lines.
@@ -617,54 +681,57 @@ set. This is the strongest argument for `usePresence` keeping the node mounted �
 ### 3.5 `internals/field.ts`
 
 The module where Vue's shape fidelity pays off most: **the whole file ports verbatim.**
-`FieldContext`, `FieldStateOptions` — *with its nine getter fields intact* — and `createFieldState`
+`FieldContext`, `FieldStateOptions` — _with its nine getter fields intact_ — and `createFieldState`
 are copied byte-for-byte from `field.svelte.ts`, comments included. React had to flatten the nine
 getters to values and rebuild the object through a nine-entry `useMemo`; Vue does not.
 
 ```ts
 export interface FieldContext {
-  readonly controlId: string;
-  readonly labelId?: string;
-  readonly describedBy: string | undefined;
-  readonly invalid: boolean;
-  readonly valid?: boolean;        // optionality and its full doc comment kept verbatim
-  readonly required: boolean;
-  readonly disabled: boolean;
+	readonly controlId: string;
+	readonly labelId?: string;
+	readonly describedBy: string | undefined;
+	readonly invalid: boolean;
+	readonly valid?: boolean; // optionality and its full doc comment kept verbatim
+	readonly required: boolean;
+	readonly disabled: boolean;
 }
 /** Verbatim. Every entry stays a getter. */
 export interface FieldStateOptions {
-  controlId: () => string;
-  labelId: () => string | undefined;
-  descriptionId: () => string;
-  errorId: () => string;
-  hasDescription: () => boolean;
-  hasError: () => boolean;
-  valid: () => boolean;
-  required: () => boolean;
-  disabled: () => boolean;
+	controlId: () => string;
+	labelId: () => string | undefined;
+	descriptionId: () => string;
+	errorId: () => string;
+	hasDescription: () => boolean;
+	hasError: () => boolean;
+	valid: () => boolean;
+	required: () => boolean;
+	disabled: () => boolean;
 }
 /** Verbatim: same `describedBy` join order, same "error always wins" rule inside `valid`. */
 export function createFieldState(options: FieldStateOptions): FieldContext;
 
 export const FIELD_KEY: InjectionKey<FieldContext>;
 /** The Vue `getField()`. Returns `undefined` outside a FormField, per contract. */
-export function useField(): FieldContext | undefined;   // inject(FIELD_KEY, undefined)
+export function useField(): FieldContext | undefined; // inject(FIELD_KEY, undefined)
 ```
 
 `FormField` publishes it in `setup`:
 
 ```ts
-provide(FIELD_KEY, createFieldState({
-  controlId: () => controlId,
-  labelId: () => (props.label ? labelId : undefined),
-  descriptionId: () => descriptionId,
-  errorId: () => errorId,
-  hasDescription: () => Boolean(props.description),
-  hasError: () => Boolean(props.error),
-  valid: () => props.valid === true,
-  required: () => props.required === true,
-  disabled: () => props.disabled === true,
-}));
+provide(
+	FIELD_KEY,
+	createFieldState({
+		controlId: () => controlId,
+		labelId: () => (props.label ? labelId : undefined),
+		descriptionId: () => descriptionId,
+		errorId: () => errorId,
+		hasDescription: () => Boolean(props.description),
+		hasError: () => Boolean(props.error),
+		valid: () => props.valid === true,
+		required: () => props.required === true,
+		disabled: () => props.disabled === true,
+	})
+);
 ```
 
 **Why this is not merely convenient but correct.** `field.svelte.ts`'s header argues that
@@ -694,20 +761,20 @@ moment of the copy.
 
 ```ts
 export interface MenuFocusOptions {
-  loop?: boolean;                                                 // read lazily on every call
-  onFocusChange?: (index: number, element: HTMLElement) => void;  // read lazily on every call
+	loop?: boolean; // read lazily on every call
+	onFocusChange?: (index: number, element: HTMLElement) => void; // read lazily on every call
 }
 export interface MenuFocusState {
-  /** Computed on read from the live ordered list, exactly like the Svelte getter — and
-   *  reactive here, because `focusedElement` is a ref. */
-  readonly focusedIndex: number;
-  register(element: HTMLElement): () => void;
-  move(delta: number): void;
-  moveToEdge(edge: "first" | "last"): void;
-  focusItem(element: HTMLElement): void;
-  clear(): void;
-  typeahead(char: string): void;
-  destroy(): void;
+	/** Computed on read from the live ordered list, exactly like the Svelte getter — and
+	 *  reactive here, because `focusedElement` is a ref. */
+	readonly focusedIndex: number;
+	register(element: HTMLElement): () => void;
+	move(delta: number): void;
+	moveToEdge(edge: "first" | "last"): void;
+	focusItem(element: HTMLElement): void;
+	clear(): void;
+	typeahead(char: string): void;
+	destroy(): void;
 }
 /** Signature unchanged, so `menu.test.ts` transposes with only the import path changed. */
 export function createMenuFocus(options?: MenuFocusOptions): MenuFocusState;
@@ -720,10 +787,10 @@ export function useMenuItem(menu: MenuFocusState, el: WatchSource<HTMLElement | 
 
 React's `subscribe()` / `useMenuFocusedIndex` / `useSyncExternalStore` layer is **not ported**: it
 existed only because React cannot render off a plain mutable field. `focusedIndex` is a real reactive
-getter here, and the module's own warning ports with the comment — *"do not drive rendering off this
-number reactively. Use `:focus` or `onFocusChange` for that."* Registration order is irrelevant:
+getter here, and the module's own warning ports with the comment — _"do not drive rendering off this
+number reactively. Use `:focus` or `onFocusChange` for that."_ Registration order is irrelevant:
 `orderedItems()` sorts by `compareDocumentPosition` at navigation time, which is what makes the
-source's promise (*items navigate in DOM order, not registration order*) survive any mount ordering.
+source's promise (_items navigate in DOM order, not registration order_) survive any mount ordering.
 
 **`DropdownMenuContent`'s `tick()` stays as `nextTick()` (D-V13).** React dropped it (its D-9)
 because React runs child effects before parent effects. Vue also mounts children first, but the call
@@ -745,18 +812,18 @@ is consulted — arrives with the Svelte file once wave 0 upstreams it (D-V17).
 
 ```ts
 export interface ListboxOptions {
-  count: () => number;                       // getter kept (D-V14)
-  enabled?: (index: number) => boolean;
-  onActiveChange?: (index: number) => void;
-  loop?: boolean;
+	count: () => number; // getter kept (D-V14)
+	enabled?: (index: number) => boolean;
+	onActiveChange?: (index: number) => void;
+	loop?: boolean;
 }
 export interface ListboxState {
-  readonly activeIndex: number;              // reactive getter over a ref
-  move(delta: number): void;
-  moveToEdge(edge: "first" | "last"): void;
-  setActive(index: number): void;
-  typeahead(char: string, labelAt: (index: number) => string): void;
-  destroy(): void;
+	readonly activeIndex: number; // reactive getter over a ref
+	move(delta: number): void;
+	moveToEdge(edge: "first" | "last"): void;
+	setActive(index: number): void;
+	typeahead(char: string, labelAt: (index: number) => string): void;
+	destroy(): void;
 }
 /** Verbatim options shape — `listbox.test.ts` (458 lines, already pure) transposes with only
  *  the import path changed. */
@@ -771,7 +838,7 @@ This is the one index that must drive rendering, and in Vue that is free: `Selec
 `listbox.activeIndex === index`. React needed `useSyncExternalStore`, a `-1` server snapshot, a
 `useMemo` on the handle and an explicit rejection of a two-context split; none of that exists here.
 The server value is `-1`, the honest pre-interaction value on all three sides. `Select`'s clamp
-effect (*"activeIndex can end up pointing past the end of the new, shorter array"*) stays in
+effect (_"activeIndex can end up pointing past the end of the new, shorter array"_) stays in
 `Select`, as `watch(() => options.length, …)`. It is component logic.
 
 ---
@@ -784,7 +851,7 @@ gutter-is-zero rule), the `LockedState` shape, the module `lockCount` and `saved
 `released` latch.
 
 ```ts
-export function lockScroll(): () => void;   // verbatim
+export function lockScroll(): () => void; // verbatim
 
 /**
  * Acquires while mounted and `enabled()` (default true).
@@ -798,18 +865,30 @@ export function lockScroll(): () => void;   // verbatim
  * action's `destroy()` guarantees.
  */
 export function useScrollLock(enabled: () => boolean = () => true): void {
-  let release: (() => void) | null = null;
-  onMounted(() => { if (enabled()) release = lockScroll(); });
-  watch(enabled, (on) => {
-    if (on && !release) release = lockScroll();
-    else if (!on && release) { release(); release = null; }
-  }, { flush: "post" });
-  onBeforeUnmount(() => { release?.(); release = null; });
+	let release: (() => void) | null = null;
+	onMounted(() => {
+		if (enabled()) release = lockScroll();
+	});
+	watch(
+		enabled,
+		(on) => {
+			if (on && !release) release = lockScroll();
+			else if (!on && release) {
+				release();
+				release = null;
+			}
+		},
+		{ flush: "post" }
+	);
+	onBeforeUnmount(() => {
+		release?.();
+		release = null;
+	});
 }
 ```
 
 `onMounted`, not a post-flush watcher with `immediate`: both land in the same pre-paint flush, and
-`onMounted` states the intent. A post-*paint* lock is a visible one-frame scroll jump on a long page.
+`onMounted` states the intent. A post-_paint_ lock is a visible one-frame scroll jump on a long page.
 The mount/unmount-twice leak suite (§9.4) works only because `saved` is re-captured on each
 `lockCount === 0` transition and `released` is per-acquisition — both already true in the Svelte
 source.
@@ -831,11 +910,11 @@ See §2. `id.test.ts` transposes verbatim (monotonicity, prefix, and the server 
 React needs a two-row table (`useLayoutEffect` vs `useEffect`) because its passive phase runs after
 paint. Vue has one phase that matters: `onMounted`, `flush: 'post'` watcher callbacks and template-ref
 assignment all land in the same flush, before the browser paints (verify). So there is nothing to
-choose between, and the rule is about *ordering within* that flush, not about which phase to pick.
+choose between, and the rule is about _ordering within_ that flush, not about which phase to pick.
 
 **Why `watchEffect` is forbidden, in three parts.**
 
-1. **Its default flush is `'pre'`** — it runs *before* the DOM patch, so any element read sees the
+1. **Its default flush is `'pre'`** — it runs _before_ the DOM patch, so any element read sees the
    previous frame's DOM. Every module in §3 exists to touch a node that this frame created.
 2. **It runs once, immediately, during `setup` — including on the server** (verify). A
    `document` / `window` / `matchMedia` read inside one therefore executes in the SSR render and
@@ -850,22 +929,22 @@ choose between, and the rule is about *ordering within* that flush, not about wh
 registered from inside `onMounted`, so the server never evaluates it. There are no such sites in
 this scope; if a port thinks it has one, it is probably an explicit `watch` in disguise.
 
-| Module | Phase | Why |
-|---|---|---|
-| `useAnchorPosition`, `useFloat` | `watch(el, …, { flush: 'post' })` | A post-paint position is a visible jump from (0,0) |
-| `useFocusTrap` | `watch(el, …, { flush: 'post' })` | Focus must land before the user's first frame |
-| `useScrollLock` | `onMounted` + `watch(enabled, …, { flush: 'post' })` | A post-paint lock is a visible scroll flash |
-| `usePresence` driver | `onMounted` + `watch([open, mounted], …, { flush: 'post' })` | Legs must start before paint, and only once every registered node has attached |
-| `usePresence` teardown | `onBeforeUnmount` | The DOM is still attached; matches an action's `destroy()` |
-| `useAutoscroll` pin | `watch(el, …, { flush: 'post' })` | Writes `scrollTop`; a post-paint write is a visible jump |
-| `useInView` | `watch(el, …, { flush: 'post' })` | The no-`IntersectionObserver` fail-visible branch calls `onChange(true)` synchronously in Svelte |
-| `useDismissable` | `watch(el, …, { flush: 'post' })` | Document listeners and a stack push; nothing is visible in the first frame |
-| `useSoundFeedback` | `watch(el, …, { flush: 'post' })` | Passive listeners only |
-| menu / listbox item registration | `onMounted` (children mount before parents) | Must be registered before the parent's own post-flush work |
-| `hydrateSound()` | `onMounted`, from `useSound()` | Reads `localStorage`; must never run on a render path (D-V15) |
-| `createMediaQuery().start()` | `onMounted`, stopped in `onScopeDispose` | Reads `matchMedia`; returns `fallback` on the server and on the hydration render |
-| `TabsTrigger`'s focus capture | `watch(source, cb, { flush: 'pre' })` | One of the two `$effect.pre` sites: it must read `document.activeElement` *before* this flush's DOM patch applies `disabled` |
-| `PromptSuggestions`' generation bump | `watch(() => visible, cb, { flush: 'pre' })` | The other one: the re-key and the unhiding must land in the same DOM update, or the previous pills show for a frame |
+| Module                               | Phase                                                        | Why                                                                                                                          |
+| ------------------------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `useAnchorPosition`, `useFloat`      | `watch(el, …, { flush: 'post' })`                            | A post-paint position is a visible jump from (0,0)                                                                           |
+| `useFocusTrap`                       | `watch(el, …, { flush: 'post' })`                            | Focus must land before the user's first frame                                                                                |
+| `useScrollLock`                      | `onMounted` + `watch(enabled, …, { flush: 'post' })`         | A post-paint lock is a visible scroll flash                                                                                  |
+| `usePresence` driver                 | `onMounted` + `watch([open, mounted], …, { flush: 'post' })` | Legs must start before paint, and only once every registered node has attached                                               |
+| `usePresence` teardown               | `onBeforeUnmount`                                            | The DOM is still attached; matches an action's `destroy()`                                                                   |
+| `useAutoscroll` pin                  | `watch(el, …, { flush: 'post' })`                            | Writes `scrollTop`; a post-paint write is a visible jump                                                                     |
+| `useInView`                          | `watch(el, …, { flush: 'post' })`                            | The no-`IntersectionObserver` fail-visible branch calls `onChange(true)` synchronously in Svelte                             |
+| `useDismissable`                     | `watch(el, …, { flush: 'post' })`                            | Document listeners and a stack push; nothing is visible in the first frame                                                   |
+| `useSoundFeedback`                   | `watch(el, …, { flush: 'post' })`                            | Passive listeners only                                                                                                       |
+| menu / listbox item registration     | `onMounted` (children mount before parents)                  | Must be registered before the parent's own post-flush work                                                                   |
+| `hydrateSound()`                     | `onMounted`, from `useSound()`                               | Reads `localStorage`; must never run on a render path (D-V15)                                                                |
+| `createMediaQuery().start()`         | `onMounted`, stopped in `onScopeDispose`                     | Reads `matchMedia`; returns `fallback` on the server and on the hydration render                                             |
+| `TabsTrigger`'s focus capture        | `watch(source, cb, { flush: 'pre' })`                        | One of the two `$effect.pre` sites: it must read `document.activeElement` _before_ this flush's DOM patch applies `disabled` |
+| `PromptSuggestions`' generation bump | `watch(() => visible, cb, { flush: 'pre' })`                 | The other one: the re-key and the unhiding must land in the same DOM update, or the previous pills show for a frame          |
 
 Those two are the **only** `flush: 'pre'` sites in the package. A third one appearing in a port is a
 review stop.
@@ -878,7 +957,7 @@ review stop.
 
 `transitions.ts`'s `preset()` and `anchored.ts`'s `anchored()` are **css-only transitions with a JS
 easing function**. `JS_EASINGS.out` is `expoOut`, which is not expressible as a CSS `cubic-bezier`
-— `EASINGS.out` is a hand-matched CSS *approximation* the sources keep, deliberately separate, for
+— `EASINGS.out` is a hand-matched CSS _approximation_ the sources keep, deliberately separate, for
 CSS-driven components.
 
 The decisive fact is unchanged from React's §5.1: **Svelte's css transitions already are WAAPI.**
@@ -889,11 +968,11 @@ structural, not aspirational. It also inherits the `duration: 0` reduced-motion 
 from an in-flight position, a shared clock across several elements, and jsdom testability through the
 `Element.prototype.animate` stub the Svelte suite already uses.
 
-| Svelte source uses | Vue port uses |
-|---|---|
+| Svelte source uses                                                         | Vue port uses                                                                                                             |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `transition:` on `{#if}` (22 sites) + `onintrostart` / `onoutrostart` (17) | `usePresence(() => open, { onEnterStart, … })` + `presence.register(key, transition, params)` + `v-if="presence.mounted"` |
-| split `in:` / `out:` on keyed rows, `{#key}` (10 sites) | `<Transition :css="false">` / `<TransitionGroup :css="false">` with `runTransition` in the JS hooks (§5.5) |
-| `<style>` block + `data-state` | `<style scoped>` in the same SFC + the same `data-state` attribute |
+| split `in:` / `out:` on keyed rows, `{#key}` (10 sites)                    | `<Transition :css="false">` / `<TransitionGroup :css="false">` with `runTransition` in the JS hooks (§5.5)                |
+| `<style>` block + `data-state`                                             | `<style scoped>` in the same SFC + the same `data-state` attribute                                                        |
 
 `Presence`, `Dialog`, `AlertDialog`, `Popover`, `Tooltip`, `HoverCard`, `Select`, `DropdownMenu`,
 `ContextMenu`, `Sheet`, `Drawer`, `FormField`, `StickyScroll` and `Toast` take the first row.
@@ -934,7 +1013,7 @@ without opening the file:
    while running, and `to` after the main animation's `onfinish`.
 
 Two lifecycle rules follow, and both are visible if broken. **On enter finish, abort the run** —
-that removes `fill: forwards` so the element returns to its resting style, which *is* the visible
+that removes `fill: forwards` so the element returns to its resting style, which _is_ the visible
 end state. **On exit finish, do NOT abort** — the node stays in the DOM until the `mounted = false`
 patch lands, and dropping fill-forwards flashes it back to visible for a frame. Both live inside
 `createPresenceCore`, so a port gets them for free and must not re-implement them.
@@ -948,7 +1027,7 @@ has none, and inventing one puts an untested code path in production. jsdom is h
 Vue ships a transition primitive. It is not used for presence, for four independent reasons — any
 one of which alone would be disqualifying.
 
-1. **Teardown at leave start.** `<Transition>` delays DOM *removal*; it does not delay component
+1. **Teardown at leave start.** `<Transition>` delays DOM _removal_; it does not delay component
    teardown. `onBeforeUnmount` runs and the effect scope stops when the leave begins. So a scroll
    lock, a dismissable layer and a focus trap inside the leaving subtree all release at the instant
    the fade starts — the page becomes scrollable under a scrim still on screen, and a second Escape
@@ -977,33 +1056,37 @@ byte-shared) — and only the binding is written for Vue.
 export type PresenceState = "opening" | "open" | "closing";
 
 export interface UsePresenceOptions {
-  /** Animate an entrance when `open` is ALREADY true on the very first render.
-   *  Default FALSE, reproducing Svelte's rule that a LOCAL `transition:` never plays on
-   *  the initial render of the block that owns it, and that hydration defaults intros off. */
-  appear?: boolean;
-  /** Set the `inert` ATTRIBUTE on every attached node while closing, clear it on enter.
-   *  Default true — Svelte sets it itself, synchronously, before the outro starts, which is
-   *  what keeps a closing panel from answering a click. Vue does not, so the core does. */
-  inert?: boolean;
-  onEnterStart?: () => void;
-  onEnterEnd?: () => void;
-  /** Fires at the dismiss instant, before the exit paints. */
-  onExitStart?: () => void;
-  onExitEnd?: () => void;
+	/** Animate an entrance when `open` is ALREADY true on the very first render.
+	 *  Default FALSE, reproducing Svelte's rule that a LOCAL `transition:` never plays on
+	 *  the initial render of the block that owns it, and that hydration defaults intros off. */
+	appear?: boolean;
+	/** Set the `inert` ATTRIBUTE on every attached node while closing, clear it on enter.
+	 *  Default true — Svelte sets it itself, synchronously, before the outro starts, which is
+	 *  what keeps a closing panel from answering a click. Vue does not, so the core does. */
+	inert?: boolean;
+	onEnterStart?: () => void;
+	onEnterEnd?: () => void;
+	/** Fires at the dismiss instant, before the exit paints. */
+	onExitStart?: () => void;
+	onExitEnd?: () => void;
 }
 
 export interface PresenceHandle {
-  /** Render the subtree while true. Stays true through the WHOLE exit. */
-  readonly mounted: boolean;
-  /** Three values. For `<Presence>` and anything else whose Svelte source renders three. */
-  readonly state: PresenceState;
-  /** Two values — `state === "closing" ? "closing" : "open"`. THE value every anchored
-   *  surface renders into `data-state` (convention C-5). */
-  readonly surfaceState: SurfaceState;
-  /** `=== open`. Pass to `active:` options and to params factories. */
-  readonly entering: boolean;
-  register<P>(transition: TransitionFn<P>, params?: P | ((entering: boolean) => P)): PresenceRef;
-  register<P>(key: string, transition: TransitionFn<P>, params?: P | ((entering: boolean) => P)): PresenceRef;
+	/** Render the subtree while true. Stays true through the WHOLE exit. */
+	readonly mounted: boolean;
+	/** Three values. For `<Presence>` and anything else whose Svelte source renders three. */
+	readonly state: PresenceState;
+	/** Two values — `state === "closing" ? "closing" : "open"`. THE value every anchored
+	 *  surface renders into `data-state` (convention C-5). */
+	readonly surfaceState: SurfaceState;
+	/** `=== open`. Pass to `active:` options and to params factories. */
+	readonly entering: boolean;
+	register<P>(transition: TransitionFn<P>, params?: P | ((entering: boolean) => P)): PresenceRef;
+	register<P>(
+		key: string,
+		transition: TransitionFn<P>,
+		params?: P | ((entering: boolean) => P)
+	): PresenceRef;
 }
 
 export function usePresence(open: () => boolean, options?: UsePresenceOptions): PresenceHandle;
@@ -1013,48 +1096,66 @@ The binding, in full:
 
 ```ts
 export function usePresence(open: () => boolean, options: UsePresenceOptions = {}): PresenceHandle {
-  const appear = options.appear ?? false;
+	const appear = options.appear ?? false;
 
-  const mounted = ref(open());
-  const state = ref<PresenceState>("open");
+	const mounted = ref(open());
+	const state = ref<PresenceState>("open");
 
-  // A getter, not a captured boolean: `inert` is read at the instant an exit starts.
-  const inertRef = { get current() { return options.inert ?? true; } };
+	// A getter, not a captured boolean: `inert` is read at the instant an exit starts.
+	const inertRef = {
+		get current() {
+			return options.inert ?? true;
+		},
+	};
 
-  // `setup` runs once, so this is the constant React needed `useConstant` for. The
-  // callbacks are read through `options` on every call, which is the Vue equivalent of
-  // `useEventCallback` — no stable-identity wrapper is required.
-  const core = createPresenceCore({
-    setMounted: (next) => { mounted.value = next; },
-    setState: (next) => { state.value = next; },
-    onEnterStart: () => options.onEnterStart?.(),
-    onEnterEnd: () => options.onEnterEnd?.(),
-    onExitStart: () => options.onExitStart?.(),
-    onExitEnd: () => options.onExitEnd?.(),
-    inertRef,
-  });
+	// `setup` runs once, so this is the constant React needed `useConstant` for. The
+	// callbacks are read through `options` on every call, which is the Vue equivalent of
+	// `useEventCallback` — no stable-identity wrapper is required.
+	const core = createPresenceCore({
+		setMounted: (next) => {
+			mounted.value = next;
+		},
+		setState: (next) => {
+			state.value = next;
+		},
+		onEnterStart: () => options.onEnterStart?.(),
+		onEnterEnd: () => options.onEnterEnd?.(),
+		onExitStart: () => options.onExitStart?.(),
+		onExitEnd: () => options.onExitEnd?.(),
+		inertRef,
+	});
 
-  // First pass. `onMounted` is the same flush as a post watcher, and every registered
-  // node's function ref has already been called by the time it runs.
-  onMounted(() => { core.sync(open(), mounted.value, appear); });
+	// First pass. `onMounted` is the same flush as a post watcher, and every registered
+	// node's function ref has already been called by the time it runs.
+	onMounted(() => {
+		core.sync(open(), mounted.value, appear);
+	});
 
-  // The driver. `flush: 'post'` is mandatory: `sync()`'s open-from-closed branch sets
-  // `mounted` and RETURNS, so the legs start on the pass after the subtree rendered —
-  // and that pass is only correct once the new nodes have attached. `immediate` is
-  // deliberately absent, which is also what keeps this from running on the server.
-  watch([open, mounted], ([o, m]) => { core.sync(o, m, appear); }, { flush: "post" });
+	// The driver. `flush: 'post'` is mandatory: `sync()`'s open-from-closed branch sets
+	// `mounted` and RETURNS, so the legs start on the pass after the subtree rendered —
+	// and that pass is only correct once the new nodes have attached. `immediate` is
+	// deliberately absent, which is also what keeps this from running on the server.
+	watch(
+		[open, mounted],
+		([o, m]) => {
+			core.sync(o, m, appear);
+		},
+		{ flush: "post" }
+	);
 
-  // Separate from the driver precisely BECAUSE it tears down: giving the driver a
-  // cleanup would abort every leg on each reversal, the one thing this exists to avoid.
-  onBeforeUnmount(() => { core.teardown(); });
+	// Separate from the driver precisely BECAUSE it tears down: giving the driver a
+	// cleanup would abort every leg on each reversal, the one thing this exists to avoid.
+	onBeforeUnmount(() => {
+		core.teardown();
+	});
 
-  return reactive({
-    mounted,
-    state,
-    surfaceState: computed(() => (state.value === "closing" ? "closing" : "open")),
-    entering: computed(() => open()),
-    register: core.register,
-  }) as PresenceHandle;
+	return reactive({
+		mounted,
+		state,
+		surfaceState: computed(() => (state.value === "closing" ? "closing" : "open")),
+		entering: computed(() => open()),
+		register: core.register,
+	}) as PresenceHandle;
 }
 ```
 
@@ -1067,15 +1168,15 @@ so there is no `.value` to forget. **A `.value` after `presence.mounted` anywher
 
 **Semantics** (unchanged from React's §5.7, since the core is the same file):
 
-| moment | what happens |
-|---|---|
-| `open` false → true while unmounted | `mounted` → true, `state` → `"opening"`, `onEnterStart()`; legs start on the next pass |
-| each registered node attaches | `runTransition(node, spec(entering = true), 1, run[key], …)` |
-| every registered enter finishes | each run aborted (§5.2), `state` → `"open"`, `onEnterEnd()` |
-| `open` true → false | `onExitStart()` fires in the post-flush watcher, `state` → `"closing"`, `inert` set unless opted out, each node runs toward `0`. `mounted` stays true. |
-| every registered exit finishes | `mounted` → false; `state` resets to `"open"` so the next open never carries a stale `"closing"`; `onExitEnd()` |
-| `open` flips true mid-exit | the in-flight `TransitionRun` becomes the `counterpart`, so `t1` is the current position and the entrance resumes from there. **The node is never unmounted** — which is why `onEnterStart` must call `trap.rearm()`. |
-| reduced motion | the transition factory returns `duration: 0`; `runTransition` finishes synchronously; `mounted` flips in the same flush, before paint |
+| moment                              | what happens                                                                                                                                                                                                          |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `open` false → true while unmounted | `mounted` → true, `state` → `"opening"`, `onEnterStart()`; legs start on the next pass                                                                                                                                |
+| each registered node attaches       | `runTransition(node, spec(entering = true), 1, run[key], …)`                                                                                                                                                          |
+| every registered enter finishes     | each run aborted (§5.2), `state` → `"open"`, `onEnterEnd()`                                                                                                                                                           |
+| `open` true → false                 | `onExitStart()` fires in the post-flush watcher, `state` → `"closing"`, `inert` set unless opted out, each node runs toward `0`. `mounted` stays true.                                                                |
+| every registered exit finishes      | `mounted` → false; `state` resets to `"open"` so the next open never carries a stale `"closing"`; `onExitEnd()`                                                                                                       |
+| `open` flips true mid-exit          | the in-flight `TransitionRun` becomes the `counterpart`, so `t1` is the current position and the entrance resumes from there. **The node is never unmounted** — which is why `onEnterStart` must call `trap.rearm()`. |
+| reduced motion                      | the transition factory returns `duration: 0`; `runTransition` finishes synchronously; `mounted` flips in the same flush, before paint                                                                                 |
 
 **Params are read at leg start, never at render time.** `params` may be a value or a
 `(entering: boolean) => P` factory, and the factory is the documented default: `Presence.svelte`'s
@@ -1105,9 +1206,9 @@ row replaced by key. There, Vue's own transition is correct and `usePresence` wo
 
 ```vue
 <TransitionGroup
-  :css="false"
-  @enter="(el, done) => runTransition(el as HTMLElement, spec(el, params, { direction: 'in' }), 1, undefined, done)"
-  @leave="(el, done) => runTransition(el as HTMLElement, spec(el, params, { direction: 'out' }), 0, undefined, done)"
+	:css="false"
+	@enter="(el, done) => runTransition(el as HTMLElement, spec(el, params, { direction: 'in' }), 1, undefined, done)"
+	@leave="(el, done) => runTransition(el as HTMLElement, spec(el, params, { direction: 'out' }), 0, undefined, done)"
 >
   <li v-for="item in items" :key="item.id">…</li>
 </TransitionGroup>
@@ -1132,9 +1233,13 @@ is what lets `media-query.test.ts` transpose.
 
 ```ts
 export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-export interface MediaQueryState { readonly current: boolean; start(): () => void; stop(): void }
-export function createMediaQuery(query: string, fallback?: boolean): MediaQueryState;   // verbatim
-export function createReducedMotion(): MediaQueryState;                                 // verbatim
+export interface MediaQueryState {
+	readonly current: boolean;
+	start(): () => void;
+	stop(): void;
+}
+export function createMediaQuery(query: string, fallback?: boolean): MediaQueryState; // verbatim
+export function createReducedMotion(): MediaQueryState; // verbatim
 
 /** Starts in `onMounted`, stops in `onScopeDispose`. Returns `fallback` on the server
  *  AND through the hydration render — the mismatch class is eliminated by construction. */
@@ -1159,10 +1264,16 @@ the per-call rAF availability check. No composable wrapper: its two consumers (`
 that calls `onChange(true)` immediately when `IntersectionObserver` is absent.
 
 ```ts
-export function observeInView(node: Element, options: InViewOptions): { update(o: InViewOptions): void; destroy(): void };
+export function observeInView(
+	node: Element,
+	options: InViewOptions
+): { update(o: InViewOptions): void; destroy(): void };
 export function useInView(
-  el: WatchSource<Element | null>,
-  options?: () => Omit<InViewOptions, "onChange"> & { onChange?: InViewOptions["onChange"]; enabled?: boolean }
+	el: WatchSource<Element | null>,
+	options?: () => Omit<InViewOptions, "onChange"> & {
+		onChange?: InViewOptions["onChange"];
+		enabled?: boolean;
+	}
 ): Readonly<Ref<boolean>>;
 ```
 
@@ -1179,12 +1290,16 @@ needing the revealed state in server HTML uses the `initial="visible"` pattern `
 ```vue
 <script lang="ts">
 export interface PresenceProps {
-  open: boolean;
-  preset?: PresetName; duration?: number; exitDuration?: number; delay?: number; distance?: number;
-  inert?: boolean;
-  class?: HTMLAttributes["class"];
-  onEnterEnd?: () => void;
-  onExitEnd?: () => void;
+	open: boolean;
+	preset?: PresetName;
+	duration?: number;
+	exitDuration?: number;
+	delay?: number;
+	distance?: number;
+	inert?: boolean;
+	class?: HTMLAttributes["class"];
+	onEnterEnd?: () => void;
+	onExitEnd?: () => void;
 }
 </script>
 
@@ -1199,27 +1314,32 @@ defineExpose({ ref: root });
 
 const reduced = useReducedMotion();
 const presence = usePresence(() => props.open, {
-  inert: props.inert,
-  onEnterEnd: () => props.onEnterEnd?.(),
-  onExitEnd: () => props.onExitEnd?.(),
+	inert: props.inert,
+	onEnterEnd: () => props.onEnterEnd?.(),
+	onExitEnd: () => props.onExitEnd?.(),
 });
 
 // Built ONCE in setup: stable identity, and it feeds both the template ref and the leg.
 const rootRef = composeRefs(
-  root,
-  presence.register(makePreset(props.preset), (entering) => ({
-    duration: reduced.value ? 0 : entering ? props.duration : props.exitDuration,
-    delay: reduced.value ? 0 : props.delay,
-    distance: entering ? props.distance : (props.distance ?? DEFAULT_DISTANCE) / 2,
-  }))
+	root,
+	presence.register(makePreset(props.preset), (entering) => ({
+		duration: reduced.value ? 0 : entering ? props.duration : props.exitDuration,
+		delay: reduced.value ? 0 : props.delay,
+		distance: entering ? props.distance : (props.distance ?? DEFAULT_DISTANCE) / 2,
+	}))
 );
 </script>
 
 <template>
-  <div v-if="presence.mounted" :ref="rootRef" v-bind="attrs"
-       :class="cn('ft-presence', props.class)" :data-state="presence.state">
-    <slot />
-  </div>
+	<div
+		v-if="presence.mounted"
+		:ref="rootRef"
+		v-bind="attrs"
+		:class="cn('ft-presence', props.class)"
+		:data-state="presence.state"
+	>
+		<slot />
+	</div>
 </template>
 ```
 
@@ -1231,21 +1351,26 @@ block ports `presence.css` verbatim.
 ```vue
 <script lang="ts">
 export interface DialogSurfaceProps {
-  open: boolean;
-  role?: "dialog" | "alertdialog";
-  titleId?: string; descriptionId?: string;
-  escape?: boolean; outsideClick?: boolean;
-  onDismiss: () => void;
-  initialFocus?: HTMLElement | null;
-  fallbackFocus?: () => HTMLElement | null | undefined;
-  exclude?: () => (HTMLElement | null)[];
-  panelClass?: HTMLAttributes["class"];
+	open: boolean;
+	role?: "dialog" | "alertdialog";
+	titleId?: string;
+	descriptionId?: string;
+	escape?: boolean;
+	outsideClick?: boolean;
+	onDismiss: () => void;
+	initialFocus?: HTMLElement | null;
+	fallbackFocus?: () => HTMLElement | null | undefined;
+	exclude?: () => (HTMLElement | null)[];
+	panelClass?: HTMLAttributes["class"];
 }
 </script>
 
 <script setup lang="ts">
 defineOptions({ name: "DialogSurface", inheritAttrs: false });
-const props = withDefaults(defineProps<DialogSurfaceProps>(), { role: "dialog", initialFocus: null });
+const props = withDefaults(defineProps<DialogSurfaceProps>(), {
+	role: "dialog",
+	initialFocus: null,
+});
 defineSlots<{ default?: () => unknown }>();
 const attrs = useAttrs();
 
@@ -1256,15 +1381,15 @@ defineExpose({ ref: panel });
 
 // Returns the identity-stable façade Svelte hands out through `onActivate`.
 const trap = useFocusTrap(panel, () => ({
-  initialFocus: props.initialFocus,
-  fallbackFocus: props.fallbackFocus,
+	initialFocus: props.initialFocus,
+	fallbackFocus: props.fallbackFocus,
 }));
 
 const presence = usePresence(() => props.open, {
-  // The two halves of the focus handshake, at the two moments Svelte puts them:
-  // `onintrostart` → rearm, `onoutrostart` → returnFocusNow.
-  onEnterStart: () => trap.rearm(),
-  onExitStart: () => trap.returnFocusNow(),
+	// The two halves of the focus handshake, at the two moments Svelte puts them:
+	// `onintrostart` → rearm, `onoutrostart` → returnFocusNow.
+	onEnterStart: () => trap.rearm(),
+	onExitStart: () => trap.returnFocusNow(),
 });
 
 // LAW: release at exit END, never at exit start. `presence.mounted` stays true through
@@ -1275,45 +1400,56 @@ useScrollLock(() => presence.mounted);
 // `active` stays a getter (C-2): the layer must stop being TOP of the stack the instant
 // `open` flips, while remaining ON the stack for the whole exit.
 useDismissable(panel, () => ({
-  onDismiss: props.onDismiss,
-  escape: props.escape,
-  outsideClick: props.outsideClick,
-  exclude: props.exclude,
-  active: () => props.open,
+	onDismiss: props.onDismiss,
+	escape: props.escape,
+	outsideClick: props.outsideClick,
+	exclude: props.exclude,
+	active: () => props.open,
 }));
 
 // Built once, in setup. The panel needs both the template ref and the presence leg.
 const panelRef = composeRefs(
-  panel,
-  presence.register("panel", anchored, (entering) => ({
-    entering, duration: DURATIONS.base, exitDuration: DURATIONS.exit,
-  }))
+	panel,
+	presence.register("panel", anchored, (entering) => ({
+		entering,
+		duration: DURATIONS.base,
+		exitDuration: DURATIONS.exit,
+	}))
 );
 const scrimRef = presence.register("scrim", anchored, (entering) => ({
-  entering, scale: false, duration: DURATIONS.base, exitDuration: DURATIONS.exit,
+	entering,
+	scale: false,
+	duration: DURATIONS.base,
+	exitDuration: DURATIONS.exit,
 }));
 </script>
 
 <template>
-  <!-- The mounted gate is OUTERMOST; `<Portal>` sits inside it (D-V6). -->
-  <template v-if="presence.mounted">
-    <Portal>
-      <div :ref="scrimRef" class="ft-dialog-scrim fixed inset-0 z-50 bg-black/60" aria-hidden="true" />
-      <div
-        :ref="panelRef"
-        v-bind="attrs"
-        :role="props.role"
-        aria-modal="true"
-        :aria-labelledby="props.titleId"
-        :aria-describedby="props.descriptionId"
-        tabindex="-1"
-        :data-state="presence.surfaceState"
-        :class="cn('ft-dialog-panel …verbatim Tailwind…', 'focus-visible:outline-none', props.panelClass)"
-      >
-        <slot />
-      </div>
-    </Portal>
-  </template>
+	<!-- The mounted gate is OUTERMOST; `<Portal>` sits inside it (D-V6). -->
+	<template v-if="presence.mounted">
+		<Portal>
+			<div
+				:ref="scrimRef"
+				class="ft-dialog-scrim fixed inset-0 z-50 bg-black/60"
+				aria-hidden="true"
+			/>
+			<div
+				:ref="panelRef"
+				v-bind="attrs"
+				:role="props.role"
+				aria-modal="true"
+				:aria-labelledby="props.titleId"
+				:aria-describedby="props.descriptionId"
+				tabindex="-1"
+				:data-state="presence.surfaceState"
+				:class="
+					cn('ft-dialog-panel …verbatim Tailwind…', 'focus-visible:outline-none', props.panelClass)
+				"
+			>
+				<slot />
+			</div>
+		</Portal>
+	</template>
 </template>
 
 <style scoped>
@@ -1323,17 +1459,17 @@ const scrimRef = presence.register("scrim", anchored, (entering) => ({
 
 **The ordering laws of `DialogSurface.svelte`, and how each is satisfied:**
 
-| Law (from the Svelte comment block) | How the Vue port satisfies it |
-|---|---|
-| The scrim fades on opacity alone (`scale: false`) and **shares the panel's clock exactly**, so the two leave together and the destroy is a tie, not a straggler | One `usePresence`, two keys. `settle()` returns early until *every* attached slot's leg has landed, so `mounted` flips once — the source's "destroy the branch when the LAST transition finishes" rule, verbatim |
-| `use:portal` runs before `use:focusTrap` so the trap never calls `.focus()` on a detached node | Dissolved: `<Teleport>` attaches its children to the target during the patch that creates them, before any post-flush watcher or `onMounted` (verify), so the panel is always connected when the trap focuses it. Keep the note in the component README (mirrors React's D-10) |
-| `use:scrollLock` is an action, not an `$effect`, **for the release timing** | `useScrollLock(() => presence.mounted)`. `presence.mounted` is the only correct source; `open` releases at exit start and is the bug the law names |
-| ONE bidirectional `transition:`, never a split `in:`/`out:` pair, so a reopen mid-exit continues from where it is | `presence.register` owns one leg per key, and `runTransition` takes the in-flight run as its `counterpart`. A split pair is unreachable through this API |
-| `entering: open` is what tells the transition which way it is going, because `direction` reports `"both"` | The params **factory** is called with `entering` at the instant each leg starts, and the core passes a real `"in"`/`"out"` to the transition function |
-| `data-state` is a static literal changed by `markSurfaceState`, because the scheduler skips inert effects during an outro | Not ported (D-V7). `usePresence` keeps the subtree mounted and reactive, so `:data-state="presence.surfaceState"` is an ordinary binding emitting the same two values (C-5) |
-| `inert` is not written by hand — Svelte sets it for the whole exit | Vue does not, so the presence core does, through `toggleAttribute("inert", …)` on every attached node at exit start, cleared on a reversal. `inert: false` is the explicit opt-out |
-| `returnFocusNow` at `outrostart`; `rearm` at `introstart` | `onExitStart` / `onEnterStart`, wired to the stable trap façade built in the same `setup` |
-| `bind:this={ref}` on the panel | `defineExpose({ ref: panel })`, with `composeRefs` feeding both the template ref and the leg (C-4) |
+| Law (from the Svelte comment block)                                                                                                                             | How the Vue port satisfies it                                                                                                                                                                                                                                                  |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The scrim fades on opacity alone (`scale: false`) and **shares the panel's clock exactly**, so the two leave together and the destroy is a tie, not a straggler | One `usePresence`, two keys. `settle()` returns early until _every_ attached slot's leg has landed, so `mounted` flips once — the source's "destroy the branch when the LAST transition finishes" rule, verbatim                                                               |
+| `use:portal` runs before `use:focusTrap` so the trap never calls `.focus()` on a detached node                                                                  | Dissolved: `<Teleport>` attaches its children to the target during the patch that creates them, before any post-flush watcher or `onMounted` (verify), so the panel is always connected when the trap focuses it. Keep the note in the component README (mirrors React's D-10) |
+| `use:scrollLock` is an action, not an `$effect`, **for the release timing**                                                                                     | `useScrollLock(() => presence.mounted)`. `presence.mounted` is the only correct source; `open` releases at exit start and is the bug the law names                                                                                                                             |
+| ONE bidirectional `transition:`, never a split `in:`/`out:` pair, so a reopen mid-exit continues from where it is                                               | `presence.register` owns one leg per key, and `runTransition` takes the in-flight run as its `counterpart`. A split pair is unreachable through this API                                                                                                                       |
+| `entering: open` is what tells the transition which way it is going, because `direction` reports `"both"`                                                       | The params **factory** is called with `entering` at the instant each leg starts, and the core passes a real `"in"`/`"out"` to the transition function                                                                                                                          |
+| `data-state` is a static literal changed by `markSurfaceState`, because the scheduler skips inert effects during an outro                                       | Not ported (D-V7). `usePresence` keeps the subtree mounted and reactive, so `:data-state="presence.surfaceState"` is an ordinary binding emitting the same two values (C-5)                                                                                                    |
+| `inert` is not written by hand — Svelte sets it for the whole exit                                                                                              | Vue does not, so the presence core does, through `toggleAttribute("inert", …)` on every attached node at exit start, cleared on a reversal. `inert: false` is the explicit opt-out                                                                                             |
+| `returnFocusNow` at `outrostart`; `rearm` at `introstart`                                                                                                       | `onExitStart` / `onEnterStart`, wired to the stable trap façade built in the same `setup`                                                                                                                                                                                      |
+| `bind:this={ref}` on the panel                                                                                                                                  | `defineExpose({ ref: panel })`, with `composeRefs` feeding both the template ref and the leg (C-4)                                                                                                                                                                             |
 
 **What happens on close, in order.** `open` flips false → the post-flush driver fires
 `onExitStart`, so `trap.returnFocusNow()` runs the three-step return chain **immediately** (a keyboard
@@ -1398,14 +1534,14 @@ mismatched attribute** (verify), so a client that learns the stored preference d
 render would ship the server's value anyway. So:
 
 > **Getters never write. `hydrateSound()` is explicit, idempotent, and called from `useSound()`'s
-> `onMounted`.** Every controller *method* still calls `ensure()` first, verbatim; `ensure()`'s
+> `onMounted`.** Every controller _method_ still calls `ensure()` first, verbatim; `ensure()`'s
 > storage branch is gated on the `hydrated` flag that `hydrateSound()` sets.
 
 ```ts
-export const sound: SoundController;                               // shape unchanged
-export function getSoundStatus(): SoundStatus;                     // non-reactive snapshot
-export function parseStoredPreferences(raw: string | null): SoundPreferences;  // verbatim, pure
-export function resetSoundForTests(): void;                        // not in index.ts
+export const sound: SoundController; // shape unchanged
+export function getSoundStatus(): SoundStatus; // non-reactive snapshot
+export function parseStoredPreferences(raw: string | null): SoundPreferences; // verbatim, pure
+export function resetSoundForTests(): void; // not in index.ts
 /** Idempotent. Reads localStorage, attaches the cross-tab listener, probes AudioContext
  *  support without constructing one. Called from `onMounted`, never on a render path. */
 export function hydrateSound(): void;
@@ -1440,14 +1576,21 @@ as-is; do not "fix" it during the port.
  *  `enabled()` is falsy. Reads `sound.enabled` only INSIDE the returned function, so it
  *  never becomes a reactive dependency of its caller's render — a Button must not
  *  re-render because the volume changed in a settings panel elsewhere on the page. */
-export function useSoundCue(enabled: () => boolean | undefined): (cue: SoundCue, options?: SoundPlayOptions) => void;
+export function useSoundCue(
+	enabled: () => boolean | undefined
+): (cue: SoundCue, options?: SoundPlayOptions) => void;
 
 /** For controls that RENDER the preference — SoundToggle, the Sound Lab. Runs
  *  `hydrateSound()` in `onMounted` and returns the live fields plus the methods. */
 export function useSound(): {
-  readonly enabled: boolean; readonly volume: number;
-  readonly theme: SoundThemeName; readonly status: SoundStatus;
-} & Pick<SoundController, "play" | "unlock" | "enable" | "disable" | "toggle" | "setEnabled" | "setVolume" | "setTheme">;
+	readonly enabled: boolean;
+	readonly volume: number;
+	readonly theme: SoundThemeName;
+	readonly status: SoundStatus;
+} & Pick<
+	SoundController,
+	"play" | "unlock" | "enable" | "disable" | "toggle" | "setEnabled" | "setVolume" | "setTheme"
+>;
 
 export function useSoundEnabled(): Readonly<Ref<boolean>>;
 export function useSoundStatus(): Readonly<Ref<SoundStatus>>;
@@ -1457,7 +1600,10 @@ Porting a `sound`-prop consumer is two lines against the Svelte `if (sound) soun
 
 ```ts
 const playCue = useSoundCue(() => props.sound);
-function handleClick(event: MouseEvent) { playCue("press"); emit("click", event); }
+function handleClick(event: MouseEvent) {
+	playCue("press");
+	emit("click", event);
+}
 ```
 
 `DropdownMenu`'s `setOpen` becomes `if (!options.silent) playCue(next ? "open" : "close")` — the
@@ -1467,7 +1613,7 @@ pre-await `if (sound && soundFx.enabled) void soundFx.unlock()` is ported as-is,
 not at render time.
 
 **The Vue-specific trap:** reading `sound.enabled` inside a `computed`, a template or a render
-function *does* subscribe. React needed a comment explaining that `useSoundCue` deliberately does
+function _does_ subscribe. React needed a comment explaining that `useSoundCue` deliberately does
 not subscribe; here it falls out of where the read happens, so the rule is "read it inside the
 handler, never in the template".
 
@@ -1477,14 +1623,23 @@ handler, never in the template".
 export type SoundCueResolver = (event: Event) => SoundCue | null | undefined;
 export type SoundCueSpec = SoundCue | SoundCueResolver;
 export interface SoundFeedbackOptions {
-  /** DOM event name → cue. REPLACES the defaults when given. */
-  on?: Record<string, SoundCueSpec>;
-  disabled?: boolean; volume?: number; pitch?: number; allowUntrusted?: boolean;
+	/** DOM event name → cue. REPLACES the defaults when given. */
+	on?: Record<string, SoundCueSpec>;
+	disabled?: boolean;
+	volume?: number;
+	pitch?: number;
+	allowUntrusted?: boolean;
 }
 export const DEFAULT_SOUND_FEEDBACK_ON: Readonly<Record<string, SoundCue>>;
-export function attachSoundFeedback(node: HTMLElement, options?: SoundFeedbackOptions): SoundFeedbackHandle;
-export function useSoundFeedback(el: WatchSource<HTMLElement | null>, options?: () => SoundFeedbackOptions): void;
-export function resetSoundFeedbackForTests(): void;          // not in index.ts
+export function attachSoundFeedback(
+	node: HTMLElement,
+	options?: SoundFeedbackOptions
+): SoundFeedbackHandle;
+export function useSoundFeedback(
+	el: WatchSource<HTMLElement | null>,
+	options?: () => SoundFeedbackOptions
+): void;
+export function resetSoundFeedbackForTests(): void; // not in index.ts
 /** Test-only leak counter for the shared document-level pointermove listener. */
 export function __soundFeedbackHoverInstances(): number;
 ```
@@ -1540,32 +1695,32 @@ Three rules hold across every row: **no browser global in `setup`, a `computed` 
 `Math.random()` / `Date.now()` on a render path; every DOM-touching watcher is `flush: 'post'` or
 `onMounted` and therefore never runs on the server.**
 
-| Module | Server render | Hydration hazard & its answer |
-|---|---|---|
-| `computePosition` | — (pure) | none; `getDefaultViewport()` already returns `Infinity` off-browser |
-| `useAnchorPosition` | element, unpositioned | none — a post-flush watcher never runs on the server, same as an action |
-| `Portal.vue` | nothing for a closed surface; inline body markup between `<!--teleport start anchor-->` / `<!--teleport anchor-->` for an open one (NOT the `#teleports` div, which Nuxt leaves empty — measured) | eliminated in practice — every portalled surface sits inside `v-if="presence.mounted"` and is gated on an `open` that starts false (D-V6); the payload path is pinned by `nuxt generate` — verified on the example app's `/overlay` page |
-| `useDismissable` | nothing | none |
-| `useScrollLock` | nothing | none; `lockScroll()` returns a no-op release off-browser |
-| `useFocusTrap` | nothing; the façade exists and is inert | none |
-| `createFieldState` / `useField` | **full value, `describedBy` included** | none, and this is the point: derived on read, so the server HTML's `aria-describedby` is already correct |
-| `createMenuFocus` / `useMenuFocus` | a stable handle, no DOM; `focusedIndex` is `-1` | none |
-| `createListbox` / `useListbox` | `activeIndex: -1` | none; `-1` is the honest pre-interaction value on all three sides |
-| `useFancyId` | a real, stable id | none; Vue's `useId()` is SSR-stable |
-| `uid()` | **throws** | by design, verbatim |
-| `tokens` / `presets` / `stagger` / `types` / `easing` | pure data | none |
-| `haptics` | `canVibrate()` → false | none; never called during render |
-| `rafThrottle` | falls through to a sync call | none |
-| `createMediaQuery` / `useMediaQuery` | `fallback`; `start()` is never called | eliminated — identical value from the server and the hydration render, the query starts in `onMounted` |
-| `observeInView` / `useInView` | `false` | none; matches Svelte's un-run action |
-| `preset` / `anchored` / `originFor` | pure | none |
-| `prefersReducedMotion()` | `false` | must never be called from a render path — it is a transition-body helper |
-| `runTransition` / `usePresence` | `mounted === open`, no leg ever runs | none; `appear` defaults false, so an open-on-mount surface paints at rest, matching Svelte's initial-render rule |
-| `sound/engine`, `themes`, `types` | inert | none; zero module-evaluation globals |
-| `sound.ts` | frozen defaults | eliminated — storage is never read on a render path; `hydrateSound()` runs in `onMounted` (D-V15) |
-| `useSoundFeedback` | nothing | none |
-| `SoundToggle.vue` | `data-state="off"`, **both glyph groups in the DOM** | eliminated — CSS picks the glyph; the DOM shape never changes (§6.5) |
-| `StreamText.vue`, `Markdown.vue` | full token tree, no `v-html` | none; the parser is pure |
+| Module                                                | Server render                                        | Hydration hazard & its answer                                                                                                                                                                                          |
+| ----------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `computePosition`                                     | — (pure)                                             | none; `getDefaultViewport()` already returns `Infinity` off-browser                                                                                                                                                    |
+| `useAnchorPosition`                                   | element, unpositioned                                | none — a post-flush watcher never runs on the server, same as an action                                                                                                                                                |
+| `Portal.vue`                                          | nothing, closed or open                              | eliminated structurally by Portal's own server/hydration gate (§3.2), verified by hydrating Drawer, Sheet and Dialog with `open: true`; the example app's `/overlay` page renders an open Dialog under `nuxt generate` |
+| `useDismissable`                                      | nothing                                              | none                                                                                                                                                                                                                   |
+| `useScrollLock`                                       | nothing                                              | none; `lockScroll()` returns a no-op release off-browser                                                                                                                                                               |
+| `useFocusTrap`                                        | nothing; the façade exists and is inert              | none                                                                                                                                                                                                                   |
+| `createFieldState` / `useField`                       | **full value, `describedBy` included**               | none, and this is the point: derived on read, so the server HTML's `aria-describedby` is already correct                                                                                                               |
+| `createMenuFocus` / `useMenuFocus`                    | a stable handle, no DOM; `focusedIndex` is `-1`      | none                                                                                                                                                                                                                   |
+| `createListbox` / `useListbox`                        | `activeIndex: -1`                                    | none; `-1` is the honest pre-interaction value on all three sides                                                                                                                                                      |
+| `useFancyId`                                          | a real, stable id                                    | none; Vue's `useId()` is SSR-stable                                                                                                                                                                                    |
+| `uid()`                                               | **throws**                                           | by design, verbatim                                                                                                                                                                                                    |
+| `tokens` / `presets` / `stagger` / `types` / `easing` | pure data                                            | none                                                                                                                                                                                                                   |
+| `haptics`                                             | `canVibrate()` → false                               | none; never called during render                                                                                                                                                                                       |
+| `rafThrottle`                                         | falls through to a sync call                         | none                                                                                                                                                                                                                   |
+| `createMediaQuery` / `useMediaQuery`                  | `fallback`; `start()` is never called                | eliminated — identical value from the server and the hydration render, the query starts in `onMounted`                                                                                                                 |
+| `observeInView` / `useInView`                         | `false`                                              | none; matches Svelte's un-run action                                                                                                                                                                                   |
+| `preset` / `anchored` / `originFor`                   | pure                                                 | none                                                                                                                                                                                                                   |
+| `prefersReducedMotion()`                              | `false`                                              | must never be called from a render path — it is a transition-body helper                                                                                                                                               |
+| `runTransition` / `usePresence`                       | `mounted === open`, no leg ever runs                 | none; `appear` defaults false, so an open-on-mount surface paints at rest, matching Svelte's initial-render rule                                                                                                       |
+| `sound/engine`, `themes`, `types`                     | inert                                                | none; zero module-evaluation globals                                                                                                                                                                                   |
+| `sound.ts`                                            | frozen defaults                                      | eliminated — storage is never read on a render path; `hydrateSound()` runs in `onMounted` (D-V15)                                                                                                                      |
+| `useSoundFeedback`                                    | nothing                                              | none                                                                                                                                                                                                                   |
+| `SoundToggle.vue`                                     | `data-state="off"`, **both glyph groups in the DOM** | eliminated — CSS picks the glyph; the DOM shape never changes (§6.5)                                                                                                                                                   |
+| `StreamText.vue`, `Markdown.vue`                      | full token tree, no `v-html`                         | none; the parser is pure                                                                                                                                                                                               |
 
 Two package-wide sweeps enforce this mechanically: `src/ssr-determinism.test.ts` (node env; render
 each export twice, assert equal strings) and `src/ssr-hydration.test.ts` (jsdom; server HTML →
@@ -1624,19 +1779,19 @@ this folder, because its path differs between the trees (§13).
 
 **Naming translation table.**
 
-| Svelte | Vue |
-|---|---|
-| action `foo` | `attachFoo(node, options)` core (where a test calls the action, or where React already has one) **+** `useFoo(el, () => options)` composable |
-| `FooOptions` | `FooOptions` — unchanged; `UseFooOptions` only when the shape genuinely changed |
-| factory `createFoo` | `createFoo` **kept, same signature**, `$state` → `ref`/`shallowRef`/`reactive` |
-| context reader `getFoo()` | `useFoo()` |
-| context key `FOO_KEY` (a `unique symbol`) | `FOO_KEY: InjectionKey<T> = Symbol("…")` — same symbol, now typed |
-| `<Name>.svelte` | `<Name>.vue` |
-| props type `<Name>Props` | `<Name>Props` — the tooling contract, exported from the sibling `<script lang="ts">` block |
-| `.svelte.ts` rune module | plain `.ts` |
-| `_internals/` | `internals/` |
-| `-global-keyframe-name` | `keyframe-name` |
-| pure function | same name, verbatim |
+| Svelte                                    | Vue                                                                                                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| action `foo`                              | `attachFoo(node, options)` core (where a test calls the action, or where React already has one) **+** `useFoo(el, () => options)` composable |
+| `FooOptions`                              | `FooOptions` — unchanged; `UseFooOptions` only when the shape genuinely changed                                                              |
+| factory `createFoo`                       | `createFoo` **kept, same signature**, `$state` → `ref`/`shallowRef`/`reactive`                                                               |
+| context reader `getFoo()`                 | `useFoo()`                                                                                                                                   |
+| context key `FOO_KEY` (a `unique symbol`) | `FOO_KEY: InjectionKey<T> = Symbol("…")` — same symbol, now typed                                                                            |
+| `<Name>.svelte`                           | `<Name>.vue`                                                                                                                                 |
+| props type `<Name>Props`                  | `<Name>Props` — the tooling contract, exported from the sibling `<script lang="ts">` block                                                   |
+| `.svelte.ts` rune module                  | plain `.ts`                                                                                                                                  |
+| `_internals/`                             | `internals/`                                                                                                                                 |
+| `-global-keyframe-name`                   | `keyframe-name`                                                                                                                              |
+| pure function                             | same name, verbatim                                                                                                                          |
 
 Pure functions keeping their exact names, exhaustively: `computePosition`, `lockScroll`, `uid`,
 `staggerDelay`, `vibrate`, `canVibrate`, `rafThrottle`, `preset`, `anchored`, `originFor`,
@@ -1699,13 +1854,13 @@ by construction (a superset of the Svelte root `src/test-setup.ts`). What it mus
 
 ### 9.2 Harness files collapse
 
-| Svelte harness | Vue replacement |
-|---|---|
+| Svelte harness                                           | Vue replacement                                                                                                                    |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `FieldHarness.test.svelte` + `FieldConsumer.test.svelte` | two inline `defineComponent` rigs at the top of `field.test.ts`, or `render(Cmp, { global: { provide: { [FIELD_KEY]: value } } })` |
-| `ScrollLockHarness` + `ScrollLockPanel` | one inline `<Panel open>` built with `h()` in `scroll-lock.test.ts` |
-| `TransitionsHarness.test.svelte` | an inline probe using `usePresence`; assert on the `animate` fake's recorded keyframes |
-| `AnchoredHarness.test.svelte` | an inline surface with per-element `getBoundingClientRect` stubs |
-| `SoundToggleHarness.test.svelte` | not needed — render `<SoundToggle>` directly |
+| `ScrollLockHarness` + `ScrollLockPanel`                  | one inline `<Panel open>` built with `h()` in `scroll-lock.test.ts`                                                                |
+| `TransitionsHarness.test.svelte`                         | an inline probe using `usePresence`; assert on the `animate` fake's recorded keyframes                                             |
+| `AnchoredHarness.test.svelte`                            | an inline surface with per-element `getBoundingClientRect` stubs                                                                   |
+| `SoundToggleHarness.test.svelte`                         | not needed — render `<SoundToggle>` directly                                                                                       |
 
 All 73 `*.test.svelte` rigs disappear this way. A `*.test.vue` file is written **only** when the
 template is genuinely large, and it is never collected by the runner.
@@ -1743,27 +1898,27 @@ translated; `fireEvent.*` is identical and already awaits `nextTick()`; `rerende
 Vue has no double-invoke, so React's `renderStrict` helper has no counterpart. The same coverage is
 bought with a **mount / unmount / mount / unmount** cycle, and every hook module ships one:
 
-| Module | Assertion at rest |
-|---|---|
-| `dismissable` | `__dismissableLayerCount() === 0` after; exactly `1` while mounted |
-| `scroll-lock` | `document.body.style.position === ""` after; `=== "fixed"` while mounted; `window.scrollY` restored |
-| `focus-trap` | focus back on the trigger, and exactly one focus move on close (the `returned` latch) |
-| `sound-feedback` | `__soundFeedbackHoverInstances() === 0` after |
-| `in-view` / `autoscroll` | no orphaned observer (the fakes' registries empty) |
-| `presence` | no in-flight `FakeAnimation`; `mounted` false; `state` back at `"open"` |
-| `media-query` | the `MediaQueryList`'s `change` listener removed |
+| Module                   | Assertion at rest                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| `dismissable`            | `__dismissableLayerCount() === 0` after; exactly `1` while mounted                                  |
+| `scroll-lock`            | `document.body.style.position === ""` after; `=== "fixed"` while mounted; `window.scrollY` restored |
+| `focus-trap`             | focus back on the trigger, and exactly one focus move on close (the `returned` latch)               |
+| `sound-feedback`         | `__soundFeedbackHoverInstances() === 0` after                                                       |
+| `in-view` / `autoscroll` | no orphaned observer (the fakes' registries empty)                                                  |
+| `presence`               | no in-flight `FakeAnimation`; `mounted` false; `state` back at `"open"`                             |
+| `media-query`            | the `MediaQueryList`'s `change` listener removed                                                    |
 
 ### 9.5 Per-module additions
 
-| Module | What the Vue layer adds |
-|---|---|
-| `usePresence` | (a) `mounted` stays true through the exit; (b) `state` sequences `opening → open → closing`; (c) `duration: 0` finishes **synchronously** and `animate()` is never called; (d) reopening mid-exit produces a keyframe list whose first frame matches the in-flight `t`; (e) `inert` set on exit, cleared on re-enter; (f) with `appear` unset, an initially-open mount calls `animate()` zero times; (g) `surfaceState` never yields `"opening"`; (h) `presence.mounted` is a **boolean** in a template, not a `Ref` |
-| `runTransition` | the ceil'd frame count (`n + 1` keyframes), the leading dummy at a non-zero delay, and the enter-finish abort / exit-finish no-abort rules |
-| `useFocusTrap` | façade identity stability across re-renders; focus landing in the same flush as mount; the façade is inert before attach |
-| `useAnchorPosition` | one recompute per `side` change; the seeded placement is the requested side, not `"bottom"` |
-| `Portal.vue` | renders into target, not into the Vue parent; string-selector and miss→body paths; removal on unmount; nothing emitted server-side for a closed surface |
-| SSR | `@vitest-environment node` files for `sound`, `motion/tokens`, `field`, `use-id`, asserting no browser global is touched at import and that the server paths return defaults |
-| Hydration | the package-wide `ssr-hydration.test.ts` sweep, plus targeted suites for `field`, `sound/sound` and `motion/media-query` — the three modules where a server/client divergence is actually reachable |
+| Module              | What the Vue layer adds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `usePresence`       | (a) `mounted` stays true through the exit; (b) `state` sequences `opening → open → closing`; (c) `duration: 0` finishes **synchronously** and `animate()` is never called; (d) reopening mid-exit produces a keyframe list whose first frame matches the in-flight `t`; (e) `inert` set on exit, cleared on re-enter; (f) with `appear` unset, an initially-open mount calls `animate()` zero times; (g) `surfaceState` never yields `"opening"`; (h) `presence.mounted` is a **boolean** in a template, not a `Ref` |
+| `runTransition`     | the ceil'd frame count (`n + 1` keyframes), the leading dummy at a non-zero delay, and the enter-finish abort / exit-finish no-abort rules                                                                                                                                                                                                                                                                                                                                                                           |
+| `useFocusTrap`      | façade identity stability across re-renders; focus landing in the same flush as mount; the façade is inert before attach                                                                                                                                                                                                                                                                                                                                                                                             |
+| `useAnchorPosition` | one recompute per `side` change; the seeded placement is the requested side, not `"bottom"`                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `Portal.vue`        | renders into target, not into the Vue parent; string-selector and miss→body paths; removal on unmount; nothing emitted server-side even when open; hydration clean; synchronous on a fresh mount                                                                                                                                                                                                                                                                                                                     |
+| SSR                 | `@vitest-environment node` files for `sound`, `motion/tokens`, `field`, `use-id`, asserting no browser global is touched at import and that the server paths return defaults                                                                                                                                                                                                                                                                                                                                         |
+| Hydration           | the package-wide `ssr-hydration.test.ts` sweep, plus targeted suites for `field`, `sound/sound` and `motion/media-query` — the three modules where a server/client divergence is actually reachable                                                                                                                                                                                                                                                                                                                  |
 
 ---
 
@@ -1773,29 +1928,30 @@ Reproduced in `vue/README.md` under "## Divergences from the Svelte API", and in
 component's README, per PORTING.md's "port the bug and note it" discipline applied to mechanisms
 that cannot be ported.
 
-| # | Divergence | Why | Observable difference |
-|---|---|---|---|
-| **package-level** | `<Name>Props` is the component's **own** props only — never `Omit<ButtonHTMLAttributes, keyof BaseProps>` as Svelte and React spell it. Native attributes and listeners flow through `$attrs` | The intersection would make the SFC compiler enumerate every native attribute as a declared prop and kill fallthrough entirely | a consumer typing against `<Name>Props` no longer sees native attributes in that type, though they still work on the element |
-| D-V1 | `class` is a declared prop (`class?: HTMLAttributes["class"]`) | Declaring it removes it from `$attrs`, so `cn(…, props.class)` applies it exactly once. Legal: the reserved vnode keys are only `key`, `ref`, `ref_for`, `ref_key`, `onVnode*` | none |
-| D-V2 | `ref = $bindable(null)` → `defineExpose({ ref })`; `ref` is absent from `<Name>Props` | `ref` is a reserved vnode key and cannot be a prop or a model | a consumer reads the element through the component instance, not through a bound prop |
-| D-V3 | `v-model:<name>` only; no default `modelValue` alias | Name fidelity and tooling parity with the other two packages. An alias is additive and can ship later without breaking | `<Dialog v-model="x">` does not bind; `<Dialog v-model:open="x">` does |
-| D-V4 | `Snippet<[A, B]>` → a scoped slot whose params are an **object**, not a tuple | Vue slot props are named | per-component, listed in each README |
-| D-V5 | Callbacks stay props (`onOpenChange`, `onSelect`, `onDismiss`); `defineEmits` is never hand-written | One law 145 ports can follow; `@open-change` still works through the compiler | these do not appear in devtools' event pane |
-| D-V6 | `<Teleport>` sits **inside** `v-if="presence.mounted"`, and nothing is portalled server-side | Teleport resolves at patch time, so React's outside-the-gate rule inverts; an always-mounted Teleport would emit an SSR payload for a closed surface | portalled content is absent from server HTML (Svelte SSRs it inline and relocates on mount) — nil in practice, every portalled surface is gated on `open: false` |
-| D-V7 | `markSurfaceState` is not ported; `data-state` is an ordinary binding | The Svelte helper exists only because its scheduler skips effects in an outroing branch | none — identical emitted values |
-| D-V8 | `focusTrap`'s `onActivate(returnFocusNow, rearm)` becomes the composable's return value | A composable can return; an action cannot. Same two functions, same two moments | none |
-| D-V9 | A keyframe referenced from an inline style or a custom property lives in a **second, unscoped `<style>`** block; a parent's scoped selector also matches a child's root element | Vue renames keyframes inside a scoped block and cannot rewrite a reference it does not parse | none if the rule is followed; a scoped rule reaching a child root must be permissive, never a reset |
-| D-V10 | A DOM attribute the component *reads* becomes a declared Boolean prop (`disabled` is the live case) | `<X disabled>` reaches `$attrs` as `""`, which is falsy — the cue would play on a disabled button | none once declared; the prop appears in `<Name>Props` |
-| D-V11 | `bind:value` → `v-model`, which defers updates during IME composition | Vue's documented `v-model` behaviour | a composing IME user's intermediate value is not published; the final value is |
-| D-V12 | No composable exposes `destroy()`; teardown is `onScopeDispose` / `onBeforeUnmount` (factories keep theirs) | Unmount cleanup cannot be forgotten | none — it fixes a latent typeahead-timer leak in `DropdownMenuContent`, which never calls `focus.destroy()` |
-| D-V13 | `DropdownMenuContent`'s `tick()` → `nextTick()`, **kept** (React dropped it, its D-9) | The call site is a post-flush handshake, not a parent mount hook, and scoped-slot items may be created in a later flush | none |
-| D-V14 | `createMediaQuery`'s `start()`/`stop()` are kept, and every getter option (`active`, `exclude`, `count`, `loop`, `fallbackFocus`, `labelAt`, `enabled`) stays a getter — React's D-4 and D-6 are undone | Vue reactivity works outside a component and getters are the Svelte surface; flattening them would be a second, unnecessary translation | none; the Svelte test files transpose with an import-line change |
-| D-V15 | `localStorage` hydration moves out of lazy getter access into an explicit `hydrateSound()`, called from `useSound()`'s `onMounted` | A getter that writes reactive state is a bug in Vue, and production hydration does not patch a mismatched attribute (verify) | none after mount; the first paint is the frozen defaults on both server and client, as it already is in React |
-| D-V16 | Ids are Vue's `useId()` output (`v-0`, `v-1`, …), untransformed; `useFancyId()` takes no prefix | Vue's generator already namespaces per app; C-6 forbids transforming the output | rendered id strings differ from both other packages; nothing may depend on them |
-| D-V17 | The four React core edits (focus-trap `isVisible` ancestor walk, anchor-position layout-box + `reset()`, listbox `setActive` range guard, engine `MAX_LAYER_MS` clamp) are present | They land on Svelte in wave 0 (plan ruling 7), so all three trees agree | as recorded in React's D-13/D-14 until wave 0 merges; none afterwards |
-| D-V18 | `inheritAttrs: false` on every component, `v-bind="$attrs"` only where Svelte spreads `{...restProps}` | Parity with Svelte and React, both of which are closed by default. Not Vue-idiomatic | an undeclared attribute lands nowhere on the 126 closed components, exactly as in Svelte |
-| D-V19 | Peer floor is `vue ^3.5.2` (3.5.2 is the first release whose `DefineComponent` type accepts the 20 arguments vue-tsc emits into every shipped `.vue.d.ts`) | Needs reactive props destructure, `useId`, `useTemplateRef`, `onWatcherCleanup`, `<Teleport defer>`; Nuxt 4 needs ≥3.5.40 anyway | the package does not install on Vue 3.4 |
-| D-V20 | `createNow` returns the `NaN` sentinel until the clock starts (server, hydration render, first client render); `formatRelativeTime` renders a non-finite `now` as `""`. Second site: `createElapsed` seeds `NaN` when `since` is supplied (`0` without, as in the source) and `text` renders a non-finite duration as `""`; `useElapsed` starts the clock in `onMounted` | The client cannot reproduce the server's timestamp, and production hydration would leave a wrong label in place | the server HTML carries an empty relative label rather than a wrong one; it fills in before the first paint |
+| #                 | Divergence                                                                                                                                                                                                                                                                                                                                                                                                                                      | Why                                                                                                                                                                                                                                                  | Observable difference                                                                                                                                                                    |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **package-level** | `<Name>Props` is the component's **own** props only — never `Omit<ButtonHTMLAttributes, keyof BaseProps>` as Svelte and React spell it. Native attributes and listeners flow through `$attrs`                                                                                                                                                                                                                                                   | The intersection would make the SFC compiler enumerate every native attribute as a declared prop and kill fallthrough entirely                                                                                                                       | a consumer typing against `<Name>Props` no longer sees native attributes in that type, though they still work on the element                                                             |
+| D-V1              | `class` is a declared prop (`class?: HTMLAttributes["class"]`)                                                                                                                                                                                                                                                                                                                                                                                  | Declaring it removes it from `$attrs`, so `cn(…, props.class)` applies it exactly once. Legal: the reserved vnode keys are only `key`, `ref`, `ref_for`, `ref_key`, `onVnode*`                                                                       | none                                                                                                                                                                                     |
+| D-V2              | `ref = $bindable(null)` → `defineExpose({ ref })`; `ref` is absent from `<Name>Props`                                                                                                                                                                                                                                                                                                                                                           | `ref` is a reserved vnode key and cannot be a prop or a model                                                                                                                                                                                        | a consumer reads the element through the component instance, not through a bound prop                                                                                                    |
+| D-V3              | `v-model:<name>` only; no default `modelValue` alias                                                                                                                                                                                                                                                                                                                                                                                            | Name fidelity and tooling parity with the other two packages. An alias is additive and can ship later without breaking                                                                                                                               | `<Dialog v-model="x">` does not bind; `<Dialog v-model:open="x">` does                                                                                                                   |
+| D-V4              | `Snippet<[A, B]>` → a scoped slot whose params are an **object**, not a tuple                                                                                                                                                                                                                                                                                                                                                                   | Vue slot props are named                                                                                                                                                                                                                             | per-component, listed in each README                                                                                                                                                     |
+| D-V5              | Callbacks stay props (`onOpenChange`, `onSelect`, `onDismiss`); `defineEmits` is never hand-written                                                                                                                                                                                                                                                                                                                                             | One law 145 ports can follow; `@open-change` still works through the compiler                                                                                                                                                                        | these do not appear in devtools' event pane                                                                                                                                              |
+| D-V6              | `<Teleport>` sits **inside** `v-if="presence.mounted"`, and `Portal` renders nothing on the server or on the hydration pass, whether the surface is open or closed                                                                                                                                                                                                                                                                              | Teleport resolves at patch time, so React's outside-the-gate rule inverts; a teleport's server output is anchors plus a separate buffer the app subtree cannot hydrate, so an open-on-server surface would mismatch                                  | portalled content is absent from server HTML and appears after mount, open or closed by default — the same as the React package; Svelte SSRs it inline and relocates on mount            |
+| D-V7              | `markSurfaceState` is not ported; `data-state` is an ordinary binding                                                                                                                                                                                                                                                                                                                                                                           | The Svelte helper exists only because its scheduler skips effects in an outroing branch                                                                                                                                                              | none — identical emitted values                                                                                                                                                          |
+| D-V8              | `focusTrap`'s `onActivate(returnFocusNow, rearm)` becomes the composable's return value                                                                                                                                                                                                                                                                                                                                                         | A composable can return; an action cannot. Same two functions, same two moments                                                                                                                                                                      | none                                                                                                                                                                                     |
+| D-V9              | A keyframe referenced from an inline style or a custom property lives in a **second, unscoped `<style>`** block; a parent's scoped selector also matches a child's root element                                                                                                                                                                                                                                                                 | Vue renames keyframes inside a scoped block and cannot rewrite a reference it does not parse                                                                                                                                                         | none if the rule is followed; a scoped rule reaching a child root must be permissive, never a reset                                                                                      |
+| D-V10             | A DOM attribute the component _reads_ becomes a declared Boolean prop (`disabled` is the live case)                                                                                                                                                                                                                                                                                                                                             | `<X disabled>` reaches `$attrs` as `""`, which is falsy — the cue would play on a disabled button                                                                                                                                                    | none once declared; the prop appears in `<Name>Props`                                                                                                                                    |
+| D-V11             | `bind:value` → `v-model`, which defers updates during IME composition                                                                                                                                                                                                                                                                                                                                                                           | Vue's documented `v-model` behaviour                                                                                                                                                                                                                 | a composing IME user's intermediate value is not published; the final value is                                                                                                           |
+| D-V12             | No composable exposes `destroy()`; teardown is `onScopeDispose` / `onBeforeUnmount` (factories keep theirs)                                                                                                                                                                                                                                                                                                                                     | Unmount cleanup cannot be forgotten                                                                                                                                                                                                                  | none — it fixes a latent typeahead-timer leak in `DropdownMenuContent`, which never calls `focus.destroy()`                                                                              |
+| D-V13             | `DropdownMenuContent`'s `tick()` → `nextTick()`, **kept** (React dropped it, its D-9)                                                                                                                                                                                                                                                                                                                                                           | The call site is a post-flush handshake, not a parent mount hook, and scoped-slot items may be created in a later flush                                                                                                                              | none                                                                                                                                                                                     |
+| D-V14             | `createMediaQuery`'s `start()`/`stop()` are kept, and every getter option (`active`, `exclude`, `count`, `loop`, `fallbackFocus`, `labelAt`, `enabled`) stays a getter — React's D-4 and D-6 are undone                                                                                                                                                                                                                                         | Vue reactivity works outside a component and getters are the Svelte surface; flattening them would be a second, unnecessary translation                                                                                                              | none; the Svelte test files transpose with an import-line change                                                                                                                         |
+| D-V15             | `localStorage` hydration moves out of lazy getter access into an explicit `hydrateSound()`, called from `useSound()`'s `onMounted`                                                                                                                                                                                                                                                                                                              | A getter that writes reactive state is a bug in Vue, and production hydration does not patch a mismatched attribute (verify)                                                                                                                         | none after mount; the first paint is the frozen defaults on both server and client, as it already is in React                                                                            |
+| D-V16             | Ids are Vue's `useId()` output (`v-0`, `v-1`, …), untransformed; `useFancyId()` takes no prefix                                                                                                                                                                                                                                                                                                                                                 | Vue's generator already namespaces per app; C-6 forbids transforming the output                                                                                                                                                                      | rendered id strings differ from both other packages; nothing may depend on them                                                                                                          |
+| D-V17             | The four React core edits (focus-trap `isVisible` ancestor walk, anchor-position layout-box + `reset()`, listbox `setActive` range guard, engine `MAX_LAYER_MS` clamp) are present                                                                                                                                                                                                                                                              | They land on Svelte in wave 0 (plan ruling 7), so all three trees agree                                                                                                                                                                              | as recorded in React's D-13/D-14 until wave 0 merges; none afterwards                                                                                                                    |
+| D-V18             | `inheritAttrs: false` on every component, `v-bind="$attrs"` only where Svelte spreads `{...restProps}`                                                                                                                                                                                                                                                                                                                                          | Parity with Svelte and React, both of which are closed by default. Not Vue-idiomatic                                                                                                                                                                 | an undeclared attribute lands nowhere on the 126 closed components, exactly as in Svelte                                                                                                 |
+| D-V19             | Peer floor is `vue ^3.5.2` (3.5.2 is the first release whose `DefineComponent` type accepts the 20 arguments vue-tsc emits into every shipped `.vue.d.ts`)                                                                                                                                                                                                                                                                                      | Needs reactive props destructure, `useId`, `useTemplateRef`, `onWatcherCleanup`, `<Teleport defer>`; Nuxt 4 needs ≥3.5.40 anyway                                                                                                                     | the package does not install on Vue 3.4                                                                                                                                                  |
+| D-V20             | `createNow` returns the `NaN` sentinel until the clock starts (server, hydration render, first client render); `formatRelativeTime` renders a non-finite `now` as `""`. Second site: `createElapsed` seeds `NaN` when `since` is supplied (`0` without, as in the source) and `text` renders a non-finite duration as `""`; `useElapsed` starts the clock in `onMounted`                                                                        | The client cannot reproduce the server's timestamp, and production hydration would leave a wrong label in place                                                                                                                                      | the server HTML carries an empty relative label rather than a wrong one; it fills in before the first paint                                                                              |
+| D-V21             | Models keep Vue's controlled semantics: a parent that passes the value AND an `@update:<name>` listener owns it, and a write it declines does not drift locally (Svelte's non-bound `$bindable` does). The rendered state still follows the model: `Switch` and `RadioGroup` put their native controls back on the model in the next tick after a declined press, and `VoiceInput`'s start guard reads the model rather than a latch of its own | `defineModel` only emits when the parent owns the value; a native control that flipped itself on the click would otherwise disagree with `aria-checked`, the callbacks and the model until the parent wrote (screen readers announce the ARIA state) | a controlled parent that ignores an update sees the control snap back; a parent that accepts it through the callback or `v-model` sees no difference. The uncontrolled path is unchanged |
 
 **Not a divergence, and recorded as such:** `Button`, `Checkbox`, `CopyButton`, `DropdownMenu`,
 `RadioGroup`, `Select` and `Switch` each statically import the sound controller (and through it
@@ -1864,8 +2020,22 @@ Verbatim, zero JS output under `verbatimModuleSyntax`, re-exported from the barr
 
 **`float.ts` / `use-float.ts`.** The older sibling of `anchor-position.ts`: `FloatPlacement`,
 `FloatRect`, `FloatSize`, `FloatOptions`, `computeFloatPosition`, `float`. `computeFloatPosition` is
-pure and verbatim; the action becomes `attachFloat(node, options)` + `useFloat(el, () => options)`
-shaped exactly like §3.1, `matchWidth` still writing the width before measuring. Its `anchor` keeps
+pure and verbatim; the action becomes `attachFloat(node, options)` +
+`useFloat(el: WatchSource<HTMLElement | null>, options: () => FloatOptions): Readonly<Ref<{ readonly placement: FloatPlacement }>>`,
+`matchWidth` still writing the width before measuring. One watcher (`flush: 'post'`, `immediate`)
+attaches/destroys the core and arms a `MutationObserver` on `data-placement` (the core has no
+`onPlacement`); a second, over `[anchor, placement, offset, padding, matchWidth, enabled]`, calls
+`handle.update(options())`. **`update()` re-runs when any of those six changes identity against the
+set last applied — `anchor` included**, the one place this parts from §3.1. That is the Svelte
+action's `update()` re-run when its `$derived` parameter changes, and caret anchoring needs it: an
+anchor that moves while the float stays open fires no scroll/resize listener and no `ResizeObserver`
+(which never observes a getter anchor), so the float would hang over the old caret. Both the getter
+and the fixed-rect forms of the anchor union are rebuilt on every evaluation of `options()`, so a
+caller holds its anchor in a `computed` (`ComposerCommandMenu`) or reads nothing reactive while
+building it (`ComposerModelPicker`, `ContextRing`, `InlineCitation`): the watcher source then never
+re-evaluates, and the identity snapshot skips a re-sync whose six values are unchanged. The callback
+also returns early when the element is null — on unmount the options usually change in the same
+flush the node leaves, and the attach watcher's cleanup owns the teardown. Its `anchor` keeps
 the three-way union (element | fixed rect | getter) — the virtual-rect form is what caret anchoring
 needs and is why both modules exist. **Do not merge it with `anchor-position`**: two implementations
 exist on the Svelte side and fidelity means porting two.
@@ -1897,7 +2067,7 @@ is also how the Svelte consumers avoid a per-item interval.
 
 **`stream-text.ts` + `StreamText.vue`.** `createTextStream(initial, opts)` keeps its body, and
 critically its deliberately non-reactive `list`/`full` authoritative copies stay non-reactive — that
-is *why* `push()` is safe to call from a watcher, and the identical hazard exists in Vue, where a
+is _why_ `push()` is safe to call from a watcher, and the identical hazard exists in Vue, where a
 write to a tracked source during render would loop. `$state` on the exposed `segments`/`text` becomes
 `ref`/`shallowRef`; `useTextStream(initial, options)` returns
 `{ text, segments, push, flush, reset, done }`. `StreamSegment.id` stays the stable `:key`. The
@@ -1941,10 +2111,12 @@ and this section states what this package owes it.
 **The manifest.** `shared-cores.json` at the repo root, one entry per shared file:
 
 ```json
-{ "file": "fancy-ui/mosaic-glow/mosaic-glow-core.ts",
-  "svelte": "src/lib/fancy-ui/mosaic-glow/mosaic-glow-core.ts",
-  "react":  "react/src/components/mosaic-glow/mosaic-glow-core.ts",
-  "vue":    "vue/src/components/mosaic-glow/mosaic-glow-core.ts" }
+{
+	"file": "fancy-ui/mosaic-glow/mosaic-glow-core.ts",
+	"svelte": "src/lib/fancy-ui/mosaic-glow/mosaic-glow-core.ts",
+	"react": "react/src/components/mosaic-glow/mosaic-glow-core.ts",
+	"vue": "vue/src/components/mosaic-glow/mosaic-glow-core.ts"
+}
 ```
 
 The gate hashes every listed path that exists and fails with a unified diff on any inequality. Paths
@@ -1980,14 +2152,14 @@ import replaced by a local `TransitionSpec` — so it cannot be three-way). Comp
 
 **`createPresenceCore` — the one open item, and it needs a decision before §11 step 2.** The state
 machine is the most valuable shared byte in the package and the hardest to gate: today it lives
-*inside* `react/src/internals/motion/presence.ts`, unexported, alongside React's own `usePresence`,
+_inside_ `react/src/internals/motion/presence.ts`, unexported, alongside React's own `usePresence`,
 and it types its slot ref as `RefCallback<HTMLElement>` — a `react` type import. File-level hashing
 cannot gate a function inside a file, so one of two things must happen:
 
 - **Preferred:** a small React-side PR extracts `createPresenceCore`, `PresenceState`,
   `PresenceSlot` and `PresenceCoreDeps` into `react/src/internals/motion/presence-core.ts`, replaces
   `RefCallback<HTMLElement>` with a locally declared `type PresenceRef = (node: HTMLElement | null)
-  => void`, and re-exports from `presence.ts` (no behaviour change, no changeset beyond an internal
+=> void`, and re-exports from `presence.ts` (no behaviour change, no changeset beyond an internal
   patch). Vue then copies that file byte-for-byte and the manifest gates it two-way.
 - **Fallback, by analogy with plan ruling 8:** the Vue copy is listed `shared: false` and identity is
   held by a review diff plus a dedicated assertion in `check-shared-cores.mjs` comparing the
