@@ -15,7 +15,7 @@
 // Pinning the body in place with `position: fixed` blocks that too, but it
 // also means the page's scroll position is lost the instant `position`
 // leaves `static` (the viewport jumps to its top-left), so the position has
-// to be captured before locking and restored by hand after unlocking — the
+// to be captured (both axes) before locking and restored by hand after unlocking — the
 // cost of choosing this technique over the simpler one.
 //
 // Scrollbar compensation: removing the scrollbar reflows the page — content
@@ -27,6 +27,7 @@
 // entirely rather than adding a stray `padding-right: 0px`.
 
 interface LockedState {
+	scrollX: number;
 	scrollY: number;
 	bodyPosition: string;
 	bodyTop: string;
@@ -58,6 +59,7 @@ export function lockScroll(): () => void {
 		const currentPaddingRight = parseFloat(getComputedStyle(body).paddingRight) || 0;
 
 		saved = {
+			scrollX: window.scrollX,
 			scrollY: window.scrollY,
 			bodyPosition: body.style.position,
 			bodyTop: body.style.top,
@@ -103,7 +105,9 @@ export function lockScroll(): () => void {
 		body.style.width = state.bodyWidth;
 		body.style.overflow = state.bodyOverflow;
 		body.style.paddingRight = state.bodyPaddingRight;
-		window.scrollTo(0, state.scrollY);
+		// Both axes: a page scrolled sideways must not land back at its
+		// left edge when the last overlay closes.
+		window.scrollTo(state.scrollX, state.scrollY);
 	};
 }
 

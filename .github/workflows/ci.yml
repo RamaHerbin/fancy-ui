@@ -45,7 +45,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:registry
-      - run: pnpm check:cores
+      # --require-react: every React copy the manifest declares must exist, so
+      # deleting or renaming one fails here instead of silently shrinking the
+      # identity check to the Svelte copy alone (`react: null` stays exempt).
+      - run: pnpm check:cores --require-react
+      # The purity rules' own cases (what each must reject and accept), so a
+      # rule that stops biting fails here rather than passing every core.
+      - run: pnpm check:cores --self-test
       - run: pnpm check:i18n
       - run: pnpm check
       - run: pnpm test

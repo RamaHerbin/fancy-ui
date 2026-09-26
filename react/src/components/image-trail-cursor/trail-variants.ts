@@ -201,6 +201,10 @@ abstract class BaseVariant implements ImageTrailVariant {
 
 	private startRafLoop() {
 		if (this.rafStarted) return;
+		// Nothing to animate when the container holds no trail elements: leaving the
+		// loop unstarted keeps an empty trail (`images` defaults to `[]`) from
+		// rescheduling a requestAnimationFrame every frame until unmount.
+		if (this.imagesTotal === 0) return;
 		this.rafStarted = true;
 		// Remove initRender listeners since we're starting the loop
 		if (this.initRender) {
