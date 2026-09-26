@@ -54,6 +54,10 @@ export default {
 	"table.default": "Výchozí",
 	"table.description": "Popis",
 	"table.slot": "Slot",
+	"table.event": "Událost",
+	"table.payload": "Data",
+	"comp.events": "Události",
+	"comp.copyMarkdown": "Kopírovat jako Markdown",
 
 	// Copy buttons
 	"action.copy": "Kopírovat",

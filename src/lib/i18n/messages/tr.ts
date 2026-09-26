@@ -54,6 +54,10 @@ export default {
 	"table.default": "Varsayılan",
 	"table.description": "Açıklama",
 	"table.slot": "Slot",
+	"table.event": "Olay",
+	"table.payload": "Veri",
+	"comp.events": "Olaylar",
+	"comp.copyMarkdown": "Markdown olarak kopyala",
 
 	// Copy buttons
 	"action.copy": "Kopyala",

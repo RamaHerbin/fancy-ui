@@ -32,7 +32,6 @@
  * does, but a transition function's body only ever runs in the browser.
  */
 
-import type { TransitionConfig } from "svelte/transition";
 import type { Side, Align } from "../anchor-position.js";
 import { DURATIONS, JS_EASINGS } from "./tokens.js";
 import { PRESETS } from "./presets.js";
@@ -109,6 +108,16 @@ const ORIGINS: Record<Side, Record<Align, string>> = {
 
 export function originFor(side: Side, align: Align = "center"): string {
 	return ORIGINS[side][align];
+}
+
+/** Structural stand-in for `svelte/transition`'s `TransitionConfig`, so this
+ * file has no framework import. Shape-compatible with the real type. */
+export interface TransitionConfig {
+	delay?: number;
+	duration?: number;
+	easing?: (t: number) => number;
+	css?: (t: number, u: number) => string;
+	tick?: (t: number, u: number) => void;
 }
 
 /** The entrance floor, read from the shared geometry table rather than

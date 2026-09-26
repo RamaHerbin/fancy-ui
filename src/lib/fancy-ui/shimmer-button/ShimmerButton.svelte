@@ -3,13 +3,13 @@
 	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	type BaseProps = {
-		/** Shimmer highlight color */
+		/** Colour of the sheen */
 		shimmerColor?: string;
-		/** Thickness of the shimmer border */
+		/** Thickness of the rim the sheen glints on */
 		shimmerSize?: string;
 		/** Button border radius */
 		borderRadius?: string;
-		/** Duration of the shimmer animation cycle */
+		/** Duration of one sheen cycle: the sweep, then a pause */
 		shimmerDuration?: string;
 		/** Button background color */
 		background?: string;
@@ -40,90 +40,173 @@
 		background = "rgba(0, 0, 0, 1)",
 		children,
 		onclick,
+		onpointermove,
 		sound = false,
 		...restProps
 	}: ShimmerButtonProps = $props();
 
 	const styleVars = $derived(
-		`--spread: 90deg; --shimmer-color: ${shimmerColor}; --radius: ${borderRadius}; --speed: ${shimmerDuration}; --cut: ${shimmerSize}; --bg: ${background}`
+		`--shimmer-color: ${shimmerColor}; --radius: ${borderRadius}; --speed: ${shimmerDuration}; --cut: ${shimmerSize}; --bg: ${background}`
 	);
 
 	function handleClick(event: MouseEvent) {
 		if (sound && !restProps.disabled) soundFx.play("press");
 		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 	}
+
+	// The hover sheen follows the pointer: two CSS variables, no re-render.
+	function handlePointerMove(event: PointerEvent) {
+		const el = event.currentTarget as HTMLButtonElement;
+		const rect = el.getBoundingClientRect();
+		el.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+		el.style.setProperty("--my", `${event.clientY - rect.top}px`);
+		onpointermove?.(event as PointerEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	}
 </script>
 
 <button
 	class={cn(
-		"shimmer-button group relative z-0 flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] border border-white/10 px-6 py-3 whitespace-nowrap text-white [background:var(--bg)]",
-		"transform-gpu transition-transform duration-300 ease-in-out active:translate-y-px",
+		"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
+		"transform-gpu transition-[transform,color] duration-300 ease-out hover:text-white active:scale-[0.98]",
 		className
 	)}
 	style={styleVars}
 	onclick={handleClick}
+	onpointermove={handlePointerMove}
 	{...restProps}
 >
-	<!-- Shimmer layer -->
-	<div class="[container-type:size] absolute inset-0 -z-30 overflow-visible blur-[2px]">
-		<div
-			class="shimmer-slide absolute inset-0 [aspect-ratio:1] h-[100cqh] [border-radius:0] [mask:none]"
-		>
-			<div
-				class="spin-around absolute -inset-full w-auto [translate:0_0] rotate-0 [background:conic-gradient(from_calc(270deg-(var(--spread)*0.5)),transparent_0,var(--shimmer-color)_var(--spread),transparent_var(--spread))]"
-			></div>
-		</div>
-	</div>
+	<!-- Rim: shows around the face, catches the sheen as it passes -->
+	<span class="shimmer-button__rim" aria-hidden="true"></span>
+
+	<!-- Face -->
+	<span class="shimmer-button__face" aria-hidden="true"></span>
 
 	<!-- Content -->
-	{@render children?.()}
+	<span class="relative z-10">{@render children?.()}</span>
 
-	<!-- Inner shadow overlay -->
-	<div
-		class={cn(
-			"insert-0 absolute size-full",
-			"rounded-2xl px-4 py-1.5 text-sm font-medium shadow-[inset_0_-8px_10px_#ffffff1f]",
-			"transform-gpu transition-all duration-300 ease-in-out",
-			"group-hover:shadow-[inset_0_-6px_10px_#ffffff3f]",
-			"group-active:shadow-[inset_0_-10px_10px_#ffffff3f]"
-		)}
-	></div>
+	<!-- Sweep: a satin band that crosses the button, then rests -->
+	<span class="shimmer-button__sheen" aria-hidden="true"></span>
 
-	<!-- Background fill -->
-	<div
-		class="absolute [inset:var(--cut)] -z-20 [border-radius:var(--radius)] [background:var(--bg)]"
-	></div>
+	<!-- Hover: the sheen follows the pointer -->
+	<span class="shimmer-button__spot" aria-hidden="true"></span>
 </button>
 
 <style>
-	@keyframes shimmer-slide {
-		to {
-			transform: translate(calc(100cqw - 100%), 0);
-		}
+	.shimmer-button__rim,
+	.shimmer-button__face,
+	.shimmer-button__sheen,
+	.shimmer-button__spot {
+		position: absolute;
+		pointer-events: none;
+		border-radius: inherit;
 	}
 
-	@keyframes spin-around {
+	.shimmer-button__rim {
+		inset: 0;
+		z-index: -2;
+		background: linear-gradient(
+			to bottom,
+			color-mix(in srgb, var(--shimmer-color) 28%, transparent),
+			color-mix(in srgb, var(--shimmer-color) 6%, transparent) 55%,
+			color-mix(in srgb, var(--shimmer-color) 14%, transparent)
+		);
+	}
+
+	.shimmer-button__face {
+		inset: var(--cut);
+		z-index: -1;
+		border-radius: calc(var(--radius) - var(--cut));
+		background:
+			linear-gradient(
+				to bottom,
+				color-mix(in srgb, var(--shimmer-color) 10%, transparent),
+				transparent 50%
+			),
+			var(--bg);
+		box-shadow: inset 0 -10px 16px -12px color-mix(in srgb, var(--shimmer-color) 30%, transparent);
+	}
+
+	/* Screen blend: the band lightens the face and lifts the label to full white. */
+	.shimmer-button__sheen {
+		inset: 0;
+		z-index: 20;
+		mix-blend-mode: screen;
+		/* a wide soft halo with a thin brighter core */
+		background:
+			linear-gradient(
+				108deg,
+				transparent 44%,
+				color-mix(in srgb, var(--shimmer-color) 38%, transparent) 50%,
+				transparent 56%
+			),
+			linear-gradient(
+				108deg,
+				transparent 30%,
+				color-mix(in srgb, var(--shimmer-color) 12%, transparent) 42%,
+				color-mix(in srgb, var(--shimmer-color) 18%, transparent) 50%,
+				color-mix(in srgb, var(--shimmer-color) 12%, transparent) 58%,
+				transparent 70%
+			);
+		background-size: 250% 100%;
+		background-repeat: no-repeat;
+		background-position: 100% 0;
+		animation: shimmer-sweep var(--speed) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+		transition: opacity 0.3s ease;
+	}
+
+	.shimmer-button__spot {
+		inset: 0;
+		z-index: 20;
+		mix-blend-mode: screen;
+		opacity: 0;
+		background: radial-gradient(
+			90px circle at var(--mx, 50%) var(--my, 50%),
+			color-mix(in srgb, var(--shimmer-color) 34%, transparent),
+			transparent 70%
+		);
+		transition: opacity 0.3s ease;
+	}
+
+	.shimmer-button:hover .shimmer-button__spot {
+		opacity: 1;
+	}
+
+	/* The pointer takes over from the sweep while hovering. */
+	.shimmer-button:hover .shimmer-button__sheen {
+		opacity: 0;
+	}
+
+	.shimmer-button:focus-visible {
+		outline: 2px solid color-mix(in srgb, var(--shimmer-color) 70%, transparent);
+		outline-offset: 2px;
+	}
+
+	.shimmer-button:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
+	}
+
+	.shimmer-button:disabled .shimmer-button__sheen,
+	.shimmer-button:disabled .shimmer-button__spot {
+		display: none;
+	}
+
+	/* Sweep across in the first 55% of the cycle, then rest off-button. */
+	@keyframes shimmer-sweep {
 		0% {
-			transform: translateZ(0) rotate(0);
+			background-position: 100% 0;
 		}
-		15%,
-		35% {
-			transform: translateZ(0) rotate(90deg);
-		}
-		65%,
-		85% {
-			transform: translateZ(0) rotate(270deg);
-		}
+		55%,
 		100% {
-			transform: translateZ(0) rotate(360deg);
+			background-position: 0% 0;
 		}
 	}
 
-	.shimmer-slide {
-		animation: shimmer-slide var(--speed) ease-in-out infinite alternate;
-	}
-
-	.spin-around {
-		animation: spin-around calc(var(--speed) * 2) infinite linear;
+	@media (prefers-reduced-motion: reduce) {
+		.shimmer-button__sheen {
+			animation: none;
+			background-position: 38% 0;
+			opacity: 0.6;
+		}
 	}
 </style>

@@ -1,0 +1,852 @@
+[
+	{
+		"id": "_internals/calendar-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/calendar-core.ts",
+			"react": "react/src/internals/calendar-core.ts",
+			"vue": "vue/src/internals/calendar-core.ts"
+		}
+	},
+	{
+		"id": "_internals/waveform-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/waveform-core.ts",
+			"react": "react/src/internals/waveform-core.ts",
+			"vue": "vue/src/internals/waveform-core.ts"
+		}
+	},
+	{
+		"id": "dropdown-menu/menu-shared.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/dropdown-menu/menu-shared.ts",
+			"react": "react/src/components/dropdown-menu/menu-shared.ts",
+			"vue": "vue/src/components/dropdown-menu/menu-shared.ts"
+		}
+	},
+	{
+		"id": "fireworks-hdr/fireworks-shared.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/fireworks-hdr/fireworks-shared.ts",
+			"react": "react/src/components/fireworks-hdr/fireworks-shared.ts",
+			"vue": "vue/src/components/fireworks-hdr/fireworks-shared.ts"
+		}
+	},
+	{
+		"id": "fireworks-hdr/webgl2-renderer.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"note": "The Svelte copy's import.meta.env.DEV diagnostics were dropped during this wave (ruling 6); it is pure and byte-identical to React again.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/fireworks-hdr/webgl2-renderer.ts",
+			"react": "react/src/components/fireworks-hdr/webgl2-renderer.ts",
+			"vue": "vue/src/components/fireworks-hdr/webgl2-renderer.ts"
+		}
+	},
+	{
+		"id": "fireworks-hdr/webgpu-renderer.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"note": "The Svelte copy's import.meta.env.DEV diagnostics were dropped during this wave (ruling 6); it is pure and byte-identical to React again.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/fireworks-hdr/webgpu-renderer.ts",
+			"react": "react/src/components/fireworks-hdr/webgpu-renderer.ts",
+			"vue": "vue/src/components/fireworks-hdr/webgpu-renderer.ts"
+		}
+	},
+	{
+		"id": "fluid-cursor/fluid-shared.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/fluid-cursor/fluid-shared.ts",
+			"react": "react/src/components/fluid-cursor/fluid-shared.ts",
+			"vue": "vue/src/components/fluid-cursor/fluid-shared.ts"
+		}
+	},
+	{
+		"id": "fluid-cursor/webgpu-engine.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"note": "The Svelte copy's import.meta.env.DEV diagnostics were dropped during this wave (ruling 6); it is pure and byte-identical to React again.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/fluid-cursor/webgpu-engine.ts",
+			"react": "react/src/components/fluid-cursor/webgpu-engine.ts",
+			"vue": "vue/src/components/fluid-cursor/webgpu-engine.ts"
+		}
+	},
+	{
+		"id": "mosaic-glow/mosaic-glow-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/mosaic-glow/mosaic-glow-core.ts",
+			"react": "react/src/components/mosaic-glow/mosaic-glow-core.ts",
+			"vue": "vue/src/components/mosaic-glow/mosaic-glow-core.ts"
+		}
+	},
+	{
+		"id": "editorial-engine/engine.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/editorial-engine/engine.ts",
+			"react": "react/src/components/editorial-engine/engine.ts",
+			"vue": "vue/src/components/editorial-engine/engine.ts"
+		}
+	},
+	{
+		"id": "image-trail-cursor/trail-variants.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/image-trail-cursor/trail-variants.ts",
+			"react": "react/src/components/image-trail-cursor/trail-variants.ts",
+			"vue": "vue/src/components/image-trail-cursor/trail-variants.ts"
+		}
+	},
+	{
+		"id": "_internals/ai-types.ts",
+		"kind": "types",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/ai-types.ts",
+			"react": "react/src/internals/ai-types.ts",
+			"vue": "vue/src/internals/ai-types.ts"
+		}
+	},
+	{
+		"id": "_internals/anchor-position.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/anchor-position.ts",
+			"react": null,
+			"vue": "vue/src/internals/anchor-position.ts"
+		}
+	},
+	{
+		"id": "_internals/autoscroll.ts",
+		"kind": "action",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/autoscroll.ts",
+			"react": null,
+			"vue": "vue/src/internals/autoscroll.ts"
+		}
+	},
+	{
+		"id": "_internals/clipboard.svelte.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Rune module (.svelte.ts). Each framework re-expresses the reactivity — React `use-copy.ts`, Vue `clipboard.ts` + `useCopy` — so there is nothing to byte-share.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/clipboard.svelte.ts",
+			"react": null,
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/diff.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/diff.ts",
+			"react": "react/src/internals/diff.ts",
+			"vue": "vue/src/internals/diff.ts"
+		}
+	},
+	{
+		"id": "_internals/dismissable.ts",
+		"kind": "action",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/dismissable.ts",
+			"react": null,
+			"vue": "vue/src/internals/dismissable.ts"
+		}
+	},
+	{
+		"id": "_internals/elapsed.svelte.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Rune module (.svelte.ts); the React counterpart is the renamed hook `use-elapsed.ts`.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/elapsed.svelte.ts",
+			"react": null,
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/field.svelte.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Context bridge: `getContext` from svelte on one side, `createContext`/`useContext` from react on the other. Framework-coupled by design.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/field.svelte.ts",
+			"react": "react/src/internals/field.svelte.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/float.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/float.ts",
+			"react": null,
+			"vue": "vue/src/internals/float.ts"
+		}
+	},
+	{
+		"id": "_internals/focus-trap.ts",
+		"kind": "action",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/focus-trap.ts",
+			"react": null,
+			"vue": "vue/src/internals/focus-trap.ts"
+		}
+	},
+	{
+		"id": "_internals/host.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/host.ts",
+			"react": "react/src/internals/host.ts",
+			"vue": "vue/src/internals/host.ts"
+		}
+	},
+	{
+		"id": "_internals/id.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"note": "React deliberately diverges (`use-id.ts` wraps React's useId for hydration safety), so `react` is null; Vue takes `uid()` verbatim per the porting law.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/id.ts",
+			"react": null,
+			"vue": "vue/src/internals/id.ts"
+		}
+	},
+	{
+		"id": "_internals/listbox.svelte.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Rune module (.svelte.ts); React expresses the same store with useSyncExternalStore. No byte-shared file.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/listbox.svelte.ts",
+			"react": "react/src/internals/listbox.svelte.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/markdown.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/markdown.ts",
+			"react": "react/src/internals/markdown.ts",
+			"vue": "vue/src/internals/markdown.ts"
+		}
+	},
+	{
+		"id": "_internals/menu.svelte.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Rune module (.svelte.ts); React expresses the same store with useSyncExternalStore. No byte-shared file.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/menu.svelte.ts",
+			"react": "react/src/internals/menu.svelte.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/portal.ts",
+		"kind": "pure-helper",
+		"shared": false,
+		"reason": "The React counterpart is the `Portal.tsx` component (the `resolvePortalTarget` helper is embedded in it) and Vue gets `Portal.vue`; the Svelte file is action-shaped. No byte-shareable file on any side.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/portal.ts",
+			"react": null,
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/relative-time.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/relative-time.ts",
+			"react": "react/src/internals/relative-time.ts",
+			"vue": "vue/src/internals/relative-time.ts"
+		}
+	},
+	{
+		"id": "_internals/scroll-lock.ts",
+		"kind": "action",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/scroll-lock.ts",
+			"react": null,
+			"vue": "vue/src/internals/scroll-lock.ts"
+		}
+	},
+	{
+		"id": "_internals/stream-text.svelte.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Rune module (.svelte.ts); the React counterpart is the renamed hook `use-text-stream.ts`.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/stream-text.svelte.ts",
+			"react": null,
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/motion/anchored.ts",
+		"kind": "pure-helper",
+		"shared": false,
+		"reason": "Differs from the ports by one import specifier and two comment lines only: the Svelte file imports REDUCED_MOTION_QUERY from the rune module ./media-query.svelte.js, a name the framework ports cannot carry; they import ./media-query.js. The ports' copies are gated against each other (see the (ports) entry).",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/anchored.ts",
+			"react": "react/src/internals/motion/anchored.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/motion/haptics.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/haptics.ts",
+			"react": "react/src/internals/motion/haptics.ts",
+			"vue": "vue/src/internals/motion/haptics.ts"
+		}
+	},
+	{
+		"id": "_internals/motion/in-view.ts",
+		"kind": "action",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/in-view.ts",
+			"react": null,
+			"vue": "vue/src/internals/motion/in-view.ts"
+		}
+	},
+	{
+		"id": "_internals/motion/media-query.svelte.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Rune module (.svelte.ts); React uses useSyncExternalStore. Vue keeps the Svelte `start/stop` signature (D-V14) but not the bytes.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/media-query.svelte.ts",
+			"react": "react/src/internals/motion/media-query.svelte.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/motion/presets.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/presets.ts",
+			"react": "react/src/internals/motion/presets.ts",
+			"vue": "vue/src/internals/motion/presets.ts"
+		}
+	},
+	{
+		"id": "_internals/motion/raf.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/raf.ts",
+			"react": "react/src/internals/motion/raf.ts",
+			"vue": "vue/src/internals/motion/raf.ts"
+		}
+	},
+	{
+		"id": "_internals/motion/stagger.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/stagger.ts",
+			"react": "react/src/internals/motion/stagger.ts",
+			"vue": "vue/src/internals/motion/stagger.ts"
+		}
+	},
+	{
+		"id": "_internals/motion/tokens.ts",
+		"kind": "data",
+		"shared": false,
+		"reason": "Svelte side imports expoIn/expoOut from svelte/easing — a real runtime import, not type-only. React reimplements the easings in ./easing.ts (D-7). Not byte-shareable until the easings are inlined on the Svelte side.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/tokens.ts",
+			"react": "react/src/internals/motion/tokens.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/motion/transitions.ts",
+		"kind": "pure-helper",
+		"shared": false,
+		"reason": "Svelte side imports `TransitionConfig` from svelte/transition; the React copy is framework-free. Ruling 8 candidate — purify the type and flip.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/transitions.ts",
+			"react": "react/src/internals/motion/transitions.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "_internals/motion/types.ts",
+		"kind": "types",
+		"shared": true,
+		"note": "Diverges today only in a docblock sentence (barrel path prose) — a re-alignment target, still shared:true.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/_internals/motion/types.ts",
+			"react": "react/src/internals/motion/types.ts",
+			"vue": "vue/src/internals/motion/types.ts"
+		}
+	},
+	{
+		"id": "sound/engine.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sound/engine.ts",
+			"react": "react/src/sound/engine.ts",
+			"vue": "vue/src/sound/engine.ts"
+		}
+	},
+	{
+		"id": "sound/sound-feedback.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"reason": "Svelte action body is framework-free (structural typing) and is the Vue core verbatim; the React module carries its own core + hook in one file and is not byte-shared.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sound/sound-feedback.ts",
+			"react": null,
+			"vue": "vue/src/sound/sound-feedback.ts"
+		}
+	},
+	{
+		"id": "sound/sound.svelte.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Rune module (.svelte.ts) importing `untrack` from svelte; each framework re-expresses the store.",
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sound/sound.svelte.ts",
+			"react": "react/src/sound/sound.svelte.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "sound/themes.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sound/themes.ts",
+			"react": "react/src/sound/themes.ts",
+			"vue": "vue/src/sound/themes.ts"
+		}
+	},
+	{
+		"id": "sound/types.ts",
+		"kind": "types",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sound/types.ts",
+			"react": "react/src/sound/types.ts",
+			"vue": "vue/src/sound/types.ts"
+		}
+	},
+	{
+		"id": "sound/web-audio-mock.ts",
+		"kind": "pure-helper",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/sound/web-audio-mock.ts",
+			"react": "react/src/sound/web-audio-mock.ts",
+			"vue": "vue/src/sound/web-audio-mock.ts"
+		}
+	},
+	{
+		"id": "cameleon/context.ts",
+		"kind": "rune-module",
+		"shared": false,
+		"reason": "Framework context bridge: `getContext`/`setContext` from svelte, `createContext`/`useContext` from react. Coupled by design.",
+		"paths": {
+			"svelte": "src/lib/cameleon/context.ts",
+			"react": "react/src/cameleon/context.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "cameleon/skins/aurora/meta.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/aurora/meta.ts",
+			"react": "react/src/cameleon/skins/aurora/meta.ts",
+			"vue": "vue/src/cameleon/skins/aurora/meta.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/aurora/recipes.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/aurora/recipes.ts",
+			"react": "react/src/cameleon/skins/aurora/recipes.ts",
+			"vue": "vue/src/cameleon/skins/aurora/recipes.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/aurora/tokens.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/aurora/tokens.ts",
+			"react": "react/src/cameleon/skins/aurora/tokens.ts",
+			"vue": "vue/src/cameleon/skins/aurora/tokens.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/brutal/meta.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/brutal/meta.ts",
+			"react": "react/src/cameleon/skins/brutal/meta.ts",
+			"vue": "vue/src/cameleon/skins/brutal/meta.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/brutal/ornaments.ts",
+		"kind": "other",
+		"shared": false,
+		"reason": "Renders markup: `createRawSnippet` on Svelte, an `ornaments.tsx` component on React, `h()` on Vue. Framework-coupled by nature.",
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/brutal/ornaments.ts",
+			"react": null,
+			"vue": null
+		}
+	},
+	{
+		"id": "cameleon/skins/brutal/recipes.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/brutal/recipes.ts",
+			"react": "react/src/cameleon/skins/brutal/recipes.ts",
+			"vue": "vue/src/cameleon/skins/brutal/recipes.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/brutal/tokens.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/brutal/tokens.ts",
+			"react": "react/src/cameleon/skins/brutal/tokens.ts",
+			"vue": "vue/src/cameleon/skins/brutal/tokens.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/default.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/default.ts",
+			"react": "react/src/cameleon/skins/default.ts",
+			"vue": "vue/src/cameleon/skins/default.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/glass/meta.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/glass/meta.ts",
+			"react": "react/src/cameleon/skins/glass/meta.ts",
+			"vue": "vue/src/cameleon/skins/glass/meta.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/glass/recipes.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/glass/recipes.ts",
+			"react": "react/src/cameleon/skins/glass/recipes.ts",
+			"vue": "vue/src/cameleon/skins/glass/recipes.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/glass/tokens.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/glass/tokens.ts",
+			"react": "react/src/cameleon/skins/glass/tokens.ts",
+			"vue": "vue/src/cameleon/skins/glass/tokens.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/retro-os/kit/accents.ts",
+		"kind": "data",
+		"shared": true,
+		"note": "The retro-os `kit/` subfolder is not ported to React yet; the path is the intended location, absent copies are skipped unless --require-react.",
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/retro-os/kit/accents.ts",
+			"react": null,
+			"vue": "vue/src/cameleon/skins/retro-os/kit/accents.ts"
+		},
+		"reason": "React ships no retro-kit subpath (documented package delta); Svelte↔Vue only."
+	},
+	{
+		"id": "cameleon/skins/retro-os/meta.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/retro-os/meta.ts",
+			"react": "react/src/cameleon/skins/retro-os/meta.ts",
+			"vue": "vue/src/cameleon/skins/retro-os/meta.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/retro-os/ornaments.ts",
+		"kind": "other",
+		"shared": false,
+		"reason": "Renders markup: `createRawSnippet` on Svelte, an `ornaments.tsx` component on React, `h()` on Vue. Framework-coupled by nature.",
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/retro-os/ornaments.ts",
+			"react": null,
+			"vue": null
+		}
+	},
+	{
+		"id": "cameleon/skins/retro-os/recipes.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/retro-os/recipes.ts",
+			"react": "react/src/cameleon/skins/retro-os/recipes.ts",
+			"vue": "vue/src/cameleon/skins/retro-os/recipes.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/retro-os/tokens.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/retro-os/tokens.ts",
+			"react": "react/src/cameleon/skins/retro-os/tokens.ts",
+			"vue": "vue/src/cameleon/skins/retro-os/tokens.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/terminal/meta.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/terminal/meta.ts",
+			"react": "react/src/cameleon/skins/terminal/meta.ts",
+			"vue": "vue/src/cameleon/skins/terminal/meta.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/terminal/ornaments.ts",
+		"kind": "other",
+		"shared": false,
+		"reason": "Renders markup: `createRawSnippet` on Svelte, an `ornaments.tsx` component on React, `h()` on Vue. Framework-coupled by nature.",
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/terminal/ornaments.ts",
+			"react": null,
+			"vue": null
+		}
+	},
+	{
+		"id": "cameleon/skins/terminal/recipes.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/terminal/recipes.ts",
+			"react": "react/src/cameleon/skins/terminal/recipes.ts",
+			"vue": "vue/src/cameleon/skins/terminal/recipes.ts"
+		}
+	},
+	{
+		"id": "cameleon/skins/terminal/tokens.ts",
+		"kind": "data",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/terminal/tokens.ts",
+			"react": "react/src/cameleon/skins/terminal/tokens.ts",
+			"vue": "vue/src/cameleon/skins/terminal/tokens.ts"
+		}
+	},
+	{
+		"id": "cameleon/types.ts",
+		"kind": "types",
+		"shared": false,
+		"reason": "The skin contract embeds a renderable-content type per framework (`Snippet` from svelte, `ReactNode` from react). Type-only, but framework-coupled on every side.",
+		"paths": {
+			"svelte": "src/lib/cameleon/types.ts",
+			"react": "react/src/cameleon/types.ts",
+			"vue": null
+		}
+	},
+	{
+		"id": "cameleon/cameleon.css",
+		"kind": "css",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/cameleon.css",
+			"react": "react/src/cameleon/cameleon.css",
+			"vue": "vue/src/cameleon/cameleon.css"
+		}
+	},
+	{
+		"id": "cameleon/skins/aurora/aurora.css",
+		"kind": "css",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/aurora/aurora.css",
+			"react": "react/src/cameleon/skins/aurora/aurora.css",
+			"vue": "vue/src/cameleon/skins/aurora/aurora.css"
+		}
+	},
+	{
+		"id": "cameleon/skins/brutal/brutal.css",
+		"kind": "css",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/brutal/brutal.css",
+			"react": "react/src/cameleon/skins/brutal/brutal.css",
+			"vue": "vue/src/cameleon/skins/brutal/brutal.css"
+		}
+	},
+	{
+		"id": "cameleon/skins/glass/glass.css",
+		"kind": "css",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/glass/glass.css",
+			"react": "react/src/cameleon/skins/glass/glass.css",
+			"vue": "vue/src/cameleon/skins/glass/glass.css"
+		}
+	},
+	{
+		"id": "cameleon/skins/retro-os/kit/kit.css",
+		"kind": "css",
+		"shared": true,
+		"note": "The retro-os `kit/` subfolder is not ported to React yet; the path is the intended location, absent copies are skipped unless --require-react.",
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/retro-os/kit/kit.css",
+			"react": null,
+			"vue": "vue/src/cameleon/skins/retro-os/kit/kit.css"
+		},
+		"reason": "React ships no retro-kit subpath (documented package delta); Svelte↔Vue only."
+	},
+	{
+		"id": "cameleon/skins/retro-os/retro-os.css",
+		"kind": "css",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/retro-os/retro-os.css",
+			"react": "react/src/cameleon/skins/retro-os/retro-os.css",
+			"vue": "vue/src/cameleon/skins/retro-os/retro-os.css"
+		}
+	},
+	{
+		"id": "cameleon/skins/terminal/terminal.css",
+		"kind": "css",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/cameleon/skins/terminal/terminal.css",
+			"react": "react/src/cameleon/skins/terminal/terminal.css",
+			"vue": "vue/src/cameleon/skins/terminal/terminal.css"
+		}
+	},
+	{
+		"id": "motion/animate.ts (ports)",
+		"kind": "engine-core",
+		"shared": true,
+		"note": "Transition sampler transcribed from the Svelte runtime; shared by the framework ports only.",
+		"paths": {
+			"svelte": null,
+			"react": "react/src/internals/motion/animate.ts",
+			"vue": "vue/src/internals/motion/animate.ts"
+		}
+	},
+	{
+		"id": "motion/easing.ts (ports)",
+		"kind": "pure-helper",
+		"shared": true,
+		"note": "Closed-form easings replacing the Svelte runtime import; shared by the framework ports only.",
+		"paths": {
+			"svelte": null,
+			"react": "react/src/internals/motion/easing.ts",
+			"vue": "vue/src/internals/motion/easing.ts"
+		}
+	},
+	{
+		"id": "motion/tokens.ts (ports)",
+		"kind": "data",
+		"shared": true,
+		"note": "Same tokens as the Svelte file, importing ./easing.js instead of the Svelte runtime; shared by the framework ports only.",
+		"paths": {
+			"svelte": null,
+			"react": "react/src/internals/motion/tokens.ts",
+			"vue": "vue/src/internals/motion/tokens.ts"
+		}
+	},
+	{
+		"id": "motion/presence-core.ts (ports)",
+		"kind": "engine-core",
+		"shared": true,
+		"note": "Presence state machine behind usePresence; the Svelte reference uses native transition directives instead.",
+		"paths": {
+			"svelte": null,
+			"react": "react/src/internals/motion/presence-core.ts",
+			"vue": "vue/src/internals/motion/presence-core.ts"
+		}
+	},
+	{
+		"id": "test-setup.ts (ports)",
+		"kind": "other",
+		"shared": true,
+		"note": "jsdom stubs (animations, observers, matchMedia) shared by the framework ports' test suites.",
+		"paths": {
+			"svelte": null,
+			"react": "react/src/test-setup.ts",
+			"vue": "vue/src/test-setup.ts"
+		}
+	},
+	{
+		"id": "motion/anchored.ts (ports)",
+		"kind": "pure-helper",
+		"shared": true,
+		"note": "The Svelte anchored.ts with the media-query specifier and its two comment references rewritten to ./media-query.js; shared by the framework ports only.",
+		"paths": {
+			"svelte": null,
+			"react": "react/src/internals/motion/anchored.ts",
+			"vue": "vue/src/internals/motion/anchored.ts"
+		}
+	}
+]

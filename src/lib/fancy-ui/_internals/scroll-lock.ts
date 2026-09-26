@@ -26,8 +26,6 @@
 // most mobile browsers) that measures zero, so the padding write is skipped
 // entirely rather than adding a stray `padding-right: 0px`.
 
-import type { Action } from "svelte/action";
-
 interface LockedState {
 	scrollY: number;
 	bodyPosition: string;
@@ -128,4 +126,6 @@ export function lockScroll(): () => void {
  * once its LAST transition finishes, so the release lands at the same instant
  * either way.
  */
-export const scrollLock: Action<HTMLElement> = () => ({ destroy: lockScroll() });
+export const scrollLock: (node: HTMLElement) => { destroy(): void } = () => ({
+	destroy: lockScroll(),
+});

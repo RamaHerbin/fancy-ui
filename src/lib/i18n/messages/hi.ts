@@ -54,6 +54,10 @@ export default {
 	"table.default": "डिफ़ॉल्ट",
 	"table.description": "विवरण",
 	"table.slot": "स्लॉट",
+	"table.event": "इवेंट",
+	"table.payload": "डेटा",
+	"comp.events": "इवेंट्स",
+	"comp.copyMarkdown": "Markdown के रूप में कॉपी करें",
 
 	// Copy buttons
 	"action.copy": "कॉपी करें",
