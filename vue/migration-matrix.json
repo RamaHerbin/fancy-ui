@@ -1729,6 +1729,62 @@
 		"lastFailure": null
 	},
 	{
+		"slug": "datamosh-transition",
+		"sveltePath": "src/lib/fancy-ui/datamosh-transition",
+		"reactPath": "react/src/components/datamosh-transition",
+		"vuePath": "vue/src/components/datamosh-transition",
+		"status": "ported",
+		"wave": "V5",
+		"tier": 1,
+		"group": "graphics",
+		"model": "opus",
+		"effort": "high",
+		"complexity": "canvas2d",
+		"deps": {
+			"internals": ["motion/media-query"],
+			"motion": ["media-query"],
+			"sound": false,
+			"components": []
+		},
+		"browserAPIs": [
+			"canvas2d",
+			"ResizeObserver",
+			"matchMedia",
+			"visibilitychange",
+			"requestAnimationFrame",
+			"Image"
+		],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": false,
+		"usesTransition": false,
+		"ssrRisk": "low",
+		"exports": ["DatamoshTransition", "DATAMOSH_PALETTES"],
+		"loc": 930,
+		"testFiles": [
+			"datamosh-transition-core.test.ts",
+			"DatamoshTransition.test.ts",
+			"DatamoshTransition.ssr.test.ts"
+		],
+		"svelteFiles": 1,
+		"bindables": ["phase"],
+		"exposesRef": true,
+		"slotsWithParams": [],
+		"restSpread": true,
+		"multiRoot": false,
+		"usesUntrack": false,
+		"usesEffectPre": false,
+		"usesTick": false,
+		"styleHazard": null,
+		"sharedCores": ["datamosh-transition-core.ts"],
+		"attempts": 1,
+		"divergences": [
+			"phase is output-only: v-model:phase hears every change, a value the parent writes back is ignored where Svelte's bindable adopts it; the lowercase callbacks oncovered / onrevealed stay declared props, passed as :oncovered / :onrevealed, a @covered / @revealed listener compiles to onCovered / onRevealed and never fires; cover() / reveal() / play() are called through a template ref"
+		],
+		"minors": [],
+		"lastFailure": null
+	},
+	{
 		"slug": "date-picker",
 		"sveltePath": "src/lib/fancy-ui/date-picker",
 		"reactPath": "react/src/components/date-picker",
