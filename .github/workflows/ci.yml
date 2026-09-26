@@ -243,6 +243,122 @@ jobs:
         working-directory: react
         run: node scripts/react18-consumer.mjs
 
+  vue:
+    name: Vue package
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # vue/ is a workspace member — one install at the root covers it.
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter fancy-ui-vue run check
+      - run: pnpm --filter fancy-ui-vue run test
+      - run: pnpm --filter fancy-ui-vue run build
+      - run: pnpm --filter fancy-ui-vue exec node scripts/check-matrix.mjs --require-dist
+      - run: pnpm --filter fancy-ui-vue exec publint
+
+      - name: Pack dry-run — allow-list sanity
+        working-directory: vue
+        run: |
+          npm pack --dry-run --json > /tmp/pack.json
+          node -e "
+            const files = require('/tmp/pack.json')[0].files.map(f => f.path);
+            const stray = files.filter(p =>
+              !p.startsWith('dist/') &&
+              !['tailwind.css','PORTING.md','package.json','README.md','LICENSE'].includes(p));
+            if (stray.length) { console.error('stray files in pack:', stray); process.exit(1); }
+            const leaked = files.filter(p =>
+              p.includes('.test.') || p.includes('Harness.') || p.includes('web-audio-mock'));
+            if (leaked.length) { console.error('test files in pack:', leaked); process.exit(1); }
+            console.log(files.length + ' files, allow-list clean');
+          "
+
+      # failOnError in nuxt.config.ts's nitro.prerender block is load-bearing:
+      # without it a broken page just gets skipped and the build stays green.
+      - run: pnpm --filter fancy-ui-vue-example-nuxt run generate
+
+      - name: Resolve every declared subpath
+        working-directory: vue
+        run: |
+          node --input-type=module -e "
+            const subpaths = ['fancy-ui-vue', 'fancy-ui-vue/cameleon',
+              'fancy-ui-vue/styles.css', 'fancy-ui-vue/tailwind.css',
+              'fancy-ui-vue/package.json'];
+            const failed = [];
+            for (const specifier of subpaths) {
+              try { import.meta.resolve(specifier); }
+              catch (error) { failed.push(specifier + ': ' + error.code); }
+            }
+            if (failed.length) { console.error('unresolvable subpaths:', failed); process.exit(1); }
+            console.log(subpaths.length + ' subpaths resolve');
+          "
+
+  vue-3-5:
+    name: Vue package — Vue 3.5 floor
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Job-local, never committed: the checkout is thrown away with the runner.
+      - name: Pin the workspace to the Vue 3.5 floor
+        run: |
+          cat >> pnpm-workspace.yaml <<'YAML'
+
+          # Added by the vue-3-5 CI job. Not committed.
+          overrides:
+            vue: 3.5.0
+          YAML
+
+      # --no-frozen-lockfile because the override is the point: the lockfile
+      # pins a newer Vue and must be allowed to re-resolve here.
+      - run: pnpm install --no-frozen-lockfile
+
+      - name: Confirm the workspace really is on the Vue 3.5 floor
+        working-directory: vue
+        run: |
+          version=$(node -p "require('vue/package.json').version")
+          echo "vue@$version"
+          case "$version" in 3.5.0) ;; *) echo "expected vue 3.5.0, got $version"; exit 1 ;; esac
+
+      - run: pnpm --filter fancy-ui-vue run check
+      - run: pnpm --filter fancy-ui-vue run test
+      - run: pnpm --filter fancy-ui-vue run build
+      - run: pnpm --filter fancy-ui-vue exec node scripts/vue-floor-consumer.mjs
+
   changeset:
     name: Changeset present
     if: |
