@@ -29,5 +29,9 @@ import { useId } from "vue";
  * second call is a second seed, not a second id off the same one.
  */
 export function useFancyId(): string {
-	return useId();
+	// Vue 3.5.2 (the peer floor) types `useId()` as possibly undefined — it is
+	// only so when called outside `setup`, which Vue already warns about — while
+	// later releases type it as `string`. The fallback keeps both floors typed
+	// without changing what a correct call returns.
+	return useId() ?? "";
 }
