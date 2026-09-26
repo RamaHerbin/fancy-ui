@@ -28,7 +28,6 @@
 // pair, which is what actually avoids this. `dialog/DialogSurface.svelte`
 // is the reference example.
 
-
 export interface FocusTrapOptions {
 	/** Element to focus when the trap activates. Defaults to the first focusable descendant of node. */
 	initialFocus?: HTMLElement | null;
@@ -82,14 +81,20 @@ export interface FocusTrapOptions {
 	onActivate?: (returnFocusNow: () => void, rearm: () => void) => void;
 }
 
+// Every branch carries the `tabindex="-1"` exclusion, not just the generic
+// `[tabindex]` one: a native control removed from the tab order is skipped by
+// the browser's own Tab, so counting it as the first/last tabbable item lets
+// Tab from its neighbour go uncaught and walk straight out of the trap.
 const FOCUSABLE_SELECTOR = [
 	"button:not([disabled])",
 	"[href]:not([disabled])",
 	"input:not([disabled])",
 	"select:not([disabled])",
 	"textarea:not([disabled])",
-	'[tabindex]:not([tabindex="-1"]):not([disabled])',
-].join(", ");
+	"[tabindex]:not([disabled])",
+]
+	.map((selector) => `${selector}:not([tabindex="-1"])`)
+	.join(", ");
 
 function isVisible(el: HTMLElement): boolean {
 	// offsetParent/getClientRects are unusable under jsdom, so rely on the
@@ -124,7 +129,7 @@ function getFocusableElements(node: HTMLElement): HTMLElement[] {
  */
 type FocusTrapAction = (
 	node: HTMLElement,
-	opts?: FocusTrapOptions,
+	opts?: FocusTrapOptions
 ) => { update?: (opts: FocusTrapOptions) => void; destroy?: () => void } | void;
 
 export const focusTrap: FocusTrapAction = (node, opts = {}) => {
