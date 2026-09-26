@@ -2,7 +2,13 @@ import { render, cleanup, fireEvent } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { ImageTrailCursor } from "./ImageTrailCursor.js";
-import { variantMap, ImageTrailVariantPixelated, type VariantType } from "./trail-variants.js";
+import {
+	variantMap,
+	ImageTrailVariantPixelated,
+	revealFragments,
+	type RevealPattern,
+	type VariantType,
+} from "./trail-variants.js";
 
 describe("ImageTrailCursor", () => {
 	afterEach(cleanup);
@@ -135,9 +141,57 @@ describe("trail-variants pixelated", () => {
 		expect(variantMap.pixelated).toBe(ImageTrailVariantPixelated);
 	});
 
-	it("keeps all 9 variant keys in variantMap", () => {
+	it("keeps all 18 variant keys in variantMap", () => {
 		expect(Object.keys(variantMap).sort()).toEqual(
-			["type1", "type2", "type3", "type4", "type5", "type6", "type7", "type8", "pixelated"].sort()
+			[
+				"type1",
+				"type2",
+				"type3",
+				"type4",
+				"type5",
+				"type6",
+				"type7",
+				"type8",
+				"pixelated",
+				"scale",
+				"fall",
+				"gravity",
+				"flame",
+				"venetian",
+				"curtain",
+				"hexagon",
+				"liquid",
+				"zoom-split",
+			].sort()
 		);
 	});
+});
+
+const PATTERNS: RevealPattern[] = ["venetian", "curtain", "hexagon", "liquid", "zoom-split"];
+const numbers = (clip: string) => clip.match(/-?\d+(\.\d+)?/g) ?? [];
+
+describe("revealFragments", () => {
+	it.each(PATTERNS)("%s: closed and open share a shape, so they interpolate", (pattern) => {
+		for (const f of revealFragments(pattern)) {
+			expect(f.closed.split("(")[0]).toBe(f.open.split("(")[0]);
+			expect(numbers(f.closed).length).toBe(numbers(f.open).length);
+		}
+	});
+});
+
+describe("new variants", () => {
+	it.each(["scale", "fall", "gravity", "flame", ...PATTERNS] as VariantType[])(
+		"%s mounts, and switching back to type1 leaves no fragments",
+		(variant) => {
+			const { container, rerender } = render(
+				<ImageTrailCursor images={["/a.jpg", "/b.jpg"]} variant={variant} />
+			);
+			const expected = (PATTERNS as string[]).includes(variant)
+				? revealFragments(variant as RevealPattern).length * 2
+				: 0;
+			expect(container.querySelectorAll(".content__img-frag")).toHaveLength(expected);
+			rerender(<ImageTrailCursor images={["/a.jpg", "/b.jpg"]} variant="type1" />);
+			expect(container.querySelectorAll(".content__img-frag")).toHaveLength(0);
+		}
+	);
 });

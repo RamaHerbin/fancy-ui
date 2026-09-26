@@ -505,10 +505,13 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "ImageTrailCursor",
 		slug: "image-trail-cursor",
 		description:
-			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 9 selectable variants spanning simple fades, momentum drift, rotation flings, 3D perspective tilt, and a hard-edge pixelated snap",
+			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 18 selectable variants: fades, momentum drift, rotation flings, 3D perspective tilt, a hard-edge pixelated snap, a bouncy scale pop, images that fall or bounce under gravity, a flame flicker, and five fragment reveals (venetian, curtain, hexagon, liquid, zoom split)",
 		category: "effects",
 		group: "fancy",
 		status: "done",
+		credits: [
+			{ source: "Pixel Perfect", url: "https://www.pixel-perfect.space/blocks/mouse-followers" },
+		],
 		tags: ["cursor", "animation", "images", "trail", "interactive"],
 		props: [
 			{
@@ -519,9 +522,10 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 			{
 				name: "variant",
-				type: '"type1" | "type2" | ... | "type8" | "pixelated"',
+				type: '"type1" | ... | "type8" | "pixelated" | "scale" | "fall" | "gravity" | "flame" | "venetian" | "curtain" | "hexagon" | "liquid" | "zoom-split"',
 				default: '"type1"',
-				description: "Animation variant controlling how images appear and move",
+				description:
+					"Animation variant controlling how images appear and move (see the README for what each one does)",
 			},
 		],
 	},
