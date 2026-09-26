@@ -13,7 +13,9 @@
  *
  *  - COVERED: the DECLARATION surface. The package is packed, installed into
  *    a throwaway directory alongside `vue@3.5.2`, and a probe importing `cn`
- *    and every component export's `<Name>Props` type is compiled with plain
+ *    and every component export of both barrels with its `<Name>Props` type
+ *    (names read off the runtime barrels, types off the checker, so `export *`
+ *    re-exports are followed) is compiled with plain
  *    `tsc`, `skipLibCheck: false`. That is the half the runtime cannot reach:
  *    a type that only exists in a newer Vue (or a newer `@vue/runtime-core`)
  *    fails here.
@@ -29,7 +31,14 @@
  * install`, so it is a CI step rather than part of `build`.
  */
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+	copyFileSync,
+	mkdtempSync,
+	readFileSync,
+	readdirSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -53,10 +62,58 @@ const TYPESCRIPT = "~5.8.0";
  * one" would be an unmeetable gate on an empty barrel rather than a real one.
  * Raise it in the same commit that lands the components it counts.
  *
- * Measured on this package's own build (2026-09-21): 186 of 235 swept
- * export(s) server render under the Vue 3.5.2 floor.
+ * Measured on this package's own build (2026-09-26): 181 of 221 swept
+ * export(s) server render under the Vue 3.5.2 floor — the same count
+ * `smoke-dist.mjs` reads on the workspace vue. The earlier 186 of 235 was
+ * inflated: the merged, shape-blind sweep counted data exports such as
+ * `SOUND_CUES` (a hollow render: a warning and an empty comment) as rendered,
+ * and dropped the root half of every name the cameleon barrel shares.
  */
-const RENDERED_FLOOR = 186;
+const RENDERED_FLOOR = 181;
+
+/**
+ * Root component exports the barrel ships WITHOUT a `<Name>Props` type,
+ * each mirroring the Svelte barrel it transposes. Kept exact: an entry that
+ * starts exporting its Props type fails the probe until it is removed here.
+ *
+ *  - AppleCard: `src/lib/fancy-ui/apple-card-carousel/index.ts` re-exports
+ *    only `AppleCardCarouselProps` and `AppleCardData`.
+ */
+const PROPS_EXEMPT = new Set(["AppleCard"]);
+
+/**
+ * How many `<Name>Props` types the probe must import, across both barrels.
+ * A ratchet like `RENDERED_FLOOR`: it exists so a discovery that silently
+ * finds nothing (the regex over `export { ... }` blocks did exactly that once
+ * the barrel moved to `export *`) fails instead of type-checking `cn` alone.
+ *
+ * Measured on this package's own build (2026-09-26): 209 root + 11 cameleon.
+ */
+const TYPED_FLOOR = 220;
+
+/**
+ * Runs inside the scratch consumer: the runtime component names of each
+ * barrel (via `dist-sweep.mjs`'s component-shape filter) and every name each
+ * barrel's declaration entry exports as the TypeScript checker resolves it,
+ * `export *` chains included.
+ */
+const NAMES_SCRIPT = `
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
+import * as F from "fancy-ui-vue";
+import * as C from "fancy-ui-vue/cameleon";
+import { componentEntries } from "./dist-sweep.mjs";
+import { declaredExports } from "./declared-exports.mjs";
+const pkgDir = dirname(createRequire(import.meta.url).resolve("fancy-ui-vue/package.json"));
+const names = (mod) => componentEntries({ m: mod }).map(([key]) => key.slice(2)).sort();
+console.log(JSON.stringify({
+	root: { components: names(F), types: declaredExports(join(pkgDir, "dist/index.d.ts")) },
+	cameleon: {
+		components: names(C),
+		types: declaredExports(join(pkgDir, "dist/cameleon/index.d.ts")),
+	},
+}));
+`;
 
 const scratch = mkdtempSync(join(tmpdir(), "fancy-ui-vue-floor-"));
 const run = (command, args, cwd) =>
@@ -100,41 +157,93 @@ try {
 	}
 	console.log(`✅ scratch consumer resolved vue@${installed.version}`);
 
-	// Derive the probe's import list from the tarball's own declarations:
-	// every named export off `dist/index.d.ts`, split into `cn` (a plain
-	// value/function) and everything else (a component, whose `<Name>Props`
-	// type is re-exported alongside it per the package's tooling contract).
-	// Must work when the barrel exports only `cn`.
-	const dts = readFileSync(
-		join(scratch, "node_modules", "fancy-ui-vue", "dist", "index.d.ts"),
-		"utf8"
-	);
-	const exportNames = new Set();
-	for (const match of dts.matchAll(/export\s*\{([^}]*)\}/g)) {
-		for (let name of match[1].split(",")) {
-			name = name.trim();
-			if (!name) continue;
-			name = name.split(/\s+as\s+/).pop().trim();
-			if (name) exportNames.add(name);
-		}
+	// Derive the probe's import list from the tarball itself. The names come
+	// from the RUNTIME barrels (every capitalised component-shaped export,
+	// per barrel), and the type side from the TypeScript checker's view of
+	// each barrel's `index.d.ts` — which follows `export *` chains. A regex over
+	// the declaration text only ever saw the barrel's direct `export { cn }`
+	// block, so every component re-exported with `export *` escaped the probe.
+	for (const helper of ["dist-sweep.mjs", "declared-exports.mjs"]) {
+		copyFileSync(new URL(`./${helper}`, import.meta.url), join(scratch, helper));
 	}
-	const componentNames = [...exportNames]
-		.filter((name) => name !== "cn" && /^[A-Z]/.test(name))
-		.sort();
-	if (!exportNames.has("cn")) {
+	writeFileSync(join(scratch, "names.mjs"), NAMES_SCRIPT);
+	const surface = JSON.parse(
+		execFileSync("node", ["names.mjs"], { cwd: scratch, encoding: "utf8" })
+	);
+	if (!surface.root.types.includes("cn")) {
 		throw new Error("dist/index.d.ts does not export cn");
 	}
 
-	const valueImports = ["cn", ...componentNames].join(", ");
-	const typeImports = componentNames.map((name) => `${name}Props`).join(", ");
-	const probeLines = [`import { ${valueImports} } from "fancy-ui-vue";`];
-	if (typeImports) probeLines.push(`import type { ${typeImports} } from "fancy-ui-vue";`);
-	probeLines.push("export const probe = [cn" + (componentNames.length ? ", " + componentNames.join(", ") : "") + "];");
-	if (typeImports) {
-		probeLines.push(
-			`type _AssertProps = [${componentNames.map((name) => `${name}Props`).join(", ")}];`
+	const valueImports = ["cn"];
+	const typeImports = { root: [], cameleon: [] };
+	const probed = [];
+	const missingProps = [];
+	for (const barrel of ["root", "cameleon"]) {
+		const types = new Set(surface[barrel].types);
+		for (const name of surface[barrel].components) {
+			const local = barrel === "root" ? name : `cameleon_${name}`;
+			if (!types.has(name)) {
+				missingProps.push(`${barrel}:${name} (runtime export with no declaration)`);
+				continue;
+			}
+			probed.push(local);
+			const exempt = barrel === "root" && PROPS_EXEMPT.has(name);
+			if (types.has(`${name}Props`)) {
+				if (exempt) {
+					missingProps.push(
+						`${barrel}:${name} now exports ${name}Props — remove it from PROPS_EXEMPT`
+					);
+				}
+				typeImports[barrel].push(
+					barrel === "root" ? `${name}Props` : `${name}Props as cameleon_${name}Props`
+				);
+			} else if (!exempt) {
+				missingProps.push(`${barrel}:${name} (no ${name}Props type re-exported)`);
+			}
+		}
+	}
+	if (missingProps.length) {
+		throw new Error(
+			`the barrels break the <Name>Props tooling contract:\n  ${missingProps.join("\n  ")}`
 		);
 	}
+	const typed = typeImports.root.length + typeImports.cameleon.length;
+	if (typed < TYPED_FLOOR) {
+		throw new Error(
+			`only ${typed} <Name>Props type(s) reached the probe (floor ${TYPED_FLOOR}) — ` +
+				`the name discovery stopped reaching the barrels' component exports`
+		);
+	}
+
+	const rootValues = surface.root.components.filter((name) => probed.includes(name));
+	const camValues = surface.cameleon.components
+		.filter((name) => probed.includes(`cameleon_${name}`))
+		.map((name) => `${name} as cameleon_${name}`);
+	valueImports.push(...rootValues);
+	const probeLines = [`import { ${valueImports.join(", ")} } from "fancy-ui-vue";`];
+	if (camValues.length) {
+		probeLines.push(`import { ${camValues.join(", ")} } from "fancy-ui-vue/cameleon";`);
+	}
+	if (typeImports.root.length) {
+		probeLines.push(`import type { ${typeImports.root.join(", ")} } from "fancy-ui-vue";`);
+	}
+	if (typeImports.cameleon.length) {
+		probeLines.push(
+			`import type { ${typeImports.cameleon.join(", ")} } from "fancy-ui-vue/cameleon";`
+		);
+	}
+	probeLines.push(`export const probe = [${["cn", ...probed].join(", ")}];`);
+	const typeLocals = [
+		...typeImports.root,
+		...typeImports.cameleon.map((spec) => spec.split(" as ").pop()),
+	];
+	// Re-exported rather than listed in a tuple type: a re-export needs no type
+	// arguments, so generic Props (`StickyScrollProps<T>`) are covered too, and
+	// a name the barrel lacks is still a TS2305 at the import.
+	if (typeLocals.length) probeLines.push(`export type { ${typeLocals.join(", ")} };`);
+	console.log(
+		`✅ probe covers cn, ${probed.length} component export(s) and ${typed} <Name>Props type(s)`
+	);
 
 	// `bundler` resolution and `skipLibCheck: false`: the templates that hide
 	// this class of defect are exactly the ones that set skipLibCheck true.
@@ -165,6 +274,10 @@ try {
 	// A runtime pass too: Vue 3.5's own server-renderer over both barrels
 	// (the main entry and cameleon), sourced from this scratch install so the
 	// renderer itself is the floor version, not the workspace's newer copy.
+	// The sweep is `dist-sweep.mjs`, the same one `smoke-dist.mjs` runs: each
+	// barrel walked separately (they share names such as `Button`), data
+	// exports such as `SOUND_CUES` filtered out by component shape, and a
+	// hollow render (warning + empty comment) never counted as rendered.
 	writeFileSync(
 		join(scratch, "render.mjs"),
 		[
@@ -172,30 +285,25 @@ try {
 			'import { renderToString } from "vue/server-renderer";',
 			'import * as F from "fancy-ui-vue";',
 			'import * as C from "fancy-ui-vue/cameleon";',
+			'import { componentEntries, sweep } from "./dist-sweep.mjs";',
 			`const RENDERED_FLOOR = ${RENDERED_FLOOR};`,
-			"let rendered = 0;",
-			"let swept = 0;",
-			"for (const [name, value] of Object.entries({ ...F, ...C })) {",
-			'\tif (!/^[A-Z]/.test(name)) continue;',
-			'\tif (typeof value !== "function" && typeof value !== "object") continue;',
-			"\tswept += 1;",
-			"\ttry {",
-			"\t\tconst app = createSSRApp({ render: () => h(value, {}, { default: () => \"x\" }) });",
-			"\t\tawait renderToString(app);",
-			"\t\trendered += 1;",
-			"\t} catch {}",
-			"}",
+			"const result = await sweep(componentEntries({ root: F, cameleon: C }), {",
+			"\tcreateSSRApp,",
+			"\th,",
+			"\trenderToString,",
+			"});",
+			"const rendered = result.rendered.length;",
 			"if (rendered < RENDERED_FLOOR) {",
 			"\tconsole.error(",
-			"\t\t`only ${rendered} of ${swept} swept export(s) rendered under the vue floor ` +",
+			"\t\t`only ${rendered} of ${result.swept} swept export(s) rendered under the vue floor ` +",
 			"\t\t\t`(floor ${RENDERED_FLOOR}) — something the package ships needs a Vue newer than the ` +",
 			'\t\t\t"declared peer range, or the sweep stopped reaching it"',
 			"\t);",
 			"\tprocess.exit(1);",
 			"}",
 			"console.log(",
-			"\t`✅ ${rendered} of ${swept} swept export(s) server render under the vue floor ` +",
-			"\t\t`(floor ${RENDERED_FLOOR})`",
+			"\t`✅ ${rendered} of ${result.swept} swept export(s) server render under the vue floor ` +",
+			"\t\t`(floor ${RENDERED_FLOOR}; ${result.hollow.length} hollow, ${result.threw.length} need props)`",
 			");",
 		].join("\n")
 	);

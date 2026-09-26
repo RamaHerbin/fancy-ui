@@ -6,14 +6,15 @@ export type Direction = "top" | "middle" | "bottom";
 
 export interface DockContext {
 	/**
-	 * The pointer's page X, in a box rather than as a bare number — the shape
+	 * The pointer's viewport (client) X — the space `getBoundingClientRect()`
+	 * measures in — in a box rather than as a bare number — the shape
 	 * the source publishes, kept verbatim so the exported type is unchanged.
 	 * The box is a `reactive` object written by `Dock` on every pointer frame,
 	 * which is how a child's `computed` sees the update through a stable
 	 * object identity. Only `Dock` ever writes it.
 	 */
 	mouseX: { current: number };
-	/** The pointer's page Y. Same box treatment as `mouseX`. */
+	/** The pointer's viewport (client) Y. Same box treatment as `mouseX`. */
 	mouseY: { current: number };
 	magnification: number;
 	distance: number;

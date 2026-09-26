@@ -105,10 +105,21 @@ export function useAnchorPosition(
 	}
 
 	let handle: AnchorPositionHandle | null = null;
+	/**
+	 * The anchor element the core last positioned against, compared by
+	 * identity; `undefined` whenever there is no core.
+	 */
+	let appliedAnchor: HTMLElement | null | undefined = undefined;
 
-	// Attach/detach, keyed on the node and on `enabled`. `anchor` and
-	// `onPlacement` are never watched — the core reads `anchor()` fresh on
-	// every recompute, and `onPlacement` is a stable local closure.
+	function sync(): void {
+		if (!handle) return;
+		appliedAnchor = resolveAnchor();
+		handle.update(buildOptions());
+	}
+
+	// Attach/detach, keyed on the node and on `enabled`. `onPlacement` is
+	// never watched — it is a stable local closure — and `anchor` has its own
+	// watcher below.
 	//
 	// `immediate` is present so a source that is already non-null in setup —
 	// a getter over a node this composable did not create — still arms; the
@@ -118,18 +129,19 @@ export function useAnchorPosition(
 		[el, () => options().enabled ?? true] as const,
 		([node, enabled], _prev, onCleanup) => {
 			if (!node || !enabled) return;
+			appliedAnchor = resolveAnchor();
 			const result = anchorPosition(node, buildOptions());
 			handle = (result ?? {}) as AnchorPositionHandle;
 			onCleanup(() => {
 				handle?.destroy();
 				handle = null;
+				appliedAnchor = undefined;
 			});
 		},
 		{ flush: "post", immediate: true }
 	);
 
-	// Recompute on a real geometry change. `anchor` itself is not watched —
-	// the core resolves it fresh every time `update()` runs.
+	// Recompute on a real geometry change.
 	watch(
 		[
 			() => options().side,
@@ -137,8 +149,23 @@ export function useAnchorPosition(
 			() => options().offset,
 			() => options().recomputeKey,
 		],
-		() => {
-			handle?.update(buildOptions());
+		sync,
+		{ flush: "post" }
+	);
+
+	// Recompute when the RESOLVED anchor changes while the node stays mounted
+	// — a ref or getter retargeted to another element. The core re-reads
+	// `anchor()` on every recompute, but nothing it listens to (scroll,
+	// resize) fires on a retarget, so without this the panel stays over the
+	// old element. The source is the resolved element, not `options().anchor`:
+	// a getter rebuilt on every `options()` call is not evidence of a change.
+	// The identity check against what the core last used skips the redundant
+	// update when the anchor arrives in the same flush as the attach.
+	watch(
+		resolveAnchor,
+		(next) => {
+			if (!handle || next === appliedAnchor) return;
+			sync();
 		},
 		{ flush: "post" }
 	);
@@ -146,6 +173,7 @@ export function useAnchorPosition(
 	onScopeDispose(() => {
 		handle?.destroy();
 		handle = null;
+		appliedAnchor = undefined;
 	});
 
 	return placement as Readonly<Ref<ResolvedPlacement>>;

@@ -264,6 +264,7 @@ jobs:
       - run: pnpm --filter fancy-ui-vue run check
       - run: pnpm --filter fancy-ui-vue run test
       - run: pnpm --filter fancy-ui-vue run build
+      - run: pnpm --filter fancy-ui-vue run test:scripts
       - run: pnpm --filter fancy-ui-vue exec node scripts/check-matrix.mjs --require-dist
       - run: pnpm --filter fancy-ui-vue exec publint
 

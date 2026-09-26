@@ -314,6 +314,11 @@ describe("DropdownMenu", () => {
 		await waitFor(() => expect(document.activeElement).toBe(itemByLabel(rootMenu(), "Delete")));
 	});
 
+	it("focuses the first item when the menu is already open on its first mount", async () => {
+		render(Harness, { props: { items: ITEMS, open: true, "onUpdate:open": () => {} } });
+		await waitFor(() => expect(document.activeElement).toBe(itemByLabel(rootMenu(), "Rename")));
+	});
+
 	it("ArrowDown/ArrowUp move focus among items and wrap by default", async () => {
 		const { container } = render(Harness, { props: { items: ITEMS } });
 		await fireEvent.click(trigger(container));

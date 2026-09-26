@@ -53,8 +53,16 @@ const speedStyle = computed(() => ({ "--rainbow-speed": `${props.speed}s` }));
 // Implementation notes: there is no `...restProps` spread), so there is no
 // consumer `onclick` to forward — the handler only ever plays the cue, and is
 // bound identically on both the anchor and button render branches.
-function handleClick() {
-	if (props.disabled) return;
+//
+// Upstream fix: an anchor has no native `disabled`, and `aria-disabled` /
+// `tabindex="-1"` do not stop a pointer click from following `href`, so the
+// disabled path cancels the default navigation (the Svelte source only
+// returns early).
+function handleClick(event: MouseEvent) {
+	if (props.disabled) {
+		event.preventDefault();
+		return;
+	}
 	playCue("press");
 }
 

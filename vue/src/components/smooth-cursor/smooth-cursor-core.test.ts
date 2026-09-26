@@ -60,7 +60,10 @@ function makeCursorEl(): HTMLElement {
 }
 
 /** createSmoothCursor, tracked for automatic afterEach cleanup. */
-function create(el: SmoothCursorElements, options: SmoothCursorInitOptions & SmoothCursorLiveOptions) {
+function create(
+	el: SmoothCursorElements,
+	options: SmoothCursorInitOptions & SmoothCursorLiveOptions
+) {
 	const engine = createSmoothCursor(el, options);
 	liveEngines.push(engine);
 	return engine;
@@ -73,6 +76,15 @@ describe("createSmoothCursor", () => {
 		expect(document.body.style.cursor).toBe("none");
 		engine.destroy();
 		expect(document.body.style.cursor).toBe("");
+	});
+
+	it("restores the host's prior inline body cursor on destroy", () => {
+		document.body.style.cursor = "crosshair";
+		const cursor = makeCursorEl();
+		const engine = create({ cursor }, {});
+		expect(document.body.style.cursor).toBe("none");
+		engine.destroy();
+		expect(document.body.style.cursor).toBe("crosshair");
 	});
 
 	it("stays invisible and reports no visibility change before any pointer event", () => {

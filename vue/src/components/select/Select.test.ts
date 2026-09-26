@@ -233,6 +233,24 @@ describe("Select", () => {
 		expect(panel()).not.toBeNull();
 	});
 
+	it("closes the open panel and rejects row commits once the control becomes disabled", async () => {
+		const onValueChange = vi.fn();
+		const { container, rerender } = render(Select, {
+			props: { options: OPTIONS, onValueChange },
+		});
+		await fireEvent.click(trigger(container));
+		const row = optionByLabel("React");
+
+		await rerender({ options: OPTIONS, onValueChange, disabled: true });
+		await nextTick();
+
+		expect(trigger(container).getAttribute("aria-expanded")).toBe("false");
+		// A click landing on a row still in the DOM (the exit fade) must not commit.
+		row.click();
+		expect(onValueChange).not.toHaveBeenCalled();
+		await waitFor(() => expect(panel()).toBeNull());
+	});
+
 	it("closes on an outside click without changing the value", async () => {
 		const outside = document.createElement("button");
 		document.body.appendChild(outside);

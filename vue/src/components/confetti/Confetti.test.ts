@@ -54,6 +54,23 @@ describe("Confetti", () => {
 		expect(canvas).toBeInTheDocument();
 	});
 
+	// Upstream fix: a bare <button> defaults to type="submit" inside a form, and
+	// inheritAttrs: false leaves consumers no way to override it.
+	it('renders ConfettiButton as type="button" so it never submits a form', () => {
+		const onSubmit = vi.fn((e: Event) => e.preventDefault());
+		const form = document.createElement("form");
+		form.addEventListener("submit", onSubmit);
+		document.body.appendChild(form);
+		render(ConfettiButton, { container: form });
+
+		const button = screen.getByRole("button");
+		expect(button).toHaveAttribute("type", "button");
+		button.click();
+
+		expect(onSubmit).not.toHaveBeenCalled();
+		form.remove();
+	});
+
 	describe("sound", () => {
 		let play: ReturnType<typeof vi.spyOn>;
 

@@ -126,6 +126,39 @@ describe("RainbowButton", () => {
 	});
 });
 
+describe("RainbowButton disabled anchor (upstream fix)", () => {
+	afterEach(cleanup);
+
+	// aria-disabled and tabindex="-1" do not stop a pointer click from
+	// following href, so the disabled path must cancel the default action.
+	it("cancels navigation when a disabled anchor is clicked", () => {
+		render(RainbowButton, { props: { disabled: true, href: "/pricing" } });
+		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+
+		screen.getByRole("link").dispatchEvent(event);
+
+		expect(event.defaultPrevented).toBe(true);
+	});
+
+	it("leaves navigation alone on an enabled anchor", () => {
+		render(RainbowButton, { props: { href: "/pricing" } });
+		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+		let preventedByComponent: boolean | undefined;
+		// Bubble-phase window listener runs after the component's handler:
+		// record its verdict, then cancel so jsdom does not attempt navigation.
+		const probe = (e: Event) => {
+			preventedByComponent = e.defaultPrevented;
+			e.preventDefault();
+		};
+		window.addEventListener("click", probe);
+
+		screen.getByRole("link").dispatchEvent(event);
+		window.removeEventListener("click", probe);
+
+		expect(preventedByComponent).toBe(false);
+	});
+});
+
 describe("RainbowButton default slot", () => {
 	afterEach(cleanup);
 

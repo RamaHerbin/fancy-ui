@@ -187,7 +187,11 @@ async function handleClick() {
 	// missing clipboard API — that outcome is reported to the caller honestly,
 	// not swallowed into a silent no-op, and is now shown and announced too.
 	const mine = ++attempt;
-	const ok = await copyState.copy(value);
+	// Snapshot the value this attempt writes: `value` is a live prop read, so a
+	// change while the clipboard write is pending would otherwise make `onCopy`
+	// report a different string than the one actually copied.
+	const attempted = value;
+	const ok = await copyState.copy(attempted);
 	// `onCopy` still fires for every attempt, stale or not — it reports what
 	// that call did, matching `copy()`'s own honest return. Only the visible and
 	// audible cues, which describe the button's CURRENT state, are dropped when
@@ -196,7 +200,7 @@ async function handleClick() {
 		morphState.value = ok ? "success" : "error";
 		if (sound) soundFx.play(ok ? "copy" : "error");
 	}
-	onCopy?.(value, ok);
+	onCopy?.(attempted, ok);
 }
 
 // StatusMorph's `resetAfter` is what normally walks `morphState` back to

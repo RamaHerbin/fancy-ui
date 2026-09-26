@@ -80,27 +80,47 @@ watch(
 	() => {
 		nextTick().then(updateFocusRect);
 	},
-	{ flush: "post" },
+	{ flush: "post" }
 );
 
 let intervalId: ReturnType<typeof setInterval> | undefined;
 
+function stopCycle() {
+	if (intervalId !== undefined) clearInterval(intervalId);
+	intervalId = undefined;
+}
+
+function startCycle() {
+	stopCycle();
+	// Timing props are read when the cycle starts, as the Svelte `onMount`
+	// closure captures them once: a later timing change alone does not restart it.
+	const intervalMs = animationDuration * 1000 + pauseBetweenAnimations * 1000;
+	intervalId = setInterval(() => {
+		currentIndex.value = (currentIndex.value + 1) % words.value.length;
+	}, intervalMs);
+}
+
 onMounted(() => {
 	updateFocusRect();
+	if (!manualMode) startCycle();
+});
 
-	if (!manualMode) {
-		// Timing props are read once here, as the Svelte `onMount` closure
-		// captures them once: a later prop change does not restart the cycle.
-		const intervalMs = animationDuration * 1000 + pauseBetweenAnimations * 1000;
-		intervalId = setInterval(() => {
-			currentIndex.value = (currentIndex.value + 1) % words.value.length;
-		}, intervalMs);
+// Toggling `manualMode` after mount starts or stops the auto-cycle, so a manual
+// Focus never keeps moving under the pointer and an automatic one always
+// cycles. Upstream fix, beyond the Svelte source, whose cycle is mount-only.
+watch(
+	() => manualMode,
+	(manual) => {
+		if (manual) {
+			stopCycle();
+			currentIndex.value = 0;
+		} else {
+			startCycle();
+		}
 	}
-});
+);
 
-onBeforeUnmount(() => {
-	if (intervalId !== undefined) clearInterval(intervalId);
-});
+onBeforeUnmount(stopCycle);
 </script>
 
 <template>

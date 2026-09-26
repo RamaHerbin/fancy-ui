@@ -164,4 +164,49 @@ describe("TextGenerateEffect", () => {
 
 		vi.useRealTimers();
 	});
+
+	// Upstream fix (PR #262 review): a new `words` value re-arms the reveal
+	// against the freshly rendered spans instead of leaving them at opacity 0.
+	it("reveals the replacement words after a words change", async () => {
+		vi.useFakeTimers();
+		const { container, rerender } = render(TextGenerateEffect, {
+			props: { words: "one two", stagger: 100 },
+		});
+
+		await vi.advanceTimersByTimeAsync(101);
+		await rerender({ words: "three four", stagger: 100 });
+		await nextTick();
+
+		const spans = container.querySelectorAll("span");
+		expect(spans[0]!.textContent).toContain("three");
+		expect(spans[0]!.style.opacity).toBe("0");
+
+		await vi.advanceTimersByTimeAsync(1);
+		expect(spans[0]!.style.opacity).toBe("1");
+		expect(spans[1]!.style.opacity).toBe("0");
+
+		await vi.advanceTimersByTimeAsync(100);
+		expect(spans[1]!.style.opacity).toBe("1");
+		expect(vi.getTimerCount()).toBe(0);
+
+		vi.useRealTimers();
+	});
+
+	it("drops the previous run's pending timers when words change mid-reveal", async () => {
+		vi.useFakeTimers();
+		const { rerender } = render(TextGenerateEffect, {
+			props: { words: "a b c d", stagger: 100 },
+		});
+
+		await vi.advanceTimersByTimeAsync(1);
+		await rerender({ words: "x y", stagger: 100 });
+		await nextTick();
+
+		// Only the new run's outer delay timer is pending.
+		expect(vi.getTimerCount()).toBe(1);
+		await vi.advanceTimersByTimeAsync(101);
+		expect(vi.getTimerCount()).toBe(0);
+
+		vi.useRealTimers();
+	});
 });

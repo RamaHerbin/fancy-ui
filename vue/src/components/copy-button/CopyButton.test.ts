@@ -123,6 +123,28 @@ describe("CopyButton", () => {
 	});
 
 	// A denied clipboard permission used to be indistinguishable from a success:
+	it("reports the value actually written when the prop changes while the write is pending", async () => {
+		let resolveWrite: () => void = () => {};
+		const writeText = vi.fn(
+			() =>
+				new Promise<void>((resolve) => {
+					resolveWrite = resolve;
+				})
+		);
+		stubClipboard(writeText);
+		const onCopy = vi.fn();
+		const { container, rerender } = render(CopyButton, { props: { value: "first", onCopy } });
+
+		await fireEvent.click(button(container));
+		await rerender({ value: "second", onCopy });
+		resolveWrite();
+		await flush();
+
+		expect(writeText).toHaveBeenCalledWith("first");
+		expect(onCopy).toHaveBeenCalledTimes(1);
+		expect(onCopy).toHaveBeenCalledWith("first", true);
+	});
+
 	// `onCopy` reported it and nothing visible or audible changed. It now draws
 	// a cross, swaps the label, and takes the failure skin.
 	it("reports false through onCopy when the write rejects, and shows the failure label and skin", async () => {

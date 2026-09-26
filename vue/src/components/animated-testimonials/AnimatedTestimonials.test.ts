@@ -197,6 +197,41 @@ describe("AnimatedTestimonials", () => {
 		});
 	});
 
+	// Upstream fix (PR #262 review): the active index follows a list that
+	// shrinks or empties after mount instead of rendering blank or going NaN.
+	describe("testimonials prop changes after mount", () => {
+		it("clamps the active testimonial when the list shrinks below it", async () => {
+			const { getByLabelText, getByText, rerender } = render(AnimatedTestimonials, {
+				props: { testimonials },
+			});
+			await fireEvent.click(getByLabelText("Previous testimonial"));
+			await advance(300);
+			expect(getByText("Third quote")).toBeTruthy();
+
+			await rerender({ testimonials: testimonials.slice(0, 2) });
+			await nextTick();
+			expect(getByText("Second quote")).toBeTruthy();
+			expect(getByText("Bob")).toBeTruthy();
+		});
+
+		it("recovers when the list empties during a transition and is repopulated", async () => {
+			const { getByLabelText, getByText, rerender } = render(AnimatedTestimonials, {
+				props: { testimonials },
+			});
+			await fireEvent.click(getByLabelText("Next testimonial"));
+			await rerender({ testimonials: [] });
+			await advance(300);
+			expect(getByText("No testimonials available.")).toBeTruthy();
+
+			await rerender({ testimonials });
+			await nextTick();
+			expect(getByText("First quote")).toBeTruthy();
+			await fireEvent.click(getByLabelText("Next testimonial"));
+			await advance(300);
+			expect(getByText("Second quote")).toBeTruthy();
+		});
+	});
+
 	// Beyond the Svelte suite: the autoplay effect never runs during a server
 	// render in Svelte, and a server-scheduled interval would never be cleared.
 	describe("ssr", () => {

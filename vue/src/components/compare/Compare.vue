@@ -63,6 +63,11 @@ const isInteracting = ref(false);
 let autoplayRAF: number | null = null;
 
 function startAutoplay(): void {
+	// Upstream fix: one loop at a time. The mount path, the autoplay watcher and
+	// the leave/drag-end handlers can each call this while a loop already runs;
+	// without the stop, the orphaned loop keeps its own rAF chain (double
+	// `onpercentagechange` per frame, and it outlives unmount).
+	stopAutoplay();
 	if (!autoplay || isMouseOver.value || isDragging.value) return;
 
 	const startTime = Date.now();
@@ -205,7 +210,8 @@ onMounted(() => {
 	// setup, where `Date.now()` and `requestAnimationFrame` are forbidden (and
 	// absent). A Svelte `$effect` never runs on the server either, so the two
 	// first runs happen here, in source order, before the `onMount` body — which
-	// calls `startAutoplay()` a second time, as the Svelte source does.
+	// calls `startAutoplay()` a second time, as the Svelte source does (harmless
+	// now that `startAutoplay` stops the running loop first).
 	syncInitialPercentage();
 	syncAutoplay();
 	startAutoplay();

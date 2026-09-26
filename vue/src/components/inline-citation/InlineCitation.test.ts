@@ -94,6 +94,28 @@ describe("InlineCitation", () => {
 		expect(marker(container).getAttribute("href")).toBe("https://example.org/mirror");
 	});
 
+	it("promotes a bare host to https instead of resolving it against the app origin", () => {
+		const fromSource = render(InlineCitation, {
+			props: { source: source({ url: "docs.example.dev/guide" }), index: 1 },
+		});
+		expect(marker(fromSource.container).getAttribute("href")).toBe(
+			"https://docs.example.dev/guide"
+		);
+		fromSource.unmount();
+
+		const fromProp = render(InlineCitation, {
+			props: { source: source(), index: 1, href: "example.org/mirror?x=1" },
+		});
+		expect(marker(fromProp.container).getAttribute("href")).toBe("https://example.org/mirror?x=1");
+		fromProp.unmount();
+
+		// A genuine relative path has nowhere else to resolve and stays as given.
+		const relative = render(InlineCitation, {
+			props: { source: source({ url: "/local/notes" }), index: 1 },
+		});
+		expect(marker(relative.container).getAttribute("href")).toBe("/local/notes");
+	});
+
 	it("renders a button, not a link, when href is an empty string", () => {
 		const { container } = render(InlineCitation, {
 			props: { source: source(), index: 1, href: "" },
@@ -327,6 +349,18 @@ describe("InlineCitation", () => {
 			.map((node) => node.textContent)
 			.join("");
 		expect(after).toBe(".");
+	});
+
+	it("keeps the button marker flush too, text and neighbours alike", () => {
+		// The button branch is the one the formatter would reflow: its `[n]` on an
+		// indented line of its own renders as " [3] " and the prose as "read [3] .".
+		const { container } = render(Harness, { props: { source: source(), index: 3, href: "" } });
+		const prose = container.querySelector('[data-testid="prose"]') as HTMLElement;
+		const el = marker(container);
+
+		expect(el.tagName).toBe("BUTTON");
+		expect(el.textContent).toBe("[3]");
+		expect(prose.textContent).toBe("Worth a read[3].");
 	});
 
 	it("superscripts the marker without stretching the line box it sits in", () => {

@@ -465,9 +465,12 @@ that writes them. The ref collapses that to one line in all twelve. `onPlacement
 **Mechanics.** One watcher keyed `[el, () => options().enabled ?? true]`, `flush: 'post'`, attaches
 and destroys the core (plus `onScopeDispose`); a second over
 `[() => options().side, () => options().align, () => options().offset, () => options().recomputeKey]`
-calls `handle.update()`. `anchor` and `onPlacement` are never watched **here** — the composable hands
-the core getter closures over `options()`, which is why React's `useEventCallback`/`useLiveRef` layer
-has no counterpart here (`useFloat` does watch its `anchor`, by identity — see §12). The placement is a `shallowRef` written only on a real change, so a scroll storm
+calls `handle.update()`. `onPlacement` is never watched (it is a stable local closure) — the composable
+hands the core getter closures over `options()`, which is why React's `useEventCallback`/`useLiveRef`
+layer has no counterpart here. `anchor` is watched by its RESOLVED element, by identity: a third watcher
+over `resolveAnchor` calls `handle.update()` only when the element differs from the one the core last
+used, so a getter rebuilt per `options()` call causes no spurious update (compare `useFloat` in §12, which
+watches the raw `anchor` option by identity). The placement is a `shallowRef` written only on a real change, so a scroll storm
 produces zero re-renders.
 
 **`:style` and SSR.** The core writes `position`/`left`/`top` imperatively; a port may bind
@@ -1898,15 +1901,15 @@ translated; `fireEvent.*` is identical and already awaits `nextTick()`; `rerende
 Vue has no double-invoke, so React's `renderStrict` helper has no counterpart. The same coverage is
 bought with a **mount / unmount / mount / unmount** cycle, and every hook module ships one:
 
-| Module                   | Assertion at rest                                                                                   |
-| ------------------------ | --------------------------------------------------------------------------------------------------- |
-| `dismissable`            | `__dismissableLayerCount() === 0` after; exactly `1` while mounted                                  |
-| `scroll-lock`            | `document.body.style.position === ""` after; `=== "fixed"` while mounted; `window.scrollY` restored |
-| `focus-trap`             | focus back on the trigger, and exactly one focus move on close (the `returned` latch)               |
-| `sound-feedback`         | `__soundFeedbackHoverInstances() === 0` after                                                       |
-| `in-view` / `autoscroll` | no orphaned observer (the fakes' registries empty)                                                  |
-| `presence`               | no in-flight `FakeAnimation`; `mounted` false; `state` back at `"open"`                             |
-| `media-query`            | the `MediaQueryList`'s `change` listener removed                                                    |
+| Module                   | Assertion at rest                                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `dismissable`            | `__dismissableLayerCount() === 0` after; exactly `1` while mounted                                                            |
+| `scroll-lock`            | `document.body.style.position === ""` after; `=== "fixed"` while mounted; `window.scrollX` and `window.scrollY` both restored |
+| `focus-trap`             | focus back on the trigger, and exactly one focus move on close (the `returned` latch)                                         |
+| `sound-feedback`         | `__soundFeedbackHoverInstances() === 0` after                                                                                 |
+| `in-view` / `autoscroll` | no orphaned observer (the fakes' registries empty)                                                                            |
+| `presence`               | no in-flight `FakeAnimation`; `mounted` false; `state` back at `"open"`                                                       |
+| `media-query`            | the `MediaQueryList`'s `change` listener removed                                                                              |
 
 ### 9.5 Per-module additions
 

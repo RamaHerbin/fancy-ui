@@ -20,6 +20,7 @@ function mapRange(
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 
+import { useFancyId } from "../../internals/use-id.js";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "TracingBeam", inheritAttrs: false });
@@ -27,6 +28,12 @@ defineOptions({ name: "TracingBeam", inheritAttrs: false });
 const { class: className = "" } = defineProps<TracingBeamProps>();
 
 defineSlots<{ default?(): unknown }>();
+
+// One gradient per instance: the stroke references it by functional IRI, which
+// resolves document-wide, so a shared literal id would make every later beam
+// paint with the first beam's spring-animated y1/y2. (Upstream fix: the Svelte
+// source still hardcodes `tracing-beam-gradient`.)
+const gradientId = `${useFancyId()}-gradient`;
 
 const tracingBeamRef = useTemplateRef<HTMLDivElement>("tracingBeamRef");
 const contentRef = useTemplateRef<HTMLDivElement>("contentRef");
@@ -151,13 +158,13 @@ onBeforeUnmount(() => {
 				<path
 					:d="svgPath"
 					fill="none"
-					stroke="url(#tracing-beam-gradient)"
+					:stroke="`url(#${gradientId})`"
 					stroke-width="1.25"
 					class="motion-reduce:hidden"
 				></path>
 				<defs>
 					<linearGradient
-						id="tracing-beam-gradient"
+						:id="gradientId"
 						gradientUnits="userSpaceOnUse"
 						x1="0"
 						x2="0"

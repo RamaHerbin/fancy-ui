@@ -132,6 +132,23 @@ watch(
 	{ flush: "post" }
 );
 
+// The active index names a row by position, so it has to follow the list when
+// the list changes under it — a new `suggestions` prop or a programmatic
+// `value` while the panel is open. Left alone, an index that was valid in the
+// old list can point past the end of the new one: `aria-activedescendant`
+// then names an option that does not exist and Enter silently does nothing.
+// The highlighted suggestion is followed by its text, so a list that merely
+// re-renders with the same entries keeps its highlight; one it no longer
+// holds clears it. Reads the list and the index, writes only the index, and
+// only when it moves.
+watch(filteredSuggestions, (next, prev) => {
+	const active = listbox.activeIndex;
+	if (active < 0) return;
+	const text = prev?.[active];
+	const index = text === undefined ? -1 : next.indexOf(text);
+	if (index !== active) listbox.setActive(index);
+});
+
 // Exactly where the source declares its bindable `ref`.
 const el = useTemplateRef<HTMLInputElement>("el");
 defineExpose({ ref: el });

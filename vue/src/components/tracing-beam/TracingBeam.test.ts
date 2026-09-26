@@ -62,8 +62,25 @@ describe("TracingBeam", () => {
 
 	it("renders gradient definition in SVG", () => {
 		const { container } = render(TracingBeam);
-		const gradient = container.querySelector("#tracing-beam-gradient");
+		const gradient = container.querySelector("svg linearGradient");
 		expect(gradient).toBeInTheDocument();
+	});
+
+	it("gives each instance its own gradient id, referenced by its own stroke", () => {
+		const { container } = render({
+			components: { TracingBeam },
+			template: "<div><TracingBeam /><TracingBeam /></div>",
+		});
+		const svgs = container.querySelectorAll("svg");
+		expect(svgs.length).toBe(2);
+		const ids = [...svgs].map((svg) => svg.querySelector("linearGradient")!.id);
+		expect(ids[0]).toBeTruthy();
+		expect(ids[0]).not.toBe(ids[1]);
+		// Each beam's animated path must reference the gradient of its OWN svg.
+		svgs.forEach((svg, i) => {
+			const stroke = svg.querySelectorAll("path")[1]!.getAttribute("stroke");
+			expect(stroke).toBe(`url(#${ids[i]})`);
+		});
 	});
 
 	it("renders two path elements in SVG", () => {

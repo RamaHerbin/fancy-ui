@@ -212,7 +212,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"active testimonial index clamped when the list shrinks; empty list during transition resets to 0 instead of NaN (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -255,7 +257,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"tooltip ids are generated per avatar with useFancyId, so aria-describedby stays a single token and unique across rows that share item ids (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -433,7 +437,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"active option follows the highlighted suggestion by its text when the filtered list changes while open and clears when that suggestion is gone, so aria-activedescendant never points at a missing option (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1374,7 +1380,8 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"lowercase callbacks onpercentagechange, ondragstart, ondragend, onhoverenter, onhoverleave stay declared props, passed as :ondragstart etc; @dragstart / @hoverenter spellings compile to onDragstart / onHoverenter, are dropped and never fire"
+			"lowercase callbacks onpercentagechange, ondragstart, ondragend, onhoverenter, onhoverleave stay declared props, passed as :ondragstart etc; @dragstart / @hoverenter spellings compile to onDragstart / onHoverenter, are dropped and never fire",
+			"autoplay keeps a single frame loop: startAutoplay stops the running loop first so mount, hover leave, drag end and prop restarts no longer stack loops, and unmount cancels it (upstream fix, Svelte parity pending)"
 		],
 		"minors": [],
 		"lastFailure": null
@@ -1483,7 +1490,8 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"`Confetti`'s `fire()` reads the `options` prop at call time, but Vue hands a REASSIGNED `options` object to the child only on the parent's next render: a handler that does `options = { \u2026 }` and calls `fire()` in the same tick bursts with the PREVIOUS object, where the Svelte component bursts with the new one. Mutating the object already passed as `options` behaves identically on both sides, and the reassignment is deferred rather than lost \u2014 the next `fire()` after the parent re-renders uses it. Framework-inherent (Vue exposes no synchronous prop flush); pinned by ConfettiFire.test.ts:77-92."
+			"`Confetti`'s `fire()` reads the `options` prop at call time, but Vue hands a REASSIGNED `options` object to the child only on the parent's next render: a handler that does `options = { \u2026 }` and calls `fire()` in the same tick bursts with the PREVIOUS object, where the Svelte component bursts with the new one. Mutating the object already passed as `options` behaves identically on both sides, and the reassignment is deferred rather than lost \u2014 the next `fire()` after the parent re-renders uses it. Framework-inherent (Vue exposes no synchronous prop flush); pinned by ConfettiFire.test.ts:77-92.",
+			"ConfettiButton renders type=\"button\": the Svelte source's bare <button> defaults to submit inside a form and inheritAttrs false leaves consumers no way to override it (upstream fix, Svelte parity pending)"
 		],
 		"minors": [],
 		"lastFailure": null
@@ -1714,7 +1722,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"onCopy reports the value captured when the copy started, not the prop's later value, when the prop changes while the clipboard write is pending (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1982,7 +1992,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"pointer tracked in viewport client coordinates, not page coordinates, so the magnification lines up with the icons measured by getBoundingClientRect on a scrolled page; matches the React port (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2444,7 +2456,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"toggling manualMode after mount starts or stops the auto-cycle; switching to manual returns focus to the first word (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2969,7 +2983,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"a source url or href with no scheme gets https:// added before the scheme check, the same as SourceCard, so the marker no longer resolves against the app origin (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -3949,7 +3965,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"step precision counts the exponent of steps written in exponential notation (1e-7), so tiny fractional steps no longer round back to an integer (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4438,7 +4456,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"a disabled href anchor calls preventDefault on click so it no longer navigates; the Svelte source only returns early and aria-disabled / tabindex -1 do not stop a pointer click from following the href (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4837,7 +4857,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"a disabled Select rejects every commit and closes its panel if disabled while open, so a portalled row click can no longer change the value or fire onValueChange on a disabled control (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5738,7 +5760,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"a words change re-arms the reveal on the new spans and clears the previous run's timers instead of leaving replacement words invisible (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6314,7 +6338,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the tooltip appends its id to the trigger's existing aria-describedby list and removes only that id on close instead of overwriting and deleting the attribute; it also rewires listeners and aria-describedby onto a replacement trigger when the slot swaps its first element (upstream fixes, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6357,7 +6383,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"each instance uses its own generated gradient id with useFancyId for the gradient and its stroke reference, so two beams on one page no longer share one spring-animated gradient (upstream fix, Svelte parity pending)"
+		],
 		"minors": [],
 		"lastFailure": null
 	},

@@ -132,7 +132,6 @@ describe("useAnchorPosition", () => {
 		expect((wrapper.element as HTMLElement).style.position).toBe("");
 	});
 
-
 	// The three forms `UseAnchorPositionOptions.anchor` documents. The core
 	// only ever calls a getter, so the composable is the piece that has to
 	// accept a node and a ref and resolve them — a consumer following the
@@ -307,6 +306,70 @@ describe("useAnchorPosition", () => {
 		await wrapper.setProps({ enabled: true });
 		await nextTick();
 		expect(panelEl.style.position).toBe("fixed");
+	});
+
+	it("recomputes when a ref anchor is retargeted while the node stays mounted", async () => {
+		const first = document.createElement("button");
+		const second = document.createElement("button");
+		document.body.append(first, second);
+		first.getBoundingClientRect = () => rect({ x: 100, y: 100, width: 50, height: 20 });
+		second.getBoundingClientRect = () => rect({ x: 100, y: 400, width: 50, height: 20 });
+		const anchor = ref<HTMLElement | null>(first);
+
+		const Cmp = defineComponent({
+			setup() {
+				const panel = ref<HTMLElement | null>(null);
+				useAnchorPosition(panel, () => ({ anchor, side: "bottom" }));
+				return { panel };
+			},
+			render() {
+				return h("div", { ref: "panel" });
+			},
+		});
+
+		const wrapper = mount(Cmp, { attachTo: document.body });
+		await nextTick();
+		const panelEl = wrapper.element as HTMLElement;
+		expect(panelEl.style.top).toBe("128px");
+
+		anchor.value = second;
+		await nextTick();
+		expect(panelEl.style.top).toBe("428px");
+	});
+
+	it("does not recompute when options() re-evaluates to the same anchor", async () => {
+		const anchorEl = document.createElement("button");
+		document.body.appendChild(anchorEl);
+		let reads = 0;
+		anchorEl.getBoundingClientRect = () => {
+			reads += 1;
+			return rect({ x: 100, y: 100, width: 50, height: 20 });
+		};
+		const unrelated = ref(0);
+
+		const Cmp = defineComponent({
+			setup() {
+				const panel = ref<HTMLElement | null>(null);
+				// A fresh getter on every call, and a dependency no option uses.
+				useAnchorPosition(panel, () => {
+					void unrelated.value;
+					return { anchor: () => anchorEl, side: "bottom" };
+				});
+				return { panel };
+			},
+			render() {
+				return h("div", { ref: "panel" });
+			},
+		});
+
+		mount(Cmp, { attachTo: document.body });
+		await nextTick();
+		const settled = reads;
+		expect(settled).toBeGreaterThan(0);
+
+		unrelated.value += 1;
+		await nextTick();
+		expect(reads).toBe(settled);
 	});
 
 	it("tears down the core on unmount", async () => {
