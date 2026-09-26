@@ -6,10 +6,15 @@ import {
 } from "./fluid-cursor-core.js";
 import { CLICK_PEAK, scaleRadiusForContainer, type FluidCursorHandle } from "./fluid-shared.js";
 
+// The WebGPU engine is replaced by a controllable startup so the tests can
+// act while it is still pending. Only `hdr: true` reaches it.
+const webGpu = vi.hoisted(() => ({ start: vi.fn() }));
+vi.mock("./webgpu-engine.js", () => ({ startWebGpuFluid: webGpu.start }));
+
 /**
  * The defaults the Svelte wrapper declares. The core deliberately takes every
  * simulation option as required, so the tests spell the public defaults out
- * once here. Mount-only keys live on `FluidCursorInitOptions`, the five
+ * once here. Mount-only keys live on `FluidCursorInitOptions`, the six
  * re-readable ones on `FluidCursorLiveOptions`; `createFluidCursor` takes the
  * intersection, which is what this literal has to satisfy.
  */
@@ -291,7 +296,7 @@ describe("createFluidCursor", () => {
 	/**
 	 * The component never declared an `$effect`, but in runes mode a
 	 * destructured prop is a getter: every closure that outlived mount read the
-	 * current value on each call. These five were read that way, so the engine
+	 * current value on each call. These six were read that way, so the engine
 	 * has to keep re-reading them too.
 	 */
 	describe("live options", () => {
@@ -398,6 +403,102 @@ describe("createFluidCursor", () => {
 			});
 			expect(built("linkProgram")).toBe(programs);
 			expect(built("framebufferTexture2D")).toBe(framebuffers);
+		});
+	});
+
+	/**
+	 * The WebGPU path delivers the handle from its startup promise, so a
+	 * parent that swaps `onReady` before WebGPU settles must see the new
+	 * callback receive it — the prop getter the component read did exactly that.
+	 */
+	describe("onReady on the async WebGPU path", () => {
+		let settle: (handle: (FluidCursorHandle & { cleanup(): void }) | null) => void;
+		let engine: ReturnType<typeof createFluidCursor>;
+		const hadGpu = "gpu" in navigator;
+
+		beforeEach(() => {
+			if (!hadGpu) Object.defineProperty(navigator, "gpu", { value: {}, configurable: true });
+			webGpu.start.mockImplementation(
+				() =>
+					new Promise((resolve) => {
+						settle = resolve;
+					})
+			);
+		});
+
+		afterEach(() => {
+			engine?.destroy();
+			webGpu.start.mockReset();
+			if (!hadGpu) delete (navigator as { gpu?: unknown }).gpu;
+		});
+
+		function gpuHandle() {
+			return {
+				moveTo() {},
+				penUp() {},
+				burst() {},
+				renderLevel: "webgpu-hdr" as const,
+				cleanup: vi.fn(),
+			};
+		}
+
+		it("hands the handle to the callback current at settle time", async () => {
+			const first = vi.fn();
+			const second = vi.fn();
+			engine = createFluidCursor(
+				{ canvas: createFakeCanvas(createFakeGl().gl) },
+				{
+					...defaults,
+					hdr: true,
+					onReady: first,
+				}
+			);
+			expect(webGpu.start).toHaveBeenCalledTimes(1);
+			engine!.setOptions({ onReady: second });
+			const handle = gpuHandle();
+			settle(handle);
+			await Promise.resolve();
+			await Promise.resolve();
+			expect(first).not.toHaveBeenCalled();
+			expect(second).toHaveBeenCalledTimes(1);
+			expect(second).toHaveBeenCalledWith(handle);
+		});
+
+		it("passing onReady as undefined clears it before the handle lands", async () => {
+			const first = vi.fn();
+			engine = createFluidCursor(
+				{ canvas: createFakeCanvas(createFakeGl().gl) },
+				{
+					...defaults,
+					hdr: true,
+					onReady: first,
+				}
+			);
+			engine!.setOptions({ onReady: undefined });
+			settle(gpuHandle());
+			await Promise.resolve();
+			await Promise.resolve();
+			expect(first).not.toHaveBeenCalled();
+		});
+
+		it("the WebGL fallback also reports to the current callback", async () => {
+			const first = vi.fn();
+			const second = vi.fn();
+			engine = createFluidCursor(
+				{ canvas: createFakeCanvas(createFakeGl().gl) },
+				{
+					...defaults,
+					hdr: true,
+					onReady: first,
+				}
+			);
+			engine!.setOptions({ onReady: second });
+			settle(null);
+			await Promise.resolve();
+			await Promise.resolve();
+			expect(first).not.toHaveBeenCalled();
+			expect(second).toHaveBeenCalledTimes(1);
+			expect((second.mock.calls[0]![0] as FluidCursorHandle).renderLevel).toBe("webgl-sdr");
 		});
 	});
 

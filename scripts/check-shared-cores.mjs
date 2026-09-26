@@ -12,14 +12,22 @@
  *      stored-patch fallback: byte identity, as decided. A mismatch prints a
  *      unified diff (via `diff -u`) so the drift is readable in CI.
  *   2. Purity — every present copy of a shared file must be importable from
- *      any framework and from the server: no `svelte` / `react` / `vue` /
- *      `$lib` / `$app` import specifier, no `import.meta.env` (not even for
- *      dev-only diagnostics), no module-level `window.` / `document.` /
- *      `navigator.` statement.
+ *      any framework and from the server: no framework import specifier
+ *      (`svelte`, `react`, `vue`, their companion packages such as
+ *      `react-dom` / `vue-router` / `@sveltejs/kit` / `@vue/*`, `$lib`,
+ *      `$app`, `$env`, or a `.svelte` / `.vue` module), no `import.meta.env`
+ *      (not even for dev-only diagnostics), and no `window` / `document` /
+ *      `navigator` reference evaluated at import time — a top-level statement
+ *      or a module-scope initializer such as `const w = window.innerWidth`.
+ *      References inside function bodies are fine, and so are those on the
+ *      side of a `typeof` guard that proves the global exists (the `else` of
+ *      `typeof window === "undefined"`, the right of `typeof document !==
+ *      "undefined" &&`). `--self-test` runs the cases that pin these rules.
  *   3. Completeness — every engine-shaped file under `src/lib/fancy-ui`
- *      (`*-core.ts`, `*-shared.ts`, `*-engine.ts`, `*-renderer.ts`, tests
- *      excluded) must appear in the manifest, shared or not, so the ledger
- *      can never silently miss a new core.
+ *      (`core.ts`, `shared.ts`, `engine.ts`, `renderer.ts`, bare or as a
+ *      `-`-suffix such as `*-engine.ts`; tests excluded) must appear in the
+ *      manifest, shared or not, so the ledger can never silently miss a new
+ *      core.
  *   4. Manifest sanity — an entry's Svelte path must exist, and an entry that
  *      is not shared must say why.
  *
@@ -32,6 +40,8 @@
  *   --no-diff       hashes only, no diff bodies
  *   --require-react every shared entry must have a React copy present
  *   --require-vue   every shared entry must have a Vue copy present
+ *   --self-test     run the built-in purity cases (what each rule must reject
+ *                   and accept) instead of checking the manifest
  *
  * The React and Vue copies are optional by default: the React tree does not
  * carry every shared file yet and the Vue package does not exist at all. The
@@ -50,6 +60,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import ts from "typescript";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
@@ -57,28 +68,40 @@ const fancyUiDir = join(repoRoot, "src", "lib", "fancy-ui");
 
 const TREES = ["svelte", "react", "vue"];
 
-// Files that must be listed in the manifest (shared or not).
-const CORE_FILE_RE = /-(core|shared|engine|renderer)\.ts$/;
+// Files that must be listed in the manifest (shared or not): the bare names
+// (`sound/engine.ts`) as well as the suffixed ones (`fluid-cursor-core.ts`).
+const CORE_FILE_RE = /(?:^|-)(?:core|shared|engine|renderer)\.ts$/;
 const TEST_FILE_RE = /\.(test|spec)\.[cm]?tsx?$/;
 
 // Only source files are linted for purity; CSS carries no imports.
 const LINTABLE_RE = /\.[cm]?[jt]sx?$/;
 
-const FRAMEWORK_IMPORT_RE = /^(svelte|react|vue|\$lib|\$app)(\/|$)/;
+// A framework package, one of its companion packages (`react-dom`,
+// `vue-router`, `svelte-motion`...), a framework scope (`@sveltejs/kit`,
+// `@vue/reactivity`, `@vueuse/core`), a SvelteKit alias, or a component module.
+// A `./x.svelte.js` runes-module import is NOT rejected: it is a per-tree seam
+// (`sound/sound-feedback.ts` imports `./sound.svelte.js`, which each tree
+// provides in its own shape), so the specifier stays identical across trees.
+const FRAMEWORK_IMPORT_RE =
+	/^(?:(?:svelte|react|vue)(?:-[^/]+)?(?:\/|$)|@(?:sveltejs|vue|vueuse)\/|\$(?:lib|app|env)(?:\/|$))|\.(?:svelte|vue)$/;
+
+// Browser globals a shared core may only touch once running, never on import.
+const DOM_GLOBALS = new Set(["window", "document", "navigator"]);
 
 const MAX_DIFF_LINES = 200;
 
 function parseArgs(argv) {
-	const opts = { diff: true, requireReact: false, requireVue: false };
+	const opts = { diff: true, requireReact: false, requireVue: false, selfTest: false };
 	for (const arg of argv) {
 		if (arg === "--diff") opts.diff = true;
 		else if (arg === "--no-diff") opts.diff = false;
 		else if (arg === "--require-react") opts.requireReact = true;
 		else if (arg === "--require-vue") opts.requireVue = true;
+		else if (arg === "--self-test") opts.selfTest = true;
 		else {
 			console.error(`Unknown flag: ${arg}`);
 			console.error(
-				"Usage: node scripts/check-shared-cores.mjs [--diff|--no-diff] [--require-react] [--require-vue]"
+				"Usage: node scripts/check-shared-cores.mjs [--diff|--no-diff] [--require-react] [--require-vue] [--self-test]"
 			);
 			process.exit(2);
 		}
@@ -182,8 +205,12 @@ function lineOf(src, index) {
 
 /** Purity violations of one file, as `{ line, message }`. */
 function lintPurity(relPath, absPath) {
+	return lintPuritySource(relPath, readFileSync(absPath, "utf8"));
+}
+
+/** Purity violations of one file's source text, as `{ file, line, message }`. */
+function lintPuritySource(relPath, raw) {
 	const violations = [];
-	const raw = readFileSync(absPath, "utf8");
 	const code = stripComments(raw);
 
 	// 1. Framework / SvelteKit import specifiers.
@@ -209,18 +236,201 @@ function lintPurity(relPath, absPath) {
 		});
 	}
 
-	// 3. Module-level DOM access (a statement starting at column 0).
-	const lines = code.split("\n");
-	for (let i = 0; i < lines.length; i++) {
-		if (/^(window|document|navigator)\./.test(lines[i])) {
-			violations.push({
-				line: i + 1,
-				message: `module-level \`${lines[i].slice(0, 24).trim()}…\` — a shared core must be safe to import on the server`,
-			});
-		}
+	// 3. DOM globals evaluated at import time.
+	for (const hit of importTimeDomReads(relPath, raw)) {
+		violations.push({
+			line: hit.line,
+			message: `module-scope \`${hit.name}\` read — a shared core must be safe to import on the server`,
+		});
 	}
 
 	return violations.map((v) => ({ ...v, file: relPath }));
+}
+
+/**
+ * Every `window` / `document` / `navigator` reference that runs when the
+ * module is imported, as `{ line, name }`. Walks the TypeScript AST from the
+ * top-level statements and stops at anything whose body runs later: function
+ * and arrow bodies, methods, accessors, constructors and instance fields (an
+ * immediately invoked function or arrow is walked, since it runs now). Types
+ * are skipped (they are erased), and so is the operand of `typeof`.
+ *
+ * A read is allowed only where a `typeof` guard proves that global exists,
+ * and the guard's polarity decides which side that is (see `guardFacts`):
+ * the `then` / `whenTrue` side of `typeof window !== "undefined"`, the `else`
+ * / `whenFalse` side of `typeof window === "undefined"`, the right operand of
+ * `&&` when the left one proves it true and of `||` when it proves it false.
+ * Each global needs its own guard. Static fields and static blocks run when
+ * the class is defined, so they are walked.
+ */
+function importTimeDomReads(fileName, source) {
+	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+	const hits = [];
+	const deferred = (node) =>
+		ts.isFunctionLike(node) ||
+		(ts.isPropertyDeclaration(node) &&
+			!(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Static));
+	const withFacts = (safe, facts) => (facts.size === 0 ? safe : new Set([...safe, ...facts]));
+	const visit = (node, safe) => {
+		if (ts.isTypeNode(node) || ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) {
+			return;
+		}
+		if (ts.isTypeOfExpression(node) && ts.isIdentifier(node.expression)) return;
+		if (ts.isIfStatement(node)) {
+			const facts = guardFacts(node.expression);
+			visit(node.expression, safe);
+			visit(node.thenStatement, withFacts(safe, facts.whenTrue));
+			if (node.elseStatement) visit(node.elseStatement, withFacts(safe, facts.whenFalse));
+			return;
+		}
+		if (ts.isConditionalExpression(node)) {
+			const facts = guardFacts(node.condition);
+			visit(node.condition, safe);
+			visit(node.whenTrue, withFacts(safe, facts.whenTrue));
+			visit(node.whenFalse, withFacts(safe, facts.whenFalse));
+			return;
+		}
+		if (ts.isBinaryExpression(node) && isLogical(node.operatorToken.kind)) {
+			const facts = guardFacts(node.left);
+			const and = node.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken;
+			visit(node.left, safe);
+			// `??` only runs its right side when the left is nullish: no fact.
+			const known =
+				node.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken
+					? new Set()
+					: and
+						? facts.whenTrue
+						: facts.whenFalse;
+			visit(node.right, withFacts(safe, known));
+			return;
+		}
+		if (ts.isIdentifier(node) && DOM_GLOBALS.has(node.text) && isReference(node)) {
+			if (safe.has(node.text)) return;
+			const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf));
+			hits.push({ line: line + 1, name: node.text });
+			return;
+		}
+		if (ts.isCallExpression(node)) {
+			const callee = skipParens(node.expression);
+			if (ts.isFunctionExpression(callee) || ts.isArrowFunction(callee)) {
+				// An IIFE runs at import: its parameters and body are walked.
+				for (const p of callee.parameters) visit(p, safe);
+				visit(callee.body, safe);
+				for (const a of node.arguments) visit(a, safe);
+				return;
+			}
+		}
+		if (deferred(node)) {
+			// Parameter defaults and bodies run on call; a computed method name
+			// or a static field is still evaluated with the class.
+			if (node.name && ts.isComputedPropertyName(node.name)) visit(node.name, safe);
+			return;
+		}
+		ts.forEachChild(node, (child) => visit(child, safe));
+	};
+	ts.forEachChild(sf, (child) => visit(child, new Set()));
+	return hits;
+}
+
+function isLogical(kind) {
+	return (
+		kind === ts.SyntaxKind.AmpersandAmpersandToken ||
+		kind === ts.SyntaxKind.BarBarToken ||
+		kind === ts.SyntaxKind.QuestionQuestionToken
+	);
+}
+
+function skipParens(node) {
+	let n = node;
+	while (ts.isParenthesizedExpression(n)) n = n.expression;
+	return n;
+}
+
+const NO_FACTS = { whenTrue: new Set(), whenFalse: new Set() };
+
+/**
+ * Which DOM globals an expression proves defined when it is truthy
+ * (`whenTrue`) and when it is falsy (`whenFalse`). `typeof X !== "undefined"`
+ * (or `== "object"`, `"undefined" != typeof X`...) proves X when true;
+ * `typeof X === "undefined"` proves X when false; `!` swaps the two; `a && b`
+ * is true only when both are, `a || b` false only when both are. Anything
+ * else proves nothing, so an unrecognised guard never allows a read.
+ */
+function guardFacts(expr) {
+	const e = skipParens(expr);
+	if (ts.isPrefixUnaryExpression(e) && e.operator === ts.SyntaxKind.ExclamationToken) {
+		const inner = guardFacts(e.operand);
+		return { whenTrue: inner.whenFalse, whenFalse: inner.whenTrue };
+	}
+	if (!ts.isBinaryExpression(e)) return NO_FACTS;
+	const op = e.operatorToken.kind;
+	if (op === ts.SyntaxKind.AmpersandAmpersandToken || op === ts.SyntaxKind.BarBarToken) {
+		const l = guardFacts(e.left);
+		const r = guardFacts(e.right);
+		const union = (a, b) => new Set([...a, ...b]);
+		const inter = (a, b) => new Set([...a].filter((x) => b.has(x)));
+		return op === ts.SyntaxKind.AmpersandAmpersandToken
+			? { whenTrue: union(l.whenTrue, r.whenTrue), whenFalse: inter(l.whenFalse, r.whenFalse) }
+			: { whenTrue: inter(l.whenTrue, r.whenTrue), whenFalse: union(l.whenFalse, r.whenFalse) };
+	}
+	const equal =
+		op === ts.SyntaxKind.EqualsEqualsEqualsToken || op === ts.SyntaxKind.EqualsEqualsToken;
+	const notEqual =
+		op === ts.SyntaxKind.ExclamationEqualsEqualsToken ||
+		op === ts.SyntaxKind.ExclamationEqualsToken;
+	if (!equal && !notEqual) return NO_FACTS;
+	const typeofName = (n) => {
+		const s = skipParens(n);
+		return ts.isTypeOfExpression(s) &&
+			ts.isIdentifier(s.expression) &&
+			DOM_GLOBALS.has(s.expression.text)
+			? s.expression.text
+			: null;
+	};
+	const literal = (n) => {
+		const s = skipParens(n);
+		return ts.isStringLiteralLike(s) ? s.text : null;
+	};
+	const name = typeofName(e.left) ?? typeofName(e.right);
+	const text = typeofName(e.left) ? literal(e.right) : literal(e.left);
+	if (name === null || text === null) return NO_FACTS;
+	// `typeof X === "undefined"` is true when X is absent; any other type
+	// string (`"object"`, `"function"`) is true only when X exists.
+	const provedWhenEqual = text !== "undefined";
+	const onEqual = provedWhenEqual ? new Set([name]) : new Set();
+	const onDiffer = provedWhenEqual ? new Set() : new Set([name]);
+	return equal
+		? { whenTrue: onEqual, whenFalse: onDiffer }
+		: { whenTrue: onDiffer, whenFalse: onEqual };
+}
+
+/** Is this identifier a value read (not a declared name or a property key)? */
+function isReference(id) {
+	const p = id.parent;
+	if (!p) return false;
+	if ((ts.isPropertyAccessExpression(p) || ts.isQualifiedName(p)) && p.name === id) return false;
+	if (ts.isPropertyAssignment(p) && p.name === id) return false;
+	if (ts.isBindingElement(p) && p.propertyName === id) return false;
+	if (
+		(ts.isVariableDeclaration(p) ||
+			ts.isParameter(p) ||
+			ts.isBindingElement(p) ||
+			ts.isFunctionDeclaration(p) ||
+			ts.isClassDeclaration(p) ||
+			ts.isEnumMember(p) ||
+			ts.isPropertyDeclaration(p) ||
+			ts.isMethodDeclaration(p) ||
+			ts.isPropertySignature(p) ||
+			ts.isGetAccessor(p) ||
+			ts.isSetAccessor(p)) &&
+		p.name === id
+	) {
+		return false;
+	}
+	if (ts.isImportSpecifier(p) || ts.isImportClause(p) || ts.isNamespaceImport(p)) return false;
+	if (ts.isExportSpecifier(p)) return false;
+	if (ts.isLabeledStatement(p) || ts.isBreakOrContinueStatement(p)) return false;
+	return true;
 }
 
 function unifiedDiff(refRel, otherRel) {
@@ -238,7 +448,7 @@ function unifiedDiff(refRel, otherRel) {
 	return shown.map((l) => `    ${l}`).join("\n");
 }
 
-/** Every `*-core.ts` / `*-shared.ts` / `*-engine.ts` / `*-renderer.ts` under src/lib/fancy-ui. */
+/** Every engine-shaped file (see CORE_FILE_RE) under src/lib/fancy-ui. */
 function listCoreFiles(dir, acc = []) {
 	for (const name of readdirSync(dir).sort()) {
 		const abs = join(dir, name);
@@ -252,8 +462,94 @@ function listCoreFiles(dir, acc = []) {
 	return acc;
 }
 
+// --- self-test ----------------------------------------------------------------
+// The purity rules are regexes and an AST walk; these cases pin what they must
+// reject and accept, so a rule that stops biting fails CI instead of passing
+// silently. `bad` must report at least one violation, `ok` none.
+const PURITY_CASES = [
+	// module-scope DOM reads
+	["bad", "const w = window.innerWidth;"],
+	["bad", "export const ua = navigator.userAgent;"],
+	["bad", "window.addEventListener('resize', () => {});"],
+	["bad", "class A { static t = document.title; }"],
+	["bad", "const { innerWidth } = window;"],
+	["bad", "f(document);"],
+	["bad", "enum E { A = window.length }"],
+	["bad", "const xs = [document.body];"],
+	["bad", "const w = (() => window.innerWidth)();"],
+	["bad", "const w = (function () { return window.innerWidth; })();"],
+	["bad", 'if (typeof window === "undefined") { window.x = 1; }'],
+	["bad", 'const h = typeof document === "undefined" && document.hidden;'],
+	["bad", 'const h = typeof document !== "undefined" || document.hidden;'],
+	["bad", 'const w = typeof window !== "undefined" ? 0 : window.innerWidth;'],
+	["bad", 'const d = typeof window !== "undefined" && document.title;'],
+	["bad", "const w = typeof window ? window.innerWidth : 0;"],
+	["ok", 'const w = typeof window === "undefined" ? 0 : window.innerWidth;'],
+	["ok", 'const w = typeof window !== "undefined" ? window.innerWidth : 0;'],
+	["ok", 'if (typeof window === "undefined") { f(); } else { g(window.innerWidth); }'],
+	["ok", 'if (typeof window !== "undefined") { g(window.innerWidth); }'],
+	["ok", 'if (!(typeof window === "undefined")) { g(window.innerWidth); }'],
+	["ok", 'const h = typeof document === "undefined" || document.hidden;'],
+	["ok", 'const h = typeof document !== "undefined" && document.hidden;'],
+	["ok", 'const h = "undefined" != typeof document && document.hidden;'],
+	["ok", 'const o = typeof window === "object" && window.innerWidth;'],
+	[
+		"ok",
+		'const b = typeof window !== "undefined" && typeof document !== "undefined" && document.body;',
+	],
+	["ok", "export function w() { return window.innerWidth; }"],
+	["ok", "export const w = () => window.innerWidth;"],
+	["ok", "class A { m() { return document.title; } x = window.innerWidth; }"],
+	["ok", "type W = typeof window; interface I { d: Document }"],
+	["ok", "const o = { window: 1, document: 2 }; o.navigator;"],
+	// framework imports
+	...[
+		"react",
+		"react-dom/client",
+		"vue",
+		"vue-router",
+		"svelte",
+		"svelte/store",
+		"svelte-motion",
+		"@sveltejs/kit",
+		"@vue/reactivity",
+		"@vueuse/core",
+		"$lib/x",
+		"$app/environment",
+		"$env/dynamic/public",
+		"./Foo.svelte",
+		"./Bar.vue",
+	].map((spec) => ["bad", `import x from "${spec}";`]),
+	["bad", 'export { y } from "vue";'],
+	["bad", 'const m = import("svelte/store");'],
+	["ok", 'import x from "reactive-thing";'],
+	["ok", 'import x from "./vue-bridge-core";'],
+	["ok", 'import x from "./svelte-helpers-core.js";'],
+	// per-tree seam, see FRAMEWORK_IMPORT_RE
+	["ok", 'import { sound } from "./sound.svelte.js";'],
+	// import.meta.env
+	["bad", "const dev = import.meta.env.DEV;"],
+];
+
+function selfTest() {
+	let failed = 0;
+	for (const [expect, src] of PURITY_CASES) {
+		const got = lintPuritySource("self-test.ts", src).length > 0 ? "bad" : "ok";
+		if (got === expect) continue;
+		failed++;
+		console.error(`  expected ${expect}, got ${got}: ${src}`);
+	}
+	if (failed > 0) {
+		console.error(`Shared-core purity self-test FAILED (${failed}/${PURITY_CASES.length}).`);
+		process.exit(1);
+	}
+	console.log(`Shared-core purity self-test OK (${PURITY_CASES.length} cases).`);
+	process.exit(0);
+}
+
 function main() {
 	const opts = parseArgs(process.argv.slice(2));
+	if (opts.selfTest) selfTest();
 	const file = manifestPath();
 	const manifest = loadManifest(file);
 
@@ -318,7 +614,8 @@ function main() {
 		sharedCount++;
 
 		// --- identity ----------------------------------------------------------
-		const present = svelteAbs === null ? [] : [{ tree: "svelte", rel: paths.svelte, abs: svelteAbs }];
+		const present =
+			svelteAbs === null ? [] : [{ tree: "svelte", rel: paths.svelte, abs: svelteAbs }];
 		for (const tree of ["react", "vue"]) {
 			const rel = paths[tree];
 			const required = tree === "react" ? opts.requireReact : opts.requireVue;

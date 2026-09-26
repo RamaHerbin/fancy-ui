@@ -76,6 +76,7 @@
 	}: FireworksHdrProps = $props();
 
 	let canvasRef: HTMLCanvasElement;
+	let engine: FireworksHdrEngine | null = null;
 
 	onMount(() => {
 		const canvas = canvasRef;
@@ -88,10 +89,33 @@
 			typeof window.matchMedia === "function" &&
 			window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-		// Every prop above is a mount-time snapshot (this component has never had
-		// an `$effect`): runtime control goes through the `onReady` handle, which
-		// drives the engine's live options from the inside.
-		const engine: FireworksHdrEngine | null = createFireworksHdr(
+		// Visibility gating + resize stay wrapper-side, forwarded to the engine.
+		// Created before the engine: a synchronous `onReady` that calls
+		// `cleanup()` tears the engine down inside `createFireworksHdr`, and its
+		// `onDestroy` must find these to disconnect.
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				engine?.setOptions({ visible: entry.isIntersecting });
+			},
+			{ threshold: 0 }
+		);
+		observer.observe(canvas);
+
+		const resizeObs = new ResizeObserver(() => {
+			engine?.resize();
+		});
+		resizeObs.observe(canvas);
+
+		const releaseObservers = () => {
+			observer.disconnect();
+			resizeObs.disconnect();
+		};
+
+		// Palette, exposure, ambient and the rest are mount-time snapshots:
+		// runtime control goes through the `onReady` handle. `quality`,
+		// `interactive` and the callbacks are pushed live by the effect below,
+		// because the engine reads them after its async boot or a recovery.
+		engine = createFireworksHdr(
 			{ canvas },
 			{
 				palette,
@@ -106,28 +130,23 @@
 				debug: import.meta.env.DEV,
 				onReady,
 				onLost,
+				// Any teardown — unmount, the handle's `cleanup()`, or the give-up
+				// after an unrecoverable GPU loss — releases the observers too.
+				onDestroy: releaseObservers,
 			}
 		);
 
-		// Visibility gating + resize stay wrapper-side, forwarded to the engine.
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				engine?.setOptions({ visible: entry.isIntersecting });
-			},
-			{ threshold: 0 }
-		);
-		observer.observe(canvas);
-
-		const resizeObs = new ResizeObserver(() => {
-			engine?.resize();
-		});
-		resizeObs.observe(canvas);
-
 		return () => {
-			observer.disconnect();
-			resizeObs.disconnect();
+			releaseObservers();
 			engine?.destroy();
+			engine = null;
 		};
+	});
+
+	// Keep what the engine reads after its async boot or a recovery current.
+	$effect(() => {
+		const next = { quality, interactive, onReady, onLost };
+		engine?.setOptions(next);
 	});
 </script>
 

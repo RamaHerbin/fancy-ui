@@ -43,7 +43,7 @@ export interface FluidCursorElements {
  * Everything the engine reads once, at creation time: the whole simulation
  * setup is snapshotted when the solver is built and is never re-read.
  *
- * The five props the component does keep re-reading after mount live on
+ * The six props the component does keep re-reading after mount live on
  * {@link FluidCursorLiveOptions} instead.
  *
  * Deliberately required rather than defaulted: the public defaults belong to
@@ -86,14 +86,6 @@ export interface FluidCursorInitOptions {
 	/** Color levels per channel in dither mode, clamped to [2, 16]. */
 	ditherLevels: number;
 	/**
-	 * Called once the fluid engine is live, with an imperative handle to
-	 * drive the simulation programmatically (trace a path via
-	 * `moveTo`/`penUp`, fire a one-off `burst`) and read back the actual
-	 * `renderLevel`. Pair with `interactive={false}` to drive it entirely
-	 * without a real cursor.
-	 */
-	onReady?: (handle: FluidCursorHandle) => void;
-	/**
 	 * Emit the development-only console diagnostics (singleton eviction,
 	 * WebGPU fallback, wide-gamut probe result). The wrapper passes its
 	 * bundler's dev flag; the core stays free of bundler-injected globals.
@@ -102,7 +94,7 @@ export interface FluidCursorInitOptions {
 }
 
 /**
- * The five options the running engine keeps re-reading after creation.
+ * The six options the running engine keeps re-reading after creation.
  *
  * The component never declared an `$effect` for them, but in runes mode a
  * destructured prop is a getter, so every closure that survived mount read
@@ -135,6 +127,20 @@ export interface FluidCursorLiveOptions {
 	 * from its startup promise.
 	 */
 	allowMultiple: boolean;
+	/**
+	 * Called once the fluid engine is live, with an imperative handle to
+	 * drive the simulation programmatically (trace a path via
+	 * `moveTo`/`penUp`, fire a one-off `burst`) and read back the actual
+	 * `renderLevel`. Pair with `interactive={false}` to drive it entirely
+	 * without a real cursor.
+	 *
+	 * Re-read when the handle is delivered, which the WebGPU path does from
+	 * its startup promise: a callback swapped in before WebGPU settles is the
+	 * one that receives the handle. Also re-read when the WebGL engine starts
+	 * (it decides whether the autopilot pointer exists). Optional, so passing
+	 * it explicitly as `undefined` clears it.
+	 */
+	onReady?: (handle: FluidCursorHandle) => void;
 }
 
 export interface FluidCursorEngine {
@@ -198,19 +204,19 @@ export function createFluidCursor(
 		dither,
 		ditherPixelSize,
 		ditherLevels,
-		onReady,
 		dev = false,
 	} = options;
 
-	// Mutable on purpose: these five stand in for the prop getters the
+	// Mutable on purpose: these six stand in for the prop getters the
 	// component's closures kept calling after mount. See FluidCursorLiveOptions.
-	let { fluidColor, fluidColors, interactive, allowMultiple, contained } = options;
+	let { fluidColor, fluidColors, interactive, allowMultiple, contained, onReady } = options;
 
 	function setOptions(next: Partial<FluidCursorLiveOptions>): void {
 		// `fluidColor` / `fluidColors` are optional, so `undefined` is a value
 		// (clear the override) rather than "not supplied": probe with `in`.
 		if ("fluidColor" in next) fluidColor = next.fluidColor;
 		if ("fluidColors" in next) fluidColors = next.fluidColors;
+		if ("onReady" in next) onReady = next.onReady;
 		if (next.contained !== undefined) contained = next.contained;
 		if (next.interactive !== undefined) interactive = next.interactive;
 		if (next.allowMultiple !== undefined) allowMultiple = next.allowMultiple;

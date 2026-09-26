@@ -11,8 +11,8 @@
 	/**
 	 * Every simulation prop is documented on `FluidCursorInitOptions` /
 	 * `FluidCursorLiveOptions` in `fluid-cursor-core.ts`. All of them but the
-	 * five live ones are read once, at mount: the engine snapshots the whole
-	 * set and never reacts to a later change. The five on
+	 * six live ones are read once, at mount: the engine snapshots the whole
+	 * set and never reacts to a later change. The six on
 	 * `FluidCursorLiveOptions` are the ones the running simulation keeps
 	 * re-reading, and the effect below forwards them. `dev` is not part of the
 	 * public surface — the wrapper fills it in from the bundler.
@@ -103,12 +103,12 @@
 		};
 	});
 
-	// The running engine re-reads these five, exactly as the prop getters it
+	// The running engine re-reads these six, exactly as the prop getters it
 	// replaced did. The first run only records dependencies; onMount owns the
 	// initial values.
 	let liveInit = false;
 	$effect(() => {
-		const next = { fluidColor, fluidColors, contained, interactive, allowMultiple };
+		const next = { fluidColor, fluidColors, contained, interactive, allowMultiple, onReady };
 		if (!liveInit) {
 			liveInit = true;
 			return;
