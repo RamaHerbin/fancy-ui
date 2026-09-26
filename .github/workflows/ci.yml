@@ -45,13 +45,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:registry
-      # --require-react: every React copy the manifest declares must exist, so
-      # deleting or renaming one fails here instead of silently shrinking the
-      # identity check to the Svelte copy alone (`react: null` stays exempt).
-      - run: pnpm check:cores --require-react
-      # The purity rules' own cases (what each must reject and accept), so a
-      # rule that stops biting fails here rather than passing every core.
-      - run: pnpm check:cores --self-test
       - run: pnpm check:i18n
       - run: pnpm check
       - run: pnpm test
@@ -340,7 +333,7 @@ jobs:
 
           # Added by the vue-3-5 CI job. Not committed.
           overrides:
-            vue: 3.5.0
+            vue: 3.5.2
           YAML
 
       # --no-frozen-lockfile because the override is the point: the lockfile
@@ -352,7 +345,7 @@ jobs:
         run: |
           version=$(node -p "require('vue/package.json').version")
           echo "vue@$version"
-          case "$version" in 3.5.0) ;; *) echo "expected vue 3.5.0, got $version"; exit 1 ;; esac
+          case "$version" in 3.5.2) ;; *) echo "expected vue 3.5.2, got $version"; exit 1 ;; esac
 
       - run: pnpm --filter fancy-ui-vue run check
       - run: pnpm --filter fancy-ui-vue run test

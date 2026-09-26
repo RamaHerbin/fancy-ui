@@ -560,7 +560,11 @@ const vueComponents = existsSync(vueComponentsDir)
 	? readdirSync(vueComponentsDir).filter(isComponentDir(vueComponentsDir))
 	: [];
 const barrelLines = [...indexSource.matchAll(/export \* from ["']\.\/components\//g)].length;
-const portedCount = matrix.filter((e) => e.status === "ported").length;
+// The sound family (group "foundation") ships from src/sound/, not a component
+// folder, so it is excluded here exactly as it is from the folder count above.
+const portedCount = matrix.filter(
+	(e) => e.status === "ported" && e.group !== "foundation"
+).length;
 
 const componentRows = matrix.filter((e) => e.group !== "foundation").length;
 

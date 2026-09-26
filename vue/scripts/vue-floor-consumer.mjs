@@ -2,7 +2,7 @@
 /**
  * Proves the Vue 3.5 floor half of the peer range, from a scratch consumer.
  *
- * `peerDependencies` advertises `vue: ^3.5.0`, so a Vue 3.5 app installs this
+ * `peerDependencies` advertises `vue: ^3.5.2`, so a Vue 3.5 app installs this
  * package with no warning — while the workspace pins a newer vue and the only
  * example app (the Nuxt example) needs ^3.5.40, CI otherwise only ever runs
  * one install. Every Vue-newer-than-3.5-only detail that slipped in would
@@ -12,12 +12,12 @@
  * What this covers, and what it does not:
  *
  *  - COVERED: the DECLARATION surface. The package is packed, installed into
- *    a throwaway directory alongside `vue@3.5.0`, and a probe importing `cn`
+ *    a throwaway directory alongside `vue@3.5.2`, and a probe importing `cn`
  *    and every component export's `<Name>Props` type is compiled with plain
  *    `tsc`, `skipLibCheck: false`. That is the half the runtime cannot reach:
  *    a type that only exists in a newer Vue (or a newer `@vue/runtime-core`)
  *    fails here.
- *  - COVERED: server rendering under Vue 3.5.0 proper, from the built
+ *  - COVERED: server rendering under Vue 3.5.2 proper, from the built
  *    artifact, via `@vue/server-renderer` sourced from the same floor
  *    install (never the workspace's newer copy).
  *  - NOT covered here: the client runtime. That is the other half of the
@@ -37,7 +37,10 @@ import { fileURLToPath } from "node:url";
 const pkg = fileURLToPath(new URL("../", import.meta.url));
 
 /** The floor the peer range promises. Kept in step with package.json. */
-const VUE = "3.5.0";
+// 3.5.2 is the first release whose `DefineComponent` type takes the 20
+// type arguments vue-tsc emits into every `<Name>.vue.d.ts`; 3.5.0/3.5.1
+// declare 19 and reject the shipped declarations (TS2707).
+const VUE = "3.5.2";
 const TYPESCRIPT = "~5.8.0";
 
 /**

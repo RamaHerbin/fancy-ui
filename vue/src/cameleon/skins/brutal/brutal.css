@@ -1,0 +1,35 @@
+/* Brutal skin — native range slider: ink track + ink thumb, blue focus ring. */
+[data-skin="brutal"] .cam-range {
+	height: 20px;
+}
+[data-skin="brutal"] .cam-range::-webkit-slider-runnable-track {
+	height: 4px;
+	background: #141414;
+	border-radius: 999px;
+}
+[data-skin="brutal"] .cam-range::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	height: 16px;
+	width: 16px;
+	margin-top: -6px;
+	background: #141414;
+	border: 1.5px solid #141414;
+	border-radius: 50%;
+}
+[data-skin="brutal"] .cam-range:focus-visible::-webkit-slider-thumb {
+	border-color: #1b6ef3;
+	box-shadow: 0 0 0 3px rgba(27, 110, 243, 0.35);
+}
+[data-skin="brutal"] .cam-range::-moz-range-track {
+	height: 4px;
+	background: #141414;
+	border-radius: 999px;
+}
+[data-skin="brutal"] .cam-range::-moz-range-thumb {
+	height: 16px;
+	width: 16px;
+	background: #141414;
+	border: 1.5px solid #141414;
+	border-radius: 50%;
+}

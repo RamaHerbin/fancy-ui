@@ -200,6 +200,12 @@ for (const file of declarations) {
 	}
 	const source = withoutComments(await readFile(file, "utf8"));
 	if (!RUNTIME_DECLARATION.test(source)) continue; // types only: no .js is expected
+	// Internal modules are not a consumer import path. Mid-campaign, Rollup
+	// tree-shakes the ones no ported component uses yet; prune-orphan-dts.mjs
+	// drops their declarations, and the survivors are exactly the ones a public
+	// type aggregate references (a type re-export pulls no runtime module into
+	// the graph). Their consistency is covered by the reference check below.
+	if (label(file).startsWith("dist/internals/")) continue;
 	const runtime = new URL(name.replace(/\.d\.ts$/, ".js"), file);
 	if (!(await exists(runtime))) {
 		failures.push(
