@@ -1,7 +1,7 @@
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
 import { afterEach, describe, expect, it } from "vitest";
-import { exportedComponents, fixtures } from "./ssr-sweep.fixtures.js";
+import { exportedComponents, fixtures, PROVIDER_ONLY, PROVIDER_ERROR } from "./ssr-sweep.fixtures.js";
 
 /**
  * Package-wide hydration gate (mirrors the React package's own).
@@ -32,6 +32,12 @@ function buildApp(value: unknown, props: Record<string, unknown>) {
 
 async function hydrateOne(name: string, value: unknown) {
 	const props = fixtures[name] ?? {};
+	if (PROVIDER_ONLY.has(name)) {
+		// Standalone render of a compound sub-component must throw the provider
+		// error (see PROVIDER_ONLY); there is nothing to hydrate.
+		await expect(renderToString(buildApp(value, props))).rejects.toThrow(PROVIDER_ERROR);
+		return;
+	}
 	const html = await renderToString(buildApp(value, props));
 
 	const container = document.createElement("div");
