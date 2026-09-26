@@ -101,6 +101,7 @@ export * from "./components/marquee/index.js";
 export * from "./components/matrix-rain/index.js";
 export * from "./components/meteors/index.js";
 export * from "./components/mosaic-glow/index.js";
+export * from "./components/datamosh-transition/index.js";
 export * from "./components/navbar/index.js";
 export * from "./components/navigation-menu/index.js";
 export * from "./components/neon-border/index.js";

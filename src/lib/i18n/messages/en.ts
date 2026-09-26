@@ -67,6 +67,10 @@ export const en = {
 	"table.default": "Default",
 	"table.description": "Description",
 	"table.slot": "Slot",
+	"table.event": "Event",
+	"table.payload": "Payload",
+	"comp.events": "Events",
+	"comp.copyMarkdown": "Copy as Markdown",
 
 	// Copy buttons
 	"action.copy": "Copy",

@@ -1,6 +1,6 @@
 {
 	"name": "fancy-ui-react",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"description": "Animated UI components for React — the React counterpart of fancy-ui-svelte. WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"license": "MIT",
 	"type": "module",
@@ -78,11 +78,12 @@
 	},
 	"devDependencies": {
 		"@testing-library/jest-dom": "^6.6.3",
-		"@types/three": "^0.183.1",
 		"@testing-library/react": "^16.3.0",
 		"@types/react": "^19.1.0",
 		"@types/react-dom": "^19.1.0",
+		"@types/three": "^0.183.1",
 		"@vitejs/plugin-react": "^4.6.0",
+		"@webgpu/types": "^0.1.71",
 		"jsdom": "^26.1.0",
 		"publint": "^0.3.18",
 		"react": "^19.1.0",

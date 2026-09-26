@@ -9,7 +9,15 @@
  * reinvented, written once for the ten components that need it here.
  */
 
-import type { Action } from "svelte/action";
+/** Structural stand-in for `svelte/action`'s `Action` type, kept
+ * framework-free so this core has no runtime or type import from svelte. */
+type ActionLike<Node extends Element, Params> = (
+	node: Node,
+	params: Params,
+) => {
+	update?(params: Params): void;
+	destroy?(): void;
+} | void;
 
 export interface InViewOptions {
 	/** Disconnect after the first time the node becomes visible. Default true. */
@@ -48,7 +56,7 @@ function sameObserverInit(a: InViewOptions, b: InViewOptions): boolean {
 	);
 }
 
-export const inView: Action<Element, InViewOptions> = (node, opts) => {
+export const inView: ActionLike<Element, InViewOptions> = (node, opts) => {
 	if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") {
 		// SSR, or a browser old enough to lack IntersectionObserver entirely:
 		// report visible immediately rather than leaving the caller's content

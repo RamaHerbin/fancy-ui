@@ -28,8 +28,6 @@
 // pair, which is what actually avoids this. `dialog/DialogSurface.svelte`
 // is the reference example.
 
-import type { Action } from "svelte/action";
-
 export interface FocusTrapOptions {
 	/** Element to focus when the trap activates. Defaults to the first focusable descendant of node. */
 	initialFocus?: HTMLElement | null;
@@ -83,28 +81,58 @@ export interface FocusTrapOptions {
 	onActivate?: (returnFocusNow: () => void, rearm: () => void) => void;
 }
 
+// Every branch carries the `tabindex="-1"` exclusion, not just the generic
+// `[tabindex]` one: a native control removed from the tab order is skipped by
+// the browser's own Tab, so counting it as the first/last tabbable item lets
+// Tab from its neighbour go uncaught and walk straight out of the trap.
 const FOCUSABLE_SELECTOR = [
 	"button:not([disabled])",
 	"[href]:not([disabled])",
 	"input:not([disabled])",
 	"select:not([disabled])",
 	"textarea:not([disabled])",
-	'[tabindex]:not([tabindex="-1"]):not([disabled])',
-].join(", ");
+	"[tabindex]:not([disabled])",
+]
+	.map((selector) => `${selector}:not([tabindex="-1"])`)
+	.join(", ");
 
 function isVisible(el: HTMLElement): boolean {
 	// offsetParent/getClientRects are unusable under jsdom, so rely on the
 	// hidden attribute and computed styles, which jsdom does implement.
 	if (el.hidden || el.closest("[hidden]") !== null) return false;
-	const style = getComputedStyle(el);
-	return style.display !== "none" && style.visibility !== "hidden";
+	// `visibility` INHERITS, so the element's own computed value already
+	// accounts for a hidden ancestor — and, just as importantly, for a
+	// descendant that opts back in with `visibility: visible`, which really is
+	// focusable and must not be filtered out.
+	if (getComputedStyle(el).visibility === "hidden") return false;
+	// `display` does NOT inherit: a control inside a `display: none` ancestor
+	// still computes its own `display` as `block`/`inline` and looks perfectly
+	// visible in isolation, while the whole subtree is absent from the layout
+	// tree and `.focus()` on it is a silent no-op. Treating it as focusable
+	// let the trap "focus" a control that never took focus — leaving focus
+	// outside the modal, which is the one thing this action exists to prevent.
+	for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+		if (getComputedStyle(node).display === "none") return false;
+	}
+	return true;
 }
 
 function getFocusableElements(node: HTMLElement): HTMLElement[] {
 	return Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(isVisible);
 }
 
-export const focusTrap: Action<HTMLElement, FocusTrapOptions | undefined> = (node, opts = {}) => {
+/**
+ * Structural stand-in for the framework's action type. This module is a shared
+ * core (identical bytes in every framework package, gated by shared-cores.json at
+ * the repo root), so it must not import framework types; the shape below is what
+ * every framework's action/attach contract expects.
+ */
+type FocusTrapAction = (
+	node: HTMLElement,
+	opts?: FocusTrapOptions
+) => { update?: (opts: FocusTrapOptions) => void; destroy?: () => void } | void;
+
+export const focusTrap: FocusTrapAction = (node, opts = {}) => {
 	// Actions only run in the browser, but stay defensive for SSR contexts.
 	if (typeof document === "undefined") {
 		return {};
@@ -228,6 +256,8 @@ export const focusTrap: Action<HTMLElement, FocusTrapOptions | undefined> = (nod
 
 		const first = focusable[0];
 		const last = focusable[focusable.length - 1];
+		// The length check above guarantees both; spelled out for index-access strictness.
+		if (!first || !last) return;
 		const active = document.activeElement;
 
 		if (event.shiftKey) {

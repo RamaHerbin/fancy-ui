@@ -119,6 +119,45 @@ describe("focusTrap", () => {
 		expect(document.activeElement?.id).toBe("b");
 	});
 
+	it("ignores native controls removed from the tab order when finding the boundaries", () => {
+		const trapNode = setup(`
+			<div id="trap">
+				<button id="a">A</button>
+				<input id="b" />
+				<button id="skip-button" tabindex="-1">skip</button>
+				<a id="skip-link" href="#x" tabindex="-1">skip</a>
+				<input id="skip-input" tabindex="-1" />
+				<select id="skip-select" tabindex="-1"></select>
+				<textarea id="skip-textarea" tabindex="-1"></textarea>
+			</div>
+		`);
+		focusTrap(trapNode);
+
+		// "b" is the last tabbable control: the browser would skip every
+		// tabindex=-1 control after it and leave the trap, so Tab from "b"
+		// must be intercepted and wrap to "a".
+		document.getElementById("b")!.focus();
+		const forward = pressTab();
+		expect(forward.defaultPrevented).toBe(true);
+		expect(document.activeElement?.id).toBe("a");
+
+		// And Shift+Tab from "a" wraps to "b", not to a skipped control.
+		pressTab({ shiftKey: true });
+		expect(document.activeElement?.id).toBe("b");
+	});
+
+	it("does not pick a tabindex=-1 native control as the default initial focus", () => {
+		const trapNode = setup(`
+			<div id="trap">
+				<button id="skip" tabindex="-1">skip</button>
+				<button id="a">A</button>
+			</div>
+		`);
+		focusTrap(trapNode);
+
+		expect(document.activeElement?.id).toBe("a");
+	});
+
 	it("restores focus to the previously active element on destroy by default", () => {
 		const outside = document.createElement("button");
 		outside.id = "outside";

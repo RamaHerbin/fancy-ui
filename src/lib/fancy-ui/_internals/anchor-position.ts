@@ -13,7 +13,6 @@
 //
 //   <div use:anchorPosition={{ anchor: () => anchorEl, side: "bottom" }}>...</div>
 
-import type { Action } from "svelte/action";
 
 export type Side = "top" | "bottom" | "left" | "right";
 export type Align = "start" | "center" | "end";
@@ -226,7 +225,18 @@ export interface AnchorPositionOptions {
  *
  * SSR-safe: does nothing when `window` is unavailable.
  */
-export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node, opts) => {
+/**
+ * Structural stand-in for the framework's action type. This module is a shared
+ * core (identical bytes in every framework package, gated by shared-cores.json at
+ * the repo root), so it must not import framework types; the shape below is what
+ * every framework's action/attach contract expects.
+ */
+type AnchorPositionAction = (
+	node: HTMLElement,
+	opts: AnchorPositionOptions,
+) => { update?: (opts: AnchorPositionOptions) => void; destroy?: () => void } | void;
+
+export const anchorPosition: AnchorPositionAction = (node, opts) => {
 	if (typeof window === "undefined") {
 		return {};
 	}
@@ -239,22 +249,42 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 	let reportedSide: Side | null = null;
 	let reportedAlign: Align | null = null;
 
+	/**
+	 * The floating element's size as LAID OUT, never as PAINTED.
+	 *
+	 * `getBoundingClientRect()` reports the box AFTER transforms, and every
+	 * anchored surface in this package is mid-entrance the first time this
+	 * runs: the presence transition pins `transform: scale(0.92)` on the
+	 * panel before this action's `update()` first fires. Measuring the
+	 * painted box would size the panel 8% small, place it that much off its
+	 * anchor, and leave it there — the entrance settles and nothing
+	 * recomputes.
+	 *
+	 * `offsetWidth`/`offsetHeight` are layout metrics: a transform does not
+	 * touch them. Zero means there is no layout box to read — a detached
+	 * node, a `display: none` ancestor, or jsdom, where every element
+	 * measures zero — so the rect answers for that case, and the two agree
+	 * everywhere else.
+	 */
+	function measureFloating(): { width: number; height: number } {
+		const rect = node.getBoundingClientRect();
+		return {
+			width: node.offsetWidth || rect.width,
+			height: node.offsetHeight || rect.height,
+		};
+	}
+
 	function update(): void {
 		const anchorEl = options.anchor();
 		if (!anchorEl) return;
 
 		const anchorRect = anchorEl.getBoundingClientRect();
-		const floatingRect = node.getBoundingClientRect();
-		const { x, y, side, align } = computePosition(
-			anchorRect,
-			{ width: floatingRect.width, height: floatingRect.height },
-			{
-				side: options.side,
-				align: options.align,
-				offset: options.offset,
-				viewport: { width: window.innerWidth, height: window.innerHeight },
-			}
-		);
+		const { x, y, side, align } = computePosition(anchorRect, measureFloating(), {
+			side: options.side,
+			align: options.align,
+			offset: options.offset,
+			viewport: { width: window.innerWidth, height: window.innerHeight },
+		});
 
 		node.style.position = "fixed";
 		node.style.left = `${x}px`;
@@ -292,6 +322,16 @@ export const anchorPosition: Action<HTMLElement, AnchorPositionOptions> = (node,
 		destroy() {
 			window.removeEventListener("scroll", update, { capture: true });
 			window.removeEventListener("resize", update);
+			// Strips the inline position this action wrote. Unobservable in
+			// the common case, where destroy runs only as the node itself is
+			// removed, but this action is public and a caller that reuses the
+			// node past `destroy()` (or a future non-destroying disable path)
+			// should not find it frozen at stale fixed coordinates. Matches
+			// `attachAnchorPosition`'s `reset()` and the sibling `float`
+			// action, which already promises to strip the node's own styles.
+			node.style.position = "";
+			node.style.left = "";
+			node.style.top = "";
 		},
 	};
 };

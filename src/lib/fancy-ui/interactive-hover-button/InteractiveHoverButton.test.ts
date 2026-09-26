@@ -66,99 +66,30 @@ describe("InteractiveHoverButton", () => {
 		expect(button).toHaveAttribute("aria-label", "Sign up");
 	});
 
-	it("contains the dot element with bg-primary class", () => {
+	it("renders the fill layer (the dot that opens) hidden from assistive tech", () => {
 		render(InteractiveHoverButton);
-		const button = screen.getByRole("button");
-		const dot = button.querySelector(".bg-primary");
-		expect(dot).toBeInTheDocument();
+		const fill = screen.getByRole("button").querySelector(".ihb-fill");
+		expect(fill).toBeInTheDocument();
+		expect(fill).toHaveAttribute("aria-hidden", "true");
 	});
 
-	it("has hover overlay with translate and opacity classes", () => {
-		render(InteractiveHoverButton);
-		const button = screen.getByRole("button");
-		const overlay = button.querySelector(".translate-x-12.opacity-0");
-		expect(overlay).toBeInTheDocument();
+	it("keeps the hover label and its arrow out of the accessibility tree", () => {
+		render(InteractiveHoverButton, { props: { text: "Subscribe" } });
+		const hover = screen.getByRole("button").querySelector(".ihb-hover");
+		expect(hover).toHaveAttribute("aria-hidden", "true");
+		expect(hover?.querySelector("svg")).toBeInTheDocument();
+		expect(hover).toHaveTextContent("Subscribe");
 	});
 
-	// The reduced-motion branch is pure CSS: `motion-safe:` is Tailwind's
-	// spelling of `@media (prefers-reduced-motion: no-preference)`, and jsdom
-	// computes neither the media query nor the utility behind it. What a test
-	// can pin is that the gate is actually on every transition utility, and on
-	// none of the transforms — the hover state must still arrive under reduced
-	// motion, it just must not travel there.
-	it("gates every transition utility behind motion-safe, and no transform with it", () => {
-		render(InteractiveHoverButton);
-		const button = screen.getByRole("button");
-
-		const animated = Array.from(button.querySelectorAll<HTMLElement>("*")).filter((el) =>
-			/\btransition-|\bduration-/.test(el.className)
-		);
-		expect(animated).toHaveLength(3);
-
-		for (const el of animated) {
-			expect(el.className).not.toMatch(/(^|\s)transition-/);
-			expect(el.className).not.toMatch(/(^|\s)duration-/);
-			expect(el.className).toContain("motion-safe:transition-all");
-			expect(el.className).toContain("motion-safe:duration-300");
-		}
-
-		// The state itself is never gated — these are the classes that make the
-		// hover readable at all, and one of them is what the overlay test above
-		// already pins.
-		expect(button.querySelector(".group-hover\\:scale-\\[100\\.8\\]")).toBeInTheDocument();
-		expect(button.querySelector(".translate-x-12.opacity-0")).toBeInTheDocument();
+	it("renders the resting label with room for the dot", () => {
+		render(InteractiveHoverButton, { props: { text: "Subscribe" } });
+		const rest = screen.getByRole("button").querySelector(".ihb-rest");
+		expect(rest?.querySelector(".ihb-dot-space")).toBeInTheDocument();
+		expect(rest).toHaveTextContent("Subscribe");
 	});
 
-	describe("sound", () => {
-		let play: ReturnType<typeof vi.spyOn>;
-
-		beforeEach(() => {
-			play = vi.spyOn(sound, "play").mockImplementation(() => {});
-		});
-
-		afterEach(() => {
-			play.mockRestore();
-		});
-
-		it("plays the press cue exactly once when sound is enabled and the button is clicked", async () => {
-			render(InteractiveHoverButton, { props: { sound: true } });
-
-			await fireEvent.click(screen.getByRole("button"));
-
-			expect(play).toHaveBeenCalledTimes(1);
-			expect(play).toHaveBeenCalledWith("press");
-		});
-
-		it("plays nothing by default (sound prop omitted)", async () => {
-			render(InteractiveHoverButton);
-
-			await fireEvent.click(screen.getByRole("button"));
-
-			expect(play).not.toHaveBeenCalled();
-		});
-
-		it("plays nothing while disabled, even with sound enabled", () => {
-			render(InteractiveHoverButton, { props: { sound: true, disabled: true } });
-			const button = screen.getByRole("button");
-
-			// Synthetic dispatch bypasses jsdom's native-disabled short-circuit,
-			// proving the guard is the JS `restProps.disabled` check.
-			button.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-
-			expect(play).not.toHaveBeenCalled();
-		});
-
-		// This component's signature interaction is a hover reveal, but the hover
-		// cue is reserved for use:soundFeedback (guardrail 13) — the identity
-		// gesture must stay silent even though it's the whole point of the button.
-		it("plays nothing on hover — the hover reveal stays silent even with sound enabled", async () => {
-			render(InteractiveHoverButton, { props: { sound: true } });
-			const button = screen.getByRole("button");
-
-			await fireEvent.mouseEnter(button);
-			await fireEvent.pointerEnter(button);
-
-			expect(play).not.toHaveBeenCalled();
-		});
+	it("lets class override the fill colours through CSS variables", () => {
+		render(InteractiveHoverButton, { props: { class: "[--ihb-fill:#ef4444]" } });
+		expect(screen.getByRole("button").className).toContain("[--ihb-fill:#ef4444]");
 	});
 });

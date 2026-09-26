@@ -5,14 +5,15 @@ import type { FluidCursorInitOptions, FluidCursorLiveOptions } from "./fluid-cur
 /**
  * Every simulation prop is documented on `FluidCursorInitOptions` /
  * `FluidCursorLiveOptions` in `fluid-cursor-core.ts`. All of them but the
- * five live ones are read once, at mount: the engine snapshots the whole
- * set and never reacts to a later change. The five on
+ * six live ones are read once, at mount: the engine snapshots the whole
+ * set and never reacts to a later change. The six on
  * `FluidCursorLiveOptions` are the ones the running simulation keeps
  * re-reading, and the watcher below forwards them. `dev` is not part of the
  * public surface — the wrapper fills it in from the bundler.
  */
-export interface FluidCursorProps
-	extends Partial<Omit<FluidCursorInitOptions, "dev"> & FluidCursorLiveOptions> {
+export interface FluidCursorProps extends Partial<
+	Omit<FluidCursorInitOptions, "dev"> & FluidCursorLiveOptions
+> {
 	class?: HTMLAttributes["class"];
 }
 </script>
@@ -115,11 +116,11 @@ onBeforeUnmount(() => {
 	engine = null;
 });
 
-// The running engine re-reads these five, exactly as the prop getters it
+// The running engine re-reads these six, exactly as the prop getters it
 // replaced did. The watcher has no `immediate`, so it never runs on mount or
 // on the server; onMounted owns the initial values.
 watch(
-	() => ({ fluidColor, fluidColors, contained, interactive, allowMultiple }),
+	() => ({ fluidColor, fluidColors, contained, interactive, allowMultiple, onReady }),
 	(next) => {
 		engine?.setOptions(next);
 	},

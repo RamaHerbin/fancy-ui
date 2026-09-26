@@ -49,6 +49,7 @@
 	// of the generic single-tag usage.
 	export const skipDirectRender = new Set([
 		"mosaic-glow",
+		"datamosh-transition",
 		"pulse-beam",
 		"animated-beam",
 		"apple-card-carousel",

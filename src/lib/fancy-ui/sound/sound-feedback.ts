@@ -25,7 +25,6 @@
  *   `destroy()` unbinds every listener.
  */
 
-import type { Action } from "svelte/action";
 import { sound } from "./sound.svelte.js";
 import type { SoundCue } from "./types.js";
 
@@ -89,7 +88,10 @@ export function resetSoundFeedbackForTests(): void {
 	lastPointerMoveAt = -Infinity;
 }
 
-export const soundFeedback: Action<HTMLElement, SoundFeedbackOptions | undefined> = (
+export const soundFeedback: (
+	node: HTMLElement,
+	params?: SoundFeedbackOptions
+) => { update?(params?: SoundFeedbackOptions): void; destroy?(): void } = (
 	node,
 	initialOptions
 ) => {

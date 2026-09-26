@@ -56,7 +56,7 @@ export interface FireworksHdrProps {
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
+import { onBeforeUnmount, onMounted, useTemplateRef, watchEffect } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { EXPOSURE_AMBIENT } from "./fireworks-shared.js";
@@ -91,34 +91,18 @@ const DEV = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV =
 // one below, so the answer is already in by the time the engine is built.
 const reducedMotion = useReducedMotion();
 
+let engine: FireworksHdrEngine | null = null;
+
 onMounted(() => {
 	const canvas = canvasRef.value;
 	if (!canvas) return;
 
 	const prefersReduced = respectReducedMotion && reducedMotion.value;
 
-	// Every prop above is a mount-time snapshot (this component has never had
-	// a live effect): runtime control goes through the `onReady` handle, which
-	// drives the engine's live options from the inside.
-	const engine: FireworksHdrEngine | null = createFireworksHdr(
-		{ canvas },
-		{
-			palette,
-			hdr,
-			exposure,
-			ambient,
-			ambientIntensity,
-			interactive,
-			quality,
-			ambientShells,
-			reducedMotion: prefersReduced,
-			debug: DEV,
-			onReady,
-			onLost,
-		}
-	);
-
 	// Visibility gating + resize stay wrapper-side, forwarded to the engine.
+	// Created before the engine: a synchronous `onReady` that calls `cleanup()`
+	// tears the engine down inside `createFireworksHdr`, and its `onDestroy`
+	// must find these to disconnect.
 	const observer = new IntersectionObserver(
 		(entries) => {
 			const entry = entries[0];
@@ -134,11 +118,47 @@ onMounted(() => {
 	});
 	resizeObs.observe(canvas);
 
-	onBeforeUnmount(() => {
+	const releaseObservers = () => {
 		observer.disconnect();
 		resizeObs.disconnect();
+	};
+
+	// Palette, exposure, ambient and the rest are mount-time snapshots: runtime
+	// control goes through the `onReady` handle. `quality`, `interactive` and
+	// the callbacks are pushed live by the watcher below, because the engine
+	// reads them after its async boot or a recovery.
+	engine = createFireworksHdr(
+		{ canvas },
+		{
+			palette,
+			hdr,
+			exposure,
+			ambient,
+			ambientIntensity,
+			interactive,
+			quality,
+			ambientShells,
+			reducedMotion: prefersReduced,
+			debug: DEV,
+			onReady,
+			onLost,
+			// Any teardown — unmount, the handle's `cleanup()`, or the give-up
+			// after an unrecoverable GPU loss — releases the observers too.
+			onDestroy: releaseObservers,
+		}
+	);
+
+	onBeforeUnmount(() => {
+		releaseObservers();
 		engine?.destroy();
+		engine = null;
 	});
+});
+
+// Keep what the engine reads after its async boot or a recovery current.
+watchEffect(() => {
+	const next = { quality, interactive, onReady, onLost };
+	engine?.setOptions(next);
 });
 </script>
 
