@@ -11,6 +11,7 @@ export const prerender = true;
 const STATIC_PATHS = [
 	"/",
 	"/docs/components",
+	"/finds",
 	"/docs/getting-started/introduction",
 	"/docs/getting-started/installation",
 	"/docs/getting-started/theming",

@@ -19,6 +19,7 @@
 	const navLinks: { label: string; href: string }[] = [
 		{ label: "Docs", href: "/docs/getting-started/introduction" },
 		{ label: "Components", href: "/docs/components" },
+		{ label: "Finds", href: "/finds" },
 		{ label: "Themes", href: "/docs/getting-started/theming" },
 		{ label: "Changelog", href: "/docs/getting-started/changelog" },
 	];
