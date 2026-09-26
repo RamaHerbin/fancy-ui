@@ -54,6 +54,10 @@ export default {
 	"table.default": "Bawaan",
 	"table.description": "Deskripsi",
 	"table.slot": "Slot",
+	"table.event": "Event",
+	"table.payload": "Data",
+	"comp.events": "Event",
+	"comp.copyMarkdown": "Salin sebagai Markdown",
 
 	// Copy buttons
 	"action.copy": "Salin",

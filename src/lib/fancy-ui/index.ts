@@ -33,6 +33,7 @@ export * from "./timeline/index.js";
 export * from "./meteors/index.js";
 export * from "./flickering-grid/index.js";
 export * from "./mosaic-glow/index.js";
+export * from "./datamosh-transition/index.js";
 export * from "./neon-border/index.js";
 export * from "./colourful-text/index.js";
 export * from "./flip-words/index.js";

@@ -269,11 +269,8 @@ export async function startWebGpuFireworks(
 			}
 			probe.configure(configuration);
 			probe.unconfigure();
-		} catch (error) {
+		} catch {
 			device.destroy();
-			if (import.meta.env.DEV) {
-				console.warn("[FireworksHdr] WebGPU canvas configuration rejected:", error);
-			}
 			return null;
 		}
 
@@ -311,20 +308,9 @@ export async function startWebGpuFireworks(
 
 		let destroyed = false;
 		let lost = false;
-		device.lost.then((info) => {
+		device.lost.then(() => {
 			lost = true;
-			if (!destroyed && import.meta.env.DEV) {
-				console.warn(`[FireworksHdr] WebGPU device lost (${info.reason}): ${info.message}`);
-			}
 		});
-		if (import.meta.env.DEV) {
-			device.addEventListener("uncapturederror", (event) => {
-				console.error(
-					"[FireworksHdr] WebGPU uncaptured error:",
-					(event as GPUUncapturedErrorEvent).error.message
-				);
-			});
-		}
 
 		const module = device.createShaderModule({ code: WGSL });
 		let renderScale = opts.renderScale ?? 1;
@@ -633,10 +619,7 @@ export async function startWebGpuFireworks(
 				device.destroy();
 			},
 		};
-	} catch (error) {
-		if (import.meta.env.DEV) {
-			console.warn("[FireworksHdr] WebGPU init failed:", error);
-		}
+	} catch {
 		return null;
 	}
 }

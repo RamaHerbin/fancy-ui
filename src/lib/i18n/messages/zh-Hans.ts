@@ -48,6 +48,10 @@ export default {
 	"table.default": "默认值",
 	"table.description": "说明",
 	"table.slot": "插槽",
+	"table.event": "事件",
+	"table.payload": "数据",
+	"comp.events": "事件",
+	"comp.copyMarkdown": "复制为 Markdown",
 
 	"action.copy": "复制",
 	"action.copied": "已复制！",
