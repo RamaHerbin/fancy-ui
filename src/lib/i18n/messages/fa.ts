@@ -54,6 +54,10 @@ export default {
 	"table.default": "پیش‌فرض",
 	"table.description": "توضیح",
 	"table.slot": "اسلات",
+	"table.event": "رویداد",
+	"table.payload": "داده",
+	"comp.events": "رویدادها",
+	"comp.copyMarkdown": "کپی به‌صورت Markdown",
 
 	// Copy buttons
 	"action.copy": "کپی",

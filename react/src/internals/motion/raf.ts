@@ -1,7 +1,7 @@
 /**
  * Trailing-edge rAF throttle, generalized from the hand-rolled
  * `if (id) cancelAnimationFrame(id); id = requestAnimationFrame(...)` pattern
- * already duplicated in this library (GlowingEffect's pointer sampling). Magnetic
+ * already duplicated in this repo (GlowingEffect's pointer sampling). Magnetic
  * (pointermove) and ScrollProgress (scroll/resize) both need "run at most
  * once per frame, with the freshest data" — this is that primitive, pulled
  * out once instead of re-hand-rolled a third and fourth time.

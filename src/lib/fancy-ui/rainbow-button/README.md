@@ -1,6 +1,6 @@
 # RainbowButton
 
-A button (or anchor, when `href` is set) with an animated rainbow gradient border and a matching blurred glow beneath it, built entirely from CSS gradients, background layering, and a single `background-position` keyframe animation.
+A button (or anchor, when `href` is set) with an animated rainbow gradient border and a matching blurred glow beneath it, built entirely from CSS gradients, background layering, and a single `background-position` keyframe animation. On hover or keyboard focus, a rainbow beam rides around the border with a soft halo outside the button.
 
 ## Usage
 
@@ -47,4 +47,5 @@ It is opt-in and silent by default: nothing plays unless both `sound` is set on 
 - When `href` is set, the rendered `<a>` gets `aria-disabled` and `tabindex="-1"` (plus `role="link"`) instead of a native `disabled` attribute, since anchors don't support `disabled`.
 - The rainbow gradient colors (`--rainbow-1`…`--rainbow-5`) are hard-coded HSL custom properties scoped to `.rainbow-button` in the component's own `<style>` block — they aren't exposed as props; only the shared `speed` (as `--rainbow-speed`) is.
 - Light/dark mode swap the button's own fill and text color (dark button + white text in light mode, light button + black text in `dark:`) while reusing the same rainbow gradient for both the border and the glow.
-- No `prefers-reduced-motion` handling — the border and glow animation run continuously regardless of user preference.
+- **Hover beam.** Two `aria-hidden` spans carry it. `.rainbow-button__beam` is a conic gradient masked to a 1.5 px ring on the border (`mask: content-box exclude`). `.rainbow-button__glow` is the same gradient on a 6 px ring, blurred by its parent so the blur applies after the mask and both edges go soft; it sits outside the face, so the button's fill stays clean. The gradient turns through a registered `@property --beam-angle` (one lap = 1.5 × `speed`), and only while hovered or focused (`:focus-visible`). Both layers fade in over 350 ms.
+- Under `prefers-reduced-motion` the beam still fades in on hover, but frozen at one angle. The resting border and glow animation (`background-position`) keep running regardless of the preference, as before.

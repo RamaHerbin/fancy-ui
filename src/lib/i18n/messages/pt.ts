@@ -54,6 +54,10 @@ export default {
 	"table.default": "Padrão",
 	"table.description": "Descrição",
 	"table.slot": "Slot",
+	"table.event": "Evento",
+	"table.payload": "Dados",
+	"comp.events": "Eventos",
+	"comp.copyMarkdown": "Copiar como Markdown",
 
 	// Copy buttons
 	"action.copy": "Copiar",

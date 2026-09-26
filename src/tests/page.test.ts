@@ -46,6 +46,21 @@ describe("+page.svelte", () => {
 			}
 		});
 
+		it("scrolls the liquid glass backdrop under a pill that stays put", () => {
+			// The panel's whole argument is that the glass refracts what moves
+			// behind it, which needs two things the markup has to keep: a
+			// scrollable backdrop, and the glass OUTSIDE it. jsdom has no layout,
+			// so the structure is what can be asserted — and it is the part a
+			// later edit is most likely to undo by folding the glass back in.
+			const { container } = render(Page);
+			const glass = container.querySelector(".liquid-glass-effect");
+			const panel = glass?.closest(".lp-stage");
+			const scroller = panel?.querySelector(".overflow-y-auto");
+
+			expect(scroller).toBeInTheDocument();
+			expect(scroller?.contains(glass!)).toBe(false);
+		});
+
 		it("holds the fluid cursor back for reduced motion", () => {
 			// jsdom's matchMedia mock (test-setup) reports no preference; the
 			// component additionally waits for idle. Either way, first render

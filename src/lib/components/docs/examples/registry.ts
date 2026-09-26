@@ -180,9 +180,23 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	],
 	"glow-border": [
 		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "CustomColors", title: "Custom Colors", description: "Change glow colors." },
+		{
+			name: "Presets",
+			title: "Presets",
+			description: "Iridescent chrome, cool steel or warm gold.",
+		},
+		{
+			name: "Strength",
+			title: "Strength",
+			description: "How bright the glint and its glow are.",
+		},
+		{
+			name: "CustomColors",
+			title: "Custom Colors",
+			description: "One colour tints the metal's reflections.",
+		},
 		{ name: "MultiColorGradient", title: "Multi-Color Gradient" },
-		{ name: "BorderWidth", title: "Border Width", description: "Adjust glow thickness." },
+		{ name: "BorderWidth", title: "Border Width", description: "Adjust the ring's thickness." },
 		{ name: "CardExample", title: "Card Example" },
 	],
 	"neon-border": [
@@ -221,6 +235,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomCount", title: "Custom Count", description: "Control number of meteors." },
 		{ name: "CardExample", title: "Card Example" },
+		{
+			name: "Options",
+			title: "Options",
+			description: "Colour, direction, speed and seed.",
+		},
 	],
 	ripple: [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -251,6 +270,20 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "CustomColor", title: "Custom Color" },
 		{ name: "AnimationSpeed", title: "Animation Speed" },
+	],
+	"datamosh-transition": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "Variants",
+			title: "Variants",
+			description: "Every cover shape, column sweep and palette preset.",
+		},
+		{
+			name: "Sunset",
+			title: "Sunset",
+			description:
+				"A vector trace of a sunset photo that sets into dusk. With the picture source on, the tiles decode the scene being left.",
+		},
 	],
 	"mosaic-glow": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -296,6 +329,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 	"flip-card": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "XAxisRotation", title: "X-Axis Rotation", description: "Flip vertically." },
+		{
+			name: "ClickToFlip",
+			title: "Click to Flip",
+			description:
+				"A toggle: click, tap, Enter or Space. The link on the back stays clickable, and bind:flipped drives it from outside.",
+		},
 		{ name: "MultipleCards", title: "Multiple Cards" },
 	],
 	book: [
@@ -353,6 +392,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			name: "CustomContent",
 			title: "Custom Content",
 			description: "Use snippets instead of images.",
+		},
+		{
+			name: "BeamColors",
+			title: "Beam Colors",
+			description: "Tint the seam with your own colours.",
 		},
 	],
 	"fluid-cursor": [

@@ -401,7 +401,8 @@ export const registry: Record<string, ComponentMeta> = {
 	compare: {
 		name: "Compare",
 		slug: "compare",
-		description: "Before/after image comparison slider with hover and drag modes",
+		description:
+			"Before/after image comparison slider split by a blade of light: a white-hot seam with a chromatic fringe, pulses running along it and a trail that stretches with the speed of the gesture",
 		category: "media",
 		group: "fancy",
 		status: "done",
@@ -473,6 +474,18 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "5000",
 				description: "Duration of one autoplay cycle in ms",
+			},
+			{
+				name: "beamColors",
+				type: "string[]",
+				default: '["#22d3ee", "#818cf8", "#f472b6"]',
+				description: "Beam colours: left fringe, centre, right fringe (one or more colours)",
+			},
+			{
+				name: "label",
+				type: "string",
+				default: '"Comparison slider"',
+				description: "Accessible name of the slider",
 			},
 		],
 		slots: [
@@ -758,12 +771,13 @@ export const registry: Record<string, ComponentMeta> = {
 	"rainbow-button": {
 		name: "RainbowButton",
 		slug: "rainbow-button",
-		description: "Animated button with a rainbow gradient border effect",
+		description:
+			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/rainbow-button" }],
-		tags: ["button", "animation", "rainbow", "gradient", "cta"],
+		tags: ["button", "animation", "rainbow", "gradient", "cta", "beam", "hover", "glow"],
 		props: [
 			{ name: "speed", type: "number", default: "2", description: "Animation speed in seconds" },
 			{ name: "href", type: "string", description: "Render as anchor element when provided" },
@@ -781,7 +795,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "RippleButton",
 		slug: "ripple-button",
 		description:
-			"Button that spawns an expanding, fading ripple circle centered on the click point, with configurable color and duration",
+			"Button that answers each click with a ripple of light from the click point, a soft glow and two fine rings spreading out like a wave; on hover a glow follows the pointer with a faint ring pulsing from it",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -791,13 +805,13 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "rippleColor",
 				type: "string",
-				default: '"#ADD8E6"',
-				description: "Color of the ripple effect",
+				default: '"#60a5fa"',
+				description: "Colour of the ripple: its glow, its rings and the border tint",
 			},
 			{
 				name: "duration",
 				type: "number",
-				default: "600",
+				default: "900",
 				description: "Animation duration in milliseconds",
 			},
 			{
@@ -813,7 +827,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"shimmer-button": {
 		name: "ShimmerButton",
 		slug: "shimmer-button",
-		description: "Button with a rotating conic-gradient shimmer border effect",
+		description:
+			"Pill button with a satin sheen: a soft band of light sweeps across the face and lifts the label, then rests; on hover the highlight follows the pointer",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -824,13 +839,13 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "shimmerColor",
 				type: "string",
 				default: '"#ffffff"',
-				description: "Shimmer highlight color",
+				description: "Colour of the sheen, rim and hover highlight",
 			},
 			{
 				name: "shimmerSize",
 				type: "string",
 				default: '"0.05em"',
-				description: "Thickness of the shimmer border",
+				description: "Thickness of the rim that catches the sheen",
 			},
 			{
 				name: "borderRadius",
@@ -842,7 +857,7 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "shimmerDuration",
 				type: "string",
 				default: '"3s"',
-				description: "Duration of the shimmer animation cycle",
+				description: "Duration of one sheen cycle: the sweep, then a pause",
 			},
 			{
 				name: "background",
@@ -1225,80 +1240,105 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "GlowBorder",
 		slug: "glow-border",
 		description:
-			"Glowing ring that animates around a container's edge by sweeping a radial gradient's position, masked with CSS mask-composite so only the border ring is painted, supporting single or multi-color gradients",
+			"Liquid-metal ring for a container's edge: two metallic conic fields turning against each other make iridescent reflections flow along a dark chrome border, while a glint rides around it and spills a soft glow; chromatic, silver and gold presets or custom tints",
 		category: "effects",
 		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/background-gradient" },
+			{ source: "metal-fx", url: "https://github.com/Jakubantalik/metal-fx" },
 		],
-		tags: ["border", "glow", "animation", "gradient", "decoration"],
+		tags: ["border", "glow", "animation", "gradient", "decoration", "metal", "chrome", "beam"],
 		props: [
 			{
-				name: "borderRadius",
-				type: "number",
-				default: "10",
-				description: "Border radius in pixels",
+				name: "preset",
+				type: '"chromatic" | "silver" | "gold"',
+				default: '"chromatic"',
+				description: "Metal palette: iridescent chrome, cool steel or warm gold",
 			},
 			{
 				name: "color",
 				type: "string | string[]",
-				default: '"#FFF"',
-				description: "Glow color or array of colors for gradient",
+				description:
+					"Custom tints for the metal's reflections, woven with neutral metal tones; overrides preset",
 			},
-			{ name: "borderWidth", type: "number", default: "2", description: "Border width in pixels" },
+			{
+				name: "strength",
+				type: "number",
+				default: "0.8",
+				description: "Intensity of the glint and its glow, 0 to 1",
+			},
+			{
+				name: "borderRadius",
+				type: "number",
+				default: "10",
+				description: "Border radius in pixels; the ring also inherits its parent's radius",
+			},
+			{
+				name: "borderWidth",
+				type: "number",
+				default: "1.5",
+				description: "Width of the metal ring in pixels",
+			},
 			{
 				name: "duration",
 				type: "number",
 				default: "10",
-				description: "Animation duration in seconds",
+				description:
+					"Length of one flow cycle of the metal in seconds; the glint laps in 0.4x that",
 			},
+			{ name: "class", type: "string", description: "Additional classes on the overlay" },
 		],
 	},
 
 	"gradient-button": {
 		name: "GradientButton",
 		slug: "gradient-button",
-		description: "Button with a rotating conic-gradient rainbow border effect",
+		description:
+			"Dark button with a beam of light that travels around its border and casts a soft coloured glow inside the face; the glow brightens on hover",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/buttons/gradient-button" },
 		],
-		tags: ["button", "gradient", "animation", "rainbow", "border", "cta"],
+		tags: ["button", "gradient", "animation", "rainbow", "border", "beam", "glow", "cta"],
 		props: [
 			{
 				name: "colors",
 				type: "string[]",
-				default:
-					'["#FF0000","#FFA500","#FFFF00","#008000","#0000FF","#4B0082","#EE82EE","#FF0000"]',
-				description: "Gradient colors for the conic-gradient border",
+				default: '["#34d399","#22d3ee","#6366f1","#d946ef","#f43f5e","#f59e0b"]',
+				description: "Colours of the beam, spread along its arc",
 			},
 			{
 				name: "duration",
 				type: "number",
-				default: "2500",
-				description: "Animation duration in milliseconds",
+				default: "3000",
+				description: "Time for the beam to travel once around the button, in milliseconds",
 			},
-			{ name: "borderWidth", type: "number", default: "2", description: "Border width in pixels" },
+			{
+				name: "borderWidth",
+				type: "number",
+				default: "1.5",
+				description: "Width of the lit border in pixels",
+			},
 			{
 				name: "borderRadius",
 				type: "number",
-				default: "8",
+				default: "12",
 				description: "Border radius in pixels",
 			},
 			{
 				name: "blur",
 				type: "number",
 				default: "4",
-				description: "Blur amount for the gradient in pixels",
+				description: "Softness of the glow the beam casts inside the button, in pixels",
 			},
 			{
 				name: "bgColor",
 				type: "string",
-				default: '"#000"',
-				description: "Background color of the button content area",
+				default: '"#161616"',
+				description: "Background color of the button face",
 			},
 			{
 				name: "sound",
@@ -1313,7 +1353,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"interactive-hover-button": {
 		name: "InteractiveHoverButton",
 		slug: "interactive-hover-button",
-		description: "Button with interactive hover effect revealing alternate content",
+		description:
+			"Button whose dot opens into a circle that fills it on hover, while the label rolls up and out and returns with an arrow",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -1382,14 +1423,35 @@ export const registry: Record<string, ComponentMeta> = {
 	meteors: {
 		name: "Meteors",
 		slug: "meteors",
-		description: "Animated meteor shower effect with randomized positions and delays",
+		description:
+			"Meteor shower in depth: seeded meteors with glowing heads and tapering tails fall diagonally in parallax (near ones larger, brighter and faster), fading in and burning out, a few flaring before they go",
 		category: "effects",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/meteors" }],
-		tags: ["animation", "meteors", "particles", "decoration", "space"],
+		tags: ["animation", "meteors", "particles", "decoration", "space", "shooting stars"],
 		props: [
 			{ name: "count", type: "number", default: "20", description: "Number of meteors to render" },
+			{
+				name: "angle",
+				type: "number",
+				default: "215",
+				description: "Direction of travel in degrees (215 = down and to the right)",
+			},
+			{ name: "speed", type: "number", default: "1", description: "Speed multiplier" },
+			{
+				name: "color",
+				type: "string",
+				description:
+					"Head and tail colour; defaults to pale blue-white on dark pages and slate on light ones",
+			},
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description: "Seed for the field; same seed, same shower on server and client",
+			},
+			{ name: "class", type: "string", description: "Additional CSS classes on each meteor" },
 		],
 	},
 
@@ -1448,6 +1510,139 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"datamosh-transition": {
+		name: "DatamoshTransition",
+		slug: "datamosh-transition",
+		description:
+			"Page-transition overlay that looks like a corrupted video decode: a fixed grid of columns, narrow on the left and wide on the right, fills with flat blocks of saturated colour that fall, snap open through the middle of the frame and squeeze shut again; cover() drops the columns over the page right to left and reveal() lets them fall away, both as promises for any router's navigation hook",
+		category: "effects",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"page transition",
+			"route",
+			"navigation",
+			"overlay",
+			"canvas",
+			"datamosh",
+			"glitch",
+			"columns",
+		],
+		props: [
+			{
+				name: "colors",
+				type: '"broadcast" | "sunset" | "thermal" | "mono" | "acid" | string[]',
+				default: '"broadcast"',
+				description:
+					"Palette preset or colour list, hex or rgb(); the lightest and darkest colours recur most often",
+			},
+			{
+				name: "variant",
+				type: '"curtain" | "rise" | "split" | "interlace"',
+				default: '"curtain"',
+				description:
+					"Shape of the cover: drop from the top, climb from the bottom, open from the centre line, or alternate curtain and rise per column",
+			},
+			{
+				name: "sweep",
+				type: '"right" | "left" | "center" | "edges" | "random"',
+				default: '"right"',
+				description:
+					"Order the columns move in: from the right, from the left, out from the middle, in from both sides, or a seeded shuffle",
+			},
+			{
+				name: "source",
+				type: "string | HTMLImageElement | HTMLCanvasElement",
+				description:
+					"Picture to decode: tiles take their colours from it, auto-levelled and saturated, instead of the palette; URLs must be same-origin or CORS-enabled",
+			},
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description: "Seed for the colour order; same seed, same strip",
+			},
+			{
+				name: "columns",
+				type: "number",
+				default: "11",
+				description: "Number of columns",
+			},
+			{
+				name: "power",
+				type: "number",
+				default: "1.65",
+				description:
+					"Column edge exponent: 1 is a uniform grid, higher widens the columns to the right",
+			},
+			{
+				name: "tiles",
+				type: "number",
+				default: "15",
+				description: "Tiles per column stack, forced odd so one tile takes the centre",
+			},
+			{
+				name: "coverDuration",
+				type: "number",
+				default: "380",
+				description: "Time for one column to cover, in ms",
+			},
+			{
+				name: "revealDuration",
+				type: "number",
+				default: "480",
+				description: "Time for one column to clear, in ms",
+			},
+			{
+				name: "stagger",
+				type: "number",
+				default: "28",
+				description: "Delay between neighbouring columns in ms, rightmost first",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1",
+				description: "Speed of the falling tiles",
+			},
+			{
+				name: "contained",
+				type: "boolean",
+				default: "false",
+				description: "Fill the positioned parent instead of the viewport",
+			},
+			{
+				name: "zIndex",
+				type: "number",
+				default: "9999",
+				description: "Stacking order of the overlay",
+			},
+			{
+				name: "phase",
+				type: '"idle" | "covering" | "covered" | "revealing"',
+				default: '"idle"',
+				description: "Current phase; bindable, read-only",
+			},
+			{
+				name: "oncovered",
+				type: "() => void",
+				description: "Called once the page is fully covered",
+			},
+			{
+				name: "onrevealed",
+				type: "() => void",
+				description: "Called once the page is fully revealed",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable overlay element",
+			},
+			{ name: "class", type: "string", description: "Additional classes on the overlay" },
+		],
+	},
+
 	"mosaic-glow": {
 		name: "MosaicGlow",
 		slug: "mosaic-glow",
@@ -1557,7 +1752,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"neon-border": {
 		name: "NeonBorder",
 		slug: "neon-border",
-		description: "Dual-color neon glow border effect with optional rotation animation",
+		description:
+			"Two-colour neon tube around its content: two beams with white-hot cores chase each other along a faint tube, their glow spilling inside and outside the edge, humming slowly after a flicker on ignition",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -1572,13 +1768,14 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "animationType",
 				type: '"none" | "half" | "full"',
 				default: '"half"',
-				description: "Animation type: none (static), half (50% coverage), full (100% coverage)",
+				description:
+					"How much of the tube is lit: none (two lit corners, static), half (two short beams chasing), full (two long beams that nearly close the ring)",
 			},
 			{
 				name: "duration",
 				type: "number",
 				default: "6",
-				description: "Animation duration in seconds",
+				description: "Time for the beams to travel once around, in seconds",
 			},
 		],
 		slots: [
@@ -1874,11 +2071,12 @@ export const registry: Record<string, ComponentMeta> = {
 	"flip-card": {
 		name: "FlipCard",
 		slug: "flip-card",
-		description: "Card that flips to reveal back content on hover using CSS 3D transforms",
+		description:
+			"Card that flips in 3D to reveal its back, on hover (plus focus and tap) or as a click toggle; it lifts and lands with a slight overshoot, keeps turning the way the pointer travels, and its faces catch a sweeping sheen and shade edge-on",
 		category: "cards",
 		group: "fancy",
 		status: "done",
-		tags: ["card", "flip", "3d", "hover", "animation", "interactive"],
+		tags: ["card", "flip", "3d", "hover", "click", "toggle", "animation", "interactive"],
 		props: [
 			{
 				name: "rotate",
@@ -1886,10 +2084,46 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"y"',
 				description: "Axis of rotation for the flip effect",
 			},
+			{
+				name: "trigger",
+				type: '"hover" | "click"',
+				default: '"hover"',
+				description:
+					"Hover flips on pointer hover, keyboard focus and tap; click makes the card a toggle button (click, tap, Enter, Space)",
+			},
+			{
+				name: "flipped",
+				type: "boolean",
+				default: "false",
+				description: "Whether the back is showing. Bindable",
+			},
+			{
+				name: "onflip",
+				type: "(flipped: boolean) => void",
+				description: "Called with the new state after every flip",
+			},
+			{
+				name: "duration",
+				type: "number",
+				default: "700",
+				description: "Length of one flip in milliseconds",
+			},
+			{
+				name: "glare",
+				type: "boolean",
+				default: "true",
+				description: "Light the faces as they turn: a sweeping sheen and an edge-on shade",
+			},
+			{ name: "label", type: "string", description: "Accessible name for the card" },
+			{
+				name: "class",
+				type: "string",
+				description: "Additional classes; size the card here (default h-72 w-56)",
+			},
 		],
 		slots: [
 			{ name: "children", description: "Front face content" },
-			{ name: "back", description: "Back face content revealed on hover" },
+			{ name: "back", description: "Back face content" },
 		],
 	},
 
@@ -7821,7 +8055,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "Pagination",
 		slug: "pagination",
 		description:
-			"A page-number control with Previous/Next, ellipsis collapsing for long runs, and optional First/Last jump buttons.",
+			"A page-number control with Previous/Next, ellipsis collapsing for long runs, and optional First/Last jump buttons; the current-page pill slides between numbers and the numbers glide when the visible run shifts.",
 		category: "navigation",
 		group: "core",
 		status: "done",

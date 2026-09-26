@@ -12,6 +12,11 @@
  *
  * Every entry point is total: it returns a value for any input, including
  * half-written markdown from a stream.
+ *
+ * The non-null assertions below are all of one kind: an index read inside a
+ * loop already bounded by `i < lines.length` / `i < src.length`, or a capture
+ * group of a regex whose match was checked truthy on the line above. Every
+ * invariant is visible next to the assertion that relies on it.
  */
 
 export type InlineToken =
