@@ -294,6 +294,7 @@
 				<!-- Content -->
 				{#if previewTab === "preview"}
 					<div
+						data-thumb-stage
 						class="retro-stage bg-background relative flex min-h-[300px] items-center justify-center overflow-hidden p-8"
 					>
 						<DemoRenderer slug={component.slug} />

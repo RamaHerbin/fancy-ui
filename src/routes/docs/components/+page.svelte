@@ -1,28 +1,38 @@
 <script lang="ts">
+	import { onMount } from "svelte";
+	import { replaceState } from "$app/navigation";
+	import { page } from "$app/state";
 	import {
 		categories,
 		getComponentsGroupedByCategory,
 		getAllComponents,
 		getStats,
+		matchesQuery,
 	} from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
 	import { SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
 	import { t, tCategory, docTitle } from "$lib/stores";
-	// Group badges compose their key at runtime, so the cast needs the key union.
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
+	import type { ComponentCategory } from "$lib/types.js";
+
+	type Group = "all" | "core" | "fancy";
 
 	const grouped = getComponentsGroupedByCategory();
 	const allComponents = getAllComponents();
 	const stats = getStats();
 
-	const coreCount = allComponents.filter((c) => c.group === "core").length;
-	const fancyCount = allComponents.filter((c) => c.group === "fancy").length;
-
-	// Only count categories that actually contain components (empty Core
-	// categories exist in the union until their phase lands).
+	// Only categories that actually contain components (empty Core categories
+	// exist in the union until their phase lands).
 	const populatedCategories = categories.filter((c) => (grouped[c] ?? []).length > 0);
+
+	const groupCounts: Record<Group, number> = {
+		all: allComponents.length,
+		core: allComponents.filter((c) => c.group === "core").length,
+		fancy: allComponents.filter((c) => c.group === "fancy").length,
+	};
+	const groups: Group[] = ["all", "core", "fancy"];
 
 	/** The full gallery, not the filtered view — filters are a client-side lens. */
 	const itemList = {
@@ -38,165 +48,314 @@
 		})),
 	};
 
-	let activeCategory = $state<string>("all");
-	let activeGroup = $state<"all" | "core" | "fancy">("all");
 	let searchQuery = $state("");
+	let activeGroup = $state<Group>("all");
+	let activeSection = $state<string>(populatedCategories[0] ?? "");
+	let searchInput = $state<HTMLInputElement | null>(null);
+	let chipRow = $state<HTMLElement | null>(null);
+	let ready = $state(false);
 
-	let filteredComponents = $derived.by(() => {
-		let items =
-			activeCategory === "all"
-				? allComponents
-				: grouped[activeCategory as keyof typeof grouped] || [];
-		if (activeGroup !== "all") {
-			items = items.filter((c) => c.group === activeGroup);
-		}
-		if (searchQuery.trim()) {
-			const q = searchQuery.toLowerCase();
-			items = items.filter(
-				(c) => c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q)
-			);
-		}
-		return items;
+	const isFiltered = $derived(searchQuery.trim() !== "" || activeGroup !== "all");
+
+	/** Every category keeps its section; filtering only empties some of them out. */
+	const sections = $derived(
+		populatedCategories.map((category) => ({
+			category,
+			items: grouped[category].filter(
+				(c) => (activeGroup === "all" || c.group === activeGroup) && matchesQuery(c, searchQuery)
+			),
+		}))
+	);
+	const resultCount = $derived(sections.reduce((n, s) => n + s.items.length, 0));
+
+	function clearFilters() {
+		searchQuery = "";
+		activeGroup = "all";
+		searchInput?.focus();
+	}
+
+	function jumpTo(event: MouseEvent, category: ComponentCategory) {
+		const target = document.getElementById(category);
+		if (!target) return;
+		event.preventDefault();
+		target.scrollIntoView({
+			behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+			block: "start",
+		});
+		history.replaceState(history.state, "", `#${category}`);
+	}
+
+	function onKeydown(event: KeyboardEvent) {
+		if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+		const el = event.target as HTMLElement | null;
+		if (el?.closest("input, textarea, select, [contenteditable='true']")) return;
+		event.preventDefault();
+		searchInput?.focus();
+	}
+
+	// Restore the lens from the URL once in the browser: the page is prerendered,
+	// so search params are not readable during the build.
+	onMount(() => {
+		const params = page.url.searchParams;
+		searchQuery = params.get("q") ?? "";
+		const g = params.get("group");
+		if (g === "core" || g === "fancy") activeGroup = g;
+		ready = true;
+	});
+
+	// Mirror the lens back into the URL, so a filtered view survives reload and back.
+	$effect(() => {
+		if (!ready) return;
+		const url = new URL(page.url);
+		const q = searchQuery.trim();
+		if (q) url.searchParams.set("q", q);
+		else url.searchParams.delete("q");
+		if (activeGroup !== "all") url.searchParams.set("group", activeGroup);
+		else url.searchParams.delete("group");
+		if (url.search !== page.url.search) replaceState(url, page.state);
+	});
+
+	// Scroll-spy for the category chips: the section crossing the upper third of
+	// the viewport is the current one.
+	$effect(() => {
+		void sections;
+		const els = document.querySelectorAll<HTMLElement>("[data-gallery-section]:not([hidden])");
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) activeSection = entry.target.id;
+				}
+			},
+			{ rootMargin: "-30% 0px -65% 0px" }
+		);
+		els.forEach((el) => observer.observe(el));
+		return () => observer.disconnect();
+	});
+
+	// Keep the active chip visible inside its horizontally scrolling row.
+	$effect(() => {
+		const chip = chipRow?.querySelector<HTMLElement>(`[data-chip="${activeSection}"]`);
+		if (!chip || !chipRow) return;
+		const row = chipRow;
+		const left = chip.offsetLeft - row.clientWidth / 2 + chip.offsetWidth / 2;
+		row.scrollTo({ left, behavior: "smooth" });
 	});
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <Seo title={docTitle(t("gallery.title"))} description={SITE_DESCRIPTION} path="/docs/components" />
 <JsonLd data={itemList} />
 
 <div class="max-w-5xl">
 	<!-- Header -->
-	<div class="mb-8">
-		<h1 class="text-foreground mb-2 text-3xl font-bold" id="components">{t("gallery.title")}</h1>
-		<p class="text-muted-foreground">
+	<div class="mb-6">
+		<h1 class="text-foreground mb-2 text-3xl font-bold tracking-tight" id="components">
+			{t("gallery.title")}
+		</h1>
+		<p class="text-muted-foreground text-base">
 			{t("gallery.subtitle").replace("{count}", String(stats.done))}
 		</p>
 		<p class="text-muted-foreground mt-3 max-w-2xl text-sm leading-relaxed">
 			{t("gallery.intro")}
 		</p>
+		<p class="text-muted-foreground/80 mt-4 font-mono text-xs">
+			{t("gallery.meta")
+				.replace("{components}", String(stats.done))
+				.replace("{categories}", String(populatedCategories.length))}
+		</p>
 	</div>
 
-	<!-- Stats -->
-	<div class="bg-muted/40 mb-8 flex items-center gap-6 rounded-lg border p-4">
-		<div class="text-center">
-			<div class="text-foreground text-2xl font-bold">{stats.done}</div>
-			<div class="text-muted-foreground text-xs">{t("gallery.statComponents")}</div>
-		</div>
-		<div class="bg-border h-8 w-px"></div>
-		<div class="text-center">
-			<div class="text-foreground text-2xl font-bold">{populatedCategories.length}</div>
-			<div class="text-muted-foreground text-xs">{t("gallery.statCategories")}</div>
-		</div>
-		<div class="bg-border h-8 w-px"></div>
-		<div class="text-center">
-			<div class="text-2xl font-bold text-emerald-500">100%</div>
-			<div class="text-muted-foreground text-xs">{t("gallery.statTypescript")}</div>
-		</div>
-	</div>
-
-	<!-- Group filters -->
-	<div class="mb-4 flex flex-wrap gap-1">
-		<button
-			onclick={() => (activeGroup = "all")}
-			class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeGroup === 'all'
-				? 'bg-foreground text-background'
-				: 'bg-muted text-muted-foreground hover:text-foreground'}"
-		>
-			{t("gallery.all")}
-			<span class="ml-1 opacity-60">{allComponents.length}</span>
-		</button>
-		<button
-			onclick={() => (activeGroup = "core")}
-			class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeGroup === 'core'
-				? 'bg-sky-500/15 text-sky-600 dark:text-sky-400'
-				: 'bg-muted text-muted-foreground hover:text-foreground'}"
-		>
-			{t("group.core")}
-			<span class="ml-1 opacity-60">{coreCount}</span>
-		</button>
-		<button
-			onclick={() => (activeGroup = "fancy")}
-			class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeGroup === 'fancy'
-				? 'bg-purple-500/15 text-purple-600 dark:text-purple-400'
-				: 'bg-muted text-muted-foreground hover:text-foreground'}"
-		>
-			{t("group.fancy")}
-			<span class="ml-1 opacity-60">{fancyCount}</span>
-		</button>
-	</div>
-
-	<!-- Filters -->
-	<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
-		<!-- Search -->
-		<div class="relative flex-1">
-			<svg
-				class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
-				xmlns="http://www.w3.org/2000/svg"
-				width="14"
-				height="14"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-			</svg>
-			<input
-				type="text"
-				bind:value={searchQuery}
-				placeholder={t("gallery.filterPlaceholder")}
-				class="border-border bg-background text-foreground placeholder:text-muted-foreground h-9 w-full rounded-md border pr-4 pl-9 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
-			/>
-		</div>
-
-		<!-- Category tabs -->
-		<div class="flex flex-wrap gap-1">
-			<button
-				onclick={() => (activeCategory = "all")}
-				class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeCategory ===
-				'all'
-					? 'bg-foreground text-background'
-					: 'bg-muted text-muted-foreground hover:text-foreground'}"
-			>
-				{t("gallery.all")}
-			</button>
-			{#each categories as cat}
-				{@const count = grouped[cat]?.length || 0}
-				{#if count > 0}
-					<button
-						onclick={() => (activeCategory = cat)}
-						class="rounded-full px-3 py-1 text-xs font-medium transition-colors {activeCategory ===
-						cat
-							? 'bg-foreground text-background'
-							: 'bg-muted text-muted-foreground hover:text-foreground'}"
-					>
-						{tCategory(cat)}
-						<span class="ml-1 opacity-60">{count}</span>
-					</button>
-				{/if}
-			{/each}
-		</div>
-	</div>
-
-	<!-- Grid -->
-	{#if filteredComponents.length > 0}
-		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{#each filteredComponents as component (component.slug)}
-				<div class="relative">
-					<span
-						class="pointer-events-none absolute top-2 right-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-medium {component.group ===
-						'core'
-							? 'bg-sky-500/15 text-sky-600 dark:text-sky-400'
-							: 'bg-purple-500/15 text-purple-600 dark:text-purple-400'}"
-					>
-						{t(`group.${component.group}` as MessageKey)}
-					</span>
-					<ComponentCard {component} />
+	<!-- Toolbar: sticks under the doc header so the lens stays in reach while browsing. -->
+	<div
+		class="gallery-toolbar bg-background/90 supports-[backdrop-filter]:bg-background/70 z-20 mb-8 border-b pt-3 pb-2 backdrop-blur sm:sticky sm:top-14"
+	>
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+			<!-- Search -->
+			<div class="relative flex-1">
+				<svg
+					class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
+					xmlns="http://www.w3.org/2000/svg"
+					width="15"
+					height="15"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					aria-hidden="true"
+				>
+					<circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+				</svg>
+				<input
+					bind:this={searchInput}
+					bind:value={searchQuery}
+					type="search"
+					placeholder={t("gallery.filterPlaceholder")}
+					aria-label={t("gallery.filterPlaceholder")}
+					onkeydown={(e) => {
+						if (e.key === "Escape" && searchQuery) {
+							e.stopPropagation();
+							searchQuery = "";
+						}
+					}}
+					class="border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded-lg border pr-16 pl-9 text-sm focus-visible:ring-2 focus-visible:outline-none [&::-webkit-search-cancel-button]:hidden"
+				/>
+				<div class="absolute top-1/2 right-2 flex -translate-y-1/2 items-center">
+					{#if searchQuery}
+						<button
+							type="button"
+							onclick={() => {
+								searchQuery = "";
+								searchInput?.focus();
+							}}
+							class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-1.5"
+							aria-label={t("gallery.clearSearch")}
+						>
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								aria-hidden="true"
+							>
+								<path d="M18 6 6 18M6 6l12 12" />
+							</svg>
+						</button>
+					{:else}
+						<kbd
+							class="border-border text-muted-foreground hidden rounded border px-1.5 py-0.5 font-mono text-[10px] sm:inline-block"
+							title={t("gallery.searchHint")}
+						>
+							/
+						</kbd>
+					{/if}
 				</div>
-			{/each}
+			</div>
+
+			<!-- Group -->
+			<div
+				role="radiogroup"
+				aria-label={t("gallery.groupLabel")}
+				class="bg-muted inline-flex h-10 shrink-0 items-center gap-0.5 self-start rounded-lg p-1 sm:self-auto"
+			>
+				{#each groups as group (group)}
+					<button
+						type="button"
+						role="radio"
+						aria-checked={activeGroup === group}
+						onclick={() => (activeGroup = group)}
+						class="h-8 rounded-md px-3 text-xs font-medium transition-colors {activeGroup === group
+							? 'bg-background text-foreground shadow-sm'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						{group === "all" ? t("gallery.all") : t(`group.${group}` as MessageKey)}
+						<span class="ml-1 tabular-nums opacity-50">{groupCounts[group]}</span>
+					</button>
+				{/each}
+			</div>
 		</div>
-	{:else}
-		<div class="text-muted-foreground py-20 text-center">
-			<p>{t("gallery.noMatch")}</p>
+
+		<!-- Category jump row -->
+		<nav aria-label={t("gallery.categoryLabel")} class="mt-2 flex items-center gap-3">
+			<div
+				bind:this={chipRow}
+				class="chip-row -mx-1 flex min-w-0 flex-1 gap-1 overflow-x-auto px-1 py-1"
+			>
+				{#each sections as { category, items } (category)}
+					<a
+						href="#{category}"
+						data-chip={category}
+						onclick={(e) => jumpTo(e, category)}
+						aria-current={activeSection === category ? "true" : undefined}
+						class="shrink-0 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors {items.length ===
+						0
+							? 'hidden'
+							: activeSection === category
+								? 'bg-foreground text-background'
+								: 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
+					>
+						{tCategory(category)}
+						<span class="ml-0.5 tabular-nums opacity-60">{items.length}</span>
+					</a>
+				{/each}
+			</div>
+			{#if isFiltered}
+				<div class="flex shrink-0 items-center gap-2 text-xs" aria-live="polite">
+					<span class="text-muted-foreground tabular-nums">
+						{resultCount === 1
+							? t("gallery.resultOne")
+							: t("gallery.results").replace("{count}", String(resultCount))}
+					</span>
+					<button
+						type="button"
+						onclick={clearFilters}
+						class="text-foreground font-medium underline-offset-4 hover:underline"
+					>
+						{t("gallery.clearFilters")}
+					</button>
+				</div>
+			{/if}
+		</nav>
+	</div>
+
+	<!-- Sections -->
+	{#each sections as { category, items } (category)}
+		<section
+			id={category}
+			data-gallery-section
+			hidden={items.length === 0}
+			class="mb-14 scroll-mt-40"
+		>
+			<div class="mb-4 flex items-baseline justify-between gap-4 border-b pb-3">
+				<div>
+					<h2 class="text-foreground text-lg font-semibold tracking-tight">
+						{tCategory(category)}
+					</h2>
+					<p class="text-muted-foreground mt-0.5 text-sm">
+						{t(`gallery.desc.${category}` as MessageKey)}
+					</p>
+				</div>
+				<span class="text-muted-foreground shrink-0 font-mono text-xs tabular-nums">
+					{items.length}
+				</span>
+			</div>
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{#each items as component (component.slug)}
+					<ComponentCard {component} />
+				{/each}
+			</div>
+		</section>
+	{/each}
+
+	{#if resultCount === 0}
+		<div class="flex flex-col items-center gap-4 py-20 text-center">
+			<p class="text-muted-foreground">{t("gallery.noMatch")}</p>
+			<button
+				type="button"
+				onclick={clearFilters}
+				class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium"
+			>
+				{t("gallery.clearFilters")}
+			</button>
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Fade the chip row's scrolling edges instead of cutting chips off hard. */
+	.chip-row {
+		scrollbar-width: none;
+		mask-image: linear-gradient(
+			to right,
+			transparent,
+			#000 12px,
+			#000 calc(100% - 24px),
+			transparent
+		);
+	}
+	.chip-row::-webkit-scrollbar {
+		display: none;
+	}
+</style>
