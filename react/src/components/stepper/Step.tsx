@@ -1,5 +1,5 @@
 import { forwardRef, useContext } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useFancyId } from "../../internals/use-id.js";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
@@ -82,10 +82,39 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 	const isFirst = index === 0;
 	const isLast = stepper ? index === stepper.count - 1 : true;
 
-	// The segment connecting this step back to the previous one is "done"
-	// exactly when that previous step is done — i.e. this step's own index
-	// is at or before the active one.
-	const connectorDone = stepper ? index <= stepper.current : false;
+	// A rail is the segment between two neighbouring steps, identified by the
+	// index of the step it leaves. Horizontally a step draws the rail that
+	// arrives at it (so the first step has none); vertically it draws the one
+	// that leaves it (so the last step has none). Either way the rail is lit
+	// exactly when the step it leaves is done.
+	const railFrom = orientation === "vertical" ? index : index - 1;
+	const connectorDone = stepper && index !== -1 ? railFrom < stepper.current : false;
+
+	const animate = stepper?.animate ?? false;
+
+	// Order within one run of light, in beats. Moving forward from `origin`
+	// (the previous active step), rail k lights `k - origin` beats after the
+	// first one; moving back, rails retract from the far end first. Clamped at
+	// 0: anything outside the run moves (if at all) immediately.
+	const origin = stepper?.origin ?? 0;
+	const forward = stepper ? stepper.current >= origin : true;
+	const railOrder = Math.max(0, forward ? railFrom - origin : origin - 1 - railFrom);
+
+	// A step the light is travelling *to* (past the origin, up to and
+	// including the new current one) settles when the light reaches it:
+	// its incoming rail's beat, plus the part of a sweep it takes the head to
+	// arrive. `undefined` leaves the CSS fallback (no delay) in charge.
+	const arrival =
+		stepper && forward && index > origin && index <= stepper.current
+			? index - origin - 1 + 0.6
+			: undefined;
+
+	// Custom properties are written as inline styles, the counterpart of the
+	// Svelte source's `style:--ft-step-*` directives. An `undefined` arrival
+	// leaves the attribute off entirely, as the directive does.
+	const railStyle = { "--ft-step-order": railOrder } as CSSProperties;
+	const bulletStyle =
+		arrival === undefined ? undefined : ({ "--ft-step-arrival": arrival } as CSSProperties);
 
 	function handleClick() {
 		if (!stepper || !clickable || index === -1) return;
@@ -93,10 +122,10 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 	}
 
 	const bulletClasses = cn(
-		"ft-step-bullet relative inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold",
+		"ft-step-bullet relative inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold tabular-nums",
 		status === "done" && "ft-step-bullet-done",
-		status === "current" && "ft-step-bullet-current",
-		status === "upcoming" && "border-border text-muted-foreground border-[1.5px] bg-transparent"
+		status === "current" && "ft-step-bullet-current ft-step-bullet-halo",
+		status === "upcoming" && "ft-step-bullet-upcoming text-muted-foreground"
 	);
 
 	// `children ?? …` rather than a truthiness test: the Svelte side branches
@@ -105,23 +134,25 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 	const defaultBullet =
 		status === "done" ? (
 			<svg
-				className="size-3.5"
+				className="ft-step-glyph ft-step-check size-3.5"
 				viewBox="0 0 24 24"
 				fill="none"
 				stroke="currentColor"
-				strokeWidth="2.5"
+				strokeWidth="2.75"
 				strokeLinecap="round"
 				strokeLinejoin="round"
 				aria-hidden="true"
 			>
-				<path d="M20 6 9 17l-5-5" />
+				<path d="M20 6 9 17l-5-5" pathLength={1} />
 			</svg>
 		) : (
-			<span aria-hidden="true">{index + 1}</span>
+			<span className="ft-step-glyph" aria-hidden="true">
+				{index + 1}
+			</span>
 		);
 
 	const bulletContent = (
-		<span className={bulletClasses} data-status={status}>
+		<span className={bulletClasses} data-status={status} style={bulletStyle}>
 			{children ?? defaultBullet}
 			<span className="sr-only"> {STATUS_TEXT[status]}</span>
 		</span>
@@ -134,14 +165,20 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 			{label ? (
 				<span
 					className={cn(
-						"text-xs",
-						status === "current" ? "text-foreground font-medium" : "text-muted-foreground"
+						"ft-step-label text-xs transition-colors",
+						status === "current" && "text-foreground font-medium",
+						status === "done" && "text-foreground/80",
+						status === "upcoming" && "text-muted-foreground"
 					)}
 				>
 					{label}
 				</span>
 			) : null}
-			{description ? <span className="text-muted-foreground text-xs">{description}</span> : null}
+			{description ? (
+				<span className="ft-step-description text-muted-foreground/80 text-[11px] leading-snug">
+					{description}
+				</span>
+			) : null}
 		</span>
 	);
 
@@ -151,8 +188,9 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 			className={cn(
 				"ft-step flex",
 				orientation === "vertical"
-					? cn("flex-row items-stretch gap-3", isLast ? "pb-0" : "pb-6")
+					? cn("flex-row items-stretch gap-3", isLast ? "pb-0" : "pb-7")
 					: cn("flex-col items-center", isFirst ? "flex-none" : "flex-1"),
+				animate && "ft-step-animate",
 				className
 			)}
 			data-status={status}
@@ -160,13 +198,14 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 			aria-current={status === "current" ? "step" : undefined}
 		>
 			{orientation === "horizontal" ? (
-				<div className="flex w-full items-center">
+				<div className="flex w-full items-start">
 					{!isFirst && (
 						<span
 							className={cn(
-								"ft-step-connector mt-[13px] h-0.5 flex-1",
-								connectorDone ? "ft-step-connector-done" : "bg-border"
+								"ft-step-connector bg-border relative mx-1.5 mt-[13px] h-0.5 flex-1 rounded-full",
+								connectorDone && "ft-step-connector-done ft-step-connector-lit"
 							)}
+							style={railStyle}
 							aria-hidden="true"
 						/>
 					)}
@@ -188,14 +227,21 @@ export const Step = forwardRef<HTMLLIElement, StepProps>(function Step(
 				</div>
 			) : (
 				<>
-					<div className="flex flex-col items-center self-stretch">
+					{/*
+						`-mb-7` mirrors the li's own `pb-7`: without it the bullet column
+						stretches only to the li's content box, which is barely taller than
+						the bullet, so the rail's `flex-1` resolved to ~0px and the vertical
+						rail never showed. Reaching into the padding gives it the gap to span.
+					*/}
+					<div className={cn("flex flex-col items-center self-stretch", !isLast && "-mb-7")}>
 						{bulletContent}
 						{!isLast && (
 							<span
 								className={cn(
-									"ft-step-connector my-1 w-0.5 flex-1",
-									connectorDone ? "ft-step-connector-done" : "bg-border"
+									"ft-step-connector bg-border relative my-1 w-0.5 flex-1 rounded-full",
+									connectorDone && "ft-step-connector-done ft-step-connector-lit"
 								)}
+								style={railStyle}
 								aria-hidden="true"
 							/>
 						)}

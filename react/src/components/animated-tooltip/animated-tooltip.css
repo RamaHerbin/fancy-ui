@@ -1,0 +1,306 @@
+/*
+ * Every rule below is anchored on `.at-root`, the class the source's own root
+ * element carries: the source's compiler scoped these selectors, plain CSS does
+ * not, so the anchor keeps the `at-*` hooks from leaking into a consumer page.
+ * Class names, custom properties, `@property` and keyframe names are identical
+ * to the source's; they are the visual contract.
+ */
+
+@property --at-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+
+.at-root {
+	/* Public, class-themeable knobs with private fallbacks. */
+	--_at-a: var(--at-accent, oklch(0.62 0.13 295));
+	--_at-b: var(--at-accent-2, oklch(0.7 0.1 220));
+	--_at-core: color-mix(in oklab, var(--_at-a) 45%, white);
+	--_at-sep: var(--at-separator, var(--background, #ffffff));
+	--_at-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--_at-ease-rise: cubic-bezier(0.34, 1.32, 0.64, 1);
+	--_at-ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
+	--_at-card-bg: rgba(255, 255, 255, 0.85);
+	--_at-card-line: rgba(0, 0, 0, 0.08);
+	--_at-card-hi: rgba(255, 255, 255, 0.9);
+	--_at-card-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.28), 0 2px 6px -2px rgba(0, 0, 0, 0.1);
+	--_at-name: #111113;
+	--_at-role: rgba(0, 0, 0, 0.55);
+}
+
+.dark .at-root {
+	--_at-a: var(--at-accent, oklch(0.78 0.1 295));
+	--_at-b: var(--at-accent-2, oklch(0.83 0.08 210));
+	--_at-card-bg: rgba(20, 20, 22, 0.85);
+	--_at-card-line: rgba(255, 255, 255, 0.1);
+	--_at-card-hi: rgba(255, 255, 255, 0.06);
+	--_at-card-shadow: 0 14px 32px -12px rgba(0, 0, 0, 0.8), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
+	--_at-name: #f4f4f5;
+	--_at-role: rgba(255, 255, 255, 0.55);
+}
+
+/* ---------- stack ---------- */
+
+.at-root .at-item {
+	outline: none;
+	transform: translateX(var(--_at-shift, 0px));
+}
+
+.at-root .at-item:not(:last-child) {
+	margin-inline-end: calc(var(--_at-size) * -0.285);
+}
+
+.at-root .at-item.at-active {
+	z-index: 30;
+}
+
+.at-root .at-avatar {
+	position: relative;
+	width: var(--_at-size);
+	height: var(--_at-size);
+	border-radius: 9999px;
+	isolation: isolate;
+	transform-origin: 50% 60%;
+}
+
+/* The hairline that separates stacked avatars, in the page colour. */
+.at-root .at-disc {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	border-radius: 9999px;
+	background: var(--_at-sep);
+	box-shadow: 0 0 0 2px var(--_at-sep);
+}
+
+.at-root .at-avatar.at-lifted {
+	transform: translateY(-4px) scale(1.08);
+}
+
+.at-root .at-img {
+	position: absolute;
+	inset: 3px;
+	width: calc(100% - 6px);
+	height: calc(100% - 6px);
+	z-index: 3;
+}
+
+/* The lit ring is the focus indicator; forced-colors mode strips it, so
+   fall back to a system-coloured outline there. */
+@media (forced-colors: active) {
+	.at-root .at-item:focus-visible .at-avatar {
+		outline: 2px solid Highlight;
+		outline-offset: 2px;
+	}
+}
+
+/* ---------- presence ring ---------- */
+
+.at-root .at-ring,
+.at-root .at-glow {
+	position: absolute;
+	border-radius: 9999px;
+	background: conic-gradient(
+		from var(--at-angle),
+		var(--_at-a) 0deg,
+		var(--_at-b) 150deg,
+		var(--_at-core) 205deg,
+		var(--_at-a) 260deg,
+		var(--_at-a) 360deg
+	);
+}
+
+.at-root .at-ring {
+	inset: 0;
+	z-index: 2;
+	padding: 2px;
+	-webkit-mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask:
+		linear-gradient(#000 0 0) content-box exclude,
+		linear-gradient(#000 0 0);
+	opacity: 0.35;
+	transition: opacity 300ms var(--_at-ease-inout);
+}
+
+.at-root .at-glow {
+	inset: -3px;
+	z-index: 0;
+	filter: blur(7px);
+	opacity: 0;
+	transition: opacity 300ms var(--_at-ease-inout);
+}
+
+.at-root .at-active .at-ring {
+	opacity: 1;
+}
+
+.at-root .at-active .at-glow {
+	opacity: 0.55;
+}
+
+/* ---------- glass card ---------- */
+
+.at-root .at-tip {
+	bottom: calc(100% + 12px);
+	transform-origin: 50% 100%;
+}
+
+.at-root .at-card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+	padding: 8px 14px 9px;
+	border-radius: 10px;
+	white-space: nowrap;
+	background: var(--_at-card-bg);
+	border: 1px solid var(--_at-card-line);
+	box-shadow:
+		inset 0 1px 0 var(--_at-card-hi),
+		var(--_at-card-shadow);
+	-webkit-backdrop-filter: blur(12px) saturate(1.4);
+	backdrop-filter: blur(12px) saturate(1.4);
+	transform-origin: 50% 100%;
+	animation: at-fade 160ms var(--_at-ease-out) both;
+}
+
+.at-root .at-pointer {
+	position: absolute;
+	left: 50%;
+	bottom: -5px;
+	width: 9px;
+	height: 9px;
+	margin-left: -4.5px;
+	background: var(--_at-card-bg);
+	border-right: 1px solid var(--_at-card-line);
+	border-bottom: 1px solid var(--_at-card-line);
+	border-bottom-right-radius: 2px;
+	transform: rotate(45deg);
+	clip-path: polygon(100% 0, 100% 100%, 0 100%);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+}
+
+.at-root .at-name {
+	font-size: 0.8125rem;
+	line-height: 1.1rem;
+	font-weight: 600;
+	letter-spacing: -0.005em;
+	color: var(--_at-name);
+}
+
+.at-root .at-role {
+	font-size: 0.6875rem;
+	line-height: 0.9rem;
+	color: var(--_at-role);
+}
+
+/* One thin line of light under the name: a faint resting hairline plus a
+   glint that sweeps across it once when the card opens. */
+.at-root .at-rule {
+	position: relative;
+	display: block;
+	width: 100%;
+	min-width: 64px;
+	height: 7px;
+	margin: -3px 0;
+	overflow: clip;
+	background: linear-gradient(
+			90deg,
+			transparent,
+			color-mix(in oklab, var(--_at-a) 50%, transparent) 30%,
+			color-mix(in oklab, var(--_at-b) 50%, transparent) 70%,
+			transparent
+		)
+		center / 100% 1px no-repeat;
+}
+
+.at-root .at-glint {
+	display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.at-root .at-item {
+		transition: transform 380ms var(--_at-ease-out);
+	}
+
+	.at-root .at-avatar {
+		transition: transform 420ms var(--_at-ease-out);
+	}
+
+	.at-root .at-ring,
+	.at-root .at-glow {
+		transition:
+			opacity 300ms var(--_at-ease-inout),
+			--at-angle 900ms var(--_at-ease-out);
+	}
+
+	.at-root .at-active .at-ring,
+	.at-root .at-active .at-glow {
+		--at-angle: 140deg;
+	}
+
+	.at-root .at-tip {
+		transition: transform 240ms var(--_at-ease-out);
+	}
+
+	.at-root .at-card {
+		animation: at-rise 260ms var(--_at-ease-rise) both;
+	}
+
+	.at-root .at-glint {
+		display: block;
+		position: absolute;
+		top: 3px;
+		left: 0;
+		width: 60%;
+		height: 1px;
+		border-radius: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			var(--_at-a) 25%,
+			var(--_at-core) 50%,
+			var(--_at-b) 75%,
+			transparent
+		);
+		/* Soft halo so a 1px line still reads as light. */
+		filter: drop-shadow(0 0 2px var(--_at-a)) drop-shadow(0 0 4px var(--_at-b));
+		transform: translateX(-110%);
+		animation: at-sweep 760ms var(--_at-ease-inout) 90ms both;
+	}
+}
+
+@keyframes at-rise {
+	from {
+		opacity: 0;
+		transform: translateY(6px) scale(0.94);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes at-fade {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes at-sweep {
+	from {
+		transform: translateX(-110%);
+	}
+	to {
+		transform: translateX(180%);
+	}
+}

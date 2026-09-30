@@ -31,6 +31,7 @@
 	import { cn } from "$lib/utils.js";
 	import { STEPPER_KEY, type StepperContext } from "./types.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	let {
 		current = $bindable(0),
@@ -75,6 +76,38 @@
 		};
 	}
 
+	// Motion is opt-in on the client only: SSR (and the first hydration pass)
+	// renders the still composition, and the animated classes arrive once the
+	// browser has actually been asked about `prefers-reduced-motion`. Under
+	// reduce they never arrive, so the rails fill by colour alone.
+	const reduced = createReducedMotion();
+	let asked = $state(false);
+	$effect(() => {
+		const stop = reduced.start();
+		asked = true;
+		return stop;
+	});
+	const animate = $derived(asked && !reduced.current);
+
+	// Where the light set off from: the active index *before* the latest
+	// change. Steps read it to order the rail sweeps (and the arrival of the
+	// bullets behind them) as one continuous run from the old step to the new
+	// one, instead of every rail lighting in the same frame. It starts at 0 —
+	// not at `current` — so the first paint plays the same run from the first
+	// step, a one-time arrival over rails that are already filled.
+	// `settled` is a plain variable on purpose: it is bookkeeping, not
+	// something anything renders from.
+	let origin = $state(0);
+	let settled = untrack(() => current);
+	$effect.pre(() => {
+		const next = current;
+		untrack(() => {
+			if (next === settled) return;
+			origin = settled;
+			settled = next;
+		});
+	});
+
 	function indexOf(id: string): number {
 		return registered.indexOf(id);
 	}
@@ -100,6 +133,12 @@
 		get count() {
 			return registered.length;
 		},
+		get origin() {
+			return origin;
+		},
+		get animate() {
+			return animate;
+		},
 		register,
 		indexOf,
 		select,
@@ -117,6 +156,7 @@
 		className
 	)}
 	data-orientation={orientation}
+	data-motion={animate ? "full" : "reduced"}
 >
 	{#if children}
 		{@render children()}
@@ -125,7 +165,7 @@
 
 <!--
   No scoped <style> here: the root `<ol>` itself never paints the brand
-  purple — only a `Step`'s current bullet, halo, and done connector do — so
+  purple — only a `Step`'s current bullet, halo, and lit rail do — so
   `--ft-nav-accent` is declared there instead, the same split ToggleGroup
   (no purple of its own) and ToggleGroupItem (declares
   `--ft-toggle-group-accent` locally for its focus ring) already use.

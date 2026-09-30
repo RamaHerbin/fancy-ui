@@ -1,0 +1,257 @@
+/*
+ * Timeline "light rail". Mirrors the Svelte <style> block rule for rule. The
+ * Svelte compiler scoped every selector; here each one is anchored on the
+ * source's own root class `.tl-root` so no generic name leaks into the page.
+ */
+.tl-root {
+	/* Public hooks: --timeline-accent (colour). --tl-progress is written by the component. */
+	--_tl-accent: var(--timeline-accent, var(--primary, oklch(0.7 0.13 285)));
+	--_tl-cool: oklch(0.72 0.1 262);
+	/* Light surfaces: the glow leans on the cool tint so a dark accent never reads as a smudge. */
+	--_tl-glow: color-mix(in oklab, var(--_tl-accent) 40%, var(--_tl-cool));
+	--_tl-hot: color-mix(in oklab, var(--_tl-accent) 45%, white);
+	--_tl-core: var(--_tl-accent);
+	--_tl-hair: rgba(0, 0, 0, 0.12);
+	--_tl-ring: rgba(0, 0, 0, 0.2);
+	--_tl-surface: var(--background, #fafafa);
+	--_tl-muted: rgba(0, 0, 0, 0.42);
+	--_tl-glow-a: 38%;
+	--_tl-ease: cubic-bezier(0.16, 1, 0.3, 1);
+	--_tl-x: 2rem;
+}
+
+.dark .tl-root {
+	--_tl-glow: color-mix(in oklab, var(--_tl-accent) 72%, var(--_tl-cool));
+	--_tl-core: var(--_tl-hot);
+	--_tl-hair: rgba(255, 255, 255, 0.12);
+	--_tl-ring: rgba(255, 255, 255, 0.2);
+	--_tl-muted: rgba(255, 255, 255, 0.38);
+	--_tl-glow-a: 60%;
+}
+
+/* ── Rail ─────────────────────────────────────────────── */
+.tl-root .tl-rail {
+	position: absolute;
+	top: 0;
+	left: calc(var(--_tl-x) - 1px);
+	width: 3px;
+	pointer-events: none;
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		transparent 0,
+		#000 7%,
+		#000 93%,
+		transparent 100%
+	);
+	mask-image: linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
+
+.tl-root .tl-rail-line,
+.tl-root .tl-trail {
+	position: absolute;
+	inset: 0 auto 0 1px;
+	width: 1px;
+}
+
+.tl-root .tl-rail-line {
+	background: var(--_tl-hair);
+}
+
+/* The filled part: faint far behind, brightening into the head, nothing past it. */
+.tl-root .tl-trail {
+	background: linear-gradient(
+		to bottom,
+		transparent 0,
+		color-mix(in oklab, var(--_tl-accent) 22%, transparent) calc(var(--tl-progress) - 320px),
+		color-mix(in oklab, var(--_tl-glow) 85%, transparent) var(--tl-progress),
+		transparent var(--tl-progress)
+	);
+}
+
+/* ── Head ─────────────────────────────────────────────── */
+.tl-root .tl-head {
+	position: absolute;
+	top: 0;
+	left: calc(var(--_tl-x) + 0.5px);
+	z-index: 50;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+	transform: translate3d(0, var(--tl-progress), 0);
+	opacity: 0;
+}
+
+.tl-root .tl-head[data-ready="true"] {
+	opacity: 1;
+}
+
+.tl-root .tl-head > span {
+	position: absolute;
+	display: block;
+	border-radius: 999px;
+}
+
+.tl-root .tl-head-streak {
+	left: -1px;
+	top: -96px;
+	width: 2px;
+	height: 96px;
+	background: linear-gradient(
+		to top,
+		var(--_tl-hot),
+		color-mix(in oklab, var(--_tl-glow) 55%, transparent) 35%,
+		transparent
+	);
+	filter: blur(0.6px);
+}
+
+.tl-root .tl-head-halo {
+	left: -28px;
+	top: -28px;
+	width: 56px;
+	height: 56px;
+	background: radial-gradient(
+		closest-side,
+		color-mix(in oklab, var(--_tl-glow) var(--_tl-glow-a), transparent),
+		color-mix(in oklab, var(--_tl-glow) 14%, transparent) 55%,
+		transparent
+	);
+	filter: blur(6px);
+}
+
+.tl-root .tl-head-core {
+	left: -3.5px;
+	top: -3.5px;
+	width: 7px;
+	height: 7px;
+	background: var(--_tl-core);
+	box-shadow:
+		0 0 0 1.5px color-mix(in oklab, var(--_tl-hot) 45%, transparent),
+		0 0 10px 1px color-mix(in oklab, var(--_tl-glow) 70%, transparent);
+}
+
+/* ── Dots ─────────────────────────────────────────────── */
+.tl-root .tl-dot {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 15px;
+	height: 15px;
+	border-radius: 999px;
+	border: 1px solid var(--_tl-ring);
+	background: var(--_tl-surface);
+	transform: scale(0.8);
+}
+
+.tl-root .tl-dot-core {
+	width: 7px;
+	height: 7px;
+	border-radius: 999px;
+	background: var(--_tl-core);
+	opacity: 0;
+	transform: scale(0.2);
+}
+
+.tl-root .tl-dot-flare {
+	position: absolute;
+	inset: -1px;
+	border-radius: 999px;
+	border: 1px solid color-mix(in oklab, var(--_tl-glow) 70%, transparent);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.tl-root .tl-dot[data-lit="true"] {
+	transform: scale(1);
+	border-color: color-mix(in oklab, var(--_tl-accent) 55%, var(--_tl-ring));
+	box-shadow: 0 0 12px color-mix(in oklab, var(--_tl-glow) 40%, transparent);
+}
+
+.tl-root .tl-dot[data-lit="true"] .tl-dot-core {
+	opacity: 1;
+	transform: scale(1);
+}
+
+/* ── Labels ───────────────────────────────────────────── */
+/* Sits above the label out of flow, so the dot centres on the label itself. */
+.tl-root .tl-index {
+	position: absolute;
+	bottom: calc(100% + 0.2rem);
+	display: block;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.6875rem;
+	letter-spacing: 0.12em;
+	color: var(--_tl-muted);
+	transition: color 260ms ease;
+}
+
+.tl-root .tl-heading {
+	color: var(--_tl-muted);
+	transition: color 260ms ease;
+}
+
+.tl-root .tl-row[data-state="active"] .tl-heading {
+	color: color-mix(in oklab, var(--_tl-accent) 28%, var(--foreground, #0a0a0a));
+}
+
+.tl-root .tl-row[data-state="active"] .tl-index {
+	color: color-mix(in oklab, var(--_tl-glow) 70%, var(--foreground, #0a0a0a));
+}
+
+.tl-root .tl-row[data-state="past"] .tl-label-text,
+.tl-root .tl-row[data-state="past"] .tl-content {
+	opacity: 0.5;
+}
+
+/* ── Motion ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+	.tl-root[data-motion="full"] .tl-head {
+		transition: opacity 500ms var(--_tl-ease);
+	}
+
+	.tl-root[data-motion="full"] .tl-dot {
+		transition:
+			transform 260ms var(--_tl-ease),
+			border-color 260ms ease,
+			box-shadow 260ms ease;
+	}
+
+	.tl-root[data-motion="full"] .tl-dot-core {
+		transition:
+			transform 260ms var(--_tl-ease),
+			opacity 200ms ease;
+	}
+
+	.tl-root[data-motion="full"] .tl-dot[data-lit="true"] .tl-dot-flare {
+		animation: tl-ignite 700ms var(--_tl-ease) both;
+	}
+
+	.tl-root[data-motion="full"] .tl-label-text,
+	.tl-root[data-motion="full"] .tl-content {
+		transition: opacity 300ms var(--_tl-ease);
+	}
+}
+
+@keyframes tl-ignite {
+	from {
+		opacity: 0.9;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(2.6);
+	}
+}
+
+/* ── Reduced motion: a plain filled rail, no glow, dots lit by position ── */
+.tl-root[data-motion="reduced"] .tl-trail {
+	background: linear-gradient(
+		to bottom,
+		color-mix(in oklab, var(--_tl-accent) 70%, transparent) var(--tl-progress),
+		transparent var(--tl-progress)
+	);
+}
+
+.tl-root[data-motion="reduced"] .tl-dot[data-lit="true"] {
+	box-shadow: none;
+}

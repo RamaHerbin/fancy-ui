@@ -363,6 +363,119 @@ describe("Stepper", () => {
 		}
 	});
 
+	describe("lit rails", () => {
+		function withReducedMotion<T>(fn: () => T): T {
+			const real = window.matchMedia;
+			window.matchMedia = ((query: string) => ({
+				...real(query),
+				matches: query.includes("reduce"),
+			})) as typeof window.matchMedia;
+			try {
+				return fn();
+			} finally {
+				window.matchMedia = real;
+			}
+		}
+
+		it("marks exactly the rails leaving a done step with the lit class", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, current: 1 } });
+			await nextTick();
+			const links = connectors(container);
+
+			expect(links[0]!.classList.contains("ft-step-connector-lit")).toBe(true);
+			expect(links[1]!.classList.contains("ft-step-connector-lit")).toBe(false);
+			// Every rail keeps the hairline track underneath, lit or not.
+			for (const link of links) expect(link.classList.contains("bg-border")).toBe(true);
+		});
+
+		it("vertically, lights the rail below a done step but not the one below the current step", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, current: 1, orientation: "vertical" },
+			});
+			await nextTick();
+			const links = connectors(container);
+
+			expect(links).toHaveLength(2); // below step 1, below step 2
+			expect(links[0]!.classList.contains("ft-step-connector-lit")).toBe(true); // 1 (done) -> 2
+			expect(links[1]!.classList.contains("ft-step-connector-lit")).toBe(false); // 2 (current) -> 3
+		});
+
+		it("gives only the current bullet the halo class", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, current: 1 } });
+			await nextTick();
+			const halos = container.querySelectorAll(".ft-step-bullet-halo");
+
+			expect(halos).toHaveLength(1);
+			expect(halos[0]!.getAttribute("data-status")).toBe("current");
+		});
+
+		it("draws the done check from a normalised path so the stroke can draw itself", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, current: 1 } });
+			await nextTick();
+			const path = stepByLabel(container, "Account").querySelector(".ft-step-check path");
+
+			expect(path?.getAttribute("pathLength")).toBe("1");
+		});
+
+		it("turns the motion layer on once mounted when reduced motion is not requested", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, current: 1 } });
+			await nextTick();
+
+			expect(list(container).dataset.motion).toBe("full");
+			expect(container.querySelectorAll("li.ft-step-animate")).toHaveLength(ITEMS.length);
+		});
+
+		it("reduced motion: no step carries the animation class, but rails and halo still mark state", async () => {
+			const { container } = withReducedMotion(() =>
+				render(Harness, { props: { items: ITEMS, current: 1 } })
+			);
+			await nextTick();
+
+			expect(list(container).dataset.motion).toBe("reduced");
+			expect(container.querySelectorAll(".ft-step-animate")).toHaveLength(0);
+			expect(connectors(container)[0]!.classList.contains("ft-step-connector-lit")).toBe(true);
+			expect(container.querySelectorAll(".ft-step-bullet-halo")).toHaveLength(1);
+		});
+
+		it("orders a multi-step jump as one run of light: each rail one beat after the last", async () => {
+			const { container } = render(Harness, {
+				props: { items: [...ITEMS, { label: "Done" }], current: 0, clickable: true },
+			});
+			await nextTick();
+
+			const last = stepByLabel(container, "Done").querySelector("button")!;
+			await fireEvent.click(last);
+
+			const orders = connectors(container).map((c) => c.style.getPropertyValue("--ft-step-order"));
+			expect(orders).toEqual(["0", "1", "2"]);
+
+			// Bullets the light travels to settle as it reaches them; the step it
+			// left from (now done) settles immediately.
+			const arrivals = Array.from(container.querySelectorAll<HTMLElement>(".ft-step-bullet")).map(
+				(b) => b.style.getPropertyValue("--ft-step-arrival")
+			);
+			expect(arrivals[0]).toBe("");
+			expect(Number(arrivals[1])).toBeLessThan(Number(arrivals[2]));
+			expect(Number(arrivals[2])).toBeLessThan(Number(arrivals[3]));
+		});
+
+		it("retracts rails from the far end first when stepping back", async () => {
+			const { container } = render(Harness, {
+				props: { items: [...ITEMS, { label: "Done" }], current: 3, clickable: true },
+			});
+			await nextTick();
+
+			const first = stepByLabel(container, "Account").querySelector("button")!;
+			await fireEvent.click(first);
+
+			const orders = connectors(container).map((c) => c.style.getPropertyValue("--ft-step-order"));
+			expect(orders).toEqual(["2", "1", "0"]);
+			for (const link of connectors(container)) {
+				expect(link.classList.contains("ft-step-connector-lit")).toBe(false);
+			}
+		});
+	});
+
 	it("works uncontrolled, with neither current nor onCurrentChange passed in", async () => {
 		const { container } = render(Harness, { props: { items: ITEMS, clickable: true } });
 		await nextTick();

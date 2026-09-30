@@ -29,6 +29,18 @@
 	];
 </script>
 
-<div class="flex justify-center p-6">
-	<AnimatedTooltip items={people} />
+<div class="flex w-full justify-center p-6">
+	<div
+		class="w-full max-w-md rounded-[20px] border border-black/[0.08] bg-[#f4f4f5] p-1.5 dark:border-white/[0.08] dark:bg-[#0b0b0c]"
+	>
+		<div
+			class="flex flex-col items-center gap-5 rounded-[14px] border border-black/[0.06] bg-[#fafafa] px-6 pt-20 pb-7 [--at-separator:#fafafa] dark:border-white/[0.06] dark:bg-[#141416] dark:[--at-separator:#141416]"
+		>
+			<AnimatedTooltip items={people} />
+			<p class="flex items-center gap-2 text-xs text-black/50 dark:text-white/45">
+				<span class="size-1.5 rounded-full bg-emerald-500/80" aria-hidden="true"></span>
+				4 people in this file
+			</p>
+		</div>
+	</div>
 </div>

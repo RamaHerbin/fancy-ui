@@ -1,13 +1,255 @@
-.border-beam::after {
-	content: "";
-	animation: border-beam-animation var(--border-beam-duration) infinite linear;
+/*
+ * Port note: the Svelte source's rules are compiler-scoped. Here every rule is
+ * anchored on the component's own root class `.border-beam` so the `bb-*`
+ * hooks never match outside the component; the dark-theme block reads
+ * `.dark .border-beam` (the Svelte `:global(.dark)` selector).
+ */
+
+.border-beam {
+	/* private plumbing: every value reads a public var with a fallback */
+	--_from: var(--border-beam-color-from, #8ec5ff);
+	--_to: var(--border-beam-color-to, #c084fc);
+	--_bw: calc(var(--border-beam-border-width, 1.5) * 1px);
+	--_size: calc(var(--border-beam-size, 200) * 1px);
+	--_dur: var(--border-beam-duration, 9s);
+	--_tail: var(--border-beam-tail, 0.25);
+	--_glow: var(--border-beam-glow, 0.6);
+	--_offset: var(--border-beam-offset, 0s);
+	--_start: calc(var(--border-beam-anchor, 90) * 1%);
+	--_park: var(--border-beam-park, 90%);
+	--_dir: var(--border-beam-dir, 1);
+	--_radius: var(--border-beam-radius, 12px);
+	/* perimeter of the box, read through container units */
+	--_perimeter: calc(2 * (100cqw + 100cqh));
+
+	/* light theme: inks a touch deeper, head warm rather than white, quieter bloom */
+	--_ink-from: color-mix(in oklab, var(--_from) 76%, #0b0b0c);
+	--_ink-to: color-mix(in oklab, var(--_to) 76%, #0b0b0c);
+	--_hot: color-mix(in oklab, var(--_from) 80%, white);
+	--_core: color-mix(in oklab, var(--_ink-from) 70%, white);
+	--_rail: color-mix(in oklab, var(--_ink-from) 6%, transparent);
+	--_bloom-max: 0.7;
+	--_halo-max: 0.7;
+	--_spill-max: 0.16;
+
+	container-type: size;
+	isolation: isolate;
 }
 
-@keyframes border-beam-animation {
-	0% {
-		offset-distance: 0%;
+.dark .border-beam {
+	--_ink-from: var(--_from);
+	--_ink-to: var(--_to);
+	--_hot: color-mix(in oklab, var(--_from) 40%, white);
+	--_core: white;
+	--_rail: color-mix(in oklab, var(--_from) 7%, transparent);
+	--_bloom-max: 1;
+	--_halo-max: 0.85;
+	--_spill-max: 0.24;
+}
+
+.border-beam > *,
+.border-beam .bb-ring > *,
+.border-beam .bb-bloom > *,
+.border-beam .bb-halo > *,
+.border-beam .bb-spill-clip > * {
+	position: absolute;
+	pointer-events: none;
+}
+
+.border-beam .bb-spill-clip,
+.border-beam .bb-bloom,
+.border-beam .bb-halo,
+.border-beam .bb-ring,
+.border-beam .bb-rail {
+	inset: 0;
+	border-radius: inherit;
+}
+
+/* ---------- riders: everything that travels the border ---------- */
+
+.border-beam .bb-ride {
+	top: 0;
+	left: 0;
+	/* fallback path first, then the box itself with its real radius */
+	offset-path: rect(0 auto auto 0 round var(--_radius));
+	offset-path: border-box;
+	offset-rotate: auto;
+	offset-anchor: 50% 50%;
+	/* rest pose (reduced motion): parked at the anchor, tail laid out behind */
+	offset-distance: calc(var(--_park) - var(--_dir) * var(--_lag, 0) * 100%);
+	--_lag: 0;
+}
+
+.border-beam[data-direction="reverse"] .bb-ride {
+	offset-rotate: reverse;
+}
+
+.border-beam .bb-piece {
+	--_lag: calc(var(--_tail) * var(--bb-t));
+	/* pieces overlap twice over so the tail reads as one stroke */
+	width: calc(var(--_perimeter) * var(--_tail) / var(--bb-count) * 2.2);
+}
+
+/* ---------- the sharp comet on the hairline ---------- */
+
+.border-beam .bb-ring {
+	padding: var(--_bw);
+	-webkit-mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	mask-composite: exclude;
+}
+
+.border-beam .bb-rail {
+	position: absolute;
+	background: var(--_rail);
+}
+
+.border-beam .bb-reach {
+	width: var(--_size);
+	height: var(--_size);
+	border-radius: 50%;
+	background: radial-gradient(
+		closest-side,
+		color-mix(in oklab, var(--_hot) 70%, transparent),
+		color-mix(in oklab, var(--_ink-from) 40%, transparent) 45%,
+		transparent
+	);
+	opacity: 0.7;
+}
+
+.border-beam .bb-tail-piece {
+	height: calc(var(--_bw) * 2 + 4px);
+	opacity: var(--bb-alpha);
+	background: linear-gradient(
+		90deg,
+		transparent,
+		color-mix(in oklab, var(--_ink-from) calc((1 - var(--bb-t)) * 100%), var(--_ink-to)) 30%,
+		color-mix(in oklab, var(--_ink-from) calc((1 - var(--bb-t)) * 100%), var(--_ink-to)) 70%,
+		transparent
+	);
+}
+
+.border-beam .bb-head {
+	width: 44px;
+	height: calc(var(--_bw) * 2 + 4px);
+	offset-anchor: 100% 50%;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		var(--_ink-from) 45%,
+		var(--_hot) 85%,
+		var(--_core)
+	);
+}
+
+/* ---------- bloom: the comet again, thicker and blurred ---------- */
+
+.border-beam .bb-bloom {
+	filter: blur(11px);
+	opacity: calc(var(--_glow) * var(--_bloom-max));
+}
+
+.border-beam .bb-bloom-piece {
+	height: calc(var(--_bw) + 16px * var(--bb-thick));
+	opacity: var(--bb-alpha);
+	border-radius: 999px;
+	background: color-mix(in oklab, var(--_ink-from) calc((1 - var(--bb-t)) * 100%), var(--_ink-to));
+}
+
+.border-beam .bb-bloom-head {
+	width: 56px;
+	height: 22px;
+	offset-anchor: 85% 50%;
+	border-radius: 50%;
+	background: radial-gradient(closest-side, var(--_hot), var(--_ink-from) 60%, transparent);
+}
+
+/* ---------- halo: a thin, lightly blurred glow right on the line ---------- */
+
+.border-beam .bb-halo {
+	filter: blur(2.5px);
+	opacity: calc(var(--_glow) * var(--_halo-max));
+}
+
+.border-beam .bb-halo-piece {
+	height: calc(var(--_bw) + 5px * var(--bb-thick));
+	opacity: var(--bb-alpha);
+	border-radius: 999px;
+	background: color-mix(in oklab, var(--_ink-from) calc((1 - var(--bb-t)) * 100%), var(--_ink-to));
+}
+
+/* ---------- inner spill: a wide, faint pool clipped to the inside ---------- */
+
+.border-beam .bb-spill-clip {
+	overflow: hidden;
+}
+
+.border-beam .bb-spill {
+	width: calc(var(--_size) * 1.3);
+	height: calc(var(--_size) * 1.3);
+	border-radius: 50%;
+	background: radial-gradient(
+		closest-side,
+		color-mix(in oklab, var(--_ink-from) 70%, transparent),
+		color-mix(in oklab, var(--_ink-to) 25%, transparent) 50%,
+		transparent
+	);
+	opacity: calc(var(--_glow) * var(--_spill-max));
+}
+
+/* ---------- the spark: a tiny white-hot point on the edge ---------- */
+
+.border-beam .bb-spark {
+	width: calc(var(--_bw) * 2 + 8px);
+	height: calc(var(--_bw) * 2 + 8px);
+	border-radius: 50%;
+	background: radial-gradient(
+		closest-side,
+		var(--_core),
+		var(--_hot) 30%,
+		color-mix(in oklab, var(--_hot) 35%, transparent) 62%,
+		transparent
+	);
+}
+
+/* ---------- motion ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+	.border-beam {
+		/* arrival: the comet fades in over the entrance duration, up to the root's own
+		   opacity (no `to` keyframe, no forwards fill), so an opacity class still applies */
+		animation: bb-ignite var(--ft-duration-entrance, 600ms)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) backwards;
 	}
-	100% {
-		offset-distance: 100%;
+
+	.border-beam .bb-ride {
+		animation: bb-travel var(--_dur) linear infinite;
+		/* a piece `lag` turns behind the head is started one lap early, minus its lag,
+		   so it is already running on the first frame */
+		animation-delay: calc(var(--_offset) - (1 - var(--_lag)) * var(--_dur));
+	}
+
+	.border-beam[data-direction="reverse"] .bb-ride {
+		animation-direction: reverse;
+	}
+}
+
+@keyframes bb-travel {
+	from {
+		offset-distance: var(--_start);
+	}
+	to {
+		offset-distance: calc(var(--_start) + 100%);
+	}
+}
+
+@keyframes bb-ignite {
+	from {
+		opacity: 0;
 	}
 }
