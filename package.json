@@ -79,6 +79,7 @@
 		"build:assets": "node scripts/build-synthwave-assets.mjs",
 		"build:brand-assets": "node scripts/build-brand-assets.mjs",
 		"build:og": "node scripts/build-og-images.mjs",
+		"build:thumbs": "node scripts/build-component-thumbs.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:e2e": "playwright test",
