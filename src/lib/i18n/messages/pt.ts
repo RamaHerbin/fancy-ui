@@ -76,12 +76,35 @@ export default {
 		"{count} componentes lindamente animados para o Svelte 5. Navegue, pesquise e encontre o que precisa.",
 	"gallery.intro":
 		"Cada componente é criado nativamente para Svelte 5 com runes, estilizado com Tailwind CSS v4, tipado com TypeScript e vem com pré-visualização ao vivo e exemplos para copiar e colar. Instale o pacote uma vez e o código é seu.",
-	"gallery.statComponents": "Componentes",
-	"gallery.statCategories": "Categorias",
-	"gallery.statTypescript": "TypeScript",
 	"gallery.filterPlaceholder": "Filtrar componentes...",
 	"gallery.all": "Todos",
 	"gallery.noMatch": "Nenhum componente corresponde à sua pesquisa.",
+	"gallery.meta": "{components} componentes · {categories} categorias · Svelte 5 · TypeScript",
+	"gallery.results": "{count} resultados",
+	"gallery.resultOne": "1 resultado",
+	"gallery.clearFilters": "Limpar filtros",
+	"gallery.clearSearch": "Limpar pesquisa",
+	"gallery.searchHint": "Pressione / para pesquisar",
+	"gallery.groupLabel": "Grupo de componentes",
+	"gallery.categoryLabel": "Categorias",
+	"gallery.desc.buttons":
+		"Botões interativos com movimento rico ao passar o cursor e ao pressionar",
+	"gallery.desc.cards": "Cartões e contêineres que reagem ao ponteiro",
+	"gallery.desc.backgrounds": "Fundos animados e decorativos",
+	"gallery.desc.text": "Animações de texto e efeitos tipográficos",
+	"gallery.desc.layout": "Primitivas de layout e componentes estruturais",
+	"gallery.desc.feedback": "Tooltips, toasts, loaders e outros feedbacks",
+	"gallery.desc.data-display": "Listas, linhas do tempo e coleções de dados",
+	"gallery.desc.navigation": "Menus, abas, links e orientação",
+	"gallery.desc.media": "Exibição de imagens, vídeo e mídia",
+	"gallery.desc.effects": "Efeitos visuais e movimento decorativo",
+	"gallery.desc.ai-chat": "Mensagens, campos de composição, conversas e texto em streaming",
+	"gallery.desc.ai-agents":
+		"Raciocínio, uso de ferramentas, planos e cartões com humano no circuito",
+	"gallery.desc.actions": "Botões, interruptores e outras primitivas de ação",
+	"gallery.desc.forms": "Campos e primitivas para capturar a entrada do usuário",
+	"gallery.desc.overlays": "Diálogos, popovers, menus e painéis",
+	"gallery.desc.display": "Selos, avatares e exibição de status",
 
 	// Theme-generator page
 	"tg.metaDescription":

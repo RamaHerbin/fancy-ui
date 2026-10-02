@@ -114,3 +114,25 @@
 .lp-stage:hover .lp-overlay {
 	opacity: 0;
 }
+
+/* Touch screens never hover, so the overlay would sit on the demo for good:
+   there it clears on touch instead, and the copy says "drag", not "move your
+   cursor". */
+.lp-hint-touch {
+	display: none;
+}
+
+@media (hover: none) {
+	.lp-stage:active .lp-overlay,
+	.lp-stage:focus-within .lp-overlay {
+		opacity: 0;
+	}
+
+	.lp-hint-pointer {
+		display: none;
+	}
+
+	.lp-hint-touch {
+		display: inline;
+	}
+}

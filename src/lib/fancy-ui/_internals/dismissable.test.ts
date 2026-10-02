@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
-import { dismissable } from "./dismissable";
+import { dismissable, __dismissableLayerCount } from "./dismissable";
 
 function pressEscape() {
 	document.dispatchEvent(
@@ -296,5 +296,24 @@ describe("dismissable — the active gate", () => {
 
 		expect(onDismiss).not.toHaveBeenCalled();
 		action?.destroy?.();
+	});
+});
+
+describe("dismissable — layer bookkeeping", () => {
+	afterEach(() => {
+		document.body.innerHTML = "";
+	});
+
+	it("registers exactly one layer while attached and none after destroy", () => {
+		const node = document.createElement("div");
+		document.body.appendChild(node);
+		expect(__dismissableLayerCount()).toBe(0);
+		const action = dismissable(node, { onDismiss: vi.fn() });
+		expect(__dismissableLayerCount()).toBe(1);
+		action?.destroy?.();
+		expect(__dismissableLayerCount()).toBe(0);
+		// A second destroy must not go negative or throw.
+		action?.destroy?.();
+		expect(__dismissableLayerCount()).toBe(0);
 	});
 });

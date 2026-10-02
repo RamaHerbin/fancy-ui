@@ -1,0 +1,52 @@
+/* Terminal skin — phosphor glow + blinking caret. Scoped by data-skin. */
+[data-skin="terminal"] .cam-btn {
+	text-shadow: 0 0 6px currentColor;
+}
+
+.cam-caret {
+	animation: cam-blink 1s step-end infinite;
+}
+
+@keyframes cam-blink {
+	50% {
+		opacity: 0;
+	}
+}
+
+/* Native range slider — thin green line track + square green thumb, phosphor glow on focus. */
+[data-skin="terminal"] .cam-range {
+	height: 20px;
+}
+[data-skin="terminal"] .cam-range::-webkit-slider-runnable-track {
+	height: 2px;
+	background: #22c55e;
+	border-radius: 0;
+}
+[data-skin="terminal"] .cam-range::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	height: 14px;
+	width: 14px;
+	margin-top: -6px;
+	background: #22c55e;
+	border: 1px solid #4ade80;
+	border-radius: 0;
+}
+[data-skin="terminal"] .cam-range:focus-visible::-webkit-slider-thumb {
+	box-shadow: 0 0 6px #22c55e;
+}
+[data-skin="terminal"] .cam-range::-moz-range-track {
+	height: 2px;
+	background: #22c55e;
+	border-radius: 0;
+}
+[data-skin="terminal"] .cam-range::-moz-range-thumb {
+	height: 14px;
+	width: 14px;
+	background: #22c55e;
+	border: 1px solid #4ade80;
+	border-radius: 0;
+}
+[data-skin="terminal"] .cam-range:focus-visible::-moz-range-thumb {
+	box-shadow: 0 0 6px #22c55e;
+}

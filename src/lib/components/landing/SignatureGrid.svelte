@@ -33,10 +33,10 @@
 
 <!-- Divider -->
 <div class="lp-line flex h-9 flex-none items-center gap-6 border-b pl-6 sm:pl-[46px]">
-	<span class="lp-mono text-[11px] tracking-[0.16em]" style="color:var(--lp-grey-2)"
-		>SIGNATURE INTERACTIONS — 04</span
-	>
-	<span class="mr-6 h-px flex-1" style="background:rgba(242,241,236,.1)"></span>
+	<h2 class="lp-mono text-[11px] font-normal tracking-[0.16em]" style="color:var(--lp-grey-2)">
+		SIGNATURE INTERACTIONS — 04
+	</h2>
+	<span class="mr-6 h-px flex-1" style="background:rgba(242,241,236,.1)" aria-hidden="true"></span>
 </div>
 
 <div class="lp-line grid border-b lg:h-[322px] lg:grid-cols-[38fr_29fr_33fr]">
@@ -63,8 +63,13 @@
 						{/each}
 					</span>
 					<span class="flex flex-col items-center gap-[9px]">
-						<span class="lp-mono text-[13px] tracking-[0.14em]">MOVE TO REVEAL IMAGES</span>
-						<span class="lp-mono text-[10.5px] tracking-[0.18em]" style="color:var(--lp-grey-4)"
+						<span class="lp-mono lp-hint-pointer text-[13px] tracking-[0.14em]"
+							>MOVE TO REVEAL IMAGES</span
+						>
+						<span class="lp-mono lp-hint-touch text-[13px] tracking-[0.14em]"
+							>DRAG TO REVEAL IMAGES</span
+						>
+						<span class="lp-mono text-[10.5px] tracking-[0.18em]" style="color:var(--lp-grey-3)"
 							>IMAGES FOLLOW YOUR PATH</span
 						>
 					</span>
@@ -196,7 +201,7 @@
 				     column from landing.css, which is unlayered and would beat a
 				     `justify-end` sitting in Tailwind's `@layer utilities`. -->
 				<div class="lp-overlay z-20" style="justify-content:flex-end;padding-bottom:14px">
-					<span class="lp-mono text-[10.5px] tracking-[0.18em]" style="color:var(--lp-grey-4)"
+					<span class="lp-mono text-[10.5px] tracking-[0.18em]" style="color:var(--lp-grey-3)"
 						>SCROLL TO DISTORT</span
 					>
 				</div>
@@ -217,7 +222,8 @@
 				class="flex min-h-[200px] flex-1 items-center justify-center overflow-hidden lg:min-h-0"
 				style="background:var(--lp-panel)"
 			>
-				<RainbowButton>Get Started</RainbowButton>
+				<!-- A real link: a "Get Started" that does nothing is a dead CTA. -->
+				<RainbowButton href="/docs">Get Started</RainbowButton>
 			</div>
 		</PanelChrome>
 	</div>

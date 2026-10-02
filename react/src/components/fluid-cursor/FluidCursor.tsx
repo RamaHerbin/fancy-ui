@@ -6,7 +6,6 @@ import {
 	type Pointer,
 	type FluidCursorHandle,
 	type FluidRenderLevel,
-	DEV,
 	pointerPrototype,
 	hexToRgb,
 	HSVtoRGB,
@@ -14,6 +13,7 @@ import {
 	wrap,
 	clickBoost,
 } from "./fluid-shared.js";
+import { isDev } from "./dev.js";
 import { startWebGpuFluid } from "./webgpu-engine.js";
 
 export interface FluidCursorProps {
@@ -215,7 +215,7 @@ export function FluidCursor({
 	function registerInstance(cleanup: () => void): () => void {
 		if (!allowMultiple) {
 			if (activeInstanceRef.current) {
-				if (DEV) {
+				if (isDev()) {
 					console.warn(
 						"[FluidCursor] Destroying previous instance. Only one instance is allowed by default. Use `allowMultiple={true}` to opt out of singleton behavior."
 					);
@@ -347,7 +347,7 @@ export function FluidCursor({
 				.catch((error: unknown) => {
 					// Unexpected failure while wiring the WebGPU path: fall back
 					// to WebGL instead of leaving a permanently blank canvas.
-					if (DEV) {
+					if (isDev()) {
 						console.warn("[FluidCursor] WebGPU setup failed, falling back to WebGL:", error);
 					}
 					if (!disposed) activeCleanup = startWebGl() ?? null;
@@ -437,7 +437,7 @@ export function FluidCursor({
 					} catch {
 						// Unsupported color space: buffer stays sRGB.
 					}
-					if (DEV) {
+					if (isDev()) {
 						console.info(
 							renderLevel === "webgl-p3"
 								? "[FluidCursor] HDR level: webgl-p3 (wide gamut fallback)"

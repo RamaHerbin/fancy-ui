@@ -1,14 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { SpringConfig } from "./smooth-cursor-core.js";
 
-	export interface SpringConfig {
-		/** Controls how quickly the animation settles (default: 45) */
-		damping?: number;
-		/** Controls the spring stiffness (default: 400) */
-		stiffness?: number;
-		/** Controls the virtual mass of the animated object (default: 1) */
-		mass?: number;
-	}
+	export type { SpringConfig };
 
 	export interface SmoothCursorProps {
 		/** Custom cursor snippet to replace the default arrow cursor */
@@ -21,183 +15,52 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { createSmoothCursor, type SmoothCursorEngine } from "./smooth-cursor-core.js";
 
 	let { cursor, springConfig = {}, class: className = "" }: SmoothCursorProps = $props();
 
-	const config = $derived({
-		damping: springConfig.damping ?? 45,
-		stiffness: springConfig.stiffness ?? 400,
-		mass: springConfig.mass ?? 1,
-	});
-
 	let cursorEl: HTMLDivElement;
 	let visible = $state(false);
-	let reducedMotion = $state(false);
-
-	// Spring state
-	let posX = 0;
-	let posY = 0;
-	let velX = 0;
-	let velY = 0;
-	let targetX = 0;
-	let targetY = 0;
-
-	// Rotation state
-	let rotation = 0;
-	let prevX = 0;
-	let prevY = 0;
-
-	let rafId: number | null = null;
-	let lastTime = 0;
-
-	function startAnimation() {
-		if (rafId === null) {
-			lastTime = 0;
-			rafId = requestAnimationFrame(animate);
-		}
-	}
-
-	function stopAnimation() {
-		if (rafId !== null) {
-			cancelAnimationFrame(rafId);
-			rafId = null;
-		}
-	}
-
-	function snapToTarget() {
-		posX = targetX;
-		posY = targetY;
-		velX = 0;
-		velY = 0;
-		if (cursorEl) {
-			cursorEl.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
-		}
-	}
-
-	function onMouseMove(e: MouseEvent) {
-		targetX = e.clientX;
-		targetY = e.clientY;
-
-		if (!visible) {
-			posX = targetX;
-			posY = targetY;
-			prevX = targetX;
-			prevY = targetY;
-			visible = true;
-		}
-
-		if (reducedMotion) {
-			snapToTarget();
-		} else {
-			startAnimation();
-		}
-	}
-
-	function onMouseLeave() {
-		visible = false;
-		stopAnimation();
-	}
-
-	function onMouseEnter(e: MouseEvent) {
-		targetX = e.clientX;
-		targetY = e.clientY;
-		posX = targetX;
-		posY = targetY;
-		prevX = targetX;
-		prevY = targetY;
-		visible = true;
-
-		if (!reducedMotion) {
-			startAnimation();
-		} else {
-			snapToTarget();
-		}
-	}
-
-	function animate(time: number) {
-		if (!visible) {
-			rafId = null;
-			return;
-		}
-
-		rafId = requestAnimationFrame(animate);
-
-		if (lastTime === 0) {
-			lastTime = time;
-			return;
-		}
-
-		const dt = Math.min((time - lastTime) / 1000, 0.064);
-		lastTime = time;
-
-		const { stiffness, damping, mass } = config;
-
-		// Spring physics: F = -k * displacement - c * velocity
-		const forceX = -stiffness * (posX - targetX) - damping * velX;
-		const forceY = -stiffness * (posY - targetY) - damping * velY;
-
-		const accX = forceX / mass;
-		const accY = forceY / mass;
-
-		velX += accX * dt;
-		velY += accY * dt;
-
-		posX += velX * dt;
-		posY += velY * dt;
-
-		// Calculate rotation based on movement direction
-		const dx = posX - prevX;
-		const dy = posY - prevY;
-		const distance = Math.sqrt(dx * dx + dy * dy);
-
-		if (distance > 0.1) {
-			const targetRotation = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-			let diff = targetRotation - rotation;
-			while (diff > 180) diff -= 360;
-			while (diff < -180) diff += 360;
-			rotation += diff * 0.3;
-		}
-
-		prevX = posX;
-		prevY = posY;
-
-		if (cursorEl) {
-			cursorEl.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotation}deg)`;
-		}
-	}
+	let engine: SmoothCursorEngine | null = null;
 
 	onMount(() => {
+		// Read the media query BEFORE creating the engine: the original wrapper
+		// had two distinct reduced-motion entry points — a plain assignment at
+		// mount (no snap) and a `change` handler that stopped the loop and
+		// snapped. Passing the mount value as a creation option keeps
+		// `setOptions({ reducedMotion })` reserved for the change event, so both
+		// paths stay faithful.
 		const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-		reducedMotion = motionQuery.matches;
+
+		engine = createSmoothCursor(
+			{ cursor: cursorEl },
+			{
+				springConfig: untrack(() => springConfig),
+				reducedMotion: motionQuery.matches,
+				onVisibleChange: (next) => {
+					visible = next;
+				},
+			}
+		);
 
 		function onMotionChange(e: MediaQueryListEvent) {
-			reducedMotion = e.matches;
-			if (reducedMotion) {
-				stopAnimation();
-				snapToTarget();
-			} else if (visible) {
-				startAnimation();
-			}
+			engine?.setOptions({ reducedMotion: e.matches });
 		}
 
 		motionQuery.addEventListener("change", onMotionChange);
 
-		document.body.style.cursor = "none";
-
-		document.addEventListener("mousemove", onMouseMove);
-		document.documentElement.addEventListener("mouseleave", onMouseLeave);
-		document.documentElement.addEventListener("mouseenter", onMouseEnter);
-
 		return () => {
-			document.body.style.cursor = "";
 			motionQuery.removeEventListener("change", onMotionChange);
-			document.removeEventListener("mousemove", onMouseMove);
-			document.documentElement.removeEventListener("mouseleave", onMouseLeave);
-			document.documentElement.removeEventListener("mouseenter", onMouseEnter);
-			stopAnimation();
+			engine?.destroy();
+			engine = null;
 		};
+	});
+
+	$effect(() => {
+		const next = springConfig;
+		untrack(() => engine?.setOptions({ springConfig: next }));
 	});
 </script>
 

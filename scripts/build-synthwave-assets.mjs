@@ -47,7 +47,9 @@ const MAX_TOTAL_BYTES = 1.6 * 1024 * 1024;
 // Tuned against the budgets above. The source is fully opaque (rgb24), so
 // no alpha-quality flags are needed. 4:4:4 chroma is kept on purpose: the
 // sun's stripe edges and the dark sky gradient band smear at 4:2:0.
-const AVIF_QCOLOR = 84;
+// AVIF is listed first in the <picture>, so it must come out lighter than the
+// WebP rendition: at 84 it was ~2x heavier; 55 is visually identical and ~20% lighter.
+const AVIF_QCOLOR = 55;
 const AVIF_YUV = "444";
 const WEBP_QUALITY = 80;
 

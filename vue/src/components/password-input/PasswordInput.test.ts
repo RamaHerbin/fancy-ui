@@ -1,0 +1,612 @@
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/vue";
+import { mount } from "@vue/test-utils";
+import { nextTick } from "vue";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import PasswordInput from "./PasswordInput.vue";
+import { FIELD_KEY, type FieldContext } from "../../internals/field.js";
+import { sound } from "../../sound/sound.js";
+
+/**
+ * Transposed assertion-for-assertion from the source component's suite.
+ * Shapes that changed, and nothing else:
+ *
+ * - `tick()` becomes `nextTick()`.
+ * - The two `*.test.svelte` harnesses collapse: the FormField cases publish
+ *   the context through `global.provide` instead of a wrapper component, and
+ *   the value/ref round-trip cases pass an `onUpdate:value` listener and
+ *   read `wrapper.vm.ref` from `@vue/test-utils` instead of binding locals.
+ */
+
+// `render()` types its `container` as `Element`; the source's helpers took an
+// `HTMLElement` because its testing library types the container that way.
+function input(container: Element): HTMLInputElement {
+	return container.querySelector("input") as HTMLInputElement;
+}
+
+function toggleButton(container: Element): HTMLButtonElement | null {
+	return container.querySelector("button");
+}
+
+function strengthLabel(container: Element): HTMLElement | null {
+	return container.querySelector(".ft-password-strength span[id]");
+}
+
+function eyeLayers(container: Element): HTMLElement[] {
+	return Array.from(container.querySelectorAll<HTMLElement>(".ft-password-input-eye-layer"));
+}
+
+/**
+ * jsdom has no `matchMedia`; `src/test-setup.ts` installs one that answers
+ * `matches: false` to everything, which is the "full motion" branch. This
+ * swaps in a stub that discriminates on the query string, so a test can pick
+ * the branch it means rather than turning every media query true at once.
+ */
+function stubReducedMotion(reduce: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: reduce && query.includes("prefers-reduced-motion"),
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+describe("PasswordInput", () => {
+	afterEach(cleanup);
+
+	it("renders a real input, type password, resting", () => {
+		const { container } = render(PasswordInput, { props: { placeholder: "Enter your password" } });
+		const el = input(container);
+
+		expect(el.tagName).toBe("INPUT");
+		expect(el.type).toBe("password");
+		expect(el.placeholder).toBe("Enter your password");
+		expect(el.disabled).toBe(false);
+	});
+
+	it("defaults autocomplete to current-password", () => {
+		const { container } = render(PasswordInput, { props: {} });
+		expect(input(container).autocomplete).toBe("current-password");
+	});
+
+	it("applies new-password when set, for a password manager to offer to generate one", () => {
+		const { container } = render(PasswordInput, { props: { autocomplete: "new-password" } });
+		expect(input(container).autocomplete).toBe("new-password");
+	});
+
+	it("reflects invalid through aria-invalid and the destructive border class on the field surface", () => {
+		const { container } = render(PasswordInput, { props: { invalid: true } });
+		const el = input(container);
+
+		expect(el.getAttribute("aria-invalid")).toBe("true");
+		expect(el.closest(".ft-password-input")?.className).toContain("border-destructive/50");
+	});
+
+	it("disables the field: native disabled, out of the tab order", () => {
+		const { container } = render(PasswordInput, { props: { disabled: true } });
+		expect(input(container).disabled).toBe(true);
+	});
+
+	it("readonly stays focusable and keeps its name, unlike disabled — and still submits", () => {
+		const { container } = render(PasswordInput, {
+			props: { readonly: true, name: "password", value: "hunter2" },
+		});
+		const el = input(container);
+
+		expect(el.disabled).toBe(false);
+		expect(el.readOnly).toBe(true);
+		el.focus();
+		expect(document.activeElement).toBe(el);
+
+		// A readonly field still submits; a disabled one is excluded entirely.
+		const form = document.createElement("form");
+		form.appendChild(el.cloneNode(true));
+		const data = new FormData(form);
+		expect(data.get("password")).toBe("hunter2");
+	});
+
+	it("calls onValueChange with the new value on input", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(PasswordInput, { props: { value: "", onValueChange } });
+		const el = input(container);
+
+		await fireEvent.input(el, { target: { value: "hi" } });
+		expect(el.value).toBe("hi");
+		expect(onValueChange).toHaveBeenCalledTimes(1);
+		expect(onValueChange).toHaveBeenCalledWith("hi");
+	});
+
+	it("works with a plain non-bound value plus a callback", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(PasswordInput, { props: { value: "start", onValueChange } });
+		const el = input(container);
+
+		expect(el.value).toBe("start");
+		await fireEvent.input(el, { target: { value: "typed" } });
+		expect(el.value).toBe("typed");
+		expect(onValueChange).toHaveBeenCalledWith("typed");
+	});
+
+	it("blocks the callback while disabled, even from a synthetic input event", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(PasswordInput, { props: { disabled: true, onValueChange } });
+		const el = input(container);
+
+		await fireEvent.input(el, { target: { value: "nope" } });
+		expect(onValueChange).not.toHaveBeenCalled();
+	});
+
+	it("round-trips value through v-model:value", async () => {
+		let value = "";
+		const { container } = render(PasswordInput, {
+			props: { value, label: "Password", "onUpdate:value": (v: string) => (value = v) },
+		});
+		const el = input(container);
+
+		expect(value).toBe("");
+		await fireEvent.input(el, { target: { value: "bound" } });
+		expect(value).toBe("bound");
+		expect(el.value).toBe("bound");
+	});
+
+	it("round-trips the input element through the exposed ref", () => {
+		const wrapper = mount(PasswordInput, { attachTo: document.body });
+		expect(wrapper.vm.ref).toBe(document.querySelector("input"));
+		wrapper.unmount();
+	});
+
+	it("sets aria-label from the label prop, for standalone use with no visible Label", () => {
+		const { container } = render(PasswordInput, { props: { label: "Password" } });
+		expect(input(container).getAttribute("aria-label")).toBe("Password");
+	});
+
+	it("merges the class prop with the base classes on the field surface", () => {
+		const { container } = render(PasswordInput, { props: { class: "mt-4" } });
+		const wrapper = container.querySelector(".ft-password-input");
+
+		expect(wrapper?.className).toContain("ft-password-input");
+		expect(wrapper?.className).toContain("mt-4");
+	});
+
+	it("works standalone: useField() has no provider, so its own props apply untouched", () => {
+		const { container } = render(PasswordInput, {
+			props: { id: "solo", invalid: true, required: true, disabled: false },
+		});
+		const el = input(container);
+
+		expect(el.id).toBe("solo");
+		expect(el.getAttribute("aria-invalid")).toBe("true");
+		expect(el.required).toBe(true);
+	});
+
+	it("inside a FormField, the context wins for controlId, aria-describedby, aria-invalid, required and disabled", async () => {
+		const context: FieldContext = {
+			controlId: "ctx-id",
+			describedBy: "ctx-help ctx-error",
+			invalid: true,
+			valid: false,
+			required: true,
+			disabled: true,
+		};
+		// The harness passes id="own-id" invalid={false} required={false}
+		// disabled={false} straight to PasswordInput — every one of those is
+		// overridden by the context above.
+		const { container } = render(PasswordInput, {
+			props: { id: "own-id", invalid: false, required: false, disabled: false },
+			global: { provide: { [FIELD_KEY]: context } },
+		});
+		await nextTick();
+		const el = input(container);
+
+		expect(el.id).toBe("ctx-id");
+		expect(el.getAttribute("aria-describedby")).toBe("ctx-help ctx-error");
+		expect(el.getAttribute("aria-invalid")).toBe("true");
+		expect(el.required).toBe(true);
+		expect(el.disabled).toBe(true);
+	});
+
+	// The test above only exercises context=true overriding own=false — a
+	// regression from `??` to `||` in any of the three `effective*` computed
+	// values would pass it too, since `true || false` is still `true`. The
+	// three below pin the polarity that actually tells `??` and `||` apart:
+	// own prop `true`, context `false`, expecting the context's `false` to
+	// win.
+	it("lets the context's disabled=false win over the component's own disabled=true prop", async () => {
+		const context: FieldContext = {
+			controlId: "field-3",
+			describedBy: undefined,
+			invalid: false,
+			required: false,
+			disabled: false,
+		};
+		const { container } = render(PasswordInput, {
+			props: { disabled: true },
+			global: { provide: { [FIELD_KEY]: context } },
+		});
+		await nextTick();
+		expect(input(container).disabled).toBe(false);
+	});
+
+	it("lets the context's required=false win over the component's own required=true prop", async () => {
+		const context: FieldContext = {
+			controlId: "field-4",
+			describedBy: undefined,
+			invalid: false,
+			required: false,
+			disabled: false,
+		};
+		const { container } = render(PasswordInput, {
+			props: { required: true },
+			global: { provide: { [FIELD_KEY]: context } },
+		});
+		await nextTick();
+		expect(input(container).required).toBe(false);
+	});
+
+	it("lets the context's invalid=false win over the component's own invalid=true prop", async () => {
+		const context: FieldContext = {
+			controlId: "field-5",
+			describedBy: undefined,
+			invalid: false,
+			required: false,
+			disabled: false,
+		};
+		const { container } = render(PasswordInput, {
+			props: { invalid: true },
+			global: { provide: { [FIELD_KEY]: context } },
+		});
+		await nextTick();
+		expect(input(container).hasAttribute("aria-invalid")).toBe(false);
+	});
+
+	describe("reveal toggle", () => {
+		it("is rendered by default, with a name that starts as Show password", () => {
+			const { container } = render(PasswordInput, { props: {} });
+			const btn = toggleButton(container);
+
+			expect(btn).not.toBeNull();
+			expect(btn?.getAttribute("aria-label")).toBe("Show password");
+			expect(btn?.getAttribute("aria-pressed")).toBe("false");
+		});
+
+		it("is absent when showToggle is false", () => {
+			const { container } = render(PasswordInput, { props: { showToggle: false } });
+			expect(toggleButton(container)).toBeNull();
+		});
+
+		it("flips the input type, the accessible name and aria-pressed on activation", async () => {
+			const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+			const el = input(container);
+			const btn = toggleButton(container)!;
+
+			await fireEvent.click(btn);
+
+			expect(el.type).toBe("text");
+			expect(btn.getAttribute("aria-label")).toBe("Hide password");
+			expect(btn.getAttribute("aria-pressed")).toBe("true");
+
+			await fireEvent.click(btn);
+
+			expect(el.type).toBe("password");
+			expect(btn.getAttribute("aria-label")).toBe("Show password");
+			expect(btn.getAttribute("aria-pressed")).toBe("false");
+		});
+
+		it("is disabled, and inert, while the field is disabled", async () => {
+			const { container } = render(PasswordInput, { props: { disabled: true, value: "hunter2" } });
+			const el = input(container);
+			const btn = toggleButton(container)!;
+
+			expect(btn.disabled).toBe(true);
+
+			// A disabled button blocks a real click, but a synthetic dispatch
+			// walks straight past that guard the same way it does on a native
+			// `disabled` input — the handler repeats the guard rather than
+			// trusting the attribute alone.
+			await fireEvent.click(btn);
+			expect(el.type).toBe("password");
+		});
+
+		it("preserves the caret/selection across a reveal toggle", async () => {
+			const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+			const el = input(container);
+			const btn = toggleButton(container)!;
+
+			el.focus();
+			el.setSelectionRange(2, 5);
+
+			await fireEvent.click(btn);
+			await nextTick();
+
+			expect(el.type).toBe("text");
+			expect(el.selectionStart).toBe(2);
+			expect(el.selectionEnd).toBe(5);
+		});
+
+		it("explicitly restores the captured selection via setSelectionRange, not just by accident", async () => {
+			// jsdom, unlike a real browser, does not reset selection on its own
+			// when `type` changes — so the assertion above would pass even with
+			// no restore logic at all. This spies on the DOM call the component
+			// makes so the restore step itself is what's under test, not an
+			// environment quirk that happens to leave the answer unchanged.
+			const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+			const el = input(container);
+			const btn = toggleButton(container)!;
+
+			el.focus();
+			el.setSelectionRange(2, 5);
+			const setSelectionRangeSpy = vi.spyOn(el, "setSelectionRange");
+
+			await fireEvent.click(btn);
+			await nextTick();
+
+			// jsdom's own default selectionDirection is the string "none", not
+			// null/undefined — the captured value round-trips through as-is.
+			expect(setSelectionRangeSpy).toHaveBeenCalledWith(2, 5, "none");
+		});
+	});
+
+	describe("strength meter", () => {
+		it("is absent by default", () => {
+			const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+			expect(container.querySelector(".ft-password-strength")).toBeNull();
+		});
+
+		it("is absent while the field is empty, even with showStrength set", () => {
+			const { container } = render(PasswordInput, { props: { showStrength: true, value: "" } });
+			expect(container.querySelector(".ft-password-strength")).toBeNull();
+		});
+
+		it("labels a short, single-class password as very weak", () => {
+			const { container } = render(PasswordInput, {
+				props: { showStrength: true, value: "a" },
+			});
+			expect(strengthLabel(container)?.textContent?.trim()).toBe("Very weak");
+		});
+
+		it("labels a long password mixing all character classes as strong", () => {
+			const { container } = render(PasswordInput, {
+				props: { showStrength: true, value: "Abcdefghijkl1!" },
+			});
+			expect(strengthLabel(container)?.textContent?.trim()).toBe("Strong");
+		});
+
+		it("changes label as the value changes", async () => {
+			const { container } = render(PasswordInput, {
+				props: { showStrength: true, value: "a" },
+			});
+			const el = input(container);
+			expect(strengthLabel(container)?.textContent?.trim()).toBe("Very weak");
+
+			await fireEvent.input(el, { target: { value: "Abcdefghijkl1!" } });
+			expect(strengthLabel(container)?.textContent?.trim()).toBe("Strong");
+		});
+
+		it("a custom strength function overrides the built-in scorer entirely", () => {
+			const strength = vi.fn(() => ({ score: 2 as const, label: "Custom tier" }));
+			const { container } = render(PasswordInput, {
+				props: { showStrength: true, value: "a", strength },
+			});
+
+			expect(strength).toHaveBeenCalledWith("a");
+			expect(strengthLabel(container)?.textContent?.trim()).toBe("Custom tier");
+		});
+
+		it("gives every segment the ft-password-strength-bar hook the colour transition attaches to", () => {
+			// The four segments carry no `ft-*` class of their own beyond the
+			// strong-tier modifier, so the shared hook is what the scoped
+			// `transition: background-color` rule selects. A `cn()` merge that
+			// dropped it would silently take the easing away with it, and
+			// nothing else in this file would notice.
+			const { container } = render(PasswordInput, {
+				props: { showStrength: true, value: "Abcdefghijkl1!" },
+			});
+			const bars = container.querySelectorAll(".ft-password-strength-bar");
+
+			expect(bars).toHaveLength(4);
+			// The strong tier's own modifier still rides alongside the hook
+			// rather than replacing it.
+			expect(bars[0]!.classList.contains("ft-password-strength-bar--strong")).toBe(true);
+		});
+
+		it("wires the strength label into aria-describedby once shown", () => {
+			const { container } = render(PasswordInput, {
+				props: { showStrength: true, value: "Abcdefghijkl1!" },
+			});
+			const el = input(container);
+			const label = strengthLabel(container)!;
+
+			expect(label.id).not.toBe("");
+			expect(el.getAttribute("aria-describedby")).toBe(label.id);
+		});
+	});
+
+	describe("motion", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
+		it("renders exactly one icon layer at rest, inside the shared grid cell", () => {
+			stubReducedMotion(false);
+			const { container } = render(PasswordInput, { props: {} });
+
+			expect(container.querySelector(".ft-password-input-eye")).not.toBeNull();
+			expect(eyeLayers(container)).toHaveLength(1);
+		});
+
+		it("cross-fades the two icons on toggle and settles back to a single layer, with no accumulation across repeats", async () => {
+			// The cross-fade is the one bidirectional transition in this pass:
+			// both layers are mounted at once for 80ms. The failure it could
+			// cause is a layer that never leaves — so this toggles three times
+			// and pins the count back to one after each, which is what an
+			// aborted or leaked outro would break.
+			stubReducedMotion(false);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+				const btn = toggleButton(container)!;
+
+				const labels = ["Hide password", "Show password", "Hide password"];
+				for (const [i, expected] of labels.entries()) {
+					await fireEvent.click(btn);
+
+					// The accessible name never overlaps the way the glyphs do: it
+					// lives on the <button>, not on either layer, and flips in the
+					// same update as `revealed`.
+					expect(btn.getAttribute("aria-label")).toBe(expected);
+					expect(container.querySelectorAll("button")).toHaveLength(1);
+
+					if (i === 0) {
+						// ONE toggle animates TWO layers: the incoming one and the one
+						// on its way out. That is what "cross-fade" means, and it is
+						// the only assertion here an enter-only animation could not
+						// satisfy — with an enter-only animation the outgoing layer
+						// never animates at all, so this set holds exactly one
+						// element. Read off the spy's receivers rather than by
+						// counting DOM nodes mid-flight, since the overlap is a
+						// microtask wide. `mock.contexts` is the `this` of each
+						// call — the element `animate()` ran on. It is typed
+						// `unknown` (lib.dom declares no `this` parameter), hence
+						// the narrowing.
+						await waitFor(() => {
+							const animatedLayers = new Set(
+								animateSpy.mock.contexts.filter(
+									(el): el is Element =>
+										el instanceof Element && el.classList.contains("ft-password-input-eye-layer")
+								)
+							);
+							expect(animatedLayers.size).toBe(2);
+						});
+					}
+
+					await waitFor(() => {
+						expect(eyeLayers(container)).toHaveLength(1);
+					});
+				}
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("with prefers-reduced-motion: reduce, the icon swaps instantly — one layer throughout, no animation", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+				const el = input(container);
+				const btn = toggleButton(container)!;
+
+				await fireEvent.click(btn);
+
+				// `duration: 0` makes the runner take its own synchronous path, so
+				// the outgoing layer is gone in the same tick the incoming one
+				// mounts — the swap still happens, it just does not fade.
+				expect(eyeLayers(container)).toHaveLength(1);
+				expect(el.type).toBe("text");
+				expect(btn.getAttribute("aria-label")).toBe("Hide password");
+				expect(btn.getAttribute("aria-pressed")).toBe("true");
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("keeps the strength meter's colour easing outside the reduced-motion branch — the bars still restate on every tier change", async () => {
+			// The meter's only transition is `background-color`, which is exempt
+			// from reduced-motion gating: a colour change is not motion. Nothing
+			// about the meter goes through the Web Animations API either way, so
+			// a tier change under `reduce` is byte-for-byte the same DOM as
+			// under full motion.
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+
+			try {
+				const { container } = render(PasswordInput, {
+					props: { showStrength: true, value: "a" },
+				});
+				expect(strengthLabel(container)?.textContent?.trim()).toBe("Very weak");
+
+				await fireEvent.input(input(container), { target: { value: "Abcdefghijkl1!" } });
+
+				expect(strengthLabel(container)?.textContent?.trim()).toBe("Strong");
+				expect(container.querySelectorAll(".ft-password-strength-bar")).toHaveLength(4);
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays toggle-on exactly once when revealing the password, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+
+			await fireEvent.click(toggleButton(container)!);
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on", undefined);
+		});
+
+		it("plays toggle-off exactly once when hiding it again, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+			const btn = toggleButton(container)!;
+
+			await fireEvent.click(btn); // reveal
+			play.mockClear();
+			await fireEvent.click(btn); // hide
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-off", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { value: "hunter2" } });
+
+			await fireEvent.click(toggleButton(container)!);
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatchEvent", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, {
+				props: { sound: true, disabled: true, value: "hunter2" },
+			});
+			const btn = toggleButton(container)!;
+
+			btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays synchronously inside the click, before the async selection-restore work — no unlock() needed", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(PasswordInput, { props: { sound: true, value: "hunter2" } });
+			const btn = toggleButton(container)!;
+
+			// Dispatched without awaiting: toggleReveal is async (it awaits
+			// nextTick() to restore the caret), but the cue must land in the
+			// synchronous portion of the handler, before that await — landing
+			// it after would break the in-gesture rule the way an unlocked
+			// AudioContext relies on. A raw, un-awaited dispatch is what proves
+			// `play` already fired before this line returns.
+			btn.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("toggle-on", undefined);
+		});
+	});
+});

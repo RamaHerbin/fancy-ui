@@ -1,0 +1,98 @@
+import { render, cleanup } from "@testing-library/vue";
+import { afterEach, describe, it, expect } from "vitest";
+import { createSSRApp } from "vue";
+import { renderToString } from "vue/server-renderer";
+import ImageTrailCursor from "./ImageTrailCursor.vue";
+
+describe("ImageTrailCursor", () => {
+	afterEach(cleanup);
+
+	it("renders a container div", () => {
+		const { container } = render(ImageTrailCursor);
+		const div = container.firstElementChild as HTMLElement;
+		expect(div).toBeInTheDocument();
+	});
+
+	it("renders one content__img per image", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { images: ["/a.jpg", "/b.jpg", "/c.jpg"] },
+		});
+		const imgs = container.querySelectorAll(".content__img");
+		expect(imgs.length).toBe(3);
+	});
+
+	it("renders content__img-inner with background-image", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { images: ["/test.jpg"] },
+		});
+		const inner = container.querySelector(".content__img-inner") as HTMLElement;
+		expect(inner).toBeInTheDocument();
+		expect(inner?.style.backgroundImage).toContain("/test.jpg");
+	});
+
+	it("renders empty when no images provided", () => {
+		const { container } = render(ImageTrailCursor, { props: { images: [] } });
+		const imgs = container.querySelectorAll(".content__img");
+		expect(imgs.length).toBe(0);
+	});
+
+	it("applies custom class names", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { class: "my-trail" },
+		});
+		const div = container.firstElementChild as HTMLElement;
+		expect(div?.className).toContain("my-trail");
+	});
+
+	it("preserves base classes", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { class: "extra" },
+		});
+		const div = container.firstElementChild as HTMLElement;
+		expect(div?.className).toContain("relative");
+	});
+
+	/**
+	 * The source suite reads `getAttribute("style")` on the mounted container.
+	 * That works there because the source emits the style as a literal HTML
+	 * attribute; here every style binding goes through the CSSOM, and jsdom's
+	 * CSS implementation does not know `touch-action`, so it drops the
+	 * declaration and no style attribute survives the mount. The same contract
+	 * is asserted against the server render, which stringifies the style
+	 * without the CSSOM — strictly the production output, not a shim.
+	 */
+	it("sets touch-action: none on the container", async () => {
+		const html = await renderToString(createSSRApp(ImageTrailCursor));
+		expect(html).toContain("touch-action:none");
+	});
+
+	it("uses responsive image classes (mobile-first + sm breakpoint)", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { images: ["/a.jpg"] },
+		});
+		const img = container.querySelector(".content__img") as HTMLElement;
+		expect(img?.className).toContain("w-[120px]");
+		expect(img?.className).toContain("rounded-[10px]");
+		expect(img?.className).toContain("sm:w-[190px]");
+		expect(img?.className).toContain("sm:rounded-[15px]");
+	});
+
+	it("mounts without throwing when variant is pixelated", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { images: ["/a.jpg", "/b.jpg"], variant: "pixelated" },
+		});
+		const imgs = container.querySelectorAll(".content__img");
+		expect(imgs.length).toBe(2);
+	});
+
+	it("applies pixelated image-rendering and border on mount for the pixelated variant", () => {
+		const { container } = render(ImageTrailCursor, {
+			props: { images: ["/a.jpg"], variant: "pixelated" },
+		});
+		const img = container.querySelector(".content__img") as HTMLElement;
+		expect(img.style.imageRendering).toBe("pixelated");
+		expect(img.style.borderWidth).toBe("2px");
+		expect(img.style.borderStyle).toBe("solid");
+		expect(img.style.borderColor).toBe("rgb(25, 19, 8)"); // #191308
+	});
+});

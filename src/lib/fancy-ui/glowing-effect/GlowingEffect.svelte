@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils";
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
+	import { createGlowingEffect, type GlowingEffectEngine } from "./glowing-effect-core.js";
 
 	interface Props {
 		blur?: number;
@@ -29,12 +30,7 @@
 	}: Props = $props();
 
 	let containerRef: HTMLDivElement;
-	let lastPosition = { x: 0, y: 0 };
-	let animationFrameId = 0;
-	let angleAnimationFrameId = 0;
-	let currentAngle = 0;
-	let targetAngle = 0;
-	let animating = false;
+	let engine: GlowingEffectEngine | null = null;
 
 	let containerStyle = $derived(
 		[
@@ -52,96 +48,25 @@
 		].join(";")
 	);
 
-	function handleMove(e?: { x: number; y: number }) {
-		if (!containerRef) return;
-
-		if (animationFrameId) {
-			cancelAnimationFrame(animationFrameId);
-		}
-
-		animationFrameId = requestAnimationFrame(() => {
-			if (!containerRef) return;
-
-			const { left, top, width, height } = containerRef.getBoundingClientRect();
-			const mouseX = e?.x ?? lastPosition.x;
-			const mouseY = e?.y ?? lastPosition.y;
-
-			if (e) {
-				lastPosition = { x: mouseX, y: mouseY };
-			}
-
-			const center = [left + width * 0.5, top + height * 0.5];
-			const distanceFromCenter = Math.hypot(mouseX - center[0], mouseY - center[1]);
-			const inactiveRadius = 0.5 * Math.min(width, height) * inactiveZone;
-
-			if (distanceFromCenter < inactiveRadius) {
-				containerRef.style.setProperty("--active", "0");
-				return;
-			}
-
-			const isActive =
-				mouseX > left - proximity &&
-				mouseX < left + width + proximity &&
-				mouseY > top - proximity &&
-				mouseY < top + height + proximity;
-
-			containerRef.style.setProperty("--active", isActive ? "1" : "0");
-
-			if (!isActive) return;
-
-			const rawTarget = (180 * Math.atan2(mouseY - center[1], mouseX - center[0])) / Math.PI + 90;
-
-			// Shortest-path angle difference
-			const angleDiff = ((rawTarget - currentAngle + 180) % 360) - 180;
-			targetAngle = currentAngle + angleDiff;
-
-			if (!animating) {
-				animating = true;
-				animateAngle();
-			}
-		});
-	}
-
-	function animateAngle() {
-		// Lerp speed inversely proportional to movementDuration
-		const speed = 0.08 / Math.max(movementDuration, 0.1);
-		currentAngle = currentAngle + (targetAngle - currentAngle) * speed;
-
-		if (containerRef) {
-			containerRef.style.setProperty("--start", String(currentAngle));
-		}
-
-		if (Math.abs(targetAngle - currentAngle) > 0.1) {
-			angleAnimationFrameId = requestAnimationFrame(animateAngle);
-		} else {
-			currentAngle = targetAngle;
-			if (containerRef) {
-				containerRef.style.setProperty("--start", String(currentAngle));
-			}
-			animating = false;
-		}
-	}
-
-	function handlePointerMove(e: PointerEvent) {
-		handleMove(e);
-	}
-
-	function handleScroll() {
-		handleMove();
-	}
-
 	onMount(() => {
 		if (disabled) return;
 
-		window.addEventListener("scroll", handleScroll, { passive: true });
-		document.body.addEventListener("pointermove", handlePointerMove, { passive: true });
+		engine = createGlowingEffect(
+			{ container: containerRef },
+			{ inactiveZone, proximity, movementDuration }
+		);
 
 		return () => {
-			if (animationFrameId) cancelAnimationFrame(animationFrameId);
-			if (angleAnimationFrameId) cancelAnimationFrame(angleAnimationFrameId);
-			window.removeEventListener("scroll", handleScroll);
-			document.body.removeEventListener("pointermove", handlePointerMove);
+			engine?.destroy();
+			engine = null;
 		};
+	});
+
+	// Live proximity/tween props: the pre-extraction rAF callbacks re-read these
+	// on every frame, so they must keep reaching the running engine.
+	$effect(() => {
+		const next = { inactiveZone, proximity, movementDuration };
+		untrack(() => engine?.setOptions(next));
 	});
 </script>
 

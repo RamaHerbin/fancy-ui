@@ -1,0 +1,70 @@
+<script lang="ts">
+import type { HTMLAttributes } from "vue";
+
+export interface LineShadowTextProps {
+	text: string;
+	shadowColor?: string;
+	as?: "span" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "div";
+	class?: HTMLAttributes["class"];
+}
+</script>
+
+<script setup lang="ts">
+import { computed } from "vue";
+import { cn } from "../../utils.js";
+
+defineOptions({ name: "LineShadowText", inheritAttrs: false });
+
+const {
+	text,
+	shadowColor = "black",
+	as = "span",
+	class: className,
+} = defineProps<LineShadowTextProps>();
+
+const style = computed(() => ({ "--shadow-color": shadowColor }));
+</script>
+
+<template>
+	<component
+		:is="as"
+		:class="cn('line-shadow-text relative z-0 inline-block', className)"
+		:style="style"
+		:data-text="text"
+	>
+		{{ text }}
+	</component>
+</template>
+
+<style scoped>
+.line-shadow-text::after {
+	content: attr(data-text);
+	position: absolute;
+	top: 0.04em;
+	left: 0.04em;
+	z-index: -10;
+	background-image: linear-gradient(
+		45deg,
+		transparent 45%,
+		var(--shadow-color) 45%,
+		var(--shadow-color) 55%,
+		transparent 0
+	);
+	background-size: 0.06em 0.06em;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation: line-shadow 15s linear infinite;
+}
+</style>
+
+<style>
+@keyframes line-shadow {
+	0% {
+		background-position: 0 0;
+	}
+	100% {
+		background-position: 100% -100%;
+	}
+}
+</style>

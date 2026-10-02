@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils";
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
+	import { createBgStars, generateStars, type BgStarsEngine } from "./bg-stars-core.js";
 
 	interface Props {
 		/**
@@ -43,65 +44,37 @@
 		children,
 	}: Props = $props();
 
-	// Star box-shadows (generated on mount)
+	let hostEl: HTMLDivElement;
+	let parallaxEl: HTMLDivElement;
+	let engine: BgStarsEngine | null = null;
+
+	// Star box-shadows (generated on mount, regenerated when starColor changes)
 	let boxShadow1 = $state("");
 	let boxShadow2 = $state("");
 	let boxShadow3 = $state("");
 
-	// Spring animation state
-	let springX = $state(0);
-	let springY = $state(0);
-	let targetX = 0;
-	let targetY = 0;
-	let velocityX = 0;
-	let velocityY = 0;
-	let animationFrame: number;
-
-	function generateStars(count: number, color: string): string {
-		const shadows: string[] = [];
-		for (let i = 0; i < count; i++) {
-			const x = Math.floor(Math.random() * 4000) - 2000;
-			const y = Math.floor(Math.random() * 4000) - 2000;
-			shadows.push(`${x}px ${y}px ${color}`);
-		}
-		return shadows.join(", ");
-	}
-
-	function handleMouseMove(e: MouseEvent) {
-		const centerX = window.innerWidth / 2;
-		const centerY = window.innerHeight / 2;
-		targetX = -(e.clientX - centerX) * factor;
-		targetY = -(e.clientY - centerY) * factor;
-	}
-
-	function updateSpring() {
-		// Simple spring physics
-		const forceX = (targetX - springX) * (stiffness / 1000);
-		const forceY = (targetY - springY) * (stiffness / 1000);
-
-		velocityX = velocityX * (1 - damping / 100) + forceX;
-		velocityY = velocityY * (1 - damping / 100) + forceY;
-
-		springX += velocityX;
-		springY += velocityY;
-
-		animationFrame = requestAnimationFrame(updateSpring);
-	}
-
-	// Regenerate stars when color changes
 	$effect(() => {
-		boxShadow1 = generateStars(1000, starColor);
-		boxShadow2 = generateStars(400, starColor);
-		boxShadow3 = generateStars(200, starColor);
+		const color = starColor;
+		boxShadow1 = generateStars(1000, color);
+		boxShadow2 = generateStars(400, color);
+		boxShadow3 = generateStars(200, color);
 	});
 
 	onMount(() => {
-		// Start spring animation loop
-		animationFrame = requestAnimationFrame(updateSpring);
+		engine = createBgStars(
+			{ host: hostEl, parallax: parallaxEl },
+			{ factor, stiffness, damping },
+		);
 
 		return () => {
-			cancelAnimationFrame(animationFrame);
+			engine?.destroy();
+			engine = null;
 		};
+	});
+
+	$effect(() => {
+		const next = { factor, stiffness, damping };
+		untrack(() => engine?.setOptions(next));
 	});
 
 	// Derived CSS custom properties for animation durations
@@ -110,15 +83,14 @@
 	let layer3Duration = $derived(`${speed * 3}s`);
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
+	bind:this={hostEl}
 	class={cn(
 		"relative size-full overflow-hidden bg-[radial-gradient(ellipse_at_bottom,_#262626_0%,_#000_100%)]",
 		className
 	)}
-	onmousemove={handleMouseMove}
 >
-	<div class="stars-parallax" style:transform="translate({springX}px, {springY}px)">
+	<div bind:this={parallaxEl} class="stars-parallax">
 		<!-- Star Layer 1 (smallest, fastest) -->
 		<div class="star-layer" style:--duration={layer1Duration}>
 			<div

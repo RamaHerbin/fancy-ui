@@ -16,6 +16,11 @@ export const SITE_NAME = "FancyUI";
 /** npm package name — the distributable behind the brand. */
 export const PACKAGE_NAME = "fancy-ui-svelte";
 
+/** The React port of the same components, published separately. */
+export const REACT_PACKAGE_NAME = "fancy-ui-react";
+
+export const REACT_PACKAGE_URL = `https://www.npmjs.com/package/${REACT_PACKAGE_NAME}`;
+
 /** 1200×630 social card served from static/. */
 export const DEFAULT_OG_IMAGE = "/og.png";
 

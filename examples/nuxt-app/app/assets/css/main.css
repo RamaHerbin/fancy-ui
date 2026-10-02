@@ -1,0 +1,5 @@
+@import "tailwindcss";
+/* Scans the shipped component sources so their utility classes compile. */
+@import "fancy-ui-vue/tailwind.css";
+/* Keyframes and component-scoped CSS. */
+@import "fancy-ui-vue/styles.css";

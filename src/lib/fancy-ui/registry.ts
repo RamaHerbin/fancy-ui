@@ -9383,15 +9383,24 @@ export function getComponentsGroupedByStatus(): Record<ComponentStatus, Componen
 }
 
 /**
- * Search components by name or description
+ * Search components by name, slug, description or tag
  */
 export function searchComponents(query: string): ComponentMeta[] {
-	const lowerQuery = query.toLowerCase();
-	return Object.values(registry).filter(
-		(c) =>
-			c.name.toLowerCase().includes(lowerQuery) ||
-			c.description.toLowerCase().includes(lowerQuery) ||
-			c.slug.includes(lowerQuery)
+	return Object.values(registry).filter((c) => matchesQuery(c, query));
+}
+
+/**
+ * Whether a component matches a free-text query: name, slug, description or
+ * any tag, case-insensitive. An empty query matches everything.
+ */
+export function matchesQuery(component: ComponentMeta, query: string): boolean {
+	const q = query.trim().toLowerCase();
+	if (!q) return true;
+	return (
+		component.name.toLowerCase().includes(q) ||
+		component.slug.includes(q) ||
+		component.description.toLowerCase().includes(q) ||
+		(component.tags?.some((tag) => tag.toLowerCase().includes(q)) ?? false)
 	);
 }
 
