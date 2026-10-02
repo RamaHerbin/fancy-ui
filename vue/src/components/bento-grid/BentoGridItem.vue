@@ -7,7 +7,7 @@ export interface BentoGridItemProps {
 </script>
 
 <script setup lang="ts">
-import { cn } from "../../utils.js";
+import BentoFrame from "./BentoFrame.vue";
 
 defineOptions({ name: "BentoGridItem", inheritAttrs: false });
 
@@ -22,29 +22,29 @@ defineSlots<{
 </script>
 
 <template>
-	<div
-		:class="
-			cn(
-				'group/bento shadow-input row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-transparent bg-white p-4 transition duration-200 hover:shadow-xl dark:border-white/[0.2] dark:bg-black dark:shadow-none',
-				className
-			)
-		"
+	<BentoFrame
+		:class="['group/bento row-span-1', className]"
+		panel-class="justify-between gap-4 p-4"
 	>
 		<slot v-if="$slots.header" name="header" />
-		<div class="transition duration-200 group-hover/bento:translate-x-2">
-			<slot v-if="$slots.icon" name="icon" />
-			<div
-				v-if="$slots.title"
-				class="my-2 font-sans font-bold text-neutral-600 dark:text-neutral-200"
-			>
-				<slot name="title" />
+		<div class="bento-lift relative">
+			<div v-if="$slots.icon || $slots.title" class="mb-1.5 flex items-center gap-2.5">
+				<div v-if="$slots.icon" class="bento-icon size-8 [&_svg]:size-4">
+					<slot name="icon" />
+				</div>
+				<div
+					v-if="$slots.title"
+					class="min-w-0 font-sans text-[15px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100"
+				>
+					<slot name="title" />
+				</div>
 			</div>
 			<div
 				v-if="$slots.description"
-				class="font-sans text-xs font-normal text-neutral-600 dark:text-neutral-300"
+				class="font-sans text-[13px] leading-relaxed text-neutral-500 dark:text-neutral-400"
 			>
 				<slot name="description" />
 			</div>
 		</div>
-	</div>
+	</BentoFrame>
 </template>

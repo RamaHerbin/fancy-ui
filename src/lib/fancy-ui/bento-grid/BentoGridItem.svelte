@@ -1,39 +1,46 @@
 <script lang="ts">
-	import { cn } from "$lib/utils";
+	import type { Snippet } from "svelte";
+	import BentoFrame from "./BentoFrame.svelte";
 
 	interface Props {
 		class?: string;
-		header?: import("svelte").Snippet;
-		icon?: import("svelte").Snippet;
-		title?: import("svelte").Snippet;
-		description?: import("svelte").Snippet;
+		header?: Snippet;
+		icon?: Snippet;
+		title?: Snippet;
+		description?: Snippet;
 	}
 
 	let { class: className = "", header, icon, title, description }: Props = $props();
 </script>
 
-<div
-	class={cn(
-		"group/bento shadow-input row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-transparent bg-white p-4 transition duration-200 hover:shadow-xl dark:border-white/[0.2] dark:bg-black dark:shadow-none",
-		className
-	)}
+<BentoFrame
+	class={["group/bento row-span-1", className].join(" ")}
+	panelClass="justify-between gap-4 p-4"
 >
 	{#if header}
 		{@render header()}
 	{/if}
-	<div class="transition duration-200 group-hover/bento:translate-x-2">
-		{#if icon}
-			{@render icon()}
-		{/if}
-		{#if title}
-			<div class="my-2 font-sans font-bold text-neutral-600 dark:text-neutral-200">
-				{@render title()}
+	<div class="bento-lift relative">
+		{#if icon || title}
+			<div class="mb-1.5 flex items-center gap-2.5">
+				{#if icon}
+					<div class="bento-icon size-8 [&_svg]:size-4">
+						{@render icon()}
+					</div>
+				{/if}
+				{#if title}
+					<div
+						class="min-w-0 font-sans text-[15px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100"
+					>
+						{@render title()}
+					</div>
+				{/if}
 			</div>
 		{/if}
 		{#if description}
-			<div class="font-sans text-xs font-normal text-neutral-600 dark:text-neutral-300">
+			<div class="font-sans text-[13px] leading-relaxed text-neutral-500 dark:text-neutral-400">
 				{@render description()}
 			</div>
 		{/if}
 	</div>
-</div>
+</BentoFrame>

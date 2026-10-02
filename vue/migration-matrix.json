@@ -168,7 +168,9 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"`containerRef`, `fromRef` and `toRef` are typed `HTMLElement | null` rather than a required `HTMLElement`: a Vue template ref is `null` until the parent has mounted, so the idiomatic `:container-ref=\"container\"` binding passes `null` on the first render. They are still required props (pass `null`, not nothing)."
+			"`containerRef`, `fromRef` and `toRef` are typed `HTMLElement | null` rather than a required `HTMLElement`: a Vue template ref is `null` until the parent has mounted, so the idiomatic `:container-ref=\"container\"` binding passes `null` on the first render. They are still required props (pass `null`, not nothing).",
+			"Ids come from `useFancyId()` and read `beam-v-N`, with the `-glow` / `-bloom` filter suffixes. Svelte uses `beam-<$props.id()>`. Vue's `useId()` is unique within one app, not across separately mounted apps, so the uniqueness test mounts two beams in one app.",
+			"The ResizeObserver arms on `onMounted` and again from a `flush: 'post'` watcher on `containerRef`. A parent's template ref is still `null` when a child's `onMounted` runs, a gap Svelte's `bind:this` does not have. The watcher also re-arms the observer when the container is swapped."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -482,7 +484,12 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the source's `:global(.dark) .bento-tile …` dark-theme rules are written `.dark .bento-tile …` in the scoped block, because the scoped compiler would reduce a selector containing `:global(...)` to a bare `.dark`. The rule targets the same elements with the same specificity.",
+			"tile content parts (`.bento-lift`, `.bento-icon`, `.bento-cta`) are reached with `:deep()` from the internal BentoFrame, and the grid's reveal rules use `> :deep(*)`, in place of the source's `:global()`. The compiled selectors are unchanged apart from the scope attribute.",
+			"the child indexing (`--bento-i`, `--bento-delay`, re-run by a MutationObserver) and the one-shot in-view observer run from `flush: 'post'` watchers on the grid's template ref, and reduced motion comes from `useReducedMotion()`, which is read in `onMounted`. The SSR output is the same as the source's: the class `bento-reveal` with `data-state=\"armed\"`, and the tiles have no inline index properties until the watchers run on the client.",
+			"BentoGridItem and BentoGridCard pass `[base, class]` to the internal frame's `cn()` where the source uses `[base, className].join(\" \")`. The merged string is identical for string classes, and the port also accepts Vue's array and object class values."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -706,7 +713,10 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"The dark-theme rule `:global(.dark) .border-beam` is written as `.dark .border-beam` under the scoped compiler, which only scopes `.border-beam` and gives the same selector; a leading `:global()` would instead produce a bare `.dark` rule.",
+			"The `bb-travel` and `bb-ignite` keyframes stay in the scoped block. They are only referenced from scoped `animation` declarations, so the compiler renames them with the scope hash and rewrites those references consistently. This means an outside stylesheet cannot target the keyframes by their bare names."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1535,7 +1545,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the source's `:global(.dark) .cs-root` and `:global(html:not(.dark)) .cs-root` selectors are written as plain ancestor selectors (`.dark .cs-root`, `html:not(.dark) .cs-root`) in the scoped style block, because the scoped compiler would otherwise emit the wrapped part alone; the matched elements and the values are identical."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -2049,7 +2061,8 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"pointer tracked in viewport client coordinates, not page coordinates, so the magnification lines up with the icons measured by getBoundingClientRect on a scrolled page; matches the React port (upstream fix, Svelte parity pending)"
+			"Svelte throws when a DockIcon or DockSeparator is mounted outside a Dock. The Vue port degrades instead, through a frozen fallback context: `magnify: false`, `orientation: \"horizontal\"`, the pointer at `Infinity` and `reflection: true` (the prop default). A lone icon renders at its resting 40px with the reflection hook, and a lone separator is a vertical `role=separator` hairline.",
+			"Svelte writes `:global(.dark) .dock-*` in its scoped styles. Vue writes them as plain `.dark .dock-*` ancestor selectors, which have the same reach and the same specificity."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -3659,7 +3672,10 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the Web Animations upgrade is rebuilt when `class` changes, as in Svelte, but because `class` is typed `HTMLAttributes[\"class\"]` here, a consumer passing an inline array or object class gets a new identity on every parent render and triggers a rebuild each time; the rebuild resumes from the current position, so nothing jumps visually. Pass a string, or hoist the array, to avoid the churn.",
+			"ReviewCard's dark-mode rule is written `.dark .review-card` instead of the source's `:global(.dark) .review-card`, because the scoped compiler would swallow the whole selector inside `:global()`; the emitted selector has the same reach (`.dark` ancestor, scoped card)."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5185,7 +5201,11 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"The custom cursor is the `#cursor` slot rather than a snippet prop. The tip-versus-centre hotspot is recomputed from the slot's presence on every render, not held in a reactive derived value, because slot presence is not reactive in Vue.",
+			"The gradient id for the default arrow comes from `useFancyId()` (`smooth-cursor-fill-v-N`), not `$props.id()`. The two id sources format their ids differently, but the id is SSR-stable and unique per instance in both packages.",
+			"The prop watchers (`springConfig`, `labelSpring`, `rotate`, `idleFade`) and the label-element watcher fire only on change, never at mount. The engine gets the mount values as creation options, so the Svelte effects' first run, which re-applies the same values, is not repeated here."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6137,7 +6157,10 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the source's `:global(.dark) .tl-root` theme override is written as a plain `.dark .tl-root` ancestor selector in the scoped block. The rule and the result are the same.",
+			"the items-count watcher (`watch(() => items.length, …, { flush: 'post' })`) does not run on mount, while the Svelte `$effect` does. The Svelte first run only queues a redundant microtask re-measure after `onMount` has already measured synchronously, so the rendered result is the same."
+		],
 		"minors": [],
 		"lastFailure": null
 	},

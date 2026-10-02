@@ -1,10 +1,14 @@
-import { useCallback, useRef, useState } from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 
 import { cn } from "../../utils.js";
-import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
+import { useLiveRef } from "../../internals/dom/use-live-ref.js";
+import { linear } from "../../internals/motion/easing.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { usePresence } from "../../internals/motion/presence.js";
 import type { TransitionSpec } from "../../internals/motion/transitions.js";
+
+import "./animated-tooltip.css";
 
 export interface TooltipItem {
 	id: number | string;
@@ -18,228 +22,297 @@ export interface AnimatedTooltipProps {
 	items: TooltipItem[];
 	/** Additional CSS classes for the container */
 	className?: string;
+	/**
+	 * Tint of the presence ring and the light sweep under the name. Any CSS
+	 * colour (`"#f5a97f"`, `"oklch(0.7 0.14 160)"`, `"var(--primary)"`).
+	 * Leave unset for the default soft iridescent pair, which adapts to the
+	 * light and dark themes.
+	 */
+	accent?: string;
+	/** Avatar diameter in pixels. */
+	size?: number;
 }
 
-/** The default ease-out cubic the source transition falls back to:
- *  `f = t - 1; f³ + 1`. Not in `internals/motion/easing.ts` (that module holds
- *  only the two expo curves the token table names), so it lives here. */
-function cubicOut(t: number): number {
-	const f = t - 1.0;
-	return f * f * f + 1.0;
-}
-
-/**
- * The tooltip's scale transition, mirroring the source's stock scale
- * transition with `{ duration: 200, start: 0.6 }`: capture the element's
- * computed opacity and transform at leg start, then run
- * `scale(1 - sd·u)` / `opacity(target - od·u)` under an ease-out cubic. The
- * captured transform keeps the inline `translateX(...) rotate(...)` while the
- * scale animates on top of it, exactly as the source composes them.
- */
-function tooltipScale(node: Element): TransitionSpec {
-	const style = getComputedStyle(node);
-	const targetOpacity = +style.opacity;
-	const transform = style.transform === "none" ? "" : style.transform;
-	const sd = 1 - 0.6; // 1 - start
-	const od = targetOpacity; // target_opacity * (1 - opacity), opacity = 0
-
-	return {
-		delay: 0,
-		duration: 200,
-		easing: cubicOut,
-		css: (t, u) => `
-			transform: ${transform} scale(${1 - sd * u});
-			opacity: ${targetOpacity - od * u}
-		`,
-	};
-}
-
-/** The rotate/translate pair one tooltip is drawn at. */
-interface TooltipPose {
-	rotation: number;
-	translation: number;
-}
-
-/** Where the pointer sits inside one avatar, mapped through the source's
- *  `(mouseX / 100) * 50`: the offset from the avatar's own centre, so a row of
- *  overlapping avatars poses each tooltip against the item under the pointer. */
-function poseAt(event: ReactMouseEvent<HTMLElement>): TooltipPose {
-	const rect = event.currentTarget.getBoundingClientRect();
-	const halfWidth = rect.width / 2;
-	const mouseX = event.clientX - rect.left - halfWidth;
-	const value = (mouseX / 100) * 50;
-	return { rotation: value, translation: value };
-}
-
-/** The inline transform one pose draws as. */
-function transformFor(pose: TooltipPose): string {
-	return `translateX(calc(-50% + ${pose.translation}px)) rotate(${pose.rotation}deg)`;
-}
+type ItemId = number | string;
 
 /** The id the tooltip is published under, so the wrapper can point
  *  `aria-describedby` at it while it is shown. */
-function tooltipId(itemId: number | string): string {
+function tooltipId(itemId: ItemId): string {
 	return `animated-tooltip-${itemId}`;
+}
+
+/**
+ * The inline transform the tooltip positioner is drawn at. `mouseX` is the
+ * pointer's offset from the hovered avatar's centre, normalised by half the
+ * avatar size to [-1, 1]: the card leans up to 7deg and slides up to 14px
+ * toward the pointer; reduced motion keeps it upright.
+ */
+function transformFor(mouseX: number, size: number, reduced: boolean): string {
+	const lean = reduced ? 0 : Math.max(-1, Math.min(1, mouseX / (size / 2)));
+	const rotation = lean * 7;
+	const translation = lean * 14;
+	return `translateX(calc(-50% + ${translation}px)) rotate(${rotation}deg)`;
+}
+
+/** How far item `i` steps aside to make room for the active one. */
+function partOffset(i: number, activeIndex: number, reduced: boolean): number {
+	if (activeIndex < 0 || reduced) return 0;
+	const d = i - activeIndex;
+	const distance = Math.abs(d);
+	if (distance === 1) return Math.sign(d) * 6;
+	if (distance === 2) return Math.sign(d) * 2;
+	return 0;
+}
+
+interface SinkParams {
+	entering: boolean;
+	still: boolean;
+}
+
+/**
+ * Exit: a short settle downward (opacity only under reduced motion). The
+ * source carries this as an exit-only transition, so the ENTER leg runs at
+ * duration 0 — the card appears at rest and its entrance is the CSS
+ * `at-rise` / `at-fade` keyframe, exactly as in the source. A reversal
+ * mid-exit therefore snaps back to rest rather than replaying anything, which
+ * is what an exit-only transition does when its block resumes.
+ */
+function sink(_node: Element, params?: SinkParams): TransitionSpec {
+	if (!params || params.entering) {
+		return { delay: 0, duration: 0, easing: linear, css: () => "" };
+	}
+	const still = params.still;
+	return {
+		delay: 0,
+		duration: still ? 120 : 160,
+		easing: (t: number) => t * t,
+		css: (t: number) =>
+			still
+				? `opacity: ${t};`
+				: `opacity: ${t}; transform: translateY(${(1 - t) * 4}px) scale(${0.97 + 0.03 * t});`,
+	};
 }
 
 interface AvatarItemProps {
 	item: TooltipItem;
-	hovered: boolean;
-	onHoverStart: (itemId: number | string) => void;
-	onHoverEnd: () => void;
+	active: boolean;
+	shift: number;
+	reduced: boolean;
+	onEnter: (itemId: ItemId, event: ReactMouseEvent<HTMLDivElement>) => void;
+	onMove: (event: ReactMouseEvent<HTMLDivElement>) => void;
+	onLeave: () => void;
+	onFocusIn: (itemId: ItemId) => void;
+	onTip: (itemId: ItemId, node: HTMLElement | null, previous: HTMLElement | null) => void;
 }
 
 /** One avatar and its conditional tooltip. A separate component because each
  *  item owns a presence clock (the mount/unmount timing the source's
  *  transition-aware conditional block owned natively). */
-function AvatarItem({ item, hovered, onHoverStart, onHoverEnd }: AvatarItemProps) {
-	/**
-	 * The pointer-tracked pose, and the node it is drawn on. Both refs, never
-	 * state: the source reads the shared mouse position INSIDE the hovered
-	 * item's conditional block, so one pointer sample rewrites one style
-	 * attribute on one node. Holding the pose in React state would re-render
-	 * every avatar in the row — and re-run each one's presence bookkeeping — on
-	 * every mousemove, work that grows with `items.length` where the source's
-	 * does not.
-	 *
-	 * The imperative write is also what gives the FREEZE for free. The source's
-	 * block is paused the instant its item stops being the hovered one: a paused
-	 * block does not update, so the leaving tooltip keeps the transform it was
-	 * last drawn at while the pointer carries on moving underneath it — onto the
-	 * neighbouring avatar (the `-mr-4` overlap makes that the ordinary
-	 * traversal), or off the row entirely. Here a leaving item simply stops
-	 * receiving writes, and the node keeps its last value. Without the freeze the
-	 * exit plays from the row's CURRENT pose, and not for one frame:
-	 * `tooltipScale` samples `getComputedStyle` at leg start, so the wrong pose
-	 * would be baked into every keyframe of the 200ms leg.
-	 */
-	const pose = useRef<TooltipPose>({ rotation: 0, translation: 0 });
-	const tooltip = useRef<HTMLElement | null>(null);
+function AvatarItem({
+	item,
+	active,
+	shift,
+	reduced,
+	onEnter,
+	onMove,
+	onLeave,
+	onFocusIn,
+	onTip,
+}: AvatarItemProps) {
+	const presence = usePresence(active);
+	// Rewritten every render, read at the instant a leg starts: the source's
+	// exit reads the reduced-motion flag when the outro begins.
+	const cardRef = presence.register(sink, (entering) => ({ entering, still: reduced }));
 
-	/**
-	 * The spec the leg currently in flight was built from, reused by any leg
-	 * that reverses it. The source keeps the same options object for as long as
-	 * a transition is ongoing — "so that reversible transitions reverse smoothly,
-	 * rather than jumping to a new spot" — and clears it at `introend`. Rebuilt
-	 * per leg instead, `tooltipScale` would capture the transform and opacity the
-	 * running animation is currently PAINTING (already scaled, already faded) and
-	 * compose another `scale(1 - sd·u)` on top of it, so sweeping off an avatar
-	 * inside the 200ms entrance popped the tooltip to a doubly-shrunk pose.
-	 */
-	const spec = useRef<TransitionSpec | null>(null);
-
-	const presence = usePresence(hovered, {
-		onEnterEnd: () => {
-			spec.current = null;
-		},
-	});
-
+	// The positioner is handed to the row, which alone writes its transform.
 	// Block body, never a concise arrow: React 19 reads a returned value as a
-	// cleanup function (convention C-3). Composed BEFORE `presence.register`'s
-	// ref so the pose is on the node before anything samples its computed style.
-	const attach = useCallback((node: HTMLElement | null) => {
-		tooltip.current = node;
-		if (node) {
-			// A freshly mounted tooltip carries no transform yet, and its
-			// entrance leg reads the computed style from the layout effect that
-			// runs right after this ref attaches.
-			node.style.transform = transformFor(pose.current);
-			return;
-		}
-		// The node is gone; the next mount is a new element with a new capture.
-		spec.current = null;
-	}, []);
-
-	const tooltipRef = useComposedRefs(
-		attach,
-		presence.register((node) => (spec.current ??= tooltipScale(node)))
+	// cleanup function.
+	const tipNode = useRef<HTMLElement | null>(null);
+	const itemId = item.id;
+	const attachTip = useCallback(
+		(node: HTMLElement | null) => {
+			if (node) {
+				tipNode.current = node;
+				onTip(itemId, node, null);
+				return;
+			}
+			onTip(itemId, null, tipNode.current);
+			tipNode.current = null;
+		},
+		[itemId, onTip]
 	);
-
-	function draw(next: TooltipPose): void {
-		pose.current = next;
-		if (tooltip.current) tooltip.current.style.transform = transformFor(next);
-	}
-
-	function handleMouseEnter(event: ReactMouseEvent<HTMLDivElement>): void {
-		// Reset the pose first to prevent offset from previous item. A first
-		// entry finds no tooltip and `attach` draws the pose on mount; a
-		// re-entry during the exit finds one still mounted and redraws it here.
-		draw(poseAt(event));
-		onHoverStart(item.id);
-	}
-
-	function handleMouseMove(event: ReactMouseEvent<HTMLDivElement>): void {
-		if (!hovered) return;
-		draw(poseAt(event));
-	}
-
-	// Keyboard and touch users reach the designation too: focus opens the same
-	// tooltip hover does. There is no pointer to sample, so the pose resets to
-	// the centred, unrotated one the source draws at `mouseX = 0`.
-	function handleFocus(): void {
-		draw({ rotation: 0, translation: 0 });
-		onHoverStart(item.id);
-	}
 
 	return (
 		<div
-			className="group relative -mr-4"
-			onMouseEnter={handleMouseEnter}
-			onMouseLeave={onHoverEnd}
-			onMouseMove={handleMouseMove}
-			onFocus={handleFocus}
-			onBlur={onHoverEnd}
+			className={cn("at-item group relative", active && "at-active", shift !== 0 && "at-parted")}
+			style={{ "--_at-shift": `${shift}px` } as CSSProperties}
+			data-active={active ? "" : undefined}
+			data-part={shift < 0 ? "before" : shift > 0 ? "after" : undefined}
+			onMouseEnter={(event) => onEnter(item.id, event)}
+			onMouseLeave={onLeave}
+			onMouseMove={onMove}
+			onFocus={() => onFocusIn(item.id)}
+			onBlur={onLeave}
 			tabIndex={0}
-			aria-describedby={hovered ? tooltipId(item.id) : undefined}
+			aria-describedby={active ? tooltipId(item.id) : undefined}
 		>
 			{/* Tooltip */}
 			{presence.mounted && (
 				<div
-					ref={tooltipRef}
+					ref={attachTip}
 					id={tooltipId(item.id)}
 					role="tooltip"
-					className="pointer-events-none absolute -top-16 left-1/2 z-50 flex flex-col items-center justify-center rounded-md bg-black px-4 py-2 text-xs whitespace-nowrap shadow-xl"
+					className="at-tip pointer-events-none absolute left-1/2 z-50"
 				>
-					{/* Gradient lines */}
-					<div className="absolute right-1/2 -bottom-px z-30 me-1 h-px w-2/5 translate-x-1/2 bg-gradient-to-r from-transparent via-emerald-500 to-transparent"></div>
-					<div className="absolute -bottom-px left-1/2 z-30 ms-1 h-px w-2/5 -translate-x-1/2 bg-gradient-to-r from-transparent via-sky-500 to-transparent"></div>
-
-					{/* Content */}
-					<div className="relative z-30 text-base font-bold text-white">{item.name}</div>
-					<div className="text-xs text-white">{item.designation}</div>
+					<div ref={cardRef} className="at-card">
+						<span className="at-pointer" aria-hidden="true"></span>
+						<div className="at-name">{item.name}</div>
+						<span className="at-rule" aria-hidden="true">
+							<span className="at-glint"></span>
+						</span>
+						<div className="at-role">{item.designation}</div>
+					</div>
 				</div>
 			)}
 
-			{/* Avatar Image */}
-			<img
-				src={item.image}
-				alt={item.name}
-				className="relative !m-0 size-14 rounded-full border-2 border-white object-cover object-top !p-0 transition duration-500 group-hover:z-30 group-hover:scale-105"
-			/>
+			{/* Avatar: presence ring + photo */}
+			<div className={cn("at-avatar", active && !reduced && "at-lifted")}>
+				<span className="at-glow" aria-hidden="true"></span>
+				<span className="at-disc" aria-hidden="true"></span>
+				<span className="at-ring" aria-hidden="true"></span>
+				<img
+					src={item.image}
+					alt={item.name}
+					className="at-img relative !m-0 rounded-full object-cover object-top !p-0"
+				/>
+			</div>
 		</div>
 	);
 }
 
-export function AnimatedTooltip({ items, className }: AnimatedTooltipProps) {
-	const [hoveredIndex, setHoveredIndex] = useState<number | string | null>(null);
+export function AnimatedTooltip({ items, className, accent, size = 56 }: AnimatedTooltipProps) {
+	const reduced = useReducedMotion();
 
-	const handleHoverStart = useCallback((itemId: number | string): void => {
-		setHoveredIndex(itemId);
+	const [hoveredId, setHoveredId] = useState<ItemId | null>(null);
+
+	/**
+	 * The pointer offset, the hovered id as the handlers see it, and every
+	 * mounted tooltip positioner. Refs, never state: the source reads the
+	 * shared `mouseX` only INSIDE the active item's conditional block, so one
+	 * pointer sample rewrites one style attribute on one node. Holding it in
+	 * React state would re-render every avatar in the row on every mousemove.
+	 *
+	 * Writing only to the ACTIVE item's positioner is also what reproduces the
+	 * source's freeze: a leaving block is paused, so its tooltip keeps the
+	 * transform it was last drawn at while the pointer moves on — onto the
+	 * overlapping neighbour or off the row, where `mouseX` resets to 0.
+	 */
+	const mouseX = useRef(0);
+	const hovered = useRef<ItemId | null>(null);
+	const tips = useRef(new Map<ItemId, HTMLElement>());
+	const reducedRef = useLiveRef(reduced);
+	const sizeRef = useLiveRef(size);
+
+	const draw = useCallback(
+		(itemId: ItemId): void => {
+			const node = tips.current.get(itemId);
+			if (node)
+				node.style.transform = transformFor(mouseX.current, sizeRef.current, reducedRef.current);
+		},
+		[reducedRef, sizeRef]
+	);
+
+	const onTip = useCallback(
+		(itemId: ItemId, node: HTMLElement | null, previous: HTMLElement | null): void => {
+			if (node) {
+				tips.current.set(itemId, node);
+				// A freshly mounted positioner carries no transform yet.
+				draw(itemId);
+				return;
+			}
+			if (tips.current.get(itemId) === previous) tips.current.delete(itemId);
+		},
+		[draw]
+	);
+
+	const activate = useCallback(
+		(itemId: ItemId): void => {
+			hovered.current = itemId;
+			setHoveredId(itemId);
+			// A re-entry during the exit finds the positioner still mounted and
+			// redraws it; a first entry finds none and `onTip` draws on mount.
+			draw(itemId);
+		},
+		[draw]
+	);
+
+	const handleMouseEnter = useCallback(
+		(itemId: ItemId, event: ReactMouseEvent<HTMLDivElement>): void => {
+			// Reset mouseX first to prevent offset from previous item
+			const rect = event.currentTarget.getBoundingClientRect();
+			mouseX.current = event.clientX - rect.left - rect.width / 2;
+			activate(itemId);
+		},
+		[activate]
+	);
+
+	const handleMouseMove = useCallback(
+		(event: ReactMouseEvent<HTMLDivElement>): void => {
+			if (hovered.current === null) return;
+			const rect = event.currentTarget.getBoundingClientRect();
+			mouseX.current = event.clientX - rect.left - rect.width / 2;
+			draw(hovered.current);
+		},
+		[draw]
+	);
+
+	const handleLeave = useCallback((): void => {
+		hovered.current = null;
+		mouseX.current = 0;
+		setHoveredId(null);
 	}, []);
 
-	const handleHoverEnd = useCallback((): void => {
-		setHoveredIndex(null);
-	}, []);
+	const handleFocusIn = useCallback(
+		(itemId: ItemId): void => {
+			mouseX.current = 0;
+			activate(itemId);
+		},
+		[activate]
+	);
+
+	// The source derives the lean from `size` and the reduced-motion flag, so
+	// either changing redraws the active card.
+	useEffect(() => {
+		if (hovered.current !== null) draw(hovered.current);
+	}, [draw, reduced, size]);
+
+	/** Index of the active item, or -1 when nothing is hovered/focused. */
+	const activeIndex = hoveredId === null ? -1 : items.findIndex((item) => item.id === hoveredId);
+
+	const rootStyle = {
+		"--_at-size": `${size}px`,
+		...(accent
+			? {
+					"--at-accent": accent,
+					"--at-accent-2": `color-mix(in oklab, ${accent} 62%, white)`,
+				}
+			: {}),
+	} as CSSProperties;
 
 	return (
-		<div className={cn("flex flex-row items-center", className)}>
-			{items.map((item) => (
+		<div className={cn("at-root flex flex-row items-center", className)} style={rootStyle}>
+			{items.map((item, i) => (
 				<AvatarItem
 					key={item.id}
 					item={item}
-					hovered={hoveredIndex === item.id}
-					onHoverStart={handleHoverStart}
-					onHoverEnd={handleHoverEnd}
+					active={hoveredId === item.id}
+					shift={partOffset(i, activeIndex, reduced)}
+					reduced={reduced}
+					onEnter={handleMouseEnter}
+					onMove={handleMouseMove}
+					onLeave={handleLeave}
+					onFocusIn={handleFocusIn}
+					onTip={onTip}
 				/>
 			))}
 		</div>

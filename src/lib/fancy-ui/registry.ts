@@ -146,7 +146,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"animated-beam": {
 		name: "AnimatedBeam",
 		slug: "animated-beam",
-		description: "Animated SVG beams connecting elements with smooth gradients",
+		description:
+			"Fibre-optic connector between two elements: a light packet with a dispersing chromatic tail runs along a glass fibre and blooms behind the destination on arrival; theme-aware, seeded and still under reduced motion.",
 		category: "effects",
 		group: "fancy",
 		status: "done",
@@ -186,15 +187,17 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "pathColor",
 				type: "string",
-				default: '"gray"',
-				description: "Color of the static background path",
+				default: "theme-aware glass",
+				description:
+					'CHANGED DEFAULT (was "gray"): unset draws the theme-aware glass fibre; a colour draws a plain line in that colour, as before.',
 			},
 			{ name: "pathWidth", type: "number", default: "2", description: "Stroke width of the path" },
 			{
 				name: "pathOpacity",
 				type: "number",
-				default: "0.2",
-				description: "Opacity of the background path",
+				default: "1 (glass) / 0.2 (with pathColor)",
+				description:
+					"CHANGED DEFAULT (was 0.2): fibre opacity; stays 0.2 whenever pathColor is set.",
 			},
 			{
 				name: "gradientStartColor",
@@ -212,8 +215,36 @@ export const registry: Record<string, ComponentMeta> = {
 			{
 				name: "duration",
 				type: "number",
-				default: "random 4-7",
-				description: "Animation duration in seconds",
+				default: "from seed",
+				description:
+					"CHANGED DEFAULT (was random): seconds per packet cycle; unset = mulberry32(seed)*3+4.",
+			},
+			{
+				name: "pulses",
+				type: "number",
+				default: "1",
+				description: "Packets in flight at once (1–12), spaced evenly over one cycle.",
+			},
+			{
+				name: "tail",
+				type: "number",
+				default: "0.35",
+				description:
+					"Length of the packet's dispersing tail as a fraction of the fibre (0.05–0.9).",
+			},
+			{
+				name: "glow",
+				type: "number",
+				default: "0.6",
+				description:
+					"Strength of the blurred glow under the packet and of the arrival bloom (0–1).",
+			},
+			{
+				name: "seed",
+				type: "number",
+				default: "1",
+				description:
+					"Seed for the default duration (between 4 and 7 s), so server and browser agree.",
 			},
 			{
 				name: "startXOffset",
@@ -296,7 +327,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"animated-tooltip": {
 		name: "AnimatedTooltip",
 		slug: "animated-tooltip",
-		description: "Avatar row with animated tooltips that follow mouse movement",
+		description:
+			"Presence stack of overlapping avatars with a thin, dimmed ring each that lights up on hover or focus while the avatar lifts, its neighbours part to make room, and a glass name card rises, leaning toward the pointer, as one line of light sweeps under the name",
 		category: "feedback",
 		group: "fancy",
 		status: "done",
@@ -310,6 +342,24 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "TooltipItem[]",
 				description: "Array of items with id, name, designation, and image URL",
 				required: true,
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes for the container",
+			},
+			{
+				name: "accent",
+				type: "string",
+				default: "undefined (theme-tuned lilac/ice iridescent pair)",
+				description:
+					"Tint of the presence ring and the light sweep under the name; any CSS colour. Writes --at-accent and a lighter --at-accent-2.",
+			},
+			{
+				name: "size",
+				type: "number",
+				default: "56",
+				description: "Avatar diameter in pixels; overlap, ring and pointer lean scale with it.",
 			},
 		],
 	},
@@ -366,19 +416,24 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "BorderBeam",
 		slug: "border-beam",
 		description:
-			"Gradient beam that races around a container's border using a CSS offset-path animation, masked so only the border ring is painted, with configurable size, speed, anchor position, and gradient colors",
+			"A single comet of light riding a container's border: a white-hot head, a long feathered tail fading between two colours, a dim hairline that lights up only within the comet's reach, and a soft bloom that sits on the edge.",
 		category: "effects",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/border-beam" }],
-		tags: ["animation", "border", "gradient", "beam"],
+		tags: ["animation", "border", "gradient", "beam", "comet", "glow"],
 		props: [
-			{ name: "size", type: "number", default: "200", description: "Size of the beam in pixels" },
+			{
+				name: "size",
+				type: "number",
+				default: "200",
+				description: "Diameter of the pool of light around the comet's head, in pixels",
+			},
 			{
 				name: "duration",
 				type: "number",
-				default: "15",
-				description: "Animation duration in seconds",
+				default: "9",
+				description: "Time for one full lap of the border, in seconds",
 			},
 			{
 				name: "borderWidth",
@@ -386,15 +441,49 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "1.5",
 				description: "Border width in pixels",
 			},
-			{ name: "anchor", type: "number", default: "90", description: "Anchor position (0-100)" },
+			{
+				name: "anchor",
+				type: "number",
+				default: "90",
+				description:
+					"Where the comet starts (and rests with reduced motion), as a percentage of the perimeter clockwise from the top-left (0-100)",
+			},
 			{
 				name: "colorFrom",
 				type: "string",
-				default: '"#ffaa40"',
-				description: "Gradient start color",
+				default: '"#8ec5ff"',
+				description: "Colour of the head and the start of the tail",
 			},
-			{ name: "colorTo", type: "string", default: '"#9c40ff"', description: "Gradient end color" },
-			{ name: "delay", type: "number", default: "0", description: "Animation delay in seconds" },
+			{
+				name: "colorTo",
+				type: "string",
+				default: '"#c084fc"',
+				description: "Colour the tail fades into",
+			},
+			{
+				name: "delay",
+				type: "number",
+				default: "0",
+				description: "Seconds behind the start position; the comet runs from the first frame",
+			},
+			{
+				name: "tail",
+				type: "number",
+				default: "0.25",
+				description: "Length of the tail as a share of the perimeter (0-1)",
+			},
+			{
+				name: "glow",
+				type: "number",
+				default: "0.6",
+				description: "Strength of the bloom, halo and inner spill of light (0-1)",
+			},
+			{
+				name: "reverse",
+				type: "boolean",
+				default: "false",
+				description: "Travel counter-clockwise instead of clockwise",
+			},
 		],
 	},
 
@@ -505,10 +594,13 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "ImageTrailCursor",
 		slug: "image-trail-cursor",
 		description:
-			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 9 selectable variants spanning simple fades, momentum drift, rotation flings, 3D perspective tilt, and a hard-edge pixelated snap",
+			"Trail of images that spawn and animate along the cursor's path, powered by GSAP timelines, with 18 selectable variants: fades, momentum drift, rotation flings, 3D perspective tilt, a hard-edge pixelated snap, a bouncy scale pop, images that fall or bounce under gravity, a flame flicker, and five fragment reveals (venetian, curtain, hexagon, liquid, zoom split)",
 		category: "effects",
 		group: "fancy",
 		status: "done",
+		credits: [
+			{ source: "Pixel Perfect", url: "https://www.pixel-perfect.space/blocks/mouse-followers" },
+		],
 		tags: ["cursor", "animation", "images", "trail", "interactive"],
 		props: [
 			{
@@ -519,9 +611,10 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 			{
 				name: "variant",
-				type: '"type1" | "type2" | ... | "type8" | "pixelated"',
+				type: '"type1" | ... | "type8" | "pixelated" | "scale" | "fall" | "gravity" | "flame" | "venetian" | "curtain" | "hexagon" | "liquid" | "zoom-split"',
 				default: '"type1"',
-				description: "Animation variant controlling how images appear and move",
+				description:
+					"Animation variant controlling how images appear and move (see the README for what each one does)",
 			},
 		],
 	},
@@ -878,7 +971,8 @@ export const registry: Record<string, ComponentMeta> = {
 	timeline: {
 		name: "Timeline",
 		slug: "timeline",
-		description: "Vertical timeline with scroll-driven progress line and sticky labels",
+		description:
+			"Vertical timeline drawn as a light rail: a glowing head travels a hairline track as you scroll, leaving a soft trail and igniting each entry's dot as it arrives.",
 		category: "navigation",
 		group: "fancy",
 		status: "done",
@@ -893,6 +987,13 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 			{ name: "title", type: "string", description: "Heading text" },
 			{ name: "description", type: "string", description: "Subheading text" },
+			{
+				name: "accent",
+				type: "string",
+				default: "undefined (follows --primary, falls back to oklch(0.7 0.13 285))",
+				description:
+					"Colour of the travelling head, its trail and the lit dots. Any CSS colour; also settable via the --timeline-accent CSS variable.",
+			},
 		],
 		slots: [
 			{
@@ -948,12 +1049,12 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "Dock",
 		slug: "dock",
 		description:
-			"Icon dock where each item magnifies smoothly as the cursor approaches, sharing pointer position via Svelte context so every DockIcon scales by proximity within a configurable magnification and distance range",
+			"Icon dock on a lit glass shelf: icons swell on a smooth cosine curve toward the pointer, a soft pool of light and a brightening edge follow it across the shelf, and a small dot and floor reflection mark the icon underneath.",
 		category: "navigation",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/dock" }],
-		tags: ["dock", "navigation", "launcher", "magnification", "hover"],
+		tags: ["dock", "navigation", "launcher", "magnification", "hover", "spotlight"],
 		props: [
 			{
 				name: "magnification",
@@ -965,19 +1066,39 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "distance",
 				type: "number",
 				default: "140",
-				description: "Distance in pixels over which magnification takes effect",
+				description: "Pointer distance over which the magnification falls off (cosine curve)",
 			},
 			{
 				name: "direction",
 				type: '"top" | "middle" | "bottom"',
 				default: '"middle"',
-				description: "Vertical alignment of icons relative to the dock bar",
+				description: "Cross-axis alignment of the icons",
 			},
 			{
 				name: "orientation",
 				type: '"horizontal" | "vertical"',
 				default: '"horizontal"',
 				description: "Dock orientation",
+			},
+			{
+				name: "spotlight",
+				type: "boolean",
+				default: "true",
+				description:
+					"Soft pool of accent light that follows the pointer inside the shelf, plus a lit shelf edge near the pointer",
+			},
+			{
+				name: "reflection",
+				type: "boolean",
+				default: "true",
+				description:
+					"Soft contact shadow (light) / accent glow (dark) ellipse under each icon that grows with it",
+			},
+			{
+				name: "ariaLabel",
+				type: "string",
+				default: "undefined",
+				description: "Accessible name for the toolbar, rendered as aria-label",
 			},
 		],
 		slots: [{ name: "children", description: "DockIcon and DockSeparator elements" }],
@@ -1385,12 +1506,21 @@ export const registry: Record<string, ComponentMeta> = {
 	marquee: {
 		name: "Marquee",
 		slug: "marquee",
-		description: "Infinite scrolling component for text, images, or cards",
+		description:
+			"An eased conveyor of repeated content that dissolves into soft edge fades and, on hover or focus, brakes smoothly to a stop and pulls away again instead of freezing.",
 		category: "layout",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Magic UI", url: "https://magicui.design/docs/components/marquee" }],
-		tags: ["marquee", "scrolling", "animation", "layout", "infinite"],
+		tags: [
+			"marquee",
+			"scrolling",
+			"animation",
+			"layout",
+			"infinite",
+			"edge fade",
+			"web animations",
+		],
 		props: [
 			{
 				name: "reverse",
@@ -1402,7 +1532,7 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "pauseOnHover",
 				type: "boolean",
 				default: "false",
-				description: "Pause animation on hover",
+				description: "Ease the conveyor to a stop while hovered or focused, and back up on leave",
 			},
 			{
 				name: "vertical",
@@ -1415,6 +1545,19 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "4",
 				description: "Number of times to repeat children for seamless loop",
+			},
+			{
+				name: "fade",
+				type: "boolean",
+				default: "true",
+				description:
+					"Dissolve items at both edges with an eased gradient mask (width via --marquee-fade, default 12%)",
+			},
+			{
+				name: "speed",
+				type: "number",
+				default: "1",
+				description: "Speed multiplier on top of --duration (2 = twice as fast)",
 			},
 		],
 		slots: [{ name: "children", description: "Content to repeat and scroll" }],
@@ -2059,12 +2202,34 @@ export const registry: Record<string, ComponentMeta> = {
 	"bento-grid": {
 		name: "BentoGrid",
 		slug: "bento-grid",
-		description: "Bento-style grid layout with slot-based and props-based card variants",
+		description:
+			"Grid of framed tiles, each a hairline frame around a softly top-lit panel, where an accent glow rises from below on hover while the content lifts and the call to action slides in, and the tiles fade up in a stagger the first time the grid scrolls into view.",
 		category: "cards",
 		group: "fancy",
 		status: "done",
 		credits: [{ source: "Aceternity UI", url: "https://ui.aceternity.com/components/bento-grid" }],
 		tags: ["grid", "layout", "bento", "cards", "dashboard"],
+		props: [
+			{
+				name: "class",
+				type: "string",
+				default: "''",
+				description: "Additional grid classes",
+			},
+			{
+				name: "reveal",
+				type: "boolean",
+				default: "true",
+				description: "Tiles fade up in a short stagger the first time the grid scrolls into view",
+			},
+			{
+				name: "accent",
+				type: "string",
+				default: "undefined",
+				description:
+					"Colour of the hover glow, the lit bottom edge, the icon ring and the CTA arrow; writes --bento-accent (falls back to #8e9cff)",
+			},
+		],
 		slots: [{ name: "children", description: "BentoGridItem components to arrange in the grid" }],
 	},
 
@@ -2216,7 +2381,8 @@ export const registry: Record<string, ComponentMeta> = {
 	"container-scroll": {
 		name: "ContainerScroll",
 		slug: "container-scroll",
-		description: "Scroll-driven animation that rotates and scales a card from tilted to flat",
+		description:
+			"Scroll-driven aperture: the card opens from a bright seam as it enters the viewport while its content settles into focus and the title blurs away, with no 3D tilt",
 		category: "layout",
 		group: "fancy",
 		status: "done",
@@ -2226,15 +2392,29 @@ export const registry: Record<string, ComponentMeta> = {
 				url: "https://ui.aceternity.com/components/container-scroll-animation",
 			},
 		],
-		tags: ["layout", "scroll", "animation", "3d", "perspective"],
+		tags: ["layout", "scroll", "animation", "aperture", "reveal"],
+		props: [
+			{
+				name: "accent",
+				type: "string",
+				default: "undefined (soft blue #8fb2ff via --cs-accent)",
+				description: "Seam colour; its white-hot core is mixed from it",
+			},
+			{
+				name: "accentSecondary",
+				type: "string",
+				default: "undefined (soft lilac #c3b1ff via --cs-accent-2)",
+				description: "Second seam tint, blended towards the ends of the seam and lips",
+			},
+		],
 		slots: [
 			{
 				name: "titleContent",
-				description: "Header/title content that translates upward on scroll",
+				description: "Header/title content that blurs and fades as the card opens",
 			},
 			{
 				name: "cardContent",
-				description: "Content inside the animated card that tilts flat on scroll",
+				description: "Content revealed through the aperture; settles from a slight zoom into focus",
 			},
 		],
 	},
@@ -2499,14 +2679,24 @@ export const registry: Record<string, ComponentMeta> = {
 	"smooth-cursor": {
 		name: "SmoothCursor",
 		slug: "smooth-cursor",
-		description: "Physics-based smooth cursor with spring animations and rotation effects",
+		description:
+			"Multiplayer-style cursor: an upright coloured arrow with a white rim follows the pointer on a spring, and a name pill trails it on a softer spring and dims when idle.",
 		category: "effects",
 		group: "fancy",
 		status: "done",
 		credits: [
 			{ source: "Inspira UI", url: "https://inspira-ui.com/components/cursor/smooth-cursor" },
 		],
-		tags: ["cursor", "animation", "spring", "physics", "interactive"],
+		tags: [
+			"cursor",
+			"animation",
+			"spring",
+			"physics",
+			"interactive",
+			"multiplayer",
+			"collaboration",
+			"presence",
+		],
 		props: [
 			{
 				name: "springConfig",
@@ -2514,8 +2704,49 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "{}",
 				description: "Spring physics configuration with damping, stiffness, and mass",
 			},
+			{
+				name: "label",
+				type: "string",
+				default: "undefined",
+				description:
+					"Name shown in a pill that trails the arrow on its own softer spring. No pill when omitted.",
+			},
+			{
+				name: "color",
+				type: "string",
+				default: '"#0e9f6e"',
+				description:
+					"Fill colour of the arrow and the name pill (any CSS colour). Can also be overridden from a class with --smooth-cursor-color.",
+			},
+			{
+				name: "rotate",
+				type: "boolean",
+				default: "false",
+				description:
+					"Rotate the cursor toward its direction of travel (pivoting on its centre). When false, the arrow stays upright with its tip as the hotspot.",
+			},
+			{
+				name: "idleFade",
+				type: "number",
+				default: "1500",
+				description:
+					"Milliseconds without pointer movement before the name pill dims to 35% opacity; 0 disables it.",
+			},
+			{
+				name: "labelSpring",
+				type: "SpringConfig",
+				default: "derived",
+				description:
+					"Spring for the name pill. Missing fields derive from springConfig (stiffness × 0.55, damping × 1.1, same mass).",
+			},
 		],
-		slots: [{ name: "cursor", description: "Custom cursor element (defaults to arrow SVG)" }],
+		slots: [
+			{
+				name: "cursor",
+				description:
+					"Custom cursor element (replaces the default arrow; the name pill still renders when label is set)",
+			},
+		],
 	},
 
 	"glowing-effect": {
@@ -8136,7 +8367,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "Stepper",
 		slug: "stepper",
 		description:
-			"A multi-step progress indicator where each step derives its own number and status — done, current, or upcoming — from its position in the sequence.",
+			"A multi-step progress indicator on light rails: each completed step sends a single sweep of light down the rail to the next, the current bullet breathes a soft halo, and each check draws itself.",
 		category: "navigation",
 		group: "core",
 		status: "done",

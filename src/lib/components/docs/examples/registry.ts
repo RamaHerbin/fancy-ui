@@ -171,11 +171,36 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "FastInterval", title: "Fast Interval", description: "Shorter flip interval." },
 	],
 	"border-beam": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "CustomColors", title: "Custom Colors", description: "Change beam gradient colors." },
-		{ name: "AnimationSpeed", title: "Animation Speed", description: "Control beam speed." },
-		{ name: "SizeAndWidth", title: "Size & Width", description: "Adjust beam dimensions." },
-		{ name: "MultipleBeams", title: "Multiple Beams", description: "Stack multiple beams." },
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A comet riding a nested-frame card.",
+		},
+		{
+			name: "CustomColors",
+			title: "Custom Colors",
+			description: "Two calm colours per comet: head and tail.",
+		},
+		{
+			name: "AnimationSpeed",
+			title: "Animation Speed",
+			description: "Time for one lap of the border.",
+		},
+		{
+			name: "SizeAndWidth",
+			title: "Size & Width",
+			description: "The pool of light around the head, and the hairline's thickness.",
+		},
+		{
+			name: "TailAndGlow",
+			title: "Tail & Glow",
+			description: "A short or long tail, with or without the bloom.",
+		},
+		{
+			name: "MultipleBeams",
+			title: "Multiple Beams",
+			description: "Two comets half a lap apart, one reversed, passing each other.",
+		},
 		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"glow-border": [
@@ -351,14 +376,55 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "MultipleCards", title: "Multiple Cards" },
 	],
 	marquee: [
-		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "Vertical", title: "Vertical", description: "Vertical scrolling direction." },
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"Two rows of review cards moving in opposite directions inside a nested frame; hover a row to brake it.",
+		},
+		{
+			name: "Vertical",
+			title: "Vertical",
+			description: "Two vertical columns with wider edge fades.",
+		},
+		{
+			name: "PauseOnHover",
+			title: "Eased Stop",
+			description:
+				"Hover a strip: the conveyor decelerates to a stop and re-accelerates on leave. Also shows the speed prop.",
+		},
 	],
 	dock: [
-		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "Direction", title: "Direction", description: "Change dock orientation." },
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A lit glass shelf of app tiles resting on a quiet floor.",
+		},
+		{
+			name: "Direction",
+			title: "Direction",
+			description: "Align icons to the top, middle or bottom of a taller shelf.",
+		},
+		{
+			name: "Vertical",
+			title: "Vertical",
+			description:
+				"A side rail: the dock stands on its edge and the indicator dot moves beside the icons.",
+		},
 	],
-	timeline: [{ name: "BasicUsage", title: "Basic Usage" }],
+	timeline: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"A four-release changelog in nested-frame cards; the head rests on the first entry until you scroll.",
+		},
+		{
+			name: "CustomAccent",
+			title: "Custom Accent",
+			description: "A roadmap with a teal accent passed through the accent prop.",
+		},
+	],
 	"logo-cloud": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "IconGrid", title: "Icon Grid" },
@@ -369,19 +435,55 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Static typographic row instead of image logos — no logo assets needed.",
 		},
 	],
-	"container-scroll": [{ name: "BasicUsage", title: "Basic Usage" }],
-	"bento-grid": [
-		{ name: "BasicUsage", title: "Basic Usage", description: "Slot-based BentoGridItem." },
-		{ name: "CardVariant", title: "Card Variant", description: "Props-based BentoGridCard." },
+	"container-scroll": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A mock dashboard revealed through the aperture as you scroll.",
+		},
 	],
-	"animated-beam": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"bento-grid": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"Five framed tiles holding mock dashboard content: a latency chart, a deploy queue, uptime bars, a command palette and region pings.",
+		},
+		{
+			name: "CardVariant",
+			title: "Card Variant",
+			description: "Props-based BentoGridCard with icons, soft colour washes and a custom accent.",
+		},
+	],
+	"animated-beam": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Three fibres converge on a hub that feeds a fourth; packets arrive and bloom.",
+		},
+		{
+			name: "Dispersion",
+			title: "Dispersion",
+			description:
+				"Three packets in flight with a long cool tail and strong glow, and a short warm tail run in reverse.",
+		},
+	],
 	"animated-testimonials": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{ name: "WithAutoplay", title: "With Autoplay", description: "Auto-advances every 3 seconds." },
 	],
 	"animated-tooltip": [
-		{ name: "BasicUsage", title: "Basic Usage" },
-		{ name: "TeamMembers", title: "Team Members" },
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "Presence stack on a nested-frame surface with the default iridescent ring.",
+		},
+		{
+			name: "TeamMembers",
+			title: "Team Members",
+			description:
+				"Custom accent and size: large avatars with a warm ring, small ones with a green ring.",
+		},
 	],
 	"apple-card-carousel": [{ name: "BasicUsage", title: "Basic Usage" }],
 	compare: [
@@ -429,7 +531,20 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 				"Shells that break into a figure: the built-in heart and star, or any closed outline you pass as points. The burst is cut from the figure, so it draws itself in the sky and then droops.",
 		},
 	],
-	"smooth-cursor": [{ name: "BasicUsage", title: "Basic Usage" }],
+	"smooth-cursor": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				'A "You" cursor limited to a nested-frame canvas. Rest a moment and the name pill dims.',
+		},
+		{
+			name: "Multiplayer",
+			title: "Multiplayer Canvas",
+			description:
+				"Your live blue cursor joins two static teammates on a shared canvas, each with a name pill in their own colour.",
+		},
+	],
 	"liquid-glass": [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{
@@ -1163,21 +1278,27 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{ name: "DisabledState", title: "Disabled State" },
 	],
 	stepper: [
-		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description:
+				"A four-step wizard in a nested frame; Continue and Back run the light along the rails.",
+		},
 		{
 			name: "VerticalStepper",
 			title: "Vertical Stepper",
-			description: "Stacked in a column instead of a horizontal row.",
+			description: "Stacked in a column; the rails fill top to bottom.",
 		},
 		{
 			name: "ClickableSteps",
 			title: "Clickable Steps",
-			description: "Steps render as buttons a reader can click to jump between them.",
+			description:
+				"Jump to any step; a jump across several steps lights the rails one after another.",
 		},
 		{
 			name: "WithDescriptions",
 			title: "With Descriptions",
-			description: "A secondary line under each step's label.",
+			description: "Vertical, clickable, with a secondary line under each label.",
 		},
 	],
 	"dropdown-menu": [
