@@ -1,21 +1,118 @@
-@keyframes glow {
-	0% {
-		background-position: 0% 0%;
-	}
-	50% {
-		background-position: 100% 100%;
-	}
-	100% {
-		background-position: 0% 0%;
+@property --gb-a1 {
+	syntax: "<angle>";
+	inherits: true;
+	initial-value: 0deg;
+}
+
+@property --gb-a2 {
+	syntax: "<angle>";
+	inherits: true;
+	initial-value: 120deg;
+}
+
+@property --gb-a3 {
+	syntax: "<angle>";
+	inherits: true;
+	initial-value: 0deg;
+}
+
+/* Light pages get the deeper palette; `.dark` switches to the bright one. */
+.glow-border {
+	--gb-metal: var(--gb-metal-light);
+	--gb-glint: var(--gb-glint-light);
+	/* on a light page a coloured halo reads as fog: keep it faint */
+	--gb-halo-opacity: 0.35;
+}
+
+.dark .glow-border {
+	--gb-metal: var(--gb-metal-dark);
+	--gb-glint: var(--gb-glint-dark);
+	--gb-halo-opacity: 0.7;
+}
+
+.glow-border > span,
+.glow-border__halo > span {
+	position: absolute;
+	border-radius: inherit;
+	pointer-events: none;
+}
+
+/* keep only the padding ring: the element minus its content box */
+.glow-border__metal,
+.glow-border__glint,
+.glow-border__halo > span {
+	-webkit-mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	mask-composite: exclude;
+}
+
+/* Liquid metal: two fields, centred apart and turning against each other. */
+.glow-border__metal {
+	inset: 0;
+	padding: var(--glow-border-width);
+	background: var(--gb-metal);
+	background-blend-mode: soft-light;
+}
+
+/* The glint riding the ring. */
+.glow-border__glint {
+	inset: 0;
+	padding: var(--glow-border-width);
+	background: var(--gb-glint);
+	mix-blend-mode: screen;
+	opacity: var(--glow-strength);
+}
+
+/* The light it spills on both sides of the edge, blurred after masking. */
+.glow-border__halo {
+	inset: 0;
+	filter: blur(6px);
+	opacity: calc(var(--glow-strength) * var(--gb-halo-opacity));
+}
+
+.glow-border__halo > span {
+	inset: -5px;
+	padding: calc(var(--glow-border-width) + 9px);
+	border-radius: calc(var(--glow-border-radius) + 5px);
+	background: var(--gb-glint);
+}
+
+.glow-border.animate-glow {
+	animation:
+		gb-flow-1 var(--glow-duration) linear infinite,
+		gb-flow-2 calc(var(--glow-duration) * 1.7) linear infinite reverse,
+		gb-glint calc(var(--glow-duration) * 0.4) linear infinite;
+}
+
+@keyframes gb-flow-1 {
+	to {
+		--gb-a1: 360deg;
 	}
 }
 
-.animate-glow {
-	animation: glow var(--glow-duration) linear infinite;
+@keyframes gb-flow-2 {
+	from {
+		--gb-a2: 120deg;
+	}
+	to {
+		--gb-a2: 480deg;
+	}
+}
+
+@keyframes gb-glint {
+	to {
+		--gb-a3: 360deg;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.animate-glow {
+	.glow-border.animate-glow {
 		animation: none;
+		--gb-a3: 210deg;
 	}
 }

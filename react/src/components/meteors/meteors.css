@@ -1,17 +1,95 @@
+/* Light pages get a slate meteor; dark ones a pale blue-white. A `color`
+   prop (inline) overrides both. */
+.meteor {
+	--_meteor-color: var(--meteor-color, #475569);
+	background: var(--_meteor-color);
+	transform: rotate(var(--meteor-angle, 215deg)) scale(var(--meteor-scale, 1));
+	/* the head's glow */
+	box-shadow:
+		0 0 2px 1px color-mix(in srgb, var(--_meteor-color) 70%, transparent),
+		0 0 8px 2px color-mix(in srgb, var(--_meteor-color) 35%, transparent);
+	animation: meteor-fall 5s cubic-bezier(0.3, 0, 0.9, 1) infinite;
+}
+
+.dark .meteor {
+	--_meteor-color: var(--meteor-color, #dbeafe);
+}
+
+/* The tail: thickest at the head, fading out behind it. */
+.meteor::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 1px;
+	width: var(--meteor-tail, 60px);
+	height: 1px;
+	transform: translateY(-50%);
+	border-radius: 999px;
+	background: linear-gradient(
+		to right,
+		var(--_meteor-color),
+		color-mix(in srgb, var(--_meteor-color) 35%, transparent) 30%,
+		transparent
+	);
+}
+
 @keyframes meteor-fall {
 	0% {
-		transform: rotate(215deg) translateX(0);
-		opacity: 1;
+		transform: rotate(var(--meteor-angle, 215deg)) scale(var(--meteor-scale, 1)) translateX(0);
+		opacity: 0;
+	}
+	8% {
+		opacity: var(--meteor-brightness, 1);
 	}
 	70% {
-		opacity: 1;
+		opacity: var(--meteor-brightness, 1);
 	}
 	100% {
-		transform: rotate(215deg) translateX(-500px);
+		transform: rotate(var(--meteor-angle, 215deg)) scale(var(--meteor-scale, 1))
+			translateX(calc(-1 * var(--meteor-travel, 800px)));
 		opacity: 0;
 	}
 }
 
-.meteor {
-	animation: meteor-fall 5s linear infinite;
+/* A flare: the meteor swells and brightens just before it burns out. */
+.meteor.meteor--flare {
+	animation-name: meteor-fall-flare;
+}
+
+@keyframes meteor-fall-flare {
+	0% {
+		transform: rotate(var(--meteor-angle, 215deg)) scale(var(--meteor-scale, 1)) translateX(0);
+		opacity: 0;
+	}
+	8% {
+		opacity: var(--meteor-brightness, 1);
+	}
+	62% {
+		opacity: var(--meteor-brightness, 1);
+		box-shadow:
+			0 0 2px 1px color-mix(in srgb, var(--_meteor-color) 70%, transparent),
+			0 0 8px 2px color-mix(in srgb, var(--_meteor-color) 35%, transparent);
+	}
+	74% {
+		opacity: 1;
+		box-shadow:
+			0 0 4px 2px var(--_meteor-color),
+			0 0 18px 6px color-mix(in srgb, var(--_meteor-color) 55%, transparent);
+	}
+	100% {
+		transform: rotate(var(--meteor-angle, 215deg)) scale(var(--meteor-scale, 1))
+			translateX(calc(-1 * var(--meteor-travel, 800px)));
+		opacity: 0;
+	}
+}
+
+/* Reduced motion: a still sky — each meteor frozen part-way along its path. */
+@media (prefers-reduced-motion: reduce) {
+	.meteor,
+	.meteor.meteor--flare {
+		animation: none;
+		opacity: calc(var(--meteor-brightness, 1) * 0.7);
+		transform: rotate(var(--meteor-angle, 215deg)) scale(var(--meteor-scale, 1))
+			translateX(calc(-0.35 * var(--meteor-travel, 800px)));
+	}
 }

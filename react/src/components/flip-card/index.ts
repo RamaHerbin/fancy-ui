@@ -1,2 +1,2 @@
 export { FlipCard } from "./FlipCard.js";
-export type { FlipCardProps } from "./FlipCard.js";
+export type { FlipCardProps, FlipCardTrigger } from "./FlipCard.js";

@@ -2,61 +2,81 @@ import { render, cleanup } from "@testing-library/vue";
 import { renderToString } from "vue/server-renderer";
 import { createSSRApp } from "vue";
 import { afterEach, describe, it, expect } from "vitest";
-import Meteors from "./Meteors.vue";
+import Meteors, { meteorField } from "./Meteors.vue";
 
 describe("Meteors", () => {
 	afterEach(cleanup);
 
 	it("renders the default number of meteor spans (20)", () => {
 		const { container } = render(Meteors);
-		const spans = container.querySelectorAll("span.meteor");
-		expect(spans.length).toBe(20);
+		expect(container.querySelectorAll("span.meteor")).toHaveLength(20);
 	});
 
 	it("renders a custom count of meteors", () => {
 		const { container } = render(Meteors, { props: { count: 5 } });
-		const spans = container.querySelectorAll("span.meteor");
-		expect(spans.length).toBe(5);
+		expect(container.querySelectorAll("span.meteor")).toHaveLength(5);
 	});
 
 	it("renders zero meteors when count is 0", () => {
 		const { container } = render(Meteors, { props: { count: 0 } });
-		const spans = container.querySelectorAll("span.meteor");
-		expect(spans.length).toBe(0);
+		expect(container.querySelectorAll("span.meteor")).toHaveLength(0);
 	});
 
 	it("applies custom class names to each meteor", () => {
-		const { container } = render(Meteors, {
-			props: { count: 3, class: "my-custom-class" },
-		});
-		const spans = container.querySelectorAll("span.meteor");
-		spans.forEach((span) => {
+		const { container } = render(Meteors, { props: { count: 3, class: "my-custom-class" } });
+		for (const span of container.querySelectorAll("span.meteor")) {
 			expect(span.className).toContain("my-custom-class");
-		});
+		}
 	});
 
-	it("each meteor has a style attribute with left, animation-delay, and animation-duration", () => {
-		const { container } = render(Meteors, { props: { count: 3 } });
-		const spans = container.querySelectorAll("span.meteor");
-		spans.forEach((span) => {
+	it("positions and times each meteor inline, with its depth variables", () => {
+		const { container } = render(Meteors, { props: { count: 4 } });
+		for (const span of container.querySelectorAll("span.meteor")) {
 			const style = span.getAttribute("style") ?? "";
 			expect(style).toContain("left:");
+			expect(style).toContain("top:");
 			expect(style).toContain("animation-delay:");
 			expect(style).toContain("animation-duration:");
-		});
+			expect(style).toContain("--meteor-scale:");
+			expect(style).toContain("--meteor-tail:");
+			expect(style).toMatch(/--meteor-angle:\s*215deg/);
+		}
 	});
 
-	// A seeded PRNG replaces `Math.random()` so a server render and its
-	// hydration agree on every meteor's layout. Compared as parsed style
-	// VALUES rather than raw HTML: jsdom normalises whitespace differently
-	// than the server renderer, so two identical renders would still differ
-	// as strings while agreeing on every value that matters.
+	it("preserves base classes when custom class is added, and is decorative", () => {
+		const { container } = render(Meteors, { props: { count: 1, class: "extra" } });
+		const span = container.querySelector("span.meteor")!;
+		expect(span.className).toContain("absolute");
+		expect(span.className).toContain("rounded-full");
+		expect(span.getAttribute("aria-hidden")).toBe("true");
+	});
+
+	it("renders the same markup for the same seed (server and client agree)", () => {
+		const a = render(Meteors, { props: { seed: 42 } }).container.innerHTML;
+		cleanup();
+		const b = render(Meteors, { props: { seed: 42 } }).container.innerHTML;
+		expect(a).toBe(b);
+		cleanup();
+		const c = render(Meteors, { props: { seed: 43 } }).container.innerHTML;
+		expect(c).not.toBe(a);
+	});
+
+	// Compared as parsed style VALUES rather than raw HTML: jsdom normalises
+	// whitespace differently than the server renderer, so two identical
+	// renders would still differ as strings while agreeing on every value.
 	function layoutOf(html: string): string[] {
 		const host = document.createElement("div");
 		host.innerHTML = html;
-		return Array.from(host.querySelectorAll<HTMLElement>("span.meteor")).map(
-			(span) =>
-				`${span.style.left}|${span.style.animationDelay}|${span.style.animationDuration}`
+		return Array.from(host.querySelectorAll<HTMLElement>("span.meteor")).map((span) =>
+			[
+				span.className,
+				span.style.left,
+				span.style.top,
+				span.style.animationDelay,
+				span.style.animationDuration,
+				span.style.getPropertyValue("--meteor-scale"),
+				span.style.getPropertyValue("--meteor-travel"),
+			].join("|")
 		);
 	}
 
@@ -69,23 +89,52 @@ describe("Meteors", () => {
 		expect(layoutOf(container.innerHTML)).toEqual(serverLayout);
 	});
 
-	it("lays out two showers the same way by default, and differently under different seeds", async () => {
-		const first = layoutOf(await renderToString(createSSRApp(Meteors, { count: 4 })));
-		const same = layoutOf(await renderToString(createSSRApp(Meteors, { count: 4 })));
-		const seeded = layoutOf(
-			await renderToString(createSSRApp(Meteors, { count: 4, seed: 99 }))
-		);
+	it("passes angle, speed and color through", () => {
+		const { container } = render(Meteors, {
+			props: { count: 1, angle: 240, speed: 2, color: "#ff0000", seed: 3 },
+		});
+		const style = container.querySelector("span.meteor")!.getAttribute("style") ?? "";
+		const m = meteorField(1, 3)[0]!;
+		expect(style).toMatch(/--meteor-angle:\s*240deg/);
+		expect(style).toMatch(/--meteor-color:\s*#ff0000/);
+		expect(style).toMatch(new RegExp(`animation-duration:\\s*${(m.duration / 2).toFixed(2)}s`));
+	});
+});
 
-		expect(same).toEqual(first);
-		expect(seeded).not.toEqual(first);
+describe("meteorField", () => {
+	it("is deterministic per seed", () => {
+		expect(meteorField(10, 5)).toEqual(meteorField(10, 5));
+		expect(meteorField(10, 5)).not.toEqual(meteorField(10, 6));
 	});
 
-	it("preserves base classes when custom class is added", () => {
-		const { container } = render(Meteors, {
-			props: { count: 1, class: "extra" },
-		});
-		const span = container.querySelector("span.meteor")!;
-		expect(span.className).toContain("absolute");
-		expect(span.className).toContain("rounded-full");
+	it("starts every meteor part-way through its pass, so there is no burst on load", () => {
+		for (const m of meteorField(50, 1)) {
+			expect(m.delay).toBeLessThanOrEqual(0);
+			expect(m.depth).toBeGreaterThanOrEqual(0);
+			expect(m.depth).toBeLessThanOrEqual(1);
+		}
+	});
+
+	it("makes near meteors faster than far ones", () => {
+		const field = meteorField(200, 9);
+		const near = field.filter((m) => m.depth > 0.8);
+		const far = field.filter((m) => m.depth < 0.2);
+		const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+		expect(avg(near.map((m) => m.duration))).toBeLessThan(avg(far.map((m) => m.duration)));
+	});
+
+	it("skews depth toward far and flares a minority", () => {
+		const field = meteorField(500, 2);
+		const farShare = field.filter((m) => m.depth < 0.5).length / field.length;
+		const flareShare = field.filter((m) => m.flare).length / field.length;
+		expect(farShare).toBeGreaterThan(0.55);
+		expect(flareShare).toBeGreaterThan(0.1);
+		expect(flareShare).toBeLessThan(0.3);
+	});
+
+	it("handles bad counts", () => {
+		expect(meteorField(-3)).toEqual([]);
+		expect(meteorField(Number.NaN)).toEqual([]);
+		expect(meteorField(2.7)).toHaveLength(2);
 	});
 });
