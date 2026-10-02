@@ -15,7 +15,7 @@ describe("+page.svelte", () => {
 	it("renders the tagline text", () => {
 		render(Page);
 		expect(
-			screen.getByText(/Open-source Svelte components for expressive, motion-first interfaces/i)
+			screen.getByText(/Open-source Svelte and React components for expressive, motion-first interfaces/i)
 		).toBeInTheDocument();
 	});
 
