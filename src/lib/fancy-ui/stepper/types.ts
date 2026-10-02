@@ -33,6 +33,19 @@ export interface StepperContext {
 	/** Total number of currently registered steps. */
 	readonly count: number;
 	/**
+	 * The active index before the latest change (0 on first paint). Steps
+	 * order their rail sweep and bullet arrival by their distance from it.
+	 * Optional so a hand-rolled context without it still type-checks; a
+	 * missing value reads as "no run to order".
+	 */
+	readonly origin?: number;
+	/**
+	 * Whether the motion layer (rail sweep, breathing halo, check draw) is
+	 * on: true on the client once `prefers-reduced-motion` has been read and
+	 * is not `reduce`. Optional for the same reason as `origin`.
+	 */
+	readonly animate?: boolean;
+	/**
 	 * Registers a step under a stable per-instance id (typically
 	 * `$props.id()`). Returns an unregister function; call it on destroy.
 	 */

@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import { cn } from "../../utils.js";
+import { BentoFrame } from "./BentoFrame.js";
 
 export interface BentoGridItemProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
 	className?: string;
@@ -18,27 +18,29 @@ export function BentoGridItem({
 	...rest
 }: BentoGridItemProps) {
 	return (
-		<div
-			className={cn(
-				"group/bento shadow-input row-span-1 flex flex-col justify-between space-y-4 rounded-xl border border-transparent bg-white p-4 transition duration-200 hover:shadow-xl dark:border-white/[0.2] dark:bg-black dark:shadow-none",
-				className
-			)}
+		<BentoFrame
+			className={["group/bento row-span-1", className].join(" ")}
+			panelClass="justify-between gap-4 p-4"
 			{...rest}
 		>
 			{header}
-			<div className="transition duration-200 group-hover/bento:translate-x-2">
-				{icon}
-				{title && (
-					<div className="my-2 font-sans font-bold text-neutral-600 dark:text-neutral-200">
-						{title}
+			<div className="bento-lift relative">
+				{(icon || title) && (
+					<div className="mb-1.5 flex items-center gap-2.5">
+						{icon && <div className="bento-icon size-8 [&_svg]:size-4">{icon}</div>}
+						{title && (
+							<div className="min-w-0 font-sans text-[15px] font-medium tracking-tight text-neutral-900 dark:text-neutral-100">
+								{title}
+							</div>
+						)}
 					</div>
 				)}
 				{description && (
-					<div className="font-sans text-xs font-normal text-neutral-600 dark:text-neutral-300">
+					<div className="font-sans text-[13px] leading-relaxed text-neutral-500 dark:text-neutral-400">
 						{description}
 					</div>
 				)}
 			</div>
-		</div>
+		</BentoFrame>
 	);
 }

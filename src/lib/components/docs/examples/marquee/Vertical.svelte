@@ -24,22 +24,20 @@
 </script>
 
 <div
-	class="bg-background relative flex h-[500px] w-full flex-row items-center justify-center overflow-hidden rounded-lg border"
+	class="w-full rounded-[22px] border border-black/[.08] bg-[#f4f4f5] p-1.5 dark:border-white/[.08] dark:bg-[#0b0b0c]"
 >
-	<Marquee vertical pauseOnHover class="[--duration:20s]">
-		{#each reviews as review}
-			<ReviewCard {...review} />
-		{/each}
-	</Marquee>
-	<Marquee vertical reverse pauseOnHover class="[--duration:20s]">
-		{#each reviews as review}
-			<ReviewCard {...review} />
-		{/each}
-	</Marquee>
 	<div
-		class="from-background pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b"
-	></div>
-	<div
-		class="from-background pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t"
-	></div>
+		class="relative flex h-[480px] flex-row items-stretch justify-center overflow-hidden rounded-2xl border border-black/[.06] bg-white px-4 dark:border-white/[.06] dark:bg-[#111113]"
+	>
+		<Marquee vertical pauseOnHover class="[--duration:24s] [--marquee-fade:18%]">
+			{#each reviews as review (review.username)}
+				<ReviewCard {...review} />
+			{/each}
+		</Marquee>
+		<Marquee vertical reverse pauseOnHover class="[--duration:24s] [--marquee-fade:18%]">
+			{#each reviews as review (review.username)}
+				<ReviewCard {...review} />
+			{/each}
+		</Marquee>
+	</div>
 </div>

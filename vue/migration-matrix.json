@@ -168,7 +168,9 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"`containerRef`, `fromRef` and `toRef` are typed `HTMLElement | null` rather than a required `HTMLElement`: a Vue template ref is `null` until the parent has mounted, so the idiomatic `:container-ref=\"container\"` binding passes `null` on the first render. They are still required props (pass `null`, not nothing)."
+			"`containerRef`, `fromRef` and `toRef` are typed `HTMLElement | null` rather than a required `HTMLElement`: a Vue template ref is `null` until the parent has mounted, so the idiomatic `:container-ref=\"container\"` binding passes `null` on the first render. They are still required props (pass `null`, not nothing).",
+			"Ids come from `useFancyId()` and read `beam-v-N`, with the `-glow` / `-bloom` filter suffixes. Svelte uses `beam-<$props.id()>`. Vue's `useId()` is unique within one app, not across separately mounted apps, so the uniqueness test mounts two beams in one app.",
+			"The ResizeObserver arms on `onMounted` and again from a `flush: 'post'` watcher on `containerRef`. A parent's template ref is still `null` when a child's `onMounted` runs, a gap Svelte's `bind:this` does not have. The watcher also re-arms the observer when the container is swapped."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -303,7 +305,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"`AppleCardData.content` is a Vue component or render function (`Component` from `vue`), rendered through `<component :is=\"card.content\">`, where the Svelte package takes a `Snippet`. It cannot become a slot: `content` lives inside an item of the `cards` array, not in a prop position, so there is no 1:1 snippet-to-slot mapping. Consumers pass `content: () => h('div', \u2026)` or a small component instead of `{#snippet}`."
+			"`AppleCardData.content` is a Vue component or render function (`Component` from `vue`), rendered through `<component :is=\"card.content\">`, where the Svelte package takes a `Snippet`. It cannot become a slot: `content` lives inside an item of the `cards` array, not in a prop position, so there is no 1:1 snippet-to-slot mapping. Consumers pass `content: () => h('div', …)` or a small component instead of `{#snippet}`."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -482,7 +484,12 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the source's `:global(.dark) .bento-tile …` dark-theme rules are written `.dark .bento-tile …` in the scoped block, because the scoped compiler would reduce a selector containing `:global(...)` to a bare `.dark`. The rule targets the same elements with the same specificity.",
+			"tile content parts (`.bento-lift`, `.bento-icon`, `.bento-cta`) are reached with `:deep()` from the internal BentoFrame, and the grid's reveal rules use `> :deep(*)`, in place of the source's `:global()`. The compiled selectors are unchanged apart from the scope attribute.",
+			"the child indexing (`--bento-i`, `--bento-delay`, re-run by a MutationObserver) and the one-shot in-view observer run from `flush: 'post'` watchers on the grid's template ref, and reduced motion comes from `useReducedMotion()`, which is read in `onMounted`. The SSR output is the same as the source's: the class `bento-reveal` with `data-state=\"armed\"`, and the tiles have no inline index properties until the watchers run on the client.",
+			"BentoGridItem and BentoGridCard pass `[base, class]` to the internal frame's `cn()` where the source uses `[base, className].join(\" \")`. The merged string is identical for string classes, and the port also accepts Vue's array and object class values."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -706,7 +713,10 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"The dark-theme rule `:global(.dark) .border-beam` is written as `.dark .border-beam` under the scoped compiler, which only scopes `.border-beam` and gives the same selector; a leading `:global()` would instead produce a bare `.dark` rule.",
+			"The `bb-travel` and `bb-ignite` keyframes stay in the scoped block. They are only referenced from scoped `animation` declarations, so the compiler renames them with the scope hash and rewrites those references consistently. This means an outside stylesheet cannot target the keyframes by their bare names."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1490,7 +1500,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"`Confetti`'s `fire()` reads the `options` prop at call time, but Vue hands a REASSIGNED `options` object to the child only on the parent's next render: a handler that does `options = { \u2026 }` and calls `fire()` in the same tick bursts with the PREVIOUS object, where the Svelte component bursts with the new one. Mutating the object already passed as `options` behaves identically on both sides, and the reassignment is deferred rather than lost \u2014 the next `fire()` after the parent re-renders uses it. Framework-inherent (Vue exposes no synchronous prop flush); pinned by ConfettiFire.test.ts:77-92.",
+			"`Confetti`'s `fire()` reads the `options` prop at call time, but Vue hands a REASSIGNED `options` object to the child only on the parent's next render: a handler that does `options = { … }` and calls `fire()` in the same tick bursts with the PREVIOUS object, where the Svelte component bursts with the new one. Mutating the object already passed as `options` behaves identically on both sides, and the reassignment is deferred rather than lost — the next `fire()` after the parent re-renders uses it. Framework-inherent (Vue exposes no synchronous prop flush); pinned by ConfettiFire.test.ts:77-92.",
 			"ConfettiButton renders type=\"button\": the Svelte source's bare <button> defaults to submit inside a form and inheritAttrs false leaves consumers no way to override it (upstream fix, Svelte parity pending)"
 		],
 		"minors": [],
@@ -1535,7 +1545,9 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the source's `:global(.dark) .cs-root` and `:global(html:not(.dark)) .cs-root` selectors are written as plain ancestor selectors (`.dark .cs-root`, `html:not(.dark) .cs-root`) in the scoped style block, because the scoped compiler would otherwise emit the wrapped part alone; the matched elements and the values are identical."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -1915,7 +1927,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"Scoped-CSS mapping: the child subject `:global(...)` becomes `:slotted(...)`, and the `:global()` wrappers inside `:has()`/`:not()` arguments are dropped (Vue never scopes pseudo-class arguments, and `:slotted()` there would emit invalid CSS). Net effect: Svelte scopes the root compound, Vue scopes the child compound \u2014 only direct children that arrived through the default slot dim. DOM injected into the root from outside the slot would not participate (Svelte's rule would still catch it)."
+			"Scoped-CSS mapping: the child subject `:global(...)` becomes `:slotted(...)`, and the `:global()` wrappers inside `:has()`/`:not()` arguments are dropped (Vue never scopes pseudo-class arguments, and `:slotted()` there would emit invalid CSS). Net effect: Svelte scopes the root compound, Vue scopes the child compound — only direct children that arrived through the default slot dim. DOM injected into the root from outside the slot would not participate (Svelte's rule would still catch it)."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -1960,7 +1972,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"The two `<style>` rules keep their declarations verbatim but lose their document-wide reach. The source wraps both in `:global()`, which \u2014 because this package aggregates scoped styles into one `dist/styles.css` every consumer imports once \u2014 would force a `.group\\/card` 44px min-box and a `*{transition-duration:0.1s!important}` reduced-motion override on every app importing the package, including apps that never render this component. Here they compile to `.group\\/card[data-v-\u2026]` and `[data-v-\u2026],[data-v-\u2026-s]`: this component's own elements plus its whole slot subtree. Matches the React package's identical narrowing.",
+			"The two `<style>` rules keep their declarations verbatim but lose their document-wide reach. The source wraps both in `:global()`, which — because this package aggregates scoped styles into one `dist/styles.css` every consumer imports once — would force a `.group\\/card` 44px min-box and a `*{transition-duration:0.1s!important}` reduced-motion override on every app importing the package, including apps that never render this component. Here they compile to `.group\\/card[data-v-…]` and `[data-v-…],[data-v-…-s]`: this component's own elements plus its whole slot subtree. Matches the React package's identical narrowing.",
 			"Under `prefers-reduced-motion: reduce` the 0.1s transition override therefore applies to this component and its slot content only, not to the rest of the host page."
 		],
 		"minors": [],
@@ -2049,7 +2061,8 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"pointer tracked in viewport client coordinates, not page coordinates, so the magnification lines up with the icons measured by getBoundingClientRect on a scrolled page; matches the React port (upstream fix, Svelte parity pending)"
+			"Svelte throws when a DockIcon or DockSeparator is mounted outside a Dock. The Vue port degrades instead, through a frozen fallback context: `magnify: false`, `orientation: \"horizontal\"`, the pointer at `Infinity` and `reflection: true` (the prop default). A lone icon renders at its resting 40px with the reflection hook, and a lone separator is a vertical `role=separator` hairline.",
+			"Svelte writes `:global(.dark) .dock-*` in its scoped styles. Vue writes them as plain `.dark .dock-*` ancestor selectors, which have the same reach and the same specificity."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -3302,7 +3315,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"`aria-label` is spelled `ariaLabel` in `LineHoverLinkProps`. Vue camelises declared prop names, so Svelte's hyphenated key can never be read back off `props` (it silently rendered nothing). Both `ariaLabel=\"\u2026\"` and the template spelling `aria-label=\"\u2026\"` reach the prop and emit `aria-label` on the anchor, matching Svelte's output."
+			"`aria-label` is spelled `ariaLabel` in `LineHoverLinkProps`. Vue camelises declared prop names, so Svelte's hyphenated key can never be read back off `props` (it silently rendered nothing). Both `ariaLabel=\"…\"` and the template spelling `aria-label=\"…\"` reach the prop and emit `aria-label` on the anchor, matching Svelte's output."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -3347,7 +3360,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"Line height survives a font-only change. Svelte's `style:font` / `style:line-height` directives re-apply only the declaration whose value changed, so switching to a different weight/family at the same px size re-applies the `font` shorthand (which resets `line-height`) without re-applying the longhand, and the lines drift inside their fixed-height masks. Vue's style patch re-applies every key of the style object on each patch, in declaration order (`font` then `line-height`), so the Svelte bug does not reproduce. Behavioural parity with the React port, reached without its folded `32px/38px` shorthand: the emitted style attribute still reads `font: \u2026; line-height: \u2026`, like Svelte's."
+			"Line height survives a font-only change. Svelte's `style:font` / `style:line-height` directives re-apply only the declaration whose value changed, so switching to a different weight/family at the same px size re-applies the `font` shorthand (which resets `line-height`) without re-applying the longhand, and the lines drift inside their fixed-height masks. Vue's style patch re-applies every key of the style object on each patch, in declaration order (`font` then `line-height`), so the Svelte bug does not reproduce. Behavioural parity with the React port, reached without its folded `32px/38px` shorthand: the emitted style attribute still reads `font: …; line-height: …`, like Svelte's."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -3656,7 +3669,10 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the Web Animations upgrade is rebuilt when `class` changes, as in Svelte, but because `class` is typed `HTMLAttributes[\"class\"]` here, a consumer passing an inline array or object class gets a new identity on every parent render and triggers a rebuild each time; the rebuild resumes from the current position, so nothing jumps visually. Pass a string, or hoist the array, to avoid the churn.",
+			"ReviewCard's dark-mode rule is written `.dark .review-card` instead of the source's `:global(.dark) .review-card`, because the scoped compiler would swallow the whole selector inside `:global()`; the emitted selector has the same reach (`.dark` ancestor, scoped card)."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -4335,7 +4351,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"PressableProps declares only scale/haptic/disabled/class \u2014 no `Omit<HTMLAttributes<HTMLDivElement>, \u2026>` of the seven owned listeners, per the package's own-props-only contract. Consequence: TypeScript no longer blocks a consumer from passing `onpointerdown`/`onpointerup`/`onpointercancel`/`onpointerleave`/`onfocusout`/`onkeydown`/`onkeyup` through `$attrs`, and Vue MERGES same-named listeners into an array instead of letting the later one win, so such a handler now fires alongside the wrapper's own (caller's first, since `v-bind=\"attrs\"` sits where Svelte spreads `{...restProps}`) rather than being silently overridden. README: keep the \"put your own handlers for those on the child instead\" guidance and note it is advisory here, not type-enforced."
+			"PressableProps declares only scale/haptic/disabled/class — no `Omit<HTMLAttributes<HTMLDivElement>, …>` of the seven owned listeners, per the package's own-props-only contract. Consequence: TypeScript no longer blocks a consumer from passing `onpointerdown`/`onpointerup`/`onpointercancel`/`onpointerleave`/`onfocusout`/`onkeydown`/`onkeyup` through `$attrs`, and Vue MERGES same-named listeners into an array instead of letting the later one win, so such a handler now fires alongside the wrapper's own (caller's first, since `v-bind=\"attrs\"` sits where Svelte spreads `{...restProps}`) rather than being silently overridden. README: keep the \"put your own handlers for those on the child instead\" guidance and note it is advisory here, not type-enforced."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -4468,7 +4484,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"The generated `name` follows Vue's own `useId()` sequence and reads `v-0-name`, `v-1-name`, \u2026 instead of the Svelte id shape. It is SSR-stable and present on the very first server-rendered paint, as the Svelte source requires. NEW CAVEAT: Vue's `useId()` counter is per APP, not per page \u2014 two RadioGroups mounted in two SEPARATE Vue apps on one page both generate `v-0-name` and WILL fight over each other's selection. Inside one app they are distinct. Consumers mounting several apps must set `app.config.idPrefix` per app, or pass an explicit `name`. The Svelte and React packages have no equivalent hazard."
+			"The generated `name` follows Vue's own `useId()` sequence and reads `v-0-name`, `v-1-name`, … instead of the Svelte id shape. It is SSR-stable and present on the very first server-rendered paint, as the Svelte source requires. NEW CAVEAT: Vue's `useId()` counter is per APP, not per page — two RadioGroups mounted in two SEPARATE Vue apps on one page both generate `v-0-name` and WILL fight over each other's selection. Inside one app they are distinct. Consumers mounting several apps must set `app.config.idPrefix` per app, or pass an explicit `name`. The Svelte and React packages have no equivalent hazard."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -5180,7 +5196,11 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"The custom cursor is the `#cursor` slot rather than a snippet prop. The tip-versus-centre hotspot is recomputed from the slot's presence on every render, not held in a reactive derived value, because slot presence is not reactive in Vue.",
+			"The gradient id for the default arrow comes from `useFancyId()` (`smooth-cursor-fill-v-N`), not `$props.id()`. The two id sources format their ids differently, but the id is SSR-stable and unique per instance in both packages.",
+			"The prop watchers (`springConfig`, `labelSpring`, `rotate`, `idleFade`) and the label-element watcher fire only on change, never at mount. The engine gets the mount values as creation options, so the Svelte effects' first run, which re-applies the same values, is not repeated here."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -5772,7 +5792,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"The stream is keyed on the CONTENT of `lines`, never on the array's identity. An inline `:lines=\"['a', 'b']\"` hands the component a freshly allocated array on every parent re-render; keying on identity would clear the pending timeouts, wipe the typed-out text and restart the whole animation each time. The source restarts only when a tracked value really changes, and an inline array literal in a Svelte template is not one. The array is serialised rather than joined, so `['ab']` and `['a', 'b']` \u2014 which stream differently \u2014 never collide on the same key. An in-place mutation of a reactive `lines` array still restarts the stream, matching the source's tracked index reads. The one remaining gap: a re-allocated array with equal content keeps the current stream running, where the Svelte side would restart it. Same trade-off as the React port."
+			"The stream is keyed on the CONTENT of `lines`, never on the array's identity. An inline `:lines=\"['a', 'b']\"` hands the component a freshly allocated array on every parent re-render; keying on identity would clear the pending timeouts, wipe the typed-out text and restart the whole animation each time. The source restarts only when a tracked value really changes, and an inline array literal in a Svelte template is not one. The array is serialised rather than joined, so `['ab']` and `['a', 'b']` — which stream differently — never collide on the same key. An in-place mutation of a reactive `lines` array still restarts the stream, matching the source's tracked index reads. The one remaining gap: a re-allocated array with equal content keeps the current stream running, where the Svelte side would restart it. Same trade-off as the React port."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -5952,7 +5972,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"`autocomplete` as the component *accepts* it is widened to `string`; the exported `TextareaProps` still types it as the full autofill token union. The props type the macro generates multiplies every prop's union together and the token set tips that product past the type checker's union ceiling once the component's boolean props are in it (`Input` hits the same ceiling). The widening is a superset \u2014 every token the source accepts still type-checks \u2014 but a typo in a token is no longer caught at the call site."
+			"`autocomplete` as the component *accepts* it is widened to `string`; the exported `TextareaProps` still types it as the full autofill token union. The props type the macro generates multiplies every prop's union together and the token set tips that product past the type checker's union ceiling once the component's boolean props are in it (`Input` hits the same ceiling). The widening is a superset — every token the source accepts still type-checks — but a typo in a token is no longer caught at the call site."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -6088,7 +6108,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"\u2014 same slot if it survived, else the closest one at or after it, else the last, else nothing highlighted. The Svelte component leaves the raw index in place, which can point past the end of a shorter grid or at a different time than the one arrowed to. Matches the React package, which closed the same gap."
+			"— same slot if it survived, else the closest one at or after it, else the last, else nothing highlighted. The Svelte component leaves the raw index in place, which can point past the end of a shorter grid or at a different time than the one arrowed to. Matches the React package, which closed the same gap."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -6132,7 +6152,10 @@
 		"styleHazard": null,
 		"sharedCores": [],
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"the source's `:global(.dark) .tl-root` theme override is written as a plain `.dark .tl-root` ancestor selector in the scoped block. The rule and the result are the same.",
+			"the items-count watcher (`watch(() => items.length, …, { flush: 'post' })`) does not run on mount, while the Svelte `$effect` does. The Svelte first run only queues a redundant microtask re-measure after `onMount` has already measured synchronously, so the rendered result is the same."
+		],
 		"minors": [],
 		"lastFailure": null
 	},
@@ -6176,7 +6199,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"the entrance and exit move from `<Toast>` to `<Toaster>`. A `<Toast>` rendered directly by a consumer no longer animates itself in or out (it paints at rest); through `<Toaster>` the motion is unchanged \u2014 same preset, 300ms/8px arrival, 200ms/4px departure, same reduced-motion collapse. Parity with the React port: a toast has no `open` boolean, so the per-item mount clock has to live with whatever renders the keyed list."
+			"the entrance and exit move from `<Toast>` to `<Toaster>`. A `<Toast>` rendered directly by a consumer no longer animates itself in or out (it paints at rest); through `<Toaster>` the motion is unchanged — same preset, 300ms/8px arrival, 200ms/4px departure, same reduced-motion collapse. Parity with the React port: a toast has no `open` boolean, so the per-item mount clock has to live with whatever renders the keyed list."
 		],
 		"minors": [],
 		"lastFailure": null
@@ -6307,7 +6330,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"The auto-open for a failure is keyed on the `call.status` VALUE (`onMounted` + `watch(() => call.status, \u2026, { flush: 'post' })`), not on the `call` object identity. Handing the card a fresh `call` object whose status is still `\"error\"` does not re-fire the auto-open, where Svelte's prop-identity tracking would re-run its `$effect`. Same behaviour as the React port. Observable only when a consumer drives `open` from outside AND re-creates the `call` object."
+			"The auto-open for a failure is keyed on the `call.status` VALUE (`onMounted` + `watch(() => call.status, …, { flush: 'post' })`), not on the `call` object identity. Handing the card a fresh `call` object whose status is still `\"error\"` does not re-fire the auto-open, where Svelte's prop-identity tracking would re-run its `$effect`. Same behaviour as the React port. Observable only when a consumer drives `open` from outside AND re-creates the `call` object."
 		],
 		"minors": [],
 		"lastFailure": null

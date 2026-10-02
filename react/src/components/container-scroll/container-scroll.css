@@ -1,0 +1,201 @@
+/*
+ * ContainerScroll — a scroll-driven aperture.
+ * Every rule is anchored on `.cs-root` (the Svelte source's own root class):
+ * the Svelte compiler scoped these selectors, plain CSS is global.
+ */
+
+.cs-root {
+	--_accent: var(--cs-accent, #8fb2ff);
+	--_accent-2: var(--cs-accent-2, #c3b1ff);
+	--_core: color-mix(in oklab, var(--_accent) 45%, white);
+	--_radius: 22px;
+	--_glow: 75%;
+	--_frame: #f4f4f5;
+	--_frame-line: rgba(0, 0, 0, 0.08);
+	--_surface: #fafafa;
+	--_surface-line: rgba(0, 0, 0, 0.07);
+	--_shadow:
+		0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 28px -12px rgba(0, 0, 0, 0.12),
+		0 40px 80px -40px rgba(0, 0, 0, 0.22);
+	/* 1 → closed slit (48% top + 48% bottom), 0 → fully open */
+	--_shut: calc(1 - var(--cs-open, 0));
+}
+
+.dark .cs-root {
+	--_glow: 60%;
+	--_frame: #0f0f10;
+	--_frame-line: rgba(255, 255, 255, 0.08);
+	--_surface: #0b0b0c;
+	--_surface-line: rgba(255, 255, 255, 0.07);
+	--_shadow:
+		0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 20px 50px -24px rgba(0, 0, 0, 0.9),
+		0 60px 120px -60px rgba(0, 0, 0, 0.8);
+}
+
+/* Title: hands the stage over by going out of focus */
+.cs-root .cs-title {
+	/* starts only once the aperture is a quarter open */
+	--_fade: clamp(0, (var(--cs-progress, 0) - 0.25) / 0.75, 1);
+	opacity: calc(1 - var(--_fade) * 0.85);
+	filter: blur(calc(var(--_fade) * 6px));
+	transform: scale(calc(1 - var(--_fade) * 0.02));
+	transform-origin: 50% 100%;
+}
+
+.cs-root .cs-stage {
+	transform: translateY(calc(var(--_shut) * 24px));
+}
+
+.cs-root .cs-shadow {
+	border-radius: var(--_radius);
+	box-shadow: var(--_shadow);
+	/* follows the opening so it never outlines the still-hidden card */
+	transform: scaleY(calc(1 - var(--_shut) * 0.96));
+	opacity: calc(var(--cs-open, 0) * var(--cs-open, 0));
+}
+
+.cs-root .cs-card {
+	border-radius: var(--_radius);
+	background: var(--_frame);
+	border: 1px solid var(--_frame-line);
+	clip-path: inset(calc(var(--_shut) * 48%) 0 calc(var(--_shut) * 48%) 0 round var(--_radius));
+}
+
+.cs-root .cs-surface {
+	border-radius: calc(var(--_radius) - 7px);
+	background: var(--_surface);
+	box-shadow: 0 0 0 1px var(--_surface-line);
+}
+
+.cs-root .cs-content {
+	transform: scale(calc(1 + var(--_shut) * 0.08));
+	transform-origin: 50% 50%;
+}
+
+/* ---- Light ---------------------------------------------------------- */
+
+.cs-root .cs-seam {
+	left: 4%;
+	right: 4%;
+	top: 50%;
+	height: 0;
+	opacity: calc(1 - var(--cs-progress, 0) * 3);
+}
+
+.cs-root .cs-seam-line,
+.cs-root .cs-seam-glow,
+.cs-root .cs-seam-haze {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	border-radius: 999px;
+}
+
+.cs-root .cs-seam-line {
+	height: 1px;
+	transform: translateY(-50%);
+	background: linear-gradient(
+		90deg,
+		transparent,
+		color-mix(in oklab, var(--_accent-2) 70%, transparent) 14%,
+		var(--_accent) 34%,
+		var(--_core) 50%,
+		var(--_accent) 66%,
+		color-mix(in oklab, var(--_accent-2) 70%, transparent) 86%,
+		transparent
+	);
+	box-shadow: 0 0 6px 0 color-mix(in oklab, var(--_accent) 60%, transparent);
+}
+
+.cs-root .cs-seam-glow {
+	height: 28px;
+	transform: translateY(-50%);
+	background: radial-gradient(
+		50% 50% at 50% 50%,
+		color-mix(in oklab, var(--_accent) var(--_glow), transparent),
+		color-mix(in oklab, var(--_accent-2) 25%, transparent) 60%,
+		transparent 100%
+	);
+	filter: blur(10px);
+}
+
+/* a wide, faint horizon of light spilling past the slit */
+.cs-root .cs-seam-haze {
+	left: -6%;
+	right: -6%;
+	height: 90px;
+	transform: translateY(-50%);
+	background: radial-gradient(
+		50% 50% at 50% 50%,
+		color-mix(in oklab, var(--_accent) calc(var(--_glow) * 0.45), transparent),
+		transparent 70%
+	);
+	filter: blur(18px);
+}
+
+.cs-root .cs-veil {
+	background: var(--_surface);
+	opacity: calc(var(--_shut) * var(--_shut) * 0.75);
+}
+
+.cs-root .cs-lip {
+	left: 3%;
+	right: 3%;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		color-mix(in oklab, var(--_accent-2) 55%, transparent) 20%,
+		color-mix(in oklab, var(--_accent) 80%, white) 50%,
+		color-mix(in oklab, var(--_accent-2) 55%, transparent) 80%,
+		transparent
+	);
+	box-shadow: 0 0 10px 0 color-mix(in oklab, var(--_accent) 45%, transparent);
+	opacity: var(--_shut);
+}
+
+.cs-root .cs-lip-top {
+	top: calc(var(--_shut) * 48%);
+}
+
+.cs-root .cs-lip-bottom {
+	bottom: calc(var(--_shut) * 48%);
+}
+
+/* Light theme: a white core vanishes on a pale page, so deepen the seam */
+html:not(.dark) .cs-root {
+	--_core: color-mix(in oklab, var(--_accent) 75%, white);
+}
+
+/* Reduced motion: a still frame — card open, title sharp, no light */
+.cs-root[data-reduced-motion] {
+	--_shut: 0;
+}
+.cs-root[data-reduced-motion] .cs-title {
+	opacity: 1;
+	filter: none;
+	transform: none;
+}
+.cs-root[data-reduced-motion] .cs-seam,
+.cs-root[data-reduced-motion] .cs-lip {
+	display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cs-root {
+		--_shut: 0;
+	}
+	.cs-root .cs-title {
+		opacity: 1;
+		filter: none;
+		transform: none;
+	}
+	.cs-root .cs-seam,
+	.cs-root .cs-lip {
+		display: none;
+	}
+	.cs-root .cs-shadow {
+		opacity: 1;
+	}
+}

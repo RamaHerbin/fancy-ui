@@ -22,11 +22,15 @@ export interface DockContext {
 	/**
 	 * False when the visitor asked for reduced motion, or when the device has no
 	 * real pointer to track. `Dock` owns the two media queries behind it and
-	 * `DockIcon` reads it before doing any measuring, so a device that will
-	 * never magnify also never pays for a `getBoundingClientRect()` per icon per
-	 * frame. Read-only: only `Dock` may write it.
+	 * `DockIcon` reads it before sizing itself. Read-only: only `Dock` may
+	 * write it.
 	 */
 	readonly magnify: boolean;
+	/**
+	 * Whether each icon casts its soft floor reflection (the contact shadow /
+	 * glow ellipse under it). Mirrors the `reflection` prop on `Dock`.
+	 */
+	readonly reflection: boolean;
 }
 
 /**
@@ -47,8 +51,9 @@ export const DOCK_CONTEXT_KEY: InjectionKey<DockContext> = Symbol("dock-context"
  * server-rendered on its own by the package-wide SSR sweeps, which have no way
  * to wrap a subcomponent in a provider. Degrading instead is the answer
  * `Sidebar`'s subcomponents already give: a lone icon renders at its resting
- * 40px and a lone separator takes the horizontal rule, with `magnify` false so
- * nothing is ever measured.
+ * 40px and a lone separator takes the horizontal rule, with `magnify` false and
+ * the pointer at `Infinity` so nothing is ever measured. `reflection` keeps the
+ * `Dock` prop's default.
  */
 const DOCK_FALLBACK: DockContext = Object.freeze({
 	mouseX: { current: Infinity },
@@ -57,6 +62,7 @@ const DOCK_FALLBACK: DockContext = Object.freeze({
 	distance: 140,
 	orientation: "horizontal",
 	magnify: false,
+	reflection: true,
 });
 
 /** The context `DockIcon` and `DockSeparator` read to find their dock. */

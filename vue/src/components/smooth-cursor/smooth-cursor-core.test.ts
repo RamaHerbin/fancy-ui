@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
 	createSmoothCursor,
+	resolveLabelConfig,
 	type SmoothCursorElements,
 	type SmoothCursorInitOptions,
 	type SmoothCursorLiveOptions,
@@ -16,6 +17,11 @@ function flushRaf(time: number) {
 /** Current translate3d X of the rendered transform, 0 when nothing was written. */
 function readX(el: HTMLElement): number {
 	return parseFloat(/translate3d\(([-\d.]+)px/.exec(el.style.transform)?.[1] ?? "0");
+}
+
+/** Current translate3d Y of the rendered transform, 0 when nothing was written. */
+function readY(el: HTMLElement): number {
+	return parseFloat(/translate3d\([-\d.]+px, ([-\d.]+)px/.exec(el.style.transform)?.[1] ?? "0");
 }
 
 /** Current rotate() angle of the rendered transform, 0 when none was written. */
@@ -330,5 +336,244 @@ describe("createSmoothCursor", () => {
 		expect(() => engine.resize()).not.toThrow();
 		engine.destroy();
 		expect(() => engine.resize()).not.toThrow();
+	});
+});
+
+describe("createSmoothCursor — label, upright mode, idle, sleep", () => {
+	/** Runs frames 16ms apart until the loop sleeps (or a safety cap). */
+	function runUntilAsleep(from: number): number {
+		let t = from;
+		for (let i = 0; i < 600 && rafCallbacks.length > 0; i++) flushRaf((t += 16));
+		return t;
+	}
+
+	it("derives the label spring from springConfig (stiffness x0.55, damping x1.1) and lets explicit fields win", () => {
+		expect(resolveLabelConfig(undefined, undefined)).toEqual({
+			stiffness: 400 * 0.55,
+			damping: 45 * 1.1,
+			mass: 1,
+		});
+		expect(
+			resolveLabelConfig({ stiffness: 90 }, { stiffness: 1000, damping: 10, mass: 2 })
+		).toEqual({ stiffness: 90, damping: 10 * 1.1, mass: 2 });
+	});
+
+	it("moves the label on its own softer spring, trailing the arrow, until both land on the pointer", () => {
+		const cursor = makeCursorEl();
+		const label = makeCursorEl();
+		create({ cursor, label }, {});
+
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0 }));
+		flushRaf(100);
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 100, clientY: 0 }));
+
+		// Arrow: 400 * 100 * 0.016 * 0.016 = 10.24px. The label chases the arrow's
+		// new position with stiffness 220: 220 * 10.24 * 0.016 * 0.016 = 0.57672px.
+		flushRaf(116);
+		expect(readX(cursor)).toBeCloseTo(10.24, 6);
+		expect(readX(label)).toBeCloseTo(0.576717, 5);
+		expect(readX(label)).toBeLessThan(readX(cursor));
+
+		runUntilAsleep(116);
+		expect(readX(cursor)).toBe(100);
+		expect(readX(label)).toBe(100);
+		// Everything settled: the loop put itself to sleep.
+		expect(rafCallbacks.length).toBe(0);
+	});
+
+	it("a stiffer labelSpring keeps the label closer to the arrow", () => {
+		function gapAfterOneFrame(labelSpring?: { stiffness: number }) {
+			const cursor = makeCursorEl();
+			const label = makeCursorEl();
+			const engine = create({ cursor, label }, { labelSpring });
+			document.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0 }));
+			flushRaf(100);
+			document.dispatchEvent(new MouseEvent("mousemove", { clientX: 100, clientY: 0 }));
+			flushRaf(116);
+			const gap = readX(cursor) - readX(label);
+			engine.destroy();
+			rafCallbacks.length = 0;
+			return gap;
+		}
+		expect(gapAfterOneFrame({ stiffness: 2000 })).toBeLessThan(gapAfterOneFrame());
+	});
+
+	it("keeps the label on a short leash behind a fast arrow", () => {
+		const cursor = makeCursorEl();
+		const label = makeCursorEl();
+		create({ cursor, label }, {});
+
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0 }));
+		flushRaf(100);
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 1000, clientY: 0 }));
+		flushRaf(164); // one clamped 64ms step flings the arrow far ahead
+		const gap = Math.hypot(readX(cursor) - readX(label), readY(cursor) - readY(label));
+		expect(gap).toBeGreaterThan(0);
+		expect(gap).toBeLessThanOrEqual(24 + 1e-6);
+	});
+
+	it("tilts the label slightly with its horizontal velocity, never past 5deg", () => {
+		const cursor = makeCursorEl();
+		const label = makeCursorEl();
+		create({ cursor, label }, {});
+
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0 }));
+		flushRaf(100);
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 1000, clientY: 0 }));
+		flushRaf(116);
+		flushRaf(132);
+		const tilt = readRotation(label);
+		expect(tilt).toBeGreaterThan(0);
+		expect(tilt).toBeLessThanOrEqual(5);
+
+		runUntilAsleep(132);
+		expect(label.style.transform).not.toContain("rotate");
+	});
+
+	it("rotate: false keeps the arrow upright however it moves", () => {
+		const cursor = makeCursorEl();
+		create({ cursor }, { rotate: false });
+
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0 }));
+		flushRaf(100);
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 1000, clientY: 400 }));
+		for (let t = 116; t <= 116 + 16 * 10; t += 16) {
+			flushRaf(t);
+			expect(readRotation(cursor)).toBe(0);
+		}
+		expect(readX(cursor)).toBeGreaterThan(0);
+	});
+
+	it("setOptions({ rotate: false }) eases an existing angle back to 0", () => {
+		const cursor = makeCursorEl();
+		const engine = create({ cursor }, {});
+
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0 }));
+		flushRaf(100);
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 1000, clientY: 0 }));
+		flushRaf(116);
+		expect(readRotation(cursor)).toBeCloseTo(27, 6);
+
+		engine.setOptions({ rotate: false });
+		flushRaf(132);
+		expect(readRotation(cursor)).toBeCloseTo(27 * 0.7, 6);
+
+		runUntilAsleep(132);
+		expect(readRotation(cursor)).toBe(0);
+	});
+
+	it("calls onIdleChange(true) after idleFade ms without movement and (false) on the next move", () => {
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		try {
+			const cursor = makeCursorEl();
+			const onIdleChange = vi.fn();
+			create({ cursor }, { idleFade: 1500, onIdleChange });
+
+			document.dispatchEvent(new MouseEvent("mousemove", { clientX: 5, clientY: 5 }));
+			vi.advanceTimersByTime(1499);
+			expect(onIdleChange).not.toHaveBeenCalled();
+
+			// Movement restarts the countdown.
+			document.dispatchEvent(new MouseEvent("mousemove", { clientX: 6, clientY: 5 }));
+			vi.advanceTimersByTime(1499);
+			expect(onIdleChange).not.toHaveBeenCalled();
+			vi.advanceTimersByTime(1);
+			expect(onIdleChange).toHaveBeenCalledExactlyOnceWith(true);
+
+			document.dispatchEvent(new MouseEvent("mousemove", { clientX: 7, clientY: 5 }));
+			expect(onIdleChange).toHaveBeenLastCalledWith(false);
+			expect(onIdleChange).toHaveBeenCalledTimes(2);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("idleFade: 0 never reports idle, and switching it off while idle clears the state", () => {
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		try {
+			const cursor = makeCursorEl();
+			const onIdleChange = vi.fn();
+			const engine = create({ cursor }, { idleFade: 0, onIdleChange });
+
+			document.dispatchEvent(new MouseEvent("mousemove", { clientX: 5, clientY: 5 }));
+			vi.advanceTimersByTime(60_000);
+			expect(onIdleChange).not.toHaveBeenCalled();
+
+			engine.setOptions({ idleFade: 200 });
+			vi.advanceTimersByTime(200);
+			expect(onIdleChange).toHaveBeenLastCalledWith(true);
+
+			engine.setOptions({ idleFade: 0 });
+			expect(onIdleChange).toHaveBeenLastCalledWith(false);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("leaving the window clears the idle state; destroy() cancels a pending idle timer", () => {
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		try {
+			const cursor = makeCursorEl();
+			const onIdleChange = vi.fn();
+			const engine = create({ cursor }, { idleFade: 100, onIdleChange });
+
+			document.dispatchEvent(new MouseEvent("mousemove", { clientX: 5, clientY: 5 }));
+			vi.advanceTimersByTime(100);
+			expect(onIdleChange).toHaveBeenLastCalledWith(true);
+			document.documentElement.dispatchEvent(new MouseEvent("mouseleave"));
+			expect(onIdleChange).toHaveBeenLastCalledWith(false);
+
+			document.dispatchEvent(new MouseEvent("mousemove", { clientX: 5, clientY: 5 }));
+			engine.destroy();
+			onIdleChange.mockClear();
+			vi.advanceTimersByTime(1000);
+			expect(onIdleChange).not.toHaveBeenCalled();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("wakes from sleep with a capped first step instead of a timestamp-only frame", () => {
+		const cursor = makeCursorEl();
+		create({ cursor }, {});
+
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 0, clientY: 0 }));
+		flushRaf(100);
+		flushRaf(116); // already on target: settles and sleeps
+		expect(rafCallbacks.length).toBe(0);
+
+		// Five seconds later the pointer moves: the wake frame integrates one
+		// 60 Hz step (not a 64ms clamp, not a lost sentinel frame).
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 1000, clientY: 0 }));
+		expect(rafCallbacks.length).toBe(1);
+		flushRaf(5116);
+		const step = 1 / 60;
+		expect(readX(cursor)).toBeCloseTo(400 * 1000 * step * step, 6);
+	});
+
+	it("reduced motion snaps the label together with the arrow", () => {
+		const cursor = makeCursorEl();
+		const label = makeCursorEl();
+		create({ cursor, label }, { reducedMotion: true });
+
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 40, clientY: 30 }));
+		expect(cursor.style.transform).toBe("translate3d(40px, 30px, 0)");
+		expect(label.style.transform).toBe("translate3d(40px, 30px, 0)");
+		expect(rafCallbacks.length).toBe(0);
+	});
+
+	it("setLabel() attaches a late label glued to the arrow, and null detaches it", () => {
+		const cursor = makeCursorEl();
+		const engine = create({ cursor }, { reducedMotion: true });
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 12, clientY: 8 }));
+
+		const label = makeCursorEl();
+		engine.setLabel(label);
+		expect(label.style.transform).toBe("translate3d(12px, 8px, 0)");
+
+		engine.setLabel(null);
+		document.dispatchEvent(new MouseEvent("mousemove", { clientX: 50, clientY: 50 }));
+		expect(label.style.transform).toBe("translate3d(12px, 8px, 0)");
+		expect(cursor.style.transform).toBe("translate3d(50px, 50px, 0)");
 	});
 });

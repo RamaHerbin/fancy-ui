@@ -21,9 +21,10 @@ export interface StepperProps {
 </script>
 
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { createReducedMotion } from "../../internals/motion/media-query.js";
 import { STEPPER_KEY, type StepperContext } from "./types.js";
 
 defineOptions({ name: "Stepper", inheritAttrs: false });
@@ -64,6 +65,40 @@ function register(id: string): () => void {
 	};
 }
 
+// Motion is opt-in on the client only: SSR (and the hydration pass)
+// renders the still composition, and the animated classes arrive once the
+// browser has actually been asked about `prefers-reduced-motion`. Under
+// reduce they never arrive, so the rails fill by colour alone.
+const reduced = createReducedMotion();
+const asked = ref(false);
+onMounted(() => {
+	const stop = reduced.start();
+	asked.value = true;
+	onBeforeUnmount(stop);
+});
+const animate = computed(() => asked.value && !reduced.current);
+
+// Where the light set off from: the active index *before* the latest
+// change. Steps read it to order the rail sweeps (and the arrival of the
+// bullets behind them) as one continuous run from the old step to the new
+// one, instead of every rail lighting in the same frame. It starts at 0 —
+// not at `current` — so the first paint plays the same run from the first
+// step, a one-time arrival over rails that are already filled.
+// `settled` is a plain variable on purpose: it is bookkeeping, not
+// something anything renders from. A `flush: 'pre'` watcher (Svelte's
+// `$effect.pre`) so `origin` lands before the steps re-render.
+const origin = ref(0);
+let settled = current.value;
+watch(
+	current,
+	(next) => {
+		if (next === settled) return;
+		origin.value = settled;
+		settled = next;
+	},
+	{ flush: "pre" }
+);
+
 function indexOf(id: string): number {
 	return registered.value.indexOf(id);
 }
@@ -89,6 +124,12 @@ const context: StepperContext = {
 	get count() {
 		return registered.value.length;
 	},
+	get origin() {
+		return origin.value;
+	},
+	get animate() {
+		return animate.value;
+	},
 	register,
 	indexOf,
 	select,
@@ -109,6 +150,7 @@ STEPPER_KEY.provide(context);
 			)
 		"
 		:data-orientation="orientation"
+		:data-motion="animate ? 'full' : 'reduced'"
 	>
 		<slot />
 	</ol>
@@ -116,7 +158,7 @@ STEPPER_KEY.provide(context);
 
 <!--
   No scoped <style> here: the root `<ol>` itself never paints the brand
-  purple — only a `Step`'s current bullet, halo, and done connector do — so
+  purple — only a `Step`'s current bullet, halo, and lit rail do — so
   `--ft-nav-accent` is declared there instead, the same split ToggleGroup
   (no purple of its own) and ToggleGroupItem (declares
   `--ft-toggle-group-accent` locally for its focus ring) already use.

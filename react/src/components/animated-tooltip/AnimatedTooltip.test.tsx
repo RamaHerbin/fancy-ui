@@ -9,13 +9,34 @@ const mockItems = [
 	{ id: 2, name: "Bob", designation: "Designer", image: "/bob.jpg" },
 ];
 
-/** The avatar's own width, so `halfWidth` matches what the browser measures on
- *  a `size-14` image. jsdom lays nothing out, so every rect is a stub. */
+const fourItems = [
+	...mockItems,
+	{ id: 3, name: "Cleo", designation: "Writer", image: "/cleo.jpg" },
+	{ id: 4, name: "Dan", designation: "Founder", image: "/dan.jpg" },
+];
+
+/** Replaces `window.matchMedia` wholesale (the repo-wide pattern). */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches: query.includes("prefers-reduced-motion: reduce") ? matches : false,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/** The default avatar width, so the half width matches what the browser
+ *  measures on a default-size item. jsdom lays nothing out, so every rect is a
+ *  stub. */
 const AVATAR = 56;
 
 /** Pins each item wrapper's rect at the given left offset, in order. */
 function pinRects(container: HTMLElement, lefts: number[]): HTMLElement[] {
-	const wrappers = [...container.querySelectorAll<HTMLElement>(".group")];
+	const wrappers = [...container.querySelectorAll<HTMLElement>(".at-item")];
 	wrappers.forEach((wrapper, index) => {
 		const left = lefts[index] ?? 0;
 		wrapper.getBoundingClientRect = () =>
@@ -31,9 +52,9 @@ function pinRects(container: HTMLElement, lefts: number[]): HTMLElement[] {
 	return wrappers;
 }
 
-/** The tooltip currently rendered inside one item wrapper, or `null`. */
+/** The tooltip positioner currently rendered inside one item wrapper, or `null`. */
 function tooltipIn(wrapper: HTMLElement): HTMLElement | null {
-	return wrapper.querySelector<HTMLElement>(".absolute.-top-16");
+	return wrapper.querySelector<HTMLElement>(".at-tip");
 }
 
 /**
@@ -55,6 +76,7 @@ describe("AnimatedTooltip", () => {
 	afterEach(() => {
 		cleanup();
 		vi.restoreAllMocks();
+		vi.unstubAllGlobals();
 	});
 
 	it("renders one avatar image per item", () => {
@@ -114,8 +136,19 @@ describe("AnimatedTooltip", () => {
 
 		fireEvent.mouseEnter(alice!, { clientX: 50 });
 
-		// 50 - 0 - 28 = 22 → 22 / 100 * 50 = 11
-		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 11px)) rotate(11deg)");
+		// 50 - 0 - 28 = 22 → lean 22 / 28 → 11px, 5.5deg
+		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 11px)) rotate(5.5deg)");
+
+		await settleLegs();
+	});
+
+	it("clamps the lean to one avatar radius", async () => {
+		const { container } = render(<AnimatedTooltip items={mockItems} />);
+		const [alice] = pinRects(container, [0, 40]);
+
+		fireEvent.mouseEnter(alice!, { clientX: 500 });
+
+		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 14px)) rotate(7deg)");
 
 		await settleLegs();
 	});
@@ -127,8 +160,8 @@ describe("AnimatedTooltip", () => {
 		fireEvent.mouseEnter(alice!, { clientX: 50 });
 		fireEvent.mouseMove(alice!, { clientX: 20 });
 
-		// 20 - 0 - 28 = -8 → -4
-		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + -4px)) rotate(-4deg)");
+		// 20 - 0 - 28 = -8 → -4px, -2deg
+		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + -4px)) rotate(-2deg)");
 
 		await settleLegs();
 	});
@@ -140,17 +173,17 @@ describe("AnimatedTooltip", () => {
 		fireEvent.mouseEnter(alice!, { clientX: 50 });
 		await settleLegs();
 
-		// No mouseleave in between: the `-mr-4` overlap makes crossing straight
-		// onto the neighbour the ordinary traversal of the row.
+		// No mouseleave in between: the overlap makes crossing straight onto
+		// the neighbour the ordinary traversal of the row.
 		fireEvent.mouseEnter(bob!, { clientX: 45 });
 
-		// Bob is live at 45 - 40 - 28 = -23 → -11.5.
+		// Bob is live at 45 - 40 - 28 = -23 → -11.5px, -5.75deg.
 		expect(tooltipIn(bob!)?.style.transform).toBe(
-			"translateX(calc(-50% + -11.5px)) rotate(-11.5deg)"
+			"translateX(calc(-50% + -11.5px)) rotate(-5.75deg)"
 		);
 		// Alice is still mounted, mid-exit, and must keep HER pose — the source's
 		// paused block never re-reads the shared position.
-		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 11px)) rotate(11deg)");
+		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 11px)) rotate(5.5deg)");
 
 		await settleLegs();
 	});
@@ -162,34 +195,59 @@ describe("AnimatedTooltip", () => {
 		fireEvent.mouseEnter(alice!, { clientX: 50 });
 		await settleLegs();
 
-		// `handleMouseLeave` resets the shared offset to 0; the exiting tooltip
+		// The leave handler resets the shared offset to 0; the exiting tooltip
 		// must not snap to a centred, unrotated pose because of it.
 		fireEvent.mouseLeave(alice!);
 
-		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 11px)) rotate(11deg)");
+		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 11px)) rotate(5.5deg)");
 
 		await settleLegs();
+		expect(tooltipIn(alice!)).toBeNull();
 	});
 
-	it("bakes the frozen pose into every keyframe of the exit leg", async () => {
+	it("plays the sink exit on the card and unmounts once it lands", async () => {
+		stubReducedMotion(false);
 		const { container } = render(<AnimatedTooltip items={mockItems} />);
-		const [alice, bob] = pinRects(container, [0, 40]);
+		const [alice] = pinRects(container, [0, 40]);
 
 		fireEvent.mouseEnter(alice!, { clientX: 50 });
-		const tooltip = tooltipIn(alice!)!;
 		await settleLegs();
+		const card = alice!.querySelector<HTMLElement>(".at-card")!;
+		// The entrance is the CSS keyframe; no sampled intro runs.
+		expect(FakeAnimation.instances.filter((a) => a.target === card)).toHaveLength(0);
 
-		fireEvent.mouseEnter(bob!, { clientX: 45 });
+		fireEvent.mouseLeave(alice!);
+		// One microtask: the leading dummy hands over to the sampled leg.
+		await Promise.resolve();
+		const exit = latestAnimationOn(card);
+		const keyframes = exit.keyframes as Keyframe[];
+		expect(keyframes.length).toBeGreaterThan(1);
+		expect(String(keyframes.at(-1)?.transform)).toContain("translateY(4px) scale(0.97)");
+		expect(Number(keyframes.at(-1)?.opacity)).toBe(0);
+
 		await settleLegs();
+		expect(tooltipIn(alice!)).toBeNull();
+	});
 
-		// The exit's keyframes are sampled from `getComputedStyle` at leg start,
-		// so a stale inline transform would be baked into the whole 200ms leg
-		// rather than showing for a single frame.
-		const keyframes = latestAnimationOn(tooltip).keyframes as Keyframe[];
+	it("fades the card out without movement under reduced motion", async () => {
+		stubReducedMotion(true);
+		const { container } = render(<AnimatedTooltip items={mockItems} />);
+		const [alice] = pinRects(container, [0, 40]);
+
+		fireEvent.mouseEnter(alice!, { clientX: 50 });
+		await settleLegs();
+		const card = alice!.querySelector<HTMLElement>(".at-card")!;
+
+		fireEvent.mouseLeave(alice!);
+		// One microtask: the leading dummy hands over to the sampled leg.
+		await Promise.resolve();
+		const keyframes = latestAnimationOn(card).keyframes as Keyframe[];
 		expect(keyframes.length).toBeGreaterThan(1);
 		for (const keyframe of keyframes) {
-			expect(String(keyframe.transform)).toContain("translateX(calc(-50% + 11px)) rotate(11deg)");
+			expect(keyframe.transform).toBeUndefined();
 		}
+
+		await settleLegs();
 	});
 
 	it("draws a pointer sample without re-rendering the row", async () => {
@@ -221,50 +279,10 @@ describe("AnimatedTooltip", () => {
 		fireEvent.mouseMove(alice!, { clientX: 30 });
 
 		expect(commits).toBe(0);
-		// 30 - 0 - 28 = 2 → 1
-		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 1px)) rotate(1deg)");
+		// 30 - 0 - 28 = 2 → 1px, 0.5deg
+		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 1px)) rotate(0.5deg)");
 
 		await settleLegs();
-	});
-
-	it("reverses from the entrance leg's own capture, not from the painted mid-flight style", async () => {
-		const { container } = render(<AnimatedTooltip items={mockItems} />);
-		const [alice] = pinRects(container, [0, 40]);
-
-		// Stands in for what a real host paints once the entrance is running: an
-		// already-scaled, already-faded computed style. jsdom's animation stub
-		// never touches the computed style, so the leg has to be simulated.
-		const real = window.getComputedStyle.bind(window);
-		let tooltip: HTMLElement | null = null;
-		let painting = false;
-		vi.spyOn(window, "getComputedStyle").mockImplementation((element, pseudo) => {
-			if (painting && element === tooltip) {
-				return {
-					opacity: "0.5",
-					transform: "matrix(0.7, 0, 0, 0.7, 0, 0)",
-				} as unknown as CSSStyleDeclaration;
-			}
-			return real(element, pseudo);
-		});
-
-		fireEvent.mouseEnter(alice!, { clientX: 50 });
-		tooltip = tooltipIn(alice!)!;
-
-		// One microtask turn: the leading dummy hands over to the real leg, and
-		// the leg has NOT settled, so the entrance's capture is still the one in
-		// force. `settleLegs` would drain both turns and clear it.
-		await Promise.resolve();
-
-		painting = true;
-		fireEvent.mouseLeave(alice!);
-		await settleLegs();
-
-		const keyframes = latestAnimationOn(tooltip).keyframes as Keyframe[];
-		expect(keyframes.length).toBeGreaterThan(1);
-		for (const keyframe of keyframes) {
-			expect(String(keyframe.transform)).toContain("translateX(calc(-50% + 11px)) rotate(11deg)");
-			expect(String(keyframe.transform)).not.toContain("matrix");
-		}
 	});
 
 	it("keeps the pose on the node across StrictMode's mount-time ref cycle", async () => {
@@ -280,7 +298,7 @@ describe("AnimatedTooltip", () => {
 		// one-shot at first attach.
 		fireEvent.mouseEnter(alice!, { clientX: 50 });
 
-		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 11px)) rotate(11deg)");
+		expect(tooltipIn(alice!)?.style.transform).toBe("translateX(calc(-50% + 11px)) rotate(5.5deg)");
 
 		await settleLegs();
 		expect(tooltipIn(alice!)).not.toBeNull();
@@ -311,9 +329,98 @@ describe("AnimatedTooltip", () => {
 		expect(describedBy).toBeTruthy();
 		const tooltip = container.querySelector(`#${describedBy}`);
 		expect(tooltip).toHaveAttribute("role", "tooltip");
+		// Focus has no pointer to sample: the card sits centred and upright.
+		expect((tooltip as HTMLElement).style.transform).toBe(
+			"translateX(calc(-50% + 0px)) rotate(0deg)"
+		);
 
 		fireEvent.focusOut(alice!);
 		expect(alice!).not.toHaveAttribute("aria-describedby");
+
+		await settleLegs();
+	});
+
+	it("marks the hovered item active and lifts its avatar", async () => {
+		stubReducedMotion(false);
+		const { container } = render(<AnimatedTooltip items={fourItems} />);
+		const wrappers = container.querySelectorAll<HTMLElement>(".at-item");
+
+		fireEvent.mouseEnter(wrappers[1]!);
+		expect(wrappers[1]).toHaveAttribute("data-active");
+		expect(wrappers[1]!.className).toContain("at-active");
+		expect(wrappers[1]!.querySelector(".at-avatar")!.className).toContain("at-lifted");
+		expect(wrappers[0]).not.toHaveAttribute("data-active");
+
+		fireEvent.mouseLeave(wrappers[1]!);
+		expect(wrappers[1]).not.toHaveAttribute("data-active");
+		expect(wrappers[1]!.querySelector(".at-avatar")!.className).not.toContain("at-lifted");
+
+		await settleLegs();
+	});
+
+	it("parts the neighbours away from the hovered item", async () => {
+		stubReducedMotion(false);
+		const { container } = render(<AnimatedTooltip items={fourItems} />);
+		const wrappers = container.querySelectorAll<HTMLElement>(".at-item");
+
+		fireEvent.mouseEnter(wrappers[1]!);
+		expect(wrappers[0]!.className).toContain("at-parted");
+		expect(wrappers[0]).toHaveAttribute("data-part", "before");
+		expect(wrappers[2]!.className).toContain("at-parted");
+		expect(wrappers[2]).toHaveAttribute("data-part", "after");
+		expect(wrappers[0]!.style.getPropertyValue("--_at-shift")).toBe("-6px");
+		expect(wrappers[2]!.style.getPropertyValue("--_at-shift")).toBe("6px");
+		expect(wrappers[3]!.style.getPropertyValue("--_at-shift")).toBe("2px");
+		// The hovered item itself does not move sideways.
+		expect(wrappers[1]!.className).not.toContain("at-parted");
+
+		await settleLegs();
+	});
+
+	it("pipes accent and size into CSS custom properties", () => {
+		const { container } = render(
+			<AnimatedTooltip items={mockItems} accent="rgb(240, 163, 110)" size={72} />
+		);
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.getAttribute("style")).toContain("--at-accent: rgb(240, 163, 110)");
+		expect(root.getAttribute("style")).toContain("--at-accent-2:");
+		expect(root.style.getPropertyValue("--_at-size")).toBe("72px");
+	});
+
+	it("defaults to a 56px avatar and no inline accent", () => {
+		const { container } = render(<AnimatedTooltip items={mockItems} />);
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--_at-size")).toBe("56px");
+		expect(root.getAttribute("style")).not.toContain("--at-accent");
+	});
+
+	it("keeps presence layers out of the accessibility tree", async () => {
+		const { container } = render(<AnimatedTooltip items={mockItems} />);
+		for (const el of container.querySelectorAll(".at-ring, .at-glow, .at-disc")) {
+			expect(el).toHaveAttribute("aria-hidden", "true");
+		}
+		const wrapper = container.querySelector(".group") as HTMLElement;
+		fireEvent.focusIn(wrapper);
+		const tip = container.querySelector('[role="tooltip"]')!;
+		expect(tip.querySelector(".at-rule")).toHaveAttribute("aria-hidden", "true");
+		expect(tip.textContent).toContain("Alice");
+		expect(tip.textContent).toContain("Engineer");
+
+		await settleLegs();
+	});
+
+	it("suppresses lift and parting under reduced motion, but still opens", async () => {
+		stubReducedMotion(true);
+		const { container } = render(<AnimatedTooltip items={fourItems} />);
+		const wrappers = container.querySelectorAll<HTMLElement>(".at-item");
+
+		fireEvent.mouseEnter(wrappers[1]!, { clientX: 500 });
+		expect(wrappers[1]).toHaveAttribute("data-active");
+		expect(container.querySelector('[role="tooltip"]')).not.toBeNull();
+		expect(wrappers[1]!.querySelector(".at-avatar")!.className).not.toContain("at-lifted");
+		expect(container.querySelectorAll(".at-parted").length).toBe(0);
+		const tip = container.querySelector<HTMLElement>('[role="tooltip"]')!;
+		expect(tip.style.transform).toContain("rotate(0deg)");
 
 		await settleLegs();
 	});

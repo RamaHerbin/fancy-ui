@@ -44,23 +44,32 @@
 	const secondRow = reviews.slice(3);
 </script>
 
+<!-- Outer shell + inner panel: the same nested hairline frame the cards use. -->
 <div
-	class="bg-background relative flex w-full flex-col items-center justify-center overflow-hidden rounded-lg border"
+	class="w-full rounded-[22px] border border-black/[.08] bg-[#f4f4f5] p-1.5 dark:border-white/[.08] dark:bg-[#0b0b0c]"
 >
-	<Marquee pauseOnHover class="[--duration:20s]">
-		{#each firstRow as review}
-			<ReviewCard {...review} />
-		{/each}
-	</Marquee>
-	<Marquee reverse pauseOnHover class="[--duration:20s]">
-		{#each secondRow as review}
-			<ReviewCard {...review} />
-		{/each}
-	</Marquee>
 	<div
-		class="from-background pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r"
-	></div>
-	<div
-		class="from-background pointer-events-none absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l"
-	></div>
+		class="relative flex flex-col gap-1 overflow-hidden rounded-2xl border border-black/[.06] bg-white pt-4 pb-3 dark:border-white/[.06] dark:bg-[#111113]"
+	>
+		<div class="mb-2 flex items-center justify-between px-5">
+			<p class="text-[13px] font-medium tracking-[-0.01em] text-zinc-900 dark:text-zinc-100">
+				What people say
+			</p>
+			<span
+				class="rounded-full border border-black/[.08] px-2.5 py-0.5 font-mono text-[11px] text-zinc-500 dark:border-white/[.08]"
+			>
+				hover to brake
+			</span>
+		</div>
+		<Marquee pauseOnHover class="[--duration:30s]">
+			{#each firstRow as review (review.username)}
+				<ReviewCard {...review} />
+			{/each}
+		</Marquee>
+		<Marquee reverse pauseOnHover class="[--duration:30s]">
+			{#each secondRow as review (review.username)}
+				<ReviewCard {...review} />
+			{/each}
+		</Marquee>
+	</div>
 </div>
