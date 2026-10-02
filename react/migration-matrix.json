@@ -1146,25 +1146,30 @@
 		"complexity": "pointer",
 		"deps": {
 			"internals": [],
-			"motion": [],
+			"motion": ["media-query"],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": ["pointer-events"],
+		"browserAPIs": ["pointer-events", "matchMedia"],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "high",
 		"exports": ["Compare", "StarField"],
-		"loc": 416,
+		"loc": 661,
 		"testFiles": ["Compare.test.ts"],
 		"svelteFiles": 2,
 		"attempts": 1,
 		"divergences": [
 			"StarField gains a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the Svelte side's render-path Math.random(), per PORTING.md's SSR rule; two StarFields with the same starsCount and seed render identical skies, and stars only reshuffle when starsCount or seed changes.",
 			"StarField's root cn() gains the port-added anchor class `fancy-star-field` (PORTING.md styling rule 2 sanctioned addition) so the formerly compiler-scoped `.star` rules don't leak globally; keyframe names `twinkle`/`drift` kept identical.",
-			"The autoplay loop is started once: the Svelte source starts it twice (onMount plus the $effect tracking hover and drag), so two rAF loops run there and `onpercentagechange` fires twice per frame. The divider position is identical on both sides, but a consumer counting or debouncing that callback sees half the invocations here."
+			"The autoplay loop is started once: the Svelte source starts it from both onMount and its $effect, so two rAF loops can run there and `onpercentagechange` fires twice per frame. The divider position is identical on both sides, but a consumer counting or debouncing that callback sees half the invocations here.",
+			"The previous React-only `ariaLabel` prop is kept as a deprecated alias of `label`, so existing React consumers keep their accessible name. `label` wins when both are given, and the default is the reference's 'Comparison slider'.",
+			"Pointer moves cancel the pending move frame before scheduling a new one, so a burst of moves commits once and unmount drops the pending frame. The reference schedules a fresh rAF for each move and never cancels it.",
+			"The beam/autoplay/glide loops read live values from refs that mirror the state; the observable behaviour is the same as the reference's closures reading $state.",
+			"compare.css anchors every component rule under the root `.compare` class, because plain CSS is global where the reference's rules were compiler-scoped. Class names, keyframes (cmp-pulse, cmp-spin), @property --cmp-angle and custom properties are unchanged.",
+			"Compare no longer renders StarField, matching the reference. StarField is still exported on its own, as the Svelte index does."
 		],
 		"lastFailure": null
 	},
@@ -2003,25 +2008,30 @@
 		"group": "trivial",
 		"model": "sonnet",
 		"effort": "low",
-		"complexity": "css-trivial",
+		"complexity": "pointer",
 		"deps": {
-			"internals": [],
-			"motion": [],
+			"internals": ["dom/use-inert-attribute", "dom/use-live-ref"],
+			"motion": ["media-query"],
 			"sound": false,
 			"components": []
 		},
-		"browserAPIs": [],
+		"browserAPIs": ["matchMedia", "Element.animate", "getBoundingClientRect", "pointer-events"],
 		"runtimeDeps": [],
 		"setContext": false,
-		"hasStyleBlock": false,
+		"hasStyleBlock": true,
 		"usesTransition": false,
-		"ssrRisk": "none",
+		"ssrRisk": "low",
 		"exports": ["FlipCard"],
-		"loc": 49,
+		"loc": 389,
 		"testFiles": ["FlipCard.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"`bind:flipped` becomes a seed-and-resync prop: `flipped` sets the starting face on mount, and a later change to it turns the card the rest of the way, calling `onFlip` as Svelte does; internal flips report only through `onFlip` (pass both for two-way behaviour).",
+			"Svelte's `onflip` callback is named `onFlip`, following the package-wide camelCase convention for callbacks; same signature, fires at the same times.",
+			"The `inert` attribute on the hidden face is written by `useInertAttribute` at commit, not rendered inline, because no JSX spelling works on both React 18 and 19; it is therefore missing from server HTML until hydration.",
+			"React's onBlur bubbles (it listens to focusout), so the handler ignores blurs whose target is not the card root. This keeps the Svelte behaviour, where the non-bubbling root blur listener does not fire when focus leaves from a control inside a face, so the card stays on its back in that case."
+		],
 		"lastFailure": null
 	},
 	{
@@ -2264,7 +2274,7 @@
 		"group": "trivial",
 		"model": "sonnet",
 		"effort": "low",
-		"complexity": "css-trivial",
+		"complexity": "css",
 		"deps": {
 			"internals": [],
 			"motion": [],
@@ -2277,13 +2287,14 @@
 		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
-		"exports": ["GlowBorder"],
-		"loc": 68,
+		"exports": ["GlowBorder", "GLOW_BORDER_PRESETS"],
+		"loc": 290,
 		"testFiles": ["GlowBorder.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"Svelte binds `style={styles}` as a raw attribute string; React's `style` prop only accepts an object, so the custom properties are built as a React style object during render and are present in the server HTML. Byte order of the serialised attribute differs; the rendered result is identical."
+			"Svelte binds `style={styles}` as a raw attribute string; React's `style` prop only accepts an object, so the custom properties (including the --gb-metal-* and --gb-glint-* gradients) are built as a React style object during render and are present in the server HTML. Byte order of the serialised attribute differs; the rendered result is identical.",
+			"Svelte's `:global(.dark) .glow-border` becomes plain `.dark .glow-border`, and the compiler-scoped `.animate-glow` rule (plus its reduced-motion override) is anchored as `.glow-border.animate-glow` so the generic class name does not style consumer elements."
 		],
 		"lastFailure": null
 	},
@@ -2342,7 +2353,7 @@
 		"usesTransition": false,
 		"ssrRisk": "none",
 		"exports": ["GradientButton"],
-		"loc": 106,
+		"loc": 198,
 		"testFiles": ["GradientButton.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 0,
@@ -2677,15 +2688,18 @@
 		"browserAPIs": [],
 		"runtimeDeps": [],
 		"setContext": false,
-		"hasStyleBlock": false,
+		"hasStyleBlock": true,
 		"usesTransition": false,
 		"ssrRisk": "none",
 		"exports": ["InteractiveHoverButton"],
-		"loc": 88,
+		"loc": 241,
 		"testFiles": ["InteractiveHoverButton.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 0,
-		"divergences": [],
+		"divergences": [
+			"forwardRef to the <button> kept although the Svelte source exposes no bindable ref (pre-existing React API, same as the other button ports).",
+			"The React tests keep four sound tests (press cue on click, silent by default, silent while disabled, silent on hover) that the Svelte test file does not have; the sound behaviour is identical."
+		],
 		"lastFailure": null
 	},
 	{
@@ -2824,7 +2838,7 @@
 		"attempts": 1,
 		"divergences": [
 			"`class` -> `className` (standard PORTING.md rename); no ref/forwardRef and no rest-prop spread, matching the Svelte source which declares neither.",
-			"Port-added root anchor class `line-reveal` (first token of the root `cn()`), so the compiler-scoped `.line-mask` / `.line` / `.revealed` rules do not leak globally — same treatment as `fancy-marquee` and `ripple-button`; README's 'Compiler-scoped selectors ... gained one' bullet should list `line-reveal` too.",
+			"Port-added root anchor class `line-reveal` (first token of the root `cn()`), so the compiler-scoped `.line-mask` / `.line` / `.revealed` rules do not leak globally; README's 'Compiler-scoped selectors ... gained one' bullet lists `line-reveal` too.",
 			"LineReveal creates one ResizeObserver per mounted instance where the Svelte `bind:clientWidth` routes through the framework's process-wide observer singleton; each disconnects on unmount and nothing leaks."
 		],
 		"lastFailure": null,
@@ -3143,7 +3157,7 @@
 		"usesTransition": false,
 		"ssrRisk": "high",
 		"exports": ["Meteors"],
-		"loc": 62,
+		"loc": 223,
 		"testFiles": ["Meteors.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 0,
@@ -3306,22 +3320,15 @@
 		"usesTransition": false,
 		"ssrRisk": "none",
 		"exports": ["NeonBorder"],
-		"loc": 138,
+		"loc": 264,
 		"testFiles": ["NeonBorder.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"`neon-border.css` carries the Svelte `<style>` rules unanchored (`.neon-layer-one`, `.neon-layer-two`, `.neon-animated`) instead of nesting them under the root class, so they are global where the Svelte compiler scoped them. Known deviation from PORTING.md styling rule 2, shared with `meteors.css`.",
 			"NeonBorderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so id/role/onClick/data-* reach the element; the Svelte component declares a closed six-prop list and spreads nothing."
 		],
 		"lastFailure": null,
-		"minors": [
-			{
-				"file": "react/src/components/neon-border/neon-border.css",
-				"problem": "CSS rules (.neon-layer-one, .neon-layer-two, .neon-animated, @keyframes neon-rotate) are not anchored under the root `.neon-border-container` class as PORTING.md styling rule 2 requires (compare react/src/components/marquee's anchored, commented pattern). Since plain CSS is global, these generic class names could collide with another component reusing them. Visually identical to the Svelte output today and matches the same (also non-compliant) pattern already present in the merged meteors component, so this reads as a wave-wide convention gap rather than a neon-border-specific regression.",
-				"severity": "minor"
-			}
-		]
+		"minors": []
 	},
 	{
 		"slug": "noise-reveal",
@@ -3455,19 +3462,19 @@
 		"effort": "medium",
 		"complexity": "headless",
 		"deps": {
-			"internals": [],
-			"motion": [],
+			"internals": ["dom/use-composed-refs", "dom/ssr"],
+			"motion": ["media-query", "tokens"],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": [],
+		"browserAPIs": ["ResizeObserver", "Element.animate"],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
-		"usesTransition": false,
+		"usesTransition": true,
 		"ssrRisk": "none",
 		"exports": ["Pagination"],
-		"loc": 377,
+		"loc": 401,
 		"testFiles": [
 			"pagination-range.test.ts",
 			"Pagination.test.ts",
@@ -3477,7 +3484,9 @@
 		"attempts": 1,
 		"divergences": [
 			"Pagination: Svelte's `bind:page` becomes the standard controlled/uncontrolled split — uncontrolled by default (internal page state starting at 1), controlled when the `page` prop is passed; `onPageChange` fires with the same value either way.",
-			"Pagination: `previousLabel`/`nextLabel` snippets become `ReactNode` props; the nav element is exposed via `forwardRef` instead of `bind:ref`."
+			"Pagination: `previousLabel`/`nextLabel` snippets become `ReactNode` props; the nav element is exposed via `forwardRef` instead of `bind:ref`.",
+			"Svelte's `animate:flip` + `in:fade` on the page items become a hand-rolled FLIP in a layout effect (Web Animations API, 300ms with EASINGS.out, the CSS twin of expoOut; positions measured relative to the nav; an interrupted glide continues from the item's live position; new items fade in over 150ms after a 60ms delay; skipped on first commit, under reduced motion, or where `Element.animate` is missing).",
+			"Arming the slide and placing the pill run in one isomorphic layout effect (data-armed is also set directly on the nav before the pill moves), not an `$effect` plus `tick()`; same visible behaviour."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -3805,7 +3814,7 @@
 		"usesTransition": false,
 		"ssrRisk": "none",
 		"exports": ["RainbowButton"],
-		"loc": 99,
+		"loc": 228,
 		"testFiles": ["RainbowButton.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 0,
@@ -3976,12 +3985,13 @@
 		"usesTransition": false,
 		"ssrRisk": "low",
 		"exports": ["RippleButton"],
-		"loc": 114,
+		"loc": 273,
 		"testFiles": ["RippleButton.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 0,
 		"divergences": [
-			"Port-added `ref`: RippleButton is a forwardRef publishing the root `<button>`, which the Svelte source does not expose; the consumer's ref is composed through `useComposedRefs`, so it attaches once and is never churned by the ripple state."
+			"Port-added `ref`: RippleButton is a forwardRef publishing the root `<button>`, which the Svelte source does not expose; the consumer's ref is composed through `useComposedRefs`, so it attaches once and is never churned by the ripple state.",
+			"The inner `.ripple-hover` / `.ripple-animation` rules are anchored under the source's own root class `.ripple-button`, because plain CSS is global where the Svelte compiler scoped them."
 		],
 		"lastFailure": null
 	},
@@ -4201,11 +4211,13 @@
 		"usesTransition": false,
 		"ssrRisk": "none",
 		"exports": ["ShimmerButton"],
-		"loc": 120,
+		"loc": 212,
 		"testFiles": ["ShimmerButton.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 0,
-		"divergences": [],
+		"divergences": [
+			"React keeps forwardRef<HTMLButtonElement> (pre-existing public API); the Svelte source exposes no bindable ref."
+		],
 		"lastFailure": null
 	},
 	{

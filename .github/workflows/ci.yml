@@ -46,6 +46,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:registry
       - run: pnpm check:i18n
+      # Every Svelte prop has a counterpart in the React and Vue ports (or a
+      # recorded reason not to): folder parity alone lets a port fall behind.
+      - run: pnpm check:props
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build

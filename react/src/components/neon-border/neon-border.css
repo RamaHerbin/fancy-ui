@@ -1,66 +1,145 @@
-.neon-layer-one {
-	position: absolute;
-	overflow: hidden;
-	width: 100%;
-	height: 100%;
-	filter: blur(1px) drop-shadow(0 0 12px var(--neon-color1));
-	z-index: -1;
-	inset: 0;
+/* Svelte scoped these rules; here every rule is anchored on the root class
+   `.neon-border-container` so nothing leaks into the consumer's page. */
+
+@property --neon-angle {
+	syntax: "<angle>";
+	inherits: true;
+	initial-value: 135deg;
 }
 
-.neon-layer-one::before {
-	content: "";
+.neon-border-container {
+	--neon-tube-width: 1.5px;
+	padding: var(--neon-tube-width);
+	isolation: isolate;
+}
+
+.neon-border-container .neon-tube,
+.neon-border-container .neon-light,
+.neon-border-container .neon-glow,
+.neon-border-container .neon-glow > span,
+.neon-border-container .neon-core {
 	position: absolute;
-	overflow: hidden;
-	top: 0;
-	left: 0;
-	width: var(--neon-width);
-	height: 100%;
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+/* keep only the padding ring: the element minus its content box */
+.neon-border-container .neon-tube,
+.neon-border-container .neon-glow > span,
+.neon-border-container .neon-core {
+	-webkit-mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	mask-composite: exclude;
+}
+
+/* The unlit tube: always there, faint, shading from one colour to the other. */
+.neon-border-container .neon-tube {
+	inset: 0;
+	padding: var(--neon-tube-width);
 	background: linear-gradient(
 		135deg,
-		var(--neon-color1),
-		var(--neon-color1),
-		transparent,
-		transparent
+		color-mix(in srgb, var(--neon-color1) 30%, transparent),
+		color-mix(in srgb, var(--neon-color2) 30%, transparent)
 	);
 }
 
-.neon-layer-two {
-	position: absolute;
-	overflow: hidden;
-	width: 100%;
-	height: 100%;
-	filter: blur(1px) drop-shadow(0 0 12px var(--neon-color2));
-	z-index: -1;
+.neon-border-container .neon-light {
 	inset: 0;
 }
 
-.neon-layer-two::before {
-	content: "";
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	overflow: hidden;
-	width: var(--neon-width);
-	height: 100%;
-	background: linear-gradient(
-		135deg,
-		transparent,
-		transparent,
-		var(--neon-color2),
-		var(--neon-color2)
-	);
+/* The glow: the beams on a wide ring straddling the edge, blurred after
+   masking so it spills softly both inside and outside. */
+.neon-border-container .neon-glow {
+	inset: 0;
+	filter: blur(7px);
+	/* on a light page a coloured halo reads as a stain: keep it faint */
+	opacity: var(--neon-glow-max);
 }
 
-@keyframes neon-rotate {
+.neon-border-container {
+	--neon-glow-max: 0.4;
+	--neon-glow-min: 0.25;
+}
+
+.dark .neon-border-container {
+	--neon-glow-max: 0.9;
+	--neon-glow-min: 0.6;
+}
+
+.neon-border-container .neon-glow > span {
+	inset: -7px;
+	padding: calc(var(--neon-tube-width) + 12px);
+	border-radius: calc(0.5rem + 7px);
+	background: var(--neon-beams);
+}
+
+/* The white-hot core of the lit tube. */
+.neon-border-container .neon-core {
+	inset: 0;
+	padding: var(--neon-tube-width);
+	background: var(--neon-core);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	/* The beams chase round the tube. */
+	.neon-border-container.neon-animated {
+		animation: neon-travel var(--neon-duration) linear infinite;
+	}
+
+	/* The tube strikes once on first paint… */
+	.neon-border-container .neon-light {
+		animation: neon-ignite 0.9s steps(1, end) both;
+	}
+
+	/* …then hums: a slow breathing of the glow. */
+	.neon-border-container .neon-glow {
+		animation: neon-hum 2.8s ease-in-out 0.9s infinite alternate;
+	}
+}
+
+@keyframes neon-travel {
+	from {
+		--neon-angle: 135deg;
+	}
+	to {
+		--neon-angle: 495deg;
+	}
+}
+
+@keyframes neon-ignite {
 	0% {
-		transform: rotate(0deg);
+		opacity: 0;
+	}
+	10% {
+		opacity: 0.8;
+	}
+	18% {
+		opacity: 0.1;
+	}
+	30% {
+		opacity: 1;
+	}
+	40% {
+		opacity: 0.35;
+	}
+	52% {
+		opacity: 1;
 	}
 	100% {
-		transform: rotate(360deg);
+		opacity: 1;
 	}
 }
 
-.neon-animated {
-	animation: neon-rotate var(--neon-duration) linear infinite;
+@keyframes neon-hum {
+	from {
+		opacity: var(--neon-glow-max);
+	}
+	to {
+		opacity: var(--neon-glow-min);
+	}
 }

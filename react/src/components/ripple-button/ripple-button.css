@@ -1,17 +1,141 @@
-@keyframes rippling {
+/* Every rule is anchored on the root class `ripple-button` (the Svelte source
+   names it on the root; its compiler scoped the inner selectors). As plain CSS,
+   a bare `.ripple-hover` / `.ripple-animation` would leak into any consumer
+   element of that name. See PORTING.md, styling rule 2. */
+
+/* Hover: a fingertip over water. */
+.ripple-button .ripple-hover {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	background: radial-gradient(
+		80px circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+		color-mix(in srgb, var(--ripple-color) 20%, transparent),
+		transparent 70%
+	);
+}
+
+.ripple-button .ripple-hover::after {
+	content: "";
+	position: absolute;
+	left: var(--ripple-x, 50%);
+	top: var(--ripple-y, 50%);
+	width: 72px;
+	height: 72px;
+	margin: -36px 0 0 -36px;
+	border-radius: 50%;
+	border: 1px solid color-mix(in srgb, var(--ripple-color) 55%, transparent);
+	opacity: 0;
+	transform: scale(0.2);
+}
+
+.ripple-button:hover .ripple-hover {
+	opacity: 1;
+}
+
+.ripple-button:hover .ripple-hover::after {
+	animation: ripple-idle 1.8s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+}
+
+.ripple-button:hover {
+	border-color: color-mix(in srgb, var(--ripple-color) 35%, transparent);
+}
+
+@keyframes ripple-idle {
 	0% {
-		transform: scale(0);
-		opacity: 0.3;
+		transform: scale(0.2);
+		opacity: 0.9;
 	}
 	100% {
-		transform: scale(2);
+		transform: scale(1);
 		opacity: 0;
 	}
 }
 
-/* Anchored on the root class (added in the port — the Svelte compiler scoped
-   this rule; as plain CSS it would leak into any consumer element named
-   .ripple-animation). See PORTING.md, styling rule 2. */
+/* The border takes the ripple's tint while a ripple runs. */
+.ripple-button[data-rippling] {
+	border-color: color-mix(in srgb, var(--ripple-color) 55%, transparent);
+}
+
+/* A soft glow that blooms and fades… */
 .ripple-button .ripple-animation {
-	animation: rippling var(--ripple-duration, 600ms) ease-out forwards;
+	background: radial-gradient(
+		circle,
+		color-mix(in srgb, var(--ripple-color) 40%, transparent) 0%,
+		color-mix(in srgb, var(--ripple-color) 16%, transparent) 45%,
+		transparent 70%
+	);
+	animation: ripple-bloom var(--ripple-duration, 900ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* …and two fine rings, the second a beat behind, like a wave on water. */
+.ripple-button .ripple-animation::before,
+.ripple-button .ripple-animation::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: 50%;
+	border: 2px solid color-mix(in srgb, var(--ripple-color) 90%, transparent);
+	transform: scale(0);
+	opacity: 0;
+	animation: ripple-ring var(--ripple-duration, 900ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.ripple-button .ripple-animation::after {
+	border-width: 1.5px;
+	animation-delay: calc(var(--ripple-duration, 900ms) * 0.12);
+}
+
+@keyframes ripple-bloom {
+	0% {
+		transform: scale(0);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 0;
+	}
+}
+
+@keyframes ripple-ring {
+	0% {
+		transform: scale(0);
+		opacity: 1;
+	}
+	60% {
+		opacity: 0.8;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 0;
+	}
+}
+
+/* Reduced motion: no expansion, just a brief glow where you pressed. */
+@media (prefers-reduced-motion: reduce) {
+	.ripple-button:hover .ripple-hover::after {
+		animation: none;
+	}
+
+	.ripple-button .ripple-animation {
+		animation-name: ripple-fade;
+	}
+
+	.ripple-button .ripple-animation::before,
+	.ripple-button .ripple-animation::after {
+		display: none;
+	}
+
+	@keyframes ripple-fade {
+		0% {
+			transform: scale(1);
+			opacity: 1;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 0;
+		}
+	}
 }

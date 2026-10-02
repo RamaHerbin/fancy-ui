@@ -1,14 +1,81 @@
 import { act, render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { RippleButton } from "./RippleButton.js";
+import { RippleButton, rippleGeometry } from "./RippleButton.js";
 import { resetSoundForTests, sound } from "../../sound/sound.js";
 
 function ripples(container: HTMLElement): NodeListOf<HTMLElement> {
 	return container.querySelectorAll<HTMLElement>(".ripple-animation");
 }
 
+// jsdom ships no PointerEvent, so a `pointermove` built from it drops the
+// coordinates; a MouseEvent of that type carries them to React's listener.
+function pointerMove(target: HTMLElement, clientX: number, clientY: number) {
+	act(() => {
+		target.dispatchEvent(new MouseEvent("pointermove", { bubbles: true, clientX, clientY }));
+	});
+}
+
 describe("RippleButton", () => {
 	afterEach(cleanup);
+
+	it("grows a ripple from the pointer, wide enough to reach the farthest corner", () => {
+		const rect = { left: 100, top: 50, width: 200, height: 40 };
+		const g = rippleGeometry(rect, { clientX: 130, clientY: 70, detail: 1 });
+		// centre at (30, 20) inside the button; farthest corner is (200, 40)
+		const reach = Math.hypot(170, 20);
+		expect(g.size).toBeCloseTo(2 * reach, 6);
+		expect(g.x + g.size / 2).toBeCloseTo(30, 6);
+		expect(g.y + g.size / 2).toBeCloseTo(20, 6);
+	});
+
+	it("starts a keyboard-triggered ripple from the centre", () => {
+		const rect = { left: 100, top: 50, width: 200, height: 40 };
+		const g = rippleGeometry(rect, { clientX: 0, clientY: 0, detail: 0 });
+		expect(g.x + g.size / 2).toBeCloseTo(100, 6);
+		expect(g.y + g.size / 2).toBeCloseTo(20, 6);
+	});
+
+	it("exposes the ripple colour and marks the button while a ripple runs", () => {
+		vi.useFakeTimers();
+		try {
+			render(<RippleButton rippleColor="#ff00aa" duration={500} />);
+			const button = screen.getByRole("button");
+			expect(button.getAttribute("style")).toContain("--ripple-color: #ff00aa");
+			expect(button.hasAttribute("data-rippling")).toBe(false);
+			fireEvent.click(button);
+			expect(button.hasAttribute("data-rippling")).toBe(true);
+			act(() => {
+				vi.advanceTimersByTime(500);
+			});
+			expect(button.hasAttribute("data-rippling")).toBe(false);
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("tracks the pointer for the hover glow and forwards a consumer onPointerMove", () => {
+		const onPointerMove = vi.fn();
+		render(<RippleButton onPointerMove={onPointerMove} />);
+		const button = screen.getByRole("button");
+		button.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 40 }) as DOMRect;
+		pointerMove(button, 60, 30);
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("50px");
+		expect(button.style.getPropertyValue("--ripple-y")).toBe("10px");
+		expect(onPointerMove).toHaveBeenCalledTimes(1);
+		const hover = button.querySelector(".ripple-hover");
+		expect(hover).toBeInTheDocument();
+		expect(hover).toHaveAttribute("aria-hidden", "true");
+	});
+
+	it("keeps the pointer position across a ripple re-render", () => {
+		render(<RippleButton />);
+		const button = screen.getByRole("button");
+		button.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 40 }) as DOMRect;
+		pointerMove(button, 60, 30);
+		fireEvent.click(button, { clientX: 60, clientY: 30 });
+		expect(button.style.getPropertyValue("--ripple-x")).toBe("50px");
+		expect(button.style.getPropertyValue("--ripple-y")).toBe("10px");
+	});
 
 	it("renders a button element", () => {
 		render(<RippleButton />);
@@ -76,9 +143,7 @@ describe("RippleButton", () => {
 				fireEvent.click(button);
 
 				expect(ripples(container)).toHaveLength(2);
-				expect(
-					error.mock.calls.some((args) => String(args[0]).includes("same key"))
-				).toBe(false);
+				expect(error.mock.calls.some((args) => String(args[0]).includes("same key"))).toBe(false);
 			} finally {
 				vi.restoreAllMocks();
 			}
