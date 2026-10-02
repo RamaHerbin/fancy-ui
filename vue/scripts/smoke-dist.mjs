@@ -39,15 +39,16 @@ const root = new URL("../", import.meta.url);
 const dist = new URL("dist/", root);
 
 /**
- * Measured on this package's own build (2026-09-21): 501.2 kB of JS and
- * 65.8 kB of CSS gzipped for the full ported component set. Ceilings sit
- * ~15% above that measurement so they catch a regression (e.g. `three` or
- * `gsap` losing its `external` entry) rather than policing normal growth;
- * re-measure and move both numbers again the next time the build's actual
- * size approaches either ceiling.
+ * Measured on this package's own build (2026-10-02): 531 kB of JS and
+ * 85.7 kB of CSS gzipped for the full ported component set — the CSS grew by
+ * a third when twenty-one components took on their redesigned styles.
+ * Ceilings sit ~15% above that measurement so they catch a regression (e.g.
+ * `three` or `gsap` losing its `external` entry) rather than policing normal
+ * growth; re-measure and move both numbers again the next time the build's
+ * actual size approaches either ceiling.
  */
-const BUDGET_GZIP_JS = 580 * 1024;
-const BUDGET_GZIP_CSS = 80 * 1024;
+const BUDGET_GZIP_JS = 600 * 1024;
+const BUDGET_GZIP_CSS = 100 * 1024;
 
 /**
  * Raised by every porting wave. It starts at zero so the gate is green on the
