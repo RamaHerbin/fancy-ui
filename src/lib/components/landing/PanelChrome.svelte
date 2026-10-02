@@ -58,7 +58,7 @@
 <div class="flex h-full min-w-0 flex-col">
 	<div class="lp-panel-head">
 		<svelte:element
-			this="h{headingLevel}"
+			this={`h${headingLevel}`}
 			class="flex min-w-0 items-center px-4 font-normal"
 			style="color:var(--lp-grey-1)"
 		>
