@@ -1,28 +1,39 @@
 # ImageTrailCursor
 
-Cursor-following image trail effect with 9 animation variants. Images appear at the cursor position as you move the mouse, each variant providing a distinct visual style.
+Cursor-following image trail effect with 18 animation variants. Images appear at the cursor position as you move the mouse, each variant providing a distinct visual style.
 
 ## Props
 
-| Prop      | Type          | Default   | Description                                                 |
-| --------- | ------------- | --------- | ----------------------------------------------------------- |
-| `images`  | `string[]`    | `[]`      | Array of image URLs for the trail                           |
-| `variant` | `VariantType` | `'type1'` | Animation variant (`type1` through `type8`, or `pixelated`) |
-| `class`   | `string`      | `''`      | Additional CSS classes for the container                    |
+| Prop      | Type          | Default   | Description                              |
+| --------- | ------------- | --------- | ---------------------------------------- |
+| `images`  | `string[]`    | `[]`      | Array of image URLs for the trail        |
+| `variant` | `VariantType` | `'type1'` | Animation variant (see the table below)  |
+| `class`   | `string`      | `''`      | Additional CSS classes for the container |
 
 ## Variants
 
-| Variant     | Description                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `type1`     | Basic fade & scale trail                                                                                                 |
-| `type2`     | Scale-up with brightness burst                                                                                           |
-| `type3`     | Float-up exit with random x drift                                                                                        |
-| `type4`     | Momentum-based drift with brightness/contrast                                                                            |
-| `type5`     | Rotation + momentum fling                                                                                                |
-| `type6`     | Speed-reactive size, blur, grayscale                                                                                     |
-| `type7`     | Stacking trail with visible queue                                                                                        |
-| `type8`     | 3D perspective based on cursor position                                                                                  |
-| `pixelated` | Hard pop-in/pop-out (no easing tails), `image-rendering: pixelated`, 2px `#191308` border — for hard-edge art directions |
+| Variant      | Description                                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `type1`      | Basic fade & scale trail                                                                                                 |
+| `type2`      | Scale-up with brightness burst                                                                                           |
+| `type3`      | Float-up exit with random x drift                                                                                        |
+| `type4`      | Momentum-based drift with brightness/contrast                                                                            |
+| `type5`      | Rotation + momentum fling                                                                                                |
+| `type6`      | Speed-reactive size, blur, grayscale                                                                                     |
+| `type7`      | Stacking trail with visible queue                                                                                        |
+| `type8`      | 3D perspective based on cursor position                                                                                  |
+| `pixelated`  | Hard pop-in/pop-out (no easing tails), `image-rendering: pixelated`, 2px `#191308` border — for hard-edge art directions |
+| `scale`      | Pops in with a bouncy scale and a slight tilt, then shrinks away behind the cursor                                       |
+| `fall`       | Springs in, spins, and drops out through the bottom edge                                                                 |
+| `gravity`    | Cascades from the cursor, is thrown sideways by the pointer, lands on the bottom edge and bounces twice                  |
+| `flame`      | Flickers in and rises as it burns away; the faster the pointer, the wilder the tilt                                      |
+| `venetian`   | Opens slat by slat, top to bottom, and closes in reverse                                                                 |
+| `curtain`    | Vertical strips open from their centre line, middle first                                                                |
+| `hexagon`    | A honeycomb of cells grows from the centre out                                                                           |
+| `liquid`     | Blobs of the picture swell and merge                                                                                     |
+| `zoom-split` | Four quadrants fly out of the centre point                                                                               |
+
+`fall` and `gravity` measure the container's height: give the container a height and `overflow-hidden` so falling images leave through its bottom edge. The five reveals draw the picture from fragments (`.content__img-frag`) that are removed when the variant changes or the component unmounts.
 
 ## Dependencies
 

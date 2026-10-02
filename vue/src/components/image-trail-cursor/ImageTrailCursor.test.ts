@@ -3,6 +3,7 @@ import { afterEach, describe, it, expect } from "vitest";
 import { createSSRApp } from "vue";
 import { renderToString } from "vue/server-renderer";
 import ImageTrailCursor from "./ImageTrailCursor.vue";
+import { revealFragments, type RevealPattern, type VariantType } from "./trail-variants.js";
 
 describe("ImageTrailCursor", () => {
 	afterEach(cleanup);
@@ -95,4 +96,25 @@ describe("ImageTrailCursor", () => {
 		expect(img.style.borderStyle).toBe("solid");
 		expect(img.style.borderColor).toBe("rgb(25, 19, 8)"); // #191308
 	});
+});
+
+const PATTERNS: RevealPattern[] = ["venetian", "curtain", "hexagon", "liquid", "zoom-split"];
+
+describe("new variants", () => {
+	afterEach(cleanup);
+
+	it.each(["scale", "fall", "gravity", "flame", ...PATTERNS] as VariantType[])(
+		"%s mounts, and switching back to type1 leaves no fragments",
+		async (variant) => {
+			const { container, rerender } = render(ImageTrailCursor, {
+				props: { images: ["/a.jpg", "/b.jpg"], variant },
+			});
+			const expected = (PATTERNS as string[]).includes(variant)
+				? revealFragments(variant as RevealPattern).length * 2
+				: 0;
+			expect(container.querySelectorAll(".content__img-frag")).toHaveLength(expected);
+			await rerender({ images: ["/a.jpg", "/b.jpg"], variant: "type1" });
+			expect(container.querySelectorAll(".content__img-frag")).toHaveLength(0);
+		}
+	);
 });
