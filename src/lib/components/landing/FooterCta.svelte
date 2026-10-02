@@ -3,7 +3,7 @@
 	import GitHubStars from "$lib/components/docs/GitHubStars.svelte";
 	import { Button } from "$lib/fancy-ui";
 	import Logo from "$lib/components/Logo.svelte";
-	import { GITHUB_URL } from "$lib/site.js";
+	import { GITHUB_URL, REACT_PACKAGE_URL } from "$lib/site.js";
 
 	const DEMO_URL = "/docs/components";
 	const DOCS_URL = "/docs";
@@ -24,6 +24,7 @@
 				title: "Resources",
 				links: [
 					{ label: "Theme Generator", href: `${DOCS_URL}/getting-started/theme-generator` },
+					{ label: "React package", href: REACT_PACKAGE_URL, external: true },
 					{ label: "llms.txt", href: "/llms.txt" },
 					{ label: "GitHub", href: GITHUB_URL, external: true },
 					{ label: "Changelog", href: `${DOCS_URL}/getting-started/changelog` },
@@ -56,6 +57,7 @@
 	<img>.
 -->
 <section
+	aria-label="Get started"
 	class="relative bg-[linear-gradient(to_bottom,var(--lp-bg,#08080d),#08080d_120px,#000_100%)]"
 >
 	<SynthwaveScene />
@@ -129,7 +131,7 @@
 					<span>FancyUI</span>
 				</span>
 				<span class="text-[13px] leading-relaxed text-[#9aa3b2]">
-					A modern component library for Svelte 5.
+					Animated components for Svelte 5 and React.
 				</span>
 				<a
 					href={GITHUB_URL}
