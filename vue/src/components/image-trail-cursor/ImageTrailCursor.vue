@@ -3,7 +3,7 @@ import type { HTMLAttributes } from "vue";
 import type { VariantType } from "./trail-variants.js";
 
 /**
- * ImageTrailCursor - Cursor-following image trail with 9 animation variants.
+ * ImageTrailCursor - Cursor-following image trail with 18 animation variants.
  *
  * The trail images are rendered by the template; the motion is driven
  * imperatively by a variant class that owns its own pointer listeners, rAF
@@ -13,7 +13,12 @@ import type { VariantType } from "./trail-variants.js";
 export interface ImageTrailCursorProps {
 	/** Array of image URLs for the trail */
 	images?: string[];
-	/** Animation variant (`type1` through `type8`, or `pixelated`) */
+	/**
+	 * Animation variant: `type1` through `type8`, `pixelated`, the physical
+	 * `scale` / `fall` / `gravity` / `flame`, or the fragment reveals
+	 * `venetian` / `curtain` / `hexagon` / `liquid` / `zoom-split`. `fall` and
+	 * `gravity` measure the container's height.
+	 */
 	variant?: VariantType;
 	/** Additional CSS classes for the container */
 	class?: HTMLAttributes["class"];
@@ -40,7 +45,8 @@ let currentInstance: ImageTrailVariant | null = null;
  * Clears the inline styles the animation library wrote on the trail elements
  * so a newly constructed variant starts from the stylesheet's own values. The
  * inner element's `background-image` is written by the render, not by the
- * animation, so it is restored after the wipe.
+ * animation, so it is restored after the wipe. Fragment children a reveal
+ * variant appended are removed too.
  */
 function resetImageStyles() {
 	const container = containerRef.value;
@@ -48,6 +54,8 @@ function resetImageStyles() {
 	const imgEls = container.querySelectorAll<HTMLDivElement>(".content__img");
 	for (const el of imgEls) {
 		el.style.cssText = "";
+		// reveal variants add fragment children; drop any left behind
+		for (const frag of el.querySelectorAll(".content__img-frag")) frag.remove();
 		const inner = el.querySelector<HTMLDivElement>(".content__img-inner");
 		if (inner) {
 			// Preserve background-image set by the render, only clear animation residue

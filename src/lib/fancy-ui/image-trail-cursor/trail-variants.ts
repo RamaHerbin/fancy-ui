@@ -283,7 +283,7 @@ abstract class BaseVariant implements ImageTrailVariant {
 	protected abstract showNextImage(): void;
 
 	/** Advance to the next image in the ring. */
-	protected nextImage(): ImageItem {
+	protected nextImage(): ImageItem | undefined {
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
 		return this.images[this.imgPosition];
 	}
@@ -1008,6 +1008,7 @@ export class ImageTrailVariantScale extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		const img = this.nextImage();
+		if (!img) return;
 		const w = img.rect?.width ?? 0;
 		const h = img.rect?.height ?? 0;
 
@@ -1039,6 +1040,7 @@ export class ImageTrailVariantFall extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		const img = this.nextImage();
+		if (!img) return;
 		const w = img.rect?.width ?? 0;
 		const h = img.rect?.height ?? 0;
 		const floor = this.container.getBoundingClientRect().height;
@@ -1073,6 +1075,7 @@ export class ImageTrailVariantGravity extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		const img = this.nextImage();
+		if (!img) return;
 		const w = img.rect?.width ?? 0;
 		const h = img.rect?.height ?? 0;
 		const height = this.container.getBoundingClientRect().height;
@@ -1129,6 +1132,7 @@ export class ImageTrailVariantFlame extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		const img = this.nextImage();
+		if (!img) return;
 		const w = img.rect?.width ?? 0;
 		const h = img.rect?.height ?? 0;
 		const { dx, dy } = this.getTouchVelocity();
@@ -1331,6 +1335,7 @@ export class ImageTrailVariantReveal extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		const img = this.nextImage();
+		if (!img) return;
 		const w = img.rect?.width ?? 0;
 		const h = img.rect?.height ?? 0;
 		const frags = [...img.DOM.el.querySelectorAll<HTMLDivElement>(`.${FRAG_CLASS}`)];
@@ -1352,7 +1357,7 @@ export class ImageTrailVariantReveal extends BaseVariant {
 			})
 			.to(img.DOM.el, { scale: 1, duration: 0.5, ease: "power3.out" }, 0);
 		frags.forEach((frag, i) => {
-			const f = this.fragments[i];
+			const f = this.fragments[i]!;
 			tl.fromTo(
 				frag,
 				{ clipPath: f.closed },
