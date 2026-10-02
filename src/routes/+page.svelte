@@ -13,6 +13,7 @@
 		DEFAULT_OG_IMAGE,
 		LICENSE_URL,
 		PACKAGE_NAME,
+		REACT_PACKAGE_NAME,
 		SCHEMA_APP_ID,
 		SCHEMA_WEBSITE_ID,
 		SITE_DESCRIPTION,
@@ -23,7 +24,7 @@
 
 	let searchOpen = $state(false);
 
-	const description = `${COMPONENT_COUNT} animated, beautiful UI components for Svelte 5. Built with Tailwind CSS v4 and TypeScript.`;
+	const description = `${COMPONENT_COUNT} animated UI components for Svelte 5, with a React package alongside. Built with Tailwind CSS v4 and TypeScript.`;
 
 	/**
 	 * Site-level graph, emitted once from the home page. Both nodes carry a
@@ -44,7 +45,7 @@
 				"@type": "SoftwareApplication",
 				"@id": SCHEMA_APP_ID,
 				name: SITE_NAME,
-				alternateName: PACKAGE_NAME,
+				alternateName: [PACKAGE_NAME, REACT_PACKAGE_NAME],
 				applicationCategory: "DeveloperApplication",
 				operatingSystem: "Web",
 				description: SITE_DESCRIPTION,
@@ -62,7 +63,7 @@
 	};
 </script>
 
-<Seo title="FancyUI — Animated components for Svelte 5" {description} path="/" />
+<Seo title="FancyUI — Animated components for Svelte 5 and React" {description} path="/" />
 <JsonLd data={graph} />
 
 <!--

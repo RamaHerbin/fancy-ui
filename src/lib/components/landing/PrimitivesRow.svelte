@@ -33,7 +33,7 @@
 		<a
 			href="/docs/components/{slug}"
 			class="lp-link ml-auto shrink-0"
-			style="color:var(--lp-grey-5)"
+			style="color:var(--lp-grey-3)"
 			aria-label="View {name.toLowerCase()} docs"
 			><span class="hidden 2xl:inline">View docs </span>↗</a
 		>
@@ -90,9 +90,11 @@
 	<!-- 09 — Notification -->
 	<div class="lp-cell">
 		{@render cellLabel("09", "NOTIFICATION", "switch")}
-		<span class="flex flex-1 items-center gap-3">
-			<Switch bind:checked={notify} label="Push notifications" />
-			<span class="text-[13px]" style="color:var(--lp-grey-1)">Push notifications</span>
+		<!-- The visible text is the switch's own label (children), so clicking it toggles too. -->
+		<span class="flex flex-1 items-center">
+			<Switch bind:checked={notify}>
+				<span class="text-[13px]" style="color:var(--lp-grey-1)">Push notifications</span>
+			</Switch>
 		</span>
 	</div>
 

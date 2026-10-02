@@ -19,15 +19,26 @@
 		hint?: string;
 		/** What the ⧉ button puts on the clipboard. */
 		copyText: string;
-		/** Compact header drops the hint and tightens the trailing cells. */
+		/** Compact header drops the hint and the framework badge, and tightens the trailing cells. */
 		compact?: boolean;
 		/** Footer coordinate readout: x-only (tall hero panel) or x+y. */
 		coords?: "x" | "xy";
+		/** The hero panel precedes the first section heading, so it is an h2. */
+		headingLevel?: 2 | 3;
 		children?: Snippet;
 	}
 
-	let { index, title, slug, hint, copyText, compact = false, coords = "xy", children }: Props =
-		$props();
+	let {
+		index,
+		title,
+		slug,
+		hint,
+		copyText,
+		compact = false,
+		coords = "xy",
+		headingLevel = 3,
+		children,
+	}: Props = $props();
 
 	let copied = $state(false);
 	let resetTimer: ReturnType<typeof setTimeout> | undefined;
@@ -46,27 +57,28 @@
 
 <div class="flex h-full min-w-0 flex-col">
 	<div class="lp-panel-head">
-		<span class="flex min-w-0 items-center px-4" style="color:var(--lp-grey-1)"
-			><span class="truncate whitespace-nowrap">{index} — {title}</span></span
+		<svelte:element
+			this="h{headingLevel}"
+			class="flex min-w-0 items-center px-4 font-normal"
+			style="color:var(--lp-grey-1)"
 		>
+			<span class="truncate whitespace-nowrap">{index} — {title}</span>
+		</svelte:element>
 		{#if hint}
 			<span
 				class="hidden flex-1 items-center justify-center sm:flex"
-				style="color:var(--lp-grey-4)">{hint}</span
+				style="color:var(--lp-grey-3)">{hint}</span
 			>
 		{:else}
 			<span class="flex-1"></span>
 		{/if}
 		<span
-			class="lp-line hidden items-center gap-[7px] border-l whitespace-nowrap sm:flex {compact
-				? 'px-3'
-				: 'px-3.5'}"
+			class="lp-line hidden items-center gap-[7px] border-l px-3.5 whitespace-nowrap {compact
+				? ''
+				: 'sm:flex'}"
 			style="color:var(--lp-grey-2)"
-		>
-			<span
-				class="inline-flex h-3 w-3 items-center justify-center rounded-full border text-[7.5px]"
-				style="border-color:var(--lp-grey-4)">S</span
-			>Svelte</span
+			title="Ships for Svelte and React"
+			>Svelte · React</span
 		>
 		<a
 			href="/docs/components/{slug}"
@@ -85,11 +97,12 @@
 		>
 			{#if copied}✓{:else if compact}⧉{:else}<span class="hidden sm:inline">Copy</span> ⧉{/if}
 		</button>
+		<span class="sr-only" aria-live="polite">{copied ? `Copied import for ${title}` : ""}</span>
 	</div>
 
 	{@render children?.()}
 
-	<div class="lp-panel-foot">
+	<div class="lp-panel-foot" aria-hidden="true">
 		{#if coords === "x"}
 			<span>X — 000</span>
 			<span class="flex items-center gap-3.5"

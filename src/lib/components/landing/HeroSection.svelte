@@ -13,22 +13,27 @@
 	// back until the browser is idle so it never competes with first paint, and skip
 	// it entirely for visitors who asked for less motion.
 	let showFluidCursor = $state(false);
+	let reducedMotion = $state(false);
 
 	onMount(() => {
-		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+			reducedMotion = true;
+			return;
+		}
 
 		if ("requestIdleCallback" in window) {
-			requestIdleCallback(
+			const id = requestIdleCallback(
 				() => {
 					showFluidCursor = true;
 				},
 				{ timeout: 200 }
 			);
-		} else {
-			setTimeout(() => {
-				showFluidCursor = true;
-			}, 100);
+			return () => cancelIdleCallback(id);
 		}
+		const id = setTimeout(() => {
+			showFluidCursor = true;
+		}, 100);
+		return () => clearTimeout(id);
 	});
 </script>
 
@@ -41,7 +46,8 @@
 	/>
 </svelte:head>
 
-<section class="lp-line grid border-b lg:h-[438px] lg:grid-cols-[38fr_62fr]">
+<!-- min-h, not h: at 200% text zoom the copy column grows the row instead of clipping. -->
+<section class="lp-line grid border-b lg:min-h-[438px] lg:grid-cols-[38fr_62fr]">
 	<!-- Copy column -->
 	<div class="flex flex-col overflow-hidden px-6 pt-9 pb-10 sm:px-10 lg:pr-10 lg:pb-0 lg:pl-[46px]">
 		<span
@@ -55,8 +61,8 @@
 		>
 			Interfaces <br />that feel <br /><span class="serif-accent">alive.</span>
 		</h1>
-		<p class="mt-4 max-w-[310px] text-[15.5px] leading-[1.5]" style="color:#a09f9a">
-			Open-source Svelte components for expressive, motion-first interfaces.
+		<p class="mt-4 max-w-[310px] text-[15.5px] leading-[1.5]" style="color:var(--lp-grey-2)">
+			Open-source Svelte and React components for expressive, motion-first interfaces.
 		</p>
 		<div class="mt-[22px] flex flex-wrap gap-3.5">
 			<Button href="/docs/components" size="lg">
@@ -82,12 +88,14 @@
 			slug="fluid-cursor"
 			hint="MOVE TO EXPLORE"
 			coords="x"
+			headingLevel={2}
 			copyText={`import { FluidCursor } from "${PACKAGE_NAME}";`}
 		>
 			<div class="relative flex min-h-[300px] flex-1 lg:min-h-0">
 				<!-- Vertical axis ruler -->
 				<div
 					class="lp-line hidden w-[25px] flex-none flex-col items-center justify-between border-r py-3 lg:flex"
+					aria-hidden="true"
 				>
 					<span class="lp-ruler">Y — 000</span>
 					<span class="lp-ruler">Y — 500</span>
@@ -110,10 +118,24 @@
 							<span class="lp-tick top-1/2 right-0 h-[1.5px] w-[9px] -translate-y-1/2"></span>
 						</span>
 						<span class="flex flex-col items-center gap-2.5">
-							<span class="lp-mono text-[15px] tracking-[0.14em]">MOVE YOUR CURSOR HERE</span>
-							<span class="lp-mono text-[11px] tracking-[0.2em]" style="color:var(--lp-grey-4)"
-								>TO ACTIVATE FLUID</span
-							>
+							{#if reducedMotion}
+								<!-- The simulation is skipped for reduced motion: say so
+								     rather than promise a reaction that never comes. -->
+								<span class="lp-mono text-[15px] tracking-[0.14em]">FLUID PAUSED</span>
+								<span class="lp-mono text-[11px] tracking-[0.2em]" style="color:var(--lp-grey-3)"
+									>REDUCED MOTION IS ON</span
+								>
+							{:else}
+								<span class="lp-mono lp-hint-pointer text-[15px] tracking-[0.14em]"
+									>MOVE YOUR CURSOR HERE</span
+								>
+								<span class="lp-mono lp-hint-touch text-[15px] tracking-[0.14em]"
+									>DRAG ACROSS THE PANEL</span
+								>
+								<span class="lp-mono text-[11px] tracking-[0.2em]" style="color:var(--lp-grey-3)"
+									>TO ACTIVATE FLUID</span
+								>
+							{/if}
 						</span>
 					</div>
 				</div>
