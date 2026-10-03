@@ -130,6 +130,7 @@
 		"@types/canvas-confetti": "^1.9.0",
 		"@types/node": "^25.2.3",
 		"@types/three": "^0.183.1",
+		"@typesafe-ai/sdk": "0.6.0",
 		"@vercel/analytics": "^2.0.1",
 		"@webgpu/types": "^0.1.71",
 		"arctic": "^3.7.0",
