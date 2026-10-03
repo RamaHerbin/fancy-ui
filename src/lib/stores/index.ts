@@ -42,8 +42,29 @@ export {
 } from "./skin.svelte.js";
 
 export {
+	// Types
+	type StorageStatus,
+	// Functions
 	isSaved,
 	toggleSaved,
 	clearSaved,
 	createSavedState,
-} from "./finds-saved.svelte.js";
+	parseSavedPayload,
+	SAVED_STORAGE_KEY,
+	LEGACY_SAVED_KEY,
+} from "./saved.svelte.js";
+
+export {
+	type Framework,
+	getFramework,
+	setFramework,
+	createFrameworkState,
+} from "./framework.svelte.js";
+
+export {
+	type Motion,
+	getMotion,
+	setMotion,
+	toggleMotion,
+	createMotionState,
+} from "./motion.svelte.js";

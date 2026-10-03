@@ -1,0 +1,142 @@
+{
+	"agent-plan": {
+		"width": 720,
+		"height": 450
+	},
+	"animated-beam": {
+		"width": 720,
+		"height": 450
+	},
+	"border-beam": {
+		"width": 720,
+		"height": 450
+	},
+	"card-spotlight": {
+		"width": 720,
+		"height": 450
+	},
+	"compare-drag": {
+		"width": 720,
+		"height": 450
+	},
+	"datamosh-page": {
+		"width": 720,
+		"height": 450
+	},
+	"dock-magnify": {
+		"width": 720,
+		"height": 450
+	},
+	"flip-card": {
+		"width": 720,
+		"height": 450
+	},
+	"fluid-cursor": {
+		"width": 720,
+		"height": 450
+	},
+	"frosted-glass": {
+		"width": 720,
+		"height": 450
+	},
+	"glow-border": {
+		"width": 720,
+		"height": 450
+	},
+	"gradient-button": {
+		"width": 720,
+		"height": 450
+	},
+	"hover-button-roll": {
+		"width": 720,
+		"height": 450
+	},
+	"liquid-glass": {
+		"width": 720,
+		"height": 450
+	},
+	"liquid-text": {
+		"width": 720,
+		"height": 450
+	},
+	"magnetic-button": {
+		"width": 720,
+		"height": 450
+	},
+	"meteors": {
+		"width": 720,
+		"height": 450
+	},
+	"mosaic-glow": {
+		"width": 720,
+		"height": 450
+	},
+	"neon-border": {
+		"width": 720,
+		"height": 450
+	},
+	"password-strength": {
+		"width": 720,
+		"height": 450
+	},
+	"presence-toggle": {
+		"width": 720,
+		"height": 450
+	},
+	"pressable-scale": {
+		"width": 720,
+		"height": 450
+	},
+	"pulse-beam": {
+		"width": 720,
+		"height": 450
+	},
+	"reasoning-panel": {
+		"width": 720,
+		"height": 450
+	},
+	"reveal-stagger": {
+		"width": 720,
+		"height": 450
+	},
+	"ripple-button": {
+		"width": 720,
+		"height": 450
+	},
+	"scroll-progress-inline": {
+		"width": 720,
+		"height": 450
+	},
+	"shimmer-button": {
+		"width": 720,
+		"height": 450
+	},
+	"slider-drag": {
+		"width": 720,
+		"height": 450
+	},
+	"status-morph": {
+		"width": 720,
+		"height": 450
+	},
+	"streaming-text": {
+		"width": 720,
+		"height": 450
+	},
+	"switch-thumb": {
+		"width": 720,
+		"height": 450
+	},
+	"tabs-indicator": {
+		"width": 720,
+		"height": 450
+	},
+	"text-roll": {
+		"width": 720,
+		"height": 450
+	},
+	"thinking-indicator": {
+		"width": 720,
+		"height": 450
+	}
+}
