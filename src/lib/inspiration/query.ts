@@ -188,13 +188,45 @@ function matchesFacet(values: readonly string[], have: readonly string[]): boole
 	return values.length === 0 || values.some((value) => have.includes(value));
 }
 
+/** Words that carry no meaning in a gallery search ("a button that glows"). */
+const STOPWORDS = new Set(
+	"a an the that which with for of to on in into and or when i my me it its is are be by as at this these those something some like".split(
+		" "
+	)
+);
+
+/** Plain-English endings, so "glowing", "glows" and "glowed" all find "glow". */
+function stem(word: string): string {
+	for (const suffix of ["ing", "ed", "es", "s"]) {
+		if (word.length > suffix.length + 2 && word.endsWith(suffix))
+			return word.slice(0, -suffix.length);
+	}
+	return word;
+}
+
+/**
+ * The search terms of a query: lower-cased words, stop words dropped. Every
+ * term must appear (AND), each one either as typed or by its stem, so a
+ * sentence finds what a single keyword would.
+ */
+export function searchTerms(q: string): string[] {
+	return q
+		.toLowerCase()
+		.split(/[^\p{L}\p{N}-]+/u)
+		.filter((word) => word.length > 0 && !STOPWORDS.has(word));
+}
+
+function matchesText(text: string, terms: readonly string[]): boolean {
+	return terms.every((term) => text.includes(term) || text.includes(stem(term)));
+}
+
 export function matches(
 	entry: Reference,
 	filters: Filters,
 	frameworksOf: FrameworkIndex = defaultFrameworkIndex
 ): boolean {
-	const q = filters.q.trim().toLowerCase();
-	if (q && !haystack(entry).includes(q)) return false;
+	const terms = searchTerms(filters.q);
+	if (terms.length > 0 && !matchesText(haystack(entry), terms)) return false;
 	if (!matchesFacet(filters.origin, [entry.origin])) return false;
 	if (!matchesFacet(filters.kind, [entry.kind])) return false;
 	if (!matchesFacet(filters.interaction, entry.interactionTags)) return false;
