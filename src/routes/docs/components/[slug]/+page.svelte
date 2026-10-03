@@ -315,7 +315,7 @@
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="installation">
 			{t("comp.installation")}
 		</h2>
-		<InstallBlock componentImport={"{ " + importList + " }"} />
+		<InstallBlock componentImport={"{ " + importList + " }"} variants={data.variants} />
 	</section>
 
 	<!-- ═══ USAGE ═══ -->

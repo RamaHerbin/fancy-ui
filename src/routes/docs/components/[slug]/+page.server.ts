@@ -1,5 +1,6 @@
 import { getComponent } from "$lib/fancy-ui/registry.js";
 import { importNames, reactImportNames } from "$lib/server/llms.js";
+import { variantsFor } from "$lib/server/variants.js";
 import type { PageServerLoad } from "./$types";
 
 // Resolved on the server (prerendered): the export names come from the package
@@ -9,5 +10,6 @@ export const load: PageServerLoad = ({ params }) => {
 	return {
 		importNames: component ? importNames(component) : [params.slug],
 		reactImportNames: component ? reactImportNames(component) : null,
+		variants: variantsFor(params.slug),
 	};
 };
