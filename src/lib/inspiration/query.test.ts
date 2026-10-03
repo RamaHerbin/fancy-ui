@@ -7,6 +7,7 @@ import {
 	facetCounts,
 	hasActiveFilters,
 	parseFilters,
+	searchTerms,
 	serializeFilters,
 	toggleFacet,
 	type Filters,
@@ -217,5 +218,16 @@ describe("facetCounts", () => {
 			"open-source",
 			"unknown",
 		]);
+	});
+});
+
+describe("searchTerms / sentence search", () => {
+	it("drops stop words, splits on punctuation and strips plurals", () => {
+		expect(searchTerms("A button that glows, on hover!")).toEqual(["button", "glow", "hover"]);
+	});
+
+	it("matches every term, by the word or its stem", () => {
+		expect(applyFilters(entries, { ...EMPTY_FILTERS, q: "glowing radial" })).toHaveLength(2);
+		expect(applyFilters(entries, { ...EMPTY_FILTERS, q: "glowing radial zebra" })).toHaveLength(0);
 	});
 });

@@ -61,7 +61,7 @@
 
 		<GlassPanel class="panel" seed={1} {paused}>
 			<div class="panel-body">
-				<SearchGlow seed={2} />
+				<SearchGlow seed={2} interpret />
 				<ul class="suggestions">
 					{#each NEEDS as phrase (phrase)}
 						<li>
