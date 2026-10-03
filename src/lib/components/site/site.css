@@ -1,0 +1,129 @@
+/**
+ * Site shell tokens — the "lit from the rim" direction for the home page and
+ * the Inspiration pages.
+ *
+ * Usage: wrap the route in `<div class="fx-root dark">`. Both classes are
+ * required. `.fx-root` carries the tokens below; `.dark` switches the shadcn
+ * theme tokens (and `color-scheme`, which LiquidGlass and Button read through
+ * `light-dark()`) so every library component inside renders its dark branch.
+ * Portalled components (Select, Toast, CommandMenu, Sheet) leave the wrapper:
+ * give them `class="dark"` themselves.
+ *
+ * Every surface token is prefixed `--fx-`: the unprefixed names (`--card`,
+ * `--border`…) are shadcn theme tokens that Tailwind's `bg-card` and the
+ * library read, so reusing them would restyle components by accident. The six
+ * glow hues keep the short `--g-*` names; they are the only colours any
+ * decorative layer may use.
+ */
+
+.fx-root {
+	/* Surfaces, darkest to lightest (about six grey levels per tier). */
+	--fx-canvas: #09090b;
+	--fx-panel-smoke: rgba(20, 20, 26, 0.56);
+	--fx-panel-solid: #111116;
+	--fx-card: #0f0f12;
+	--fx-card-raised: #15151a;
+	--fx-field: rgba(11, 11, 14, 0.6);
+
+	/* Edges. Surfaces draw them as `box-shadow: inset 0 0 0 1px`, not as a
+	   border, so a RimLight overlay sits exactly on top of the hairline. */
+	--fx-hairline: rgba(242, 241, 236, 0.1);
+	--fx-hairline-strong: rgba(242, 241, 236, 0.18);
+
+	/* Ink ramp. Contrast on --fx-canvas: 17.6 / 8.25 / 6.06 / 4.77 : 1
+	   (--fx-ink-4 is 4.57 : 1 on --fx-card). --fx-ink-4 is the dimmest text
+	   allowed: secondary glyphs and mono captions, never body copy. */
+	--fx-ink: #f2f1ec;
+	--fx-ink-2: #a8a7a1;
+	--fx-ink-3: #8f8e89;
+	--fx-ink-4: #7d7c77;
+
+	/* Glow palette. Arcs run cyan → blue → violet → magenta with one accent
+	   (green or amber) capped at 8 % of the arc. */
+	--g-cyan: #22d3ee;
+	--g-blue: #3b6bff;
+	--g-violet: #8b5cf6;
+	--g-magenta: #e040fb;
+	--g-green: #34d399;
+	--g-amber: #f5b544;
+
+	--fx-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+	--fx-font-sans: "Geist", -apple-system, "Segoe UI", system-ui, sans-serif;
+	--fx-font-mono: "Geist Mono", ui-monospace, Menlo, monospace;
+	--fx-font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+
+	/* Library components (Slider, Switch, Tabs, Button accent…) derive their
+	   fill from --ft-accent when it is set; on these pages that is the ink. */
+	--ft-accent: var(--fx-ink);
+
+	background: var(--fx-canvas);
+	color: var(--fx-ink);
+	font-family: var(--fx-font-sans);
+}
+
+/* The library's theme tokens, retargeted to the shell inside it. Library
+   components (and Tailwind's `text-muted-foreground`, `bg-card`, `font-sans`…)
+   read these, and `.dark` would otherwise colour them slate-blue on
+   oklch(0.05). Doubled selectors so they win over `.dark` whatever the
+   stylesheet order, including a `.dark` nested inside the shell. Tailwind's
+   @theme itself is untouched. */
+.fx-root.fx-root,
+.fx-root .dark {
+	--background: var(--fx-canvas);
+	--foreground: var(--fx-ink);
+	--card: var(--fx-card);
+	--card-foreground: var(--fx-ink);
+	--popover: var(--fx-card-raised);
+	--popover-foreground: var(--fx-ink);
+	--primary: var(--fx-ink);
+	--primary-foreground: var(--fx-canvas);
+	--secondary: var(--fx-card-raised);
+	--secondary-foreground: var(--fx-ink);
+	--muted: var(--fx-card-raised);
+	--muted-foreground: var(--fx-ink-3);
+	--accent: var(--fx-card-raised);
+	--accent-foreground: var(--fx-ink);
+	--border: var(--fx-hairline);
+	--input: var(--fx-hairline-strong);
+	--ring: var(--fx-ink-3);
+	--font-sans: var(--fx-font-sans);
+	--font-mono: var(--fx-font-mono);
+}
+
+.fx-root :where(code, kbd, pre, samp) {
+	font-family: var(--fx-font-mono);
+}
+
+/* The Slider ships a two-hue fill (purple → cyan); the second stop is declared
+   on the control itself, so it is retargeted here rather than through
+   --ft-accent, with a doubled class to outrank the component's scoped rule. */
+.fx-root.fx-root .ft-slider-wrap {
+	--ft-slider-accent-end: var(--ft-slider-accent);
+}
+
+.fx-mono {
+	font-family: var(--fx-font-mono);
+}
+
+.fx-hairline {
+	box-shadow: inset 0 0 0 1px var(--fx-hairline);
+}
+
+/* Glow is decoration, never the focus indicator: every focusable element gets
+   the same 1px ivory ring, glow or not. Unlayered, so it wins over the
+   `focus-visible:outline-none` utilities some library components carry. */
+.fx-root :focus-visible {
+	outline: 1px solid var(--fx-ink);
+	outline-offset: 2px;
+}
+
+/* The visitor's "pause decorative motion" switch (see stores/motion.svelte.ts).
+   Scoped to layers this shell marks `data-decorative`, never global: a global
+   rule would freeze entrance keyframes on their first, invisible frame. */
+html[data-motion="paused"] .fx-root [data-decorative],
+html[data-motion="paused"] .fx-root [data-decorative] *,
+html[data-motion="paused"] .fx-root [data-decorative]::before,
+html[data-motion="paused"] .fx-root [data-decorative]::after {
+	animation-play-state: paused !important;
+}
