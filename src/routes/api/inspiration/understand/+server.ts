@@ -28,7 +28,15 @@ const cache = new Map<string, Understanding>();
 let client: SystemOneClient | null = null;
 function getClient(): SystemOneClient | null {
 	if (!env.TYPESAFE_API_KEY) return null;
-	client ??= new TypeSafeClient({ apiKey: env.TYPESAFE_API_KEY, logLevel: "error" });
+	// Any provider of the same wire API works: TypeSafe by default, or e.g. an
+	// open-model host via TYPESAFE_BASE_URL + TYPESAFE_MODEL. Read through
+	// $env so values from .env apply in dev too (the SDK only sees process.env).
+	client ??= new TypeSafeClient({
+		apiKey: env.TYPESAFE_API_KEY,
+		...(env.TYPESAFE_BASE_URL ? { baseURL: env.TYPESAFE_BASE_URL } : {}),
+		...(env.TYPESAFE_MODEL ? { defaultModel: env.TYPESAFE_MODEL } : {}),
+		logLevel: "error",
+	});
 	return client;
 }
 
