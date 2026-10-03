@@ -19,50 +19,10 @@ import { examplesRegistry } from "$lib/components/docs/examples/registry.js";
 import { toConsumerImports } from "$lib/docs/code.js";
 import { SITE_URL, GITHUB_URL } from "$lib/site.js";
 import type { ComponentMeta } from "$lib/types.js";
+import { svelteExportsBySlug, reactExportsBySlug } from "./barrels.js";
 
-// Map slug → actual runtime exports of each component folder, so generated
-// import examples never reference names the package does not export
-// (e.g. card-3d exports CardContainer/CardBody/CardItem, not Card3D).
-const componentModules = import.meta.glob("../fancy-ui/*/index.ts", { eager: true }) as Record<
-	string,
-	Record<string, unknown>
->;
-
-const exportsBySlug = new Map<string, string[]>();
-for (const [path, module] of Object.entries(componentModules)) {
-	const slug = path.split("/").at(-2);
-	if (!slug) continue;
-	exportsBySlug.set(
-		slug,
-		Object.keys(module).filter((name) => /^[A-Z]/.test(name))
-	);
-}
-
-// The React barrels, read as text (never executed: the docs build must not
-// pull React in). Value exports only; `export type` lines are skipped.
-const reactBarrels = import.meta.glob("/react/src/components/*/index.ts", {
-	query: "?raw",
-	import: "default",
-	eager: true,
-}) as Record<string, string>;
-
-const reactExportsBySlug = new Map<string, string[]>();
-for (const [path, src] of Object.entries(reactBarrels)) {
-	const slug = path.split("/").at(-2);
-	if (!slug) continue;
-	const names: string[] = [];
-	for (const m of src.matchAll(/^export\s+\{([^}]+)\}\s+from/gm)) {
-		for (const part of m[1].split(",")) {
-			const name = part
-				.trim()
-				.split(/\s+as\s+/)
-				.at(-1)
-				?.trim();
-			if (name && /^[A-Z]/.test(name)) names.push(name);
-		}
-	}
-	if (names.length) reactExportsBySlug.set(slug, names);
-}
+// Export names per package come from the real barrels (see barrels.ts).
+const exportsBySlug = svelteExportsBySlug;
 
 // Docs example sources, keyed "<slug>/<Name>".
 const exampleFiles = import.meta.glob("../components/docs/examples/*/*.svelte", {
