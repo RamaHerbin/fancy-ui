@@ -77,7 +77,6 @@
 		"check:cores": "node scripts/check-shared-cores.mjs",
 		"check:props": "node scripts/check-prop-parity.mjs --self-test && node scripts/check-prop-parity.mjs",
 		"check:i18n": "node scripts/check-i18n.mjs",
-		"build:assets": "node scripts/build-synthwave-assets.mjs",
 		"build:brand-assets": "node scripts/build-brand-assets.mjs",
 		"build:og": "node scripts/build-og-images.mjs",
 		"build:thumbs": "node scripts/build-component-thumbs.mjs",
@@ -91,7 +90,8 @@
 		"package": "svelte-kit sync && svelte-package -i src/lib -o dist && node -e \"const fs=require('fs'); ['dist/builder','dist/server','dist/stores'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}));\" && publint",
 		"prepublishOnly": "pnpm run package",
 		"storybook": "storybook dev -p 6006",
-		"build-storybook": "storybook build"
+		"build-storybook": "storybook build",
+		"build:inspiration-media": "node scripts/build-inspiration-media.mjs"
 	},
 	"engines": {
 		"node": ">=20.19.0"

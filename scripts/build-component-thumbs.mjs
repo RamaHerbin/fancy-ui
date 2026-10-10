@@ -20,7 +20,8 @@
  *                                          [--theme dark|light]
  *
  * Playwright only encodes PNG/JPEG, so the PNG capture is re-encoded to WebP
- * by Chromium's own canvas encoder in a blank page -- no image dependency.
+ * by Chromium's own canvas encoder in a blank page -- no image dependency
+ * (see scripts/lib/stage-capture.mjs, shared with the Inspiration posters).
  *
  * Animations read the clock, so captures are not byte-stable across runs;
  * regenerate only the slugs that changed with --only. Slugs that cannot be
@@ -35,6 +36,7 @@ import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { applyPointerHint, encodeWebp, newCaptureContext } from "./lib/stage-capture.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
@@ -106,37 +108,6 @@ async function loadRegistry() {
 	}
 }
 
-/** Re-encode a PNG to WebP at the target size, stepping quality down until it fits. */
-async function encodeWebp(encoder, png) {
-	return encoder.evaluate(
-		async ({ b64, width, height, maxBytes, ladder }) => {
-			const img = new Image();
-			img.src = `data:image/png;base64,${b64}`;
-			await img.decode();
-			const canvas = document.createElement("canvas");
-			canvas.width = width;
-			canvas.height = height;
-			const ctx = canvas.getContext("2d");
-			ctx.imageSmoothingQuality = "high";
-			ctx.drawImage(img, 0, 0, width, height);
-			let out = "";
-			for (const q of ladder) {
-				out = canvas.toDataURL("image/webp", q);
-				// base64 inflates by 4/3
-				if (((out.length - 23) * 3) / 4 <= maxBytes) break;
-			}
-			return out.slice(out.indexOf(",") + 1);
-		},
-		{
-			b64: png.toString("base64"),
-			width: OUT_WIDTH,
-			height: OUT_HEIGHT,
-			maxBytes: MAX_BYTES,
-			ladder: QUALITY_LADDER,
-		}
-	);
-}
-
 async function capture(page, encoder, base, slug) {
 	const hint = THUMB_HINTS[slug] ?? {};
 	await page.goto(`${base}/docs/components/${slug}`, { waitUntil: "load", timeout: 60_000 });
@@ -186,24 +157,15 @@ async function capture(page, encoder, base, slug) {
 		}
 	});
 
-	// Pointer-driven demos: rest on a point, or sweep across the stage so a
-	// trail is mid-flight when the frame is taken.
-	const box = await stage.boundingBox();
-	if (box && (hint.hover || hint.sweep)) {
-		const at = (fx, fy) => [box.x + box.width * fx, box.y + box.height * fy];
-		if (hint.sweep) {
-			await page.mouse.move(...at(0.15, 0.7));
-			await page.mouse.move(...at(0.5, 0.35), { steps: 18 });
-			await page.mouse.move(...at(0.72, 0.55), { steps: 12 });
-		} else {
-			await page.mouse.move(...at(0.2, 0.2));
-			await page.mouse.move(...at(...hint.hover), { steps: 12 });
-			await page.waitForTimeout(350);
-		}
-	}
+	await applyPointerHint(page, stage, hint);
 
 	const png = await stage.screenshot({ type: "png", animations: "allow" });
-	return Buffer.from(await encodeWebp(encoder, png), "base64");
+	return encodeWebp(encoder, png, {
+		width: OUT_WIDTH,
+		height: OUT_HEIGHT,
+		maxBytes: MAX_BYTES,
+		qualityLadder: QUALITY_LADDER,
+	});
 }
 
 function formatBytes(n) {
@@ -247,19 +209,10 @@ async function main() {
 			const outDir = join(outRoot, theme);
 			mkdirSync(outDir, { recursive: true });
 
-			const context = await browser.newContext({
-				deviceScaleFactor: 2,
-				viewport: { width: 1280, height: 900 },
-				colorScheme: theme,
-				reducedMotion: "no-preference",
+			const context = await newCaptureContext(browser, {
+				theme,
+				localStorage: { "fancy-ui-theme": theme },
 			});
-			await context.addInitScript((t) => {
-				try {
-					localStorage.setItem("fancy-ui-theme", t);
-				} catch {
-					/* storage blocked */
-				}
-			}, theme);
 			const encoder = await context.newPage();
 
 			const queue = [...targets];

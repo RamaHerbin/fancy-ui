@@ -1,114 +1,97 @@
-import { render, screen, cleanup, within, fireEvent } from "@testing-library/svelte";
-import { afterEach, describe, it, expect } from "vitest";
+import { render, screen, cleanup, within } from "@testing-library/svelte";
+import { afterEach, beforeAll, describe, it, expect } from "vitest";
 import Page from "../routes/+page.svelte";
+import { load } from "../routes/+page.server.js";
+
+type Data = Awaited<ReturnType<typeof load>> & Record<string, unknown>;
+
+let data: Data;
+
+beforeAll(async () => {
+	// The real prerender data: catalog, collections and framework badges.
+	data = (await load({} as Parameters<typeof load>[0])) as Data;
+});
+
+function renderPage() {
+	return render(Page, { props: { data } as never });
+}
 
 describe("+page.svelte", () => {
 	afterEach(cleanup);
 
 	it("renders the heading", () => {
-		render(Page);
+		renderPage();
 		expect(
 			screen.getByRole("heading", { level: 1, name: /Interfaces\s*that feel\s*alive\./i })
 		).toBeInTheDocument();
 	});
 
-	it("renders the tagline text", () => {
-		render(Page);
+	it("renders the subtitle", () => {
+		renderPage();
+		// The footer repeats the line; the hero's copy is the one in <main>.
 		expect(
-			screen.getByText(/Open-source Svelte and React components for expressive, motion-first interfaces/i)
+			within(screen.getByRole("main")).getByText(
+				/UI inspiration and expressive components for React, Svelte, and Vue/i
+			)
 		).toBeInTheDocument();
 	});
 
-	it("renders the nav links", () => {
-		render(Page);
-		const header = screen.getByRole("banner");
-		for (const label of ["Docs", "Components", "Themes", "Changelog"]) {
-			expect(within(header).getByRole("link", { name: label })).toBeInTheDocument();
+	it("links the two ways in", () => {
+		renderPage();
+		expect(screen.getByRole("link", { name: /Explore inspiration/i })).toHaveAttribute(
+			"href",
+			"/inspiration"
+		);
+		expect(screen.getByRole("link", { name: /Browse components/i })).toHaveAttribute(
+			"href",
+			"/docs/components"
+		);
+	});
+
+	it("prints the component count from the data", () => {
+		renderPage();
+		expect(data.stats.components).toBeGreaterThan(0);
+		expect(
+			screen.getByText(new RegExp(`${data.stats.components} components · React · Svelte · Vue`))
+		).toBeInTheDocument();
+	});
+
+	it("shows six preview cards with sized posters", () => {
+		const { container } = renderPage();
+		const cards = container.querySelectorAll("[data-preview-card]");
+		expect(cards).toHaveLength(6);
+		for (const card of cards) {
+			const img = card.querySelector("img");
+			expect(img).not.toBeNull();
+			expect(Number(img!.getAttribute("width"))).toBeGreaterThan(0);
+			expect(Number(img!.getAttribute("height"))).toBeGreaterThan(0);
 		}
 	});
 
-	it("renders the closing CTA block", () => {
-		render(Page);
-		expect(screen.getByRole("heading", { name: /Ready to build something/i })).toBeInTheDocument();
+	it("nests no interactive element inside another in a card", () => {
+		const { container } = renderPage();
+		const cards = container.querySelectorAll("[data-preview-card]");
+		expect(cards.length).toBeGreaterThan(0);
+		for (const card of cards) {
+			expect(card.querySelector("a a, a button, button a, button button")).toBeNull();
+		}
 	});
 
-	describe("showcase panels", () => {
-		it("names the four signature panels with their docs links", () => {
-			render(Page);
-			// Each panel header carries a "View docs" link pointing at the slug —
-			// the panels are the argument of the page, so their wiring is load-bearing.
-			const slugs = ["fluid-cursor", "image-trail-cursor", "liquid-glass", "rainbow-button"];
-			const links = screen
-				.getAllByRole("link", { name: /view docs/i })
-				.map((a) => a.getAttribute("href"));
-			for (const slug of slugs) {
-				expect(links).toContain(`/docs/components/${slug}`);
-			}
-		});
-
-		it("scrolls the liquid glass backdrop under a pill that stays put", () => {
-			// The panel's whole argument is that the glass refracts what moves
-			// behind it, which needs two things the markup has to keep: a
-			// scrollable backdrop, and the glass OUTSIDE it. jsdom has no layout,
-			// so the structure is what can be asserted — and it is the part a
-			// later edit is most likely to undo by folding the glass back in.
-			const { container } = render(Page);
-			const glass = container.querySelector(".liquid-glass-effect");
-			const panel = glass?.closest(".lp-stage");
-			const scroller = panel?.querySelector(".overflow-y-auto");
-
-			expect(scroller).toBeInTheDocument();
-			expect(scroller?.contains(glass!)).toBe(false);
-		});
-
-		it("holds the fluid cursor back for reduced motion", () => {
-			// jsdom's matchMedia mock (test-setup) reports no preference; the
-			// component additionally waits for idle. Either way, first render
-			// must not include a canvas — the sim never competes with paint.
-			const { container } = render(Page);
-			expect(container.querySelector("canvas")).not.toBeInTheDocument();
-		});
+	it("links three collections into the filtered gallery", () => {
+		const { container } = renderPage();
+		const links = container.querySelectorAll('a[href^="/inspiration?collection="]');
+		expect(links).toHaveLength(3);
 	});
 
-	describe("primitives row", () => {
-		it("renders live primitives, not static mockups", () => {
-			render(Page);
-			// The real components answer to roles: Input → textbox, Select →
-			// combobox, Switch → switch, Slider → slider, Tabs → tablist.
-			expect(screen.getByRole("textbox", { name: /type something/i })).toBeInTheDocument();
-			expect(screen.getByRole("combobox", { name: /select an option/i })).toBeInTheDocument();
-			expect(screen.getByRole("switch", { name: /push notifications/i })).toBeInTheDocument();
-			expect(screen.getByRole("slider", { name: /volume/i })).toBeInTheDocument();
-			expect(screen.getByRole("tablist")).toBeInTheDocument();
-		});
+	it("renders no canvas on first render", () => {
+		const { container } = renderPage();
+		expect(container.querySelector("canvas")).not.toBeInTheDocument();
+	});
 
-		it("switches tabs on click", async () => {
-			render(Page);
-			const emails = screen.getByRole("tab", { name: "Emails" });
-
-			expect(screen.getByRole("tab", { name: "Chats" })).toHaveAttribute("aria-selected", "true");
-
-			await fireEvent.click(emails);
-
-			expect(emails).toHaveAttribute("aria-selected", "true");
-		});
-
-		it("toggles the notification switch", async () => {
-			render(Page);
-			const toggle = screen.getByRole("switch", { name: /push notifications/i });
-
-			expect(toggle).toHaveAttribute("aria-checked", "true");
-
-			await fireEvent.click(toggle);
-
-			expect(toggle).toHaveAttribute("aria-checked", "false");
-		});
-
-		it("shows the verification-code mock digits", () => {
-			render(Page);
-			// Static specimen (no PIN input in the library yet): six digits,
-			// hidden from the accessibility tree.
-			expect(screen.getByText("07 — VERIFICATION CODE")).toBeInTheDocument();
-		});
+	it("offers the framework choice as a radio group", () => {
+		renderPage();
+		const groups = screen.getAllByRole("radiogroup");
+		expect(groups.length).toBeGreaterThan(0);
+		expect(within(groups[0]).getAllByRole("radio")).toHaveLength(3);
 	});
 });
