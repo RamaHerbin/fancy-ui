@@ -113,7 +113,7 @@ function sentence(text: string): string {
 
 const USAGE_GUIDE = `## Setup
 
-Requirements: Svelte 5, Tailwind CSS v4, Node >= 20. Works in any SvelteKit or Vite + Svelte project.
+Requirements: Svelte 5.20+, Tailwind CSS v4, Node 20.19+. Works in any SvelteKit or Vite + Svelte project.
 
 ### Starting a new project
 
@@ -201,6 +201,37 @@ ${GITHUB_URL}/tree/main/react#divergences-from-the-svelte-api
 Package is ESM only, with four entry points: \`fancy-ui-react\`,
 \`fancy-ui-react/cameleon\`, \`fancy-ui-react/styles.css\`, \`fancy-ui-react/tailwind.css\`.`;
 
+const VUE_GUIDE = `## Vue
+
+The same components exist for Vue 3.5+ as \`fancy-ui-vue\`, with the same names
+and visual contract. Only use it when the project is Vue; the Svelte package
+stays the reference.
+
+\`\`\`bash
+npm install fancy-ui-vue
+\`\`\`
+
+\`\`\`css
+/* app.css */
+@import "tailwindcss";
+@import "fancy-ui-vue/tailwind.css";
+@import "fancy-ui-vue/styles.css";
+\`\`\`
+
+\`\`\`vue
+<script setup lang="ts">
+import { RainbowButton } from "fancy-ui-vue";
+</script>
+\`\`\`
+
+Props keep their Svelte names. Snippet props become named slots (the default
+snippet is the default slot); every bindable prop is a \`v-model:<name>\`;
+\`class\` falls through to the root element. Per-component divergences are
+listed in the package README:
+${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api
+Package is ESM only, with four entry points: \`fancy-ui-vue\`,
+\`fancy-ui-vue/cameleon\`, \`fancy-ui-vue/styles.css\`, \`fancy-ui-vue/tailwind.css\`.`;
+
 function header(componentCount: number): string {
 	return `# fancy-ui-svelte
 
@@ -220,6 +251,7 @@ export function generateLlmsTxt(): string {
 		USAGE_GUIDE,
 		"",
 		REACT_GUIDE,
+		VUE_GUIDE,
 		"",
 		"## Components",
 		"",
@@ -272,7 +304,16 @@ function reactLine(component: ComponentMeta): string[] {
  */
 export function generateLlmsFullTxt(): string {
 	const components = doneComponents();
-	const lines: string[] = [header(components.length), "", USAGE_GUIDE, "", REACT_GUIDE, ""];
+	const lines: string[] = [
+		header(components.length),
+		"",
+		USAGE_GUIDE,
+		"",
+		REACT_GUIDE,
+		"",
+		VUE_GUIDE,
+		"",
+	];
 
 	for (const [category, items] of byCategory(components)) {
 		lines.push(`## ${categoryLabels[category as keyof typeof categoryLabels]}`, "");

@@ -181,7 +181,7 @@ export default {
 	"intro.quickStart.step3.title": "Usa",
 	"intro.quickStart.step3.desc": "Inseriscilo nei tuoi componenti Svelte.",
 	"intro.whatsIncluded.heading": "Cosa include",
-	"intro.whatsIncluded.body": "{count} componenti suddivisi in 10 categorie:",
+	"intro.whatsIncluded.body": "{count} componenti suddivisi in {categories} categorie:",
 	"intro.category.buttons": "Pulsanti",
 	"intro.category.cards": "Schede",
 	"intro.category.text": "Testo",

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
 	import { createGlowingEffect, type GlowingEffectEngine } from "./glowing-effect-core.js";
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
 	import { createSparkles, type SparklesEngine } from "./sparkles-core.js";
 

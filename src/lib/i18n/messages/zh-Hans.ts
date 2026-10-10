@@ -166,7 +166,7 @@ export default {
 	"intro.quickStart.step3.title": "使用",
 	"intro.quickStart.step3.desc": "将其放入你的 Svelte 组件中。",
 	"intro.whatsIncluded.heading": "包含内容",
-	"intro.whatsIncluded.body": "{count} 个组件，涵盖 10 个分类：",
+	"intro.whatsIncluded.body": "{count} 个组件，涵盖 {categories} 个分类：",
 	"intro.category.buttons": "按钮",
 	"intro.category.cards": "卡片",
 	"intro.category.text": "文本",

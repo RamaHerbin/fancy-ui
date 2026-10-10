@@ -25,11 +25,11 @@ export const REACT_PACKAGE_URL = `https://www.npmjs.com/package/${REACT_PACKAGE_
 export const VUE_PACKAGE_NAME = "fancy-ui-vue";
 
 /**
- * Checked against the npm registry on 2026-10-02: `fancy-ui-vue` returns 404
- * (first release pending in .changeset/vue-0-1-0.md). Until it ships, the site
- * must not print an install command for it. Flip this constant when it does.
+ * `fancy-ui-vue` ships with the 0.15 release train (first version 0.1.0,
+ * .changeset/vue-0-1-0.md). The flag stays so the site can go back to
+ * "source only" copy if the package ever has to be pulled from the registry.
  */
-export const VUE_PACKAGE_PUBLISHED = false;
+export const VUE_PACKAGE_PUBLISHED = true;
 
 /** 1200×630 social card served from static/. */
 export const DEFAULT_OG_IMAGE = "/og.png";
@@ -62,7 +62,7 @@ export const COMPONENT_COUNT = getAllComponents().length;
 /** Package version, baked in from package.json by Vite (see vite.config.ts). */
 export const PACKAGE_VERSION = __PKG_VERSION__;
 
-export const SITE_DESCRIPTION = `${COMPONENT_COUNT} UI components for Svelte 5 — core primitives plus WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.`;
+export const SITE_DESCRIPTION = `${COMPONENT_COUNT} UI components for Svelte 5, React and Vue — core primitives plus WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.`;
 
 /** Resolve a site-relative path or an already-absolute URL to an absolute URL. */
 export function absoluteUrl(pathOrUrl: string): string {

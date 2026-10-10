@@ -180,7 +180,7 @@ export default {
 	"intro.quickStart.step3.title": "Použití",
 	"intro.quickStart.step3.desc": "Vložte je do svých Svelte komponent.",
 	"intro.whatsIncluded.heading": "Co je součástí",
-	"intro.whatsIncluded.body": "{count} komponent napříč 10 kategoriemi:",
+	"intro.whatsIncluded.body": "{count} komponent napříč {categories} kategoriemi:",
 	"intro.category.buttons": "Tlačítka",
 	"intro.category.cards": "Karty",
 	"intro.category.text": "Text",

@@ -13,7 +13,11 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Change the shimmer highlight color.",
 		},
 		{ name: "AnimationSpeed", title: "Animation Speed", description: "Control the shimmer speed." },
-		{ name: "ShimmerSize", title: "Shimmer Size", description: "Adjust the border thickness." },
+		{
+			name: "ShimmerSize",
+			title: "Shimmer Size",
+			description: "Set how far the face is inset from the rim.",
+		},
 		{
 			name: "CustomBackground",
 			title: "Custom Background",
@@ -71,7 +75,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{
 			name: "AnimationSpeed",
 			title: "Animation Speed",
-			description: "Control the rotation speed.",
+			description: "Time for the beam to travel once around the button.",
 		},
 		{ name: "BorderRadius", title: "Border Radius", description: "Change the button shape." },
 		{
@@ -567,7 +571,8 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		{
 			name: "Variants",
 			title: "Animation Variants",
-			description: "9 different trail animation styles, including a hard-edge pixelated snap.",
+			description:
+				"18 trail animation styles: fades and drifts, a pixelated snap, scale/fall/gravity/flame, and five fragment reveals.",
 		},
 	],
 	"interactive-grid-pattern": [

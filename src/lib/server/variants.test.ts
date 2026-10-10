@@ -23,12 +23,11 @@ describe("framework variants", () => {
 		});
 	});
 
-	it("marks Vue source-only with no install line while the package is unpublished", () => {
+	it("installs Vue like the other two now that the package is on npm", () => {
 		const vue = variantFor("pulse-beam", "vue");
-		expect(vue.availability).toBe("source-only");
-		expect(vue.installLine).toBeNull();
-		expect(vue.importLine).not.toBeNull();
-		expect(vue.note).toMatch(/not on npm yet/);
+		expect(vue.availability).toBe("available");
+		expect(vue.installLine).toMatch(/fancy-ui-vue/);
+		expect(vue.importLine).toMatch(/from "fancy-ui-vue"/);
 	});
 
 	it("reports every framework unavailable for an unknown slug", () => {

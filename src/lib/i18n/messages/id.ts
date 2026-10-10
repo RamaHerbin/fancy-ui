@@ -180,7 +180,7 @@ export default {
 	"intro.quickStart.step3.title": "Gunakan",
 	"intro.quickStart.step3.desc": "Tempatkan di komponen Svelte Anda.",
 	"intro.whatsIncluded.heading": "Apa yang Disertakan",
-	"intro.whatsIncluded.body": "{count} komponen di 10 kategori:",
+	"intro.whatsIncluded.body": "{count} komponen di {categories} kategori:",
 	"intro.category.buttons": "Tombol",
 	"intro.category.cards": "Kartu",
 	"intro.category.text": "Teks",

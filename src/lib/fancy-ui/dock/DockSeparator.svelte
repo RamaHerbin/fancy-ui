@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext } from "svelte";
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { DOCK_CONTEXT_KEY, type DockContext } from "./types";
 
 	interface Props {
