@@ -232,6 +232,81 @@ test.describe("detail → related", () => {
 	});
 });
 
+test.describe("describe an interaction", () => {
+	const SENTENCE = "a button that glows when I hover it";
+	const READING = {
+		enabled: true,
+		understanding: {
+			interaction: ["hover"],
+			style: ["glow"],
+			subject: "button",
+			chips: [
+				{ facet: "interaction", value: "hover", label: "Hover", confidence: 0.86 },
+				{ facet: "style", value: "glow", label: "Glow", confidence: 0.91 },
+				{ facet: "subject", value: "button", label: "Button", confidence: 0.74 },
+			],
+		},
+	};
+
+	test("the interpreter's reading becomes filters, and the exact words stay one click away", async ({
+		page,
+	}) => {
+		const bodies: unknown[] = [];
+		await page.route("**/api/inspiration/understand", async (route) => {
+			bodies.push(route.request().postDataJSON());
+			await route.fulfill({ json: READING });
+		});
+		await open(page, "/inspiration");
+		const field = page.getByRole("searchbox", { name: "Search inspiration" });
+		await field.fill(SENTENCE);
+		await field.press("Enter");
+		await expect(page).toHaveURL(/\?q=button&interaction=hover&style=glow$/);
+		expect(bodies).toEqual([{ query: SENTENCE }]);
+		const understood = page.locator("p.understood");
+		await expect(understood).toContainText("Understood as");
+		await expect(understood).toContainText("Hover");
+		await expect(understood).toContainText("91%");
+		await expect(field).toHaveValue("button");
+		await page.getByRole("button", { name: "Search the exact words instead" }).click();
+		await expect(page).toHaveURL(
+			new RegExp(`\\?q=${encodeURIComponent(SENTENCE).replace(/%20/g, "\\+")}$`)
+		);
+		await expect(field).toHaveValue(SENTENCE);
+		await expect(understood).not.toContainText("Understood as");
+	});
+
+	test("without the interpreter the sentence is searched as words", async ({ page }) => {
+		await page.route("**/api/inspiration/understand", (route) =>
+			route.fulfill({ status: 503, json: { enabled: false } })
+		);
+		await open(page, "/inspiration");
+		const field = page.getByRole("searchbox", { name: "Search inspiration" });
+		await field.fill("glowing border beam");
+		await field.press("Enter");
+		await expect(page).toHaveURL(/\?q=glowing\+border\+beam$/);
+		await expect.poll(() => cards(page).count()).toBeGreaterThan(0);
+		await expect(page.locator("p.understood")).not.toContainText("Understood as");
+	});
+
+	test("a sentence from the home search is read once, then the URL is a plain filter link", async ({
+		page,
+	}) => {
+		await page.route("**/api/inspiration/understand", (route) => route.fulfill({ json: READING }));
+		await page.goto(`/inspiration?q=${encodeURIComponent(SENTENCE)}&ask=1`);
+		await page.locator("main[data-ready]").waitFor();
+		await expect(page).toHaveURL(/\?q=button&interaction=hover&style=glow$/);
+		await expect(page.locator("p.understood")).toContainText("Understood as");
+	});
+
+	test("the real endpoint answers 503 when no key is configured", async ({ request }) => {
+		const response = await request.post("/api/inspiration/understand", {
+			data: { query: SENTENCE },
+		});
+		expect([200, 503]).toContain(response.status());
+		if (response.status() === 503) expect(await response.json()).toEqual({ enabled: false });
+	});
+});
+
 test("/finds redirects permanently to /inspiration", async ({ request }) => {
 	const response = await request.get("/finds", { maxRedirects: 0 });
 	expect(response.status()).toBe(301);
