@@ -49,10 +49,31 @@ jobs:
       # Every Svelte prop has a counterpart in the React and Vue ports (or a
       # recorded reason not to): folder parity alone lets a port fall behind.
       - run: pnpm check:props
+      # The framework-free engines the three packages share must stay byte-identical.
+      - run: pnpm check:cores
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
       - run: pnpm package
+
+      # The published tarball is an allow-list (`files` in package.json) with
+      # negated patterns for test rigs, the scaffold template and the per-folder
+      # READMEs. 0.14.0 shipped 566 test files because a `.npmignore` cannot
+      # exclude what `files` includes; this is what notices a regression.
+      - name: Pack dry-run — allow-list sanity
+        run: |
+          npm pack --dry-run --json > /tmp/pack.json
+          node -e "
+            const files = require('/tmp/pack.json')[0].files.map(f => f.path);
+            const stray = files.filter(p =>
+              !p.startsWith('dist/') &&
+              !['package.json','README.md','LICENSE'].includes(p));
+            if (stray.length) { console.error('stray files in pack:', stray); process.exit(1); }
+            const leaked = files.filter(p =>
+              p.includes('.test.') || p.includes('/_template/') || p.endsWith('/README.md') || p.includes('web-audio-mock'));
+            if (leaked.length) { console.error('test or scaffold files in pack:', leaked.slice(0, 20)); process.exit(1); }
+            console.log(files.length + ' files, allow-list clean');
+          "
 
   react:
     name: React package

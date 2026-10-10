@@ -61,7 +61,7 @@
 
 <script lang="ts">
 	import { onMount, untrack } from "svelte";
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	interface Props {

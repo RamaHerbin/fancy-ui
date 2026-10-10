@@ -35,6 +35,50 @@ every utility class the components use is generated in the consumer's build,
 and declares the shared token set the components spend. `styles.css` carries
 the components' own keyframes and scoped rules.
 
+## Development
+
+Workspace member of the repo's pnpm workspace — one `pnpm install` at the
+repo root covers it.
+
+```bash
+pnpm install                                   # at the repo root
+pnpm --filter fancy-ui-vue test                # vitest
+pnpm --filter fancy-ui-vue check               # vue-tsc --noEmit
+pnpm --filter fancy-ui-vue build               # vite lib build + d.ts via vue-tsc, then the dist gates
+pnpm --filter fancy-ui-vue test:scripts        # the gates' own regression tests (needs a build)
+pnpm --filter fancy-ui-vue-example-nuxt dev    # the consumer app (examples/nuxt-app) on http://localhost:3000
+```
+
+The consumer app under `examples/` is `nuxt-app`, which resolves `fancy-ui-vue`
+to `vue/dist`, so run `build` first. CI runs `nuxt generate` on it as the
+SSR/hydration gate: `failOnError` in its prerender block is what makes a broken
+page fail the build instead of being skipped. A second CI job, `vue-3-5`,
+re-installs the workspace with a job-local override pinning Vue to 3.5.2 (the
+peer floor) and runs `check`, `test`, `build` and `scripts/vue-floor-consumer.mjs`
+against it.
+
+`build` does more than build. After Vite and `vue-tsc` it runs six scripts in
+`vue/scripts/`, each guarding something no other gate can see:
+
+| Script                      | What it stops                                                                                                                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `strip-dts-css-imports.mjs` | `vue-tsc` copies each component's `import "./x.css"` into its `.d.ts`, naming a file dist does not ship — one TS2307 per component for any consumer without `skipLibCheck` |
+| `check-dist-names.mjs`      | a minified build shipping `AnimatedBeam` as `const ut = ...` in every consumer's devtools tree and stack traces                                                            |
+| `prune-orphan-dts.mjs`      | a declaration under `dist/internals/` with no runtime module behind it, typing an import that cannot load                                                                  |
+| `check-dist-shape.mjs`      | a test rig reaching the tarball, a declaration pointing at a file that is not there, an SFC without `<script setup>`, a bare import of a package nobody declared           |
+| `smoke-dist.mjs`            | the built artifact never being executed: it imports every module with no DOM, server-renders each component export, and holds a gzip budget over the emitted JS and CSS    |
+| `ensure-styles-css.mjs`     | the `./styles.css` subpath being declared while no stylesheet was emitted                                                                                                  |
+
+`test:scripts` runs `dist-gates.test.mjs`, which tests the gates' own logic
+(what counts as a component, what the sweep counts) so a gate cannot go quiet
+without a test noticing. `check-matrix.mjs` (`check:matrix`) holds the
+migration matrix to the Svelte reference, and `vue-floor-consumer.mjs` is the
+CI-only floor check above; neither is part of `build`.
+
+The output is **not minified**, for the reason `check-dist-names.mjs` exists:
+the consumer's bundler minifies over the whole app, and minifying here costs
+every component its name.
+
 ## Divergences from the Svelte API
 
 Everything not listed here is a faithful transpose of the Svelte reference.

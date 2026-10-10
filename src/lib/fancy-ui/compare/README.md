@@ -96,6 +96,23 @@ A before/after image comparison slider split by a blade of light.
 </Compare>
 ```
 
+## StarField
+
+`StarField` is also exported from the folder barrel (`compare/index.ts`), next to `Compare`. It is a standalone field of white stars that twinkle and drift, filling its positioned parent. The stars are placed once, at random, when the component mounts.
+
+| Prop         | Type     | Default | Description                  |
+|--------------|----------|---------|------------------------------|
+| `starsCount` | `number` | `130`   | Number of stars to render    |
+| `class`      | `string` | `''`    | Additional CSS classes       |
+
+```svelte
+<script>
+  import { StarField } from '$lib/fancy-ui/compare';
+</script>
+
+<StarField starsCount={60} class="absolute inset-0" />
+```
+
 ## Implementation Notes
 
 - Replaced Vue `emit` with callback props (`onpercentagechange`, etc.)

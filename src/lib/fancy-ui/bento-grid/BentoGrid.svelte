@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { inView } from "../_internals/motion/in-view.js";
 	import { staggerDelay } from "../_internals/motion/stagger.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";

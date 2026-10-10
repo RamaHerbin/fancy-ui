@@ -2,7 +2,7 @@
 "fancy-ui-svelte": patch
 ---
 
-Shared-core hardening. The framework-free engine and helper modules that both packages ship are now byte-identical across packages and gated in CI (`pnpm check:cores`, manifest `shared-cores.json`). Behaviour fixes that landed on the Svelte side while aligning them:
+Shared-core hardening. The framework-free engine and helper modules that both packages ship are now byte-identical across packages, with a gate (`pnpm check:cores`, manifest `shared-cores.json`) that fails the moment a copy drifts. Behaviour fixes that landed on the Svelte side while aligning them:
 
 - `focusTrap`: a focusable control inside a `display: none` ancestor is no longer treated as a tab stop, so the trap never lands focus on a control that cannot take it.
 - `anchorPosition`: the floating element is measured on its layout box (not the transformed box mid-entrance), and the applied position is stripped on destroy.

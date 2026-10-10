@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { onMount, untrack } from "svelte";
 	import { createBgStars, generateStars, type BgStarsEngine } from "./bg-stars-core.js";
 

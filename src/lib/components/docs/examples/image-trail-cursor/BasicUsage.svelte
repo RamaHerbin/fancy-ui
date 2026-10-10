@@ -22,6 +22,7 @@
 		{ type: "type6", label: "Speed-reactive" },
 		{ type: "type7", label: "Stacking" },
 		{ type: "type8", label: "3D Perspective" },
+		{ type: "pixelated", label: "Pixelated" },
 		{ type: "scale", label: "Scale" },
 		{ type: "fall", label: "Image fall" },
 		{ type: "gravity", label: "Gravity" },

@@ -576,6 +576,37 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"Comparison slider"',
 				description: "Accessible name of the slider",
 			},
+			{
+				name: "class",
+				type: "string",
+				default: '""',
+				description: "Additional CSS classes for the root element",
+			},
+			{
+				name: "onpercentagechange",
+				type: "(percentage: number) => void",
+				description: "Called with the slider position (0-100) whenever it changes",
+			},
+			{
+				name: "ondragstart",
+				type: "() => void",
+				description: "Called when a drag on the slider begins",
+			},
+			{
+				name: "ondragend",
+				type: "() => void",
+				description: "Called when the drag ends",
+			},
+			{
+				name: "onhoverenter",
+				type: "() => void",
+				description: "Called when the pointer enters the comparison area",
+			},
+			{
+				name: "onhoverleave",
+				type: "() => void",
+				description: "Called when the pointer leaves the comparison area",
+			},
 		],
 		slots: [
 			{
@@ -615,6 +646,12 @@ export const registry: Record<string, ComponentMeta> = {
 				default: '"type1"',
 				description:
 					"Animation variant controlling how images appear and move (see the README for what each one does)",
+			},
+			{
+				name: "class",
+				type: "string",
+				default: '""',
+				description: "Additional CSS classes for the container",
 			},
 		],
 	},
@@ -880,6 +917,17 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "false",
 				description: "Plays the press cue on activation, once the user has enabled sound",
 			},
+			{
+				name: "type",
+				type: '"button" | "submit" | "reset"',
+				default: '"button"',
+				description: "Native button type, ignored when rendered as an anchor",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				description: "Disables the button and suppresses the press cue",
+			},
 		],
 		slots: [{ name: "children", description: "Button label content" }],
 	},
@@ -912,6 +960,16 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Click handler, called after the press cue when sound is on",
+			},
+			{
+				name: "onpointermove",
+				type: "(event: PointerEvent) => void",
+				description: "Pointer-move handler, called after the hover highlight is updated",
 			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
@@ -963,6 +1021,16 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Click handler, called after the press cue when sound is on",
+			},
+			{
+				name: "onpointermove",
+				type: "(event: PointerEvent) => void",
+				description: "Pointer-move handler, called after the hover highlight is updated",
 			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
@@ -1467,6 +1535,11 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "false",
 				description: "Plays the press cue on activation, once the user has enabled sound",
 			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Click handler, called after the press cue when sound is on",
+			},
 		],
 		slots: [{ name: "children", description: "Button content" }],
 	},
@@ -1498,6 +1571,11 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description: "Plays the press cue on activation, once the user has enabled sound",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Click handler, called after the press cue when sound is on",
 			},
 		],
 		slots: [{ name: "children", description: "Button content (overrides text prop)" }],
@@ -1558,6 +1636,26 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "number",
 				default: "1",
 				description: "Speed multiplier on top of --duration (2 = twice as fast)",
+			},
+			{
+				name: "ReviewCard.img",
+				type: "string",
+				description: "Avatar image URL",
+			},
+			{
+				name: "ReviewCard.name",
+				type: "string",
+				description: "Reviewer's name",
+			},
+			{
+				name: "ReviewCard.username",
+				type: "string",
+				description: "Reviewer's handle, shown under the name",
+			},
+			{
+				name: "ReviewCard.body",
+				type: "string",
+				description: "Text of the review",
 			},
 		],
 		slots: [{ name: "children", description: "Content to repeat and scroll" }],
@@ -2228,6 +2326,68 @@ export const registry: Record<string, ComponentMeta> = {
 				default: "undefined",
 				description:
 					"Colour of the hover glow, the lit bottom edge, the icon ring and the CTA arrow; writes --bento-accent (falls back to #8e9cff)",
+			},
+			{
+				name: "BentoGridItem.class",
+				type: "string",
+				default: '""',
+				description: "Additional classes for the tile",
+			},
+			{
+				name: "BentoGridItem.header",
+				type: "Snippet",
+				description: "Snippet rendered at the top of the tile, typically an image or visual",
+			},
+			{
+				name: "BentoGridItem.icon",
+				type: "Snippet",
+				description: "Snippet for the tile's icon",
+			},
+			{
+				name: "BentoGridItem.title",
+				type: "Snippet",
+				description: "Snippet for the tile's title",
+			},
+			{
+				name: "BentoGridItem.description",
+				type: "Snippet",
+				description: "Snippet for the tile's description",
+			},
+			{
+				name: "BentoGridCard.name",
+				type: "string",
+				description: "Title of the card",
+			},
+			{
+				name: "BentoGridCard.description",
+				type: "string",
+				description: "Short text under the title",
+			},
+			{
+				name: "BentoGridCard.href",
+				type: "string",
+				description: "Link target of the call to action",
+			},
+			{
+				name: "BentoGridCard.cta",
+				type: "string",
+				description: "Label of the call to action",
+			},
+			{
+				name: "BentoGridCard.class",
+				type: "string",
+				default: '""',
+				description: "Additional classes for the card",
+			},
+			{
+				name: "BentoGridCard.icon",
+				type: "Snippet",
+				description: "Snippet for the card's icon",
+			},
+			{
+				name: "BentoGridCard.background",
+				type: "Snippet",
+				description: "Snippet rendered behind the card's content",
 			},
 		],
 		slots: [{ name: "children", description: "BentoGridItem components to arrange in the grid" }],

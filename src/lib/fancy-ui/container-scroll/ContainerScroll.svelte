@@ -44,7 +44,7 @@
 </script>
 
 <script lang="ts">
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { rafThrottle } from "../_internals/motion/raf";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte";
 
