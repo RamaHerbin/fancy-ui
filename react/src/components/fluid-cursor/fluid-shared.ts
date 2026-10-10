@@ -42,6 +42,8 @@ export function hexToRgb(hex: string): ColorRGB {
 		);
 		return { r: 1, g: 1, b: 1 };
 	}
+	// The three groups are mandatory in the pattern above, so a match always
+	// carries them.
 	return {
 		r: parseInt(result[1]!, 16) / 255,
 		g: parseInt(result[2]!, 16) / 255,
@@ -209,14 +211,3 @@ export interface FluidCursorHandle {
 	burst(x: number, y: number, dx: number, dy: number, color: ColorRGB): void;
 	readonly renderLevel: FluidRenderLevel;
 }
-
-// Port addition. The Svelte sources gate their diagnostics on
-// `import.meta.env.DEV`, which needs Vite's client types this package does not
-// load. `process.env.NODE_ENV` is the equivalent signal every React consumer's
-// bundler already replaces (React itself reads it), and the `typeof` guard
-// keeps an unbundled browser load from throwing on a missing global — it just
-// resolves to `false` and stays quiet.
-declare const process: { env: { NODE_ENV?: string } } | undefined;
-
-/** True outside a production build: gates the engines' console diagnostics. */
-export const DEV = typeof process !== "undefined" && process.env.NODE_ENV !== "production";

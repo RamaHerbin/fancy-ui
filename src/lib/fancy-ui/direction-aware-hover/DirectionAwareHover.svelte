@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { fade } from "svelte/transition";
 
 	type Direction = "top" | "bottom" | "left" | "right";

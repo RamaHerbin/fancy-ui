@@ -26,6 +26,8 @@ function resetImageStyles(container: HTMLDivElement) {
 	const imgEls = container.querySelectorAll<HTMLDivElement>(".content__img");
 	for (const el of imgEls) {
 		el.style.cssText = "";
+		// reveal variants add fragment children; drop any left behind
+		for (const frag of el.querySelectorAll(".content__img-frag")) frag.remove();
 		const inner = el.querySelector<HTMLDivElement>(".content__img-inner");
 		if (inner) {
 			// Preserve background-image set by the render, only clear GSAP residue

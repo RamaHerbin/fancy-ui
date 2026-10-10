@@ -5,8 +5,11 @@ export type Direction = "top" | "middle" | "bottom";
 
 export interface DockContext {
 	/**
-	 * The pointer's page X, in a box rather than as a bare number — the shape
-	 * the source publishes, kept verbatim so the exported type is unchanged.
+	 * The pointer's VIEWPORT X (`clientX`), `Infinity` when the pointer is
+	 * outside the dock. Viewport, not page, because `DockIcon` measures itself
+	 * with `getBoundingClientRect()`, which is viewport-relative. In a box
+	 * rather than as a bare number — the shape the source publishes, kept
+	 * verbatim so the exported type is unchanged.
 	 *
 	 * There the box exists so children can read a reactive update through a
 	 * stable object; here the box is REBUILT by `Dock` on every pointer frame,
@@ -14,7 +17,7 @@ export interface DockContext {
 	 * exactly what re-renders the icons. Only `Dock` ever writes it.
 	 */
 	mouseX: { current: number };
-	/** The pointer's page Y. Same box treatment as `mouseX`. */
+	/** The pointer's viewport Y (`clientY`). Same box treatment as `mouseX`. */
 	mouseY: { current: number };
 	magnification: number;
 	distance: number;
@@ -22,11 +25,15 @@ export interface DockContext {
 	/**
 	 * False when the visitor asked for reduced motion, or when the device has no
 	 * real pointer to track. `Dock` owns the two media queries behind it and
-	 * `DockIcon` reads it before doing any measuring, so a device that will
-	 * never magnify also never pays for a `getBoundingClientRect()` per icon per
-	 * frame. Read-only: only `Dock` may write it.
+	 * `DockIcon` reads it before sizing itself. Read-only: only `Dock` may
+	 * write it.
 	 */
 	readonly magnify: boolean;
+	/**
+	 * Whether each icon casts its soft floor reflection (the contact shadow /
+	 * glow ellipse under it). Mirrors the `reflection` prop on `Dock`.
+	 */
+	readonly reflection: boolean;
 }
 
 /**

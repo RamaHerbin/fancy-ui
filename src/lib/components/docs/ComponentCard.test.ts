@@ -19,13 +19,13 @@ describe("ComponentCard", () => {
 		setLocale("en");
 	});
 
-	it("renders the translated category and status badges (regression: gallery showed English badges)", () => {
+	it("renders the translated category and group badges (regression: gallery showed English badges)", () => {
 		const { container } = render(ComponentCard, { component });
 		const badges = Array.from(container.querySelectorAll("span.rounded-full")).map((b) =>
 			b.textContent?.trim()
 		);
 		expect(badges).toContain("Buttons");
-		expect(badges).toContain("Stable");
+		expect(badges).toContain("Fancy");
 	});
 
 	it("re-renders badges in the active locale", () => {
@@ -35,7 +35,19 @@ describe("ComponentCard", () => {
 			b.textContent?.trim()
 		);
 		expect(badges).toContain("ボタン");
-		expect(badges).toContain("安定版");
 		expect(badges).not.toContain("Buttons");
+	});
+
+	it("keeps the card name out of the page table of contents", () => {
+		const { container } = render(ComponentCard, { component });
+		expect(container.querySelector("h3")?.hasAttribute("data-toc-ignore")).toBe(true);
+	});
+
+	it("falls back to a generated tile when no thumbnail was captured", () => {
+		const { container } = render(ComponentCard, {
+			component: { ...component, slug: "no-such-component" },
+		});
+		expect(container.querySelector("img")).toBeNull();
+		expect(container.textContent).toContain("RainbowButton");
 	});
 });

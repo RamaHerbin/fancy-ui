@@ -40,7 +40,7 @@ export interface RelativeTimeOptions {
 	locale?: string;
 	/**
 	 * Epoch ms to measure against. Defaults to `Date.now()`. A non-finite
-	 * value (the `useNow` "clock not started" sentinel) yields `""`.
+	 * value (a shared clock's "not started yet" sentinel) yields `""`.
 	 */
 	now?: number;
 	/** Defaults to `"auto"`, which yields idiomatic words ("now", "yesterday"). */
@@ -60,10 +60,11 @@ export function formatRelativeTime(date: number | Date, opts: RelativeTimeOption
 	if (!Number.isFinite(target)) return "";
 
 	/*
-	 * A non-finite `now` is the shared clock's "not started yet" sentinel
-	 * (`useNow` returns `NaN` on the server and through the hydration
-	 * render). Reporting nothing is the only honest answer: measuring against
-	 * it would print a label off by decades, and `Intl.RelativeTimeFormat`
+	 * A non-finite `now` is a shared clock's "not started yet" sentinel: a
+	 * clock that must read the same on the server and through the hydration
+	 * render has no reading to give until it starts, and reports `NaN`.
+	 * Reporting nothing is the only honest answer — measuring against it
+	 * would print a label off by decades, and `Intl.RelativeTimeFormat`
 	 * throws on a non-finite value.
 	 */
 	const now = opts.now ?? Date.now();

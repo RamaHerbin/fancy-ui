@@ -1,0 +1,43 @@
+/* Transposed from the Svelte source's <style> block. Every rule was already
+   anchored on `.ft-sound-toggle` / `.ft-sound-toggle-glyph`, so no port-added
+   anchor class is needed — see PORTING.md, styling rule 2. */
+
+.ft-sound-toggle {
+	--ft-sound-toggle-accent: var(
+		--ft-accent,
+		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
+	);
+}
+
+.ft-sound-toggle:focus-visible {
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--ft-sound-toggle-accent) 35%, transparent);
+}
+
+/* Resting state for both glyph groups: hidden and slightly shrunk. Only
+   the group matching data-state grows back to full opacity/scale — a
+   plain attribute selector, never a template conditional. */
+.ft-sound-toggle-glyph {
+	opacity: 0;
+	transform: scale(0.85);
+	transform-origin: 12px 12px;
+}
+.ft-sound-toggle[data-state="on"] .ft-sound-toggle-glyph-on {
+	opacity: 1;
+	transform: scale(1);
+}
+.ft-sound-toggle[data-state="off"] .ft-sound-toggle-glyph-off {
+	opacity: 1;
+	transform: scale(1);
+}
+
+/* The only motion here: a ≤200ms cross-fade between the two glyph groups
+   when data-state flips. No continuous animation, and no transition at
+   all outside this media query — the swap is an instant snap unless the
+   user has not asked to reduce motion. */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-sound-toggle-glyph {
+		transition:
+			opacity 150ms ease,
+			transform 150ms ease;
+	}
+}

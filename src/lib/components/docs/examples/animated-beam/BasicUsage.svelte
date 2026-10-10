@@ -1,107 +1,110 @@
 <script lang="ts">
 	import { AnimatedBeam } from "$lib/fancy-ui/animated-beam";
+	import FileText from "@lucide/svelte/icons/file-text";
+	import Database from "@lucide/svelte/icons/database";
+	import MessageSquare from "@lucide/svelte/icons/message-square";
+	import Sparkles from "@lucide/svelte/icons/sparkles";
+	import User from "@lucide/svelte/icons/user";
 
-	let containerRef: HTMLElement;
-	let div1Ref: HTMLElement;
-	let div2Ref: HTMLElement;
-	let div3Ref: HTMLElement;
-	let div4Ref: HTMLElement;
-	let div5Ref: HTMLElement;
-	let div6Ref: HTMLElement;
-	let div7Ref: HTMLElement;
+	let containerRef = $state<HTMLElement>();
+	let docsRef = $state<HTMLElement>();
+	let dataRef = $state<HTMLElement>();
+	let chatRef = $state<HTMLElement>();
+	let hubRef = $state<HTMLElement>();
+	let userRef = $state<HTMLElement>();
+
+	// Nested frame: a hairline shell around a darker inner well.
+	const node =
+		"relative z-10 rounded-2xl border border-black/[0.08] bg-[#fafafa] p-1 shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:border-white/[0.08] dark:bg-[#141416] dark:shadow-none";
+	const well =
+		"flex items-center justify-center rounded-xl border border-black/[0.06] bg-white text-neutral-700 dark:border-white/[0.06] dark:bg-[#0b0b0c] dark:text-neutral-300";
 </script>
 
 <div
-	bind:this={containerRef}
-	class="bg-background relative flex h-[500px] w-full items-center justify-center overflow-hidden rounded-lg border p-10 md:shadow-xl"
+	class="w-full rounded-[22px] border border-black/[0.08] bg-[#f4f4f5] p-1.5 dark:border-white/[0.08] dark:bg-[#0b0b0c]"
 >
-	<div class="flex size-full max-h-[200px] max-w-lg flex-col items-stretch justify-between gap-10">
-		<div class="flex flex-row items-center justify-between">
-			<div
-				bind:this={div1Ref}
-				class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-blue-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
-			>
-				<span class="text-sm font-bold text-white">1</span>
-			</div>
-			<div
-				bind:this={div5Ref}
-				class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-green-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
-			>
-				<span class="text-sm font-bold text-white">5</span>
-			</div>
-		</div>
-		<div class="flex flex-row items-center justify-between">
-			<div
-				bind:this={div2Ref}
-				class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-purple-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
-			>
-				<span class="text-sm font-bold text-white">2</span>
-			</div>
-			<div
-				bind:this={div4Ref}
-				class="z-10 flex size-16 items-center justify-center rounded-full border-2 bg-orange-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
-			>
-				<span class="text-lg font-bold text-white">HUB</span>
-			</div>
-			<div
-				bind:this={div6Ref}
-				class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-pink-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
-			>
-				<span class="text-sm font-bold text-white">6</span>
-			</div>
-		</div>
-		<div class="flex flex-row items-center justify-between">
-			<div
-				bind:this={div3Ref}
-				class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-red-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
-			>
-				<span class="text-sm font-bold text-white">3</span>
-			</div>
-			<div
-				bind:this={div7Ref}
-				class="z-10 flex size-12 items-center justify-center rounded-full border-2 bg-teal-500 p-2 shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]"
-			>
-				<span class="text-sm font-bold text-white">7</span>
-			</div>
-		</div>
-	</div>
+	<div
+		bind:this={containerRef}
+		class="relative flex h-[420px] w-full items-center justify-center overflow-hidden rounded-2xl border border-black/[0.06] bg-[#fafafa] dark:border-white/[0.06] dark:bg-[#111113]"
+	>
+		<!-- faint dot field -->
+		<div
+			aria-hidden="true"
+			class="pointer-events-none absolute inset-0 [background-image:radial-gradient(rgba(0,0,0,0.07)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] [background-size:18px_18px] dark:[background-image:radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)]"
+		></div>
 
-	{#if containerRef && div1Ref && div4Ref}
-		<AnimatedBeam
-			{containerRef}
-			fromRef={div1Ref}
-			toRef={div4Ref}
-			curvature={-75}
-			endYOffset={-10}
-		/>
-	{/if}
-	{#if containerRef && div2Ref && div4Ref}
-		<AnimatedBeam {containerRef} fromRef={div2Ref} toRef={div4Ref} />
-	{/if}
-	{#if containerRef && div3Ref && div4Ref}
-		<AnimatedBeam {containerRef} fromRef={div3Ref} toRef={div4Ref} curvature={75} endYOffset={10} />
-	{/if}
-	{#if containerRef && div5Ref && div4Ref}
-		<AnimatedBeam
-			{containerRef}
-			fromRef={div5Ref}
-			toRef={div4Ref}
-			curvature={-75}
-			endYOffset={-10}
-			reverse={true}
-		/>
-	{/if}
-	{#if containerRef && div6Ref && div4Ref}
-		<AnimatedBeam {containerRef} fromRef={div6Ref} toRef={div4Ref} reverse={true} />
-	{/if}
-	{#if containerRef && div7Ref && div4Ref}
-		<AnimatedBeam
-			{containerRef}
-			fromRef={div7Ref}
-			toRef={div4Ref}
-			curvature={75}
-			endYOffset={10}
-			reverse={true}
-		/>
-	{/if}
+		<div class="flex w-full max-w-xl items-center justify-between px-8 sm:px-12">
+			<div class="flex flex-col gap-10">
+				<div bind:this={docsRef} class={node}>
+					<div class="{well} size-11"><FileText class="size-[18px]" strokeWidth={1.6} /></div>
+				</div>
+				<div bind:this={dataRef} class={node}>
+					<div class="{well} size-11"><Database class="size-[18px]" strokeWidth={1.6} /></div>
+				</div>
+				<div bind:this={chatRef} class={node}>
+					<div class="{well} size-11"><MessageSquare class="size-[18px]" strokeWidth={1.6} /></div>
+				</div>
+			</div>
+
+			<div bind:this={hubRef} class="{node} rounded-[22px] p-1.5">
+				<div class="{well} size-16 rounded-[16px]">
+					<Sparkles class="size-6" strokeWidth={1.5} />
+				</div>
+			</div>
+
+			<div bind:this={userRef} class={node}>
+				<div class="{well} size-11"><User class="size-[18px]" strokeWidth={1.6} /></div>
+			</div>
+		</div>
+
+		{#if containerRef && hubRef}
+			{#if docsRef}
+				<AnimatedBeam
+					{containerRef}
+					fromRef={docsRef}
+					toRef={hubRef}
+					curvature={-60}
+					endYOffset={-12}
+					gradientStartColor="#f2b880"
+					gradientStopColor="#a78bfa"
+					seed={3}
+				/>
+			{/if}
+			{#if dataRef}
+				<AnimatedBeam
+					{containerRef}
+					fromRef={dataRef}
+					toRef={hubRef}
+					gradientStartColor="#f2b880"
+					gradientStopColor="#a78bfa"
+					seed={7}
+					delay={0.9}
+				/>
+			{/if}
+			{#if chatRef}
+				<AnimatedBeam
+					{containerRef}
+					fromRef={chatRef}
+					toRef={hubRef}
+					curvature={60}
+					endYOffset={12}
+					gradientStartColor="#f2b880"
+					gradientStopColor="#a78bfa"
+					seed={11}
+					delay={1.7}
+				/>
+			{/if}
+			{#if userRef}
+				<AnimatedBeam
+					{containerRef}
+					fromRef={hubRef}
+					toRef={userRef}
+					gradientStartColor="#f2b880"
+					gradientStopColor="#a78bfa"
+					seed={5}
+					delay={2.4}
+				/>
+			{/if}
+		{/if}
+	</div>
 </div>

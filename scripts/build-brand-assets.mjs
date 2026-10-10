@@ -59,7 +59,7 @@ const ICON_BUDGETS = {
 
 // Site palette (src/routes/layout.css has no font-family override, so the
 // wordmark uses Tailwind v4's default sans stack; the violet->blue accent
-// and grid/glow treatment mirror src/lib/components/landing/HeroSection.svelte).
+// and grid/glow treatment mirrored the former landing hero; the site shell now lives in src/lib/components/site).
 const BG = "#050508";
 const ACCENT_FROM = "#8b5cf6";
 const ACCENT_TO = "#3f7df6";

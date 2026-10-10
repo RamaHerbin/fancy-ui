@@ -1,7 +1,7 @@
 import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { StrictMode, useLayoutEffect } from "react";
 import { afterEach, describe, it, expect, vi } from "vitest";
-import { Compare } from "./Compare.js";
+import { Compare, beamPalette, beamStep, keyStep, COMPARE_BEAM_COLORS } from "./Compare.js";
 import { StarField } from "./StarField.js";
 
 /**
@@ -36,6 +36,26 @@ function frameQueue() {
 			});
 		},
 	};
+}
+
+/**
+ * Report a reduced-motion preference. The beam's own motion loop is skipped
+ * under it, so a frame count observes only the loop a test is about.
+ */
+function reduceMotion() {
+	vi.spyOn(window, "matchMedia").mockImplementation(
+		(query: string) =>
+			({
+				matches: query.includes("reduce"),
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				addListener: () => {},
+				removeListener: () => {},
+				dispatchEvent: () => false,
+			}) as MediaQueryList
+	);
 }
 
 function sliderOf(container: HTMLElement): HTMLElement {
@@ -99,98 +119,13 @@ describe("Compare", () => {
 		expect(slider).toHaveAttribute("aria-valuemax", "100");
 	});
 
-	// Regression: the element claimed `role="slider"` and sat in the tab order
-	// while offering neither a name nor a single key that moved it — a keyboard
-	// or screen-reader user reached an unlabelled control and then could not
-	// operate it.
-	describe("keyboard and accessible name", () => {
-		function slider(container: HTMLElement): HTMLElement {
-			return container.querySelector('[role="slider"]') as HTMLElement;
-		}
-
-		it("carries a default accessible name", () => {
-			const { container } = render(<Compare />);
-			expect(slider(container)).toHaveAttribute("aria-label", "Image comparison slider");
-		});
-
-		it("lets the caller say what is being compared", () => {
-			const { container } = render(<Compare ariaLabel="Before and after retouching" />);
-			expect(slider(container)).toHaveAttribute("aria-label", "Before and after retouching");
-		});
-
-		it("moves the divider with the arrow keys, announcing each step", () => {
-			const onpercentagechange = vi.fn();
-			const { container } = render(
-				<Compare initialSliderPercentage={50} onpercentagechange={onpercentagechange} />
-			);
-
-			fireEvent.keyDown(slider(container), { key: "ArrowRight" });
-			expect(slider(container)).toHaveAttribute("aria-valuenow", "51");
-			expect(onpercentagechange).toHaveBeenLastCalledWith(51);
-
-			fireEvent.keyDown(slider(container), { key: "ArrowLeft" });
-			fireEvent.keyDown(slider(container), { key: "ArrowLeft" });
-			expect(slider(container)).toHaveAttribute("aria-valuenow", "49");
-			expect(onpercentagechange).toHaveBeenLastCalledWith(49);
-		});
-
-		it("takes the coarse step with PageUp/PageDown", () => {
-			const { container } = render(<Compare initialSliderPercentage={50} />);
-
-			fireEvent.keyDown(slider(container), { key: "PageUp" });
-			expect(slider(container)).toHaveAttribute("aria-valuenow", "60");
-
-			fireEvent.keyDown(slider(container), { key: "PageDown" });
-			fireEvent.keyDown(slider(container), { key: "PageDown" });
-			expect(slider(container)).toHaveAttribute("aria-valuenow", "40");
-		});
-
-		it("jumps to either end with Home and End", () => {
-			const onpercentagechange = vi.fn();
-			const { container } = render(
-				<Compare initialSliderPercentage={50} onpercentagechange={onpercentagechange} />
-			);
-
-			fireEvent.keyDown(slider(container), { key: "End" });
-			expect(slider(container)).toHaveAttribute("aria-valuenow", "100");
-			expect(onpercentagechange).toHaveBeenLastCalledWith(100);
-
-			fireEvent.keyDown(slider(container), { key: "Home" });
-			expect(slider(container)).toHaveAttribute("aria-valuenow", "0");
-			expect(onpercentagechange).toHaveBeenLastCalledWith(0);
-		});
-
-		it("stops at the ends instead of running past them", () => {
-			const { container } = render(<Compare initialSliderPercentage={100} />);
-
-			fireEvent.keyDown(slider(container), { key: "ArrowRight" });
-			expect(slider(container)).toHaveAttribute("aria-valuenow", "100");
-		});
-
-		it("leaves keys it does not handle alone", () => {
-			const onpercentagechange = vi.fn();
-			const { container } = render(<Compare onpercentagechange={onpercentagechange} />);
-
-			const notHandled = fireEvent.keyDown(slider(container), { key: "a" });
-
-			expect(onpercentagechange).not.toHaveBeenCalled();
-			// `fireEvent` returns false once something called preventDefault.
-			expect(notHandled).toBe(true);
-		});
-
-		it("claims the arrow key so the page does not scroll under it", () => {
-			const { container } = render(<Compare />);
-			const handled = fireEvent.keyDown(slider(container), { key: "ArrowRight" });
-			expect(handled).toBe(false);
-		});
-	});
-
 	describe("autoplay", () => {
 		// Regression: the loop started in a passive effect, so the first painted
 		// frame still showed the divider at initialSliderPercentage and only the
 		// next one snapped it to the autoplay start. Svelte starts it in
 		// `onMount`, which the browser runs before it paints.
 		it("starts the loop before the first paint, not a frame after it", () => {
+			reduceMotion();
 			const frames = frameQueue();
 			let requestsAtLayout = -1;
 
@@ -217,6 +152,7 @@ describe("Compare", () => {
 		});
 
 		it("runs a single loop when StrictMode mounts it twice", () => {
+			reduceMotion();
 			const frames = frameQueue();
 			render(
 				<StrictMode>
@@ -246,6 +182,7 @@ describe("Compare", () => {
 		// followed by an unmount committed into a component that was gone, and a
 		// burst of moves inside one frame committed several times over.
 		it("drops a pending move frame when the component goes away", () => {
+			reduceMotion();
 			const frames = frameQueue();
 			const onpercentagechange = vi.fn();
 			const { container, unmount } = render(<Compare onpercentagechange={onpercentagechange} />);
@@ -260,6 +197,7 @@ describe("Compare", () => {
 		});
 
 		it("collapses a burst of moves into one commit", () => {
+			reduceMotion();
 			const frames = frameQueue();
 			const onpercentagechange = vi.fn();
 			const { container } = render(<Compare onpercentagechange={onpercentagechange} />);
@@ -276,9 +214,8 @@ describe("Compare", () => {
 	});
 
 	describe("star field", () => {
-		// Compare re-renders once per autoplay frame and once per pointer move.
-		// The memo boundary is what keeps those frames from rebuilding 120 star
-		// elements and diffing their inline styles to write nothing.
+		// A star field inside a host that re-renders every frame must not rebuild
+		// its 120 star elements: the memo boundary stops reconciliation there.
 		it("stops reconciliation at the star field", () => {
 			expect((StarField as unknown as { $$typeof?: symbol }).$$typeof).toBe(
 				Symbol.for("react.memo")
@@ -286,8 +223,108 @@ describe("Compare", () => {
 		});
 
 		it("still renders the same sky", () => {
-			const { container } = render(<Compare />);
+			const { container } = render(<StarField starsCount={120} />);
 			expect(container.querySelectorAll(".fancy-star-field .star")).toHaveLength(120);
 		});
+	});
+});
+
+describe("Compare beam", () => {
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+	});
+
+	it("renders the beam layers and a glass handle", () => {
+		const { container } = render(<Compare />);
+		for (const part of ["glow", "trail", "fringe", "core", "pulse"]) {
+			expect(container.querySelector(`.compare-beam__${part}`)).toBeInTheDocument();
+		}
+		expect(container.querySelector(".compare-handle")).toBeInTheDocument();
+	});
+
+	it("hides the handle when showHandlebar is false", () => {
+		const { container } = render(<Compare showHandlebar={false} />);
+		expect(container.querySelector(".compare-handle")).toBeNull();
+	});
+
+	it("sets the beam colours as CSS variables", () => {
+		const { container } = render(<Compare beamColors={["red", "lime", "blue"]} />);
+		const root = sliderOf(container);
+		expect(root.style.getPropertyValue("--cmp-c1")).toBe("red");
+		expect(root.style.getPropertyValue("--cmp-c2")).toBe("lime");
+		expect(root.style.getPropertyValue("--cmp-c3")).toBe("blue");
+	});
+
+	it("has an accessible name", () => {
+		const { container } = render(<Compare label="Before and after" />);
+		expect(sliderOf(container)).toHaveAttribute("aria-label", "Before and after");
+	});
+
+	it("moves with the arrow keys, Shift for big steps, Home/End for the ends", () => {
+		const seen: number[] = [];
+		const { container } = render(<Compare onpercentagechange={(p) => seen.push(p)} />);
+		const slider = sliderOf(container);
+		fireEvent.keyDown(slider, { key: "ArrowRight" });
+		expect(slider).toHaveAttribute("aria-valuenow", "52");
+		fireEvent.keyDown(slider, { key: "ArrowLeft", shiftKey: true });
+		expect(slider).toHaveAttribute("aria-valuenow", "42");
+		fireEvent.keyDown(slider, { key: "End" });
+		expect(slider).toHaveAttribute("aria-valuenow", "100");
+		fireEvent.keyDown(slider, { key: "Home" });
+		expect(slider).toHaveAttribute("aria-valuenow", "0");
+		expect(seen).toEqual([52, 42, 100, 0]);
+	});
+
+	it("leaves keys it does not handle alone, and claims the ones it does", () => {
+		const onpercentagechange = vi.fn();
+		const { container } = render(<Compare onpercentagechange={onpercentagechange} />);
+		// `fireEvent` returns false once something called preventDefault.
+		expect(fireEvent.keyDown(sliderOf(container), { key: "a" })).toBe(true);
+		expect(onpercentagechange).not.toHaveBeenCalled();
+		expect(fireEvent.keyDown(sliderOf(container), { key: "ArrowRight" })).toBe(false);
+	});
+});
+
+describe("beamPalette", () => {
+	it("falls back to the default colours", () => {
+		expect(beamPalette(undefined)).toEqual(COMPARE_BEAM_COLORS);
+		expect(beamPalette([])).toEqual(COMPARE_BEAM_COLORS);
+	});
+
+	it("spreads one, two or many colours over three slots", () => {
+		expect(beamPalette(["red"])).toEqual(["red", "red", "red"]);
+		expect(beamPalette(["red", "blue"])).toEqual(["red", "color-mix(in srgb, red, blue)", "blue"]);
+		expect(beamPalette(["a", "b", "c", "d", "e"])).toEqual(["a", "c", "e"]);
+	});
+});
+
+describe("beamStep", () => {
+	it("stretches the trail with speed, on the side of the motion", () => {
+		expect(beamStep(0, 0, 10, 0).trail).toBeGreaterThan(0);
+		expect(beamStep(0, 0, -10, 0).trail).toBeLessThan(0);
+	});
+
+	it("caps the trail and lets it settle to zero", () => {
+		expect(beamStep(0, 0, 1000, 0).trail).toBe(140);
+		let s = { trail: 60, energy: 0 };
+		for (let i = 0; i < 200; i++) s = beamStep(s.trail, s.energy, 0, 0);
+		expect(s.trail).toBe(0);
+	});
+
+	it("eases the energy toward its target, kicked up by speed", () => {
+		let s = { trail: 0, energy: 0 };
+		for (let i = 0; i < 200; i++) s = beamStep(s.trail, s.energy, 0, 1);
+		expect(s.energy).toBeCloseTo(1, 2);
+		expect(beamStep(0, 0, 20, 0).energy).toBeGreaterThan(0);
+	});
+});
+
+describe("keyStep", () => {
+	it("maps keys to positions and clamps", () => {
+		expect(keyStep("ArrowRight", false, 99)).toBe(100);
+		expect(keyStep("ArrowLeft", true, 5)).toBe(0);
+		expect(keyStep("PageUp", false, 50)).toBe(60);
+		expect(keyStep("Enter", false, 50)).toBeNull();
 	});
 });

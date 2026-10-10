@@ -140,14 +140,21 @@ describe("EditorialEngine (engine booted)", () => {
 		expect(fallback.style.display).not.toBe("none");
 	});
 
-	it("marks every element the engine paints aria-hidden so the article is announced once", async () => {
+	it("keeps every element the engine paints inside the aria-hidden layer so the article is announced once", async () => {
 		const { stage } = await renderReady({ headline: "HELLO WORLD", body: "Some body copy." });
+		// The engine paints into `.ee-layer`, which the wrapper marks
+		// aria-hidden as a whole (see the plain-render test above) — that one
+		// attribute hides the entire painted subtree from assistive tech, so
+		// individual line/orb/drop-cap elements need not (and do not) carry
+		// their own aria-hidden.
+		const layer = stage.querySelector(".ee-layer") as HTMLElement;
+		expect(layer.getAttribute("aria-hidden")).toBe("true");
 		const painted = stage.querySelectorAll(
 			".ee-line, .ee-headline-line, .ee-pullquote-line, .ee-pullquote-box, .ee-orb, .ee-drop-cap"
 		);
 		expect(painted.length).toBeGreaterThan(0);
 		for (const element of painted) {
-			expect(element.getAttribute("aria-hidden")).toBe("true");
+			expect(layer.contains(element)).toBe(true);
 		}
 	});
 

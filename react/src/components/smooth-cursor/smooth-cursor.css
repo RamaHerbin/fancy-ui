@@ -1,0 +1,100 @@
+/*
+ * SmoothCursor — the Svelte source's scoped <style> block. Plain CSS is global,
+ * so every rule is anchored on the component's own root class `.smooth-cursor`
+ * (the Svelte root already carries it). Class names and custom properties are
+ * identical to the Svelte source.
+ */
+
+.smooth-cursor {
+	--_sc-hot: color-mix(in oklab, var(--_sc-color) 45%, white);
+	--_sc-deep: color-mix(in oklab, var(--_sc-color) 82%, black);
+	--_sc-ink: var(--smooth-cursor-label-color, #fff);
+}
+
+.smooth-cursor .sc-pointer,
+.smooth-cursor .sc-label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	will-change: transform;
+}
+
+/* The arrow always paints over the pill when the pill catches up behind it. */
+.smooth-cursor .sc-pointer {
+	z-index: 1;
+}
+
+.smooth-cursor .sc-arrow {
+	display: block;
+	overflow: visible;
+	filter: drop-shadow(0 1px 1.25px rgb(0 0 0 / 0.32))
+		drop-shadow(0 4px 9px color-mix(in oklab, var(--_sc-color) 38%, transparent));
+}
+
+/* Rotating mode: turn the arrowhead so it points "up" — the engine's 0deg. */
+.smooth-cursor .sc-pointer--rotate .sc-arrow {
+	rotate: 32.5deg;
+}
+
+.smooth-cursor .sc-arrow-rim {
+	stroke: #fff;
+	stroke-width: 3;
+	stroke-linejoin: round;
+	paint-order: stroke fill;
+}
+
+.smooth-cursor .sc-stop-hot {
+	stop-color: var(--_sc-hot);
+}
+.smooth-cursor .sc-stop-body {
+	stop-color: var(--_sc-color);
+}
+.smooth-cursor .sc-stop-deep {
+	stop-color: var(--_sc-deep);
+}
+
+/* Name pill: tucked under the arrow's back edge, square-ish corner pointing at the tip. */
+.smooth-cursor .sc-label {
+	translate: 13px 17px;
+	transform-origin: 0 0;
+	display: flex;
+	align-items: center;
+	max-width: 180px;
+	height: 22px;
+	padding: 0 9px;
+	border-radius: 3px 11px 11px 11px;
+	background: linear-gradient(
+		180deg,
+		color-mix(in oklab, var(--_sc-color) 86%, white) 0%,
+		var(--_sc-color) 55%,
+		color-mix(in oklab, var(--_sc-color) 92%, black) 100%
+	);
+	color: var(--_sc-ink);
+	box-shadow:
+		0 0 0 1px rgb(255 255 255 / 0.92),
+		inset 0 1px 0 rgb(255 255 255 / 0.28),
+		0 1px 2px rgb(0 0 0 / 0.28),
+		0 6px 16px -4px color-mix(in oklab, var(--_sc-color) 45%, transparent);
+	opacity: 1;
+}
+
+.smooth-cursor .sc-label-text {
+	overflow: hidden;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-shadow: 0 1px 0 rgb(0 0 0 / 0.14);
+}
+
+.smooth-cursor .sc-label.is-idle {
+	opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.smooth-cursor .sc-label {
+		transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}

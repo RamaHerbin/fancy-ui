@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { onMount, setContext } from "svelte";
 	import type { Snippet } from "svelte";
-	import confettiModule from "canvas-confetti";
 	import type {
 		GlobalOptions as ConfettiGlobalOptions,
 		Options as ConfettiOptions,
-		CreateTypes as ConfettiInstance,
 	} from "canvas-confetti";
+	import { createConfetti, type ConfettiEngine } from "./confetti-core.js";
 
 	interface Props {
 		options?: ConfettiOptions;
@@ -25,29 +24,25 @@
 	}: Props = $props();
 
 	let canvasRef: HTMLCanvasElement;
-	let instance: ConfettiInstance | null = null;
+	let engine: ConfettiEngine | null = null;
 
+	// `options` is live, and it was read synchronously inside `fire()` before
+	// the extraction — so it is pushed here at call time rather than from a
+	// deferred `$effect`, which would make a same-tick `options = …; fire()`
+	// use the previous value.
 	export function fire(opts: ConfettiOptions = {}) {
-		instance?.({ ...options, ...opts });
+		engine?.setOptions({ options });
+		engine?.fire(opts);
 	}
 
 	setContext("ConfettiContext", { fire });
 
 	onMount(() => {
-		instance = confettiModule.create(canvasRef, {
-			...globalOptions,
-			resize: true,
-		});
-
-		if (!manualStart) {
-			fire();
-		}
+		engine = createConfetti({ canvas: canvasRef }, { globalOptions, manualStart, options });
 
 		return () => {
-			if (instance) {
-				instance.reset();
-				instance = null;
-			}
+			engine?.destroy();
+			engine = null;
 		};
 	});
 </script>

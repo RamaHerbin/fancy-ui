@@ -5,6 +5,7 @@ vendor/
 
 # Output
 .output
+.nuxt
 .vercel
 .netlify
 .wrangler

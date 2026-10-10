@@ -1,33 +1,54 @@
 /**
- * CSS-only Svelte transition factories built from `presets.ts`'s geometry
- * table. Presence's whole "one `transition:` directive handles both open
- * and close" trick, and StickyScroll's panel crossfade, are both built on
- * this file.
+ * CSS-only transition factories built from `presets.ts`'s geometry table.
+ * Presence's whole "one transition handles both open and close" trick, and
+ * StickyScroll's panel crossfade, are both built on this file.
  *
  * How the `easing` param actually reaches the screen is worth spelling out,
  * because it is easy to assume `css(t, u)` needs to apply the curve itself:
- * it does not. Reading Svelte's own transition runtime
- * (`svelte/src/internal/client/dom/elements/transitions.js`, function
- * `animate()`) shows every keyframe is sampled as
- * `t = t1 + delta * easing(i / n)` BEFORE `css(t, 1 - t)` is ever called —
- * so the `t`/`u` a `css()` function receives are ALREADY eased. That is
- * exactly how Svelte's own built-ins behave too (`svelte/transition`'s
- * `blur`/`fade`/`fly`/`scale` all hand their `easing` param straight into
- * the returned `TransitionConfig.easing` field and then use `t`/`u`
- * linearly inside `css()`). `preset()` below does the same: `easing` is
- * resolved once and returned as-is on the config; `cssFor` never touches it.
+ * it does not. Whichever runtime plays the transition samples every keyframe
+ * as `t = t1 + delta * easing(i / n)` BEFORE `css(t, 1 - t)` is ever called —
+ * so the `t`/`u` a `css()` function receives are ALREADY eased, and the curve
+ * lives entirely in the sample POSITIONS rather than in a WAAPI `easing`
+ * option. `preset()` below does the same as the framework built-ins it
+ * mirrors: `easing` is resolved once and returned as-is on the spec; `cssFor`
+ * never touches it.
  */
 
-import type { TransitionConfig } from "svelte/transition";
 import { DURATIONS, JS_EASINGS } from "./tokens.js";
 import { PRESETS, type PresetName } from "./presets.js";
+
+/**
+ * One transition's timing plus its per-frame CSS. Structurally identical to
+ * the `TransitionConfig` a framework transition runtime consumes, declared
+ * locally so this shared core takes no dependency on any one framework's
+ * types. The `tick` field is omitted: nothing in this library uses it.
+ */
+export interface TransitionSpec {
+	delay: number;
+	duration: number;
+	easing: (t: number) => number;
+	/** `t` runs 0 (hidden) → 1 (visible); `u = 1 - t`. Receives ALREADY-EASED
+	 *  `t` — the sampler applies `easing` before calling this, which is why
+	 *  `cssFor` interpolates linearly in `t`. See the file header. */
+	css: (t: number, u: number) => string;
+}
+
+export type TransitionDirection = "in" | "out" | "both";
+
+/** A transition function's shape, preserved exactly — including the unused
+ *  first parameter, so the colocated test files transpose 1:1. */
+export type TransitionFn<P = unknown> = (
+	node: Element,
+	params?: P,
+	options?: { direction: TransitionDirection }
+) => TransitionSpec;
 
 export interface PresetParams {
 	duration?: number;
 	delay?: number;
 	distance?: number;
 	/** A JS easing function — `(t: number) => number` — not a CSS string.
-	 * Handed straight to `TransitionConfig.easing`; see the file header for
+	 * Handed straight to `TransitionSpec.easing`; see the file header for
 	 * why `cssFor` never has to apply it itself. */
 	easing?: (t: number) => number;
 }
@@ -75,31 +96,25 @@ function cssFor(name: PresetName, t: number, u: number, distance: number): strin
 }
 
 /**
- * Returns a Svelte transition function for the named preset, ready for
- * `transition:`/`in:`/`out:`. Resolution order for every param is
- * caller-supplied `params` → this function's own defaults; `duration`
- * defaults to `DURATIONS.base` and `distance` to 16px regardless of
- * direction (a component that wants a shorter/half-distance EXIT, like
- * Presence, passes those explicitly in its own `out`-side params — this
- * factory does not guess at that asymmetry).
+ * Returns a transition function for the named preset, ready to hand to
+ * whichever presence/transition mechanism the host framework provides.
+ * Resolution order for every param is caller-supplied `params` → this
+ * function's own defaults; `duration` defaults to `DURATIONS.base` and
+ * `distance` to 16px regardless of direction (a component that wants a
+ * shorter/half-distance EXIT, like Presence, passes those explicitly in its
+ * own `out`-side params — this factory does not guess at that asymmetry).
  *
  * `easing` is the one default that DOES read `options.direction`: with no
- * explicit `params.easing`, an `"out"`-direction instance (an `out:` or
- * `in:` directive used on its own — StickyScroll's panel crossfade builds
- * one `preset("fade")` and uses it as both `in:fn` and `out:fn`, two
- * separate directive instances) defaults to `JS_EASINGS.in` (a departure
- * curve); anything else (`"in"`, or the unified `"both"` a single
- * `transition:` directive reports — Presence's case) defaults to
- * `JS_EASINGS.out` (an arrival curve, the more common perceived motion of
- * the two when only one curve is in play).
+ * explicit `params.easing`, an `"out"`-direction instance (an exit-only
+ * instance used on its own — StickyScroll's panel crossfade builds one
+ * `preset("fade")` and uses it as both the enter and the exit spec, two
+ * separate instances) defaults to `JS_EASINGS.in` (a departure curve);
+ * anything else (`"in"`, or the unified `"both"` a single two-way
+ * transition reports — Presence's case) defaults to `JS_EASINGS.out` (an
+ * arrival curve, the more common perceived motion of the two when only one
+ * curve is in play).
  */
-export function preset(
-	name: PresetName
-): (
-	node: Element,
-	params?: PresetParams,
-	options?: { direction: "in" | "out" | "both" }
-) => TransitionConfig {
+export function preset(name: PresetName): TransitionFn<PresetParams> {
 	return (_node, params = {}, options) => {
 		const duration = params.duration ?? DURATIONS.base;
 		const delay = params.delay ?? 0;

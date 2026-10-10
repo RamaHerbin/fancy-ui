@@ -1,12 +1,33 @@
 import { render, cleanup } from "@testing-library/svelte";
-import { createRawSnippet } from "svelte";
+import { createRawSnippet, flushSync } from "svelte";
 import { afterEach, describe, it, expect } from "vitest";
 import BentoGrid from "./BentoGrid.svelte";
 import BentoGridItem from "./BentoGridItem.svelte";
 import BentoGridCard from "./BentoGridCard.svelte";
+import BentoHarness from "./BentoHarness.test.svelte";
 
 function textSnippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
+}
+
+const originalMatchMedia = window.matchMedia;
+
+/** Forces the reduced-motion media query to answer `matches`. */
+function stubMatchMedia(matches: boolean) {
+	Object.defineProperty(window, "matchMedia", {
+		writable: true,
+		configurable: true,
+		value: (query: string) => ({
+			matches,
+			media: query,
+			onchange: null,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		}),
+	});
 }
 
 describe("BentoGrid", () => {
@@ -32,6 +53,76 @@ describe("BentoGrid", () => {
 		});
 		expect(container.querySelector("[data-testid='child']")?.textContent).toBe("card");
 	});
+
+	it("arms the reveal by default", () => {
+		const { container } = render(BentoGrid);
+		flushSync();
+		const grid = container.firstElementChild as HTMLElement;
+		expect(grid.className).toContain("bento-reveal");
+		expect(grid.dataset.state).toBe("armed");
+	});
+
+	it("drops the reveal class when reveal={false}", () => {
+		const { container } = render(BentoGrid, { props: { reveal: false } });
+		flushSync();
+		const grid = container.firstElementChild as HTMLElement;
+		expect(grid.className).not.toContain("bento-reveal");
+		expect(grid.hasAttribute("data-state")).toBe(false);
+	});
+
+	it("never arms the reveal under reduced motion", () => {
+		stubMatchMedia(true);
+		try {
+			const { container } = render(BentoGrid);
+			flushSync();
+			const grid = container.firstElementChild as HTMLElement;
+			expect(grid.className).not.toContain("bento-reveal");
+		} finally {
+			Object.defineProperty(window, "matchMedia", {
+				writable: true,
+				configurable: true,
+				value: originalMatchMedia,
+			});
+		}
+	});
+
+	it("reveals at once when focus lands inside the grid", () => {
+		const { container } = render(BentoGrid, {
+			props: { children: textSnippet("<button>tile</button>") },
+		});
+		flushSync();
+		const grid = container.firstElementChild as HTMLElement;
+		(grid.querySelector("button") as HTMLButtonElement).focus();
+		flushSync();
+		expect(grid.dataset.state).toBe("shown");
+	});
+
+	it("writes the accent prop to --bento-accent", () => {
+		const { container } = render(BentoGrid, { props: { accent: "#ff7a59" } });
+		const grid = container.firstElementChild as HTMLElement;
+		expect(grid.style.getPropertyValue("--bento-accent")).toBe("#ff7a59");
+	});
+
+	it("leaves --bento-accent unset without an accent, so the CSS fallback applies", () => {
+		const { container } = render(BentoGrid);
+		const grid = container.firstElementChild as HTMLElement;
+		expect(grid.style.getPropertyValue("--bento-accent")).toBe("");
+	});
+
+	it("gives each tile its index and a capped, increasing stagger delay", () => {
+		const { container } = render(BentoHarness);
+		flushSync();
+		const tiles = Array.from(
+			(container.firstElementChild as HTMLElement).children
+		) as HTMLElement[];
+		expect(tiles).toHaveLength(3);
+		expect(tiles.map((t) => t.style.getPropertyValue("--bento-i"))).toEqual(["0", "1", "2"]);
+		const delays = tiles.map((t) => parseFloat(t.style.getPropertyValue("--bento-delay")));
+		expect(delays[0]).toBe(0);
+		expect(delays[1]).toBeGreaterThan(delays[0]);
+		expect(delays[2]).toBeGreaterThan(delays[1]);
+		expect(delays[2]).toBeLessThanOrEqual(420);
+	});
 });
 
 describe("BentoGridItem", () => {
@@ -41,7 +132,10 @@ describe("BentoGridItem", () => {
 		const { container } = render(BentoGridItem);
 		const item = container.firstElementChild as HTMLElement;
 		expect(item.className).toContain("group/bento");
-		expect(item.className).toContain("rounded-xl");
+		expect(item.className).toContain("bento-tile");
+		expect(item.className).toContain("rounded-2xl");
+		// The nested inner panel of the double frame.
+		expect(item.querySelector(".bento-panel")).toBeTruthy();
 	});
 
 	it("applies custom class names", () => {
@@ -77,8 +171,23 @@ describe("BentoGridItem", () => {
 
 	it("omits the title/description wrappers when those snippets are not provided", () => {
 		const { container } = render(BentoGridItem);
-		// Only the outer card and the inner hover-translate wrapper should exist.
-		expect(container.querySelectorAll("div").length).toBe(2);
+		// Only the outer frame, the inner panel and the content wrapper exist.
+		expect(container.querySelectorAll("div").length).toBe(3);
+	});
+
+	it("wraps the icon in the inset icon tile", () => {
+		const { container } = render(BentoGridItem, {
+			props: { icon: textSnippet("<svg data-testid='icon'></svg>") },
+		});
+		expect(container.querySelector(".bento-icon [data-testid='icon']")).toBeTruthy();
+	});
+
+	it("marks the glow layers as decorative", () => {
+		const { container } = render(BentoGridItem);
+		const glow = container.querySelector(".bento-glow");
+		const edge = container.querySelector(".bento-edge");
+		expect(glow?.getAttribute("aria-hidden")).toBe("true");
+		expect(edge?.getAttribute("aria-hidden")).toBe("true");
 	});
 });
 
@@ -123,5 +232,16 @@ describe("BentoGridCard", () => {
 			props: { ...baseProps, background: textSnippet("<div data-testid='bg'></div>") },
 		});
 		expect(container.querySelector("[data-testid='bg']")).toBeTruthy();
+		// The slot may hold real content: it must stay reachable and interactive.
+		const bg = container.querySelector("[data-testid='bg']") as HTMLElement;
+		expect(bg.closest("[aria-hidden='true']")).toBeNull();
+		expect(bg.closest(".pointer-events-none")).toBeNull();
+	});
+
+	it("keeps the cta a real link and marks it for the slide-in", () => {
+		const { container } = render(BentoGridCard, { props: baseProps });
+		const link = container.querySelector("a") as HTMLAnchorElement;
+		expect(link.className).toContain("bento-cta");
+		expect(link.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
 	});
 });

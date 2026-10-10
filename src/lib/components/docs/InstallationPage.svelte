@@ -3,6 +3,35 @@
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import { COMPONENT_COUNT } from "$lib/site.js";
+	import type { ComponentProps } from "svelte";
+
+	// The same three packages the docs component pages switch between.
+	const installVariants: NonNullable<ComponentProps<typeof InstallBlock>["variants"]> = [
+		{
+			framework: "svelte",
+			package: "fancy-ui-svelte",
+			importLine: "import { RainbowButton } from 'fancy-ui-svelte';",
+			installLine: "pnpm add fancy-ui-svelte",
+			note: null,
+			availability: "available",
+		},
+		{
+			framework: "react",
+			package: "fancy-ui-react",
+			importLine: "import { RainbowButton } from 'fancy-ui-react';",
+			installLine: "pnpm add fancy-ui-react",
+			note: null,
+			availability: "available",
+		},
+		{
+			framework: "vue",
+			package: "fancy-ui-vue",
+			importLine: "import { RainbowButton } from 'fancy-ui-vue';",
+			installLine: "pnpm add fancy-ui-vue",
+			note: null,
+			availability: "available",
+		},
+	];
 
 	const stylesheetSnippet = `@import "tailwindcss";
 @import "fancy-ui-svelte/tailwind.css";`;
@@ -82,7 +111,7 @@ const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
 				<div class="step-body">
 					<span class="step-title">{t("install.step1.title")}</span>
 					<p class="step-desc">{t("install.step1.desc")}</p>
-					<InstallBlock />
+					<InstallBlock variants={installVariants} />
 				</div>
 			</li>
 			<li class="step">

@@ -2,7 +2,7 @@
 	"name": "fancy-ui-svelte",
 	"private": false,
 	"version": "0.14.0",
-	"description": "145 UI components for Svelte 5 — core primitives plus WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
+	"description": "146 UI components for Svelte 5 — core primitives plus WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.",
 	"author": "Rama Herbin",
 	"funding": "https://github.com/sponsors/RamaHerbin",
 	"type": "module",
@@ -42,7 +42,11 @@
 		"dist/utils.js",
 		"dist/utils.d.ts",
 		"dist/types.js",
-		"dist/types.d.ts"
+		"dist/types.d.ts",
+		"!dist/**/*.test.*",
+		"!dist/fancy-ui/_template",
+		"!dist/**/README.md",
+		"!dist/**/web-audio-mock.*"
 	],
 	"main": "./dist/fancy-ui/index.js",
 	"svelte": "./dist/fancy-ui/index.js",
@@ -74,10 +78,12 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"check:registry": "node scripts/check-registry.mjs",
+		"check:cores": "node scripts/check-shared-cores.mjs",
+		"check:props": "node scripts/check-prop-parity.mjs --self-test && node scripts/check-prop-parity.mjs",
 		"check:i18n": "node scripts/check-i18n.mjs",
-		"build:assets": "node scripts/build-synthwave-assets.mjs",
 		"build:brand-assets": "node scripts/build-brand-assets.mjs",
 		"build:og": "node scripts/build-og-images.mjs",
+		"build:thumbs": "node scripts/build-component-thumbs.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:e2e": "playwright test",
@@ -88,13 +94,14 @@
 		"package": "svelte-kit sync && svelte-package -i src/lib -o dist && node -e \"const fs=require('fs'); ['dist/builder','dist/server','dist/stores'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}));\" && publint",
 		"prepublishOnly": "pnpm run package",
 		"storybook": "storybook dev -p 6006",
-		"build-storybook": "storybook build"
+		"build-storybook": "storybook build",
+		"build:inspiration-media": "node scripts/build-inspiration-media.mjs"
 	},
 	"engines": {
 		"node": ">=20.19.0"
 	},
 	"peerDependencies": {
-		"svelte": "^5.0.0",
+		"svelte": "^5.20.0",
 		"tailwindcss": "^4.0.0"
 	},
 	"dependencies": {

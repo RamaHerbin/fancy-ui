@@ -1,0 +1,78 @@
+/*
+ * Dock icon. Mirrors the Svelte <style> block of DockIcon.svelte rule for
+ * rule, anchored on the source's own root class `.dock-icon`.
+ */
+.dock-icon {
+	--_dock-accent: var(--dock-accent, var(--primary, #71717a));
+	--_dock-ease: var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+/* Indicator dot: below the icon on a horizontal dock, beside it on a
+   vertical one. Hidden until the icon is the one under the pointer. */
+.dock-icon::before {
+	content: "";
+	position: absolute;
+	left: 50%;
+	top: calc(100% + 4px);
+	width: 4px;
+	height: 4px;
+	margin-left: -2px;
+	border-radius: 9999px;
+	background: var(--_dock-accent);
+	opacity: 0;
+	pointer-events: none;
+}
+.dark .dock-icon::before {
+	background: color-mix(in oklab, var(--_dock-accent) 45%, white);
+	box-shadow: 0 0 6px 1px color-mix(in oklab, var(--_dock-accent) 55%, transparent);
+}
+.dock-icon[data-orientation="vertical"]::before {
+	left: auto;
+	right: calc(100% + 4px);
+	top: 50%;
+	margin-left: 0;
+	margin-top: -2px;
+}
+.dock-icon[data-dock-active]::before {
+	opacity: 1;
+}
+
+/* Floor reflection: a soft ellipse under the icon — a contact shadow on
+   the light shelf, a faint glow on the dark one. Sized in percent, so it
+   grows with the magnified icon for free. */
+.dock-icon[data-reflection]::after {
+	content: "";
+	position: absolute;
+	left: 14%;
+	right: 14%;
+	top: calc(100% - 4px);
+	height: 22%;
+	border-radius: 50%;
+	background: radial-gradient(closest-side, rgba(0, 0, 0, 0.22), transparent);
+	filter: blur(3px);
+	opacity: 0.7;
+	z-index: -1;
+	pointer-events: none;
+}
+.dark .dock-icon[data-reflection]::after {
+	background: radial-gradient(
+		closest-side,
+		color-mix(in oklab, var(--_dock-accent) 26%, transparent),
+		transparent
+	);
+}
+.dock-icon[data-reflection][data-dock-active]::after {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.dock-icon {
+		transition:
+			width 180ms var(--_dock-ease),
+			height 180ms var(--_dock-ease);
+	}
+	.dock-icon::before,
+	.dock-icon[data-reflection]::after {
+		transition: opacity 180ms var(--_dock-ease);
+	}
+}

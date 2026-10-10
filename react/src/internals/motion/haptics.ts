@@ -6,10 +6,6 @@
  * exists (Safari on iOS has never implemented it, for instance), and a
  * missing rumble is a non-event a user never notices — a thrown error
  * breaking the surrounding click handler very much would be.
- *
- * No hook: both functions are called from a click handler, never from a
- * render path. `canVibrate()` reads `navigator` and is therefore
- * server-safe only because it guards on `typeof navigator`.
  */
 
 export const HAPTIC_PATTERNS = {

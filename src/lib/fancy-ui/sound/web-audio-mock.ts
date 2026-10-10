@@ -103,7 +103,10 @@ export class FakeAudioBuffer {
 		return this.length / this.sampleRate;
 	}
 	getChannelData(channel: number): Float32Array {
-		return this.channels[channel];
+		// noUncheckedIndexedAccess (this workspace's tsconfig only) types the index
+		// as possibly undefined; the class's own constructor always fills every
+		// channel slot, so this assertion changes nothing observable.
+		return this.channels[channel]!;
 	}
 }
 

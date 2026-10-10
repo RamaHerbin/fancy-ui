@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import {
 		BOOK_RADIUS_MAP as radiusMap,
 		BOOK_SIZE_MAP as sizeMap,

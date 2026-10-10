@@ -45,6 +45,8 @@ jobs:
       # visible and fail-fast.)
       - run: pnpm --filter fancy-ui-react run build
 
+      - run: pnpm --filter fancy-ui-vue run build
+
       - uses: changesets/action@v1
         with:
           # Creates/updates the "Version Packages" PR instead of pushing directly to main.
@@ -55,7 +57,8 @@ jobs:
           title: "Version Packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Both packages list this repository's release.yml as their trusted
-          # publisher on the registry; the action logs "No NPM_TOKEN found" and
+          # All three packages list this repository's release.yml as their
+          # trusted publisher on the registry (the third is registered by the
+          # owner at first publish); the action logs "No NPM_TOKEN found" and
           # lets pnpm authenticate through OIDC. Provenance is attested as well.
           NPM_CONFIG_PROVENANCE: "true"

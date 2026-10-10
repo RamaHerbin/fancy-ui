@@ -54,7 +54,7 @@ describe("preset() — param resolution (pure, no DOM)", () => {
 	it("returns a css-only TransitionConfig — no tick function", () => {
 		const config = preset("fade")(document.createElement("div"));
 		expect(typeof config.css).toBe("function");
-		expect(config.tick).toBeUndefined();
+		expect((config as { tick?: unknown }).tick).toBeUndefined();
 	});
 });
 

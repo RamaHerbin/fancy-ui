@@ -1,15 +1,15 @@
 /**
  * The single source of preset GEOMETRY for the motion family — what moves,
  * and how far, for each named look. Two consumers read this table for two
- * different purposes: Reveal's CSS (hand-written `<style>` rules keyed on
+ * different purposes: Reveal's CSS (hand-written rules keyed on
  * `data-preset`, built to match this table by hand) and `transitions.ts`'s
- * `preset()` (which reads this table directly at runtime to build a Svelte
- * `TransitionConfig`). Keeping the numbers in exactly one place is the
+ * `preset()` (which reads this table directly at runtime to build a
+ * `TransitionSpec`). Keeping the numbers in exactly one place is the
  * whole point of this file existing separately from `transitions.ts` — a
  * geometry change here is the one edit that keeps both in sync in theory,
- * even though Reveal's CSS side still has to be updated by hand (this repo
- * ships no shared runtime stylesheet; see `tokens.ts`'s header comment for
- * the same caveat applied to durations/easings).
+ * even though Reveal's CSS side still has to be updated by hand (this
+ * package ships no shared runtime stylesheet for motion; see `tokens.ts`'s
+ * header comment for the same caveat applied to durations/easings).
  */
 
 export type PresetName =

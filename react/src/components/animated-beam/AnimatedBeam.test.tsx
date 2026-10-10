@@ -1,7 +1,7 @@
 import { render, cleanup } from "@testing-library/react";
-import { useEffect, useLayoutEffect } from "react";
-import { afterEach, describe, it, expect } from "vitest";
-import { AnimatedBeam } from "./AnimatedBeam.js";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { AnimatedBeam, beamDuration, packetLayers } from "./AnimatedBeam.js";
 
 const makeProps = () => ({
 	containerRef: document.createElement("div"),
@@ -33,6 +33,20 @@ const makeMeasuredProps = () => {
 	return props;
 };
 
+/** `useReducedMotion()` re-resolves against a replaced `window.matchMedia`, so a wholesale override is enough. */
+function stubReducedMotion(matches: boolean) {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
 /**
  * Marks the two effect phases of the commit it mounts in. Rendered after the
  * beam, so React reaches its layout effect only once the beam's own layout
@@ -49,7 +63,10 @@ function PhaseProbe({ mark }: { mark: (phase: string) => void }) {
 }
 
 describe("AnimatedBeam", () => {
-	afterEach(cleanup);
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
 
 	it("renders an svg element", () => {
 		const { container } = render(<AnimatedBeam {...makeProps()} />);
@@ -57,21 +74,23 @@ describe("AnimatedBeam", () => {
 		expect(svg).toBeInTheDocument();
 	});
 
-	it("svg has pointer-events-none class", () => {
+	it("svg has pointer-events-none class and is hidden from assistive tech", () => {
 		const { container } = render(<AnimatedBeam {...makeProps()} />);
 		const svg = container.querySelector("svg");
 		expect(svg?.className.baseVal).toContain("pointer-events-none");
+		expect(svg).toHaveAttribute("aria-hidden", "true");
 	});
 
-	it("renders two path elements", () => {
+	it("renders the fibre and the packet as paths", () => {
 		const { container } = render(<AnimatedBeam {...makeProps()} />);
-		const paths = container.querySelectorAll("path");
-		expect(paths.length).toBe(2);
+		expect(container.querySelectorAll("path").length).toBeGreaterThanOrEqual(2);
+		expect(container.querySelector(".fibre-core")).toBeInTheDocument();
+		expect(container.querySelectorAll('.packet path[data-layer="head"]').length).toBeGreaterThan(0);
 	});
 
 	it("renders a linearGradient in defs", () => {
 		const { container } = render(<AnimatedBeam {...makeProps()} />);
-		const gradient = container.querySelector("linearGradient");
+		const gradient = container.querySelector("defs linearGradient");
 		expect(gradient).toBeInTheDocument();
 	});
 
@@ -89,10 +108,89 @@ describe("AnimatedBeam", () => {
 		expect(svg?.className.baseVal).toContain("transform-gpu");
 	});
 
+	it("wires the delay prop onto the packet's animation start", () => {
+		const { container } = render(<AnimatedBeam {...makeProps()} delay={2} />);
+		const packet = container.querySelector(".packet");
+		expect(packet?.getAttribute("style")).toMatch(/--_delay:\s*2s/);
+	});
+
+	it("defaults the animation start to no delay", () => {
+		const { container } = render(<AnimatedBeam {...makeProps()} />);
+		const packet = container.querySelector(".packet");
+		expect(packet?.getAttribute("style")).toMatch(/--_delay:\s*0s/);
+	});
+
 	it('svg has fill="none" attribute', () => {
 		const { container } = render(<AnimatedBeam {...makeProps()} />);
 		const svg = container.querySelector("svg");
 		expect(svg).toHaveAttribute("fill", "none");
+	});
+
+	it("derives a stable default duration from the seed", () => {
+		const a = render(<AnimatedBeam {...makeProps()} seed={4} />);
+		const first = a.container.querySelector("svg")?.getAttribute("data-duration");
+		cleanup();
+		const b = render(<AnimatedBeam {...makeProps()} seed={4} />);
+		const second = b.container.querySelector("svg")?.getAttribute("data-duration");
+		expect(first).toBe(second);
+		expect(Number(first)).toBeCloseTo(beamDuration(4), 3);
+		expect(Number(first)).toBeGreaterThanOrEqual(4);
+		expect(Number(first)).toBeLessThan(7);
+	});
+
+	it("an explicit duration wins over the seed", () => {
+		const { container } = render(<AnimatedBeam {...makeProps()} duration={3} />);
+		expect(container.querySelector("svg")).toHaveAttribute("data-duration", "3.000");
+	});
+
+	it("gives each instance its own gradient id", () => {
+		const { container } = render(<AnimatedBeam {...makeProps()} />);
+		render(<AnimatedBeam {...makeProps()} />);
+		const ids = [...document.querySelectorAll("linearGradient")].map((g) => g.id);
+		expect(ids.length).toBe(2);
+		expect(ids[0]).not.toBe(ids[1]);
+		expect(container.querySelector("linearGradient")?.id).toMatch(/^beam-/);
+	});
+
+	it("renders one packet group per pulse, spaced evenly over the cycle", () => {
+		const { container } = render(
+			<AnimatedBeam {...makeProps()} pulses={3} duration={6} delay={1} />
+		);
+		const packets = container.querySelectorAll(".packet");
+		expect(packets.length).toBe(3);
+		const delays = [...packets].map((p) => p.getAttribute("style"));
+		expect(delays[0]).toMatch(/--_delay:\s*1s/);
+		expect(delays[1]).toMatch(/--_delay:\s*3s/);
+		expect(delays[2]).toMatch(/--_delay:\s*5s/);
+	});
+
+	it("each packet blooms at the landing end", () => {
+		const { container } = render(<AnimatedBeam {...makeProps()} pulses={2} />);
+		expect(container.querySelectorAll(".packet .bloom-disc").length).toBe(2);
+	});
+
+	it("longer tails produce longer dashes", () => {
+		const short = packetLayers(0.1, "#fff", "#000").find((l) => l.key === "stop")!;
+		const long = packetLayers(0.6, "#fff", "#000").find((l) => l.key === "stop")!;
+		expect(long.len).toBeGreaterThan(short.len);
+	});
+
+	it("keeps the old faint line when pathColor is passed", () => {
+		const { container } = render(<AnimatedBeam {...makeProps()} pathColor="red" />);
+		const fibre = container.querySelector(".fibre");
+		expect(fibre).toHaveAttribute("opacity", "0.2");
+		expect(container.querySelector(".fibre-core")?.getAttribute("style")).toContain("red");
+	});
+
+	it("reduced motion: no packets, no bloom, a still gradient along the fibre", () => {
+		stubReducedMotion(true);
+		const { container } = render(<AnimatedBeam {...makeProps()} pulses={3} />);
+		expect(container.querySelectorAll(".packet").length).toBe(0);
+		expect(container.querySelectorAll(".bloom-disc").length).toBe(0);
+		const still = container.querySelector("[data-still]");
+		expect(still).toBeInTheDocument();
+		const gradientId = container.querySelector("linearGradient")?.id;
+		expect(still?.querySelector("path")?.getAttribute("stroke")).toBe(`url(#${gradientId})`);
 	});
 
 	it("measures the beam in the layout phase, before the first paint", () => {
@@ -115,28 +213,74 @@ describe("AnimatedBeam", () => {
 		expect(order.indexOf("measure")).toBeLessThan(order.indexOf("layout"));
 	});
 
-	it("draws the measured path", () => {
-		const { container } = render(<AnimatedBeam {...makeMeasuredProps()} />);
-		expect(container.querySelector("svg")).toHaveAttribute("width", "400");
-		expect(container.querySelector("path")).toHaveAttribute(
+	it("reverse: the packet flows from toRef and the bloom lands on fromRef", () => {
+		const { container } = render(<AnimatedBeam {...makeMeasuredProps()} reverse />);
+		expect(container.querySelector(".fibre-core")).toHaveAttribute(
 			"d",
 			"M 30,100 Q 200,100 370,100"
 		);
+		expect(container.querySelector(".packet-layer")).toHaveAttribute(
+			"d",
+			"M 370,100 Q 200,100 30,100"
+		);
+		const bloom = container.querySelector(".bloom-disc");
+		expect(bloom).toHaveAttribute("cx", "30");
+		expect(bloom).toHaveAttribute("cy", "100");
 	});
 
-	it("defaults the animations to no delay", () => {
+	it("re-traces when an endpoint element is swapped", () => {
+		const props = makeMeasuredProps();
+		const { container, rerender } = render(<AnimatedBeam {...props} />);
+		const next = document.createElement("div");
+		stubRect(next, { x: 260, y: 90, width: 20, height: 20 });
+		rerender(<AnimatedBeam {...props} toRef={next} />);
+		expect(container.querySelector(".fibre-core")).toHaveAttribute(
+			"d",
+			"M 30,100 Q 150,100 270,100"
+		);
+	});
+
+	it("draws with ref objects when the beam sits inside the container", () => {
+		// React attaches the container's ref after this child's layout effects.
+		const boxes: Record<string, HTMLElement> = {
+			c: document.createElement("div"),
+			a: document.createElement("div"),
+			b: document.createElement("div"),
+		};
+		stubRect(boxes.c!, { x: 0, y: 0, width: 400, height: 200 });
+		stubRect(boxes.a!, { x: 20, y: 90, width: 20, height: 20 });
+		stubRect(boxes.b!, { x: 360, y: 90, width: 20, height: 20 });
+		const original = HTMLElement.prototype.getBoundingClientRect;
+		HTMLElement.prototype.getBoundingClientRect = function (this: HTMLElement) {
+			const key = this.dataset.box;
+			return key ? boxes[key]!.getBoundingClientRect() : original.call(this);
+		};
+		function Demo() {
+			const c = useRef<HTMLDivElement>(null);
+			const a = useRef<HTMLDivElement>(null);
+			const b = useRef<HTMLDivElement>(null);
+			return (
+				<div ref={c} data-box="c">
+					<div ref={a} data-box="a" />
+					<div ref={b} data-box="b" />
+					<AnimatedBeam containerRef={c} fromRef={a} toRef={b} />
+				</div>
+			);
+		}
+		try {
+			const { container } = render(<Demo />);
+			expect(container.querySelector(".fibre-core")).toHaveAttribute(
+				"d",
+				"M 30,100 Q 200,100 370,100"
+			);
+		} finally {
+			HTMLElement.prototype.getBoundingClientRect = original;
+		}
+	});
+
+	it("draws the measured path", () => {
 		const { container } = render(<AnimatedBeam {...makeMeasuredProps()} />);
-		for (const animate of container.querySelectorAll("animate")) {
-			expect(animate).toHaveAttribute("begin", "0s");
-		}
-	});
-
-	it("staggers the animations by the delay prop", () => {
-		const { container } = render(<AnimatedBeam {...makeMeasuredProps()} delay={2} />);
-		const animations = container.querySelectorAll("animate");
-		expect(animations.length).toBe(2);
-		for (const animate of animations) {
-			expect(animate).toHaveAttribute("begin", "2s");
-		}
+		expect(container.querySelector("svg")).toHaveAttribute("width", "400");
+		expect(container.querySelector("path")).toHaveAttribute("d", "M 30,100 Q 200,100 370,100");
 	});
 });

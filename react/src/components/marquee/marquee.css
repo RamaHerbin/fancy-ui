@@ -1,12 +1,58 @@
-/* Anchored on the root class (added in the port — the Svelte compiler scoped
+/* Anchored on the source's root class `.marquee` (the Svelte compiler scoped
    these rules; as plain CSS they would leak into any consumer element named
    .animate-marquee). See PORTING.md, styling rule 2. */
-.fancy-marquee .animate-marquee {
-	animation: marquee var(--duration) linear infinite;
+.marquee > .animate-marquee {
+	animation: marquee calc(var(--duration) / var(--marquee-speed, 1)) linear infinite;
+	will-change: transform;
 }
 
-.fancy-marquee .animate-marquee-vertical {
-	animation: marquee-vertical var(--duration) linear infinite;
+.marquee > .animate-marquee-vertical {
+	animation: marquee-vertical calc(var(--duration) / var(--marquee-speed, 1)) linear infinite;
+	will-change: transform;
+}
+
+/* Script-owned animations have taken over: silence the CSS keyframe so the
+   track is not moved twice. */
+.marquee.marquee-upgraded > .animate-marquee,
+.marquee.marquee-upgraded > .animate-marquee-vertical {
+	animation: none;
+}
+
+/* Edge fades: an eased (not linear) alpha ramp, so items dissolve into the
+   edge instead of hitting a visible line. Width via --marquee-fade. */
+.marquee.marquee-fade {
+	--_fade: var(--marquee-fade, 12%);
+	--_mask: linear-gradient(
+		to right,
+		transparent,
+		rgb(0 0 0 / 0.1) calc(var(--_fade) * 0.25),
+		rgb(0 0 0 / 0.4) calc(var(--_fade) * 0.5),
+		rgb(0 0 0 / 0.8) calc(var(--_fade) * 0.75),
+		#000 var(--_fade),
+		#000 calc(100% - var(--_fade)),
+		rgb(0 0 0 / 0.8) calc(100% - var(--_fade) * 0.75),
+		rgb(0 0 0 / 0.4) calc(100% - var(--_fade) * 0.5),
+		rgb(0 0 0 / 0.1) calc(100% - var(--_fade) * 0.25),
+		transparent
+	);
+	-webkit-mask-image: var(--_mask);
+	mask-image: var(--_mask);
+}
+
+.marquee.marquee-fade.marquee-vertical {
+	--_mask: linear-gradient(
+		to bottom,
+		transparent,
+		rgb(0 0 0 / 0.1) calc(var(--_fade) * 0.25),
+		rgb(0 0 0 / 0.4) calc(var(--_fade) * 0.5),
+		rgb(0 0 0 / 0.8) calc(var(--_fade) * 0.75),
+		#000 var(--_fade),
+		#000 calc(100% - var(--_fade)),
+		rgb(0 0 0 / 0.8) calc(100% - var(--_fade) * 0.75),
+		rgb(0 0 0 / 0.4) calc(100% - var(--_fade) * 0.5),
+		rgb(0 0 0 / 0.1) calc(100% - var(--_fade) * 0.25),
+		transparent
+	);
 }
 
 @keyframes marquee {
@@ -24,5 +70,14 @@
 	}
 	to {
 		transform: translateY(calc(-100% - var(--gap)));
+	}
+}
+
+/* Reduced motion: a still row with the same composition — edge fades stay. */
+@media (prefers-reduced-motion: reduce) {
+	.marquee > .animate-marquee,
+	.marquee > .animate-marquee-vertical {
+		animation: none;
+		will-change: auto;
 	}
 }

@@ -481,9 +481,9 @@ export function hexToLinearRgb(hex: string): Rgb {
 	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	if (!m) return { r: 1, g: 1, b: 1 };
 	return {
-		r: srgbToLinear(parseInt(m[1], 16) / 255),
-		g: srgbToLinear(parseInt(m[2], 16) / 255),
-		b: srgbToLinear(parseInt(m[3], 16) / 255),
+		r: srgbToLinear(parseInt(m[1]!, 16) / 255),
+		g: srgbToLinear(parseInt(m[2]!, 16) / 255),
+		b: srgbToLinear(parseInt(m[3]!, 16) / 255),
 	};
 }
 
@@ -632,7 +632,7 @@ const SMOKE_COLOR = hexToLinearRgb(SMOKE_HEX);
 export const COMET_TRAIL_MIX = 0.25;
 // Fallback tint for a trail whose launch spec is already gone (the rocket
 // outlived its detonation record) — the built-in palette's cool end.
-const COMET_TRAIL_HUE = mixOklab(COMET_HEAD, PALETTE[0], COMET_TRAIL_MIX);
+const COMET_TRAIL_HUE = mixOklab(COMET_HEAD, PALETTE[0]!, COMET_TRAIL_MIX);
 
 // =============================================================================
 // §1 pure helpers — kinematics, bursts, spring, hue sweep, scheduling
@@ -865,25 +865,25 @@ export function polygonOutline(points: Vec2[]): Outline {
 	const cumulative: number[] = new Array(n + 1);
 	cumulative[0] = 0;
 	for (let i = 0; i < n; i++) {
-		const a = centered[i];
-		const b = centered[(i + 1) % n];
-		cumulative[i + 1] = cumulative[i] + Math.hypot(b.x - a.x, b.y - a.y);
+		const a = centered[i]!;
+		const b = centered[(i + 1) % n]!;
+		cumulative[i + 1] = cumulative[i]! + Math.hypot(b.x - a.x, b.y - a.y);
 	}
-	const perimeter = cumulative[n];
+	const perimeter = cumulative[n]!;
 
 	return (t: number): Vec2 => {
 		const u = ((t % 1) + 1) % 1;
 		// Degenerate outline (all points equal): every sample is the same point.
-		if (perimeter <= 1e-9) return { x: centered[0].x * scale, y: centered[0].y * scale };
+		if (perimeter <= 1e-9) return { x: centered[0]!.x * scale, y: centered[0]!.y * scale };
 		const target = u * perimeter;
 		// Linear scan: outlines are a handful of points and this runs once per
 		// spawned spark, not per frame.
 		let i = 0;
-		while (i < n - 1 && cumulative[i + 1] <= target) i++;
-		const segLen = cumulative[i + 1] - cumulative[i];
-		const f = segLen > 1e-9 ? (target - cumulative[i]) / segLen : 0;
-		const a = centered[i];
-		const b = centered[(i + 1) % n];
+		while (i < n - 1 && cumulative[i + 1]! <= target) i++;
+		const segLen = cumulative[i + 1]! - cumulative[i]!;
+		const f = segLen > 1e-9 ? (target - cumulative[i]!) / segLen : 0;
+		const a = centered[i]!;
+		const b = centered[(i + 1) % n]!;
 		return { x: lerp(a.x, b.x, f) * scale, y: lerp(a.y, b.y, f) * scale };
 	};
 }
@@ -939,7 +939,7 @@ export function shellHueColor(
 	jitterDeg: number,
 	rng: () => number
 ): Rgb {
-	const base = palette[((hueIndex % palette.length) + palette.length) % palette.length];
+	const base = palette[((hueIndex % palette.length) + palette.length) % palette.length]!;
 	const deg = (rng() * 2 - 1) * jitterDeg;
 	return hueRotate(base, deg);
 }
@@ -1012,7 +1012,7 @@ export function sampleZone(
 			t -= z.weight;
 			if (t <= 0) return z;
 		}
-		return zones[zones.length - 1];
+		return zones[zones.length - 1]!;
 	};
 	const KEEP_MARGIN = KEEP_CLEAR_MARGIN;
 
@@ -1034,7 +1034,7 @@ export function sampleZone(
 	const cc = keepClear
 		? { x: (keepClear.x0 + keepClear.x1) / 2, y: (keepClear.y0 + keepClear.y1) / 2 }
 		: { x: 0.5, y: 0.5 };
-	let best = zones[0];
+	let best = zones[0]!;
 	let bestD = -1;
 	for (const z of zones) {
 		const zx = (z.rect.x0 + z.rect.x1) / 2;
@@ -1201,7 +1201,7 @@ export function adaptiveDowngradeStep(
 
 /** The current ladder rung for `state.step`. */
 export function adaptiveLevel(state: AdaptiveState): AdaptiveLevel {
-	return ADAPTIVE_LADDER[Math.min(state.step, ADAPTIVE_LADDER.length - 1)];
+	return ADAPTIVE_LADDER[Math.min(state.step, ADAPTIVE_LADDER.length - 1)]!;
 }
 
 // =============================================================================
@@ -1336,7 +1336,7 @@ export function createSim(opts: SimOptions): Sim {
 			colors,
 			// The ascent trail is tinted toward THIS shell's hue (§4) — mixed once
 			// per launch, not per emitted spark, and never from the default palette.
-			trailHue: mixOklab(COMET_HEAD, colors[0], COMET_TRAIL_MIX),
+			trailHue: mixOklab(COMET_HEAD, colors[0]!, COMET_TRAIL_MIX),
 			scale: o.scale ?? 1,
 			depth: clamp(o.depth ?? 0, 0, 1),
 			seed,
@@ -1373,11 +1373,11 @@ export function createSim(opts: SimOptions): Sim {
 	}
 
 	function resolveColors(color: Rgb | Rgb[] | undefined, seed: number): Rgb[] {
-		if (Array.isArray(color)) return color.length ? color : [PALETTE[0]];
+		if (Array.isArray(color)) return color.length ? color : [PALETTE[0]!];
 		if (color) return [color];
 		// Omitted → ping-pong sweep seeded off the launch seed (deterministic).
 		const idx = Math.floor(hash11(seed) * palette.length) % palette.length;
-		return [hueRotate(palette[idx], (hash11(seed + 7) * 2 - 1) * SHELL_JITTER_DEG)];
+		return [hueRotate(palette[idx]!, (hash11(seed + 7) * 2 - 1) * SHELL_JITTER_DEG)];
 	}
 
 	// Active launch specs by id (freed at detonation). Tiny (≤ a few at once).
@@ -1426,7 +1426,7 @@ export function createSim(opts: SimOptions): Sim {
 		}
 
 		for (let i = 0; i < dirs.length; i++) {
-			const { dir, z } = dirs[i];
+			const { dir, z } = dirs[i]!;
 			// Break asymmetry ±12% and 5% stragglers ×1.4 speed / dragScale×0.7.
 			// A pattern shell keeps neither: both are read as a broken figure.
 			const asymAmount = recipe.crisp ? 0.03 : 0.12;
@@ -1490,7 +1490,7 @@ export function createSim(opts: SimOptions): Sim {
 			pos: { ...origin },
 			brightness: flashB,
 			size: rand(seededRng(spec.seed + 5), 0.025, 0.05) * (1 - DEPTH_SIZE * spec.depth),
-			hue: depthAdjust(spec.colors[0], spec.depth),
+			hue: depthAdjust(spec.colors[0]!, spec.depth),
 			dim,
 		});
 	}
@@ -1501,10 +1501,10 @@ export function createSim(opts: SimOptions): Sim {
 			0.3,
 			((spec.releaseAtMs ?? spec.breakMs + 1500) - spec.breakMs) / 1000
 		);
-		const hue = depthAdjust(spec.colors[0], spec.depth);
+		const hue = depthAdjust(spec.colors[0]!, spec.depth);
 		const dim = depthDim(spec.depth);
 		for (let i = 0; i < points.length; i++) {
-			const p = points[i];
+			const p = points[i]!;
 			appendParticle((base) => {
 				pool[base + F.posX] = origin.x;
 				pool[base + F.posY] = origin.y;
@@ -1552,9 +1552,9 @@ export function createSim(opts: SimOptions): Sim {
 	}
 
 	function pickShellColor(spec: LaunchSpec, i: number): Rgb {
-		if (spec.colors.length === 1) return spec.colors[0];
+		if (spec.colors.length === 1) return spec.colors[0]!;
 		// Adjacent duo: split the shell between the two hues.
-		return hash11(spec.seed + i + 137) < 0.5 ? spec.colors[0] : spec.colors[1];
+		return hash11(spec.seed + i + 137) < 0.5 ? spec.colors[0]! : spec.colors[1]!;
 	}
 
 	function depthAdjust(hue: Rgb, depth: number): Rgb {
@@ -1586,13 +1586,13 @@ export function createSim(opts: SimOptions): Sim {
 		if (burstQueue.length) {
 			const q = burstQueue;
 			burstQueue = [];
-			for (let bi = 0; bi < q.length; bi++) expandBurst(q[bi]);
+			for (let bi = 0; bi < q.length; bi++) expandBurst(q[bi]!);
 		}
 		if (flashQueue.length) {
 			const q = flashQueue;
 			flashQueue = [];
 			for (let fi = 0; fi < q.length; fi++) {
-				const f = q[fi];
+				const f = q[fi]!;
 				appendParticle((base) => {
 					pool[base + F.posX] = f.pos.x;
 					pool[base + F.posY] = f.pos.y;
@@ -1612,7 +1612,7 @@ export function createSim(opts: SimOptions): Sim {
 			const q = sparkQueue;
 			sparkQueue = [];
 			for (let si = 0; si < q.length; si++) {
-				const sp = q[si];
+				const sp = q[si]!;
 				appendParticle((base) => {
 					pool[base + F.posX] = sp.pos.x;
 					pool[base + F.posY] = sp.pos.y;
@@ -1636,7 +1636,7 @@ export function createSim(opts: SimOptions): Sim {
 		let i = 0;
 		while (i < count) {
 			const base = i * STRIDE;
-			const type = pool[base + F.type] as ParticleType;
+			const type = pool[base + F.type]! as ParticleType;
 
 			if (type === TYPE.ROCKET) {
 				emitTrail(base, dt);
@@ -1645,11 +1645,12 @@ export function createSim(opts: SimOptions): Sim {
 				// the perfectly straight column the integrator draws reads as a wire.
 				// Positional only (velocity untouched), and small enough that the
 				// apex the launch solved for still holds.
-				const wob = pool[base + F.seed];
-				pool[base + F.posX] +=
-					Math.sin(pool[base + F.age] * ROCKET_WOBBLE_HZ + hash11(wob) * 6.283) *
-					ROCKET_WOBBLE_AMP *
-					dt;
+				const wob = pool[base + F.seed]!;
+				pool[base + F.posX] =
+					pool[base + F.posX]! +
+					Math.sin(pool[base + F.age]! * ROCKET_WOBBLE_HZ + hash11(wob) * 6.283) *
+						ROCKET_WOBBLE_AMP *
+						dt;
 			} else if (type === TYPE.SEEKER) {
 				stepSeeker(base, dt);
 			} else {
@@ -1657,12 +1658,12 @@ export function createSim(opts: SimOptions): Sim {
 				if (type === TYPE.SMOKE) stepSmoke(base, dt);
 			}
 
-			pool[base + F.age] += dt;
-			const lifeT = pool[base + F.ttl] > 0 ? pool[base + F.age] / pool[base + F.ttl] : 1;
+			pool[base + F.age] = pool[base + F.age]! + dt;
+			const lifeT = pool[base + F.ttl]! > 0 ? pool[base + F.age]! / pool[base + F.ttl]! : 1;
 			// The launch's depth rides along as a per-particle multiplier: the type
 			// curves stay the single source of the shape, depth only scales it.
 			pool[base + F.brightness] =
-				brightnessCurve(type, base, lifeT) * deathGate(lifeT) * pool[base + F.depthDim];
+				brightnessCurve(type, base, lifeT) * deathGate(lifeT) * pool[base + F.depthDim]!;
 
 			// §4.5 soft-dim: drift-ins behind the card fade to KEEP_CLEAR_DIM so the
 			// haze there stays under the §4.6 ceiling (this brightness feeds the
@@ -1670,10 +1671,10 @@ export function createSim(opts: SimOptions): Sim {
 			// glyph seekers are the show — both exempt — and the branch only runs
 			// once a keep-clear rect is set.
 			if (keepClear !== null && type !== TYPE.ROCKET && type !== TYPE.SEEKER) {
-				const px = pool[base + F.posX];
-				const py = pool[base + F.posY];
+				const px = pool[base + F.posX]!;
+				const py = pool[base + F.posY]!;
 				if (px >= keepClear.x0 && px <= keepClear.x1 && py >= keepClear.y0 && py <= keepClear.y1) {
-					pool[base + F.brightness] *= KEEP_CLEAR_DIM;
+					pool[base + F.brightness] = pool[base + F.brightness]! * KEEP_CLEAR_DIM;
 				}
 			}
 
@@ -1682,13 +1683,13 @@ export function createSim(opts: SimOptions): Sim {
 				// A rocket reaching its ttl detonates: enqueue the shell at the head's
 				// current position (drained next frame), then die like any particle.
 				if (type === TYPE.ROCKET) {
-					const spec = specs.get(pool[base + F.targetX]);
+					const spec = specs.get(pool[base + F.targetX]!);
 					if (spec) {
 						burstQueue.push({
-							origin: { x: pool[base + F.posX], y: pool[base + F.posY] },
+							origin: { x: pool[base + F.posX]!, y: pool[base + F.posY]! },
 							spec,
 						});
-						specs.delete(pool[base + F.targetX]);
+						specs.delete(pool[base + F.targetX]!);
 					}
 				}
 				removed = true;
@@ -1710,30 +1711,30 @@ export function createSim(opts: SimOptions): Sim {
 	function integrate(base: number, type: ParticleType, dt: number, w: Vec2) {
 		const ax = w.x * WIND_SCALE[type];
 		const ay = G * GRAV_SCALE[type] + w.y * WIND_SCALE[type];
-		let vx = pool[base + F.velX] + ax * dt;
-		let vy = pool[base + F.velY] + ay * dt;
-		const damp = 1 + DRAG[type] * pool[base + F.dragScale] * dt;
+		let vx = pool[base + F.velX]! + ax * dt;
+		let vy = pool[base + F.velY]! + ay * dt;
+		const damp = 1 + DRAG[type] * pool[base + F.dragScale]! * dt;
 		vx /= damp;
 		vy /= damp;
 		pool[base + F.velX] = vx;
 		pool[base + F.velY] = vy;
-		pool[base + F.posX] += (vx / aspect) * dt;
-		pool[base + F.posY] += vy * dt;
+		pool[base + F.posX] = pool[base + F.posX]! + (vx / aspect) * dt;
+		pool[base + F.posY] = pool[base + F.posY]! + vy * dt;
 	}
 
 	// Rocket ascent trail (§4): fractional accumulator in targetY, deferred
 	// spawns so the pool is never grown while the per-live loop iterates.
 	function emitTrail(base: number, dt: number) {
-		let emit = pool[base + F.targetY] + tier.trailRate * dt;
-		const seed = pool[base + F.seed];
-		const px = pool[base + F.posX];
-		const py = pool[base + F.posY];
+		let emit = pool[base + F.targetY]! + tier.trailRate * dt;
+		const seed = pool[base + F.seed]!;
+		const px = pool[base + F.posX]!;
+		const py = pool[base + F.posY]!;
 		// targetX carries the launch id: the trail wears the launched shell's hue.
-		const hue = specs.get(pool[base + F.targetX])?.trailHue ?? COMET_TRAIL_HUE;
+		const hue = specs.get(pool[base + F.targetX]!)?.trailHue ?? COMET_TRAIL_HUE;
 		let k = 0;
 		while (emit >= 1) {
 			emit -= 1;
-			const j = hash11(seed + pool[base + F.age] * 1000 + k);
+			const j = hash11(seed + pool[base + F.age]! * 1000 + k);
 			sparkQueue.push({
 				pos: { x: px, y: py },
 				// Wider lateral scatter: a rigidly co-linear trail reads as a drawn
@@ -1750,23 +1751,23 @@ export function createSim(opts: SimOptions): Sim {
 	}
 
 	function stepSeeker(base: number, dt: number) {
-		const age = pool[base + F.age];
-		const releaseDelay = pool[base + F.dragScale];
-		const tX = pool[base + F.targetX];
-		const tY = pool[base + F.targetY];
-		const seed = pool[base + F.seed];
+		const age = pool[base + F.age]!;
+		const releaseDelay = pool[base + F.dragScale]!;
+		const tX = pool[base + F.targetX]!;
+		const tY = pool[base + F.targetY]!;
+		const seed = pool[base + F.seed]!;
 
 		if (age < 0.08) {
 			// Pop phase: ballistic toward target, mild drag, no gravity (§5.1).
-			let vx = pool[base + F.velX];
-			let vy = pool[base + F.velY];
+			let vx = pool[base + F.velX]!;
+			let vy = pool[base + F.velY]!;
 			const damp = 1 + DRAG[TYPE.SEEKER] * dt;
 			vx /= damp;
 			vy /= damp;
 			pool[base + F.velX] = vx;
 			pool[base + F.velY] = vy;
-			pool[base + F.posX] += (vx / aspect) * dt;
-			pool[base + F.posY] += vy * dt;
+			pool[base + F.posX] = pool[base + F.posX]! + (vx / aspect) * dt;
+			pool[base + F.posY] = pool[base + F.posY]! + vy * dt;
 		} else if (age < releaseDelay) {
 			// Spring phase, per axis in VISUAL units (errX = (targetX−posX)·A).
 			// Inlined from springStep (a = −ω²(p−target) − 2ζω·v; v += a·dt;
@@ -1774,40 +1775,40 @@ export function createSim(opts: SimOptions): Sim {
 			// per-seeker objects. Kept byte-identical to springStep.
 			const omega = 6;
 			const zeta = 0.9;
-			const px = pool[base + F.posX] * aspect;
-			const ax = -omega * omega * (px - tX * aspect) - 2 * zeta * omega * pool[base + F.velX];
-			const nvx = pool[base + F.velX] + ax * dt;
+			const px = pool[base + F.posX]! * aspect;
+			const ax = -omega * omega * (px - tX * aspect) - 2 * zeta * omega * pool[base + F.velX]!;
+			const nvx = pool[base + F.velX]! + ax * dt;
 			pool[base + F.velX] = nvx;
 			pool[base + F.posX] = (px + nvx * dt) / aspect;
-			const py = pool[base + F.posY];
-			const ay = -omega * omega * (py - tY) - 2 * zeta * omega * pool[base + F.velY];
-			const nvy = pool[base + F.velY] + ay * dt;
+			const py = pool[base + F.posY]!;
+			const ay = -omega * omega * (py - tY) - 2 * zeta * omega * pool[base + F.velY]!;
+			const nvy = pool[base + F.velY]! + ay * dt;
 			pool[base + F.velY] = nvy;
 			pool[base + F.posY] = py + nvy * dt;
 		} else {
 			// Release phase: spring off, gravity on, ballistic fall.
-			const vy = pool[base + F.velY] + G * 1.0 * dt;
+			const vy = pool[base + F.velY]! + G * 1.0 * dt;
 			pool[base + F.velY] = vy;
-			pool[base + F.posX] += (pool[base + F.velX] / aspect) * dt;
-			pool[base + F.posY] += vy * dt;
+			pool[base + F.posX] = pool[base + F.posX]! + (pool[base + F.velX]! / aspect) * dt;
+			pool[base + F.posY] = pool[base + F.posY]! + vy * dt;
 		}
 	}
 
 	function stepSmoke(base: number, _dt: number) {
 		// Two-stage expand: grow size toward 0.05 over life (§2.2 / §3.5).
-		const lifeT = pool[base + F.ttl] > 0 ? pool[base + F.age] / pool[base + F.ttl] : 1;
+		const lifeT = pool[base + F.ttl]! > 0 ? pool[base + F.age]! / pool[base + F.ttl]! : 1;
 		pool[base + F.size] = lerp(0.01, 0.05, Math.min(1, lifeT));
 	}
 
 	function brightnessCurve(type: ParticleType, base: number, lifeT: number): number {
-		const seed = pool[base + F.seed];
-		const age = pool[base + F.age];
+		const seed = pool[base + F.seed]!;
+		const age = pool[base + F.age]!;
 		switch (type) {
 			case TYPE.FLASH:
 				// Steep decay: the flash marks the break, it must not sit on top of
 				// the shell as a white disc while the sparks are opening.
-				return pool[base + F.brightness] > 0
-					? Math.max(pool[base + F.brightness], B_FLASH_AMBIENT) * Math.exp(-5.5 * lifeT)
+				return pool[base + F.brightness]! > 0
+					? Math.max(pool[base + F.brightness]!, B_FLASH_AMBIENT) * Math.exp(-5.5 * lifeT)
 					: B_FLASH_AMBIENT * Math.exp(-5.5 * lifeT);
 			case TYPE.SPARK: {
 				// Two-stage: fast drop 2.2→~0.9, then cubic ease-in to 0 past 0.7.
@@ -1818,7 +1819,7 @@ export function createSim(opts: SimOptions): Sim {
 				}
 				// Crackle: flagged sparks chatter on/off at CRACKLE_HZ instead of
 				// fading smoothly (field reuse — targetX is free for sparks).
-				if (pool[base + F.targetX] > 0.5) {
+				if (pool[base + F.targetX]! > 0.5) {
 					b *= flickerNoise(seed, age, CRACKLE_HZ) > 0.5 ? 1.9 : 0.25;
 				}
 				return b;
@@ -1833,7 +1834,7 @@ export function createSim(opts: SimOptions): Sim {
 				// Rise then fall within the haze ceiling.
 				return lerp(B_SMOKE_MIN, B_SMOKE_MAX, Math.sin(Math.min(1, lifeT) * Math.PI));
 			case TYPE.SEEKER: {
-				const releaseDelay = pool[base + F.dragScale];
+				const releaseDelay = pool[base + F.dragScale]!;
 				if (age < releaseDelay) {
 					return B_GLYPH_HOLD * (0.85 + 0.3 * flickerNoise(seed, age, 10));
 				}
@@ -1858,19 +1859,19 @@ export function createSim(opts: SimOptions): Sim {
 		let n = 0;
 		for (let idx = 0; idx < count; idx++) {
 			const base = idx * STRIDE;
-			const type = pool[base + F.type] as ParticleType;
-			const bright = pool[base + F.brightness];
-			const lifeT = pool[base + F.ttl] > 0 ? pool[base + F.age] / pool[base + F.ttl] : 1;
+			const type = pool[base + F.type]! as ParticleType;
+			const bright = pool[base + F.brightness]!;
+			const lifeT = pool[base + F.ttl]! > 0 ? pool[base + F.age]! / pool[base + F.ttl]! : 1;
 			displayColorInto(type, base, lifeT, _dispColor);
 			const o = n * 8;
-			out[o + 0] = pool[base + F.posX];
-			out[o + 1] = pool[base + F.posY];
-			out[o + 2] = pool[base + F.size];
+			out[o + 0] = pool[base + F.posX]!;
+			out[o + 1] = pool[base + F.posY]!;
+			out[o + 2] = pool[base + F.size]!;
 			out[o + 3] = _dispColor.r * bright;
 			out[o + 4] = _dispColor.g * bright;
 			out[o + 5] = _dispColor.b * bright;
-			out[o + 6] = pool[base + F.velX] * STRETCH;
-			out[o + 7] = pool[base + F.velY] * STRETCH;
+			out[o + 6] = pool[base + F.velX]! * STRETCH;
+			out[o + 7] = pool[base + F.velY]! * STRETCH;
 			n++;
 		}
 		return n;
@@ -1879,10 +1880,10 @@ export function createSim(opts: SimOptions): Sim {
 	// Resolve a particle's display color into `out` (no allocation). `out` must
 	// not alias `_dispHue`.
 	function displayColorInto(type: ParticleType, base: number, lifeT: number, out: Rgb): void {
-		_dispHue.r = pool[base + F.r];
-		_dispHue.g = pool[base + F.g];
-		_dispHue.b = pool[base + F.b];
-		const seed = pool[base + F.seed];
+		_dispHue.r = pool[base + F.r]!;
+		_dispHue.g = pool[base + F.g]!;
+		_dispHue.b = pool[base + F.b]!;
+		const seed = pool[base + F.seed]!;
 		switch (type) {
 			case TYPE.SPARK: {
 				const whiteHold = 0.04 + 0.07 * hash11(seed);

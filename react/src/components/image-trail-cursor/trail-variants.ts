@@ -13,7 +13,16 @@ export type VariantType =
 	| "type6"
 	| "type7"
 	| "type8"
-	| "pixelated";
+	| "pixelated"
+	| "scale"
+	| "fall"
+	| "gravity"
+	| "flame"
+	| "venetian"
+	| "curtain"
+	| "hexagon"
+	| "liquid"
+	| "zoom-split";
 
 export interface ImageTrailVariant {
 	destroy(): void;
@@ -31,6 +40,7 @@ function getLocalPointerPos(e: MouseEvent | TouchEvent, rect: DOMRect): { x: num
 	let clientX = 0;
 	let clientY = 0;
 	if ("touches" in e && e.touches.length > 0) {
+		// Non-null: guarded by `e.touches.length > 0` on this same line.
 		const touch = e.touches[0]!;
 		clientX = touch.clientX;
 		clientY = touch.clientY;
@@ -68,12 +78,12 @@ export class ImageItem {
 		el: null as unknown as HTMLDivElement,
 		inner: null,
 	};
-	// Port divergence: `private` where the Svelte source says `public`. gsap declares
-	// `TweenVars` inside a GLOBAL `namespace gsap` with no module-level export, so a
-	// public `gsap.TweenVars` member emits a bare `gsap.` reference into the shipped
-	// .d.ts while tsc drops the value-only `import { gsap }` — consumers then hit
-	// TS2503 "Cannot find namespace 'gsap'". A private member emits no type at all.
-	// Read only by initEvents() below, so nothing outside this class loses access.
+	// `private`, not `public`: the animation library declares `TweenVars` inside a
+	// GLOBAL namespace with no module-level export, so a public `gsap.TweenVars`
+	// member emits a bare `gsap.` reference into the shipped .d.ts while tsc drops
+	// the value-only `import { gsap }` — deep-importing consumers then hit TS2503
+	// "Cannot find namespace 'gsap'". A private member emits no type at all, and it
+	// is read only by initEvents() below, so nothing outside this class loses access.
 	private defaultStyle: gsap.TweenVars = { scale: 1, x: 0, y: 0, opacity: 0 };
 	public rect: DOMRect | null = null;
 	private resizeHandler: (() => void) | null = null;
@@ -201,8 +211,8 @@ abstract class BaseVariant implements ImageTrailVariant {
 	private startRafLoop() {
 		if (this.rafStarted) return;
 		// Nothing to animate when the container holds no trail elements: leaving the
-		// loop unstarted keeps `showNextImage` from indexing an empty image list every
-		// frame (`images` defaults to `[]`, so this is a reachable state).
+		// loop unstarted keeps an empty trail (`images` defaults to `[]`) from
+		// rescheduling a requestAnimationFrame every frame until unmount.
 		if (this.imagesTotal === 0) return;
 		this.rafStarted = true;
 		// Remove initRender listeners since we're starting the loop
@@ -220,6 +230,7 @@ abstract class BaseVariant implements ImageTrailVariant {
 		const cutoff = now - BaseVariant.HISTORY_MAX_AGE;
 		while (
 			this.positionHistory.length > BaseVariant.HISTORY_MAX_LEN ||
+			// Non-null: `length > 1` on this same clause proves index 0 exists.
 			(this.positionHistory.length > 1 && this.positionHistory[0]!.t < cutoff)
 		) {
 			this.positionHistory.shift();
@@ -238,6 +249,7 @@ abstract class BaseVariant implements ImageTrailVariant {
 		let dx = 0;
 		let dy = 0;
 		for (let i = 1; i < this.positionHistory.length; i++) {
+			// Non-null: `i < length` and `i - 1 >= 0` keep both indices in bounds.
 			dx += this.positionHistory[i]!.x - this.positionHistory[i - 1]!.x;
 			dy += this.positionHistory[i]!.y - this.positionHistory[i - 1]!.y;
 		}
@@ -269,6 +281,12 @@ abstract class BaseVariant implements ImageTrailVariant {
 	}
 
 	protected abstract showNextImage(): void;
+
+	/** Advance to the next image in the ring. */
+	protected nextImage(): ImageItem | undefined {
+		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		return this.images[this.imgPosition];
+	}
 
 	protected onImageActivated() {
 		this.activeImagesCount++;
@@ -323,6 +341,9 @@ export class ImageTrailVariant1 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 
@@ -370,6 +391,9 @@ export class ImageTrailVariant2 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 
@@ -429,6 +453,9 @@ export class ImageTrailVariant3 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 
@@ -491,6 +518,9 @@ export class ImageTrailVariant4 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
@@ -595,6 +625,9 @@ export class ImageTrailVariant5 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
@@ -684,6 +717,9 @@ export class ImageTrailVariant6 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 
@@ -765,6 +801,9 @@ export class ImageTrailVariant7 extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 		++this.visibleImagesCount;
@@ -800,6 +839,9 @@ export class ImageTrailVariant7 extends BaseVariant {
 
 		if (this.visibleImagesCount >= this.visibleImagesTotal) {
 			const lastInQueue = getNewPosition(this.imgPosition, this.visibleImagesTotal, this.images);
+			// Non-null: the `img` guard above proves `images` is non-empty, and
+			// getNewPosition() returns a value in [0, images.length) for a non-empty
+			// array, so this index is populated.
 			const oldImg = this.images[lastInQueue]!;
 			gsap.to(oldImg.DOM.el, {
 				duration: 0.4,
@@ -855,6 +897,9 @@ export class ImageTrailVariant8 extends BaseVariant {
 
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 		gsap.killTweensOf(img.DOM.el);
@@ -920,6 +965,9 @@ export class ImageTrailVariantPixelated extends BaseVariant {
 	protected showNextImage() {
 		++this.zIndexVal;
 		this.imgPosition = this.imgPosition < this.imagesTotal - 1 ? this.imgPosition + 1 : 0;
+		// Guard, not an assertion: `images` is built from the container's
+		// `.content__img` children, so an empty container leaves this index
+		// unpopulated — the invariant needed for `!` does not hold here.
 		const img = this.images[this.imgPosition];
 		if (!img) return;
 
@@ -945,6 +993,407 @@ export class ImageTrailVariantPixelated extends BaseVariant {
 }
 
 // =============================================================================
+// Shared helpers for the physical and reveal variants
+// =============================================================================
+
+function randomBetween(min: number, max: number): number {
+	return min + Math.random() * (max - min);
+}
+
+// =============================================================================
+// Variant Scale — pops in with a bouncy scale, then shrinks away behind the cursor
+// =============================================================================
+
+export class ImageTrailVariantScale extends BaseVariant {
+	protected showNextImage() {
+		++this.zIndexVal;
+		const img = this.nextImage();
+		if (!img) return;
+		const w = img.rect?.width ?? 0;
+		const h = img.rect?.height ?? 0;
+
+		gsap.killTweensOf(img.DOM.el);
+		gsap
+			.timeline({
+				onStart: () => this.onImageActivated(),
+				onComplete: () => this.onImageDeactivated(),
+			})
+			.set(img.DOM.el, {
+				opacity: 1,
+				scale: 0,
+				rotation: randomBetween(-20, 20),
+				zIndex: this.zIndexVal,
+				x: this.mousePos.x - w / 2,
+				y: this.mousePos.y - h / 2,
+			})
+			.to(img.DOM.el, { scale: 1, duration: 0.6, ease: "back.out(2)" }, 0)
+			.to(img.DOM.el, { scale: 0, duration: 0.6, ease: "power2.in" }, 0.75)
+			.set(img.DOM.el, { opacity: 0 });
+	}
+}
+
+// =============================================================================
+// Variant Fall — springs in, spins, and drops out through the bottom
+// =============================================================================
+
+export class ImageTrailVariantFall extends BaseVariant {
+	protected showNextImage() {
+		++this.zIndexVal;
+		const img = this.nextImage();
+		if (!img) return;
+		const w = img.rect?.width ?? 0;
+		const h = img.rect?.height ?? 0;
+		const floor = this.container.getBoundingClientRect().height;
+
+		gsap.killTweensOf(img.DOM.el);
+		gsap
+			.timeline({
+				onStart: () => this.onImageActivated(),
+				onComplete: () => this.onImageDeactivated(),
+			})
+			.set(img.DOM.el, {
+				opacity: 1,
+				scale: 0,
+				rotation: 0,
+				zIndex: this.zIndexVal,
+				x: this.mousePos.x - w / 2,
+				y: this.mousePos.y - h / 2,
+			})
+			.to(img.DOM.el, { scale: 1, duration: 0.8, ease: "elastic.out(1, 0.3)" }, 0)
+			.to(img.DOM.el, { rotation: randomBetween(-360, 360), duration: 1.1, ease: "power1.out" }, 0)
+			// all the way past the bottom edge, gathering speed
+			.to(img.DOM.el, { y: floor * 1.2 + h, duration: 1, ease: "back.in(0.4)" }, 0)
+			.set(img.DOM.el, { opacity: 0 });
+	}
+}
+
+// =============================================================================
+// Variant Gravity — cascades from the cursor, lands on the bottom edge, bounces
+// =============================================================================
+
+export class ImageTrailVariantGravity extends BaseVariant {
+	protected showNextImage() {
+		++this.zIndexVal;
+		const img = this.nextImage();
+		if (!img) return;
+		const w = img.rect?.width ?? 0;
+		const h = img.rect?.height ?? 0;
+		const height = this.container.getBoundingClientRect().height;
+		const startY = this.mousePos.y - h / 2;
+		const floorY = Math.max(startY, height - h);
+		const drop = floorY - startY;
+		// thrown sideways by the pointer, capped so nothing flies off
+		const push = Math.max(-140, Math.min(140, (this.mousePos.x - this.lastMousePos.x) * 1.4));
+		const fall = 0.3 + 0.35 * Math.sqrt(drop / Math.max(1, height));
+		const bounce = drop * 0.32;
+
+		gsap.killTweensOf(img.DOM.el);
+		const el = img.DOM.el;
+		gsap
+			.timeline({
+				onStart: () => this.onImageActivated(),
+				onComplete: () => this.onImageDeactivated(),
+			})
+			.set(el, {
+				opacity: 1,
+				scale: 0,
+				rotation: randomBetween(-10, 10),
+				zIndex: this.zIndexVal,
+				x: this.mousePos.x - w / 2,
+				y: startY,
+			})
+			.to(el, { scale: 1, duration: 0.4, ease: "elastic.out(2, 0.6)" }, 0)
+			// drifting sideways the whole way down and across the bounces
+			.to(
+				el,
+				{
+					x: `+=${push}`,
+					rotation: randomBetween(-30, 30),
+					duration: fall + 0.9,
+					ease: "power1.out",
+				},
+				0.1
+			)
+			// the fall and two bounces that lose height each time
+			.to(el, { y: floorY, duration: fall, ease: "power2.in" }, 0.15)
+			.to(el, { y: floorY - bounce, duration: 0.28, ease: "power2.out" })
+			.to(el, { y: floorY, duration: 0.28, ease: "power2.in" })
+			.to(el, { y: floorY - bounce * 0.3, duration: 0.16, ease: "power2.out" })
+			.to(el, { y: floorY, duration: 0.16, ease: "power2.in" })
+			.to(el, { opacity: 0, scale: 0.7, duration: 0.3, ease: "power2.in" }, "+=0.15");
+	}
+}
+
+// =============================================================================
+// Variant Flame — flickers up; the faster the pointer, the wilder the tilt
+// =============================================================================
+
+export class ImageTrailVariantFlame extends BaseVariant {
+	protected showNextImage() {
+		++this.zIndexVal;
+		const img = this.nextImage();
+		if (!img) return;
+		const w = img.rect?.width ?? 0;
+		const h = img.rect?.height ?? 0;
+		const { dx, dy } = this.getTouchVelocity();
+		const speed = Math.min(1, Math.hypot(dx, dy) / 160);
+		const rotation = (Math.random() - 0.5) * 30 * (1 + speed * 2);
+
+		gsap.killTweensOf(img.DOM.el);
+		gsap
+			.timeline({
+				onStart: () => this.onImageActivated(),
+				onComplete: () => this.onImageDeactivated(),
+			})
+			.set(img.DOM.el, {
+				opacity: 1,
+				scale: 0,
+				rotation,
+				zIndex: this.zIndexVal,
+				x: this.mousePos.x - w / 2,
+				y: this.mousePos.y - h / 2,
+			})
+			.to(img.DOM.el, { scale: 1, duration: 0.35, ease: "back.out(1.6)" }, 0)
+			// then it rises and burns away, like a flame
+			.to(
+				img.DOM.el,
+				{
+					y: `-=${40 + speed * 40}`,
+					scale: 0,
+					opacity: 0,
+					rotation: rotation * 1.6,
+					duration: 0.55,
+					ease: "power2.in",
+				},
+				0.55
+			);
+	}
+}
+
+// =============================================================================
+// Reveal variants — the image opens from fragments, then closes again
+// =============================================================================
+
+export type RevealPattern = "venetian" | "curtain" | "hexagon" | "liquid" | "zoom-split";
+
+export interface RevealFragment {
+	/** clip-path while hidden */
+	closed: string;
+	/** clip-path once revealed */
+	open: string;
+	/** 0 (first) … 1 (last): when the fragment opens within the stagger */
+	order: number;
+}
+
+/** Neighbouring fragments overlap by this much (%), or anti-aliasing leaves hairlines at the seams. */
+const SEAM = 0.6;
+const lo = (n: number) => Math.max(0, n - SEAM);
+const hi = (n: number) => Math.min(100, n + SEAM);
+const pc = (n: number) => `${Math.round(n * 100) / 100}%`;
+const poly = (pts: [number, number][]) =>
+	`polygon(${pts.map(([x, y]) => `${pc(x)} ${pc(y)}`).join(", ")})`;
+
+/**
+ * The fragments of each reveal, as clip-paths in the image's own box.
+ * `closed` and `open` always have the same shape and point count, so the
+ * tween between them is a straight interpolation.
+ */
+export function revealFragments(pattern: RevealPattern): RevealFragment[] {
+	switch (pattern) {
+		case "venetian": {
+			// horizontal slats, each dropping open from its top edge, top to bottom
+			const n = 6;
+			return Array.from({ length: n }, (_, i) => {
+				const y0 = lo((i * 100) / n);
+				const y1 = hi(((i + 1) * 100) / n);
+				return {
+					closed: poly([
+						[0, y0],
+						[100, y0],
+						[100, y0],
+						[0, y0],
+					]),
+					open: poly([
+						[0, y0],
+						[100, y0],
+						[100, y1],
+						[0, y1],
+					]),
+					order: i / (n - 1),
+				};
+			});
+		}
+		case "curtain": {
+			// vertical strips opening from their centre line, middle strips first
+			const n = 6;
+			const mid = (n - 1) / 2;
+			return Array.from({ length: n }, (_, i) => {
+				const x0 = lo((i * 100) / n);
+				const x1 = hi(((i + 1) * 100) / n);
+				const cx = (x0 + x1) / 2;
+				return {
+					closed: poly([
+						[cx, 0],
+						[cx, 0],
+						[cx, 100],
+						[cx, 100],
+					]),
+					open: poly([
+						[x0, 0],
+						[x1, 0],
+						[x1, 100],
+						[x0, 100],
+					]),
+					order: Math.abs(i - mid) / mid,
+				};
+			});
+		}
+		case "hexagon": {
+			// a 3×3 honeycomb, each cell growing from its centre, centre cell first
+			const centres = [16.67, 50, 83.33];
+			const r = 31; // circumradius wide enough that the cells overlap and cover the box
+			const cells: RevealFragment[] = [];
+			for (const cy of centres) {
+				for (const cx of centres) {
+					const hex: [number, number][] = Array.from({ length: 6 }, (_, k) => {
+						const a = (Math.PI / 3) * k + Math.PI / 6;
+						return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+					});
+					cells.push({
+						closed: poly(hex.map(() => [cx, cy] as [number, number])),
+						open: poly(hex),
+						order: Math.hypot(cx - 50, cy - 50) / Math.hypot(33.33, 33.33),
+					});
+				}
+			}
+			return cells;
+		}
+		case "liquid": {
+			// blobs of different sizes swelling out and merging
+			const blobs: [number, number, number][] = [
+				[50, 50, 48],
+				[22, 26, 36],
+				[80, 24, 36],
+				[26, 80, 36],
+				[78, 78, 38],
+			];
+			return blobs.map(([x, y, r], i) => ({
+				closed: `circle(0% at ${pc(x)} ${pc(y)})`,
+				open: `circle(${pc(r)} at ${pc(x)} ${pc(y)})`,
+				order: i / (blobs.length - 1),
+			}));
+		}
+		case "zoom-split": {
+			// four quadrants flying out of the centre point
+			const quads: [number, number][] = [
+				[0, 0],
+				[50, 0],
+				[0, 50],
+				[50, 50],
+			];
+			return quads.map(([x, y], i) => ({
+				closed: poly([
+					[50, 50],
+					[50, 50],
+					[50, 50],
+					[50, 50],
+				]),
+				open: poly([
+					[lo(x), lo(y)],
+					[hi(x + 50), lo(y)],
+					[hi(x + 50), hi(y + 50)],
+					[lo(x), hi(y + 50)],
+				]),
+				order: i / 3,
+			}));
+		}
+	}
+}
+
+const FRAG_CLASS = "content__img-frag";
+
+export class ImageTrailVariantReveal extends BaseVariant {
+	private static readonly STAGGER = 0.22; // seconds from first to last fragment
+	private readonly fragments: RevealFragment[];
+
+	constructor(container: HTMLDivElement, pattern: RevealPattern) {
+		super(container);
+		this.fragments = revealFragments(pattern);
+		for (const img of this.images) {
+			const bg = img.DOM.inner?.style.backgroundImage ?? "";
+			for (const f of this.fragments) {
+				const frag = document.createElement("div");
+				frag.className = FRAG_CLASS;
+				frag.style.cssText = `position:absolute;inset:0;background-image:${bg};background-size:cover;background-position:center;clip-path:${f.closed};`;
+				img.DOM.el.appendChild(frag);
+			}
+			// the fragments are the picture now
+			if (img.DOM.inner) img.DOM.inner.style.opacity = "0";
+		}
+	}
+
+	protected showNextImage() {
+		++this.zIndexVal;
+		const img = this.nextImage();
+		if (!img) return;
+		const w = img.rect?.width ?? 0;
+		const h = img.rect?.height ?? 0;
+		const frags = [...img.DOM.el.querySelectorAll<HTMLDivElement>(`.${FRAG_CLASS}`)];
+		const stagger = ImageTrailVariantReveal.STAGGER;
+
+		gsap.killTweensOf([img.DOM.el, ...frags]);
+		const tl = gsap
+			.timeline({
+				onStart: () => this.onImageActivated(),
+				onComplete: () => this.onImageDeactivated(),
+			})
+			.set(img.DOM.el, {
+				opacity: 1,
+				scale: 0.85,
+				rotation: 0,
+				zIndex: this.zIndexVal,
+				x: this.mousePos.x - w / 2,
+				y: this.mousePos.y - h / 2,
+			})
+			.to(img.DOM.el, { scale: 1, duration: 0.5, ease: "power3.out" }, 0);
+		frags.forEach((frag, i) => {
+			const f = this.fragments[i]!;
+			tl.fromTo(
+				frag,
+				{ clipPath: f.closed },
+				{ clipPath: f.open, duration: 0.45, ease: "power3.out" },
+				f.order * stagger
+			);
+			// and closes in reverse order
+			tl.to(
+				frag,
+				{ clipPath: f.closed, duration: 0.35, ease: "power3.in" },
+				0.95 + (1 - f.order) * stagger
+			);
+		});
+		tl.set(img.DOM.el, { opacity: 0 });
+	}
+
+	destroy() {
+		for (const img of this.images) {
+			const frags = img.DOM.el.querySelectorAll(`.${FRAG_CLASS}`);
+			gsap.killTweensOf([...frags]);
+			frags.forEach((f) => f.remove());
+			if (img.DOM.inner) img.DOM.inner.style.opacity = "";
+		}
+		super.destroy();
+	}
+}
+
+function revealVariant(pattern: RevealPattern) {
+	return class extends ImageTrailVariantReveal {
+		constructor(container: HTMLDivElement) {
+			super(container, pattern);
+		}
+	};
+}
+
+// =============================================================================
 // Variant Map
 // =============================================================================
 
@@ -959,4 +1408,13 @@ export const variantMap: Record<VariantType, new (container: HTMLDivElement) => 
 		type7: ImageTrailVariant7,
 		type8: ImageTrailVariant8,
 		pixelated: ImageTrailVariantPixelated,
+		scale: ImageTrailVariantScale,
+		fall: ImageTrailVariantFall,
+		gravity: ImageTrailVariantGravity,
+		flame: ImageTrailVariantFlame,
+		venetian: revealVariant("venetian"),
+		curtain: revealVariant("curtain"),
+		hexagon: revealVariant("hexagon"),
+		liquid: revealVariant("liquid"),
+		"zoom-split": revealVariant("zoom-split"),
 	};

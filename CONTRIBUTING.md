@@ -15,7 +15,7 @@ The dev server runs at `http://localhost:5173`. Component demos are at `/docs/co
 
 ## Adding a component
 
-1. **Copy the template** — duplicate `src/lib/fancy-ui/_template/` and rename it to your component slug (e.g. `src/lib/fancy-ui/my-component/`).
+1. **Copy the template** — duplicate `src/lib/fancy-ui/_template/` and rename it to your component slug (e.g. `src/lib/fancy-ui/my-component/`). Rename `Component.svelte` to `MyComponent.svelte`, update the folder's `index.ts`, and describe every prop in its `README.md`.
 
 2. **Register it** — add an entry to `src/lib/fancy-ui/registry.ts`:
 
@@ -24,12 +24,22 @@ The dev server runs at `http://localhost:5173`. Component demos are at `/docs/co
      name: "MyComponent",
      slug: "my-component",
      description: "One-line description of what it does",
-     category: "effects", // buttons | cards | backgrounds | text | layout | feedback | data-display | navigation | media | effects
+     category: "effects", // one of the `ComponentCategory` values in src/lib/types.ts
+     group: "fancy", // "core" = foundational primitive, "fancy" = animated showcase component
      status: "done",
+     props: [/* one entry per prop: name, type, default, description */],
    }
    ```
 
-3. **Create the demo page** — add `src/routes/demo/my-component/+page.svelte` that showcases the component in context.
+3. **Export it** — add it to the barrel in `src/lib/fancy-ui/index.ts`. `pnpm check:registry` fails if a folder, its registry entry and its export disagree.
+
+4. **Write the colocated test** — `src/lib/fancy-ui/my-component/MyComponent.test.ts` (Vitest + jsdom).
+
+5. **Add docs examples** — one `.svelte` file per example in `src/lib/components/docs/examples/my-component/` (`BasicUsage.svelte` first), each listed under the slug in `src/lib/components/docs/examples/registry.ts`. They render on `/docs/components/my-component`; the old `src/routes/demo/<slug>` route is only a redirect now.
+
+6. **Port it to React and Vue in the same PR** — `react/src/components/my-component/` and `vue/src/components/my-component/`, following [`react/PORTING.md`](./react/PORTING.md) and [`vue/PORTING.md`](./vue/PORTING.md). CI fails on a missing port, and `pnpm check:props` fails on a Svelte prop with no React or Vue counterpart (a deliberate gap is recorded, with its reason, in `scripts/prop-parity-allowlist.json`).
+
+7. **Add a changeset** — `pnpm changeset` (see [Changesets](#changesets)).
 
 ## Code standards
 
@@ -42,12 +52,17 @@ The dev server runs at `http://localhost:5173`. Component demos are at `/docs/co
 ## Testing
 
 ```bash
-pnpm test          # Vitest unit tests
-pnpm test:e2e      # Playwright end-to-end tests
-pnpm check         # svelte-check type checking
+pnpm check           # svelte-check type checking
+pnpm test            # Vitest unit tests
+pnpm check:registry  # component folders = registry entries = barrel exports
+pnpm check:props     # every Svelte prop has a React and a Vue counterpart
+pnpm check:cores     # shared framework-free engines are byte-identical in the three packages
+pnpm check:i18n      # message catalog parity — run it when you touch i18n
 ```
 
-`pnpm test` and `pnpm test:e2e` must pass. `pnpm check` must pass for any files you touched — pre-existing errors in unrelated files are acceptable.
+All of these run in CI and must pass. When you touch `react/` or `vue/`, also run that package's own gates (`pnpm --filter fancy-ui-react run check`, `run test`, `run build`, and the same for `fancy-ui-vue`).
+
+`pnpm test:e2e` (Playwright) is not part of CI — run it manually when a change affects the docs site or page-level behaviour.
 
 ## Docs translations (i18n)
 
@@ -186,26 +201,30 @@ fancy-ui uses a two-branch model:
    Open a PR targeting `main`. CI runs type-check and tests (no changeset required — changesets were already added per-feature). Merge when green.
 
 3. **Release workflow (automatic)**
-   Every push to `main` triggers the Release workflow. It builds the package (`pnpm package`) then hands off to the Changesets action, which does one of two things:
+   Every push to `main` triggers the Release workflow. It builds the three packages (`pnpm package` for Svelte, then the React and Vue builds) then hands off to the Changesets action, which does one of two things:
    - **If pending changesets exist → creates or updates the "Version Packages" PR.**
      This PR bumps `package.json` versions and updates `CHANGELOG.md`. Do not merge it yet — keep accumulating features until you're ready to cut a release.
    - **If the "Version Packages" PR was just merged → publishes to npm and creates a git tag.**
-     This is when `fancy-ui-svelte@x.y.z` actually lands on the npm registry.
+     This is when `fancy-ui-svelte`, `fancy-ui-react` and `fancy-ui-vue` actually land on the npm registry (each at its own version, only when it has pending changesets).
 
 4. **Cutting a release**
    Merge the "Version Packages" PR on GitHub. The Release workflow runs again, detects no pending changesets, and publishes directly to npm.
 
 ### CI pipelines at a glance
 
-| Trigger        | Pipeline | Blocking? | What it checks                                  |
-| -------------- | -------- | --------- | ----------------------------------------------- |
-| PR → `develop` | CI       | ✅ Yes    | type-check, tests, changeset present            |
-| PR → `main`    | CI       | ✅ Yes    | type-check, tests                               |
-| Push to `main` | Release  | —         | builds + publish or opens "Version Packages" PR |
+| Trigger        | Pipeline | Blocking? | What it checks                                                                                                                      |
+| -------------- | -------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| PR → `develop` | CI       | ✅ Yes    | Svelte package (`check:registry`, `check:i18n`, `check:props`, `check:cores`, `check`, `test`, `build`, `package`, pack allow-list) |
+|                |          |           | React package (check, test, build, matrix, publint, pack, consumer apps) + React 18 floor                                           |
+|                |          |           | Vue package (check, test, build, matrix, publint, pack, consumer app) + Vue 3.5 floor                                               |
+|                |          |           | changeset present                                                                                                                   |
+| PR → `main`    | CI       | ✅ Yes    | same jobs, no changeset required                                                                                                    |
+| Push to `main` | Release  | —         | builds the three packages + publish or opens "Version Packages" PR                                                                  |
 
 ### Secrets required
 
-- `NPM_TOKEN` — npm publish token (set in repo settings)
 - `GITHUB_TOKEN` — provided automatically by GitHub Actions
+
+There is no `NPM_TOKEN`. Publishing uses npm trusted publishing (OIDC): each of the three packages lists this repository's `.github/workflows/release.yml` as its trusted publisher, and the workflow's `id-token: write` permission is exchanged for a short-lived publish token, with provenance attested.
 
 Questions? Open an [issue](https://github.com/RamaHerbin/fancy-ui/issues) or start a discussion.

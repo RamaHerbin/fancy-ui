@@ -75,10 +75,12 @@ function gitHeaderPaths(line: string): [string | null, string | null] {
 	const rest = line.slice(GIT_HEADER.length);
 	// Greedy on purpose: a path may itself contain " b/".
 	const paired = /^a\/(.*) b\/(.*)$/.exec(rest);
-	if (paired) return [cleanPath(paired[1], false), cleanPath(paired[2], false)];
+	// Both groups exist whenever the pattern matched at all.
+	if (paired) return [cleanPath(paired[1]!, false), cleanPath(paired[2]!, false)];
 	const parts = rest.split(" ");
 	if (parts.length < 2) return [null, null];
-	return [cleanPath(parts[0], true), cleanPath(parts.slice(1).join(" "), true)];
+	// `parts[0]` exists: the length check on the line above passed.
+	return [cleanPath(parts[0]!, true), cleanPath(parts.slice(1).join(" "), true)];
 }
 
 function openFile(state: State): DiffFile {

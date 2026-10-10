@@ -685,3 +685,12 @@
 :where([dir="rtl"]) .docs-skin[data-skin="brutal"] .docs-rail-next-arrow {
 	transform: scaleX(-1);
 }
+
+/* ---- Components gallery toolbar ---------------------------------------------
+   The brutal top bar is 58px, not the standard 56px (h-14) the toolbar sticks
+   under, so its sticky offset follows the bar. */
+@media (min-width: 640px) {
+	.docs-skin[data-skin="brutal"] .gallery-toolbar {
+		top: 58px;
+	}
+}

@@ -1,14 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { SpringConfig } from "./smooth-cursor-core.js";
 
-	export interface SpringConfig {
-		/** Controls how quickly the animation settles (default: 45) */
-		damping?: number;
-		/** Controls the spring stiffness (default: 400) */
-		stiffness?: number;
-		/** Controls the virtual mass of the animated object (default: 1) */
-		mass?: number;
-	}
+	export type { SpringConfig };
 
 	export interface SmoothCursorProps {
 		/** Custom cursor snippet to replace the default arrow cursor */
@@ -17,209 +11,260 @@
 		springConfig?: SpringConfig;
 		/** Additional CSS classes */
 		class?: string;
+		/** Name shown in a pill that trails the arrow. No pill when omitted. */
+		label?: string;
+		/** Fill colour of the arrow and the name pill (any CSS colour) */
+		color?: string;
+		/** Rotate the cursor toward its direction of travel (the arrow stays upright when false) */
+		rotate?: boolean;
+		/** Milliseconds without movement before the name pill dims; 0 disables */
+		idleFade?: number;
+		/** Spring for the name pill; missing fields derive from `springConfig` (stiffness × 0.55, damping × 1.1) */
+		labelSpring?: SpringConfig;
 	}
+
+	/** Arrow tip inside the 24×24 default arrow — the pointer's hotspot. */
+	const TIP_X = 4;
+	const TIP_Y = 3;
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { createSmoothCursor, type SmoothCursorEngine } from "./smooth-cursor-core.js";
 
-	let { cursor, springConfig = {}, class: className = "" }: SmoothCursorProps = $props();
+	let {
+		cursor,
+		springConfig = {},
+		class: className = "",
+		label,
+		color = "#0e9f6e",
+		rotate = false,
+		idleFade = 1500,
+		labelSpring,
+	}: SmoothCursorProps = $props();
 
-	const config = $derived({
-		damping: springConfig.damping ?? 45,
-		stiffness: springConfig.stiffness ?? 400,
-		mass: springConfig.mass ?? 1,
-	});
+	const uid = $props.id();
+	const fillId = `smooth-cursor-fill-${uid}`;
 
 	let cursorEl: HTMLDivElement;
+	let labelEl: HTMLDivElement | undefined = $state();
 	let visible = $state(false);
-	let reducedMotion = $state(false);
+	let idle = $state(false);
+	let engine: SmoothCursorEngine | null = null;
 
-	// Spring state
-	let posX = 0;
-	let posY = 0;
-	let velX = 0;
-	let velY = 0;
-	let targetX = 0;
-	let targetY = 0;
-
-	// Rotation state
-	let rotation = 0;
-	let prevX = 0;
-	let prevY = 0;
-
-	let rafId: number | null = null;
-	let lastTime = 0;
-
-	function startAnimation() {
-		if (rafId === null) {
-			lastTime = 0;
-			rafId = requestAnimationFrame(animate);
-		}
-	}
-
-	function stopAnimation() {
-		if (rafId !== null) {
-			cancelAnimationFrame(rafId);
-			rafId = null;
-		}
-	}
-
-	function snapToTarget() {
-		posX = targetX;
-		posY = targetY;
-		velX = 0;
-		velY = 0;
-		if (cursorEl) {
-			cursorEl.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
-		}
-	}
-
-	function onMouseMove(e: MouseEvent) {
-		targetX = e.clientX;
-		targetY = e.clientY;
-
-		if (!visible) {
-			posX = targetX;
-			posY = targetY;
-			prevX = targetX;
-			prevY = targetY;
-			visible = true;
-		}
-
-		if (reducedMotion) {
-			snapToTarget();
-		} else {
-			startAnimation();
-		}
-	}
-
-	function onMouseLeave() {
-		visible = false;
-		stopAnimation();
-	}
-
-	function onMouseEnter(e: MouseEvent) {
-		targetX = e.clientX;
-		targetY = e.clientY;
-		posX = targetX;
-		posY = targetY;
-		prevX = targetX;
-		prevY = targetY;
-		visible = true;
-
-		if (!reducedMotion) {
-			startAnimation();
-		} else {
-			snapToTarget();
-		}
-	}
-
-	function animate(time: number) {
-		if (!visible) {
-			rafId = null;
-			return;
-		}
-
-		rafId = requestAnimationFrame(animate);
-
-		if (lastTime === 0) {
-			lastTime = time;
-			return;
-		}
-
-		const dt = Math.min((time - lastTime) / 1000, 0.064);
-		lastTime = time;
-
-		const { stiffness, damping, mass } = config;
-
-		// Spring physics: F = -k * displacement - c * velocity
-		const forceX = -stiffness * (posX - targetX) - damping * velX;
-		const forceY = -stiffness * (posY - targetY) - damping * velY;
-
-		const accX = forceX / mass;
-		const accY = forceY / mass;
-
-		velX += accX * dt;
-		velY += accY * dt;
-
-		posX += velX * dt;
-		posY += velY * dt;
-
-		// Calculate rotation based on movement direction
-		const dx = posX - prevX;
-		const dy = posY - prevY;
-		const distance = Math.sqrt(dx * dx + dy * dy);
-
-		if (distance > 0.1) {
-			const targetRotation = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
-			let diff = targetRotation - rotation;
-			while (diff > 180) diff -= 360;
-			while (diff < -180) diff += 360;
-			rotation += diff * 0.3;
-		}
-
-		prevX = posX;
-		prevY = posY;
-
-		if (cursorEl) {
-			cursorEl.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotation}deg)`;
-		}
-	}
+	// The default arrow is pinned by its tip while upright; a custom cursor, or
+	// any cursor that rotates with travel, is pinned by its centre (the pivot).
+	const hotspot = $derived(!cursor && !rotate ? `-${TIP_X}px -${TIP_Y}px` : "-50% -50%");
 
 	onMount(() => {
+		// Read the media query BEFORE creating the engine: the original wrapper
+		// had two distinct reduced-motion entry points — a plain assignment at
+		// mount (no snap) and a `change` handler that stopped the loop and
+		// snapped. Passing the mount value as a creation option keeps
+		// `setOptions({ reducedMotion })` reserved for the change event, so both
+		// paths stay faithful.
 		const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-		reducedMotion = motionQuery.matches;
+
+		engine = createSmoothCursor(
+			{ cursor: cursorEl, label: untrack(() => labelEl) ?? null },
+			{
+				springConfig: untrack(() => springConfig),
+				labelSpring: untrack(() => labelSpring),
+				rotate: untrack(() => rotate),
+				idleFade: untrack(() => idleFade),
+				reducedMotion: motionQuery.matches,
+				onVisibleChange: (next) => {
+					visible = next;
+				},
+				onIdleChange: (next) => {
+					idle = next;
+				},
+			}
+		);
 
 		function onMotionChange(e: MediaQueryListEvent) {
-			reducedMotion = e.matches;
-			if (reducedMotion) {
-				stopAnimation();
-				snapToTarget();
-			} else if (visible) {
-				startAnimation();
-			}
+			engine?.setOptions({ reducedMotion: e.matches });
 		}
 
 		motionQuery.addEventListener("change", onMotionChange);
 
-		document.body.style.cursor = "none";
-
-		document.addEventListener("mousemove", onMouseMove);
-		document.documentElement.addEventListener("mouseleave", onMouseLeave);
-		document.documentElement.addEventListener("mouseenter", onMouseEnter);
-
 		return () => {
-			document.body.style.cursor = "";
 			motionQuery.removeEventListener("change", onMotionChange);
-			document.removeEventListener("mousemove", onMouseMove);
-			document.documentElement.removeEventListener("mouseleave", onMouseLeave);
-			document.documentElement.removeEventListener("mouseenter", onMouseEnter);
-			stopAnimation();
+			engine?.destroy();
+			engine = null;
 		};
+	});
+
+	$effect(() => {
+		const next = springConfig;
+		untrack(() => engine?.setOptions({ springConfig: next }));
+	});
+
+	$effect(() => {
+		const next = labelSpring;
+		untrack(() => engine?.setOptions({ labelSpring: next }));
+	});
+
+	$effect(() => {
+		const next = rotate;
+		untrack(() => engine?.setOptions({ rotate: next }));
+	});
+
+	$effect(() => {
+		const next = idleFade;
+		untrack(() => engine?.setOptions({ idleFade: next }));
+	});
+
+	// The pill mounts and unmounts with `label`; hand the live node to the engine.
+	$effect(() => {
+		const next = labelEl ?? null;
+		untrack(() => engine?.setLabel(next));
 	});
 </script>
 
 <div
-	bind:this={cursorEl}
 	aria-hidden="true"
 	class={cn(
-		"pointer-events-none fixed top-0 left-0 z-[9999]",
+		"smooth-cursor pointer-events-none fixed top-0 left-0 z-[9999]",
 		visible ? "opacity-100" : "opacity-0",
 		className
 	)}
-	style="will-change: transform; translate: -50% -50%;"
+	style:--_sc-color="var(--smooth-cursor-color, {color})"
 >
-	{#if cursor}
-		{@render cursor()}
-	{:else}
-		<!-- Default cursor: arrow SVG -->
-		<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" focusable="false">
-			<path
-				fill="currentColor"
-				d="M9.391 2.32C8.42 1.56 7 2.253 7 3.486V28.41c0 1.538 1.966 2.18 2.874.938l6.225-8.523a2 2 0 0 1 1.615-.82h9.69c1.512 0 2.17-1.912.978-2.844z"
-			/>
-		</svg>
+	<div
+		bind:this={cursorEl}
+		class="sc-pointer"
+		class:sc-pointer--rotate={rotate}
+		style:translate={hotspot}
+	>
+		{#if cursor}
+			{@render cursor()}
+		{:else}
+			<!-- Default cursor: coloured arrowhead with a white rim -->
+			<svg
+				class="sc-arrow"
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				viewBox="0 0 24 24"
+				focusable="false"
+			>
+				<defs>
+					<linearGradient id={fillId} x1="0.1" y1="0" x2="0.75" y2="1">
+						<stop offset="0" class="sc-stop-hot" />
+						<stop offset="0.55" class="sc-stop-body" />
+						<stop offset="1" class="sc-stop-deep" />
+					</linearGradient>
+				</defs>
+				<path
+					class="sc-arrow-rim"
+					d="M4 3 L19.6 13.9 L10.2 12.7 L7.3 21.7 Z"
+					fill="url(#{fillId})"
+				/>
+			</svg>
+		{/if}
+	</div>
+
+	{#if label}
+		<div bind:this={labelEl} class="sc-label" class:is-idle={idle} data-smooth-cursor-label>
+			<span class="sc-label-text">{label}</span>
+		</div>
 	{/if}
 </div>
+
+<style>
+	.smooth-cursor {
+		--_sc-hot: color-mix(in oklab, var(--_sc-color) 45%, white);
+		--_sc-deep: color-mix(in oklab, var(--_sc-color) 82%, black);
+		--_sc-ink: var(--smooth-cursor-label-color, #fff);
+	}
+
+	.sc-pointer,
+	.sc-label {
+		position: absolute;
+		top: 0;
+		left: 0;
+		will-change: transform;
+	}
+
+	/* The arrow always paints over the pill when the pill catches up behind it. */
+	.sc-pointer {
+		z-index: 1;
+	}
+
+	.sc-arrow {
+		display: block;
+		overflow: visible;
+		filter: drop-shadow(0 1px 1.25px rgb(0 0 0 / 0.32))
+			drop-shadow(0 4px 9px color-mix(in oklab, var(--_sc-color) 38%, transparent));
+	}
+
+	/* Rotating mode: turn the arrowhead so it points "up" — the engine's 0deg. */
+	.sc-pointer--rotate .sc-arrow {
+		rotate: 32.5deg;
+	}
+
+	.sc-arrow-rim {
+		stroke: #fff;
+		stroke-width: 3;
+		stroke-linejoin: round;
+		paint-order: stroke fill;
+	}
+
+	.sc-stop-hot {
+		stop-color: var(--_sc-hot);
+	}
+	.sc-stop-body {
+		stop-color: var(--_sc-color);
+	}
+	.sc-stop-deep {
+		stop-color: var(--_sc-deep);
+	}
+
+	/* Name pill: tucked under the arrow's back edge, square-ish corner pointing at the tip. */
+	.sc-label {
+		translate: 13px 17px;
+		transform-origin: 0 0;
+		display: flex;
+		align-items: center;
+		max-width: 180px;
+		height: 22px;
+		padding: 0 9px;
+		border-radius: 3px 11px 11px 11px;
+		background: linear-gradient(
+			180deg,
+			color-mix(in oklab, var(--_sc-color) 86%, white) 0%,
+			var(--_sc-color) 55%,
+			color-mix(in oklab, var(--_sc-color) 92%, black) 100%
+		);
+		color: var(--_sc-ink);
+		box-shadow:
+			0 0 0 1px rgb(255 255 255 / 0.92),
+			inset 0 1px 0 rgb(255 255 255 / 0.28),
+			0 1px 2px rgb(0 0 0 / 0.28),
+			0 6px 16px -4px color-mix(in oklab, var(--_sc-color) 45%, transparent);
+		opacity: 1;
+	}
+
+	.sc-label-text {
+		overflow: hidden;
+		font-size: 12px;
+		font-weight: 500;
+		line-height: 1;
+		letter-spacing: 0.01em;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		text-shadow: 0 1px 0 rgb(0 0 0 / 0.14);
+	}
+
+	.sc-label.is-idle {
+		opacity: 0.35;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.sc-label {
+			transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+		}
+	}
+</style>
