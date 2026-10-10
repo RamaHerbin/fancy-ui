@@ -179,7 +179,7 @@ export default {
 	"intro.quickStart.step3.title": "الاستخدام",
 	"intro.quickStart.step3.desc": "أضِفها إلى مكوّنات Svelte الخاصة بك.",
 	"intro.whatsIncluded.heading": "ما الذي تتضمّنه",
-	"intro.whatsIncluded.body": "{count} مكوّناً موزّعة على 10 فئات:",
+	"intro.whatsIncluded.body": "{count} مكوّناً موزّعة على {categories} فئات:",
 	"intro.category.buttons": "الأزرار",
 	"intro.category.cards": "البطاقات",
 	"intro.category.text": "النصوص والطباعة",

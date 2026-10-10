@@ -180,7 +180,7 @@ export default {
 	"intro.quickStart.step3.title": "استفاده",
 	"intro.quickStart.step3.desc": "آن را در کامپوننت‌های Svelte خود قرار دهید.",
 	"intro.whatsIncluded.heading": "آنچه شامل می‌شود",
-	"intro.whatsIncluded.body": "{count} کامپوننت در ۱۰ دسته:",
+	"intro.whatsIncluded.body": "{count} کامپوننت در {categories} دسته:",
 	"intro.category.buttons": "دکمه‌ها",
 	"intro.category.cards": "کارت‌ها",
 	"intro.category.text": "متن",

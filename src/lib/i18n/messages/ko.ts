@@ -179,7 +179,7 @@ export default {
 	"intro.quickStart.step3.title": "사용",
 	"intro.quickStart.step3.desc": "Svelte 컴포넌트에 추가하세요.",
 	"intro.whatsIncluded.heading": "포함된 내용",
-	"intro.whatsIncluded.body": "10개 카테고리에 걸친 {count}개의 컴포넌트:",
+	"intro.whatsIncluded.body": "{categories}개 카테고리에 걸친 {count}개의 컴포넌트:",
 	"intro.category.buttons": "버튼",
 	"intro.category.cards": "카드",
 	"intro.category.text": "텍스트",

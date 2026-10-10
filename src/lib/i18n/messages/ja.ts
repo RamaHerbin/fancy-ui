@@ -183,7 +183,7 @@ export default {
 	"intro.quickStart.step3.title": "使用",
 	"intro.quickStart.step3.desc": "Svelte コンポーネント内に配置するだけです。",
 	"intro.whatsIncluded.heading": "収録内容",
-	"intro.whatsIncluded.body": "10 のカテゴリーにわたる {count} 個のコンポーネント:",
+	"intro.whatsIncluded.body": "{categories} のカテゴリーにわたる {count} 個のコンポーネント:",
 	"intro.category.buttons": "ボタン",
 	"intro.category.cards": "カード",
 	"intro.category.text": "テキスト",

@@ -182,7 +182,7 @@ export default {
 	"intro.quickStart.step3.title": "Kullan",
 	"intro.quickStart.step3.desc": "Svelte bileşenlerinize ekleyin.",
 	"intro.whatsIncluded.heading": "Neler İçerir",
-	"intro.whatsIncluded.body": "10 kategoride {count} bileşen:",
+	"intro.whatsIncluded.body": "{categories} kategoride {count} bileşen:",
 	"intro.category.buttons": "Düğmeler",
 	"intro.category.cards": "Kartlar",
 	"intro.category.text": "Metin",

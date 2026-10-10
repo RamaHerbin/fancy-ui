@@ -180,7 +180,7 @@ export default {
 	"intro.quickStart.step3.title": "उपयोग करें",
 	"intro.quickStart.step3.desc": "इसे अपने Svelte कॉम्पोनेंट्स में जोड़ें।",
 	"intro.whatsIncluded.heading": "इसमें क्या शामिल है",
-	"intro.whatsIncluded.body": "10 श्रेणियों में {count} कॉम्पोनेंट्स:",
+	"intro.whatsIncluded.body": "{categories} श्रेणियों में {count} कॉम्पोनेंट्स:",
 	"intro.category.buttons": "बटन",
 	"intro.category.cards": "कार्ड",
 	"intro.category.text": "टेक्स्ट",

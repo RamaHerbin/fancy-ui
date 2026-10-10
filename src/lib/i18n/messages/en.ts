@@ -192,7 +192,7 @@ export const en = {
 	"intro.quickStart.step3.title": "Use",
 	"intro.quickStart.step3.desc": "Drop it in your Svelte components.",
 	"intro.whatsIncluded.heading": "What's Included",
-	"intro.whatsIncluded.body": "{count} components across 10 categories:",
+	"intro.whatsIncluded.body": "{count} components across {categories} categories:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Cards",
 	"intro.category.text": "Text",

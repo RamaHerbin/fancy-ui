@@ -181,7 +181,7 @@ export default {
 	"intro.quickStart.step3.title": "Verwenden",
 	"intro.quickStart.step3.desc": "Füge sie in deine Svelte-Komponenten ein.",
 	"intro.whatsIncluded.heading": "Was enthalten ist",
-	"intro.whatsIncluded.body": "{count} Komponenten in 10 Kategorien:",
+	"intro.whatsIncluded.body": "{count} Komponenten in {categories} Kategorien:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Karten",
 	"intro.category.text": "Text",
