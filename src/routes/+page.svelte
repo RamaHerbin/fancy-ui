@@ -95,11 +95,7 @@
 	});
 </script>
 
-<Seo
-	title="FancyUI — UI inspiration and expressive components for React, Svelte, and Vue"
-	{description}
-	path="/"
-/>
+<Seo title="FancyUI — UI inspiration & components for React, Svelte, Vue" {description} path="/" />
 <JsonLd data={graph} />
 <SiteFonts />
 

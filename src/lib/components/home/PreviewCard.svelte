@@ -12,6 +12,7 @@
 	import { KNOWN_IDS, posterFor } from "$lib/inspiration/catalog.js";
 	import { FRAMEWORK_LABELS, type Framework, type Reference } from "$lib/inspiration/types.js";
 	import { createSavedState } from "$lib/stores/saved.svelte.js";
+	import { originBadge } from "$lib/components/inspiration/labels.js";
 
 	interface Props {
 		entry: Reference;
@@ -42,13 +43,7 @@
 	onMount(() => (mounted = true));
 
 	const poster = $derived(posterFor(entry));
-	const origin = $derived(
-		entry.origin === "fancyui"
-			? "FANCYUI"
-			: entry.codeAvailability === "open-source"
-				? "COMMUNITY"
-				: "EXTERNAL"
-	);
+	const origin = $derived(originBadge(entry));
 	const byline = $derived(
 		entry.product && entry.product !== entry.creator
 			? `${entry.creator} · ${entry.product}`

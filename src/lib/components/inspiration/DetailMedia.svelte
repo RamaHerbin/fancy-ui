@@ -145,7 +145,24 @@
 					/>
 				{/if}
 			</div>
-			<figcaption class="credit fx-mono">{entry.media.credit}</figcaption>
+			<figcaption class="credit fx-mono">
+				{entry.media.credit}
+				{#if entry.origin === "external"}
+					· {entry.product && entry.product !== entry.creator
+						? `${entry.product} by ${entry.creator}`
+						: entry.creator}
+					·
+					{#if entry.media.provenance.licenseUrl}
+						<a href={entry.media.provenance.licenseUrl} target="_blank" rel="noopener noreferrer"
+							>{entry.media.provenance.license} licence</a
+						>
+					{:else}
+						{entry.media.provenance.license} licence
+					{/if}
+					·
+					<a href={entry.sourceUrl} target="_blank" rel="noopener noreferrer">Source ↗</a>
+				{/if}
+			</figcaption>
 		</figure>
 	{:else}
 		<div class="frame"><Poster poster={null} /></div>
@@ -234,6 +251,17 @@
 		font-size: 11px;
 		letter-spacing: 0.06em;
 		color: var(--fx-ink-3);
+	}
+
+	.credit a {
+		color: var(--fx-ink-2);
+		text-decoration: underline;
+		text-decoration-color: var(--fx-hairline-strong);
+		text-underline-offset: 3px;
+	}
+
+	.credit a:hover {
+		color: var(--fx-ink);
 	}
 
 	@media (pointer: coarse) {

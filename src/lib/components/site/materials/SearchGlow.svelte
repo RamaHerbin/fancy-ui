@@ -3,7 +3,7 @@
 	that wakes on focus.
 
 	A native input rather than the library's SearchInput: SearchInput is a
-	rounded pill on the shadcn tokens with no rest-props, and this field needs a
+	rounded pill on the library's theme tokens with no rest-props, and this field needs a
 	52 px / radius 14 smoked body, a `name` that a plain GET form submits, and a
 	positioned wrapper for the rim. Without JS the form submits to
 	/inspiration?q=…; with JS the same URL is reached through `goto`.

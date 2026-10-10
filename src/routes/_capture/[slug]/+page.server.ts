@@ -1,8 +1,8 @@
 /**
- * Server-side gate for the dev-only capture stage. The universal load in
- * +page.ts never runs on the server (`ssr = false`), so without this file a
- * production build would answer 200 and ship the page to the browser before
- * the client-side `dev` check could 404 it.
+ * Server-side gate for the dev-only capture stage. The route server-renders
+ * (no `ssr = false`), so this load runs for the HTML request itself: outside
+ * dev the answer is a real 404 and the page module, which carries the demo
+ * loader, is never sent to the browser.
  */
 
 import { error } from "@sveltejs/kit";

@@ -2,8 +2,8 @@
 	The live layer over a FancyUI reference's poster. The demo module loads
 	lazily and mounts only while two things hold: this stage owns the page's
 	single live slot (`liveStage`, or `eager` on the detail page) and it is near
-	the viewport. Leaving the viewport, hiding the tab or pressing Escape gives
-	the slot back. Until the module is ready, or if it fails, the poster below
+	the viewport. Leaving the viewport, hiding the tab or pressing Escape while
+	the card has focus or the pointer gives the slot back. Until the module is ready, or if it fails, the poster below
 	stays visible — loading never shows a spinner.
 
 	Inspired by the gallery stage this replaces (inView with hysteresis, glob
@@ -32,6 +32,7 @@
 
 	const HYSTERESIS_MS = 600;
 
+	let stageEl = $state<HTMLDivElement | null>(null);
 	let near = $state(false);
 	let wasNear = false;
 	// Loaded module and failure are tagged with the module id, so a stage
@@ -98,8 +99,16 @@
 		const onVisibility = () => {
 			if (document.visibilityState === "hidden") liveStage.release(slug);
 		};
+		// Escape is only ours when nothing else took it and the card is the
+		// visitor's focus or under the pointer. Focus inside the demo would drop
+		// to <body> when it unmounts, so it goes to the card's [data-stage-return].
 		const onKeydown = (event: KeyboardEvent) => {
-			if (event.key === "Escape") liveStage.release(slug);
+			if (event.key !== "Escape" || event.defaultPrevented || !stageEl) return;
+			const card = stageEl.closest("article") ?? stageEl.parentElement ?? stageEl;
+			if (!card.contains(document.activeElement) && !card.matches(":hover")) return;
+			const focusInside = stageEl.contains(document.activeElement);
+			liveStage.release(slug);
+			if (focusInside) card.querySelector<HTMLElement>("[data-stage-return]")?.focus();
 		};
 		document.addEventListener("visibilitychange", onVisibility);
 		window.addEventListener("keydown", onKeydown);
@@ -119,6 +128,7 @@
 </script>
 
 <div
+	bind:this={stageEl}
 	class="is-stage {className}"
 	data-live={live || undefined}
 	data-stage={entry.slug}

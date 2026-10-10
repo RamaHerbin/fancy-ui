@@ -18,7 +18,7 @@
 	import VariantPanel from "$lib/components/inspiration/VariantPanel.svelte";
 	import { ORIGIN_LABELS, originBadge } from "$lib/components/inspiration/labels.js";
 	import { buildBrief } from "$lib/inspiration/brief.js";
-	import { KNOWN_IDS, getPublished } from "$lib/inspiration/catalog.js";
+	import { KNOWN_IDS, getPublished, posterFor } from "$lib/inspiration/catalog.js";
 	import {
 		CODE_AVAILABILITY_LABELS,
 		FRAMEWORK_LABELS,
@@ -54,7 +54,12 @@
 	);
 
 	const external = $derived(entry.origin === "external");
-	const byline = $derived([entry.creator, entry.product].filter(Boolean).join(" · "));
+	const poster = $derived(posterFor(entry));
+	const byline = $derived(
+		entry.product && entry.product !== entry.creator
+			? `${entry.creator} · ${entry.product}`
+			: entry.creator
+	);
 	const tags = $derived([...entry.styleTags, ...entry.interactionTags]);
 
 	const metaRows = $derived(
@@ -110,7 +115,16 @@
 	let searchOpen = $state(false);
 </script>
 
-<Seo title="{entry.title} — Inspiration | FancyUI" {description} {path} type="article" />
+<Seo
+	title="{entry.title} — Inspiration | FancyUI"
+	{description}
+	{path}
+	type="article"
+	image={poster?.src}
+	imageWidth={poster?.width}
+	imageHeight={poster?.height}
+	imageAlt={poster?.alt}
+/>
 <JsonLd data={jsonLd} />
 <SiteFonts />
 

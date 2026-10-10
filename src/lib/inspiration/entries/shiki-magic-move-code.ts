@@ -46,7 +46,7 @@ const entry: ExternalReference = {
 		width: 720,
 		height: 450,
 		alt: "A dark highlighted code block mid-transition: some tokens sit between lines as they move, others are half faded.",
-		credit: "Captured from the project's demo (MIT)",
+		credit: "Captured from the project's demo",
 		provenance: {
 			license: "MIT",
 			licenseUrl: "https://github.com/shikijs/shiki-magic-move/blob/main/LICENSE",

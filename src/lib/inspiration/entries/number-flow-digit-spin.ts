@@ -52,7 +52,7 @@ const entry: ExternalReference = {
 		width: 720,
 		height: 450,
 		alt: "A large dollar figure mid-shuffle: each digit is blurred between the values above and below it, over a Shuffle button.",
-		credit: "Captured from the project's demo (MIT)",
+		credit: "Captured from the project's demo",
 		provenance: {
 			license: "MIT",
 			licenseUrl: "https://github.com/barvian/number-flow/blob/main/LICENSE.md",

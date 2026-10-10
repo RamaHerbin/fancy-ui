@@ -1,8 +1,10 @@
 <!--
 	MotionToggle — the visitor's switch for the site's decorative motion
 	(halos, rims, the petrol film). It does not touch the OS setting: when the
-	system already asks for reduced motion, the switch shows as pressed and
-	disabled and says why.
+	system already asks for reduced motion, the switch shows as paused and
+	disabled and says why. It is an action button (its label names what a
+	press does), not a toggle with `aria-pressed`, so the name and the visible
+	text always agree.
 
 	State is read after mount only: the store hydrates from localStorage and
 	matchMedia at import, so rendering it during hydration would disagree with
@@ -32,7 +34,7 @@
 <button
 	type="button"
 	class="mt fx-mono {className}"
-	aria-pressed={pressed}
+	data-paused={pressed || undefined}
 	aria-label={compact ? label : undefined}
 	disabled={system}
 	title={system ? "Reduced motion is on in your system" : undefined}
@@ -71,7 +73,7 @@
 		color: var(--fx-ink, #f2f1ec);
 	}
 
-	.mt[aria-pressed="true"] {
+	.mt[data-paused] {
 		color: var(--fx-ink-2, #a8a7a1);
 		background: var(--fx-card-raised, #15151a);
 	}

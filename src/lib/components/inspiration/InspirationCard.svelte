@@ -107,7 +107,7 @@
 		onToggleSaved(entry);
 	}
 
-	const byline = $derived([entry.creator, entry.product].filter(Boolean).join(" · "));
+	const byline = $derived([...new Set([entry.creator, entry.product].filter(Boolean))].join(" · "));
 	const available = $derived(BADGE_ORDER.filter((fw) => frameworks.includes(fw)));
 	const tags = $derived(cardTags(entry));
 </script>
@@ -167,6 +167,7 @@
 			<button
 				type="button"
 				class="play"
+				data-stage-return
 				aria-pressed={playing}
 				aria-label="Preview {entry.title}"
 				onclick={togglePlay}
@@ -283,6 +284,15 @@
 	.save:hover,
 	.play:hover {
 		background: rgb(9 9 11 / 0.8);
+	}
+
+	/* Two-tone ring: these sit on the poster, where a thin ivory line alone
+	   disappears against light images. */
+	.save:focus-visible,
+	.play:focus-visible {
+		outline: 2px solid var(--fx-ink);
+		outline-offset: 0;
+		box-shadow: 0 0 0 4px rgb(9 9 11 / 0.8);
 	}
 
 	.save {

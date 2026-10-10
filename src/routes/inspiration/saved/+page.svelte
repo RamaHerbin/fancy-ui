@@ -5,7 +5,7 @@
 -->
 <script lang="ts">
 	import "$lib/components/site/site.css";
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import SiteFonts from "$lib/components/site/SiteFonts.svelte";
 	import CommandSearch from "$lib/components/docs/CommandSearch.svelte";
 	import Seo from "$lib/components/Seo.svelte";
@@ -34,6 +34,28 @@
 	});
 
 	let searchOpen = $state(false);
+
+	// Unsaving here unmounts the focused card (and Clear all removes itself):
+	// move focus to the neighbouring card's save button, else the heading.
+	let heading = $state<HTMLElement | null>(null);
+	let announcement = $state("");
+
+	async function unsave(entry: Reference) {
+		const item = (document.activeElement as HTMLElement | null)?.closest("li");
+		const neighbour = item?.nextElementSibling ?? item?.previousElementSibling;
+		const target = neighbour?.querySelector<HTMLElement>(".save") ?? null;
+		saved.toggleSaved(entry.id);
+		announcement = `Removed ${entry.title}`;
+		await tick();
+		(target?.isConnected ? target : heading)?.focus();
+	}
+
+	async function clearAll() {
+		saved.clearSaved();
+		announcement = "Cleared all saved references";
+		await tick();
+		heading?.focus();
+	}
 </script>
 
 <Seo
@@ -56,13 +78,13 @@
 
 		<header class="head">
 			<div>
-				<h1>Saved</h1>
+				<h1 bind:this={heading} tabindex="-1">Saved</h1>
 				<p class="lede">Saved in this browser — no account, nothing leaves your device.</p>
 			</div>
 			{#if entries.length}
 				<div class="tools">
 					<p class="fx-mono count">{entries.length} saved</p>
-					<button type="button" class="clear" onclick={() => saved.clearSaved()}>Clear all</button>
+					<button type="button" class="clear" onclick={clearAll}>Clear all</button>
 				</div>
 			{/if}
 		</header>
@@ -70,6 +92,11 @@
 		{#if ready && saved.status === "unavailable"}
 			<p class="warn" role="status">
 				This browser blocks storage, so saved references last only until the tab closes.
+			</p>
+		{:else if ready && saved.status === "readonly"}
+			<p class="warn" role="status">
+				A newer version of this site saved your list in another tab. Reload to see it; changes made
+				here are not kept.
 			</p>
 		{/if}
 
@@ -88,11 +115,12 @@
 					{entries}
 					ports={data.frameworks}
 					isSaved={() => true}
-					onToggleSaved={(entry) => saved.toggleSaved(entry.id)}
+					onToggleSaved={unsave}
 					label="Saved references"
 				/>
 			{/if}
 		</section>
+		<p class="sr-only" role="status">{announcement}</p>
 	</main>
 
 	<SiteFooter />
@@ -136,6 +164,7 @@
 	}
 
 	h1 {
+		outline: none;
 		font-size: 44px;
 		line-height: 1.05;
 		font-weight: 700;

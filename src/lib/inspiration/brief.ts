@@ -35,7 +35,7 @@ export function buildBrief(
 
 	lines.push(`Reference: ${absoluteUrl(`/inspiration/${entry.slug}`)}`);
 	lines.push(`Source: ${absoluteUrl(entry.sourceUrl)}`);
-	const by = [entry.creator, entry.product].filter(Boolean).join(" · ");
+	const by = [...new Set([entry.creator, entry.product].filter(Boolean))].join(" · ");
 	if (by) lines.push(`By: ${by}`);
 
 	const pattern = [

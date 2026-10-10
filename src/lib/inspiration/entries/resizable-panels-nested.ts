@@ -46,7 +46,7 @@ const entry: ExternalReference = {
 		width: 720,
 		height: 450,
 		alt: "Nested group markup above a live layout of five dark panels, the middle column widened by a drag.",
-		credit: "Captured from the project's demo (MIT)",
+		credit: "Captured from the project's demo",
 		provenance: {
 			license: "MIT",
 			licenseUrl: "https://github.com/bvaughn/react-resizable-panels/blob/main/LICENSE.md",

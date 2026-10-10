@@ -1,11 +1,13 @@
 <!--
 	The detail page's tune panel: a slide-over with the demo's knobs. Modal
-	while open (backdrop, `inert` when closed, Escape), focus moves to the close
-	button on open and back to the trigger on close. Same dialog skeleton as
+	while open (backdrop, Tab trapped, `inert` when closed, Escape), focus
+	moves to the close button on open and back to the trigger on close. Same dialog skeleton as
 	the gallery panel it replaces, redrawn on the site tokens.
 -->
 <script lang="ts">
+	import type { Attachment } from "svelte/attachments";
 	import type { ControlDef, PlaygroundValues } from "$lib/inspiration/types.js";
+	import { focusTrap } from "$lib/fancy-ui/_internals/focus-trap.js";
 
 	interface Props {
 		title: string;
@@ -34,6 +36,13 @@
 			returnTo?.focus();
 		}
 	});
+
+	// Tab cycles inside the panel while it is open; the effect above owns the
+	// focus moves on open and close.
+	const trap: Attachment<HTMLElement> = (node) => {
+		const handle = focusTrap(node, { initialFocus: closeButton, returnFocus: false });
+		return () => handle?.destroy?.();
+	};
 </script>
 
 <svelte:window
@@ -53,6 +62,7 @@
 	inert={!open}
 	class="tp"
 	data-open={open || undefined}
+	{@attach open ? trap : undefined}
 >
 	<div class="head">
 		<h2 id="tp-{uid}">Tune <span class="sr-only">{title}</span></h2>

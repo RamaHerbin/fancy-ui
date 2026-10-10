@@ -12,6 +12,8 @@ import {
 	type Filters,
 } from "./query.js";
 import { STYLE_LABELS, type Reference } from "./types.js";
+import { PUBLISHED } from "./catalog.js";
+import { SEARCH_SUGGESTIONS } from "$lib/components/home/suggestions.js";
 
 const base = (over: Partial<Reference> & Pick<Reference, "id" | "slug">): Reference =>
 	({
@@ -165,6 +167,22 @@ describe("applyFilters", () => {
 		]);
 		expect(applyFilters(entries, { ...EMPTY_FILTERS, q: "radial" })).toHaveLength(3);
 		expect(applyFilters(entries, { ...EMPTY_FILTERS, q: "zzz" })).toHaveLength(0);
+	});
+
+	it("matches every content word of a described query, in any order", () => {
+		expect(applyFilters(entries, { ...EMPTY_FILTERS, q: "beam pulse" }).map((e) => e.id)).toEqual([
+			"c",
+		]);
+		expect(
+			applyFilters(entries, { ...EMPTY_FILTERS, q: "A gradient at the pointers" })
+		).toHaveLength(3);
+		expect(applyFilters(entries, { ...EMPTY_FILTERS, q: "radial zzz" })).toHaveLength(0);
+	});
+
+	it("gives every home search suggestion at least one published reference", () => {
+		for (const q of SEARCH_SUGGESTIONS) {
+			expect(applyFilters(PUBLISHED, { ...EMPTY_FILTERS, q }).length, q).toBeGreaterThan(0);
+		}
 	});
 
 	it("filters frameworks: fancyui entries match all three, external ones only verified ports", () => {

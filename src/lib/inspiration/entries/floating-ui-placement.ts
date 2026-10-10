@@ -51,7 +51,7 @@ const entry: ExternalReference = {
 		width: 720,
 		height: 450,
 		alt: "A white demo window: a dashed Reference box ringed by twelve dots, the lower-right dot filled and a red right-end label beside the box.",
-		credit: "Captured from the project's demo (MIT)",
+		credit: "Captured from the project's demo",
 		provenance: {
 			license: "MIT",
 			licenseUrl: "https://github.com/floating-ui/floating-ui/blob/master/LICENSE",

@@ -16,24 +16,34 @@
 	const Fonts = Object.values(fonts)[0]?.default;
 	const rootClass = Object.keys(siteCss).length > 0 ? "fx-root dark" : "lp-root dark";
 
-	const demos = import.meta.glob<{ default: Component<{ values: PlaygroundValues }> }>(
-		"$lib/inspiration/demos/*.svelte",
-		{ eager: true }
-	);
-	const Demo = $derived(
-		demos[`/src/lib/inspiration/demos/${data.entry.demo.module}.svelte`]?.default
-	);
+	// Lazy glob: each demo is its own chunk, fetched only once the load has
+	// passed, and only in the browser (the route server-renders for its gate).
+	type DemoComponent = Component<{ values: PlaygroundValues }>;
+	const demos = import.meta.glob<{ default: DemoComponent }>("$lib/inspiration/demos/*.svelte");
+	let Demo = $state<DemoComponent | null>(null);
+	$effect(() => {
+		const loadDemo = demos[`/src/lib/inspiration/demos/${data.entry.demo.module}.svelte`];
+		let alive = true;
+		void loadDemo?.().then((mod) => {
+			if (alive) Demo = mod.default;
+		});
+		return () => {
+			alive = false;
+		};
+	});
 	const values = $derived<PlaygroundValues>({ ...(data.entry.demo.defaults ?? {}) });
 </script>
 
 {#if Fonts}<Fonts />{/if}
 
 <div class="{rootClass} grid min-h-screen place-items-center">
-	<div
-		data-inspiration-stage
-		class="relative overflow-hidden"
-		style="width: 400px; height: 250px; background: #0f0f12; border-radius: 12px;"
-	>
-		{#if Demo}<Demo {values} />{/if}
-	</div>
+	{#if Demo}
+		<div
+			data-inspiration-stage
+			class="relative overflow-hidden"
+			style="width: 400px; height: 250px; background: #0f0f12; border-radius: 12px;"
+		>
+			<Demo {values} />
+		</div>
+	{/if}
 </div>

@@ -49,6 +49,31 @@ describe("saved store", () => {
 		expect(store.createSavedState().count).toBe(0);
 	});
 
+	it("never overwrites a payload from a newer build", async () => {
+		const newer = JSON.stringify({ v: 2, ids: ["a"], extra: true });
+		localStorage.setItem(KEY, newer);
+		const store = await load();
+		const state = store.createSavedState();
+		expect(state.status).toBe("readonly");
+		state.toggleSaved("b");
+		expect(state.isSaved("b")).toBe(true);
+		state.clearSaved();
+		expect(localStorage.getItem(KEY)).toBe(newer);
+	});
+
+	it("stops writing when another tab stores a newer payload", async () => {
+		const store = await load();
+		const state = store.createSavedState();
+		state.toggleSaved("a");
+		const newer = JSON.stringify({ v: 2, ids: ["a", "b"] });
+		localStorage.setItem(KEY, newer);
+		window.dispatchEvent(new StorageEvent("storage", { key: KEY, newValue: newer }));
+		expect(state.status).toBe("readonly");
+		expect(state.count).toBe(0);
+		state.toggleSaved("c");
+		expect(localStorage.getItem(KEY)).toBe(newer);
+	});
+
 	it("ignores corrupt JSON", async () => {
 		localStorage.setItem(KEY, "{not json");
 		const store = await load();

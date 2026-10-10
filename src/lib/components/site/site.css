@@ -3,14 +3,14 @@
  * the Inspiration pages.
  *
  * Usage: wrap the route in `<div class="fx-root dark">`. Both classes are
- * required. `.fx-root` carries the tokens below; `.dark` switches the shadcn
+ * required. `.fx-root` carries the tokens below; `.dark` switches the library's
  * theme tokens (and `color-scheme`, which LiquidGlass and Button read through
  * `light-dark()`) so every library component inside renders its dark branch.
  * Portalled components (Select, Toast, CommandMenu, Sheet) leave the wrapper:
  * give them `class="dark"` themselves.
  *
  * Every surface token is prefixed `--fx-`: the unprefixed names (`--card`,
- * `--border`…) are shadcn theme tokens that Tailwind's `bg-card` and the
+ * `--border`…) are shared theme tokens that Tailwind's `bg-card` and the
  * library read, so reusing them would restyle components by accident. The six
  * glow hues keep the short `--g-*` names; they are the only colours any
  * decorative layer may use.

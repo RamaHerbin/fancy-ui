@@ -78,6 +78,12 @@
 		padding: 10px;
 	}
 
+	/* The thinking sweep and pulse loop forever: the pause switch holds them. */
+	:global(html[data-motion="paused"]) .turns :global(.ft-thinking-shimmer),
+	:global(html[data-motion="paused"]) .turns :global(.ft-thinking-dot-live::after) {
+		animation-play-state: paused !important;
+	}
+
 	.row {
 		display: flex;
 		justify-content: flex-end;

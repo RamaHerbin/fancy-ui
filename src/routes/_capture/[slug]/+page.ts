@@ -2,7 +2,8 @@
  * Dev-only poster stage for `scripts/build-inspiration-media.mjs`: one FancyUI
  * entry's live demo, alone in a card-sized 16:10 box (400×250 CSS px, shot at
  * 1.8x → 720×450). Never prerendered and a 404 outside `vite dev`, so it
- * cannot ship.
+ * cannot ship. Server-rendered so that the gate in +page.server.ts answers
+ * the HTML request; the demo itself only mounts in the browser.
  */
 
 import { error } from "@sveltejs/kit";
@@ -11,7 +12,6 @@ import { getEntry, isFancyUI } from "$lib/inspiration/catalog.js";
 import type { PageLoad } from "./$types";
 
 export const prerender = false;
-export const ssr = false;
 
 export const load: PageLoad = ({ params }) => {
 	// `dev` follows the `development` export condition, which a dev server

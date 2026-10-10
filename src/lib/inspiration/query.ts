@@ -171,7 +171,29 @@ function haystack(entry: Reference): string {
 		...entry.components.map((link) => link.slug),
 	]
 		.join(" ")
-		.toLowerCase();
+		.toLowerCase()
+		.replace(/[-_]/g, " ");
+}
+
+/** Filler words a described interaction carries ("a card that tilts toward…"). */
+const STOP_WORDS = new Set(
+	"a an and as at by for from in into is it its of on or that the this to toward towards when with".split(
+		" "
+	)
+);
+
+/**
+ * The query as search terms: lower-cased words, filler dropped, a light
+ * plural / -ing strip, so a sentence matches when every content word does.
+ */
+export function searchTerms(q: string): string[] {
+	return q
+		.toLowerCase()
+		.split(/[^\p{L}\p{N}]+/u)
+		.filter((word) => word && !STOP_WORDS.has(word))
+		.map((word) =>
+			word.replace(/(?:ing|es|s)$/, (end) => (word.length - end.length >= 3 ? "" : end))
+		);
 }
 
 /**
@@ -193,8 +215,11 @@ export function matches(
 	filters: Filters,
 	frameworksOf: FrameworkIndex = defaultFrameworkIndex
 ): boolean {
-	const q = filters.q.trim().toLowerCase();
-	if (q && !haystack(entry).includes(q)) return false;
+	const terms = searchTerms(filters.q);
+	if (terms.length) {
+		const hay = haystack(entry);
+		if (!terms.every((term) => hay.includes(term))) return false;
+	}
 	if (!matchesFacet(filters.origin, [entry.origin])) return false;
 	if (!matchesFacet(filters.kind, [entry.kind])) return false;
 	if (!matchesFacet(filters.interaction, entry.interactionTags)) return false;

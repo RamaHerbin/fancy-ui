@@ -16,9 +16,9 @@ import {
 } from "$lib/inspiration/types.js";
 
 /** Badge text: our own components, open-source work from elsewhere, or anything else. */
-export function originBadge(entry: Reference): "FANCYUI" | "COMMUNITY" | "EXTERNAL" {
+export function originBadge(entry: Reference): "FANCYUI" | "OPEN SOURCE" | "EXTERNAL" {
 	if (entry.origin === "fancyui") return "FANCYUI";
-	return entry.codeAvailability === "open-source" ? "COMMUNITY" : "EXTERNAL";
+	return entry.codeAvailability === "open-source" ? "OPEN SOURCE" : "EXTERNAL";
 }
 
 export const ORIGIN_LABELS: Record<string, string> = {

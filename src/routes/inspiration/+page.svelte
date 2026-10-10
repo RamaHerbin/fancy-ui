@@ -10,7 +10,7 @@
 -->
 <script lang="ts">
 	import "$lib/components/site/site.css";
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { page } from "$app/state";
 	import { beforeNavigate, goto } from "$app/navigation";
 	import SiteFonts from "$lib/components/site/SiteFonts.svelte";
@@ -100,13 +100,13 @@
 	}
 
 	/** Every write carries the field's current text, so a pending search never lands as a second entry. */
-	function navigate(next: Filters, replaceState = false) {
+	function navigate(next: Filters, replaceState = false): Promise<void> {
 		cancelSearch();
 		const target = { ...next, q: normalizeQ(next.q) };
 		const search = serializeFilters(target);
-		if (search === serializeFilters(filters)) return;
+		if (search === serializeFilters(filters)) return Promise.resolve();
 		lastWrittenQ = target.q;
-		goto(`/inspiration${search}`, { replaceState, keepFocus: true, noScroll: true });
+		return goto(`/inspiration${search}`, { replaceState, keepFocus: true, noScroll: true });
 	}
 
 	function commitQuery() {
@@ -138,33 +138,50 @@
 	});
 
 	function onToggle(facet: Facet, value: string) {
-		navigate({ ...toggleFacet(filters, facet, value as never), q: query });
+		return navigate({ ...toggleFacet(filters, facet, value as never), q: query });
 	}
 
 	function onSort(sort: Sort) {
 		navigate({ ...filters, sort, q: query });
 	}
 
+	// Removing a chip unmounts the button that had focus: hand focus to the
+	// chip that took its place (or the one before it), else the search field.
+	async function refocusAfter(done: Promise<void>, index: number) {
+		await done;
+		await tick();
+		const chips = document.querySelectorAll<HTMLElement>('.gt [aria-label="Active filters"] .chip');
+		const target =
+			chips[Math.min(index, chips.length - 1)] ??
+			document.querySelector<HTMLElement>(".gt .search input");
+		target?.focus();
+	}
+
 	function onRemove(chip: ReturnType<typeof activeChips>[number]) {
+		const index = activeChips(filters).findIndex(
+			(other) => other.facet === chip.facet && other.value === chip.value
+		);
+		let done: Promise<void>;
 		if (chip.facet === "q") {
 			query = "";
-			navigate({ ...filters, q: "" });
+			done = navigate({ ...filters, q: "" });
 		} else if (chip.facet === "collection") {
-			navigate({ ...filters, collection: null, q: query });
+			done = navigate({ ...filters, collection: null, q: query });
 		} else {
-			onToggle(chip.facet, chip.value);
+			done = onToggle(chip.facet, chip.value);
 		}
+		void refocusAfter(done, Math.max(index, 0));
 	}
 
 	function onClear() {
 		query = "";
-		navigate(clearFilters(filters));
+		void refocusAfter(navigate(clearFilters(filters)), 0);
 	}
 </script>
 
 <Seo
 	title="Inspiration — UI interactions worth studying | FancyUI"
-	description="A curated gallery of UI interactions: live FancyUI components you can retune and references from elsewhere, each with notes on why it works, when to use it and how to build it."
+	description="Curated UI interactions: live FancyUI components you can retune and open-source references, each with why it works and how to build it."
 	path="/inspiration"
 />
 <SiteFonts />

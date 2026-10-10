@@ -47,7 +47,7 @@ const entry: ExternalReference = {
 		width: 720,
 		height: 450,
 		alt: "A dark sketch canvas: a hand-drawn rectangle labelled draft, an arrow being dragged from it, and an ellipse outlined in blue where the arrow will attach.",
-		credit: "Captured from the project's demo (MIT)",
+		credit: "Captured from the project's demo",
 		provenance: {
 			license: "MIT",
 			licenseUrl: "https://github.com/excalidraw/excalidraw/blob/master/LICENSE",

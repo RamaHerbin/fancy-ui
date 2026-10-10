@@ -13,6 +13,7 @@
 	} from "$lib/components/site/materials/index.js";
 	import { FrameworkSwitch } from "$lib/components/site/index.js";
 	import { PACKAGE_VERSION } from "$lib/site.js";
+	import { SEARCH_SUGGESTIONS } from "./suggestions.js";
 
 	interface Props {
 		/** Library component count, from the page data. */
@@ -23,12 +24,7 @@
 
 	let { components, paused = false }: Props = $props();
 
-	const NEEDS = [
-		"A button that answers the press",
-		"A thinking state for a chat reply",
-		"An edge that catches the light",
-		"A card that tilts toward the pointer",
-	];
+	const NEEDS = SEARCH_SUGGESTIONS;
 
 	let heading: HTMLElement | undefined = $state();
 </script>

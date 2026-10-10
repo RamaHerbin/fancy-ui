@@ -93,7 +93,7 @@ export default entry;
 
 ## Licence rule for external references
 
-An external reference is published only with media **we captured ourselves** from an open-source project under a permissive licence (MIT, Apache-2.0, BSD, ISC, CC0, CC-BY), whose demo or source lives in that licensed repository. The frame shows only the project's own UI: no third-party logos or photos. Record the licence and its URL in `media.provenance` and add a row to `static/inspiration/CREDITS.md`. Never download or copy media from a third-party site. Proprietary products stay `draft`, without media.
+An external reference is published only with media **we captured ourselves** from an open-source project under a permissive licence (MIT, Apache-2.0, BSD, ISC, CC0, CC-BY), whose demo or source lives in that licensed repository. The frame shows only the project's own UI: no third-party logos or photos. Record the licence and its URL in `media.provenance` and add a row to `static/inspiration/CREDITS.md`. Never download or copy media from a third-party site. Proprietary products are not committed, not even as drafts: their names and links stay out of the public repository.
 
 Check the licence with `gh api repos/<owner>/<repo>/license --jq .license.spdx_id`.
 
@@ -124,7 +124,7 @@ Lower comes first in the curated sort; `featured(6)` on the homepage takes the s
 
 ## Pending and drafts
 
-Drafts (in `entries/`, `status: "draft"`, no media; the reason is the comment at the top of each file):
+Kept out of the repository:
 
 - Six proprietary references (a browser sidebar, a wallet app gesture, a command menu, a mobile OS pull-to-refresh, a desktop OS dock, a marketing-site gradient): no licence lets us capture them.
 

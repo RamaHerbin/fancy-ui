@@ -4,7 +4,9 @@
  *
  * Storage shape is versioned (`{ v: 1, ids }`) so a future change can migrate
  * instead of guessing. The first read also copies the pre-Inspiration
- * `fancy-ui-finds-saved` array (same ids) into the new key.
+ * `fancy-ui-finds-saved` array (same ids) into the new key. A payload stamped
+ * with a higher version was written by a newer build: this one cannot read it,
+ * so it never overwrites it either (status `readonly`, changes stay in memory).
  *
  * Unknown ids are never deleted, only hidden at read time (through
  * `createSavedState(known)`): a tab running an older build cannot know the
@@ -19,11 +21,13 @@ export const SAVED_STORAGE_KEY = "fancy-ui-inspiration-saved";
 export const LEGACY_SAVED_KEY = "fancy-ui-finds-saved";
 const VERSION = 1;
 
-export type StorageStatus = "unknown" | "ok" | "unavailable";
+export type StorageStatus = "unknown" | "ok" | "unavailable" | "readonly";
 
 let saved = $state<string[]>([]);
 let status = $state<StorageStatus>("unknown");
 let hydrated = false;
+/** Set while storage holds a payload from a newer build; blocks every write. */
+let newer = false;
 
 /** Pure parser for the stored JSON (current or legacy shape). Never throws. */
 export function parseSavedPayload(raw: string | null): string[] {
@@ -42,13 +46,26 @@ export function parseSavedPayload(raw: string | null): string[] {
 	}
 }
 
+/** True when the stored JSON carries a version above the one this build knows. */
+export function isNewerPayload(raw: string | null): boolean {
+	if (raw == null) return false;
+	try {
+		const data: unknown = JSON.parse(raw);
+		if (!data || typeof data !== "object" || Array.isArray(data)) return false;
+		const v = (data as { v?: unknown }).v;
+		return typeof v === "number" && v > VERSION;
+	} catch {
+		return false;
+	}
+}
+
 function serialize(ids: string[]): string {
 	return JSON.stringify({ v: VERSION, ids });
 }
 
 /** Writes the current list; every failure is swallowed into `status`. */
 function persist(): void {
-	if (!browser) return;
+	if (!browser || newer) return;
 	try {
 		localStorage.setItem(SAVED_STORAGE_KEY, serialize(saved));
 		status = "ok";
@@ -60,8 +77,12 @@ function persist(): void {
 /** Cross-tab sync. Never writes back — that would loop the tab that wrote it. */
 function handleStorage(event: StorageEvent): void {
 	if (event.key !== SAVED_STORAGE_KEY && event.key !== null) return;
-	const next = event.key === null ? [] : parseSavedPayload(event.newValue);
+	const value = event.key === null ? null : event.newValue;
+	const next = parseSavedPayload(value);
 	untrack(() => {
+		newer = isNewerPayload(value);
+		if (newer) status = "readonly";
+		else if (status === "readonly") status = "ok";
 		saved = next;
 	});
 }
@@ -76,6 +97,7 @@ function ensure(): void {
 		try {
 			const current = localStorage.getItem(SAVED_STORAGE_KEY);
 			if (current != null) {
+				newer = isNewerPayload(current);
 				saved = parseSavedPayload(current);
 			} else {
 				const legacy = localStorage.getItem(LEGACY_SAVED_KEY);
@@ -84,7 +106,7 @@ function ensure(): void {
 				// build keeps its bookmarks. It can be dropped a release later.
 				if (legacy != null) localStorage.setItem(SAVED_STORAGE_KEY, serialize(saved));
 			}
-			status = "ok";
+			status = newer ? "readonly" : "ok";
 		} catch {
 			status = "unavailable";
 		}

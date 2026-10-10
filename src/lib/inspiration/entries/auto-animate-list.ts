@@ -46,7 +46,7 @@ const entry: ExternalReference = {
 		width: 720,
 		height: 450,
 		alt: "A violet to-do list mid-reorder: two rows overlap as they trade places, above an input with Add and Sort buttons.",
-		credit: "Captured from the project's demo (MIT)",
+		credit: "Captured from the project's demo",
 		provenance: {
 			license: "MIT",
 			licenseUrl: "https://github.com/formkit/auto-animate/blob/master/LICENSE",

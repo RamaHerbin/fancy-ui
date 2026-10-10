@@ -9,6 +9,11 @@
 		path: string;
 		/** Site-relative path or absolute URL of the social card. */
 		image?: string;
+		/** Pixel size of `image`; defaults to the 1200×630 site card. */
+		imageWidth?: number;
+		imageHeight?: number;
+		/** Alt text of `image`; defaults to "Social card for <title>". */
+		imageAlt?: string;
 		type?: "website" | "article";
 		/** Drops the canonical link and emits robots=noindex. */
 		noindex?: boolean;
@@ -19,13 +24,16 @@
 		description,
 		path,
 		image = DEFAULT_OG_IMAGE,
+		imageWidth = 1200,
+		imageHeight = 630,
+		imageAlt,
 		type = "website",
 		noindex = false,
 	}: Props = $props();
 
 	const url = $derived(absoluteUrl(path));
 	const imageUrl = $derived(absoluteUrl(image));
-	const imageAlt = $derived(`Social card for ${title}`);
+	const alt = $derived(imageAlt ?? `Social card for ${title}`);
 </script>
 
 <svelte:head>
@@ -44,11 +52,11 @@
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={url} />
 	<meta property="og:image" content={imageUrl} />
-	<!-- Every card this site serves is 1200×630: the default /og.png and the
-	     per-component /og/<slug>.jpg alike, so the dimensions are constant. -->
-	<meta property="og:image:width" content="1200" />
-	<meta property="og:image:height" content="630" />
-	<meta property="og:image:alt" content={imageAlt} />
+	<!-- The default /og.png and the per-component /og/<slug>.jpg are 1200×630;
+	     a page passing its own image (an Inspiration poster) passes its size. -->
+	<meta property="og:image:width" content={String(imageWidth)} />
+	<meta property="og:image:height" content={String(imageHeight)} />
+	<meta property="og:image:alt" content={alt} />
 	<meta property="og:locale" content="en_US" />
 
 	<meta name="twitter:card" content="summary_large_image" />
