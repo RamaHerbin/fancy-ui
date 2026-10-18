@@ -1,0 +1,22 @@
+/*
+ * Ported from BentoGrid.svelte's <style> block. The rules were already
+ * anchored on the grid's own root class (.fancy-bento) there; Svelte's
+ * `:global(*)` child selector becomes a plain `*`.
+ *
+ * The hidden state exists only for viewers who allow motion and whose
+ * browser runs scripts — everyone else gets the resting, visible grid
+ * without waiting on JS. Transforms and opacity only.
+ */
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+	.fancy-bento.bento-reveal[data-state="armed"] > * {
+		opacity: 0;
+		transform: translate3d(0, 18px, 0) scale(0.985);
+	}
+	.fancy-bento.bento-reveal[data-state="shown"] > * {
+		transition:
+			opacity 600ms cubic-bezier(0.4, 0, 0.2, 1),
+			transform 800ms cubic-bezier(0.16, 1, 0.3, 1),
+			border-color 300ms cubic-bezier(0.4, 0, 0.2, 1); /* DURATIONS.entrance, EASINGS.out */
+		transition-delay: var(--bento-delay, 0ms), var(--bento-delay, 0ms), 0ms;
+	}
+}

@@ -1,3 +1,4 @@
+/// <reference types="@webgpu/types" />
 // WebGPU HDR renderer for FireworksHdr.
 //
 // Consumes 8-float particle instances from the DOM/GPU-free Sim (see
@@ -29,22 +30,6 @@
 //                  soft-knee (§7) + saturation boost.
 
 import { STRETCH, EXPOSURE_AMBIENT, type FireworksRenderLevel } from "./fireworks-shared.js";
-import { isDev } from "./dev.js";
-import type {
-	GPU,
-	GPUBindGroup,
-	GPUBuffer,
-	GPUCanvasConfiguration,
-	GPUCanvasContext,
-	GPUCommandEncoder,
-	GPULoadOp,
-	GPURenderPipeline,
-	GPUTexture,
-	GPUTextureFormat,
-	GPUTextureView,
-	GPUUncapturedErrorEvent,
-	WebGpuGlobals,
-} from "./webgpu-types.js";
 
 /**
  * Single global accumulation fade rate (1/s). Per-frame factor is
@@ -260,16 +245,11 @@ export async function startWebGpuFireworks(
 	opts: WebGpuFireworksOptions
 ): Promise<FireworksEngineHandle | null> {
 	try {
-		const gpu = (navigator as unknown as { gpu?: GPU }).gpu;
+		const gpu = navigator.gpu;
 		if (!gpu) return null;
 		const adapter = await gpu.requestAdapter();
 		if (!adapter) return null;
 		const device = await adapter.requestDevice();
-		// The WebGPU flag namespaces are runtime globals, not types (see
-		// webgpu-types.ts). Bound here, past the adapter check, so the call sites
-		// below read exactly as they do in the reference implementation.
-		const { GPUShaderStage, GPUBufferUsage, GPUTextureUsage } =
-			globalThis as unknown as WebGpuGlobals;
 
 		const configuration = {
 			device,
@@ -282,24 +262,19 @@ export async function startWebGpuFireworks(
 		// Probe on a detached canvas first (see file header — keeps the WebGL2
 		// fallback possible if configure() throws).
 		try {
-			const probe = document
-				.createElement("canvas")
-				.getContext("webgpu") as unknown as GPUCanvasContext | null;
+			const probe = document.createElement("canvas").getContext("webgpu");
 			if (!probe) {
 				device.destroy();
 				return null;
 			}
 			probe.configure(configuration);
 			probe.unconfigure();
-		} catch (error) {
+		} catch {
 			device.destroy();
-			if (isDev()) {
-				console.warn("[FireworksHdr] WebGPU canvas configuration rejected:", error);
-			}
 			return null;
 		}
 
-		const maybeContext = canvas.getContext("webgpu") as unknown as GPUCanvasContext | null;
+		const maybeContext = canvas.getContext("webgpu");
 		if (!maybeContext) {
 			device.destroy();
 			return null;
@@ -333,20 +308,9 @@ export async function startWebGpuFireworks(
 
 		let destroyed = false;
 		let lost = false;
-		device.lost.then((info) => {
+		device.lost.then(() => {
 			lost = true;
-			if (!destroyed && isDev()) {
-				console.warn(`[FireworksHdr] WebGPU device lost (${info.reason}): ${info.message}`);
-			}
 		});
-		if (isDev()) {
-			device.addEventListener("uncapturederror", (event) => {
-				console.error(
-					"[FireworksHdr] WebGPU uncaptured error:",
-					(event as GPUUncapturedErrorEvent).error.message
-				);
-			});
-		}
 
 		const module = device.createShaderModule({ code: WGSL });
 		let renderScale = opts.renderScale ?? 1;
@@ -655,10 +619,7 @@ export async function startWebGpuFireworks(
 				device.destroy();
 			},
 		};
-	} catch (error) {
-		if (isDev()) {
-			console.warn("[FireworksHdr] WebGPU init failed:", error);
-		}
+	} catch {
 		return null;
 	}
 }

@@ -1,0 +1,150 @@
+/*
+ * FlipCard — ported verbatim from the Svelte <style> block. Every rule is
+ * anchored on the root class `.ft-flip-card`, which the Svelte source already
+ * names, so nothing leaks once the compiler-scoped rules become global.
+ */
+
+/* The one number everything turns on: the card's rotation. Registered so
+   it can transition, and inherited so the faces can light themselves
+   from it. */
+@property --fc-angle {
+	syntax: "<angle>";
+	inherits: true;
+	initial-value: 0deg;
+}
+
+.ft-flip-card {
+	--fc-angle: var(--fc-target);
+	outline: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.ft-flip-card:focus-visible .ft-flip-card__inner {
+	box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-ring, #888) 60%, transparent);
+}
+
+.ft-flip-card[data-trigger="click"] {
+	cursor: pointer;
+}
+
+.ft-flip-card__lift,
+.ft-flip-card__inner {
+	position: relative;
+}
+
+.ft-flip-card[data-axis="y"] .ft-flip-card__inner {
+	transform: rotateY(var(--fc-angle));
+}
+
+.ft-flip-card[data-axis="x"] .ft-flip-card__inner {
+	transform: rotateX(var(--fc-angle));
+}
+
+.ft-flip-card[data-axis="y"] .ft-flip-card__back {
+	transform: rotateY(180deg);
+}
+
+.ft-flip-card[data-axis="x"] .ft-flip-card__back {
+	transform: rotateX(180deg);
+}
+
+/* The shadow on the "table" under the card. */
+.ft-flip-card__shadow {
+	position: absolute;
+	inset: 8% 6% -4%;
+	border-radius: 1.25rem;
+	background: rgb(0 0 0 / 0.9);
+	opacity: 0.35;
+	transform: translateY(10px) scale(0.92);
+	filter: blur(14px);
+	pointer-events: none;
+}
+
+/* ---- light: off unless the browser can compute it ---------------------- */
+
+.ft-flip-card__light {
+	display: none;
+}
+
+@supports (opacity: calc(sin(30deg))) {
+	.ft-flip-card__face {
+		/* the face's own turn: the back starts half a turn round */
+		--fc-face: var(--fc-angle);
+		/* |sin| — 0 facing you, 1 edge-on */
+		--fc-edge: max(sin(var(--fc-face)), -1 * sin(var(--fc-face)));
+	}
+
+	.ft-flip-card__back {
+		--fc-face: calc(var(--fc-angle) + 180deg);
+	}
+
+	.ft-flip-card__light {
+		display: block;
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		border-radius: inherit;
+		/* a sheen that sweeps across as the face turns, over a shade that
+		   deepens as the face goes edge-on */
+		background:
+			linear-gradient(
+				var(--fc-sheen-angle, 105deg),
+				transparent 38%,
+				rgb(255 255 255 / 0.55) 50%,
+				transparent 62%
+			),
+			rgb(0 0 0 / calc(var(--fc-edge) * 0.55));
+		background-size:
+			300% 300%,
+			100% 100%;
+		background-repeat: no-repeat;
+		background-position:
+			calc(50% - sin(var(--fc-face)) * 45%) calc(50% - sin(var(--fc-face)) * 45%),
+			0 0;
+	}
+
+	/* the sheen is brightest part-way round, never facing you or edge-on */
+	.ft-flip-card__light {
+		opacity: calc(min(1, var(--fc-edge) * 2.4));
+	}
+
+	.ft-flip-card[data-axis="x"] .ft-flip-card__light {
+		--fc-sheen-angle: 15deg;
+	}
+}
+
+/* ---- motion ---------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+	.ft-flip-card {
+		/* a slight overshoot, so the card lands rather than stops */
+		transition: --fc-angle var(--fc-duration) cubic-bezier(0.34, 1.25, 0.64, 1);
+	}
+}
+
+/* Reduced motion: no turning at all — the faces cross-fade in place. */
+@media (prefers-reduced-motion: reduce) {
+	/* as specific as the axis rules above, and later, so it wins */
+	.ft-flip-card[data-axis] .ft-flip-card__inner,
+	.ft-flip-card[data-axis] .ft-flip-card__back {
+		transform: none;
+	}
+
+	.ft-flip-card__face {
+		transition: opacity 0.2s ease;
+	}
+
+	.ft-flip-card__front,
+	.ft-flip-card[data-flipped] .ft-flip-card__back {
+		opacity: 1;
+	}
+
+	.ft-flip-card__back,
+	.ft-flip-card[data-flipped] .ft-flip-card__front {
+		opacity: 0;
+	}
+
+	.ft-flip-card__light {
+		display: none;
+	}
+}

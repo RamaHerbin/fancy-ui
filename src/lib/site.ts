@@ -16,10 +16,34 @@ export const SITE_NAME = "FancyUI";
 /** npm package name — the distributable behind the brand. */
 export const PACKAGE_NAME = "fancy-ui-svelte";
 
+/** The React port of the same components, published separately. */
+export const REACT_PACKAGE_NAME = "fancy-ui-react";
+
+export const REACT_PACKAGE_URL = `https://www.npmjs.com/package/${REACT_PACKAGE_NAME}`;
+
+/** The Vue port of the same components. */
+export const VUE_PACKAGE_NAME = "fancy-ui-vue";
+
+/**
+ * `fancy-ui-vue` ships with the 0.15 release train (first version 0.1.0,
+ * .changeset/vue-0-1-0.md). The flag stays so the site can go back to
+ * "source only" copy if the package ever has to be pulled from the registry.
+ */
+export const VUE_PACKAGE_PUBLISHED = true;
+
 /** 1200×630 social card served from static/. */
 export const DEFAULT_OG_IMAGE = "/og.png";
 
 export const GITHUB_URL = "https://github.com/RamaHerbin/fancy-ui";
+
+/** npm page once published; the package folder on GitHub until then. */
+export const VUE_PACKAGE_URL = VUE_PACKAGE_PUBLISHED
+	? `https://www.npmjs.com/package/${VUE_PACKAGE_NAME}`
+	: `${GITHUB_URL}/tree/main/vue`;
+
+export const REACT_PACKAGE_GITHUB_URL = `${GITHUB_URL}/tree/main/react`;
+
+export const VUE_PACKAGE_GITHUB_URL = `${GITHUB_URL}/tree/main/vue`;
 
 export const LICENSE_URL = `${GITHUB_URL}/blob/main/LICENSE`;
 
@@ -38,7 +62,7 @@ export const COMPONENT_COUNT = getAllComponents().length;
 /** Package version, baked in from package.json by Vite (see vite.config.ts). */
 export const PACKAGE_VERSION = __PKG_VERSION__;
 
-export const SITE_DESCRIPTION = `${COMPONENT_COUNT} UI components for Svelte 5 — core primitives plus WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.`;
+export const SITE_DESCRIPTION = `${COMPONENT_COUNT} UI components for Svelte 5, React and Vue — core primitives plus WebGL, GSAP and CSS motion, styled with Tailwind CSS v4.`;
 
 /** Resolve a site-relative path or an already-absolute URL to an absolute URL. */
 export function absoluteUrl(pathOrUrl: string): string {

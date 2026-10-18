@@ -60,7 +60,7 @@
 
 <script lang="ts">
 	import { untrack } from "svelte";
-	import { cn } from "$lib/utils";
+	import { cn } from "$lib/utils.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
 	let {

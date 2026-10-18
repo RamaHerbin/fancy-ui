@@ -1,0 +1,1050 @@
+import { render, cleanup, fireEvent } from "@testing-library/vue";
+import { config, mount } from "@vue/test-utils";
+import { computed, defineComponent, nextTick, ref, watch, type PropType } from "vue";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
+import { DURATIONS } from "../../internals/motion/tokens.js";
+import Tabs from "./Tabs.vue";
+import TabsList from "./TabsList.vue";
+import TabsTrigger from "./TabsTrigger.vue";
+import TabsContent from "./TabsContent.vue";
+import { sound } from "../../sound/sound.js";
+
+// The mounting helper stubs `<Transition>` out of every render by default,
+// which would silently delete the panel entrance these tests exist to pin.
+// Opted out for this file only; Vitest isolates the module registry per test
+// file.
+config.global.stubs = { ...config.global.stubs, transition: false };
+
+interface Item {
+	value: string;
+	label: string;
+	disabled?: boolean;
+}
+
+const ITEMS: Item[] = [
+	{ value: "account", label: "Account" },
+	{ value: "security", label: "Security" },
+	{ value: "billing", label: "Billing" },
+];
+
+function tablist(container: Element): HTMLElement {
+	return container.querySelector('[role="tablist"]') as HTMLElement;
+}
+
+function tabs(container: Element): HTMLButtonElement[] {
+	return Array.from(container.querySelectorAll('[role="tab"]'));
+}
+
+function panels(container: Element): HTMLElement[] {
+	return Array.from(container.querySelectorAll('[role="tabpanel"]'));
+}
+
+function byLabel(container: Element, label: string): HTMLButtonElement {
+	return tabs(container).find((b) => b.textContent === label) as HTMLButtonElement;
+}
+
+function tabbable(container: Element): HTMLButtonElement | undefined {
+	return tabs(container).find((b) => b.getAttribute("tabindex") === "0");
+}
+
+function indicator(container: Element): HTMLElement {
+	return container.querySelector(".ft-tabs-indicator") as HTMLElement;
+}
+
+/**
+ * Waits the one microtask the roving tab stop needs after a mount, and only
+ * after a mount. Each trigger joins the roving order in `onMounted` — the
+ * one Vue phase that matches both halves of Svelte's `$effect` (never runs
+ * on the server, first client run lands after the DOM exists) — so the
+ * registry is still empty while the tree first renders, and the `tabindex`
+ * patch that follows lands a microtask later, before paint but after
+ * `render()` has returned. Nothing beyond a fresh mount needs this: every
+ * later move of the tab stop is driven by an event these tests already
+ * await.
+ */
+async function settleRovingOrder(): Promise<void> {
+	await nextTick();
+}
+
+/** Mirrors `TabsList`'s own backstop: the transition's token plus a slack
+ * margin. Imported rather than hardcoded so the two cannot drift apart. */
+const WILL_CHANGE_RELEASE = DURATIONS.fast + 50;
+
+const GEOMETRY_PROPS = ["offsetLeft", "offsetTop", "offsetWidth", "offsetHeight"] as const;
+
+interface GeometryOptions {
+	/** Every trigger's size across the rail — its height in a horizontal
+	 * tablist, its width in a vertical one. */
+	thickness?: number;
+	/** Stack the triggers down the rail instead of across it. */
+	vertical?: boolean;
+}
+
+/**
+ * jsdom lays nothing out, so every `offset*` reads 0 and the indicator's
+ * arithmetic has nothing to chew on. Installs geometry the same way this
+ * suite's neighbours install an observer — a configurable prototype getter,
+ * restored by the function returned here, never left behind for the next
+ * test file in the same worker.
+ *
+ * `sizes` is keyed by each trigger's `value` and measures along the rail's
+ * own axis; every trigger's offset is the sum of the ones before it in DOM
+ * order, which is what a flex row (or column) with no gap actually produces.
+ * Only elements carrying `data-ft-tabs-trigger` get a size — the indicator
+ * and the list itself keep jsdom's zeroes.
+ */
+function stubGeometry(
+	sizes: Record<string, number>,
+	{ thickness = 32, vertical = false }: GeometryOptions = {}
+): () => void {
+	const originals = GEOMETRY_PROPS.map((prop) =>
+		Object.getOwnPropertyDescriptor(HTMLElement.prototype, prop)
+	);
+
+	const isTrigger = (el: HTMLElement) => el.hasAttribute("data-ft-tabs-trigger");
+	const sizeOf = (el: HTMLElement) => sizes[el.dataset.value ?? ""] ?? 0;
+
+	function offsetAlongRail(el: HTMLElement): number {
+		const siblings = Array.from(
+			el.parentElement?.querySelectorAll<HTMLElement>("[data-ft-tabs-trigger]") ?? []
+		);
+		const index = siblings.indexOf(el);
+		if (index === -1) return 0;
+		return siblings.slice(0, index).reduce((sum, prev) => sum + sizeOf(prev), 0);
+	}
+
+	function define(prop: (typeof GEOMETRY_PROPS)[number], read: (el: HTMLElement) => number) {
+		Object.defineProperty(HTMLElement.prototype, prop, {
+			configurable: true,
+			get(this: HTMLElement) {
+				return isTrigger(this) ? read(this) : 0;
+			},
+		});
+	}
+
+	define("offsetWidth", (el) => (vertical ? thickness : sizeOf(el)));
+	define("offsetHeight", (el) => (vertical ? sizeOf(el) : thickness));
+	define("offsetLeft", (el) => (vertical ? 0 : offsetAlongRail(el)));
+	define("offsetTop", (el) => (vertical ? offsetAlongRail(el) : 0));
+
+	return () => {
+		GEOMETRY_PROPS.forEach((prop, index) => {
+			const original = originals[index];
+			if (original) Object.defineProperty(HTMLElement.prototype, prop, original);
+		});
+	};
+}
+
+/** Replaces `window.matchMedia` wholesale. `prefersReducedMotion()` resolves
+ * it fresh on every call, so an override installed before the selection moves
+ * is the one the placement pass sees. */
+function stubReducedMotion(matches: boolean): void {
+	vi.stubGlobal("matchMedia", (query: string) => ({
+		matches,
+		media: query,
+		onchange: null,
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => false,
+		addListener: () => {},
+		removeListener: () => {},
+	}));
+}
+
+/**
+ * Test-only rig. The keyboard model lives across Tabs, TabsList and
+ * TabsTrigger together, so proving it needs real instances of all three,
+ * wired up the way a consumer actually would — a raw markup string carries
+ * no context and no event handlers. `v-model:value` mirrors the Svelte
+ * harness's own `bind:value` forwarding a bindable prop through to the
+ * child; the local ref re-synced from the `value` prop reproduces what a
+ * Svelte `$bindable` does when the parent passes a plain value rather than
+ * binding one.
+ */
+const Harness = defineComponent({
+	components: { Tabs, TabsList, TabsTrigger, TabsContent },
+	props: {
+		items: { type: Array as PropType<Item[]>, required: true },
+		value: { type: String, default: "" },
+		onValueChange: {
+			type: Function as PropType<(value: string) => void>,
+			default: undefined,
+		},
+		orientation: { type: String as PropType<"horizontal" | "vertical">, default: "horizontal" },
+		activation: { type: String as PropType<"automatic" | "manual">, default: "automatic" },
+		variant: { type: String as PropType<"underline" | "segmented">, default: "underline" },
+		forceMount: { type: Boolean, default: false },
+		sound: { type: Boolean, default: false },
+	},
+	emits: ["update:value"],
+	setup(props, { emit }) {
+		const inner = ref(props.value);
+		// `sync`, so a `rerender({ value })` reaches the child in the same
+		// flush the props update in — the Svelte harness's `bind:value`
+		// forwarding is likewise not deferred.
+		watch(
+			() => props.value,
+			(next) => {
+				inner.value = next;
+			},
+			{ flush: "sync" }
+		);
+		const model = computed({
+			get: () => inner.value,
+			set: (next: string) => {
+				inner.value = next;
+				emit("update:value", next);
+			},
+		});
+		return { model };
+	},
+	template: `
+		<Tabs v-model:value="model" :onValueChange="onValueChange" :orientation="orientation" :activation="activation" :variant="variant" :sound="sound">
+			<TabsList>
+				<TabsTrigger v-for="item in items" :key="item.value" :value="item.value" :disabled="item.disabled">{{ item.label }}</TabsTrigger>
+			</TabsList>
+			<TabsContent v-for="item in items" :key="item.value" :value="item.value" :forceMount="forceMount">Panel {{ item.label }}</TabsContent>
+		</Tabs>
+	`,
+});
+
+describe("Tabs", () => {
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
+
+	// Regression guard for the same reactivity loop ToggleGroup already paid
+	// for: register/unregister run from each trigger's own mount lifecycle,
+	// and the registry is not itself a watcher source here, so the loop
+	// cannot recur structurally — but the observable it produced is still
+	// worth pinning: registration settles in a bounded number of passes, one
+	// `settleRovingOrder()` and no more, never an unbounded alternation.
+	it("settles registration in one pass on mount, including with a disabled item in the mix", async () => {
+		const items: Item[] = [
+			{ value: "a", label: "A" },
+			{ value: "b", label: "B", disabled: true },
+			{ value: "c", label: "C" },
+		];
+		const { container } = render(Harness, { props: { items } });
+		await settleRovingOrder();
+
+		const zeroed = tabs(container).filter((b) => b.getAttribute("tabindex") === "0");
+		expect(zeroed).toHaveLength(1);
+		expect(zeroed[0]!.textContent).toBe("A");
+
+		await fireEvent.keyDown(byLabel(container, "A"), { key: "ArrowRight" });
+		await nextTick();
+		expect(document.activeElement).toBe(byLabel(container, "C"));
+	});
+
+	it("renders a tablist with tabs carrying role and aria-selected", () => {
+		const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+		expect(tablist(container)).toBeTruthy();
+		expect(tabs(container)).toHaveLength(3);
+		for (const tab of tabs(container)) {
+			expect(tab.getAttribute("type")).toBe("button");
+			expect(tab.hasAttribute("aria-selected")).toBe(true);
+		}
+		expect(byLabel(container, "Account").getAttribute("aria-selected")).toBe("true");
+		expect(byLabel(container, "Security").getAttribute("aria-selected")).toBe("false");
+	});
+
+	it("wires aria-controls on the tab to the same id the panel renders", () => {
+		const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+		const trigger = byLabel(container, "Account");
+		const panel = panels(container)[0]!;
+
+		expect(trigger.getAttribute("aria-controls")).toBe(panel.id);
+		expect(panel.getAttribute("aria-labelledby")).toBe(trigger.id);
+	});
+
+	it("gives exactly one tab tabindex 0, defaulting to the first", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		await settleRovingOrder();
+		const zeroed = tabs(container).filter((b) => b.getAttribute("tabindex") === "0");
+		const negative = tabs(container).filter((b) => b.getAttribute("tabindex") === "-1");
+
+		expect(zeroed).toHaveLength(1);
+		expect(zeroed[0]!.textContent).toBe("Account");
+		expect(negative).toHaveLength(2);
+	});
+
+	it("defaults the roving position to the already-selected tab", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS, value: "security" } });
+		await settleRovingOrder();
+		expect(tabbable(container)?.textContent).toBe("Security");
+	});
+
+	it("shows only the active panel by default, unmounting the others entirely", () => {
+		const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+		const rendered = panels(container);
+
+		expect(rendered).toHaveLength(1);
+		expect(rendered[0]!.textContent).toBe("Panel Account");
+	});
+
+	it("keeps every panel mounted and hidden, not just the active one, with forceMount", () => {
+		const { container } = render(Harness, {
+			props: { items: ITEMS, value: "account", forceMount: true },
+		});
+		const rendered = panels(container);
+
+		expect(rendered).toHaveLength(3);
+		const active = rendered.find((p) => p.textContent === "Panel Account") as HTMLElement;
+		const inactive = rendered.find((p) => p.textContent === "Panel Security") as HTMLElement;
+		expect(active.hasAttribute("hidden")).toBe(false);
+		expect(inactive.hasAttribute("hidden")).toBe(true);
+	});
+
+	it("makes the active panel focusable so Tab from the tablist lands in content", () => {
+		const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+		expect(panels(container)[0]!.getAttribute("tabindex")).toBe("0");
+	});
+
+	// The panel entrance is enter-only, deliberately: an outgoing panel has
+	// nowhere to be stacked (these are siblings the caller places by hand), so
+	// it cuts away exactly as it always did while the arriving one fades in.
+	// That is also why not one assertion above had to learn to wait — the
+	// leave hook removes the node in the same tick.
+	describe("panel entrance", () => {
+		it("fades the arriving panel in, and leaves the first render alone", async () => {
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				await nextTick();
+				// A panel that starts selected simply appears: a `<Transition>`
+				// without `appear` runs no enter leg for the node it mounts with.
+				expect(animateSpy).not.toHaveBeenCalled();
+
+				// A raw click, then ONE tick: `fireEvent` awaits a tick of its
+				// own, which is enough for the stubbed Web Animations API to
+				// resolve and for the assertion below to miss the window.
+				byLabel(container, "Security").click();
+				await nextTick();
+
+				const arrived = panels(container);
+				// The panel being left is gone in the same tick, not lingering
+				// behind the new one for the length of the fade.
+				expect(arrived).toHaveLength(1);
+				expect(arrived[0]!.textContent).toBe("Panel Security");
+				expect(animateSpy.mock.contexts).toContain(arrived[0]);
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+
+		it("reduced motion: the arriving panel is swapped in without animating at all", async () => {
+			stubReducedMotion(true);
+			const animateSpy = vi.spyOn(Element.prototype, "animate");
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				await nextTick();
+
+				byLabel(container, "Security").click();
+				await nextTick();
+
+				expect(panels(container)[0]!.textContent).toBe("Panel Security");
+				// `duration: 0` makes `runTransition` call its own finish
+				// callback synchronously and never touch `element.animate()`.
+				expect(animateSpy).not.toHaveBeenCalled();
+			} finally {
+				animateSpy.mockRestore();
+			}
+		});
+	});
+
+	it("selects on click and moves both the roving tabindex and DOM focus there", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(Harness, {
+			props: { items: ITEMS, value: "account", onValueChange },
+		});
+		const security = byLabel(container, "Security");
+
+		await fireEvent.click(security);
+
+		expect(security.getAttribute("aria-selected")).toBe("true");
+		expect(onValueChange).toHaveBeenLastCalledWith("security");
+		expect(document.activeElement).toBe(security);
+		expect(security.getAttribute("tabindex")).toBe("0");
+		expect(byLabel(container, "Account").getAttribute("tabindex")).toBe("-1");
+	});
+
+	describe("automatic activation (default)", () => {
+		it("selects the tab the arrow keys land on, without a separate Enter/Space", async () => {
+			const onValueChange = vi.fn();
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", onValueChange },
+			});
+
+			await fireEvent.keyDown(byLabel(container, "Account"), { key: "ArrowRight" });
+			await nextTick();
+
+			expect(document.activeElement).toBe(byLabel(container, "Security"));
+			expect(byLabel(container, "Security").getAttribute("aria-selected")).toBe("true");
+			expect(onValueChange).toHaveBeenLastCalledWith("security");
+		});
+
+		it("selects on Home/End too, not only single-step arrows", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+
+			await fireEvent.keyDown(byLabel(container, "Account"), { key: "End" });
+			await nextTick();
+
+			expect(byLabel(container, "Billing").getAttribute("aria-selected")).toBe("true");
+			expect(panels(container)[0]!.textContent).toBe("Panel Billing");
+		});
+	});
+
+	describe("manual activation", () => {
+		it("only moves focus on arrow keys, leaving the selection untouched", async () => {
+			const onValueChange = vi.fn();
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", activation: "manual", onValueChange },
+			});
+
+			await fireEvent.keyDown(byLabel(container, "Account"), { key: "ArrowRight" });
+			await nextTick();
+
+			expect(document.activeElement).toBe(byLabel(container, "Security"));
+			expect(byLabel(container, "Security").getAttribute("aria-selected")).toBe("false");
+			expect(byLabel(container, "Account").getAttribute("aria-selected")).toBe("true");
+			expect(onValueChange).not.toHaveBeenCalled();
+		});
+
+		it("selects the focused tab on Enter, via the native button activation", async () => {
+			const onValueChange = vi.fn();
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", activation: "manual", onValueChange },
+			});
+			const security = byLabel(container, "Security");
+
+			await fireEvent.keyDown(byLabel(container, "Account"), { key: "ArrowRight" });
+			await nextTick();
+			// jsdom does not synthesise a click from a real Enter keypress on a
+			// button the way a browser does, so this drives the same click
+			// handler a browser's own Enter activation would fire.
+			await fireEvent.click(security);
+
+			expect(security.getAttribute("aria-selected")).toBe("true");
+			expect(onValueChange).toHaveBeenLastCalledWith("security");
+		});
+	});
+
+	it("moves forward with ArrowRight and wraps at the end, horizontal orientation", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		const account = byLabel(container, "Account");
+
+		await fireEvent.keyDown(account, { key: "ArrowRight" });
+		await nextTick();
+		expect(document.activeElement).toBe(byLabel(container, "Security"));
+
+		await fireEvent.keyDown(byLabel(container, "Security"), { key: "ArrowRight" });
+		await nextTick();
+		expect(document.activeElement).toBe(byLabel(container, "Billing"));
+
+		await fireEvent.keyDown(byLabel(container, "Billing"), { key: "ArrowRight" });
+		await nextTick();
+		expect(document.activeElement).toBe(account);
+	});
+
+	it("ignores ArrowUp/ArrowDown in horizontal orientation", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		const account = byLabel(container, "Account");
+
+		await fireEvent.keyDown(account, { key: "ArrowDown" });
+		await nextTick();
+		expect(document.activeElement).not.toBe(byLabel(container, "Security"));
+	});
+
+	it("moves with ArrowUp/ArrowDown and ignores ArrowLeft/ArrowRight in vertical orientation", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS, orientation: "vertical" } });
+		const account = byLabel(container, "Account");
+
+		await fireEvent.keyDown(account, { key: "ArrowRight" });
+		await nextTick();
+		expect(document.activeElement).not.toBe(byLabel(container, "Security"));
+
+		await fireEvent.keyDown(account, { key: "ArrowDown" });
+		await nextTick();
+		expect(document.activeElement).toBe(byLabel(container, "Security"));
+	});
+
+	it("sets aria-orientation on the tablist only when vertical", () => {
+		const { container: horizontal } = render(Harness, { props: { items: ITEMS } });
+		expect(tablist(horizontal).hasAttribute("aria-orientation")).toBe(false);
+
+		const { container: vertical } = render(Harness, {
+			props: { items: ITEMS, orientation: "vertical" },
+		});
+		expect(tablist(vertical).getAttribute("aria-orientation")).toBe("vertical");
+	});
+
+	it("jumps to the first and last enabled tab with Home and End", async () => {
+		const { container } = render(Harness, { props: { items: ITEMS } });
+		const security = byLabel(container, "Security");
+
+		await fireEvent.keyDown(security, { key: "End" });
+		await nextTick();
+		expect(document.activeElement).toBe(byLabel(container, "Billing"));
+
+		await fireEvent.keyDown(byLabel(container, "Billing"), { key: "Home" });
+		await nextTick();
+		expect(document.activeElement).toBe(byLabel(container, "Account"));
+	});
+
+	it("skips disabled tabs with the arrows and with Home/End", async () => {
+		const items: Item[] = [
+			{ value: "account", label: "Account" },
+			{ value: "security", label: "Security", disabled: true },
+			{ value: "billing", label: "Billing" },
+		];
+		const { container } = render(Harness, { props: { items } });
+		const account = byLabel(container, "Account");
+
+		await fireEvent.keyDown(account, { key: "ArrowRight" });
+		await nextTick();
+		expect(document.activeElement).toBe(byLabel(container, "Billing"));
+
+		await fireEvent.keyDown(byLabel(container, "Billing"), { key: "Home" });
+		await nextTick();
+		expect(document.activeElement).toBe(account);
+	});
+
+	it("never gives a disabled tab tabindex 0, even when it is first in the list", async () => {
+		const items: Item[] = [
+			{ value: "account", label: "Account", disabled: true },
+			{ value: "security", label: "Security" },
+		];
+		const { container } = render(Harness, { props: { items } });
+		await settleRovingOrder();
+
+		expect(byLabel(container, "Account").getAttribute("tabindex")).toBe("-1");
+		expect(byLabel(container, "Security").getAttribute("tabindex")).toBe("0");
+	});
+
+	it("marks a disabled tab with the native disabled attribute and blocks its click", async () => {
+		const onValueChange = vi.fn();
+		const items: Item[] = [{ value: "a", label: "A", disabled: true }];
+		const { container } = render(Harness, { props: { items, onValueChange } });
+		const a = byLabel(container, "A");
+
+		expect(a.disabled).toBe(true);
+		await fireEvent.click(a);
+		expect(onValueChange).not.toHaveBeenCalled();
+	});
+
+	it("moves DOM focus to the inheriting tab when the focused, selected tab becomes disabled", async () => {
+		const { container, rerender } = render(Harness, { props: { items: ITEMS, value: "account" } });
+		await settleRovingOrder();
+		const account = byLabel(container, "Account");
+		account.focus();
+		await nextTick();
+		expect(document.activeElement).toBe(account);
+
+		await rerender({
+			items: ITEMS.map((item) => (item.value === "account" ? { ...item, disabled: true } : item)),
+			value: "account",
+		});
+		await nextTick();
+
+		// This is the assertion that catches the bug: the roving tabindex
+		// already moved to Security (checked below), but DOM focus dragging
+		// along with it is the part a passing handler-was-called assertion
+		// would miss entirely.
+		expect(document.activeElement).toBe(byLabel(container, "Security"));
+		expect(byLabel(container, "Security").getAttribute("tabindex")).toBe("0");
+
+		// Disabling the selected tab changes neither the selection nor the
+		// visible panel — only where DOM focus lands.
+		expect(account.getAttribute("aria-selected")).toBe("true");
+		expect(container.querySelector('[role="tabpanel"]')?.textContent).toBe("Panel Account");
+	});
+
+	it("does not yank focus into the tablist when disabling a tab whose roving position is stale", async () => {
+		// The roving position (`focusedValueState`) and real DOM focus are two
+		// different things: focusing Billing sets the former, but a user is
+		// free to tab or click away to something outside the tablist entirely
+		// afterwards, leaving the roving position pointing at Billing while
+		// DOM focus has moved on. This is the scenario the guard exists for —
+		// disabling Account later must not treat Billing's stale roving
+		// position as a green light to yank focus back into the tablist.
+		const { container, rerender } = render(Harness, { props: { items: ITEMS, value: "account" } });
+		await settleRovingOrder();
+		const billing = byLabel(container, "Billing");
+		billing.focus();
+		await nextTick();
+
+		const elsewhere = document.createElement("input");
+		document.body.appendChild(elsewhere);
+		elsewhere.focus();
+		await nextTick();
+		expect(document.activeElement).toBe(elsewhere);
+
+		await rerender({
+			items: ITEMS.map((item) => (item.value === "account" ? { ...item, disabled: true } : item)),
+			value: "account",
+		});
+		await nextTick();
+
+		// Account never held focus, so disabling it must leave focus exactly
+		// where the user actually was — moving it here would be a worse bug
+		// than the one this fixes.
+		expect(document.activeElement).toBe(elsewhere);
+
+		elsewhere.remove();
+	});
+
+	it("stays inert with no crash when every tab is disabled", async () => {
+		const items: Item[] = [
+			{ value: "a", label: "A", disabled: true },
+			{ value: "b", label: "B", disabled: true },
+		];
+		const { container } = render(Harness, { props: { items } });
+		await settleRovingOrder();
+		const all = tabs(container);
+
+		expect(all).toHaveLength(2);
+		for (const tab of all) {
+			expect(tab.disabled).toBe(true);
+			expect(tab.getAttribute("tabindex")).toBe("-1");
+		}
+
+		await fireEvent.keyDown(all[0]!, { key: "ArrowRight" });
+		await fireEvent.keyDown(all[0]!, { key: "Home" });
+		await nextTick();
+		expect(document.activeElement).toBe(document.body);
+	});
+
+	it("sizes the underline variant's triggers per the mockup: 8px/13px, not the segmented pill's box", () => {
+		const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+		const account = byLabel(container, "Account");
+
+		expect(account.className).toContain("py-2");
+		expect(account.className).toContain("text-[13px]");
+		expect(account.className).not.toContain("py-[6px]");
+		expect(account.className).not.toContain("text-[12px]");
+	});
+
+	it("sizes the segmented variant's triggers per the mockup: 6px/12px, not the underline tab's box", () => {
+		const { container } = render(Harness, {
+			props: { items: ITEMS, value: "account", variant: "segmented" },
+		});
+		const account = byLabel(container, "Account");
+
+		expect(account.className).toContain("py-[6px]");
+		expect(account.className).toContain("text-[12px]");
+		expect(account.className).not.toContain("py-2");
+		expect(account.className).not.toContain("text-[13px]");
+	});
+
+	it("reassigns the roving position when the tab holding it unmounts", async () => {
+		const { container, rerender } = render(Harness, { props: { items: ITEMS } });
+		await settleRovingOrder();
+		const security = byLabel(container, "Security");
+		await fireEvent.focus(security);
+		await nextTick();
+		expect(tabbable(container)).toBe(security);
+
+		await rerender({ items: ITEMS.filter((item) => item.value !== "security") });
+		await nextTick();
+
+		expect(tabbable(container)).toBeTruthy();
+		expect(tabbable(container)?.textContent).not.toBe("Security");
+	});
+
+	it("round-trips the selection through v-model:value", async () => {
+		let value = "account";
+		const { container } = render(Harness, {
+			props: {
+				items: ITEMS,
+				value,
+				"onUpdate:value": (next: string) => {
+					value = next;
+				},
+			},
+		});
+
+		await fireEvent.click(byLabel(container, "Billing"));
+		expect(value).toBe("billing");
+	});
+
+	it("merges the class prop with the base classes on the root", () => {
+		const { container } = render(Tabs, { props: { class: "mt-4" } });
+		const root = container.querySelector(".ft-tabs") as HTMLElement;
+
+		expect(root.className).toContain("ft-tabs");
+		expect(root.className).toContain("mt-4");
+	});
+
+	it("exposes the root element", () => {
+		const wrapper = mount(Tabs);
+
+		expect(wrapper.vm.ref).toBe(wrapper.element);
+		wrapper.unmount();
+	});
+
+	it("renders a trigger outside a Tabs root harmlessly, unselected and without a roving tabindex", async () => {
+		const { container } = render(TabsTrigger, { props: { value: "solo" } });
+		const el = container.querySelector('[role="tab"]') as HTMLButtonElement;
+
+		expect(el.getAttribute("aria-selected")).toBe("false");
+		expect(el.hasAttribute("tabindex")).toBe(false);
+
+		await fireEvent.click(el);
+		expect(el.getAttribute("aria-selected")).toBe("false");
+	});
+
+	it("renders no content for a trigger-less panel outside a Tabs root unless forceMount is set", () => {
+		const { container: bare } = render(TabsContent, { props: { value: "solo" } });
+		expect(bare.querySelector('[role="tabpanel"]')).toBeFalsy();
+
+		const { container: forced } = render(TabsContent, {
+			props: { value: "solo", forceMount: true },
+		});
+		const panel = forced.querySelector('[role="tabpanel"]');
+		expect(panel).toBeTruthy();
+		expect(panel?.hasAttribute("hidden")).toBe(true);
+	});
+
+	describe("sliding indicator", () => {
+		// Every assertion below pins the *exact* inline transform string
+		// rather than a substring: the whole point of the indicator is that
+		// one transform carries both where the bar is and how long it is, so
+		// a partial match would let either half rot silently.
+
+		it("renders one aria-hidden bar carrying the tablist's own variant and orientation", () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", variant: "segmented" },
+			});
+			const bar = indicator(container);
+
+			expect(bar).toBeTruthy();
+			expect(container.querySelectorAll(".ft-tabs-indicator")).toHaveLength(1);
+			expect(bar.getAttribute("aria-hidden")).toBe("true");
+			expect(bar.hasAttribute("role")).toBe(false);
+			expect(bar.hasAttribute("tabindex")).toBe(false);
+			expect(bar.dataset.variant).toBe(tablist(container).dataset.variant);
+			expect(bar.dataset.orientation).toBe(tablist(container).dataset.orientation);
+		});
+
+		it("snaps to the selected trigger on first paint, leaving the element transitionable afterwards", () => {
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				const bar = indicator(container);
+
+				expect(bar.style.transform).toBe("translateX(0px) scaleX(80)");
+				expect(bar.style.opacity).toBe("1");
+				// The suspend/restore ran to completion: had the restore been
+				// skipped, `transition: none` would still be sitting here and
+				// the bar would never tween again.
+				expect(bar.style.transition).toBe("");
+				// First paint is a snap, so the compositor was never armed.
+				expect(bar.style.willChange).toBe("");
+			} finally {
+				restore();
+			}
+		});
+
+		it("slides to the newly selected trigger and hints the compositor for the tween", async () => {
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				const bar = indicator(container);
+
+				await fireEvent.click(byLabel(container, "Security"));
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+				expect(bar.style.willChange).toBe("transform");
+
+				await fireEvent.click(byLabel(container, "Billing"));
+				expect(bar.style.transform).toBe("translateX(170px) scaleX(70)");
+			} finally {
+				restore();
+			}
+		});
+
+		it("measures the vertical axis, never the horizontal one, in a vertical tablist", async () => {
+			const restore = stubGeometry({ account: 30, security: 34, billing: 28 }, { vertical: true });
+			try {
+				const { container } = render(Harness, {
+					props: { items: ITEMS, value: "account", orientation: "vertical" },
+				});
+				const bar = indicator(container);
+
+				expect(bar.style.transform).toBe("translateY(0px) scaleY(30)");
+
+				await fireEvent.click(byLabel(container, "Security"));
+				expect(bar.style.transform).toBe("translateY(30px) scaleY(34)");
+				expect(bar.style.transform).not.toContain("translateX");
+			} finally {
+				restore();
+			}
+		});
+
+		it("stretches on both axes for the segmented variant and publishes its scale factors", async () => {
+			const restore = stubGeometry({ account: 60, security: 40, billing: 70 }, { thickness: 26 });
+			try {
+				const { container } = render(Harness, {
+					props: { items: ITEMS, value: "account", variant: "segmented" },
+				});
+				const bar = indicator(container);
+
+				await fireEvent.click(byLabel(container, "Security"));
+
+				expect(bar.style.transform).toBe("translate(60px, 0px) scale(40, 26)");
+				// These two feed the `calc()` that divides the pill's radius
+				// back down, so a stretched 1x1 box still renders a 6px corner.
+				expect(bar.style.getPropertyValue("--ft-tabs-indicator-sx")).toBe("40");
+				expect(bar.style.getPropertyValue("--ft-tabs-indicator-sy")).toBe("26");
+			} finally {
+				restore();
+			}
+		});
+
+		it("snaps rather than slides when the geometry itself changes", async () => {
+			const restore = stubGeometry({ account: 60, security: 40, billing: 70 }, { thickness: 26 });
+			try {
+				const { container, rerender } = render(Harness, {
+					props: { items: ITEMS, value: "account" },
+				});
+				const bar = indicator(container);
+
+				expect(bar.style.transform).toBe("translateX(0px) scaleX(60)");
+
+				await fireEvent.click(byLabel(container, "Security"));
+				expect(bar.style.willChange).toBe("transform");
+
+				// Both at once — a new selection *and* a new variant. A variant
+				// change on its own already snaps for the duller reason that the
+				// selection did not move; this is the case the `geometryChanged`
+				// guard alone catches. A different variant is a different
+				// geometry, not a journey: the bar stops measuring one axis and
+				// starts measuring two, so there is no path between the two
+				// transforms worth tweening.
+				await rerender({ items: ITEMS, value: "billing", variant: "segmented" });
+				expect(bar.style.transform).toBe("translate(100px, 0px) scale(70, 26)");
+				expect(bar.style.willChange).toBe("");
+				expect(bar.style.transition).toBe("");
+			} finally {
+				restore();
+			}
+		});
+
+		it("leaves a slide in flight alone while focus walks to another tab", async () => {
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container } = render(Harness, {
+					props: { items: ITEMS, value: "account", activation: "manual" },
+				});
+				const bar = indicator(container);
+
+				await fireEvent.click(byLabel(container, "Security"));
+				expect(bar.style.willChange).toBe("transform");
+
+				// Manual activation moves focus without moving the selection, and
+				// the placement pass watches the roving registry, so it re-runs
+				// here. Re-placing the bar would suspend its transition mid-flight
+				// and teleport it to the destination it is already travelling to —
+				// and, in a browser, force a layout on every arrow keystroke.
+				await fireEvent.keyDown(byLabel(container, "Security"), { key: "ArrowRight" });
+				await nextTick();
+
+				expect(document.activeElement).toBe(byLabel(container, "Billing"));
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+				expect(bar.style.willChange).toBe("transform");
+			} finally {
+				restore();
+			}
+		});
+
+		it("stays hidden and writes no transform while nothing has a measurable size", () => {
+			// No geometry stub at all: this is jsdom's own zero, and it stands
+			// in for the real case the guard exists for — a first paint the
+			// browser has not laid out yet, or a `display: none` ancestor.
+			const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+			const bar = indicator(container);
+
+			expect(bar.style.opacity).toBe("0");
+			expect(bar.style.transform).toBe("");
+		});
+
+		it("still tracks the selection under reduced motion, without arming the compositor", async () => {
+			stubReducedMotion(true);
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+				const bar = indicator(container);
+
+				await fireEvent.click(byLabel(container, "Security"));
+
+				// It tracks: the bar is under the right tab, it just got there
+				// without a tween.
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+				expect(bar.style.willChange).toBe("");
+				expect(bar.style.transition).toBe("");
+			} finally {
+				restore();
+			}
+		});
+
+		it("disconnects the ResizeObserver and clears the will-change timer on unmount", async () => {
+			const disconnect = vi.fn();
+			// Overrides `test-setup.ts`'s no-op class for this test only, so
+			// the teardown can be observed rather than assumed.
+			vi.stubGlobal(
+				"ResizeObserver",
+				class {
+					observe() {}
+					unobserve() {}
+					disconnect = disconnect;
+				}
+			);
+			const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+			const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container, unmount } = render(Harness, {
+					props: { items: ITEMS, value: "account" },
+				});
+				await fireEvent.click(byLabel(container, "Security"));
+
+				expect(indicator(container).style.willChange).toBe("transform");
+
+				// jsdom books 0 ms timers of its own whenever something takes
+				// focus (it collapses the selection), so the indicator's
+				// release is picked out by the delay it was booked with rather
+				// than by counting whatever happens to be pending.
+				const booked = setTimeoutSpy.mock.calls.findIndex(
+					(call) => call[1] === WILL_CHANGE_RELEASE
+				);
+				expect(booked).toBeGreaterThanOrEqual(0);
+				const handle = setTimeoutSpy.mock.results[booked]?.value;
+
+				unmount();
+
+				expect(disconnect).toHaveBeenCalledTimes(1);
+				expect(clearTimeoutSpy).toHaveBeenCalledWith(handle);
+			} finally {
+				restore();
+				setTimeoutSpy.mockRestore();
+				clearTimeoutSpy.mockRestore();
+			}
+		});
+
+		it("hides the bar when nothing is selected, and still tracks a selected trigger that went disabled", async () => {
+			const restore = stubGeometry({ account: 80, security: 90, billing: 70 });
+			try {
+				const { container, rerender } = render(Harness, { props: { items: ITEMS, value: "" } });
+				const bar = indicator(container);
+
+				expect(bar.style.opacity).toBe("0");
+				expect(bar.style.transform).toBe("");
+
+				// Disabling the selected trigger changes neither the selection
+				// nor the visible panel, so the bar must not desert it either —
+				// a bar that vanished here would say "nothing is selected",
+				// which is not what happened.
+				await rerender({ items: ITEMS, value: "security" });
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+				// This is the first *successful* placement, so there is no
+				// transform to leave from: it snaps. Were it to tween, it would
+				// tween from the identity matrix — a 1x1 box flying in from the
+				// list's own origin.
+				expect(bar.style.willChange).toBe("");
+
+				await rerender({
+					items: ITEMS.map((item) =>
+						item.value === "security" ? { ...item, disabled: true } : item
+					),
+					value: "security",
+				});
+				expect(bar.style.opacity).toBe("1");
+				expect(bar.style.transform).toBe("translateX(80px) scaleX(90)");
+			} finally {
+				restore();
+			}
+		});
+	});
+
+	describe("sound", () => {
+		let play: ReturnType<typeof vi.spyOn>;
+
+		beforeEach(() => {
+			play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		});
+
+		afterEach(() => {
+			play.mockRestore();
+		});
+
+		it("plays the select cue exactly once when sound is enabled and a click actually changes the active tab", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.click(byLabel(container, "Security"));
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const { container } = render(Harness, { props: { items: ITEMS, value: "account" } });
+
+			await fireEvent.click(byLabel(container, "Security"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while the clicked trigger is disabled, even with sound enabled", () => {
+			const items: Item[] = [
+				{ value: "account", label: "Account" },
+				{ value: "security", label: "Security", disabled: true },
+			];
+			const { container } = render(Harness, { props: { items, value: "account", sound: true } });
+			const trigger = byLabel(container, "Security");
+
+			// jsdom does not synthesize a click from a real gesture on a native
+			// `disabled` button; a synthetic dispatch bypasses that and reaches
+			// the handler's own `if (isDisabled) return` guard instead.
+			trigger.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing when re-activating the already-active tab — the changed-only guard", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.click(byLabel(container, "Account"));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("still calls onValueChange on the very same click that the changed-only guard silences", async () => {
+			const onValueChange = vi.fn();
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true, onValueChange },
+			});
+
+			await fireEvent.click(byLabel(container, "Account"));
+
+			expect(play).not.toHaveBeenCalled();
+			expect(onValueChange).toHaveBeenCalledTimes(1);
+			expect(onValueChange).toHaveBeenCalledWith("account");
+		});
+
+		it("plays select on an automatic-activation arrow step that commits a different tab", async () => {
+			const { container } = render(Harness, {
+				props: { items: ITEMS, value: "account", sound: true },
+			});
+
+			await fireEvent.keyDown(byLabel(container, "Account"), { key: "ArrowRight" });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("select");
+		});
+	});
+});

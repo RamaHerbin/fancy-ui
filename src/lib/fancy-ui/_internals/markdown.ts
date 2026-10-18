@@ -12,6 +12,11 @@
  *
  * Every entry point is total: it returns a value for any input, including
  * half-written markdown from a stream.
+ *
+ * The non-null assertions below are all of one kind: an index read inside a
+ * loop already bounded by `i < lines.length` / `i < src.length`, or a capture
+ * group of a regex whose match was checked truthy on the line above. Every
+ * invariant is visible next to the assertion that relies on it.
  */
 
 export type InlineToken =
@@ -79,7 +84,7 @@ export function sanitizeHref(raw: string): string | null {
 	const cleaned = raw.replace(/^[\u0000-\u0020]+/, "").replace(/[\u0000-\u001F\u007F]/g, "");
 	if (cleaned === "") return null;
 	const scheme = /^([a-zA-Z][a-zA-Z0-9+.-]*):/.exec(cleaned);
-	if (scheme && !ALLOWED_SCHEMES.has(scheme[1].toLowerCase())) return null;
+	if (scheme && !ALLOWED_SCHEMES.has(scheme[1]!.toLowerCase())) return null;
 	return cleaned;
 }
 
@@ -146,7 +151,7 @@ function parseInlineAt(src: string, depth: number, inLink: boolean): InlineToken
 	while (i < src.length) {
 		const c = src[i];
 
-		if (c === "\\" && i + 1 < src.length && ESCAPABLE.includes(src[i + 1])) {
+		if (c === "\\" && i + 1 < src.length && ESCAPABLE.includes(src[i + 1]!)) {
 			buf += src[i + 1];
 			i += 2;
 			continue;
@@ -403,7 +408,7 @@ function parseBlocks(lines: string[], depth: number): BlockToken[] {
 
 	let i = 0;
 	while (i < lines.length) {
-		const line = lines[i];
+		const line = lines[i]!;
 
 		if (line.trim() === "") {
 			i++;
@@ -415,8 +420,8 @@ function parseBlocks(lines: string[], depth: number): BlockToken[] {
 			const body: string[] = [];
 			i++;
 			// An unterminated fence stays open — the common case mid-stream.
-			while (i < lines.length && !isFenceClose(lines[i], fence.width)) {
-				body.push(lines[i]);
+			while (i < lines.length && !isFenceClose(lines[i]!, fence.width)) {
+				body.push(lines[i]!);
 				i++;
 			}
 			if (i < lines.length) i++;
@@ -435,7 +440,7 @@ function parseBlocks(lines: string[], depth: number): BlockToken[] {
 			const content = stripClosingHashes(heading[2] ?? "");
 			out.push({
 				type: "heading",
-				depth: heading[1].length as 1 | 2 | 3 | 4 | 5 | 6,
+				depth: heading[1]!.length as 1 | 2 | 3 | 4 | 5 | 6,
 				children: parseInline(content),
 			});
 			i++;
@@ -444,8 +449,8 @@ function parseBlocks(lines: string[], depth: number): BlockToken[] {
 
 		if (RE_QUOTE.test(line)) {
 			const inner: string[] = [];
-			while (i < lines.length && RE_QUOTE.test(lines[i])) {
-				inner.push(lines[i].replace(RE_QUOTE_STRIP, ""));
+			while (i < lines.length && RE_QUOTE.test(lines[i]!)) {
+				inner.push(lines[i]!.replace(RE_QUOTE_STRIP, ""));
 				i++;
 			}
 			out.push({ type: "blockquote", children: parseBlocks(inner, depth + 1) });
@@ -468,8 +473,8 @@ function parseBlocks(lines: string[], depth: number): BlockToken[] {
 
 		const parts = [line.trim()];
 		i++;
-		while (i < lines.length && lines[i].trim() !== "" && !startsBlock(lines, i)) {
-			parts.push(lines[i].trim());
+		while (i < lines.length && lines[i]!.trim() !== "" && !startsBlock(lines, i)) {
+			parts.push(lines[i]!.trim());
 			i++;
 		}
 		out.push({ type: "paragraph", children: parseInline(parts.join("\n")) });
@@ -479,7 +484,7 @@ function parseBlocks(lines: string[], depth: number): BlockToken[] {
 }
 
 function startsBlock(lines: string[], i: number): boolean {
-	const line = lines[i];
+	const line = lines[i]!;
 	return (
 		matchFence(line) !== null ||
 		RE_HR.test(line) ||
@@ -493,14 +498,14 @@ function startsBlock(lines: string[], i: number): boolean {
 function matchFence(line: string): { width: number; lang: string } | null {
 	const m = /^ {0,3}(`{3,})(.*)$/.exec(line);
 	// A backtick in the info string means this is not a fence at all.
-	if (!m || m[2].includes("`")) return null;
-	const lang = (m[2].trim().split(/\s+/)[0] ?? "").replace(/[^a-zA-Z0-9_+#.-]/g, "").slice(0, 32);
-	return { width: m[1].length, lang };
+	if (!m || m[2]!.includes("`")) return null;
+	const lang = (m[2]!.trim().split(/\s+/)[0] ?? "").replace(/[^a-zA-Z0-9_+#.-]/g, "").slice(0, 32);
+	return { width: m[1]!.length, lang };
 }
 
 function isFenceClose(line: string, width: number): boolean {
 	const m = /^ {0,3}(`{3,})[ \t]*$/.exec(line);
-	return m !== null && m[1].length >= width;
+	return m !== null && m[1]!.length >= width;
 }
 
 function matchListItem(line: string): { ordered: boolean; start: number; content: string } | null {
@@ -509,13 +514,13 @@ function matchListItem(line: string): { ordered: boolean; start: number; content
 	if (bullet) return { ordered: false, start: 1, content: bullet[2] ?? "" };
 	const ordered = RE_ORDERED.exec(line);
 	if (ordered) {
-		return { ordered: true, start: Number.parseInt(ordered[1], 10), content: ordered[2] ?? "" };
+		return { ordered: true, start: Number.parseInt(ordered[1]!, 10), content: ordered[2] ?? "" };
 	}
 	return null;
 }
 
 function matchList(lines: string[], from: number): { token: BlockToken; end: number } | null {
-	const first = matchListItem(lines[from]);
+	const first = matchListItem(lines[from]!);
 	if (!first) return null;
 
 	const ordered = first.ordered;
@@ -524,10 +529,10 @@ function matchList(lines: string[], from: number): { token: BlockToken; end: num
 	let i = from + 1;
 
 	while (i < lines.length) {
-		const line = lines[i];
+		const line = lines[i]!;
 
 		if (line.trim() === "") {
-			const next = i + 1 < lines.length ? matchListItem(lines[i + 1]) : null;
+			const next = i + 1 < lines.length ? matchListItem(lines[i + 1]!) : null;
 			if (next && next.ordered === ordered) {
 				i++;
 				continue;
@@ -568,7 +573,7 @@ function parseAlignRow(line: string | undefined): TableAlign[] | null {
 }
 
 function isTableStart(lines: string[], i: number): boolean {
-	const line = lines[i];
+	const line = lines[i]!;
 	if (!line.includes("|")) return false;
 	const align = parseAlignRow(lines[i + 1]);
 	return align !== null && splitTableRow(line).length === align.length;
@@ -578,12 +583,12 @@ function matchTable(lines: string[], from: number): { token: BlockToken; end: nu
 	if (!isTableStart(lines, from)) return null;
 
 	const align = parseAlignRow(lines[from + 1]) as TableAlign[];
-	const header = splitTableRow(lines[from]).map((cell) => parseInline(cell));
+	const header = splitTableRow(lines[from]!).map((cell) => parseInline(cell));
 	const rows: InlineToken[][][] = [];
 	let i = from + 2;
 
 	while (i < lines.length) {
-		const line = lines[i];
+		const line = lines[i]!;
 		if (line.trim() === "" || !line.includes("|")) break;
 		if (matchFence(line) || RE_HEADING.test(line) || RE_QUOTE.test(line)) break;
 		const cells = splitTableRow(line);

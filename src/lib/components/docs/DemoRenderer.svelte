@@ -24,7 +24,6 @@
 		"flickering-grid": { color: "#6366f1", maxOpacity: 0.2, squareSize: 4, gridGap: 6 },
 		sparkles: { background: "transparent", particleColor: "#ffffff", particleDensity: 60 },
 		"matrix-rain": { color: "#00ff00" },
-		"border-beam": { colorFrom: "#9E7AFF", colorTo: "#FE8BBB", size: 200 },
 		ripple: {},
 		meteors: { count: 15 },
 		"glow-border": {},
@@ -49,6 +48,8 @@
 	// of the generic single-tag usage.
 	export const skipDirectRender = new Set([
 		"mosaic-glow",
+		"border-beam",
+		"marquee",
 		"datamosh-transition",
 		"pulse-beam",
 		"animated-beam",
@@ -418,16 +419,6 @@
 				<div class="rounded-xl p-8 text-center">
 					<p class="text-foreground font-semibold">Neon Border</p>
 				</div>
-			</Comp>
-		{:else if slug === "marquee"}
-			<Comp pauseOnHover class="[--duration:20s]">
-				{#each ["Svelte 5", "Tailwind v4", "TypeScript", "Animations", "GSAP", "MIT License"] as badge}
-					<span
-						class="bg-muted text-muted-foreground mx-2 rounded-full border px-3 py-1 text-xs font-medium"
-					>
-						{badge}
-					</span>
-				{/each}
 			</Comp>
 		{:else if slug === "line-hover-link"}
 			<div class="flex flex-col gap-4">

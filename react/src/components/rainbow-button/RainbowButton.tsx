@@ -1,5 +1,11 @@
 import { forwardRef } from "react";
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, CSSProperties, ReactNode, Ref } from "react";
+import type {
+	AnchorHTMLAttributes,
+	ButtonHTMLAttributes,
+	CSSProperties,
+	ReactNode,
+	Ref,
+} from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import "./rainbow-button.css";
@@ -76,6 +82,10 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 					tabIndex={disabled ? -1 : undefined}
 					onClick={handleClick}
 				>
+					<span className="rainbow-button__glow" aria-hidden="true">
+						<span></span>
+					</span>
+					<span className="rainbow-button__beam" aria-hidden="true"></span>
 					{children}
 				</a>
 			);
@@ -90,6 +100,10 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 				disabled={disabled}
 				onClick={handleClick}
 			>
+				<span className="rainbow-button__glow" aria-hidden="true">
+					<span></span>
+				</span>
+				<span className="rainbow-button__beam" aria-hidden="true"></span>
 				{children}
 			</button>
 		);

@@ -1,90 +1,147 @@
 import { useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useIsomorphicLayoutEffect } from "../../internals/dom/ssr.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
+import { rafThrottle } from "../../internals/motion/raf.js";
 import { cn } from "../../utils.js";
+import "./container-scroll.css";
 
+/**
+ * ContainerScroll - a scroll-driven aperture
+ *
+ * The card starts shut: a slim horizontal slit with a bright seam of light
+ * across its middle. As the section scrolls into view the slit opens
+ * vertically to the full card, the seam splits into two lips that ride the
+ * opening edges and fade, the content settles from a slight zoom into
+ * focus, and the title above blurs away to hand the stage to the card.
+ * No 3D tilt, no perspective.
+ */
 export interface ContainerScrollProps {
-	/** Additional CSS classes */
+	/** Additional CSS classes on the section */
 	className?: string;
-	/** Content rendered in the title area above the card */
+	/** Title shown above the card (blurs and fades as the card opens) */
 	titleContent?: ReactNode;
-	/** Content rendered inside the tilting card */
+	/** Content revealed inside the card */
 	cardContent?: ReactNode;
+	/** Seam colour (any CSS colour). Defaults to a soft blue. */
+	accent?: string;
+	/** Second seam tint, blended towards the seam ends. Defaults to a soft lilac. */
+	accentSecondary?: string;
+}
+
+/**
+ * Raw scroll progress of the card track, measured at its centre (where the
+ * slit is): 0 while the slit is still in the bottom 8% of the viewport,
+ * 1 once it has risen to just above the middle of the viewport.
+ */
+export function apertureProgress(top: number, height: number, viewport: number): number {
+	if (viewport <= 0) return 1;
+	const centre = top + height / 2;
+	const p = (viewport * 0.92 - centre) / (viewport * 0.4);
+	return p < 0 ? 0 : p > 1 ? 1 : p;
+}
+
+/** Smoothstep: a gentle start and a slow settle, so the opening reads as a lens, not a shutter. */
+export function apertureEase(p: number): number {
+	const t = p < 0 ? 0 : p > 1 ? 1 : p;
+	return t * t * (3 - 2 * t);
 }
 
 export function ContainerScroll({
 	className = "",
 	titleContent,
 	cardContent,
+	accent,
+	accentSecondary,
 }: ContainerScrollProps) {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const [isMobile, setIsMobile] = useState(false);
-	const [scrollYProgress, setScrollYProgress] = useState(0);
+	const reduced = useReducedMotion();
+	const trackRef = useRef<HTMLDivElement>(null);
+	const [raw, setRaw] = useState(0);
 
-	const scaleDimensions: [number, number] = isMobile ? [0.7, 0.9] : [1.05, 1];
-	const rotate = 20 * (1 - scrollYProgress);
-	const scale =
-		scaleDimensions[0] + (scaleDimensions[1] - scaleDimensions[0]) * scrollYProgress;
-	const translateY = -100 * scrollYProgress;
+	const progress = reduced ? 1 : raw;
+	const open = apertureEase(progress);
 
-	// Svelte does this in `onMount`, which runs before the browser paints. A passive
-	// effect would paint one frame at the unresolved pose (desktop scale, rotate 20deg)
-	// before snapping — see internals-api.md §4.
+	const styleVars: Record<string, string> = {
+		"--cs-progress": progress.toFixed(4),
+		"--cs-open": open.toFixed(4),
+	};
+	if (accent) styleVars["--cs-accent"] = accent;
+	if (accentSecondary) styleVars["--cs-accent-2"] = accentSecondary;
+
+	// A layout effect, not a passive one: the Svelte effect measures before the
+	// browser paints, so a card already in view never flashes one shut frame.
 	useIsomorphicLayoutEffect(() => {
-		function updateIsMobile() {
-			setIsMobile(window.innerWidth <= 768);
+		const track = trackRef.current;
+		if (!track || reduced) return;
+
+		function measure() {
+			if (!track) return;
+			const rect = track.getBoundingClientRect();
+			setRaw(apertureProgress(rect.top, rect.height, window.innerHeight));
 		}
 
-		function updateScroll() {
-			if (!containerRef.current) return;
-			const rect = containerRef.current.getBoundingClientRect();
-			const windowHeight = window.innerHeight;
-			const progress = 1 - Math.max(0, rect.bottom - window.scrollY) / windowHeight;
-			setScrollYProgress(Math.max(0, Math.min(1, progress)));
-		}
-
-		updateIsMobile();
-		updateScroll();
-
-		window.addEventListener("resize", updateIsMobile);
-		window.addEventListener("scroll", updateScroll, { passive: true });
-		window.addEventListener("resize", updateScroll, { passive: true });
-
+		const update = rafThrottle(measure);
+		measure();
+		// Capture phase so the card also tracks scrolling inside a nested
+		// scroll container, not only the window.
+		const opts = { capture: true, passive: true } as const;
+		window.addEventListener("scroll", update, opts);
+		window.addEventListener("resize", update, { passive: true });
 		return () => {
-			window.removeEventListener("resize", updateIsMobile);
-			window.removeEventListener("scroll", updateScroll);
-			window.removeEventListener("resize", updateScroll);
+			update.cancel();
+			window.removeEventListener("scroll", update, opts);
+			window.removeEventListener("resize", update);
 		};
-	}, []);
+	}, [reduced]);
 
 	return (
 		<div
-			ref={containerRef}
 			className={cn(
-				"relative flex h-[60rem] items-center justify-center p-2 md:h-[80rem] md:p-20",
+				"cs-root relative flex h-[48rem] w-full items-start justify-center p-2 md:h-[64rem] md:p-10",
 				className
 			)}
+			style={styleVars as CSSProperties}
+			data-reduced-motion={reduced ? "" : undefined}
 		>
-			<div className="relative w-full py-10 md:py-40" style={{ perspective: "1000px" }}>
+			<div className="relative w-full py-10 md:py-16">
 				{/* Title */}
-				<div
-					style={{ transform: `translateY(${translateY}px)` }}
-					className="mx-auto max-w-5xl text-center"
-				>
-					{titleContent}
-				</div>
+				<div className="cs-title mx-auto max-w-5xl text-center">{titleContent}</div>
 
-				{/* Card */}
-				<div
-					style={{
-						transform: `rotateX(${rotate}deg) scale(${scale})`,
-						boxShadow:
-							"0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
-					}}
-					className="mx-auto -mt-12 h-[30rem] w-full max-w-5xl rounded-[30px] border-4 border-[#6C6C6C] bg-[#222222] p-2 shadow-2xl md:h-[40rem] md:p-6"
-				>
-					<div className="size-full overflow-hidden rounded-2xl bg-gray-100 md:rounded-2xl md:p-4 dark:bg-zinc-900">
-						{cardContent}
+				{/* Card track (measured; never transformed) */}
+				<div ref={trackRef} className="cs-track relative mx-auto mt-10 w-full max-w-5xl md:mt-12">
+					<div className="cs-stage relative aspect-[4/3] w-full sm:aspect-[16/10]">
+						{/* Ambient shadow: lives outside the clip so the aperture cannot cut it */}
+						<div
+							className="cs-shadow pointer-events-none absolute inset-0"
+							aria-hidden="true"
+						></div>
+
+						{/* Outer frame, clipped by the aperture */}
+						<div className="cs-card absolute inset-0 p-1.5 md:p-2">
+							<div className="cs-surface relative size-full overflow-hidden">
+								<div className="cs-content size-full">{cardContent}</div>
+								{/* Veil: the content emerges from shadow as light gets in */}
+								<div
+									className="cs-veil pointer-events-none absolute inset-0"
+									aria-hidden="true"
+								></div>
+							</div>
+						</div>
+
+						{/* Light: two lips riding the opening edges, and the seam at the centre */}
+						<div
+							className="cs-lip cs-lip-top pointer-events-none absolute"
+							aria-hidden="true"
+						></div>
+						<div
+							className="cs-lip cs-lip-bottom pointer-events-none absolute"
+							aria-hidden="true"
+						></div>
+						<div className="cs-seam pointer-events-none absolute" aria-hidden="true">
+							<span className="cs-seam-haze"></span>
+							<span className="cs-seam-glow"></span>
+							<span className="cs-seam-line"></span>
+						</div>
 					</div>
 				</div>
 			</div>

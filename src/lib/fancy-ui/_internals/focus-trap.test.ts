@@ -119,6 +119,45 @@ describe("focusTrap", () => {
 		expect(document.activeElement?.id).toBe("b");
 	});
 
+	it("ignores native controls removed from the tab order when finding the boundaries", () => {
+		const trapNode = setup(`
+			<div id="trap">
+				<button id="a">A</button>
+				<input id="b" />
+				<button id="skip-button" tabindex="-1">skip</button>
+				<a id="skip-link" href="#x" tabindex="-1">skip</a>
+				<input id="skip-input" tabindex="-1" />
+				<select id="skip-select" tabindex="-1"></select>
+				<textarea id="skip-textarea" tabindex="-1"></textarea>
+			</div>
+		`);
+		focusTrap(trapNode);
+
+		// "b" is the last tabbable control: the browser would skip every
+		// tabindex=-1 control after it and leave the trap, so Tab from "b"
+		// must be intercepted and wrap to "a".
+		document.getElementById("b")!.focus();
+		const forward = pressTab();
+		expect(forward.defaultPrevented).toBe(true);
+		expect(document.activeElement?.id).toBe("a");
+
+		// And Shift+Tab from "a" wraps to "b", not to a skipped control.
+		pressTab({ shiftKey: true });
+		expect(document.activeElement?.id).toBe("b");
+	});
+
+	it("does not pick a tabindex=-1 native control as the default initial focus", () => {
+		const trapNode = setup(`
+			<div id="trap">
+				<button id="skip" tabindex="-1">skip</button>
+				<button id="a">A</button>
+			</div>
+		`);
+		focusTrap(trapNode);
+
+		expect(document.activeElement?.id).toBe("a");
+	});
+
 	it("restores focus to the previously active element on destroy by default", () => {
 		const outside = document.createElement("button");
 		outside.id = "outside";
@@ -269,6 +308,95 @@ describe("focusTrap — visibility and empty containers", () => {
 		const action = focusTrap(trapNode, {});
 		expect(document.activeElement).toBe(trapNode);
 		expect(trapNode.getAttribute("tabindex")).toBe("-1");
+		action?.destroy?.();
+	});
+
+	/*
+	 * `display` does not inherit, so a control inside a `display: none`
+	 * wrapper computes its own `display` as `inline-block` and looks visible
+	 * in isolation — while the whole subtree is absent from the layout tree
+	 * and `.focus()` on it does nothing at all. A trap that believed it
+	 * focusable "focused" a control that never took focus, leaving focus
+	 * wherever it already was: outside the modal.
+	 */
+	it("skips a control hidden by a display:none ANCESTOR when picking the initial focus", () => {
+		const trapNode = setup(`
+			<div id="trap">
+				<div id="collapsed" style="display: none">
+					<button id="ghost">Ghost</button>
+				</div>
+				<button id="real">Real</button>
+			</div>
+		`);
+		const action = focusTrap(trapNode, {});
+		expect(document.activeElement?.id).toBe("real");
+		action?.destroy?.();
+	});
+
+	it("contains focus on the container when every control sits under a hidden ancestor", () => {
+		const outside = document.createElement("button");
+		outside.id = "outside";
+		document.body.appendChild(outside);
+		outside.focus();
+
+		const trapNode = setup(`
+			<div id="trap">
+				<div style="display: none">
+					<button id="ghost">Ghost</button>
+					<button id="ghost2">Ghost 2</button>
+				</div>
+			</div>
+		`);
+		const action = focusTrap(trapNode, {});
+
+		// Not left on the trigger behind the modal, which is what happened
+		// while the ghosts counted as focusable.
+		expect(document.activeElement).toBe(trapNode);
+		expect(trapNode.getAttribute("tabindex")).toBe("-1");
+
+		action?.destroy?.();
+		outside.remove();
+	});
+
+	it("keeps Tab inside the trap, ignoring controls under a hidden ancestor", () => {
+		// The ghost sits FIRST in DOM order on purpose: it is the element the
+		// forward wrap lands on while it still counts as focusable.
+		const trapNode = setup(`
+			<div id="trap">
+				<div style="display: none"><button id="ghost">Ghost</button></div>
+				<button id="first">First</button>
+				<button id="last">Last</button>
+			</div>
+		`);
+		const action = focusTrap(trapNode, {});
+		expect(document.activeElement?.id).toBe("first");
+
+		trapNode.querySelector<HTMLElement>("#last")!.focus();
+		pressTab();
+		// Wraps to the first REAL control; a ghost at the head of the cycle
+		// swallows the wrap and strands focus on the invisible row.
+		expect(document.activeElement?.id).toBe("first");
+
+		pressTab({ shiftKey: true });
+		expect(document.activeElement?.id).toBe("last");
+
+		action?.destroy?.();
+	});
+
+	// The other half of the rule: `visibility` DOES inherit, so a descendant
+	// that opts back in with `visibility: visible` is genuinely on screen and
+	// focusable. Walking ancestors for that property too would wrongly filter
+	// it out.
+	it("keeps a control that re-declares visibility:visible under a hidden ancestor", () => {
+		const trapNode = setup(`
+			<div id="trap">
+				<div style="visibility: hidden">
+					<button id="revealed" style="visibility: visible">Revealed</button>
+				</div>
+			</div>
+		`);
+		const action = focusTrap(trapNode, {});
+		expect(document.activeElement?.id).toBe("revealed");
 		action?.destroy?.();
 	});
 });

@@ -2,55 +2,171 @@ import type { CSSProperties } from "react";
 import { cn } from "../../utils.js";
 import "./glow-border.css";
 
+export type GlowBorderPreset = "chromatic" | "silver" | "gold";
+
 export interface GlowBorderProps {
+	/** Additional classes on the overlay */
 	className?: string;
+	/** Border radius in pixels (the overlay also inherits its parent's radius) */
 	borderRadius?: number;
+	/**
+	 * Custom metal tints: one colour or several. Overrides `preset`; neutral
+	 * silver and shadow tones are woven in so it still reads as metal.
+	 */
 	color?: string | string[];
+	/** Width of the metal ring in pixels */
 	borderWidth?: number;
+	/** Length of one flow cycle of the metal, in seconds. The glint laps in 0.4× that. */
 	duration?: number;
+	/** Metal palette: iridescent chrome, cool steel or warm gold */
+	preset?: GlowBorderPreset;
+	/** Intensity of the glint and its glow, 0–1 */
+	strength?: number;
+}
+
+interface Palette {
+	/** Bright tints, the colours the reflections flash. */
+	tints: string[];
+	/** The metal's body between reflections. */
+	body: string;
+	/** The shadow a reflection falls off into. */
+	shadow: string;
+}
+
+/** Palettes per preset, one per theme: light pages need deeper tones to read. */
+export const GLOW_BORDER_PRESETS: Record<GlowBorderPreset, { dark: Palette; light: Palette }> = {
+	chromatic: {
+		dark: {
+			tints: ["#ffffff", "#f5b8d0", "#8fe3d9", "#b9a8ff", "#f3d58a"],
+			body: "#8a9099",
+			shadow: "#2a2d33",
+		},
+		light: {
+			tints: ["#5b636d", "#d9669a", "#2fa89a", "#7a62e6", "#c99a2e"],
+			body: "#9aa3ad",
+			shadow: "#e3e6ea",
+		},
+	},
+	silver: {
+		dark: {
+			tints: ["#ffffff", "#dfe4ea", "#b8c2cf", "#f2f5f8"],
+			body: "#7d848f",
+			shadow: "#2b2f35",
+		},
+		light: {
+			tints: ["#4b525c", "#7d8793", "#5f6975", "#2f353d"],
+			body: "#aab2bc",
+			shadow: "#e6e9ed",
+		},
+	},
+	gold: {
+		dark: {
+			tints: ["#fff4cf", "#f7d98b", "#ffe7a3", "#e9b95c"],
+			body: "#c8973f",
+			shadow: "#4a3616",
+		},
+		light: {
+			tints: ["#8a6424", "#b8862f", "#6e4d17", "#c99a2e"],
+			body: "#d9b56a",
+			shadow: "#f3e8cf",
+		},
+	},
+};
+
+/** A custom `color` turned into a metal palette: the tints, over neutral body and shadow. */
+export function customPalette(color: string | string[], theme: "dark" | "light"): Palette {
+	const list = (Array.isArray(color) ? color : [color]).filter(Boolean);
+	const tints = list.length ? list : ["#ffffff"];
+	return theme === "dark"
+		? { tints: ["#ffffff", ...tints], body: "#7d848f", shadow: "#2a2d33" }
+		: { tints, body: "#9aa3ad", shadow: "#e3e6ea" };
+}
+
+/**
+ * One metal field as a conic gradient: reflections (tints) alternating
+ * with body and shadow, spread around the turn so no two flashes touch.
+ * Two of these, centred apart and turning against each other, are what
+ * make the surface look liquid rather than spun.
+ */
+export function metalField(p: Palette, angleVar: string, at: string, offset = 0): string {
+	const stops: string[] = [];
+	const n = p.tints.length;
+	const step = 100 / n;
+	for (let i = 0; i < n; i++) {
+		const base = i * step;
+		const tint = p.tints[(i + offset) % n];
+		// Mostly shadow, a little body, one sharp reflection: sparse flashes
+		// on a dark ring read as polished metal, an even tone as plastic.
+		stops.push(`${p.shadow} ${base.toFixed(1)}%`);
+		stops.push(`${p.shadow} ${(base + step * 0.22).toFixed(1)}%`);
+		stops.push(`${p.body} ${(base + step * 0.4).toFixed(1)}%`);
+		stops.push(`${tint} ${(base + step * 0.5).toFixed(1)}%`);
+		stops.push(`${p.body} ${(base + step * 0.6).toFixed(1)}%`);
+		stops.push(`${p.shadow} ${(base + step * 0.8).toFixed(1)}%`);
+	}
+	stops.push(`${p.shadow} 100%`);
+	return `conic-gradient(from var(${angleVar}) at ${at}, ${stops.join(", ")})`;
+}
+
+/** Both metal fields, stacked for `background` (blended in CSS). */
+export function metalBackground(p: Palette): string {
+	return `${metalField(p, "--gb-a1", "30% 40%")}, ${metalField(p, "--gb-a2", "72% 65%", 2)}`;
+}
+
+/** The glint's colour trail: a short arc that brightens to white. */
+export function glintArc(p: Palette): string {
+	const lead = p.tints[1] ?? p.tints[0];
+	// a one-colour custom palette is [white, colour]: trail in the colour, not white
+	const tail = p.tints[2] ?? p.tints[p.tints.length - 1];
+	return `conic-gradient(from var(--gb-a3), transparent 0%, transparent 72%, ${tail} 84%, #ffffff 90%, ${lead} 94%, transparent 99%)`;
 }
 
 export function GlowBorder({
 	className = "",
 	borderRadius = 10,
-	color = "#FFF",
-	borderWidth = 2,
+	color,
+	borderWidth = 1.5,
 	duration = 10,
+	preset = "chromatic",
+	strength = 0.8,
 }: GlowBorderProps) {
-	const colorString = Array.isArray(color) ? color.join(",") : color;
+	const palettes =
+		color !== undefined
+			? { dark: customPalette(color, "dark"), light: customPalette(color, "light") }
+			: (GLOW_BORDER_PRESETS[preset] ?? GLOW_BORDER_PRESETS.chromatic);
 
-	// Computed during render, not in a layout effect: every value here is a
-	// plain function of the props, so the server and the client produce the
-	// same declarations and the glow is painted by the very first frame of the
-	// server markup. Writing it from `useLayoutEffect` instead left the mask
-	// and the gradient out of the SSR HTML entirely — and the hook itself is a
-	// no-op on the server, which React 18 warns about.
-	//
-	// The Svelte source's `style` attribute is a single CSS string; React only
-	// accepts an object, so the declarations are transposed one for one. Order
-	// is not part of the contract — the two `var()` reads below resolve against
-	// the custom properties in the same declaration block regardless.
-	const styles: CSSProperties = {
+	const strengthC = Math.min(1, Math.max(0, Number.isFinite(strength) ? strength : 0.8));
+
+	// Computed during render (a pure function of the props), so the server
+	// markup already carries every declaration. The Svelte source writes one
+	// style string; React takes an object, so the declarations are transposed
+	// one for one.
+	const styles = {
 		"--glow-border-radius": `${borderRadius}px`,
 		"--glow-border-width": `${borderWidth}px`,
 		"--glow-duration": `${duration}s`,
-		backgroundImage: `radial-gradient(transparent, transparent, ${colorString}, transparent, transparent)`,
-		backgroundSize: "300% 300%",
-		mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-		WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-		WebkitMaskComposite: "xor",
-		maskComposite: "exclude",
-		padding: "var(--glow-border-width)",
+		"--glow-strength": `${strengthC}`,
+		"--gb-metal-dark": metalBackground(palettes.dark),
+		"--gb-metal-light": metalBackground(palettes.light),
+		"--gb-glint-dark": glintArc(palettes.dark),
+		"--gb-glint-light": glintArc(palettes.light),
 		borderRadius: "var(--glow-border-radius)",
 	} as CSSProperties;
 
 	return (
 		<div
 			className={cn(
-				"animate-glow pointer-events-none absolute inset-0 size-full rounded-[inherit] will-change-[background-position]",
+				"glow-border animate-glow pointer-events-none absolute inset-0 size-full rounded-[inherit]",
 				className
 			)}
 			style={styles}
-		/>
+			aria-hidden="true"
+		>
+			<span className="glow-border__halo">
+				<span></span>
+			</span>
+			<span className="glow-border__metal"></span>
+			<span className="glow-border__glint"></span>
+		</div>
 	);
 }

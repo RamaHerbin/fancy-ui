@@ -1,0 +1,110 @@
+/*
+ * `.animated-beam` is a port-added anchor: the source has no root class and
+ * relied on compiler scoping, while plain CSS is global. Every rule below is
+ * anchored on it; class names, custom properties and keyframe names are
+ * identical to the source.
+ */
+
+/* Theme-aware glass. Public vars first, house defaults as fallbacks. */
+.animated-beam .fibre-sheath {
+	stroke: var(--beam-fibre-rim, rgba(0, 0, 0, 0.07));
+}
+.animated-beam .fibre-core {
+	stroke: var(--beam-fibre, rgba(0, 0, 0, 0.18));
+}
+.animated-beam .fibre-glint {
+	stroke: var(--beam-fibre-glint, rgba(255, 255, 255, 0.75));
+}
+.dark .animated-beam .fibre-sheath {
+	stroke: var(--beam-fibre-rim, rgba(255, 255, 255, 0.06));
+}
+.dark .animated-beam .fibre-core {
+	stroke: var(--beam-fibre, rgba(255, 255, 255, 0.14));
+}
+.dark .animated-beam .fibre-glint {
+	stroke: var(--beam-fibre-glint, rgba(255, 255, 255, 0.16));
+}
+
+/* On a light surface a white core disappears; keep more colour there. */
+.animated-beam .packet-core {
+	stroke: color-mix(in oklab, var(--_core) 72%, white);
+}
+.dark .animated-beam .packet-core {
+	stroke: color-mix(in oklab, var(--_core) 45%, white);
+}
+
+.animated-beam .packet-layer {
+	stroke-dasharray: var(--_len) 3000;
+	stroke-dashoffset: var(--_o0);
+	animation: beam-packet var(--_dur, 5s) linear var(--_delay, 0s) infinite backwards;
+}
+
+/* Glide out, settle into the node at ARRIVAL (78%), then drain the tail. */
+@keyframes beam-packet {
+	0% {
+		stroke-dashoffset: var(--_o0);
+		animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
+	}
+	78% {
+		stroke-dashoffset: var(--_o1);
+		animation-timing-function: cubic-bezier(0.5, 0, 1, 1);
+	}
+	100% {
+		stroke-dashoffset: var(--_o2);
+	}
+}
+
+.animated-beam .bloom-disc,
+.animated-beam .bloom-ring {
+	transform-box: fill-box;
+	transform-origin: center;
+	opacity: 0;
+	animation: beam-bloom var(--_dur, 5s) linear var(--_delay, 0s) infinite backwards;
+}
+.animated-beam .bloom-ring {
+	animation-name: beam-ring;
+}
+
+/* The head lands at 78%: the halo swells behind the node, then lets go. */
+@keyframes beam-bloom {
+	0%,
+	74% {
+		opacity: 0;
+		transform: scale(0.6);
+		animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	84% {
+		opacity: 0.85;
+		transform: scale(1);
+		animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(1.15);
+	}
+}
+
+/* A single ripple leaves the node on arrival. */
+@keyframes beam-ring {
+	0%,
+	77% {
+		opacity: 0;
+		transform: scale(0.96);
+		animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	81% {
+		opacity: 0.7;
+		animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(1.5);
+	}
+}
+
+/* Before hydration can ask the browser, keep reduced-motion users still. */
+@media (prefers-reduced-motion: reduce) {
+	.animated-beam .packet {
+		display: none;
+	}
+}

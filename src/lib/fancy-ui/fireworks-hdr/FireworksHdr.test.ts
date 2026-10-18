@@ -1,7 +1,9 @@
 import { render, cleanup } from "@testing-library/svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import FireworksHdr from "./FireworksHdr.svelte";
-import type { FireworksEngineHandle } from "./webgpu-renderer.js";
+import { startWebGpuFireworks, type FireworksEngineHandle } from "./webgpu-renderer.js";
+import { startWebGl2Fireworks } from "./webgl2-renderer.js";
+import type { FireworksHandle } from "./fireworks-shared.js";
 
 // jsdom has no real GPU, so the only way to reach the code that wires the
 // window listeners is to hand the component a stand-in engine. The component
@@ -25,6 +27,26 @@ vi.mock("./webgpu-renderer.js", async (importOriginal) => {
 		),
 	};
 });
+
+// Pass-through by default (jsdom's null getContext keeps it failing); a test
+// can make it hand back a stand-in engine synchronously.
+vi.mock("./webgl2-renderer.js", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("./webgl2-renderer.js")>();
+	return { ...actual, startWebGl2Fireworks: vi.fn(actual.startWebGl2Fireworks) };
+});
+
+function stubEngine(): FireworksEngineHandle {
+	return {
+		frame() {},
+		resizeIfNeeded() {},
+		setRenderScale() {},
+		extendedToneMapping: false,
+		renderLevel: "webgl-sdr",
+		lost: false,
+		instanceCapacity: 4096,
+		destroy() {},
+	};
+}
 
 /** Pretend a WebGPU adapter exists for the duration of one test. */
 function withFakeGpu(): () => void {
@@ -157,6 +179,82 @@ describe("FireworksHdr", () => {
 			});
 			expect(container.querySelector("canvas")).toBeInTheDocument();
 			unmount();
+		}
+	});
+});
+
+describe("FireworksHdr — engine teardown and live props", () => {
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+	});
+
+	it("disconnects both observers when the handle's cleanup() tears the engine down", async () => {
+		const restoreGpu = withFakeGpu();
+		const ioDisconnect = vi.spyOn(IntersectionObserver.prototype, "disconnect");
+		const roDisconnect = vi.spyOn(ResizeObserver.prototype, "disconnect");
+		try {
+			const handles: FireworksHandle[] = [];
+			render(FireworksHdr, { props: { ambient: false, onReady: (h) => handles.push(h) } });
+			await vi.waitFor(() => expect(handles).toHaveLength(1));
+			expect(ioDisconnect).not.toHaveBeenCalled();
+			handles[0]!.cleanup();
+			expect(ioDisconnect).toHaveBeenCalledTimes(1);
+			expect(roDisconnect).toHaveBeenCalledTimes(1);
+		} finally {
+			restoreGpu();
+		}
+	});
+
+	it("disconnects the observers when a synchronous onReady calls cleanup() at once", () => {
+		// No WebGPU: the WebGL2 path activates synchronously, inside mount.
+		vi.mocked(startWebGl2Fireworks).mockImplementationOnce(() => stubEngine());
+		const ioDisconnect = vi.spyOn(IntersectionObserver.prototype, "disconnect");
+		const roDisconnect = vi.spyOn(ResizeObserver.prototype, "disconnect");
+		const onReady = vi.fn((h: FireworksHandle) => h.cleanup());
+		render(FireworksHdr, { props: { ambient: false, onReady } });
+		expect(onReady).toHaveBeenCalledTimes(1);
+		expect(ioDisconnect).toHaveBeenCalled();
+		expect(roDisconnect).toHaveBeenCalled();
+	});
+
+	it("hands the handle to the onReady current when a pending boot resolves", async () => {
+		const restoreGpu = withFakeGpu();
+		try {
+			let resolveBoot!: (eng: FireworksEngineHandle) => void;
+			vi.mocked(startWebGpuFireworks).mockImplementationOnce(
+				() => new Promise<FireworksEngineHandle>((resolve) => (resolveBoot = resolve))
+			);
+			const stale = vi.fn();
+			const current = vi.fn();
+			const { rerender } = render(FireworksHdr, { props: { ambient: false, onReady: stale } });
+			await rerender({ ambient: false, onReady: current });
+			resolveBoot(stubEngine());
+			await vi.waitFor(() => expect(current).toHaveBeenCalledTimes(1));
+			expect(stale).not.toHaveBeenCalled();
+		} finally {
+			restoreGpu();
+		}
+	});
+
+	it("wires the pointer listener from the interactive value current at activation", async () => {
+		const restoreGpu = withFakeGpu();
+		const addSpy = vi.spyOn(window, "addEventListener");
+		try {
+			let resolveBoot!: (eng: FireworksEngineHandle) => void;
+			vi.mocked(startWebGpuFireworks).mockImplementationOnce(
+				() => new Promise<FireworksEngineHandle>((resolve) => (resolveBoot = resolve))
+			);
+			const onReady = vi.fn();
+			const { rerender } = render(FireworksHdr, {
+				props: { interactive: true, ambient: false, onReady },
+			});
+			await rerender({ interactive: false, ambient: false, onReady });
+			resolveBoot(stubEngine());
+			await vi.waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+			expect(calledWithPointerdown(addSpy)).toBe(false);
+		} finally {
+			restoreGpu();
 		}
 	});
 });

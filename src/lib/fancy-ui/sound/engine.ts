@@ -282,7 +282,12 @@ export function createSoundEngine(options: SoundEngineOptions = {}): SoundEngine
 		const { volume, pitch, rate } = opts;
 		const delayMs = layer.delay ?? 0;
 		const t0 = context.currentTime + delayMs / 1000 / rate;
-		const durationSec = layer.duration / 1000 / rate;
+		// MAX_LAYER_MS is documented as a non-configurable hard guard, but only
+		// validateSoundTheme() enforces it — a theme passed straight to setTheme()
+		// is never validated. Clamp here too so a huge finite duration cannot keep
+		// a source/voice slot alive for minutes.
+		const durationMs = Math.min(layer.duration, SOUND_LIMITS.MAX_LAYER_MS);
+		const durationSec = durationMs / 1000 / rate;
 		const pitchMul = 2 ** (pitch / 12);
 
 		let source: OscillatorNode | AudioBufferSourceNode;

@@ -1,31 +1,100 @@
+@property --gb-angle {
+	syntax: "<angle>";
+	inherits: true;
+	initial-value: 0deg;
+}
+
 .gradient-button {
-	padding: var(--gb-border-width);
 	border-radius: var(--gb-border-radius);
 	isolation: isolate;
+	background: color-mix(in srgb, var(--gb-bg-color), #fff 8%);
+	animation: gb-spin var(--gb-duration) linear infinite;
+	transition: transform 0.2s ease;
+}
+
+.gradient-button:active {
+	transform: scale(0.98);
+}
+
+.gradient-button:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+	animation-play-state: paused;
 }
 
 /* Anchored on the root class: the Svelte compiler scoped these rules, plain CSS
    would leak them into every consumer element sharing the class name. */
-.gradient-button .gradient-border {
-	content: "";
-	position: absolute;
-	inset: -200%;
-	z-index: -1;
-	background: conic-gradient(var(--gb-colors));
-	animation: rotate-gradient var(--gb-duration) linear infinite;
-	filter: blur(var(--gb-blur));
-}
-
 .gradient-button .gradient-content {
-	border-radius: var(--gb-border-radius);
-	background-color: var(--gb-bg-color);
+	position: relative;
+	margin: var(--gb-border-width);
+	border-radius: calc(var(--gb-border-radius) - var(--gb-border-width));
+	background:
+		linear-gradient(to bottom, rgb(255 255 255 / 0.06), transparent 45%), var(--gb-bg-color);
 }
 
-@keyframes rotate-gradient {
-	0% {
-		transform: rotate(0deg);
+.gradient-button .gradient-border,
+.gradient-button .gradient-glow,
+.gradient-button .gradient-glow > span {
+	position: absolute;
+	pointer-events: none;
+	border-radius: inherit;
+}
+
+/* keep only the padding ring: the element minus its content box */
+.gradient-button .gradient-border,
+.gradient-button .gradient-glow > span {
+	background: var(--gb-beam);
+	-webkit-mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	-webkit-mask-composite: xor;
+	mask:
+		linear-gradient(#000 0 0) content-box,
+		linear-gradient(#000 0 0);
+	mask-composite: exclude;
+}
+
+.gradient-button .gradient-border {
+	inset: 0;
+	z-index: 2;
+	padding: var(--gb-border-width);
+}
+
+/* A wider band inside the border, blurred by its parent AFTER masking so
+   it falls off softly into the face. Screen: it lights, never darkens. */
+.gradient-button .gradient-glow {
+	inset: 0;
+	z-index: 1;
+	filter: blur(calc(var(--gb-blur) * 3));
+	mix-blend-mode: screen;
+	opacity: 0.45;
+	transition: opacity 0.3s ease;
+}
+
+.gradient-button .gradient-glow > span {
+	inset: 0;
+	padding: calc(var(--gb-blur) * 1.75);
+}
+
+.gradient-button:hover .gradient-glow,
+.gradient-button:focus-visible .gradient-glow {
+	opacity: 0.8;
+}
+
+.gradient-button:focus-visible {
+	outline: 2px solid rgb(255 255 255 / 0.5);
+	outline-offset: 2px;
+}
+
+@keyframes gb-spin {
+	to {
+		--gb-angle: 360deg;
 	}
-	100% {
-		transform: rotate(360deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.gradient-button {
+		animation: none;
+		--gb-angle: 135deg;
 	}
 }

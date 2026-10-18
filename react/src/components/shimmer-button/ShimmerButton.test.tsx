@@ -57,18 +57,36 @@ describe("ShimmerButton", () => {
 		expect(button.className).toContain("overflow-hidden");
 	});
 
-	it("contains shimmer layer div", () => {
+	it("renders the rim, face, sheen and hover spot layers, hidden from assistive tech", () => {
 		render(<ShimmerButton />);
 		const button = screen.getByRole("button");
-		const shimmerLayer = button.querySelector(".shimmer-slide");
-		expect(shimmerLayer).toBeInTheDocument();
+		for (const cls of ["rim", "face", "sheen", "spot"]) {
+			const layer = button.querySelector(`.shimmer-button__${cls}`);
+			expect(layer).toBeInTheDocument();
+			expect(layer).toHaveAttribute("aria-hidden", "true");
+		}
 	});
 
-	it("contains spin-around element", () => {
-		render(<ShimmerButton />);
+	it("keeps the label as the accessible name", () => {
+		render(
+			<ShimmerButton>
+				<span>Save</span>
+			</ShimmerButton>
+		);
+		expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+	});
+
+	it("tracks the pointer for the hover sheen and forwards a consumer onPointerMove", () => {
+		const onPointerMove = vi.fn();
+		render(<ShimmerButton onPointerMove={onPointerMove} />);
 		const button = screen.getByRole("button");
-		const spinAround = button.querySelector(".spin-around");
-		expect(spinAround).toBeInTheDocument();
+		button.getBoundingClientRect = () => ({ left: 10, top: 20, width: 100, height: 40 }) as DOMRect;
+		// The jsdom this package pins has no `PointerEvent`; a `MouseEvent` of the
+		// same type carries the coordinates the handler reads.
+		fireEvent(button, new MouseEvent("pointermove", { bubbles: true, clientX: 40, clientY: 35 }));
+		expect(button.style.getPropertyValue("--mx")).toBe("30px");
+		expect(button.style.getPropertyValue("--my")).toBe("15px");
+		expect(onPointerMove).toHaveBeenCalledTimes(1);
 	});
 
 	it("forwards native button attributes", () => {

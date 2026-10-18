@@ -6,7 +6,10 @@
  * element or a virtual rect, which is how a caret-following menu is placed.
  */
 
-import type { ActionReturn } from "svelte/action";
+interface FloatActionReturn {
+	update?(options: FloatOptions): void;
+	destroy?(): void;
+}
 
 // =============================================================================
 // Types
@@ -124,7 +127,7 @@ function anchorElement(anchor: FloatOptions["anchor"]): HTMLElement | null {
 		: null;
 }
 
-export function float(node: HTMLElement, opts: FloatOptions): ActionReturn<FloatOptions> {
+export function float(node: HTMLElement, opts: FloatOptions): FloatActionReturn {
 	let options = opts;
 	let frame: number | null = null;
 	let listening = false;

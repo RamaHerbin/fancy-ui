@@ -28,7 +28,7 @@
 		// Tick delay so new page content is rendered
 		const timeout = setTimeout(() => {
 			const elements = document.querySelectorAll<HTMLElement>(
-				"[data-doc-content] h2, [data-doc-content] h3"
+				"[data-doc-content] h2:not([data-toc-ignore]), [data-doc-content] h3:not([data-toc-ignore])"
 			);
 
 			headings = Array.from(elements).map((el) => ({

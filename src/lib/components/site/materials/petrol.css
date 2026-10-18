@@ -1,0 +1,164 @@
+/**
+ * Petrol film — the thin-film iridescence shared by IridescentText (clipped to
+ * glyphs) and IridescentSurface (a panel). Plain stylesheet so both components
+ * paint the exact same field.
+ *
+ * Bands follow interference order (silver → straw → rose → violet → blue →
+ * cyan → green → ink slate → pewter), not a rainbow, as rings around a
+ * thick-film centre. The centre is the ink-slate pool (with pewter, ~30 % of
+ * each period); rings tighten outward (radius ∝ film^0.7), so the tail of
+ * "alive." gets the compressed bands. The field is one strip across the line
+ * break ("feel" then "alive."); its centre sits ~50 px left of "feel", so the
+ * pool falls off-word and every glyph crosses at least two bands in the rest
+ * frame, with violet → blue → cyan over "al" (chosen by sampling a model of
+ * the strip, then checked on screenshots). The darkest band is #6b7486 so the composited field stays above
+ * the #56607a contrast floor (sampled, not assumed).
+ * Layers, top to bottom:
+ *   1. silver sheen, moves against the pointer        (screen)
+ *   2. slow conic swirl at low strength               (soft-light)
+ *   3. static displaced band texture (SVG data URI)   (soft-light)
+ *      — a background image, never a filter on the text
+ *   4. elliptical thin-film rings around a centre at the foot of "al" (normal)
+ * Motion: centre on a Lissajous (16 s / 13 s), swirl 20 s, scale 11 s. No
+ * hue-rotate anywhere. Rest frame (reduced motion, paused, no JS) = the
+ * initial values below.
+ */
+
+@property --pf-x {
+	syntax: "<percentage>";
+	inherits: false;
+	initial-value: -16%;
+}
+@property --pf-y {
+	syntax: "<percentage>";
+	inherits: false;
+	initial-value: 20%;
+}
+@property --pf-a {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 212deg;
+}
+@property --pf-s {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 1;
+}
+
+.fx-petrol {
+	/* Pointer parallax, written by IridescentText (±6px). */
+	--pf-px: 0px;
+	--pf-py: 0px;
+	/* Ring ellipse radii, in em so the film keeps its proportions at every
+	   type size: at 76 px the first period spans ~145 px, the third ~75 px. */
+	--pf-rx: 4.1em;
+	--pf-ry: 2.2em;
+
+	background-color: var(--fx-ink, #f2f1ec);
+	background-image:
+		linear-gradient(104deg, transparent 30%, rgb(230 232 238 / 0.3) 44%, transparent 56%),
+		conic-gradient(
+			from var(--pf-a) at 72% 38%,
+			rgb(34 211 238 / 0.28),
+			rgb(59 107 255 / 0.28),
+			rgb(139 92 246 / 0.28),
+			rgb(224 64 251 / 0.28),
+			rgb(245 181 68 / 0.28),
+			rgb(52 211 153 / 0.28),
+			rgb(34 211 238 / 0.28)
+		),
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='200' viewBox='0 0 600 200' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='b'%3E%3Cstop offset='0.004' stop-color='%23e6e8ee'/%3E%3Cstop offset='0.056' stop-color='%23e6e8ee'/%3E%3Cstop offset='0.064' stop-color='%23f5b544'/%3E%3Cstop offset='0.086' stop-color='%23f5b544'/%3E%3Cstop offset='0.094' stop-color='%23e040fb'/%3E%3Cstop offset='0.131' stop-color='%23e040fb'/%3E%3Cstop offset='0.139' stop-color='%238b5cf6'/%3E%3Cstop offset='0.196' stop-color='%238b5cf6'/%3E%3Cstop offset='0.204' stop-color='%233b6bff'/%3E%3Cstop offset='0.271' stop-color='%233b6bff'/%3E%3Cstop offset='0.279' stop-color='%2322d3ee'/%3E%3Cstop offset='0.311' stop-color='%2322d3ee'/%3E%3Cstop offset='0.319' stop-color='%2334d399'/%3E%3Cstop offset='0.346' stop-color='%2334d399'/%3E%3Cstop offset='0.354' stop-color='%236b7486'/%3E%3Cstop offset='0.436' stop-color='%236b7486'/%3E%3Cstop offset='0.444' stop-color='%239aa3b2'/%3E%3Cstop offset='0.496' stop-color='%239aa3b2'/%3E%3Cstop offset='0.504' stop-color='%23e6e8ee'/%3E%3Cstop offset='0.556' stop-color='%23e6e8ee'/%3E%3Cstop offset='0.564' stop-color='%23f5b544'/%3E%3Cstop offset='0.586' stop-color='%23f5b544'/%3E%3Cstop offset='0.594' stop-color='%23e040fb'/%3E%3Cstop offset='0.631' stop-color='%23e040fb'/%3E%3Cstop offset='0.639' stop-color='%238b5cf6'/%3E%3Cstop offset='0.696' stop-color='%238b5cf6'/%3E%3Cstop offset='0.704' stop-color='%233b6bff'/%3E%3Cstop offset='0.771' stop-color='%233b6bff'/%3E%3Cstop offset='0.779' stop-color='%2322d3ee'/%3E%3Cstop offset='0.811' stop-color='%2322d3ee'/%3E%3Cstop offset='0.819' stop-color='%2334d399'/%3E%3Cstop offset='0.846' stop-color='%2334d399'/%3E%3Cstop offset='0.854' stop-color='%236b7486'/%3E%3Cstop offset='0.936' stop-color='%236b7486'/%3E%3Cstop offset='0.944' stop-color='%239aa3b2'/%3E%3Cstop offset='0.996' stop-color='%239aa3b2'/%3E%3C/linearGradient%3E%3Cfilter id='d' filterUnits='userSpaceOnUse' x='-40' y='-40' width='680' height='280'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.012' numOctaves='2' seed='7' result='n'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='n' scale='28' xChannelSelector='R' yChannelSelector='G'/%3E%3C/filter%3E%3C/defs%3E%3Crect x='-20' y='-20' width='640' height='240' fill='url(%23b)' filter='url(%23d)' opacity='0.4'/%3E%3C/svg%3E"),
+		radial-gradient(
+			ellipse calc(var(--pf-rx) * var(--pf-s)) calc(var(--pf-ry) * var(--pf-s)) at var(--pf-x)
+				var(--pf-y),
+			#6b7486 0% 13.4%,
+			#9aa3b2 14.5% 19.5%,
+			#e6e8ee 20.4% 25.3%,
+			#f5b544 26.1% 27.7%,
+			#e040fb 28.5% 31.3%,
+			#8b5cf6 32% 35.7%,
+			#3b6bff 36.5% 40.7%,
+			#22d3ee 41.4% 43.6%,
+			#34d399 44.2% 46%,
+			#6b7486 46.7% 51.7%,
+			#9aa3b2 52.3% 55.4%,
+			#e6e8ee 56% 59.2%,
+			#f5b544 59.8% 61%,
+			#e040fb 61.6% 63.6%,
+			#8b5cf6 64.1% 66.9%,
+			#3b6bff 67.5% 70.8%,
+			#22d3ee 71.3% 73%,
+			#34d399 73.6% 75%,
+			#6b7486 75.6% 79.7%,
+			#9aa3b2 80.2% 82.8%,
+			#e6e8ee 83.3% 86%,
+			#f5b544 86.5% 87.5%,
+			#e040fb 88% 89.7%,
+			#8b5cf6 90.2% 92.6%,
+			#3b6bff 93.1% 96%,
+			#22d3ee 96.5% 98%,
+			#34d399 98.5% 99.8%
+		);
+	background-size:
+		180% 100%,
+		100% 100%,
+		100% 100%,
+		100% 100%;
+	background-position:
+		calc(50% - var(--pf-px) / 2) calc(50% - var(--pf-py) / 2),
+		50% 50%,
+		calc(50% + var(--pf-px)) calc(50% + var(--pf-py)),
+		calc(50% + var(--pf-px)) calc(50% + var(--pf-py));
+	background-repeat: no-repeat;
+	background-blend-mode: screen, soft-light, soft-light, normal;
+	animation:
+		fx-pf-x 16s ease-in-out infinite alternate,
+		fx-pf-y 13s ease-in-out infinite alternate,
+		fx-pf-a 20s linear infinite,
+		fx-pf-s 11s ease-in-out infinite alternate;
+}
+
+/* Off-screen, hidden tab, or the visitor paused decorative motion. */
+.fx-petrol[data-idle],
+.fx-petrol[data-paused] {
+	animation-play-state: paused;
+}
+
+@keyframes fx-pf-x {
+	from {
+		--pf-x: -24%;
+	}
+	to {
+		--pf-x: -8%;
+	}
+}
+@keyframes fx-pf-y {
+	from {
+		--pf-y: 0%;
+	}
+	to {
+		--pf-y: 60%;
+	}
+}
+@keyframes fx-pf-a {
+	from {
+		--pf-a: 212deg;
+	}
+	to {
+		--pf-a: 572deg;
+	}
+}
+@keyframes fx-pf-s {
+	from {
+		--pf-s: 1;
+	}
+	to {
+		--pf-s: 1.08;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.fx-petrol {
+		animation: none;
+	}
+}

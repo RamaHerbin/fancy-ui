@@ -56,7 +56,10 @@
 		     the element itself would out-rank the user-agent rule for [hidden]. -->
 		<div data-pane="preview" hidden={activeTab !== "preview"}>
 			<!-- `retro-stage` is the hook the retro-os docs skin styles the demo box with. -->
-			<div class="retro-stage bg-background flex min-h-[200px] items-center justify-center p-8">
+			<div
+				data-thumb-stage
+				class="retro-stage bg-background flex min-h-[200px] items-center justify-center p-8"
+			>
 				<!-- The box is always served, so its height is reserved before the demo mounts; the demo
 				     itself is torn down off-tab rather than left animating behind `hidden`. -->
 				{#if activeTab === "preview"}

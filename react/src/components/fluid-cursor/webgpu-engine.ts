@@ -1,3 +1,4 @@
+/// <reference types="@webgpu/types" />
 // WebGPU HDR engine for FluidCursor.
 //
 // Port of the WebGL fluid simulation to WGSL, rendering into an
@@ -7,7 +8,7 @@
 // gamut (P3) displays colors are noticeably more saturated. Browsers that
 // ignore the `toneMapping` member simply clamp to SDR — the sim still runs.
 //
-// The math mirrors the GLSL shaders in FluidCursor.tsx pass for pass
+// The math mirrors the GLSL shaders of the WebGL path pass for pass
 // (splat, curl, vorticity, divergence, clear, pressure Jacobi iterations,
 // gradient subtract, advection, display). Any behavioral change here must be
 // mirrored in the WebGL path and vice versa.
@@ -17,7 +18,6 @@ import {
 	type Pointer,
 	type FluidCursorHandle,
 	type FluidRenderLevel,
-	DEV,
 	pointerPrototype,
 	correctDeltaX,
 	correctDeltaY,
@@ -25,153 +25,6 @@ import {
 	getSimResolution,
 	scaleRadiusForContainer,
 } from "./fluid-shared.js";
-
-// --- Minimal WebGPU typings -------------------------------------------------
-// `@webgpu/types` is not a declared dependency of this package, so exactly the
-// surface this engine touches is re-declared here. Everything below is
-// module-scoped: nothing reaches the global namespace, the emitted `.d.ts`
-// carries no external type reference a consumer would have to install, and a
-// consumer whose own toolchain does load `@webgpu/types` is unaffected.
-
-type GPUTextureFormat = "rgba16float" | "rg16float" | "r16float";
-
-interface GPUTextureView {
-	readonly __brand?: "GPUTextureView";
-}
-interface GPUTexture {
-	createView(): GPUTextureView;
-	destroy(): void;
-}
-interface GPUBuffer {
-	readonly __brand?: "GPUBuffer";
-}
-interface GPUSampler {
-	readonly __brand?: "GPUSampler";
-}
-interface GPUShaderModule {
-	readonly __brand?: "GPUShaderModule";
-}
-interface GPUBindGroupLayout {
-	readonly __brand?: "GPUBindGroupLayout";
-}
-interface GPUPipelineLayout {
-	readonly __brand?: "GPUPipelineLayout";
-}
-interface GPURenderPipeline {
-	readonly __brand?: "GPURenderPipeline";
-}
-interface GPUBindGroup {
-	readonly __brand?: "GPUBindGroup";
-}
-interface GPUCommandBuffer {
-	readonly __brand?: "GPUCommandBuffer";
-}
-interface GPURenderPassEncoder {
-	setPipeline(pipeline: GPURenderPipeline): void;
-	setBindGroup(index: number, bindGroup: GPUBindGroup): void;
-	draw(vertexCount: number): void;
-	end(): void;
-}
-interface GPUCommandEncoder {
-	beginRenderPass(descriptor: {
-		colorAttachments: Array<{
-			view: GPUTextureView;
-			loadOp: "clear" | "load";
-			storeOp: "store" | "discard";
-			clearValue?: { r: number; g: number; b: number; a: number };
-		}>;
-	}): GPURenderPassEncoder;
-	finish(): GPUCommandBuffer;
-}
-interface GPUQueue {
-	writeBuffer(buffer: GPUBuffer, bufferOffset: number, data: BufferSource): void;
-	submit(commandBuffers: GPUCommandBuffer[]): void;
-}
-interface GPUDeviceLostInfo {
-	readonly reason: string;
-	readonly message: string;
-}
-interface GPUUncapturedErrorEvent {
-	readonly error: { readonly message: string };
-}
-interface GPUDevice {
-	readonly queue: GPUQueue;
-	readonly lost: Promise<GPUDeviceLostInfo>;
-	addEventListener(
-		type: "uncapturederror",
-		listener: (event: GPUUncapturedErrorEvent) => void
-	): void;
-	createShaderModule(descriptor: { code: string }): GPUShaderModule;
-	createBindGroupLayout(descriptor: {
-		entries: Array<{
-			binding: number;
-			visibility: number;
-			buffer?: { type: "uniform" };
-			sampler?: { type: "filtering" };
-			texture?: { sampleType: "float" };
-		}>;
-	}): GPUBindGroupLayout;
-	createPipelineLayout(descriptor: { bindGroupLayouts: GPUBindGroupLayout[] }): GPUPipelineLayout;
-	createRenderPipeline(descriptor: {
-		layout: GPUPipelineLayout;
-		vertex: { module: GPUShaderModule; entryPoint: string };
-		fragment: {
-			module: GPUShaderModule;
-			entryPoint: string;
-			targets: Array<{ format: GPUTextureFormat }>;
-		};
-		primitive: { topology: "triangle-list" };
-	}): GPURenderPipeline;
-	createSampler(descriptor: {
-		magFilter: "linear" | "nearest";
-		minFilter: "linear" | "nearest";
-		addressModeU: "clamp-to-edge";
-		addressModeV: "clamp-to-edge";
-	}): GPUSampler;
-	createBuffer(descriptor: { size: number; usage: number }): GPUBuffer;
-	createTexture(descriptor: {
-		size: { width: number; height: number };
-		format: GPUTextureFormat;
-		usage: number;
-	}): GPUTexture;
-	createBindGroup(descriptor: {
-		layout: GPUBindGroupLayout;
-		entries: Array<{
-			binding: number;
-			resource: GPUSampler | GPUTextureView | { buffer: GPUBuffer };
-		}>;
-	}): GPUBindGroup;
-	createCommandEncoder(): GPUCommandEncoder;
-	destroy(): void;
-}
-interface GPUCanvasConfiguration {
-	device: GPUDevice;
-	format: GPUTextureFormat;
-	alphaMode?: string;
-	colorSpace?: string;
-	toneMapping?: { mode?: string };
-}
-interface GPUCanvasContext {
-	configure(configuration: GPUCanvasConfiguration): void;
-	unconfigure(): void;
-	getConfiguration?: () => GPUCanvasConfiguration | null;
-	getCurrentTexture(): GPUTexture;
-}
-interface GPUAdapter {
-	requestDevice(): Promise<GPUDevice>;
-}
-interface GPU {
-	requestAdapter(): Promise<GPUAdapter | null>;
-}
-
-// Runtime bitmask namespaces. Only reachable once `navigator.gpu` answered, so
-// a browser without WebGPU never evaluates them.
-declare const GPUShaderStage: { readonly FRAGMENT: number };
-declare const GPUBufferUsage: { readonly UNIFORM: number; readonly COPY_DST: number };
-declare const GPUTextureUsage: {
-	readonly RENDER_ATTACHMENT: number;
-	readonly TEXTURE_BINDING: number;
-};
 
 export interface WebGpuFluidOptions {
 	simResolution: number;
@@ -462,11 +315,7 @@ async function createWebGpuFluid(
 	opts: WebGpuFluidOptions
 ): Promise<FluidEngine | null> {
 	try {
-		// `navigator.gpu` is not in the DOM lib this package compiles against.
-		// Cast through `unknown` so the local WebGPU types above stay the only
-		// ones in play even when another module in the package happens to pull
-		// ambient WebGPU globals into the program.
-		const gpu = (navigator as unknown as { gpu?: GPU }).gpu;
+		const gpu = navigator.gpu;
 		if (!gpu) return null;
 		const adapter = await gpu.requestAdapter();
 		if (!adapter) return null;
@@ -489,24 +338,19 @@ async function createWebGpuFluid(
 		// claiming the visible canvas before knowing configure() succeeds
 		// would break the advertised WebGL fallback.
 		try {
-			const probe = document
-				.createElement("canvas")
-				.getContext("webgpu") as unknown as GPUCanvasContext | null;
+			const probe = document.createElement("canvas").getContext("webgpu");
 			if (!probe) {
 				device.destroy();
 				return null;
 			}
 			probe.configure(configuration);
 			probe.unconfigure();
-		} catch (error) {
+		} catch {
 			device.destroy();
-			if (DEV) {
-				console.warn("[FluidCursor] WebGPU canvas configuration rejected:", error);
-			}
 			return null;
 		}
 
-		const maybeContext = canvas.getContext("webgpu") as unknown as GPUCanvasContext | null;
+		const maybeContext = canvas.getContext("webgpu");
 		if (!maybeContext) {
 			device.destroy();
 			return null;
@@ -515,41 +359,24 @@ async function createWebGpuFluid(
 		context.configure(configuration);
 
 		// Browsers that do not support toneMapping drop the member, which
-		// getConfiguration() makes observable. Surface it as data (not just a
-		// DEV log) so callers can tell an extended-tone-mapping canvas from a
-		// clamped fallback; whether the display is HDR is checked separately by
-		// startWebGpuFluid.
+		// getConfiguration() makes observable. Surface it as data so callers can
+		// tell an extended-tone-mapping canvas from a clamped fallback; whether
+		// the display is HDR is checked separately by startWebGpuFluid.
 		let extendedToneMapping = false;
 		try {
 			const applied = context.getConfiguration?.() as
 				| (GPUCanvasConfiguration & { toneMapping?: { mode?: string } })
-				| null
-				| undefined;
+				| null;
 			extendedToneMapping = applied?.toneMapping?.mode === "extended";
 		} catch {
 			// getConfiguration unsupported (e.g. Safari): assume clamped output.
 		}
-		if (DEV) {
-			console.info(
-				extendedToneMapping
-					? "[FluidCursor] extended tone mapping active (webgpu-hdr if the display reports high dynamic range)"
-					: "[FluidCursor] HDR level: webgpu-sdr (float16 + P3, tone mapping clamped by browser)"
-			);
-		}
 
 		let destroyed = false;
 		let lost = false;
-		device.lost.then((info) => {
+		device.lost.then(() => {
 			lost = true;
-			if (!destroyed && DEV) {
-				console.warn(`[FluidCursor] WebGPU device lost (${info.reason}): ${info.message}`);
-			}
 		});
-		if (DEV) {
-			device.addEventListener("uncapturederror", (event) => {
-				console.error("[FluidCursor] WebGPU uncaptured error:", event.error.message);
-			});
-		}
 
 		const module = device.createShaderModule({ code: WGSL });
 
@@ -1008,10 +835,7 @@ async function createWebGpuFluid(
 				device.destroy();
 			},
 		};
-	} catch (error) {
-		if (DEV) {
-			console.warn("[FluidCursor] WebGPU init failed, falling back to WebGL:", error);
-		}
+	} catch {
 		return null;
 	}
 }
@@ -1034,7 +858,9 @@ export async function startWebGpuFluid(
 	if (!maybeEngine) return null;
 	const engine: FluidEngine = maybeEngine;
 
-	const pointers: Pointer[] = [pointerPrototype()];
+	// Non-empty by construction: index 0 is the real pointer for the life of
+	// the engine, autopilot only ever appends.
+	const pointers: [Pointer, ...Pointer[]] = [pointerPrototype()];
 	// Dedicated synthetic pointer driven programmatically through the handle. It
 	// lives alongside the mouse pointer in the same list, so updateFrame splats
 	// both and the two inputs coexist. Created on first programmatic use, so a
@@ -1195,7 +1021,7 @@ export async function startWebGpuFluid(
 
 	// --- Event listeners ---
 	function handleMouseDown(e: MouseEvent) {
-		const pointer = pointers[0]!;
+		const pointer = pointers[0];
 		const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 		updatePointerDownData(pointer, -1, posX, posY);
 		clickSplat(pointer);
@@ -1204,27 +1030,28 @@ export async function startWebGpuFluid(
 	// The release half of mousedown / touchstart — `down` used to latch true for
 	// the life of the engine.
 	function handlePointerUp() {
-		pointers[0]!.down = false;
+		pointers[0].down = false;
 	}
 
 	function handleFirstMouseMove(e: MouseEvent) {
-		const pointer = pointers[0]!;
+		const pointer = pointers[0];
 		const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 		updatePointerMoveData(pointer, posX, posY, opts.generateColor());
 		document.body.removeEventListener("mousemove", handleFirstMouseMove);
 	}
 
 	function handleMouseMove(e: MouseEvent) {
-		const pointer = pointers[0]!;
+		const pointer = pointers[0];
 		const { x: posX, y: posY } = getCanvasPos(e.clientX, e.clientY);
 		updatePointerMoveData(pointer, posX, posY, pointer.color);
 	}
 
 	function handleFirstTouchStart(e: TouchEvent) {
 		const touches = e.targetTouches;
-		const pointer = pointers[0]!;
+		const pointer = pointers[0];
 		for (let i = 0; i < touches.length; i++) {
-			const touch = touches[i]!;
+			const touch = touches[i];
+			if (!touch) continue;
 			const { x: posX, y: posY } = getCanvasPos(touch.clientX, touch.clientY);
 			updatePointerDownData(pointer, touch.identifier, posX, posY);
 		}
@@ -1233,9 +1060,10 @@ export async function startWebGpuFluid(
 
 	function handleTouchStart(e: TouchEvent) {
 		const touches = e.targetTouches;
-		const pointer = pointers[0]!;
+		const pointer = pointers[0];
 		for (let i = 0; i < touches.length; i++) {
-			const touch = touches[i]!;
+			const touch = touches[i];
+			if (!touch) continue;
 			const { x: posX, y: posY } = getCanvasPos(touch.clientX, touch.clientY);
 			updatePointerDownData(pointer, touch.identifier, posX, posY);
 		}
@@ -1243,9 +1071,10 @@ export async function startWebGpuFluid(
 
 	function handleTouchMove(e: TouchEvent) {
 		const touches = e.targetTouches;
-		const pointer = pointers[0]!;
+		const pointer = pointers[0];
 		for (let i = 0; i < touches.length; i++) {
-			const touch = touches[i]!;
+			const touch = touches[i];
+			if (!touch) continue;
 			const { x: posX, y: posY } = getCanvasPos(touch.clientX, touch.clientY);
 			updatePointerMoveData(pointer, posX, posY, pointer.color);
 		}
@@ -1272,9 +1101,11 @@ export async function startWebGpuFluid(
 	let observer: IntersectionObserver | null = null;
 	if (opts.pauseWhenHidden) {
 		observer = new IntersectionObserver(
-			([entry]) => {
+			(entries) => {
+				const entry = entries[0];
+				if (!entry) return;
 				const wasVisible = isVisible;
-				isVisible = entry!.isIntersecting;
+				isVisible = entry.isIntersecting;
 				if (isVisible && !wasVisible && !stopped) {
 					lastUpdateTime = Date.now();
 					animationFrameId = requestAnimationFrame(updateFrame);

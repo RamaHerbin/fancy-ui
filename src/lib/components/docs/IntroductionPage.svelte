@@ -4,7 +4,11 @@
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
 	import { COMPONENT_COUNT } from "$lib/site.js";
-	import { getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
+	import {
+		categories,
+		categoryLabels,
+		getComponentsGroupedByCategory,
+	} from "$lib/fancy-ui/registry.js";
 
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
@@ -18,6 +22,8 @@
 	/* Retro "What's included" stat cards — real counts from the registry.
 	   $derived so the labels re-localize on locale switch. */
 	const grouped = getComponentsGroupedByCategory();
+	// Only the categories that currently hold a component.
+	const usedCategories = categories.filter((category) => grouped[category]?.length);
 	const stats = $derived([
 		{
 			label: t("intro.category.buttons"),
@@ -154,19 +160,16 @@
 		</div>
 	{:else}
 		<p class="section-body">
-			{t("intro.whatsIncluded.body").replace("{count}", String(COMPONENT_COUNT))}
+			{t("intro.whatsIncluded.body")
+				.replace("{count}", String(COMPONENT_COUNT))
+				.replace("{categories}", String(usedCategories.length))}
 		</p>
+		<!-- Every category the registry uses, in registry order; the labels stay
+		     English on purpose (they are the machine-facing names). -->
 		<div class="cats">
-			<div class="cat">{t("intro.category.buttons")}</div>
-			<div class="cat">{t("intro.category.cards")}</div>
-			<div class="cat">{t("intro.category.text")}</div>
-			<div class="cat">{t("intro.category.backgrounds")}</div>
-			<div class="cat">{t("intro.category.effects")}</div>
-			<div class="cat">{t("intro.category.layout")}</div>
-			<div class="cat">{t("intro.category.navigation")}</div>
-			<div class="cat">{t("intro.category.dataDisplay")}</div>
-			<div class="cat">{t("intro.category.feedback")}</div>
-			<div class="cat">{t("intro.category.media")}</div>
+			{#each usedCategories as category (category)}
+				<div class="cat">{categoryLabels[category]}</div>
+			{/each}
 		</div>
 	{/if}
 

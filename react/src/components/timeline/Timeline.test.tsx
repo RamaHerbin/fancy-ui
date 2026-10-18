@@ -9,23 +9,6 @@ const mockItems = [
 	{ id: "three", label: "2022" },
 ];
 
-/** The 2px background rail; the progress line is its only child. */
-const RAIL = '[class*="mask-image"]';
-
-function progressLineOf(root: ParentNode): HTMLElement {
-	const line = root.querySelector<HTMLElement>(`${RAIL} > div`);
-	if (!line) throw new Error("progress line not found");
-	return line;
-}
-
-/** Waits one animation frame, so a rAF-throttled scroll handler has run. */
-function nextFrame(): Promise<void> {
-	return new Promise<void>((resolve) => {
-		if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => resolve());
-		else resolve();
-	});
-}
-
 describe("Timeline", () => {
 	beforeEach(() => {
 		// Mock ResizeObserver (not available in jsdom) - must be a class
@@ -57,13 +40,13 @@ describe("Timeline", () => {
 		const { container } = render(<Timeline title="My Timeline" />);
 		const h2 = container.querySelector("h2");
 		expect(h2).toBeInTheDocument();
-		expect(h2?.textContent).toBe("My Timeline");
+		expect(h2?.textContent?.trim()).toBe("My Timeline");
 	});
 
 	it("renders description when provided", () => {
 		const { container } = render(<Timeline title="Title" description="My description" />);
 		const p = container.querySelector("p");
-		expect(p?.textContent).toBe("My description");
+		expect(p?.textContent?.trim()).toBe("My description");
 	});
 
 	it("does not render header section when no title or description", () => {
@@ -81,8 +64,8 @@ describe("Timeline", () => {
 	it("displays item labels", () => {
 		const { container } = render(<Timeline items={mockItems} />);
 		const labels = container.querySelectorAll("h3");
-		expect(labels[0]?.textContent).toBe("2020");
-		expect(labels[1]?.textContent).toBe("2021");
+		expect(labels[0]?.textContent?.trim()).toBe("2020");
+		expect(labels[1]?.textContent?.trim()).toBe("2021");
 	});
 
 	it("applies custom class names", () => {
@@ -90,88 +73,204 @@ describe("Timeline", () => {
 		const div = container.firstElementChild as HTMLElement;
 		expect(div?.className).toContain("my-timeline");
 	});
+});
 
-	describe("scroll progress", () => {
-		// jsdom measures everything as 0x0, so the geometry the progress
-		// fraction is derived from has to be supplied.
-		let rect = { top: 0, bottom: 0, height: 0 };
+describe("Timeline light rail", () => {
+	const originalMatchMedia = window.matchMedia;
 
-		beforeEach(() => {
-			rect = { top: 0, bottom: 0, height: 0 };
-			vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(
-				() =>
-					({
-						top: rect.top,
-						bottom: rect.bottom,
-						height: rect.height,
-						left: 0,
-						right: 0,
-						width: 0,
-						x: 0,
-						y: rect.top,
-						toJSON: () => ({}),
-					}) as DOMRect
+	// A hand-cranked frame queue: rAF-throttled work runs when the test says so.
+	let frames: FrameRequestCallback[] = [];
+	function runFrames() {
+		const pending = frames;
+		frames = [];
+		for (const cb of pending) cb(0);
+	}
+
+	beforeEach(() => {
+		global.ResizeObserver = class {
+			observe = vi.fn();
+			unobserve = vi.fn();
+			disconnect = vi.fn();
+		};
+		frames = [];
+		vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+			frames.push(cb);
+			return frames.length;
+		});
+		vi.stubGlobal("cancelAnimationFrame", () => {});
+	});
+
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+		vi.restoreAllMocks();
+		window.matchMedia = originalMatchMedia;
+	});
+
+	/** Gives each row a resting offset and the track a height, as a browser layout would. */
+	function layout(container: HTMLElement, rowTops: number[], trackHeight: number) {
+		const rows = container.querySelectorAll<HTMLElement>("[data-timeline-row]");
+		rows.forEach((row, i) => {
+			Object.defineProperty(row, "offsetTop", { configurable: true, value: rowTops[i] });
+		});
+		const track = container.querySelector<HTMLElement>("[data-timeline-track]")!;
+		Object.defineProperty(track, "offsetHeight", { configurable: true, value: trackHeight });
+		return track;
+	}
+
+	/** Places the track `top` px from the viewport top, then lets the component re-measure. */
+	function scrollTo(track: HTMLElement, top: number) {
+		track.getBoundingClientRect = () =>
+			({
+				top,
+				bottom: top + 1400,
+				left: 0,
+				right: 0,
+				width: 0,
+				height: 1400,
+				x: 0,
+				y: top,
+				toJSON: () => ({}),
+			}) as DOMRect;
+		act(() => {
+			window.dispatchEvent(new Event("resize"));
+			runFrames();
+		});
+	}
+
+	function litStates(container: HTMLElement) {
+		return Array.from(container.querySelectorAll("[data-timeline-dot]")).map((d) =>
+			d.getAttribute("data-lit")
+		);
+	}
+
+	it("lights a dot once the head has passed it", () => {
+		const { container } = render(<Timeline items={mockItems} />);
+		const track = layout(container, [0, 400, 800], 1400);
+
+		// Track still below the reading line: the head rests on the first dot.
+		scrollTo(track, 600);
+		expect(litStates(container)).toEqual(["true", "false", "false"]);
+
+		// Reading line (160px sticky offset + 20px dot centre) is now 480px into the track.
+		scrollTo(track, -300);
+		expect(litStates(container)).toEqual(["true", "true", "false"]);
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--tl-progress")).toBe("480px");
+
+		const rows = container.querySelectorAll("[data-timeline-row]");
+		expect(rows[0]?.getAttribute("data-state")).toBe("past");
+		expect(rows[1]?.getAttribute("data-state")).toBe("active");
+		expect(rows[2]?.getAttribute("data-state")).toBe("upcoming");
+	});
+
+	it("passes accent through to the --timeline-accent custom property", () => {
+		const { container } = render(<Timeline items={mockItems} accent="#ff3366" />);
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--timeline-accent")).toBe("#ff3366");
+	});
+
+	it("renders the glowing head when motion is allowed", () => {
+		const { container } = render(<Timeline items={mockItems} />);
+		expect(container.querySelector("[data-timeline-head]")).toBeInTheDocument();
+		expect(container.firstElementChild?.getAttribute("data-motion")).toBe("full");
+	});
+
+	it("drops the glowing head under reduced motion but still lights dots by position", () => {
+		window.matchMedia = ((query: string) => ({
+			matches: query.includes("prefers-reduced-motion"),
+			media: query,
+			onchange: null,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+			dispatchEvent: () => false,
+			addListener: () => {},
+			removeListener: () => {},
+		})) as unknown as typeof window.matchMedia;
+
+		const { container } = render(<Timeline items={mockItems} />);
+		expect(container.querySelector("[data-timeline-head]")).not.toBeInTheDocument();
+		expect(container.firstElementChild?.getAttribute("data-motion")).toBe("reduced");
+
+		const track = layout(container, [0, 400, 800], 1400);
+		scrollTo(track, -300);
+		expect(litStates(container)).toEqual(["true", "true", "false"]);
+	});
+
+	it("follows window scroll between re-measures", () => {
+		const { container } = render(<Timeline items={mockItems} />);
+		const track = layout(container, [0, 400, 800], 1400);
+		scrollTo(track, 600);
+		expect(litStates(container)).toEqual(["true", "false", "false"]);
+
+		// A plain scroll (no resize): only the head is re-placed.
+		track.getBoundingClientRect = () => ({ top: -700, bottom: 700 }) as DOMRect;
+		act(() => {
+			window.dispatchEvent(new Event("scroll"));
+			runFrames();
+		});
+		expect(litStates(container)).toEqual(["true", "true", "true"]);
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.style.getPropertyValue("--tl-progress")).toBe("880px");
+	});
+
+	it("removes its window listeners on unmount", () => {
+		const remove = vi.spyOn(window, "removeEventListener");
+		const { unmount } = render(<Timeline items={mockItems} />);
+		unmount();
+		const types = remove.mock.calls.map((c) => c[0]);
+		expect(types).toContain("scroll");
+		expect(types).toContain("resize");
+	});
+
+	it("keeps every decorative layer hidden from assistive tech", () => {
+		const { container } = render(<Timeline items={mockItems} />);
+		const decorative = container.querySelectorAll(
+			".tl-rail, [data-timeline-head], [data-timeline-dot-box], .tl-index"
+		);
+		expect(decorative.length).toBeGreaterThan(0);
+		for (const el of decorative) {
+			expect(el.getAttribute("aria-hidden")).toBe("true");
+		}
+	});
+
+	it("does not re-invoke the content render prop on scroll", () => {
+		const content = vi.fn((item: TimelineItem): ReactNode => <span>{item.label}</span>);
+		const { container } = render(<Timeline items={mockItems} content={content} />);
+		const track = layout(container, [0, 400, 800], 1400);
+		scrollTo(track, 600);
+
+		const callsAfterMount = content.mock.calls.length;
+		expect(callsAfterMount).toBeGreaterThan(0);
+
+		// Crosses a dot, so the rows re-render to flip data-state / data-lit.
+		scrollTo(track, -300);
+		expect(litStates(container)).toEqual(["true", "true", "false"]);
+		expect(content).toHaveBeenCalledTimes(callsAfterMount);
+	});
+
+	it("writes the head position before the browser paints", () => {
+		// A parent layout effect runs in the same commit as the child's,
+		// after it and before any passive effect — so what it reads here is
+		// what the first painted frame shows.
+		let progressAtPaint: string | undefined;
+
+		function Probe() {
+			const ref = useRef<HTMLDivElement | null>(null);
+			useLayoutEffect(() => {
+				const root = ref.current?.firstElementChild as HTMLElement;
+				progressAtPaint = root.style.getPropertyValue("--tl-progress");
+			}, []);
+			return (
+				<div ref={ref}>
+					<Timeline items={mockItems} />
+				</div>
 			);
-		});
+		}
 
-		it("does not re-invoke the content render prop on scroll", async () => {
-			const content = vi.fn((item: TimelineItem): ReactNode => <span>{item.label}</span>);
-			rect = { top: 200, bottom: 800, height: 600 };
-			render(<Timeline items={mockItems} content={content} />);
+		render(<Probe />);
 
-			const callsAfterMount = content.mock.calls.length;
-			expect(callsAfterMount).toBeGreaterThan(0);
-
-			rect = { top: -100, bottom: 500, height: 600 };
-			await act(async () => {
-				window.dispatchEvent(new Event("scroll"));
-				await nextFrame();
-			});
-
-			expect(content).toHaveBeenCalledTimes(callsAfterMount);
-		});
-
-		it("moves the progress line on scroll", async () => {
-			// Timeline below the tracking window: progress pinned at 0.
-			rect = { top: 900, bottom: 1500, height: 600 };
-			const { container } = render(<Timeline items={mockItems} />);
-			const line = progressLineOf(container);
-			expect(line.style.height).toBe("0px");
-
-			// Scrolled into the tracking window.
-			rect = { top: -100, bottom: 500, height: 600 };
-			await act(async () => {
-				window.dispatchEvent(new Event("scroll"));
-				await nextFrame();
-			});
-
-			expect(Number.parseFloat(line.style.height)).toBeGreaterThan(0);
-			expect(line.style.opacity).toBe("1");
-		});
-
-		it("writes the measured geometry before the browser paints", () => {
-			rect = { top: -100, bottom: 500, height: 600 };
-			// A parent layout effect runs in the same commit as the child's,
-			// after it and before any passive effect — so what it reads here is
-			// what the first painted frame shows.
-			let heightAtPaint: string | undefined;
-
-			function Probe() {
-				const ref = useRef<HTMLDivElement | null>(null);
-				useLayoutEffect(() => {
-					heightAtPaint = progressLineOf(ref.current as ParentNode).style.height;
-				}, []);
-				return (
-					<div ref={ref}>
-						<Timeline items={mockItems} />
-					</div>
-				);
-			}
-
-			render(<Probe />);
-
-			expect(heightAtPaint).toBeDefined();
-			expect(Number.parseFloat(heightAtPaint as string)).toBeGreaterThan(0);
-		});
+		// jsdom lays nothing out, so the head parks on the first dot (20px).
+		expect(progressAtPaint).toBe("20px");
 	});
 });

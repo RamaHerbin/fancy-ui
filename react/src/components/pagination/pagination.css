@@ -20,30 +20,49 @@
 }
 
 /*
- * The newly-current page pops once, so the eye can find where it landed
- * without hunting for a colour change among nine identical squares.
- *
- * `transform` only: `box-shadow` on this same button is the focus ring
- * above, and a focus ring must never animate. `data-armed` keeps the pop
- * off the first paint (see the component). `--ft-ease-out` because the pill
- * arrives at its new place — it is not toggling in position.
- *
- * 150ms = tokens.DURATIONS.fast, cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out
+ * The nav is the page buttons' `offsetParent` (no `<ul>`/`<li>` in between
+ * is positioned), so `offsetLeft`/`offsetTop` and the pill's own
+ * `left: 0; top: 0` share one origin. `isolation` lets the pill sit at
+ * `z-index: -1` — above the nav's background, under the buttons.
  */
-@media (prefers-reduced-motion: no-preference) {
-	.ft-pagination[data-armed="true"] button[aria-current="page"] {
-		animation: ft-pagination-pop var(--ft-pagination-pop-duration, var(--ft-duration-fast, 150ms))
-			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
-	}
+.ft-pagination {
+	position: relative;
+	isolation: isolate;
 }
 
-/* 0.92 is the library's scale floor — the same value every entrance preset
-   starts from, so a pop and a panel opening read as one vocabulary. */
-@keyframes ft-pagination-pop {
-	from {
-		transform: scale(0.92);
-	}
-	to {
-		transform: scale(1);
+.ft-pagination-indicator {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: -1;
+	pointer-events: none;
+	border-radius: var(--radius-md, 0.375rem);
+	background: var(--ft-pagination-indicator-color, var(--color-accent));
+	opacity: 0;
+}
+
+.ft-pagination[data-indicator] .ft-pagination-indicator {
+	opacity: 1;
+}
+
+/* The pill has taken over: the current button's own fill steps aside. */
+.ft-pagination[data-indicator] button[aria-current="page"] {
+	background: transparent;
+}
+
+/*
+ * 300ms = tokens.DURATIONS.base, cubic-bezier(0.16, 1, 0.3, 1) =
+ * tokens.EASINGS.out — the same curve and length as the numbers' own
+ * glide, so the pill lands with its number. Gated: under reduced
+ * motion the pill still follows the page, it just arrives.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-pagination[data-armed="true"] .ft-pagination-indicator {
+		transition: transform
+			var(
+				--ft-pagination-slide-duration,
+				var(--ft-pagination-pop-duration, var(--ft-duration-base, 300ms))
+			)
+			var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
 	}
 }

@@ -1,0 +1,311 @@
+import { render, cleanup, fireEvent } from "@testing-library/vue";
+import { mount } from "@vue/test-utils";
+import { defineComponent, h, ref, type PropType } from "vue";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import Slider from "./Slider.vue";
+import { FIELD_KEY, type FieldContext } from "../../internals/field.js";
+import { sound } from "../../sound/sound.js";
+
+/**
+ * Transposed assertion-for-assertion from the source component's suite. Two
+ * shapes changed and nothing else did:
+ *
+ * - The two `.test.svelte` harnesses are declared inline here: they exist in
+ *   the source only because a Svelte component needs its own file. The field
+ *   one collapses further into `global.provide`, since all it ever did was
+ *   `setContext(FIELD_KEY, …)` around a `<Slider>`.
+ * - The bindable `ref` is exposed on the instance, so the ref case mounts
+ *   with `@vue/test-utils` and reads `wrapper.vm.ref` instead of binding a
+ *   local getter/setter pair.
+ */
+
+// `render()` types its `container` as `Element`; the source's helper took an
+// `HTMLElement` because Svelte's testing library types it that way.
+function slider(container: Element): HTMLInputElement {
+	return container.querySelector("input[type=range]") as HTMLInputElement;
+}
+
+/**
+ * Test-only rig. The props object a test hands to `render` is not written
+ * back to by the component, so two-way binding here and echoing the value
+ * into the DOM is the only way to prove `value` travels back out to the
+ * consumer rather than merely changing what the input draws.
+ */
+const ValueHarness = defineComponent({
+	name: "SliderValueHarness",
+	props: {
+		onValueChange: {
+			type: Function as PropType<(value: number) => void>,
+			default: undefined,
+		},
+	},
+	setup(props) {
+		const value = ref(0);
+
+		return () => [
+			h(Slider, {
+				value: value.value,
+				"onUpdate:value": (next: number) => (value.value = next),
+				onValueChange: props.onValueChange,
+				label: "Volume",
+			}),
+			h("span", { "data-testid": "bound-value" }, String(value.value)),
+		];
+	},
+});
+
+describe("Slider", () => {
+	afterEach(cleanup);
+
+	it("renders a real range input with the default bounds and step", () => {
+		const { container } = render(Slider, { props: {} });
+		const el = slider(container);
+
+		expect(el.tagName).toBe("INPUT");
+		expect(el.type).toBe("range");
+		expect(el.min).toBe("0");
+		expect(el.max).toBe("100");
+		expect(el.step).toBe("1");
+		expect(el.disabled).toBe(false);
+	});
+
+	it("respects custom min, max and step", () => {
+		const { container } = render(Slider, { props: { min: 10, max: 20, step: 0.5, value: 15 } });
+		const el = slider(container);
+
+		expect(el.min).toBe("10");
+		expect(el.max).toBe("20");
+		expect(el.step).toBe("0.5");
+		expect(el.value).toBe("15");
+	});
+
+	// The browser reads aria-valuemin/max/now (and, independently, the native
+	// min/max/step attributes above) to drive its own keyboard interaction —
+	// jsdom does not implement that UA-level widget behaviour, so what is
+	// testable here is that both sets of attributes are wired correctly
+	// rather than the keypress-to-pixel behaviour itself.
+	it("keeps aria-valuemin, aria-valuemax and aria-valuenow in sync with the bounds and value", () => {
+		const { container } = render(Slider, { props: { min: 0, max: 50, value: 30 } });
+		const el = slider(container);
+
+		expect(el.getAttribute("aria-valuemin")).toBe("0");
+		expect(el.getAttribute("aria-valuemax")).toBe("50");
+		expect(el.getAttribute("aria-valuenow")).toBe("30");
+	});
+
+	it("is focusable, carrying the class the vendor thumb rules are scoped to", () => {
+		const { container } = render(Slider, { props: {} });
+		const el = slider(container);
+
+		expect(el.classList.contains("ft-slider")).toBe(true);
+		el.focus();
+		expect(document.activeElement).toBe(el);
+	});
+
+	it("calls onValueChange with the new value on input, matching a step-sized move", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(Slider, { props: { value: 40, step: 5, onValueChange } });
+		const el = slider(container);
+
+		await fireEvent.input(el, { target: { value: "45" } });
+		expect(el.value).toBe("45");
+		expect(el.getAttribute("aria-valuenow")).toBe("45");
+		expect(onValueChange).toHaveBeenCalledTimes(1);
+		expect(onValueChange).toHaveBeenCalledWith(45);
+	});
+
+	it("works with a plain non-bound value plus a callback", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(Slider, { props: { value: 20, onValueChange } });
+		const el = slider(container);
+
+		expect(el.value).toBe("20");
+		await fireEvent.input(el, { target: { value: "60" } });
+		expect(el.value).toBe("60");
+		expect(onValueChange).toHaveBeenCalledWith(60);
+	});
+
+	it("blocks the callback while disabled", async () => {
+		const onValueChange = vi.fn();
+		const { container } = render(Slider, { props: { disabled: true, onValueChange } });
+		const el = slider(container);
+
+		expect(el.disabled).toBe(true);
+		await fireEvent.input(el, { target: { value: "99" } });
+		expect(onValueChange).not.toHaveBeenCalled();
+	});
+
+	// A native range input clamps its own displayed value to [min,max]
+	// silently — without this, aria-valuenow and the value attribute would
+	// report a raw out-of-range prop while the thumb sat wherever the
+	// browser actually clamped it, a real mismatch a sighted user can see.
+	it("clamps aria-valuenow and the input's value when the prop starts out of range", () => {
+		const onValueChange = vi.fn();
+		const { container } = render(Slider, { props: { value: 150, max: 100, onValueChange } });
+		const el = slider(container);
+
+		expect(el.getAttribute("aria-valuenow")).toBe("100");
+		expect(el.value).toBe("100");
+		// Also corrects the model itself, the same way NumberInput clamps on
+		// blur, so a caller's own bound variable does not stay silently out
+		// of range.
+		expect(onValueChange).toHaveBeenCalledWith(100);
+	});
+
+	it("clamps the value (and calls onValueChange) when max shrinks below the current value at runtime", async () => {
+		const onValueChange = vi.fn();
+		const { container, rerender } = render(Slider, {
+			props: { value: 80, max: 100, onValueChange },
+		});
+		const el = slider(container);
+		expect(el.getAttribute("aria-valuenow")).toBe("80");
+
+		await rerender({ value: 80, max: 50, onValueChange });
+		expect(el.getAttribute("aria-valuenow")).toBe("50");
+		expect(el.value).toBe("50");
+		expect(onValueChange).toHaveBeenCalledWith(50);
+	});
+
+	it("keeps the showValue bubble in sync with the clamped value, not the raw out-of-range prop", () => {
+		const { container } = render(Slider, { props: { value: 150, max: 100, showValue: true } });
+		const bubble = container.querySelector(".ft-slider-bubble");
+		expect(bubble?.textContent?.trim()).toBe("100");
+	});
+
+	it("round-trips value through v-model:value", async () => {
+		const { container, getByTestId } = render(ValueHarness);
+		const el = slider(container);
+
+		expect(getByTestId("bound-value").textContent).toBe("0");
+		await fireEvent.input(el, { target: { value: "42" } });
+		expect(getByTestId("bound-value").textContent).toBe("42");
+		expect(el.value).toBe("42");
+	});
+
+	it("round-trips the input element through the exposed ref", () => {
+		const wrapper = mount(Slider, { props: { label: "Volume" }, attachTo: document.body });
+
+		expect(wrapper.vm.ref).toBe(slider(document.body));
+		wrapper.unmount();
+	});
+
+	it("sets aria-label from the label prop, for standalone use with no visible Label", () => {
+		const { container } = render(Slider, { props: { label: "Volume" } });
+		expect(slider(container).getAttribute("aria-label")).toBe("Volume");
+	});
+
+	it("merges the class prop with the base wrapper classes", () => {
+		const { container } = render(Slider, { props: { class: "mt-4" } });
+		const wrap = container.querySelector(".ft-slider-wrap") as HTMLElement;
+
+		expect(wrap.className).toContain("ft-slider-wrap");
+		expect(wrap.className).toContain("mt-4");
+	});
+
+	it("shows the value bubble only when showValue is set, tracking the current value", async () => {
+		const { container, rerender } = render(Slider, { props: { value: 60, showValue: false } });
+		expect(container.querySelector(".ft-slider-bubble")).toBeNull();
+
+		await rerender({ value: 60, showValue: true });
+		const bubble = container.querySelector(".ft-slider-bubble");
+		expect(bubble).not.toBeNull();
+		expect(bubble?.textContent?.trim()).toBe("60");
+		expect(bubble?.getAttribute("aria-hidden")).toBe("true");
+	});
+
+	it("shows min/max end labels only when showBounds is set", () => {
+		const { container: withoutBounds } = render(Slider, {
+			props: { min: 0, max: 100, showBounds: false },
+		});
+		expect(withoutBounds.querySelectorAll(".ft-slider-wrap > div")).toHaveLength(1);
+
+		const { container } = render(Slider, { props: { min: 0, max: 100, showBounds: true } });
+		const rows = container.querySelectorAll(".ft-slider-wrap > div");
+		expect(rows).toHaveLength(2);
+		const bounds = rows[1]!.querySelectorAll("span");
+		expect(bounds[0]!.textContent).toBe("0");
+		expect(bounds[1]!.textContent).toBe("100");
+	});
+
+	it("works standalone: useField() has no provider, so its own props apply untouched", () => {
+		const { container } = render(Slider, { props: { id: "solo", disabled: false } });
+		const el = slider(container);
+
+		expect(el.id).toBe("solo");
+		expect(el.disabled).toBe(false);
+	});
+
+	it("inside a FormField, the context wins for controlId, aria-describedby, aria-invalid and disabled", () => {
+		const context: FieldContext = {
+			controlId: "ctx-id",
+			describedBy: "ctx-help ctx-error",
+			invalid: true,
+			required: true,
+			disabled: true,
+		};
+		// Deliberately passed an own id that disagrees with the context, so
+		// this proves the context wins rather than merely matching by
+		// coincidence. `required` has no counterpart on Slider at all — see
+		// the component's own comment on why aria-required is never wired for
+		// the slider role.
+		const { container } = render(Slider, {
+			props: { id: "own-id", disabled: false },
+			global: { provide: { [FIELD_KEY as symbol]: context } },
+		});
+		const el = slider(container);
+
+		expect(el.id).toBe("ctx-id");
+		expect(el.getAttribute("aria-describedby")).toBe("ctx-help ctx-error");
+		expect(el.getAttribute("aria-invalid")).toBe("true");
+		expect(el.disabled).toBe(true);
+	});
+
+	describe("sound", () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it("plays the tick cue exactly once when a value is committed via change, with sound enabled", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Slider, { props: { sound: true } });
+			const el = slider(container);
+
+			await fireEvent.change(el, { target: { value: "40" } });
+
+			expect(play).toHaveBeenCalledTimes(1);
+			expect(play).toHaveBeenCalledWith("tick", undefined);
+		});
+
+		it("plays nothing by default (sound prop omitted)", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Slider, { props: {} });
+			const el = slider(container);
+
+			await fireEvent.change(el, { target: { value: "40" } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing while disabled, even with sound enabled, via a synthetic dispatch", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Slider, { props: { sound: true, disabled: true } });
+			const el = slider(container);
+
+			el.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
+
+			expect(play).not.toHaveBeenCalled();
+		});
+
+		it("plays nothing on plain input events while dragging — only a committed change plays", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(Slider, { props: { sound: true } });
+			const el = slider(container);
+
+			await fireEvent.input(el, { target: { value: "10" } });
+			await fireEvent.input(el, { target: { value: "20" } });
+			await fireEvent.input(el, { target: { value: "30" } });
+
+			expect(play).not.toHaveBeenCalled();
+		});
+	});
+});

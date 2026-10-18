@@ -1,7 +1,8 @@
-import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useReducedMotion } from "../../internals/motion/media-query.js";
 import { STEPPER_KEY } from "./types.js";
 import type { StepperContext } from "./types.js";
 
@@ -105,6 +106,38 @@ export const Stepper = forwardRef<HTMLOListElement, StepperProps>(function Stepp
 	// scheduled for.
 	const indexOf = useCallback((id: string): number => registered.indexOf(id), [registered]);
 
+	// Motion is opt-in on the client only: the server render (and the
+	// hydration pass) paints the still composition, and the animated classes
+	// arrive once the browser has actually been asked about
+	// `prefers-reduced-motion` — `asked` flips in a mount effect, the
+	// counterpart of the Svelte source's `reduced.start()` + `asked = true`.
+	// Under reduce they never arrive, so the rails fill by colour alone.
+	const reduced = useReducedMotion();
+	const [asked, setAsked] = useState(false);
+	useEffect(() => {
+		setAsked(true);
+	}, []);
+	const animate = asked && !reduced;
+
+	// Where the light set off from: the active index *before* the latest
+	// change. Steps read it to order the rail sweeps (and the arrival of the
+	// bullets behind them) as one continuous run from the old step to the new
+	// one, instead of every rail lighting in the same frame. It starts at 0 —
+	// not at `current` — so the first paint plays the same run from the first
+	// step, a one-time arrival over rails that are already filled.
+	//
+	// The Svelte source writes it from an `$effect.pre`, i.e. before the DOM
+	// update that shows the new index. The React counterpart is the "adjust
+	// state while rendering" pattern: when the index differs from the one last
+	// settled, the pair is updated during this render, React re-renders before
+	// committing, and no frame ever shows the new index with a stale origin.
+	const [run, setRun] = useState(() => ({ settled: activeIndex, origin: 0 }));
+	let origin = run.origin;
+	if (run.settled !== activeIndex) {
+		origin = run.settled;
+		setRun({ settled: activeIndex, origin: run.settled });
+	}
+
 	const playCue = useSoundCue(sound);
 
 	const select = useCallback(
@@ -130,11 +163,13 @@ export const Stepper = forwardRef<HTMLOListElement, StepperProps>(function Stepp
 			clickable,
 			current: activeIndex,
 			count: registered.length,
+			origin,
+			animate,
 			register,
 			indexOf,
 			select,
 		}),
-		[orientation, clickable, activeIndex, registered, register, indexOf, select]
+		[orientation, clickable, activeIndex, registered, origin, animate, register, indexOf, select]
 	);
 
 	return (
@@ -154,6 +189,7 @@ export const Stepper = forwardRef<HTMLOListElement, StepperProps>(function Stepp
 					className
 				)}
 				data-orientation={orientation}
+				data-motion={animate ? "full" : "reduced"}
 			>
 				{children}
 			</ol>
@@ -165,7 +201,7 @@ Stepper.displayName = "Stepper";
 
 /*
   No colocated stylesheet here: the root `<ol>` itself never paints the brand
-  purple — only a `Step`'s current bullet, halo, and done connector do — so
+  purple — only a `Step`'s current bullet, halo, and lit rail do — so
   `--ft-nav-accent` is declared in `step.css` instead, the same split a toggle
   group (no purple of its own) and its items (declaring their focus-ring accent
   locally) already use.

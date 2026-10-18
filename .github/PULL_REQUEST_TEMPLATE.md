@@ -22,8 +22,10 @@ Scope: component name or area — e.g. feat(border-beam): add colorFrom prop
 
 ## Checklist
 
-- [ ] Demo page exists at `src/routes/demo/<slug>/+page.svelte`
+- [ ] Docs examples under `src/lib/components/docs/examples/<slug>/` and listed in `examples/registry.ts`
 - [ ] Component exported from `src/lib/fancy-ui/index.ts`
+- [ ] Component `README.md` and registry entry describe every prop
+- [ ] React and Vue ports added or updated (`react/PORTING.md`, `vue/PORTING.md`) — `pnpm check:props` passes
 - [ ] All props are typed (no `any`)
 - [ ] Svelte 5 runes used (`$state`, `$derived`, `$effect`, `$props`)
 - [ ] `pnpm check` passes

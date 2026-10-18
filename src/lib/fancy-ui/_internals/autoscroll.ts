@@ -9,7 +9,11 @@
  * whatever the scrollbar says is the truth.
  */
 
-import type { ActionReturn } from "svelte/action";
+/** Structural stand-in for Svelte's `ActionReturn`, framework-free. */
+interface ActionReturn<Params> {
+	update?: (params: Params) => void;
+	destroy?: () => void;
+}
 
 export interface AutoscrollOptions {
 	/** Set to false to release the container and disconnect every listener. */

@@ -1,9 +1,17 @@
 /**
- * MosaicGlow core — pure math, no DOM.
+ * MosaicGlow core — the framework-free half of the component.
  *
- * Everything the canvas loop needs that can be unit-tested without a browser:
- * a seeded PRNG, per-tile grid state, the halo falloff curve, the fps-independent
- * heat step, ambient flicker, the colour LUT and the idle drift path.
+ * First the pure math, unit-testable without a browser: a seeded PRNG, per-tile
+ * grid state, the halo falloff curve, the fps-independent heat step, ambient
+ * flicker, the colour LUT and the idle drift path. Then `createMosaicGlow`, the
+ * engine that owns the canvas, the rAF loop and the pointer listeners. No
+ * framework imports, and nothing touches `window` or `document` at module scope,
+ * so the file is safe to import on the server.
+ *
+ * Compiles under `noUncheckedIndexedAccess`, which widens every indexed read
+ * to `| undefined`. The `!` assertions below are all in bounds by construction
+ * (the loops are driven by the array's own length, the regex groups are
+ * guaranteed by a successful match), so they change no behaviour.
  */
 
 export type Rgb = [number, number, number];
@@ -143,7 +151,7 @@ export function updateTiles(g: MosaicGrid, halo: Halo | null, dt: number, p: Ste
 
 	if (!halo || halo.r <= 0) {
 		for (let i = 0; i < heat.length; i++) {
-			const h = heat[i];
+			const h = heat[i]!;
 			if (h === 0) continue;
 			const next = h - h * kRelease;
 			heat[i] = next < 1e-4 ? 0 : next;
@@ -160,13 +168,13 @@ export function updateTiles(g: MosaicGrid, halo: Halo | null, dt: number, p: Ste
 			const i = r * cols + c;
 			const dx = c * p.pitch + half - halo.x;
 			const d2 = (dx * dx + dy2) * invR2;
-			const target = d2 >= 1 ? 0 : falloff(Math.sqrt(d2)) * weight[i];
-			const h = heat[i];
+			const target = d2 >= 1 ? 0 : falloff(Math.sqrt(d2)) * weight[i]!;
+			const h = heat[i]!;
 			const delta = target - h;
 			if (delta === 0) continue;
 			const next = h + delta * (delta > 0 ? kAttack : kRelease);
 			heat[i] = next < 1e-4 ? 0 : next;
-			const rem = Math.abs(target - heat[i]);
+			const rem = Math.abs(target - heat[i]!);
 			if (rem > maxDelta) maxDelta = rem;
 		}
 	}
@@ -186,7 +194,7 @@ export function flickerTiles(
 	const k = rate(dt, 0.4);
 	for (let i = 0; i < amb.length; i++) {
 		if (rng() < p) ambientTarget[i] = ambientLevel(rng(), ambient);
-		amb[i] += (ambientTarget[i] - amb[i]) * k;
+		amb[i] = amb[i]! + (ambientTarget[i]! - amb[i]!) * k;
 	}
 }
 
@@ -197,8 +205,8 @@ export function parseRgb(input: string): Rgb | null {
 	const s = input.trim();
 	const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(s);
 	if (hex) {
-		let h = hex[1];
-		if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+		let h = hex[1]!;
+		if (h.length === 3) h = h[0]! + h[0]! + h[1]! + h[1]! + h[2]! + h[2]!;
 		const n = Number.parseInt(h, 16);
 		return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 	}
@@ -281,4 +289,515 @@ export function smoothingTau(smoothing: number): number {
 export function clamp01(v: number): number {
 	if (!Number.isFinite(v)) return 0;
 	return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+// --- engine ------------------------------------------------------------------
+//
+// The browser half of the effect: canvas contexts, the rAF loop, the cached
+// glass layer and the pointer listeners. Framework-free on purpose — a wrapper
+// owns markup, a11y, the reduced-motion query and the observers, and feeds this
+// engine through `setOptions` / `resize` / `destroy`.
+
+/** What the halo does with no pointer: wander on its own or switch off. */
+export type MosaicGlowIdle = "drift" | "none";
+
+/** Wait after the pointer leaves before the idle drift takes over (ms). */
+export const IDLE_DELAY_MS = 1500;
+/** Ambient-only frames are drawn at most this often (ms). */
+export const AMBIENT_FRAME_MS = 50;
+/** Chance per second that a tile re-rolls its resting level. */
+export const FLICKER_CHANCE = 0.15;
+/** Steps in the tile colour ramp. */
+export const LUT_SIZE = 64;
+
+/** `tileSize` → tile edge in CSS px. */
+export function normalizeTileSize(v: number): number {
+	return Math.max(1, Number.isFinite(v) ? v : 18);
+}
+
+/** `gap` → gap between tiles in CSS px. */
+export function normalizeGap(v: number): number {
+	return Math.max(0, Number.isFinite(v) ? v : 2);
+}
+
+/** `radius` → halo radius in CSS px. */
+export function normalizeRadius(v: number): number {
+	return Math.max(1, Number.isFinite(v) ? v : 170);
+}
+
+export interface MosaicGlowElements {
+	/** Positioned host: measured for the backing store, and the pointer surface. */
+	host: HTMLElement;
+	/** Canvas the mosaic is painted on. The engine owns its width/height. */
+	canvas: HTMLCanvasElement;
+}
+
+/**
+ * Mount-only options. MosaicGlow has none — every prop the wrapper passes is
+ * reacted to after mount — so the split is recorded here as "nothing is frozen".
+ */
+export type MosaicGlowInitOptions = Record<never, never>;
+
+/**
+ * Options the engine reacts to after mount. `setOptions` acts on the keys that
+ * are present (an absent or `undefined` key is left alone), grouped by concern
+ * exactly as the wrapper's effects are:
+ * structural (`tileSize`, `gap`, `seed`, `noise`, `ambient`) rebuilds the grid,
+ * colour (`color`, `background`) drops the ramp cache, visual (`idle`,
+ * `flicker`, `radius`, `intensity`) repaints, `reducedMotion` swaps the loop for
+ * a single static frame, `interactive` attaches or detaches the pointer
+ * listeners, `visible` pauses and resumes the loop. `trail` and `smoothing` are
+ * read by the next frame and schedule nothing.
+ */
+export interface MosaicGlowLiveOptions {
+	/** Tile edge in CSS px. */
+	tileSize?: number;
+	/** Gap between tiles in CSS px. */
+	gap?: number;
+	/** Halo / tile colour — hex or rgb(). */
+	color?: string;
+	/** Surface colour behind the tiles — hex or rgb(). */
+	background?: string;
+	/** Halo radius in CSS px. */
+	radius?: number;
+	/** Overall brightness of lit tiles, 0–1. */
+	intensity?: number;
+	/** How long lit tiles linger after the halo moves on, 0–1. */
+	trail?: number;
+	/** Pointer lag, 0 (instant) to 1 (very laggy). */
+	smoothing?: number;
+	/** Spread of per-tile random brightness inside the halo, 0–1. */
+	noise?: number;
+	/** Visibility of the random faint tiles outside the halo, 0–1. */
+	ambient?: number;
+	/** Slowly re-roll the faint tiles over time. */
+	flicker?: boolean;
+	/** What the halo does with no pointer. */
+	idle?: MosaicGlowIdle;
+	/** Follow the pointer. Off leaves only the idle behaviour. */
+	interactive?: boolean;
+	/** Seed for the per-tile randomness — same seed, same mosaic. */
+	seed?: number;
+	/** The wrapper's `prefers-reduced-motion` gate: no loop, one settled frame. */
+	reducedMotion?: boolean;
+	/** The wrapper's visibility gate: false parks the loop. */
+	visible?: boolean;
+}
+
+export interface MosaicGlowEngine {
+	setOptions(next: Partial<MosaicGlowLiveOptions>): void;
+	/** Re-measure the host; rebuilds only when the box or the pixel ratio moved. */
+	resize(): void;
+	destroy(): void;
+}
+
+/**
+ * Drive a MosaicGlow canvas. Returns null when no 2D context is available
+ * (server, jsdom without a stub, a browser that refuses the context) — the
+ * caller then simply renders an inert canvas.
+ *
+ * `random` feeds the ambient flicker only; the per-tile field is seeded through
+ * the `seed` option and stays deterministic.
+ */
+export function createMosaicGlow(
+	el: MosaicGlowElements,
+	options: MosaicGlowInitOptions & MosaicGlowLiveOptions = {},
+	random: () => number = Math.random
+): MosaicGlowEngine | null {
+	const host = el.host;
+	const canvas = el.canvas;
+	if (!host || !canvas) return null;
+	let ctx: CanvasRenderingContext2D | null = canvas.getContext("2d");
+	if (!ctx) return null;
+
+	// --- options ---------------------------------------------------------------
+
+	let tile = normalizeTileSize(options.tileSize ?? 18);
+	let gap = normalizeGap(options.gap ?? 2);
+	let color = options.color ?? "#f2c318";
+	let background = options.background ?? "#0a0a0a";
+	let radius = normalizeRadius(options.radius ?? 170);
+	let intensity = clamp01(options.intensity ?? 1);
+	let trail = clamp01(options.trail ?? 0.6);
+	let smoothing = clamp01(options.smoothing ?? 0.15);
+	let noise = clamp01(options.noise ?? 0.7);
+	let ambient = clamp01(options.ambient ?? 0.35);
+	let flicker = options.flicker ?? true;
+	let idle: MosaicGlowIdle = options.idle ?? "drift";
+	let interactive = options.interactive ?? true;
+	let seed = options.seed ?? 1;
+	let reducedMotion = options.reducedMotion ?? false;
+	let visible = options.visible ?? true;
+
+	// --- frame state (touched every frame, never rendered) ---------------------
+
+	let glassLayer: HTMLCanvasElement | null = null;
+	let grid: MosaicGrid | null = null;
+	let lut: string[] | null = null;
+	let dpr = 1;
+	let cssW = 0;
+	let cssH = 0;
+	let w = 0;
+	let h = 0;
+	let pitchDev = 20;
+	let tileDev = 18;
+
+	let px = 0;
+	let py = 0;
+	let pointerOver = false;
+	let sx = 0;
+	let sy = 0;
+	let sInit = false;
+	let haloFade = 0;
+	let driftT = 0;
+	let lastLeaveAt = -1;
+
+	let rafId: number | null = null;
+	let lastTime = 0;
+	let lastDraw = 0;
+	/** Something structural changed (size, grid, colours): the next frame must paint. */
+	let dirty = true;
+	let destroyed = false;
+	let pointerAttached = false;
+
+	// --- setup -----------------------------------------------------------------
+
+	/** Backing-store scale, capped so dense displays do not blow up the fill rate. */
+	function currentDpr(): number {
+		return Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+	}
+
+	/** Unconditional rebuild: backing store, grid, glass layer, first paint. */
+	function applyResize(): void {
+		if (!ctx) return;
+		cssW = host.clientWidth;
+		cssH = host.clientHeight;
+		dpr = currentDpr();
+		w = Math.max(1, Math.round(cssW * dpr));
+		h = Math.max(1, Math.round(cssH * dpr));
+		canvas.width = w;
+		canvas.height = h;
+		tileDev = Math.max(1, Math.round(tile * dpr));
+		pitchDev = Math.max(tileDev, Math.round((tile + gap) * dpr));
+		const cols = Math.ceil(w / pitchDev);
+		const rows = Math.ceil(h / pitchDev);
+		grid = createGrid(cols, rows, seed, noise, ambient);
+		rebuildGlass(cols, rows);
+		dirty = true;
+		if (reducedMotion) drawStatic(initialHalo());
+		else requestFrame();
+	}
+
+	/** One cached full-size layer with a glassy highlight stamped on every tile. */
+	function rebuildGlass(cols: number, rows: number): void {
+		glassLayer = null;
+		if (typeof document === "undefined") return;
+		const sprite = document.createElement("canvas");
+		sprite.width = tileDev;
+		sprite.height = tileDev;
+		const sctx = sprite.getContext("2d");
+		if (!sctx) return;
+		const grad = sctx.createRadialGradient(
+			tileDev * 0.35,
+			tileDev * 0.3,
+			0,
+			tileDev * 0.5,
+			tileDev * 0.5,
+			tileDev * 0.7
+		);
+		grad.addColorStop(0, "rgba(255, 255, 255, 0.22)");
+		grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+		sctx.fillStyle = grad;
+		sctx.fillRect(0, 0, tileDev, tileDev);
+
+		const layer = document.createElement("canvas");
+		layer.width = w;
+		layer.height = h;
+		const lctx = layer.getContext("2d");
+		if (!lctx) return;
+		for (let r = 0; r < rows; r++) {
+			for (let c = 0; c < cols; c++) {
+				lctx.drawImage(sprite, c * pitchDev, r * pitchDev);
+			}
+		}
+		glassLayer = layer;
+	}
+
+	function ensureLut(): string[] {
+		if (!lut) lut = buildLut(background, color, LUT_SIZE);
+		return lut;
+	}
+
+	function initialHalo(): Halo | null {
+		if (idle !== "drift") return null;
+		const p = driftPoint(0, w, h);
+		return { x: p.x, y: p.y, r: radius * dpr };
+	}
+
+	// --- loop ------------------------------------------------------------------
+
+	function requestFrame(): void {
+		if (rafId !== null || !visible || reducedMotion || !ctx) return;
+		if (typeof requestAnimationFrame !== "function") return;
+		lastTime = 0;
+		rafId = requestAnimationFrame(tick);
+	}
+
+	function stopLoop(): void {
+		if (rafId !== null && typeof cancelAnimationFrame === "function") cancelAnimationFrame(rafId);
+		rafId = null;
+	}
+
+	function tick(now: number): void {
+		rafId = null;
+		if (!ctx || !grid) return;
+
+		const dt = lastTime === 0 ? 1 / 60 : Math.min(0.1, Math.max(0, (now - lastTime) / 1000));
+		lastTime = now;
+
+		const drifting =
+			idle === "drift" && !pointerOver && (lastLeaveAt < 0 || now - lastLeaveAt > IDLE_DELAY_MS);
+		let tx = 0;
+		let ty = 0;
+		let hasTarget = false;
+		if (pointerOver) {
+			tx = px;
+			ty = py;
+			hasTarget = true;
+		} else if (drifting) {
+			driftT += dt;
+			const p = driftPoint(driftT, w, h);
+			tx = p.x;
+			ty = p.y;
+			hasTarget = true;
+		}
+
+		if (hasTarget) {
+			if (!sInit) {
+				sx = tx;
+				sy = ty;
+				sInit = true;
+			} else {
+				const tau = drifting ? Math.max(smoothingTau(smoothing), 0.35) : smoothingTau(smoothing);
+				const k = rate(dt, tau);
+				sx += (tx - sx) * k;
+				sy += (ty - sy) * k;
+			}
+		}
+
+		const rel = releaseTau(trail);
+		const fadeTarget = hasTarget ? 1 : 0;
+		haloFade += (fadeTarget - haloFade) * rate(dt, fadeTarget > haloFade ? ATTACK_TAU : rel);
+		if (haloFade < 0.005) haloFade = 0;
+
+		const halo: Halo | null = hasTarget ? { x: sx, y: sy, r: radius * dpr } : null;
+		const maxDelta = updateTiles(grid, halo, dt, {
+			pitch: pitchDev,
+			tile: tileDev,
+			attackTau: ATTACK_TAU,
+			releaseTau: rel,
+		});
+		if (flicker) flickerTiles(grid, dt, FLICKER_CHANCE, ambient, random);
+
+		const active = hasTarget || maxDelta > 0.002 || haloFade > 0;
+		if (active || dirty || now - lastDraw >= AMBIENT_FRAME_MS) {
+			draw(halo);
+			lastDraw = now;
+			dirty = false;
+		}
+
+		const keepGoing = active || flicker || (idle === "drift" && !pointerOver);
+		if (keepGoing && visible && typeof requestAnimationFrame === "function") {
+			rafId = requestAnimationFrame(tick);
+		}
+	}
+
+	/** Reduced motion: no loop — settle the field instantly and paint once. */
+	function drawStatic(halo: Halo | null): void {
+		if (!ctx || !grid) return;
+		updateTiles(grid, halo, 1, { pitch: pitchDev, tile: tileDev, attackTau: 0, releaseTau: 0 });
+		haloFade = halo ? 1 : 0;
+		if (halo) {
+			sx = halo.x;
+			sy = halo.y;
+		}
+		draw(halo);
+	}
+
+	function draw(halo: Halo | null): void {
+		const c = ctx;
+		const g = grid;
+		if (!c || !g) return;
+		const table = ensureLut();
+		const { cols, rows, ambient: amb, heat } = g;
+
+		c.globalCompositeOperation = "source-over";
+		c.fillStyle = background;
+		c.fillRect(0, 0, w, h);
+
+		let current = -1;
+		for (let r = 0; r < rows; r++) {
+			const y = r * pitchDev;
+			for (let col = 0; col < cols; col++) {
+				const i = r * cols + col;
+				// In bounds by construction: the loops are driven by the grid's own dimensions,
+				// and `lutIndex` clamps into [0, size - 1].
+				const idx = lutIndex(amb[i]!, heat[i]!, intensity, LUT_SIZE);
+				if (idx !== current) {
+					c.fillStyle = table[idx]!;
+					current = idx;
+				}
+				c.fillRect(col * pitchDev, y, tileDev, tileDev);
+			}
+		}
+
+		if (glassLayer) {
+			c.globalCompositeOperation = "soft-light";
+			c.drawImage(glassLayer, 0, 0);
+		}
+
+		if (haloFade > 0) {
+			const rgb = parseRgb(color) ?? DEFAULT_COLOR;
+			const r = (halo ? halo.r : radius * dpr) * 1.15;
+			const a = intensity * haloFade;
+			const grad = c.createRadialGradient(sx, sy, 0, sx, sy, r);
+			grad.addColorStop(0, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${(0.2 * a).toFixed(3)})`);
+			grad.addColorStop(0.45, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${(0.07 * a).toFixed(3)})`);
+			grad.addColorStop(1, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0)`);
+			c.globalCompositeOperation = "lighter";
+			c.fillStyle = grad;
+			c.fillRect(sx - r, sy - r, r * 2, r * 2);
+		}
+
+		c.globalCompositeOperation = "source-over";
+	}
+
+	// --- pointer ---------------------------------------------------------------
+
+	function onMove(e: PointerEvent): void {
+		const rect = host.getBoundingClientRect();
+		px = (e.clientX - rect.left) * dpr;
+		py = (e.clientY - rect.top) * dpr;
+		pointerOver = true;
+		if (reducedMotion) drawStatic({ x: px, y: py, r: radius * dpr });
+		else requestFrame();
+	}
+
+	function onLeave(): void {
+		pointerOver = false;
+		lastLeaveAt = typeof performance !== "undefined" ? performance.now() : Date.now();
+		if (reducedMotion) drawStatic(initialHalo());
+		else requestFrame();
+	}
+
+	function syncPointer(): void {
+		const want = interactive && !destroyed;
+		if (want === pointerAttached) return;
+		if (want) {
+			host.addEventListener("pointermove", onMove, { passive: true });
+			host.addEventListener("pointerleave", onLeave);
+			host.addEventListener("pointercancel", onLeave);
+		} else {
+			host.removeEventListener("pointermove", onMove);
+			host.removeEventListener("pointerleave", onLeave);
+			host.removeEventListener("pointercancel", onLeave);
+			pointerOver = false;
+		}
+		pointerAttached = want;
+	}
+
+	// --- public surface --------------------------------------------------------
+
+	function setOptions(next: Partial<MosaicGlowLiveOptions>): void {
+		if (destroyed) return;
+		const structural =
+			next.tileSize !== undefined ||
+			next.gap !== undefined ||
+			next.seed !== undefined ||
+			next.noise !== undefined ||
+			next.ambient !== undefined;
+		const colour = next.color !== undefined || next.background !== undefined;
+		const visual =
+			next.idle !== undefined ||
+			next.flicker !== undefined ||
+			next.radius !== undefined ||
+			next.intensity !== undefined;
+		const motion = next.reducedMotion !== undefined;
+		const pointer = next.interactive !== undefined;
+		const visibility = next.visible !== undefined;
+
+		if (next.tileSize !== undefined) tile = normalizeTileSize(next.tileSize);
+		if (next.gap !== undefined) gap = normalizeGap(next.gap);
+		if (next.seed !== undefined) seed = next.seed;
+		if (next.noise !== undefined) noise = clamp01(next.noise);
+		if (next.ambient !== undefined) ambient = clamp01(next.ambient);
+		if (next.color !== undefined) color = next.color;
+		if (next.background !== undefined) background = next.background;
+		if (next.radius !== undefined) radius = normalizeRadius(next.radius);
+		if (next.intensity !== undefined) intensity = clamp01(next.intensity);
+		if (next.trail !== undefined) trail = clamp01(next.trail);
+		if (next.smoothing !== undefined) smoothing = clamp01(next.smoothing);
+		if (next.flicker !== undefined) flicker = next.flicker;
+		if (next.idle !== undefined) idle = next.idle;
+		if (next.interactive !== undefined) interactive = next.interactive;
+		if (next.reducedMotion !== undefined) reducedMotion = next.reducedMotion;
+		if (next.visible !== undefined) visible = next.visible;
+
+		if (pointer) syncPointer();
+
+		// Structural props rebuild the grid (heat resets — acceptable, it is structural).
+		if (structural) applyResize();
+
+		if (colour) {
+			lut = null;
+			dirty = true;
+			if (reducedMotion) drawStatic(haloFade > 0 ? { x: sx, y: sy, r: radius * dpr } : null);
+			else requestFrame();
+		}
+
+		// Loop- and paint-affecting props: restart a stopped loop, repaint a static frame.
+		if (visual) {
+			dirty = true;
+			if (reducedMotion)
+				drawStatic(pointerOver ? { x: sx, y: sy, r: radius * dpr } : initialHalo());
+			else requestFrame();
+		}
+
+		if (motion) {
+			if (reducedMotion) {
+				stopLoop();
+				drawStatic(initialHalo());
+			} else {
+				requestFrame();
+			}
+		}
+
+		if (visibility) {
+			if (visible) requestFrame();
+			else stopLoop();
+		}
+	}
+
+	function resize(): void {
+		if (destroyed || !ctx) return;
+		// Zoom and display moves can change the pixel ratio at a constant CSS size.
+		if (host.clientWidth === cssW && host.clientHeight === cssH && currentDpr() === dpr) return;
+		applyResize();
+	}
+
+	function destroy(): void {
+		if (destroyed) return;
+		destroyed = true;
+		stopLoop();
+		syncPointer();
+		ctx = null;
+		grid = null;
+		glassLayer = null;
+		lut = null;
+	}
+
+	applyResize();
+	syncPointer();
+
+	return { setOptions, resize, destroy };
 }
