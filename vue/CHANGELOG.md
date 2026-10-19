@@ -1,5 +1,11 @@
 # fancy-ui-vue
 
+## 0.1.1
+
+### Patch Changes
+
+- 1739286: README rewritten on the same plan as the Svelte package: features, quick start, setup (Tailwind tokens, dark mode, server rendering, package shape, compatibility), agent docs, development, project structure and contributing, with the divergences list unchanged.
+
 ## 0.1.0
 
 ### Minor Changes
