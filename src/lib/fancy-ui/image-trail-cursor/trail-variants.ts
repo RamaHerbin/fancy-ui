@@ -686,7 +686,7 @@ export class ImageTrailVariant5 extends BaseVariant {
 // =============================================================================
 
 export class ImageTrailVariant6 extends BaseVariant {
-	protected updateCache() {
+	protected override updateCache() {
 		this.cacheMousePos.x = lerp(this.cacheMousePos.x, this.mousePos.x, 0.3);
 		this.cacheMousePos.y = lerp(this.cacheMousePos.y, this.mousePos.y, 0.3);
 	}
@@ -793,7 +793,7 @@ export class ImageTrailVariant7 extends BaseVariant {
 		this.visibleImagesTotal = Math.min(this.visibleImagesTotal, this.imagesTotal - 1);
 	}
 
-	protected updateCache() {
+	protected override updateCache() {
 		this.cacheMousePos.x = lerp(this.cacheMousePos.x, this.mousePos.x, 0.3);
 		this.cacheMousePos.y = lerp(this.cacheMousePos.y, this.mousePos.y, 0.3);
 	}
@@ -1374,7 +1374,7 @@ export class ImageTrailVariantReveal extends BaseVariant {
 		tl.set(img.DOM.el, { opacity: 0 });
 	}
 
-	destroy() {
+	override destroy() {
 		for (const img of this.images) {
 			const frags = img.DOM.el.querySelectorAll(`.${FRAG_CLASS}`);
 			gsap.killTweensOf([...frags]);

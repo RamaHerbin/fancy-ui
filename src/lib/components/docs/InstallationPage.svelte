@@ -31,6 +31,7 @@
 			package: "fancy-ui-vue",
 			importLine: "import { RainbowButton } from 'fancy-ui-vue';",
 			installLine: "pnpm add fancy-ui-vue",
+			copyLine: copyCommandFor("rainbow-button", "vue"),
 			note: null,
 			availability: "available",
 		},

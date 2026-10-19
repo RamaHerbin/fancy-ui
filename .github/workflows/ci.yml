@@ -54,7 +54,7 @@ jobs:
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
-      # The prerendered source registries (React /r/*.json, Svelte /r/svelte/*.json): closed imports, no test files, no product names.
+      # The prerendered source registries (React /r/*.json, Svelte /r/svelte/*.json, Vue /r/vue/*.json): closed imports, no test files, no product names.
       - run: pnpm check:registry-items
       - run: pnpm package
 

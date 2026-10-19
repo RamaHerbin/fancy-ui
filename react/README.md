@@ -124,7 +124,7 @@ Six shared items are pulled in automatically as needed: `utils`, `internals`, `i
 import { RainbowButton } from "@/components/ui/fancy/components/rainbow-button";
 ```
 
-Each component imports its own CSS, so the `fancy-ui-react` imports from [Quick Start](#quick-start) are not needed; the components still expect the semantic colour tokens listed under [Setup](#setup), which a project set up by the same CLI already defines.
+Each component imports its own CSS, so the `fancy-ui-react` imports from [Quick Start](#quick-start) are not needed; the components still expect the semantic colour tokens listed under [Setup](#setup), which a project set up by the same CLI already defines. Dark mode: the components' `light-dark()` colours follow `color-scheme`, which that setup does not declare, so add `:root { color-scheme: light dark } .dark { color-scheme: dark }` to your CSS for them to switch with the `dark` class.
 
 ## Setup
 
