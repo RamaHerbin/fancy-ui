@@ -53,7 +53,11 @@ export interface BuildInput {
 	siteUrl: string;
 	/** names of server modules (relative to react/src, .js extension as in client-boundary) */
 	serverModules: ReadonlySet<string>;
-	/** when true, strip the ".js" extension from relative import specifiers (Gate C decision; default false) */
+	/**
+	 * Strip the ".js" extension from relative import specifiers. Off by default
+	 * in the pure function; the site turns it on (see sources.ts) because the
+	 * Next bundlers do not map "./X.js" to X.tsx.
+	 */
 	stripJsExtension?: boolean;
 }
 

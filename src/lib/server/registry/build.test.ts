@@ -306,6 +306,21 @@ describe("buildRegistry on fixtures", () => {
 				"components/alpha/AlphaHarness.tsx": "export const h = 1;\n",
 			})
 		).toThrow(/excluded/);
+		expect(() =>
+			build({
+				"components/alpha/Alpha.tsx": 'import { t } from "./Alpha.test.js";\n',
+				"components/alpha/Alpha.test.tsx": "export const t = 1;\n",
+			})
+		).toThrow(/excluded/);
+	});
+
+	it("throws when a kept file imports a file outside every item", () => {
+		expect(() =>
+			build({
+				"components/alpha/Alpha.tsx": 'import { s } from "../../cameleon/context.js";\n',
+				"cameleon/context.ts": "export const s = 1;\n",
+			})
+		).toThrow(/react\/src\/cameleon\/context\.ts\), which belongs to no registry item/);
 	});
 
 	it("throws when a component folder has no metadata", () => {
@@ -349,6 +364,33 @@ describe("buildRegistry on the real react/src tree", () => {
 		),
 	});
 	const base = "https://fancy-ui.rama.app/r";
+
+	it('leaves no relative ".js" specifier once stripJsExtension is on (the site\'s setting)', () => {
+		const stripped = buildRegistry({
+			files,
+			meta: metaInput,
+			siteUrl: "https://fancy-ui.rama.app",
+			serverModules: serverModulesFrom(
+				readFileSync(resolve(process.cwd(), "react/scripts/client-boundary.mjs"), "utf8")
+			),
+			stripJsExtension: true,
+		});
+		const offenders: string[] = [];
+		for (const item of Object.values(stripped.items)) {
+			for (const file of item.files) {
+				for (const spec of relativeSpecifiers(file.content ?? "")) {
+					if (spec.endsWith(".js")) offenders.push(`${file.path}: ${spec}`);
+				}
+			}
+		}
+		expect(offenders).toEqual([]);
+		// CSS side-effect imports are untouched.
+		const rb = stripped.items["rainbow-button"].files.find((f) =>
+			f.path.endsWith("RainbowButton.tsx")
+		);
+		expect(rb?.content).toContain('import "./rainbow-button.css";');
+		expect(rb?.content).toContain('from "../../utils"');
+	});
 
 	it("emits 151 items (145 components + 6 shared)", () => {
 		expect(Object.keys(out.items)).toHaveLength(151);

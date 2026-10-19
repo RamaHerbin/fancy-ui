@@ -204,7 +204,10 @@ Package is ESM only, with four entry points: \`fancy-ui-react\`,
 
 Prefer the package. To own the source instead, every component is also a
 registry item: \`${copyCommandFor("<slug>")}\` (the index is at
-${REGISTRY_BASE}/registry.json).`;
+${REGISTRY_BASE}/registry.json). The files land in \`fancy/\` under the project's
+\`ui\` alias; import from there (\`@/components/ui/fancy/components/<slug>\`), not
+from \`fancy-ui-react\`, and skip \`fancy-ui-react/styles.css\` (each component
+imports its own CSS).`;
 
 const VUE_GUIDE = `## Vue
 

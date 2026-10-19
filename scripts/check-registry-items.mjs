@@ -43,7 +43,21 @@ const TARGET_PREFIX = "@ui/fancy/";
 const PATH_PREFIX = "react/src/";
 
 /** Product names that must never reach a consumer's codebase. */
-const BRAND_WORDS = [/shadcn/i, /aceternity/i, /magic[\s_-]?ui/i, /\binspira\b/i, /daisy/i];
+/** Third-party product names, each with a sample the self-test plants. */
+const BRAND_WORDS = [
+	[/shadcn/i, "shadcn"],
+	[/aceternity/i, "aceternity"],
+	[/magic[\s_-]?ui/i, "magic ui"],
+	[/\binspira\b/i, "inspira"],
+	[/daisy/i, "daisy"],
+	[/vengen?ce[\s_-]?ui/i, "vengence ui"],
+	[/pixel[\s_-]?perfect/i, "pixel perfect"],
+	[/assistant[\s_-]?ui/i, "assistant ui"],
+	[/codrops|tympanus/i, "codrops"],
+	[/\b21st\b/i, "21st"],
+	[/hover\.dev/i, "hover.dev"],
+	[/uiverse/i, "uiverse"],
+];
 
 /** Files that belong to the package's own test rig, never to an item. */
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
@@ -109,16 +123,43 @@ function reactAllDependencies() {
  * Credit URLs that may appear in shipped source: documentation of an npm
  * package the item itself installs. A technical reference, not a design credit.
  */
-const CREDIT_URL_ALLOWED = new Set(["https://chenglou.me/pretext/editorial-engine/"]);
+/**
+ * Credit URLs one item may keep: an "inspired by" note pointing at the demo
+ * page of the npm package that very item installs. Keyed by URL → item name.
+ */
+const CREDIT_URL_ALLOWED = new Map([
+	["https://chenglou.me/pretext/editorial-engine/", "editorial-engine"],
+]);
+/** Credit hosts that also host ordinary code and docs; matched by full URL only. */
+const CREDIT_HOSTS_IGNORED = new Set(["github.com", "chenglou.me"]);
+
+/** Hostnames of every credit URL, minus the ones that host ordinary code. */
+function creditHosts(urls) {
+	const hosts = new Set();
+	for (const url of urls) {
+		try {
+			const host = new URL(url).hostname.replace(/^www\./, "");
+			if (!CREDIT_HOSTS_IGNORED.has(host)) hosts.add(host);
+		} catch {
+			/* not a URL */
+		}
+	}
+	return hosts;
+}
 
 // --- detectors ---------------------------------------------------------------
 
-/** Relative specifiers of a module: static/dynamic imports, re-exports, side-effect imports. */
+/**
+ * Relative specifiers of a module: static/dynamic imports, re-exports,
+ * side-effect imports. Statements are matched at the start of a line (the
+ * shape the formatter guarantees), so a doc comment that quotes an import
+ * behind `//` or `*` never counts — same rule as the generator's graph.ts.
+ */
 export function relativeSpecifiers(code) {
 	const out = new Set();
 	const patterns = [
-		/\bfrom\s*["'](\.{1,2}\/[^"']+)["']/g,
-		/\bimport\s*["'](\.{1,2}\/[^"']+)["']/g,
+		/^[\t ]*(?:import|export)\b[^;]*?\bfrom\s*["'](\.{1,2}\/[^"']+)["']/gm,
+		/^[\t ]*import\s*["'](\.{1,2}\/[^"']+)["']/gm,
 		/\bimport\s*\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)/g,
 	];
 	for (const re of patterns) for (const m of code.matchAll(re)) out.add(m[1]);
@@ -249,14 +290,25 @@ export function findProblems(snap) {
 				if (re.test(content)) problems.push(`${where}: ${file.path} mentions ${re.source}`);
 			}
 			for (const url of snap.creditUrls) {
-				if (CREDIT_URL_ALLOWED.has(url)) continue;
+				if (CREDIT_URL_ALLOWED.get(url) === stem) continue;
 				if (content.includes(url)) problems.push(`${where}: ${file.path} mentions credit ${url}`);
+			}
+			for (const host of creditHosts(snap.creditUrls)) {
+				if (content.includes(host))
+					problems.push(`${where}: ${file.path} mentions credit host ${host}`);
+			}
+			for (const spec of relativeSpecifiers(content)) {
+				if (/\.(m?js|jsx)$/.test(spec)) {
+					problems.push(
+						`${where}: ${file.path} imports ${spec} (".js" specifiers do not resolve in Next)`
+					);
+				}
 			}
 		}
 
 		const { $schema: _schema, ...branded } = item;
 		const text = JSON.stringify(branded);
-		for (const re of BRAND_WORDS) {
+		for (const [re] of BRAND_WORDS) {
 			if (re.test(text)) problems.push(`${where}: product name matching ${re.source}`);
 		}
 
@@ -281,7 +333,7 @@ export function findProblems(snap) {
 		depNames.set(stem, names);
 	}
 
-	for (const re of BRAND_WORDS) {
+	for (const [re] of BRAND_WORDS) {
 		const { $schema: _schema, items: _items, ...head } = index;
 		if (re.test(JSON.stringify(head))) problems.push(`registry.json: product name ${re.source}`);
 	}
@@ -376,7 +428,7 @@ function selfTest() {
 				files: [
 					file(
 						"components/button/Button.tsx",
-						'"use client";\n\nimport { cn } from "../../utils.js";\nimport "./button.css";\nimport type { P } from "./types.js";\n'
+						'"use client";\n\nimport { cn } from "../../utils";\nimport "./button.css";\nimport type { P } from "./types";\n'
 					),
 					file("components/button/types.ts", "export type P = {};\n"),
 					file("components/button/button.css", ".b{}\n"),
@@ -407,6 +459,42 @@ function selfTest() {
 	const bad = [
 		["clean fixture passes", () => {}, null],
 		["file on disk missing from index", (s) => s.index.items.pop(), "file, not in index"],
+		["index entry with no file on disk", (s) => delete s.items.button, "button: in index, no file"],
+		["duplicate index names", (s) => s.index.items.push(s.index.items[0]), "duplicate item names"],
+		[
+			"wrong index $schema",
+			(s) => (s.index.$schema = "https://x.test/s.json"),
+			"registry.json: $schema",
+		],
+		["index missing homepage", (s) => delete s.index.homepage, "registry.json: missing homepage"],
+		["index items not an array", (s) => (s.index.items = {}), "items is not an array"],
+		["product name in index head", (s) => (s.index.name = "daisy"), "registry.json: product name"],
+		["item name differs from file", (s) => (s.items.button.name = "knob"), 'name is "knob"'],
+		["item without files", (s) => (s.items.utils.files = []), "utils.json: no files"],
+		["file missing target", (s) => delete s.items.utils.files[0].target, "missing target"],
+		[
+			"target outside the prefix",
+			(s) => {
+				s.items.utils.files[0].target = "@ui/other/utils.ts";
+				s.items.utils.files[0].path = "react/src/utils.ts";
+			},
+			"outside @ui/fancy/",
+		],
+		[
+			"harness shipped",
+			(s) => s.items.button.files.push(file("components/button/ButtonHarness.tsx", "")),
+			"excluded file shipped",
+		],
+		[
+			"README shipped",
+			(s) => s.items.button.files.push(file("components/button/README.md", "")),
+			"excluded file shipped",
+		],
+		[
+			"builder path in content",
+			(s) => (s.items.utils.files[0].content += "// see src/lib/builder/x\n"),
+			"mentions src\\/lib\\/builder",
+		],
 		["content in index", (s) => (s.index.items[0].files[0].content = "x"), "carries file content"],
 		["index entry drifts from item", (s) => (s.index.items[1].title = "Other"), "differs from"],
 		["missing required field", (s) => delete s.items.button.description, "missing description"],
@@ -423,13 +511,13 @@ function selfTest() {
 		],
 		[
 			"unresolved relative import",
-			(s) => (s.items.button.files[0].content += 'import { x } from "../other/x.js";\n'),
-			"imports ../other/x.js",
+			(s) => (s.items.button.files[0].content += 'import { x } from "../other/x";\n'),
+			"imports ../other/x",
 		],
 		[
 			"import satisfied only by an undeclared dep",
 			(s) => (s.items.button.registryDependencies = []),
-			"imports ../../utils.js",
+			"imports ../../utils",
 		],
 		[
 			"transitive dependency not listed",
@@ -458,13 +546,23 @@ function selfTest() {
 			"mentions src\\/lib\\/server",
 		],
 		[
+			"credit host in content",
+			(s) => (s.items.utils.files[0].content += "// see credits.example.test for the idea\n"),
+			"mentions credit host",
+		],
+		[
+			'".js" relative specifier',
+			(s) => (s.items.utils.files[0].content += 'import { x } from "./x.js";\n'),
+			"specifiers do not resolve",
+		],
+		[
 			"credit URL in content",
 			(s) => (s.items.utils.files[0].content += "// https://credits.example.test/thing\n"),
 			"mentions credit",
 		],
-		...BRAND_WORDS.map((re) => [
+		...BRAND_WORDS.map(([re, sample]) => [
 			`product name ${re.source}`,
-			(s) => (s.items.button.description = `Like ${re.source.replace(/\\b|\[.*\]\?/g, " ")}.`),
+			(s) => (s.items.button.description = `Like ${sample}.`),
 			"product name",
 		]),
 		[
@@ -535,4 +633,4 @@ function main() {
 	);
 }
 
-main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

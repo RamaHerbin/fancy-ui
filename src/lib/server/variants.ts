@@ -24,7 +24,7 @@ import {
 	VUE_PACKAGE_URL,
 } from "$lib/site.js";
 import { reactExportsBySlug, svelteExportsBySlug, vueExportsBySlug } from "./barrels.js";
-import { copyCommandFor } from "./registry/constants.js";
+import { copyCommandFor, copyImportFor } from "./registry/constants.js";
 
 export type Availability =
 	/** On npm, importable today. */
@@ -45,6 +45,8 @@ export interface FrameworkVariant {
 	installLine: string | null;
 	/** One-line command that copies the component source into a project, or null when not offered. */
 	copyLine: string | null;
+	/** The import to write after copying (path under the project's ui alias), or null. */
+	copyImportLine: string | null;
 	/** Where to read the API for this framework. */
 	docsUrl: string;
 	/** Where the port's source lives. */
@@ -108,6 +110,7 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 			importLine: null,
 			installLine: null,
 			copyLine: null,
+			copyImportLine: null,
 			docsUrl,
 			sourceUrl: pkg.source,
 			packageUrl: pkg.url,
@@ -124,6 +127,7 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 			importLine,
 			installLine: null,
 			copyLine: null,
+			copyImportLine: null,
 			docsUrl,
 			sourceUrl,
 			packageUrl: pkg.url,
@@ -138,6 +142,7 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 		importLine,
 		installLine: `pnpm add ${pkg.name}`,
 		copyLine: framework === "react" ? copyCommandFor(slug) : null,
+		copyImportLine: framework === "react" ? copyImportFor(slug, exports) : null,
 		docsUrl,
 		sourceUrl,
 		packageUrl: pkg.url,

@@ -69,6 +69,10 @@ export function registryOutput(): BuildOutput {
 		meta,
 		siteUrl: SITE_URL,
 		serverModules: serverModules(),
+		// Decided by the CLI acceptance run (2026-10-19): Next 16 resolves neither
+		// "./X.js" → X.tsx under Turbopack nor under webpack; Vite and tsc do.
+		// Extensionless relative specifiers work everywhere.
+		stripJsExtension: true,
 	});
 	return memo;
 }

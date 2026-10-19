@@ -51,9 +51,10 @@ npx shadcn@latest add https://fancy-ui.rama.app/r/rainbow-button.json
 ```
 
 The index of all items is at <https://fancy-ui.rama.app/r/registry.json>. The
-CLI writes the component folder and the shared modules it needs under
-`components/ui/fancy/…`, keeping the package's own tree one level deeper so the
-relative imports stay untouched:
+CLI writes the component folder and the shared modules it needs under a
+`fancy/` folder inside your project's `ui` alias (`components/ui` by default),
+keeping the package's own tree one level deeper so the relative imports stay
+untouched:
 
 ```
 components/ui/fancy/utils.ts
@@ -63,7 +64,12 @@ components/ui/fancy/components/<slug>/…
 ```
 
 Six shared items are pulled in automatically as needed: `utils`, `internals`,
-`internals-dom`, `internals-motion`, `internals-markdown` and `sound`.
+`internals-dom`, `internals-motion`, `internals-markdown` and `sound`. Import
+from the copied folder (`import { RainbowButton } from
+"@/components/ui/fancy/components/rainbow-button";`). Each component imports
+its own CSS, so the `fancy-ui-react` imports under [Setup](#setup) are not
+needed; the components still expect the semantic colour tokens listed there,
+which a project set up by the same CLI already defines.
 
 ## Setup
 

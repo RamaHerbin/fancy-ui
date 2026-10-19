@@ -12,6 +12,8 @@
 		installLine: string | null;
 		/** Command that copies the source into a project; adds a fourth tab. */
 		copyLine?: string | null;
+		/** Import to write after copying; shown on the copy tab instead of `importLine`. */
+		copyImportLine?: string | null;
 		note: string | null;
 		availability?: "available" | "source-only" | "unavailable";
 	}
@@ -105,7 +107,9 @@
 		<!-- Command -->
 		<div class="docs-install-cmd p-4 font-mono text-sm text-(--code-cmd)">
 			{#if tab === "copy"}
-				{commands.copy}
+				{@const [head, ...rest] = commands.copy.split(" ")}
+				<span class="docs-install-pm">{head}</span>
+				<span class="wrap-anywhere"> {rest.join(" ")}</span>
 			{:else}
 				<span class="docs-install-pm">{tab}</span>{commands[tab].slice(tab.length)}
 			{/if}
@@ -122,9 +126,11 @@
 	{/if}
 	<!-- Import -->
 	{#if variant}
-		{#if variant.importLine && tab !== "copy"}
+		{#if tab === "copy" ? variant.copyImportLine : variant.importLine}
 			<div class="border-t border-(--code-border) p-4 font-mono text-sm">
-				<span class="text-(--code-fg)">{variant.importLine}</span>
+				<span class="wrap-anywhere text-(--code-fg)"
+					>{tab === "copy" ? variant.copyImportLine : variant.importLine}</span
+				>
 			</div>
 		{/if}
 	{:else if componentImport}

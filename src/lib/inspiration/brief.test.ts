@@ -45,6 +45,7 @@ function variant(framework: FrameworkVariant["framework"], over: Partial<Framewo
 		importLine: `import { MagneticButton } from "fancy-ui-${framework}";`,
 		installLine: `pnpm add fancy-ui-${framework}`,
 		copyLine: null,
+		copyImportLine: null,
 		docsUrl: "/docs/components/magnetic-button",
 		sourceUrl: "https://example.test/src",
 		packageUrl: "https://example.test/pkg",

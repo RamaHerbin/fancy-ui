@@ -9,7 +9,7 @@
 
 /** `import … from "x";`, `import type … from "x";`, `import "x";` at line start. */
 const IMPORT_STATEMENT =
-	/^([\t ]*import\s*(?:type\s+)?(?:[\w$*{}\s,]+?\s*\bfrom\s*)?)(["'])([^"'\n]+)\2/gm;
+	/^([\t ]*import\s*(?:type\s+)?(?:(?:[\w$*{}\s,]|\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)+?\s*\bfrom\s*)?)(["'])([^"'\n]+)\2/gm;
 /** `export … from "x";` and `export type { … } from "x";` at line start. */
 const REEXPORT_STATEMENT =
 	/^([\t ]*export\s+(?:type\s+)?(?:\*(?:\s+as\s+[\w$]+)?|\{[^}]*\})\s*from\s*)(["'])([^"'\n]+)\2/gm;

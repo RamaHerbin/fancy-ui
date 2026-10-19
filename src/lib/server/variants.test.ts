@@ -28,7 +28,11 @@ describe("framework variants", () => {
 		const [svelte, react, vue] = variantsFor("pulse-beam");
 		expect(react.copyLine).toBe(copyCommandFor("pulse-beam"));
 		expect(react.copyLine).toMatch(/\/r\/pulse-beam\.json$/);
+		expect(react.copyImportLine).toBe(
+			'import { PulseBeam } from "@/components/ui/fancy/components/pulse-beam";'
+		);
 		expect(svelte.copyLine).toBeNull();
+		expect(svelte.copyImportLine).toBeNull();
 		expect(vue.copyLine).toBeNull();
 	});
 
