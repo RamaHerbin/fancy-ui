@@ -1,10 +1,11 @@
 /**
- * The import graph of the React sources, read as text.
+ * The import graph of a package's sources, read as text.
  *
- * Pure functions over paths relative to `react/src` and source strings; no
- * file system. Statements are matched at the start of a line, the shape the
- * formatter guarantees for real imports, so prose in doc comments that quotes
- * an import (always behind `*` or `//`) never reads as one.
+ * Pure functions over paths relative to the package's source root and source
+ * strings; no file system; nothing framework-specific (see `./stacks/`).
+ * Statements are matched at the start of a line, the shape the formatter
+ * guarantees for real imports, so prose in doc comments that quotes an import
+ * (always behind `*` or `//`) never reads as one.
  */
 
 /** `import … from "x";`, `import type … from "x";`, `import "x";` at line start. */
@@ -17,9 +18,6 @@ const REEXPORT_STATEMENT =
 const DYNAMIC_IMPORT = /(\bimport\s*\(\s*)(["'])([^"'\n]+)\2/g;
 
 const PATTERNS = [IMPORT_STATEMENT, REEXPORT_STATEMENT, DYNAMIC_IMPORT];
-
-/** Anything in the react / react-dom family, JSX runtimes included. */
-const REACT_PACKAGE = /^react(-dom)?(\/|$)/;
 
 /** Every module specifier the code names, in source order of each pattern. */
 export function specifiers(code: string): string[] {
@@ -37,13 +35,14 @@ export function relativeSpecifiers(code: string): string[] {
 
 /**
  * The npm packages the code imports: bare specifiers reduced to their package
- * name (`three/examples/x` → `three`, `@scope/pkg/sub` → `@scope/pkg`), React
- * itself left out. Unique, sorted.
+ * name (`three/examples/x` → `three`, `@scope/pkg/sub` → `@scope/pkg`), the
+ * framework itself (`isFramework`) and alias / placeholder specifiers (`$…`,
+ * `#…`, never npm names) left out. Unique, sorted.
  */
-export function npmDependencies(code: string): string[] {
+export function npmDependencies(code: string, isFramework: (spec: string) => boolean): string[] {
 	const out = new Set<string>();
 	for (const spec of specifiers(code)) {
-		if (spec.startsWith(".") || spec.startsWith("/") || REACT_PACKAGE.test(spec)) continue;
+		if (/^[./$#]/.test(spec) || isFramework(spec)) continue;
 		const parts = spec.split("/");
 		out.add(spec.startsWith("@") ? parts.slice(0, 2).join("/") : parts[0]);
 	}
@@ -67,8 +66,10 @@ export function joinRelative(fromPath: string, spec: string): string | null {
  * The file a relative specifier names, among `known` paths.
  *
  * `.js` / `.jsx` resolve to the `.ts` / `.tsx` source (the package writes
- * output extensions); a `.css` or other literal extension is taken as is; an
- * extensionless specifier tries `.ts`, `.tsx`, then a directory `index`.
+ * output extensions; `x.svelte.js` → `x.svelte.ts`); a `.css`, `.svelte`,
+ * `.vue` or other literal extension is taken as is, then with `.ts` appended
+ * (`x.svelte` → the rune module `x.svelte.ts`); an extensionless
+ * specifier tries `.ts`, `.tsx`, then a directory `index`.
  * Returns `null` when nothing matches.
  */
 export function resolveSpecifier(
@@ -83,44 +84,12 @@ export function resolveSpecifier(
 		const stem = base.replace(/\.jsx?$/, "");
 		candidates.push(`${stem}.ts`, `${stem}.tsx`, base);
 	} else if (/\.[a-z]+$/i.test(base) && !/\.(ts|tsx)$/.test(base)) {
-		candidates.push(base);
+		// `./x.svelte` may name a rune module `x.svelte.ts` (Vite resolves it).
+		candidates.push(base, `${base}.ts`);
 	} else {
 		candidates.push(base, `${base}.ts`, `${base}.tsx`, `${base}/index.ts`, `${base}/index.tsx`);
 	}
 	return candidates.find((c) => known.has(c)) ?? null;
-}
-
-/**
- * The registry item a source file belongs to, or `null` for files outside
- * every item (the root barrel, `cameleon/`, test setup).
- */
-export function groupOf(relPath: string): string | null {
-	if (relPath === "utils.ts") return "utils";
-	const parts = relPath.split("/");
-	if (parts[0] === "components" && parts.length >= 3) return parts[1];
-	if (parts[0] === "sound" && parts.length >= 2) return "sound";
-	if (parts[0] === "internals") {
-		if (parts.length === 2) return "internals";
-		if (parts[1] === "dom" || parts[1] === "motion" || parts[1] === "markdown") {
-			return `internals-${parts[1]}`;
-		}
-	}
-	return null;
-}
-
-/**
- * Files that never ship: tests, harnesses, the Web Audio mock, READMEs and
- * anything that is not `.ts` / `.tsx` / `.css`. (`dev.ts` is decided by the
- * builder, which keeps it only when a kept file imports it.)
- */
-export function isExcluded(relPath: string): boolean {
-	const file = relPath.split("/").pop() ?? relPath;
-	if (!/\.(ts|tsx|css)$/.test(file)) return true;
-	if (/\.test\.tsx?$/.test(file)) return true;
-	if (/Harness\.tsx?$/.test(file)) return true;
-	if (/^web-audio-mock\.ts$/.test(file)) return true;
-	if (/^README/i.test(file)) return true;
-	return false;
 }
 
 /**
@@ -142,17 +111,28 @@ export function closure(
 	return [...seen].sort();
 }
 
-/** Rewrite relative `./x.js` / `../y.js` specifiers to extensionless form. */
-export function stripJsExtensions(code: string): string {
+/**
+ * Rewrite every specifier the three statement patterns match through `fn`
+ * (return the specifier unchanged to keep it). Quotes and the rest of the
+ * statement are kept byte for byte.
+ */
+export function rewriteSpecifiers(code: string, fn: (spec: string) => string): string {
 	let out = code;
 	for (const pattern of PATTERNS) {
-		out = out.replace(pattern, (whole, prefix: string, quote: string, spec: string) =>
-			spec.startsWith(".") && spec.endsWith(".js")
-				? `${prefix}${quote}${spec.slice(0, -3)}${quote}`
-				: whole
+		out = out.replace(
+			pattern,
+			(_whole, prefix: string, quote: string, spec: string) =>
+				`${prefix}${quote}${fn(spec)}${quote}`
 		);
 	}
 	return out;
+}
+
+/** Rewrite relative `./x.js` / `../y.js` specifiers to extensionless form. */
+export function stripJsExtensions(code: string): string {
+	return rewriteSpecifiers(code, (spec) =>
+		spec.startsWith(".") && spec.endsWith(".js") ? spec.slice(0, -3) : spec
+	);
 }
 
 /**
