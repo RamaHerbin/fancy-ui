@@ -24,15 +24,18 @@ describe("framework variants", () => {
 		});
 	});
 
-	it("offers a copy-source line for React only", () => {
+	it("offers a copy-source line for React and Svelte, not Vue", () => {
 		const [svelte, react, vue] = variantsFor("pulse-beam");
 		expect(react.copyLine).toBe(copyCommandFor("pulse-beam"));
 		expect(react.copyLine).toMatch(/\/r\/pulse-beam\.json$/);
 		expect(react.copyImportLine).toBe(
 			'import { PulseBeam } from "@/components/ui/fancy/components/pulse-beam";'
 		);
-		expect(svelte.copyLine).toBeNull();
-		expect(svelte.copyImportLine).toBeNull();
+		expect(svelte.copyLine).toBe(copyCommandFor("pulse-beam", "svelte"));
+		expect(svelte.copyLine).toMatch(/\/r\/svelte\/pulse-beam\.json$/);
+		expect(svelte.copyImportLine).toBe(
+			'import { PulseBeam } from "$lib/components/ui/fancy/pulse-beam";'
+		);
 		expect(vue.copyLine).toBeNull();
 	});
 

@@ -7,12 +7,15 @@ import type { BuildInput } from "./build.js";
 import {
 	serverModulesFrom,
 	closure,
-	groupOf,
-	isExcluded,
 	npmDependencies,
 	relativeSpecifiers,
 	resolveSpecifier,
+	rewriteSpecifiers,
+	stripJsExtensions,
 } from "./graph.js";
+import { groupOf, isExcluded, reactStack } from "./stacks/react.js";
+
+const isReact = reactStack.isFrameworkPackage;
 
 const SITE = "https://example.test";
 const BASE = `${SITE}/r`;
@@ -24,6 +27,7 @@ const meta = (slugs: string[]): BuildInput["meta"] =>
 
 const build = (files: Record<string, string>, extra: Partial<BuildInput> = {}) =>
 	buildRegistry({
+		stack: reactStack,
 		files,
 		meta: meta(["alpha", "beta", "gamma", "delta"]),
 		siteUrl: SITE,
@@ -56,13 +60,13 @@ describe("graph helpers", () => {
 		expect(relativeSpecifiers(code)).toEqual(
 			["../../c.js", "../b/types.js", "./a.js", "./e.js", "./f.js", "./g.js", "./x.css"].sort()
 		);
-		expect(npmDependencies(code)).toEqual(["gsap"]);
+		expect(npmDependencies(code, isReact)).toEqual(["gsap"]);
 	});
 
 	it("reduces npm specifiers to package names and skips the react family", () => {
 		const code =
 			'import a from "three/examples/jsm/x.js";\nimport b from "@scope/pkg/sub";\nimport "react-dom/client";\nimport { jsx } from "react/jsx-runtime";\n';
-		expect(npmDependencies(code)).toEqual(["@scope/pkg", "three"]);
+		expect(npmDependencies(code, isReact)).toEqual(["@scope/pkg", "three"]);
 	});
 
 	it("resolves .js to .ts/.tsx, keeps .css literal, and tries directory indexes", () => {
@@ -77,6 +81,12 @@ describe("graph helpers", () => {
 		expect(resolveSpecifier("components/a/A.tsx", "./a.css", known)).toBe("components/a/a.css");
 		expect(resolveSpecifier("components/a/A.tsx", "../b", known)).toBe("components/b/index.ts");
 		expect(resolveSpecifier("components/a/A.tsx", "./missing.js", known)).toBeNull();
+		const svelte = new Set(["a/A.svelte", "a/x.svelte.ts", "m/media-query.svelte.ts"]);
+		expect(resolveSpecifier("a/index.ts", "./A.svelte", svelte)).toBe("a/A.svelte");
+		expect(resolveSpecifier("a/A.svelte", "./x.svelte.js", svelte)).toBe("a/x.svelte.ts");
+		expect(resolveSpecifier("a/A.svelte", "../m/media-query.svelte", svelte)).toBe(
+			"m/media-query.svelte.ts"
+		);
 		expect(resolveSpecifier("utils.ts", "../../outside.js", known)).toBeNull();
 	});
 
@@ -115,6 +125,23 @@ describe("graph helpers", () => {
 			["b", ["c", "a"]],
 		]);
 		expect(closure(["a"], edges)).toEqual(["a", "b", "c"]);
+	});
+
+	it("rewrites specifiers through a function, keeping the rest byte for byte", () => {
+		const code =
+			' * import { doc } from "$lib/utils.js";\nimport { cn } from \'$lib/utils.js\';\nexport { a } from "./a.js";\nconst m = import("./m.js");\n';
+		expect(rewriteSpecifiers(code, (s) => (s === "$lib/utils.js" ? "$UTILS$.js" : s))).toBe(
+			' * import { doc } from "$lib/utils.js";\nimport { cn } from \'$UTILS$.js\';\nexport { a } from "./a.js";\nconst m = import("./m.js");\n'
+		);
+		expect(stripJsExtensions(code)).toBe(
+			' * import { doc } from "$lib/utils.js";\nimport { cn } from \'$lib/utils.js\';\nexport { a } from "./a";\nconst m = import("./m");\n'
+		);
+	});
+
+	it("never records alias or placeholder specifiers as npm packages", () => {
+		const code =
+			'import { cn } from "$UTILS$.js";\nimport { goto } from "$app/navigation";\nimport x from "#imports";\nimport y from "pkg";\n';
+		expect(npmDependencies(code, () => false)).toEqual(["pkg"]);
 	});
 });
 
@@ -356,6 +383,7 @@ describe("buildRegistry on the real react/src tree", () => {
 		};
 	}
 	const out = buildRegistry({
+		stack: reactStack,
 		files,
 		meta: metaInput,
 		siteUrl: "https://fancy-ui.rama.app",
@@ -367,6 +395,7 @@ describe("buildRegistry on the real react/src tree", () => {
 
 	it('leaves no relative ".js" specifier once stripJsExtension is on (the site\'s setting)', () => {
 		const stripped = buildRegistry({
+			stack: reactStack,
 			files,
 			meta: metaInput,
 			siteUrl: "https://fancy-ui.rama.app",
@@ -410,9 +439,43 @@ describe("buildRegistry on the real react/src tree", () => {
 		for (const item of Object.values(out.items)) {
 			if (item.type !== "registry:ui") continue;
 			for (const f of item.files) {
-				expect(f.target.startsWith(`@ui/fancy/components/${item.name}/`), f.target).toBe(true);
+				expect(f.target?.startsWith(`@ui/fancy/components/${item.name}/`), f.target).toBe(true);
 			}
 		}
+	});
+
+	it("keeps every file's type equal to its item's, its path under react/src and its target under @ui/fancy", () => {
+		for (const item of Object.values(out.items)) {
+			for (const f of item.files) {
+				expect(f.type).toBe(item.type);
+				expect(f.target).toBe(`@ui/fancy/${f.path.slice("react/src/".length)}`);
+			}
+		}
+		expect(out.index.$schema).toBe("https://ui.shadcn.com/schema/registry.json");
+	});
+
+	it('prepends "use client" to client modules only', () => {
+		const boundary = serverModulesFrom(
+			readFileSync(resolve(process.cwd(), "react/scripts/client-boundary.mjs"), "utf8")
+		);
+		let client = 0;
+		for (const item of Object.values(out.items)) {
+			for (const f of item.files) {
+				if (!/\.tsx?$/.test(f.path)) {
+					expect(f.content).not.toMatch(/^"use client";/);
+					continue;
+				}
+				const rel = f.path.slice("react/src/".length).replace(/\.tsx?$/, ".js");
+				const hasDirective = /^\s*["']use client["'];?/.test(f.content ?? "");
+				if (boundary.has(rel)) expect(f.content?.startsWith('"use client";\n\n'), rel).toBe(false);
+				else {
+					expect(hasDirective, rel).toBe(true);
+					client++;
+				}
+			}
+		}
+		expect(client).toBeGreaterThan(0);
+		expect(out.items.utils.files[0].content).not.toContain("use client");
 	});
 
 	it("records the known cross-item edges", () => {

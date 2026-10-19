@@ -1,29 +1,22 @@
 /**
- * The registry generator: React package sources in, index + items out.
+ * The registry generator: one package's sources in, index + items out.
  *
- * Pure (no file system, no Vite); `./sources.ts` feeds it. Every kept file of
- * a component folder or shared module ships under `@ui/fancy/<path relative to
- * react/src>`, so the relative imports in the sources stay byte-identical on
- * the consumer side. Output is deterministic: items, files and arrays sorted.
+ * Pure (no file system, no Vite); `./sources.ts` feeds it. What differs per
+ * package (which files ship, how they group, where they land, how their text
+ * changes) is a `RegistryStack` (`./stacks/`). Output is deterministic:
+ * items, files and arrays sorted.
  */
 
-import { REGISTRY_ITEM_SCHEMA_URL, REGISTRY_NAME, REGISTRY_SCHEMA_URL } from "./constants.js";
-import {
-	closure,
-	groupOf,
-	isExcluded,
-	npmDependencies,
-	relativeSpecifiers,
-	resolveSpecifier,
-	stripJsExtensions,
-} from "./graph.js";
+import { closure, npmDependencies, relativeSpecifiers, resolveSpecifier } from "./graph.js";
+import { docsFor } from "./stack.js";
+import type { TransformContext } from "./stack.js";
+import { reactStack } from "./stacks/react.js";
 import type {
 	BuildInput,
 	BuildOutput,
 	RegistryFile,
 	RegistryIndex,
 	RegistryItem,
-	RegistryItemType,
 } from "./types.js";
 
 export type {
@@ -33,119 +26,79 @@ export type {
 	RegistryIndex,
 	RegistryItem,
 } from "./types.js";
+export type { RegistryStack, TransformContext } from "./stack.js";
+export {
+	SHARED_ITEMS,
+	SOURCE_ROOT,
+	TARGET_ROOT,
+	TYPE_PACKAGES,
+	USE_CLIENT,
+	docsFor,
+	reactStack,
+} from "./stacks/react.js";
+export { svelteStack } from "./stacks/svelte.js";
 
-/** Where every file lands in the consumer project, before the `react/src`-relative path. */
-export const TARGET_ROOT = "@ui/fancy";
-/** Where every file lives in this repository, before the `react/src`-relative path. */
-export const SOURCE_ROOT = "react/src";
-/** The directive prepended to every client module. */
-export const USE_CLIENT = '"use client";';
-
-/** The shared (non-component) items, in the order the groups are documented. */
-export const SHARED_ITEMS: Readonly<Record<string, { title: string; description: string }>> =
-	Object.freeze({
-		utils: {
-			title: "Shared utilities",
-			description: "The class-name merge helper every component styles itself with.",
-		},
-		internals: {
-			title: "Shared internals",
-			description:
-				"Hooks and helpers the components share: positioning, focus, dismissal, ids, text streaming and portals.",
-		},
-		"internals-dom": {
-			title: "Shared internals (DOM)",
-			description: "Ref, context and server-rendering helpers for DOM-bound components.",
-		},
-		"internals-motion": {
-			title: "Shared internals (motion)",
-			description: "Animation primitives: easing, presence, stagger, in-view and motion tokens.",
-		},
-		"internals-markdown": {
-			title: "Shared internals (markdown)",
-			description: "The streaming-safe markdown renderer and its styles.",
-		},
-		sound: {
-			title: "Sound",
-			description: "The opt-in interface sound engine, its themes, hooks and toggle.",
-		},
-	});
-
-const isCode = (path: string) => /\.(ts|tsx)$/.test(path);
-
-/** `a`, `a and b`, `a, b and c`. */
-function listOf(names: readonly string[]): string {
-	if (names.length <= 1) return names.join("");
-	return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
-}
-
-/** The plain sentence a component item carries when it installs npm packages. */
-/**
- * Type packages a runtime dependency needs under TypeScript. They are not
- * imported anywhere, so the import scan cannot find them; the consumer gets
- * them as devDependencies.
- */
-export const TYPE_PACKAGES: Readonly<Record<string, readonly string[]>> = Object.freeze({
-	"canvas-confetti": ["@types/canvas-confetti"],
-	three: ["@types/three"],
-});
-
-export function docsFor(dependencies: readonly string[]): string {
-	return `Installs ${listOf(dependencies)} as ${dependencies.length === 1 ? "a dependency" : "dependencies"}.`;
-}
-
-/** `utils.ts` → `utils.js`: the output name `client-boundary.mjs` lists. */
-function outputName(relPath: string): string {
-	return relPath.replace(/\.tsx?$/, ".js");
-}
-
-/** The shipped text of one file: directive (client modules only) + optional extension strip. */
-function shippedContent(relPath: string, source: string, input: BuildInput): string {
-	if (!isCode(relPath)) return source;
-	const body = input.stripJsExtension ? stripJsExtensions(source) : source;
-	if (input.serverModules.has(outputName(relPath))) return body;
-	if (/^\s*["']use client["'];?/.test(body)) return body;
-	return `${USE_CLIENT}\n\n${body}`;
+/** One output file; `target` only when the stack names one. */
+function fileEntry(
+	path: string,
+	type: RegistryFile["type"],
+	target: string | undefined,
+	content?: string
+): RegistryFile {
+	return {
+		path,
+		...(content !== undefined ? { content } : {}),
+		type,
+		...(target !== undefined ? { target } : {}),
+	};
 }
 
 /** Strip `content` from every file, for the index. */
 function withoutContent(item: RegistryItem): RegistryItem {
 	const copy: RegistryItem = {
 		...item,
-		files: item.files.map((f) => ({ path: f.path, type: f.type, target: f.target })),
+		files: item.files.map((f) => fileEntry(f.path, f.type, f.target)),
 	};
 	delete copy.$schema;
 	return copy;
 }
 
 export function buildRegistry(input: BuildInput): BuildOutput {
-	const base = `${input.siteUrl.replace(/\/+$/, "")}/r`;
+	const stack = input.stack ?? reactStack;
+	const root = stack.sourceRoot;
+	const base = `${input.siteUrl.replace(/\/+$/, "")}${stack.urlPath}`;
+	const ctx: TransformContext = {
+		serverModules: input.serverModules ?? new Set(),
+		stripJsExtension: input.stripJsExtension ?? false,
+	};
 	const allPaths = new Set(Object.keys(input.files));
 
-	// 1. Candidate files: inside a group and not excluded.
-	const candidates = [...allPaths].filter((p) => groupOf(p) !== null && !isExcluded(p)).sort();
+	// 1. Candidate files: inside a group, of a kept kind and not excluded.
+	const candidates = [...allPaths]
+		.filter((p) => stack.groupOf(p) !== null && stack.isKeptKind(p) && !stack.isExcluded(p))
+		.sort();
 	const candidateSet = new Set(candidates);
 
 	// 2. Import edges, with every failure mode named by path.
 	const edges = new Map<string, string[]>();
 	for (const path of candidates) {
-		if (!isCode(path)) continue;
+		if (!stack.isCode(path)) continue;
 		const targets: string[] = [];
 		for (const spec of relativeSpecifiers(input.files[path])) {
 			const resolved = resolveSpecifier(path, spec, allPaths);
 			if (resolved === null) {
 				throw new Error(
-					`Registry: unresolved import "${spec}" in ${SOURCE_ROOT}/${path} — no matching source file.`
+					`Registry: unresolved import "${spec}" in ${root}/${path} — no matching source file.`
 				);
 			}
-			if (groupOf(resolved) === null) {
+			if (stack.groupOf(resolved) === null) {
 				throw new Error(
-					`Registry: ${SOURCE_ROOT}/${path} imports "${spec}" (${SOURCE_ROOT}/${resolved}), which belongs to no registry item.`
+					`Registry: ${root}/${path} imports "${spec}" (${root}/${resolved}), which belongs to no registry item.`
 				);
 			}
 			if (!candidateSet.has(resolved)) {
 				throw new Error(
-					`Registry: ${SOURCE_ROOT}/${path} imports "${spec}" (${SOURCE_ROOT}/${resolved}), which is excluded from the registry (test, harness or mock file).`
+					`Registry: ${root}/${path} imports "${spec}" (${root}/${resolved}), which is excluded from the registry (test, harness or mock file).`
 				);
 			}
 			targets.push(resolved);
@@ -160,24 +113,28 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 	// 4. Group the kept files.
 	const groups = new Map<string, string[]>();
 	for (const path of kept) {
-		const group = groupOf(path) as string;
+		const group = stack.groupOf(path) as string;
 		const list = groups.get(group) ?? [];
 		list.push(path);
 		groups.set(group, list);
 	}
 
-	const componentSlugs = new Set(
-		kept.filter((p) => p.startsWith("components/")).map((p) => p.split("/")[1])
-	);
-	for (const slug of componentSlugs) {
-		if (slug in SHARED_ITEMS) {
+	const componentDirs = new Map<string, string>();
+	for (const path of kept) {
+		const slug = stack.componentOf(path);
+		if (slug === null || componentDirs.has(slug)) continue;
+		const parts = path.split("/");
+		componentDirs.set(slug, parts.slice(0, parts.indexOf(slug) + 1).join("/"));
+	}
+	for (const [slug, dir] of componentDirs) {
+		if (Object.prototype.hasOwnProperty.call(stack.shared, slug)) {
 			throw new Error(
-				`Registry: duplicate item name "${slug}" — react/src/components/${slug}/ collides with a shared item.`
+				`Registry: duplicate item name "${slug}" — ${root}/${dir}/ collides with a shared item.`
 			);
 		}
 		if (!Object.prototype.hasOwnProperty.call(input.meta, slug)) {
 			throw new Error(
-				`Registry: ${SOURCE_ROOT}/components/${slug}/ has no entry in the component registry (registry.ts).`
+				`Registry: ${root}/${dir}/ has no entry in the component registry (registry.ts).`
 			);
 		}
 	}
@@ -187,7 +144,7 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 	const groupEdges = new Map<string, string[]>();
 	for (const [group, files] of groups) {
 		const reached = new Set(
-			files.flatMap((p) => (edges.get(p) ?? []).map((t) => groupOf(t) as string))
+			files.flatMap((p) => (edges.get(p) ?? []).map((t) => stack.groupOf(t) as string))
 		);
 		reached.delete(group);
 		groupEdges.set(group, [...reached].sort());
@@ -197,32 +154,39 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 	const items: Record<string, RegistryItem> = {};
 	for (const name of [...groups.keys()].sort()) {
 		const files = (groups.get(name) as string[]).slice().sort();
-		const isComponent = componentSlugs.has(name);
-		const type: RegistryItemType = isComponent ? "registry:ui" : "registry:lib";
+		const isComponent = componentDirs.has(name) && stack.isComponent(name);
+		const type = stack.itemType(isComponent);
+		const fileType = stack.fileType(type);
 
 		const registryDependencies = closure([name], groupEdges)
 			.filter((dep) => dep !== name)
 			.map((dep) => `${base}/${dep}.json`);
 
 		const dependencies = [
-			...new Set(files.filter(isCode).flatMap((p) => npmDependencies(input.files[p]))),
+			...new Set(
+				files
+					.filter(stack.isCode)
+					.flatMap((p) => npmDependencies(input.files[p], stack.isFrameworkPackage))
+			),
 		].sort();
-		const devDependencies = dependencies.flatMap((dep) => TYPE_PACKAGES[dep] ?? []).sort();
+		const devDependencies = dependencies.flatMap((dep) => stack.typePackages[dep] ?? []).sort();
 
-		const registryFiles: RegistryFile[] = files.map((p) => ({
-			path: `${SOURCE_ROOT}/${p}`,
-			content: shippedContent(p, input.files[p], input),
-			type,
-			target: `${TARGET_ROOT}/${p}`,
-		}));
+		const registryFiles: RegistryFile[] = files.map((p) =>
+			fileEntry(
+				stack.pathFor(p),
+				fileType,
+				stack.targetFor(p),
+				stack.isCode(p) ? stack.transform(p, input.files[p], ctx) : input.files[p]
+			)
+		);
 
 		const meta = isComponent ? input.meta[name] : undefined;
-		const shared = SHARED_ITEMS[name];
+		const shared = stack.shared[name];
 		if (!meta && !shared) {
 			throw new Error(`Registry: no metadata for item "${name}".`);
 		}
 		items[name] = {
-			$schema: REGISTRY_ITEM_SCHEMA_URL,
+			$schema: stack.itemSchemaUrl,
 			name,
 			type,
 			title: meta ? meta.name : shared.title,
@@ -237,8 +201,8 @@ export function buildRegistry(input: BuildInput): BuildOutput {
 	}
 
 	const index: RegistryIndex = {
-		$schema: REGISTRY_SCHEMA_URL,
-		name: REGISTRY_NAME,
+		$schema: stack.schemaUrl,
+		name: stack.registryName,
 		homepage: input.siteUrl,
 		items: Object.keys(items)
 			.sort()

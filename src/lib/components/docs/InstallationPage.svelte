@@ -13,6 +13,7 @@
 			package: "fancy-ui-svelte",
 			importLine: "import { RainbowButton } from 'fancy-ui-svelte';",
 			installLine: "pnpm add fancy-ui-svelte",
+			copyLine: copyCommandFor("rainbow-button", "svelte"),
 			note: null,
 			availability: "available",
 		},
