@@ -95,9 +95,16 @@ The path is relative to your CSS file location.
 
 **Or browse and copy a component:**
 
-1. Find the component you need in the [live demo](https://fancy-ui.rama.app)
-2. Copy the source from `src/lib/fancy-ui/[component-name]/`
-3. Paste into your project
+```bash
+npx shadcn-svelte@latest add https://fancy-ui.rama.app/r/svelte/rainbow-button.json
+```
+
+The files land under your `ui` alias (`src/lib/components/ui/fancy/` by default), with the
+shared modules and sibling components they need. The index of every component is at
+`https://fancy-ui.rama.app/r/svelte/registry.json`.
+
+Or do it by hand: find the component in the [live demo](https://fancy-ui.rama.app), copy the
+source from `src/lib/fancy-ui/[component-name]/`, and paste it into your project.
 
 **Or clone the full demo locally:**
 

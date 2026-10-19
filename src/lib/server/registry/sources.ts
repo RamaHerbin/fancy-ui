@@ -1,8 +1,10 @@
 /**
- * The React package sources the registry is built from, as raw text.
+ * The package sources the registries are built from, as raw text: the React
+ * package (`/r/*.json`) and the Svelte one (`/r/svelte/*.json`).
  *
  * Read through `?raw` globs and never executed: the docs build must not pull
- * React in (same rule as the barrels in `../barrels.ts`). The generator in
+ * React in (same rule as the barrels in `../barrels.ts`), and the Svelte
+ * sources ship as text, not as compiled components. The generator in
  * `./build.ts` is pure; this module is the only place that knows where the
  * files live and how Vite exposes them.
  */
@@ -12,6 +14,8 @@ import { SITE_URL } from "$lib/site.js";
 import { buildRegistry } from "./build.js";
 import type { BuildOutput } from "./build.js";
 import { serverModulesFrom } from "./graph.js";
+import { reactStack } from "./stacks/react.js";
+import { svelteStack } from "./stacks/svelte.js";
 
 const PREFIX = "/react/src/";
 
@@ -55,18 +59,45 @@ export function reactSources(): Record<string, string> {
 	return out;
 }
 
-let memo: BuildOutput | undefined;
+const SVELTE_PREFIX = "/src/lib/fancy-ui/";
 
-/** The whole registry (index + items), built once per process. */
-export function registryOutput(): BuildOutput {
-	if (memo) return memo;
+// Test files and the scaffolding template never ship, so they stay out of the
+// server bundle too. Harnesses, mocks, READMEs and the root barrels are left
+// to the stack's own exclusion rules.
+const svelteRaw = import.meta.glob(
+	["/src/lib/fancy-ui/**/*.{svelte,ts}", "!**/*.test.*", "!**/_template/**"],
+	{ query: "?raw", import: "default", eager: true }
+) as Record<string, string>;
+
+/** Every candidate Svelte source file, keyed by its path relative to `src/lib/fancy-ui`. */
+export function svelteSources(): Record<string, string> {
+	const out: Record<string, string> = {};
+	for (const [key, src] of Object.entries(svelteRaw)) {
+		if (!key.startsWith(SVELTE_PREFIX)) throw new Error(`Unexpected source path: ${key}`);
+		if (typeof src !== "string") throw new Error(`Source is not raw text: ${key}`);
+		out[key.slice(SVELTE_PREFIX.length)] = src;
+	}
+	return out;
+}
+
+/** Display name, description and category of every component, by slug. */
+function componentMeta(): Record<string, { name: string; description: string; category: string }> {
 	const meta: Record<string, { name: string; description: string; category: string }> = {};
 	for (const [slug, entry] of Object.entries(registry)) {
 		meta[slug] = { name: entry.name, description: entry.description, category: entry.category };
 	}
+	return meta;
+}
+
+let memo: BuildOutput | undefined;
+
+/** The whole React registry (index + items), built once per process. */
+export function registryOutput(): BuildOutput {
+	if (memo) return memo;
 	memo = buildRegistry({
+		stack: reactStack,
 		files: reactSources(),
-		meta,
+		meta: componentMeta(),
 		siteUrl: SITE_URL,
 		serverModules: serverModules(),
 		// Decided by the CLI acceptance run (2026-10-19): Next 16 resolves neither
@@ -75,4 +106,18 @@ export function registryOutput(): BuildOutput {
 		stripJsExtension: true,
 	});
 	return memo;
+}
+
+let svelteMemo: BuildOutput | undefined;
+
+/** The whole Svelte registry (index + items), built once per process. */
+export function svelteRegistryOutput(): BuildOutput {
+	if (svelteMemo) return svelteMemo;
+	svelteMemo = buildRegistry({
+		stack: svelteStack,
+		files: svelteSources(),
+		meta: componentMeta(),
+		siteUrl: SITE_URL,
+	});
+	return svelteMemo;
 }

@@ -2,11 +2,13 @@
 /**
  * Source registry gate.
  *
- * The docs site prerenders `/r/registry.json` (the index) and one
- * `/r/<name>.json` per item, built from the React package sources by
- * `src/lib/server/registry/`. A consumer copies those files into their own
- * project, so whatever ships there is code we hand over for good. This script
- * reads the prerendered output and refuses it when:
+ * The docs site prerenders two source registries, built by
+ * `src/lib/server/registry/`: the React one (`/r/registry.json` + one
+ * `/r/<name>.json` per item, from `react/src`) and the Svelte one
+ * (`/r/svelte/registry.json` + `/r/svelte/<name>.json`, from
+ * `src/lib/fancy-ui`). A consumer copies those files into their own project,
+ * so whatever ships there is code we hand over for good. This script reads the
+ * prerendered output of one stack and refuses it when:
  *
  *   - the index and the item files on disk disagree, or the index carries
  *     file `content`, or an index entry differs from its item;
@@ -15,20 +17,30 @@
  *   - a `registryDependencies` entry is not `<base>/<existing-name>.json`;
  *   - a relative import inside an item resolves to no file of the item or of
  *     the items it depends on (transitively);
- *   - a test file, a test harness, a README or the Web Audio mock got in;
+ *   - a test file, a test harness, a README, a template or the Web Audio mock
+ *     got in;
+ *   - a file's `target` or `path` sits outside the stack's prefix, or (Svelte)
+ *     a file type is not `registry:ui`;
+ *   - (React) a relative specifier still ends in ".js";
+ *   - (Svelte) a non-relative, non-package specifier other than `$UTILS$.js`
+ *     (a `$lib/…` import), any other `$…$` placeholder anywhere in the text, or
+ *     a client directive;
  *   - content mentions site-only code (`src/lib/server`, `src/lib/builder`)
  *     or a credits URL from `src/lib/fancy-ui/registry.ts`;
  *   - a third-party product name appears anywhere but the `$schema` values;
- *   - `dependencies` names a package that `react/package.json` does not
- *     depend on;
- *   - the item count is not 151 (145 components + 6 shared modules).
+ *   - `dependencies` names a package the stack's package.json does not
+ *     depend on (`react/package.json` / the root `package.json`);
+ *   - the item count is not the stack's (React 151 = 145 components + 6
+ *     shared modules; Svelte 148 = 145 components + 3 shared modules), or
+ *     (Svelte) the total file count drifts from the pinned 453.
  *
  * Usage:
- *   node scripts/check-registry-items.mjs [--self-test] [--dir <path>]
+ *   node scripts/check-registry-items.mjs [--self-test] [--stack react|svelte] [--dir <path>]
  *
- *   --self-test   run the built-in detector cases on in-memory fixtures and exit
- *   --dir <path>  read the JSON files from <path> instead of
- *                 .svelte-kit/output/prerendered/pages/r
+ *   --self-test     run the built-in detector cases on in-memory fixtures and exit
+ *   --stack <id>    which registry to check (default react)
+ *   --dir <path>    read the JSON files from <path> instead of the stack's
+ *                   .svelte-kit/output/prerendered/pages/r[/svelte]
  */
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -37,10 +49,7 @@ import { dirname, join, posix, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
-const DEFAULT_DIR = join(repoRoot, ".svelte-kit", "output", "prerendered", "pages", "r");
-const EXPECTED_COUNT = 151;
-const TARGET_PREFIX = "@ui/fancy/";
-const PATH_PREFIX = "react/src/";
+const PAGES_R = join(repoRoot, ".svelte-kit", "output", "prerendered", "pages", "r");
 
 /** Product names that must never reach a consumer's codebase. */
 /** Third-party product names, each with a sample the self-test plants. */
@@ -62,6 +71,48 @@ const BRAND_WORDS = [
 /** Files that belong to the package's own test rig, never to an item. */
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
+/** The one placeholder Svelte items may import: the consumer's `cn` module. */
+const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";
+
+/**
+ * Per-stack settings. `react` is the historical default; every rule that
+ * differs between the two registries is read from here.
+ */
+const STACKS = {
+	react: {
+		id: "react",
+		dir: PAGES_R,
+		urlPath: "/r",
+		expectedCount: 151,
+		targetPrefix: "@ui/fancy/",
+		pathPrefix: "react/src/",
+		excluded: EXCLUDED,
+		packageJson: ["react", "package.json"],
+		schemaNames: { index: "REGISTRY_SCHEMA_URL", item: "REGISTRY_ITEM_SCHEMA_URL" },
+		/** Relative ".js" specifiers do not resolve under Next: stripped at build. */
+		forbidJsSpecifiers: true,
+		svelte: false,
+	},
+	svelte: {
+		id: "svelte",
+		dir: join(PAGES_R, "svelte"),
+		urlPath: "/r/svelte",
+		expectedCount: 148,
+		/** Files over all items, pinned so a stray helper or a lost file shows up. */
+		expectedFiles: 453,
+		targetPrefix: "fancy/",
+		pathPrefix: "src/lib/fancy-ui/",
+		excluded: [...EXCLUDED, /\.test\.(ts|svelte)$/, /Harness/, /(^|\/)_template\//],
+		packageJson: ["package.json"],
+		schemaNames: {
+			index: "SVELTE_REGISTRY_SCHEMA_URL",
+			item: "SVELTE_REGISTRY_ITEM_SCHEMA_URL",
+		},
+		forbidJsSpecifiers: false,
+		svelte: true,
+	},
+};
+
 const SITE_ONLY = [/src\/lib\/server/, /src\/lib\/builder/];
 
 // --- configuration read from the repo ----------------------------------------
@@ -78,7 +129,7 @@ function siteUrl() {
 	return m[1];
 }
 
-function schemaUrls() {
+function schemaUrls(stack) {
 	const path = join(repoRoot, "src", "lib", "server", "registry", "constants.ts");
 	const src = read(path);
 	const pick = (name) => {
@@ -86,7 +137,7 @@ function schemaUrls() {
 		if (!m) throw new Error(`${name} not found in ${path}`);
 		return m[1];
 	};
-	return { index: pick("REGISTRY_SCHEMA_URL"), item: pick("REGISTRY_ITEM_SCHEMA_URL") };
+	return { index: pick(stack.schemaNames.index), item: pick(stack.schemaNames.item) };
 }
 
 /** Every `url` inside a `credits: [...]` block of the component registry. */
@@ -105,14 +156,14 @@ function creditUrls() {
 	return urls;
 }
 
-function reactDependencies() {
-	const pkg = JSON.parse(read(join(repoRoot, "react", "package.json")));
+function packageDependencies(stack) {
+	const pkg = JSON.parse(read(join(repoRoot, ...stack.packageJson)));
 	return new Set(Object.keys(pkg.dependencies ?? {}));
 }
 
 /** Runtime and dev dependencies together: what `devDependencies` may name. */
-function reactAllDependencies() {
-	const pkg = JSON.parse(read(join(repoRoot, "react", "package.json")));
+function packageAllDependencies(stack) {
+	const pkg = JSON.parse(read(join(repoRoot, ...stack.packageJson)));
 	return new Set([
 		...Object.keys(pkg.dependencies ?? {}),
 		...Object.keys(pkg.devDependencies ?? {}),
@@ -166,6 +217,21 @@ export function relativeSpecifiers(code) {
 	return [...out];
 }
 
+/**
+ * Every specifier of a module's import/export statements (relative or not),
+ * same line-anchored rule as `relativeSpecifiers`.
+ */
+export function allSpecifiers(code) {
+	const out = new Set();
+	const patterns = [
+		/^[\t ]*(?:import|export)\b[^;]*?\bfrom\s*["']([^"']+)["']/gm,
+		/^[\t ]*import\s*["']([^"']+)["']/gm,
+		/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
+	];
+	for (const re of patterns) for (const m of code.matchAll(re)) out.add(m[1]);
+	return [...out];
+}
+
 /** Candidate targets a relative specifier may land on, most literal first. */
 function candidates(fromTarget, spec) {
 	const base = posix.normalize(posix.join(posix.dirname(fromTarget), spec));
@@ -202,14 +268,18 @@ function canonical(value) {
  * @param {string} snap.base            registry base URL, no trailing slash
  * @param {{ index: string, item: string }} snap.schemas
  * @param {Set<string>} snap.creditUrls
- * @param {Set<string>} snap.reactDeps
- * @param {Set<string>} snap.reactAllDeps
+ * @param {Set<string>} snap.deps       runtime dependencies of the stack's package.json
+ * @param {Set<string>} snap.allDeps    runtime + dev dependencies of the same
  * @param {number} snap.expectedCount
+ * @param {typeof STACKS.react} [snap.stack]  defaults to the React settings
  * @returns {string[]}
  */
 export function findProblems(snap) {
 	const problems = [];
 	const { index, items, base, schemas } = snap;
+	const stack = snap.stack ?? STACKS.react;
+	const { targetPrefix: TARGET_PREFIX, pathPrefix: PATH_PREFIX } = stack;
+	const pkgLabel = stack.packageJson.join("/");
 
 	// Index shape.
 	if (!index || typeof index !== "object") return ["registry.json: not an object"];
@@ -232,6 +302,11 @@ export function findProblems(snap) {
 	for (const n of diskNames) if (!indexNames.has(n)) problems.push(`${n}: file, not in index`);
 	if (diskNames.size !== snap.expectedCount) {
 		problems.push(`count: ${diskNames.size} item files, expected ${snap.expectedCount}`);
+	}
+	const expectedFiles = snap.expectedFiles ?? stack.expectedFiles;
+	if (expectedFiles !== undefined) {
+		const n = Object.values(items).reduce((sum, item) => sum + (item?.files?.length ?? 0), 0);
+		if (n !== expectedFiles) problems.push(`count: ${n} files, expected ${expectedFiles}`);
 	}
 
 	for (const entry of entries) {
@@ -282,7 +357,10 @@ export function findProblems(snap) {
 			) {
 				problems.push(`${where}: path ${file.path} does not match target ${file.target}`);
 			}
-			if (EXCLUDED.some((re) => re.test(file.path ?? "") || re.test(file.target ?? ""))) {
+			if (stack.svelte && file.type !== "registry:ui") {
+				problems.push(`${where}: file ${file.path} type is ${JSON.stringify(file.type)}`);
+			}
+			if (stack.excluded.some((re) => re.test(file.path ?? "") || re.test(file.target ?? ""))) {
 				problems.push(`${where}: excluded file shipped: ${file.path}`);
 			}
 			const content = typeof file.content === "string" ? file.content : "";
@@ -297,13 +375,19 @@ export function findProblems(snap) {
 				if (content.includes(host))
 					problems.push(`${where}: ${file.path} mentions credit host ${host}`);
 			}
-			for (const spec of relativeSpecifiers(content)) {
-				if (/\.(m?js|jsx)$/.test(spec)) {
-					problems.push(
-						`${where}: ${file.path} imports ${spec} (".js" specifiers do not resolve in Next)`
-					);
+			if (stack.forbidJsSpecifiers) {
+				for (const spec of relativeSpecifiers(content)) {
+					if (/\.(m?js|jsx)$/.test(spec)) {
+						problems.push(
+							`${where}: ${file.path} imports ${spec} (".js" specifiers do not resolve in Next)`
+						);
+					}
 				}
 			}
+			if (stack.svelte) problems.push(...svelteContentProblems(where, file.path, content));
+		}
+		if (stack.svelte && !["registry:ui", "registry:lib"].includes(item.type)) {
+			problems.push(`${where}: type is ${JSON.stringify(item.type)}`);
 		}
 
 		const { $schema: _schema, ...branded } = item;
@@ -313,13 +397,13 @@ export function findProblems(snap) {
 		}
 
 		for (const dep of item.dependencies ?? []) {
-			if (!snap.reactDeps.has(dep)) {
-				problems.push(`${where}: dependency ${dep} is not a react/package.json dependency`);
+			if (!snap.deps.has(dep)) {
+				problems.push(`${where}: dependency ${dep} is not a ${pkgLabel} dependency`);
 			}
 		}
 		for (const dep of item.devDependencies ?? []) {
-			if (!snap.reactAllDeps.has(dep)) {
-				problems.push(`${where}: devDependency ${dep} is not in react/package.json`);
+			if (!snap.allDeps.has(dep)) {
+				problems.push(`${where}: devDependency ${dep} is not in ${pkgLabel}`);
 			}
 		}
 
@@ -363,7 +447,8 @@ export function findProblems(snap) {
 		const targets = new Set();
 		for (const n of reach) for (const f of items[n].files ?? []) targets.add(f.target);
 		for (const file of item.files ?? []) {
-			if (typeof file.content !== "string" || !/\.(tsx?|css)$/.test(file.target ?? "")) continue;
+			if (typeof file.content !== "string" || !/\.(tsx?|css|svelte)$/.test(file.target ?? ""))
+				continue;
 			if (file.target.endsWith(".css")) continue;
 			for (const spec of relativeSpecifiers(file.content)) {
 				if (!candidates(file.target, spec).some((c) => targets.has(c))) {
@@ -373,6 +458,28 @@ export function findProblems(snap) {
 		}
 	}
 
+	return problems;
+}
+
+/**
+ * Svelte-only content rules. Shipped files go through the CLI's placeholder
+ * rewrite, so the single alias import allowed is the consumer's `cn` module
+ * (`$UTILS$.js`); a `$lib/` import would point into OUR project, and any other
+ * placeholder would be rewritten to a consumer path we never meant. A `$lib/`
+ * path quoted in a comment is prose, not an import, and is left alone.
+ */
+function svelteContentProblems(where, path, content) {
+	const problems = [];
+	for (const spec of allSpecifiers(content)) {
+		if (spec.startsWith(".") || !spec.startsWith("$")) continue;
+		if (spec !== SVELTE_UTILS_SPECIFIER) problems.push(`${where}: ${path} imports ${spec}`);
+	}
+	for (const m of content.matchAll(/\$[A-Z][A-Z_]*\$/g)) {
+		if (m[0] !== "$UTILS$") problems.push(`${where}: ${path} carries placeholder ${m[0]}`);
+	}
+	if (/^\s*["']use client["']/m.test(content)) {
+		problems.push(`${where}: ${path} carries a "use client" directive`);
+	}
 	return problems;
 }
 
@@ -395,6 +502,40 @@ function loadSnapshot(dir) {
 // --- self-test ---------------------------------------------------------------
 
 function selfTest() {
+	const react = reactCases();
+	const svelte = svelteCases();
+	const failed = runCases(react) + runCases(svelte);
+	const total = react[1].length + svelte[1].length;
+	if (failed) {
+		console.error(`Registry items self-test FAILED (${failed}/${total}).`);
+		process.exit(1);
+	}
+	console.log(
+		`Registry items self-test OK (${total} cases: ${react[1].length} react, ${svelte[1].length} svelte).`
+	);
+}
+
+/** Runs [label, mutate, expected] cases; returns the number that failed. */
+function runCases([good, cases]) {
+	let failed = 0;
+	for (const [label, mutate, expected] of cases) {
+		let ok = false;
+		try {
+			const snap = good();
+			mutate(snap);
+			const problems = findProblems(snap);
+			ok = expected === null ? problems.length === 0 : problems.some((p) => p.includes(expected));
+			if (!ok) console.error(`  FAIL  ${label}\n        got: ${JSON.stringify(problems)}`);
+		} catch (e) {
+			console.error(`  FAIL  ${label} (threw ${e})`);
+		}
+		if (!ok) failed++;
+	}
+	return failed;
+}
+
+function reactCases() {
+	const { targetPrefix: TARGET_PREFIX, pathPrefix: PATH_PREFIX } = STACKS.react;
 	const base = "https://example.test/r";
 	const schemas = {
 		index: "https://example.test/s/index.json",
@@ -450,9 +591,10 @@ function selfTest() {
 			base,
 			schemas,
 			creditUrls: new Set(["https://credits.example.test/thing"]),
-			reactDeps: new Set(["clsx"]),
-			reactAllDeps: new Set(["clsx", "@types/clsx"]),
+			deps: new Set(["clsx"]),
+			allDeps: new Set(["clsx", "@types/clsx"]),
 			expectedCount: 2,
+			stack: STACKS.react,
 		};
 	};
 	/** Each case mutates a good snapshot and names a fragment the problem must contain. */
@@ -582,25 +724,171 @@ function selfTest() {
 			"does not match",
 		],
 	];
-	let failed = 0;
-	for (const [label, mutate, expected] of bad) {
-		let ok = false;
-		try {
-			const snap = good();
-			mutate(snap);
-			const problems = findProblems(snap);
-			ok = expected === null ? problems.length === 0 : problems.some((p) => p.includes(expected));
-			if (!ok) console.error(`  FAIL  ${label}\n        got: ${JSON.stringify(problems)}`);
-		} catch (e) {
-			console.error(`  FAIL  ${label} (threw ${e})`);
-		}
-		if (!ok) failed++;
-	}
-	if (failed) {
-		console.error(`Registry items self-test FAILED (${failed}/${bad.length}).`);
-		process.exit(1);
-	}
-	console.log(`Registry items self-test OK (${bad.length} cases).`);
+	return [good, bad];
+}
+
+function svelteCases() {
+	const stack = STACKS.svelte;
+	const base = "https://example.test/r/svelte";
+	const schemas = {
+		index: "https://example.test/s/svelte-index.json",
+		item: "https://example.test/s/svelte-item.json",
+	};
+	const file = (rel, content, type = "registry:ui") => ({
+		path: stack.pathPrefix + rel,
+		content,
+		type,
+		target: stack.targetPrefix + rel,
+	});
+	const good = () => {
+		const items = {
+			internals: {
+				$schema: schemas.item,
+				name: "internals",
+				type: "registry:lib",
+				title: "Shared internals",
+				description: "Helpers the components share.",
+				files: [
+					file("_internals/portal.ts", "export function portal() {}\n"),
+					file(
+						"_internals/Markdown.svelte",
+						'<script lang="ts">\n\tlet { text } = $props();\n</script>\n'
+					),
+				],
+			},
+			"rainbow-button": {
+				$schema: schemas.item,
+				name: "rainbow-button",
+				type: "registry:ui",
+				title: "Rainbow Button",
+				description: "A button with a rainbow edge.",
+				categories: ["buttons"],
+				dependencies: ["three"],
+				devDependencies: ["@types/three"],
+				registryDependencies: [`${base}/internals.json`],
+				files: [
+					file(
+						"rainbow-button/RainbowButton.svelte",
+						'<script lang="ts">\n\timport type { HTMLButtonAttributes } from "svelte/elements";\n\timport { cn } from "$UTILS$.js";\n\timport { portal } from "../_internals/portal.js";\n\timport Markdown from "../_internals/Markdown.svelte";\n\timport { state } from "./state.svelte.js";\n\timport type { Props } from "./types.js";\n\timport Inner from "./Inner.svelte";\n</script>\n\n<button class={cn("x")}>{@render children?.()}</button>\n'
+					),
+					file("rainbow-button/Inner.svelte", "<span></span>\n"),
+					file("rainbow-button/state.svelte.ts", "export const state = $state({ on: false });\n"),
+					file("rainbow-button/types.ts", "export type Props = {};\n"),
+					file(
+						"rainbow-button/index.ts",
+						'export { default as RainbowButton } from "./RainbowButton.svelte";\nexport type { Props } from "./types.js";\n'
+					),
+				],
+			},
+		};
+		const index = {
+			$schema: schemas.index,
+			name: "fixture",
+			homepage: "https://example.test",
+			items: Object.values(items).map(({ $schema: _s, ...rest }) => ({
+				...rest,
+				files: rest.files.map(({ content: _c, ...f }) => f),
+			})),
+		};
+		return {
+			index,
+			items,
+			base,
+			schemas,
+			creditUrls: new Set(["https://credits.example.test/thing"]),
+			deps: new Set(["three"]),
+			allDeps: new Set(["three", "@types/three"]),
+			expectedCount: 2,
+			expectedFiles: 7,
+			stack,
+		};
+	};
+	const rb = (s) => s.items["rainbow-button"];
+	const bad = [
+		["svelte: clean fixture passes", () => {}, null],
+		[
+			"svelte: $lib/ import leak",
+			(s) =>
+				(rb(s).files[0].content +=
+					'<script module>\n\timport { x } from "$lib/other.js";\n</script>\n'),
+			"imports $lib/other.js",
+		],
+		[
+			"svelte: $lib/ re-export leak",
+			(s) => (rb(s).files[4].content += 'export * from "$lib/fancy-ui/other/index.js";\n'),
+			"imports $lib/fancy-ui/other/index.js",
+		],
+		[
+			"svelte: other placeholder",
+			(s) => (rb(s).files[3].content += 'import { x } from "$LIB$/x.js";\n'),
+			"imports $LIB$/x.js",
+		],
+		[
+			"svelte: placeholder outside an import",
+			(s) => (rb(s).files[3].content += "// lives under $COMPONENTS$/fancy\n"),
+			"carries placeholder $COMPONENTS$",
+		],
+		[
+			"svelte: wrong file type",
+			(s) => (s.items.internals.files[0].type = "registry:lib"),
+			'type is "registry:lib"',
+		],
+		[
+			"svelte: wrong target prefix",
+			(s) => {
+				rb(s).files[1].target = "@ui/fancy/rainbow-button/Inner.svelte";
+			},
+			"outside fancy/",
+		],
+		[
+			"svelte: .test.svelte leak",
+			(s) => rb(s).files.push(file("rainbow-button/Probe.test.svelte", "<div></div>\n")),
+			"excluded file shipped",
+		],
+		[
+			"svelte: harness leak",
+			(s) => rb(s).files.push(file("rainbow-button/RainbowButtonHarness.svelte", "")),
+			"excluded file shipped",
+		],
+		[
+			"svelte: template leak",
+			(s) => rb(s).files.push(file("_template/Component.svelte", "")),
+			"excluded file shipped",
+		],
+		[
+			"svelte: use client leak",
+			(s) => (rb(s).files[3].content = '"use client";\n' + rb(s).files[3].content),
+			'"use client" directive',
+		],
+		[
+			"svelte: unresolved .svelte sibling",
+			(s) => rb(s).files.splice(1, 1),
+			"imports ./Inner.svelte",
+		],
+		[
+			"svelte: unresolved .svelte.js import",
+			(s) => rb(s).files.splice(2, 1),
+			"imports ./state.svelte.js",
+		],
+		[
+			"svelte: shared import without the dependency",
+			(s) => (rb(s).registryDependencies = []),
+			"imports ../_internals/portal.js",
+		],
+		["svelte: wrong item type", (s) => (rb(s).type = "registry:block"), 'type is "registry:block"'],
+		[
+			"svelte: dependency outside package.json",
+			(s) => (rb(s).dependencies = ["left-pad"]),
+			"dependency left-pad is not a package.json dependency",
+		],
+		[
+			"svelte: file count drift",
+			(s) => rb(s).files.push(file("rainbow-button/extra.ts", "export {};\n")),
+			"count: 8 files, expected 7",
+		],
+		["svelte: product name", (s) => (rb(s).title = "Daisy button"), "product name"],
+	];
+	return [good, bad];
 }
 
 // --- main --------------------------------------------------------------------
@@ -608,19 +896,27 @@ function selfTest() {
 function main() {
 	const args = process.argv.slice(2);
 	if (args.includes("--self-test")) return selfTest();
+	const st = args.indexOf("--stack");
+	const stackId = st >= 0 ? args[st + 1] : "react";
+	const stack = Object.hasOwn(STACKS, stackId ?? "") ? STACKS[stackId] : undefined;
+	if (!stack) {
+		console.error(`❌ unknown --stack ${JSON.stringify(stackId)} (react | svelte)`);
+		process.exit(1);
+	}
 	const at = args.indexOf("--dir");
-	const dir = at >= 0 && args[at + 1] ? resolve(args[at + 1]) : DEFAULT_DIR;
+	const dir = at >= 0 && args[at + 1] ? resolve(args[at + 1]) : stack.dir;
 
 	const { index, items } = loadSnapshot(dir);
 	const problems = findProblems({
 		index,
 		items,
-		base: `${siteUrl()}/r`,
-		schemas: schemaUrls(),
+		base: `${siteUrl()}${stack.urlPath}`,
+		schemas: schemaUrls(stack),
 		creditUrls: creditUrls(),
-		reactDeps: reactDependencies(),
-		reactAllDeps: reactAllDependencies(),
-		expectedCount: EXPECTED_COUNT,
+		deps: packageDependencies(stack),
+		allDeps: packageAllDependencies(stack),
+		expectedCount: stack.expectedCount,
+		stack,
 	});
 	if (problems.length) {
 		for (const p of problems) console.error(`❌ ${p}`);
@@ -629,7 +925,7 @@ function main() {
 	}
 	const fileCount = Object.values(items).reduce((n, item) => n + item.files.length, 0);
 	console.log(
-		`✅ ${Object.keys(items).length} registry items, ${fileCount} files, index consistent, imports closed.`
+		`✅ ${stack.id}: ${Object.keys(items).length} registry items, ${fileCount} files, index consistent, imports closed.`
 	);
 }
 

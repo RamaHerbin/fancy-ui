@@ -21,6 +21,7 @@ import { SITE_URL, GITHUB_URL } from "$lib/site.js";
 import type { ComponentMeta } from "$lib/types.js";
 import { svelteExportsBySlug, reactExportsBySlug } from "./barrels.js";
 import { REGISTRY_BASE, copyCommandFor } from "./registry/constants.js";
+import { REGISTRY_BASE_SVELTE } from "$lib/copy-source.js";
 
 // Export names per package come from the real barrels (see barrels.ts).
 const exportsBySlug = svelteExportsBySlug;
@@ -140,6 +141,16 @@ Then add the library stylesheet to \`src/app.css\`:
 3. Import components where needed: \`import { BorderBeam } from 'fancy-ui-svelte';\`
    Components are self-contained — drop them into existing markup; no provider,
    no global config, no tailwind.config changes needed.
+
+### Or copy the source
+
+To own the source instead of depending on the package, every component is also a
+registry item: \`${copyCommandFor("<slug>", "svelte")}\` (the index is at
+${REGISTRY_BASE_SVELTE}/registry.json). The files land in
+\`$lib/components/ui/fancy/<slug>/\`; the shared \`_internals\` and \`sound\`
+modules it needs are pulled in automatically. Import from there
+(\`$lib/components/ui/fancy/<slug>\`) instead of \`fancy-ui-svelte\`; \`cn\` comes
+from the project's own \`$lib/utils\`.
 
 If the project uses Tailwind v3 or no Tailwind, stop and tell the user:
 fancy-ui-svelte requires Tailwind CSS v4.
