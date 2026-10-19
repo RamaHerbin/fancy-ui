@@ -1,5 +1,15 @@
 # fancy-ui-react
 
+## 0.5.0
+
+### Minor Changes
+
+- 701f96a: Every component is now also published as a copy-into-your-project registry item served by the docs site (/r/registry.json, /r/<slug>.json): the component folder plus the shared utils, internals and sound modules it needs, installable with the ecosystem CLI by URL.
+
+### Patch Changes
+
+- 1739286: README rewritten on the same plan as the Svelte package: features, quick start, setup (Tailwind tokens, dark mode, server rendering, package shape, compatibility), agent docs, development, project structure and contributing, with the divergences list unchanged.
+
 ## 0.4.0
 
 ### Minor Changes
