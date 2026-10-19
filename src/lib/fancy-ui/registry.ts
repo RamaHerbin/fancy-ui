@@ -9130,7 +9130,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "Presence",
 		slug: "presence",
 		description:
-			"Mounts and unmounts content with a real entrance and exit through one direction-aware Svelte transition, tracking opening/open/closing state, marking the panel inert while it closes, and firing lifecycle callbacks",
+			"Mounts and unmounts content with a real entrance and exit through one direction-aware transition, tracking opening/open/closing state, marking the panel inert while it closes, and firing lifecycle callbacks",
 		category: "effects",
 		group: "fancy",
 		status: "done",

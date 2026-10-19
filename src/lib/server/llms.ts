@@ -20,6 +20,7 @@ import { toConsumerImports } from "$lib/docs/code.js";
 import { SITE_URL, GITHUB_URL } from "$lib/site.js";
 import type { ComponentMeta } from "$lib/types.js";
 import { svelteExportsBySlug, reactExportsBySlug } from "./barrels.js";
+import { REGISTRY_BASE, copyCommandFor } from "./registry/constants.js";
 
 // Export names per package come from the real barrels (see barrels.ts).
 const exportsBySlug = svelteExportsBySlug;
@@ -199,7 +200,14 @@ the snippet takes arguments); the default snippet is \`children\`. Per-component
 divergences are listed in the package README:
 ${GITHUB_URL}/tree/main/react#divergences-from-the-svelte-api
 Package is ESM only, with four entry points: \`fancy-ui-react\`,
-\`fancy-ui-react/cameleon\`, \`fancy-ui-react/styles.css\`, \`fancy-ui-react/tailwind.css\`.`;
+\`fancy-ui-react/cameleon\`, \`fancy-ui-react/styles.css\`, \`fancy-ui-react/tailwind.css\`.
+
+Prefer the package. To own the source instead, every component is also a
+registry item: \`${copyCommandFor("<slug>")}\` (the index is at
+${REGISTRY_BASE}/registry.json). The files land in \`fancy/\` under the project's
+\`ui\` alias; import from there (\`@/components/ui/fancy/components/<slug>\`), not
+from \`fancy-ui-react\`, and skip \`fancy-ui-react/styles.css\` (each component
+imports its own CSS).`;
 
 const VUE_GUIDE = `## Vue
 

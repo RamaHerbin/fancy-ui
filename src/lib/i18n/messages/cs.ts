@@ -39,6 +39,8 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Zatím není na npm — tato verze je v repozitáři.",
 	"install.unavailable": "Pro tento framework zatím tato komponenta neexistuje.",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "Použití",
 	"comp.props": "Vlastnosti",
 	"comp.slots": "Sloty",
