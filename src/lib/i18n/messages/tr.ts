@@ -39,6 +39,8 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Henüz npm'de değil — bu sürüm depoda bulunuyor.",
 	"install.unavailable": "Bu framework için bu bileşenin henüz bir sürümü yok.",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "Kullanım",
 	"comp.props": "Özellikler",
 	"comp.slots": "Slotlar",

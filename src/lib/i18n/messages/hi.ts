@@ -39,6 +39,8 @@ export default {
 	"install.framework": "फ़्रेमवर्क",
 	"install.sourceOnly": "अभी npm पर नहीं — यह पोर्ट रिपॉज़िटरी में है।",
 	"install.unavailable": "इस फ़्रेमवर्क के लिए इस कंपोनेंट का पोर्ट अभी उपलब्ध नहीं है।",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "उपयोग",
 	"comp.props": "प्रॉप्स",
 	"comp.slots": "स्लॉट्स",

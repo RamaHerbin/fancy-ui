@@ -3,6 +3,7 @@
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import { COMPONENT_COUNT } from "$lib/site.js";
+	import { copyCommandFor } from "$lib/copy-source.js";
 	import type { ComponentProps } from "svelte";
 
 	// The same three packages the docs component pages switch between.
@@ -20,6 +21,7 @@
 			package: "fancy-ui-react",
 			importLine: "import { RainbowButton } from 'fancy-ui-react';",
 			installLine: "pnpm add fancy-ui-react",
+			copyLine: copyCommandFor("rainbow-button"),
 			note: null,
 			availability: "available",
 		},

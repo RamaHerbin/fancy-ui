@@ -39,6 +39,8 @@ export default {
 	"install.framework": "فریم‌ورک",
 	"install.sourceOnly": "هنوز روی npm نیست — این نسخه در مخزن قرار دارد.",
 	"install.unavailable": "هنوز نسخه‌ای از این کامپوننت برای این فریم‌ورک وجود ندارد.",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "نحوه استفاده",
 	"comp.props": "پراپ‌ها",
 	"comp.slots": "اسلات‌ها",

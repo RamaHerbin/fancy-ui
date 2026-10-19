@@ -52,6 +52,8 @@ export const en = {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Not on npm yet — this port lives in the repository.",
 	"install.unavailable": "No port of this component for this framework yet.",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "Usage",
 	"comp.props": "Props",
 	"comp.slots": "Slots",

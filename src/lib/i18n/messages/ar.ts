@@ -39,6 +39,8 @@ export default {
 	"install.framework": "إطار العمل",
 	"install.sourceOnly": "غير متاح على npm بعد — هذا الإصدار موجود في المستودع.",
 	"install.unavailable": "لا يوجد بعد إصدار من هذا المكوّن لإطار العمل هذا.",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "الاستخدام",
 	"comp.props": "الخصائص",
 	"comp.slots": "الفتحات",

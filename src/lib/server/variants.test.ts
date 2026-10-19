@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { copyCommandFor } from "./registry/constants.js";
 import { frameworksFor, variantFor, variantsFor, variantsForAll } from "./variants.js";
 
 describe("framework variants", () => {
@@ -23,6 +24,14 @@ describe("framework variants", () => {
 		});
 	});
 
+	it("offers a copy-source line for React only", () => {
+		const [svelte, react, vue] = variantsFor("pulse-beam");
+		expect(react.copyLine).toBe(copyCommandFor("pulse-beam"));
+		expect(react.copyLine).toMatch(/\/r\/pulse-beam\.json$/);
+		expect(svelte.copyLine).toBeNull();
+		expect(vue.copyLine).toBeNull();
+	});
+
 	it("installs Vue like the other two now that the package is on npm", () => {
 		const vue = variantFor("pulse-beam", "vue");
 		expect(vue.availability).toBe("available");
@@ -33,7 +42,9 @@ describe("framework variants", () => {
 	it("reports every framework unavailable for an unknown slug", () => {
 		const variants = variantsFor("definitely-not-a-component");
 		expect(variants.every((v) => v.availability === "unavailable")).toBe(true);
-		expect(variants.every((v) => v.importLine === null && v.installLine === null)).toBe(true);
+		expect(
+			variants.every((v) => v.importLine === null && v.installLine === null && v.copyLine === null)
+		).toBe(true);
 		expect(variants.every((v) => typeof v.note === "string")).toBe(true);
 		expect(frameworksFor("definitely-not-a-component")).toEqual([]);
 	});

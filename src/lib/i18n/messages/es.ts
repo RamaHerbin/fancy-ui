@@ -39,6 +39,8 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Aún no está en npm: esta versión vive en el repositorio.",
 	"install.unavailable": "Todavía no hay una versión de este componente para este framework.",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "Uso",
 	"comp.props": "Props",
 	"comp.slots": "Slots",

@@ -39,6 +39,8 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Belum ada di npm — port ini ada di repositori.",
 	"install.unavailable": "Belum ada port komponen ini untuk framework ini.",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "Penggunaan",
 	"comp.props": "Props",
 	"comp.slots": "Slot",

@@ -40,6 +40,31 @@ rather than an oversight:
   component's API; patches never do. Every deliberate difference from the Svelte
   package is listed under [Divergences](#divergences-from-the-svelte-api).
 
+## Copy the source into your project
+
+The npm package stays the canonical way to use these components. If you would
+rather own the code, every component is also published as a registry item by
+the docs site, and the ecosystem CLI installs it by URL:
+
+```bash
+npx shadcn@latest add https://fancy-ui.rama.app/r/rainbow-button.json
+```
+
+The index of all items is at <https://fancy-ui.rama.app/r/registry.json>. The
+CLI writes the component folder and the shared modules it needs under
+`components/ui/fancy/…`, keeping the package's own tree one level deeper so the
+relative imports stay untouched:
+
+```
+components/ui/fancy/utils.ts
+components/ui/fancy/internals/…
+components/ui/fancy/sound/…
+components/ui/fancy/components/<slug>/…
+```
+
+Six shared items are pulled in automatically as needed: `utils`, `internals`,
+`internals-dom`, `internals-motion`, `internals-markdown` and `sound`.
+
 ## Setup
 
 ```css

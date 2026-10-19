@@ -81,6 +81,7 @@
 		"check:cores": "node scripts/check-shared-cores.mjs",
 		"check:props": "node scripts/check-prop-parity.mjs --self-test && node scripts/check-prop-parity.mjs",
 		"check:i18n": "node scripts/check-i18n.mjs",
+		"check:registry-items": "node scripts/check-registry-items.mjs --self-test && node scripts/check-registry-items.mjs",
 		"build:brand-assets": "node scripts/build-brand-assets.mjs",
 		"build:og": "node scripts/build-og-images.mjs",
 		"build:thumbs": "node scripts/build-component-thumbs.mjs",
