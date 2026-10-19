@@ -1,83 +1,249 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/RamaHerbin/fancy-ui/main/.github/logo.png" alt="FancyUI" width="88" height="88" />
+</p>
+
 # fancy-ui-vue
 
-Vue counterpart of [`fancy-ui-svelte`](https://www.npmjs.com/package/fancy-ui-svelte) —
-same components, same visual contract, ported from the Svelte 5 reference
-implementation that lives at the root of this repo, built on Vue 3.5 and
-Tailwind CSS v4.
+Animated UI components for **Vue 3.5+**, styled with Tailwind CSS v4 &mdash; the Vue edition of [fancy-ui](https://github.com/RamaHerbin/fancy-ui#readme), ported component for component from the Svelte 5 reference and kept at parity by CI.
 
-Status: at parity. All 145 components of `fancy-ui-svelte` are ported, along
-with the `sound` family and the cameleon skin engine (FancyProvider +
-primitives + skins) on the `fancy-ui-vue/cameleon` subpath. The Svelte package
-remains the reference; each Vue component is a faithful transpose (see
-`PORTING.md` for the law that governs ports), and every deliberate difference
-is listed under [Divergences](#divergences-from-the-svelte-api) below.
+[![npm fancy-ui-vue](https://img.shields.io/npm/v/fancy-ui-vue?label=fancy-ui-vue&color=42B883)](https://www.npmjs.com/package/fancy-ui-vue)
+![Vue](https://img.shields.io/badge/Vue-3.5+-42B883?logo=vuedotjs&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Components](https://img.shields.io/badge/Components-145-8B5CF6)
+![MIT License](https://img.shields.io/badge/License-MIT-green)
 
-## Install
+<p align="center">
+  <a href="https://www.anthropic.com/claude-code">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/RamaHerbin/fancy-ui/main/.github/claude-for-open-source-program-dark.svg">
+      <img src="https://raw.githubusercontent.com/RamaHerbin/fancy-ui/main/.github/claude-for-open-source-program.svg" alt="Claude for Open Source Program" width="280">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://fancy-ui.rama.app">
+    <img src="https://raw.githubusercontent.com/RamaHerbin/fancy-ui/main/.github/fancyui-reel.webp" alt="fancy-ui in motion: an HDR fluid cursor painting over the title, fireworks launched from a gradient button, a datamosh page transition, a before/after slider split by a blade of light and a rainbow-beam button" width="800" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://fancy-ui.rama.app"><strong>Live Demo &amp; Docs</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://fancy-ui.rama.app/docs/components">Browse components</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/RamaHerbin/fancy-ui#readme">Svelte package</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/RamaHerbin/fancy-ui/tree/main/react#readme">React package</a>
+</p>
+
+## Features
+
+- **145 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
+- **Idiomatic Vue 3.5** &mdash; `<script setup>` single-file components, reactive props destructuring, `defineModel` for every bindable (`v-model:<name>`), snippets as named and scoped slots, `defineExpose` wherever the Svelte source exposes a `ref`; every other prop keeps its Svelte name
+- **Same components, three frameworks** &mdash; All 145 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-react`](https://github.com/RamaHerbin/fancy-ui/tree/main/react#readme) the React edition, and parity is checked in CI
+- **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
+- **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, clean hydration under Nuxt, canvas and WebGL work deferred to mount
+- **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` composables; silent until the user turns it on
+- **AI-ready docs** &mdash; `llms.txt` with a Vue section, a Markdown page per component and a JSON registry, so coding agents use the library correctly
+- **Tested** &mdash; 5,600+ unit tests with Vitest and Vue Test Utils, a Vue 3.5 floor job and a Nuxt consumer app generated in CI
+
+## Quick Start
+
+**Install via npm:**
 
 ```bash
 npm install fancy-ui-vue
 ```
 
-Peer dependencies: `vue` 3.5.2 or later, `tailwindcss` 4. TypeScript is an
-optional peer at 5.0 or later.
+Peer dependencies: `vue` 3.5.2 or later, `tailwindcss` 4. TypeScript is an optional peer at 5.0 or later.
 
-## Tailwind setup
+Add the Tailwind integration and the stylesheet to your app's CSS (e.g. `app.css`):
 
 ```css
-/* app.css */
 @import "tailwindcss";
 @import "fancy-ui-vue/tailwind.css";
 @import "fancy-ui-vue/styles.css";
 ```
 
-`tailwind.css` points Tailwind's scanner at this package's shipped `dist/` so
-every utility class the components use is generated in the consumer's build,
-and declares the shared token set the components spend. `styles.css` carries
-the components' own keyframes and scoped rules.
+`tailwind.css` tells Tailwind v4 to scan the library's components so all utility classes are generated automatically, and declares the colour tokens the components use; `styles.css` carries the components' own keyframes and scoped rules. No manual `@source` path needed.
+
+Then import any component:
+
+```vue
+<script setup lang="ts">
+import { RainbowButton, BorderBeam } from "fancy-ui-vue";
+</script>
+
+<template>
+	<div class="relative overflow-hidden rounded-xl border p-8">
+		<RainbowButton>Get started</RainbowButton>
+		<BorderBeam />
+	</div>
+</template>
+```
+
+Props keep their Svelte names; snippets become named slots and every bindable prop is a `v-model:<name>`. Every deliberate difference is listed under [Divergences](#divergences-from-the-svelte-api).
+
+**Or browse and copy a component:**
+
+1. Find the component you need in the [live demo](https://fancy-ui.rama.app)
+2. Copy the source from `vue/src/components/<slug>/` (plus whatever it imports from `vue/src/internals/`, `vue/src/sound/` and `vue/src/utils.ts`)
+3. Paste into your project
+
+**Or clone the full demo locally:**
+
+```bash
+git clone https://github.com/RamaHerbin/fancy-ui.git
+cd fancy-ui
+pnpm install
+pnpm --filter fancy-ui-vue build
+pnpm --filter fancy-ui-vue-example-nuxt dev   # http://localhost:3000
+```
+
+## Setup
+
+### Tailwind and colour tokens
+
+```css
+/* app.css */
+@import "tailwindcss";
+@import "fancy-ui-vue/tailwind.css"; /* lets Tailwind scan the shipped sources */
+@import "fancy-ui-vue/styles.css"; /* keyframes + component-scoped CSS */
+```
+
+Those two imports are the whole setup. `tailwind.css` also declares every semantic colour the components spend, the standard 18-token semantic set shared by the Tailwind component ecosystem: `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`. None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule at all for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so the utilities resolve the variables at use time: an app that already defines that token set keeps its own colours automatically. The defaults ship in `@layer base`, which an unlayered `:root` in your app overrides whatever the import order.
+
+### Dark mode
+
+Out of the box the package follows the operating-system preference: `dark:` utilities and the components' `light-dark()` colours both switch with `prefers-color-scheme`, so an app that never touches dark mode already looks right on a dark desktop. To control it yourself, put `dark` or `light` on `<html>` (or on any ancestor of the subtree you want to force) and both halves follow the class instead:
+
+```html
+<html class="dark">
+```
+
+`tailwind.css` is what makes that work, in three parts: it declares the `.dark` token block, it declares a `dark` variant that matches a `.dark` ancestor OR the media query (unless a `.light` ancestor opts out), and it sets `color-scheme: light dark` on `:root` with `.dark` / `.light` overrides so the components' `light-dark()` colours &mdash; and the browser's own form controls, scrollbars and caret &mdash; resolve the same way. An app that declares its own `@custom-variant dark` after the import keeps its own definition.
+
+### Server rendering
+
+The package is written for SSR: the `examples/nuxt-app` consumer in this repo is generated in CI with `failOnError` on, so a component that breaks server rendering or hydration fails the build. Three rules follow from that and are worth knowing:
+
+- Nothing portalled is emitted on the server. Dialogs, sheets, drawers, popovers, tooltips, menus, pickers and the toaster render their trigger only; the panel paints on the first post-hydration patch, whether it starts closed or open by default. `toast()` is a no-op outside the browser.
+- Render-path randomness is seeded. Components that scatter stars, shuffle colours or scramble characters take a `seed` prop (default `1`), so the server and the client draw the same picture; vary `seed` to desynchronise two instances.
+- Browser-only state lands after mount. Sound preferences hydrate in `onMounted`, relative timestamps and reduced-motion queries start one tick after mount, and generated ids come from Vue's `useId()` so they match across the server render and its hydration.
+
+The details, component by component, are under [Divergences](#divergences-from-the-svelte-api).
+
+### Package shape
+
+Three things about the package's shape, because each of them is a decision rather than an oversight:
+
+- **ESM only.** There is no `require` condition and no CJS build. A TypeScript project on `moduleResolution: node16` that emits CommonJS gets TS1479 on the bare import; the fix is on that side (`"module": "esnext"`, or a dynamic `import()`), not here.
+- **Four entry points, no deep imports.** `fancy-ui-vue`, `fancy-ui-vue/cameleon`, `fancy-ui-vue/styles.css` and `fancy-ui-vue/tailwind.css`, plus `fancy-ui-vue/package.json` for tooling that resolves a manifest by specifier. Everything else is blocked by the exports map on purpose: the build keeps one module per source file, so importing one component from the package root tree-shakes the rest away, and the alternative would freeze `dist/`'s internal folder layout as public API.
+- **0.x, so minors can break.** Until 1.0 a minor version may change a component's API; patches never do. Every deliberate difference from the Svelte package is listed under [Divergences](#divergences-from-the-svelte-api).
+
+### Compatibility
+
+- **Vue 3.5.2 or later.** 3.5 is the floor, not just the minimum peer range: the port relies on reactive props destructuring, `useTemplateRef`, `onWatcherCleanup` and `<Teleport defer>`. A CI job re-installs the workspace with Vue pinned to 3.5.2 and runs `check`, `test`, `build` and a consumer script against it.
+- **TypeScript 5.0+.** Below it, the package's own declarations fail to parse and everything from it reads as `any`.
+- **Tailwind CSS 4.** `tailwind.css` uses v4 at-rules (`@source`, `@theme inline`, `@custom-variant`) and has no v3 equivalent.
+- **The cameleon subpath is barrel-only.** `fancy-ui-vue/cameleon` ships the skin engine, the primitives and the five skins. There is no `./cameleon/*` wildcard for a single skin, and the retro-OS component kit that the Svelte package publishes as `fancy-ui-svelte/cameleon/retro-kit` has no Vue counterpart.
+
+## Using with AI agents (Claude Code, Cursor, Copilot)
+
+The docs site serves documentation built for coding agents, following the [llms.txt](https://llmstxt.org) convention:
+
+- [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) &mdash; setup guide, usage rules, a Vue section and an index of every component
+- [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) &mdash; full reference: import, props and a working example per component
+- `https://fancy-ui.rama.app/docs/components/<slug>.md` &mdash; one component as Markdown, with every docs example (e.g. [compare.md](https://fancy-ui.rama.app/docs/components/compare.md)); each docs page also has a **Copy as Markdown** button
+- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) &mdash; every component as JSON: import names, props, snippets, links
+
+To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
+
+```markdown
+## UI components
+
+Use fancy-ui-vue (Vue 3.5 + Tailwind CSS v4) for animated UI components.
+Setup and rules: https://fancy-ui.rama.app/llms.txt (see the Vue section)
+One component (props + examples): https://fancy-ui.rama.app/docs/components/<slug>.md
+Key rules: import "fancy-ui-vue/styles.css" once; bindables are `v-model:<name>`
+(no bare `v-model`); snippets are slots; overlay/effect components (BorderBeam,
+GlowBorder, backgrounds, ...) need a parent with `relative overflow-hidden`;
+cursor effects (FluidCursor, SmoothCursor) mount once in the root layout.
+```
 
 ## Development
 
-Workspace member of the repo's pnpm workspace — one `pnpm install` at the
-repo root covers it.
+Workspace member of the repo's pnpm workspace &mdash; one `pnpm install` at the repo root covers it.
 
 ```bash
 pnpm install                                   # at the repo root
-pnpm --filter fancy-ui-vue test                # vitest
+pnpm --filter fancy-ui-vue test                # vitest + vue test utils
 pnpm --filter fancy-ui-vue check               # vue-tsc --noEmit
+pnpm --filter fancy-ui-vue check:matrix        # migration matrix held to the Svelte reference
 pnpm --filter fancy-ui-vue build               # vite lib build + d.ts via vue-tsc, then the dist gates
 pnpm --filter fancy-ui-vue test:scripts        # the gates' own regression tests (needs a build)
 pnpm --filter fancy-ui-vue-example-nuxt dev    # the consumer app (examples/nuxt-app) on http://localhost:3000
+pnpm check:props                               # at the repo root: every Svelte prop has a React and a Vue counterpart (CI gate)
+pnpm check:cores                               # at the repo root: shared framework-free engines are byte-identical in the three packages (CI gate)
 ```
 
-The consumer app under `examples/` is `nuxt-app`, which resolves `fancy-ui-vue`
-to `vue/dist`, so run `build` first. CI runs `nuxt generate` on it as the
-SSR/hydration gate: `failOnError` in its prerender block is what makes a broken
-page fail the build instead of being skipped. A second CI job, `vue-3-5`,
-re-installs the workspace with a job-local override pinning Vue to 3.5.2 (the
-peer floor) and runs `check`, `test`, `build` and `scripts/vue-floor-consumer.mjs`
-against it.
+The consumer app under `examples/` is `nuxt-app`, which resolves `fancy-ui-vue` to `vue/dist`, so run `build` first. CI runs `nuxt generate` on it as the SSR/hydration gate: `failOnError` in its prerender block is what makes a broken page fail the build instead of being skipped. A second CI job, `vue-3-5`, re-installs the workspace with a job-local override pinning Vue to 3.5.2 (the peer floor) and runs `check`, `test`, `build` and `scripts/vue-floor-consumer.mjs` against it.
 
-`build` does more than build. After Vite and `vue-tsc` it runs six scripts in
-`vue/scripts/`, each guarding something no other gate can see:
+`build` does more than build. After Vite and `vue-tsc` it runs six scripts in `vue/scripts/`, each guarding something no other gate can see:
 
 | Script                      | What it stops                                                                                                                                                              |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `strip-dts-css-imports.mjs` | `vue-tsc` copies each component's `import "./x.css"` into its `.d.ts`, naming a file dist does not ship — one TS2307 per component for any consumer without `skipLibCheck` |
+| `strip-dts-css-imports.mjs` | `vue-tsc` copies each component's `import "./x.css"` into its `.d.ts`, naming a file dist does not ship &mdash; one TS2307 per component for any consumer without `skipLibCheck` |
 | `check-dist-names.mjs`      | a minified build shipping `AnimatedBeam` as `const ut = ...` in every consumer's devtools tree and stack traces                                                            |
 | `prune-orphan-dts.mjs`      | a declaration under `dist/internals/` with no runtime module behind it, typing an import that cannot load                                                                  |
 | `check-dist-shape.mjs`      | a test rig reaching the tarball, a declaration pointing at a file that is not there, an SFC without `<script setup>`, a bare import of a package nobody declared           |
 | `smoke-dist.mjs`            | the built artifact never being executed: it imports every module with no DOM, server-renders each component export, and holds a gzip budget over the emitted JS and CSS    |
 | `ensure-styles-css.mjs`     | the `./styles.css` subpath being declared while no stylesheet was emitted                                                                                                  |
 
-`test:scripts` runs `dist-gates.test.mjs`, which tests the gates' own logic
-(what counts as a component, what the sweep counts) so a gate cannot go quiet
-without a test noticing. `check-matrix.mjs` (`check:matrix`) holds the
-migration matrix to the Svelte reference, and `vue-floor-consumer.mjs` is the
-CI-only floor check above; neither is part of `build`.
+`test:scripts` runs `dist-gates.test.mjs`, which tests the gates' own logic (what counts as a component, what the sweep counts) so a gate cannot go quiet without a test noticing. `check-matrix.mjs` (`check:matrix`) holds the migration matrix to the Svelte reference, and `vue-floor-consumer.mjs` is the CI-only floor check above; neither is part of `build`.
 
-The output is **not minified**, for the reason `check-dist-names.mjs` exists:
-the consumer's bundler minifies over the whole app, and minifying here costs
-every component its name.
+The output is **not minified**, for the reason `check-dist-names.mjs` exists: the consumer's bundler minifies over the whole app, and minifying here costs every component its name.
+
+## Project Structure
+
+```
+vue/
+├── src/
+│   ├── components/        # UI components (one folder per component, same slugs as the Svelte source)
+│   │   └── rainbow-button/
+│   │       ├── RainbowButton.vue      # <script setup> + <style scoped>
+│   │       ├── RainbowButton.test.ts
+│   │       └── index.ts
+│   ├── internals/         # Shared framework-free engines and Vue composables
+│   ├── sound/             # Sound engine, themes, SoundToggle and the composables
+│   ├── cameleon/          # Skin engine: FancyProvider, primitives, skins (fancy-ui-vue/cameleon)
+│   ├── utils.ts           # cn()
+│   └── index.ts           # Barrel exports
+├── scripts/               # Dist gates and their tests, migration matrix check, Vue floor consumer
+├── tailwind.css           # Tailwind v4 integration shipped to consumers
+├── PORTING.md             # The law every port follows
+├── internals-api.md       # Contract of the shared internals
+└── migration-matrix.json  # Per-component parity record against the Svelte reference
+
+examples/nuxt-app          # Nuxt consumer generated in CI (SSR/hydration gate)
+```
+
+Component tests are colocated with their component; there is no separate unit-test directory. The Svelte reference for every component lives at `src/lib/fancy-ui/<slug>/` at the repo root.
+
+## Contributing
+
+Contributions are welcome. A component exists in this package because it exists in the Svelte reference, so the flow starts there:
+
+1. Implement or change the component in `src/lib/fancy-ui/<slug>/` (Svelte 5), with its tests
+2. Port it to `vue/src/components/<slug>/` following [`PORTING.md`](./PORTING.md) &mdash; folder shape, rune→composable mapping, the styling rules that break silently, and the hard rules; the Svelte source is always the reference
+3. Record any deliberate difference under [Divergences](#divergences-from-the-svelte-api) and update `migration-matrix.json`
+4. Run the package gates (`check`, `test`, `build`, `check:matrix`, `test:scripts`) and the repo gates (`pnpm check:props`, `pnpm check:cores`) &mdash; CI fails on a missing port or a missing prop
+5. Add a changeset (`pnpm changeset`)
+
+The full walkthrough is in [CONTRIBUTING.md](https://github.com/RamaHerbin/fancy-ui/blob/main/CONTRIBUTING.md).
 
 ## Divergences from the Svelte API
 
@@ -206,3 +372,22 @@ Components are named by their exported Vue name.
 - **tool-call**: The auto-open for a failure is keyed on the `call.status` VALUE, not on the `call` object identity: handing the card a fresh `call` object whose status is still `"error"` does not re-fire the auto-open. Observable only when a consumer drives `open` from outside AND re-creates the `call` object (same as the React port).
 - **tooltip**: the tooltip appends its id to the trigger's existing `aria-describedby` list and removes only that id on close, instead of overwriting the attribute and then deleting it; it also rewires its listeners and `aria-describedby` onto a replacement trigger when the slot swaps its first element (upstream fixes, Svelte parity pending).
 - **tracing-beam**: each instance uses its own generated gradient id (`useFancyId()`) for the gradient and its stroke reference, so two beams on one page no longer share one spring-animated gradient (upstream fix, Svelte parity pending).
+
+## Tech Stack
+
+| Technology                                   | Version | Purpose             |
+| -------------------------------------------- | ------- | ------------------- |
+| [Vue](https://vuejs.org)                    | 3.5     | UI framework        |
+| [Tailwind CSS](https://tailwindcss.com)      | 4       | Styling             |
+| [TypeScript](https://www.typescriptlang.org) | 5       | Type safety         |
+| [Vite](https://vite.dev)                     | 7       | Library build       |
+| [Vitest](https://vitest.dev)                 | 4       | Testing             |
+| [GSAP](https://gsap.com)                     | 3       | Advanced animations |
+
+## Credits
+
+Inspired by [Inspira UI](https://inspira-ui.com), [Aceternity UI](https://ui.aceternity.com) and [Magic UI](https://magicui.design). The Svelte 5 implementation at the root of this repo is the reference every port follows.
+
+## License
+
+MIT
