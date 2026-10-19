@@ -20,3 +20,5 @@ export const REGISTRY_NAME = "fancy-ui";
 export const SVELTE_REGISTRY_SCHEMA_URL = "https://shadcn-svelte.com/schema/registry.json";
 export const SVELTE_REGISTRY_ITEM_SCHEMA_URL =
 	"https://shadcn-svelte.com/schema/registry-item.json";
+export const VUE_REGISTRY_SCHEMA_URL = "https://shadcn-vue.com/schema/registry.json";
+export const VUE_REGISTRY_ITEM_SCHEMA_URL = "https://shadcn-vue.com/schema/registry-item.json";

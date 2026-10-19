@@ -101,7 +101,9 @@ npx shadcn-svelte@latest add https://fancy-ui.rama.app/r/svelte/rainbow-button.j
 
 The files land under your `ui` alias (`src/lib/components/ui/fancy/` by default), with the
 shared modules and sibling components they need. The index of every component is at
-`https://fancy-ui.rama.app/r/svelte/registry.json`.
+`https://fancy-ui.rama.app/r/svelte/registry.json`. The components' `light-dark()` colours follow
+`color-scheme`: add `:root { color-scheme: light dark } .dark { color-scheme: dark }` to your CSS if
+it does not declare it.
 
 Or do it by hand: find the component in the [live demo](https://fancy-ui.rama.app), copy the
 source from `src/lib/fancy-ui/[component-name]/`, and paste it into your project.

@@ -1,10 +1,11 @@
 /**
  * The package sources the registries are built from, as raw text: the React
- * package (`/r/*.json`) and the Svelte one (`/r/svelte/*.json`).
+ * package (`/r/*.json`), the Svelte one (`/r/svelte/*.json`) and the Vue one
+ * (`/r/vue/*.json`).
  *
  * Read through `?raw` globs and never executed: the docs build must not pull
- * React in (same rule as the barrels in `../barrels.ts`), and the Svelte
- * sources ship as text, not as compiled components. The generator in
+ * React in (same rule as the barrels in `../barrels.ts`), and the Svelte and
+ * Vue sources ship as text, not as compiled components. The generator in
  * `./build.ts` is pure; this module is the only place that knows where the
  * files live and how Vite exposes them.
  */
@@ -16,6 +17,7 @@ import type { BuildOutput } from "./build.js";
 import { serverModulesFrom } from "./graph.js";
 import { reactStack } from "./stacks/react.js";
 import { svelteStack } from "./stacks/svelte.js";
+import { vueStack } from "./stacks/vue.js";
 
 const PREFIX = "/react/src/";
 
@@ -80,6 +82,32 @@ export function svelteSources(): Record<string, string> {
 	return out;
 }
 
+const VUE_PREFIX = "/vue/src/";
+
+// Same split as React: the shipped folders plus the root `utils.ts`; tests stay
+// out of the bundle, the rest is left to the stack's exclusion rules.
+const vueRaw = import.meta.glob(
+	["/vue/src/{components,internals,sound}/**/*.{vue,ts,css}", "!**/*.test.*"],
+	{ query: "?raw", import: "default", eager: true }
+) as Record<string, string>;
+
+const vueUtils = import.meta.glob("/vue/src/utils.ts", {
+	query: "?raw",
+	import: "default",
+	eager: true,
+}) as Record<string, string>;
+
+/** Every candidate Vue source file, keyed by its path relative to `vue/src`. */
+export function vueSources(): Record<string, string> {
+	const out: Record<string, string> = {};
+	for (const [key, src] of Object.entries({ ...vueRaw, ...vueUtils })) {
+		if (!key.startsWith(VUE_PREFIX)) throw new Error(`Unexpected source path: ${key}`);
+		if (typeof src !== "string") throw new Error(`Source is not raw text: ${key}`);
+		out[key.slice(VUE_PREFIX.length)] = src;
+	}
+	return out;
+}
+
 /** Display name, description and category of every component, by slug. */
 function componentMeta(): Record<string, { name: string; description: string; category: string }> {
 	const meta: Record<string, { name: string; description: string; category: string }> = {};
@@ -120,4 +148,18 @@ export function svelteRegistryOutput(): BuildOutput {
 		siteUrl: SITE_URL,
 	});
 	return svelteMemo;
+}
+
+let vueMemo: BuildOutput | undefined;
+
+/** The whole Vue registry (index + items), built once per process. */
+export function vueRegistryOutput(): BuildOutput {
+	if (vueMemo) return vueMemo;
+	vueMemo = buildRegistry({
+		stack: vueStack,
+		files: vueSources(),
+		meta: componentMeta(),
+		siteUrl: SITE_URL,
+	});
+	return vueMemo;
 }

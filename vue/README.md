@@ -103,6 +103,31 @@ pnpm --filter fancy-ui-vue build
 pnpm --filter fancy-ui-vue-example-nuxt dev   # http://localhost:3000
 ```
 
+## Copy the source into your project
+
+The npm package stays the canonical way to use these components. If you would rather own the code, every component is also published as a registry item by the docs site, and the ecosystem CLI installs it by URL:
+
+```bash
+npx shadcn-vue@latest add https://fancy-ui.rama.app/r/vue/rainbow-button.json
+```
+
+The index of all items is at <https://fancy-ui.rama.app/r/vue/registry.json>. The CLI writes the component folder and the shared modules it needs under a `fancy/` folder inside your project's `ui` alias (`components/ui` by default), keeping the package's own tree one level deeper so the relative imports stay untouched:
+
+```
+components/ui/fancy/utils.ts
+components/ui/fancy/internals/…
+components/ui/fancy/sound/…
+components/ui/fancy/components/<slug>/…
+```
+
+Five shared items are pulled in automatically as needed: `utils`, `internals`, `internals-dom`, `internals-motion` and `sound`. Import from the copied folder:
+
+```ts
+import { RainbowButton } from "@/components/ui/fancy/components/rainbow-button";
+```
+
+The components carry their own styles (the `<style>` blocks of the single-file components, plus the CSS files the shared modules import), so the `fancy-ui-vue` imports from [Quick Start](#quick-start) are not needed; the components still expect the semantic colour tokens listed under [Setup](#setup), which a project set up by the same CLI already defines. Dark mode: the components' `light-dark()` colours follow `color-scheme`, which that setup does not declare, so add `:root { color-scheme: light dark } .dark { color-scheme: dark }` to your CSS for them to switch with the `dark` class. In Nuxt, keep the copied tree out of component auto-import: `components: { dirs: [{ path: "~/components", ignore: ["ui/fancy/**"] }] }`.
+
 ## Setup
 
 ### Tailwind and colour tokens

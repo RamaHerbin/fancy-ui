@@ -21,7 +21,7 @@ import { SITE_URL, GITHUB_URL } from "$lib/site.js";
 import type { ComponentMeta } from "$lib/types.js";
 import { svelteExportsBySlug, reactExportsBySlug } from "./barrels.js";
 import { REGISTRY_BASE, copyCommandFor } from "./registry/constants.js";
-import { REGISTRY_BASE_SVELTE } from "$lib/copy-source.js";
+import { REGISTRY_BASE_SVELTE, REGISTRY_BASE_VUE } from "$lib/copy-source.js";
 
 // Export names per package come from the real barrels (see barrels.ts).
 const exportsBySlug = svelteExportsBySlug;
@@ -150,7 +150,9 @@ ${REGISTRY_BASE_SVELTE}/registry.json). The files land in
 \`$lib/components/ui/fancy/<slug>/\`; the shared \`_internals\` and \`sound\`
 modules it needs are pulled in automatically. Import from there
 (\`$lib/components/ui/fancy/<slug>\`) instead of \`fancy-ui-svelte\`; \`cn\` comes
-from the project's own \`$lib/utils\`.
+from the project's own \`$lib/utils\`. The components' \`light-dark()\` colours
+follow \`color-scheme\`: add \`:root { color-scheme: light dark } .dark { color-scheme: dark }\`
+to the project CSS if it does not declare it.
 
 If the project uses Tailwind v3 or no Tailwind, stop and tell the user:
 fancy-ui-svelte requires Tailwind CSS v4.
@@ -218,7 +220,9 @@ registry item: \`${copyCommandFor("<slug>")}\` (the index is at
 ${REGISTRY_BASE}/registry.json). The files land in \`fancy/\` under the project's
 \`ui\` alias; import from there (\`@/components/ui/fancy/components/<slug>\`), not
 from \`fancy-ui-react\`, and skip \`fancy-ui-react/styles.css\` (each component
-imports its own CSS).`;
+imports its own CSS). The components' \`light-dark()\` colours follow
+\`color-scheme\`: add \`:root { color-scheme: light dark } .dark { color-scheme: dark }\`
+to the project CSS if it does not declare it.`;
 
 const VUE_GUIDE = `## Vue
 
@@ -249,7 +253,17 @@ snippet is the default slot); every bindable prop is a \`v-model:<name>\`;
 listed in the package README:
 ${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api
 Package is ESM only, with four entry points: \`fancy-ui-vue\`,
-\`fancy-ui-vue/cameleon\`, \`fancy-ui-vue/styles.css\`, \`fancy-ui-vue/tailwind.css\`.`;
+\`fancy-ui-vue/cameleon\`, \`fancy-ui-vue/styles.css\`, \`fancy-ui-vue/tailwind.css\`.
+
+Prefer the package. To own the source instead, every component is also a
+registry item: \`${copyCommandFor("<slug>", "vue")}\` (the index is at
+${REGISTRY_BASE_VUE}/registry.json). The files land in \`fancy/\` under the project's
+\`ui\` alias; import from there (\`@/components/ui/fancy/components/<slug>\`), not
+from \`fancy-ui-vue\`, and skip \`fancy-ui-vue/styles.css\` (each component
+carries its own styles). The components' \`light-dark()\` colours follow
+\`color-scheme\`: add \`:root { color-scheme: light dark } .dark { color-scheme: dark }\`
+to the project CSS if it does not declare it. In Nuxt, keep the copied tree out
+of component auto-import: \`components: { dirs: [{ path: "~/components", ignore: ["ui/fancy/**"] }] }\`.`;
 
 function header(componentCount: number): string {
 	return `# fancy-ui-svelte

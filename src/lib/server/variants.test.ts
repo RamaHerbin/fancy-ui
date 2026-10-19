@@ -24,7 +24,7 @@ describe("framework variants", () => {
 		});
 	});
 
-	it("offers a copy-source line for React and Svelte, not Vue", () => {
+	it("offers a copy-source line for React, Svelte and Vue", () => {
 		const [svelte, react, vue] = variantsFor("pulse-beam");
 		expect(react.copyLine).toBe(copyCommandFor("pulse-beam"));
 		expect(react.copyLine).toMatch(/\/r\/pulse-beam\.json$/);
@@ -36,7 +36,11 @@ describe("framework variants", () => {
 		expect(svelte.copyImportLine).toBe(
 			'import { PulseBeam } from "$lib/components/ui/fancy/pulse-beam";'
 		);
-		expect(vue.copyLine).toBeNull();
+		expect(vue.copyLine).toBe(copyCommandFor("pulse-beam", "vue"));
+		expect(vue.copyLine).toMatch(/\/r\/vue\/pulse-beam\.json$/);
+		expect(vue.copyImportLine).toBe(
+			'import { PulseBeam } from "@/components/ui/fancy/components/pulse-beam";'
+		);
 	});
 
 	it("installs Vue like the other two now that the package is on npm", () => {

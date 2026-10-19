@@ -2,11 +2,11 @@
 /**
  * Source registry gate.
  *
- * The docs site prerenders two source registries, built by
+ * The docs site prerenders three source registries, built by
  * `src/lib/server/registry/`: the React one (`/r/registry.json` + one
- * `/r/<name>.json` per item, from `react/src`) and the Svelte one
+ * `/r/<name>.json` per item, from `react/src`), the Svelte one
  * (`/r/svelte/registry.json` + `/r/svelte/<name>.json`, from
- * `src/lib/fancy-ui`). A consumer copies those files into their own project,
+ * `src/lib/fancy-ui`) and the Vue one (`/r/vue/…`, from `vue/src`). A consumer copies those files into their own project,
  * so whatever ships there is code we hand over for good. This script reads the
  * prerendered output of one stack and refuses it when:
  *
@@ -19,28 +19,35 @@
  *     the items it depends on (transitively);
  *   - a test file, a test harness, a README, a template or the Web Audio mock
  *     got in;
- *   - a file's `target` or `path` sits outside the stack's prefix, or (Svelte)
- *     a file type is not `registry:ui`;
+ *   - a file's `target` or `path` sits outside the stack's prefix, or (Svelte,
+ *     Vue) a file type is not `registry:ui` or an item type not ui/lib;
+ *   - (Vue) a file carries a `target` key at all, in the index or an item: the
+ *     CLI places files by `path` under the consumer's `ui` alias, and a target
+ *     would land them at the project root instead;
  *   - (React) a relative specifier still ends in ".js";
  *   - (Svelte) a non-relative, non-package specifier other than `$UTILS$.js`
  *     (a `$lib/…` import), any other `$…$` placeholder anywhere in the text, or
  *     a client directive;
+ *   - (Vue) any `$…`, `@/…` or `~/…` specifier, any `$…$` placeholder, or a
+ *     client directive;
  *   - content mentions site-only code (`src/lib/server`, `src/lib/builder`)
  *     or a credits URL from `src/lib/fancy-ui/registry.ts`;
  *   - a third-party product name appears anywhere but the `$schema` values;
  *   - `dependencies` names a package the stack's package.json does not
- *     depend on (`react/package.json` / the root `package.json`);
+ *     depend on (`react/package.json` / the root `package.json` /
+ *     `vue/package.json`);
  *   - the item count is not the stack's (React 151 = 145 components + 6
- *     shared modules; Svelte 148 = 145 components + 3 shared modules), or
- *     (Svelte) the total file count drifts from the pinned 453.
+ *     shared modules; Svelte 148 = 145 components + 3 shared modules; Vue 150
+ *     = 145 components + 5 shared modules), or (Svelte, Vue) the total file
+ *     count drifts from the pinned one.
  *
  * Usage:
- *   node scripts/check-registry-items.mjs [--self-test] [--stack react|svelte] [--dir <path>]
+ *   node scripts/check-registry-items.mjs [--self-test] [--stack react|svelte|vue] [--dir <path>]
  *
  *   --self-test     run the built-in detector cases on in-memory fixtures and exit
  *   --stack <id>    which registry to check (default react)
  *   --dir <path>    read the JSON files from <path> instead of the stack's
- *                   .svelte-kit/output/prerendered/pages/r[/svelte]
+ *                   .svelte-kit/output/prerendered/pages/r[/svelte|/vue]
  */
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
@@ -71,6 +78,9 @@ const BRAND_WORDS = [
 /** Files that belong to the package's own test rig, never to an item. */
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
+/** Vue files over all 150 items; the generator's real-tree test reports the same. */
+const VUE_EXPECTED_FILES = 481;
+
 /** The one placeholder Svelte items may import: the consumer's `cn` module. */
 const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";
 
@@ -92,6 +102,7 @@ const STACKS = {
 		/** Relative ".js" specifiers do not resolve under Next: stripped at build. */
 		forbidJsSpecifiers: true,
 		svelte: false,
+		vue: false,
 	},
 	svelte: {
 		id: "svelte",
@@ -110,6 +121,30 @@ const STACKS = {
 		},
 		forbidJsSpecifiers: false,
 		svelte: true,
+		vue: false,
+	},
+	vue: {
+		id: "vue",
+		dir: join(PAGES_R, "vue"),
+		urlPath: "/r/vue",
+		expectedCount: 150,
+		/** Files over all items, pinned so a stray helper or a lost file shows up. */
+		expectedFiles: VUE_EXPECTED_FILES,
+		/** No `target`: the Vue CLI places a file from its `path` (see the header). */
+		targetPrefix: null,
+		pathPrefix: "src/components/ui/fancy/",
+		excluded: [
+			...EXCLUDED,
+			/\.fixtures\.ts$/,
+			/(^|\/)test-setup\.ts$/,
+			/(^|\/)cameleon\//,
+			/^src\/components\/ui\/fancy\/index\.ts$/,
+		],
+		packageJson: ["vue", "package.json"],
+		schemaNames: { index: "VUE_REGISTRY_SCHEMA_URL", item: "VUE_REGISTRY_ITEM_SCHEMA_URL" },
+		forbidJsSpecifiers: false,
+		svelte: false,
+		vue: true,
 	},
 };
 
@@ -312,6 +347,9 @@ export function findProblems(snap) {
 	for (const entry of entries) {
 		for (const file of entry?.files ?? []) {
 			if ("content" in file) problems.push(`registry.json: ${entry.name} carries file content`);
+			if (stack.vue && "target" in file) {
+				problems.push(`registry.json: ${entry.name} file ${file.path} carries a target`);
+			}
 		}
 		const item = items[entry?.name];
 		if (!item) continue;
@@ -342,22 +380,36 @@ export function findProblems(snap) {
 			problems.push(`${where}: no files`);
 		}
 		for (const file of item.files ?? []) {
-			for (const field of ["path", "content", "type", "target"]) {
+			const fields = TARGET_PREFIX
+				? ["path", "content", "type", "target"]
+				: ["path", "content", "type"];
+			for (const field of fields) {
 				if (typeof file[field] !== "string" || (field !== "content" && !file[field])) {
 					problems.push(`${where}: file ${file.path ?? "?"} missing ${field}`);
 				}
 			}
-			if (typeof file.target === "string" && !file.target.startsWith(TARGET_PREFIX)) {
+			if (!TARGET_PREFIX && "target" in file) {
+				problems.push(`${where}: file ${file.path} carries a target`);
+			}
+			if (typeof file.path === "string" && !file.path.startsWith(PATH_PREFIX)) {
+				problems.push(`${where}: path ${file.path} outside ${PATH_PREFIX}`);
+			}
+			if (
+				TARGET_PREFIX &&
+				typeof file.target === "string" &&
+				!file.target.startsWith(TARGET_PREFIX)
+			) {
 				problems.push(`${where}: target ${file.target} outside ${TARGET_PREFIX}`);
 			}
 			if (
+				TARGET_PREFIX &&
 				typeof file.target === "string" &&
 				typeof file.path === "string" &&
 				file.path !== PATH_PREFIX + file.target.slice(TARGET_PREFIX.length)
 			) {
 				problems.push(`${where}: path ${file.path} does not match target ${file.target}`);
 			}
-			if (stack.svelte && file.type !== "registry:ui") {
+			if ((stack.svelte || stack.vue) && file.type !== "registry:ui") {
 				problems.push(`${where}: file ${file.path} type is ${JSON.stringify(file.type)}`);
 			}
 			if (stack.excluded.some((re) => re.test(file.path ?? "") || re.test(file.target ?? ""))) {
@@ -385,8 +437,9 @@ export function findProblems(snap) {
 				}
 			}
 			if (stack.svelte) problems.push(...svelteContentProblems(where, file.path, content));
+			if (stack.vue) problems.push(...vueContentProblems(where, file.path, content));
 		}
-		if (stack.svelte && !["registry:ui", "registry:lib"].includes(item.type)) {
+		if ((stack.svelte || stack.vue) && !["registry:ui", "registry:lib"].includes(item.type)) {
 			problems.push(`${where}: type is ${JSON.stringify(item.type)}`);
 		}
 
@@ -444,14 +497,17 @@ export function findProblems(snap) {
 			reach.add(n);
 			queue.push(...(depNames.get(n) ?? []));
 		}
+		// Where a file lands, relative to the others: its target, or (Vue, no
+		// target) its path, which the CLI maps one-to-one under the `ui` alias.
+		const where = (f) => (TARGET_PREFIX ? f.target : f.path);
 		const targets = new Set();
-		for (const n of reach) for (const f of items[n].files ?? []) targets.add(f.target);
+		for (const n of reach) for (const f of items[n].files ?? []) targets.add(where(f));
 		for (const file of item.files ?? []) {
-			if (typeof file.content !== "string" || !/\.(tsx?|css|svelte)$/.test(file.target ?? ""))
-				continue;
-			if (file.target.endsWith(".css")) continue;
+			const at = where(file);
+			if (typeof file.content !== "string" || !/\.(tsx?|css|svelte|vue)$/.test(at ?? "")) continue;
+			if (at.endsWith(".css")) continue;
 			for (const spec of relativeSpecifiers(file.content)) {
-				if (!candidates(file.target, spec).some((c) => targets.has(c))) {
+				if (!candidates(at, spec).some((c) => targets.has(c))) {
 					problems.push(`${stem}.json: ${file.path} imports ${spec}, not in the item or its deps`);
 				}
 			}
@@ -483,6 +539,26 @@ function svelteContentProblems(where, path, content) {
 	return problems;
 }
 
+/**
+ * Vue-only content rules. The Vue CLI rewrites only `@/…` specifiers and never
+ * a `$…$` placeholder, and our sources import relatively, so a shipped file
+ * carries no alias specifier at all (`$lib/…`, `@/…`, `~/…`, `$…`) and no
+ * placeholder anywhere. Paths quoted in comments are prose and stay allowed.
+ */
+function vueContentProblems(where, path, content) {
+	const problems = [];
+	for (const spec of allSpecifiers(content)) {
+		if (/^(\$|@\/|~\/)/.test(spec)) problems.push(`${where}: ${path} imports ${spec}`);
+	}
+	for (const m of content.matchAll(/\$[A-Z][A-Z_]*\$/g)) {
+		problems.push(`${where}: ${path} carries placeholder ${m[0]}`);
+	}
+	if (/^\s*["']use client["']/m.test(content)) {
+		problems.push(`${where}: ${path} carries a "use client" directive`);
+	}
+	return problems;
+}
+
 // --- disk --------------------------------------------------------------------
 
 function loadSnapshot(dir) {
@@ -504,14 +580,15 @@ function loadSnapshot(dir) {
 function selfTest() {
 	const react = reactCases();
 	const svelte = svelteCases();
-	const failed = runCases(react) + runCases(svelte);
-	const total = react[1].length + svelte[1].length;
+	const vue = vueCases();
+	const failed = runCases(react) + runCases(svelte) + runCases(vue);
+	const total = react[1].length + svelte[1].length + vue[1].length;
 	if (failed) {
 		console.error(`Registry items self-test FAILED (${failed}/${total}).`);
 		process.exit(1);
 	}
 	console.log(
-		`Registry items self-test OK (${total} cases: ${react[1].length} react, ${svelte[1].length} svelte).`
+		`Registry items self-test OK (${total} cases: ${react[1].length} react, ${svelte[1].length} svelte, ${vue[1].length} vue).`
 	);
 }
 
@@ -891,6 +968,188 @@ function svelteCases() {
 	return [good, bad];
 }
 
+function vueCases() {
+	const stack = STACKS.vue;
+	const base = "https://example.test/r/vue";
+	const schemas = {
+		index: "https://example.test/s/vue-index.json",
+		item: "https://example.test/s/vue-item.json",
+	};
+	// No target: a Vue file is placed from its path alone.
+	const file = (rel, content, type = "registry:ui") => ({
+		path: stack.pathPrefix + rel,
+		content,
+		type,
+	});
+	const good = () => {
+		const items = {
+			utils: {
+				$schema: schemas.item,
+				name: "utils",
+				type: "registry:lib",
+				title: "Utils",
+				description: "Class name helper.",
+				dependencies: ["clsx"],
+				files: [file("utils.ts", "export const cn = () => '';\n")],
+			},
+			internals: {
+				$schema: schemas.item,
+				name: "internals",
+				type: "registry:lib",
+				title: "Shared internals",
+				description: "Helpers the components share.",
+				files: [
+					file("internals/portal.ts", "export function portal() {}\n"),
+					file(
+						"internals/StreamText.vue",
+						'<script setup lang="ts">\nimport "./stream-text.css";\nimport { portal } from "./portal.js";\n</script>\n'
+					),
+					file("internals/stream-text.css", ".s{}\n"),
+				],
+			},
+			"rainbow-button": {
+				$schema: schemas.item,
+				name: "rainbow-button",
+				type: "registry:ui",
+				title: "Rainbow Button",
+				description: "A button with a rainbow edge.",
+				categories: ["buttons"],
+				dependencies: ["three"],
+				devDependencies: ["@types/three"],
+				registryDependencies: [`${base}/internals.json`, `${base}/utils.json`],
+				files: [
+					file(
+						"components/rainbow-button/RainbowButton.vue",
+						'<script setup lang="ts">\nimport { computed } from "vue";\nimport { cn } from "../../utils.js";\nimport StreamText from "../../internals/StreamText.vue";\nimport type { Props } from "./types.js";\nimport Inner from "./Inner.vue";\n// a core may not reach into `$lib/` or `@/lib`, so it lives here\n</script>\n\n<template><button :class="cn(\'x\')"><Inner /></button></template>\n'
+					),
+					file("components/rainbow-button/Inner.vue", "<template><span /></template>\n"),
+					file("components/rainbow-button/types.ts", "export type Props = {};\n"),
+					file(
+						"components/rainbow-button/index.ts",
+						'export { default as RainbowButton } from "./RainbowButton.vue";\nexport type { Props } from "./types.js";\n'
+					),
+				],
+			},
+		};
+		const index = {
+			$schema: schemas.index,
+			name: "fixture",
+			homepage: "https://example.test",
+			items: Object.values(items).map(({ $schema: _s, ...rest }) => ({
+				...rest,
+				files: rest.files.map(({ content: _c, ...f }) => f),
+			})),
+		};
+		return {
+			index,
+			items,
+			base,
+			schemas,
+			creditUrls: new Set(["https://credits.example.test/thing"]),
+			deps: new Set(["three", "clsx"]),
+			allDeps: new Set(["three", "clsx", "@types/three"]),
+			expectedCount: 3,
+			expectedFiles: 8,
+			stack,
+		};
+	};
+	const rb = (s) => s.items["rainbow-button"];
+	const idx = (s, name) => s.index.items.find((e) => e.name === name);
+	const bad = [
+		["vue: clean fixture passes", () => {}, null],
+		[
+			"vue: target on an item file",
+			(s) => (rb(s).files[1].target = "components/ui/fancy/components/rainbow-button/Inner.vue"),
+			"Inner.vue carries a target",
+		],
+		[
+			"vue: target on an index file",
+			(s) => (idx(s, "utils").files[0].target = "fancy/utils.ts"),
+			"registry.json: utils file src/components/ui/fancy/utils.ts carries a target",
+		],
+		[
+			"vue: path outside the prefix",
+			(s) => (s.items.utils.files[0].path = "src/lib/utils.ts"),
+			"outside src/components/ui/fancy/",
+		],
+		[
+			"vue: wrong file type",
+			(s) => (s.items.utils.files[0].type = "registry:lib"),
+			'type is "registry:lib"',
+		],
+		["vue: wrong item type", (s) => (rb(s).type = "registry:block"), 'type is "registry:block"'],
+		[
+			"vue: use client leak",
+			(s) => (rb(s).files[2].content = '"use client";\n' + rb(s).files[2].content),
+			'"use client" directive',
+		],
+		[
+			"vue: placeholder in the text",
+			(s) => (rb(s).files[2].content += "// lives under $UTILS$\n"),
+			"carries placeholder $UTILS$",
+		],
+		[
+			"vue: $lib/ import",
+			(s) => (rb(s).files[2].content += 'import { x } from "$lib/x.js";\n'),
+			"imports $lib/x.js",
+		],
+		[
+			"vue: @/ import",
+			(s) => (rb(s).files[2].content += 'import { cn } from "@/lib/utils";\n'),
+			"imports @/lib/utils",
+		],
+		[
+			"vue: ~/ import",
+			(s) => (rb(s).files[2].content += 'import { cn } from "~/lib/utils";\n'),
+			"imports ~/lib/utils",
+		],
+		["vue: unresolved .vue sibling", (s) => rb(s).files.splice(1, 1), "imports ./Inner.vue"],
+		['vue: unresolved ".js" → .ts import', (s) => rb(s).files.splice(2, 1), "imports ./types.js"],
+		[
+			"vue: css side-effect import unresolved",
+			(s) => s.items.internals.files.splice(2, 1),
+			"imports ./stream-text.css",
+		],
+		[
+			"vue: shared import without the dependency",
+			(s) => (rb(s).registryDependencies = [`${base}/utils.json`]),
+			"imports ../../internals/StreamText.vue",
+		],
+		[
+			"vue: .test.ts leak",
+			(s) => rb(s).files.push(file("components/rainbow-button/RainbowButton.test.ts", "")),
+			"excluded file shipped",
+		],
+		[
+			"vue: fixtures leak",
+			(s) => s.items.utils.files.push(file("ssr-sweep.fixtures.ts", "")),
+			"excluded file shipped",
+		],
+		[
+			"vue: cameleon leak",
+			(s) => s.items.utils.files.push(file("cameleon/FancyProvider.vue", "")),
+			"excluded file shipped",
+		],
+		[
+			"vue: dependency outside vue/package.json",
+			(s) => (rb(s).dependencies = ["left-pad"]),
+			"dependency left-pad is not a vue/package.json dependency",
+		],
+		[
+			"vue: devDependency outside vue/package.json",
+			(s) => (rb(s).devDependencies = ["@types/nope"]),
+			"devDependency @types/nope is not in vue/package.json",
+		],
+		[
+			"vue: file count drift",
+			(s) => rb(s).files.push(file("components/rainbow-button/extra.ts", "export {};\n")),
+			"count: 9 files, expected 8",
+		],
+		["vue: product name", (s) => (rb(s).title = "Daisy button"), "product name"],
+	];
+	return [good, bad];
+}
+
 // --- main --------------------------------------------------------------------
 
 function main() {
@@ -900,7 +1159,7 @@ function main() {
 	const stackId = st >= 0 ? args[st + 1] : "react";
 	const stack = Object.hasOwn(STACKS, stackId ?? "") ? STACKS[stackId] : undefined;
 	if (!stack) {
-		console.error(`❌ unknown --stack ${JSON.stringify(stackId)} (react | svelte)`);
+		console.error(`❌ unknown --stack ${JSON.stringify(stackId)} (react | svelte | vue)`);
 		process.exit(1);
 	}
 	const at = args.indexOf("--dir");

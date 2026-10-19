@@ -141,12 +141,8 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 		exports,
 		importLine,
 		installLine: `pnpm add ${pkg.name}`,
-		copyLine:
-			framework === "react" || framework === "svelte" ? copyCommandFor(slug, framework) : null,
-		copyImportLine:
-			framework === "react" || framework === "svelte"
-				? copyImportFor(slug, exports, framework)
-				: null,
+		copyLine: copyCommandFor(slug, framework),
+		copyImportLine: copyImportFor(slug, exports, framework),
 		docsUrl,
 		sourceUrl,
 		packageUrl: pkg.url,
