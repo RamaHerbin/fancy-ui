@@ -39,6 +39,8 @@ export default {
 	"install.framework": "프레임워크",
 	"install.sourceOnly": "아직 npm에 없습니다 — 이 포트는 저장소에 있습니다.",
 	"install.unavailable": "이 프레임워크용 컴포넌트 포트가 아직 없습니다.",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "사용법",
 	"comp.props": "속성",
 	"comp.slots": "슬롯",

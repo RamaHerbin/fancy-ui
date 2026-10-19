@@ -1,46 +1,134 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/RamaHerbin/fancy-ui/main/.github/logo.png" alt="FancyUI" width="88" height="88" />
+</p>
+
 # fancy-ui-react
 
-React counterpart of [`fancy-ui-svelte`](https://www.npmjs.com/package/fancy-ui-svelte) —
-same components, same visual contract, ported from the Svelte 5 reference
-implementation that lives at the root of this repo.
+Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mdash; the React edition of [fancy-ui](https://github.com/RamaHerbin/fancy-ui#readme), ported component for component from the Svelte 5 reference and kept at parity by CI.
 
-Status: at parity. All 145 components of `fancy-ui-svelte` are ported and
-exported from the package root, alongside the `sound` family; the cameleon
-skin engine (FancyProvider + primitives + skins) ships on the
-`fancy-ui-react/cameleon` subpath. The Svelte package remains the reference;
-each React component is a faithful transpose (see `PORTING.md` for the law
-that governs ports), and every deliberate difference is listed under
-[Divergences](#divergences-from-the-svelte-api) below.
+[![npm fancy-ui-react](https://img.shields.io/npm/v/fancy-ui-react?label=fancy-ui-react&color=149ECA)](https://www.npmjs.com/package/fancy-ui-react)
+![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Components](https://img.shields.io/badge/Components-145-8B5CF6)
+![MIT License](https://img.shields.io/badge/License-MIT-green)
 
-## Install
+<p align="center">
+  <a href="https://www.anthropic.com/claude-code">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/RamaHerbin/fancy-ui/main/.github/claude-for-open-source-program-dark.svg">
+      <img src="https://raw.githubusercontent.com/RamaHerbin/fancy-ui/main/.github/claude-for-open-source-program.svg" alt="Claude for Open Source Program" width="280">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://fancy-ui.rama.app">
+    <img src="https://raw.githubusercontent.com/RamaHerbin/fancy-ui/main/.github/fancyui-reel.webp" alt="fancy-ui in motion: an HDR fluid cursor painting over the title, fireworks launched from a gradient button, a datamosh page transition, a before/after slider split by a blade of light and a rainbow-beam button" width="800" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://fancy-ui.rama.app"><strong>Live Demo &amp; Docs</strong></a>
+  &nbsp;·&nbsp;
+  <a href="https://fancy-ui.rama.app/docs/components">Browse components</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/RamaHerbin/fancy-ui#readme">Svelte package</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme">Vue package</a>
+</p>
+
+## Features
+
+- **145 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
+- **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
+- **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
+- **Same components, three frameworks** &mdash; All 145 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
+- **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
+- **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
+- **Own the code if you prefer** &mdash; every component is also a registry item served by the docs site, installable by URL with the ecosystem CLI (see [Copy the source](#copy-the-source-into-your-project))
+- **AI-ready docs** &mdash; `llms.txt` with a React section, a Markdown page per component and a JSON registry, so coding agents use the library correctly
+- **Tested** &mdash; 5,700+ unit tests with Vitest and Testing Library, a React 18 floor job and an App Router consumer app built in CI
+
+## Quick Start
+
+**Install via npm:**
 
 ```bash
 npm install fancy-ui-react
 ```
 
-Peer dependencies: `react` / `react-dom` 18 or 19, `tailwindcss` 4. TypeScript
-is an optional peer at 5.0 or later — the type barrel uses `export type *`,
-which is 5.0 syntax and is emitted verbatim into `dist/index.d.ts`.
+Peer dependencies: `react` / `react-dom` 18 or 19, `tailwindcss` 4. TypeScript is an optional peer at 5.0 or later.
 
-Three things about the package's shape, because each of them is a decision
-rather than an oversight:
+Add the Tailwind integration to your app's CSS (e.g. `app.css`):
 
-- **ESM only.** There is no `require` condition and no CJS build. A TypeScript
-  project on `moduleResolution: node16` that emits CommonJS gets TS1479 on the
-  bare import; the fix is on that side (`"module": "esnext"`, or a dynamic
-  `import()`), not here.
-- **Four entry points, no deep imports.** `fancy-ui-react`,
-  `fancy-ui-react/cameleon`, `fancy-ui-react/styles.css` and
-  `fancy-ui-react/tailwind.css`, plus `fancy-ui-react/package.json` for tooling
-  that resolves a manifest by specifier. Everything else is blocked by the
-  exports map on purpose: the build keeps one module per source file, so
-  importing one component from the package root tree-shakes the rest away, and
-  the alternative would freeze `dist/`'s internal folder layout as public API.
-- **0.x, so minors can break.** Until 1.0 a minor version may change a
-  component's API; patches never do. Every deliberate difference from the Svelte
-  package is listed under [Divergences](#divergences-from-the-svelte-api).
+```css
+@import "tailwindcss";
+@import "fancy-ui-react/tailwind.css";
+```
+
+This single import tells Tailwind v4 to scan the library's components so all utility classes are generated automatically, and declares the colour tokens the components use. No manual `@source` path needed.
+
+Then import the stylesheet once and any component:
+
+```tsx
+import "fancy-ui-react/styles.css";
+import { RainbowButton, BorderBeam } from "fancy-ui-react";
+
+export function Hero() {
+	return (
+		<div className="relative overflow-hidden rounded-xl border p-8">
+			<RainbowButton>Get started</RainbowButton>
+			<BorderBeam />
+		</div>
+	);
+}
+```
+
+Props keep their Svelte names; `class` becomes `className` and snippets become `ReactNode` (render functions when the snippet takes arguments). Every deliberate difference is listed under [Divergences](#divergences-from-the-svelte-api).
+
+**Or copy the source into your project:** see [Copy the source](#copy-the-source-into-your-project) below.
+
+**Or clone the full demo locally:**
+
+```bash
+git clone https://github.com/RamaHerbin/fancy-ui.git
+cd fancy-ui
+pnpm install
+pnpm --filter fancy-ui-react build
+pnpm --filter fancy-ui-react-demo dev   # http://localhost:3200
+```
+
+## Copy the source into your project
+
+The npm package stays the canonical way to use these components. If you would rather own the code, every component is also published as a registry item by the docs site, and the ecosystem CLI installs it by URL:
+
+```bash
+npx shadcn@latest add https://fancy-ui.rama.app/r/rainbow-button.json
+```
+
+The index of all items is at <https://fancy-ui.rama.app/r/registry.json>. The CLI writes the component folder and the shared modules it needs under a `fancy/` folder inside your project's `ui` alias (`components/ui` by default), keeping the package's own tree one level deeper so the relative imports stay untouched:
+
+```
+components/ui/fancy/utils.ts
+components/ui/fancy/internals/…
+components/ui/fancy/sound/…
+components/ui/fancy/components/<slug>/…
+```
+
+Six shared items are pulled in automatically as needed: `utils`, `internals`, `internals-dom`, `internals-motion`, `internals-markdown` and `sound`. Import from the copied folder:
+
+```tsx
+import { RainbowButton } from "@/components/ui/fancy/components/rainbow-button";
+```
+
+Each component imports its own CSS, so the `fancy-ui-react` imports from [Quick Start](#quick-start) are not needed; the components still expect the semantic colour tokens listed under [Setup](#setup), which a project set up by the same CLI already defines.
 
 ## Setup
+
+### Tailwind and colour tokens
 
 ```css
 /* app.css */
@@ -50,53 +138,25 @@ rather than an oversight:
 
 ```tsx
 import "fancy-ui-react/styles.css"; // keyframes + component-scoped CSS
-import { RainbowButton, Marquee } from "fancy-ui-react";
 ```
 
-Those two imports are the whole setup. `tailwind.css` also declares every
-semantic colour the components spend — the full shadcn token set:
-`background`, `foreground`, `card`, `card-foreground`, `popover`,
-`popover-foreground`, `primary`, `primary-foreground`, `secondary`,
-`secondary-foreground`, `muted`, `muted-foreground`, `accent`,
-`accent-foreground`, `destructive`, `border`, `input`, `ring`. None of them
-exist in Tailwind's default palette, and Tailwind v4 emits no rule at all for
-an undeclared colour name, so without them `bg-primary` and friends compile to
-nothing. They are wired with `@theme inline`, so the utilities resolve the
-variables at use time: an app that already defines the shadcn token set keeps
-its own colours automatically. The defaults ship in `@layer base`, which an
-unlayered `:root` in your app overrides whatever the import order.
+Those two imports are the whole setup. `tailwind.css` also declares every semantic colour the components spend, the standard 18-token set a project scaffolded with `npx shadcn@latest init` already defines: `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`. None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule at all for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so the utilities resolve the variables at use time: an app that already defines that token set keeps its own colours automatically. The defaults ship in `@layer base`, which an unlayered `:root` in your app overrides whatever the import order.
 
-## Dark mode
+### Dark mode
 
-Out of the box the package follows the operating-system preference: `dark:`
-utilities and the components' `light-dark()` colours both switch with
-`prefers-color-scheme`, so an app that never touches dark mode already looks
-right on a dark desktop. To control it yourself, put `dark` or `light` on
-`<html>` (or on any ancestor of the subtree you want to force) and both halves
-follow the class instead:
+Out of the box the package follows the operating-system preference: `dark:` utilities and the components' `light-dark()` colours both switch with `prefers-color-scheme`, so an app that never touches dark mode already looks right on a dark desktop. To control it yourself, put `dark` or `light` on `<html>` (or on any ancestor of the subtree you want to force) and both halves follow the class instead:
 
 ```html
 <html class="dark">
 ```
 
-`tailwind.css` is what makes that work, in three parts: it declares the `.dark`
-token block, it declares a `dark` variant that matches a `.dark` ancestor OR
-the media query (unless a `.light` ancestor opts out), and it sets
-`color-scheme: light dark` on `:root` with `.dark` / `.light` overrides so the
-components' `light-dark()` colours — and the browser's own form controls,
-scrollbars and caret — resolve the same way. An app that declares its own
-`@custom-variant dark` after the import keeps its own definition.
+`tailwind.css` is what makes that work, in three parts: it declares the `.dark` token block, it declares a `dark` variant that matches a `.dark` ancestor OR the media query (unless a `.light` ancestor opts out), and it sets `color-scheme: light dark` on `:root` with `.dark` / `.light` overrides so the components' `light-dark()` colours &mdash; and the browser's own form controls, scrollbars and caret &mdash; resolve the same way. An app that declares its own `@custom-variant dark` after the import keeps its own definition.
 
-## Server Components
+### Server Components
 
-Components and hooks are client modules. Import them from a Server Component
-file and they cross the boundary as client references, which is exactly what
-you want: no `"use client"` wrapper of your own, and no `useState` running on
-the server. The `examples/next-app` App Router example in this repo is a
-Server Component that imports the whole barrel, and it is part of CI.
+Components and hooks are client modules. Import them from a Server Component file and they cross the boundary as client references, which is exactly what you want: no `"use client"` wrapper of your own, and no `useState` running on the server. The `examples/next-app` App Router example in this repo is a Server Component that imports the whole barrel, and it is part of CI.
 
-What a Server Component can **call and read** directly, because these modules
-ship without the boundary:
+What a Server Component can **call and read** directly, because these modules ship without the boundary:
 
 | Export | From |
 | --- | --- |
@@ -105,65 +165,113 @@ ship without the boundary:
 | `SOUND_THEMES`, `FANCY_SOUND_THEME`, `getSoundTheme`, `validateSoundTheme` | the shipped sound themes and their validators |
 | `BOOK_COLOR_MAP`, `BOOK_SIZE_MAP`, `BOOK_RADIUS_MAP`, `BOOK_SHADOW_SIZE_MAP` | the `Book` lookup tables |
 
-Everything else — every component, every hook, the `sound` controller, `toast`
-and `dismissToast`, the cameleon skins — is a client module. Calling one from
-the server throws "Attempted to call … from the server", which is the right
-answer: the sound controller and the toast store are browser singletons, and a
-skin has to arrive at `<FancyProvider>` as a client reference or React refuses
-to serialize its recipe functions.
+Everything else &mdash; every component, every hook, the `sound` controller, `toast` and `dismissToast`, the cameleon skins &mdash; is a client module. Calling one from the server throws "Attempted to call … from the server", which is the right answer: the sound controller and the toast store are browser singletons, and a skin has to arrive at `<FancyProvider>` as a client reference or React refuses to serialize its recipe functions.
 
-## Compatibility
+### Package shape
 
-- **React 18 and 19.** Both are in the peer range and both are in CI: one job
-  runs the suite on 19, another packs the tarball, installs it next to
-  `@types/react@18`, compiles every emitted declaration with `skipLibCheck`
-  off, and runs the hydration sweep and the `internals` / `sound` suites
-  against React 18.
-- **TypeScript 5.0+, `@types/react` 18.3+.** Below either, the package's own
-  declarations fail to parse or resolve and everything from it reads as `any`.
-- **Tailwind CSS 4.** `tailwind.css` uses v4 at-rules (`@source`,
-  `@theme inline`, `@custom-variant`) and has no v3 equivalent.
-- **The cameleon subpath is barrel-only.** `fancy-ui-react/cameleon` ships the
-  skin engine, the primitives and the five skins. There is no `./cameleon/*`
-  wildcard for a single skin, and the retro-OS component kit that the Svelte
-  package publishes as `fancy-ui-svelte/cameleon/retro-kit` has no React
-  counterpart.
+Three things about the package's shape, because each of them is a decision rather than an oversight:
+
+- **ESM only.** There is no `require` condition and no CJS build. A TypeScript project on `moduleResolution: node16` that emits CommonJS gets TS1479 on the bare import; the fix is on that side (`"module": "esnext"`, or a dynamic `import()`), not here.
+- **Four entry points, no deep imports.** `fancy-ui-react`, `fancy-ui-react/cameleon`, `fancy-ui-react/styles.css` and `fancy-ui-react/tailwind.css`, plus `fancy-ui-react/package.json` for tooling that resolves a manifest by specifier. Everything else is blocked by the exports map on purpose: the build keeps one module per source file, so importing one component from the package root tree-shakes the rest away, and the alternative would freeze `dist/`'s internal folder layout as public API.
+- **0.x, so minors can break.** Until 1.0 a minor version may change a component's API; patches never do. Every deliberate difference from the Svelte package is listed under [Divergences](#divergences-from-the-svelte-api).
+
+### Compatibility
+
+- **React 18 and 19.** Both are in the peer range and both are in CI: one job runs the suite on 19, another packs the tarball, installs it next to `@types/react@18`, compiles every emitted declaration with `skipLibCheck` off, and runs the hydration sweep and the `internals` / `sound` suites against React 18.
+- **TypeScript 5.0+, `@types/react` 18.3+.** Below either, the package's own declarations fail to parse or resolve and everything from it reads as `any`. The type barrel uses `export type *`, which is 5.0 syntax and is emitted verbatim into `dist/index.d.ts`.
+- **Tailwind CSS 4.** `tailwind.css` uses v4 at-rules (`@source`, `@theme inline`, `@custom-variant`) and has no v3 equivalent.
+- **The cameleon subpath is barrel-only.** `fancy-ui-react/cameleon` ships the skin engine, the primitives and the five skins. There is no `./cameleon/*` wildcard for a single skin, and the retro-OS component kit that the Svelte package publishes as `fancy-ui-svelte/cameleon/retro-kit` has no React counterpart.
+
+## Using with AI agents (Claude Code, Cursor, Copilot)
+
+The docs site serves documentation built for coding agents, following the [llms.txt](https://llmstxt.org) convention:
+
+- [fancy-ui.rama.app/llms.txt](https://fancy-ui.rama.app/llms.txt) &mdash; setup guide, usage rules, a React section and an index of every component
+- [fancy-ui.rama.app/llms-full.txt](https://fancy-ui.rama.app/llms-full.txt) &mdash; full reference: import, props and a working example per component
+- `https://fancy-ui.rama.app/docs/components/<slug>.md` &mdash; one component as Markdown, with every docs example (e.g. [compare.md](https://fancy-ui.rama.app/docs/components/compare.md)); each docs page also has a **Copy as Markdown** button
+- [fancy-ui.rama.app/registry.json](https://fancy-ui.rama.app/registry.json) &mdash; every component as JSON: import names, props, snippets, links
+
+To make your coding agent use fancy-ui correctly, add this to your project's `CLAUDE.md`, `AGENTS.md`, or `.cursorrules`:
+
+```markdown
+## UI components
+
+Use fancy-ui-react (React 18/19 + Tailwind CSS v4) for animated UI components.
+Setup and rules: https://fancy-ui.rama.app/llms.txt (see the React section)
+One component (props + examples): https://fancy-ui.rama.app/docs/components/<slug>.md
+Key rules: import "fancy-ui-react/styles.css" once; `class` is `className`;
+overlay/effect components (BorderBeam, GlowBorder, backgrounds, ...) need a
+parent with `relative overflow-hidden`; cursor effects (FluidCursor,
+SmoothCursor) mount once in the root layout.
+```
 
 ## Development
 
-Workspace member of the repo's pnpm workspace — one `pnpm install` at the
-repo root covers it.
+Workspace member of the repo's pnpm workspace &mdash; one `pnpm install` at the repo root covers it.
 
 ```bash
 pnpm install                              # at the repo root
 pnpm --filter fancy-ui-react test         # vitest + testing-library
 pnpm --filter fancy-ui-react check        # tsc --noEmit
+pnpm --filter fancy-ui-react check:matrix # migration matrix held to the Svelte reference
 pnpm --filter fancy-ui-react build        # vite lib build + d.ts via tsc, then the dist gates
 pnpm --filter fancy-ui-react-demo dev     # the demo site (examples/react-demo) on http://localhost:3200
+pnpm check:props                          # at the repo root: every Svelte prop has a React and a Vue counterpart (CI gate)
+pnpm check:cores                          # at the repo root: shared framework-free engines are byte-identical in the three packages (CI gate)
 ```
 
-Two consumer apps live under `examples/`: `next-app`, the App Router census
-that CI builds as the SSR/hydration gate, and `react-demo`, a one-page demo
-site built as a static export (`next build` → `examples/react-demo/out/`).
-Both resolve `fancy-ui-react` to `react/dist`, so run `build` first.
+Two consumer apps live under `examples/`: `next-app`, the App Router census that CI builds as the SSR/hydration gate, and `react-demo`, a one-page demo site built as a static export (`next build` → `examples/react-demo/out/`). Both resolve `fancy-ui-react` to `react/dist`, so run `build` first.
 
-`build` does more than build. After Vite and `tsc` it runs four scripts in
-`react/scripts/`, each guarding something no other gate can see:
+`build` does more than build. After Vite and `tsc` it runs four scripts in `react/scripts/`, each guarding something no other gate can see:
 
 | Script | What it stops |
 | --- | --- |
-| `strip-dts-css-imports.mjs` | `tsc` copies each component's `import "./x.css"` into its `.d.ts`, naming a file dist does not ship — one TS2307 per component for any consumer without `skipLibCheck` |
+| `strip-dts-css-imports.mjs` | `tsc` copies each component's `import "./x.css"` into its `.d.ts`, naming a file dist does not ship &mdash; one TS2307 per component for any consumer without `skipLibCheck` |
 | `check-dist-names.mjs` | a minified build shipping `AnimatedBeam` as `function ut(...)` in every consumer's DevTools tree and stack traces |
 | `check-dist-shape.mjs` | the `"use client"` boundary moving in either direction, a test rig reaching the tarball, a declaration pointing at a file that is not there |
 | `smoke-dist.mjs` | the built artifact never being executed: it imports every server module with no DOM, renders the barrel, and holds a gzip budget over the emitted JS and CSS |
 
-Two build decisions worth knowing before changing `vite.config.ts`: the output
-is **not minified** (a library must not — the consumer's bundler does that over
-the whole app, and minifying here costs every component its name), and **no
-source maps are emitted**, which follows from the first. Unminified output plus
-one dist file per source module already reads like the TSX with the types
-removed, so a map would roughly double the tarball to point at text the
-consumer can already read.
+Two build decisions worth knowing before changing `vite.config.ts`: the output is **not minified** (a library must not &mdash; the consumer's bundler does that over the whole app, and minifying here costs every component its name), and **no source maps are emitted**, which follows from the first. Unminified output plus one dist file per source module already reads like the TSX with the types removed, so a map would roughly double the tarball to point at text the consumer can already read.
+
+## Project Structure
+
+```
+react/
+├── src/
+│   ├── components/        # UI components (one folder per component, same slugs as the Svelte source)
+│   │   └── rainbow-button/
+│   │       ├── RainbowButton.tsx
+│   │       ├── RainbowButton.test.tsx
+│   │       ├── rainbow-button.css
+│   │       └── index.ts
+│   ├── internals/         # Shared framework-free engines and React hooks (dom/, motion/, markdown/)
+│   ├── sound/             # Sound engine, themes, SoundToggle and the hooks
+│   ├── cameleon/          # Skin engine: FancyProvider, primitives, skins (fancy-ui-react/cameleon)
+│   ├── utils.ts           # cn()
+│   └── index.ts           # Barrel exports
+├── scripts/               # Dist gates, client boundary, migration matrix check
+├── tailwind.css           # Tailwind v4 integration shipped to consumers
+├── PORTING.md             # The law every port follows
+├── internals-api.md       # Contract of the shared internals
+└── migration-matrix.json  # Per-component parity record against the Svelte reference
+
+examples/next-app          # App Router consumer built in CI (SSR/hydration gate)
+examples/react-demo        # One-page demo site, static export
+```
+
+Component tests are colocated with their component; there is no separate unit-test directory. The Svelte reference for every component lives at `src/lib/fancy-ui/<slug>/` at the repo root.
+
+## Contributing
+
+Contributions are welcome. A component exists in this package because it exists in the Svelte reference, so the flow starts there:
+
+1. Implement or change the component in `src/lib/fancy-ui/<slug>/` (Svelte 5), with its tests
+2. Port it to `react/src/components/<slug>/` following [`PORTING.md`](./PORTING.md) &mdash; folder shape, rune→hook mapping, the styling rules that break silently, and the hard rules; the Svelte source is always the reference
+3. Record any deliberate difference under [Divergences](#divergences-from-the-svelte-api) and update `migration-matrix.json`
+4. Run the package gates (`check`, `test`, `build`, `check:matrix`) and the repo gates (`pnpm check:props`, `pnpm check:cores`) &mdash; CI fails on a missing port or a missing prop
+5. Add a changeset (`pnpm changeset`)
+
+The full walkthrough is in [CONTRIBUTING.md](https://github.com/RamaHerbin/fancy-ui/blob/main/CONTRIBUTING.md).
 
 ## Divergences from the Svelte API
 
@@ -678,8 +786,21 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **tracing-beam**: The SVG gradient id is minted per instance with useFancyId("tracing-beam-gradient") and referenced as url(#id), where the source hardcodes the id; the React side therefore supports several beams on one page.
 - **typing-indicator**: TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, so a consumer can pass id/onClick/data-* or override role/aria-live/style; the Svelte component declares a fixed prop list and spreads nothing.
 
-## Porting a component
+## Tech Stack
 
-Read `PORTING.md` first — folder shape, rune→hook mapping, the styling rules
-that break silently, and the hard rules. The Svelte source under
-`src/lib/fancy-ui/<slug>/` is always the reference.
+| Technology                                   | Version | Purpose             |
+| -------------------------------------------- | ------- | ------------------- |
+| [React](https://react.dev)                    | 18 / 19 | UI framework        |
+| [Tailwind CSS](https://tailwindcss.com)      | 4       | Styling             |
+| [TypeScript](https://www.typescriptlang.org) | 5       | Type safety         |
+| [Vite](https://vite.dev)                     | 7       | Library build       |
+| [Vitest](https://vitest.dev)                 | 4       | Testing             |
+| [GSAP](https://gsap.com)                     | 3       | Advanced animations |
+
+## Credits
+
+Inspired by [Inspira UI](https://inspira-ui.com), [Aceternity UI](https://ui.aceternity.com) and [Magic UI](https://magicui.design). The Svelte 5 implementation at the root of this repo is the reference every port follows.
+
+## License
+
+MIT

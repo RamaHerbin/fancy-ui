@@ -34,6 +34,8 @@ export default {
 	"install.framework": "框架",
 	"install.sourceOnly": "尚未发布到 npm——此移植版本位于代码仓库中。",
 	"install.unavailable": "此框架暂无该组件的移植版本。",
+	"install.copySource": "Copy source",
+	"install.copySourceNote": "Copies the component source into your project; you own the code.",
 	"comp.usage": "用法",
 	"comp.props": "属性",
 	"comp.slots": "插槽",

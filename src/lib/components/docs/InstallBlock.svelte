@@ -10,6 +10,10 @@
 		package: string;
 		importLine: string | null;
 		installLine: string | null;
+		/** Command that copies the source into a project; adds a fourth tab. */
+		copyLine?: string | null;
+		/** Import to write after copying; shown on the copy tab instead of `importLine`. */
+		copyImportLine?: string | null;
 		note: string | null;
 		availability?: "available" | "source-only" | "unavailable";
 	}
@@ -23,7 +27,7 @@
 
 	let { packageName = "fancy-ui-svelte", componentImport = "", variants }: Props = $props();
 
-	let activeTab = $state<"pnpm" | "npm" | "bun">("pnpm");
+	let activeTab = $state<"pnpm" | "npm" | "bun" | "copy">("pnpm");
 	let copied = $state(false);
 
 	// The framework store hydrates from localStorage; read it after mount so the
@@ -45,14 +49,23 @@
 		return variant.importLine ? t("install.sourceOnly") : t("install.unavailable");
 	});
 
+	const copyLine = $derived(variant?.copyLine ?? null);
+	// The copy tab only exists for variants that offer it; fall back to pnpm
+	// when the framework switch removes it under the active tab.
+	const tab = $derived(activeTab === "copy" && !copyLine ? "pnpm" : activeTab);
+	const tabs = $derived(
+		copyLine ? (["pnpm", "npm", "bun", "copy"] as const) : (["pnpm", "npm", "bun"] as const)
+	);
+
 	const commands = $derived({
 		pnpm: `pnpm add ${pkg}`,
 		npm: `npm install ${pkg}`,
 		bun: `bun add ${pkg}`,
+		copy: copyLine ?? "",
 	});
 
 	async function copyCommand() {
-		await navigator.clipboard.writeText(commands[activeTab]);
+		await navigator.clipboard.writeText(commands[tab]);
 		copied = true;
 		setTimeout(() => (copied = false), 2000);
 	}
@@ -72,14 +85,14 @@
 	{#if installable}
 		<!-- Tabs -->
 		<div class="retro-pmtabs flex border-b border-(--code-border)">
-			{#each ["pnpm", "npm", "bun"] as const as tab}
+			{#each tabs as name}
 				<button
-					onclick={() => (activeTab = tab)}
-					class="px-4 py-2 text-xs font-medium transition-colors {activeTab === tab
+					onclick={() => (activeTab = name)}
+					class="px-4 py-2 text-xs font-medium transition-colors {tab === name
 						? 'border-b-2 border-(--code-fg) text-(--code-fg)'
 						: 'text-(--code-fg-muted) hover:text-(--code-fg)'}"
 				>
-					{tab}
+					{name === "copy" ? t("install.copySource") : name}
 				</button>
 			{/each}
 			<div class="flex flex-1 justify-end p-1.5">
@@ -93,16 +106,31 @@
 		</div>
 		<!-- Command -->
 		<div class="docs-install-cmd p-4 font-mono text-sm text-(--code-cmd)">
-			<span class="docs-install-pm">{activeTab}</span>{commands[activeTab].slice(activeTab.length)}
+			{#if tab === "copy"}
+				{@const [head, ...rest] = commands.copy.split(" ")}
+				<span class="docs-install-pm">{head}</span>
+				<span class="wrap-anywhere"> {rest.join(" ")}</span>
+			{:else}
+				<span class="docs-install-pm">{tab}</span>{commands[tab].slice(tab.length)}
+			{/if}
 		</div>
+		{#if tab === "copy"}
+			<p
+				class="docs-install-note border-t border-(--code-border) p-4 text-sm text-(--code-fg-muted)"
+			>
+				{t("install.copySourceNote")}
+			</p>
+		{/if}
 	{:else if note}
 		<p class="docs-install-note p-4 text-sm text-(--code-fg-muted)">{note}</p>
 	{/if}
 	<!-- Import -->
 	{#if variant}
-		{#if variant.importLine}
+		{#if tab === "copy" ? variant.copyImportLine : variant.importLine}
 			<div class="border-t border-(--code-border) p-4 font-mono text-sm">
-				<span class="text-(--code-fg)">{variant.importLine}</span>
+				<span class="wrap-anywhere text-(--code-fg)"
+					>{tab === "copy" ? variant.copyImportLine : variant.importLine}</span
+				>
 			</div>
 		{/if}
 	{:else if componentImport}
