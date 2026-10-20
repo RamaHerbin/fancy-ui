@@ -26,6 +26,8 @@ src/lib/portfolio/
 
 # Playwright
 test-results/
+# Visual parity captures (scripts/parity)
+.parity/
 playwright-report/
 
 # Content (builder data, local only)

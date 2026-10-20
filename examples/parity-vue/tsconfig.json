@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		"noEmit": true,
+		"jsx": "preserve",
+		"types": ["vite/client"],
+		"paths": {
+			"fancy-ui-vue": ["../../vue/src/index.ts"],
+			"fancy-ui-vue/cameleon": ["../../vue/src/cameleon/index.ts"]
+		}
+	},
+	"include": ["src", "vite.config.ts"]
+}

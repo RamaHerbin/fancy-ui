@@ -422,9 +422,9 @@
 			</Comp>
 		{:else if slug === "line-hover-link"}
 			<div class="flex flex-col gap-4">
-				<Comp href="#" variant="underline-left">Underline Left</Comp>
-				<Comp href="#" variant="underline-center">Underline Center</Comp>
-				<Comp href="#" variant="underline-right">Underline Right</Comp>
+				<Comp href="#" variant="slide">Slide</Comp>
+				<Comp href="#" variant="grow">Grow</Comp>
+				<Comp href="#" variant="sweep">Sweep</Comp>
 			</div>
 		{:else}
 			<!-- Default: render with props, no children -->
