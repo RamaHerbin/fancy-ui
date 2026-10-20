@@ -1,0 +1,21 @@
+{
+	"name": "parity-vue",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite --port 5293 --strictPort",
+		"build": "vite build"
+	},
+	"dependencies": {
+		"fancy-ui-vue": "workspace:*",
+		"vue": "^3.5.2"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "~4.1.17",
+		"@vitejs/plugin-vue": "^6.0.0",
+		"tailwindcss": "~4.1.17",
+		"typescript": "^5.9.3",
+		"vite": "^7.2.6"
+	}
+}

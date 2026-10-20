@@ -1,0 +1,72 @@
+// Mirrors src/lib/components/docs/examples/marquee/BasicUsage.svelte.
+import { Marquee, ReviewCard } from "fancy-ui-react";
+
+const reviews = [
+	{
+		name: "Jack",
+		username: "@jack",
+		body: "I've never seen anything like this before. It's amazing.",
+		img: "https://avatar.vercel.sh/jack",
+	},
+	{
+		name: "Jill",
+		username: "@jill",
+		body: "I don't know what to say. I'm speechless. This is amazing.",
+		img: "https://avatar.vercel.sh/jill",
+	},
+	{
+		name: "John",
+		username: "@john",
+		body: "I'm at a loss for words. This is amazing. I love it.",
+		img: "https://avatar.vercel.sh/john",
+	},
+	{
+		name: "Jane",
+		username: "@jane",
+		body: "I'm at a loss for words. This is amazing. I love it.",
+		img: "https://avatar.vercel.sh/jane",
+	},
+	{
+		name: "Jenny",
+		username: "@jenny",
+		body: "I'm at a loss for words. This is amazing.",
+		img: "https://avatar.vercel.sh/jenny",
+	},
+	{
+		name: "James",
+		username: "@james",
+		body: "I'm at a loss for words. This is amazing.",
+		img: "https://avatar.vercel.sh/james",
+	},
+];
+
+const firstRow = reviews.slice(0, 3);
+const secondRow = reviews.slice(3);
+
+export default function Scenario() {
+	return (
+		// Outer shell + inner panel: the same nested hairline frame the cards use.
+		<div className="w-full rounded-[22px] border border-black/[.08] bg-[#f4f4f5] p-1.5 dark:border-white/[.08] dark:bg-[#0b0b0c]">
+			<div className="relative flex flex-col gap-1 overflow-hidden rounded-2xl border border-black/[.06] bg-white pt-4 pb-3 dark:border-white/[.06] dark:bg-[#111113]">
+				<div className="mb-2 flex items-center justify-between px-5">
+					<p className="text-[13px] font-medium tracking-[-0.01em] text-zinc-900 dark:text-zinc-100">
+						What people say
+					</p>
+					<span className="rounded-full border border-black/[.08] px-2.5 py-0.5 font-mono text-[11px] text-zinc-500 dark:border-white/[.08]">
+						hover to brake
+					</span>
+				</div>
+				<Marquee pauseOnHover className="[--duration:30s]">
+					{firstRow.map((review) => (
+						<ReviewCard key={review.username} {...review} />
+					))}
+				</Marquee>
+				<Marquee reverse pauseOnHover className="[--duration:30s]">
+					{secondRow.map((review) => (
+						<ReviewCard key={review.username} {...review} />
+					))}
+				</Marquee>
+			</div>
+		</div>
+	);
+}
