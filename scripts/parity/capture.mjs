@@ -159,6 +159,11 @@ function determinismInit({ storage }) {
 		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 	};
 	Math.random = mulberry32(1);
+	// The stages call this right before mounting, so module-load draws (three.js
+	// UUIDs in the full package barrels) do not shift the component's stream.
+	globalThis.__parityReseed = () => {
+		Math.random = mulberry32(1);
+	};
 	const bytes = mulberry32(2);
 	if (globalThis.crypto?.getRandomValues) {
 		crypto.getRandomValues = (array) => {

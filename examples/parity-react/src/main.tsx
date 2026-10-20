@@ -39,6 +39,8 @@ function Stage({ Scenario }: { Scenario: ComponentType | null }) {
 async function mount() {
 	const load = scenarios[`./scenarios/${slug}.tsx`];
 	const Scenario = load ? (await load()).default : null;
+	// Same random stream as the Svelte stage, whatever the imports drew.
+	(globalThis as { __parityReseed?: () => void }).__parityReseed?.();
 	const root = createRoot(document.getElementById("app")!);
 	flushSync(() => root.render(<Stage Scenario={Scenario} />));
 	await document.fonts.ready;

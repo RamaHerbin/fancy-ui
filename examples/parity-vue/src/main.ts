@@ -18,6 +18,8 @@ document.documentElement.classList.toggle("dark", params.get("theme") === "dark"
 async function mount() {
 	const load = scenarios[`./scenarios/${slug}.vue`];
 	const scenario = load ? markRaw((await load()).default) : null;
+	// Same random stream as the Svelte stage, whatever the imports drew.
+	(globalThis as { __parityReseed?: () => void }).__parityReseed?.();
 	createApp(Stage, { scenario, slug }).mount("#app");
 	await document.fonts.ready;
 	// No rAF wait: capture.mjs freezes the clock (rAF included) until this flag
