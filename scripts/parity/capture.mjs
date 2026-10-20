@@ -177,6 +177,27 @@ function determinismInit({ storage }) {
 	} catch {
 		/* storage blocked */
 	}
+	// A WebGL canvas drawn many times inside one runFor burst shows whichever
+	// frame the compositor last committed, not the last one drawn. A 1x1
+	// readback after each draw to the default framebuffer syncs the GPU, so
+	// the shot is the final frame.
+	for (const Ctx of [globalThis.WebGLRenderingContext, globalThis.WebGL2RenderingContext]) {
+		if (!Ctx) continue;
+		const bind = Ctx.prototype.bindFramebuffer;
+		Ctx.prototype.bindFramebuffer = function (target, fb) {
+			this.__parityFb = fb;
+			return bind.call(this, target, fb);
+		};
+		for (const m of ["drawArrays", "drawElements"]) {
+			const draw = Ctx.prototype[m];
+			Ctx.prototype[m] = function (...args) {
+				const result = draw.apply(this, args);
+				if (!this.__parityFb)
+					this.readPixels(0, 0, 1, 1, this.RGBA, this.UNSIGNED_BYTE, new Uint8Array(4));
+				return result;
+			};
+		}
+	}
 }
 
 /**
