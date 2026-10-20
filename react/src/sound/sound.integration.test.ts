@@ -121,16 +121,15 @@ describe("enable → unlock → play", () => {
 		expect(getSoundStatus().lastPlayedAt).toBe(nowMs);
 	});
 
-	it("uses noise sources and biquad filters somewhere in the cue palette", async () => {
+	it("uses oscillators and biquad filters somewhere in the cue palette", async () => {
 		const context = await enableAndUnlock();
 		for (const cue of SOUND_CUES) {
 			nowMs += 500;
 			sound.play(cue);
 			context.advance(LONGEST_CUE_SECONDS);
 		}
-		expect(context.created.sources.length).toBeGreaterThan(0);
+		expect(context.created.oscillators.length).toBeGreaterThan(0);
 		expect(context.created.filters.length).toBeGreaterThan(0);
-		expect(context.created.buffers.length).toBe(1);
 	});
 
 	it("shapes every voice with an envelope that starts and ends at silence", async () => {

@@ -2,6 +2,8 @@ import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import "./interactive-hover-button.css";
 
 type BaseProps = {
@@ -12,8 +14,8 @@ type BaseProps = {
 	/** Button content (overrides text prop) */
 	children?: ReactNode;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 };
@@ -34,6 +36,14 @@ export const InteractiveHoverButton = forwardRef<HTMLButtonElement, InteractiveH
 		const label = children ?? text;
 		const playCue = useSoundCue(sound);
 
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled: restProps.disabled,
+		});
+		const composedRef = useComposedRefs(ref, soundRef);
+
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (sound && !restProps.disabled) playCue("press");
 			onClick?.(event);
@@ -41,7 +51,7 @@ export const InteractiveHoverButton = forwardRef<HTMLButtonElement, InteractiveH
 
 		return (
 			<button
-				ref={ref}
+				ref={composedRef}
 				className={cn(
 					"ihb group bg-background relative isolate w-auto cursor-pointer overflow-hidden rounded-full border px-6 py-2.5 text-center font-semibold",
 					className
