@@ -172,6 +172,76 @@ describe("RainbowButton disabled anchor (upstream fix)", () => {
 	});
 });
 
+describe("RainbowButton public contract", () => {
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+	});
+
+	it("calls the consumer onClick exactly once on a button and on an anchor", async () => {
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onClick: handler } });
+		await fireEvent.click(screen.getByRole("button"));
+		expect(handler).toHaveBeenCalledTimes(1);
+		cleanup();
+
+		const onLink = vi.fn();
+		render(RainbowButton, { props: { onClick: onLink, href: "#x" } });
+		await fireEvent.click(screen.getByRole("link"));
+		expect(onLink).toHaveBeenCalledTimes(1);
+	});
+
+	it("calls the consumer onClick once and plays the cue once when sound is enabled", async () => {
+		const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onClick: handler, sound: true } });
+
+		await fireEvent.click(screen.getByRole("button"));
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(play).toHaveBeenCalledTimes(1);
+	});
+
+	it("does not call the consumer onClick while disabled (button and anchor)", () => {
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onClick: handler, disabled: true } });
+		screen
+			.getByRole("button")
+			.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		cleanup();
+
+		render(RainbowButton, { props: { onClick: handler, disabled: true, href: "/x" } });
+		screen
+			.getByRole("link")
+			.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+		expect(handler).not.toHaveBeenCalled();
+	});
+
+	it("forwards aria-label and data-* attributes on the button and anchor branches", () => {
+		render(RainbowButton, { attrs: { "aria-label": "Go", "data-test": "rb" } });
+		const button = screen.getByRole("button");
+		expect(button).toHaveAttribute("aria-label", "Go");
+		expect(button).toHaveAttribute("data-test", "rb");
+		cleanup();
+
+		render(RainbowButton, {
+			props: { href: "/x" },
+			attrs: { "aria-label": "Go", "data-test": "rb" },
+		});
+		const link = screen.getByRole("link");
+		expect(link).toHaveAttribute("aria-label", "Go");
+		expect(link).toHaveAttribute("data-test", "rb");
+	});
+
+	it("drops the href of a disabled anchor", () => {
+		render(RainbowButton, { props: { disabled: true, href: "/pricing" } });
+		const link = screen.getByRole("link");
+		expect(link).not.toHaveAttribute("href");
+		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+});
+
 describe("RainbowButton default slot", () => {
 	afterEach(cleanup);
 

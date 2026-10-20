@@ -17,11 +17,16 @@ export interface RainbowButtonProps {
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Click handler. Declared as a prop so it runs after the disabled guard and
+	 * the cue, exactly once, and is never forwarded through `attrs` as well.
+	 */
+	onClick?: (event: MouseEvent) => void;
 }
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/index.js";
 
@@ -38,7 +43,12 @@ const props = withDefaults(defineProps<RainbowButtonProps>(), {
 	type: "button",
 	disabled: undefined,
 	sound: false,
+	onClick: undefined,
 });
+
+// Every other attribute and listener lands on the rendered element. `onClick`
+// is a declared prop, so it never appears here (no double call).
+const attrs = useAttrs();
 
 defineSlots<{ default?: () => unknown }>();
 
@@ -49,21 +59,17 @@ const playCue = useSoundCue(() => props.sound);
 
 const speedStyle = computed(() => ({ "--rainbow-speed": `${props.speed}s` }));
 
-// No attrs fallthrough exists on this component (see the Svelte source's
-// Implementation notes: there is no `...restProps` spread), so there is no
-// consumer `onclick` to forward — the handler only ever plays the cue, and is
-// bound identically on both the anchor and button render branches.
-//
-// Upstream fix: an anchor has no native `disabled`, and `aria-disabled` /
-// `tabindex="-1"` do not stop a pointer click from following `href`, so the
-// disabled path cancels the default navigation (the Svelte source only
-// returns early).
+// The single guard both branches funnel through. An anchor has no native
+// `disabled`, and `aria-disabled` / `tabindex="-1"` do not stop a pointer click
+// from following `href`, so a disabled click is cancelled here and never
+// reaches the consumer or the sound cue.
 function handleClick(event: MouseEvent) {
 	if (props.disabled) {
 		event.preventDefault();
 		return;
 	}
 	playCue("press");
+	props.onClick?.(event);
 }
 
 const baseClasses = computed(() =>
@@ -87,10 +93,11 @@ const baseClasses = computed(() =>
 		ref="el"
 		:class="baseClasses"
 		:style="speedStyle"
-		:href="href"
+		:href="disabled ? undefined : href"
 		:aria-disabled="disabled"
 		:role="disabled ? 'link' : undefined"
 		:tabindex="disabled ? -1 : undefined"
+		v-bind="attrs"
 		@click="handleClick"
 	>
 		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>
@@ -104,6 +111,7 @@ const baseClasses = computed(() =>
 		:style="speedStyle"
 		:type="type"
 		:disabled="disabled"
+		v-bind="attrs"
 		@click="handleClick"
 	>
 		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>
