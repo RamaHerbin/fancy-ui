@@ -133,7 +133,7 @@ describe("TickNav", () => {
 
 	describe("sound", () => {
 		it("plays tick once per new row under a mouse, never for a disabled row", async () => {
-			const play = vi.spyOn(sound, "play").mockReturnValue(false);
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
 			const { container } = render(TickNav, { props: { items, sound: true } });
 			const list = layout(container);
 			move(list, ROW * 0.5);
@@ -145,7 +145,7 @@ describe("TickNav", () => {
 		});
 
 		it("plays select only for an item that is not already current", async () => {
-			const play = vi.spyOn(sound, "play").mockReturnValue(false);
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
 			const { container } = render(TickNav, { props: { items, value: "a", sound: true } });
 			const buttons = container.querySelectorAll("button");
 			await fireEvent.click(buttons[0]);
@@ -155,7 +155,7 @@ describe("TickNav", () => {
 		});
 
 		it("stays silent without the sound prop", async () => {
-			const play = vi.spyOn(sound, "play").mockReturnValue(false);
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
 			const { container } = render(TickNav, { props: { items } });
 			const list = layout(container);
 			move(list, ROW * 0.5);

@@ -233,9 +233,9 @@ describe("buildRegistry with the svelte stack on the real src/lib/fancy-ui tree"
 	const base = "https://fancy-ui.rama.app/r/svelte";
 	const all = Object.values(out.items).flatMap((i) => i.files);
 
-	it("emits 148 items (145 components + 3 shared)", () => {
-		expect(Object.keys(out.items)).toHaveLength(148);
-		expect(out.index.items).toHaveLength(148);
+	it("emits 149 items (146 components + 3 shared)", () => {
+		expect(Object.keys(out.items)).toHaveLength(149);
+		expect(out.index.items).toHaveLength(149);
 		expect(
 			Object.values(out.items)
 				.filter((i) => i.type === "registry:lib")
@@ -243,9 +243,9 @@ describe("buildRegistry with the svelte stack on the real src/lib/fancy-ui tree"
 		).toEqual(["internals", "internals-motion", "sound"]);
 	});
 
-	// Observed on 2026-10-20: 453 shipped files. The gate pins the exact number.
-	it("ships 453 files, every one registry:ui under fancy/<rel>", () => {
-		expect(all).toHaveLength(453);
+	// Observed on 2026-10-21: 456 shipped files. The gate pins the exact number.
+	it("ships 456 files, every one registry:ui under fancy/<rel>", () => {
+		expect(all).toHaveLength(456);
 		for (const f of all) {
 			expect(f.type).toBe("registry:ui");
 			expect(f.path.startsWith("src/lib/fancy-ui/"), f.path).toBe(true);
