@@ -17,6 +17,6 @@
 	let value = $state("overview");
 </script>
 
-<div class="flex w-full justify-center py-6 text-sm">
+<div class="flex w-full justify-center py-8 text-[15px] tracking-tight">
 	<TickNav {items} bind:value ariaLabel="Guide" sound />
 </div>

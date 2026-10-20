@@ -1,10 +1,11 @@
 # TickNav
 
-A vertical navigation list set on a ruler of tick marks. Every row has a main
-bar, with short minor ticks between rows. Near the pointer the bars stretch and
-take the accent colour with a smooth falloff, each label riding the tip of its
-bar; the row under the pointer turns its bar into a moving sine. An optional
-`preview` snippet renders a card that glides beside the active row.
+A vertical navigation list set on a ruler of tick marks. Every row is a
+one-pixel line with its label beside it, and short ticks run between rows.
+Hovering a row plucks its line like a string, the line lengthens on a spring,
+and the neighbouring lines and ticks stretch and take the accent colour with a
+smooth falloff. An optional `preview` snippet renders a card that follows the
+pointer.
 
 ```svelte
 <TickNav {items} bind:value ariaLabel="Guide">
@@ -16,37 +17,38 @@ bar; the row under the pointer turns its bar into a moving sine. An optional
 
 ## Implementation notes
 
-- **Proximity field.** Each row's extension (0..1) is a smoothstep of its
-  distance to the pointer over `reach` rows. A rAF loop eases every row toward
-  its target, fast on the way up (τ 70 ms) and slow on the way down (τ 260 ms),
-  so the bars leave a fading trail. Values are written straight to `--tn-e` and
-  `--tn-e-next` on each `<li>`; nothing per frame goes through `$state`. Minor
-  ticks interpolate between their row and the next one in CSS.
-- **Compositor-friendly.** Labels move with `transform`; bars change `width`
-  on 1 px tall elements only. The loop stops as soon as every row has settled.
-- **Measurement.** Row centres are read once per pointer visit and on resize,
-  never per move.
-- **Input.** Touch is ignored (`pointerType`); on devices where nothing can
-  hover (`any-hover: none`) the field stays flat. Keyboard focus
-  (`:focus-visible`) drives the same field and the preview, so the effect is
-  not mouse-only.
-- **Reduced motion.** The field snaps instead of easing, the sine is static, the
-  preview fades without gliding.
+- **Shared engine.** Everything that moves lives in `tick-nav-core.ts`, a
+  framework-free module carried byte for byte by the Svelte, React and Vue
+  trees (`shared-cores.json`). The component renders markup and forwards
+  `reach`, the current index and reduced motion.
+- **Springs.** Each row has a length spring (32 → 55 px, stiffness 250,
+  damping 30) and a proximity spring (stiffness 400, damping 30, mass 0.6)
+  whose target is a smoothstep of the distance, in rows, to the hovered row
+  over `reach` rows. Tick groups sit half a row below their item and have their
+  own proximity spring. Lines gain 16 px at full proximity, ticks go from 24 to
+  40 px and up to 60% accent.
+- **Pluck.** Entering a row starts a 500 ms wave packet (ease-out cubic) that
+  runs along the line and leaves it flat; leaving the row stops it.
+- **No per-frame framework state.** Output is CSS variables (`--tn-len`,
+  `--tn-near`, `--tn-tick-near` per row; `--tn-px`, `--tn-py`, `--tn-po` on the
+  root) plus the pluck path's `d`. The rAF loop sleeps once every spring has
+  settled.
+- **Hit area.** Rows are 1 px tall; a 28 px `::after` makes them easy to hit and
+  overlaps the ticks, so moving between rows never passes through "nothing
+  hovered" and the card does not flicker.
+- **Input.** Touch is ignored. Keyboard focus (`:focus-visible`) activates the
+  row and places the card beside it.
+- **Reduced motion.** Springs snap and there is no pluck.
 - **Accessibility.** A `<nav>` landmark (`ariaLabel`) with real links or
-  buttons; `aria-current="page"` on the current row; the rail and the preview
-  card are `aria-hidden`.
-- **Sound.** With `sound`, `tick` plays when a mouse or pen moves onto a new
-  row (not a disabled one) and `select` when an item that is not already
-  current is activated.
+  buttons; `aria-current="page"` on the current row; lines, ticks and the card
+  are `aria-hidden`.
+- **Sound.** With `sound`, `hover` plays each time a mouse or pen enters a row.
 
 ## Theming
 
-| Variable         | Default               | Role                                     |
-| ---------------- | --------------------- | ---------------------------------------- |
-| `--tn-accent`    | `var(--ft-accent, …)` | Lit bars, sine, current label            |
-| `--tn-muted`     | `currentColor` at 28% | Resting bars                             |
-| `--tn-row-h`     | `2.25rem`             | Row height (also spaces the minor ticks) |
-| `--tn-bar-w`     | `1.75rem`             | Resting main bar                         |
-| `--tn-current-w` | `3.25rem`             | Current row's bar                        |
-| `--tn-minor-w`   | `0.875rem`            | Resting minor tick                       |
-| `--tn-gap`       | `0.75rem`             | Space between a bar's tip and its label  |
+| Variable          | Default               | Role                            |
+| ----------------- | --------------------- | ------------------------------- |
+| `--tn-accent`     | `var(--ft-accent, …)` | Lit lines, ticks, hovered label |
+| `--tn-border`     | `currentColor` at 16% | Resting lines and ticks         |
+| `--tn-row-gap`    | `0.5rem`              | Space between lines and ticks   |
+| `--tn-preview-bg` | `Canvas`              | Card background                 |

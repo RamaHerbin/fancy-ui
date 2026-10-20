@@ -8100,11 +8100,11 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "TickNav",
 		slug: "tick-nav",
 		description:
-			"A navigation list on a ruler of tick marks: bars near the pointer stretch and light up, the row under it vibrates into a wave, and an optional preview card glides alongside.",
+			"A navigation list on a ruler of tick marks: hovering a row plucks its line like a string, neighbouring lines and ticks stretch and light up on springs, and an optional preview card follows the pointer.",
 		category: "navigation",
 		group: "fancy",
 		status: "done",
-		tags: ["nav", "sidebar", "ruler", "ticks", "proximity", "preview", "hover"],
+		tags: ["nav", "sidebar", "ruler", "ticks", "proximity", "spring", "preview", "hover"],
 		props: [
 			{
 				name: "items",
@@ -8127,25 +8127,19 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "preview",
 				type: "Snippet<[TickNavItem]>",
 				description:
-					"Content of the floating card beside the row under the pointer or keyboard focus. Leave it out and no card is rendered.",
+					"Content of the card that follows the pointer while a row is hovered (or sits beside a keyboard-focused row). Leave it out and no card is rendered.",
 			},
 			{
 				name: "reach",
 				type: "number",
-				default: "3",
-				description: "How many rows away from the pointer the bars still react.",
-			},
-			{
-				name: "maxExtend",
-				type: "number",
-				default: "32",
-				description: "Extra length, in px, a bar gains right under the pointer.",
+				default: "4",
+				description: "Rows over which the neighbours of the hovered row still react.",
 			},
 			{
 				name: "minorTicks",
 				type: "number",
-				default: "3",
-				description: "Short ruler ticks drawn between two rows.",
+				default: "2",
+				description: "Ruler ticks drawn between two rows.",
 			},
 			{
 				name: "ariaLabel",
@@ -8158,7 +8152,7 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description:
-					"Plays tick when a mouse or pen moves onto a new row and select when an item that is not already current is activated, once the user has enabled sound",
+					"Plays hover each time a mouse or pen enters a row, once the user has enabled sound",
 			},
 			{
 				name: "class",

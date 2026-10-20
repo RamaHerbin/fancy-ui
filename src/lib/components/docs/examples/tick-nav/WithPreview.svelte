@@ -24,12 +24,11 @@
 	let value = $state("aurora");
 </script>
 
-<div class="flex w-full py-6 pr-56 text-sm sm:justify-center">
+<div class="flex w-full justify-center py-8 pr-40 text-[15px] tracking-tight">
 	<TickNav {items} bind:value ariaLabel="Palettes" sound>
 		{#snippet preview(item)}
-			<div class="bg-background w-44 rounded-lg border p-2 shadow-lg">
-				<div class="h-24 rounded-md" style:background={swatches[item.id]}></div>
-				<p class="text-muted-foreground mt-2 text-xs">{item.label} palette</p>
+			<div class="flex h-full w-full items-end p-3" style:background={swatches[item.id]}>
+				<span class="text-xs font-medium text-white/90">{item.label}</span>
 			</div>
 		{/snippet}
 	</TickNav>
