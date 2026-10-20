@@ -1206,6 +1206,14 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Pinned to the top of a scrolling container with a blurred background.",
 		},
 	],
+	"tick-nav": [
+		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "WithPreview",
+			title: "With Preview",
+			description: "A card beside the hovered row, gliding from one row to the next.",
+		},
+	],
 	sidebar: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{

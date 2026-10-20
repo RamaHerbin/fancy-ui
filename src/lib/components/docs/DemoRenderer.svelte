@@ -146,6 +146,7 @@
 		// the composition or the data.
 		"navbar",
 		"sidebar",
+		"tick-nav",
 		"tabs",
 		"breadcrumb",
 		"pagination",

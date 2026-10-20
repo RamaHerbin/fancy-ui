@@ -142,6 +142,7 @@ export * from "./time-picker/index.js";
 // Core — navigation
 export * from "./navbar/index.js";
 export * from "./sidebar/index.js";
+export * from "./tick-nav/index.js";
 export * from "./tabs/index.js";
 export * from "./breadcrumb/index.js";
 export * from "./pagination/index.js";

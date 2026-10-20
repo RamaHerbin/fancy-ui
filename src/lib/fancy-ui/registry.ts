@@ -8096,6 +8096,77 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	"tick-nav": {
+		name: "TickNav",
+		slug: "tick-nav",
+		description:
+			"A navigation list on a ruler of tick marks: bars near the pointer stretch and light up, the row under it vibrates into a wave, and an optional preview card glides alongside.",
+		category: "navigation",
+		group: "fancy",
+		status: "done",
+		tags: ["nav", "sidebar", "ruler", "ticks", "proximity", "preview", "hover"],
+		props: [
+			{
+				name: "items",
+				type: "TickNavItem[]",
+				required: true,
+				description:
+					"The rows, top to bottom: `{ id, label, href?, badge?, disabled? }`. A row with `href` renders as a link, otherwise as a button.",
+			},
+			{
+				name: "value",
+				type: "string",
+				description: "Id of the current item. Bindable.",
+			},
+			{
+				name: "onValueChange",
+				type: "(id: string) => void",
+				description: "Called with the id of an item that is activated and not already current.",
+			},
+			{
+				name: "preview",
+				type: "Snippet<[TickNavItem]>",
+				description:
+					"Content of the floating card beside the row under the pointer or keyboard focus. Leave it out and no card is rendered.",
+			},
+			{
+				name: "reach",
+				type: "number",
+				default: "3",
+				description: "How many rows away from the pointer the bars still react.",
+			},
+			{
+				name: "maxExtend",
+				type: "number",
+				default: "32",
+				description: "Extra length, in px, a bar gains right under the pointer.",
+			},
+			{
+				name: "minorTicks",
+				type: "number",
+				default: "3",
+				description: "Short ruler ticks drawn between two rows.",
+			},
+			{
+				name: "ariaLabel",
+				type: "string",
+				default: '"Navigation"',
+				description: "Accessible name of the nav landmark.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays tick when a mouse or pen moves onto a new row and select when an item that is not already current is activated, once the user has enabled sound",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the nav.",
+			},
+		],
+	},
 	sidebar: {
 		name: "Sidebar",
 		slug: "sidebar",
