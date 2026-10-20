@@ -259,9 +259,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI, JavaScript yapılandırma dosyası yerine CSS içinde yapılandırılan Tailwind CSS v4 üzerine inşa edilmiştir. Tailwind projenizde zaten çalışıyorsa yapılandırılacak başka bir şey yoktur.",
 	"install.tailwind.order":
-		"İçe aktarma sırası önemlidir: önce Tailwind, sonra FancyUI; böylece FancyUI'nin katmanları ve özel özellikleri varsayılanların üzerinde çözümlenir.",
+		"İçe aktarma sırası önemlidir: önce Tailwind, sonra FancyUI; böylece FancyUI'ın token'ları ve koyu varyantı Tailwind'in katmanları içinde kaydedilir.",
 	"install.tailwind.note":
-		"Stil dosyası, her bileşenin okuduğu tasarım belirteçlerini taşır: renkler, köşe yarıçapları ve animasyon zamanlamaları. O olmadan bileşenler stilsiz görünür.",
+		"Giriş dosyası varsayılan renk token'larını (background, primary, border ve diğerleri) ve bir koyu varyant sağlar. Kendi :root ve .dark bloklarınız bunları geçersiz kılar: CSS değişkenlerini yeniden tanımlayın, sizin değerleriniz geçerli olur.",
 	"install.usage.heading": "Kullanım",
 	"install.usage.body":
 		"Her bileşen paket kökünün adlandırılmış bir dışa aktarımıdır, bu yüzden ezberlenecek bileşen başına içe aktarma yolu yoktur.",
@@ -308,7 +308,7 @@ export default {
 		"Belirteç adları shadcn-svelte kurallarını izler, bu nedenle mevcut bir shadcn teması değişiklik yapılmadan kullanılabilir.",
 	"theming.dark.heading": "Karanlık mod",
 	"theming.dark.body":
-		"Karanlık mod, bir üst elementteki .dark sınıfıyla etkinleştirilir. FancyUI her belirteci geçersiz kılar:",
+		"Koyu mod varsayılan olarak işletim sistemi tercihini izler. Koyuyu zorlamak için .dark sınıfını <html> üzerine veya herhangi bir üst öğeye, açığı zorlamak için .light sınıfını ekleyin. dark: yardımcıları ve her token buna uyar:",
 	"theming.motion.heading": "Animasyon belirteçleri",
 	"theming.motion.body": "Animasyon zamanlamasını genel olarak kontrol edin:",
 	"theming.easing.heading": "Easing fonksiyonları",

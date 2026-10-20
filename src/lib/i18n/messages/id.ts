@@ -257,9 +257,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI dibangun di atas Tailwind CSS v4, yang dikonfigurasi di CSS alih-alih file konfigurasi JavaScript. Jika Tailwind sudah berjalan di proyek Anda, tidak ada lagi yang perlu dikonfigurasi.",
 	"install.tailwind.order":
-		"Urutan impor itu penting: Tailwind dulu, baru FancyUI, agar layer dan properti kustom FancyUI diterapkan di atas nilai bawaan.",
+		"Urutan impor itu penting: Tailwind lebih dulu, FancyUI kemudian, agar token dan varian gelap FancyUI terdaftar di dalam layer Tailwind.",
 	"install.tailwind.note":
-		"Stylesheet ini memuat token desain yang dibaca setiap komponen: warna, radius, dan pewaktuan animasi. Tanpanya, komponen akan dirender tanpa gaya.",
+		"Titik masuk menyediakan token warna bawaan (background, primary, border, dan lainnya) serta varian gelap. Blok :root dan .dark milik Anda menimpanya: definisikan ulang variabel CSS dan nilai Anda yang berlaku.",
 	"install.usage.heading": "Penggunaan",
 	"install.usage.body":
 		"Setiap komponen adalah named export dari root paket, sehingga tidak ada jalur impor per komponen yang perlu diingat.",
@@ -308,7 +308,7 @@ export default {
 		"Nama token mengikuti konvensi shadcn-svelte, sehingga tema shadcn yang sudah ada dapat langsung dipasang tanpa perubahan.",
 	"theming.dark.heading": "Mode Gelap",
 	"theming.dark.body":
-		"Mode gelap diaktifkan oleh kelas .dark pada elemen induk. FancyUI menimpa setiap token:",
+		"Mode gelap secara bawaan mengikuti preferensi sistem operasi. Letakkan kelas .dark pada <html> atau leluhur mana pun untuk memaksa gelap, atau .light untuk memaksa terang. Utilitas dark: dan setiap token mengikutinya:",
 	"theming.motion.heading": "Token Animasi",
 	"theming.motion.body": "Kendalikan pewaktuan animasi secara global:",
 	"theming.easing.heading": "Fungsi Easing",

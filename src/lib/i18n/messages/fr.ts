@@ -262,9 +262,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI est construit sur Tailwind CSS v4, qui se configure en CSS plutôt que dans un fichier de configuration JavaScript. Si Tailwind fonctionne déjà dans votre projet, il n'y a rien d'autre à configurer.",
 	"install.tailwind.order":
-		"L'ordre des imports compte : Tailwind d'abord, FancyUI ensuite, afin que les couches et les propriétés personnalisées de FancyUI s'appliquent par-dessus les valeurs par défaut.",
+		"L'ordre des imports compte : Tailwind d'abord, FancyUI ensuite, afin que les jetons et la variante sombre de FancyUI soient enregistrés dans les couches de Tailwind.",
 	"install.tailwind.note":
-		"La feuille de style contient les jetons de design que chaque composant lit : couleurs, rayons et durées d'animation. Sans elle, les composants s'affichent sans style.",
+		"Le point d'entrée fournit des jetons de couleur par défaut (background, primary, border et les autres) et une variante sombre. Vos propres blocs :root et .dark les remplacent : redéfinissez les variables CSS et vos valeurs l'emportent.",
 	"install.usage.heading": "Utilisation",
 	"install.usage.body":
 		"Chaque composant est un export nommé de la racine du paquet, il n'y a donc aucun chemin d'import par composant à retenir.",
@@ -313,7 +313,7 @@ export default {
 		"Les noms de jetons suivent les conventions de shadcn-svelte, si bien qu'un thème shadcn existant s'intègre sans modification.",
 	"theming.dark.heading": "Mode sombre",
 	"theming.dark.body":
-		"Le mode sombre est activé par la classe .dark sur un élément parent. FancyUI redéfinit chaque jeton :",
+		"Le mode sombre suit par défaut la préférence du système. Placez la classe .dark sur <html> ou sur n'importe quel ancêtre pour forcer le sombre, ou .light pour forcer le clair. Les utilitaires dark: et chaque jeton suivent :",
 	"theming.motion.heading": "Jetons d'animation",
 	"theming.motion.body": "Contrôlez la durée des animations de façon globale :",
 	"theming.easing.heading": "Fonctions d'accélération",

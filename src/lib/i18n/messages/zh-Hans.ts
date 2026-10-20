@@ -235,9 +235,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI 基于 Tailwind CSS v4 构建，v4 在 CSS 中配置，而不是使用 JavaScript 配置文件。如果 Tailwind 已在你的项目中正常工作，则无需其他配置。",
 	"install.tailwind.order":
-		"导入顺序很重要：先 Tailwind，后 FancyUI，这样 FancyUI 的层和自定义属性才能在默认值之上生效。",
+		"导入顺序很重要:先导入 Tailwind,再导入 FancyUI,这样 FancyUI 的令牌和深色变体会注册在 Tailwind 的层之内。",
 	"install.tailwind.note":
-		"该样式表包含每个组件读取的设计令牌：颜色、圆角和动画时长。没有它，组件将以无样式状态渲染。",
+		"该入口提供默认的颜色令牌(background、primary、border 等)和深色变体。你自己的 :root 与 .dark 块会覆盖它们:重新定义 CSS 变量,你的值就会生效。",
 	"install.usage.heading": "用法",
 	"install.usage.body": "每个组件都是包根路径的具名导出，因此无需记住每个组件的导入路径。",
 	"install.usage.note": "每个组件的页面都列出了其属性、实时示例和无障碍说明。",
@@ -275,7 +275,8 @@ export default {
 	"theming.colors.note":
 		"令牌名称遵循 shadcn-svelte 的约定，因此现有的 shadcn 主题可以直接使用，无需修改。",
 	"theming.dark.heading": "深色模式",
-	"theming.dark.body": "深色模式通过父元素上的 .dark 类启用。FancyUI 会覆盖每个令牌：",
+	"theming.dark.body":
+		"深色模式默认跟随操作系统偏好。在 <html> 或任意祖先元素上添加 .dark 类可强制深色,添加 .light 可强制浅色。dark: 工具类和每个令牌都会随之切换:",
 	"theming.motion.heading": "动画令牌",
 	"theming.motion.body": "全局控制动画时长：",
 	"theming.easing.heading": "缓动函数",

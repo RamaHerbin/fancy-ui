@@ -258,9 +258,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI è costruito su Tailwind CSS v4, che si configura in CSS invece che in un file di configurazione JavaScript. Se Tailwind funziona già nel tuo progetto, non c'è altro da configurare.",
 	"install.tailwind.order":
-		"L'ordine degli import è importante: prima Tailwind, poi FancyUI, così i layer e le proprietà personalizzate di FancyUI si risolvono sopra i valori predefiniti.",
+		"L'ordine degli import conta: prima Tailwind, poi FancyUI, così i token e la variante scura di FancyUI vengono registrati dentro i layer di Tailwind.",
 	"install.tailwind.note":
-		"Il foglio di stile contiene i design token letti da ogni componente: colori, raggi e tempi di animazione. Senza di esso, i componenti vengono renderizzati senza stile.",
+		"Il punto di ingresso fornisce token di colore predefiniti (background, primary, border e gli altri) e una variante scura. I tuoi blocchi :root e .dark li sostituiscono: ridefinisci le variabili CSS e i tuoi valori hanno la precedenza.",
 	"install.usage.heading": "Utilizzo",
 	"install.usage.body":
 		"Ogni componente è un export denominato della radice del pacchetto, quindi non ci sono percorsi di import per componente da ricordare.",
@@ -308,7 +308,7 @@ export default {
 		"I nomi dei token seguono le convenzioni di shadcn-svelte, quindi un tema shadcn esistente si integra senza modifiche.",
 	"theming.dark.heading": "Modalità scura",
 	"theming.dark.body":
-		"La modalità scura si attiva con la classe .dark su un elemento genitore. FancyUI sovrascrive ogni token:",
+		"La modalità scura segue per impostazione predefinita la preferenza del sistema operativo. Metti la classe .dark su <html> o su un qualsiasi antenato per forzare lo scuro, oppure .light per forzare il chiaro. Le utility dark: e ogni token la seguono:",
 	"theming.motion.heading": "Token di animazione",
 	"theming.motion.body": "Controlla i tempi di animazione a livello globale:",
 	"theming.easing.heading": "Funzioni di easing",

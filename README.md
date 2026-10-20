@@ -68,6 +68,12 @@ Add the Tailwind integration to your app's CSS (e.g. `src/app.css`):
 
 This single import tells Tailwind v4 to scan the library's components so all utility classes are generated automatically. No manual `@source` path needed.
 
+### Tailwind and colour tokens
+
+`tailwind.css` also declares the 18 semantic colours the components spend (`background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring` and their `-foreground` pairs). None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so utilities resolve the variables at use time: an app that already defines these tokens keeps its own colours. The defaults ship in `@layer base`, which an unlayered `:root` or `.dark` block in your app overrides whatever the import order.
+
+Dark mode follows the operating-system preference out of the box. To control it yourself, put `dark` or `light` on `<html>` (or any ancestor); both the `dark:` utilities and the components' `light-dark()` colours follow the class. An app that declares its own `@custom-variant dark` after the import keeps its own definition.
+
 Then import any component:
 
 ```svelte

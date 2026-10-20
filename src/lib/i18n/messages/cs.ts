@@ -256,9 +256,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI staví na Tailwind CSS v4, který se konfiguruje v CSS místo v JavaScriptovém konfiguračním souboru. Pokud už Tailwind ve vašem projektu funguje, není potřeba nic dalšího nastavovat.",
 	"install.tailwind.order":
-		"Na pořadí importů záleží: nejdřív Tailwind, pak FancyUI, aby se vrstvy a vlastní proměnné FancyUI vyhodnotily nad výchozími hodnotami.",
+		"Pořadí importů je důležité: nejprve Tailwind, potom FancyUI, aby se tokeny a tmavá varianta FancyUI zaregistrovaly uvnitř vrstev Tailwindu.",
 	"install.tailwind.note":
-		"Stylesheet nese design tokeny, které čte každá komponenta: barvy, poloměry a časování animací. Bez něj se komponenty vykreslí bez stylů.",
+		"Vstupní bod poskytuje výchozí barevné tokeny (background, primary, border a další) a tmavou variantu. Vaše vlastní bloky :root a .dark je přepíšou: znovu definujte CSS proměnné a vaše hodnoty zvítězí.",
 	"install.usage.heading": "Použití",
 	"install.usage.body":
 		"Každá komponenta je pojmenovaný export z kořene balíčku, takže si nemusíte pamatovat importní cesty jednotlivých komponent.",
@@ -306,7 +306,7 @@ export default {
 		"Názvy tokenů odpovídají konvencím shadcn-svelte, takže existující shadcn motiv funguje beze změny.",
 	"theming.dark.heading": "Tmavý režim",
 	"theming.dark.body":
-		"Tmavý režim se aktivuje třídou .dark na rodičovském prvku. FancyUI přepíše každý token:",
+		"Tmavý režim ve výchozím stavu sleduje nastavení operačního systému. Přidejte třídu .dark na <html> nebo na libovolného předka pro vynucení tmavého režimu, nebo .light pro vynucení světlého. Utility dark: i každý token ji následují:",
 	"theming.motion.heading": "Tokeny animace",
 	"theming.motion.body": "Řiďte časování animací globálně:",
 	"theming.easing.heading": "Funkce plynulosti",
