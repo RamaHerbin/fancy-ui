@@ -20,8 +20,8 @@
 		/** Button content */
 		children?: Snippet;
 		/**
-		 * Plays the matching interface cue through the sound controller. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 	};
@@ -50,6 +50,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { soundFeedback } from "../sound/sound-feedback.js";
 
 	let {
 		class: className,
@@ -65,6 +66,13 @@
 		...restProps
 	}: GradientButtonProps = $props();
 
+	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+	// off (and never the default click → press, which `handleClick` already plays).
+	const hoverFeedback = $derived({
+		on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+		disabled: !!restProps.disabled,
+	});
+
 	const styleVars = $derived(
 		`--gb-colors: ${colors.join(", ")}; --gb-beam: ${beamGradient(colors)}; --gb-duration: ${duration}ms; --gb-border-width: ${borderWidth}px; --gb-border-radius: ${borderRadius}px; --gb-blur: ${blur}px; --gb-bg-color: ${bgColor}`
 	);
@@ -76,6 +84,7 @@
 </script>
 
 <button
+	use:soundFeedback={hoverFeedback}
 	class={cn(
 		"gradient-button relative flex min-h-10 min-w-28 cursor-pointer items-center justify-center overflow-hidden text-white",
 		className
