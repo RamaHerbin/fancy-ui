@@ -155,8 +155,14 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 		// already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 		// an anchor, which has no disabled state at all) walks straight past that —
 		// this is what actually keeps the callback from firing.
-		function blockAux(event: MouseEvent<HTMLAnchorElement>) {
-			if (disabled || loading) event.preventDefault();
+		// Middle-click guard for the anchor branch: internal first, then the consumer's
+		// own `onAuxClick` (never overwritten), skipped while blocked like `onClick`.
+		function handleAuxClick(event: MouseEvent<HTMLAnchorElement>) {
+			if (disabled || loading) {
+				event.preventDefault();
+				return;
+			}
+			(restProps as AnchorHTMLAttributes<HTMLAnchorElement>).onAuxClick?.(event);
 		}
 
 		function handleClick(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) {
@@ -207,7 +213,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 					aria-busy={loading ? "true" : restProps["aria-busy"]}
 					tabIndex={anchorInert ? -1 : restProps.tabIndex}
 					onClick={handleClick}
-					onAuxClick={blockAux}
+					onAuxClick={handleAuxClick}
 				>
 					{content}
 				</a>

@@ -86,8 +86,18 @@ const {
 // parent-driven attrs change always re-renders this component.
 const attrs = useAttrs();
 function forwarded() {
-	if (!(disabled || loading)) return attrs;
-	return Object.fromEntries(Object.entries(attrs).filter(([key]) => !/^onClick/.test(key)));
+	const blocked = disabled || loading;
+	if (!blocked && !href) return attrs;
+	// On the link branch `auxclick` runs once through `handleAuxClick` (internal
+	// guard first, then the consumer's listener); its modified forms are dropped
+	// while the link is blocked, like the click ones.
+	return Object.fromEntries(
+		Object.entries(attrs).filter(
+			([key]) =>
+				!(blocked && /^onClick/.test(key)) &&
+				!(href && (/^onAuxclick$/i.test(key) || (blocked && /^onAuxclick/i.test(key))))
+		)
+	);
 }
 type AriaFlag = boolean | "true" | "false" | undefined;
 
@@ -229,8 +239,12 @@ function leadCancelled(node: Element) {
 // already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 // an anchor, which has no disabled state at all) walks straight past that —
 // this is what actually keeps the callback from firing.
-function blockAux(event: MouseEvent) {
-	if (disabled || loading) event.preventDefault();
+function handleAuxClick(event: MouseEvent) {
+	if (disabled || loading) {
+		event.preventDefault();
+		return;
+	}
+	callListener((attrs.onAuxclick ?? attrs.onAuxClick) as never, event);
 }
 
 function handleClick(event: MouseEvent) {
@@ -258,7 +272,7 @@ function handleClick(event: MouseEvent) {
 		:aria-busy="loading ? 'true' : (attrs['aria-busy'] as AriaFlag)"
 		:tabindex="anchorInert ? -1 : (attrs.tabindex as number | string | undefined)"
 		@click="handleClick"
-		@auxclick="blockAux"
+		@auxclick="handleAuxClick"
 	>
 		<!--
 			The lead slot. Both branches of this component render it identically —

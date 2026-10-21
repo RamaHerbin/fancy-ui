@@ -68,6 +68,24 @@ describe("Button native attributes", () => {
 		});
 	});
 
+	describe("link middle-click", () => {
+		it("calls a consumer onAuxClick when the link is not loading", () => {
+			const onAuxClick = vi.fn();
+			const { container } = render(<Button href="/x" onAuxClick={onAuxClick} />);
+			fireEvent(root(container), new MouseEvent("auxclick", { bubbles: true, button: 1 }));
+			expect(onAuxClick).toHaveBeenCalledTimes(1);
+		});
+
+		it("blocks middle-click navigation and the consumer listener while loading", () => {
+			const onAuxClick = vi.fn();
+			const { container } = render(<Button href="/x" loading onAuxClick={onAuxClick} />);
+			const event = new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 });
+			fireEvent(root(container), event);
+			expect(event.defaultPrevented).toBe(true);
+			expect(onAuxClick).not.toHaveBeenCalled();
+		});
+	});
+
 	it("keeps a disabled link inert whatever the consumer passes", () => {
 		const { container } = render(<Button href="/x" disabled tabIndex={0} aria-disabled="false" />);
 		const el = root(container);

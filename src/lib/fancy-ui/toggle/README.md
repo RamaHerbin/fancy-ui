@@ -63,6 +63,8 @@ not at all while the toggle is disabled.
 | `value`           | `string`                     | `"on"`    | Value submitted under `name` while pressed                          |
 | `form`            | `string`                     | —         | `id` of the form the hidden input belongs to                        |
 
+When `name` is set the hidden input is rendered inside the `<button>` (the component keeps a single root element) and submits `value` while pressed. `form`, `name` and `value` are Toggle's own props, not forwarded to the button.
+
 ## Theming
 
 The pressed ring color has no semantic token in the app's theme layer, so it

@@ -178,8 +178,14 @@
 	// already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 	// an anchor, which has no disabled state at all) walks straight past that —
 	// this is what actually keeps the callback from firing.
-	function blockAux(event: MouseEvent) {
-		if (disabled || loading) event.preventDefault();
+	// Middle-click guard for the anchor branch: internal first, then the consumer's
+	// own `onauxclick` (never overwritten), which is skipped while blocked like `onclick`.
+	function handleAuxClick(event: MouseEvent) {
+		if (disabled || loading) {
+			event.preventDefault();
+			return;
+		}
+		(restProps as { onauxclick?: (event: MouseEvent) => void }).onauxclick?.(event);
 	}
 
 	function handleClick(event: MouseEvent) {
@@ -207,7 +213,7 @@
 		aria-busy={loading ? "true" : restProps["aria-busy"]}
 		tabindex={anchorInert ? -1 : restProps.tabindex}
 		onclick={handleClick}
-		onauxclick={blockAux}
+		onauxclick={handleAuxClick}
 	>
 		<!--
 			The lead slot. Both branches of this component render it identically —

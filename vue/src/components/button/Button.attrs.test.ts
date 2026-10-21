@@ -91,6 +91,27 @@ describe("Button native attributes", () => {
 		});
 	});
 
+	describe("link middle-click", () => {
+		it("calls a consumer onAuxclick when the link is not loading", async () => {
+			const onAuxclick = vi.fn();
+			const { container } = mount(Button, { props: { href: "/x" }, attrs: { onAuxclick } });
+			await fireEvent(root(container), new MouseEvent("auxclick", { bubbles: true, button: 1 }));
+			expect(onAuxclick).toHaveBeenCalledTimes(1);
+		});
+
+		it("blocks middle-click navigation and the consumer listener while loading", async () => {
+			const onAuxclick = vi.fn();
+			const { container } = mount(Button, {
+				props: { href: "/x", loading: true },
+				attrs: { onAuxclick },
+			});
+			const event = new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 });
+			await fireEvent(root(container), event);
+			expect(event.defaultPrevented).toBe(true);
+			expect(onAuxclick).not.toHaveBeenCalled();
+		});
+	});
+
 	it("keeps a disabled link inert whatever the consumer passes", () => {
 		const { container } = mount(Button, {
 			props: { href: "/x", disabled: true },

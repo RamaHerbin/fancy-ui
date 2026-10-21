@@ -72,6 +72,24 @@ describe("Button native attributes", () => {
 		});
 	});
 
+	describe("link middle-click", () => {
+		it("calls a consumer onauxclick when the link is not loading", async () => {
+			const onauxclick = vi.fn();
+			const { container } = render(Button, { props: { href: "/x", onauxclick } });
+			await fireEvent(root(container), new MouseEvent("auxclick", { bubbles: true, button: 1 }));
+			expect(onauxclick).toHaveBeenCalledTimes(1);
+		});
+
+		it("blocks middle-click navigation and the consumer listener while loading", async () => {
+			const onauxclick = vi.fn();
+			const { container } = render(Button, { props: { href: "/x", loading: true, onauxclick } });
+			const event = new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 });
+			await fireEvent(root(container), event);
+			expect(event.defaultPrevented).toBe(true);
+			expect(onauxclick).not.toHaveBeenCalled();
+		});
+	});
+
 	it("keeps a disabled link inert whatever the consumer passes", () => {
 		const { container } = render(Button, {
 			props: { href: "/x", disabled: true, tabindex: 0, "aria-disabled": "false" },
