@@ -2,7 +2,7 @@ import { render, cleanup, waitFor } from "@testing-library/svelte";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
-import DemoRenderer, { previewBox, DEFAULT_STAGE, defaultProps } from "./DemoRenderer.svelte";
+import DemoRenderer, { previewBox, defaultProps } from "./DemoRenderer.svelte";
 
 beforeAll(() => {
 	// jsdom has no layout engine: stub what the canvas components touch on mount.
@@ -43,31 +43,28 @@ describe("DemoRenderer sized stage", () => {
 		}
 	});
 
-	// The preview frame is `flex items-center justify-center`. A stage that is a plain
-	// block would pin its content to the top-left corner, so every stage must either
-	// vanish from layout (display: contents) or centre its own content.
-	const centred = (cls: string) =>
-		cls.split(/\s+/).includes("contents") ||
-		(["flex", "items-center", "justify-center"] as const).every((c) =>
-			cls.split(/\s+/).includes(c)
-		);
-
-	it("never uses a block stage that would break the frame's centring", () => {
-		expect(centred(DEFAULT_STAGE)).toBe(true);
-		for (const value of Object.values(previewBox)) expect(centred(value)).toBe(true);
+	// The preview frame is `flex items-center justify-center`: a stage that is a plain
+	// block would pin its content to the top-left corner, so it must centre its own content.
+	it("centres the content of every sized stage", () => {
+		for (const value of Object.values(previewBox)) {
+			expect(
+				["flex", "items-center", "justify-center"].every((c) => value.split(/\s+/).includes(c))
+			).toBe(true);
+		}
 	});
 
-	it.each(["button", "card-spotlight", "glare-card", "neon-border", "hyper-text"])(
-		"renders %s without a layout-affecting stage",
+	// The thumbnail fit-to-frame step measures the frame's single child. Any wrapper
+	// (even display: contents, which has no box) would measure 0 by 0 and skip the fit.
+	it.each(["button", "glare-card", "toggle", "neon-border", "hyper-text"])(
+		"renders %s without any stage wrapper",
 		async (slug) => {
 			const { container } = render(DemoRenderer, { slug });
-			const stage = await waitFor(() => {
-				const el = container.querySelector<HTMLElement>("[data-demo-stage]");
-				expect(el).toBeInTheDocument();
-				return el!;
+			// The module loads asynchronously: wait for the spinner to go before asserting.
+			await waitFor(() => {
+				expect(container.querySelector(".animate-spin")).toBeNull();
+				expect(container.firstElementChild).not.toBeNull();
 			});
-			expect(stage.className.split(/\s+/)).toContain("contents");
-			expect(stage.className).not.toContain("w-full");
+			expect(container.querySelector("[data-demo-stage]")).toBeNull();
 		}
 	);
 });
