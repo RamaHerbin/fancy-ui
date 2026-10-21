@@ -8,27 +8,77 @@
  * skipped, and so are lower-case names (constants, helpers).
  */
 
+import { getComponent } from "$lib/fancy-ui/registry.js";
+
 const svelteModules = import.meta.glob("../fancy-ui/*/index.ts", { eager: true }) as Record<
 	string,
 	Record<string, unknown>
 >;
 
-// The sound module sits outside `components/` in the React and Vue packages but
-// is a docs page of its own (slug "sound"), like `fancy-ui/sound` in Svelte.
-const reactBarrels = import.meta.glob(
-	["/react/src/components/*/index.ts", "/react/src/sound/index.ts"],
-	{
-		query: "?raw",
-		import: "default",
-		eager: true,
-	}
-) as Record<string, string>;
-
-const vueBarrels = import.meta.glob(["/vue/src/components/*/index.ts", "/vue/src/sound/index.ts"], {
+const reactComponentBarrels = import.meta.glob("/react/src/components/*/index.ts", {
 	query: "?raw",
 	import: "default",
 	eager: true,
 }) as Record<string, string>;
+
+const vueComponentBarrels = import.meta.glob("/vue/src/components/*/index.ts", {
+	query: "?raw",
+	import: "default",
+	eager: true,
+}) as Record<string, string>;
+
+// Modules at the top of a port's `src/`, next to `components/`. One of them can
+// be a docs page of its own (a shared module whose folder name is a registry
+// slug, as in the Svelte package where every page is a top-level folder).
+const reactModuleBarrels = import.meta.glob("/react/src/*/index.ts", {
+	query: "?raw",
+	import: "default",
+	eager: true,
+}) as Record<string, string>;
+
+const vueModuleBarrels = import.meta.glob("/vue/src/*/index.ts", {
+	query: "?raw",
+	import: "default",
+	eager: true,
+}) as Record<string, string>;
+
+/** The top-level modules that a docs page documents; the others (theme kit, internals) are skipped. */
+function documentedModules(barrels: Record<string, string>): Record<string, string> {
+	return Object.fromEntries(
+		Object.entries(barrels).filter(([path]) => {
+			const slug = slugOf(path);
+			return Boolean(slug && getComponent(slug));
+		})
+	);
+}
+
+const reactBarrels = { ...reactComponentBarrels, ...documentedModules(reactModuleBarrels) };
+const vueBarrels = { ...vueComponentBarrels, ...documentedModules(vueModuleBarrels) };
+
+/** Folder of each documented slug under a port's `src/`, read from where its barrel was found. */
+function foldersOf(barrels: Record<string, string>, root: string): Map<string, string> {
+	const map = new Map<string, string>();
+	for (const path of Object.keys(barrels)) {
+		const slug = slugOf(path);
+		if (slug) map.set(slug, path.slice(root.length, -"/index.ts".length));
+	}
+	return map;
+}
+
+const PORT_FOLDERS: Record<"react" | "vue", Map<string, string>> = {
+	react: foldersOf(reactBarrels, "/react/src/"),
+	vue: foldersOf(vueBarrels, "/vue/src/"),
+};
+
+/**
+ * Folder of a page's port under the React or Vue `src/`, e.g.
+ * `components/border-beam`, or the module folder itself for a shared module
+ * that sits next to `components/`. A slug with no port gets the components
+ * folder it would have.
+ */
+export function portFolderOf(framework: "react" | "vue", slug: string): string {
+	return PORT_FOLDERS[framework].get(slug) ?? `components/${slug}`;
+}
 
 /** Value exports of a barrel source: `export { A, b as B } from …` lines, PascalCase names only. */
 export function parseBarrelExports(src: string): string[] {

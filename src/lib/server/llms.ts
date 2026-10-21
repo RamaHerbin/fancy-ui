@@ -27,6 +27,7 @@ import type { Framework } from "$lib/inspiration/types.js";
 import { SITE_URL, GITHUB_URL } from "$lib/site.js";
 import type { ComponentMeta } from "$lib/types.js";
 import {
+	portFolderOf,
 	svelteExportsBySlug,
 	reactExportsBySlug,
 	vueExportsBySlug,
@@ -492,11 +493,6 @@ export function generateLlmsFullTxt(): string {
 	return lines.join("\n");
 }
 
-/** Folder of a slug under the React or Vue `src/`: the sound module sits outside `components/`. */
-function portFolder(slug: string): string {
-	return slug === "sound" ? "sound" : `components/${slug}`;
-}
-
 /**
  * A Svelte action row (`use:soundFeedback`) is a hook in React and a
  * composable in Vue, both named `useSoundFeedback`; null for any other row.
@@ -561,7 +557,7 @@ const FRAMEWORK_DOCS: Record<DocsFramework, FrameworkDocs> = {
 			"",
 			`and import the component styles once in the app entry: \`import "fancy-ui-react/styles.css";\`. Full guide: ${SITE_URL}/llms.txt`,
 		],
-		source: (slug) => `${GITHUB_URL}/tree/main/react/src/${portFolder(slug)}`,
+		source: (slug) => `${GITHUB_URL}/tree/main/react/src/${portFolderOf("react", slug)}`,
 		mapping: `The names below are the ones to write in React; when one differs from the Svelte name, the Svelte name follows in parentheses. \`class\` becomes \`className\`, a callback takes the name the React port declares (\`onclick\` becomes \`onClick\`), snippets become \`ReactNode\` props (render functions when they take arguments) and the default snippet is \`children\`. Divergences: ${GITHUB_URL}/tree/main/react#divergences-from-the-svelte-api`,
 		slotsHeading: "Node props",
 		slotsColumn: "Prop",
@@ -585,7 +581,7 @@ const FRAMEWORK_DOCS: Record<DocsFramework, FrameworkDocs> = {
 			"",
 			`Full guide: ${SITE_URL}/llms.txt`,
 		],
-		source: (slug) => `${GITHUB_URL}/tree/main/vue/src/${portFolder(slug)}`,
+		source: (slug) => `${GITHUB_URL}/tree/main/vue/src/${portFolderOf("vue", slug)}`,
 		mapping: `The names below are the ones to write in a Vue template; when one differs from the Svelte name, the Svelte name follows in parentheses. Snippets become named slots (\`#default\` is the default snippet), a prop the Vue port declares as a model is a \`v-model:<name>\` (except \`ref\`, exposed via \`defineExpose({ ref })\`: put a template ref on the component and read \`.ref\`) and callbacks are listeners (\`onclick\` is \`@click\`). Every component sets \`inheritAttrs: false\`: \`class\` is a declared prop, merged where the Svelte component applies it (not always the root element), and only when the props table below lists it; other attributes do not fall through unless the package README lists the component as forwarding native attributes. Divergences: ${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api`,
 		slotsHeading: "Slots",
 		slotsColumn: "Slot",
