@@ -1,6 +1,7 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
 import Link from "./Link.svelte";
+import { sound } from "../sound/sound.svelte.js";
 import LineHoverLink from "../line-hover-link/LineHoverLink.svelte";
 import NavbarLink from "../navbar/NavbarLink.svelte";
 import NavigationMenuLink from "../navigation-menu/NavigationMenuLink.svelte";
@@ -182,5 +183,19 @@ describe("invariants survive consumer attributes", () => {
 		expect(anchor(container).getAttribute("rel")?.split(" ")).toEqual(
 			expect.arrayContaining(["me", "noopener", "noreferrer"])
 		);
+	});
+});
+
+describe("Link order", () => {
+	it("runs the internal press cue before the consumer onclick", async () => {
+		const calls: string[] = [];
+		const play = vi.spyOn(sound, "play").mockImplementation(() => {
+			calls.push("internal");
+		});
+		const onclick = vi.fn(() => calls.push("consumer"));
+		const { container } = mount(Link, { props: { href: "/x", sound: true, onclick } });
+		await fireEvent.click(anchor(container));
+		expect(calls).toEqual(["internal", "consumer"]);
+		play.mockRestore();
 	});
 });

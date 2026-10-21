@@ -186,11 +186,14 @@ const markerLabel = computed(() => `Source ${index}: ${source.title}`);
 
 // A consumer's own description is kept next to the card's id, never replaced by it.
 const attrs = useAttrs();
-const describedBy = computed(
-	() =>
+// A plain function, not a `computed`: attrs are not reactive, so a cached
+// value would miss a description added after the first render.
+function describedBy() {
+	return (
 		[attrs["aria-describedby"], open.value ? previewId : undefined].filter(Boolean).join(" ") ||
 		undefined
-);
+	);
+}
 </script>
 
 <template>
@@ -218,7 +221,7 @@ const describedBy = computed(
 		rel="noopener noreferrer nofollow ugc"
 		:class="markerClass"
 		:aria-label="markerLabel"
-		:aria-describedby="describedBy"
+		:aria-describedby="describedBy()"
 		>[{{ index }}]</a
 	>
 	<!-- prettier-ignore -->
@@ -234,7 +237,7 @@ const describedBy = computed(
 		type="button"
 		:class="markerClass"
 		:aria-label="markerLabel"
-		:aria-describedby="describedBy"
+		:aria-describedby="describedBy()"
 	>[{{ index }}]</button>
 	<!--
 		Rendered only while it is on screen: a tooltip that lives in the DOM

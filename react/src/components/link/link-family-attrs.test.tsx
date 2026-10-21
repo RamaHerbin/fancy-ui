@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, act } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
 import { Link } from "./Link.js";
+import { sound } from "../../sound/sound.js";
 import { LineHoverLink } from "../line-hover-link/LineHoverLink.js";
 import { NavbarLink } from "../navbar/NavbarLink.js";
 import { NavigationMenuLink } from "../navigation-menu/NavigationMenuLink.js";
@@ -202,5 +203,19 @@ describe("invariants survive consumer attributes", () => {
 		expect(anchor(container).getAttribute("rel")?.split(" ")).toEqual(
 			expect.arrayContaining(["me", "noopener", "noreferrer"])
 		);
+	});
+});
+
+describe("Link order", () => {
+	it("runs the internal press cue before the consumer onClick", () => {
+		const calls: string[] = [];
+		const play = vi.spyOn(sound, "play").mockImplementation(() => {
+			calls.push("internal");
+		});
+		const onClick = vi.fn(() => calls.push("consumer"));
+		const { container } = mount(Link as never, { href: "/x", sound: true, onClick });
+		fireEvent.click(anchor(container));
+		expect(calls).toEqual(["internal", "consumer"]);
+		play.mockRestore();
 	});
 });

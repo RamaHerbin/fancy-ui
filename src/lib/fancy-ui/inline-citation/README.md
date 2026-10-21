@@ -51,7 +51,7 @@ Grounded answers need somewhere to put the receipt. A footnote list at the botto
 | `class`   | `string`                | —            | Additional CSS classes, merged onto the marker               |
 | `ref`     | `HTMLElement\|null`     | `null`       | Bindable reference to the marker element                     |
 
-Any other native attribute or listener (`id`, `data-*`, `onkeydown`, ...) goes to the marker, the `<a>` or, when unlinked, the `<button>`. The card's own hover, focus and click handling runs first, then yours, once. A `aria-describedby` you pass is joined with the card's id while it is open; the label, `target` and `rel` stay the component's.
+Any other native attribute or listener (`id`, `data-*`, `onkeydown`, ...) goes to the marker, the `<a>` or, when unlinked, the `<button>`. The card's own hover, focus and click handling runs first, then yours, once. A `aria-describedby` you pass is joined with the card's id while it is open; the label, `target` and `rel` stay the component's. On the unlinked marker (a `<button>`), anchor-only attributes are ignored.
 
 ## Behavior
 

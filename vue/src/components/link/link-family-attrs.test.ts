@@ -1,7 +1,8 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
 import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
-import { nextTick } from "vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import Link from "./Link.vue";
+import { sound } from "../../sound/sound.js";
 import LineHoverLink from "../line-hover-link/LineHoverLink.vue";
 import NavbarLink from "../navbar/NavbarLink.vue";
 import NavigationMenuLink from "../navigation-menu/NavigationMenuLink.vue";
@@ -192,4 +193,43 @@ describe("invariants survive consumer attributes", () => {
 			expect.arrayContaining(["me", "noopener", "noreferrer"])
 		);
 	});
+});
+
+describe("Link order", () => {
+	it("runs the internal press cue before the consumer onClick", async () => {
+		const calls: string[] = [];
+		const play = vi.spyOn(sound, "play").mockImplementation(() => {
+			calls.push("internal");
+		});
+		const onClick = vi.fn(() => calls.push("consumer"));
+		const { container } = mount(Link, { props: { href: "/x", sound: true, onClick } });
+		await fireEvent.click(anchor(container));
+		expect(calls).toEqual(["internal", "consumer"]);
+		play.mockRestore();
+	});
+});
+
+describe("attributes stay reactive", () => {
+	it.each([
+		["NavbarLink", NavbarLink],
+		["NavigationMenuLink", NavigationMenuLink],
+		["InlineCitation", InlineCitation],
+	] as Array<[string, never]>)(
+		"%s picks up attributes added after the first render",
+		async (name, Comp) => {
+			const props = name === "InlineCitation" ? { source, index: 1 } : { href: "/x" };
+			const extra = ref<Rec>({});
+			const Host = defineComponent({
+				render: () => h(Comp, { ...props, ...extra.value }),
+			});
+			const { container } = render(Host);
+			expect(anchor(container)).not.toHaveAttribute("id");
+			extra.value = { "aria-current": "step", id: "y", "aria-describedby": "late" };
+			await nextTick();
+			const el = anchor(container);
+			expect(el).toHaveAttribute("id", "y");
+			expect(el.getAttribute("aria-describedby")).toContain("late");
+			if (name !== "InlineCitation") expect(el).toHaveAttribute("aria-current", "step");
+		}
+	);
 });
