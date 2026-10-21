@@ -164,6 +164,45 @@ describe("CopyButton width stability and text swap", () => {
 		expect(live(container).textContent).toBe("Copy");
 	});
 
+	it("finishes the attempt when disabled flips on while the write is in flight", async () => {
+		let resolve!: () => void;
+		const writeText = vi.fn().mockReturnValue(new Promise<void>((r) => (resolve = r)));
+		stubClipboard(writeText);
+		const onCopy = vi.fn();
+		const { container, rerender } = render(<CopyButton {...{ value: "x", onCopy }} />);
+		button(container).focus();
+		await click(button(container));
+		await flush();
+		rerender(<CopyButton {...{ value: "x", onCopy, disabled: true }} />);
+		expect(button(container).disabled).toBe(true);
+		await act(async () => resolve());
+		await flush();
+		expect(writeText).toHaveBeenCalledTimes(1);
+		expect(onCopy).toHaveBeenCalledTimes(1);
+		expect(onCopy).toHaveBeenCalledWith("x", true);
+		expect(live(container).textContent).toBe("Copied");
+		expect(
+			document.activeElement === button(container) || document.activeElement === document.body
+		).toBe(true);
+	});
+
+	it("keeps the visible outgoing text when a retry lands inside the out beat", async () => {
+		stubClipboard(undefined);
+		const { container } = render(<CopyButton {...{ value: "x" }} />);
+		await click(button(container));
+		await flush();
+		await advance(300);
+		expect(live(container).textContent).toBe("Copy failed");
+		expect(leaving(container)).toBeNull();
+		stubClipboard(vi.fn().mockResolvedValue(undefined));
+		await click(button(container));
+		await flush();
+		expect(live(container).textContent).toBe("Copied");
+		expect(leaving(container)?.textContent).toBe("Copy failed");
+		await advance(100);
+		expect(leaving(container)).toBeNull();
+	});
+
 	it("keeps the copied label when `label` changes in the copied state, then adopts it", async () => {
 		stubClipboard(vi.fn().mockResolvedValue(undefined));
 		const { container, rerender } = render(<CopyButton {...{ value: "x", resetMs: 300 }} />);

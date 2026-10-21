@@ -188,6 +188,11 @@
 		const previous = shownLabel;
 		shownLabel = next;
 		swapped = true;
+		// A second swap inside the out beat (failure, then a retry whose write
+		// resolves at once): `previous` was still in its delayed fade-in and was
+		// never painted. Keep the layer that IS on screen, and its timer, instead
+		// of replacing it with text the user never saw.
+		if (leaving !== null) return;
 		clearTimeout(leaveTimer);
 		if (prefersReducedMotion()) {
 			leaving = null;

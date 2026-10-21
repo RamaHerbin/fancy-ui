@@ -131,11 +131,11 @@ cross-fade to the matching skin on Tailwind's colour clock, which is already
   `aria-hidden` layer, so assistive tech only ever reads the current label.
 - **Reduced motion** — every one of those rules lives inside
   `@media (prefers-reduced-motion: no-preference)` in `StatusMorph`'s own
-  stylesheet, and the label swap follows the same rule: under reduce the text
-  snaps and no outgoing layer is rendered. Outside it the final glyph is simply there, instantly and
+  stylesheet. Outside that query the final glyph is simply there, instantly and
   completely; the colour swap is not gated, because a colour change is not
-  motion. Nothing about what the button says or announces depends on the
-  animation.
+  motion. The label swap follows the same rule: under reduce the text snaps and
+  no outgoing layer is rendered. Nothing about what the button says or
+  announces depends on the animation.
 - **Touch and coarse pointers** — unchanged; nothing here is pointer-driven.
   Haptics are deliberately not wired through: `StatusMorph` has them, and
   opting in would be a second new prop for a second reason.

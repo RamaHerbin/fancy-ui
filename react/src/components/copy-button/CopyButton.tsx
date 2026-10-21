@@ -240,7 +240,10 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 		if (swap.shown !== currentLabel) {
 			setSwap({
 				shown: currentLabel,
-				leaving: prefersReducedMotion() ? null : swap.shown,
+				// A second swap inside the out beat: `swap.shown` was still in its
+				// delayed fade-in and never painted, so keep the layer that is on
+				// screen (and its timer) rather than replacing it with unseen text.
+				leaving: swap.leaving !== null ? swap.leaving : prefersReducedMotion() ? null : swap.shown,
 				swapped: true,
 			});
 		}
@@ -250,7 +253,7 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 				setSwap((current) => ({ ...current, leaving: null }));
 			}, LEAVE_MS);
 			return () => clearTimeout(timer);
-		}, [swap.leaving, swap.shown]);
+		}, [swap.leaving]);
 
 		// StatusMorph's `resetAfter` is what normally walks `morphState` back to
 		// "idle", and custom `children` replace the whole icon slot — so in that

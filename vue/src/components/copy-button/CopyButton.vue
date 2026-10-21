@@ -219,12 +219,6 @@ async function handleClick(event: MouseEvent) {
 	onCopy?.(attempted, ok);
 }
 
-// StatusMorph's `resetAfter` is what normally walks `morphState` back to
-// "idle", and custom default-slot content replaces the whole icon slot — so in
-// that composition nothing owns the timer and a failure would keep the error
-// skin, the error label and the assertive live region forever. The parent takes
-// the timer over for exactly that case, on the same window and with the same
-// 0-means-1ms clamp the morph is handed below.
 // Out 80 ms, in 160 ms: a label change keeps the OUTGOING text alive for the
 // out beat as a second, `aria-hidden` layer in the same grid cell, while the
 // keyed live span fades in after that beat. `prefersReducedMotion()` is read
@@ -239,6 +233,10 @@ let leaveTimer: ReturnType<typeof setTimeout> | undefined;
 watch(currentLabel, (next, previous) => {
 	if (next === previous) return;
 	swapped.value = true;
+	// A second swap inside the out beat: `previous` was still in its delayed
+	// fade-in and never painted, so keep the layer that is on screen (and its
+	// timer) rather than replacing it with text the user never saw.
+	if (leaving.value !== null) return;
 	clearTimeout(leaveTimer);
 	if (prefersReducedMotion()) {
 		leaving.value = null;
@@ -252,6 +250,12 @@ watch(currentLabel, (next, previous) => {
 
 onBeforeUnmount(() => clearTimeout(leaveTimer));
 
+// StatusMorph's `resetAfter` is what normally walks `morphState` back to
+// "idle", and custom default-slot content replaces the whole icon slot — so in
+// that composition nothing owns the timer and a failure would keep the error
+// skin, the error label and the assertive live region forever. The parent takes
+// the timer over for exactly that case, on the same window and with the same
+// 0-means-1ms clamp the morph is handed below.
 watch(
 	[hasChildren, morphState],
 	([has, current], _previous, onCleanup) => {
