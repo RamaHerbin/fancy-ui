@@ -9,6 +9,7 @@
  */
 
 import type { Framework } from "$lib/inspiration/types.js";
+import { copyCommandFor } from "$lib/copy-source.js";
 
 export interface InstallSnippets {
 	stylesheet: string;
@@ -19,8 +20,43 @@ export interface InstallSnippets {
 	/** Shiki language for the types snippet (a Vue example lives in an SFC). */
 	typesLang: "ts" | "vue";
 	types: string;
+	/** One import line from the package root, for the Introduction quick start. */
+	imports: string;
+	/** Required peers: the Installation table lists them as is. */
 	peers: { name: string; range: string }[];
+	/** Peers the package declares optional (`peerDependenciesMeta`); flagged in the table. */
+	optionalPeers: { name: string; range: string }[];
 }
+
+/** The three packages the install block switches between; shape of `InstallBlock`'s variants. */
+export interface InstallVariant {
+	framework: Framework;
+	package: string;
+	importLine: string;
+	installLine: string;
+	copyLine: string;
+	note: null;
+	availability: "available";
+}
+
+function variantFor(framework: Framework): InstallVariant {
+	const pkg = `fancy-ui-${framework}`;
+	return {
+		framework,
+		package: pkg,
+		importLine: `import { RainbowButton } from '${pkg}';`,
+		installLine: `pnpm add ${pkg}`,
+		copyLine: copyCommandFor("rainbow-button", framework),
+		note: null,
+		availability: "available",
+	};
+}
+
+export const INSTALL_VARIANTS: InstallVariant[] = [
+	variantFor("svelte"),
+	variantFor("react"),
+	variantFor("vue"),
+];
 
 const reactInstall = import.meta.glob("/react/docs-examples/_install/*", {
 	query: "?raw",
@@ -63,10 +99,13 @@ const svelte: InstallSnippets = {
 	types: `import { type BorderBeamProps } from 'fancy-ui-svelte';
 
 const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`,
+	imports: "import { BorderBeam, RainbowButton } from 'fancy-ui-svelte';",
 	peers: [
-		{ name: "svelte", range: "^5.0.0" },
+		{ name: "svelte", range: "^5.20.0" },
 		{ name: "tailwindcss", range: "^4.0.0" },
 	],
+	// SvelteKit is not required: any Svelte 5 project built with Vite works.
+	optionalPeers: [{ name: "@sveltejs/kit", range: ">=2.0.0" }],
 };
 
 const react: InstallSnippets = {
@@ -74,6 +113,7 @@ const react: InstallSnippets = {
 	lang: "tsx",
 	firstComponent: pick(reactInstall, "react", "first-component.tsx"),
 	usage: pick(reactInstall, "react", "usage.tsx"),
+	imports: `import { BorderBeam, RainbowButton } from "fancy-ui-react";`,
 	typesLang: "ts",
 	types: pick(reactInstall, "react", "types.ts"),
 	peers: [
@@ -81,6 +121,7 @@ const react: InstallSnippets = {
 		{ name: "react-dom", range: "^18.0.0 || ^19.0.0" },
 		{ name: "tailwindcss", range: "^4.0.0" },
 	],
+	optionalPeers: [{ name: "typescript", range: ">=5.0.0" }],
 };
 
 const vue: InstallSnippets = {
@@ -88,12 +129,14 @@ const vue: InstallSnippets = {
 	lang: "vue",
 	firstComponent: pick(vueInstall, "vue", "first-component.vue"),
 	usage: pick(vueInstall, "vue", "usage.vue"),
+	imports: `import { BorderBeam, RainbowButton } from "fancy-ui-vue";`,
 	typesLang: "vue",
 	types: pick(vueInstall, "vue", "types.vue"),
 	peers: [
 		{ name: "vue", range: "^3.5.2" },
 		{ name: "tailwindcss", range: "^4.0.0" },
 	],
+	optionalPeers: [{ name: "typescript", range: ">=5.0.0" }],
 };
 
 export const INSTALL_SNIPPETS: Record<Framework, InstallSnippets> = { svelte, react, vue };
