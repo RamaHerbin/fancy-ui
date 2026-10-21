@@ -65,9 +65,11 @@ export function ownDiagnostics(output) {
 	return output.split("\n").filter((l) => l.startsWith("src/examples/") && /error TS\d+/.test(l));
 }
 
+/** Thrown (never process.exit) so main's `finally` still removes the scratch app. */
+class Failure extends Error {}
+
 function fail(msg) {
-	console.error(`docs-examples-vue: ${msg}`);
-	process.exit(1);
+	throw new Failure(msg);
 }
 
 function run(cmd, args, opts = {}) {
@@ -178,5 +180,12 @@ async function main() {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-	await main();
+	try {
+		await main();
+	} catch (err) {
+		console.error(
+			`docs-examples-vue: ${err instanceof Failure ? err.message : (err?.stack ?? err)}`
+		);
+		process.exitCode = 1;
+	}
 }

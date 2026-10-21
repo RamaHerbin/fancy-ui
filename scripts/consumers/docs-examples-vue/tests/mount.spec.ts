@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { collectErrors } from "../../../../examples/consumers/smoke-helpers";
 
-type Result = { name: string; html: number; problems: string[] };
+type Result = { name: string; elements: number; problems: string[] };
 
 // Every vue/docs-examples snippet, mounted from the packed fancy-ui-vue.
 test("every docs example mounts without a Vue warning or error", async ({ page }) => {
@@ -19,7 +19,7 @@ test("every docs example mounts without a Vue warning or error", async ({ page }
 
 	for (const r of results) {
 		expect(r.problems, `${r.name}: Vue problems`).toEqual([]);
-		expect(r.html, `${r.name}: rendered something`).toBeGreaterThan(0);
+		expect(r.elements, `${r.name}: rendered at least one element`).toBeGreaterThan(0);
 	}
 	expect(errors).toEqual([]);
 });

@@ -6,7 +6,7 @@ import "./style.css";
 // every Vue warning or error is recorded for the spec to read.
 const modules = import.meta.glob<{ default: Component }>("./examples/**/*.vue", { eager: true });
 
-type Result = { name: string; html: number; problems: string[] };
+type Result = { name: string; elements: number; problems: string[] };
 const results: Result[] = [];
 const root = document.getElementById("app")!;
 
@@ -28,7 +28,8 @@ for (const [path, mod] of Object.entries(modules).sort(([a], [b]) => a.localeCom
 	} catch (err) {
 		problems.push(`throw: ${String(err)}`);
 	}
-	results.push({ name, html: host.innerHTML.length, problems });
+	// Elements, not innerHTML: a snippet that renders only a comment (`<!--v-if-->`) is empty.
+	results.push({ name, elements: host.querySelectorAll("*").length, problems });
 }
 
 (window as unknown as { __docsExamples: Result[] }).__docsExamples = results;

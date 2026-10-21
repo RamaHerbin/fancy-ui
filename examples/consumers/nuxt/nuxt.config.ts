@@ -7,8 +7,9 @@ export default defineNuxtConfig({
 	css: ["~/assets/css/main.css"],
 	vite: {
 		plugins: [tailwindcss()],
-		// Keep Vue's hydration diagnostics in the production build, so the smoke
-		// can see a mismatch instead of Vue silently patching over it.
+		// Vue's production runtime always logs "Hydration completed but contains
+		// mismatches." as a console error. This flag only adds the per-node detail
+		// (what the server rendered versus the client) to a failing smoke run.
 		define: { __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "true" },
 	},
 	ssr: true,

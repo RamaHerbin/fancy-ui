@@ -43,10 +43,13 @@ test("loads clean, hydrates, styles resolve, effects run, dialog is keyboard-ope
 	expect(errors).toEqual([]);
 });
 
-// The production build strips Vue's hydration diagnostics unless the app's
-// build defines __VUE_PROD_HYDRATION_MISMATCH_DETAILS__ (nuxt.config.ts does).
+// Vue's production runtime always logs "Hydration completed but contains
+// mismatches." as an error; the app's __VUE_PROD_HYDRATION_MISMATCH_DETAILS__
+// define (nuxt.config.ts) only adds the per-node detail to the failure output.
 // Every console message of any severity is kept, so a mismatch reported as a
-// warning cannot slip past a check that only reads errors.
+// warning cannot slip past a check that only reads errors. Negative control: a
+// `{{ Date.now() }}` text in app.vue turns this test red, with and without the
+// define.
 test("no hydration mismatch: the server renders the library's markup and the console stays quiet", async ({
 	page,
 	request,
