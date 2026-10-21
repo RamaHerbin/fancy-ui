@@ -214,6 +214,8 @@ run once after the component's own handling.
 | `children`    | `Snippet` | —       | Full override for the row's content — e.g. the feature tile's icon + title layout |
 | `class`       | `string`  | —       | Additional CSS classes                                                            |
 
+Any other native anchor attribute or listener goes to the inner `<a>`. `aria-current`, `target` and `rel` stay managed by `current` and `external` while those apply; otherwise the value you pass is used.
+
 ## Theming
 
 | Custom property   | Declared in             | Read by                                                            |

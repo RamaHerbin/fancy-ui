@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAnchorAttributes } from "svelte/elements";
 
 	/**
 	 * Line Hover Link Variants
@@ -31,7 +32,7 @@
 		| "scribble"
 		| "ink";
 
-	export interface LineHoverLinkProps {
+	type BaseProps = {
 		/** The animation variant */
 		variant?: LineHoverVariant;
 		/** Link href */
@@ -50,7 +51,12 @@
 		 * default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
-	}
+		/** Native click handler, called after the press cue */
+		onclick?: (event: MouseEvent) => void;
+	};
+
+	/** Native anchor attributes (`id`, `download`, `data-*`, `onkeydown`, ...) land on the `<a>`. */
+	export type LineHoverLinkProps = BaseProps & Omit<HTMLAnchorAttributes, keyof BaseProps>;
 </script>
 
 <script lang="ts">
@@ -66,17 +72,21 @@
 		class: className = "",
 		children,
 		sound = false,
+		onclick,
+		...restProps
 	}: LineHoverLinkProps = $props();
 
 	const needsSpan = $derived(["strike", "bounce", "arc", "scribble"].includes(variant));
 	const relValue = $derived(target === "_blank" ? (rel ?? "noopener noreferrer") : rel);
 
-	function handleClick() {
+	function handleClick(event: MouseEvent) {
 		if (sound) soundFx.play("press");
+		onclick?.(event);
 	}
 </script>
 
 <a
+	{...restProps}
 	{href}
 	{target}
 	aria-label={ariaLabel}

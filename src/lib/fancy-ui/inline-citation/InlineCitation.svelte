@@ -1,11 +1,12 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
 	import type { SourceData } from "../_internals/ai-types.js";
 
 	/**
 	 * Props for InlineCitation
 	 */
-	export interface InlineCitationProps {
+	type BaseProps = {
 		/** The document being cited. Its title, domain and snippet fill the preview. */
 		source: SourceData;
 		/** The reference number shown in the marker, e.g. `3` renders `[3]` */
@@ -20,7 +21,10 @@
 		class?: string;
 		/** Element reference to the marker */
 		ref?: HTMLElement | null;
-	}
+	};
+
+	/** Native attributes and listeners land on the marker (the `<a>`, or the `<button>` when unlinked). */
+	export type InlineCitationProps = BaseProps & Omit<HTMLAnchorAttributes, keyof BaseProps>;
 </script>
 
 <script lang="ts">
@@ -37,6 +41,12 @@
 		onOpen,
 		class: className,
 		ref = $bindable(null),
+		onmouseenter,
+		onmouseleave,
+		onfocus,
+		onblur,
+		onclick,
+		...restProps
 	}: InlineCitationProps = $props();
 
 	/** How long the pointer must rest on the marker before the card appears. */
@@ -148,6 +158,35 @@
 	// The marker's text is a bare number; on its own it names nothing, so the
 	// title rides along as the accessible name and the card stays supplementary.
 	const markerLabel = $derived(`Source ${index}: ${source.title}`);
+
+	// A consumer's own description is kept next to the card's id, never replaced by it.
+	const describedBy = $derived(
+		[restProps["aria-describedby"], open ? previewId : undefined].filter(Boolean).join(" ") ||
+			undefined
+	);
+
+	// The component's own logic runs first, then the consumer's listener, once,
+	// with the same event.
+	const onEnter = (event: MouseEvent) => {
+		scheduleShow();
+		onmouseenter?.(event as never);
+	};
+	const onLeave = (event: MouseEvent) => {
+		scheduleHide();
+		onmouseleave?.(event as never);
+	};
+	const onFocusIn = (event: FocusEvent) => {
+		show();
+		onfocus?.(event as never);
+	};
+	const onFocusOut = (event: FocusEvent) => {
+		hide();
+		onblur?.(event as never);
+	};
+	const onMarkerClick = (event: MouseEvent) => {
+		show();
+		onclick?.(event as never);
+	};
 </script>
 
 <!--
@@ -159,32 +198,35 @@
 -->
 {#if isLink}
 	<a
+		{...restProps}
 		bind:this={ref}
 		href={resolvedHref}
 		target="_blank"
 		rel="noopener noreferrer nofollow ugc"
 		class={markerClass}
 		aria-label={markerLabel}
-		aria-describedby={open ? previewId : undefined}
-		onmouseenter={scheduleShow}
-		onmouseleave={scheduleHide}
-		onfocus={show}
-		onblur={hide}
+		aria-describedby={describedBy}
+		onmouseenter={onEnter}
+		onmouseleave={onLeave}
+		onfocus={onFocusIn}
+		onblur={onFocusOut}
+		{onclick}
 	>
 		[{index}]
 	</a>
 {:else}
 	<button
+		{...(restProps as HTMLButtonAttributes)}
 		bind:this={ref}
 		type="button"
 		class={markerClass}
 		aria-label={markerLabel}
-		aria-describedby={open ? previewId : undefined}
-		onmouseenter={scheduleShow}
-		onmouseleave={scheduleHide}
-		onfocus={show}
-		onblur={hide}
-		onclick={show}
+		aria-describedby={describedBy}
+		onmouseenter={onEnter}
+		onmouseleave={onLeave}
+		onfocus={onFocusIn}
+		onblur={onFocusOut}
+		onclick={onMarkerClick}
 	>
 		[{index}]
 	</button>
