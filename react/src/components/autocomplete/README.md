@@ -74,3 +74,7 @@ exactly as the source seeds its own.
   collapses its own duration to 0, `runTransition` then never calls
   `element.animate()`, and the close stays synchronous. The source's `<style>`
   block carries no reduced-motion rule of its own and is ported unchanged.
+
+## Native attributes
+
+Every other native attribute and listener (`aria-*`, `data-*`, `onFocus`, `onBlur`, `onKeyDown`, `form`, ...) is forwarded to the text `<input>`, spread before the managed ARIA so a consumer can add but never override `role`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-haspopup` or a computed `aria-invalid`. A consumer `aria-describedby` is merged with the surrounding `FormField`'s, and `name`/`form` reach the hidden input (or, for Autocomplete, the input itself).

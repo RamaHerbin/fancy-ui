@@ -97,3 +97,7 @@ of `Select.test.tsx`. Two transposition adjustments, both mechanical:
 Two tests are additions, both marked under a `React layer` block: the
 highlight-without-committing guard described above, and a StrictMode
 mount/open/close leaving exactly one panel and draining the dismiss stack.
+
+## Native attributes
+
+Every other native attribute and listener (`aria-*`, `data-*`, `onFocus`, `onBlur`, `onKeyDown`, `form`, ...) is forwarded to the trigger `<button>`, spread before the managed ARIA so a consumer can add but never override `role`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-haspopup` or a computed `aria-invalid`. A consumer `aria-describedby` is merged with the surrounding `FormField`'s, and `name`/`form` reach the hidden input (or, for Autocomplete, the input itself).

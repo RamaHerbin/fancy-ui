@@ -112,3 +112,7 @@ effects, which is exactly the shape a double invoke duplicates.
 `.ft-combobox` — the first token of the input's own `cn()` call — so no
 port-added anchor class was needed. The `--ft-accent` fallback literal is
 re-typed by hand per PORTING.md's custom-property rule.
+
+## Native attributes
+
+Every other native attribute and listener (`aria-*`, `data-*`, `onFocus`, `onBlur`, `onKeyDown`, `form`, ...) is forwarded to the text `<input>`, spread before the managed ARIA so a consumer can add but never override `role`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-haspopup` or a computed `aria-invalid`. A consumer `aria-describedby` is merged with the surrounding `FormField`'s, and `name`/`form` reach the hidden input (or, for Autocomplete, the input itself).
