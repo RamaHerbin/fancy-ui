@@ -69,8 +69,9 @@ Paths are relative to `src/lib/fancy-ui/` unless they start with `react/` or `vu
   alone, guard in `handleClick`); `pressable/Pressable.svelte` (`isActivationKey`, `event.repeat`);
   the `link/Link.svelte` arrow motion and `dim-siblings/DimSiblings.svelte` (`(hover: hover)` +
   `:focus-visible`); `sound/sound-feedback.ts` (hover cue for mouse and pen only).
-- Known gap (Button form-contract mission): the `href` branch of Button, in all three packages,
-  goes inert while `loading` (`anchorInert`: no `href`, `tabindex="-1"`), so it leaves the tab order.
+- Fixed (Button form-contract mission): the `href` branch of Button, in all three packages, goes
+  inert only while `disabled` (`anchorInert`: no `href`, `tabindex="-1"`). While `loading` the anchor
+  keeps its `href` and tab stop, sets `aria-busy`, and its activation is blocked (`anchorBlocked`).
 
 ## 5. Reduced motion
 
