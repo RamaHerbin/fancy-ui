@@ -5,11 +5,10 @@
  */
 
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { readFileSync } from "node:fs";
 import v8 from "node:v8";
 import vm from "node:vm";
 
@@ -22,8 +21,11 @@ import {
 	median,
 	assertSmokePassed,
 	parseKeptScratch,
+	loadVerdict,
 	proposeBudget,
 	recordedSettings,
+	runRows,
+	stampRun,
 } from "./lib.mjs";
 
 test("compressedSizes reports raw, gzip and brotli bytes", () => {
@@ -165,7 +167,9 @@ test("the observer probe does not keep disconnected observers alive", async () =
 	const ctx = vm.createContext({ ...win, window: win, WeakRef, WeakMap, Set, Math });
 	// the script reads these as globals and through `window`
 	Object.assign(ctx, win, { window: win });
-	vm.runInContext(readFileSync(new URL("./harness/instrument.js", import.meta.url), "utf8"), ctx);
+	// PERF_INSTRUMENT points the test at another copy of the probe (used to record the red run)
+	const probe = process.env.PERF_INSTRUMENT ?? new URL("./harness/instrument.js", import.meta.url);
+	vm.runInContext(readFileSync(probe, "utf8"), ctx);
 	const weak = [];
 	const mount = () => {
 		const heavy = { payload: new Array(1000).fill(1) };
@@ -181,4 +185,49 @@ test("the observer probe does not keep disconnected observers alive", async () =
 	}
 	assert.equal(weak.filter((w) => w.deref()).length, 0, "callbacks stay reachable");
 	assert.equal(win.__probe.snapshot().liveObservers, 0);
+});
+
+test("loadVerdict calls a machine quiet only below half a core of load per core", () => {
+	assert.equal(loadVerdict(5.5, 14), "quiet");
+	assert.equal(loadVerdict(7, 14), "loaded");
+	assert.equal(loadVerdict(22.6, 14), "loaded");
+	assert.equal(loadVerdict(undefined, 14), "unrecorded");
+	assert.equal(loadVerdict(1, undefined), "unrecorded");
+});
+
+test("stampRun fills a missing run record and never overwrites a recorded one", () => {
+	const run = { measuredCommit: "aaa", toolCommit: "bbb", cores: 14 };
+	const object = stampRun({ rows: [] }, run);
+	assert.deepEqual(object.run, run);
+	const list = stampRun([{ rows: [] }, { rows: [], run: { measuredCommit: "zzz" } }], run);
+	assert.deepEqual(list[0].run, run);
+	assert.equal(list[1].run.measuredCommit, "zzz");
+});
+
+test("runRows prints each section's own commits and load, and labels the loaded ones", () => {
+	const run = (load, c = "lib1") => ({
+		measuredCommit: c,
+		toolCommit: "tool1",
+		cores: 14,
+		loadAvgAtEnd: load,
+	});
+	const rows = runRows({
+		sizes: { rows: [], run: run([2, 3, 4]) },
+		imports: [{ pkg: "p", run: run([1, 1, 1]) }],
+		effects: [
+			{
+				framework: "svelte",
+				loadAvgAtEnd: [8.2, 16.6, 25.4],
+				run: { ...run(undefined), cores: 14 },
+			},
+			{ framework: "react", run: run([22.6, 17.6, 22.5]) },
+		],
+		lifecycle: [{ framework: "svelte", run: run([5.5, 8.4, 15.1]) }],
+	});
+	const byName = Object.fromEntries(rows.map((r) => [r[0], r]));
+	assert.deepEqual(byName.sizes.slice(1), ["lib1", "tool1", "2.0 / 3.0 / 4.0", "quiet"]);
+	assert.equal(byName["effects (svelte)"][3], "8.2 / 16.6 / 25.4");
+	assert.equal(byName["effects (svelte)"][4], "loaded");
+	assert.equal(byName["effects (react)"][4], "loaded");
+	assert.equal(byName["lifecycle (svelte)"][4], "quiet");
 });

@@ -128,3 +128,52 @@ export function assertSmokePassed(name, result) {
 		throw new Error(`${name}: consumer smoke exited with ${result.status}, no size is reported`);
 	}
 }
+
+/** A section counts as measured on a quiet machine below this 1-minute load per core. */
+export const QUIET_LOAD_PER_CORE = 0.5;
+
+/** "quiet", "loaded", or "unrecorded" when the load or the core count was not stored. */
+export function loadVerdict(load1, cores) {
+	if (!Number.isFinite(load1) || !Number.isFinite(cores)) return "unrecorded";
+	return load1 < cores * QUIET_LOAD_PER_CORE ? "quiet" : "loaded";
+}
+
+/**
+ * Attach a run record (measured commit, tool commit, load, machine) to a stored
+ * section: the object itself, or each group of a list. A record already there
+ * is kept, so a backfill never rewrites what was measured.
+ */
+export function stampRun(data, run) {
+	if (Array.isArray(data)) {
+		for (const g of data) g.run ??= run;
+	} else {
+		data.run ??= run;
+	}
+	return data;
+}
+
+/**
+ * One row per stored section (per group for the lists): library commit that was
+ * measured, tool commit that measured it, load average at the end and whether
+ * that counts as a quiet machine.
+ */
+export function runRows({ sizes, imports, effects, lifecycle }) {
+	const rows = [];
+	const row = (label, g) => {
+		const load = g?.run?.loadAvgAtEnd ?? g?.loadAvgAtEnd;
+		rows.push([
+			label,
+			g?.run?.measuredCommit ?? "unrecorded",
+			g?.run?.toolCommit
+				? `${g.run.toolCommit}${g.run.backfilled ? " (backfilled)" : ""}`
+				: "unrecorded",
+			load ? load.map((n) => n.toFixed(1)).join(" / ") : "unrecorded",
+			loadVerdict(load?.[0], g?.run?.cores),
+		]);
+	};
+	if (sizes) row("sizes", sizes);
+	for (const g of imports ?? []) row(`imports (${g.consumer ?? g.pkg})`, g);
+	for (const g of effects ?? []) row(`effects (${g.framework})`, g);
+	for (const g of lifecycle ?? []) row(`lifecycle (${g.framework})`, g);
+	return rows;
+}

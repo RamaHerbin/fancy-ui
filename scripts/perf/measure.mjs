@@ -8,6 +8,7 @@
 //   imports    barrel vs deep import cost, 5 components per package
 //   effects    rAF/s, long tasks, CPU ms/s of 5 effects (Chromium, CDP metrics + tracing)
 //   lifecycle  mount/unmount x50 and 10 simultaneous instances (contexts, listeners, heap)
+//   stamp      backfills the run record of stored sections (--measured-commit, --tool-commit)
 //   report     renders scripts/perf/BASELINE-<date>.md from the JSON the others wrote
 //
 // Every section writes <out>/<section>.json; raw traces go to <out>/traces/.
@@ -34,7 +35,10 @@ import {
 	measureAssets,
 	median,
 	parseKeptScratch,
+	loadVerdict,
 	proposeBudget,
+	runRows,
+	stampRun,
 	assertSmokePassed,
 	recordedSettings,
 } from "./lib.mjs";
@@ -66,6 +70,59 @@ const load = (name) => {
 		throw new Error(`run \`${name}\` first (missing ${jsonPath(name)})`);
 	return JSON.parse(readFileSync(jsonPath(name), "utf8"));
 };
+
+// --------------------------------------------------------------- run record
+
+/**
+ * What a section stores about the run that produced it, so `report` prints it
+ * back instead of reading the machine it happens to run on.
+ *   measuredCommit  the library: HEAD, "+dirty" when files outside scripts/perf changed
+ *   toolCommit      the tool: last commit touching scripts/perf, "+dirty" when it has edits
+ * `--measured-commit` and `--tool-commit` override them (used by `stamp`).
+ */
+function runInfo() {
+	const git = (...argv) => sh("git", argv, { cwd: ROOT }).stdout.trim();
+	const dirty = (...paths) => git("status", "--porcelain", "--", ...paths).length > 0;
+	const pkgVersion = (p) => JSON.parse(readFileSync(join(ROOT, p, "package.json"), "utf8")).version;
+	const cpus = os.cpus();
+	const head = git("rev-parse", "--short", "HEAD");
+	return {
+		measuredCommit: opt(
+			"measured-commit",
+			`${head}${dirty(".", ":!scripts/perf") ? "+dirty" : ""}`
+		),
+		toolCommit: opt(
+			"tool-commit",
+			`${git("log", "-1", "--format=%h", "--", "scripts/perf")}${dirty("scripts/perf") ? "+dirty" : ""}`
+		),
+		loadAvgAtEnd: os.loadavg(),
+		cores: cpus.length,
+		machine: `${cpus[0].model.trim()}, ${cpus.length} cores, ${Math.round(os.totalmem() / 2 ** 30)} GB`,
+		os: `${os.type()} ${os.release()}`,
+		node: process.version,
+		versions: {
+			"fancy-ui-svelte": JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version,
+			"fancy-ui-react": pkgVersion("react"),
+			"fancy-ui-vue": pkgVersion("vue"),
+		},
+	};
+}
+
+// Backfill: give stored sections that predate the run record one, without
+// touching a record that is already there.
+//   node scripts/perf/measure.mjs stamp --measured-commit 17b78315 --tool-commit 901879eb
+function runStamp() {
+	const measured = opt("measured-commit", "");
+	const tool = opt("tool-commit", "");
+	if (!measured || !tool) throw new Error("stamp needs --measured-commit and --tool-commit");
+	// The load at stamp time says nothing about the run: leave it out. Effects
+	// and lifecycle groups keep the `loadAvgAtEnd` they stored themselves.
+	const { loadAvgAtEnd: _now, ...run } = runInfo();
+	for (const name of ["sizes", "imports", "effects", "lifecycle"]) {
+		if (!existsSync(jsonPath(name))) continue;
+		save(name, stampRun(load(name), { ...run, backfilled: true }));
+	}
+}
 
 // ---------------------------------------------------------------- consumers
 
@@ -116,7 +173,7 @@ function runSizes() {
 	for (const f of readdirSync(packs)) {
 		state.tarballs[f] = statSync(join(packs, f)).size;
 	}
-	save("sizes", { rows, tarballs: state.tarballs });
+	save("sizes", { rows, tarballs: state.tarballs, run: runInfo() });
 	save("state", state);
 }
 
@@ -282,7 +339,7 @@ async function runImports() {
 				dev.push({ case: label, kind, ...(await devCost(appDir, name, src, devPort++)) });
 			}
 		}
-		results.push({ consumer: name, pkg: c.pkg, rows, dev });
+		results.push({ consumer: name, pkg: c.pkg, rows, dev, run: runInfo() });
 	}
 	save("imports", results);
 }
@@ -470,7 +527,7 @@ async function runEffects() {
 				await browser.stopTracing();
 				await context.close();
 			}
-			out.push({ framework: fw, chromium: version, loadAvgAtEnd: os.loadavg(), rows });
+			out.push({ framework: fw, chromium: version, run: runInfo(), rows });
 		});
 		port += 1;
 	}
@@ -571,7 +628,7 @@ async function runLifecycle() {
 				);
 				await context.close();
 			}
-			out.push({ framework: fw, chromium: version, loadAvgAtEnd: os.loadavg(), rows });
+			out.push({ framework: fw, chromium: version, run: runInfo(), rows });
 		});
 		port += 1;
 	}
@@ -580,30 +637,17 @@ async function runLifecycle() {
 
 // ------------------------------------------------------------------ report
 
-function environment() {
-	const git = sh("git", ["rev-parse", "--short", "HEAD"], { cwd: ROOT }).stdout.trim();
-	const pkgVersion = (p) => JSON.parse(readFileSync(join(ROOT, p, "package.json"), "utf8")).version;
-	const effects = existsSync(jsonPath("effects")) ? load("effects") : [];
-	const lifecycle = existsSync(jsonPath("lifecycle")) ? load("lifecycle") : [];
+function environment(sections) {
+	const { sizes, effects, lifecycle } = sections;
+	const first = sizes.run ?? effects[0]?.run ?? {};
 	const settings = recordedSettings(effects, lifecycle);
-	const cpus = os.cpus();
 	return [
-		["commit", git],
-		[
-			"machine",
-			`${cpus[0].model.trim()}, ${cpus.length} cores, ${Math.round(os.totalmem() / 2 ** 30)} GB`,
-		],
-		["os", `${os.type()} ${os.release()}`],
-		[
-			"load average at the end of the effects run (1/5/15 min)",
-			(effects.at(-1)?.loadAvgAtEnd ?? []).map((n) => n.toFixed(1)).join(" / ") || "n/a",
-		],
-		["node", process.version],
+		["machine", first.machine ?? "unrecorded"],
+		["os", first.os ?? "unrecorded"],
+		["node", first.node ?? "unrecorded"],
 		["chromium", effects[0]?.chromium ?? "n/a"],
 		["gpu", "software GL (swiftshader), headless"],
-		["fancy-ui-svelte", JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version],
-		["fancy-ui-react", pkgVersion("react")],
-		["fancy-ui-vue", pkgVersion("vue")],
+		...Object.entries(first.versions ?? {}),
 		["repetitions", settings.reps],
 		["lifecycle cycles", settings.cycles],
 	];
@@ -618,9 +662,24 @@ function runReport() {
 		"Numbers only. Protocol and environment details: `scripts/perf/README.md`. Raw traces are not committed.",
 		""
 	);
-	md.push("## Environment", "", markdownTable(["key", "value"], environment()), "");
-
 	const sizes = load("sizes");
+	const imports = load("imports");
+	const effects = load("effects");
+	const life = load("lifecycle");
+	md.push(
+		"## Environment",
+		"",
+		markdownTable(["key", "value"], environment({ sizes, imports, effects, lifecycle: life })),
+		"",
+		"Each section is stored with the library commit it measured, the commit of the tool that measured it and the load average when it ended. A section counts as quiet when its 1-minute load is below half the core count; the others are labelled loaded and their timing numbers are indicative only.",
+		"",
+		markdownTable(
+			["section", "library commit", "tool commit", "load at end (1/5/15 min)", "state"],
+			runRows({ sizes, imports, effects, lifecycle: life })
+		),
+		""
+	);
+
 	md.push("## 1. Consumer app weight (client JS + CSS, KB)", "");
 	md.push(
 		markdownTable(
@@ -659,7 +718,6 @@ function runReport() {
 		""
 	);
 
-	const imports = load("imports");
 	md.push("## 2. Barrel vs deep import (JS only, KB, minified, one component per probe)", "");
 	for (const g of imports) {
 		const base = g.rows.find((r) => r.case === "baseline").js;
@@ -713,12 +771,12 @@ function runReport() {
 					r.loadMs,
 				])
 			),
+			"",
 			`Baseline row is absolute (${devBase.modules} modules).`,
 			""
 		);
 	}
 
-	const effects = load("effects");
 	md.push("## 3. Effect activity (median of repetitions, 5 s windows)", "");
 	for (const g of effects) {
 		md.push(`### ${g.framework}`, "");
@@ -755,7 +813,6 @@ function runReport() {
 		);
 	}
 
-	const life = load("lifecycle");
 	md.push(`## 4. Mount/unmount and simultaneous instances`, "");
 	for (const g of life) {
 		md.push(
@@ -862,10 +919,12 @@ function runReport() {
 		const worst = Math.max(
 			...g.rows.filter((r) => r.name !== "none").map((r) => r.idle.cpuMsPerSec)
 		);
+		const load = g.run?.loadAvgAtEnd ?? g.loadAvgAtEnd;
+		const provisional = loadVerdict(load?.[0], g.run?.cores) !== "quiet";
 		budgetRows.push([
 			`${g.framework} idle CPU, worst effect`,
 			`${f1(worst)} ms/s`,
-			`${proposeBudget(worst, 0.5, 5)} ms/s`,
+			`${proposeBudget(worst, 0.5, 5)} ms/s${provisional ? " (provisional: measured on a loaded machine)" : ""}`,
 		]);
 	}
 	for (const g of imports) {
@@ -913,7 +972,7 @@ function runReport() {
 	md.push(markdownTable(["metric", "measured", "proposed ceiling"], budgetRows), "");
 
 	const file = join(here, `BASELINE-${DATE}.md`);
-	writeFileSync(file, `${md.join("\n")}\n`);
+	writeFileSync(file, `${md.join("\n").trimEnd()}\n`);
 	console.log(`wrote ${file}`);
 }
 
@@ -924,6 +983,7 @@ const SECTIONS = {
 	imports: runImports,
 	effects: runEffects,
 	lifecycle: runLifecycle,
+	stamp: runStamp,
 	report: runReport,
 };
 
@@ -935,7 +995,7 @@ if (section === "all") {
 	console.log(
 		readFileSync(fileURLToPath(import.meta.url), "utf8")
 			.split("\n")
-			.slice(1, 14)
+			.slice(1, 15)
 			.map((l) => l.replace(/^\/\/ ?/, ""))
 			.join("\n")
 	);
