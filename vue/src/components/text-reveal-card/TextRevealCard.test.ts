@@ -37,4 +37,14 @@ describe("TextRevealCard", () => {
 		const revealLayer = container.querySelector(".z-20") as HTMLElement;
 		expect(revealLayer?.style.opacity).toBe("0");
 	});
+
+	it("lets the page scroll vertically under a finger", () => {
+		const { container } = render(TextRevealCard);
+		const card = container.firstElementChild as HTMLElement;
+		expect(card.className).toContain("touch-pan-y");
+		const ev = new Event("touchmove", { bubbles: true, cancelable: true });
+		Object.assign(ev, { touches: [{ clientX: 10, clientY: 10 }] });
+		card.dispatchEvent(ev);
+		expect(ev.defaultPrevented).toBe(false);
+	});
 });

@@ -80,7 +80,7 @@ export function ImageTrailCursor({
 				"relative z-[100] h-full w-full overflow-visible rounded-lg bg-transparent",
 				className
 			)}
-			style={{ touchAction: "none" }}
+			style={{ touchAction: "pan-y" }}
 		>
 			{images.map((image, i) => (
 				// Keyed on `variant + i` like the Svelte `{#each}`: switching

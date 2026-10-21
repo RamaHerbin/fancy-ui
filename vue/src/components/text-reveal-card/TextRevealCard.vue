@@ -67,7 +67,6 @@ function mouseEnterHandler() {
 }
 
 function touchMoveHandler(event: TouchEvent) {
-	event.preventDefault();
 	const card = cardRef.value;
 	if (card) {
 		const rect = card.getBoundingClientRect();
@@ -82,7 +81,7 @@ function touchMoveHandler(event: TouchEvent) {
 		ref="cardRef"
 		:class="
 			cn(
-				'relative w-full max-w-[40rem] overflow-hidden rounded-lg border border-white/[0.08] bg-[#1d1c20] p-4 sm:p-6 md:p-8',
+				'relative w-full max-w-[40rem] touch-pan-y overflow-hidden rounded-lg border border-white/[0.08] bg-[#1d1c20] p-4 sm:p-6 md:p-8',
 				className
 			)
 		"

@@ -76,7 +76,7 @@
 <div
 	bind:this={containerRef}
 	class={cn("relative z-[100] h-full w-full overflow-visible rounded-lg bg-transparent", className)}
-	style="touch-action: none;"
+	style="touch-action: pan-y;"
 >
 	{#each images as image, i (variant + i)}
 		<div

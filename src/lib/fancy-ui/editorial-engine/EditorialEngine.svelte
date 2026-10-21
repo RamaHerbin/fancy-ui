@@ -116,13 +116,13 @@ None of this needs a new browser API or a standards process. It needs cached fon
 		overflow: hidden;
 		background: radial-gradient(ellipse at 50% 40%, #0f0f14 0%, #0a0a0c 100%);
 		color: #e8e4dc;
-		touch-action: none;
+		touch-action: pan-y;
 	}
 
 	.ee-layer {
 		position: absolute;
 		inset: 0;
-		touch-action: none;
+		touch-action: pan-y;
 	}
 
 	.ee-fallback {

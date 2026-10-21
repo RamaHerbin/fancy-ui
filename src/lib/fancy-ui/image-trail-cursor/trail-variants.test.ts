@@ -170,4 +170,16 @@ describe("trail-variants RAF loop", () => {
 		expect(raf).toHaveBeenCalledTimes(1);
 		instance.destroy();
 	});
+
+	it("never cancels a touch gesture, so the page keeps scrolling", () => {
+		vi.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+		const container = mountContainer(2);
+		const instance = new variantMap.type1(container);
+		for (const type of ["touchstart", "touchmove", "touchmove"]) {
+			const ev = new Event(type, { bubbles: true, cancelable: true });
+			container.dispatchEvent(ev);
+			expect(ev.defaultPrevented).toBe(false);
+		}
+		instance.destroy();
+	});
 });
