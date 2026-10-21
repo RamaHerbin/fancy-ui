@@ -173,6 +173,21 @@ test.describe("Docs follow the selected framework", () => {
 		await expect(page.locator("[data-port-name]")).toHaveCount(0);
 	});
 
+	test("the gallery's own ?framework= filter is neither read nor written", async ({ page }) => {
+		await page.addInitScript(() => localStorage.setItem("fancy-ui-framework", "react"));
+		await page.goto("/inspiration?framework=vue");
+		await hydrated(page);
+		// Opening a filtered gallery link leaves the saved docs choice alone.
+		expect(await page.evaluate(() => localStorage.getItem("fancy-ui-framework"))).toBe("react");
+
+		// Switching in the footer saves the choice without touching the gallery URL.
+		const footerSvelte = page.locator("footer").getByRole("radio", { name: "Svelte" });
+		await footerSvelte.click();
+		await expect(footerSvelte).toHaveAttribute("aria-checked", "true");
+		expect(await page.evaluate(() => localStorage.getItem("fancy-ui-framework"))).toBe("svelte");
+		await expect(page).toHaveURL(/\/inspiration\?framework=vue$/);
+	});
+
 	test("the Markdown export link carries the framework", async ({ page }) => {
 		await page.goto("/docs/components/button?framework=react");
 		await hydrated(page);

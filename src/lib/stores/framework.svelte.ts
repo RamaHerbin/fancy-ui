@@ -8,7 +8,9 @@
  * The choice is shareable: `?framework=react|vue|svelte` in the address wins
  * over the saved preference (and becomes it), and every switch rewrites that
  * parameter in place, so the link in the address bar always opens the page the
- * way it is shown. Components still read the store after mount
+ * way it is shown. Only docs addresses (`/docs…`) are read and written: other
+ * pages, such as the inspiration gallery, use `?framework=` as a filter of
+ * their own. Components still read the store after mount
  * (`mounted ? store.framework : "svelte"`), so prerendered markup and the first
  * client render agree.
  */
@@ -28,8 +30,14 @@ export function isFramework(value: unknown): value is Framework {
 	return typeof value === "string" && (FRAMEWORKS as readonly string[]).includes(value);
 }
 
-/** The framework named by a URL's query, or null when absent or unknown. */
+/** Whether a path belongs to the docs, the only pages whose `?framework=` is this choice. */
+export function isDocsPath(pathname: string): boolean {
+	return pathname === "/docs" || pathname.startsWith("/docs/");
+}
+
+/** The framework named by a docs URL's query, or null when absent, unknown or not a docs page. */
 export function frameworkFromUrl(url: URL): Framework | null {
+	if (!isDocsPath(url.pathname)) return null;
 	const value = url.searchParams.get(FRAMEWORK_PARAM);
 	return isFramework(value) ? value : null;
 }
@@ -44,9 +52,13 @@ function persist(next: Framework): void {
 	}
 }
 
-/** Rewrite `?framework=` in the current entry: no navigation, no new history entry. */
+/**
+ * Rewrite `?framework=` in the current docs entry: no navigation, no new
+ * history entry. Elsewhere the address is left alone.
+ */
 function writeUrl(next: Framework): void {
 	const url = new URL(window.location.href);
+	if (!isDocsPath(url.pathname)) return;
 	if (url.searchParams.get(FRAMEWORK_PARAM) === next) return;
 	url.searchParams.set(FRAMEWORK_PARAM, next);
 	try {
@@ -90,8 +102,8 @@ export function setFramework(next: Framework): void {
 
 /**
  * Adopt the framework a URL names, for links followed inside the app after the
- * store has loaded. A URL without the parameter leaves the choice alone, and
- * the address is not rewritten.
+ * store has loaded. A URL without the parameter, or outside the docs, leaves
+ * the choice alone, and the address is not rewritten.
  */
 export function followUrl(url: URL): void {
 	const fromUrl = frameworkFromUrl(url);

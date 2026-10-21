@@ -51,13 +51,35 @@ describe("portPropName", () => {
 		expect(portPropName(prop("item", "Snippet<[Item]>"), "vue")).toBe("#item");
 	});
 
-	it("turns bindable props into v-model for Vue only", () => {
+	it("turns a bindable prop into v-model only when the Vue port declares that model", () => {
 		const open = prop("open", "boolean", "Whether the list is expanded; bindable");
-		expect(portPropName(open, "vue")).toBe("v-model:open");
-		expect(portPropName(open, "react")).toBe("open");
-		expect(portPropName(prop("expanded", "boolean", "Expanded state (bindable)."), "vue")).toBe(
-			"v-model:expanded"
+		expect(portPropName(open, "vue", { vueModels: ["open"] })).toBe("v-model:open");
+		expect(portPropName(open, "react", { vueModels: ["open"] })).toBe("open");
+		expect(
+			portPropName(prop("TabsList.value", "string", "bindable"), "vue", {
+				vueModels: ["TabsList.value"],
+			})
+		).toBe("TabsList.v-model:value");
+	});
+
+	it("keeps a prop the registry calls bindable when the Vue port has no model for it", () => {
+		// Sidebar's `collapsed` is bindable in Svelte but a plain prop in Vue.
+		const collapsed = prop("collapsed", "boolean", "Collapsed state (bindable).");
+		expect(portPropName(collapsed, "vue", { vueModels: [] })).toBe("collapsed");
+		expect(portPropName(collapsed, "vue")).toBe("collapsed");
+	});
+
+	it("never turns ref into a model: Vue exposes it on a template ref", () => {
+		const ref = prop("ref", "HTMLElement | null", "Bindable element reference");
+		expect(portPropName(ref, "vue")).toBe("ref");
+		expect(portPropName(ref, "vue", { vueModels: ["ref"] })).toBe("ref");
+		const subRef = prop(
+			"TabsTrigger.ref",
+			"HTMLButtonElement | null",
+			"Bindable element reference"
 		);
+		expect(portPropName(subRef, "vue", { vueModels: ["TabsTrigger.ref"] })).toBe("TabsTrigger.ref");
+		expect(portPropName(ref, "react")).toBe("ref");
 	});
 
 	it("maps the member after the dot of a sub-component prop", () => {
@@ -85,5 +107,11 @@ describe("portEventName", () => {
 		expect(portEventName("valuechange", "react")).toBe("onValueChange");
 		expect(portEventName("onflip", "react")).toBe("onFlip");
 		expect(portEventName("zorbleflux", "react")).toBeNull();
+	});
+
+	it("does not guess DOM names whose React spelling breaks the camel-case rule", () => {
+		// React spells these onDoubleClick and onAuxClick, not onDblClick / onAuxclick.
+		expect(portEventName("dblclick", "react")).toBeNull();
+		expect(portEventName("auxclick", "react")).toBeNull();
 	});
 });

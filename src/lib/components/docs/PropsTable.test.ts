@@ -9,6 +9,8 @@ const PROPS = [
 	{ name: "children", type: "Snippet", description: "Content" },
 	{ name: "open", type: "boolean", description: "Whether it is open; bindable" },
 	{ name: "onzorbleflux", type: "() => void", description: "Unknown words" },
+	{ name: "collapsed", type: "boolean", description: "Collapsed state (bindable)" },
+	{ name: "ref", type: "HTMLElement | null", description: "Bindable element reference" },
 ];
 
 function portNames(container: HTMLElement): Record<string, string> {
@@ -41,8 +43,10 @@ describe("PropsTable", () => {
 		});
 	});
 
-	it("shows Vue slots and v-model names", () => {
-		const { container } = render(PropsTable, { props: { props: PROPS, framework: "vue" } });
+	it("shows Vue slots, and v-model only for the models the Vue port declares", () => {
+		const { container } = render(PropsTable, {
+			props: { props: PROPS, framework: "vue", vueModels: ["open"] },
+		});
 		expect(portNames(container)).toEqual({
 			onclick: "onClick",
 			children: "#default",

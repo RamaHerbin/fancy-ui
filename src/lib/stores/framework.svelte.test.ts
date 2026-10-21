@@ -7,8 +7,8 @@ async function load() {
 	return await import("./framework.svelte.js");
 }
 
-function visit(search: string) {
-	window.history.replaceState(null, "", `/docs/components/button${search}#props`);
+function visit(search: string, path = "/docs/components/button") {
+	window.history.replaceState(null, "", `${path}${search}#props`);
 }
 
 describe("framework store", () => {
@@ -68,5 +68,34 @@ describe("framework store", () => {
 		expect(localStorage.getItem(KEY)).toBe("vue");
 		store.followUrl(new URL("http://localhost/docs/components/button"));
 		expect(store.getFramework()).toBe("vue");
+	});
+
+	describe("outside the docs", () => {
+		// The inspiration gallery uses ?framework= as a filter of its own.
+		it("does not read a gallery filter as the docs choice", async () => {
+			localStorage.setItem(KEY, "svelte");
+			visit("?framework=vue", "/inspiration");
+			const store = await load();
+			expect(store.getFramework()).toBe("svelte");
+			expect(localStorage.getItem(KEY)).toBe("svelte");
+		});
+
+		it("does not follow a gallery link", async () => {
+			const store = await load();
+			store.followUrl(new URL("http://localhost/inspiration?framework=vue"));
+			expect(store.getFramework()).toBe("svelte");
+			expect(localStorage.getItem(KEY)).toBeNull();
+		});
+
+		it("saves a switch without touching the gallery URL", async () => {
+			visit("?category=buttons", "/inspiration");
+			const store = await load();
+			store.setFramework("react");
+			const url = new URL(window.location.href);
+			expect(url.pathname).toBe("/inspiration");
+			expect(url.searchParams.get("framework")).toBeNull();
+			expect(url.searchParams.get("category")).toBe("buttons");
+			expect(localStorage.getItem(KEY)).toBe("react");
+		});
 	});
 });

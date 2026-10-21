@@ -399,7 +399,7 @@
 		<section class="mb-10">
 			<h2 class="text-foreground mb-4 text-xl font-semibold" id="props">{t("comp.props")}</h2>
 			<div class="retro-props border-border overflow-hidden rounded-lg border">
-				<PropsTable props={component.props} {framework} />
+				<PropsTable props={component.props} {framework} vueModels={data.vueModels} />
 			</div>
 		</section>
 	{/if}

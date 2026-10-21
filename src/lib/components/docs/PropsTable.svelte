@@ -9,9 +9,11 @@
 		props: PropDef[];
 		/** Shows the React or Vue name next to each Svelte name. */
 		framework?: Framework;
+		/** Models the Vue port declares (`v-model:<name>`), as registry prop names. */
+		vueModels?: readonly string[];
 	}
 
-	let { props, framework = "svelte" }: Props = $props();
+	let { props, framework = "svelte", vueModels = [] }: Props = $props();
 </script>
 
 {#if props.length > 0}
@@ -35,7 +37,11 @@
 								{prop.name}
 							</code>
 							{#if framework !== "svelte"}
-								<PortName {framework} name={prop.name} port={portPropName(prop, framework)} />
+								<PortName
+									{framework}
+									name={prop.name}
+									port={portPropName(prop, framework, { vueModels })}
+								/>
 							{/if}
 							{#if prop.required}
 								<span class="ml-1 text-xs text-red-500">*</span>

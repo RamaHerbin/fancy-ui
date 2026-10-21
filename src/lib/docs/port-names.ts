@@ -8,7 +8,11 @@
  *   camel-cased (`onValueChange`) keep their name.
  * - A snippet prop is a `ReactNode` prop of the same name in React and a named
  *   slot in Vue (`children` is the default slot).
- * - A bindable prop is `v-model:<name>` in Vue; React keeps the name.
+ * - A prop the Vue port declares with `defineModel` is `v-model:<name>` in Vue;
+ *   React keeps the name. The list of models comes from the Vue sources, not
+ *   from the word "bindable" in a description: some Svelte bindables are plain
+ *   props in Vue. `ref` is never a model: Vue exposes the element on a template
+ *   ref (`defineExpose({ ref })`), so its name stays `ref`.
  *
  * Splitting a lowercase callback into words needs a vocabulary; a name made of
  * words outside it returns null, and the page keeps pointing to the written
@@ -23,10 +27,13 @@ export interface PortableProp {
 	description?: string;
 }
 
-/** Words that lowercase callback names are made of, longest match wins. */
+/**
+ * Words that lowercase callback names are made of, longest match wins. DOM
+ * events whose React name is not their camel-cased spelling (`dblclick` is
+ * `onDoubleClick`) are left out on purpose, so they read as unknown.
+ */
 const WORDS = [
 	"animation",
-	"auxclick",
 	"before",
 	"blur",
 	"cancel",
@@ -36,7 +43,6 @@ const WORDS = [
 	"complete",
 	"context",
 	"covered",
-	"dbl",
 	"delete",
 	"down",
 	"drag",
@@ -124,10 +130,6 @@ function isSnippet(type: string): boolean {
 	return /^Snippet\b/.test(type.trim());
 }
 
-function isBindable(description: string | undefined): boolean {
-	return /\bbindable\b/i.test(description ?? "");
-}
-
 /** Apply `map` to the part after the last dot of `Sub.member`, keeping the prefix. */
 function member(name: string, map: (bare: string) => string | null): string | null {
 	const dot = name.lastIndexOf(".");
@@ -141,13 +143,26 @@ function slotName(bare: string, framework: PortFramework): string {
 	return bare === "children" ? "#default" : `#${bare}`;
 }
 
+export interface PortOptions {
+	/**
+	 * Models the Vue port declares with `defineModel`, as registry prop names:
+	 * bare for the main component, `Sub.name` for a sub-component.
+	 */
+	vueModels?: readonly string[];
+}
+
 /** The React or Vue name of a Svelte prop, or null when the rules cannot say. */
-export function portPropName(prop: PortableProp, framework: PortFramework): string | null {
+export function portPropName(
+	prop: PortableProp,
+	framework: PortFramework,
+	options: PortOptions = {}
+): string | null {
 	return member(prop.name, (bare) => {
 		if (isSnippet(prop.type)) return slotName(bare, framework);
 		if (isCallback({ ...prop, name: bare })) return callbackName(bare);
 		if (bare === "class") return framework === "react" ? "className" : "class";
-		if (framework === "vue" && isBindable(prop.description)) return `v-model:${bare}`;
+		if (bare === "ref") return bare;
+		if (framework === "vue" && options.vueModels?.includes(prop.name)) return `v-model:${bare}`;
 		return bare;
 	});
 }
