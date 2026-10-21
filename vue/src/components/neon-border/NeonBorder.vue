@@ -62,7 +62,7 @@ export function neonBeams(color1: string, color2: string, arc: number, core = fa
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useAttrs } from "vue";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "NeonBorder", inheritAttrs: false });
@@ -74,6 +74,8 @@ const {
 	duration = 6,
 	class: className,
 } = defineProps<NeonBorderProps>();
+
+const attrs = useAttrs();
 
 defineSlots<{ default?(): unknown }>();
 
@@ -107,6 +109,7 @@ const styleVars = computed(() => ({
 
 <template>
 	<div
+		v-bind="attrs"
 		:class="
 			cn(
 				'neon-border-container relative z-10 inline-block h-10 w-full max-w-sm rounded-lg p-px',

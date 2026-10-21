@@ -1,5 +1,7 @@
 <script lang="ts" module>
-	export interface PixelLoaderProps {
+	import type { HTMLAttributes } from "svelte/elements";
+
+	export interface PixelLoaderOwn {
 		/** Number of pixel columns */
 		cols?: number;
 		/** Number of pixel rows */
@@ -19,6 +21,9 @@
 		/** Element reference */
 		ref?: HTMLDivElement | null;
 	}
+
+	export type PixelLoaderProps = PixelLoaderOwn &
+		Omit<HTMLAttributes<HTMLDivElement>, keyof PixelLoaderOwn>;
 </script>
 
 <script lang="ts">
@@ -33,7 +38,9 @@
 		speed = 1.6,
 		label = "Loading",
 		class: className,
+		style,
 		ref = $bindable(null),
+		...restProps
 	}: PixelLoaderProps = $props();
 
 	// A zero or negative animation-duration invalidates the whole declaration.
@@ -62,11 +69,14 @@
 			`grid-template-columns: repeat(${cols}, ${cellSize}px)`,
 			`grid-auto-rows: ${cellSize}px`,
 			`gap: ${gap}px`,
-		].join("; ")
+		]
+			.concat(style ? [String(style)] : [])
+			.join("; ")
 	);
 </script>
 
 <div
+	{...restProps}
 	bind:this={ref}
 	role="status"
 	aria-live="polite"

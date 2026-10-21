@@ -22,7 +22,7 @@ export interface PixelLoaderProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "PixelLoader", inheritAttrs: false });
@@ -37,6 +37,8 @@ const {
 	label = "Loading",
 	class: className,
 } = defineProps<PixelLoaderProps>();
+
+const attrs = useAttrs();
 
 const ref = useTemplateRef<HTMLDivElement>("ref");
 defineExpose({ ref });
@@ -73,11 +75,12 @@ const rootStyle = computed(() =>
 
 <template>
 	<div
+		:style="rootStyle"
+		v-bind="attrs"
 		ref="ref"
 		role="status"
 		aria-live="polite"
 		:class="cn('inline-grid', className)"
-		:style="rootStyle"
 	>
 		<span class="sr-only">{{ label }}</span>
 		<span

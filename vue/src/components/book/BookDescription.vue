@@ -10,6 +10,8 @@ export interface BookDescriptionProps {
 </script>
 
 <script setup lang="ts">
+import { useAttrs } from "vue";
+
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "BookDescription", inheritAttrs: false });
@@ -18,11 +20,13 @@ const props = withDefaults(defineProps<BookDescriptionProps>(), {
 	class: "",
 });
 
+const attrs = useAttrs();
+
 defineSlots<{ default?(): unknown }>();
 </script>
 
 <template>
-	<p :class="cn('text-xs/relaxed select-none', props.class)">
+	<p v-bind="attrs" :class="cn('text-xs/relaxed select-none', props.class)">
 		<slot></slot>
 	</p>
 </template>
