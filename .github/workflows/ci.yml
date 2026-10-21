@@ -472,12 +472,19 @@ jobs:
 
       # The apps install with npm, outside the pnpm store setup-node caches.
       # They carry no lockfile, so this only saves downloads: npm still
-      # resolves every range against the registry on each run.
+      # resolves every range against the registry on each run. A saved key is
+      # never overwritten, so the key carries the ISO week: a fresh entry is
+      # saved each week from what the ranges resolve to then, and the restore
+      # stays within the week so old tarballs do not pile up from week to week.
+      - name: Read the week
+        id: week
+        run: echo "week=$(date -u +%G-W%V)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: consumers-npm-${{ runner.os }}-${{ hashFiles('examples/consumers/*/package.json') }}
-          restore-keys: consumers-npm-${{ runner.os }}-
+          key: consumers-npm-${{ runner.os }}-${{ steps.week.outputs.week }}-${{ hashFiles('examples/consumers/*/package.json') }}
+          restore-keys: consumers-npm-${{ runner.os }}-${{ steps.week.outputs.week }}-
 
       - name: Install Chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
