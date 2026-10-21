@@ -148,6 +148,8 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		onFocus,
 		onBlur,
 		onKeyDown,
+		// An `<input>` is a void element: a stray `children` must not reach it.
+		children: _children,
 		...restProps
 	},
 	forwardedRef

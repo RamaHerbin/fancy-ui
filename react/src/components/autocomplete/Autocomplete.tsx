@@ -90,6 +90,8 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 		onFocus,
 		onBlur,
 		onKeyDown,
+		// An `<input>` is a void element: a stray `children` must not reach it.
+		children: _children,
 		...restProps
 	},
 	forwardedRef
