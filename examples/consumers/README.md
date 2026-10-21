@@ -79,17 +79,11 @@ CONSUMER_APP_DIR=<scratch>/app CONSUMER_PORT=4391 \
 
 The smoke then fails in `expectPrimaryBackground`: `var(--primary)` resolves to `rgba(0, 0, 0, 0)` because the token is never defined. A build that drops the package's Tailwind entry is caught even though it compiles.
 
-## Known gap: Cameleon outside SvelteKit
+## Cameleon outside SvelteKit
 
-`svelte-vite` also mounts `FancyProvider` from `fancy-ui-svelte/cameleon` with a skin. The section is swapped in at build time by an alias in `vite.config.js`, only when `CONSUMER_CAMELEON=1`, so the rest of the page builds and renders without it.
+`svelte-vite` also mounts `FancyProvider` from `fancy-ui-svelte/cameleon` with a skin. The section is swapped in at build time by an alias in `vite.config.js`, only when `CONSUMER_CAMELEON=1` (without it, a stand-in section is built so the rest of the page can be debugged on its own).
 
-Today that build fails: `FancyProvider` imports `$app/environment`, a module only SvelteKit provides, and Rollup cannot resolve it in a plain Vite app. `scripts/consumers/svelte-vite.sh` therefore:
-
-1. builds with `CONSUMER_CAMELEON=1` first;
-2. if that fails, checks that the log names `$app/environment` (any other failure fails the run), then builds without the section;
-3. passes the outcome to the smoke as `CONSUMER_CAMELEON_BUILD` (`ok` or `needs-sveltekit`).
-
-The test `Cameleon FancyProvider mounts outside SvelteKit` is marked `test.fixme` unless the build succeeded, so the suite stays green and the report shows the gap as skipped. The fix is on branch `fix/cameleon-without-sveltekit`. Once it lands, the Cameleon build succeeds, the script serves that build, and the test runs for real; it has been checked to pass against a `FancyProvider` without the `$app/environment` import.
+`scripts/consumers/svelte-vite.sh` always builds with `CONSUMER_CAMELEON=1`, and a failed build fails the run. This guards a regression that once shipped: `FancyProvider` imported `$app/environment`, a module only SvelteKit provides, so a plain Vite app could not resolve it. The test `Cameleon FancyProvider mounts outside SvelteKit` then checks the skinned section mounts with no console error; a build without the section fails it instead of skipping it.
 
 ## Adding a consumer
 

@@ -35,20 +35,11 @@ test("loads clean, mounts, styles resolve, effects run, dialog is keyboard-opera
 	expect(errors).toEqual([]);
 });
 
-// scripts/consumers/svelte-vite.sh first builds the app WITH the Cameleon
-// section (CONSUMER_CAMELEON=1). Today that build fails: FancyProvider imports
-// `$app/environment`, which only exists inside SvelteKit. The script asserts
-// that this is the reason (any other build failure fails the run), rebuilds
-// without the section, and reports CONSUMER_CAMELEON_BUILD=needs-sveltekit.
-// Once branch fix/cameleon-without-sveltekit lands, the Cameleon build
-// succeeds, the script serves it, and this test runs for real.
+// scripts/consumers/svelte-vite.sh builds the app WITH the Cameleon section
+// (CONSUMER_CAMELEON=1) and fails the run if that build fails: FancyProvider
+// must keep building outside SvelteKit. A build without the section (the
+// stand-in from CameleonOff.svelte) fails here instead of being skipped.
 test("Cameleon FancyProvider mounts outside SvelteKit", async ({ page }) => {
-	const build = process.env.CONSUMER_CAMELEON_BUILD;
-	test.fixme(
-		build !== "ok",
-		"fancy-ui-svelte/cameleon FancyProvider imports $app/environment and cannot build outside SvelteKit; fixed on branch fix/cameleon-without-sveltekit"
-	);
-
 	const errors = collectErrors(page);
 	await page.goto("/");
 	const section = page.getByTestId("cameleon");
