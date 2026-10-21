@@ -18,6 +18,12 @@ import {
 import { parseBarrelTypeExports, vueExportsBySlug } from "./barrels.js";
 import { copySourcesFor } from "./copy-availability.js";
 import { variantFor } from "./variants.js";
+import {
+	getRecipe,
+	recipeMarkdownUrl,
+	recipeUrl,
+	recipesRegistry,
+} from "$lib/docs/recipes/registry.js";
 
 const barrels = import.meta.glob("../fancy-ui/*/index.ts", { eager: true }) as Record<
 	string,
@@ -382,9 +388,40 @@ describe("accuracy of the per-framework names", () => {
 	});
 });
 
-describe("llms.txt recipes extension point", () => {
-	it("prints no Recipes section while there are no recipes", () => {
-		expect(recipesSection()).toEqual([]);
-		expect(generateLlmsTxt()).not.toContain("## Recipes");
+describe("recipes in the LLM surface", () => {
+	it("prints no Recipes section when the registry is empty", () => {
+		expect(recipesSection([])).toEqual([]);
+	});
+
+	it("lists every recipe in llms.txt with title, description and Markdown URL", () => {
+		const txt = generateLlmsTxt();
+		expect(txt).toContain("## Recipes");
+		expect(txt.indexOf("## Components")).toBeLessThan(txt.indexOf("## Recipes"));
+		expect(txt.indexOf("## Recipes")).toBeLessThan(txt.indexOf("## Full reference"));
+		for (const r of recipesRegistry) {
+			const line = txt.split("\n").find((l) => l.includes(recipeMarkdownUrl(r.slug)));
+			expect(line, r.slug).toBeDefined();
+			expect(line).toContain(r.title);
+			expect(line).toContain(r.summary.split(". ")[0]);
+			expect(line!.startsWith("- [")).toBe(true);
+		}
+	});
+
+	it("includes each recipe's Markdown in llms-full.txt", () => {
+		const full = generateLlmsFullTxt();
+		expect(full).toContain("## Recipes");
+		for (const r of recipesRegistry) {
+			expect(full).toContain(`### ${r.title}`);
+			expect(full).toContain(`- Docs: ${recipeUrl(r.slug)}`);
+		}
+	});
+
+	it("lists recipes in registry.json", () => {
+		const { recipes } = generateRegistryJson();
+		expect(recipes.map((r) => r.slug)).toEqual(recipesRegistry.map((r) => r.slug));
+		for (const r of recipes) {
+			expect(r.url).toBe(recipeMarkdownUrl(r.slug));
+			expect(r.title).toBe(getRecipe(r.slug)!.title);
+		}
 	});
 });

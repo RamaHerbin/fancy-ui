@@ -114,6 +114,18 @@ component's; a consumer `aria-label` is used when no `label` prop is given.
 `onclick`, `onfocus` and `onkeydown` run once after the component's own
 handling, and not at all while the item is disabled.
 
+## In a form
+
+With `name` set, the group renders one hidden input per selected value, so
+`FormData` holds `name=value` for each. Two rules to know:
+
+- **A selected item that is disabled still submits.** Disabling an item only
+  stops the user from changing it; its value is still part of the selection, so
+  it is submitted, because the selection belongs to the group, not to the item.
+  This differs from a lone `Toggle`, whose own `disabled` stops it submitting.
+- **A disabled group submits nothing.** `disabled` on the group disables every
+  hidden input, like a `<fieldset disabled>`.
+
 ## Props
 
 ### ToggleGroup

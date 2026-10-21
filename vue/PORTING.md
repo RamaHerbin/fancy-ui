@@ -73,6 +73,13 @@ reduced-motion gate, visibility gating and sound hooks — nothing else.
   deterministic PRNG, with the React package's defaults. Media queries and the
   sound store hydrate in `onMounted`; production hydration does not patch
   attribute mismatches, so a wrong value stays wrong on screen.
+- **`forceMount` on `CollapsibleContent` / `AccordionContent` defaults to
+  `true`** (closed content stays in the DOM, `inert` and hidden, rendered on the
+  server; `forceMount={false}` unmounts it once the collapse has finished). It
+  is the inverse of `TabsContent` and of common expectations: stable
+  `aria-controls` targets, SSR, no height measurement. State the default and
+  the reason in the prop's JSDoc, and keep the same default in all three
+  packages.
 
 ## Native attributes
 
