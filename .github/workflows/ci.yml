@@ -56,7 +56,12 @@ jobs:
       - run: pnpm check:cores
       # Each package's Tailwind entry compiles to real colour rules and default tokens.
       - run: pnpm check:tailwind
+      # The component count the READMEs and package.json state matches the registry.
+      - run: pnpm check:readme-count
       - run: pnpm check
+      # Also the gallery thumbnail gate: src/lib/components/docs/thumbs.test.ts
+      # fails when a shipped slug has no entry in thumbs.json, when a listed
+      # thumbnail file is missing, or when one is a near-blank frame.
       - run: pnpm test
       - run: pnpm build
       # The prerendered source registries (React /r/*.json, Svelte /r/svelte/*.json, Vue /r/vue/*.json): closed imports, no test files, no product names.
@@ -87,6 +92,85 @@ jobs:
             if (leaked.length) { console.error('test or scaffold files in pack:', leaked.slice(0, 20)); process.exit(1); }
             console.log(files.length + ' files, allow-list clean');
           "
+
+  preview-health:
+    name: Preview health
+    # Every shipped component page of the built docs site, every preview stage:
+    # resolution errors, collapsed layouts, unsized canvases, invisible demos,
+    # crashes and console errors (tests/e2e/preview-health.spec.ts). Two
+    # projects: dark with WebGL through SwiftShader, and light with reduced
+    # motion. The config builds the site and serves `vite preview` itself.
+    # Runs once `check` is green, so a failure here is about what the previews
+    # show, not about types or unit tests. The no-GPU project and the sweep of
+    # production run nightly (preview-health-nightly.yml).
+    #
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    needs: [check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Same Chromium cache key as e2e.yml and the consumers job.
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # Projects gpu + gpu-light-rm (see the script in package.json).
+      - run: pnpm test:preview-health
+
+      # The merged summary grouped by failure class, plus a screenshot of every
+      # failing stage. Kept on success too: the summary also carries the notes
+      # (slow spinners) and is the baseline the next failure is read against.
+      - name: Upload the preview-health summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health
+          path: test-results/preview-health.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload the failing-stage screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health-results
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
 
   react:
     name: React package
