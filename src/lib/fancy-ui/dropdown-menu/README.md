@@ -216,8 +216,18 @@ native `<button>` attributes and listeners (`data-*`, `aria-label`,
 they render. The attributes the menu manages stay the component's: `role`,
 `tabindex`, `type`, `disabled`, `aria-haspopup`, `aria-expanded`,
 `aria-controls`, `data-variant`, and the trigger's and sub-trigger's `id`.
-`onclick`, `onkeydown` and `onmouseenter` run once after the component's own
-handling, and not at all while the part is disabled.
+
+Listeners, per part:
+
+- `DropdownMenuTrigger`: `onclick` and `onkeydown` run once after the
+  component's own handling, and not at all while disabled.
+- `DropdownMenuItem`: `onclick` and `onmouseenter` run once after the
+  component's own handling, and not at all while disabled. `onkeydown` is
+  forwarded as is and runs BEFORE the menu's arrow-key and typeahead handling
+  (which sits on the panel), so stopping its propagation disables those keys.
+- `DropdownMenuSubTrigger`: `onclick`, `onmouseenter` and `onkeydown` run once
+  after the component's own handling, and not at all while disabled.
+  `onmouseleave` is not guarded: it runs while disabled too.
 
 ## Props
 

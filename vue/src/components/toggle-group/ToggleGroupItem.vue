@@ -164,7 +164,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 function handleNavigationKey(event: KeyboardEvent) {
-	if (!group || isDisabled.value) return;
+	if (!group) return;
 	switch (event.key) {
 		case "ArrowRight":
 		case "ArrowDown":

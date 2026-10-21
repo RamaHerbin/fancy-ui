@@ -50,8 +50,9 @@ interface PopoverOwnProps {
 }
 
 /**
- * Native `<button>` attributes and listeners are forwarded to the trigger button; the managed
- * ARIA, state and structural attributes stay the component's.
+ * `className` and `ref` target the panel; other attributes, including `style`, go to the trigger
+ * button, as do native listeners. The managed ARIA, state and structural attributes stay the
+ * component's.
  */
 export interface PopoverProps
 	extends Omit<ComponentPropsWithoutRef<"button">, keyof PopoverOwnProps>, PopoverOwnProps {}

@@ -156,7 +156,6 @@
 	}
 
 	function handleClickCore() {
-		if (isDisabled) return;
 		context?.select(value);
 		// A native <button> is only guaranteed to take focus on click in
 		// some browsers (macOS Safari notably does not, by default), so the
@@ -177,7 +176,6 @@
 	}
 
 	function handleFocusCore() {
-		if (isDisabled) return;
 		context?.focus(value);
 	}
 
@@ -190,7 +188,7 @@
 	}
 
 	function handleKeydownCore(event: KeyboardEvent) {
-		if (!context || isDisabled) return;
+		if (!context) return;
 		const horizontal = context.orientation === "horizontal";
 		switch (event.key) {
 			case "ArrowRight":

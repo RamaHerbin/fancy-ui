@@ -3,6 +3,10 @@ import type { HTMLAttributes } from "vue";
 
 import type { Side, Align } from "../../internals/anchor-position.js";
 
+/**
+ * `class` and `ref` target the panel; other attributes, including `style`, go to the trigger
+ * button.
+ */
 export interface PopoverProps {
 	/** Whether the panel is open. Two-way through `v-model:open`. */
 	open?: boolean;

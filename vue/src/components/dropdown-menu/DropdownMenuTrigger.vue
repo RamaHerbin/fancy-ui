@@ -76,7 +76,6 @@ function handleKeydown(event: KeyboardEvent): void {
 }
 
 function handleNavigationKey(event: KeyboardEvent): void {
-	if (disabled) return;
 	switch (event.key) {
 		case "Enter":
 		case " ":

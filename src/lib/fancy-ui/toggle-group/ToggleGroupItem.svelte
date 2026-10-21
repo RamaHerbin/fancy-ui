@@ -107,7 +107,6 @@
 	}
 
 	function handleClickCore() {
-		if (isDisabled) return;
 		group?.toggle(value);
 		// Deliberate, not incidental: a plain `<button>` is only guaranteed
 		// to take focus on click in some browsers (macOS Safari notably does
@@ -128,7 +127,6 @@
 	}
 
 	function handleFocusCore() {
-		if (isDisabled) return;
 		group?.focus(value);
 	}
 
@@ -141,7 +139,7 @@
 	}
 
 	function handleKeydownCore(event: KeyboardEvent) {
-		if (!group || isDisabled) return;
+		if (!group) return;
 		switch (event.key) {
 			case "ArrowRight":
 			case "ArrowDown":

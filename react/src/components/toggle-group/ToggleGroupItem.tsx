@@ -43,8 +43,7 @@ const SIZE_CLASSES: Record<"sm" | "md" | "lg", string> = {
  * One toggle in a `ToggleGroup` rail.
  *
  * The element arrives through the ref channel rather than a `ref` prop, per
- * PORTING.md — the Svelte source declares `ref = $bindable(null)`. Rest props
- * are not spread, for the same reason as on the root.
+ * PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  */
 export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProps>(
 	(

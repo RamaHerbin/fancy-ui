@@ -223,7 +223,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 function handleNavigationKey(event: KeyboardEvent) {
-	if (!context || isDisabled.value) return;
+	if (!context) return;
 	const horizontal = context.orientation === "horizontal";
 	switch (event.key) {
 		case "ArrowRight":

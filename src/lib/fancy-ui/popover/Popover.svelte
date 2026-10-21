@@ -38,7 +38,8 @@
 	/**
 	 * Native `<button>` attributes and listeners (`id`, `aria-label`, `data-*`,
 	 * `onkeydown`...) are forwarded to the trigger button; the panel keeps
-	 * `class` and `ref`. `type`, `aria-expanded` and `aria-controls` stay the
+	 * `class` and `ref`; every other attribute, `style` included, goes to the
+	 * trigger button. `type`, `aria-expanded` and `aria-controls` stay the
 	 * component's.
 	 */
 	export type PopoverProps = PopoverOwnProps & Omit<HTMLButtonAttributes, keyof PopoverOwnProps>;

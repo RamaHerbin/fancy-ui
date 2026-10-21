@@ -36,8 +36,7 @@ export interface TabsTriggerProps
  * One tab in a `TabsList`.
  *
  * The element arrives through the ref channel rather than a `ref` prop, per
- * PORTING.md — the Svelte source declares `ref = $bindable(null)`. Rest props
- * are not spread, for the same reason as on the root.
+ * PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  */
 export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
 	(
@@ -218,8 +217,7 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
 			// attribute is set, and that blur arrives with the attribute already
 			// applied. It is precisely the case the reclaim above exists for, so it
 			// must not clear the flag; every other blur does.
-			if (event.currentTarget.disabled) return;
-			hasDomFocusRef.current = false;
+			if (!event.currentTarget.disabled) hasDomFocusRef.current = false;
 			onBlur?.(event);
 		}
 

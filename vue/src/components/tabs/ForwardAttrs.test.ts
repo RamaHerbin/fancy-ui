@@ -78,14 +78,14 @@ describe("TabsTrigger forwards native attributes", () => {
 		const onFocus = vi.fn();
 		const onKeydown = vi.fn();
 		render(Harness, { props: { attrs: { onClick, onFocus, onKeydown } } });
-		await fireEvent.focus(alpha());
-		expect(onFocus).toHaveBeenCalledTimes(1);
 		await fireEvent.keyDown(alpha(), { key: "ArrowRight" });
 		expect(onKeydown).toHaveBeenCalledTimes(1);
 		expect(document.querySelector('[data-value="b"]')?.getAttribute("tabindex")).toBe("0");
 		await fireEvent.click(alpha());
 		expect(onClick).toHaveBeenCalledTimes(1);
 		expect(alpha().getAttribute("aria-selected")).toBe("true");
+		// The click moves real focus onto the tab, which fires onFocus once.
+		expect(onFocus).toHaveBeenCalledTimes(1);
 	});
 
 	it("calls none of the consumer listeners when disabled", async () => {

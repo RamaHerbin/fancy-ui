@@ -137,7 +137,6 @@ function handleKeydown(event: KeyboardEvent): void {
 }
 
 function handleNavigationKey(event: KeyboardEvent): void {
-	if (disabled) return;
 	if (event.key === "ArrowRight") {
 		event.preventDefault();
 		sub.openSub();

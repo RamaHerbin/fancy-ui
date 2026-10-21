@@ -61,8 +61,6 @@ describe("TabsTrigger forwards native attributes", () => {
 		const onBlur = vi.fn();
 		const onKeyDown = vi.fn();
 		render(<Rig attrs={{ onClick, onFocus, onBlur, onKeyDown }} />);
-		fireEvent.focus(alpha());
-		expect(onFocus).toHaveBeenCalledTimes(1);
 		fireEvent.blur(alpha());
 		expect(onBlur).toHaveBeenCalledTimes(1);
 		fireEvent.keyDown(alpha(), { key: "ArrowRight" });
@@ -71,14 +69,26 @@ describe("TabsTrigger forwards native attributes", () => {
 		fireEvent.click(alpha());
 		expect(onClick).toHaveBeenCalledTimes(1);
 		expect(alpha().getAttribute("aria-selected")).toBe("true");
+		// The click moves real focus onto the tab, which fires onFocus once.
+		expect(onFocus).toHaveBeenCalledTimes(1);
 	});
 
-	it("calls neither click nor keydown listener when disabled", () => {
+	it("keeps forwarding onBlur while the trigger is disabled", () => {
+		const onBlur = vi.fn();
+		render(<Rig disabled attrs={{ onBlur }} />);
+		fireEvent.blur(alpha());
+		expect(onBlur).toHaveBeenCalledTimes(1);
+	});
+
+	it("calls none of the consumer listeners when disabled", () => {
 		const onClick = vi.fn();
 		const onKeyDown = vi.fn();
-		render(<Rig disabled attrs={{ onClick, onKeyDown }} />);
+		const onFocus = vi.fn();
+		render(<Rig disabled attrs={{ onClick, onKeyDown, onFocus }} />);
 		fireEvent.click(alpha());
 		fireEvent.keyDown(alpha(), { key: "Home" });
+		fireEvent.focus(alpha());
+		expect(onFocus).not.toHaveBeenCalled();
 		expect(onClick).not.toHaveBeenCalled();
 		expect(onKeyDown).not.toHaveBeenCalled();
 	});
