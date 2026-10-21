@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 
 	/**
 	 * NeonBorder - a two-colour neon tube around its content
@@ -9,7 +10,7 @@
 	 * and a coloured glow that spills both inside and outside the edge. The
 	 * glow hums (a slow breathing), and the tube flickers once as it ignites.
 	 */
-	export interface NeonBorderProps {
+	export interface NeonBorderOwn {
 		/** First neon color */
 		color1?: string;
 		/** Second neon color */
@@ -26,6 +27,9 @@
 		/** Content */
 		children?: Snippet;
 	}
+
+	export type NeonBorderProps = NeonBorderOwn &
+		Omit<HTMLAttributes<HTMLDivElement>, keyof NeonBorderOwn | "style">;
 
 	export type NeonAnimationType = NonNullable<NeonBorderProps["animationType"]>;
 
@@ -73,6 +77,7 @@
 		duration = 6,
 		class: className,
 		children,
+		...restProps
 	}: NeonBorderProps = $props();
 
 	function getWidth(type: NeonAnimationType): number {
@@ -102,6 +107,7 @@
 </script>
 
 <div
+	{...restProps}
 	class={cn(
 		"neon-border-container relative z-10 inline-block h-10 w-full max-w-sm rounded-lg p-px",
 		animated && "neon-animated",

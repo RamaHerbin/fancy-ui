@@ -18,7 +18,7 @@ export interface BookProps {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useAttrs } from "vue";
 
 import { cn } from "../../utils.js";
 import {
@@ -40,6 +40,8 @@ const props = withDefaults(defineProps<BookProps>(), {
 	shadowSize: "lg",
 });
 
+const attrs = useAttrs();
+
 defineSlots<{ default?(): unknown }>();
 
 const computedGradient = computed(() => colorMap[props.color] || colorMap.zinc);
@@ -47,6 +49,7 @@ const computedGradient = computed(() => colorMap[props.color] || colorMap.zinc);
 
 <template>
 	<div
+		v-bind="attrs"
 		:class="
 			cn(
 				'group z-10 w-min [--shadowColor:#bbb] [perspective:800px] dark:[--shadowColor:#111]',

@@ -11,7 +11,7 @@ export interface BentoGridProps {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { inView } from "../../internals/motion/in-view.js";
 import { staggerDelay } from "../../internals/motion/stagger.js";
@@ -20,6 +20,8 @@ import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 defineOptions({ name: "BentoGrid", inheritAttrs: false });
 
 const { class: className = "", reveal = true, accent } = defineProps<BentoGridProps>();
+
+const attrs = useAttrs();
 
 defineSlots<{
 	default?: () => unknown;
@@ -111,9 +113,10 @@ watch(
 				className
 			)
 		"
-		:data-state="revealing ? (shown ? 'shown' : 'armed') : undefined"
 		:style="accentStyle"
 		@focusin="shown = true"
+		v-bind="attrs"
+		:data-state="revealing ? (shown ? 'shown' : 'armed') : undefined"
 	>
 		<slot v-if="$slots.default" />
 	</div>

@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils.js";
 	import { inView } from "../_internals/motion/in-view.js";
 	import { staggerDelay } from "../_internals/motion/stagger.js";
 	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 
-	interface Props {
+	interface Own {
 		class?: string;
 		/** Tiles fade up in a stagger the first time the grid scrolls into view. */
 		reveal?: boolean;
@@ -14,7 +15,16 @@
 		children?: Snippet;
 	}
 
-	let { class: className = "", reveal = true, accent, children }: Props = $props();
+	type Props = Own & Omit<HTMLAttributes<HTMLDivElement>, keyof Own>;
+
+	let {
+		class: className = "",
+		reveal = true,
+		accent,
+		children,
+		onfocusin,
+		...restProps
+	}: Props = $props();
 
 	/** ms per tile, and the total ceiling the stagger is compressed into. */
 	const STEP = 70;
@@ -78,6 +88,7 @@
 
 <!-- Focus arriving inside a still-hidden grid reveals it at once, so a keyboard user never tabs into invisible tiles. -->
 <div
+	{...restProps}
 	bind:this={ref}
 	class={cn(
 		"fancy-bento mx-auto grid max-w-7xl grid-cols-1 gap-4 md:auto-rows-[18rem] md:grid-cols-3",
@@ -86,7 +97,10 @@
 	)}
 	data-state={revealing ? (shown ? "shown" : "armed") : undefined}
 	style:--bento-accent={accent}
-	onfocusin={() => (shown = true)}
+	onfocusin={(event) => {
+		shown = true;
+		onfocusin?.(event);
+	}}
 >
 	{#if children}
 		{@render children()}

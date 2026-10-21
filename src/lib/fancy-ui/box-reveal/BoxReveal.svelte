@@ -1,4 +1,6 @@
 <script lang="ts" module>
+	import type { HTMLAttributes } from "svelte/elements";
+
 	/**
 	 * BoxReveal - Sliding box reveal animation
 	 *
@@ -6,7 +8,7 @@
 	 * revealing the content underneath. Triggers when entering viewport
 	 * via IntersectionObserver.
 	 */
-	export interface BoxRevealProps {
+	export interface BoxRevealOwn {
 		/** Color of the reveal box */
 		color?: string;
 		/** Animation duration in seconds */
@@ -16,6 +18,9 @@
 		/** Additional CSS classes */
 		class?: string;
 	}
+
+	export type BoxRevealProps = BoxRevealOwn &
+		Omit<HTMLAttributes<HTMLDivElement>, keyof BoxRevealOwn>;
 </script>
 
 <script lang="ts">
@@ -29,6 +34,7 @@
 		delay = 0.25,
 		class: className,
 		children,
+		...restProps
 	}: BoxRevealProps & { children: Snippet } = $props();
 
 	let containerRef: HTMLDivElement;
@@ -51,7 +57,11 @@
 	});
 </script>
 
-<div bind:this={containerRef} class={cn("box-reveal relative overflow-hidden", className)}>
+<div
+	{...restProps}
+	bind:this={containerRef}
+	class={cn("box-reveal relative overflow-hidden", className)}
+>
 	<!-- Content (fades up) -->
 	<div
 		class="box-reveal-content"

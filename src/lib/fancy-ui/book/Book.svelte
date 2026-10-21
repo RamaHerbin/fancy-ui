@@ -11,8 +11,9 @@
 		type BookShadowSize,
 	} from "./index.js";
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 
-	interface Props {
+	interface Own {
 		class?: string;
 		duration?: number;
 		color?: BookColor;
@@ -23,6 +24,8 @@
 		children?: Snippet;
 	}
 
+	type Props = Own & Omit<HTMLAttributes<HTMLDivElement>, keyof Own>;
+
 	let {
 		class: className = "",
 		duration = 1000,
@@ -32,12 +35,14 @@
 		radius = "md",
 		shadowSize = "lg",
 		children,
+		...restProps
 	}: Props = $props();
 
 	let computedGradient = $derived(colorMap[color] || colorMap.zinc);
 </script>
 
 <div
+	{...restProps}
 	class={cn(
 		"group z-10 w-min [--shadowColor:#bbb] [perspective:800px] dark:[--shadowColor:#111]",
 		className

@@ -102,13 +102,13 @@ export function NeonBorder({
 
 	return (
 		<div
+			{...rest}
 			className={cn(
 				"neon-border-container relative z-10 inline-block h-10 w-full max-w-sm rounded-lg p-px",
 				animated && "neon-animated",
 				className
 			)}
 			style={styleVars}
-			{...rest}
 		>
 			{children}
 

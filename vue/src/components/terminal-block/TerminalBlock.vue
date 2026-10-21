@@ -27,7 +27,7 @@ export interface TerminalBlockProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useAutoscroll } from "../../internals/use-autoscroll.js";
 import { parseAnsi, type AnsiSegment } from "./ansi.js";
@@ -50,6 +50,8 @@ defineSlots<{
 	/** Title bar above the output — window dots, a file name, a copy button. */
 	header?(): unknown;
 }>();
+
+const attrs = useAttrs();
 
 const el = useTemplateRef<HTMLDivElement>("el");
 defineExpose({ ref: el });
@@ -159,7 +161,11 @@ function formatDuration(ms: number | undefined): string | null {
 </script>
 
 <template>
-	<div ref="el" :class="cn('ft-terminal overflow-hidden rounded-lg font-mono text-sm', className)">
+	<div
+		v-bind="attrs"
+		ref="el"
+		:class="cn('ft-terminal overflow-hidden rounded-lg font-mono text-sm', className)"
+	>
 		<div v-if="$slots.header" class="ft-rule flex items-center gap-2 border-b px-4 py-2">
 			<slot name="header"></slot>
 		</div>
@@ -174,16 +180,14 @@ function formatDuration(ms: number | undefined): string | null {
 				<span class="ft-prompt shrink-0 select-none" aria-hidden="true">{{ prompt }}</span>
 				<span class="ft-wrap">{{ command }}</span>
 			</div>
-			<div v-for="(segments, row) in rows" :key="row" class="ft-line ft-wrap"
-				><span
-					v-for="(segment, i) in segments"
-					:key="i"
-					v-bind="segmentAttrs(segment)"
-					>{{ segment.text }}</span
+			<div v-for="(segments, row) in rows" :key="row" class="ft-line ft-wrap">
+				<span v-for="(segment, i) in segments" :key="i" v-bind="segmentAttrs(segment)">{{
+					segment.text
+				}}</span
 				><span v-if="running && row === rows.length - 1" class="ft-cursor" aria-hidden="true"
 					>▊</span
-				></div
-			>
+				>
+			</div>
 		</div>
 
 		<div

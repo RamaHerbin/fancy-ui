@@ -2,6 +2,8 @@
 
 A live command transcript: the prompt line, the output as it arrives, a block cursor while the command runs, and an exit status once it stops. ANSI colours in the stream are read and rendered.
 
+Native attributes and listeners go to the outer `<div>`, not to the inner `role="log"` region.
+
 ## Components
 
 - `TerminalBlock` — the whole block: header, scrolling output, exit footer

@@ -18,18 +18,20 @@ export interface LetterPullupProps {
 </script>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useAttrs } from "vue";
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "LetterPullup", inheritAttrs: false });
 
 const { words, delay = 0.05, class: className } = defineProps<LetterPullupProps>();
 
+const attrs = useAttrs();
+
 const letters = computed(() => words.split(""));
 </script>
 
 <template>
-	<div class="letter-pullup flex justify-center">
+	<div v-bind="attrs" class="letter-pullup flex justify-center">
 		<span
 			v-for="(letter, index) in letters"
 			:key="index"
@@ -40,7 +42,8 @@ const letters = computed(() => words.split(""));
 				)
 			"
 			:style="`animation:letterPullUp 0.5s ease forwards;animation-delay:${index * delay}s;opacity:0;transform:translateY(100px)`"
-			><template v-if="letter === ' '">&nbsp;</template><template v-else>{{ letter }}</template></span
+			><template v-if="letter === ' '">&nbsp;</template
+			><template v-else>{{ letter }}</template></span
 		>
 	</div>
 </template>
