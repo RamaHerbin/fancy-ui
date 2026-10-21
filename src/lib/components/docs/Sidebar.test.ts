@@ -87,6 +87,7 @@ describe("Sidebar", () => {
 				const brand = getAside(container).querySelector("a[data-docs-brand]");
 				expect(brand).not.toBeNull();
 				expect(brand).toHaveAttribute("href", "/");
+				expect(brand).toHaveAttribute("aria-label", "Back to FancyUI home");
 			} finally {
 				setSkin("standard");
 			}

@@ -107,4 +107,14 @@ describe("DocHeader", () => {
 			"https://github.com/RamaHerbin/fancy-ui"
 		);
 	});
+
+	it("lets the breadcrumb grow and shrink while the controls keep their width", () => {
+		const { container } = render(DocHeader);
+		const crumbs = container.querySelector("nav[data-docs-crumbs]");
+		const controls = container.querySelector("[data-docs-controls]");
+		expect(crumbs?.className).toContain("flex-1");
+		expect(crumbs?.className).toContain("min-w-0");
+		expect(controls?.className).toContain("shrink-0");
+		expect(controls?.className).not.toContain("flex-1");
+	});
 });

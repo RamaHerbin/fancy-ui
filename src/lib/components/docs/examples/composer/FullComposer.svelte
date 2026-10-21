@@ -16,7 +16,7 @@
 		CommandItemData,
 		ModelOptionData,
 		TokenUsageData,
-	} from "$lib/fancy-ui/_internals/ai-types.js";
+	} from "$lib/fancy-ui";
 
 	/** Generic tiers, so the fixture says nothing about anyone's product line-up. */
 	const MODELS: ModelOptionData[] = [
