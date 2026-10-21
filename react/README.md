@@ -10,7 +10,7 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 ![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-145-8B5CF6)
+![Components](https://img.shields.io/badge/Components-146-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,11 +40,11 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 
 ## Features
 
-- **145 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **146 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
 - **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
-- **Same components, three frameworks** &mdash; All 145 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 146 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
@@ -140,7 +140,7 @@ Each component imports its own CSS, so the `fancy-ui-react` imports from [Quick 
 import "fancy-ui-react/styles.css"; // keyframes + component-scoped CSS
 ```
 
-Those two imports are the whole setup. `tailwind.css` also declares every semantic colour the components spend, the standard 18-token set a project scaffolded with `npx shadcn@latest init` already defines: `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`. None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule at all for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so the utilities resolve the variables at use time: an app that already defines that token set keeps its own colours automatically. The defaults ship in `@layer base`, which an unlayered `:root` in your app overrides whatever the import order.
+Those two imports are the whole setup. `tailwind.css` also declares every semantic colour the components spend, the standard 18-token set that most themed projects already define: `background`, `foreground`, `card`, `card-foreground`, `popover`, `popover-foreground`, `primary`, `primary-foreground`, `secondary`, `secondary-foreground`, `muted`, `muted-foreground`, `accent`, `accent-foreground`, `destructive`, `border`, `input`, `ring`. None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule at all for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so the utilities resolve the variables at use time: an app that already defines that token set keeps its own colours automatically. The defaults ship in `@layer base`, which an unlayered `:root` in your app overrides whatever the import order.
 
 ### Dark mode
 
@@ -346,7 +346,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **compare**: StarField gains a `seed` prop (default 1) with a deterministic mulberry32 PRNG replacing the Svelte side's render-path Math.random(), per PORTING.md's SSR rule; two StarFields with the same starsCount and seed render identical skies, and stars only reshuffle when starsCount or seed changes.
 - **compare**: StarField's root cn() gains the port-added anchor class `fancy-star-field` (PORTING.md styling rule 2 sanctioned addition) so the formerly compiler-scoped `.star` rules don't leak globally; keyframe names `twinkle`/`drift` kept identical.
 - **confetti**: Context key stays private. Svelte publishes on the string key `"ConfettiContext"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.
-- **confetti**: No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options`, `children` and `sound` on a bare `<button>`.
+- **confetti**: No behavioural divergence in `ConfettiButton`: `type` defaults to `"button"`, `className` and native button attributes are forwarded, and `onClick` runs once after the burst, as in Svelte.
 - **confetti**: `Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.
 - **confetti**: `fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.
 - **container-scroll**: The first measurement runs in an isomorphic layout effect rather than a passive effect. This matches the Svelte effect, which measures before paint, so a card that is already in view never paints one shut frame.
@@ -459,6 +459,10 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **text-reveal-card**: TextRevealCard takes a `starsSeed?: number` prop forwarded to the star field so card consumers can vary the layout (the Svelte side reshuffles randomly per mount).
 - **text-reveal-card**: TextRevealStars takes a `seed?: number` prop (default 1) with a deterministic mulberry32 PRNG in place of Math.random() in the render path (SSR/hydration safety, per PORTING.md seed rule); same seed = same star field, call order matches the Svelte generator.
 - **text-reveal-card**: touchmove is attached natively via useEffect with { passive: false } instead of React's onTouchMove: the handler calls preventDefault() and React registers its touchmove root listener as passive. Same listener semantics as the Svelte attribute; behavior identical.
+- **tick-nav**: `value` is no longer `bind:value`: it is the controlled/uncontrolled pair `value?: string` + `onValueChange` (already a Svelte prop). The component keeps its own copy and re-syncs it in the render path when the prop changes, the same shape as Slider.
+- **tick-nav**: `preview` is a render prop `(item: TickNavItem) => ReactNode` instead of a `Snippet<[TickNavItem]>`.
+- **tick-nav**: `class` → `className` (PORTING.md).
+- **tick-nav**: All motion, pointer listeners and the per-frame CSS variables live in the shared `tick-nav-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect, forwards `reach`, the current index and reduced motion through `update()`, and keeps the hovered row index in React state (it changes per row, not per frame).
 - **timeline**: `class` prop becomes `className` (standard port convention)
 - **timeline**: `content` snippet becomes a `content?: (item: TimelineItem) => ReactNode` render prop
 - **timeline**: The Svelte `<style>` block ships as the colocated `timeline.css`. Every selector is anchored under the source's own root class `.tl-root`, so no anchor class was added, and `:global(.dark) .tl-root` becomes `.dark .tl-root`. The custom property names, the `tl-ignite` keyframes, the `prefers-reduced-motion` block and the reduced-motion trail are all copied verbatim.

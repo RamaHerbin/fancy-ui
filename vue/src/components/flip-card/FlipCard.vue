@@ -15,7 +15,9 @@ export interface FlipCardProps {
 	/** Whether the back is showing. Bindable (`v-model:flipped`). */
 	flipped?: boolean;
 	/** Called with the new state after every flip, however it happened. */
-	onflip?: (flipped: boolean) => void;
+	onFlip?: ((flipped: boolean) => void) | ((flipped: boolean) => void)[];
+	/** @deprecated Use `@flip` / `onFlip`. Only called when `onFlip` is absent. */
+	onflip?: ((flipped: boolean) => void) | ((flipped: boolean) => void)[];
 	/** Length of one flip in milliseconds */
 	duration?: number;
 	/** Light the faces as they turn: a sheen sweeping across and shading edge-on */
@@ -55,6 +57,7 @@ export function flipDirection(
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
@@ -64,6 +67,7 @@ defineOptions({ name: "FlipCard", inheritAttrs: false });
 const {
 	rotate = "y",
 	trigger = "hover",
+	onFlip,
 	onflip,
 	duration = 700,
 	glare = true,
@@ -94,7 +98,7 @@ function turn(direction: 1 | -1) {
 	angle.value += 180 * direction;
 	const next = showsBack(angle.value);
 	flipped.value = next;
-	onflip?.(next);
+	callListener(onFlip ?? onflip, next);
 	lift();
 }
 
@@ -131,7 +135,7 @@ watch(
 	(want) => {
 		if (want !== showsBack(angle.value)) {
 			angle.value += 180;
-			onflip?.(want);
+			callListener(onFlip ?? onflip, want);
 			lift();
 		}
 	},

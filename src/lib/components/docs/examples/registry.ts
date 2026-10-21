@@ -1206,6 +1206,24 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "Pinned to the top of a scrolling container with a blurred background.",
 		},
 	],
+	"tick-nav": [
+		{
+			name: "BasicUsage",
+			title: "Neon",
+			description:
+				"Glowing lines and a beam of light riding every pluck. On an HDR display the light runs brighter than white.",
+		},
+		{
+			name: "WithPreview",
+			title: "With Preview",
+			description: "A card that follows the pointer while a row is hovered.",
+		},
+		{
+			name: "Classic",
+			title: "Classic",
+			description: "The plain ruler: no glow, accent lines only.",
+		},
+	],
 	sidebar: [
 		{ name: "BasicUsage", title: "Basic Usage" },
 		{

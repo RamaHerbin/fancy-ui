@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "컴포넌트",
 	"gallery.subtitle":
-		"Svelte 5를 위한 아름답게 애니메이션된 {count}개의 컴포넌트. 둘러보고, 검색하여 필요한 것을 찾으세요.",
+		"Svelte 5, React, Vue를 위한 아름답게 애니메이션된 {count}개의 컴포넌트. 둘러보고, 검색하여 필요한 것을 찾으세요.",
 	"gallery.intro":
-		"모든 컴포넌트는 runes를 사용해 Svelte 5용으로 네이티브하게 만들어졌고, Tailwind CSS v4로 스타일링되었으며, TypeScript로 타입이 지정되어 있고, 라이브 미리보기와 복사해 붙여넣는 예제를 함께 제공합니다. 패키지를 한 번만 설치하면 코드는 여러분의 것입니다.",
+		"컴포넌트는 Svelte 5, React, Vue용으로 제공되며 Tailwind CSS v4로 스타일링되고 TypeScript로 타입이 지정됩니다. 각 페이지에는 라이브 미리보기와 복사해 붙여넣을 수 있는 Svelte 예제가 있고, React와 Vue 사용법은 제공되는 경우에 함께 표시됩니다. 패키지를 한 번 설치하면 코드는 여러분의 것입니다.",
 	"gallery.filterPlaceholder": "컴포넌트 필터링...",
 	"gallery.all": "전체",
 	"gallery.noMatch": "검색과 일치하는 컴포넌트가 없습니다.",
-	"gallery.meta": "{components}개 컴포넌트 · {categories}개 카테고리 · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components}개 컴포넌트 · {categories}개 카테고리 · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "결과 {count}개",
 	"gallery.resultOne": "결과 1개",
 	"gallery.clearFilters": "필터 지우기",
@@ -227,7 +228,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "사전 요구 사항",
 	"install.prerequisites.body":
-		"FancyUI는 최신 Svelte 툴체인을 대상으로 합니다. 설치 전에 다음 세 가지를 확인하세요.",
+		"FancyUI는 최신 툴체인을 대상으로 합니다. 설치하기 전에 이 세 가지를 확인하세요.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -238,8 +239,7 @@ export default {
 		"스타일링은 Tailwind v4 유틸리티와 CSS 사용자 정의 속성에 의존합니다.",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
-	"install.prerequisites.card3.desc":
-		"FancyUI가 빌드 대상으로 삼는 SvelteKit 및 Vite 버전에서 필요합니다.",
+	"install.prerequisites.card3.desc": "FancyUI를 테스트하는 최신 빌드 도구에서 필요합니다.",
 	"install.steps.heading": "설치",
 	"install.steps.body":
 		"패키지 매니저를 선택하고, 스타일시트를 연결한 다음, 첫 컴포넌트를 렌더링하세요.",
@@ -255,9 +255,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI는 Tailwind CSS v4 기반으로 제작되었으며, v4는 JavaScript 설정 파일 대신 CSS에서 설정합니다. 프로젝트에서 Tailwind가 이미 동작한다면 추가로 설정할 것은 없습니다.",
 	"install.tailwind.order":
-		"가져오기 순서가 중요합니다: Tailwind를 먼저, FancyUI를 나중에 가져와야 FancyUI의 레이어와 사용자 정의 속성이 기본값 위에서 해석됩니다.",
+		"임포트 순서가 중요합니다. Tailwind를 먼저, FancyUI를 그다음에 가져오세요. FancyUI 임포트는 직접 작성한 @custom-variant dark보다 앞에 두어야 합니다. 그렇지 않으면 FancyUI의 정의가 사용자의 정의를 대체합니다.",
 	"install.tailwind.note":
-		"이 스타일시트에는 모든 컴포넌트가 읽는 디자인 토큰(색상, 반경, 애니메이션 타이밍)이 담겨 있습니다. 없으면 컴포넌트가 스타일 없이 렌더링됩니다.",
+		"이 엔트리는 기본 색상 토큰(background, primary, border 등)과 다크 변형을 제공합니다. 직접 작성한 :root와 .dark 블록이 이를 덮어씁니다. CSS 변수를 다시 정의하면 사용자의 값이 우선합니다.",
 	"install.usage.heading": "사용법",
 	"install.usage.body":
 		"모든 컴포넌트는 패키지 루트의 이름 있는 내보내기이므로, 컴포넌트별 가져오기 경로를 기억할 필요가 없습니다.",
@@ -289,7 +289,7 @@ export default {
 	"theming.lead":
 		"모든 FancyUI 컴포넌트는 OKLCh 색 공간의 CSS 사용자 정의 속성에서 색상, 반경, 타이밍을 읽어옵니다. 토큰을 재정의하면 라이브러리 전체가 그에 따라 바뀝니다.",
 	"theming.pill.oklch": "OKLCh 색 공간",
-	"theming.pill.shadcn": "shadcn-svelte 호환",
+	"theming.pill.shadcn": "표준 토큰 이름",
 	"theming.pill.dark": "다크 모드",
 	"theming.pill.tokens": "디자인 토큰",
 	"theming.generator.body":
@@ -301,10 +301,10 @@ export default {
 	"theming.colors.body":
 		"모든 색상은 시각적으로 균일한 그레이디언트를 위해 OKLCh 색 공간을 사용합니다:",
 	"theming.colors.note":
-		"토큰 이름은 shadcn-svelte 규칙을 따르므로, 기존 shadcn 테마를 그대로 적용할 수 있습니다.",
+		"토큰 이름은 널리 쓰이는 시맨틱 규칙(background, foreground, primary 등)을 따르므로, 같은 변수 이름을 쓰는 기존 테마를 그대로 적용할 수 있습니다.",
 	"theming.dark.heading": "다크 모드",
 	"theming.dark.body":
-		"다크 모드는 상위 요소에 붙은 .dark 클래스로 활성화됩니다. FancyUI는 모든 토큰을 재정의합니다:",
+		"다크 모드는 기본적으로 운영체제 설정을 따릅니다. <html> 또는 임의의 상위 요소에 .dark 클래스를 지정하면 다크로 고정되고, .light를 지정하면 라이트로 고정되며, dark: 유틸리티와 모든 토큰이 이를 따릅니다. 다크 값을 사용자 지정하려면 .dark 아래에서 덮어쓰세요:",
 	"theming.motion.heading": "애니메이션 토큰",
 	"theming.motion.body": "애니메이션 타이밍을 전역으로 제어하세요:",
 	"theming.easing.heading": "이징 함수",
@@ -342,4 +342,27 @@ export default {
 	"retro.explorer": "탐색기",
 	"retro.start": "시작",
 	"retro.tagline": "Svelte 5를 위한 애니메이션 컴포넌트 — 복사해서 바로 사용하세요.",
+	"comp.snippetSvelteOnly":
+		"이 프레임워크용 전체 예제는 아직 없으며, 현재는 Svelte 버전에만 있습니다.",
+	"comp.copyMarkdownSvelte": "Markdown으로 복사 (Svelte)",
+	"comp.markdownSvelteOnly": "Markdown 내보내기는 Svelte 버전만 설명합니다.",
+	"comp.apiNoticeReact":
+		"이 API 레퍼런스는 Svelte 이름을 사용합니다. React에서는 class가 className이 되고, on* 핸들러는 카멜 케이스(onclick은 onClick)로 쓰며, 스니펫은 ReactNode prop이나 렌더 함수가 됩니다.",
+	"comp.apiNoticeVue":
+		"이 API 레퍼런스는 Svelte 이름을 사용합니다. Vue에서는 스니펫이 슬롯이 되고 바인딩 가능한 prop은 v-model:이름이 됩니다.",
+	"comp.apiNoticeLink": "Svelte API와의 차이점",
+	"install.lead.react":
+		"세 단계로 FancyUI를 React 프로젝트에 추가하세요: 패키지를 설치하고, 스타일시트를 가져오고, 컴포넌트를 렌더링하면 됩니다.",
+	"install.lead.vue":
+		"세 단계로 FancyUI를 Vue 프로젝트에 추가하세요: 패키지를 설치하고, 스타일시트를 가져오고, 컴포넌트를 렌더링하면 됩니다.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"React 18과 19를 지원합니다. 컴포넌트는 클라이언트 모듈로 배포되므로 Server Components에서 바로 가져올 수 있습니다.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"컴포넌트는 Vue 3.5 단일 파일 컴포넌트이므로 Vue 3.5.2 이상이 필요합니다.",
 } satisfies Catalog;
