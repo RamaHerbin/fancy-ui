@@ -14,7 +14,7 @@
  *        [--fw svelte,react,vue] [--theme light,dark] [--moments 0,600,1500]
  *        [--base-svelte http://localhost:5291] [--base-react http://localhost:5292]
  *        [--base-vue http://localhost:5293] [--out .parity] [--concurrency 4]
- *        [--reduced-motion no-preference|reduce] [--states all|none|open,focus,long]
+ *        [--reduced-motion no-preference|reduce] [--states all|none|open,focus,long,idle,copied,failed,action]
  *
  * Output (git-ignored):
  *   <out>/shots/<fw>/<slug>/<theme>-<t>.png        rest pass
@@ -49,7 +49,7 @@
  * pointer pass count from the end of the gesture.
  *
  * A failing item is recorded in the log and the run goes on. Interaction
- * states (open, focus, long content; scripts/parity/states.mjs) are stricter:
+ * states (open, focus, long content, copied, failed, action; scripts/parity/states.mjs) are stricter:
  * a missing scenario, an unreachable stage, a state that is never reached or a
  * shot that is not written is an error naming <slug>@<state>, and the run
  * exits non-zero.

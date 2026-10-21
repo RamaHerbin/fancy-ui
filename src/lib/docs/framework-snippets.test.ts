@@ -19,6 +19,8 @@ const PRIORITY = [
 	"composer",
 	"chat-panel",
 	"follow-button",
+	"accordion",
+	"collapsible",
 ];
 
 const FORMS_AND_OVERLAYS = [
@@ -49,8 +51,8 @@ describe("framework snippets", () => {
 		}
 	});
 
-	it("covers the forms-and-overlays batch in both packages (31 slugs in all)", () => {
-		expect(COVERED).toHaveLength(31);
+	it("covers the forms-and-overlays batch in both packages (34 slugs in all)", () => {
+		expect(COVERED).toHaveLength(34);
 		for (const framework of ["react", "vue"] as const) {
 			for (const slug of FORMS_AND_OVERLAYS) expect(snippetSlugs(framework)).toContain(slug);
 		}

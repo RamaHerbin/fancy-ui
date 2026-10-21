@@ -42,14 +42,13 @@
  * undeclared colour name — so without this block `border-border` and friends
  * are inert: a Dialog gets no border, a Combobox popover no background.
  *
- * The list below is the full shadcn token set the components use, kept in sync
- * with the utilities present in ./dist — every one of the 18 names is spent by
- * at least one component.
+ * The list below is the full token set the components use: every one of the
+ * 18 names is spent by at least one component of this package.
  *
  * `@theme inline` on purpose: each utility resolves `var(--primary)` at USE
  * time rather than baking a value in, so an app that already defines the
- * shadcn token set (the common case, and where these names come from) keeps
- * its own colours with no configuration here. The defaults below only fill in
+ * same token names (the common case for a themed Tailwind project) keeps its
+ * own colours with no configuration here. The defaults below only fill in
  * when nothing else defines them.
  */
 @theme inline {
@@ -78,15 +77,16 @@
  * token block is almost always unlayered, and unlayered rules beat layered
  * ones whatever the import order. So these apply when the app defines
  * nothing, and lose the moment it does — no `!important`, no ordering
- * requirement in the app's CSS. Values match the shadcn defaults the Svelte
- * package's own docs site runs on, so the two packages look alike out of the
- * box. `.dark` mirrors what the docs site switches to.
+ * requirement in the app's CSS. Values match the defaults the docs site runs
+ * on, and the Svelte, React and Vue entries share this body word for word, so
+ * the three packages look alike out of the box. `.dark` mirrors what the docs
+ * site switches to.
  */
 @layer base {
 	:root {
 		/*
 		 * `color-scheme` is what decides which branch every `light-dark()` call
-		 * in dist/styles.css resolves to (133 of them), and it also sets the
+		 * in the components' styles resolves to, and it also sets the
 		 * UA colours for scrollbars, form controls and the caret. `light dark`
 		 * lets the OS preference decide by default, exactly like the `dark:`
 		 * variant above; `.dark` and `.light` (below) force one branch, so the

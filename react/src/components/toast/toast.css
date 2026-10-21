@@ -56,3 +56,31 @@
 		transform: rotate(360deg);
 	}
 }
+
+.ft-toast-progress {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: 2px;
+	background: var(--ft-overlay-accent);
+	opacity: 0.7;
+	transform-origin: left center;
+}
+
+/* Static (full) under reduced motion: the bar only ever animates when motion is welcome. */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-toast-progress {
+		animation: ft-toast-drain linear forwards;
+		animation-duration: var(--toast-duration);
+	}
+
+	.ft-toast-progress[data-paused="true"] {
+		animation-play-state: paused;
+	}
+}
+
+@keyframes ft-toast-drain {
+	to {
+		transform: scaleX(0);
+	}
+}

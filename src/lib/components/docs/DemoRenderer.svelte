@@ -148,6 +148,8 @@
 		"sidebar",
 		"tick-nav",
 		"tabs",
+		"accordion",
+		"collapsible",
 		"breadcrumb",
 		"pagination",
 		"stepper",
