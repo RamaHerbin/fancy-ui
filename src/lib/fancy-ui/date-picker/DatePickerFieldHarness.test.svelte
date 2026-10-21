@@ -13,13 +13,21 @@
 
 	interface Props {
 		context: FieldContext;
+		[key: string]: unknown;
 	}
 
-	let { context }: Props = $props();
+	let { context, ...rest }: Props = $props();
 
 	setContext(FIELD_KEY, context);
 </script>
 
 <!-- Deliberately passed own props that disagree with the context, so a test
      can prove the context wins rather than merely matching by coincidence. -->
-<DatePicker id="own-id" invalid={false} required={false} disabled={false} label="Deadline" />
+<DatePicker
+	id="own-id"
+	invalid={false}
+	required={false}
+	disabled={false}
+	label="Deadline"
+	{...rest}
+/>

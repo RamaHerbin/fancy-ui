@@ -41,7 +41,7 @@ export interface TimePickerProps {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, useAttrs, ref, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -51,6 +51,10 @@ import { useSoundCue } from "../../sound/use-sound.js";
 import { filterByBounds, formatSlotLabel, generateSlots, nearestIndex } from "./time-utils.js";
 import TimePickerPanel from "./TimePickerPanel.vue";
 import { TIME_PICKER_CONTEXT, type TimePickerContext } from "./types.js";
+
+// Every other native `<button>` attribute and listener lands on the trigger
+// through `v-bind="triggerAttrs()"` below.
+const attrs = useAttrs();
 
 defineOptions({ name: "TimePicker", inheritAttrs: false });
 
@@ -389,28 +393,41 @@ const classes = computed(() =>
 		className
 	)
 );
+
+// The consumer's attributes first, the component's invariants after, so a
+// consumer can add but never break (`role`, `type`, the managed `aria-*`). A
+// function, not a `computed`: `attrs` is not reactive, so it is re-read on every
+// render. The template writes `@click` and `@keydown` BEFORE `v-bind`, so Vue runs the
+// internal handler first and the consumer's listener (in `attrs`) after it.
+function triggerAttrs(): Record<string, unknown> {
+	const describedBy =
+		[field?.describedBy, attrs["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+	return {
+		...attrs,
+		type: "button",
+		role: "combobox",
+		"aria-haspopup": "listbox",
+		"aria-expanded": open.value,
+		"aria-controls": open.value ? panelId : undefined,
+		"aria-activedescendant":
+			open.value && listbox.activeIndex !== -1 ? optionId(listbox.activeIndex) : undefined,
+		"aria-invalid": effectiveInvalid.value ? "true" : attrs["aria-invalid"],
+		"aria-required": effectiveRequired.value ? "true" : attrs["aria-required"],
+		"aria-describedby": describedBy,
+		"aria-label": label ?? attrs["aria-label"],
+	};
+}
 </script>
 
 <template>
 	<button
 		ref="trigger"
 		:id="effectiveId"
-		type="button"
-		role="combobox"
-		aria-haspopup="listbox"
-		:aria-expanded="open"
-		:aria-controls="open ? panelId : undefined"
-		:aria-activedescendant="
-			open && listbox.activeIndex !== -1 ? optionId(listbox.activeIndex) : undefined
-		"
-		:aria-invalid="effectiveInvalid ? 'true' : undefined"
-		:aria-required="effectiveRequired ? 'true' : undefined"
-		:aria-describedby="field?.describedBy"
-		:aria-label="label"
 		:disabled="effectiveDisabled"
 		:class="classes"
 		@click="handleTriggerClick"
 		@keydown="handleTriggerKeydown"
+		v-bind="triggerAttrs()"
 	>
 		<!--
 			The object form of `v-bind`, not `:class="… ? undefined : '…'"`: a
@@ -434,6 +451,7 @@ const classes = computed(() =>
 		v-if="name"
 		type="hidden"
 		:name="name"
+		:form="attrs.form as string | undefined"
 		:value.attr="value ?? ''"
 		:disabled="effectiveDisabled"
 	/>

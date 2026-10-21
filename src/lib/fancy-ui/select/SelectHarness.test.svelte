@@ -27,6 +27,7 @@
 		label?: string;
 		/** Omit to render with no FormField provider above it at all. */
 		field?: FieldContext;
+		[key: string]: unknown;
 	}
 
 	let {
@@ -41,6 +42,7 @@
 		name,
 		label = "Framework",
 		field,
+		...rest
 	}: Props = $props();
 
 	// Must run synchronously during this component's own initialization,
@@ -60,4 +62,5 @@
 	{id}
 	{name}
 	{label}
+	{...rest}
 />

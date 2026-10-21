@@ -94,6 +94,8 @@ and `disabled`:
 | `ref`            | `HTMLButtonElement \| null`     | `null`          | Bindable element reference to the trigger button                                       |
 | `sound`          | `boolean`                       | `false`         | Plays interface cues through the sound controller. See [Sound](#sound)                 |
 
+**Native attributes** go to the trigger `<button role="combobox">`: `aria-*`, `data-*` and listeners such as `onfocus`, `onblur` and `onkeydown` are forwarded, and the managed ARIA (`role`, `aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-invalid`, `aria-required`) stays the component's own. A consumer `aria-describedby` is merged with the one a surrounding `FormField` supplies, and `name`/`form` reach the hidden input that carries the ISO date.
+
 All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context.
 

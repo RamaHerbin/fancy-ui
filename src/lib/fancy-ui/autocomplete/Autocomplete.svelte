@@ -1,5 +1,27 @@
 <script lang="ts" module>
-	export interface AutocompleteProps {
+	import type { HTMLInputAttributes } from "svelte/elements";
+
+	/**
+	 * Every other native `<input>` attribute and listener (`aria-*`, `data-*`,
+	 * `autocomplete`, `inputmode`, `form`, `onfocus`, `onblur`, `onkeydown`,
+	 * `oninput`, ...) is forwarded to the text input. The managed ARIA (`role`,
+	 * `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-haspopup`,
+	 * `aria-autocomplete`, `aria-invalid`) stays the component's own.
+	 */
+	export interface AutocompleteProps extends Omit<
+		HTMLInputAttributes,
+		| "class"
+		| "id"
+		| "name"
+		| "value"
+		| "disabled"
+		| "required"
+		| "placeholder"
+		| "type"
+		| "role"
+		| "children"
+		| "minLength"
+	> {
 		/** Candidate strings offered as the user types. Advisory only — any text is a valid value, matched or not. */
 		suggestions: string[];
 		/** The free-text value. Bindable. */
@@ -64,6 +86,11 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		oninput,
+		onfocus,
+		onblur,
+		onkeydown,
+		...restProps
 	}: AutocompleteProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -191,6 +218,31 @@
 		}
 	}
 
+	// Internal handling first, the consumer's listener once after it, with the
+	// same event — even when the internal handler called `preventDefault`.
+	type InputEvent<E extends Event> = E & { currentTarget: EventTarget & HTMLInputElement };
+	function onInputEvent(event: InputEvent<Event>) {
+		handleInput(event);
+		oninput?.(event);
+	}
+	function onFocusEvent(event: InputEvent<FocusEvent>) {
+		handleFocus();
+		onfocus?.(event);
+	}
+	function onBlurEvent(event: InputEvent<FocusEvent>) {
+		handleBlur();
+		onblur?.(event);
+	}
+	function onKeydownEvent(event: InputEvent<KeyboardEvent>) {
+		handleKeydown(event);
+		onkeydown?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy = $derived(
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined
+	);
+
 	const context: AutocompleteContext = {
 		get open() {
 			return open;
@@ -241,6 +293,7 @@
 
 <div class="ft-autocomplete-wrapper relative">
 	<input
+		{...restProps}
 		bind:this={ref}
 		type="text"
 		role="combobox"
@@ -250,9 +303,9 @@
 		{value}
 		disabled={effectiveDisabled}
 		required={effectiveRequired}
-		aria-invalid={effectiveInvalid ? "true" : undefined}
-		aria-describedby={field?.describedBy}
-		aria-label={field?.labelId ? undefined : label}
+		aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+		aria-describedby={describedBy}
+		aria-label={field?.labelId ? undefined : (label ?? restProps["aria-label"])}
 		aria-expanded={open}
 		aria-haspopup="listbox"
 		aria-autocomplete="list"
@@ -261,10 +314,10 @@
 			? optionId(listbox.activeIndex)
 			: undefined}
 		class={classes}
-		oninput={handleInput}
-		onfocus={handleFocus}
-		onblur={handleBlur}
-		onkeydown={handleKeydown}
+		oninput={onInputEvent}
+		onfocus={onFocusEvent}
+		onblur={onBlurEvent}
+		onkeydown={onKeydownEvent}
 	/>
 
 	<!-- Always mounted, whether or not the panel is open — see Combobox's

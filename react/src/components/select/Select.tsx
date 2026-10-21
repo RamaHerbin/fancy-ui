@@ -1,5 +1,9 @@
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import type {
+	ComponentPropsWithoutRef,
+	KeyboardEvent as ReactKeyboardEvent,
+	MouseEvent as ReactMouseEvent,
+} from "react";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -17,7 +21,26 @@ import "./select.css";
 
 export type { SelectOption };
 
-export interface SelectProps {
+/**
+ * Every other native `<button>` attribute and listener (`aria-*`, `data-*`,
+ * `onFocus`, `onBlur`, `onKeyDown`, `form`, ...) is forwarded to the trigger.
+ * The managed ARIA (`role`, `aria-expanded`, `aria-controls`,
+ * `aria-activedescendant`, `aria-haspopup`, `aria-invalid`, `aria-required`)
+ * stays the component's own.
+ */
+export interface SelectProps extends Omit<
+	ComponentPropsWithoutRef<"button">,
+	| "className"
+	| "id"
+	| "name"
+	| "value"
+	| "disabled"
+	| "type"
+	| "role"
+	| "children"
+	| "placeholder"
+	| "onChange"
+> {
 	/** The options to choose from, in order. */
 	options: SelectOption[];
 	/** The selected value. `""` means nothing is selected. */
@@ -74,6 +97,9 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 		align = "start",
 		className,
 		sound = false,
+		onClick,
+		onKeyDown,
+		...restProps
 	},
 	forwardedRef
 ) {
@@ -372,6 +398,24 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 		]
 	);
 
+	// Internal handling first, the consumer's listener once after it. A disabled
+	// control runs neither (a disabled <button> would not fire them anyway).
+	function handleClick(event: ReactMouseEvent<HTMLButtonElement>): void {
+		if (effectiveDisabled) return;
+		handleTriggerClick();
+		onClick?.(event);
+	}
+
+	function handleKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>): void {
+		if (effectiveDisabled) return;
+		handleTriggerKeydown(event);
+		onKeyDown?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy =
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+
 	const classes = cn(
 		"ft-select-trigger flex w-full items-center justify-between gap-2 rounded-[8px] border border-input bg-background px-[12px] py-[9px] text-left text-[13px] text-foreground transition-colors",
 		"focus-visible:outline-none",
@@ -383,6 +427,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 	return (
 		<SelectReactContext.Provider value={context}>
 			<button
+				{...restProps}
 				ref={triggerRef}
 				id={effectiveId}
 				type="button"
@@ -391,14 +436,14 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 				aria-expanded={open}
 				aria-controls={open ? panelId : undefined}
 				aria-activedescendant={open && activeIndex !== -1 ? optionId(activeIndex) : undefined}
-				aria-invalid={effectiveInvalid ? "true" : undefined}
-				aria-required={effectiveRequired ? "true" : undefined}
-				aria-describedby={field?.describedBy}
-				aria-label={label}
+				aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+				aria-required={effectiveRequired ? "true" : restProps["aria-required"]}
+				aria-describedby={describedBy}
+				aria-label={label ?? restProps["aria-label"]}
 				disabled={effectiveDisabled}
 				className={classes}
-				onClick={handleTriggerClick}
-				onKeyDown={handleTriggerKeydown}
+				onClick={handleClick}
+				onKeyDown={handleKeyDown}
 			>
 				<span className={cn("truncate", !selectedOption && "text-muted-foreground")}>
 					{selectedOption?.label ?? placeholder ?? ""}
@@ -408,7 +453,15 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(function Select
 				</span>
 			</button>
 
-			{name ? <input type="hidden" name={name} value={value} disabled={effectiveDisabled} /> : null}
+			{name ? (
+				<input
+					type="hidden"
+					name={name}
+					value={value}
+					form={restProps.form}
+					disabled={effectiveDisabled}
+				/>
+			) : null}
 
 			{/*
 				Rendered unconditionally, with the mount gate inside — the React
