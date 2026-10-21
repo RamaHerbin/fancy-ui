@@ -1500,8 +1500,7 @@
 		"sharedCores": [],
 		"attempts": 1,
 		"divergences": [
-			"`Confetti`'s `fire()` reads the `options` prop at call time, but Vue hands a REASSIGNED `options` object to the child only on the parent's next render: a handler that does `options = { … }` and calls `fire()` in the same tick bursts with the PREVIOUS object, where the Svelte component bursts with the new one. Mutating the object already passed as `options` behaves identically on both sides, and the reassignment is deferred rather than lost — the next `fire()` after the parent re-renders uses it. Framework-inherent (Vue exposes no synchronous prop flush); pinned by ConfettiFire.test.ts:77-92.",
-			"ConfettiButton renders type=\"button\": the Svelte source's bare <button> defaults to submit inside a form and inheritAttrs false leaves consumers no way to override it (upstream fix, Svelte parity pending)"
+			"`Confetti`'s `fire()` reads the `options` prop at call time, but Vue hands a REASSIGNED `options` object to the child only on the parent's next render: a handler that does `options = { … }` and calls `fire()` in the same tick bursts with the PREVIOUS object, where the Svelte component bursts with the new one. Mutating the object already passed as `options` behaves identically on both sides, and the reassignment is deferred rather than lost — the next `fire()` after the parent re-renders uses it. Framework-inherent (Vue exposes no synchronous prop flush); pinned by ConfettiFire.test.ts:77-92."
 		],
 		"minors": [],
 		"lastFailure": null
