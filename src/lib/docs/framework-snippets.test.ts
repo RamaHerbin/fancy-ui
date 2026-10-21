@@ -9,6 +9,8 @@ const PRIORITY = [
 	"rainbow-button",
 	"gradient-button",
 	"border-beam",
+	"fluid-cursor",
+	"image-trail-cursor",
 ];
 
 describe("framework snippets", () => {
