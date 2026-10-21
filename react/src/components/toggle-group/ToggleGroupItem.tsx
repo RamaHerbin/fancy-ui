@@ -1,11 +1,17 @@
 import { forwardRef, useContext, useEffect, useRef } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type {
+	ComponentPropsWithoutRef,
+	FocusEvent,
+	KeyboardEvent,
+	MouseEvent,
+	ReactNode,
+} from "react";
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { TOGGLE_GROUP_KEY } from "./types.js";
 import "./toggle-group-item.css";
 
-export interface ToggleGroupItemProps {
+interface ToggleGroupItemOwnProps {
 	/** This item's value — what gets added to or removed from the group's selection. */
 	value: string;
 	/** Disables just this item, independent of the group's own `disabled`. */
@@ -17,6 +23,15 @@ export interface ToggleGroupItemProps {
 	/** Additional CSS classes */
 	className?: string;
 }
+
+/**
+ * Native `<button>` attributes and listeners are forwarded to the item; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface ToggleGroupItemProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof ToggleGroupItemOwnProps>,
+		ToggleGroupItemOwnProps {}
 
 const SIZE_CLASSES: Record<"sm" | "md" | "lg", string> = {
 	sm: "h-[26px] min-w-[26px] rounded-[4px] px-2 text-xs",
@@ -32,7 +47,10 @@ const SIZE_CLASSES: Record<"sm" | "md" | "lg", string> = {
  * are not spread, for the same reason as on the root.
  */
 export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProps>(
-	({ value, disabled = false, label, children, className }, forwardedRef) => {
+	(
+		{ value, disabled = false, label, children, className, onClick, onFocus, onKeyDown, ...rest },
+		forwardedRef
+	) => {
 		// Undefined outside a ToggleGroup: the item then has no selection or
 		// roving order to take part in, and renders as a plain, always-tabbable,
 		// permanently-unselected button rather than throwing.
@@ -97,7 +115,7 @@ export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProp
 		// handlers without going through the browser's own pre-click disabled
 		// check, so each one repeats the guard rather than trusting the
 		// attribute alone.
-		function handleClick() {
+		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (isDisabled) return;
 			group?.toggle(value);
 			// Deliberate, not incidental: a plain `<button>` is only guaranteed
@@ -110,15 +128,23 @@ export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProp
 			// focus here anyway.
 			group?.focus(value);
 			innerRef.current?.focus();
+			onClick?.(event);
 		}
 
-		function handleFocus() {
+		function handleFocus(event: FocusEvent<HTMLButtonElement>) {
 			if (isDisabled) return;
 			group?.focus(value);
+			onFocus?.(event);
 		}
 
 		function handleKeydown(event: KeyboardEvent<HTMLButtonElement>) {
-			if (!group || isDisabled) return;
+			if (isDisabled) return;
+			handleNavigationKey(event);
+			onKeyDown?.(event);
+		}
+
+		function handleNavigationKey(event: KeyboardEvent<HTMLButtonElement>) {
+			if (!group) return;
 			switch (event.key) {
 				case "ArrowRight":
 				case "ArrowDown":
@@ -143,6 +169,7 @@ export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProp
 
 		return (
 			<button
+				{...rest}
 				ref={setRef}
 				type="button"
 				data-ft-toggle-item=""
@@ -151,8 +178,8 @@ export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProp
 				className={classes}
 				disabled={isDisabled}
 				aria-pressed={isSelected}
-				aria-label={label}
-				tabIndex={tabIndexAttr}
+				aria-label={label ?? rest["aria-label"]}
+				tabIndex={tabIndexAttr ?? rest.tabIndex}
 				onClick={handleClick}
 				onFocus={handleFocus}
 				onKeyDown={handleKeydown}

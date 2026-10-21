@@ -8,12 +8,14 @@ export interface NavigationMenuTriggerProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { NAVIGATION_MENU_KEY, NAVIGATION_MENU_ITEM_KEY } from "./types.js";
 
 defineOptions({ name: "NavigationMenuTrigger", inheritAttrs: false });
+
+const attrs = useAttrs();
 
 const { class: className } = defineProps<NavigationMenuTriggerProps>();
 
@@ -138,6 +140,11 @@ const classes = computed(() =>
 <template>
 	<button
 		ref="el"
+		@click="handleClick"
+		@pointerenter="handlePointerEnter"
+		@pointerleave="handlePointerLeave"
+		@keydown="handleKeydown"
+		v-bind="attrs"
 		type="button"
 		:id="item.triggerId"
 		data-ft-nav-trigger
@@ -146,10 +153,6 @@ const classes = computed(() =>
 		:aria-expanded="isOpen"
 		:aria-controls="isOpen ? item.contentId : undefined"
 		:tabindex="tabIndexAttr"
-		@click="handleClick"
-		@pointerenter="handlePointerEnter"
-		@pointerleave="handlePointerLeave"
-		@keydown="handleKeydown"
 	>
 		<slot />
 		<span class="ft-navigation-menu-caret" aria-hidden="true">▾</span>

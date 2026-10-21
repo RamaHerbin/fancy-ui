@@ -1,20 +1,38 @@
 import { forwardRef, useEffect, useRef } from "react";
-import type { KeyboardEvent, ReactNode } from "react";
+import type {
+	ComponentPropsWithoutRef,
+	KeyboardEvent,
+	MouseEvent,
+	PointerEvent,
+	ReactNode,
+} from "react";
 
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useNavigationMenuContext, useNavigationMenuItemContext } from "./types.js";
 import "./navigation-menu-trigger.css";
 
-export interface NavigationMenuTriggerProps {
+interface NavigationMenuTriggerOwnProps {
 	/** The trigger's label. */
 	children?: ReactNode;
 	/** Additional CSS classes. */
 	className?: string;
 }
 
+/**
+ * Native `<button>` attributes and listeners are forwarded to the trigger; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface NavigationMenuTriggerProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof NavigationMenuTriggerOwnProps>,
+		NavigationMenuTriggerOwnProps {}
+
 export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMenuTriggerProps>(
-	function NavigationMenuTrigger({ children, className }, forwardedRef) {
+	function NavigationMenuTrigger(
+		{ children, className, onClick, onPointerEnter, onPointerLeave, onKeyDown, ...rest },
+		forwardedRef
+	) {
 		const item = useNavigationMenuItemContext();
 		const root = useNavigationMenuContext();
 
@@ -37,7 +55,7 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 		// already the user's decision, there is no "did they mean it" travel to
 		// protect against the way there is for a pointer merely passing over
 		// the row.
-		function handleClick() {
+		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			root.toggle(item.value);
 			root.focus(item.value);
 			// Deliberate, not incidental, the same reasoning as ToggleGroupItem:
@@ -46,14 +64,17 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 			// Without this, clicking a trigger would open its panel but leave
 			// the roving tab stop — and DOM focus — wherever it last was.
 			buttonRef.current?.focus();
+			onClick?.(event);
 		}
 
-		function handlePointerEnter() {
+		function handlePointerEnter(event: PointerEvent<HTMLButtonElement>) {
 			root.scheduleOpen(item.value);
+			onPointerEnter?.(event);
 		}
 
-		function handlePointerLeave() {
+		function handlePointerLeave(event: PointerEvent<HTMLButtonElement>) {
 			root.scheduleClose();
+			onPointerLeave?.(event);
 		}
 
 		// There is deliberately no focus handler opening the panel here. A
@@ -65,6 +86,11 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 		// immediately — the pointer-and-keyboard fight the panel's own test
 		// file pins down.
 		function handleKeydown(event: KeyboardEvent<HTMLButtonElement>) {
+			handleNavigationKey(event);
+			onKeyDown?.(event);
+		}
+
+		function handleNavigationKey(event: KeyboardEvent<HTMLButtonElement>) {
 			switch (event.key) {
 				case "Enter":
 				case " ":
@@ -102,6 +128,7 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 
 		return (
 			<button
+				{...rest}
 				ref={setButtonRef}
 				type="button"
 				id={item.triggerId}

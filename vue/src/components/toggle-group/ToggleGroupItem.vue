@@ -10,17 +10,34 @@ export interface ToggleGroupItemProps {
 	label?: string;
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onFocus?: ((event: FocusEvent) => void) | ((event: FocusEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onKeydown?: ((event: KeyboardEvent) => void) | ((event: KeyboardEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, useAttrs, useTemplateRef, watch } from "vue";
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { TOGGLE_GROUP_KEY } from "./types.js";
 
 defineOptions({ name: "ToggleGroupItem", inheritAttrs: false });
 
-const { value, disabled = false, label, class: className } = defineProps<ToggleGroupItemProps>();
+const attrs = useAttrs();
+
+const {
+	value,
+	disabled = false,
+	label,
+	class: className,
+	onClick,
+	onFocus,
+	onKeydown,
+} = defineProps<ToggleGroupItemProps>();
 
 defineSlots<{ default?(): unknown }>();
 
@@ -119,7 +136,7 @@ watch(
 // does, and as some assistive tech does) can still reach these handlers
 // without going through the browser's own pre-click disabled check, so each
 // one repeats the guard rather than trusting the attribute alone.
-function handleClick() {
+function handleClick(event: MouseEvent) {
 	if (isDisabled.value) return;
 	group?.toggle(value);
 	// Deliberate, not incidental: a plain `<button>` is only guaranteed to
@@ -131,14 +148,22 @@ function handleClick() {
 	// nothing on browsers that would have moved focus here anyway.
 	group?.focus(value);
 	el.value?.focus();
+	callListener(onClick, event);
 }
 
-function handleFocus() {
+function handleFocus(event: FocusEvent) {
 	if (isDisabled.value) return;
 	group?.focus(value);
+	callListener(onFocus, event);
 }
 
 function handleKeydown(event: KeyboardEvent) {
+	if (isDisabled.value) return;
+	handleNavigationKey(event);
+	callListener(onKeydown, event);
+}
+
+function handleNavigationKey(event: KeyboardEvent) {
 	if (!group || isDisabled.value) return;
 	switch (event.key) {
 		case "ArrowRight":
@@ -166,6 +191,10 @@ function handleKeydown(event: KeyboardEvent) {
 <template>
 	<button
 		ref="el"
+		@click="handleClick"
+		@focus="handleFocus"
+		@keydown="handleKeydown"
+		v-bind="attrs"
 		type="button"
 		data-ft-toggle-item=""
 		:data-value="value"
@@ -173,11 +202,8 @@ function handleKeydown(event: KeyboardEvent) {
 		:class="classes"
 		:disabled="isDisabled"
 		:aria-pressed="isSelected"
-		:aria-label="label"
-		:tabindex="tabIndexAttr"
-		@click="handleClick"
-		@focus="handleFocus"
-		@keydown="handleKeydown"
+		:aria-label="label ?? (attrs['aria-label'] as string | undefined)"
+		:tabindex="tabIndexAttr ?? (attrs.tabindex as number | string | undefined)"
 	>
 		<slot>{{ label ?? value }}</slot>
 	</button>

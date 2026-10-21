@@ -14,18 +14,25 @@ export interface DropdownMenuItemProps {
 	closeOnSelect?: boolean;
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onMouseenter?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { useMenuItem } from "../../internals/menu.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { MENU_KEY } from "./types.js";
 
 defineOptions({ name: "DropdownMenuItem", inheritAttrs: false });
+
+const attrs = useAttrs();
 
 const {
 	onSelect,
@@ -34,6 +41,8 @@ const {
 	shortcut,
 	closeOnSelect = true,
 	class: className,
+	onClick,
+	onMouseenter,
 } = defineProps<DropdownMenuItemProps>();
 
 defineSlots<{
@@ -73,7 +82,7 @@ useMenuItem(ctx.focus, item);
 // A native `disabled` attribute already blocks a real click, but a synthetic
 // click in a test walks straight past it, so the handler guards again rather
 // than trusting the attribute alone.
-function handleClick(): void {
+function handleClick(event: MouseEvent): void {
 	if (disabled) return;
 	if (ctx.sound) soundFx.play("select");
 	// Mouse hover already syncs the menu core's tracked focus position (see
@@ -90,6 +99,7 @@ function handleClick(): void {
 	// menu on top of it must never also play `close`, or one item activation
 	// would yield two cues instead of one.
 	if (closeOnSelect) ctx.closeAll({ silent: true });
+	callListener(onClick, event);
 }
 
 // Real DOM focus IS the highlight in a `role="menu"` built on the menu-focus
@@ -97,9 +107,10 @@ function handleClick(): void {
 // focus onto it is correct here, not the mousedown-steals-focus bug. There is
 // nothing to cancel: this is the behaviour a mouse user needs to stay in sync
 // with a keyboard user's own arrow-key highlight.
-function handleMouseEnter(): void {
+function handleMouseEnter(event: MouseEvent): void {
 	if (disabled || !item.value) return;
 	ctx.focus.focusItem(item.value);
+	callListener(onMouseenter, event);
 }
 
 // No font-size here: it inherits from whichever panel renders this item
@@ -122,6 +133,9 @@ const classes = computed(() =>
 <template>
 	<button
 		ref="item"
+		@click="handleClick"
+		@mouseenter="handleMouseEnter"
+		v-bind="attrs"
 		type="button"
 		role="menuitem"
 		tabindex="-1"
@@ -129,8 +143,6 @@ const classes = computed(() =>
 		:aria-disabled="disabled ? 'true' : undefined"
 		:data-variant="variant"
 		:class="classes"
-		@click="handleClick"
-		@mouseenter="handleMouseEnter"
 	>
 		<span class="flex items-center gap-[10px]">
 			<span v-if="$slots.icon" class="ft-dropdown-menu-item-icon" aria-hidden="true">

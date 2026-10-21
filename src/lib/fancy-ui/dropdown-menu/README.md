@@ -208,6 +208,17 @@ workaround for, the intended behaviour, but not something this test suite's
 jsdom environment can independently verify happened as a _browser default
 action_ rather than only via the explicit `onmouseenter` handler.
 
+## Native attributes
+
+`DropdownMenuTrigger`, `DropdownMenuItem` and `DropdownMenuSubTrigger` forward
+native `<button>` attributes and listeners (`data-*`, `aria-label`,
+`aria-describedby`, `title`, `onfocus`, `onpointerdown`, ...) to the element
+they render. The attributes the menu manages stay the component's: `role`,
+`tabindex`, `type`, `disabled`, `aria-haspopup`, `aria-expanded`,
+`aria-controls`, `data-variant`, and the trigger's and sub-trigger's `id`.
+`onclick`, `onkeydown` and `onmouseenter` run once after the component's own
+handling, and not at all while the part is disabled.
+
 ## Props
 
 ### DropdownMenu

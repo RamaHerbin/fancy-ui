@@ -27,7 +27,7 @@ export interface PopoverProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 
 import { useFancyId } from "../../internals/use-id.js";
 import { useSoundCue } from "../../sound/use-sound.js";
@@ -35,6 +35,8 @@ import PopoverContent from "./PopoverContent.vue";
 import { POPOVER_CONTEXT, type PopoverContext } from "./types.js";
 
 defineOptions({ name: "Popover", inheritAttrs: false });
+
+const attrs = useAttrs();
 
 const {
 	onOpenChange,
@@ -142,11 +144,12 @@ POPOVER_CONTEXT.provide(context);
 <template>
 	<button
 		ref="triggerRef"
+		@click="toggle"
+		v-bind="attrs"
 		type="button"
 		class="ft-popover-trigger border-border text-foreground hover:bg-accent hover:text-accent-foreground inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] border px-[14px] py-[7px] text-[12px] font-medium transition-colors focus-visible:ring-[3px] focus-visible:ring-[var(--ft-overlay-accent)]/35 focus-visible:outline-none"
 		:aria-expanded="open"
 		:aria-controls="open ? contentId : undefined"
-		@click="toggle"
 	>
 		<slot name="trigger" />
 	</button>

@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	export interface NavigationMenuTriggerProps {
+	export interface NavigationMenuTriggerOwnProps {
 		/** The trigger's label. */
 		children?: Snippet;
 		/** Additional CSS classes. */
@@ -9,6 +10,10 @@
 		/** Element reference. */
 		ref?: HTMLButtonElement | null;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the trigger; `id`, `aria-expanded`, `aria-controls` and `tabindex` stay the component's. */
+	export type NavigationMenuTriggerProps = NavigationMenuTriggerOwnProps &
+		Omit<HTMLButtonAttributes, keyof NavigationMenuTriggerOwnProps>;
 </script>
 
 <script lang="ts">
@@ -17,7 +22,16 @@
 	import { NAVIGATION_MENU_KEY, type NavigationMenuContext } from "./types.js";
 	import { NAVIGATION_MENU_ITEM_KEY, type NavigationMenuItemContext } from "./types.js";
 
-	let { children, class: className, ref = $bindable(null) }: NavigationMenuTriggerProps = $props();
+	let {
+		children,
+		class: className,
+		ref = $bindable(null),
+		onclick,
+		onpointerenter,
+		onpointerleave,
+		onkeydown,
+		...rest
+	}: NavigationMenuTriggerProps = $props();
 
 	const item = getContext<NavigationMenuItemContext>(NAVIGATION_MENU_ITEM_KEY);
 	const root = getContext<NavigationMenuContext>(NAVIGATION_MENU_KEY);
@@ -33,7 +47,12 @@
 	// already the user's decision, there is no "did they mean it" travel to
 	// protect against the way there is for a pointer merely passing over the
 	// row.
-	function handleClick() {
+	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		handleClickCore();
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleClickCore() {
 		root.toggle(item.value);
 		root.focus(item.value);
 		// Deliberate, not incidental, the same reasoning as ToggleGroupItem: a
@@ -44,11 +63,25 @@
 		ref?.focus();
 	}
 
-	function handlePointerEnter() {
+	function handlePointerEnter(
+		event: PointerEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		handlePointerEnterCore();
+		(onpointerenter as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handlePointerEnterCore() {
 		root.scheduleOpen(item.value);
 	}
 
-	function handlePointerLeave() {
+	function handlePointerLeave(
+		event: PointerEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		handlePointerLeaveCore();
+		(onpointerleave as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handlePointerLeaveCore() {
 		root.scheduleClose();
 	}
 
@@ -59,7 +92,14 @@
 	// returns focus to this trigger (see `close()`), and if focus opened the
 	// panel, that same programmatic refocus would reopen it immediately —
 	// the pointer-and-keyboard fight the panel's own test file pins down.
-	function handleKeydown(event: KeyboardEvent) {
+	function handleKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		handleKeydownCore(event);
+		(onkeydown as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleKeydownCore(event: KeyboardEvent) {
 		switch (event.key) {
 			case "Enter":
 			case " ":
@@ -99,6 +139,7 @@
 </script>
 
 <button
+	{...rest}
 	bind:this={ref}
 	type="button"
 	id={item.triggerId}

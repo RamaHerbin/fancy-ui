@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	export interface DropdownMenuSubTriggerProps {
+	export interface DropdownMenuSubTriggerOwnProps {
 		/** Disables the row: skipped by keyboard navigation and typeahead, inert to click/hover. */
 		disabled?: boolean;
 		/** Leading icon. */
@@ -11,6 +12,10 @@
 		/** Additional CSS classes. */
 		class?: string;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the row; the managed ARIA, `id`, `role` and `tabindex` stay the component's. */
+	export type DropdownMenuSubTriggerProps = DropdownMenuSubTriggerOwnProps &
+		Omit<HTMLButtonAttributes, keyof DropdownMenuSubTriggerOwnProps>;
 </script>
 
 <script lang="ts">
@@ -23,6 +28,11 @@
 		icon,
 		children,
 		class: className,
+		onclick,
+		onmouseenter,
+		onmouseleave,
+		onkeydown,
+		...rest
 	}: DropdownMenuSubTriggerProps = $props();
 
 	const parentMenu = getContext<MenuContext>(MENU_KEY);
@@ -73,16 +83,21 @@
 		}
 	}
 
-	function handleClick(): void {
+	function handleClick(
+		event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	): void {
 		if (disabled) return;
 		// Same reasoning as `DropdownMenuItem`'s own click handler: hover
 		// already syncs the parent menu's tracked focus position, but a
 		// click reached without one first (a touch tap) wouldn't otherwise.
 		if (itemRef) parentMenu.focus.focusItem(itemRef);
 		sub.openSub();
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
-	function handleMouseEnter(): void {
+	function handleMouseEnter(
+		event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	): void {
 		if (disabled || !itemRef) return;
 		sub.keepOpen();
 		parentMenu.focus.focusItem(itemRef);
@@ -91,11 +106,15 @@
 			openIntentTimer = null;
 			sub.openSub();
 		}, OPEN_INTENT_MS);
+		(onmouseenter as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
-	function handleMouseLeave(): void {
+	function handleMouseLeave(
+		event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	): void {
 		clearOpenIntent();
 		sub.scheduleClose();
+		(onmouseleave as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
 	// ArrowRight always means "into the submenu", regardless of which side
@@ -103,12 +122,15 @@
 	// own doc comment. Only this row's own ArrowRight is handled here;
 	// ArrowLeft belongs to `DropdownMenuSubContent`, on the element it's
 	// actually about once focus has moved inside.
-	function handleKeydown(event: KeyboardEvent): void {
+	function handleKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	): void {
 		if (disabled) return;
 		if (event.key === "ArrowRight") {
 			event.preventDefault();
 			sub.openSub();
 		}
+		(onkeydown as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
 	// No font-size here — same reasoning as `DropdownMenuItem`'s own classes:
@@ -124,6 +146,7 @@
 </script>
 
 <button
+	{...rest}
 	bind:this={itemRef}
 	id={sub.triggerId}
 	type="button"

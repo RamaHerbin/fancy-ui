@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	export interface TabsTriggerProps {
+	export interface TabsTriggerOwnProps {
 		/** This trigger's value — which `TabsContent` it activates. */
 		value: string;
 		/** Disables just this trigger. A disabled trigger is skipped by the arrows and Home/End. */
@@ -13,6 +14,10 @@
 		/** Element reference. */
 		ref?: HTMLButtonElement | null;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the tab; `role`, `aria-selected`, `aria-controls`, `id`, `tabindex` and `data-*` state stay the component's. */
+	export type TabsTriggerProps = TabsTriggerOwnProps &
+		Omit<HTMLButtonAttributes, keyof TabsTriggerOwnProps>;
 </script>
 
 <script lang="ts">
@@ -26,6 +31,10 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		onclick,
+		onfocus,
+		onkeydown,
+		...rest
 	}: TabsTriggerProps = $props();
 
 	// Undefined outside a Tabs root: the trigger then has no selection or
@@ -140,7 +149,13 @@
 	// The native `disabled` attribute below is the real gate, but a
 	// synthetic click fired straight at the element — as a test does —
 	// walks straight past it, so the handler repeats the guard itself.
-	function handleClick() {
+	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (isDisabled) return;
+		handleClickCore();
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleClickCore() {
 		if (isDisabled) return;
 		context?.select(value);
 		// A native <button> is only guaranteed to take focus on click in
@@ -155,12 +170,26 @@
 	// Keeps the roving tabindex following real DOM focus even when focus
 	// arrives some other way than this trigger's own click/keydown handlers
 	// below — Shift+Tab back out of the panel, for instance.
-	function handleFocus() {
+	function handleFocus(event: FocusEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (isDisabled) return;
+		handleFocusCore();
+		(onfocus as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleFocusCore() {
 		if (isDisabled) return;
 		context?.focus(value);
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
+	function handleKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		if (isDisabled) return;
+		handleKeydownCore(event);
+		(onkeydown as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
+
+	function handleKeydownCore(event: KeyboardEvent) {
 		if (!context || isDisabled) return;
 		const horizontal = context.orientation === "horizontal";
 		switch (event.key) {
@@ -201,6 +230,7 @@
 </script>
 
 <button
+	{...rest}
 	bind:this={ref}
 	type="button"
 	role="tab"
@@ -208,12 +238,12 @@
 	data-value={value}
 	data-orientation={orientation}
 	data-variant={variant}
-	id={context?.triggerId(value)}
+	id={context?.triggerId(value) ?? rest.id}
 	class={classes}
 	disabled={isDisabled}
 	aria-selected={isSelected}
-	aria-controls={context?.panelId(value)}
-	tabindex={tabIndexAttr}
+	aria-controls={context?.panelId(value) ?? rest["aria-controls"]}
+	tabindex={tabIndexAttr ?? rest.tabindex}
 	onclick={handleClick}
 	onfocus={handleFocus}
 	onkeydown={handleKeydown}

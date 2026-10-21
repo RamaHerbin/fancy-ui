@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
 
 import type { Side, Align } from "../../internals/anchor-position.js";
 import { useLiveRef } from "../../internals/dom/use-live-ref.js";
@@ -10,7 +10,7 @@ import { POPOVER_KEY } from "./types.js";
 import type { PopoverContext } from "./types.js";
 import "./popover.css";
 
-export interface PopoverProps {
+interface PopoverOwnProps {
 	/**
 	 * Whether the panel is open.
 	 *
@@ -50,6 +50,13 @@ export interface PopoverProps {
 }
 
 /**
+ * Native `<button>` attributes and listeners are forwarded to the trigger button; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface PopoverProps
+	extends Omit<ComponentPropsWithoutRef<"button">, keyof PopoverOwnProps>, PopoverOwnProps {}
+
+/**
  * The disclosure root: the real `<button>` trigger, and the portalled panel
  * it anchors.
  *
@@ -69,6 +76,8 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
 		children,
 		className,
 		sound = false,
+		onClick,
+		...rest
 	},
 	forwardedRef
 ) {
@@ -127,8 +136,9 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
 		[openRef, onOpenChange, playCue]
 	);
 
-	function toggle() {
+	function toggle(event: MouseEvent<HTMLButtonElement>) {
 		setOpen(!open);
+		onClick?.(event);
 	}
 
 	const close = useCallback(() => {
@@ -157,6 +167,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(function Popover
 	return (
 		<POPOVER_KEY.Provider value={context}>
 			<button
+				{...rest}
 				ref={triggerRef}
 				type="button"
 				className="ft-popover-trigger border-border text-foreground hover:bg-accent hover:text-accent-foreground inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] border px-[14px] py-[7px] text-[12px] font-medium transition-colors focus-visible:ring-[3px] focus-visible:ring-[var(--ft-overlay-accent)]/35 focus-visible:outline-none"

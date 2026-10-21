@@ -147,6 +147,14 @@ by a panel already on its way to nowhere — it reaches whatever dismissable
 surface sits underneath. See Motion for the rest of what happens in that
 window.
 
+## Native attributes
+
+`NavigationMenuTrigger` forwards native `<button>` attributes and listeners
+(`data-*`, `aria-label`, `aria-describedby`, `title`, `onfocus`, ...) to its
+button. `id`, `aria-expanded`, `aria-controls` and the roving `tabindex` stay
+the component's. `onclick`, `onkeydown`, `onpointerenter` and `onpointerleave`
+run once after the component's own handling.
+
 ## Props
 
 ### NavigationMenu

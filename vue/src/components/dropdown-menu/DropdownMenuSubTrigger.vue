@@ -6,18 +6,36 @@ export interface DropdownMenuSubTriggerProps {
 	disabled?: boolean;
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onMouseenter?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onMouseleave?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onKeydown?: ((event: KeyboardEvent) => void) | ((event: KeyboardEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, useAttrs, useTemplateRef, watch } from "vue";
 
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { MENU_KEY, SUB_KEY } from "./types.js";
 
 defineOptions({ name: "DropdownMenuSubTrigger", inheritAttrs: false });
 
-const { disabled = false, class: className } = defineProps<DropdownMenuSubTriggerProps>();
+const attrs = useAttrs();
+
+const {
+	disabled = false,
+	class: className,
+	onClick,
+	onMouseenter,
+	onMouseleave,
+	onKeydown,
+} = defineProps<DropdownMenuSubTriggerProps>();
 
 defineSlots<{
 	/** Leading icon. */
@@ -79,16 +97,17 @@ function clearOpenIntent(): void {
 	}
 }
 
-function handleClick(): void {
+function handleClick(event: MouseEvent): void {
 	if (disabled) return;
 	// Same reasoning as `DropdownMenuItem`'s own click handler: hover already
 	// syncs the parent menu's tracked focus position, but a click reached
 	// without one first (a touch tap) wouldn't otherwise.
 	if (item.value) parentMenu.focus.focusItem(item.value);
 	sub.openSub();
+	callListener(onClick, event);
 }
 
-function handleMouseEnter(): void {
+function handleMouseEnter(event: MouseEvent): void {
 	if (disabled || !item.value) return;
 	sub.keepOpen();
 	parentMenu.focus.focusItem(item.value);
@@ -97,11 +116,13 @@ function handleMouseEnter(): void {
 		openIntentTimer = null;
 		sub.openSub();
 	}, OPEN_INTENT_MS);
+	callListener(onMouseenter, event);
 }
 
-function handleMouseLeave(): void {
+function handleMouseLeave(event: MouseEvent): void {
 	clearOpenIntent();
 	sub.scheduleClose();
+	callListener(onMouseleave, event);
 }
 
 // ArrowRight always means "into the submenu", regardless of which side it
@@ -110,6 +131,12 @@ function handleMouseLeave(): void {
 // `DropdownMenuSubContent`, on the element it's actually about once focus has
 // moved inside.
 function handleKeydown(event: KeyboardEvent): void {
+	if (disabled) return;
+	handleNavigationKey(event);
+	callListener(onKeydown, event);
+}
+
+function handleNavigationKey(event: KeyboardEvent): void {
 	if (disabled) return;
 	if (event.key === "ArrowRight") {
 		event.preventDefault();
@@ -132,6 +159,11 @@ const classes = computed(() =>
 <template>
 	<button
 		ref="item"
+		@click="handleClick"
+		@mouseenter="handleMouseEnter"
+		@mouseleave="handleMouseLeave"
+		@keydown="handleKeydown"
+		v-bind="attrs"
 		:id="sub.triggerId"
 		type="button"
 		role="menuitem"
@@ -142,10 +174,6 @@ const classes = computed(() =>
 		:aria-expanded="sub.open"
 		:aria-controls="sub.open ? sub.contentId : undefined"
 		:class="classes"
-		@click="handleClick"
-		@mouseenter="handleMouseEnter"
-		@mouseleave="handleMouseLeave"
-		@keydown="handleKeydown"
 	>
 		<span class="flex items-center gap-[10px]">
 			<span v-if="$slots.icon" class="ft-dropdown-menu-item-icon" aria-hidden="true">

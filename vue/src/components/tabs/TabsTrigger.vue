@@ -8,17 +8,33 @@ export interface TabsTriggerProps {
 	disabled?: boolean;
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onFocus?: ((event: FocusEvent) => void) | ((event: FocusEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onKeydown?: ((event: KeyboardEvent) => void) | ((event: KeyboardEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, useAttrs, useTemplateRef, watch } from "vue";
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { TABS_KEY } from "./types.js";
 
 defineOptions({ name: "TabsTrigger", inheritAttrs: false });
 
-const { value, disabled = false, class: className } = defineProps<TabsTriggerProps>();
+const attrs = useAttrs();
+
+const {
+	value,
+	disabled = false,
+	class: className,
+	onClick,
+	onFocus,
+	onKeydown,
+} = defineProps<TabsTriggerProps>();
 
 defineSlots<{ default?(): unknown }>();
 
@@ -178,7 +194,7 @@ watch(
 // The native `disabled` attribute below is the real gate, but a
 // synthetic click fired straight at the element — as a test does —
 // walks straight past it, so the handler repeats the guard itself.
-function handleClick() {
+function handleClick(event: MouseEvent) {
 	if (isDisabled.value) return;
 	context?.select(value);
 	// A native <button> is only guaranteed to take focus on click in
@@ -188,17 +204,25 @@ function handleClick() {
 	// click handler.
 	context?.focus(value);
 	el.value?.focus();
+	callListener(onClick, event);
 }
 
 // Keeps the roving tabindex following real DOM focus even when focus
 // arrives some other way than this trigger's own click/keydown handlers
 // below — Shift+Tab back out of the panel, for instance.
-function handleFocus() {
+function handleFocus(event: FocusEvent) {
 	if (isDisabled.value) return;
 	context?.focus(value);
+	callListener(onFocus, event);
 }
 
 function handleKeydown(event: KeyboardEvent) {
+	if (isDisabled.value) return;
+	handleNavigationKey(event);
+	callListener(onKeydown, event);
+}
+
+function handleNavigationKey(event: KeyboardEvent) {
 	if (!context || isDisabled.value) return;
 	const horizontal = context.orientation === "horizontal";
 	switch (event.key) {
@@ -241,21 +265,22 @@ function handleKeydown(event: KeyboardEvent) {
 <template>
 	<button
 		ref="el"
+		@click="handleClick"
+		@focus="handleFocus"
+		@keydown="handleKeydown"
+		v-bind="attrs"
 		type="button"
 		role="tab"
 		data-ft-tabs-trigger=""
 		:data-value="value"
 		:data-orientation="orientation"
 		:data-variant="variant"
-		:id="context?.triggerId(value)"
+		:id="context?.triggerId(value) ?? (attrs.id as string | undefined)"
 		:class="classes"
 		:disabled="isDisabled"
 		:aria-selected="isSelected"
-		:aria-controls="context?.panelId(value)"
-		:tabindex="tabIndexAttr"
-		@click="handleClick"
-		@focus="handleFocus"
-		@keydown="handleKeydown"
+		:aria-controls="context?.panelId(value) ?? (attrs['aria-controls'] as string | undefined)"
+		:tabindex="tabIndexAttr ?? (attrs.tabindex as number | string | undefined)"
 	>
 		<slot />
 	</button>

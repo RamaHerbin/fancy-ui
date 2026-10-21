@@ -1,10 +1,11 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	/**
 	 * Props for ComposerSubmit
 	 */
-	export interface ComposerSubmitProps {
+	export interface ComposerSubmitOwnProps {
 		/** Accessible name while the composer is idle. */
 		label?: string;
 		/** Accessible name while a response is streaming. */
@@ -14,6 +15,10 @@
 		/** Additional CSS classes */
 		class?: string;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the button; `type`, `disabled`, `aria-label` and `title` stay the component's. */
+	export type ComposerSubmitProps = ComposerSubmitOwnProps &
+		Omit<HTMLButtonAttributes, keyof ComposerSubmitOwnProps>;
 </script>
 
 <script lang="ts">
@@ -26,7 +31,15 @@
 		stopLabel = "Stop",
 		children,
 		class: className,
+		onclick,
+		...rest
 	}: ComposerSubmitProps = $props();
+
+	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (isDisabled) return;
+		if (streaming) composer?.stop();
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
 
 	// Undefined when the button is used outside a Composer: it then renders as a
 	// permanently disabled button rather than throwing.
@@ -51,6 +64,7 @@
 </script>
 
 <button
+	{...rest}
 	type={streaming ? "button" : "submit"}
 	class={cn(
 		"ft-composer-submit bg-foreground text-background hover:bg-foreground/90 focus-visible:ring-ring inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
@@ -59,7 +73,7 @@
 	disabled={isDisabled}
 	aria-label={name}
 	title={name}
-	onclick={streaming ? () => composer?.stop() : undefined}
+	onclick={handleClick}
 >
 	{#if children}
 		{@render children()}

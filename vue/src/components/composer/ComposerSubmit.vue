@@ -11,18 +11,28 @@ export interface ComposerSubmitProps {
 	stopLabel?: string;
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject, useAttrs } from "vue";
 
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
 
 defineOptions({ name: "ComposerSubmit", inheritAttrs: false });
 
-const { label = "Send", stopLabel = "Stop", class: className } = defineProps<ComposerSubmitProps>();
+const attrs = useAttrs();
+
+const {
+	label = "Send",
+	stopLabel = "Stop",
+	class: className,
+	onClick,
+} = defineProps<ComposerSubmitProps>();
 
 defineSlots<{
 	/** Replaces the built-in icon. Rendered in both the send and the stop state. */
@@ -57,14 +67,17 @@ const name = computed(() => (streaming.value ? stopLabel : label));
 // button carries no handler at all and submits through the form. A single
 // handler gated on the same flag is the same behaviour — a click while idle
 // still reaches the form's own submit.
-function handleClick() {
-	if (!streaming.value) return;
-	composer?.stop();
+function handleClick(event: MouseEvent) {
+	if (isDisabled.value) return;
+	if (streaming.value) composer?.stop();
+	callListener(onClick, event);
 }
 </script>
 
 <template>
 	<button
+		@click="handleClick"
+		v-bind="attrs"
 		:type="streaming ? 'button' : 'submit'"
 		:class="
 			cn(
@@ -75,7 +88,6 @@ function handleClick() {
 		:disabled="isDisabled"
 		:aria-label="name"
 		:title="name"
-		@click="handleClick"
 	>
 		<slot v-if="$slots.default" />
 		<svg v-else-if="streaming" viewBox="0 0 16 16" class="size-3.5" aria-hidden="true">
