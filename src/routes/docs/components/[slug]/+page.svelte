@@ -399,7 +399,7 @@
 		<section class="mb-10">
 			<h2 class="text-foreground mb-4 text-xl font-semibold" id="props">{t("comp.props")}</h2>
 			<div class="retro-props border-border overflow-hidden rounded-lg border">
-				<PropsTable props={component.props} {framework} vueModels={data.vueModels} />
+				<PropsTable props={component.props} {framework} ports={data.ports} />
 			</div>
 		</section>
 	{/if}
@@ -467,7 +467,7 @@
 										name={event.name}
 										port={framework === "svelte"
 											? event.name
-											: portEventName(event.name, framework)}
+											: portEventName(event.name, framework, data.ports)}
 									/>
 								</td>
 								<td class="px-4 py-3"><code class="font-mono text-xs">{event.detail}</code></td>

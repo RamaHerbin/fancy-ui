@@ -6,9 +6,11 @@
  * package the docs are written against.
  *
  * The choice is shareable: `?framework=react|vue|svelte` in the address wins
- * over the saved preference (and becomes it), and every switch rewrites that
- * parameter in place, so the link in the address bar always opens the page the
- * way it is shown. Only docs addresses (`/docs…`) are read and written: other
+ * over the saved preference (and becomes it). Once a choice exists (from the
+ * address, the saved preference or a switch), every switch and every docs
+ * navigation write that parameter in place, so the link in the address bar
+ * opens the page the way it is shown. A visitor who never chose keeps clean
+ * addresses. Only docs addresses (`/docs…`) are read and written: other
  * pages, such as the inspiration gallery, use `?framework=` as a filter of
  * their own. Components still read the store after mount
  * (`mounted ? store.framework : "svelte"`), so prerendered markup and the first
@@ -43,6 +45,8 @@ export function frameworkFromUrl(url: URL): Framework | null {
 }
 
 let framework = $state<Framework>("svelte");
+/** Whether the visitor has a choice to carry in docs addresses. */
+let chosen = false;
 
 function persist(next: Framework): void {
 	try {
@@ -75,17 +79,24 @@ if (browser) {
 	const fromUrl = frameworkFromUrl(new URL(window.location.href));
 	if (fromUrl) {
 		framework = fromUrl;
+		chosen = true;
 		persist(fromUrl);
 	} else {
 		try {
 			const saved = localStorage.getItem(STORAGE_KEY);
-			if (isFramework(saved)) framework = saved;
+			if (isFramework(saved)) {
+				framework = saved;
+				chosen = true;
+			}
 		} catch {
 			// Storage blocked: the in-memory default still works for the session.
 		}
 	}
 	window.addEventListener("storage", (event) => {
-		if (event.key === STORAGE_KEY && isFramework(event.newValue)) framework = event.newValue;
+		if (event.key === STORAGE_KEY && isFramework(event.newValue)) {
+			framework = event.newValue;
+			chosen = true;
+		}
 	});
 }
 
@@ -95,21 +106,28 @@ export function getFramework(): Framework {
 
 export function setFramework(next: Framework): void {
 	framework = next;
+	chosen = true;
 	if (!browser) return;
 	persist(next);
 	writeUrl(next);
 }
 
 /**
- * Adopt the framework a URL names, for links followed inside the app after the
- * store has loaded. A URL without the parameter, or outside the docs, leaves
- * the choice alone, and the address is not rewritten.
+ * After a navigation inside the app: adopt the framework the new URL names, or,
+ * when it names none, write the current choice into the docs address so it
+ * survives in-app links. Outside the docs nothing is read or written.
  */
 export function followUrl(url: URL): void {
+	if (!isDocsPath(url.pathname)) return;
 	const fromUrl = frameworkFromUrl(url);
-	if (!fromUrl || fromUrl === framework) return;
-	framework = fromUrl;
-	if (browser) persist(fromUrl);
+	if (fromUrl) {
+		chosen = true;
+		if (fromUrl === framework) return;
+		framework = fromUrl;
+		if (browser) persist(fromUrl);
+		return;
+	}
+	if (browser && chosen) writeUrl(framework);
 }
 
 /** Reactive accessor for components. */

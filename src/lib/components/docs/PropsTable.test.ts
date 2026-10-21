@@ -45,13 +45,24 @@ describe("PropsTable", () => {
 
 	it("shows Vue slots, and v-model only for the models the Vue port declares", () => {
 		const { container } = render(PropsTable, {
-			props: { props: PROPS, framework: "vue", vueModels: ["open"] },
+			props: { props: PROPS, framework: "vue", ports: { vueModels: ["open"] } },
 		});
 		expect(portNames(container)).toEqual({
-			onclick: "onClick",
+			onclick: "@click",
 			children: "#default",
 			open: "v-model:open",
-			onzorbleflux: "?",
+			onzorbleflux: "@zorbleflux",
 		});
+	});
+
+	it("shows the callback name each port declares", () => {
+		const { container } = render(PropsTable, {
+			props: {
+				props: [{ name: "onpercentagechange", type: "(p: number) => void", description: "" }],
+				framework: "react",
+				ports: { reactCallbacks: ["onpercentagechange"] },
+			},
+		});
+		expect(container.querySelectorAll("[data-port-name]")).toHaveLength(0);
 	});
 });

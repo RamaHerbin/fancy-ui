@@ -70,6 +70,26 @@ describe("framework store", () => {
 		expect(store.getFramework()).toBe("vue");
 	});
 
+	it("writes the choice back into a docs address reached without it", async () => {
+		const store = await load();
+		store.setFramework("react");
+		// An in-app link to another docs page drops the parameter…
+		visit("", "/docs/components/card");
+		store.followUrl(new URL(window.location.href));
+		// …and the store puts it back, keeping the rest of the address.
+		const url = new URL(window.location.href);
+		expect(url.pathname).toBe("/docs/components/card");
+		expect(url.searchParams.get("framework")).toBe("react");
+		expect(url.hash).toBe("#props");
+	});
+
+	it("leaves the address clean for a visitor who never chose", async () => {
+		const store = await load();
+		visit("", "/docs/components/card");
+		store.followUrl(new URL(window.location.href));
+		expect(new URL(window.location.href).searchParams.get("framework")).toBeNull();
+	});
+
 	describe("outside the docs", () => {
 		// The inspiration gallery uses ?framework= as a filter of its own.
 		it("does not read a gallery filter as the docs choice", async () => {

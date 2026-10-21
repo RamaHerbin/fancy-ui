@@ -173,6 +173,44 @@ test.describe("Docs follow the selected framework", () => {
 		await expect(page.locator("[data-port-name]")).toHaveCount(0);
 	});
 
+	test("the framework stays in the address after an in-app link", async ({ page }) => {
+		await page.goto("/docs/components/button");
+		await hydrated(page);
+		await pick(page, "Vue");
+		await expect(page).toHaveURL(/\/docs\/components\/button\?framework=vue$/);
+
+		// Sidebar links carry no parameter; the store writes it back after the navigation.
+		await page.locator('a[href="/docs/components/compare"]').first().click();
+		await expect(page).toHaveURL(/\/docs\/components\/compare\?framework=vue$/);
+		await expect(page.locator("section:has(h2#usage)")).toContainText("fancy-ui-vue");
+	});
+
+	test("callback names are the ones each port exports", async ({ page }) => {
+		const row = (name: string) =>
+			page.locator("section:has(h2#props) tbody tr", {
+				has: page.locator("code", { hasText: new RegExp(`^${name}$`) }),
+			});
+
+		// The React Compare keeps its callbacks lowercase; the Vue one declares camel case.
+		await page.goto("/docs/components/compare?framework=react");
+		await hydrated(page);
+		await expect(row("onpercentagechange").locator("[data-port-name]")).toHaveCount(0);
+		await expect(row("onpercentagechange").locator("[data-port-name-unknown]")).toHaveCount(0);
+		await pick(page, "Vue");
+		await expect(row("onpercentagechange").locator('[data-port-name="vue"]')).toHaveText(
+			"@percentage-change"
+		);
+
+		// A native listener RippleButton only forwards keeps its DOM name in Vue.
+		await page.goto("/docs/components/ripple-button?framework=vue");
+		await hydrated(page);
+		await expect(row("onpointermove").locator('[data-port-name="vue"]')).toHaveText("@pointermove");
+		await pick(page, "React");
+		await expect(row("onpointermove").locator('[data-port-name="react"]')).toHaveText(
+			"onPointerMove"
+		);
+	});
+
 	test("the gallery's own ?framework= filter is neither read nor written", async ({ page }) => {
 		await page.addInitScript(() => localStorage.setItem("fancy-ui-framework", "react"));
 		await page.goto("/inspiration?framework=vue");
