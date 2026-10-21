@@ -11,7 +11,7 @@ it directly).
 ```
 
 ```ts
-import { toast } from "$lib/fancy-ui/toast";
+import { toast } from "fancy-ui-svelte";
 
 toast({ title: "Theme saved", description: "CSS copied to the clipboard.", variant: "success" });
 ```

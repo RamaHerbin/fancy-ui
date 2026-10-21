@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { t, tn, tx, createSkinState } from "$lib/stores";
+	import { onMount } from "svelte";
+	import { t, tn, tx, tCategory, createSkinState } from "$lib/stores";
 	import RichText from "$lib/components/docs/RichText.svelte";
+	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import { INSTALL_SNIPPETS, INSTALL_VARIANTS } from "$lib/docs/install-snippets.js";
 	import InstallBlock from "$lib/components/docs/InstallBlock.svelte";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import PrevNextNav from "$lib/components/docs/PrevNextNav.svelte";
-	import { COMPONENT_COUNT } from "$lib/site.js";
-	import {
-		categories,
-		categoryLabels,
-		getComponentsGroupedByCategory,
-	} from "$lib/fancy-ui/registry.js";
+	import { COMPONENT_COUNT, PACKAGE_VERSION } from "$lib/site.js";
+	import { categories, getComponentsGroupedByCategory } from "$lib/fancy-ui/registry.js";
 
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
 
-	const importSnippet = "import { BorderBeam, Sparkles } from 'fancy-ui-svelte';";
-	const usageSnippet = `<div class="relative overflow-hidden rounded-xl border p-6">
-	<p>Your content here</p>
-	<BorderBeam />
-</div>`;
+	// The framework store hydrates from localStorage; read it after mount so the
+	// prerendered markup (Svelte) matches the first client render.
+	const frameworkState = createFrameworkState();
+	let mounted = $state(false);
+	onMount(() => (mounted = true));
+	const snippets = $derived(INSTALL_SNIPPETS[mounted ? frameworkState.framework : "svelte"]);
 
 	/* Retro "What's included" stat cards — real counts from the registry.
 	   $derived so the labels re-localize on locale switch. */
@@ -51,7 +51,7 @@
 	{#if isRetro}
 		<div class="intro-badges">
 			<span class="intro-badge intro-badge-a">{t("nav.gettingStarted")}</span>
-			<span class="intro-badge intro-badge-b">v1.0</span>
+			<span class="intro-badge intro-badge-b">v{PACKAGE_VERSION}</span>
 		</div>
 	{/if}
 
@@ -64,7 +64,7 @@
 
 	<div class="pills">
 		<span class="pill" data-accent="1"
-			><span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.pill.svelte")}</span
+			><span class="ic" style="color:#ff5d3b">⚡</span>{t("intro.pill.frameworks")}</span
 		>
 		<span class="pill" data-accent="2"
 			><span class="ic" style="color:#c084fc">✦</span>{t("intro.pill.animation")}</span
@@ -119,15 +119,15 @@
 			<div class="step-body">
 				<div class="step-title">{t("intro.quickStart.step1.title")}</div>
 				<p class="step-desc">{t("intro.quickStart.step1.desc")}</p>
-				<InstallBlock />
+				<InstallBlock variants={INSTALL_VARIANTS} />
 			</div>
 		</div>
 		<div class="step">
 			<div class="num num-2">2</div>
 			<div class="step-body">
 				<div class="step-title">{t("intro.quickStart.step2.title")}</div>
-				<p class="step-desc">{t("intro.quickStart.step2.desc")}</p>
-				<CodeBlock lang="ts" code={importSnippet} />
+				<p class="step-desc">{t("intro.importHint")}</p>
+				<CodeBlock lang="ts" code={snippets.imports} />
 			</div>
 		</div>
 		<div class="step">
@@ -135,7 +135,7 @@
 			<div class="step-body">
 				<div class="step-title">{t("intro.quickStart.step3.title")}</div>
 				<p class="step-desc">{t("intro.quickStart.step3.desc")}</p>
-				<CodeBlock lang="svelte" code={usageSnippet} />
+				<CodeBlock lang={snippets.lang} code={snippets.usage} />
 			</div>
 		</div>
 	</div>
@@ -159,11 +159,10 @@
 		<p class="section-body">
 			{tn("intro.whatsIncluded.body", COMPONENT_COUNT, { categories: usedCategories.length })}
 		</p>
-		<!-- Every category the registry uses, in registry order; the labels stay
-		     English on purpose (they are the machine-facing names). -->
+		<!-- Every category the registry uses, in registry order, labelled through the catalog. -->
 		<div class="cats">
 			{#each usedCategories as category (category)}
-				<div class="cat">{categoryLabels[category]}</div>
+				<div class="cat">{tCategory(category)}</div>
 			{/each}
 		</div>
 	{/if}
@@ -246,7 +245,7 @@
 		margin-bottom: 28px;
 	}
 
-	/* <RichText> renders .grad/.solid, hence :global. Brand blue→purple hue gradient (matches the design). The semantic
+	/* <RichText> renders .grad, hence :global. Brand blue→purple hue gradient (matches the design). The semantic
 	   --gradient-primary is a lightness ramp between --primary/--accent, which
 	   fades clipped text into the background instead of reading as a gradient. */
 	.intro :global(.grad) {
@@ -255,11 +254,6 @@
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
 		color: transparent;
-		font-weight: 600;
-	}
-
-	.intro :global(.solid) {
-		color: #b07aff;
 		font-weight: 600;
 	}
 

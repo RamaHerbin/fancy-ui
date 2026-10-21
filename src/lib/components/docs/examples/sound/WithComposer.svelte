@@ -8,7 +8,7 @@
 		ComposerCommandMenu,
 	} from "$lib/fancy-ui/composer";
 	import { SoundToggle } from "$lib/fancy-ui/sound/index.js";
-	import type { CommandItemData, ModelOptionData } from "$lib/fancy-ui/_internals/ai-types.js";
+	import type { CommandItemData, ModelOptionData } from "$lib/fancy-ui";
 
 	/** Generic tiers, so the fixture says nothing about anyone's product line-up. */
 	const MODELS: ModelOptionData[] = [

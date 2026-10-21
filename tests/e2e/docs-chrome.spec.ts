@@ -1,0 +1,89 @@
+import { expect, test } from "@playwright/test";
+import { collectConsoleErrors, routeGithubApi } from "./_helpers/console-guard";
+
+test.beforeEach(async ({ page }) => {
+	await routeGithubApi(page);
+});
+
+test.describe("docs chrome", () => {
+	test("the header logo points at the landing page, which responds 200", async ({
+		page,
+		request,
+	}) => {
+		const guard = collectConsoleErrors(page);
+		await page.setViewportSize({ width: 390, height: 800 });
+		await page.goto("/docs/components/button");
+		const logo = page.locator("header a[data-docs-logo]");
+		await expect(logo).toBeVisible();
+		await expect(logo).toHaveAttribute("href", "/");
+		expect((await request.get("/")).status()).toBe(200);
+		expect(guard.errors).toEqual([]);
+	});
+
+	test("the sidebar brand points at the landing page on desktop", async ({ page }) => {
+		await page.setViewportSize({ width: 1280, height: 800 });
+		await page.goto("/docs/components/button");
+		await expect(page.locator("aside a[data-docs-brand]")).toHaveAttribute("href", "/");
+		await expect(page.locator("header a[data-docs-logo]")).toBeHidden();
+	});
+
+	for (const path of ["/docs/components/button", "/docs/getting-started/installation"]) {
+		test(`every breadcrumb link on ${path} responds 200`, async ({ page, request }) => {
+			await page.setViewportSize({ width: 1280, height: 800 });
+			await page.goto(path);
+			const nav = page.getByRole("navigation", { name: "Documentation breadcrumb" });
+			await expect(nav).toBeVisible();
+			const hrefs = await nav
+				.locator("a")
+				.evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+			expect(hrefs.length).toBeGreaterThan(0);
+			for (const href of hrefs) {
+				expect((await request.get(href!)).status(), href!).toBe(200);
+			}
+		});
+	}
+
+	test("the skip link moves focus to #main", async ({ page }) => {
+		await page.setViewportSize({ width: 1280, height: 800 });
+		await page.goto("/docs/getting-started/installation");
+		await page.keyboard.press("Tab");
+		const skip = page.locator("a.docs-skip-link");
+		await expect(skip).toBeFocused();
+		await expect(skip).toBeInViewport();
+		await page.keyboard.press("Enter");
+		await expect(page.locator("main#main")).toBeFocused();
+	});
+
+	test("DocHeader shows a search button at 390 px", async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 800 });
+		await page.goto("/docs/components/button");
+		const search = page.locator("header").getByRole("button", { name: "Search", exact: true });
+		await expect(search).toBeVisible();
+	});
+
+	test("the current crumb is not truncated at 390 px with a real star count", async ({ page }) => {
+		await page.route("https://api.github.com/**", (route) =>
+			route.fulfill({ json: { stargazers_count: 12345 } })
+		);
+		await page.setViewportSize({ width: 390, height: 800 });
+		await page.goto("/docs/components/card-3d");
+		const current = page.locator('header nav [aria-current="page"]');
+		await expect(current).toHaveText("Card3D");
+		const fits = await current.evaluate((el) => el.scrollWidth <= el.clientWidth);
+		expect(fits).toBe(true);
+	});
+
+	test("the compact contents list shows below xl and hides at xl", async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 800 });
+		await page.goto("/docs/getting-started/installation");
+		await expect(page.locator("details[data-toc-compact]")).toBeVisible();
+		await page.setViewportSize({ width: 1440, height: 900 });
+		await expect(page.locator("details[data-toc-compact]")).toBeHidden();
+	});
+
+	test("?lang=ar sets html lang and dir", async ({ page }) => {
+		await page.goto("/docs/components/button?lang=ar");
+		await expect(page.locator("html")).toHaveAttribute("lang", "ar");
+		await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+	});
+});

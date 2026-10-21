@@ -56,7 +56,7 @@ A before/after image comparison slider split by a blade of light.
 
 ```svelte
 <script>
-  import { Compare } from '$lib/fancy-ui/compare';
+  import { Compare } from 'fancy-ui-svelte';
 </script>
 
 <!-- Basic usage with images -->
@@ -107,7 +107,7 @@ A before/after image comparison slider split by a blade of light.
 
 ```svelte
 <script>
-  import { StarField } from '$lib/fancy-ui/compare';
+  import { StarField } from 'fancy-ui-svelte';
 </script>
 
 <StarField starsCount={60} class="absolute inset-0" />
