@@ -381,4 +381,68 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"Komponen adalah single-file component Vue 3.5, jadi Vue 3.5.2 atau lebih baru diperlukan.",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "Langsung ke konten",
+	"a11y.docsBreadcrumb": "Breadcrumb dokumentasi",
+	"a11y.prevNext": "Halaman sebelumnya dan berikutnya",
+	"a11y.search": "Cari",
+	"search.a11y.close": "Tutup pencarian",
+	"nav.backToSite": "Kembali ke beranda FancyUI",
+	"nav.recipes": "Resep",
+	"toc.show": "Tampilkan daftar isi",
+	"footer.docs": "Dokumentasi",
+	"footer.contribute": "Berkontribusi",
+	"footer.issues": "Issue",
+	"footer.discussions": "Diskusi",
+	"footer.security": "Keamanan",
+	"footer.conduct": "Kode etik",
+	"footer.changelog": "Changelog",
+	"footer.versions": "Versi",
+	"footer.install": "Instalasi",
+	"footer.license": "Lisensi MIT",
+	"comp.editPage": "Edit halaman ini",
+	"comp.reportIssue": "Laporkan masalah",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"adalah kumpulan {count} komponen UI animasi dan interaktif untuk Svelte 5, React, dan Vue, yang dibangun di atas design token yang sama.",
+	"intro.importHint": "Impor komponen yang Anda butuhkan. Jalur impor mengikuti framework Anda.",
+	"install.kitOptional":
+		"SvelteKit bersifat opsional: FancyUI berjalan di setiap proyek Svelte 5 yang dibangun dengan Vite.",
+	"theming.cssPerFramework":
+		"Impor stylesheet untuk framework Anda: setiap paket menyertakan stylesheet-nya sendiri.",
+	"status.planned": "Direncanakan",
+	"status.deprecated": "Usang",
+	"comp.sinceVersion": "Baru di v{version}",
+	"comp.deprecatedNotice": "Komponen ini sudah usang dan dapat dihapus pada rilis mendatang.",
+	"comp.inspiredByNoLink": "Terinspirasi dari {name}",
+	"recipes.title": "Resep",
+	"recipes.lead":
+		"Komposisi langkah demi langkah yang menggabungkan beberapa komponen menjadi antarmuka utuh.",
+	"recipes.components": "Komponen: {count}",
+	"error.notFoundTitle": "Halaman tidak ditemukan",
+	"error.genericTitle": "Terjadi kesalahan",
+	"error.notFoundBody": "Halaman yang Anda cari tidak ada atau telah dipindahkan.",
+	"error.genericBody": "Terjadi kesalahan tak terduga. Coba lagi, atau kembali ke dokumentasi.",
+	"error.unauthorizedTitle": "Perlu masuk",
+	"error.unauthorizedBody": "Anda harus masuk untuk menggunakan halaman ini.",
+	"error.home": "Kembali ke beranda",
+	"error.browse": "Jelajahi komponen",
+	"error.search": "Cari di dokumentasi",
+	"error.report": "Laporkan tautan rusak",
+	"comp.previewFailed": "Pratinjau ini tidak dapat dimuat.",
+	"demo.noPreview": "Belum ada pratinjau untuk komponen ini.",
+	"demo.notFound": "Komponen tidak ditemukan.",
+	"recipes.steps": "Langkah",
+	"recipes.pitfalls": "Jebakan umum",
+	"recipes.componentsUsed": "Komponen yang digunakan",
+	"seo.introduction":
+		"FancyUI adalah pustaka komponen UI animasi dan interaktif untuk Svelte 5, React, dan Vue. Pelajari isinya dan cara memulai.",
+	"seo.installation":
+		"Instal FancyUI untuk Svelte 5, React, atau Vue: tambahkan paket, impor stylesheet, lalu render komponen pertama Anda.",
+	"seo.theming":
+		"Sesuaikan FancyUI dengan design token: warna OKLCh, radius, gerakan, dan mode gelap, untuk Svelte 5, React, dan Vue.",
+	"seo.themeGenerator":
+		"Atur design token OKLCh FancyUI secara langsung dan salin CSS yang dihasilkan ke aplikasi Anda.",
+	"seo.changelog": "Catatan rilis paket FancyUI untuk Svelte 5, React, dan Vue.",
 } satisfies Catalog;

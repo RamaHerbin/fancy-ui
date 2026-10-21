@@ -9,6 +9,7 @@ vi.mock("$app/stores", () => ({
 }));
 
 import Sidebar from "./Sidebar.svelte";
+import { setSkin } from "$lib/stores";
 
 describe("Sidebar", () => {
 	afterEach(cleanup);
@@ -64,4 +65,32 @@ describe("Sidebar", () => {
 			expect(label.className).toContain(cls);
 		}
 	});
+
+	it("keeps the retro Explorer title inside the docs", () => {
+		setSkin("retro-os");
+		try {
+			const { container } = render(Sidebar);
+			const title = getAside(container).querySelector("a.retro-explorer-title");
+			expect(title).toHaveAttribute("href", "/docs");
+			expect(getAside(container).querySelector("a[data-docs-brand]")).toBeNull();
+		} finally {
+			setSkin("standard");
+		}
+	});
+
+	it.each(["standard", "brutal"] as const)(
+		"points the %s brand link at the landing page",
+		(skin) => {
+			setSkin(skin);
+			try {
+				const { container } = render(Sidebar);
+				const brand = getAside(container).querySelector("a[data-docs-brand]");
+				expect(brand).not.toBeNull();
+				expect(brand).toHaveAttribute("href", "/");
+				expect(brand).toHaveAttribute("aria-label", "Back to FancyUI home");
+			} finally {
+				setSkin("standard");
+			}
+		}
+	);
 });

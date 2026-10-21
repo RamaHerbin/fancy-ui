@@ -2,6 +2,13 @@
 	import { page } from "$app/stores";
 	import { t, getLocale, createSkinState } from "$lib/stores";
 
+	interface Props {
+		/** Collapsed `<details>` variant for widths below xl, where the rail is hidden. */
+		compact?: boolean;
+	}
+
+	let { compact = false }: Props = $props();
+
 	const skinState = createSkinState();
 	const isRetro = $derived(skinState.skin === "retro-os");
 
@@ -44,6 +51,9 @@
 		elements.forEach((el, i) => {
 			if (!el.id) el.id = headings[i].id;
 		});
+
+		// The compact list has no active item to track.
+		if (compact) return;
 
 		observer = new IntersectionObserver(
 			(entries) => {
@@ -102,7 +112,30 @@
 	});
 </script>
 
-{#if headings.length > 0}
+{#if headings.length > 0 && compact}
+	<details
+		data-toc-compact
+		class="docs-toc-compact border-border bg-muted/30 mb-6 rounded-md border xl:hidden"
+	>
+		<summary
+			class="docs-toc-compact-summary text-foreground cursor-pointer px-3 py-2 text-sm font-medium"
+		>
+			{t("toc.onThisPage")}
+		</summary>
+		<ul class="docs-toc-list space-y-1 px-3 pt-1 pb-3">
+			{#each headings as heading}
+				<li style:padding-inline-start="{(heading.level - 2) * 12}px">
+					<a
+						href="#{heading.id}"
+						class="text-muted-foreground hover:text-foreground block py-1 text-sm transition-colors"
+					>
+						{heading.text}
+					</a>
+				</li>
+			{/each}
+		</ul>
+	</details>
+{:else if headings.length > 0}
 	<nav class="hidden xl:block">
 		<div class="docs-toc sticky top-20" class:retro-toc={isRetro}>
 			{#if isRetro}

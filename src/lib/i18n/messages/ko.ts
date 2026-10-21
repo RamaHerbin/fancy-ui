@@ -375,4 +375,68 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"컴포넌트는 Vue 3.5 단일 파일 컴포넌트이므로 Vue 3.5.2 이상이 필요합니다.",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "본문으로 건너뛰기",
+	"a11y.docsBreadcrumb": "문서 이동 경로",
+	"a11y.prevNext": "이전 및 다음 페이지",
+	"a11y.search": "검색",
+	"search.a11y.close": "검색 닫기",
+	"nav.backToSite": "FancyUI 홈으로 돌아가기",
+	"nav.recipes": "레시피",
+	"toc.show": "목차 표시",
+	"footer.docs": "문서",
+	"footer.contribute": "기여하기",
+	"footer.issues": "이슈",
+	"footer.discussions": "토론",
+	"footer.security": "보안",
+	"footer.conduct": "행동 강령",
+	"footer.changelog": "변경 내역",
+	"footer.versions": "버전",
+	"footer.install": "설치",
+	"footer.license": "MIT 라이선스",
+	"comp.editPage": "이 페이지 편집",
+	"comp.reportIssue": "문제 신고",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"는 Svelte 5, React, Vue용 애니메이션 인터랙티브 UI 컴포넌트 {count}개를 모은 컬렉션이며, 모두 같은 디자인 토큰을 기반으로 합니다.",
+	"intro.importHint":
+		"필요한 컴포넌트를 가져옵니다. 가져오기 경로는 사용하는 프레임워크에 따라 달라집니다.",
+	"install.kitOptional":
+		"SvelteKit은 선택 사항입니다. FancyUI는 Vite로 빌드하는 모든 Svelte 5 프로젝트에서 작동합니다.",
+	"theming.cssPerFramework":
+		"사용하는 프레임워크에 맞는 스타일시트를 가져옵니다. 각 패키지에 자체 스타일시트가 포함되어 있습니다.",
+	"status.planned": "예정",
+	"status.deprecated": "지원 중단",
+	"comp.sinceVersion": "v{version}의 새 기능",
+	"comp.deprecatedNotice": "이 컴포넌트는 지원이 중단되었으며 향후 릴리스에서 제거될 수 있습니다.",
+	"comp.inspiredByNoLink": "{name}에서 영감을 받았습니다",
+	"recipes.title": "레시피",
+	"recipes.lead": "여러 컴포넌트를 조합해 완성된 인터페이스를 만드는 단계별 구성 예시입니다.",
+	"recipes.components": "컴포넌트: {count}개",
+	"error.notFoundTitle": "페이지를 찾을 수 없습니다",
+	"error.genericTitle": "문제가 발생했습니다",
+	"error.notFoundBody": "찾으시는 페이지가 없거나 이동되었습니다.",
+	"error.genericBody": "예기치 않은 오류가 발생했습니다. 다시 시도하거나 문서로 돌아가 주세요.",
+	"error.unauthorizedTitle": "로그인이 필요합니다",
+	"error.unauthorizedBody": "이 페이지를 사용하려면 로그인해야 합니다.",
+	"error.home": "홈으로 돌아가기",
+	"error.browse": "컴포넌트 둘러보기",
+	"error.search": "문서 검색",
+	"error.report": "깨진 링크 신고",
+	"comp.previewFailed": "이 미리보기를 불러오지 못했습니다.",
+	"demo.noPreview": "이 컴포넌트의 미리보기는 아직 없습니다.",
+	"demo.notFound": "컴포넌트를 찾을 수 없습니다.",
+	"recipes.steps": "단계",
+	"recipes.pitfalls": "흔한 함정",
+	"recipes.componentsUsed": "사용된 컴포넌트",
+	"seo.introduction":
+		"FancyUI는 Svelte 5, React, Vue용 애니메이션 인터랙티브 UI 컴포넌트 라이브러리입니다. 포함된 내용과 시작 방법을 소개합니다.",
+	"seo.installation":
+		"Svelte 5, React, Vue용 FancyUI를 설치합니다. 패키지를 추가하고 스타일시트를 가져온 뒤 첫 컴포넌트를 렌더링합니다.",
+	"seo.theming":
+		"디자인 토큰으로 FancyUI를 사용자 지정합니다. OKLCh 색상, 반경, 모션, 다크 모드를 Svelte 5, React, Vue에서 지원합니다.",
+	"seo.themeGenerator":
+		"FancyUI의 OKLCh 디자인 토큰을 실시간으로 조정하고 생성된 CSS를 앱에 복사합니다.",
+	"seo.changelog": "Svelte 5, React, Vue용 FancyUI 패키지의 릴리스 노트입니다.",
 } satisfies Catalog;
