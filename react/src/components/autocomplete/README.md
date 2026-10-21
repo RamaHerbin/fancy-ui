@@ -74,3 +74,7 @@ exactly as the source seeds its own.
   collapses its own duration to 0, `runTransition` then never calls
   `element.animate()`, and the close stays synchronous. The source's `<style>`
   block carries no reduced-motion rule of its own and is ported unchanged.
+
+## Native attributes
+
+Every other native `<input>` attribute and listener (`aria-*`, `data-*`, `autoComplete`, `inputMode`, `form`, `onFocus`, `onBlur`, `onKeyDown`, `onChange`, ...) is forwarded to the text input, spread before the managed ARIA so a consumer can add but never override `role`, `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-haspopup`, `aria-autocomplete` or a computed `aria-invalid`. A consumer `aria-describedby` is merged with the surrounding `FormField`'s. There is no hidden input: `name`, `form`, `required` and `maxLength` land on the input itself. Native `minLength` and `onSelect` are not available because the component uses those names for its own props. Keys the component handles (Enter/arrows while the panel is open) reach your `onKeyDown` already prevented; check `event.defaultPrevented` before acting on them.

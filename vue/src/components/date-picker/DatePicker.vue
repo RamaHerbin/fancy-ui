@@ -43,7 +43,7 @@ export interface DatePickerProps {
 </script>
 
 <script setup lang="ts">
-import { computed, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, useAttrs, ref, shallowRef, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -73,6 +73,10 @@ import {
 	getWeekdayNames,
 	isDayInRange,
 } from "./date-utils.js";
+
+// Every other native `<button>` attribute and listener lands on the trigger
+// through `v-bind="triggerAttrs()"` below.
+const attrs = useAttrs();
 
 defineOptions({ name: "DatePicker", inheritAttrs: false });
 
@@ -155,9 +159,7 @@ const weeks = computed(() =>
 		: []
 );
 const weekdayNames = computed(() => getWeekdayNames(weekStartsOn, locale));
-const monthLabel = computed(() =>
-	viewDate.value ? formatMonthYear(viewDate.value, locale) : ""
-);
+const monthLabel = computed(() => (viewDate.value ? formatMonthYear(viewDate.value, locale) : ""));
 const triggerLabel = computed(() => formatTriggerDate(value.value, locale));
 
 /**
@@ -212,11 +214,7 @@ watch(
 function setFocusedDate(date: Date) {
 	focusedDate.value = date;
 	const view = viewDate.value;
-	if (
-		!view ||
-		date.getFullYear() !== view.getFullYear() ||
-		date.getMonth() !== view.getMonth()
-	) {
+	if (!view || date.getFullYear() !== view.getFullYear() || date.getMonth() !== view.getMonth()) {
 		viewDate.value = new Date(date.getFullYear(), date.getMonth(), 1);
 	}
 }
@@ -409,25 +407,39 @@ function dayClasses(cell: DayCell): string {
 		cell.selected && "bg-accent text-accent-foreground"
 	);
 }
+
+// The consumer's attributes first, the component's invariants after, so a
+// consumer can add but never break (`role`, `type`, the managed `aria-*`). A
+// function, not a `computed`: `attrs` is not reactive, so it is re-read on every
+// render. The template writes `@click` BEFORE `v-bind`, so Vue runs the
+// internal handler first and the consumer's listener (in `attrs`) after it.
+function triggerAttrs(): Record<string, unknown> {
+	const describedBy =
+		[field?.describedBy, attrs["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+	return {
+		...attrs,
+		type: "button",
+		role: "combobox",
+		"aria-haspopup": "grid",
+		"aria-expanded": open.value,
+		"aria-controls": open.value ? panelId : undefined,
+		"aria-invalid": effectiveInvalid.value ? "true" : attrs["aria-invalid"],
+		"aria-required": effectiveRequired.value ? "true" : attrs["aria-required"],
+		"aria-describedby": describedBy,
+		"aria-label": label ?? attrs["aria-label"],
+	};
+}
 </script>
 
 <template>
 	<button
 		ref="trigger"
-		type="button"
-		role="combobox"
 		:id="effectiveId"
 		:name="name"
 		:class="classes"
 		:disabled="effectiveDisabled"
-		aria-haspopup="grid"
-		:aria-expanded="open"
-		:aria-controls="open ? panelId : undefined"
-		:aria-required="effectiveRequired ? 'true' : undefined"
-		:aria-invalid="effectiveInvalid ? 'true' : undefined"
-		:aria-describedby="field?.describedBy"
-		:aria-label="label"
 		@click="toggle"
+		v-bind="triggerAttrs()"
 	>
 		<!--
 			The object form of `v-bind`, not `:class="… ? undefined : '…'"`: a
@@ -459,6 +471,7 @@ function dayClasses(cell: DayCell): string {
 		v-if="name"
 		type="hidden"
 		:name="name"
+		:form="attrs.form as string | undefined"
 		:value="value ? formatISODate(value) : ''"
 		:disabled="effectiveDisabled"
 	/>
@@ -498,14 +511,18 @@ function dayClasses(cell: DayCell): string {
 						class="ft-date-picker-nav text-muted-foreground cursor-pointer"
 						aria-label="Previous month"
 						@click="moveMonths(-1)"
-					>‹</button>
+					>
+						‹
+					</button>
 					<span>{{ monthLabel }}</span>
 					<button
 						type="button"
 						class="ft-date-picker-nav text-muted-foreground cursor-pointer"
 						aria-label="Next month"
 						@click="moveMonths(1)"
-					>›</button>
+					>
+						›
+					</button>
 				</div>
 
 				<table

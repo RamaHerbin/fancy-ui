@@ -2,6 +2,8 @@
 
 An animated three-dot presence indicator for chat surfaces, tuned to stay legible without pulling the eye away from the conversation.
 
+Native attributes and listeners go to the root `<div>`. `role="status"` and `aria-live` stay managed by the component; the component's own `--ft-typing-*` styles win over a consumer `style`.
+
 ## Components
 
 - `TypingIndicator` - Three dots animated as a single wave, wrapped in a polite live region

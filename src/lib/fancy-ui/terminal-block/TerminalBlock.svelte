@@ -4,7 +4,9 @@
 	/**
 	 * Props for TerminalBlock
 	 */
-	export interface TerminalBlockProps {
+	import type { HTMLAttributes } from "svelte/elements";
+
+	export interface TerminalBlockOwn {
 		/** Everything the command has printed so far, not the latest chunk. Reassign as lines arrive. */
 		output: string;
 		/** The command that produced the output, shown on the first line after the prompt glyph. */
@@ -28,6 +30,9 @@
 		/** The root element */
 		ref?: HTMLDivElement | null;
 	}
+
+	export type TerminalBlockProps = TerminalBlockOwn &
+		Omit<HTMLAttributes<HTMLDivElement>, keyof TerminalBlockOwn>;
 </script>
 
 <script lang="ts">
@@ -47,6 +52,7 @@
 		header,
 		class: className,
 		ref = $bindable(null),
+		...restProps
 	}: TerminalBlockProps = $props();
 
 	/**
@@ -135,6 +141,7 @@
 </script>
 
 <div
+	{...restProps}
 	bind:this={ref}
 	class={cn("ft-terminal overflow-hidden rounded-lg font-mono text-sm", className)}
 >

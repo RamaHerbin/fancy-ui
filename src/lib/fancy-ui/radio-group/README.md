@@ -159,6 +159,10 @@ rule every other field-derived value here follows, just applied to
 | `class`    | `string`                   | —       | Additional CSS classes, merged onto the wrapping `<label>`           |
 | `ref`      | `HTMLInputElement \| null` | `null`  | Bindable element reference, to the native `<input>`                  |
 
+## Native attributes
+
+Two targets, one per component. `RadioGroup` forwards group-level attributes (`id`, `aria-label`, `aria-describedby`, `data-*`, …) to its `<div role="radiogroup">`; `role` stays authoritative and a consumer `aria-describedby` is merged with the FormField one. `RadioGroupItem` forwards everything else (`id`, `aria-*`, `data-*`, `form`, `onfocus`, `onblur`, `onkeydown`, …) to its own `<input type="radio">`; `type`, `checked`, `value` and `disabled` stay authoritative, `name` and `required` come from the group (a standalone item keeps its own). A consumer `onchange` on an item runs once, after the group selection. To submit the group with a form elsewhere in the page, give every item the same `form`.
+
 ## Theming
 
 The checked ring/dot colour has no semantic token in the app's theme layer,

@@ -4,6 +4,8 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 import RadioGroup from "./RadioGroup.svelte";
 import RadioGroupItem from "./RadioGroupItem.svelte";
 import Harness from "./RadioGroupHarness.test.svelte";
+import RgForward from "./RadioGroupForwardHarness.test.svelte";
+import FieldForward from "./RadioGroupForwardFieldHarness.test.svelte";
 import type { FieldContext } from "../_internals/field.svelte.js";
 import { sound } from "../sound/sound.svelte.js";
 
@@ -35,6 +37,13 @@ function byLabel(container: HTMLElement, label: string): HTMLInputElement {
 
 function snippet(html: string) {
 	return createRawSnippet(() => ({ render: () => html }));
+}
+
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
 }
 
 describe("RadioGroup", () => {
@@ -550,6 +559,96 @@ describe("RadioGroup", () => {
 
 			expect(play).toHaveBeenNthCalledWith(1, "select");
 			expect(play).toHaveBeenNthCalledWith(2, "select");
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards aria-label, id and data-* to the group root", () => {
+			const { container } = render(RgForward, {
+				props: {
+					groupAttrs: { id: "pick-group", "aria-label": "Plan", "data-testid": "grp" },
+				},
+			});
+			const root = group(container);
+			expect(root.id).toBe("pick-group");
+			expect(root.getAttribute("data-testid")).toBe("grp");
+			expect(root.getAttribute("role")).toBe("radiogroup");
+		});
+
+		it("merges a consumer aria-describedby on the root with the FormField one", () => {
+			const context = {
+				controlId: "ctx-id",
+				describedBy: "ctx-help",
+				invalid: false,
+				valid: true,
+				required: false,
+				disabled: false,
+			};
+			const { container } = render(FieldForward, {
+				props: { context, groupAttrs: { "aria-describedby": "mine" } },
+			});
+			expect(group(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("forwards attributes and listeners to each item's own input", async () => {
+			const onblur = vi.fn();
+			const onkeydown = vi.fn();
+			const { container } = render(RgForward, {
+				props: {
+					itemAttrs: {
+						id: "opt-a",
+						"data-testid": "opt",
+						"aria-describedby": "hint",
+						onblur,
+						onkeydown,
+					},
+				},
+			});
+			const a = byLabel(container, "Option A");
+			expect(a.id).toBe("opt-a");
+			expect(a.getAttribute("data-testid")).toBe("opt");
+			expect(a.getAttribute("aria-describedby")).toBe("hint");
+			await fireEvent.keyDown(a, { key: "x" });
+			await fireEvent.blur(a);
+			expect(onkeydown).toHaveBeenCalledTimes(1);
+			expect(onblur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs an item's consumer onchange once, after the group selection", async () => {
+			const order: string[] = [];
+			const onchange = vi.fn(() => order.push("consumer"));
+			const onValueChange = vi.fn(() => order.push("internal"));
+			const { container } = render(RgForward, {
+				props: { itemAttrs: { onchange }, onValueChange },
+			});
+			await fireEvent.click(byLabel(container, "Option A"));
+			expect(onchange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer"]);
+		});
+
+		it("does not let a consumer override the managed attributes", () => {
+			const { container } = render(RgForward, {
+				props: {
+					groupAttrs: { role: "group", "aria-required": "false" },
+					itemAttrs: { type: "text", checked: true, name: "other" },
+				},
+			});
+			expect(group(container).getAttribute("role")).toBe("radiogroup");
+			const a = byLabel(container, "Option A");
+			expect(a.type).toBe("radio");
+			expect(a.checked).toBe(false);
+			expect(a.name).toBe("pick");
+		});
+
+		it("takes part in a form through each item's form attribute", async () => {
+			const form = formOf("rg-form");
+			const { container } = render(RgForward, {
+				props: { itemAttrs: { form: "rg-form" } },
+			});
+			await fireEvent.click(byLabel(container, "Option A"));
+			expect(byLabel(container, "Option A").form).toBe(form);
+			expect(new FormData(form).get("pick")).toBe("a");
+			form.remove();
 		});
 	});
 });

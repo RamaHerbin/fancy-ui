@@ -152,6 +152,22 @@ const VetoHarness = defineComponent({
 	},
 });
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
+const FWD_CONTEXT: FieldContext = {
+	controlId: "ctx-id",
+	describedBy: "ctx-help",
+	invalid: false,
+	valid: true,
+	required: false,
+	disabled: false,
+};
+
 describe("RadioGroup", () => {
 	afterEach(cleanup);
 
@@ -686,6 +702,114 @@ describe("RadioGroup", () => {
 
 			expect(play).toHaveBeenNthCalledWith(1, "select", undefined);
 			expect(play).toHaveBeenNthCalledWith(2, "select", undefined);
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		function pair(
+			groupAttrs: Record<string, unknown> = {},
+			itemAttrs: Record<string, unknown> = {},
+			onValueChange?: (value: string) => void,
+			provideField = false
+		) {
+			const Comp = defineComponent({
+				setup() {
+					return () =>
+						h(RadioGroup, { name: "pick", label: "Pick", onValueChange, ...groupAttrs }, () => [
+							h(RadioGroupItem, { value: "a", label: "Option A", ...itemAttrs }),
+							h(RadioGroupItem, { value: "b", label: "Option B" }),
+						]);
+				},
+			});
+			return render(Comp, {
+				global: provideField ? { provide: { [FIELD_KEY as symbol]: FWD_CONTEXT } } : {},
+			});
+		}
+
+		it("forwards aria-label, id and data-* to the group root", () => {
+			const { container } = pair({ id: "pick-group", "aria-label": "Plan", "data-testid": "grp" });
+			const root = group(container);
+			expect(root.id).toBe("pick-group");
+			expect(root.getAttribute("data-testid")).toBe("grp");
+			expect(root.getAttribute("role")).toBe("radiogroup");
+		});
+
+		it("merges a consumer aria-describedby on the root with the FormField one", () => {
+			const { container } = pair({ "aria-describedby": "mine" }, {}, undefined, true);
+			expect(group(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("forwards attributes and listeners to each item's own input", async () => {
+			const onBlur = vi.fn();
+			const onKeydown = vi.fn();
+			const { container } = pair(
+				{},
+				{ id: "opt-a", "data-testid": "opt", "aria-describedby": "hint", onBlur, onKeydown }
+			);
+			const a = byLabel(container, "Option A");
+			expect(a.id).toBe("opt-a");
+			expect(a.getAttribute("data-testid")).toBe("opt");
+			expect(a.getAttribute("aria-describedby")).toBe("hint");
+			await fireEvent.keyDown(a, { key: "x" });
+			await fireEvent.blur(a);
+			expect(onKeydown).toHaveBeenCalledTimes(1);
+			expect(onBlur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs an item's consumer @change once, after the group selection", async () => {
+			const order: string[] = [];
+			const onChange = vi.fn(() => order.push("consumer"));
+			const onValueChange = vi.fn(() => order.push("internal"));
+			const { container } = pair({}, { onChange }, onValueChange);
+			await fireEvent.click(byLabel(container, "Option A"));
+			expect(onChange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer"]);
+		});
+
+		it("does not let a consumer override the managed attributes", () => {
+			const { container } = pair(
+				{ role: "group", "aria-required": "false" },
+				{ type: "text", checked: true, name: "other" }
+			);
+			expect(group(container).getAttribute("role")).toBe("radiogroup");
+			const a = byLabel(container, "Option A");
+			expect(a.type).toBe("radio");
+			expect(a.checked).toBe(false);
+			expect(a.name).toBe("pick");
+		});
+
+		it("takes part in a form through each item's form attribute", async () => {
+			const form = formOf("rg-form");
+			const { container } = pair({}, { form: "rg-form" });
+			await fireEvent.click(byLabel(container, "Option A"));
+			expect(byLabel(container, "Option A").form).toBe(form);
+			expect(new FormData(form).get("pick")).toBe("a");
+			form.remove();
+		});
+
+		it("picks up an attribute added after the first render, on the root and on an item", async () => {
+			const Comp = defineComponent({
+				props: {
+					rootAttrs: { type: Object, default: () => ({}) },
+					itemAttrs: { type: Object, default: () => ({}) },
+				},
+				setup(props) {
+					return () =>
+						h(RadioGroup, { name: "pick", label: "Pick", ...props.rootAttrs }, () => [
+							h(RadioGroupItem, { value: "a", label: "Option A", ...props.itemAttrs }),
+						]);
+				},
+			});
+			const { container, rerender } = render(Comp);
+			expect(group(container).hasAttribute("data-late")).toBe(false);
+			expect(byLabel(container, "Option A").hasAttribute("required")).toBe(false);
+			await rerender({
+				rootAttrs: { "data-late": "yes" },
+				itemAttrs: { "data-late": "yes", required: "" },
+			});
+			expect(group(container).getAttribute("data-late")).toBe("yes");
+			expect(byLabel(container, "Option A").getAttribute("data-late")).toBe("yes");
+			expect(byLabel(container, "Option A").required).toBe(true);
 		});
 	});
 });

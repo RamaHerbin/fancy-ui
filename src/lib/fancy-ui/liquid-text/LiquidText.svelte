@@ -71,8 +71,14 @@
 	// Always starts "static" so the very first render (SSR or client) never
 	// touches window/document — onMount promotes to "canvas" if eligible.
 	let mode: "static" | "canvas" = $state("static");
+	// Initial seed; the text/font effect below re-derives it on every change.
+	// svelte-ignore state_referenced_locally
 	let themeColor = $state(lightColor);
+	// Initial seed; the text/font effect below re-derives it on every change.
+	// svelte-ignore state_referenced_locally
 	let resolvedFont = $state(font);
+	// Initial seed; the text/font effect below re-derives it on every change.
+	// svelte-ignore state_referenced_locally
 	let displayFontSize = $state(fontSize > 0 ? fontSize : DEFAULT_DISPLAY_FONT_SIZE);
 
 	// Deliberately NOT $state: the effects below read them without taking a

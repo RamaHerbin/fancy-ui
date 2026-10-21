@@ -1854,9 +1854,9 @@ export function FluidCursor({
 				window.addEventListener("mouseup", handlePointerUp);
 				document.body.addEventListener("mousemove", handleFirstMouseMove);
 				window.addEventListener("mousemove", handleMouseMove);
-				document.body.addEventListener("touchstart", handleFirstTouchStart);
-				window.addEventListener("touchstart", handleTouchStart, false);
-				window.addEventListener("touchmove", handleTouchMove, false);
+				document.body.addEventListener("touchstart", handleFirstTouchStart, { passive: true });
+				window.addEventListener("touchstart", handleTouchStart, { passive: true });
+				window.addEventListener("touchmove", handleTouchMove, { passive: true });
 				window.addEventListener("touchend", handlePointerUp);
 				window.addEventListener("touchcancel", handlePointerUp);
 			}

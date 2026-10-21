@@ -49,10 +49,11 @@ export interface InputProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
+import { mergeIds } from "../../internals/merge-ids.js";
 
 defineOptions({ name: "Input", inheritAttrs: false });
 
@@ -93,9 +94,26 @@ const effectiveDisabled = computed(() => field?.disabled ?? props.disabled ?? fa
 const effectiveRequired = computed(() => field?.required ?? props.required ?? false);
 const effectiveInvalid = computed(() => field?.invalid ?? props.invalid ?? false);
 
+// Native attributes and listeners a consumer passes ride in `attrs` and land on
+// the inner element: `v-bind="attrs"` sits after the component's own listeners
+// (so internal handlers run first) and before its invariants (so a consumer
+// can add attributes but never break them).
+const attrs = useAttrs();
+const ariaLabelResolved = () => {
+	const own = props.label;
+	return own ?? (attrs["aria-label"] as string | undefined);
+};
+const ariaInvalidResolved = () =>
+	effectiveInvalid.value
+		? "true"
+		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined);
+const consumerDescribedBy = () => attrs["aria-describedby"] as string | undefined;
+
 // Exactly where the source declares its bindable `ref`.
 const el = useTemplateRef<HTMLInputElement>("el");
 defineExpose({ ref: el });
+
+const describedBy = () => mergeIds(field?.describedBy, consumerDescribedBy());
 
 const classes = computed(() =>
 	cn(
@@ -123,6 +141,8 @@ function handleInput(event: Event) {
 <template>
 	<input
 		ref="el"
+		@input="handleInput"
+		v-bind="attrs"
 		:type="effectiveType"
 		:placeholder="props.placeholder"
 		:name="props.name"
@@ -132,11 +152,10 @@ function handleInput(event: Event) {
 		:disabled="effectiveDisabled"
 		:readonly="props.readonly ?? false"
 		:required="effectiveRequired"
-		:aria-invalid="effectiveInvalid ? 'true' : undefined"
-		:aria-describedby="field?.describedBy"
-		:aria-label="props.label"
+		:aria-invalid="ariaInvalidResolved()"
+		:aria-describedby="describedBy()"
+		:aria-label="ariaLabelResolved()"
 		:class="classes"
-		@input="handleInput"
 	/>
 </template>
 

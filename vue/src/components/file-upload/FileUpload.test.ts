@@ -154,6 +154,22 @@ const ValueHarness = defineComponent({
 	},
 });
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
+const FWD_CONTEXT: FieldContext = {
+	controlId: "ctx-id",
+	describedBy: "ctx-help",
+	invalid: false,
+	valid: true,
+	required: false,
+	disabled: false,
+};
+
 describe("FileUpload", () => {
 	afterEach(() => {
 		cleanup();
@@ -738,6 +754,122 @@ describe("FileUpload", () => {
 			await fireEvent.click(removeButtons(container)[0]!);
 
 			expect(play).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards id, aria-describedby and data-* to the file input", () => {
+			const { container } = render(FileUpload, {
+				props: { id: "doc", hint: "PDF only" },
+				attrs: { "aria-describedby": "mine", "data-testid": "up" },
+			});
+			const el = fileInput(container);
+			expect(el.id).toBe("doc");
+			expect(el.getAttribute("data-testid")).toBe("up");
+			expect(el.getAttribute("aria-describedby")).toBe("mine doc-hint");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(FileUpload, {
+				attrs: { "aria-describedby": "mine" },
+				global: { provide: { [FIELD_KEY as symbol]: FWD_CONTEXT } },
+			});
+			expect(fileInput(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer @blur, @focus and @keydown exactly once", async () => {
+			const onBlur = vi.fn();
+			const onFocus = vi.fn();
+			const onKeydown = vi.fn();
+			const { container } = render(FileUpload, { attrs: { onBlur, onFocus, onKeydown } });
+			const el = fileInput(container);
+			await fireEvent.focus(el);
+			await fireEvent.keyDown(el, { key: "Enter" });
+			await fireEvent.blur(el);
+			expect(onFocus).toHaveBeenCalledTimes(1);
+			expect(onKeydown).toHaveBeenCalledTimes(1);
+			expect(onBlur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs a consumer @change once, after the internal file handling", async () => {
+			const order: string[] = [];
+			const onChange = vi.fn(() => order.push("consumer"));
+			const onFilesChange = vi.fn(() => order.push("internal"));
+			const { container } = render(FileUpload, {
+				props: { onFilesChange },
+				attrs: { onChange },
+			});
+			await fireEvent.change(fileInput(container), { target: { files: [makeFile("a.txt")] } });
+			expect(onChange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer"]);
+		});
+
+		it("shows a consumer @change the live FileList, before the input is cleared", async () => {
+			let seen = -1;
+			const onChange = vi.fn((event: Event) => {
+				seen = (event.currentTarget as HTMLInputElement).files?.length ?? 0;
+			});
+			const { container } = render(FileUpload, { attrs: { onChange } });
+			const el = fileInput(container);
+			let cleared = false;
+			Object.defineProperty(el, "files", {
+				get: () => (cleared ? [] : [makeFile("a.txt")]),
+				configurable: true,
+			});
+			Object.defineProperty(el, "value", {
+				get: () => "",
+				set: (v: string) => {
+					if (v === "") cleared = true;
+				},
+				configurable: true,
+			});
+			await fireEvent.change(el);
+			expect(seen).toBe(1);
+			expect(cleared).toBe(true);
+		});
+
+		it("does not call a consumer @change when disabled", async () => {
+			const onChange = vi.fn();
+			const { container } = render(FileUpload, {
+				props: { disabled: true },
+				attrs: { onChange },
+			});
+			await fireEvent.change(fileInput(container), { target: { files: [makeFile("a.txt")] } });
+			expect(onChange).not.toHaveBeenCalled();
+		});
+
+		it("does not let a consumer override the input type or the invalid state", () => {
+			const { container } = render(FileUpload, {
+				props: { invalid: true },
+				attrs: { type: "text", "aria-invalid": "false" },
+			});
+			const el = fileInput(container);
+			expect(el.type).toBe("file");
+			expect(el.getAttribute("aria-invalid")).toBe("true");
+		});
+
+		it("forwards name, accept, required and form to the input so it joins a form", () => {
+			const form = formOf("fu-form");
+			const { container } = render(FileUpload, {
+				props: { name: "attachment", accept: "image/*", required: true },
+				attrs: { form: "fu-form" },
+			});
+			const el = fileInput(container);
+			expect(el.form).toBe(form);
+			expect(el.name).toBe("attachment");
+			expect(el.accept).toBe("image/*");
+			expect(el.required).toBe(true);
+			expect(form.checkValidity()).toBe(false);
+			form.remove();
+		});
+
+		it("picks up an attribute added after the first render", async () => {
+			const { container, rerender } = render(FileUpload, { props: { hint: "h", id: "fu" } });
+			expect(fileInput(container).hasAttribute("data-late")).toBe(false);
+			expect(fileInput(container).getAttribute("aria-describedby")).toBe("fu-hint");
+			await rerender({ "data-late": "yes", "aria-describedby": "late-id" });
+			expect(fileInput(container).getAttribute("data-late")).toBe("yes");
+			expect(fileInput(container).getAttribute("aria-describedby")).toBe("late-id fu-hint");
 		});
 	});
 });

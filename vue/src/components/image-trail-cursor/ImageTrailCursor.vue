@@ -27,6 +27,7 @@ export interface ImageTrailCursorProps {
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { cn } from "../../utils.js";
 import { variantMap, type ImageTrailVariant } from "./trail-variants.js";
 
@@ -40,6 +41,10 @@ const {
 
 const containerRef = useTemplateRef<HTMLDivElement>("container");
 let currentInstance: ImageTrailVariant | null = null;
+let currentVariant: VariantType | null = null;
+// Live, not just read at mount: flipping the OS setting mid-session starts or
+// stops the trail without remounting the component.
+const reduced = useReducedMotion();
 
 /**
  * Clears the inline styles the animation library wrote on the trail elements
@@ -66,22 +71,38 @@ function resetImageStyles() {
 	}
 }
 
-function initializeVariant() {
-	if (!containerRef.value) return;
-
+function teardownVariant() {
 	if (currentInstance) {
 		currentInstance.destroy();
 		currentInstance = null;
 	}
-
+	// Wipe what the instance wrote, so a trail stopped by the preference
+	// leaves no frozen image on screen.
 	resetImageStyles();
+}
+
+/**
+ * Brings the running instance in line with `variant` and the reduced-motion
+ * preference. Under reduced motion no instance exists at all: no pointer
+ * listeners, no rAF loop, no timelines, and the trail images stay hidden. An
+ * instance already running for the current variant is left alone, so a call
+ * that changes nothing never restarts the trail.
+ */
+function syncVariant() {
+	const container = containerRef.value;
+	const wanted = !!container && !reduced.value;
+	if (wanted && currentInstance && currentVariant === variant) return;
+
+	teardownVariant();
+	if (!container || !wanted) return;
 
 	const Variant = variantMap[variant] || variantMap.type1;
-	currentInstance = new Variant(containerRef.value);
+	currentInstance = new Variant(container);
+	currentVariant = variant;
 }
 
 onMounted(() => {
-	initializeVariant();
+	syncVariant();
 });
 
 onBeforeUnmount(() => {
@@ -91,16 +112,19 @@ onBeforeUnmount(() => {
 	}
 });
 
-// `variant` is the only dependency, exactly as on the source side: the effect
-// there tracks `variant` and nothing else, so a changed `images` array adds or
-// removes trail elements without rebuilding the running instance (which keeps
-// the element list it captured at construction). Reproduced rather than
-// corrected — the source behaviour is the contract. A non-immediate watch
-// skips the first run the way the source's `mounted` flag does.
+// `variant` and the reduced-motion preference are the only dependencies,
+// exactly as on the source side: a changed `images` array adds or removes
+// trail elements without rebuilding the running instance (which keeps the
+// element list it captured at construction). Reproduced rather than corrected
+// — the source behaviour is the contract. A non-immediate watch skips the
+// first run; the mount itself is handled by `onMounted`. The getter returns a
+// fresh tuple on purpose: a preference that flips and flips back before the
+// watcher flushes (the first real answer lands at mount) still reaches
+// `syncVariant`, which decides from the live state instead of the diff.
 watch(
-	() => variant,
+	() => [variant, reduced.value],
 	() => {
-		initializeVariant();
+		syncVariant();
 	},
 	{ flush: "post" }
 );
@@ -112,7 +136,7 @@ watch(
 		:class="
 			cn('relative z-[100] h-full w-full overflow-visible rounded-lg bg-transparent', className)
 		"
-		:style="{ touchAction: 'none' }"
+		:style="{ touchAction: 'pan-y pinch-zoom' }"
 	>
 		<!--
 			Keyed on `variant + i` like the source's each block: switching variant

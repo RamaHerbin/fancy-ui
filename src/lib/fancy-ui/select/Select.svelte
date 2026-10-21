@@ -1,10 +1,21 @@
 <script lang="ts" module>
+	import type { HTMLButtonAttributes } from "svelte/elements";
 	import type { Side, Align } from "../_internals/anchor-position.js";
 	import type { SelectOption } from "./types.js";
 
 	export type { SelectOption };
 
-	export interface SelectProps {
+	/**
+	 * Every other native `<button>` attribute and listener (`aria-*`, `data-*`,
+	 * `onfocus`, `onblur`, `onkeydown`, `form`, ...) is forwarded to the trigger.
+	 * The managed ARIA (`role`, `aria-expanded`, `aria-controls`,
+	 * `aria-activedescendant`, `aria-haspopup`, `aria-invalid`, `aria-required`)
+	 * stays the component's own.
+	 */
+	export interface SelectProps extends Omit<
+		HTMLButtonAttributes,
+		"class" | "id" | "name" | "value" | "disabled" | "type" | "role" | "children"
+	> {
 		/** The options to choose from, in order. */
 		options: SelectOption[];
 		/** The selected value, bindable. `""` means nothing is selected. */
@@ -66,6 +77,9 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		onclick,
+		onkeydown,
+		...restProps
 	}: SelectProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -285,6 +299,27 @@
 		}
 	}
 
+	// Internal handling first, the consumer's listener once after it. A disabled
+	// control runs neither (a disabled <button> would not fire them anyway).
+	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (effectiveDisabled) return;
+		handleTriggerClick();
+		onclick?.(event);
+	}
+
+	function handleKeydown(
+		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	) {
+		if (effectiveDisabled) return;
+		handleTriggerKeydown(event);
+		onkeydown?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy = $derived(
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined
+	);
+
 	const context: SelectContext = {
 		get open() {
 			return open;
@@ -344,6 +379,7 @@
 </script>
 
 <button
+	{...restProps}
 	bind:this={ref}
 	id={effectiveId}
 	type="button"
@@ -354,14 +390,14 @@
 	aria-activedescendant={open && listbox.activeIndex !== -1
 		? optionId(listbox.activeIndex)
 		: undefined}
-	aria-invalid={effectiveInvalid ? "true" : undefined}
-	aria-required={effectiveRequired ? "true" : undefined}
-	aria-describedby={field?.describedBy}
-	aria-label={label}
+	aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+	aria-required={effectiveRequired ? "true" : restProps["aria-required"]}
+	aria-describedby={describedBy}
+	aria-label={label ?? restProps["aria-label"]}
 	disabled={effectiveDisabled}
 	class={classes}
-	onclick={handleTriggerClick}
-	onkeydown={handleTriggerKeydown}
+	onclick={handleClick}
+	onkeydown={handleKeydown}
 >
 	<span class={cn("truncate", !selectedOption && "text-muted-foreground")}>
 		{selectedOption?.label ?? placeholder ?? ""}
@@ -370,7 +406,7 @@
 </button>
 
 {#if name}
-	<input type="hidden" {name} {value} disabled={effectiveDisabled} />
+	<input type="hidden" {name} {value} form={restProps.form} disabled={effectiveDisabled} />
 {/if}
 
 {#if open}

@@ -9,19 +9,21 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import { variantMap, type ImageTrailVariant } from "./trail-variants.js";
 
 	let { images = [], variant = "type1", class: className = "" }: ImageTrailCursorProps = $props();
 
-	let containerRef: HTMLDivElement;
-	let currentInstance: ImageTrailVariant | null = null;
-	let mounted = false;
+	let containerRef = $state<HTMLDivElement>();
 
-	function resetImageStyles() {
-		if (!containerRef) return;
-		const imgEls = containerRef.querySelectorAll<HTMLDivElement>(".content__img");
+	// Tracked live, not just read at mount: flipping the OS setting mid-session
+	// starts or stops the trail without remounting the component.
+	const reduced = createReducedMotion();
+	$effect(() => reduced.start());
+
+	function resetImageStyles(container: HTMLDivElement) {
+		const imgEls = container.querySelectorAll<HTMLDivElement>(".content__img");
 		for (const el of imgEls) {
 			el.style.cssText = "";
 			// reveal variants add fragment children; drop any left behind
@@ -36,47 +38,31 @@
 		}
 	}
 
-	function initializeVariant() {
-		if (!containerRef) return;
-
-		if (currentInstance) {
-			currentInstance.destroy();
-			currentInstance = null;
-		}
-
-		resetImageStyles();
-
+	// One variant instance per (variant, motion allowed) pair. Under reduced
+	// motion no instance exists at all: no pointer listeners, no rAF loop, no
+	// timelines, and the trail images stay hidden. The cleanup destroys the
+	// running instance and wipes what it wrote, whether the variant changed,
+	// the preference flipped to "reduce", or the component unmounted.
+	$effect(() => {
+		const container = containerRef;
 		const Variant = variantMap[variant] || variantMap.type1;
-		currentInstance = new Variant(containerRef);
-	}
+		if (!container || reduced.current) return;
 
-	onMount(() => {
-		initializeVariant();
-		mounted = true;
+		resetImageStyles(container);
+		let instance: ImageTrailVariant | null = new Variant(container);
 
 		return () => {
-			if (currentInstance) {
-				currentInstance.destroy();
-				currentInstance = null;
-			}
+			instance?.destroy();
+			instance = null;
+			resetImageStyles(container);
 		};
-	});
-
-	$effect(() => {
-		// Track the variant prop
-		variant;
-
-		// Skip the first run (onMount handles initial setup)
-		if (!mounted) return;
-
-		initializeVariant();
 	});
 </script>
 
 <div
 	bind:this={containerRef}
 	class={cn("relative z-[100] h-full w-full overflow-visible rounded-lg bg-transparent", className)}
-	style="touch-action: none;"
+	style="touch-action: pan-y pinch-zoom;"
 >
 	{#each images as image, i (variant + i)}
 		<div

@@ -1,4 +1,4 @@
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { cn } from "../../utils.js";
@@ -122,6 +122,26 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(function Dialog(
 	const titleId = title ? `${uid}-title` : undefined;
 	const descriptionId = description ? `${uid}-description` : undefined;
 
+	// The wrapper carries no semantics, so the disclosure state goes on what
+	// the caller rendered inside it — the real button a keyboard or
+	// screen-reader user lands on. Written imperatively because an arbitrary
+	// `trigger` node cannot be handed props from here. `aria-controls` only
+	// while the panel exists, so it never points at an id not in the document.
+	const panelId = `${uid}-panel`;
+	useEffect(() => {
+		const el = triggerRef.current?.firstElementChild;
+		if (!el) return;
+		el.setAttribute("aria-haspopup", "dialog");
+		el.setAttribute("aria-expanded", String(open));
+		if (open) el.setAttribute("aria-controls", panelId);
+		else el.removeAttribute("aria-controls");
+		return () => {
+			el.removeAttribute("aria-haspopup");
+			el.removeAttribute("aria-expanded");
+			el.removeAttribute("aria-controls");
+		};
+	}, [open, panelId, trigger]);
+
 	const panelContent = (
 		<>
 			<div className="flex items-start justify-between gap-3">
@@ -180,6 +200,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(function Dialog(
 			<DialogSurface
 				ref={forwardedRef}
 				open={open}
+				id={panelId}
 				role="dialog"
 				titleId={titleId}
 				descriptionId={descriptionId}

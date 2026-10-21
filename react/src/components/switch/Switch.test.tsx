@@ -63,6 +63,22 @@ function FieldHarness({ context }: { context: FieldContext }) {
 	);
 }
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
+const FWD_CONTEXT: FieldContext = {
+	controlId: "ctx-id",
+	describedBy: "ctx-help",
+	invalid: false,
+	valid: true,
+	required: false,
+	disabled: false,
+};
+
 describe("Switch", () => {
 	afterEach(cleanup);
 
@@ -449,6 +465,82 @@ describe("Switch", () => {
 			const el = toggle(container);
 
 			expect(el.hasAttribute("sound")).toBe(false);
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards id, aria-describedby and data-* to the native input", () => {
+			const { container } = render(
+				<Switch label="Agree" aria-describedby="hint" data-testid="box" />
+			);
+			const el = toggle(container);
+			expect(el.getAttribute("data-testid")).toBe("box");
+			expect(el.getAttribute("aria-describedby")).toBe("hint");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(
+				<FieldProvider value={FWD_CONTEXT}>
+					<Switch label="Agree" aria-describedby="mine" />
+				</FieldProvider>
+			);
+			expect(toggle(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer onBlur, onFocus and onKeyDown exactly once", () => {
+			const onBlur = vi.fn();
+			const onFocus = vi.fn();
+			const onKeyDown = vi.fn();
+			const { container } = render(
+				<Switch label="Agree" onBlur={onBlur} onFocus={onFocus} onKeyDown={onKeyDown} />
+			);
+			const el = toggle(container);
+			fireEvent.focus(el);
+			fireEvent.keyDown(el, { key: "a" });
+			fireEvent.blur(el);
+			expect(onFocus).toHaveBeenCalledTimes(1);
+			expect(onKeyDown).toHaveBeenCalledTimes(1);
+			expect(onBlur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs a consumer onChange once, after the internal toggle", () => {
+			const order: string[] = [];
+			const onChange = vi.fn((event: { currentTarget: HTMLInputElement }) => {
+				order.push(`consumer:${event.currentTarget.checked}`);
+			});
+			const onCheckedChange = vi.fn(() => order.push("internal"));
+			const { container } = render(
+				<Switch label="Agree" onChange={onChange} onCheckedChange={onCheckedChange} />
+			);
+			fireEvent.click(toggle(container));
+			expect(onChange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer:true"]);
+		});
+
+		it("does not let a consumer override managed state attributes", () => {
+			const { container } = render(
+				<Switch
+					checked
+					onChange={() => {}}
+					label="Agree"
+					aria-checked="false"
+					{...({ type: "text", role: "button" } as object)}
+				/>
+			);
+			const el = toggle(container);
+			expect(el.getAttribute("aria-checked")).toBe("true");
+			expect(el.type).toBe("checkbox");
+			expect(el.getAttribute("role")).toBe("switch");
+		});
+
+		it("takes part in a form: name, value and the form attribute reach the input", () => {
+			const form = formOf("sw-form");
+			const { container } = render(
+				<Switch defaultChecked name="agree" value="yes" form="sw-form" label="Agree" />
+			);
+			expect(toggle(container).form).toBe(form);
+			expect(new FormData(form).get("agree")).toBe("yes");
+			form.remove();
 		});
 	});
 });

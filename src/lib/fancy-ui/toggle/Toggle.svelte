@@ -1,10 +1,11 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
 	export type ToggleSize = "sm" | "md" | "lg";
 	export type ToggleVariant = "ghost" | "outline";
 
-	export interface ToggleProps {
+	export interface ToggleOwnProps {
 		/** Whether the toggle is currently pressed (active) */
 		pressed?: boolean;
 		/** Called with the new pressed state whenever the toggle is activated */
@@ -29,6 +30,9 @@
 		 */
 		sound?: boolean;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the toggle; `aria-pressed`, `disabled` and `type` stay the component's. */
+	export type ToggleProps = ToggleOwnProps & Omit<HTMLButtonAttributes, keyof ToggleOwnProps>;
 </script>
 
 <script lang="ts">
@@ -46,6 +50,8 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		onclick,
+		...rest
 	}: ToggleProps = $props();
 
 	const SIZE_CLASSES: Record<ToggleSize, string> = {
@@ -76,21 +82,23 @@
 	// The only place `pressed` changes. Doing this in an $effect instead would
 	// mean reading and writing the same state in one pass — here it is a plain
 	// event handler, so a caller's own `bind:pressed` write is never fought.
-	function toggle() {
+	function toggle(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		if (disabled) return;
 		const next = !pressed;
 		pressed = next;
 		if (sound) soundFx.play(next ? "toggle-on" : "toggle-off");
 		onPressedChange?.(next);
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 </script>
 
 <button
+	{...rest}
 	bind:this={ref}
 	type="button"
 	class={classes}
 	aria-pressed={pressed}
-	aria-label={label}
+	aria-label={label ?? rest["aria-label"]}
 	{disabled}
 	onclick={toggle}
 >

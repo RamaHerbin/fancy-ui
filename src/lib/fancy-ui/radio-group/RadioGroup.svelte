@@ -1,9 +1,10 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 
 	export type RadioGroupOrientation = "horizontal" | "vertical";
 
-	export interface RadioGroupProps {
+	interface BaseProps {
 		/** The selected value, bindable. `""` means nothing is selected. */
 		value?: string;
 		/** Called with the new value whenever the selection changes. */
@@ -42,6 +43,9 @@
 		/** Element reference. */
 		ref?: HTMLDivElement | null;
 	}
+
+	export type RadioGroupProps = BaseProps &
+		Omit<HTMLAttributes<HTMLDivElement>, keyof BaseProps | "role">;
 </script>
 
 <script lang="ts">
@@ -64,6 +68,13 @@
 		class: className,
 		sound = false,
 		ref = $bindable(null),
+		id,
+		"aria-label": ariaLabel,
+		"aria-labelledby": ariaLabelledby,
+		"aria-describedby": ariaDescribedby,
+		"aria-invalid": ariaInvalid,
+		"aria-required": ariaRequired,
+		...rest
 	}: RadioGroupProps = $props();
 
 	// Standalone by default; a surrounding FormField wins for id, described-by,
@@ -146,16 +157,17 @@
 	when there is no `labelId` to point at, never both at once.
 -->
 <div
+	{...rest}
 	bind:this={ref}
-	id={field?.controlId}
+	id={field?.controlId ?? id}
 	class={classes}
 	role="radiogroup"
 	data-orientation={orientation}
-	aria-label={field?.labelId ? undefined : label}
-	aria-labelledby={field?.labelId}
-	aria-describedby={field?.describedBy}
-	aria-invalid={effectiveInvalid ? "true" : undefined}
-	aria-required={effectiveRequired ? "true" : undefined}
+	aria-label={field?.labelId ? undefined : (label ?? ariaLabel)}
+	aria-labelledby={field?.labelId ?? ariaLabelledby}
+	aria-describedby={[field?.describedBy, ariaDescribedby].filter(Boolean).join(" ") || undefined}
+	aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
+	aria-required={effectiveRequired ? "true" : ariaRequired}
 >
 	{#if children}
 		{@render children()}

@@ -99,6 +99,8 @@
 	let reduced = $state(false);
 
 	/** Where focus lands once the buttons it might have held are gone. */
+	// Only read after `tick()` to move focus; nothing renders off it, so it stays a plain binding.
+	// svelte-ignore non_reactive_update
 	let resolvedRef: HTMLParagraphElement | null = null;
 
 	// The ring starts empty and fills once the target is written, so its sweep runs

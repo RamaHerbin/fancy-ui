@@ -39,8 +39,8 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Zatím není na npm — tato verze je v repozitáři.",
 	"install.unavailable": "Pro tento framework zatím tato komponenta neexistuje.",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "Kopírovat zdroj",
+	"install.copySourceNote": "Zkopíruje zdroj komponenty do vašeho projektu; kód je váš.",
 	"comp.usage": "Použití",
 	"comp.props": "Vlastnosti",
 	"comp.slots": "Sloty",
@@ -61,6 +61,8 @@ export default {
 	"table.slot": "Slot",
 	"table.event": "Událost",
 	"table.payload": "Data",
+	"table.portName": "Název v {framework}",
+	"table.portNameUnknown": "Nelze odvodit z pravidel pojmenování; viz rozdíly oproti API Svelte.",
 	"comp.events": "Události",
 	"comp.copyMarkdown": "Kopírovat jako Markdown",
 
@@ -241,7 +243,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Vyžadují aktuální build nástroje, proti kterým se FancyUI testuje.",
+		"Vyžadován aktuálními build nástroji, proti kterým se FancyUI testuje.",
 	"install.steps.heading": "Instalace",
 	"install.steps.body":
 		"Zvolte správce balíčků, zapojte stylesheet a pak vykreslete svou první komponentu.",
@@ -307,7 +309,7 @@ export default {
 		"Názvy tokenů odpovídají běžně používané sémantické konvenci (background, foreground, primary, …), takže existující motiv se stejnými názvy proměnných funguje beze změny.",
 	"theming.dark.heading": "Tmavý režim",
 	"theming.dark.body":
-		"Tmavý režim ve výchozím stavu sleduje nastavení operačního systému. Přidejte třídu .dark na <html> nebo na libovolného předka pro vynucení tmavého režimu, nebo .light pro vynucení světlého; utility dark: i každý token ji následují. Chcete-li upravit tmavé hodnoty, přepište je v .dark:",
+		"Tmavý režim ve výchozím stavu sleduje nastavení operačního systému. Přidejte třídu .dark na <html> nebo na libovolného předka pro vynucení tmavého režimu, nebo .light pro vynucení světlého; utility dark: a všechny tokeny jí odpovídají. Chcete-li upravit tmavé hodnoty, přepište je v .dark:",
 	"theming.motion.heading": "Tokeny animace",
 	"theming.motion.body": "Řiďte časování animací globálně:",
 	"theming.easing.heading": "Funkce plynulosti",

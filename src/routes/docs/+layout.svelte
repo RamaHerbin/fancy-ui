@@ -9,8 +9,16 @@
 	import { createSkinState, t, type DocsSkin } from "$lib/stores";
 	import { nextDocsPage } from "$lib/components/docs/docs-nav.js";
 	import "$lib/components/docs/docs-skin.css";
+	import { afterNavigate } from "$app/navigation";
+	import { followUrl } from "$lib/stores/framework.svelte.js";
 
 	let { children } = $props();
+
+	// A shared docs link may name a framework (`?framework=react`); the store reads
+	// it on first load, this covers the links followed inside the app afterwards.
+	afterNavigate(({ to }) => {
+		if (to?.url) followUrl(to.url);
+	});
 
 	let sidebarOpen = $state(false);
 	let searchOpen = $state(false);

@@ -19,12 +19,14 @@ export interface ComposerInputProps {
 </script>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { COMPOSER_CONTEXT_KEY, type ComposerContext } from "./types.js";
 
 defineOptions({ name: "ComposerInput", inheritAttrs: false });
+
+const attrs = useAttrs();
 
 const {
 	placeholder = "Message…",
@@ -163,6 +165,9 @@ watch([value, minLines, maxLines], () => grow(), { flush: "post" });
 <template>
 	<textarea
 		ref="el"
+		@input="handleInput"
+		@keydown="handleKeydown"
+		v-bind="attrs"
 		:class="
 			cn(
 				'ft-composer-input placeholder:text-muted-foreground w-full resize-none bg-transparent px-2 py-1.5 text-sm leading-relaxed outline-none',
@@ -174,8 +179,6 @@ watch([value, minLines, maxLines], () => grow(), { flush: "post" });
 		:value="value"
 		:readonly="locked"
 		:aria-disabled="locked ? 'true' : undefined"
-		@input="handleInput"
-		@keydown="handleKeydown"
 	></textarea>
 </template>
 

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { onMount } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 
-	interface Props {
+	interface Own {
 		words?: string[];
 		interval?: number;
 		animationDuration?: number;
@@ -10,12 +11,15 @@
 		textClass?: string;
 	}
 
+	type Props = Own & Omit<HTMLAttributes<HTMLParagraphElement>, keyof Own>;
+
 	let {
 		words = ["better", "modern", "beautiful", "awesome"],
 		interval = 3000,
 		animationDuration = 700,
 		class: className = "",
 		textClass = "",
+		...restProps
 	}: Props = $props();
 
 	let currentWordIndex = $state(0);
@@ -32,6 +36,7 @@
 </script>
 
 <p
+	{...restProps}
 	class={cn(
 		"relative inline-block rounded-lg px-4 pt-2 pb-3 text-center text-4xl font-bold text-black md:text-7xl dark:text-white",
 		"[background:linear-gradient(to_bottom,#f3f4f6,#e5e7eb)]",

@@ -1,8 +1,9 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 	import type { Side, Align } from "../_internals/anchor-position.js";
 
-	export interface PopoverProps {
+	export interface PopoverOwnProps {
 		/** Whether the panel is open. Bindable. */
 		open?: boolean;
 		/** Called with the new value whenever the panel opens or closes, however the change happened. */
@@ -33,6 +34,15 @@
 		 */
 		sound?: boolean;
 	}
+
+	/**
+	 * Native `<button>` attributes and listeners (`id`, `aria-label`, `data-*`,
+	 * `onkeydown`...) are forwarded to the trigger button; the panel keeps
+	 * `class` and `ref`; every other attribute, `style` included, goes to the
+	 * trigger button. `type`, `aria-expanded` and `aria-controls` stay the
+	 * component's.
+	 */
+	export type PopoverProps = PopoverOwnProps & Omit<HTMLButtonAttributes, keyof PopoverOwnProps>;
 </script>
 
 <script lang="ts">
@@ -53,6 +63,8 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		onclick,
+		...rest
 	}: PopoverProps = $props();
 
 	// The trigger's `aria-controls` target. The panel isn't mounted at all
@@ -76,8 +88,9 @@
 		onOpenChange?.(next);
 	}
 
-	function toggle() {
+	function toggle(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
 		setOpen(!open);
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
 	function close() {
@@ -118,6 +131,7 @@
 </script>
 
 <button
+	{...rest}
 	bind:this={triggerRef}
 	type="button"
 	class="ft-popover-trigger border-border text-foreground hover:bg-accent hover:text-accent-foreground inline-flex cursor-pointer items-center gap-1.5 rounded-[8px] border px-[14px] py-[7px] text-[12px] font-medium transition-colors focus-visible:ring-[3px] focus-visible:ring-[var(--ft-overlay-accent)]/35 focus-visible:outline-none"

@@ -182,9 +182,7 @@ describe("Dialog", () => {
 		const labelledby = el.getAttribute("aria-labelledby")!;
 		const describedby = el.getAttribute("aria-describedby")!;
 		expect(document.getElementById(labelledby)?.textContent?.trim()).toBe("Invite a member");
-		expect(document.getElementById(describedby)?.textContent?.trim()).toBe(
-			"Send an email invite."
-		);
+		expect(document.getElementById(describedby)?.textContent?.trim()).toBe("Send an email invite.");
 	});
 
 	it("omits aria-labelledby and aria-describedby entirely when title/description are not given", async () => {
@@ -312,6 +310,30 @@ describe("Dialog", () => {
 
 		expect(onOpenChange).toHaveBeenCalledWith(false);
 		expect(document.activeElement).toBe(trigger);
+	});
+
+	it("puts aria-haspopup, aria-expanded and aria-controls on the rendered trigger", async () => {
+		render(Dialog, { props: { title: "Invite" }, slots: { trigger: TRIGGER_SLOT } });
+		await nextTick();
+
+		const trigger = triggerNode();
+		expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
+		expect(trigger.getAttribute("aria-expanded")).toBe("false");
+		expect(trigger.hasAttribute("aria-controls")).toBe(false);
+
+		await fireEvent.click(trigger);
+		await nextTick();
+
+		expect(trigger.getAttribute("aria-expanded")).toBe("true");
+		const controls = trigger.getAttribute("aria-controls");
+		expect(controls).toBeTruthy();
+		expect(panel()?.id).toBe(controls);
+
+		pressEscape();
+		await nextTick();
+
+		expect(trigger.getAttribute("aria-expanded")).toBe("false");
+		expect(trigger.hasAttribute("aria-controls")).toBe(false);
 	});
 
 	// `focus-trap.ts`'s `previouslyFocused` is a raw reference captured once

@@ -19,6 +19,25 @@ import { reactStack } from "./stacks/react.js";
 import { svelteStack } from "./stacks/svelte.js";
 import { vueStack } from "./stacks/vue.js";
 
+import reactPackage from "../../../../react/package.json";
+import rootPackage from "../../../../package.json";
+import vuePackage from "../../../../vue/package.json";
+
+interface PackageJson {
+	dependencies?: Record<string, string>;
+	devDependencies?: Record<string, string>;
+}
+
+/**
+ * The ranges a package is built against, runtime and dev together. Written
+ * into every item's dependency list so the consumer's CLI installs what the
+ * sources were written for: an unpinned install takes the latest major, whose
+ * API may differ.
+ */
+function versionsOf(pkg: PackageJson): Record<string, string> {
+	return { ...pkg.devDependencies, ...pkg.dependencies };
+}
+
 const PREFIX = "/react/src/";
 
 // Test files never ship, so they stay out of the server bundle too (they are
@@ -127,6 +146,7 @@ export function registryOutput(): BuildOutput {
 		files: reactSources(),
 		meta: componentMeta(),
 		siteUrl: SITE_URL,
+		versions: versionsOf(reactPackage),
 		serverModules: serverModules(),
 		// Decided by the CLI acceptance run (2026-10-19): Next 16 resolves neither
 		// "./X.js" → X.tsx under Turbopack nor under webpack; Vite and tsc do.
@@ -146,6 +166,7 @@ export function svelteRegistryOutput(): BuildOutput {
 		files: svelteSources(),
 		meta: componentMeta(),
 		siteUrl: SITE_URL,
+		versions: versionsOf(rootPackage),
 	});
 	return svelteMemo;
 }
@@ -160,6 +181,7 @@ export function vueRegistryOutput(): BuildOutput {
 		files: vueSources(),
 		meta: componentMeta(),
 		siteUrl: SITE_URL,
+		versions: versionsOf(vuePackage),
 	});
 	return vueMemo;
 }

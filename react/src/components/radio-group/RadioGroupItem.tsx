@@ -1,10 +1,10 @@
 import { forwardRef, useContext } from "react";
-import type { ReactNode } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { RADIO_GROUP_KEY } from "./types.js";
 import "./radio-group-item.css";
 
-export interface RadioGroupItemProps {
+interface RadioGroupItemOwnProps {
 	/** This item's value — what the group's `value` becomes when it is picked. */
 	value: string;
 	/** Disables just this item, independent of the group's own `disabled`. */
@@ -17,6 +17,14 @@ export interface RadioGroupItemProps {
 	className?: string;
 }
 
+export interface RadioGroupItemProps
+	extends
+		Omit<
+			ComponentPropsWithoutRef<"input">,
+			keyof RadioGroupItemOwnProps | "type" | "checked" | "defaultChecked" | "role"
+		>,
+		RadioGroupItemOwnProps {}
+
 /**
  * One item of a `RadioGroup` — a real `<input type="radio">` inside the
  * `<label>` that names it.
@@ -25,7 +33,10 @@ export interface RadioGroupItemProps {
  * per PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  */
 export const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
-	function RadioGroupItem({ value, disabled = false, label, children, className }, ref) {
+	function RadioGroupItem(
+		{ value, disabled = false, label, children, className, onChange, name, required, ...rest },
+		ref
+	) {
 		// Undefined outside a RadioGroup: the item then has no selection or
 		// shared `name` to take part in, and renders as a plain, unchecked,
 		// standalone radio rather than throwing.
@@ -45,9 +56,10 @@ export const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
 		// synthesised straight at the element — as a test does, and as some
 		// assistive tech does — walks straight past it, so the handler repeats
 		// the guard itself.
-		function handleChange() {
+		function handleChange(event: ChangeEvent<HTMLInputElement>) {
 			if (isDisabled) return;
 			group?.select(value);
+			onChange?.(event);
 		}
 
 		const labelClasses = cn(
@@ -78,14 +90,15 @@ export const RadioGroupItem = forwardRef<HTMLInputElement, RadioGroupItemProps>(
 					item behaving as the plain radio it is.
 				*/}
 				<input
+					{...rest}
 					ref={ref}
 					type="radio"
 					className={controlClasses}
 					value={value}
 					{...(group ? { checked: isChecked } : { defaultChecked: false })}
 					disabled={isDisabled}
-					required={group?.required}
-					name={group?.name}
+					required={group?.required || required}
+					name={group?.name ?? name}
 					onChange={handleChange}
 				/>
 				{children != null ? children : (label ?? value)}

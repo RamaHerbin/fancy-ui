@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 	import BentoFrame from "./BentoFrame.svelte";
 
-	interface Props {
+	interface Own {
 		name: string;
 		description: string;
 		href: string;
@@ -12,6 +13,8 @@
 		background?: Snippet;
 	}
 
+	type Props = Own & Omit<HTMLAttributes<HTMLDivElement>, keyof Own>;
+
 	let {
 		name,
 		description: desc,
@@ -20,10 +23,15 @@
 		class: className = "",
 		icon,
 		background,
+		...restProps
 	}: Props = $props();
 </script>
 
-<BentoFrame class={["group col-span-3", className].join(" ")} panelClass="justify-end">
+<BentoFrame
+	{...restProps}
+	class={["group col-span-3", className].join(" ")}
+	panelClass="justify-end"
+>
 	{#if background}
 		<!-- Not aria-hidden and not inert: the slot can hold real, interactive content, as it always could. -->
 		<div class="absolute inset-0 -z-10 overflow-hidden">

@@ -30,8 +30,7 @@ type BaseProps = {
 };
 
 export interface ToggleProps
-	extends BaseProps,
-		Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> {}
+	extends BaseProps, Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> {}
 
 const SIZE_CLASSES: Record<ToggleSize, string> = {
 	sm: "size-[30px] rounded-[6px] text-xs",
@@ -52,7 +51,7 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 			className,
 			onClick,
 			sound = false,
-			...restProps
+			...rest
 		},
 		ref
 	) => {
@@ -84,24 +83,24 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 
 		// The only place `pressed` changes.
 		function toggle(event: React.MouseEvent<HTMLButtonElement>) {
-			onClick?.(event);
 			if (disabled) return;
 			const next = !pressed;
 			setPressed(next);
 			playCue(next ? "toggle-on" : "toggle-off");
 			onPressedChange?.(next);
+			onClick?.(event);
 		}
 
 		return (
 			<button
+				{...rest}
 				ref={ref}
 				type="button"
 				className={classes}
 				aria-pressed={pressed}
-				aria-label={label}
+				aria-label={label ?? rest["aria-label"]}
 				disabled={disabled}
 				onClick={toggle}
-				{...restProps}
 			>
 				{children}
 			</button>

@@ -193,6 +193,22 @@ function FieldHarness({ context }: { context: FieldContext }) {
 	);
 }
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
+const FWD_CONTEXT: FieldContext = {
+	controlId: "ctx-id",
+	describedBy: "ctx-help",
+	invalid: false,
+	valid: true,
+	required: false,
+	disabled: false,
+};
+
 describe("FileUpload", () => {
 	afterEach(() => {
 		cleanup();
@@ -946,6 +962,95 @@ describe("FileUpload", () => {
 			await settle();
 
 			expect(play).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards id, aria-describedby and data-* to the file input", () => {
+			const { container } = render(
+				<FileUpload id="doc" hint="PDF only" aria-describedby="mine" data-testid="up" />
+			);
+			const el = fileInput(container);
+			expect(el.id).toBe("doc");
+			expect(el.getAttribute("data-testid")).toBe("up");
+			expect(el.getAttribute("aria-describedby")).toBe("mine doc-hint");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(
+				<FieldProvider value={FWD_CONTEXT}>
+					<FileUpload aria-describedby="mine" />
+				</FieldProvider>
+			);
+			expect(fileInput(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer onBlur, onFocus and onKeyDown exactly once", () => {
+			const onBlur = vi.fn();
+			const onFocus = vi.fn();
+			const onKeyDown = vi.fn();
+			const { container } = render(
+				<FileUpload onBlur={onBlur} onFocus={onFocus} onKeyDown={onKeyDown} />
+			);
+			const el = fileInput(container);
+			fireEvent.focus(el);
+			fireEvent.keyDown(el, { key: "Enter" });
+			fireEvent.blur(el);
+			expect(onFocus).toHaveBeenCalledTimes(1);
+			expect(onKeyDown).toHaveBeenCalledTimes(1);
+			expect(onBlur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs consumer onChange and onClick once, after the internal handling", async () => {
+			const order: string[] = [];
+			const onChange = vi.fn(() => order.push("consumer-change"));
+			const onClick = vi.fn(() => order.push("consumer-click"));
+			const onFilesChange = vi.fn(() => order.push("internal"));
+			const { container } = render(
+				<FileUpload onFilesChange={onFilesChange} onChange={onChange} onClick={onClick} />
+			);
+			const el = fileInput(container);
+			fireEvent.click(el);
+			fireEvent.change(el, { target: { files: [makeFile("a.txt")] } });
+			await act(async () => {});
+			expect(onClick).toHaveBeenCalledTimes(1);
+			expect(onChange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["consumer-click", "internal", "consumer-change"]);
+		});
+
+		it("does not call a consumer onChange when disabled", () => {
+			const onChange = vi.fn();
+			const { container } = render(<FileUpload disabled onChange={onChange} />);
+			fireEvent.change(fileInput(container), { target: { files: [makeFile("a.txt")] } });
+			expect(onChange).not.toHaveBeenCalled();
+		});
+
+		it("does not let a consumer override the input type or the invalid state", () => {
+			const { container } = render(
+				<FileUpload invalid {...({ type: "text" } as object)} aria-invalid="false" />
+			);
+			const el = fileInput(container);
+			expect(el.type).toBe("file");
+			expect(el.getAttribute("aria-invalid")).toBe("true");
+		});
+
+		it("forwards name, accept, required and form to the input so it joins a form", () => {
+			const form = formOf("fu-form");
+			const { container } = render(
+				<FileUpload name="attachment" accept="image/*" required form="fu-form" />
+			);
+			const el = fileInput(container);
+			expect(el.form).toBe(form);
+			expect(el.name).toBe("attachment");
+			expect(el.accept).toBe("image/*");
+			expect(el.required).toBe(true);
+			expect(form.checkValidity()).toBe(false);
+			form.remove();
+		});
+
+		it("ignores stray children instead of passing them to the void input", () => {
+			const { container } = render(<FileUpload>{"x"}</FileUpload>);
+			expect(fileInput(container).childNodes.length).toBe(0);
 		});
 	});
 });

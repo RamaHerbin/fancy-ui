@@ -148,13 +148,13 @@ watch(
 	overflow: hidden;
 	background: radial-gradient(ellipse at 50% 40%, #0f0f14 0%, #0a0a0c 100%);
 	color: #e8e4dc;
-	touch-action: none;
+	touch-action: pan-y pinch-zoom;
 }
 
 .ee-layer {
 	position: absolute;
 	inset: 0;
-	touch-action: none;
+	touch-action: pan-y pinch-zoom;
 }
 
 .ee-fallback {

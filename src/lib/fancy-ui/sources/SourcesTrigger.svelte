@@ -1,13 +1,19 @@
 <script lang="ts" module>
+	import type { HTMLButtonAttributes } from "svelte/elements";
+
 	/**
-	 * Props for SourcesTrigger
+	 * Own props of SourcesTrigger
 	 */
-	export interface SourcesTriggerProps {
+	export interface SourcesTriggerOwnProps {
 		/** Overrides the count line. Defaults to "4 sources", singular at one. */
 		label?: string;
 		/** Additional CSS classes */
 		class?: string;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the trigger; `aria-expanded` and `aria-controls` stay the component's. */
+	export type SourcesTriggerProps = SourcesTriggerOwnProps &
+		Omit<HTMLButtonAttributes, keyof SourcesTriggerOwnProps>;
 </script>
 
 <script lang="ts">
@@ -16,7 +22,12 @@
 	import { hostOf, monogram } from "../_internals/host.js";
 	import { SOURCES_CONTEXT_KEY, type SourcesContext } from "./types.js";
 
-	let { label, class: className }: SourcesTriggerProps = $props();
+	let { label, class: className, onclick, ...rest }: SourcesTriggerProps = $props();
+
+	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		sources?.toggle();
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
+	}
 
 	/** How many monograms fit in the stack before it stops meaning anything. */
 	const STACK_LIMIT = 3;
@@ -32,6 +43,7 @@
 </script>
 
 <button
+	{...rest}
 	type="button"
 	class={cn(
 		"ft-sources-trigger text-muted-foreground hover:text-foreground inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs",
@@ -39,7 +51,7 @@
 	)}
 	aria-expanded={isOpen}
 	aria-controls={sources?.listId}
-	onclick={() => sources?.toggle()}
+	onclick={handleClick}
 >
 	{#if stack.length > 0}
 		<!-- Decorative: every name in it is spelled out in the list below. -->

@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import { cn } from "../../utils.js";
 import { hostOf, monogram } from "../../internals/host.js";
 import { SOURCES_CONTEXT_KEY } from "./types.js";
@@ -7,18 +8,27 @@ import "./sources-trigger.css";
 /**
  * Props for SourcesTrigger
  */
-export interface SourcesTriggerProps {
+interface SourcesTriggerOwnProps {
 	/** Overrides the count line. Defaults to "4 sources", singular at one. */
 	label?: string;
 	/** Additional CSS classes */
 	className?: string;
 }
 
+/**
+ * Native `<button>` attributes and listeners are forwarded to the trigger; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface SourcesTriggerProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof SourcesTriggerOwnProps>,
+		SourcesTriggerOwnProps {}
+
 /** How many monograms fit in the stack before it stops meaning anything. */
 const STACK_LIMIT = 3;
 
 /** The collapsed pill: monogram stack, count, chevron. */
-export function SourcesTrigger({ label, className }: SourcesTriggerProps) {
+export function SourcesTrigger({ label, className, onClick, ...rest }: SourcesTriggerProps) {
 	// Undefined when the pill is used outside a Sources root: it then renders an
 	// empty, inert count rather than throwing.
 	const sources = useContext(SOURCES_CONTEXT_KEY);
@@ -30,6 +40,7 @@ export function SourcesTrigger({ label, className }: SourcesTriggerProps) {
 
 	return (
 		<button
+			{...rest}
 			type="button"
 			className={cn(
 				"ft-sources-trigger text-muted-foreground hover:text-foreground inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs",
@@ -37,7 +48,10 @@ export function SourcesTrigger({ label, className }: SourcesTriggerProps) {
 			)}
 			aria-expanded={isOpen}
 			aria-controls={sources?.listId}
-			onClick={() => sources?.toggle()}
+			onClick={(event: MouseEvent<HTMLButtonElement>) => {
+				sources?.toggle();
+				onClick?.(event);
+			}}
 		>
 			{stack.length > 0 && (
 				// Decorative: every name in it is spelled out in the list below.
