@@ -12,7 +12,7 @@
 		gridGap?: number;
 		/** Probability of a square changing opacity each second (0-1) */
 		flickerChance?: number;
-		/** Color of the squares (hex format) */
+		/** Color of the squares: a hex string, or `currentColor` (default) to follow the text colour */
 		color?: string;
 		/** Maximum opacity of squares (0-1) */
 		maxOpacity?: number;
@@ -34,7 +34,7 @@
 		squareSize = 4,
 		gridGap = 6,
 		flickerChance = 0.3,
-		color = "#000000",
+		color = "currentColor",
 		maxOpacity = 0.3,
 		width,
 		height,
