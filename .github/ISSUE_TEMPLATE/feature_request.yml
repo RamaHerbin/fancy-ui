@@ -1,0 +1,48 @@
+name: Feature request
+description: Suggest a new component or an improvement
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - New component
+        - New prop or option on an existing component
+        - Developer experience
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      description: Which edition does this concern?
+      options:
+        - All three
+        - Svelte
+        - React
+        - Vue
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What would you like?
+      description: Be as specific as you can.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why is it useful?
+      description: What problem does it solve?
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Screenshots, videos or similar implementations. Optional.
