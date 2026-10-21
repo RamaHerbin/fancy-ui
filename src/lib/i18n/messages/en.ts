@@ -384,6 +384,124 @@ export const en = {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"Components are Vue 3.5 single-file components, so Vue 3.5.2 or later is required.",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO
+	/** @context Skip link, first focusable element of every docs page; jumps to the main content. */
+	"a11y.skipToContent": "Skip to content",
+	/** @context aria-label of the breadcrumb nav in the docs header. */
+	"a11y.docsBreadcrumb": "Documentation breadcrumb",
+	/** @context aria-label of the previous/next page navigation at the bottom of a page. */
+	"a11y.prevNext": "Previous and next pages",
+	/** @context aria-label of the icon-only search button shown on narrow screens. */
+	"a11y.search": "Search",
+	/** @context aria-label of the close button in the command search dialog. */
+	"search.a11y.close": "Close search",
+	/** @context aria-label / title of the wordmark link in the docs sidebar that returns to the landing page. */
+	"nav.backToSite": "Back to FancyUI home",
+	/** @context Sidebar entry and breadcrumb label for the recipes index. */
+	"nav.recipes": "Recipes",
+	/** @context Summary of the collapsible on-this-page outline shown on screens too narrow for the side table of contents. */
+	"toc.show": "Show contents",
+	/** @context Docs footer: label of the documentation link group. */
+	"footer.docs": "Docs",
+	/** @context Docs footer link to the contributing guide. */
+	"footer.contribute": "Contribute",
+	/** @context Docs footer link to the GitHub issue tracker. Product term, often kept as is. */
+	"footer.issues": "Issues",
+	/** @context Docs footer link to the GitHub Discussions board. */
+	"footer.discussions": "Discussions",
+	/** @context Docs footer link to the security policy. */
+	"footer.security": "Security",
+	/** @context Docs footer link to the code of conduct. */
+	"footer.conduct": "Code of conduct",
+	/** @context Docs footer link to the release notes. */
+	"footer.changelog": "Changelog",
+	/** @context Docs footer: label before the three package version badges (Svelte, React, Vue). */
+	"footer.versions": "Versions",
+	/** @context Docs footer: label before the one-line install command for the selected framework. */
+	"footer.install": "Install",
+	/** @context Docs footer: license note next to the copyright line. */
+	"footer.license": "MIT license",
+	/** @context Page action link that opens the source file in the GitHub editor. */
+	"comp.editPage": "Edit this page",
+	/** @context Page action link that opens a pre-filled GitHub issue about the current page. */
+	"comp.reportIssue": "Report an issue",
+	/** @context Pre-filled issue title. {name} is the page or component name. Keep the [docs] prefix. */
+	"comp.issueTitle": "[docs] {name}",
+	/** @context Introduction lead sentence, rendered right after the FancyUI wordmark. {count} is the number of components. */
+	"intro.leadNeutral":
+		"is a collection of {count} animated, interactive UI components for Svelte 5, React and Vue, built on the same design tokens.",
+	/** @context Introduction quick-start step 2 text; the code sample below it changes with the selected framework. */
+	"intro.importHint": "Import the components you need. The import path follows your framework.",
+	/** @context Installation prerequisites note about the optional SvelteKit peer dependency. */
+	"install.kitOptional":
+		"SvelteKit is optional: FancyUI works in any Svelte 5 project built with Vite.",
+	/** @context Theming page instruction above the per-framework stylesheet import snippet. */
+	"theming.cssPerFramework":
+		"Import the stylesheet for your framework: each package ships its own.",
+	/** @context Status chip for a component announced but not built yet. */
+	"status.planned": "Planned",
+	/** @context Status chip for a component that is scheduled for removal. */
+	"status.deprecated": "Deprecated",
+	/** @context Chip on a component page. {version} is a semver number such as 0.15.0. */
+	"comp.sinceVersion": "New in v{version}",
+	/** @context Banner shown on the page of a deprecated component. */
+	"comp.deprecatedNotice": "This component is deprecated and may be removed in a future release.",
+	/** @context Credit line when the inspiration has no URL. {name} is the credited author or project. */
+	"comp.inspiredByNoLink": "Inspired by {name}",
+	/** @context Title of the recipes index page. */
+	"recipes.title": "Recipes",
+	/** @context Lead paragraph of the recipes index page. */
+	"recipes.lead":
+		"Step-by-step compositions that combine several components into a finished interface.",
+	/** @context Per-recipe count of components it uses, shown on its card. {count} is a number. */
+	"recipes.components": "Components: {count}",
+	/** @context Heading of the 404 error page. */
+	"error.notFoundTitle": "Page not found",
+	/** @context Heading of the generic error page. */
+	"error.genericTitle": "Something went wrong",
+	/** @context Body text of the 404 error page. */
+	"error.notFoundBody": "The page you are looking for does not exist or has moved.",
+	/** @context Body text of the generic error page. */
+	"error.genericBody": "An unexpected error occurred. Try again, or head back to the docs.",
+	/** @context Heading of the 401 error page. */
+	"error.unauthorizedTitle": "Sign in required",
+	/** @context Body text of the 401 error page. */
+	"error.unauthorizedBody": "You need to be signed in to use this page.",
+	/** @context Error page action: go to the landing page. */
+	"error.home": "Back to home",
+	/** @context Error page action: go to the components gallery. */
+	"error.browse": "Browse components",
+	/** @context Error page action: open the command search. */
+	"error.search": "Search the docs",
+	/** @context Error page action: open a pre-filled GitHub issue about this URL. */
+	"error.report": "Report a broken link",
+	/** @context Shown in place of a live preview whose module failed to load. */
+	"comp.previewFailed": "This preview could not be loaded.",
+	/** @context Standalone demo page, component without a preview. */
+	"demo.noPreview": "No preview is available for this component yet.",
+	/** @context Standalone demo page, unknown component slug. */
+	"demo.notFound": "Component not found.",
+	/** @context Heading of the numbered steps section of a recipe. */
+	"recipes.steps": "Steps",
+	/** @context Heading of the common-mistakes section of a recipe. */
+	"recipes.pitfalls": "Pitfalls",
+	/** @context Heading of the section listing the components a recipe uses. */
+	"recipes.componentsUsed": "Components used",
+	/** @context Meta description of the Introduction page (about 150 characters). */
+	"seo.introduction":
+		"FancyUI is a library of animated, interactive UI components for Svelte 5, React and Vue. See what is included and how to get started.",
+	/** @context Meta description of the Installation page. */
+	"seo.installation":
+		"Install FancyUI for Svelte 5, React or Vue: add the package, import the stylesheet and render your first component.",
+	/** @context Meta description of the Theming page. */
+	"seo.theming":
+		"Customize FancyUI with design tokens: OKLCh colors, radius, motion and dark mode, for Svelte 5, React and Vue.",
+	/** @context Meta description of the Theme Generator page. */
+	"seo.themeGenerator":
+		"Tune FancyUI's OKLCh design tokens live and copy the generated CSS into your app.",
+	/** @context Meta description of the Changelog page. */
+	"seo.changelog": "Release notes for the FancyUI packages for Svelte 5, React and Vue.",
 } as const;
 export type Messages = typeof en;
 export type MessageKey = keyof Messages;

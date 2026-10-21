@@ -381,4 +381,68 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"کامپوننت‌ها کامپوننت‌های تک‌فایلی Vue 3.5 هستند، بنابراین Vue 3.5.2 یا بالاتر لازم است.",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "پرش به محتوا",
+	"a11y.docsBreadcrumb": "مسیر راهبری مستندات",
+	"a11y.prevNext": "صفحه قبلی و بعدی",
+	"a11y.search": "جستجو",
+	"search.a11y.close": "بستن جستجو",
+	"nav.backToSite": "بازگشت به صفحه اصلی FancyUI",
+	"nav.recipes": "دستورکارها",
+	"toc.show": "نمایش فهرست مطالب",
+	"footer.docs": "مستندات",
+	"footer.contribute": "مشارکت",
+	"footer.issues": "مسائل",
+	"footer.discussions": "گفت‌وگوها",
+	"footer.security": "امنیت",
+	"footer.conduct": "منشور رفتار",
+	"footer.changelog": "تاریخچه تغییرات",
+	"footer.versions": "نسخه‌ها",
+	"footer.install": "نصب",
+	"footer.license": "مجوز MIT",
+	"comp.editPage": "ویرایش این صفحه",
+	"comp.reportIssue": "گزارش مشکل",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"مجموعه‌ای از {count} مؤلفه رابط کاربری پویا و تعاملی برای Svelte 5، React و Vue است که بر پایه توکن‌های طراحی یکسان ساخته شده‌اند.",
+	"intro.importHint":
+		"مؤلفه‌های مورد نیاز خود را وارد (import) کنید. مسیر ورود به چارچوب مورد استفاده شما بستگی دارد.",
+	"install.kitOptional":
+		"SvelteKit اختیاری است: FancyUI در هر پروژه Svelte 5 که با Vite ساخته شده باشد کار می‌کند.",
+	"theming.cssPerFramework":
+		"شیوه‌نامه مربوط به چارچوب خود را وارد کنید: هر بسته شیوه‌نامه خودش را دارد.",
+	"status.planned": "برنامه‌ریزی‌شده",
+	"status.deprecated": "منسوخ‌شده",
+	"comp.sinceVersion": "جدید در نسخه v{version}",
+	"comp.deprecatedNotice": "این مؤلفه منسوخ شده است و ممکن است در نسخه‌ای آینده حذف شود.",
+	"comp.inspiredByNoLink": "الهام‌گرفته از {name}",
+	"recipes.title": "دستورکارها",
+	"recipes.lead": "ترکیب‌های گام‌به‌گام که چند مؤلفه را در یک رابط کامل کنار هم می‌گذارند.",
+	"recipes.components": "مؤلفه‌ها: {count}",
+	"error.notFoundTitle": "صفحه پیدا نشد",
+	"error.genericTitle": "مشکلی پیش آمد",
+	"error.notFoundBody": "صفحه‌ای که به دنبال آن هستید وجود ندارد یا منتقل شده است.",
+	"error.genericBody": "خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید یا به مستندات بازگردید.",
+	"error.unauthorizedTitle": "ورود به سیستم لازم است",
+	"error.unauthorizedBody": "برای استفاده از این صفحه باید وارد سیستم شوید.",
+	"error.home": "بازگشت به صفحه اصلی",
+	"error.browse": "مرور مؤلفه‌ها",
+	"error.search": "جستجو در مستندات",
+	"error.report": "گزارش پیوند خراب",
+	"comp.previewFailed": "بارگذاری این پیش‌نمایش ممکن نشد.",
+	"demo.noPreview": "هنوز پیش‌نمایشی برای این مؤلفه وجود ندارد.",
+	"demo.notFound": "مؤلفه پیدا نشد.",
+	"recipes.steps": "گام‌ها",
+	"recipes.pitfalls": "دام‌های رایج",
+	"recipes.componentsUsed": "مؤلفه‌های استفاده‌شده",
+	"seo.introduction":
+		"FancyUI کتابخانه‌ای از مؤلفه‌های رابط کاربری پویا و تعاملی برای Svelte 5، React و Vue است. با محتوای آن و نحوه شروع آشنا شوید.",
+	"seo.installation":
+		"FancyUI را برای Svelte 5، React یا Vue نصب کنید: بسته را اضافه کنید، شیوه‌نامه را وارد کنید و نخستین مؤلفه خود را رندر کنید.",
+	"seo.theming":
+		"FancyUI را با توکن‌های طراحی شخصی‌سازی کنید: رنگ‌های OKLCh، شعاع، حرکت و حالت تیره برای Svelte 5، React و Vue.",
+	"seo.themeGenerator":
+		"توکن‌های طراحی OKLCh در FancyUI را به‌صورت زنده تنظیم کنید و CSS تولیدشده را در برنامه خود کپی کنید.",
+	"seo.changelog": "یادداشت‌های انتشار بسته‌های FancyUI برای Svelte 5، React و Vue.",
 } satisfies Catalog;
