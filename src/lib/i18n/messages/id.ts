@@ -39,8 +39,8 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Belum ada di npm — port ini ada di repositori.",
 	"install.unavailable": "Belum ada port komponen ini untuk framework ini.",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "Salin kode sumber",
+	"install.copySourceNote": "Menyalin kode sumber komponen ke proyek Anda; Anda memiliki kodenya.",
 	"comp.usage": "Penggunaan",
 	"comp.props": "Props",
 	"comp.slots": "Slot",
@@ -80,7 +80,7 @@ export default {
 	"gallery.subtitle":
 		"{count} komponen beranimasi indah untuk Svelte 5, React, Vue. Jelajahi, cari, dan temukan yang Anda butuhkan.",
 	"gallery.intro":
-		"Komponen tersedia untuk Svelte 5, React, dan Vue, ditata dengan Tailwind CSS v4 dan diberi tipe dengan TypeScript. Setiap halaman memiliki pratinjau langsung dan contoh Svelte siap salin, dengan penggunaan React dan Vue jika tersedia. Instal paketnya sekali dan kodenya jadi milik Anda.",
+		"Komponen tersedia untuk Svelte 5, React, dan Vue, ditata dengan Tailwind CSS v4 dan diberi tipe dengan TypeScript. Setiap halaman memiliki pratinjau langsung dan contoh Svelte siap salin-tempel, dengan penggunaan React dan Vue jika tersedia. Instal paketnya sekali dan kodenya jadi milik Anda.",
 	"gallery.filterPlaceholder": "Filter komponen...",
 	"gallery.all": "Semua",
 	"gallery.noMatch": "Tidak ada komponen yang cocok dengan pencarian Anda.",
@@ -309,7 +309,7 @@ export default {
 		"Nama token mengikuti konvensi semantik yang umum dipakai (background, foreground, primary, …), sehingga tema yang sudah ada dengan nama variabel yang sama dapat langsung dipasang tanpa perubahan.",
 	"theming.dark.heading": "Mode Gelap",
 	"theming.dark.body":
-		"Mode gelap secara bawaan mengikuti preferensi sistem operasi. Letakkan kelas .dark pada <html> atau leluhur mana pun untuk memaksa gelap, atau .light untuk memaksa terang; utilitas dark: dan setiap token mengikutinya. Untuk menyesuaikan nilai gelap, timpa di bawah .dark:",
+		"Mode gelap secara bawaan mengikuti preferensi sistem operasi. Letakkan kelas .dark pada <html> atau leluhur mana pun untuk memaksa gelap, atau .light untuk memaksa terang; utilitas dark: dan setiap token mengikuti. Untuk menyesuaikan nilai gelap, timpa di bawah .dark:",
 	"theming.motion.heading": "Token Animasi",
 	"theming.motion.body": "Kendalikan pewaktuan animasi secara global:",
 	"theming.easing.heading": "Fungsi Easing",
