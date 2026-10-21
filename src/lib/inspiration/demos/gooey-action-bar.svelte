@@ -25,7 +25,14 @@
 <div class="flex h-full w-full flex-col items-center justify-center gap-5 p-6">
 	<svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false">
 		<defs>
-			<filter id={filterId} x="-20%" y="-60%" width="140%" height="220%">
+			<filter
+				id={filterId}
+				color-interpolation-filters="sRGB"
+				x="-20%"
+				y="-60%"
+				width="140%"
+				height="220%"
+			>
 				<feGaussianBlur in="SourceGraphic" stdDeviation={blur} result="b" />
 				<feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" />
 			</filter>
@@ -41,13 +48,14 @@
 		style="--n: {actions.length};"
 	>
 		<div class="goo" aria-hidden="true" style="filter: url(#{filterId});">
-			<span class="hl" class:on={active >= 0} style="--i: {Math.max(active, 0)};"></span>
 			{#each actions as _, i (i)}
 				<span
 					class="blob"
 					style="--lean: {leanOf(i)}px; --delay: {active < 0 ? 0 : Math.abs(i - active) * 40}ms;"
 				></span>
 			{/each}
+			<!-- After the blobs: they are transformed and opaque, so DOM order decides what paints on top. -->
+			<span class="hl" class:on={active >= 0} style="--i: {Math.max(active, 0)};"></span>
 		</div>
 		<div class="sharp">
 			{#each actions as label, i (label)}
@@ -95,7 +103,9 @@
 		flex: none;
 	}
 	.blob {
-		background: color-mix(in oklab, var(--foreground) 16%, transparent);
+		/* Opaque on purpose: the threshold below keeps only pixels whose blurred
+		   alpha is >= ~0.39, so a translucent fill would be wiped out entirely. */
+		background: color-mix(in oklab, var(--foreground) 14%, var(--background));
 		transform: translateX(var(--lean, 0px));
 		transition: transform 280ms cubic-bezier(0.3, 1.4, 0.5, 1) var(--delay, 0ms);
 	}

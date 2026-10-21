@@ -8,7 +8,8 @@ const entry: FancyUIReference = {
 	summary: "A highlight that fuses with its neighbours like liquid as it travels along the bar.",
 	kind: "interaction",
 	creator: "FancyUI",
-	sourceUrl: "/docs/components/button",
+	sourceUrl:
+		"https://github.com/RamaHerbin/fancy-ui/blob/develop/src/lib/inspiration/demos/gooey-action-bar.svelte",
 	addedAt: "2026-10-21",
 	verifiedAt: "2026-10-21",
 	status: "published",
@@ -45,7 +46,7 @@ const entry: FancyUIReference = {
 		],
 		defaults: { blur: 8, lean: 10 },
 	},
-	capture: { hover: [0.5, 0.5] },
+	capture: { hover: [0.4, 0.42] },
 };
 
 export default entry;
