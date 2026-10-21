@@ -10362,3 +10362,12 @@ export function getComponentCategory(slug: string): ComponentCategory | undefine
 export function hasSoundProp(slug: string): boolean {
 	return registry[slug]?.props?.some((prop) => /^(?:[A-Za-z]+\.)?sound$/.test(prop.name)) ?? false;
 }
+
+/**
+ * Components that are still part of the public surface: everything except the
+ * entries kept as deprecated aliases. Galleries, related lists and prev/next
+ * navigation read this instead of the raw registry.
+ */
+export function getListedComponents(): ComponentMeta[] {
+	return Object.values(registry).filter((c) => !c.deprecated);
+}

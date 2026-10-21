@@ -2,10 +2,10 @@ import { render, cleanup } from "@testing-library/svelte";
 import { afterEach, describe, it, expect } from "vitest";
 import PrevNextNav from "./PrevNextNav.svelte";
 import { setLocale } from "$lib/stores";
-import { getAllComponents } from "$lib/fancy-ui/registry.js";
+import { componentsInSidebarOrder } from "$lib/docs/component-order.js";
 
-/** The same alphabetical sequence the component walks. */
-const ordered = getAllComponents().sort((a, b) => a.name.localeCompare(b.name, "en"));
+/** The sequence the sidebar shows: core groups, then fancy, by category. */
+const ordered = componentsInSidebarOrder();
 const first = ordered[0];
 const second = ordered[1];
 const last = ordered[ordered.length - 1];
@@ -56,6 +56,15 @@ describe("PrevNextNav", () => {
 		const { container } = render(PrevNextNav, { slug: last.slug });
 		expect(link(container, "next")).toBeNull();
 		expect(link(container, "prev")).toHaveAttribute("href", `/docs/components/${penultimate.slug}`);
+	});
+
+	it("labels the landmark and follows the sidebar, not the alphabet", () => {
+		const { container } = render(PrevNextNav, { slug: first.slug });
+		expect(container.querySelector("nav")).toHaveAttribute("aria-label", "Previous and next pages");
+		const alphabetical = [...ordered].sort((a, b) => a.name.localeCompare(b.name, "en"));
+		expect(link(container, "next")?.getAttribute("href")).not.toBe(
+			`/docs/components/${alphabetical[alphabetical.indexOf(first) + 1].slug}`
+		);
 	});
 
 	it("renders nothing for a slug that is not in the registry", () => {
