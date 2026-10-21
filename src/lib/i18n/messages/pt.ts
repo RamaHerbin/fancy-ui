@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "Componentes",
 	"gallery.subtitle":
-		"{count} componentes lindamente animados para o Svelte 5. Navegue, pesquise e encontre o que precisa.",
+		"{count} componentes lindamente animados para o Svelte 5, React, Vue. Navegue, pesquise e encontre o que precisa.",
 	"gallery.intro":
-		"Cada componente é criado nativamente para Svelte 5 com runes, estilizado com Tailwind CSS v4, tipado com TypeScript e vem com pré-visualização ao vivo e exemplos para copiar e colar. Instale o pacote uma vez e o código é seu.",
+		"Os componentes estão disponíveis para Svelte 5, React e Vue, estilizados com Tailwind CSS v4 e tipados com TypeScript. Cada página tem pré-visualização ao vivo e exemplos Svelte para copiar e colar, com o uso em React e Vue quando disponível. Instale o pacote uma vez e o código é seu.",
 	"gallery.filterPlaceholder": "Filtrar componentes...",
 	"gallery.all": "Todos",
 	"gallery.noMatch": "Nenhum componente corresponde à sua pesquisa.",
-	"gallery.meta": "{components} componentes · {categories} categorias · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} componentes · {categories} categorias · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "{count} resultados",
 	"gallery.resultOne": "1 resultado",
 	"gallery.clearFilters": "Limpar filtros",
@@ -233,7 +234,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Pré-requisitos",
 	"install.prerequisites.body":
-		"O FancyUI é feito para a toolchain atual do Svelte. Verifique estes três pontos antes de instalar.",
+		"O FancyUI mira as ferramentas atuais. Confira estes três itens antes de instalar.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -245,7 +246,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Exigido pelas versões do SvelteKit e do Vite com as quais o FancyUI é compilado.",
+		"Exigido pelas ferramentas de build atuais com as quais o FancyUI é testado.",
 	"install.steps.heading": "Instalação",
 	"install.steps.body":
 		"Escolha seu gerenciador de pacotes, conecte a folha de estilos e depois renderize seu primeiro componente.",
@@ -261,9 +262,9 @@ export default {
 	"install.tailwind.body":
 		"O FancyUI é construído sobre o Tailwind CSS v4, que é configurado em CSS em vez de um arquivo de configuração JavaScript. Se o Tailwind já funciona no seu projeto, não há mais nada a configurar.",
 	"install.tailwind.order":
-		"A ordem dos imports importa: primeiro o Tailwind, depois o FancyUI, para que as camadas e as propriedades personalizadas do FancyUI sejam resolvidas sobre os padrões.",
+		"A ordem das importações importa: primeiro o Tailwind, depois o FancyUI. Coloque a importação do FancyUI antes do seu próprio @custom-variant dark; caso contrário, o do FancyUI substitui o seu.",
 	"install.tailwind.note":
-		"A folha de estilos carrega os design tokens que cada componente lê: cores, raios e tempos de animação. Sem ela, os componentes são renderizados sem estilo.",
+		"O ponto de entrada fornece tokens de cor padrão (background, primary, border e os demais) e uma variante escura. Seus próprios blocos :root e .dark os substituem: redefina as variáveis CSS e seus valores prevalecem.",
 	"install.usage.heading": "Uso",
 	"install.usage.body":
 		"Cada componente é um export nomeado da raiz do pacote, então não há caminhos de import por componente para memorizar.",
@@ -295,7 +296,7 @@ export default {
 	"theming.lead":
 		"Cada componente do FancyUI lê suas cores, raios e tempos a partir de propriedades personalizadas do CSS no espaço de cores OKLCh — substitua um token e toda a biblioteca acompanha.",
 	"theming.pill.oklch": "Espaço de cores OKLCh",
-	"theming.pill.shadcn": "Compatível com shadcn-svelte",
+	"theming.pill.shadcn": "Nomes de tokens padronizados",
 	"theming.pill.dark": "Modo escuro",
 	"theming.pill.tokens": "Tokens de design",
 	"theming.generator.body":
@@ -308,10 +309,10 @@ export default {
 	"theming.colors.body":
 		"Todas as cores usam o espaço de cores OKLCh para gradientes perceptualmente uniformes:",
 	"theming.colors.note":
-		"Os nomes dos tokens seguem as convenções do shadcn-svelte, então um tema shadcn existente funciona sem alterações.",
+		"Os nomes dos tokens seguem a convenção semântica amplamente usada (background, foreground, primary, …), então um tema existente com os mesmos nomes de variáveis funciona sem alterações.",
 	"theming.dark.heading": "Modo escuro",
 	"theming.dark.body":
-		"O modo escuro é ativado pela classe .dark em um elemento pai. O FancyUI substitui todos os tokens:",
+		"O modo escuro segue por padrão a preferência do sistema operacional. Coloque a classe .dark em <html> ou em qualquer ancestral para forçar o escuro, ou .light para forçar o claro; os utilitários dark: e todos os tokens acompanham. Para personalizar os valores escuros, sobrescreva-os em .dark:",
 	"theming.motion.heading": "Tokens de animação",
 	"theming.motion.body": "Controle os tempos de animação globalmente:",
 	"theming.easing.heading": "Funções de easing",
@@ -350,4 +351,27 @@ export default {
 	"retro.explorer": "Explorador",
 	"retro.start": "Iniciar",
 	"retro.tagline": "Componentes animados para Svelte 5 — prontos para copiar e colar.",
+	"comp.snippetSvelteOnly":
+		"Ainda não há um exemplo completo para este framework; por enquanto só a versão Svelte tem um.",
+	"comp.copyMarkdownSvelte": "Copiar como Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "A exportação em Markdown descreve apenas a versão Svelte.",
+	"comp.apiNoticeReact":
+		"Esta referência de API usa os nomes do Svelte. No React, class vira className, os manipuladores on* são escritos em camelCase (onclick vira onClick) e os snippets viram props ReactNode ou funções de renderização.",
+	"comp.apiNoticeVue":
+		"Esta referência de API usa os nomes do Svelte. No Vue, os snippets viram slots e as props vinculáveis viram v-model:nome.",
+	"comp.apiNoticeLink": "Diferenças em relação à API do Svelte",
+	"install.lead.react":
+		"Adicione o FancyUI a um projeto React em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
+	"install.lead.vue":
+		"Adicione o FancyUI a um projeto Vue em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Compatível com React 18 e 19. Os componentes são publicados como módulos de cliente, então os Server Components podem importá-los diretamente.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Os componentes são componentes de arquivo único do Vue 3.5, portanto é necessário o Vue 3.5.2 ou posterior.",
 } satisfies Catalog;

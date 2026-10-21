@@ -138,3 +138,114 @@ describe("RainbowButton", () => {
 		});
 	});
 });
+
+describe("RainbowButton public contract", () => {
+	afterEach(() => {
+		cleanup();
+		vi.restoreAllMocks();
+	});
+
+	it("calls the consumer onclick exactly once on a button and on an anchor", async () => {
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onclick: handler } });
+		await fireEvent.click(screen.getByRole("button"));
+		expect(handler).toHaveBeenCalledTimes(1);
+		cleanup();
+
+		const onLink = vi.fn();
+		render(RainbowButton, { props: { onclick: onLink, href: "#x" } });
+		await fireEvent.click(screen.getByRole("link"));
+		expect(onLink).toHaveBeenCalledTimes(1);
+	});
+
+	it("calls the consumer onclick once and plays the cue once when sound is enabled", async () => {
+		const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onclick: handler, sound: true } });
+
+		await fireEvent.click(screen.getByRole("button"));
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(play).toHaveBeenCalledTimes(1);
+	});
+
+	it("does not call the consumer onclick while disabled (button and anchor)", () => {
+		const handler = vi.fn();
+		render(RainbowButton, { props: { onclick: handler, disabled: true } });
+		screen
+			.getByRole("button")
+			.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		cleanup();
+
+		render(RainbowButton, { props: { onclick: handler, disabled: true, href: "/x" } });
+		screen
+			.getByRole("link")
+			.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+
+		expect(handler).not.toHaveBeenCalled();
+	});
+
+	it("forwards aria-label and data-* attributes on the button and anchor branches", () => {
+		render(RainbowButton, { props: { "aria-label": "Go", "data-test": "rb" } });
+		const button = screen.getByRole("button");
+		expect(button).toHaveAttribute("aria-label", "Go");
+		expect(button).toHaveAttribute("data-test", "rb");
+		cleanup();
+
+		render(RainbowButton, { props: { href: "/x", "aria-label": "Go", "data-test": "rb" } });
+		const link = screen.getByRole("link");
+		expect(link).toHaveAttribute("aria-label", "Go");
+		expect(link).toHaveAttribute("data-test", "rb");
+	});
+
+	it("cancels navigation when a disabled anchor is clicked and drops its href", () => {
+		render(RainbowButton, { props: { disabled: true, href: "/pricing", target: "_blank" } });
+		const link = screen.getByRole("link");
+		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+
+		link.dispatchEvent(event);
+
+		expect(event.defaultPrevented).toBe(true);
+		expect(link).not.toHaveAttribute("href");
+		expect(link).not.toHaveAttribute("target");
+		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("keeps the inert-link attributes authoritative over consumer attributes", () => {
+		render(RainbowButton, {
+			props: { disabled: true, href: "/pricing", tabindex: 0, "aria-disabled": "false" },
+		});
+		const link = screen.getByRole("link");
+		expect(link).toHaveAttribute("tabindex", "-1");
+		expect(link).toHaveAttribute("aria-disabled", "true");
+	});
+
+	it("keeps a consumer tabindex and role on an enabled anchor", () => {
+		render(RainbowButton, { props: { href: "/pricing", tabindex: 2, role: "menuitem" } });
+		const link = screen.getByRole("menuitem");
+		expect(link).toHaveAttribute("tabindex", "2");
+	});
+
+	it("renders no aria-disabled on an enabled anchor", () => {
+		render(RainbowButton, { props: { href: "/pricing" } });
+		expect(screen.getByRole("link")).not.toHaveAttribute("aria-disabled");
+	});
+
+	it("leaves navigation alone on an enabled anchor", () => {
+		render(RainbowButton, { props: { href: "/pricing" } });
+		const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+		let preventedByComponent: boolean | undefined;
+		// Bubble-phase window listener runs after the component's handler:
+		// record its verdict, then cancel so jsdom does not attempt navigation.
+		const probe = (e: Event) => {
+			preventedByComponent = e.defaultPrevented;
+			e.preventDefault();
+		};
+		window.addEventListener("click", probe);
+
+		screen.getByRole("link").dispatchEvent(event);
+		window.removeEventListener("click", probe);
+
+		expect(preventedByComponent).toBe(false);
+	});
+});
