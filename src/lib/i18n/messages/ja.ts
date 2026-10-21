@@ -352,6 +352,13 @@ export default {
 	"retro.tagline": "Svelte 5 のためのアニメーションコンポーネント — コピペしてすぐ使えます。",
 	"comp.snippetSvelteOnly":
 		"このフレームワーク向けの完全な使用例はまだありません。現時点では Svelte 版のみ用意されています。",
+	"comp.copyMarkdownSvelte": "Markdown としてコピー（Svelte）",
+	"comp.markdownSvelteOnly": "Markdown エクスポートは Svelte 版のみを対象としています。",
+	"comp.apiNoticeReact":
+		"この API リファレンスは Svelte の名前を使っています。React では class は className に、on* ハンドラーはキャメルケース（onclick は onClick）に、スニペットは ReactNode のプロパティまたはレンダー関数になります。",
+	"comp.apiNoticeVue":
+		"この API リファレンスは Svelte の名前を使っています。Vue では、スニペットはスロットに、バインド可能なプロパティは v-model:名前 になります。",
+	"comp.apiNoticeLink": "Svelte API との違い",
 	"install.lead.react":
 		"FancyUI は 3 つのステップで React プロジェクトに追加できます: パッケージをインストールし、スタイルシートをインポートし、コンポーネントをレンダリングするだけです。",
 	"install.lead.vue":

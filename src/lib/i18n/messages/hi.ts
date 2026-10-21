@@ -347,6 +347,13 @@ export default {
 	"retro.tagline": "Svelte 5 के लिए एनिमेटेड कंपोनेंट — कॉपी-पेस्ट के लिए तैयार।",
 	"comp.snippetSvelteOnly":
 		"इस फ्रेमवर्क के लिए पूरा उदाहरण अभी नहीं लिखा गया है; फिलहाल केवल Svelte संस्करण में है।",
+	"comp.copyMarkdownSvelte": "Markdown के रूप में कॉपी करें (Svelte)",
+	"comp.markdownSvelteOnly": "Markdown एक्सपोर्ट केवल Svelte संस्करण का वर्णन करता है।",
+	"comp.apiNoticeReact":
+		"यह API संदर्भ Svelte के नामों का उपयोग करता है। React में class बदलकर className हो जाता है, on* हैंडलर camelCase में लिखे जाते हैं (onclick बदलकर onClick) और स्निपेट ReactNode प्रॉप या रेंडर फ़ंक्शन बन जाते हैं।",
+	"comp.apiNoticeVue":
+		"यह API संदर्भ Svelte के नामों का उपयोग करता है। Vue में स्निपेट स्लॉट बन जाते हैं और बाइंड करने योग्य प्रॉप v-model:नाम बन जाते हैं।",
+	"comp.apiNoticeLink": "Svelte API से अंतर",
 	"install.lead.react":
 		"तीन चरणों में FancyUI को React प्रोजेक्ट में जोड़ें: पैकेज इंस्टॉल करें, स्टाइलशीट इम्पोर्ट करें, और एक कॉम्पोनेंट रेंडर करें।",
 	"install.lead.vue":

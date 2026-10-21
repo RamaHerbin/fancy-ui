@@ -353,6 +353,13 @@ export default {
 	"retro.tagline": "Componentes animados para Svelte 5 — prontos para copiar e colar.",
 	"comp.snippetSvelteOnly":
 		"Ainda não há um exemplo completo para este framework; por enquanto só a versão Svelte tem um.",
+	"comp.copyMarkdownSvelte": "Copiar como Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "A exportação em Markdown descreve apenas a versão Svelte.",
+	"comp.apiNoticeReact":
+		"Esta referência de API usa os nomes do Svelte. No React, class vira className, os manipuladores on* são escritos em camelCase (onclick vira onClick) e os snippets viram props ReactNode ou funções de renderização.",
+	"comp.apiNoticeVue":
+		"Esta referência de API usa os nomes do Svelte. No Vue, os snippets viram slots e as props vinculáveis viram v-model:nome.",
+	"comp.apiNoticeLink": "Diferenças em relação à API do Svelte",
 	"install.lead.react":
 		"Adicione o FancyUI a um projeto React em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
 	"install.lead.vue":

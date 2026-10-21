@@ -255,6 +255,8 @@
 			<button
 				type="button"
 				onclick={copyMarkdown}
+				title={framework === "svelte" ? undefined : t("comp.markdownSvelteOnly")}
+				data-markdown-copy
 				class="retro-btn border-border text-muted-foreground hover:text-foreground hover:bg-accent inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium transition-colors"
 			>
 				<svg
@@ -269,12 +271,20 @@
 						d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
 					/></svg
 				>
-				{markdownCopied ? t("action.copied") : t("comp.copyMarkdown")}
+				{markdownCopied
+					? t("action.copied")
+					: framework === "svelte"
+						? t("comp.copyMarkdown")
+						: t("comp.copyMarkdownSvelte")}
 			</button>
 			<a
 				href={markdownPath}
+				title={framework === "svelte" ? undefined : t("comp.markdownSvelteOnly")}
+				aria-label={framework === "svelte"
+					? undefined
+					: `.md (Svelte). ${t("comp.markdownSvelteOnly")}`}
 				class="text-muted-foreground hover:text-foreground font-mono underline-offset-2 hover:underline"
-				>.md</a
+				>.md{framework === "svelte" ? "" : " (Svelte)"}</a
 			>
 		</div>
 	</div>
@@ -359,6 +369,21 @@
 
 	<!-- ═══ EXAMPLES ═══ -->
 	<ExamplesSection slug={component.slug} showCode={framework === "svelte"} />
+
+	{#if framework !== "svelte" && ((component.props?.length ?? 0) > 0 || (component.slots?.length ?? 0) > 0 || (component.events?.length ?? 0) > 0)}
+		<p
+			class="text-muted-foreground border-border mb-6 rounded-lg border px-4 py-3 text-sm"
+			data-api-notice
+		>
+			{framework === "react" ? t("comp.apiNoticeReact") : t("comp.apiNoticeVue")}
+			<a
+				href="{REPO_URL}/blob/main/{framework}/README.md#divergences-from-the-svelte-api"
+				class="text-foreground underline underline-offset-2"
+				target="_blank"
+				rel="noopener noreferrer">{t("comp.apiNoticeLink")}</a
+			>
+		</p>
+	{/if}
 
 	<!-- ═══ PROPS ═══ -->
 	{#if component.props && component.props.length > 0}

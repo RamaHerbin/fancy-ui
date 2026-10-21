@@ -349,6 +349,13 @@ export default {
 	"retro.tagline": "کامپوننت‌های متحرک برای Svelte 5 — آماده کپی و چسباندن.",
 	"comp.snippetSvelteOnly":
 		"هنوز مثال کاملی برای این فریم‌ورک نوشته نشده است؛ فعلاً فقط نسخه Svelte یکی دارد.",
+	"comp.copyMarkdownSvelte": "کپی به‌صورت Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "خروجی Markdown فقط نسخهٔ Svelte را توصیف می‌کند.",
+	"comp.apiNoticeReact":
+		"این مرجع API از نام‌های Svelte استفاده می‌کند. در React، class به className تبدیل می‌شود، هندلرهای on* با camelCase نوشته می‌شوند (onclick به onClick تبدیل می‌شود) و snippetها به propهای ReactNode یا توابع رندر تبدیل می‌شوند.",
+	"comp.apiNoticeVue":
+		"این مرجع API از نام‌های Svelte استفاده می‌کند. در Vue، snippetها به slot تبدیل می‌شوند و propهای قابل اتصال به v-model:نام تبدیل می‌شوند.",
+	"comp.apiNoticeLink": "تفاوت‌ها با API نسخهٔ Svelte",
 	"install.lead.react":
 		"FancyUI را در سه گام به یک پروژه‌ی React اضافه کنید: بسته را نصب کنید، استایل‌شیت را وارد کنید و یک کامپوننت رندر کنید.",
 	"install.lead.vue":

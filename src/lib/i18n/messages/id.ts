@@ -349,6 +349,13 @@ export default {
 	"retro.tagline": "Komponen beranimasi untuk Svelte 5 — siap disalin-tempel.",
 	"comp.snippetSvelteOnly":
 		"Contoh lengkap untuk framework ini belum ditulis; untuk saat ini hanya versi Svelte yang memilikinya.",
+	"comp.copyMarkdownSvelte": "Salin sebagai Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "Ekspor Markdown hanya menjelaskan versi Svelte.",
+	"comp.apiNoticeReact":
+		"Referensi API ini memakai nama Svelte. Di React, class menjadi className, handler on* ditulis dengan camelCase (onclick menjadi onClick), dan snippet menjadi prop ReactNode atau fungsi render.",
+	"comp.apiNoticeVue":
+		"Referensi API ini memakai nama Svelte. Di Vue, snippet menjadi slot dan prop yang bisa di-bind menjadi v-model:nama.",
+	"comp.apiNoticeLink": "Perbedaan dengan API Svelte",
 	"install.lead.react":
 		"Tambahkan FancyUI ke proyek React dalam tiga langkah: instal paketnya, impor stylesheet-nya, lalu render sebuah komponen.",
 	"install.lead.vue":

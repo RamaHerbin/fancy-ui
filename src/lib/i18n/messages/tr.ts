@@ -353,6 +353,13 @@ export default {
 	"retro.tagline": "Svelte 5 için animasyonlu bileşenler — kopyalayıp yapıştırmaya hazır.",
 	"comp.snippetSvelteOnly":
 		"Bu framework için tam bir örnek henüz yazılmadı; şimdilik yalnızca Svelte sürümünde var.",
+	"comp.copyMarkdownSvelte": "Markdown olarak kopyala (Svelte)",
+	"comp.markdownSvelteOnly": "Markdown dışa aktarımı yalnızca Svelte sürümünü anlatır.",
+	"comp.apiNoticeReact":
+		"Bu API başvurusu Svelte adlarını kullanır. React'te class className olur, on* işleyicileri camelCase yazılır (onclick onClick olur) ve snippet'ler ReactNode prop'larına ya da render fonksiyonlarına dönüşür.",
+	"comp.apiNoticeVue":
+		"Bu API başvurusu Svelte adlarını kullanır. Vue'da snippet'ler slot'a, bağlanabilir prop'lar ise v-model:ad biçimine dönüşür.",
+	"comp.apiNoticeLink": "Svelte API'sinden farklar",
 	"install.lead.react":
 		"FancyUI'yi üç adımda bir React projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
 	"install.lead.vue":

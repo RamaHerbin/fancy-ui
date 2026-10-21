@@ -313,6 +313,13 @@ export default {
 	"retro.start": "开始",
 	"retro.tagline": "面向 Svelte 5 的动效组件 — 复制粘贴即可使用。",
 	"comp.snippetSvelteOnly": "该框架的完整示例尚未编写，目前只有 Svelte 版本提供。",
+	"comp.copyMarkdownSvelte": "复制为 Markdown（Svelte）",
+	"comp.markdownSvelteOnly": "Markdown 导出仅描述 Svelte 版本。",
+	"comp.apiNoticeReact":
+		"此 API 参考使用 Svelte 的命名。在 React 中，class 变为 className，on* 处理函数使用驼峰写法（onclick 变为 onClick），snippet 变为 ReactNode 属性或渲染函数。",
+	"comp.apiNoticeVue":
+		"此 API 参考使用 Svelte 的命名。在 Vue 中，snippet 变为插槽，可绑定的属性变为 v-model:名称。",
+	"comp.apiNoticeLink": "与 Svelte API 的差异",
 	"install.lead.react": "只需三步即可将 FancyUI 添加到 React 项目：安装包、导入样式表、渲染组件。",
 	"install.lead.vue": "只需三步即可将 FancyUI 添加到 Vue 项目：安装包、导入样式表、渲染组件。",
 	"install.pill.react": "React 18+",

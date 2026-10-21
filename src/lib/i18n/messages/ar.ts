@@ -339,6 +339,13 @@ export default {
 	"retro.tagline": "مكوّنات متحركة لـ Svelte 5 — جاهزة للنسخ واللصق.",
 	"comp.snippetSvelteOnly":
 		"لم يُكتب بعد مثال كامل لهذا الإطار؛ حاليًا نسخة Svelte فقط لديها واحد.",
+	"comp.copyMarkdownSvelte": "نسخ بصيغة Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "تصدير Markdown يصف إصدار Svelte فقط.",
+	"comp.apiNoticeReact":
+		"يستخدم مرجع واجهة البرمجة هذا أسماء Svelte. في React يصبح class هو className، وتُكتب معالجات on* بنمط camelCase (يصبح onclick هو onClick)، وتتحول المقاطع (snippets) إلى خصائص ReactNode أو دوال عرض.",
+	"comp.apiNoticeVue":
+		"يستخدم مرجع واجهة البرمجة هذا أسماء Svelte. في Vue تتحول المقاطع (snippets) إلى slots، وتتحول الخصائص القابلة للربط إلى v-model:الاسم.",
+	"comp.apiNoticeLink": "الفروق عن واجهة Svelte",
 	"install.lead.react":
 		"أضف FancyUI إلى مشروع React في ثلاث خطوات: ثبّت الحزمة، واستورد ملف الأنماط، واعرض مكوّناً.",
 	"install.lead.vue":

@@ -87,4 +87,38 @@ test.describe("Docs follow the selected framework", () => {
 		await expect(examples.locator("[data-snippet-missing]")).toBeVisible();
 		await expect(examples.getByRole("button", { name: "Code", exact: true })).toHaveCount(0);
 	});
+
+	test("Markdown export is labelled Svelte-only and the API notice follows the framework", async ({
+		page,
+	}) => {
+		await page.goto("/docs/components/rainbow-button");
+		await hydrated(page);
+		await expect(page.locator("[data-markdown-copy]")).toContainText("Copy as Markdown");
+		await expect(page.locator("[data-markdown-copy]")).not.toContainText("(Svelte)");
+		await expect(page.locator("[data-api-notice]")).toHaveCount(0);
+
+		await pick(page, "React");
+		await expect(page.locator("[data-markdown-copy]")).toContainText("Copy as Markdown (Svelte)");
+		await expect(page.getByRole("link", { name: /^\.md \(Svelte\)/ })).toBeVisible();
+		const notice = page.locator("[data-api-notice]");
+		await expect(notice).toContainText("className");
+		await expect(notice.getByRole("link")).toHaveAttribute(
+			"href",
+			/react\/README\.md#divergences-from-the-svelte-api$/
+		);
+
+		await pick(page, "Vue");
+		await expect(notice).toContainText("v-model");
+		await expect(notice.getByRole("link")).toHaveAttribute("href", /vue\/README\.md#/);
+	});
+
+	test("an open Code tab falls back to the preview when switching to React", async ({ page }) => {
+		await page.goto("/docs/components/rainbow-button");
+		await hydrated(page);
+		const examples = page.locator("section:has(h2#examples)");
+		await examples.getByRole("button", { name: "Code", exact: true }).first().click();
+		await pick(page, "React");
+		await expect(examples.getByRole("button", { name: "Code", exact: true })).toHaveCount(0);
+		await expect(examples.locator('[data-pane="preview"]').first()).toBeVisible();
+	});
 });
