@@ -1279,6 +1279,40 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "One trigger unavailable — skipped by the arrows and Home/End.",
 		},
 	],
+	accordion: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "One item open at a time, and the open item can be closed again.",
+		},
+		{
+			name: "Multiple",
+			title: "Multiple",
+			description: "Any number of items open at once, with one item disabled.",
+		},
+		{
+			name: "Controlled",
+			title: "Controlled",
+			description: "The open item driven from outside through a bound value.",
+		},
+	],
+	collapsible: [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A trigger that reveals extra rows beneath a short list.",
+		},
+		{
+			name: "Multiple",
+			title: "Multiple",
+			description: "Several independent panels, each with its own open state.",
+		},
+		{
+			name: "Controlled",
+			title: "Controlled",
+			description: "Open state shared with a button outside the component.",
+		},
+	],
 	breadcrumb: [
 		{
 			name: "BasicUsage",

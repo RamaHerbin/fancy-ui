@@ -18,6 +18,7 @@ export * from "./sound/index.js";
 export type * from "./internals/ai-types.js";
 export type * from "./internals/motion/types.js";
 
+export * from "./components/accordion/index.js";
 export * from "./components/agent-plan/index.js";
 export * from "./components/ai-data-table/index.js";
 export * from "./components/alert-dialog/index.js";
@@ -45,6 +46,7 @@ export * from "./components/chat-message/index.js";
 export * from "./components/chat-panel/index.js";
 export * from "./components/checkbox/index.js";
 export * from "./components/code-diff/index.js";
+export * from "./components/collapsible/index.js";
 export * from "./components/colourful-text/index.js";
 export * from "./components/combobox/index.js";
 export * from "./components/command-menu/index.js";
