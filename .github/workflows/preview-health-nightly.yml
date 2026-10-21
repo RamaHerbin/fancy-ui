@@ -1,0 +1,154 @@
+name: Preview health (nightly)
+
+# The two preview-health sweeps that do not belong on every pull request:
+#
+#   no-gpu      the built develop site in headless Chromium with no GPU flags,
+#               which shows the demos that have no fallback without WebGL
+#               (failures there are classed GPU_ONLY)
+#   production  the live site, swept as it is served; nothing is built, the
+#               slug list comes from the checked-out main, which is what the
+#               site is built from
+#
+# The pull-request sweep (projects gpu and gpu-light-rm on the PR's own build)
+# is the preview-health job in ci.yml. See tests/e2e/preview-health.spec.ts and
+# playwright.preview-health.config.ts for what each probe checks.
+
+on:
+  schedule:
+    # 03:17 UTC: off the hour, when scheduled runs queue the least.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-health-nightly
+  cancel-in-progress: false
+
+jobs:
+  no-gpu:
+    name: No GPU (develop build)
+    runs-on: ubuntu-latest
+    # Until every WebGL demo has a fallback: GPU_ONLY failures are expected here today.
+    continue-on-error: true
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Same Chromium cache key as ci.yml and e2e.yml.
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # The config builds the site and serves `vite preview` itself.
+      - run: pnpm exec playwright test -c playwright.preview-health.config.ts --project no-gpu
+
+      - name: Upload the preview-health summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health-no-gpu
+          path: test-results/preview-health.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload the failing-stage screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health-no-gpu-results
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  production:
+    name: Production site
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # Sweep the deployed site: no build, no local server.
+      PREVIEW_HEALTH_BASE: https://fancy-ui.rama.app
+    steps:
+      # main is what production is built from, so its registry lists exactly the
+      # pages the live site serves.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # Projects gpu + gpu-light-rm, against PREVIEW_HEALTH_BASE.
+      - run: pnpm test:preview-health
+
+      - name: Upload the preview-health summary
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health-production
+          path: test-results/preview-health.json
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload the failing-stage screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-health-production-results
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
