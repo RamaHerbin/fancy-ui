@@ -151,6 +151,7 @@ export * from "./components/text-roll/index.js";
 export * from "./components/textarea/index.js";
 export * from "./components/thinking-indicator/index.js";
 export * from "./components/thread-list/index.js";
+export * from "./components/tick-nav/index.js";
 export * from "./components/time-picker/index.js";
 export * from "./components/timeline/index.js";
 export * from "./components/toast/index.js";

@@ -1,11 +1,13 @@
 /**
  * Pure, dependency-free fakes for the Web Audio surface the sound engine uses.
  *
- * Imports nothing — no vitest — so it is safe to sit beside the engine it
+ * Imports nothing at runtime (types only, no vitest) so it is safe to sit beside the engine it
  * fakes: it is not exported from the barrel, it is never executed at runtime,
  * and keeping it inside the folder means the colocated tests never reach
  * outside the package root for it.
  */
+
+import type { CueRecipe, SoundCue, SoundEnvelope, SoundThemeDefinition } from "./types.js";
 
 export type AutomationMethod =
 	| "setValueAtTime"
@@ -317,3 +319,255 @@ export function installFakeAudioContext(
 		},
 	};
 }
+
+function env(attack: number, decay: number, sustain: number, release: number): SoundEnvelope {
+	return { attack, decay, sustain, release };
+}
+
+/**
+ * A frozen-in-time theme for engine tests. Its numbers (layer counts, a noise
+ * layer, filtered and delayed layers, hover at 1760 Hz) are what the graph,
+ * envelope and timing assertions pin, so retuning the shipped palette never
+ * rewrites engine tests. Not a shipped theme.
+ */
+const FIXTURE_CUES: Record<SoundCue, CueRecipe> = {
+	hover: {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 1760,
+				frequencyEnd: 1975,
+				gain: 0.12,
+				envelope: env(2, 20, 0, 20),
+				duration: 45,
+				filter: { type: "highpass", frequency: 800 },
+			},
+		],
+	},
+	press: {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "triangle",
+				frequency: 520,
+				frequencyEnd: 440,
+				gain: 0.5,
+				envelope: env(2, 35, 0, 25),
+				duration: 70,
+			},
+			{
+				kind: "noise",
+				gain: 0.18,
+				envelope: env(1, 18, 0, 8),
+				duration: 30,
+				filter: { type: "bandpass", frequency: 2400, q: 1.2 },
+			},
+		],
+	},
+	"toggle-on": {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 660,
+				gain: 0.4,
+				envelope: env(3, 30, 0.2, 20),
+				duration: 55,
+			},
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 880,
+				gain: 0.4,
+				envelope: env(3, 40, 0, 25),
+				duration: 70,
+				delay: 45,
+				filter: { type: "lowpass", frequency: 4000 },
+			},
+		],
+	},
+	"toggle-off": {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 880,
+				gain: 0.35,
+				envelope: env(3, 30, 0.2, 20),
+				duration: 55,
+			},
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 660,
+				gain: 0.32,
+				envelope: env(3, 35, 0, 20),
+				duration: 60,
+				delay: 45,
+				filter: { type: "lowpass", frequency: 3500 },
+			},
+		],
+	},
+	open: {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "triangle",
+				frequency: 392,
+				frequencyEnd: 784,
+				gain: 0.35,
+				envelope: env(5, 60, 0.3, 30),
+				duration: 110,
+			},
+			{
+				kind: "noise",
+				gain: 0.08,
+				envelope: env(10, 50, 0, 30),
+				duration: 90,
+				filter: { type: "highpass", frequency: 3000, frequencyEnd: 6000 },
+			},
+		],
+	},
+	close: {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "triangle",
+				frequency: 784,
+				frequencyEnd: 392,
+				gain: 0.3,
+				envelope: env(4, 50, 0.2, 30),
+				duration: 100,
+			},
+			{
+				kind: "noise",
+				gain: 0.06,
+				envelope: env(5, 40, 0, 30),
+				duration: 80,
+				filter: { type: "lowpass", frequency: 1500, frequencyEnd: 600 },
+			},
+		],
+	},
+	select: {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 1046.5,
+				gain: 0.35,
+				envelope: env(2, 40, 0, 25),
+				duration: 70,
+			},
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 1568,
+				gain: 0.12,
+				envelope: env(2, 30, 0, 18),
+				duration: 50,
+				delay: 10,
+			},
+		],
+	},
+	success: {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 523.25,
+				gain: 0.35,
+				envelope: env(4, 60, 0.3, 40),
+				duration: 110,
+				filter: { type: "lowpass", frequency: 5000 },
+			},
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 659.25,
+				gain: 0.35,
+				envelope: env(4, 60, 0.3, 40),
+				duration: 110,
+				delay: 70,
+				filter: { type: "lowpass", frequency: 5000 },
+			},
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 783.99,
+				gain: 0.4,
+				envelope: env(4, 60, 0.3, 40),
+				duration: 150,
+				delay: 140,
+				filter: { type: "lowpass", frequency: 5000 },
+			},
+		],
+	},
+	error: {
+		layers: [
+			{
+				kind: "oscillator",
+				wave: "sawtooth",
+				frequency: 220,
+				detune: -8,
+				gain: 0.3,
+				envelope: env(5, 70, 0.4, 40),
+				duration: 130,
+				filter: { type: "lowpass", frequency: 900 },
+			},
+			{
+				kind: "oscillator",
+				wave: "sawtooth",
+				frequency: 233,
+				detune: 8,
+				gain: 0.3,
+				envelope: env(5, 70, 0.4, 40),
+				duration: 130,
+				delay: 110,
+				filter: { type: "lowpass", frequency: 900 },
+			},
+		],
+	},
+	tick: {
+		layers: [
+			{
+				kind: "noise",
+				gain: 0.2,
+				envelope: env(1, 12, 0, 8),
+				duration: 22,
+				filter: { type: "bandpass", frequency: 3500, q: 2 },
+			},
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 2093,
+				gain: 0.08,
+				envelope: env(1, 15, 0, 8),
+				duration: 25,
+			},
+		],
+	},
+	copy: {
+		layers: [
+			{
+				kind: "noise",
+				gain: 0.15,
+				envelope: env(1, 10, 0, 8),
+				duration: 20,
+				filter: { type: "bandpass", frequency: 5000, q: 1 },
+			},
+			{
+				kind: "oscillator",
+				wave: "sine",
+				frequency: 1318.5,
+				frequencyEnd: 1760,
+				gain: 0.3,
+				envelope: env(2, 50, 0, 25),
+				duration: 80,
+				delay: 8,
+			},
+		],
+	},
+};
+
+export const FIXTURE_SOUND_THEME: SoundThemeDefinition = { name: "fancy", cues: FIXTURE_CUES };

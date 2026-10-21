@@ -8,6 +8,8 @@ import type {
 } from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import "./rainbow-button.css";
 
 type BaseProps = {
@@ -20,8 +22,8 @@ type BaseProps = {
 	/** Button content */
 	children?: ReactNode;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 };
@@ -49,6 +51,14 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 		const speedStyle = { "--rainbow-speed": `${speed}s` } as CSSProperties;
 		const playCue = useSoundCue(sound);
 
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled,
+		});
+		const composedRef = useComposedRefs(ref, soundRef);
+
 		// Bound identically on both render branches below, matching the Svelte
 		// source's single `handleClick` — the anchor branch has no native
 		// `disabled` attribute, so this guard is the only thing keeping a
@@ -73,7 +83,7 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 		if (href) {
 			return (
 				<a
-					ref={ref as Ref<HTMLAnchorElement>}
+					ref={composedRef as Ref<HTMLAnchorElement>}
 					className={baseClasses}
 					style={speedStyle}
 					href={href}
@@ -93,7 +103,7 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 
 		return (
 			<button
-				ref={ref as Ref<HTMLButtonElement>}
+				ref={composedRef as Ref<HTMLButtonElement>}
 				className={baseClasses}
 				style={speedStyle}
 				type={type}

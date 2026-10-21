@@ -82,6 +82,9 @@ interface VoiceHandle {
 	source: OscillatorNode | AudioBufferSourceNode;
 }
 
+/** Where exponential envelope segments bottom out before the final step to 0. */
+const EXP_FLOOR = 1e-4;
+
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(max, Math.max(min, value));
 }
@@ -186,10 +189,13 @@ export function createSoundEngine(options: SoundEngineOptions = {}): SoundEngine
 		if (typeof context.createDynamicsCompressor === "function") {
 			try {
 				const comp = context.createDynamicsCompressor();
-				comp.threshold.value = -12;
-				comp.knee.value = 6;
-				comp.ratio.value = 12;
-				comp.attack.value = 0.003;
+				// A safety limiter, not a colour: it only engages near full scale.
+				// Set lower, its ~3 ms attack shaved the first transient of every
+				// short tap (the part that makes a tap sound crisp) by up to 8 dB.
+				comp.threshold.value = -3;
+				comp.knee.value = 0;
+				comp.ratio.value = 20;
+				comp.attack.value = 0.001;
 				comp.release.value = 0.1;
 				master.connect(comp);
 				comp.connect(context.destination);
@@ -300,8 +306,17 @@ export function createSoundEngine(options: SoundEngineOptions = {}): SoundEngine
 			if (layer.detune) osc.detune.value = layer.detune;
 			if (layer.frequencyEnd != null) {
 				const freqEnd = layer.frequencyEnd * pitchMul;
+				// A glide shorter than the layer lets a fast pitch drop ring out on
+				// its landing note; unset or out-of-range falls back to the whole layer.
+				const glideMs =
+					layer.glide != null && Number.isFinite(layer.glide) && layer.glide > 0
+						? Math.min(layer.glide, durationMs)
+						: durationMs;
 				osc.frequency.setValueAtTime(freqStart, t0);
-				osc.frequency.exponentialRampToValueAtTime(Math.max(1, freqEnd), t0 + durationSec);
+				osc.frequency.exponentialRampToValueAtTime(
+					Math.max(1, freqEnd),
+					t0 + glideMs / 1000 / rate
+				);
 			}
 			source = osc;
 		} else {
@@ -342,13 +357,27 @@ export function createSoundEngine(options: SoundEngineOptions = {}): SoundEngine
 		const r = Math.max(layer.envelope.release, SOUND_LIMITS.MIN_RELEASE_MS) / 1000 / rate;
 		const sustain = layer.envelope.sustain;
 		const peak = Math.min(layer.gain * recipeGain * volume, SOUND_LIMITS.LAYER_PEAK_CEILING);
-		const tRel = t0 + durationSec - r;
+		const tDecayEnd = t0 + a + d;
+		// Float drift can put `t0 + duration - r` a hair BEFORE `t0 + a + d` even
+		// when the recipe makes them equal; a hold scheduled before the decay
+		// ramp's end turns that whole ramp into a flat hold at the peak.
+		const tRel = Math.max(t0 + durationSec - r, tDecayEnd);
 
 		gainNode.gain.setValueAtTime(0, t0);
 		gainNode.gain.linearRampToValueAtTime(peak, t0 + a);
-		gainNode.gain.linearRampToValueAtTime(peak * sustain, t0 + a + d);
-		gainNode.gain.setValueAtTime(peak * sustain, tRel);
-		gainNode.gain.linearRampToValueAtTime(0, tRel + r);
+		if (layer.envelope.curve === "exponential" && peak > EXP_FLOOR) {
+			// Exponential ramps cannot reach 0, so they fall to a floor ~-80 dB
+			// below full scale and the final step to 0 lands on silence.
+			const held = Math.max(peak * sustain, EXP_FLOOR);
+			if (d > 0) gainNode.gain.exponentialRampToValueAtTime(held, tDecayEnd);
+			gainNode.gain.setValueAtTime(held, tRel);
+			gainNode.gain.exponentialRampToValueAtTime(EXP_FLOOR, tRel + r);
+			gainNode.gain.setValueAtTime(0, tRel + r);
+		} else {
+			gainNode.gain.linearRampToValueAtTime(peak * sustain, tDecayEnd);
+			gainNode.gain.setValueAtTime(peak * sustain, tRel);
+			gainNode.gain.linearRampToValueAtTime(0, tRel + r);
+		}
 
 		if (layer.kind === "noise") (source as AudioBufferSourceNode).start(t0, noiseStartOffset);
 		else source.start(t0);
