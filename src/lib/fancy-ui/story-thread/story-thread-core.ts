@@ -96,12 +96,12 @@ function clamp(n: number, lo: number, hi: number): number {
  * Empty string under two points.
  */
 export function curvePath(pts: StoryThreadPoint[], axis: StoryThreadAxis, tension = 0.55): string {
-	if (pts.length < 2) return "";
+	const first = pts[0];
+	if (!first || pts.length < 2) return "";
 	const r = (n: number) => Math.round(n * 100) / 100;
-	let d = `M ${r(pts[0].x)} ${r(pts[0].y)}`;
-	for (let i = 1; i < pts.length; i++) {
-		const q = pts[i - 1];
-		const p = pts[i];
+	let d = `M ${r(first.x)} ${r(first.y)}`;
+	let q = first;
+	for (const p of pts.slice(1)) {
 		if (axis === "x") {
 			const dx = (p.x - q.x) * tension;
 			d += ` C ${r(q.x + dx)} ${r(q.y)} ${r(p.x - dx)} ${r(p.y)} ${r(p.x)} ${r(p.y)}`;
@@ -109,6 +109,7 @@ export function curvePath(pts: StoryThreadPoint[], axis: StoryThreadAxis, tensio
 			const dy = (p.y - q.y) * tension;
 			d += ` C ${r(q.x)} ${r(q.y + dy)} ${r(p.x)} ${r(p.y - dy)} ${r(p.x)} ${r(p.y)}`;
 		}
+		q = p;
 	}
 	return d;
 }
@@ -126,16 +127,25 @@ export function resolveSegments(
 	const source = segments.length > 0 ? segments : [{ nodes: order }];
 	const out: { ids: string[]; points: StoryThreadPoint[]; color?: string }[] = [];
 	for (const seg of source) {
-		const ids = seg.nodes.filter((id) => points[id] !== undefined);
+		const ids: string[] = [];
+		const pts: StoryThreadPoint[] = [];
+		for (const id of seg.nodes) {
+			const pt = points[id];
+			if (!pt) continue;
+			ids.push(id);
+			pts.push(pt);
+		}
 		if (ids.length < 2) continue;
-		out.push({ ids, points: ids.map((id) => points[id]), color: seg.color });
+		out.push({ ids, points: pts, color: seg.color });
 	}
 	return out;
 }
 
 /** A segment's extent along the scroll axis, from its first to its last point. */
 export function segmentSpan(points: StoryThreadPoint[], axis: StoryThreadAxis): StoryThreadSpan {
-	return [points[0][axis], points[points.length - 1][axis]];
+	const first = points[0];
+	const last = points[points.length - 1];
+	return first && last ? [first[axis], last[axis]] : [0, 0];
 }
 
 /** Drawn fraction of a segment, 0..1, for the tip at `tip` along the axis. */
@@ -199,7 +209,7 @@ export function reachedIds(
 	axis: StoryThreadAxis
 ): Set<string> {
 	const out = new Set<string>();
-	for (const id of Object.keys(points)) if (points[id][axis] <= tip) out.add(id);
+	for (const [id, pt] of Object.entries(points)) if (pt[axis] <= tip) out.add(id);
 	return out;
 }
 
@@ -209,19 +219,20 @@ export function reachedIds(
  * is assumed to move forward along the axis, which it does when its nodes do.
  */
 export function lengthAtAxis(samples: [number, number][], at: number): number {
-	if (samples.length === 0) return 0;
-	if (at <= samples[0][1]) return samples[0][0];
+	const first = samples[0];
 	const last = samples[samples.length - 1];
+	if (!first || !last) return 0;
+	if (at <= first[1]) return first[0];
 	if (at >= last[1]) return last[0];
 	let lo = 0;
 	let hi = samples.length - 1;
 	while (hi - lo > 1) {
 		const mid = (lo + hi) >> 1;
-		if (samples[mid][1] <= at) lo = mid;
+		if ((samples[mid]?.[1] ?? Infinity) <= at) lo = mid;
 		else hi = mid;
 	}
-	const [l0, a0] = samples[lo];
-	const [l1, a1] = samples[hi];
+	const [l0, a0] = samples[lo] ?? first;
+	const [l1, a1] = samples[hi] ?? last;
 	return a1 === a0 ? l0 : l0 + ((at - a0) / (a1 - a0)) * (l1 - l0);
 }
 
@@ -311,7 +322,7 @@ export function createStoryThread(
 
 	function el<K extends keyof SVGElementTagNameMap>(name: K, attrs: Record<string, string>) {
 		const node = root.ownerDocument.createElementNS(SVG_NS, name) as SVGElementTagNameMap[K];
-		for (const k of Object.keys(attrs)) node.setAttribute(k, attrs[k]);
+		for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
 		return node;
 	}
 
@@ -471,11 +482,11 @@ export function createStoryThread(
 		}
 
 		const next = reachedIds(points, tip, axis);
-		for (const id of Object.keys(nodes)) {
+		for (const [id, node] of Object.entries(nodes)) {
 			const was = reached.has(id);
 			const now = next.has(id);
 			if (was === now && primed) continue;
-			nodes[id].toggleAttribute("data-reached", now);
+			node.toggleAttribute("data-reached", now);
 			if (now && !was && primed) opts.onReach?.(id);
 		}
 		reached = next;
@@ -620,7 +631,7 @@ export function createStoryThread(
 			root.style.removeProperty("--st-vh");
 			delete root.dataset.layout;
 			delete root.dataset.dragging;
-			for (const id of Object.keys(nodes)) nodes[id].removeAttribute("data-reached");
+			for (const node of Object.values(nodes)) node.removeAttribute("data-reached");
 		},
 	};
 }

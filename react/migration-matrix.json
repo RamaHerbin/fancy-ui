@@ -4729,6 +4729,41 @@
 		]
 	},
 	{
+		"slug": "story-thread",
+		"sveltePath": "src/lib/fancy-ui/story-thread",
+		"reactPath": "react/src/components/story-thread",
+		"status": "ported",
+		"wave": "B",
+		"tier": 2,
+		"group": "motion",
+		"model": "sonnet",
+		"effort": "medium",
+		"complexity": "js-anim",
+		"deps": {
+			"internals": ["media-query", "use-element-ref", "use-live-ref", "story-thread-core"],
+			"motion": [],
+			"sound": true,
+			"components": []
+		},
+		"browserAPIs": ["ResizeObserver", "requestAnimationFrame", "matchMedia"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["StoryThread", "StoryNode"],
+		"loc": 286,
+		"testFiles": ["StoryThread.test.ts"],
+		"svelteFiles": 2,
+		"attempts": 1,
+		"divergences": [
+			"`class` → `className` (PORTING.md).",
+			"The thread's geometry, scroll handling and drawing live in the shared `story-thread-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect once the four refs exist, and forwards props and reduced motion through `update()`. `onReach` and `sound` are read through a live ref so a new callback never recreates the core.",
+			"`segments` defaults to a module-level empty array so the core re-measures only when the caller passes a new array."
+		],
+		"lastFailure": null
+	},
+	{
 		"slug": "streaming-text",
 		"sveltePath": "src/lib/fancy-ui/streaming-text",
 		"reactPath": "react/src/components/streaming-text",

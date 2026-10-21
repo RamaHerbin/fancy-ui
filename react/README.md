@@ -10,7 +10,7 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 ![React](https://img.shields.io/badge/React-18_%7C_19-149ECA?logo=react&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-151-8B5CF6)
+![Components](https://img.shields.io/badge/Components-152-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
@@ -40,11 +40,11 @@ Animated UI components for **React 18 and 19**, styled with Tailwind CSS v4 &mda
 
 ## Features
 
-- **151 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
+- **152 components** &mdash; core primitives (forms, navigation, overlays) alongside buttons, text animations, backgrounds, cursors, AI/chat building blocks and a micro-interactions collection
 - **Motion that feels physical** &mdash; beams of light, liquid-metal and neon borders, a physical flip card, a before/after slider with a motion trail, a datamosh page transition; springs and WebGL where they earn their keep
 - **Idiomatic React** &mdash; function components and hooks, `forwardRef` wherever the Svelte source exposes a `ref`, `className` instead of `class`, snippets as `ReactNode` or render props; every other prop keeps its Svelte name
 - **Server Components ready** &mdash; components ship as client modules, so a Server Component imports the barrel and crosses the boundary without a wrapper; `cn` and the constant tables stay callable on the server
-- **Same components, three frameworks** &mdash; All 151 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
+- **Same components, three frameworks** &mdash; All 152 components of `fancy-ui-svelte` are ported, under the same names and with the same visual contract; the [Svelte package](https://github.com/RamaHerbin/fancy-ui#readme) is the reference, [`fancy-ui-vue`](https://github.com/RamaHerbin/fancy-ui/tree/main/vue#readme) the Vue edition, and parity is checked in CI
 - **Tailwind CSS v4** &mdash; one CSS import, semantic colour tokens, light and dark themes that follow the OS or a `.dark` class
 - **Accessible and SSR-safe** &mdash; keyboard support where it applies, `prefers-reduced-motion` respected, a `seed` prop wherever the source randomises in render so server and client agree, canvas and WebGL work deferred to mount
 - **Opt-in sound** &mdash; eleven synthesised interface cues, a `SoundToggle` switch and the `useSound` / `useSoundFeedback` hooks; silent until the user turns it on
@@ -674,6 +674,9 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **sticky-scroll**: activeIndex is controlled-when-passed (tabs precedent for `$bindable`): omit it for uncontrolled use; when passed, the parent must echo `onChange` back for internal activations (IO/focus) to take effect — Svelte's unbound-prop local-override semantics have no React counterpart.
 - **sticky-scroll**: A panel frame interrupted mid-entrance reverses from its current opacity over a proportionally shortened duration rather than snapping back to full and restarting the fade, because `usePresence` owns one bidirectional leg per node where the Svelte source used a split `in:`/`out:` pair.
 - **sticky-scroll**: `StickyScroll`'s exported type is restored by assertion, because forwardRef erases a render function's type parameter and ref-as-prop is React-19-only while the peer range includes 18; the same idiom restores the type parameter on the memoised internal row.
+- **story-thread**: `class` → `className` (PORTING.md).
+- **story-thread**: The thread's geometry, scroll handling and drawing live in the shared `story-thread-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect once the four refs exist, and forwards props and reduced motion through `update()`. `onReach` and `sound` are read through a live ref so a new callback never recreates the core.
+- **story-thread**: `segments` defaults to a module-level empty array so the core re-measures only when the caller passes a new array.
 - **streaming-text**: onComplete edge-detection runs in a useEffect (post-commit) rather than Svelte's untracked $effect body — observably equivalent (fires once on the true→false edge, never on mount), but React fires it after paint instead of synchronously during the reactive flush.
 - **switch**: Switch: Svelte `bind:checked` becomes the standard controlled/uncontrolled split — uncontrolled by default with a new `defaultChecked` prop, controlled when `checked` is passed (pair with `onCheckedChange`).
 - **tabs**: TabsTrigger: the `document.activeElement` sample is kept continuously by `handleFocus`/`handleBlur` (plus an activeElement read in the layout effect) because React has no pre-mutation phase equivalent to `$effect.pre`. Pre-existing in the port; unchanged by this fix.
