@@ -2,4 +2,4 @@
 "fancy-ui-vue": patch
 ---
 
-`@click` and other camelCase listeners now reach Button, GradientButton, IconButton, InteractiveHoverButton, Link, NavbarLink, RippleButton, SidebarItem and ChatMessageAction, and `@flip`, `@fade-in`, `@fade-out`, `@covered`, `@revealed`, `@percentage-change`, `@drag-start`, `@drag-end`, `@hover-enter` and `@hover-leave` reach FlipCard, PulseBeam, DatamoshTransition and Compare. The lowercase props (`onclick`, `onflip`, ...) remain as deprecated aliases, called only when the camelCase one is absent.
+`@click` now reaches Button, IconButton, Link, NavbarLink, SidebarItem, ChatMessageAction, FlipCard (`@flip`) and Compare (`@drag-start`, `@drag-end`, `@hover-enter`, `@hover-leave`, `@percentage-change`), as do the camelCase callbacks of PulseBeam (`@fade-in`, `@fade-out`) and DatamoshTransition (`@covered`, `@revealed`). It no longer fires alongside the lowercase prop on GradientButton, InteractiveHoverButton and RippleButton, and a listener merged from several levels (an array) is accepted. The lowercase props (`onclick`, `onflip`, ...) remain as deprecated aliases.

@@ -1,4 +1,5 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
+import { defineComponent, h } from "vue";
 import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
 import Button from "./button/Button.vue";
 import GradientButton from "./gradient-button/GradientButton.vue";
@@ -127,5 +128,26 @@ describe("custom listeners", () => {
 		const b = render(Compare, { props: { onhoverenter } });
 		await fireEvent.mouseEnter(b.container.querySelector('[role="slider"]') as HTMLElement);
 		expect(onhoverenter).toHaveBeenCalledTimes(1);
+	});
+});
+
+// A wrapper whose root IS the component, with its own `@click`, plus a parent
+// that adds another: Vue merges the two into an ARRAY on the `onClick` prop.
+describe.each([
+	{ name: "Button", comp: Button },
+	{ name: "GradientButton", comp: GradientButton },
+	{ name: "RippleButton", comp: RippleButton },
+	{ name: "InteractiveHoverButton", comp: InteractiveHoverButton },
+])("$name as the root of a wrapper", ({ comp }) => {
+	it("runs the wrapper's and the parent's @click exactly once each, without throwing", async () => {
+		const inner = vi.fn();
+		const outer = vi.fn();
+		const Wrapper = defineComponent({
+			setup: () => () => h(comp as never, { onClick: inner }),
+		});
+		const { container } = render(Wrapper, { attrs: { onClick: outer } });
+		await fireEvent.click(target(container));
+		expect(inner).toHaveBeenCalledTimes(1);
+		expect(outer).toHaveBeenCalledTimes(1);
 	});
 });

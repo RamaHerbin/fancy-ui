@@ -65,7 +65,7 @@ describe("Compare", () => {
 		expect(slider).toHaveAttribute("aria-valuemax", "100");
 	});
 
-	it("calls the lowercase callbacks passed as props; the @-spellings (onDragstart…) never reach them", async () => {
+	it("calls the deprecated lowercase callbacks passed as props; the run-together @-spellings (onDragstart…) are undeclared and never reach them", async () => {
 		const names = [
 			"onpercentagechange",
 			"ondragstart",
@@ -74,7 +74,7 @@ describe("Compare", () => {
 			"onhoverleave",
 		];
 		const lower = Object.fromEntries(names.map((n) => [n, vi.fn()]));
-		// `@drag-start` / `@dragstart` compile to `onDragStart` / `onDragstart`: undeclared attrs.
+		// `@dragstart` compiles to `onDragstart`, an undeclared attr (the declared name is `onDragStart`, i.e. `@drag-start`).
 		const camel = Object.fromEntries(
 			names.map((n) => ["on" + n[2]!.toUpperCase() + n.slice(3), vi.fn()])
 		);

@@ -8,9 +8,9 @@ export interface ChatMessageActionProps {
 	/** Accessible name and tooltip. Required — the icon alone names nothing. */
 	label: string;
 	/** Called on click, before any confirmation label swaps in. `@click` reaches it. */
-	onClick?: (event: MouseEvent) => void;
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
-	onclick?: (event: MouseEvent) => void;
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Pressed state for a toggle. Omit entirely for a plain button. */
 	active?: boolean;
 	/** Swapped in as the label for two seconds after a click, e.g. "Copied". */
@@ -21,6 +21,7 @@ export interface ChatMessageActionProps {
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, inject, onBeforeUnmount, ref } from "vue";
 import { cn } from "../../utils.js";
 import { CHAT_MESSAGE_CONTEXT_KEY } from "./types.js";
@@ -32,8 +33,14 @@ defineOptions({ name: "ChatMessageAction", inheritAttrs: false });
 // declared Boolean prop to `false`, which would put `aria-pressed="false"` on
 // every plain button. An explicit default keeps the three states the source
 // has — absent, false, true.
-const { label, onClick, onclick, active = undefined, confirmLabel, class: className } =
-	defineProps<ChatMessageActionProps>();
+const {
+	label,
+	onClick,
+	onclick,
+	active = undefined,
+	confirmLabel,
+	class: className,
+} = defineProps<ChatMessageActionProps>();
 
 defineSlots<{
 	/** The icon. */
@@ -67,7 +74,7 @@ function handleClick(event: MouseEvent) {
 	// Press, never toggle-on/off: `active` is fully controlled by the caller,
 	// so the post-click state is unknowable here.
 	playCue("press");
-	(onClick ?? onclick)?.(event);
+	callListener(onClick ?? onclick, event);
 	if (!confirmLabel) return;
 	confirmed.value = true;
 	// A second click restarts the window rather than inheriting the old deadline.

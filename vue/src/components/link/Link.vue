@@ -18,9 +18,9 @@ export interface LinkProps {
 	 * `_self`, `_parent`, or `_top` (case-insensitively), not just `_blank` */
 	rel?: string;
 	/** Click handler, called after the sound cue. `@click` reaches it. */
-	onClick?: (event: MouseEvent) => void;
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
-	onclick?: (event: MouseEvent) => void;
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
 	/**
@@ -32,6 +32,7 @@ export interface LinkProps {
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { useTemplateRef, computed } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
@@ -99,7 +100,7 @@ const classes = computed(() =>
 // `preventDefault` — navigation is untouched, this only rides alongside it.
 function handleClick(event: MouseEvent) {
 	if (sound) soundFx.play("press");
-	(onClick ?? onclick)?.(event);
+	callListener(onClick ?? onclick, event);
 }
 </script>
 

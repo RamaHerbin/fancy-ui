@@ -16,9 +16,9 @@ export interface RippleButtonProps {
 	/** Native `disabled`, read to guard the sound cue. */
 	disabled?: boolean;
 	/** Click handler, called after the sound cue. `@click` reaches it. */
-	onClick?: (event: MouseEvent) => void;
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
-	onclick?: (event: MouseEvent) => void;
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 
 interface Ripple {
@@ -48,6 +48,7 @@ export function rippleGeometry(
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { ref, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
@@ -76,8 +77,7 @@ function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
 	createRipple(event);
 	// `onClick` wins; the deprecated lowercase prop is only a fallback.
-	const handler = onClick ?? onclick;
-	if (typeof handler === "function") handler(event);
+	callListener(onClick ?? onclick, event);
 }
 
 // The hover glow follows the pointer: two CSS variables, no re-render.

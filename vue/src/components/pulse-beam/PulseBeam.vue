@@ -38,17 +38,18 @@ export interface PulseBeamProps {
 	/** Override the preset saturation filter */
 	saturation?: number;
 	/** Called once the fade-in has completed */
-	onFadeIn?: () => void;
+	onFadeIn?: (() => void) | (() => void)[];
 	/** @deprecated Use `@fade-in` / `onFadeIn`. Only called when `onFadeIn` is absent. */
-	onfadein?: () => void;
+	onfadein?: (() => void) | (() => void)[];
 	/** Called once the fade-out has completed and the loop has stopped */
-	onFadeOut?: () => void;
+	onFadeOut?: (() => void) | (() => void)[];
 	/** @deprecated Use `@fade-out` / `onFadeOut`. Only called when `onFadeOut` is absent. */
-	onfadeout?: () => void;
+	onfadeout?: (() => void) | (() => void)[];
 }
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
@@ -131,9 +132,9 @@ function settle(kind: "in" | "out") {
 	clearTimeout(fadeTimer);
 	if (kind === "out") {
 		phase.value = "idle";
-		(onFadeOut ?? onfadeout)?.();
+		callListener(onFadeOut ?? onfadeout);
 	} else {
-		(onFadeIn ?? onfadein)?.();
+		callListener(onFadeIn ?? onfadein);
 	}
 }
 

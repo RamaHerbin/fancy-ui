@@ -35,9 +35,9 @@ export interface IconButtonProps {
 	/** Anchor `rel`. Widened, never narrowed — see `target`. */
 	rel?: string;
 	/** Fires on activation. Never called while `disabled` or `loading`. `@click` reaches it. */
-	onClick?: (event: MouseEvent) => void;
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
-	onclick?: (event: MouseEvent) => void;
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
 	/**

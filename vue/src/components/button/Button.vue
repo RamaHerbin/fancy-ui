@@ -28,9 +28,9 @@ export interface ButtonProps {
 	/** Accessible name for a button whose content is icon-only. */
 	label?: string;
 	/** Fires on activation. Never called while `disabled` or `loading`. `@click` reaches it. */
-	onClick?: (event: MouseEvent) => void;
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
-	onclick?: (event: MouseEvent) => void;
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
 	/**
@@ -42,6 +42,7 @@ export interface ButtonProps {
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
@@ -208,7 +209,7 @@ function handleClick(event: MouseEvent) {
 		return;
 	}
 	if (sound) soundFx.play("press");
-	(onClick ?? onclick)?.(event);
+	callListener(onClick ?? onclick, event);
 }
 </script>
 

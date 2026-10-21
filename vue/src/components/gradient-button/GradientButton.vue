@@ -24,9 +24,9 @@ export interface GradientButtonProps {
 	/** Native `disabled`, read to guard the sound cue. */
 	disabled?: boolean;
 	/** Click handler, called after the sound cue. `@click` reaches it. */
-	onClick?: (event: MouseEvent) => void;
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
-	onclick?: (event: MouseEvent) => void;
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 
 /**
@@ -49,6 +49,7 @@ export function beamGradient(colors: string[]): string {
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { computed, useAttrs } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
@@ -85,7 +86,7 @@ const styleVars = computed<HTMLAttributes["style"]>(() => ({
 
 function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
-	(onClick ?? onclick)?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	callListener(onClick ?? onclick, event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 }
 
 // `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds

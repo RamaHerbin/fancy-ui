@@ -60,17 +60,18 @@ export interface DatamoshTransitionProps {
 	/** Current phase (read-only, `v-model:phase`) */
 	phase?: DatamoshTransitionPhase;
 	/** Called once the page is fully covered */
-	onCovered?: () => void;
+	onCovered?: (() => void) | (() => void)[];
 	/** @deprecated Use `@covered` / `onCovered`. Only called when `onCovered` is absent. */
-	oncovered?: () => void;
+	oncovered?: (() => void) | (() => void)[];
 	/** Called once the page is fully revealed */
-	onRevealed?: () => void;
+	onRevealed?: (() => void) | (() => void)[];
 	/** @deprecated Use `@revealed` / `onRevealed`. Only called when `onRevealed` is absent. */
-	onrevealed?: () => void;
+	onrevealed?: (() => void) | (() => void)[];
 }
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import {
 	computed,
 	onBeforeUnmount,
@@ -218,8 +219,8 @@ function finish(dir: Direction) {
 		draw();
 	}
 	settlePending();
-	if (dir === "cover") (onCovered ?? oncovered)?.();
-	else (onRevealed ?? onrevealed)?.();
+	if (dir === "cover") callListener(onCovered ?? oncovered);
+	else callListener(onRevealed ?? onrevealed);
 }
 
 function run(dir: Direction): Promise<void> {
