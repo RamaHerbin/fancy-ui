@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAnchorAttributes } from "svelte/elements";
 
-	export interface NavbarLinkProps {
+	type BaseProps = {
 		/** Destination URL. */
 		href: string;
 		/**
@@ -30,7 +31,10 @@
 		 * only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
-	}
+	};
+
+	/** Native anchor attributes land on the `<a>`; `aria-current`, `aria-disabled`, `tabindex`, `target` and `rel` stay managed while `current`, `disabled` or `external` apply. */
+	export type NavbarLinkProps = BaseProps & Omit<HTMLAnchorAttributes, keyof BaseProps>;
 </script>
 
 <script lang="ts">
@@ -47,6 +51,7 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		...restProps
 	}: NavbarLinkProps = $props();
 
 	const classes = $derived(
@@ -75,13 +80,14 @@
 </script>
 
 <a
+	{...restProps}
 	bind:this={ref}
 	href={disabled ? undefined : href}
-	target={external ? "_blank" : undefined}
-	rel={external ? "noopener noreferrer" : undefined}
-	aria-current={current ? "page" : undefined}
-	aria-disabled={disabled ? "true" : undefined}
-	tabindex={disabled ? -1 : undefined}
+	target={external ? "_blank" : restProps.target}
+	rel={external ? "noopener noreferrer" : restProps.rel}
+	aria-current={current ? "page" : restProps["aria-current"]}
+	aria-disabled={disabled ? "true" : restProps["aria-disabled"]}
+	tabindex={disabled ? -1 : restProps.tabindex}
 	class={classes}
 	onclick={handleClick}
 >
