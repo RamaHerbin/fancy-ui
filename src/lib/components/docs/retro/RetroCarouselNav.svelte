@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from "$lib/stores";
 	// Retro ← → nav arrows for a horizontal-scroll carousel preview. Docs-only:
 	// it scrolls the given container (found by the caller) and never touches the
 	// published component. Rendered only under the retro-os skin. Styling lives in
@@ -20,6 +21,6 @@
 </script>
 
 <div class="retro-carousel-nav">
-	<button type="button" aria-label="Previous" onclick={() => scroll(-1)}>←</button>
-	<button type="button" aria-label="Next" onclick={() => scroll(1)}>→</button>
+	<button type="button" aria-label={t("comp.previous")} onclick={() => scroll(-1)}>←</button>
+	<button type="button" aria-label={t("comp.next")} onclick={() => scroll(1)}>→</button>
 </div>

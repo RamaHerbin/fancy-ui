@@ -5,7 +5,6 @@
 	import { JOBS } from "$lib/docs/jobs.js";
 	import { t, tCategory } from "$lib/stores";
 	import { en, type MessageKey } from "$lib/i18n/messages/en.js";
-	import { tc } from "./chrome-i18n.js";
 
 	interface Props {
 		open?: boolean;
@@ -171,7 +170,7 @@
 				open = false;
 				onclose?.();
 			}}
-			aria-label={tc("search.a11y.close")}
+			aria-label={t("search.a11y.close")}
 		></button>
 	</div>
 

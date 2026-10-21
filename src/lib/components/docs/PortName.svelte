@@ -18,7 +18,7 @@
 
 	let { framework, name, port }: Props = $props();
 
-	const label = $derived(t("table.portName").replace("{framework}", FRAMEWORK_LABELS[framework]));
+	const label = $derived(t("table.portName", { framework: FRAMEWORK_LABELS[framework] }));
 </script>
 
 {#if framework !== "svelte" && port !== name}

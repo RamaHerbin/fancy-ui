@@ -82,10 +82,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "Di halaman ini",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "Beralih ke mode terang",
-	"theme.switchToDark": "Beralih ke mode gelap",
-
 	// Components gallery
 	"gallery.title": "Komponen",
 	"gallery.subtitle":
@@ -97,8 +93,7 @@ export default {
 	"gallery.noMatch": "Tidak ada komponen yang cocok dengan pencarian Anda.",
 	"gallery.meta":
 		"{components} komponen · {categories} kategori · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} hasil",
-	"gallery.resultOne": "1 hasil",
+	"gallery.results.other": "{count} hasil",
 	"gallery.clearFilters": "Hapus filter",
 	"gallery.clearSearch": "Hapus pencarian",
 	"gallery.searchHint": "Tekan / untuk mencari",
@@ -125,8 +120,7 @@ export default {
 	"tg.metaDescription":
 		"Sesuaikan token desain OKLCh FancyUI secara langsung dan salin CSS-nya ke aplikasi Anda.",
 	"tg.intro":
-		"Sesuaikan token desain FancyUI dan lihat komponen bereaksi secara real-time. Ketika sudah terlihat pas, salin CSS yang dihasilkan ke lembar gaya aplikasi Anda (mis. src/app.css). Warna menggunakan ruang warna OKLCh; palet pelangi menggunakan HSL.",
-	"tg.seeTheming": "Untuk referensi token lengkap, lihat",
+		"Sesuaikan token desain FancyUI dan lihat komponen bereaksi secara real-time. Ketika sudah terlihat pas, salin CSS yang dihasilkan ke lembar gaya aplikasi Anda (mis. src/app.css). Warna menggunakan ruang warna OKLCh; palet pelangi menggunakan HSL. Untuk referensi token lengkap, lihat <link>Tema</link>.",
 	"tg.presets": "Prasetel",
 	"tg.base": "Dasar",
 	"tg.light": "Terang",
@@ -144,7 +138,7 @@ export default {
 	"tg.cardSurfaceDesc": "Menggunakan --card, --foreground, --border dan --radius.",
 	"tg.primaryAction": "Aksi primer",
 	"tg.accentBadge": "Lencana aksen",
-	"tg.beamDesc": "Warna beam mengikuti Primary → Accent.",
+	"tg.beamDesc": "Warna beam mengikuti {primary} → {accent}.",
 	"tg.generatedCss": "CSS yang Dihasilkan",
 	"tg.copyCss": "Salin CSS",
 	"tg.copied": "Tersalin",
@@ -166,18 +160,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Pengantar",
 	"intro.metaTitle": "Pengantar",
-	"intro.leadPre": "adalah kumpulan",
-	"intro.leadHighlight": "{count} animasi",
-	"intro.leadHighlight2": "komponen UI interaktif",
-	"intro.leadPost": "yang dibangun secara native untuk Svelte 5.",
-	"intro.pill.svelte": "Svelte 5 Native",
 	"intro.pill.animation": "Mengutamakan Animasi",
 	"intro.pill.copyPaste": "Ramah Salin-Tempel",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Filosofi",
-	"intro.philosophy.card1.title": "Svelte 5 native",
-	"intro.philosophy.card1.desc": "Dibangun dengan runes. Tanpa API lawas.",
 	"intro.philosophy.card2.title": "Mengutamakan animasi",
 	"intro.philosophy.card2.desc": "Setiap komponen hadir dengan animasi yang halus secara langsung.",
 	"intro.philosophy.card3.title": "Ramah salin-tempel",
@@ -190,21 +177,12 @@ export default {
 	"intro.quickStart.step1.title": "Instal",
 	"intro.quickStart.step1.desc": "Tambahkan FancyUI ke proyek Anda.",
 	"intro.quickStart.step2.title": "Impor",
-	"intro.quickStart.step2.desc": "Impor komponen yang Anda butuhkan.",
 	"intro.quickStart.step3.title": "Gunakan",
-	"intro.quickStart.step3.desc": "Tempatkan di komponen Svelte Anda.",
 	"intro.whatsIncluded.heading": "Apa yang Disertakan",
-	"intro.whatsIncluded.body": "{count} komponen di {categories} kategori:",
+	"intro.whatsIncluded.body.other": "{count} komponen di {categories} kategori:",
 	"intro.category.buttons": "Tombol",
 	"intro.category.cards": "Kartu",
-	"intro.category.text": "Teks",
-	"intro.category.backgrounds": "Latar Belakang",
 	"intro.category.effects": "Efek",
-	"intro.category.layout": "Tata Letak",
-	"intro.category.navigation": "Navigasi",
-	"intro.category.dataDisplay": "Tampilan Data",
-	"intro.category.feedback": "Umpan Balik",
-	"intro.category.media": "Media",
 	"intro.stats.buttons":
 		"Rainbow, Ripple, Shimmer, dan kawan-kawan. Tombol yang bikin ingin diklik.",
 	"intro.stats.cards": "Karusel, kisi bento, efek 3D. Cara menyajikan konten tanpa membosankan.",
@@ -218,7 +196,7 @@ export default {
 	"intro.nextSteps.components": "Jelajahi Komponen",
 	"intro.cta.title": "Baru Mengenal FancyUI?",
 	"intro.cta.body":
-		"Lihat <strong>Generator Tema</strong> untuk menyesuaikan warna dan melihat komponen bereaksi secara real-time.",
+		"Lihat <b>Generator Tema</b> untuk menyesuaikan warna dan melihat komponen bereaksi secara real-time.",
 	"intro.cta.button": "Coba Generator Tema",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -382,6 +360,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"Komponen adalah single-file component Vue 3.5, jadi Vue 3.5.2 atau lebih baru diperlukan.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"Ditulis secara native untuk setiap framework: runes di Svelte, hooks di React, Composition API di Vue.",
+	"intro.quickStart.step3.desc": "Tempatkan di komponen Anda.",
+	"install.peerDeps.optional": "opsional",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "Langsung ke konten",
 	"a11y.docsBreadcrumb": "Breadcrumb dokumentasi",
@@ -390,8 +376,6 @@ export default {
 	"search.a11y.close": "Tutup pencarian",
 	"nav.backToSite": "Kembali ke beranda FancyUI",
 	"nav.recipes": "Resep",
-	"toc.show": "Tampilkan daftar isi",
-	"footer.docs": "Dokumentasi",
 	"footer.contribute": "Berkontribusi",
 	"footer.issues": "Issue",
 	"footer.discussions": "Diskusi",
@@ -404,8 +388,8 @@ export default {
 	"comp.editPage": "Edit halaman ini",
 	"comp.reportIssue": "Laporkan masalah",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"adalah kumpulan {count} komponen UI animasi dan interaktif untuk Svelte 5, React, dan Vue, yang dibangun di atas design token yang sama.",
+	"intro.lead":
+		"adalah kumpulan <grad>{count}</grad> komponen UI animasi dan interaktif untuk Svelte 5, React, dan Vue, yang dibangun di atas design token yang sama.",
 	"intro.importHint": "Impor komponen yang Anda butuhkan. Jalur impor mengikuti framework Anda.",
 	"install.kitOptional":
 		"SvelteKit bersifat opsional: FancyUI berjalan di setiap proyek Svelte 5 yang dibangun dengan Vite.",
@@ -436,8 +420,6 @@ export default {
 	"recipes.steps": "Langkah",
 	"recipes.pitfalls": "Jebakan umum",
 	"recipes.componentsUsed": "Komponen yang digunakan",
-	"seo.introduction":
-		"FancyUI adalah pustaka komponen UI animasi dan interaktif untuk Svelte 5, React, dan Vue. Pelajari isinya dan cara memulai.",
 	"seo.installation":
 		"Instal FancyUI untuk Svelte 5, React, atau Vue: tambahkan paket, impor stylesheet, lalu render komponen pertama Anda.",
 	"seo.theming":

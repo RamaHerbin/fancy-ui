@@ -210,8 +210,7 @@
 </script>
 
 <script lang="ts">
-	import { tc } from "./chrome-i18n.js";
-	import { createSkinState } from "$lib/stores";
+	import { createSkinState, t } from "$lib/stores";
 	import RetroCarouselNav from "$lib/components/docs/retro/RetroCarouselNav.svelte";
 
 	interface Props {
@@ -402,7 +401,7 @@
 		{/if}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
-			{tc("demo.noPreview")}
+			{t("demo.noPreview")}
 		</div>
 	{/if}
 {:else}
@@ -488,7 +487,7 @@
 		{/if}
 	{:else}
 		<div class="text-muted-foreground flex h-64 items-center justify-center text-sm">
-			{tc("demo.notFound")}
+			{t("demo.notFound")}
 		</div>
 	{/if}
 {/if}

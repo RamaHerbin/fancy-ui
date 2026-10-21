@@ -81,10 +81,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "Na této stránce",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "Přepnout na světlý režim",
-	"theme.switchToDark": "Přepnout na tmavý režim",
-
 	// Components gallery
 	"gallery.title": "Komponenty",
 	"gallery.subtitle":
@@ -96,8 +92,10 @@ export default {
 	"gallery.noMatch": "Vašemu hledání neodpovídají žádné komponenty.",
 	"gallery.meta":
 		"{components} komponent · {categories} kategorií · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "Výsledků: {count}",
-	"gallery.resultOne": "1 výsledek",
+	"gallery.results.one": "{count} výsledek",
+	"gallery.results.few": "Výsledků: {count}",
+	"gallery.results.many": "Výsledků: {count}",
+	"gallery.results.other": "Výsledků: {count}",
 	"gallery.clearFilters": "Zrušit filtry",
 	"gallery.clearSearch": "Vymazat hledání",
 	"gallery.searchHint": "Stiskněte / pro hledání",
@@ -124,8 +122,7 @@ export default {
 	"tg.metaDescription":
 		"Nastavte živě designové tokeny OKLCh ve FancyUI a zkopírujte CSS do své aplikace.",
 	"tg.intro":
-		"Nastavte designové tokeny FancyUI a sledujte, jak komponenty reagují v reálném čase. Až bude vzhled odpovídat, zkopírujte vygenerované CSS do stylesheetu své aplikace (např. src/app.css). Barvy používají barevný prostor OKLCh; duhová paleta používá HSL.",
-	"tg.seeTheming": "Úplnou referenci tokenů najdete v",
+		"Nastavte designové tokeny FancyUI a sledujte, jak komponenty reagují v reálném čase. Až bude vzhled odpovídat, zkopírujte vygenerované CSS do stylesheetu své aplikace (např. src/app.css). Barvy používají barevný prostor OKLCh; duhová paleta používá HSL. Úplnou referenci tokenů najdete v <link>Vzhled</link>.",
 	"tg.presets": "Předvolby",
 	"tg.base": "Základní",
 	"tg.light": "Světlý",
@@ -143,7 +140,7 @@ export default {
 	"tg.cardSurfaceDesc": "Používá --card, --foreground, --border a --radius.",
 	"tg.primaryAction": "Primární akce",
 	"tg.accentBadge": "Akcentní štítek",
-	"tg.beamDesc": "Barvy paprsku odpovídají Primary → Accent.",
+	"tg.beamDesc": "Barvy paprsku odpovídají {primary} → {accent}.",
 	"tg.generatedCss": "Vygenerované CSS",
 	"tg.copyCss": "Kopírovat CSS",
 	"tg.copied": "Zkopírováno",
@@ -165,18 +162,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "Úvod",
 	"intro.metaTitle": "Úvod",
-	"intro.leadPre": "je kolekce",
-	"intro.leadHighlight": "{count} animovaných",
-	"intro.leadHighlight2": "interaktivních UI komponent",
-	"intro.leadPost": "vytvořených nativně pro Svelte 5.",
-	"intro.pill.svelte": "Nativní pro Svelte 5",
 	"intro.pill.animation": "Animace na prvním místě",
 	"intro.pill.copyPaste": "Vhodné pro kopírování",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Filozofie",
-	"intro.philosophy.card1.title": "Nativní pro Svelte 5",
-	"intro.philosophy.card1.desc": "Vytvořeno pomocí runes. Žádná zastaralá API.",
 	"intro.philosophy.card2.title": "Animace na prvním místě",
 	"intro.philosophy.card2.desc": "Každá komponenta je od začátku vybavena vyladěnými animacemi.",
 	"intro.philosophy.card3.title": "Vhodné pro kopírování",
@@ -189,21 +179,15 @@ export default {
 	"intro.quickStart.step1.title": "Instalace",
 	"intro.quickStart.step1.desc": "Přidejte FancyUI do svého projektu.",
 	"intro.quickStart.step2.title": "Import",
-	"intro.quickStart.step2.desc": "Importujte komponenty, které potřebujete.",
 	"intro.quickStart.step3.title": "Použití",
-	"intro.quickStart.step3.desc": "Vložte je do svých Svelte komponent.",
 	"intro.whatsIncluded.heading": "Co je součástí",
-	"intro.whatsIncluded.body": "{count} komponent napříč {categories} kategoriemi:",
+	"intro.whatsIncluded.body.one": "{count} komponent napříč {categories} kategoriemi:",
+	"intro.whatsIncluded.body.few": "{count} komponent napříč {categories} kategoriemi:",
+	"intro.whatsIncluded.body.many": "{count} komponent napříč {categories} kategoriemi:",
+	"intro.whatsIncluded.body.other": "{count} komponent napříč {categories} kategoriemi:",
 	"intro.category.buttons": "Tlačítka",
 	"intro.category.cards": "Karty",
-	"intro.category.text": "Text",
-	"intro.category.backgrounds": "Pozadí",
 	"intro.category.effects": "Efekty",
-	"intro.category.layout": "Rozvržení",
-	"intro.category.navigation": "Navigace",
-	"intro.category.dataDisplay": "Zobrazení dat",
-	"intro.category.feedback": "Zpětná vazba",
-	"intro.category.media": "Média",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer a spol. Tlačítka, na která chcete kliknout.",
 	"intro.stats.cards": "Karusely, bento mřížky, 3D efekty. Jak prezentovat obsah, aniž by nudil.",
 	"intro.stats.effects": "Kurzory, stopy, animované texty. Drobné detaily, které dělají rozdíl.",
@@ -216,7 +200,7 @@ export default {
 	"intro.nextSteps.components": "Procházet komponenty",
 	"intro.cta.title": "Začínáte s FancyUI?",
 	"intro.cta.body":
-		"Podívejte se na <strong>Generátor motivů</strong>, přizpůsobte si barvy a sledujte, jak komponenty reagují v reálném čase.",
+		"Podívejte se na <b>Generátor motivů</b>, přizpůsobte si barvy a sledujte, jak komponenty reagují v reálném čase.",
 	"intro.cta.button": "Vyzkoušet Generátor motivů",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -379,6 +363,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"Komponenty jsou jednosouborové komponenty Vue 3.5, proto je vyžadováno Vue 3.5.2 nebo novější.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"Napsáno nativně pro každý framework: runes ve Svelte, hooks v Reactu, Composition API ve Vue.",
+	"intro.quickStart.step3.desc": "Vložte je do svých komponent.",
+	"install.peerDeps.optional": "volitelné",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "Přeskočit na obsah",
 	"a11y.docsBreadcrumb": "Drobečková navigace dokumentace",
@@ -387,8 +379,6 @@ export default {
 	"search.a11y.close": "Zavřít vyhledávání",
 	"nav.backToSite": "Zpět na úvodní stránku FancyUI",
 	"nav.recipes": "Recepty",
-	"toc.show": "Zobrazit obsah",
-	"footer.docs": "Dokumentace",
 	"footer.contribute": "Přispívání",
 	"footer.issues": "Issues",
 	"footer.discussions": "Diskuze",
@@ -401,8 +391,8 @@ export default {
 	"comp.editPage": "Upravit tuto stránku",
 	"comp.reportIssue": "Nahlásit problém",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"je kolekce {count} animovaných interaktivních komponent rozhraní pro Svelte 5, React a Vue, postavených na stejných design tokenech.",
+	"intro.lead":
+		"je kolekce <grad>{count}</grad> animovaných interaktivních komponent rozhraní pro Svelte 5, React a Vue, postavených na stejných design tokenech.",
 	"intro.importHint":
 		"Naimportujte komponenty, které potřebujete. Cesta importu závisí na frameworku.",
 	"install.kitOptional":
@@ -433,8 +423,6 @@ export default {
 	"recipes.steps": "Kroky",
 	"recipes.pitfalls": "Časté chyby",
 	"recipes.componentsUsed": "Použité komponenty",
-	"seo.introduction":
-		"FancyUI je knihovna animovaných interaktivních komponent rozhraní pro Svelte 5, React a Vue. Zjistěte, co obsahuje a jak začít.",
 	"seo.installation":
 		"Nainstalujte FancyUI pro Svelte 5, React nebo Vue: přidejte balíček, naimportujte stylopis a vykreslete první komponentu.",
 	"seo.theming":

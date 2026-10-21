@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { t } from "$lib/stores";
-	import { tc } from "$lib/components/docs/chrome-i18n.js";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import Seo from "$lib/components/Seo.svelte";
 	import JsonLd from "$lib/components/JsonLd.svelte";
@@ -80,7 +79,7 @@
 		<ol class="text-muted-foreground flex flex-wrap items-center gap-1.5 text-xs">
 			<li><a href="/" class="hover:text-foreground transition-colors">{t("nav.home")}</a></li>
 			<li aria-hidden="true" class="opacity-40 select-none">/</li>
-			<li>Recipes</li>
+			<li>{t("nav.recipes")}</li>
 			<li aria-hidden="true" class="opacity-40 select-none">/</li>
 			<li class="text-foreground font-medium" aria-current="page">{recipe.title}</li>
 		</ol>
@@ -149,7 +148,7 @@
 	</section>
 
 	<section class="mb-10">
-		<h2 class="text-foreground mb-3 text-xl font-semibold" id="steps">{tc("recipes.steps")}</h2>
+		<h2 class="text-foreground mb-3 text-xl font-semibold" id="steps">{t("recipes.steps")}</h2>
 		<ol class="text-foreground/90 list-decimal space-y-2 pl-5 text-sm leading-relaxed">
 			{#each recipe.steps as step (step)}
 				<li>{step}</li>
@@ -159,7 +158,7 @@
 
 	<section class="mb-10">
 		<h2 class="text-foreground mb-3 text-xl font-semibold" id="pitfalls">
-			{tc("recipes.pitfalls")}
+			{t("recipes.pitfalls")}
 		</h2>
 		<ul class="text-foreground/90 list-disc space-y-2 pl-5 text-sm leading-relaxed">
 			{#each recipe.pitfalls as pitfall (pitfall)}
@@ -170,7 +169,7 @@
 
 	<section class="mb-10">
 		<h2 class="text-foreground mb-3 text-xl font-semibold" id="components">
-			{tc("recipes.componentsUsed")}
+			{t("recipes.componentsUsed")}
 		</h2>
 		<ul class="flex flex-wrap gap-2 text-sm">
 			{#each recipe.components as slug (slug)}

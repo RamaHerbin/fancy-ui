@@ -5,6 +5,15 @@
  * these exact keys. Keep keys stable; when adding UI text, add a key here first.
  * Registry component descriptions are intentionally NOT translated here (they
  * stay English as the machine-facing source feeding /llms.txt and the copilot).
+ *
+ * Conventions (details in CONTRIBUTING.md, "Translations"):
+ * - `{name}` placeholders are filled by `t(key, { name })`.
+ * - Counts are plural messages: flat keys `<base>.one` / `<base>.other` (every
+ *   other locale uses its own CLDR categories), read with `tn(base, n)`.
+ * - Inline markup uses a closed tag set: `<b>`, `<grad>`, `<solid>`, `<link>`,
+ *   rendered by `tx()` + `<RichText>`; there is no raw HTML.
+ * - A `/** @context ... *\/` comment above a key tells translators where the
+ *   text appears; `node scripts/i18n-context.mjs` exports them to messages/context.json.
  */
 
 export const en = {
@@ -18,10 +27,15 @@ export const en = {
 	"a11y.breadcrumb": "Breadcrumb",
 
 	// Getting-started page titles
+	/** @context Title of the Introduction page: sidebar entry, breadcrumb, browser tab and page heading. */
 	"page.introduction": "Introduction",
+	/** @context Title of the Installation page: sidebar entry, breadcrumb, browser tab and page heading. */
 	"page.installation": "Installation",
+	/** @context Title of the Theming page (design tokens, colors, dark mode): sidebar entry, breadcrumb, browser tab and page heading. Also the text of the link in tg.intro. */
 	"page.theming": "Theming",
+	/** @context Title of the Theme Generator page, an interactive tool that edits the design tokens and outputs CSS: sidebar entry, breadcrumb, browser tab and page heading. */
 	"page.themeGenerator": "Theme Generator",
+	/** @context Title of the Changelog page (release notes): sidebar entry, breadcrumb, browser tab and page heading. */
 	"page.changelog": "Changelog",
 
 	// Header
@@ -32,10 +46,15 @@ export const en = {
 	"theme.heading": "Theme",
 	"theme.system": "System",
 	"language.heading": "Language",
+	/** @context Heading of the skin picker in the header menu. A skin is a visual style of the docs chrome (standard, brutal, retro). */
 	"skin.heading": "Skin",
+	/** @context Name of the default skin. */
 	"skin.standard": "Standard",
+	/** @context Name of the bold skin with thick borders and hard shadows. */
 	"skin.brutal": "Brutal",
+	/** @context Name of the skin that mimics an old desktop operating system. OS stays as is. */
 	"skin.retroOs": "Retro OS",
+	/** @context Small badge next to a skin name marking it as experimental. */
 	"skin.beta": "Beta",
 	"a11y.changeSkin": "Change skin",
 	"a11y.sound": "Sound",
@@ -44,13 +63,21 @@ export const en = {
 	"search.placeholder": "Search components and pages...",
 	"search.noResults": "No results found",
 	"search.esc": "ESC",
+	/** @context Shown in the empty search state, above a list of suggested searches taken from the jobs.* labels. Ends with a colon in English. */
 	"search.tryInstead": "Try one of these instead:",
+	/** @context Heading of the browse-by-need section (components page and command search); it groups the jobs.* labels below. */
 	"jobs.heading": "Browse by what you need",
+	/** @context Browse-by-need label for components that give the user feedback (toasts, tooltips, loaders). Imperative phrase; same vocabulary as category.feedback. */
 	"jobs.feedback": "Give feedback",
+	/** @context Browse-by-need label for components that collect an input from the user (fields, pickers, toggles). Imperative phrase; same vocabulary as category.forms. */
 	"jobs.input": "Collect an input",
+	/** @context Browse-by-need label for components that draw the eye to something (spotlights, highlights, beams). Imperative phrase. */
 	"jobs.attention": "Guide attention",
+	/** @context Browse-by-need label for components that move the user around (menus, tabs, breadcrumbs). Imperative phrase; same vocabulary as category.navigation. */
 	"jobs.navigate": "Navigate",
+	/** @context Browse-by-need label for components that show how far a task has got (bars, steppers, counters). Imperative phrase. */
 	"jobs.progress": "Show progress",
+	/** @context Browse-by-need label for purely decorative, delightful effects. Imperative phrase; same vocabulary as category.effects. */
 	"jobs.surprise": "Surprise",
 
 	// Component page
@@ -67,11 +94,15 @@ export const en = {
 	"comp.slots": "Slots",
 	"comp.links": "Links",
 	"comp.sourceCode": "Source Code",
+	/** @context Label before the credit link on a component page. A courtesy credit to the work the component draws on; never phrase it as ported or copied. */
 	"comp.inspiredBy": "Inspired by",
 	"comp.examples": "Examples",
 	"comp.related": "Related components",
+	/** @context Eyebrow above the previous page link in the pager, and the accessible name of the "scroll to previous items" arrow in carousel previews. A short direction word. */
 	"comp.previous": "Previous",
+	/** @context Eyebrow above the next page link in the pager, and the accessible name of the "scroll to next items" arrow in carousel previews. A short direction word. */
 	"comp.next": "Next",
+	/** @context Status chip on a component page and card: the component API is settled. */
 	"status.stable": "Stable",
 
 	// Tables
@@ -82,7 +113,9 @@ export const en = {
 	"table.slot": "Slot",
 	"table.event": "Event",
 	"table.payload": "Payload",
+	/** @context Screen-reader label before the React or Vue name of a Svelte prop. {framework} is Svelte, React or Vue and stays untranslated. */
 	"table.portName": "Name in {framework}",
+	/** @context Tooltip and screen-reader text for a prop whose React or Vue name cannot be derived from the naming rules; it points at the written list of differences. */
 	"table.portNameUnknown":
 		"Not derivable by the naming rules; see the differences from the Svelte API.",
 	"comp.events": "Events",
@@ -95,10 +128,6 @@ export const en = {
 	// Table of contents
 	"toc.onThisPage": "On this page",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "Switch to light mode",
-	"theme.switchToDark": "Switch to dark mode",
-
 	// Components gallery
 	"gallery.title": "Components",
 	"gallery.subtitle":
@@ -110,8 +139,10 @@ export const en = {
 	"gallery.noMatch": "No components match your search.",
 	"gallery.meta":
 		"{components} components · {categories} categories · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} results",
-	"gallery.resultOne": "1 result",
+	/** @context Result count above the component grid after filtering. Plural message: {count} is the number of matching components. */
+	"gallery.results.one": "{count} result",
+	/** @context Result count above the component grid after filtering. Plural message: {count} is the number of matching components. */
+	"gallery.results.other": "{count} results",
 	"gallery.clearFilters": "Clear filters",
 	"gallery.clearSearch": "Clear search",
 	"gallery.searchHint": "Press / to search",
@@ -136,9 +167,9 @@ export const en = {
 
 	// Theme-generator page
 	"tg.metaDescription": "Tune FancyUI's OKLCh design tokens live and copy the CSS into your app.",
+	/** @context Theme Generator introduction paragraph. <link>...</link> wraps the link to the Theming page; it ends the sentence. Keep the tag. */
 	"tg.intro":
-		"Tune FancyUI's design tokens and watch the components react in real time. When it looks right, copy the generated CSS into your app's stylesheet (e.g. src/app.css). Colors use the OKLCh color space; the rainbow palette uses HSL.",
-	"tg.seeTheming": "For the full token reference, see",
+		"Tune FancyUI's design tokens and watch the components react in real time. When it looks right, copy the generated CSS into your app's stylesheet (e.g. src/app.css). Colors use the OKLCh color space; the rainbow palette uses HSL. For the full token reference, see <link>Theming</link>.",
 	"tg.presets": "Presets",
 	"tg.base": "Base",
 	"tg.light": "Light",
@@ -156,7 +187,8 @@ export const en = {
 	"tg.cardSurfaceDesc": "Uses --card, --foreground, --border and --radius.",
 	"tg.primaryAction": "Primary action",
 	"tg.accentBadge": "Accent badge",
-	"tg.beamDesc": "Beam colors follow Primary → Accent.",
+	/** @context Caption of a preview card whose animated border follows the two tuned colors. {primary} and {accent} are the translated labels of tg.primary and tg.accent. The arrow shows direction from the first colour to the second and is not mirrored in right-to-left text: in Arabic and Persian use the left-pointing arrow, or reword without one. */
+	"tg.beamDesc": "Beam colors follow {primary} → {accent}.",
 	"tg.generatedCss": "Generated CSS",
 	"tg.copyCss": "Copy CSS",
 	"tg.copied": "Copied",
@@ -178,18 +210,11 @@ export const en = {
 	// Introduction page
 	"intro.title": "Introduction",
 	"intro.metaTitle": "Introduction",
-	"intro.leadPre": "is a collection of",
-	"intro.leadHighlight": "{count} animated",
-	"intro.leadHighlight2": "interactive UI components",
-	"intro.leadPost": "built natively for Svelte 5.",
-	"intro.pill.svelte": "Svelte 5 Native",
 	"intro.pill.animation": "Animation-first",
 	"intro.pill.copyPaste": "Copy-paste friendly",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Philosophy",
-	"intro.philosophy.card1.title": "Svelte 5 native",
-	"intro.philosophy.card1.desc": "Built with runes. No legacy APIs.",
 	"intro.philosophy.card2.title": "Animation-first",
 	"intro.philosophy.card2.desc": "Every component ships with polished animations out of the box.",
 	"intro.philosophy.card3.title": "Copy-paste friendly",
@@ -202,21 +227,15 @@ export const en = {
 	"intro.quickStart.step1.title": "Install",
 	"intro.quickStart.step1.desc": "Add FancyUI to your project.",
 	"intro.quickStart.step2.title": "Import",
-	"intro.quickStart.step2.desc": "Import the components you need.",
 	"intro.quickStart.step3.title": "Use",
-	"intro.quickStart.step3.desc": "Drop it in your Svelte components.",
 	"intro.whatsIncluded.heading": "What's Included",
-	"intro.whatsIncluded.body": "{count} components across {categories} categories:",
+	/** @context Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. The noun that follows {categories} may also change with the number in some languages (Arabic, Polish, Czech): reword freely, for example "in categories: {categories}", so that no inflected noun depends on it. */
+	"intro.whatsIncluded.body.one": "{count} component across {categories} categories:",
+	/** @context Sentence before the category list on the Introduction page. Plural on {count} (components); {categories} is the number of categories. The noun that follows {categories} may also change with the number in some languages (Arabic, Polish, Czech): reword freely, for example "in categories: {categories}", so that no inflected noun depends on it. */
+	"intro.whatsIncluded.body.other": "{count} components across {categories} categories:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Cards",
-	"intro.category.text": "Text",
-	"intro.category.backgrounds": "Backgrounds",
 	"intro.category.effects": "Effects",
-	"intro.category.layout": "Layout",
-	"intro.category.navigation": "Navigation",
-	"intro.category.dataDisplay": "Data Display",
-	"intro.category.feedback": "Feedback",
-	"intro.category.media": "Media",
 	"intro.stats.buttons": "Rainbow, ripple, shimmer and friends. Buttons that beg to be clicked.",
 	"intro.stats.cards":
 		"Carousels, bento grids, 3D tilts. Ways to present content without boring anyone.",
@@ -230,8 +249,9 @@ export const en = {
 	"intro.nextSteps.theming": "Theming",
 	"intro.nextSteps.components": "Browse Components",
 	"intro.cta.title": "New to FancyUI?",
+	/** @context Call-to-action body on the Introduction page. <b>...</b> wraps the name of the Theme Generator page and renders bold. */
 	"intro.cta.body":
-		"Check out the <strong>Theme Generator</strong> to customize colors and see components react in real time.",
+		"Check out the <b>Theme Generator</b> to customize colors and see components react in real time.",
 	"intro.cta.button": "Try Theme Generator",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -241,6 +261,7 @@ export const en = {
 	"category.forms": "Forms",
 	"category.overlays": "Overlays",
 	"category.display": "Display",
+	/** @context Status chip on a component page and card: the component exists but its API may still change. */
 	"status.inProgress": "In progress",
 
 	// Installation page
@@ -400,10 +421,6 @@ export const en = {
 	"nav.backToSite": "Back to FancyUI home",
 	/** @context Sidebar entry and breadcrumb label for the recipes index. */
 	"nav.recipes": "Recipes",
-	/** @context Summary of the collapsible on-this-page outline shown on screens too narrow for the side table of contents. */
-	"toc.show": "Show contents",
-	/** @context Docs footer: label of the documentation link group. */
-	"footer.docs": "Docs",
 	/** @context Docs footer link to the contributing guide. */
 	"footer.contribute": "Contribute",
 	/** @context Docs footer link to the GitHub issue tracker. Product term, often kept as is. */
@@ -428,9 +445,9 @@ export const en = {
 	"comp.reportIssue": "Report an issue",
 	/** @context Pre-filled issue title. {name} is the page or component name. Keep the [docs] prefix. */
 	"comp.issueTitle": "[docs] {name}",
-	/** @context Introduction lead sentence, rendered right after the FancyUI wordmark. {count} is the number of components. */
-	"intro.leadNeutral":
-		"is a collection of {count} animated, interactive UI components for Svelte 5, React and Vue, built on the same design tokens.",
+	/** @context Introduction lead sentence, rendered right after the FancyUI wordmark. {count} is the number of components and is highlighted by <grad>. Keep the tags and the placeholder. */
+	"intro.lead":
+		"is a collection of <grad>{count}</grad> animated, interactive UI components for Svelte 5, React and Vue, built on the same design tokens.",
 	/** @context Introduction quick-start step 2 text; the code sample below it changes with the selected framework. */
 	"intro.importHint": "Import the components you need. The import path follows your framework.",
 	/** @context Installation prerequisites note about the optional SvelteKit peer dependency. */
@@ -439,6 +456,17 @@ export const en = {
 	/** @context Theming page instruction above the per-framework stylesheet import snippet. */
 	"theming.cssPerFramework":
 		"Import the stylesheet for your framework: each package ships its own.",
+	/** @context Introduction pill listing the supported frameworks. Framework names stay as written. */
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	/** @context Introduction philosophy card 1 title: the three frameworks. Names stay as written. */
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	/** @context Introduction philosophy card 1 body: how the components are written per framework. Keep the API names (runes, hooks, Composition API) as written. */
+	"intro.philosophy.card1.desc":
+		"Written natively for each framework: runes in Svelte, hooks in React, the Composition API in Vue.",
+	/** @context Introduction quick-start step 3 description, shown above a usage code sample. */
+	"intro.quickStart.step3.desc": "Drop it into your components.",
+	/** @context Small tag after a peer dependency that is optional, in the Installation peer table. */
+	"install.peerDeps.optional": "optional",
 	/** @context Status chip for a component announced but not built yet. */
 	"status.planned": "Planned",
 	/** @context Status chip for a component that is scheduled for removal. */
@@ -488,9 +516,6 @@ export const en = {
 	"recipes.pitfalls": "Pitfalls",
 	/** @context Heading of the section listing the components a recipe uses. */
 	"recipes.componentsUsed": "Components used",
-	/** @context Meta description of the Introduction page (about 150 characters). */
-	"seo.introduction":
-		"FancyUI is a library of animated, interactive UI components for Svelte 5, React and Vue. See what is included and how to get started.",
 	/** @context Meta description of the Installation page. */
 	"seo.installation":
 		"Install FancyUI for Svelte 5, React or Vue: add the package, import the stylesheet and render your first component.",
@@ -504,11 +529,25 @@ export const en = {
 	"seo.changelog": "Release notes for the FancyUI packages for Svelte 5, React and Vue.",
 } as const;
 export type Messages = typeof en;
-export type MessageKey = keyof Messages;
+type EnKey = keyof Messages;
+export type PluralCategory = "zero" | "one" | "two" | "few" | "many" | "other";
+/**
+ * Base of every plural message: `foo` for the pair `foo.one` / `foo.other`.
+ * Read with `tn("foo", n)`; never with `t()`.
+ */
+export type PluralKey = EnKey extends infer K ? (K extends `${infer B}.other` ? B : never) : never;
+type PluralLeaf = `${PluralKey}.${PluralCategory}`;
+/** Every message `t()` / `tx()` can read: all keys except the plural variants. */
+export type MessageKey = Exclude<EnKey, PluralLeaf>;
 /**
  * Shape every translated catalog must satisfy: all of en's keys, string
  * values. `satisfies Catalog` on a catalog literal turns a missing, extra,
  * or typo'd key into a compile error (enforced by scripts/check-i18n.mjs).
+ *
+ * Plural messages are flat keys `<base>.<category>` using the CLDR categories
+ * of the locale: `.other` is always required, the other categories are
+ * optional here and checked per locale by scripts/check-i18n.mjs.
  */
-export type Catalog = Record<MessageKey, string>;
+export type Catalog = Record<MessageKey | `${PluralKey}.other`, string> &
+	Partial<Record<PluralLeaf, string>>;
 export default en;

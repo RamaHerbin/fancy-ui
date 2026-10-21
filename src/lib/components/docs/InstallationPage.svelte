@@ -13,9 +13,6 @@
 	const installVariants: NonNullable<ComponentProps<typeof InstallBlock>["variants"]> =
 		INSTALL_VARIANTS;
 
-	// i18n: install.peerDeps.optional
-	const OPTIONAL_LABEL = "optional";
-
 	// Like the component pages, read the framework after mount so the
 	// prerendered markup (Svelte) matches the first client render.
 	const frameworkState = createFrameworkState();
@@ -181,7 +178,7 @@
 						<tr data-optional
 							><td
 								><code class="chip">{peer.name}</code>
-								<span class="optional-tag">{OPTIONAL_LABEL}</span></td
+								<span class="optional-tag">{t("install.peerDeps.optional")}</span></td
 							><td><code class="chip">{peer.range}</code></td></tr
 						>
 					{/each}

@@ -82,10 +82,6 @@ export default {
 	// Table of contents
 	"toc.onThisPage": "در این صفحه",
 
-	// Theme toggle (aria)
-	"theme.switchToLight": "تغییر به حالت روشن",
-	"theme.switchToDark": "تغییر به حالت تیره",
-
 	// Components gallery
 	"gallery.title": "کامپوننت‌ها",
 	"gallery.subtitle":
@@ -96,8 +92,8 @@ export default {
 	"gallery.all": "همه",
 	"gallery.noMatch": "هیچ کامپوننتی با جستجوی شما مطابقت ندارد.",
 	"gallery.meta": "{components} کامپوننت · {categories} دسته · Svelte 5 · React · Vue · TypeScript",
-	"gallery.results": "{count} نتیجه",
-	"gallery.resultOne": "۱ نتیجه",
+	"gallery.results.one": "{count} نتیجه",
+	"gallery.results.other": "{count} نتیجه",
 	"gallery.clearFilters": "پاک کردن فیلترها",
 	"gallery.clearSearch": "پاک کردن جستجو",
 	"gallery.searchHint": "برای جستجو / را بزنید",
@@ -124,8 +120,7 @@ export default {
 	"tg.metaDescription":
 		"توکن‌های طراحی OKLCh در FancyUI را به‌صورت زنده تنظیم کنید و CSS را در برنامه‌ی خود کپی کنید.",
 	"tg.intro":
-		"توکن‌های طراحی FancyUI را تنظیم کنید و واکنش آنی کامپوننت‌ها را ببینید. وقتی ظاهر مطلوب شد، CSS تولیدشده را در شیوه‌نامه‌ی برنامه‌ی خود (برای مثال src/app.css) کپی کنید. رنگ‌ها از فضای رنگی OKLCh استفاده می‌کنند؛ پالت رنگین‌کمانی از HSL استفاده می‌کند.",
-	"tg.seeTheming": "برای مرجع کامل توکن‌ها، مراجعه کنید به",
+		"توکن‌های طراحی FancyUI را تنظیم کنید و واکنش آنی کامپوننت‌ها را ببینید. وقتی ظاهر مطلوب شد، CSS تولیدشده را در شیوه‌نامه‌ی برنامه‌ی خود (برای مثال src/app.css) کپی کنید. رنگ‌ها از فضای رنگی OKLCh استفاده می‌کنند؛ پالت رنگین‌کمانی از HSL استفاده می‌کند. برای مرجع کامل توکن‌ها، مراجعه کنید به <link>پوسته‌بندی</link>.",
 	"tg.presets": "پیش‌تنظیم‌ها",
 	"tg.base": "پایه",
 	"tg.light": "روشن",
@@ -143,7 +138,7 @@ export default {
 	"tg.cardSurfaceDesc": "از --card، --foreground، --border و --radius استفاده می‌کند.",
 	"tg.primaryAction": "کنش اصلی",
 	"tg.accentBadge": "نشان تأکید",
-	"tg.beamDesc": "رنگ‌های پرتو از Primary → Accent پیروی می‌کنند.",
+	"tg.beamDesc": "رنگ‌های پرتو از {primary} → {accent} پیروی می‌کنند.",
 	"tg.generatedCss": "CSS تولیدشده",
 	"tg.copyCss": "کپی CSS",
 	"tg.copied": "کپی شد",
@@ -165,18 +160,11 @@ export default {
 	// Introduction (redesigned page)
 	"intro.title": "معرفی",
 	"intro.metaTitle": "معرفی",
-	"intro.leadPre": "مجموعه‌ای است از",
-	"intro.leadHighlight": "{count} کامپوننت متحرک",
-	"intro.leadHighlight2": "رابط کاربری تعاملی",
-	"intro.leadPost": "که به‌صورت بومی برای Svelte 5 ساخته شده‌اند.",
-	"intro.pill.svelte": "بومیِ Svelte 5",
 	"intro.pill.animation": "اولویت با انیمیشن",
 	"intro.pill.copyPaste": "سازگار با کپی‌وچسباندن",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "فلسفه",
-	"intro.philosophy.card1.title": "بومیِ Svelte 5",
-	"intro.philosophy.card1.desc": "ساخته‌شده با runes. بدون APIهای قدیمی.",
 	"intro.philosophy.card2.title": "اولویت با انیمیشن",
 	"intro.philosophy.card2.desc": "هر کامپوننت به‌صورت آماده با انیمیشن‌های صیقل‌خورده عرضه می‌شود.",
 	"intro.philosophy.card3.title": "سازگار با کپی‌وچسباندن",
@@ -189,21 +177,13 @@ export default {
 	"intro.quickStart.step1.title": "نصب",
 	"intro.quickStart.step1.desc": "FancyUI را به پروژه‌ی خود اضافه کنید.",
 	"intro.quickStart.step2.title": "وارد کردن",
-	"intro.quickStart.step2.desc": "کامپوننت‌های مورد نیاز خود را وارد کنید.",
 	"intro.quickStart.step3.title": "استفاده",
-	"intro.quickStart.step3.desc": "آن را در کامپوننت‌های Svelte خود قرار دهید.",
 	"intro.whatsIncluded.heading": "آنچه شامل می‌شود",
-	"intro.whatsIncluded.body": "{count} کامپوننت در {categories} دسته:",
+	"intro.whatsIncluded.body.one": "{count} کامپوننت در {categories} دسته:",
+	"intro.whatsIncluded.body.other": "{count} کامپوننت در {categories} دسته:",
 	"intro.category.buttons": "دکمه‌ها",
 	"intro.category.cards": "کارت‌ها",
-	"intro.category.text": "متن",
-	"intro.category.backgrounds": "پس‌زمینه‌ها",
 	"intro.category.effects": "جلوه‌ها",
-	"intro.category.layout": "چیدمان",
-	"intro.category.navigation": "ناوبری",
-	"intro.category.dataDisplay": "نمایش داده",
-	"intro.category.feedback": "بازخورد",
-	"intro.category.media": "رسانه",
 	"intro.stats.buttons": "Rainbow، Ripple، Shimmer و دیگران. دکمه‌هایی که به کلیک دعوت می‌کنند.",
 	"intro.stats.cards":
 		"چرخ‌وفلک‌ها، شبکه‌های بنتو، جلوه‌های سه‌بعدی. راه‌هایی برای نمایش محتوا بدون خستگی.",
@@ -217,7 +197,7 @@ export default {
 	"intro.nextSteps.components": "مرور کامپوننت‌ها",
 	"intro.cta.title": "تازه با FancyUI آشنا شده‌اید؟",
 	"intro.cta.body":
-		"<strong>سازنده‌ی پوسته</strong> را بررسی کنید تا رنگ‌ها را سفارشی‌سازی کرده و واکنش آنی کامپوننت‌ها را مشاهده کنید.",
+		"<b>سازنده‌ی پوسته</b> را بررسی کنید تا رنگ‌ها را سفارشی‌سازی کرده و واکنش آنی کامپوننت‌ها را مشاهده کنید.",
 	"intro.cta.button": "امتحان سازنده‌ی پوسته",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -382,6 +362,14 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"کامپوننت‌ها کامپوننت‌های تک‌فایلی Vue 3.5 هستند، بنابراین Vue 3.5.2 یا بالاتر لازم است.",
 
+	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
+	"intro.pill.frameworks": "Svelte 5, React, Vue",
+	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	"intro.philosophy.card1.desc":
+		"برای هر فریم‌ورک به‌صورت بومی نوشته شده است: runes در Svelte، hooks در React و Composition API در Vue.",
+	"intro.quickStart.step3.desc": "آن را در کامپوننت‌های خود قرار دهید.",
+	"install.peerDeps.optional": "اختیاری",
+
 	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
 	"a11y.skipToContent": "پرش به محتوا",
 	"a11y.docsBreadcrumb": "مسیر راهبری مستندات",
@@ -390,8 +378,6 @@ export default {
 	"search.a11y.close": "بستن جستجو",
 	"nav.backToSite": "بازگشت به صفحه اصلی FancyUI",
 	"nav.recipes": "دستورکارها",
-	"toc.show": "نمایش فهرست مطالب",
-	"footer.docs": "مستندات",
 	"footer.contribute": "مشارکت",
 	"footer.issues": "مسائل",
 	"footer.discussions": "گفت‌وگوها",
@@ -404,8 +390,8 @@ export default {
 	"comp.editPage": "ویرایش این صفحه",
 	"comp.reportIssue": "گزارش مشکل",
 	"comp.issueTitle": "[docs] {name}",
-	"intro.leadNeutral":
-		"مجموعه‌ای از {count} مؤلفه رابط کاربری پویا و تعاملی برای Svelte 5، React و Vue است که بر پایه توکن‌های طراحی یکسان ساخته شده‌اند.",
+	"intro.lead":
+		"مجموعه‌ای از <grad>{count}</grad> مؤلفه رابط کاربری پویا و تعاملی برای Svelte 5، React و Vue است که بر پایه توکن‌های طراحی یکسان ساخته شده‌اند.",
 	"intro.importHint":
 		"مؤلفه‌های مورد نیاز خود را وارد (import) کنید. مسیر ورود به چارچوب مورد استفاده شما بستگی دارد.",
 	"install.kitOptional":
@@ -436,8 +422,6 @@ export default {
 	"recipes.steps": "گام‌ها",
 	"recipes.pitfalls": "دام‌های رایج",
 	"recipes.componentsUsed": "مؤلفه‌های استفاده‌شده",
-	"seo.introduction":
-		"FancyUI کتابخانه‌ای از مؤلفه‌های رابط کاربری پویا و تعاملی برای Svelte 5، React و Vue است. با محتوای آن و نحوه شروع آشنا شوید.",
 	"seo.installation":
 		"FancyUI را برای Svelte 5، React یا Vue نصب کنید: بسته را اضافه کنید، شیوه‌نامه را وارد کنید و نخستین مؤلفه خود را رندر کنید.",
 	"seo.theming":
