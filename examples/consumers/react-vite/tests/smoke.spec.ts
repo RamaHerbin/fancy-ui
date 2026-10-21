@@ -33,3 +33,32 @@ test("loads clean, mounts, styles resolve, effects run, dialog is keyboard-opera
 
 	expect(errors).toEqual([]);
 });
+
+test("onOpenChange reaches the consumer's handler", async ({ page }) => {
+	await page.goto("/");
+	await expect(page.getByTestId("dialog-state")).toHaveText("dialog: closed");
+	await page.getByTestId("open-dialog").click();
+	await expect(page.getByTestId("dialog-state")).toHaveText("dialog: open");
+	await page.keyboard.press("Escape");
+	await expect(page.getByTestId("dialog-state")).toHaveText("dialog: closed");
+});
+
+test("the .dark class re-themes the tokens and the button", async ({ page }) => {
+	await page.goto("/");
+	const read = () =>
+		page.getByTestId("button").evaluate((el) => {
+			const probe = document.createElement("div");
+			probe.style.backgroundColor = "var(--background)";
+			document.body.appendChild(probe);
+			const background = getComputedStyle(probe).backgroundColor;
+			probe.remove();
+			return { background, button: getComputedStyle(el).backgroundColor };
+		});
+	const light = await read();
+	await page.evaluate(() => document.documentElement.classList.add("dark"));
+	const dark = await read();
+	expect(light.background).not.toBe("rgba(0, 0, 0, 0)");
+	expect(dark.background).not.toBe(light.background);
+	expect(dark.button).not.toBe(light.button);
+	expect(dark.button).not.toBe("rgba(0, 0, 0, 0)");
+});

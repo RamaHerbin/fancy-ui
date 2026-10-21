@@ -38,17 +38,16 @@ export function App() {
 				]}
 			/>
 
-			<Button data-testid="open-dialog" onClick={() => setOpen(true)}>
-				Open dialog
-			</Button>
 			<Dialog
 				open={open}
 				onOpenChange={setOpen}
+				trigger={<Button data-testid="open-dialog">Open dialog</Button>}
 				title="Hello"
 				description="A dialog from the packed tarball."
 			>
 				<p>Body</p>
 			</Dialog>
+			<p data-testid="dialog-state">dialog: {open ? "open" : "closed"}</p>
 
 			<div className="relative overflow-hidden rounded-xl border p-6" data-testid="beam-card">
 				<p>Light effect</p>
