@@ -8587,6 +8587,223 @@ export const registry: Record<string, ComponentMeta> = {
 		],
 	},
 
+	accordion: {
+		name: "Accordion",
+		slug: "accordion",
+		description:
+			"A stack of headed sections where one or several open at a time, with a collapse that animates without measuring, arrow-key navigation between headers and labelled regions for assistive tech.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		dependencies: ["collapsible"],
+		tags: ["accordion", "disclosure", "faq", "collapse", "compound", "navigation"],
+		props: [
+			{
+				name: "type",
+				type: '"single" | "multiple"',
+				default: '"single"',
+				description: '"single" keeps one item open at a time, "multiple" lets any number be open.',
+			},
+			{
+				name: "value",
+				type: "string | string[]",
+				description:
+					'The open item, bindable. A string for type="single" ("" when none is open), a string array for type="multiple".',
+			},
+			{
+				name: "onValueChange",
+				type: "(value: string | string[]) => void",
+				description: "Called with the new value each time an item toggles.",
+			},
+			{
+				name: "collapsible",
+				type: "boolean",
+				default: "false",
+				description:
+					'With type="single", lets the open item be closed again. Without it one item stays open once opened.',
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables every item.",
+			},
+			{
+				name: "orientation",
+				type: '"horizontal" | "vertical"',
+				default: '"vertical"',
+				description: "The axis the items stack on, and which arrow-key pair moves focus.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "AccordionItem.value",
+				type: "string",
+				required: true,
+				description: "This item's value: what the accordion's value holds while it is open.",
+			},
+			{
+				name: "AccordionItem.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this item; its trigger is skipped by the arrow keys.",
+			},
+			{
+				name: "AccordionItem.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the item.",
+			},
+			{
+				name: "AccordionItem.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the item element.",
+			},
+			{
+				name: "AccordionTrigger.headingLevel",
+				type: "1 | 2 | 3 | 4 | 5 | 6",
+				default: "3",
+				description: "The level of the heading that wraps the trigger button.",
+			},
+			{
+				name: "AccordionTrigger.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables just this trigger, on top of its item and the accordion.",
+			},
+			{
+				name: "AccordionTrigger.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "AccordionTrigger.ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger's button element.",
+			},
+			{
+				name: "AccordionContent.forceMount",
+				type: "boolean",
+				default: "true",
+				description:
+					"Keeps the children mounted while the item is closed. Pass false to unmount them once the collapse has finished.",
+			},
+			{
+				name: "AccordionContent.class",
+				type: "string",
+				description:
+					"Additional CSS classes, merged onto the inner body so padding collapses with the panel.",
+			},
+			{
+				name: "AccordionContent.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the region element that animates.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "The AccordionItems." },
+			{
+				name: "AccordionItem.children",
+				description: "An AccordionTrigger and an AccordionContent.",
+			},
+			{ name: "AccordionTrigger.children", description: "The trigger's label." },
+			{ name: "AccordionContent.children", description: "The item's content." },
+		],
+	},
+
+	collapsible: {
+		name: "Collapsible",
+		slug: "collapsible",
+		description:
+			"A single disclosure: a trigger that expands and collapses a region, animated without measuring so an interrupted toggle simply reverses, with the closed content kept in the page.",
+		category: "navigation",
+		group: "core",
+		status: "done",
+		tags: ["collapsible", "disclosure", "expand", "collapse", "compound", "navigation"],
+		props: [
+			{
+				name: "open",
+				type: "boolean",
+				default: "false",
+				description: "Whether the content is expanded, bindable.",
+			},
+			{
+				name: "onOpenChange",
+				type: "(open: boolean) => void",
+				description: "Called with the new state each time the trigger toggles it.",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Makes the trigger inert. A bound open can still be changed from outside.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the root.",
+			},
+			{
+				name: "ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the root element.",
+			},
+			{
+				name: "CollapsibleTrigger.disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables this trigger on top of the root's own disabled.",
+			},
+			{
+				name: "CollapsibleTrigger.class",
+				type: "string",
+				description: "Additional CSS classes, merged onto the trigger button.",
+			},
+			{
+				name: "CollapsibleTrigger.ref",
+				type: "HTMLButtonElement | null",
+				default: "null",
+				description: "Bindable reference to the trigger's button element.",
+			},
+			{
+				name: "CollapsibleContent.forceMount",
+				type: "boolean",
+				default: "true",
+				description:
+					"Keeps the children mounted while closed (inert and hidden). Pass false to unmount them once the collapse has finished and mount them again on open.",
+			},
+			{
+				name: "CollapsibleContent.class",
+				type: "string",
+				description:
+					"Additional CSS classes, merged onto the inner body so padding collapses with the panel.",
+			},
+			{
+				name: "CollapsibleContent.ref",
+				type: "HTMLDivElement | null",
+				default: "null",
+				description: "Bindable reference to the region element that animates.",
+			},
+		],
+		slots: [
+			{ name: "children", description: "A CollapsibleTrigger and a CollapsibleContent." },
+			{ name: "CollapsibleTrigger.children", description: "The trigger's content." },
+			{ name: "CollapsibleContent.children", description: "The content." },
+		],
+	},
+
 	breadcrumb: {
 		name: "Breadcrumb",
 		slug: "breadcrumb",
