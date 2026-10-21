@@ -126,7 +126,7 @@ function createRipple(event: MouseEvent) {
 				'ripple-button relative isolate flex cursor-pointer items-center justify-center overflow-hidden',
 				'bg-background text-foreground border-border rounded-lg border px-5 py-2.5 text-center font-medium',
 				'shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_1px_2px_rgb(0_0_0/0.08)]',
-				'transition-[transform,border-color,background-color] duration-300 ease-out',
+				'duration-300 ease-out transition-[border-color,background-color] motion-safe:transition-[transform,border-color,background-color]',
 				'hover:bg-muted/40 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
 				className
 			)
@@ -168,7 +168,6 @@ function createRipple(event: MouseEvent) {
 	inset: 0;
 	pointer-events: none;
 	opacity: 0;
-	transition: opacity 0.3s ease;
 	background: radial-gradient(
 		80px circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
 		color-mix(in srgb, var(--ripple-color) 20%, transparent),
@@ -296,6 +295,13 @@ function createRipple(event: MouseEvent) {
 			transform: scale(1);
 			opacity: 0;
 		}
+	}
+}
+
+/* The fade is motion: it only runs when the visitor has not asked for less. */
+@media (prefers-reduced-motion: no-preference) {
+	.ripple-hover {
+		transition: opacity 0.3s ease;
 	}
 }
 </style>

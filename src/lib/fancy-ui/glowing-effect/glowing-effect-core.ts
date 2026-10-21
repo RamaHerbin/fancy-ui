@@ -53,6 +53,19 @@ const BASE_LERP_SPEED = 0.08;
 const ANGLE_EPSILON = 0.1;
 
 /**
+ * Read live on every tween step, so a preference flipped while the page is
+ * open takes effect on the very next frame. Missing `matchMedia` (SSR shims,
+ * old test environments) means "no preference".
+ */
+function prefersReducedMotion(): boolean {
+	return (
+		typeof window !== "undefined" &&
+		typeof window.matchMedia === "function" &&
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches
+	);
+}
+
+/**
  * Creates the pointer-proximity engine for GlowingEffect.
  *
  * Never returns null in practice: unlike the canvas/WebGL cores, this engine
@@ -137,8 +150,10 @@ export function createGlowingEffect(
 	}
 
 	function animateAngle() {
-		// Lerp speed inversely proportional to movementDuration
-		const speed = BASE_LERP_SPEED / Math.max(movementDuration, 0.1);
+		// Reduced motion: the arc snaps to the target (a duration of 0). The
+		// state is still produced, only the glide is dropped.
+		// Otherwise lerp speed is inversely proportional to movementDuration.
+		const speed = prefersReducedMotion() ? 1 : BASE_LERP_SPEED / Math.max(movementDuration, 0.1);
 		currentAngle = currentAngle + (targetAngle - currentAngle) * speed;
 
 		container.style.setProperty("--start", String(currentAngle));

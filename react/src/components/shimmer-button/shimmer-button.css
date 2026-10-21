@@ -58,7 +58,6 @@
 	background-repeat: no-repeat;
 	background-position: 100% 0;
 	animation: shimmer-sweep var(--speed) cubic-bezier(0.4, 0, 0.2, 1) infinite;
-	transition: opacity 0.3s ease;
 }
 
 .shimmer-button__spot {
@@ -71,7 +70,6 @@
 		color-mix(in srgb, var(--shimmer-color) 34%, transparent),
 		transparent 70%
 	);
-	transition: opacity 0.3s ease;
 }
 
 .shimmer-button:hover .shimmer-button__spot {
@@ -114,5 +112,15 @@
 		animation: none;
 		background-position: 38% 0;
 		opacity: 0.6;
+	}
+}
+
+/* The fade is motion: it only runs when the visitor has not asked for less. */
+@media (prefers-reduced-motion: no-preference) {
+	.shimmer-button__sheen {
+		transition: opacity 0.3s ease;
+	}
+	.shimmer-button__spot {
+		transition: opacity 0.3s ease;
 	}
 }

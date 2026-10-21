@@ -67,7 +67,7 @@ function getY(index: number) {
 			:height="height"
 			:class="
 				cn(
-					'interactive-grid-square transition-all duration-100 ease-in-out',
+					'interactive-grid-square motion-safe:duration-100 ease-in-out motion-safe:transition-all',
 					strokeClassName,
 					hoveredSquare === index ? 'fill-gray-300/30' : 'fill-transparent',
 					squaresClassName
@@ -80,7 +80,9 @@ function getY(index: number) {
 </template>
 
 <style scoped>
-.interactive-grid-square:not(:hover) {
-	transition-duration: 1000ms;
+@media (prefers-reduced-motion: no-preference) {
+	.interactive-grid-square:not(:hover) {
+		transition-duration: 1000ms;
+	}
 }
 </style>

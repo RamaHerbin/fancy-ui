@@ -193,7 +193,12 @@ onMounted(() => {
 	isolation: isolate;
 	transform: translateZ(0);
 	will-change: filter;
-	animation: frosted-glass-settle 0.22s ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.frosted-glass-filter {
+		animation: frosted-glass-settle 0.22s ease-out;
+	}
 }
 
 @keyframes frosted-glass-settle {

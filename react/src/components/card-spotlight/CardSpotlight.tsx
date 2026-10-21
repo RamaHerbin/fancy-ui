@@ -78,7 +78,7 @@ export function CardSpotlight({
 			<div className={cn("relative z-10", slotClass)}>{children}</div>
 			<div
 				ref={overlayRef}
-				className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+				className="pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300"
 				style={{ background: restingBackground, opacity: gradientOpacity }}
 			></div>
 		</div>

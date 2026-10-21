@@ -55,7 +55,7 @@ const Square = memo(function Square({
 			width={width}
 			height={height}
 			className={cn(
-				"interactive-grid-square transition-all duration-100 ease-in-out",
+				"interactive-grid-square motion-safe:duration-100 ease-in-out motion-safe:transition-all",
 				strokeClassName,
 				hovered ? "fill-gray-300/30" : "fill-transparent",
 				squaresClassName

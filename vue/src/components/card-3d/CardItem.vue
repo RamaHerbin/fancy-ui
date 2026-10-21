@@ -62,7 +62,7 @@ const transform = computed(() =>
 <template>
 	<component
 		:is="as"
-		:class="cn('w-fit transition duration-500 ease-in-out', className)"
+		:class="cn('w-fit ease-in-out motion-safe:transition motion-safe:duration-500', className)"
 		:style="{ transform }"
 	>
 		<slot />

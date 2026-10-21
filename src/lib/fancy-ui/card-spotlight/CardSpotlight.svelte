@@ -60,7 +60,7 @@
 		{/if}
 	</div>
 	<div
-		class="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+		class="pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 motion-safe:transition-opacity motion-safe:duration-300"
 		style="background: {backgroundStyle}; opacity: {gradientOpacity}"
 	></div>
 </div>

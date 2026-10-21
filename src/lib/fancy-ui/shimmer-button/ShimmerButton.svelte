@@ -76,7 +76,7 @@
 	use:soundFeedback={hoverFeedback}
 	class={cn(
 		"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
-		"transform-gpu transition-[transform,color] duration-300 ease-out hover:text-white active:scale-[0.98]",
+		"transform-gpu duration-300 ease-out hover:text-white active:scale-[0.98] transition-[color] motion-safe:transition-[transform,color]",
 		className
 	)}
 	style={styleVars}
@@ -160,7 +160,6 @@
 		background-repeat: no-repeat;
 		background-position: 100% 0;
 		animation: shimmer-sweep var(--speed) cubic-bezier(0.4, 0, 0.2, 1) infinite;
-		transition: opacity 0.3s ease;
 	}
 
 	.shimmer-button__spot {
@@ -173,7 +172,6 @@
 			color-mix(in srgb, var(--shimmer-color) 34%, transparent),
 			transparent 70%
 		);
-		transition: opacity 0.3s ease;
 	}
 
 	.shimmer-button:hover .shimmer-button__spot {
@@ -216,6 +214,16 @@
 			animation: none;
 			background-position: 38% 0;
 			opacity: 0.6;
+		}
+	}
+
+	/* The fade is motion: it only runs when the visitor has not asked for less. */
+	@media (prefers-reduced-motion: no-preference) {
+		.shimmer-button__sheen {
+			transition: opacity 0.3s ease;
+		}
+		.shimmer-button__spot {
+			transition: opacity 0.3s ease;
 		}
 	}
 </style>

@@ -16,6 +16,7 @@ import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { composeRefs } from "../../internals/dom/compose-refs.js";
 import { linear } from "../../internals/motion/easing.js";
+import { prefersReducedMotion } from "../../internals/motion/anchored.js";
 import { usePresence } from "../../internals/motion/presence.js";
 import type { TransitionSpec } from "../../internals/motion/transitions.js";
 
@@ -63,7 +64,8 @@ function createFade300(): { transition: (node: Element) => TransitionSpec; clear
 			memoNode = node;
 			memoSpec = {
 				delay: 0,
-				duration: 300,
+				// JS-timed fade collapses to 0 under reduced motion, read live at leg start.
+				duration: prefersReducedMotion() ? 0 : 300,
 				easing: linear,
 				css: (t) => `opacity: ${t * o}`,
 			};
@@ -173,7 +175,7 @@ function handleTouchEnd() {
 
 const containerClass = computed(() =>
 	cn(
-		"group/card relative overflow-hidden rounded-lg bg-transparent transition-all duration-300",
+		"group/card relative overflow-hidden rounded-lg bg-transparent motion-safe:transition-all motion-safe:duration-300",
 		"h-48 w-48",
 		"sm:h-64 sm:w-64",
 		"md:h-80 md:w-80",
@@ -188,7 +190,7 @@ const containerClass = computed(() =>
 
 const imageClass = computed(() =>
 	cn(
-		"h-full w-full object-cover transition-transform duration-300",
+		"h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-300",
 		"scale-125",
 		"sm:scale-[1.35]",
 		"md:scale-150",
@@ -198,7 +200,7 @@ const imageClass = computed(() =>
 
 const childrenClass = computed(() =>
 	cn(
-		"absolute z-40 text-white transition-opacity duration-300",
+		"absolute z-40 text-white motion-safe:transition-opacity motion-safe:duration-300",
 		"bottom-2 left-2 text-sm",
 		"sm:bottom-3 sm:left-3 sm:text-base",
 		"md:bottom-4 md:left-4 md:text-lg",
@@ -211,7 +213,7 @@ const childrenClass = computed(() =>
 const overlayDirection = computed(() => direction.value ?? lastDirection.value);
 
 const overlayClass = computed(() => {
-	const baseClasses = "absolute inset-0 z-10 transition-all duration-300";
+	const baseClasses = "absolute inset-0 z-10 motion-safe:transition-all motion-safe:duration-300";
 	const backgroundClasses = "bg-black/40 dark:bg-black/60";
 
 	let transformClasses = "";
@@ -236,7 +238,7 @@ const overlayClass = computed(() => {
 });
 
 const imageContainerClass = computed(() =>
-	cn("relative size-full bg-gray-50 transition-transform duration-300 dark:bg-black", {
+	cn("relative size-full bg-gray-50 motion-safe:transition-transform motion-safe:duration-300 dark:bg-black", {
 		"translate-y-2 md:translate-y-5": direction.value === "top",
 		"-translate-y-2 md:-translate-y-5": direction.value === "bottom",
 		"translate-x-2 md:translate-x-5": direction.value === "left",
@@ -317,21 +319,17 @@ onMounted(() => {
 
    Dropped, the selectors compile to `.group\/card[data-v-…]` and
    `[data-v-…], [data-v-…-s]`: this component's own elements plus its slot
-   content — the element the source targeted, and the subtree it meant. */
+   content — the element the source targeted, and the subtree it meant.
+
+   The source's reduce-only `transition-duration: 0.1s !important` rule is not
+   carried over: it re-enabled transitions under reduce. The Tailwind transitions
+   are motion-safe gated and the JS fades collapse to 0 instead. */
 
 /* Enhanced mobile touch targets */
 @media (max-width: 768px) {
 	.group\/card {
 		min-height: 44px;
 		min-width: 44px;
-	}
-}
-
-/* Smooth transitions for reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-	*,
-	:slotted(*) {
-		transition-duration: 0.1s !important;
 	}
 }
 </style>

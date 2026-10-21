@@ -26,6 +26,15 @@ export interface GlowingEffectProps {
 	borderWidth?: number;
 }
 
+/** Read live on every tween step; missing `matchMedia` means "no preference". */
+function prefersReducedMotion(): boolean {
+	return (
+		typeof window !== "undefined" &&
+		typeof window.matchMedia === "function" &&
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches
+	);
+}
+
 interface MotionState {
 	lastPosition: { x: number; y: number };
 	animationFrameId: number;
@@ -85,8 +94,12 @@ export function GlowingEffect({
 		const state = motionRef.current;
 
 		function animateAngle() {
-			// Lerp speed inversely proportional to movementDuration
-			const speed = 0.08 / Math.max(liveRef.current.movementDuration, 0.1);
+			// Reduced motion: the arc snaps to the target (a duration of 0). The
+			// state is still produced, only the glide is dropped.
+			// Otherwise lerp speed is inversely proportional to movementDuration.
+			const speed = prefersReducedMotion()
+				? 1
+				: 0.08 / Math.max(liveRef.current.movementDuration, 0.1);
 			state.currentAngle = state.currentAngle + (state.targetAngle - state.currentAngle) * speed;
 
 			if (containerRef.current) {
@@ -143,8 +156,7 @@ export function GlowingEffect({
 
 				if (!isActive) return;
 
-				const rawTarget =
-					(180 * Math.atan2(mouseY - center[1], mouseX - center[0])) / Math.PI + 90;
+				const rawTarget = (180 * Math.atan2(mouseY - center[1], mouseX - center[0])) / Math.PI + 90;
 
 				// Shortest-path angle difference
 				const angleDiff = ((rawTarget - state.currentAngle + 180) % 360) - 180;
@@ -181,7 +193,7 @@ export function GlowingEffect({
 		<>
 			<div
 				className={cn(
-					"pointer-events-none absolute -inset-px hidden rounded-[inherit] border opacity-0 transition-opacity",
+					"pointer-events-none absolute -inset-px hidden rounded-[inherit] border opacity-0 motion-safe:transition-opacity",
 					glow && "opacity-100",
 					variant === "white" && "border-white",
 					disabled && "!block"
@@ -192,7 +204,7 @@ export function GlowingEffect({
 				ref={containerRef}
 				style={containerStyle}
 				className={cn(
-					"pointer-events-none absolute inset-0 rounded-[inherit] opacity-100 transition-opacity",
+					"pointer-events-none absolute inset-0 rounded-[inherit] opacity-100 motion-safe:transition-opacity",
 					glow && "opacity-100",
 					blur > 0 && "blur-[var(--blur)]",
 					className,
@@ -207,7 +219,7 @@ export function GlowingEffect({
 						"after:absolute after:inset-[calc(-1*var(--glowingeffect-border-width))] after:rounded-[inherit] after:content-['']",
 						"after:[border:var(--glowingeffect-border-width)_solid_transparent]",
 						"after:[background-attachment:fixed] after:[background:var(--gradient)]",
-						"after:opacity-[var(--active)] after:transition-opacity after:duration-300",
+						"after:opacity-[var(--active)] after:motion-safe:transition-opacity after:motion-safe:duration-300",
 						"after:[mask-clip:padding-box,border-box]",
 						"after:[mask-composite:intersect]",
 						"after:[mask-image:linear-gradient(#0000,#0000),conic-gradient(from_calc((var(--start)-var(--spread))*1deg),#00000000_0deg,#fff,#00000000_calc(var(--spread)*2deg))]"
