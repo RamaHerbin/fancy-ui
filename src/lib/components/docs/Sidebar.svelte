@@ -70,9 +70,7 @@
 			{#if isRetro}
 				<div class="retro-explorer-bar shrink-0">
 					<span class="retro-explorer-chip" aria-hidden="true">NAV</span>
-					<a href="/" data-docs-brand class="retro-explorer-title" onclick={onclose}
-						>{t("retro.explorer")}</a
-					>
+					<a href="/docs" class="retro-explorer-title" onclick={onclose}>{t("retro.explorer")}</a>
 				</div>
 			{:else if isBrutal}
 				<!-- Brutal brand block: ink tile carrying the mark + stacked mono

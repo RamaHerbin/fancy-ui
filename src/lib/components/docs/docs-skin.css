@@ -96,3 +96,50 @@
 	font-family: var(--skin-font-pixel, inherit);
 	font-size: 12px;
 }
+
+/* ---- Chrome: header brand marks ---------------------------------------------- */
+/* Retro: the menubar wordmark is a link now; keep it reading as the old label. */
+.docs-skin[data-skin="retro-os"] a.retro-brand {
+	color: inherit;
+	text-decoration: none;
+}
+/* Brutal: below lg the skin used to draw a decorative "FU" ink tile with
+   header::before. The logo link is that tile now, so there is one mark. */
+@media (max-width: 1023.98px) {
+	.docs-skin[data-skin="brutal"] header::before {
+		content: none;
+		display: none;
+	}
+	.docs-skin[data-skin="brutal"] header a[data-docs-logo] {
+		order: 0;
+		width: 28px;
+		height: 28px;
+		flex: none;
+		box-sizing: border-box;
+		align-items: center;
+		justify-content: center;
+		border-radius: 7px;
+		background: var(--skin-ink);
+		color: var(--skin-paper);
+		font-family: var(--skin-font-mono);
+		font-size: 10px;
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.docs-skin[data-skin="brutal"] header a[data-docs-logo] > * {
+		display: none;
+	}
+	.docs-skin[data-skin="brutal"] header a[data-docs-logo]::after {
+		content: "FU";
+	}
+}
+/* Retro phones: hamburger, logo, crumb and the four controls share one row;
+   tighten the menubar gaps so the last control is not clipped by the frame. */
+@media (max-width: 639.98px) {
+	.docs-skin[data-skin="retro-os"] header {
+		gap: 8px;
+	}
+	.docs-skin[data-skin="retro-os"] header nav {
+		margin-inline-start: 0;
+	}
+}

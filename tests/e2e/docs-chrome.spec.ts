@@ -61,6 +61,18 @@ test.describe("docs chrome", () => {
 		await expect(search).toBeVisible();
 	});
 
+	test("the current crumb is not truncated at 390 px with a real star count", async ({ page }) => {
+		await page.route("https://api.github.com/**", (route) =>
+			route.fulfill({ json: { stargazers_count: 12345 } })
+		);
+		await page.setViewportSize({ width: 390, height: 800 });
+		await page.goto("/docs/components/card-3d");
+		const current = page.locator('header nav [aria-current="page"]');
+		await expect(current).toHaveText("Card3D");
+		const fits = await current.evaluate((el) => el.scrollWidth <= el.clientWidth);
+		expect(fits).toBe(true);
+	});
+
 	test("the compact contents list shows below xl and hides at xl", async ({ page }) => {
 		await page.setViewportSize({ width: 390, height: 800 });
 		await page.goto("/docs/getting-started/installation");

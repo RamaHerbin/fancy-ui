@@ -66,7 +66,19 @@ describe("Sidebar", () => {
 		}
 	});
 
-	it.each(["standard", "brutal", "retro-os"] as const)(
+	it("keeps the retro Explorer title inside the docs", () => {
+		setSkin("retro-os");
+		try {
+			const { container } = render(Sidebar);
+			const title = getAside(container).querySelector("a.retro-explorer-title");
+			expect(title).toHaveAttribute("href", "/docs");
+			expect(getAside(container).querySelector("a[data-docs-brand]")).toBeNull();
+		} finally {
+			setSkin("standard");
+		}
+	});
+
+	it.each(["standard", "brutal"] as const)(
 		"points the %s brand link at the landing page",
 		(skin) => {
 			setSkin(skin);

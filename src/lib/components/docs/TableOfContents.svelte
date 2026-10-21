@@ -52,6 +52,9 @@
 			if (!el.id) el.id = headings[i].id;
 		});
 
+		// The compact list has no active item to track.
+		if (compact) return;
+
 		observer = new IntersectionObserver(
 			(entries) => {
 				for (const entry of entries) {
@@ -117,7 +120,7 @@
 		<summary
 			class="docs-toc-compact-summary text-foreground cursor-pointer px-3 py-2 text-sm font-medium"
 		>
-			{t("toc.show")}
+			{t("toc.onThisPage")}
 		</summary>
 		<ul class="docs-toc-list space-y-1 px-3 pt-1 pb-3">
 			{#each headings as heading}

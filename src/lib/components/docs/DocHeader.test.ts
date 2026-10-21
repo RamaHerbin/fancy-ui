@@ -10,6 +10,7 @@ vi.mock("$app/stores", () => ({
 }));
 
 import DocHeader from "./DocHeader.svelte";
+import { setSkin } from "$lib/stores";
 
 const NAV = { name: "Documentation breadcrumb" };
 
@@ -62,6 +63,41 @@ describe("DocHeader", () => {
 		render(DocHeader);
 		const btn = screen.getByRole("button", { name: "Search" });
 		expect(btn.className).toContain("sm:hidden");
+	});
+
+	it("names the logo link by where it goes", () => {
+		const { container } = render(DocHeader);
+		expect(container.querySelector("a[data-docs-logo]")).toHaveAttribute(
+			"aria-label",
+			"Back to FancyUI home"
+		);
+	});
+
+	it("drops the star count below sm so the current crumb keeps its room", async () => {
+		localStorage.setItem("fancyui:github-stars", JSON.stringify({ value: 4321, at: Date.now() }));
+		try {
+			render(DocHeader);
+			const stars = await screen.findByText("4.3K");
+			expect(stars.className).toContain("hidden");
+			expect(stars.className).toContain("sm:inline-flex");
+		} finally {
+			localStorage.removeItem("fancyui:github-stars");
+		}
+	});
+
+	it("makes the retro menubar wordmark the link to the landing page", () => {
+		setSkin("retro-os");
+		try {
+			const { container } = render(DocHeader);
+			const brand = container.querySelector("a.retro-brand");
+			expect(brand).toHaveAttribute("href", "/");
+			expect(brand).toHaveAttribute("aria-label", "Back to FancyUI home");
+			expect(brand?.textContent).toContain("FANCYUI");
+			// The header logo only covers the widths where the wordmark is hidden.
+			expect(container.querySelector("a[data-docs-logo]")?.className).toContain("sm:hidden");
+		} finally {
+			setSkin("standard");
+		}
 	});
 
 	it("links GitHub from the site constant", () => {
