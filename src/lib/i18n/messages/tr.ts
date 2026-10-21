@@ -1,4 +1,4 @@
-// Turkish (tr) — machine-translated draft. TODO: native review.
+// Turkish (tr). Register: siz in sentences; bare imperative on buttons and short action labels.
 import type { Catalog } from "./en.js";
 
 export default {
@@ -14,7 +14,7 @@ export default {
 	// Getting-started page titles
 	"page.introduction": "Giriş",
 	"page.installation": "Kurulum",
-	"page.theming": "Tema",
+	"page.theming": "Temalandırma",
 	"page.themeGenerator": "Tema Oluşturucu",
 	"page.changelog": "Değişiklik Günlüğü",
 
@@ -34,21 +34,22 @@ export default {
 	"search.tryInstead": "Bunun yerine şunlardan birini deneyin:",
 	"jobs.heading": "İhtiyacınıza göre göz atın",
 	"jobs.feedback": "Geri bildirim ver",
-	"jobs.input": "Girdi topla",
+	"jobs.input": "Form girdisi topla",
 	"jobs.attention": "Dikkati yönlendir",
 	"jobs.navigate": "Gezin",
 	"jobs.progress": "İlerlemeyi göster",
-	"jobs.surprise": "Şaşırt",
+	"jobs.surprise": "Efektlerle şaşırt",
 
 	// Component page
 	"comp.preview": "Önizleme",
 	"comp.code": "Kod",
 	"comp.installation": "Kurulum",
 	"install.framework": "Framework",
-	"install.sourceOnly": "Henüz npm'de değil — bu sürüm depoda bulunuyor.",
-	"install.unavailable": "Bu framework için bu bileşenin henüz bir sürümü yok.",
-	"install.copySource": "Kaynağı kopyala",
-	"install.copySourceNote": "Bileşen kaynağını projenize kopyalar; kod sizin olur.",
+	"install.sourceOnly": "Henüz npm'de değil — bu uyarlama şimdilik depoda yer alıyor.",
+	"install.unavailable": "Bu bileşenin bu framework için henüz bir uyarlaması yok.",
+	"install.copySource": "Kaynak kodunu kopyala",
+	"install.copySourceNote":
+		"Bileşenin kaynak kodunu projenize kopyalar; kod artık sizindir.",
 	"comp.usage": "Kullanım",
 	"comp.props": "Özellikler",
 	"comp.slots": "Slotlar",
@@ -71,7 +72,7 @@ export default {
 	"table.payload": "Veri",
 	"table.portName": "{framework} adı",
 	"table.portNameUnknown":
-		"Adlandırma kurallarından çıkarılamıyor; Svelte API’sinden farklara bakın.",
+		"Adlandırma kurallarıyla türetilemiyor; Svelte API'sinden farklar listesine bakın.",
 	"comp.events": "Olaylar",
 	"comp.copyMarkdown": "Markdown olarak kopyala",
 
@@ -85,7 +86,7 @@ export default {
 	// Components gallery
 	"gallery.title": "Bileşenler",
 	"gallery.intro":
-		"Bileşenler Svelte 5, React ve Vue için sunulur, Tailwind CSS v4 ile stillendirilmiştir ve TypeScript ile tiplendirilmiştir. Her sayfada canlı önizleme ve kopyala-yapıştır Svelte örnekleri bulunur; varsa React ve Vue kullanımı da yer alır. Paketi bir kez kurun, kod sizin olsun.",
+		"Bileşenler Svelte 5, React ve Vue için sunulur; Tailwind CSS v4 ile biçimlendirilmiş ve TypeScript ile tiplendirilmiştir. Her sayfada canlı bir önizleme ve kopyalayıp yapıştırabileceğiniz Svelte örnekleri bulunur; mevcut olduğunda React ve Vue kullanımı da gösterilir. Paketi bir kez kurun, kod sizin olsun.",
 	"gallery.filterPlaceholder": "Bileşenleri filtrele...",
 	"gallery.all": "Tümü",
 	"gallery.noMatch": "Aramanızla eşleşen bileşen yok.",
@@ -98,34 +99,34 @@ export default {
 	"gallery.searchHint": "Aramak için / tuşuna basın",
 	"gallery.groupLabel": "Bileşen grubu",
 	"gallery.categoryLabel": "Kategoriler",
-	"gallery.desc.buttons": "Zengin üzerine gelme ve basma hareketleri olan etkileşimli düğmeler",
+	"gallery.desc.buttons": "Üzerine gelince ve basınca zengin hareket sunan etkileşimli düğmeler",
 	"gallery.desc.cards": "İşaretçiye tepki veren kartlar ve kapsayıcılar",
 	"gallery.desc.backgrounds": "Animasyonlu ve dekoratif arka planlar",
 	"gallery.desc.text": "Metin animasyonları ve tipografik efektler",
-	"gallery.desc.layout": "Yerleşim ilkelleri ve yapısal bileşenler",
-	"gallery.desc.feedback": "İpuçları, toast bildirimleri, yükleyiciler ve diğer geri bildirimler",
+	"gallery.desc.layout": "Düzen için temel öğeler ve yapısal bileşenler",
+	"gallery.desc.feedback": "İpuçları, bildirimler, yükleyiciler ve diğer geri bildirimler",
 	"gallery.desc.data-display": "Listeler, zaman çizelgeleri ve veri koleksiyonları",
 	"gallery.desc.navigation": "Menüler, sekmeler, bağlantılar ve yön bulma",
 	"gallery.desc.media": "Görsel, video ve medya gösterimi",
 	"gallery.desc.effects": "Görsel efektler ve dekoratif hareket",
 	"gallery.desc.ai-chat": "Mesajlar, yazma alanları, konuşma dizileri ve akan metin",
-	"gallery.desc.ai-agents": "Muhakeme, araç kullanımı, planlar ve insan onaylı kartlar",
-	"gallery.desc.actions": "Düğmeler, anahtarlar ve diğer eylem ilkelleri",
-	"gallery.desc.forms": "Kullanıcı girdisini almak için alanlar ve ilkeller",
+	"gallery.desc.ai-agents": "Akıl yürütme, araç kullanımı, planlar ve insan onayı isteyen kartlar",
+	"gallery.desc.actions": "Düğmeler, anahtarlar ve diğer temel eylem öğeleri",
+	"gallery.desc.forms": "Kullanıcı girdisi almak için giriş alanları ve temel öğeler",
 	"gallery.desc.overlays": "İletişim kutuları, açılır pencereler, menüler ve paneller",
 	"gallery.desc.display": "Rozetler, avatarlar ve durum gösterimi",
 	"gallery.subtitle":
-		"Svelte 5, React, Vue için güzelce animasyonlu {count} bileşen. Göz atın, arayın ve ihtiyacınız olanı bulun.",
+		"Svelte 5, React ve Vue için {count} şık animasyonlu bileşen. Göz atın, arayın ve ihtiyacınız olanı bulun.",
 
 	// Theme-generator page
 	"tg.metaDescription":
-		"FancyUI'nin OKLCh tasarım belirteçlerini canlı olarak ayarlayın ve CSS'yi uygulamanıza kopyalayın.",
+		"FancyUI'ın OKLCh tasarım belirteçlerini canlı olarak ayarlayın ve CSS'i uygulamanıza kopyalayın.",
 	"tg.intro":
-		"FancyUI'nin tasarım belirteçlerini ayarlayın ve bileşenlerin gerçek zamanlı olarak tepki vermesini izleyin. Doğru göründüğünde, oluşturulan CSS'yi uygulamanızın stil sayfasına (örneğin src/app.css) kopyalayın. Renkler OKLCh renk uzayını kullanır; gökkuşağı paleti HSL kullanır. Tüm belirteç referansı için bkz. <link>Tema</link>.",
-	"tg.presets": "Hazır Ayarlar",
+		"FancyUI'ın tasarım belirteçlerini ayarlayın ve bileşenlerin anında nasıl tepki verdiğini izleyin. Sonuçtan memnun kaldığınızda oluşturulan CSS'i uygulamanızın stil dosyasına (örneğin src/app.css) kopyalayın. Renkler OKLCh renk uzayında tanımlanır; gökkuşağı paleti ise HSL kullanır. Belirteçlerin tam başvurusu için <link>Temalandırma</link> sayfasına bakın.",
+	"tg.presets": "Hazır ayarlar",
 	"tg.base": "Temel",
-	"tg.light": "Aydınlık",
-	"tg.dark": "Karanlık",
+	"tg.light": "Açık",
+	"tg.dark": "Koyu",
 	"tg.primary": "Birincil",
 	"tg.accent": "Vurgu",
 	"tg.lightness": "Açıklık",
@@ -139,9 +140,9 @@ export default {
 	"tg.cardSurfaceDesc": "--card, --foreground, --border ve --radius kullanır.",
 	"tg.primaryAction": "Birincil eylem",
 	"tg.accentBadge": "Vurgu rozeti",
-	"tg.beamDesc": "Işın renkleri {primary} → {accent} sırasını izler.",
+	"tg.beamDesc": "Işın renkleri {primary} → {accent} geçişini izler.",
 	"tg.generatedCss": "Oluşturulan CSS",
-	"tg.copyCss": "CSS'yi Kopyala",
+	"tg.copyCss": "CSS'i kopyala",
 	"tg.copied": "Kopyalandı",
 
 	// Category labels (docs-only overlay; registry stays English)
@@ -158,50 +159,49 @@ export default {
 	"category.ai-chat": "Yapay Zekâ Sohbeti",
 	"category.ai-agents": "Yapay Zekâ Ajanları",
 
-	// Introduction (redesigned page)
+	// Introduction page
 	"intro.title": "Giriş",
 	"intro.metaTitle": "Giriş",
-	"intro.pill.animation": "Önce Animasyon",
-	"intro.pill.copyPaste": "Kopyala-Yapıştır Dostu",
+	"intro.pill.animation": "Animasyon öncelikli",
+	"intro.pill.copyPaste": "Kopyala-yapıştır dostu",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Felsefe",
-	"intro.philosophy.card2.title": "Önce animasyon",
+	"intro.philosophy.card2.title": "Animasyon öncelikli",
 	"intro.philosophy.card2.desc":
-		"Her bileşen, kutudan çıktığı haliyle özenle hazırlanmış animasyonlarla birlikte gelir.",
+		"Her bileşen, ek ayar gerektirmeden özenle hazırlanmış animasyonlarla gelir.",
 	"intro.philosophy.card3.title": "Kopyala-yapıştır dostu",
-	"intro.philosophy.card3.desc": "Paket olarak kullanın veya kaynak kodu doğrudan kopyalayın.",
+	"intro.philosophy.card3.desc": "Paket olarak kullanın ya da kaynak kodunu doğrudan kopyalayın.",
 	"intro.philosophy.card4.title": "Tailwind CSS 4",
-	"intro.philosophy.card4.desc":
-		"Yardımcı sınıflar ve CSS özel özellikleriyle biçimlendirilmiştir.",
+	"intro.philosophy.card4.desc": "Yardımcı sınıflar ve CSS değişkenleriyle biçimlendirilmiştir.",
 	"intro.philosophy.card5.title": "TypeScript",
 	"intro.philosophy.card5.desc": "Dışa aktarılan özellik arayüzleriyle tam tür güvenliği.",
 	"intro.quickStart.heading": "Hızlı Başlangıç",
 	"intro.quickStart.step1.title": "Kur",
-	"intro.quickStart.step1.desc": "FancyUI'yi projenize ekleyin.",
-	"intro.quickStart.step2.title": "İçe Aktar",
+	"intro.quickStart.step1.desc": "FancyUI'ı projenize ekleyin.",
+	"intro.quickStart.step2.title": "İçe aktar",
 	"intro.quickStart.step3.title": "Kullan",
-	"intro.whatsIncluded.heading": "Neler İçerir",
+	"intro.whatsIncluded.heading": "Neler Dahil",
 	"intro.whatsIncluded.body.one": "{categories} kategoride {count} bileşen:",
 	"intro.whatsIncluded.body.other": "{categories} kategoride {count} bileşen:",
 	"intro.category.buttons": "Düğmeler",
 	"intro.category.cards": "Kartlar",
 	"intro.category.effects": "Efektler",
-	"intro.stats.buttons": "Rainbow, Ripple, Shimmer ve arkadaşları. Tıklanmak isteyen düğmeler.",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer ve benzerleri. Tıklanmak için can atan düğmeler.",
 	"intro.stats.cards":
-		"Karuseller, bento ızgaralar, 3D efektler. İçeriği sıkmadan sunmanın yolları.",
+		"Karuseller, bento ızgaralar, 3D eğimler. İçeriği kimseyi sıkmadan sunmanın yolları.",
 	"intro.stats.effects": "İmleçler, izler, animasyonlu metinler. Farkı yaratan küçük dokunuşlar.",
-	"sidebar.starTitle": "GitHub'da yıldızla",
-	"sidebar.starBody": "FancyUI'ı beğendiyseniz bir yıldız bırakın!",
+	"sidebar.starTitle": "GitHub'da yıldız verin",
+	"sidebar.starBody": "FancyUI'ı beğendiyseniz ona bir yıldız verin!",
 	"rail.nextPage": "Sonraki sayfa",
 	"intro.nextSteps.heading": "Sonraki Adımlar",
 	"intro.nextSteps.installation": "Kurulum",
-	"intro.nextSteps.theming": "Tema",
+	"intro.nextSteps.theming": "Temalandırma",
 	"intro.nextSteps.components": "Bileşenlere Göz At",
-	"intro.cta.title": "FancyUI'de yeni misiniz?",
+	"intro.cta.title": "FancyUI ile yeni mi tanışıyorsunuz?",
 	"intro.cta.body":
-		"Renkleri özelleştirmek ve bileşenlerin gerçek zamanlı nasıl tepki verdiğini görmek için <b>Tema Oluşturucu</b>'yu inceleyin.",
-	"intro.cta.button": "Tema Oluşturucu'yu Dene",
+		"Renkleri özelleştirmek ve bileşenlerin anında nasıl tepki verdiğini görmek için <b>Tema Oluşturucu</b> sayfasına göz atın.",
+	"intro.cta.button": "Tema Oluşturucu'yu dene",
 
 	// Core components workspace (sidebar groups, categories, status)
 	"group.core": "Core",
@@ -212,18 +212,18 @@ export default {
 	"category.display": "Görüntüleme",
 	"status.inProgress": "Geliştiriliyor",
 
-	// Installation (redesigned page)
+	// Installation page
 	"install.metaTitle": "Kurulum",
 	"install.title": "Kurulum",
 	"install.lead":
-		"FancyUI'yi üç adımda bir SvelteKit projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
+		"FancyUI'ı üç adımda bir SvelteKit projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
 	"install.pill.svelte": "Svelte 5",
 	"install.pill.tailwind": "Tailwind CSS 4",
 	"install.pill.node": "Node.js 20.19+",
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Ön Koşullar",
 	"install.prerequisites.body":
-		"FancyUI güncel araç zincirlerini hedefler. Kurmadan önce bu üç şeyi kontrol edin.",
+		"FancyUI güncel araç zincirlerini hedefler. Kurulumdan önce şu üç şeyi kontrol edin.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -231,11 +231,11 @@ export default {
 	"install.prerequisites.card2.title": "Tailwind CSS",
 	"install.prerequisites.card2.version": "v4",
 	"install.prerequisites.card2.desc":
-		"Biçimlendirme, Tailwind v4 yardımcı sınıflarına ve CSS özel özelliklerine dayanır.",
+		"Biçimlendirme, Tailwind v4 yardımcı sınıflarına ve CSS değişkenlerine dayanır.",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"FancyUI'nin test edildiği güncel derleme araçları tarafından gereklidir.",
+		"FancyUI'ın test edildiği güncel derleme araçları bunu gerektirir.",
 	"install.steps.heading": "Kurulum",
 	"install.steps.body":
 		"Paket yöneticinizi seçin, stil dosyasını bağlayın, ardından ilk bileşeninizi render edin.",
@@ -246,66 +246,66 @@ export default {
 	"install.step2.desc": "FancyUI stil dosyasını Tailwind içe aktarımınızın hemen ardından ekleyin.",
 	"install.step2.caption": "Genel stil dosyanızda, genellikle src/app.css.",
 	"install.step3.title": "Bir bileşen render edin",
-	"install.step3.desc": "Paket kökünden içe aktarın ve doğrudan işaretlemenize yerleştirin.",
+	"install.step3.desc": "Paket kökünden içe aktarın ve işaretlemenize yerleştirin.",
 	"install.tailwind.heading": "Tailwind CSS kurulumu",
 	"install.tailwind.body":
-		"FancyUI, JavaScript yapılandırma dosyası yerine CSS içinde yapılandırılan Tailwind CSS v4 üzerine inşa edilmiştir. Tailwind projenizde zaten çalışıyorsa yapılandırılacak başka bir şey yoktur.",
+		"FancyUI, JavaScript yapılandırma dosyası yerine CSS içinde yapılandırılan Tailwind CSS v4 üzerine kuruludur. Tailwind projenizde zaten çalışıyorsa yapılandırmanız gereken başka bir şey yoktur.",
 	"install.tailwind.order":
-		"İçe aktarma sırası önemlidir: önce Tailwind, sonra FancyUI. FancyUI içe aktarmasını kendi @custom-variant dark tanımınızdan önce yerleştirin; aksi halde FancyUI'ınki sizinkinin yerini alır.",
+		"İçe aktarma sırası önemlidir: önce Tailwind, sonra FancyUI. FancyUI içe aktarımını kendi @custom-variant dark tanımınızdan önce yerleştirin; aksi hâlde FancyUI'ınki sizinkinin yerini alır.",
 	"install.tailwind.note":
-		"Giriş dosyası varsayılan renk belirteçlerini (background, primary, border ve diğerleri) ve bir koyu varyant sağlar. Kendi :root ve .dark bloklarınız bunları geçersiz kılar: CSS değişkenlerini yeniden tanımlayın, sizin değerleriniz geçerli olur.",
+		"Giriş dosyası varsayılan renk belirteçlerini (background, primary, border ve diğerleri) ve bir dark varyantı sağlar. Kendi :root ve .dark bloklarınız bunları geçersiz kılar: CSS değişkenlerini yeniden tanımlayın, sizin değerleriniz geçerli olur.",
 	"install.usage.heading": "Kullanım",
 	"install.usage.body":
-		"Her bileşen paket kökünün adlandırılmış bir dışa aktarımıdır, bu yüzden ezberlenecek bileşen başına içe aktarma yolu yoktur.",
+		"Her bileşen paket kökünden adlandırılmış olarak dışa aktarılır; bu yüzden ezberlemeniz gereken bileşene özel içe aktarma yolları yoktur.",
 	"install.usage.note":
 		"Her bileşenin sayfası özelliklerini, canlı örneklerini ve erişilebilirlik notlarını listeler.",
 	"install.typescript.heading": "TypeScript",
 	"install.typescript.body":
-		"Özellik türleri her bileşenin yanında dışa aktarılır, böylece sarmalayıcıları ve paylaşılan ön ayarları türleyebilirsiniz.",
-	"install.typescript.note": "Türler paketin içinde gelir. Kurulacak ayrı bir tür paketi yoktur.",
+		"Özellik türleri her bileşenin yanında dışa aktarılır; böylece sarmalayıcılarınızı ve paylaşılan ön ayarlarınızı tiplendirebilirsiniz.",
+	"install.typescript.note": "Türler paketin içinde gelir. Ayrıca kurmanız gereken bir tür paketi yoktur.",
 	"install.peerDeps.heading": "Eş bağımlılıklar",
-	"install.peerDeps.body": "FancyUI, bunların projenizde zaten var olmasını bekler:",
+	"install.peerDeps.body": "FancyUI, bunların projenizde zaten bulunmasını bekler:",
 	"install.peerDeps.colPackage": "Paket",
 	"install.peerDeps.colVersion": "Sürüm",
 	"install.peerDeps.bundled":
-		"Birkaç bileşen ek çalışma zamanı kitaplıklarına ihtiyaç duyar. Bunlar paketle birlikte gelir, bu yüzden kurulacak başka bir şey yoktur:",
-	"install.peerDeps.bundledNote": "Yalnızca onları kullanan bileşenler tarafından dahil edilirler.",
+		"Birkaç bileşen ek çalışma zamanı kitaplıklarına ihtiyaç duyar. Bunlar paketle birlikte gelir, bu yüzden kurmanız gereken başka bir şey yoktur:",
+	"install.peerDeps.bundledNote": "Yalnızca onları kullanan bileşenler tarafından yüklenirler.",
 	"install.nextSteps.heading": "Sonraki Adımlar",
 	"install.nextSteps.components.title": "Bileşenlere Göz At",
 	"install.nextSteps.components.desc":
 		"Canlı önizlemeler, özellikler ve kopyala-yapıştır örnekleriyle {count} bileşen.",
-	"install.nextSteps.theming.title": "Tema",
+	"install.nextSteps.theming.title": "Temalandırma",
 	"install.nextSteps.theming.desc":
-		"Her bileşenin açık ve koyu modda markanızla eşleşmesi için tasarım belirteçlerini geçersiz kılın.",
+		"Tasarım belirteçlerini geçersiz kılarak her bileşeni açık ve koyu modda markanıza uydurun.",
 
 	// Theming page
-	"theming.metaTitle": "Tema",
-	"theming.title": "Tema",
+	"theming.metaTitle": "Temalandırma",
+	"theming.title": "Temalandırma",
 	"theming.lead":
-		"Her FancyUI bileşeni, renklerini, köşe yarıçaplarını ve zamanlamalarını OKLCh renk uzayındaki CSS özel özelliklerinden okur — bir belirteci geçersiz kılın, tüm kitaplık buna uyum sağlar.",
+		"Her FancyUI bileşeni renklerini, köşe yarıçaplarını ve zamanlamalarını OKLCh renk uzayındaki CSS değişkenlerinden okur — bir belirteci geçersiz kılın, tüm kitaplık ona uyar.",
 	"theming.pill.oklch": "OKLCh renk uzayı",
 	"theming.pill.shadcn": "Standart belirteç adları",
-	"theming.pill.dark": "Karanlık mod",
+	"theming.pill.dark": "Koyu mod",
 	"theming.pill.tokens": "Tasarım belirteçleri",
 	"theming.generator.body":
-		"Görsel olarak ayarlamayı mı tercih edersiniz? Tema Oluşturucu bu belirteçleri canlı kaydırıcılarla ayarlar ve CSS'yi size verir.",
-	"theming.generator.cta": "Tema Oluşturucu'yu Aç",
+		"Görsel olarak ayarlamayı mı tercih edersiniz? Tema Oluşturucu bu belirteçleri canlı kaydırıcılarla ayarlar ve CSS'i size hazır verir.",
+	"theming.generator.cta": "Tema Oluşturucu'yu aç",
 	"theming.cssSetup.heading": "CSS kurulumu",
 	"theming.cssSetup.body":
-		"FancyUI stil dosyasını uygulamanızın genel CSS'sine, genellikle src/app.css'e, içe aktarın:",
+		"FancyUI stil dosyasını uygulamanızın genel CSS'ine, genellikle src/app.css dosyasına aktarın:",
 	"theming.colors.heading": "Renk sistemi",
 	"theming.colors.body":
-		"Tüm renkler, algısal olarak tutarlı gradyanlar için OKLCh renk uzayını kullanır:",
+		"Algısal olarak tekdüze gradyanlar için tüm renkler OKLCh renk uzayını kullanır:",
 	"theming.colors.note":
-		"Belirteç adları yaygın olarak kullanılan anlamsal kuralı izler (background, foreground, primary, …), bu nedenle aynı değişken adlarına sahip mevcut bir tema değişiklik yapılmadan kullanılabilir.",
-	"theming.dark.heading": "Karanlık mod",
+		"Belirteç adları yaygın anlamsal adlandırma kuralını izler (background, foreground, primary, …); bu yüzden aynı değişken adlarını kullanan mevcut bir tema değiştirilmeden çalışır.",
+	"theming.dark.heading": "Koyu mod",
 	"theming.dark.body":
-		"Karanlık mod varsayılan olarak işletim sistemi tercihini izler. Karanlığı zorlamak için .dark sınıfını <html> üzerine veya herhangi bir üst öğeye, aydınlığı zorlamak için .light sınıfını ekleyin; dark: yardımcıları ve her belirteç buna uyar. Karanlık değerleri özelleştirmek için bunları .dark altında geçersiz kılın:",
+		"Koyu mod varsayılan olarak işletim sistemi tercihini izler. Koyu modu zorlamak için .dark sınıfını <html> öğesine veya herhangi bir üst öğeye, açık modu zorlamak için .light sınıfını ekleyin; dark: yardımcı sınıfları ve tüm belirteçler buna uyar. Koyu değerleri özelleştirmek için bunları .dark altında geçersiz kılın:",
 	"theming.motion.heading": "Animasyon belirteçleri",
-	"theming.motion.body": "Animasyon zamanlamasını genel olarak kontrol edin:",
+	"theming.motion.body": "Animasyon zamanlamasını genel olarak denetleyin:",
 	"theming.easing.heading": "Easing fonksiyonları",
 	"theming.easing.body":
-		"Easing eğrileri de birer belirteçtir ve her bileşen geçişinde paylaşılır:",
+		"Easing eğrileri de birer belirteçtir; tüm bileşen geçişleri bunları ortak kullanır:",
 	"theming.rainbow.heading": "Gökkuşağı gradyanları",
 	"theming.rainbow.body":
 		"RainbowButton, GradientButton ve diğer gradyan efektleri tarafından kullanılır:",
@@ -313,11 +313,11 @@ export default {
 	"theming.customizing.body":
 		"Görünümü değiştirmek için kendi CSS'inizde herhangi bir belirteci geçersiz kılın:",
 	"theming.customizing.note":
-		"Belirteçler basamaklanır: onları genel olarak :root içinde geçersiz kılın veya tek bir bölümü temalandırmak için bir sarmalayıcı elemente sınırlayın.",
+		"Belirteçler kademeli olarak devralınır: onları :root içinde genel olarak geçersiz kılın ya da tek bir bölümü temalandırmak için bir sarmalayıcı öğeyle sınırlayın.",
 	"theming.nextSteps.heading": "Sonraki Adımlar",
 	"theming.nextSteps.generator.title": "Tema Oluşturucu",
 	"theming.nextSteps.generator.desc":
-		"Her belirteci canlı kaydırıcılarla ayarlayın ve tamamlanmış CSS'yi kopyalayın.",
+		"Her belirteci canlı kaydırıcılarla ayarlayın ve hazır CSS'i kopyalayın.",
 	"theming.nextSteps.components.title": "Bileşenlere Göz At",
 	"theming.nextSteps.components.desc":
 		"Belirteçlerin tüm bileşen galerisinde nasıl çalıştığını görün.",
@@ -325,13 +325,12 @@ export default {
 	// Changelog page
 	"changelog.metaTitle": "Değişiklik Günlüğü",
 	"changelog.title": "Değişiklik Günlüğü",
-	"changelog.lead":
-		"FancyUI'nin tüm sürümleri ve her birinde değişenler, en yeniden en eskiye sıralanmıştır.",
+	"changelog.lead": "FancyUI'ın tüm sürümleri ve her birinde nelerin değiştiği, en yeniden en eskiye.",
 	"changelog.latest": "En yeni",
 	"changelog.major": "Büyük değişiklikler",
 	"changelog.minor": "Küçük değişiklikler",
 	"changelog.patch": "Yama değişiklikleri",
-	// Cameleon docs skins
+	// Docs skins
 	"skin.heading": "Görünüm",
 	"skin.standard": "Standart",
 	"skin.brutal": "Brutal",
@@ -341,48 +340,48 @@ export default {
 	"a11y.sound": "Ses",
 	"retro.explorer": "Gezgin",
 	"retro.start": "Başlat",
-	"retro.tagline": "Svelte 5 için animasyonlu bileşenler — kopyalayıp yapıştırmaya hazır.",
+	"retro.tagline": "Svelte 5 için animasyonlu bileşenler — kopyala-yapıştır dostu.",
 	"comp.snippetSvelteOnly":
-		"Bu framework için tam bir örnek henüz yazılmadı; şimdilik yalnızca Svelte sürümünde var.",
+		"Bu framework için tam bir örnek henüz yazılmadı; şimdilik yalnızca Svelte sürümünün örneği var.",
 	"comp.copyMarkdownSvelte": "Markdown olarak kopyala (Svelte)",
 	"comp.markdownSvelteOnly": "Markdown dışa aktarımı yalnızca Svelte sürümünü anlatır.",
 	"comp.apiNoticeReact":
-		"Bu API başvurusu Svelte adlarını kullanır. React'te class className olur, on* işleyicileri camelCase yazılır (onclick onClick olur) ve snippet'ler ReactNode prop'larına ya da render fonksiyonlarına dönüşür.",
+		"Bu API başvurusu Svelte adlarını kullanır. React'te class className olur, on* işleyicileri camelCase yazılır (onclick, onClick olur) ve snippet'ler ReactNode türündeki özelliklere ya da render fonksiyonlarına dönüşür.",
 	"comp.apiNoticeVue":
-		"Bu API başvurusu Svelte adlarını kullanır. Vue'da snippet'ler slot'a, bağlanabilir prop'lar ise v-model:ad biçimine dönüşür.",
+		"Bu API başvurusu Svelte adlarını kullanır. Vue'da snippet'ler slotlara, bağlanabilir özellikler ise v-model:name biçimine dönüşür.",
 	"comp.apiNoticeLink": "Svelte API'sinden farklar",
 	"install.lead.react":
-		"FancyUI'yi üç adımda bir React projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
+		"FancyUI'ı üç adımda bir React projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
 	"install.lead.vue":
-		"FancyUI'yi üç adımda bir Vue projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
+		"FancyUI'ı üç adımda bir Vue projesine ekleyin: paketi kurun, stil dosyasını içe aktarın, bir bileşen render edin.",
 	"install.pill.react": "React 18+",
 	"install.pill.vue": "Vue 3.5+",
 	"install.prerequisites.card1.title.react": "React",
 	"install.prerequisites.card1.version.react": "18 / 19",
 	"install.prerequisites.card1.desc.react":
-		"React 18 ve 19'u destekler. Bileşenler istemci modülleri olarak gönderilir, bu yüzden Server Components bunları doğrudan içe aktarabilir.",
+		"React 18 ve 19'u destekler. Bileşenler istemci modülleri olarak sunulur, bu yüzden Server Components onları doğrudan içe aktarabilir.",
 	"install.prerequisites.card1.title.vue": "Vue",
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"Bileşenler Vue 3.5 tek dosyalı bileşenleridir, bu nedenle Vue 3.5.2 veya üzeri gerekir.",
 
-	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
-	"intro.pill.frameworks": "Svelte 5, React, Vue",
-	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	// Framework-neutral Introduction and Installation copy
+	"intro.pill.frameworks": "Svelte 5, React ve Vue",
+	"intro.philosophy.card1.title": "Svelte, React ve Vue",
 	"intro.philosophy.card1.desc":
 		"Her framework için yerel olarak yazılmıştır: Svelte'te runes, React'te hooks, Vue'da Composition API.",
-	"intro.quickStart.step3.desc": "Bileşenlerinize ekleyin.",
+	"intro.quickStart.step3.desc": "Bileşenlerinize yerleştirin.",
 	"install.peerDeps.optional": "isteğe bağlı",
 
-	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	// Chrome, contribution, status, recipes, errors, SEO
 	"a11y.skipToContent": "İçeriğe geç",
-	"a11y.docsBreadcrumb": "Dokümantasyon gezinti yolu",
-	"a11y.prevNext": "Önceki ve sonraki sayfa",
+	"a11y.docsBreadcrumb": "Belgelerde sayfa yolu",
+	"a11y.prevNext": "Önceki ve sonraki sayfalar",
 	"a11y.search": "Ara",
 	"search.a11y.close": "Aramayı kapat",
 	"nav.backToSite": "FancyUI ana sayfasına dön",
 	"nav.recipes": "Tarifler",
-	"footer.contribute": "Katkıda bulunun",
+	"footer.contribute": "Katkıda bulun",
 	"footer.issues": "Issues",
 	"footer.discussions": "Tartışmalar",
 	"footer.security": "Güvenlik",
@@ -390,38 +389,38 @@ export default {
 	"footer.changelog": "Değişiklik günlüğü",
 	"footer.versions": "Sürümler",
 	"footer.install": "Kurulum",
-	"footer.license": "MIT Lisansı",
-	"comp.editPage": "Bu sayfayı düzenleyin",
-	"comp.reportIssue": "Sorun bildirin",
+	"footer.license": "MIT lisansı",
+	"comp.editPage": "Bu sayfayı düzenle",
+	"comp.reportIssue": "Sorun bildir",
 	"comp.issueTitle": "[docs] {name}",
 	"intro.lead":
-		"Svelte 5, React ve Vue için aynı tasarım belirteçleri üzerine kurulu, <grad>{count}</grad> animasyonlu ve etkileşimli arayüz bileşeninden oluşan bir koleksiyondur.",
+		"<grad>{count}</grad> animasyonlu ve etkileşimli arayüz bileşeninden oluşan bir koleksiyondur; Svelte 5, React ve Vue için aynı tasarım belirteçleri üzerine kurulmuştur.",
 	"intro.importHint":
-		"İhtiyacınız olan bileşenleri içe aktarın. İçe aktarma yolu kullandığınız framework'e bağlıdır.",
+		"İhtiyacınız olan bileşenleri içe aktarın. İçe aktarma yolu kullandığınız framework'e göre değişir.",
 	"install.kitOptional":
 		"SvelteKit isteğe bağlıdır: FancyUI, Vite ile derlenen her Svelte 5 projesinde çalışır.",
 	"theming.cssPerFramework":
 		"Framework'ünüze uygun stil dosyasını içe aktarın: her paket kendi stil dosyasıyla gelir.",
-	"status.planned": "Planlandı",
-	"status.deprecated": "Kullanımdan kaldırıldı",
-	"comp.sinceVersion": "v{version} ile geldi",
+	"status.planned": "Planlı",
+	"status.deprecated": "Kullanım dışı",
+	"comp.sinceVersion": "v{version} sürümünde yeni",
 	"comp.deprecatedNotice":
-		"Bu bileşen kullanımdan kaldırılmıştır ve gelecekteki bir sürümde kaldırılabilir.",
-	"comp.inspiredByNoLink": "{name}'den ilham alınmıştır",
+		"Bu bileşen kullanım dışıdır ve gelecekteki bir sürümde kaldırılabilir.",
+	"comp.inspiredByNoLink": "İlham kaynağı: {name}",
 	"recipes.title": "Tarifler",
 	"recipes.lead":
-		"Birden fazla bileşeni tamamlanmış bir arayüzde birleştiren adım adım kompozisyonlar.",
-	"recipes.components": "Bileşenler: {count}",
+		"Birkaç bileşeni bir araya getirerek eksiksiz bir arayüz oluşturan adım adım kompozisyonlar.",
+	"recipes.components": "{count} bileşen",
 	"error.notFoundTitle": "Sayfa bulunamadı",
 	"error.genericTitle": "Bir şeyler ters gitti",
-	"error.notFoundBody": "Aradığınız sayfa mevcut değil veya taşınmış.",
-	"error.genericBody": "Beklenmeyen bir hata oluştu. Yeniden deneyin veya dokümantasyona dönün.",
+	"error.notFoundBody": "Aradığınız sayfa mevcut değil ya da taşınmış.",
+	"error.genericBody": "Beklenmeyen bir hata oluştu. Yeniden deneyin ya da belgelere dönün.",
 	"error.unauthorizedTitle": "Oturum açmanız gerekiyor",
 	"error.unauthorizedBody": "Bu sayfayı kullanmak için oturum açmış olmanız gerekir.",
 	"error.home": "Ana sayfaya dön",
-	"error.browse": "Bileşenlere göz atın",
-	"error.search": "Dokümantasyonda arayın",
-	"error.report": "Bozuk bağlantıyı bildirin",
+	"error.browse": "Bileşenlere göz at",
+	"error.search": "Belgelerde ara",
+	"error.report": "Bozuk bağlantıyı bildir",
 	"comp.previewFailed": "Bu önizleme yüklenemedi.",
 	"demo.noPreview": "Bu bileşen için henüz önizleme yok.",
 	"demo.notFound": "Bileşen bulunamadı.",
@@ -429,9 +428,9 @@ export default {
 	"recipes.pitfalls": "Sık yapılan hatalar",
 	"recipes.componentsUsed": "Kullanılan bileşenler",
 	"seo.installation":
-		"FancyUI'ı Svelte 5, React veya Vue için kurun: paketi ekleyin, stil dosyasını içe aktarın ve ilk bileşeninizi oluşturun.",
+		"FancyUI'ı Svelte 5, React veya Vue için kurun: paketi ekleyin, stil dosyasını içe aktarın ve ilk bileşeninizi render edin.",
 	"seo.theming":
-		"FancyUI'ı tasarım belirteçleriyle özelleştirin: OKLCh renkler, yarıçap, hareket ve karanlık mod; Svelte 5, React ve Vue için.",
+		"FancyUI'ı tasarım belirteçleriyle özelleştirin: OKLCh renkler, köşe yarıçapı, hareket ve koyu mod; Svelte 5, React ve Vue için.",
 	"seo.themeGenerator":
 		"FancyUI'ın OKLCh tasarım belirteçlerini canlı olarak ayarlayın ve oluşturulan CSS'i uygulamanıza kopyalayın.",
 	"seo.changelog": "Svelte 5, React ve Vue için FancyUI paketlerinin sürüm notları.",
