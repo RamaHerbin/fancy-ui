@@ -5,6 +5,7 @@ import {
 	dismissToast,
 	type ToastVariant,
 	type ToastAction,
+	type ToastCloseReason,
 	type ToastOptions,
 	type ToastItem,
 } from "./store.svelte.js";
@@ -19,6 +20,7 @@ export {
 	dismissToast,
 	type ToastVariant,
 	type ToastAction,
+	type ToastCloseReason,
 	type ToastOptions,
 	type ToastItem,
 };

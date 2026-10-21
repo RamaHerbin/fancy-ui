@@ -60,6 +60,7 @@
 	import type { StatusMorphState } from "../status-morph/StatusMorph.svelte";
 	import { createCopy } from "../_internals/clipboard.svelte.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 
 	let {
 		value,
@@ -148,7 +149,11 @@
 		// missing clipboard API — that outcome is reported to the caller honestly,
 		// not swallowed into a silent no-op, and is now shown and announced too.
 		const mine = ++attempt;
-		const pending = copyState.copy(value);
+		// `value` is snapshotted: it is a live prop, and a parent that swaps it
+		// while a permission prompt holds the write open would otherwise make
+		// `onCopy` report text that was never written.
+		const attempted = value;
+		const pending = copyState.copy(attempted);
 		// The consumer click runs now, while the event is still live, so its
 		// `preventDefault` / `stopPropagation` mean something.
 		onclick?.(event);
@@ -161,8 +166,45 @@
 			morphState = ok ? "success" : "error";
 			if (sound) soundFx.play(ok ? "copy" : "error");
 		}
-		onCopy?.(value, ok);
+		onCopy?.(attempted, ok);
 	}
+
+	// Out 80 ms, in 160 ms: the label swap keeps the OUTGOING text alive for the
+	// out beat as a second, `aria-hidden` layer in the same grid cell, while the
+	// keyed live span below re-mounts and fades in after that beat. The cell is
+	// never measured — see the markup — so none of this can move the button.
+	// `prefersReducedMotion()` is read once per swap, on purpose: a one-shot
+	// answer is all a 80 ms beat needs. Under reduced motion there is no
+	// outgoing layer at all: the text snaps.
+	const LEAVE_MS = 80;
+	let swapped = $state(false);
+	let leaving = $state<string | null>(null);
+	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
+	let shownLabel = untrack(() => currentLabel);
+
+	$effect.pre(() => {
+		const next = currentLabel;
+		if (next === shownLabel) return;
+		const previous = shownLabel;
+		shownLabel = next;
+		swapped = true;
+		// A second swap inside the out beat (failure, then a retry whose write
+		// resolves at once): `previous` was still in its delayed fade-in and was
+		// never painted. Keep the layer that IS on screen, and its timer, instead
+		// of replacing it with text the user never saw.
+		if (leaving !== null) return;
+		clearTimeout(leaveTimer);
+		if (prefersReducedMotion()) {
+			leaving = null;
+			return;
+		}
+		leaving = previous;
+		leaveTimer = setTimeout(() => {
+			leaving = null;
+		}, LEAVE_MS);
+	});
+
+	$effect(() => () => clearTimeout(leaveTimer));
 
 	// StatusMorph's `resetAfter` is what normally walks `morphState` back to
 	// "idle", and a custom `children` replaces the whole icon slot — so in that
@@ -251,22 +293,89 @@
 	{#if children}
 		{@render children()}
 	{/if}
-	<!-- Purely the visible label: the announcement is StatusMorph's job, through
-	     the `role="status"` region it portals to `document.body` (which is also
-	     why it never joins this button's accessible name), and two live regions
-	     would double-announce every copy. The one case with no StatusMorph at
-	     all is a custom `children`, which replaces `iconStart` — there this span
-	     keeps the announcement, because a custom snippet has no way of its own
-	     to say the copy landed and colour alone is a sighted-only signal. Hidden
-	     whenever something else already owns the visible label (icon-only, or a
-	     custom `children`); otherwise this span *is* the visible label. -->
-	<span
-		aria-live={children ? (morphState === "error" ? "assertive" : "polite") : undefined}
-		class={iconOnly || children ? "sr-only" : undefined}>{currentLabel}</span
-	>
+	<!-- The announcement is StatusMorph's job, through the `role="status"` region
+	     it portals to `document.body` (which is also why it never joins this
+	     button's accessible name), and two live regions would double-announce
+	     every copy. The one case with no StatusMorph at all is a custom
+	     `children`, which replaces `iconStart` — there the span keeps the
+	     announcement, because a custom snippet has no way of its own to say the
+	     copy landed and colour alone is a sighted-only signal. When something
+	     else already owns the visible label (icon-only, or a custom `children`)
+	     the span is `sr-only` and there is nothing to reserve width for.
+
+	     Otherwise the label sits in a one-cell grid stacking three `aria-hidden`
+	     ghosts (idle, copied, failed) under the live span: the cell is as wide
+	     as the widest of them, in pure CSS, so the button never changes width
+	     when the text swaps and nothing needs measuring (SSR-safe). -->
+	{#if iconOnly || children}
+		<span
+			class="ft-copybtn__live sr-only"
+			aria-live={children ? (morphState === "error" ? "assertive" : "polite") : undefined}
+			>{currentLabel}</span
+		>
+	{:else}
+		<span class="ft-copybtn__label">
+			<span class="ft-copybtn__ghost" aria-hidden="true">{label}</span>
+			<span class="ft-copybtn__ghost" aria-hidden="true">{copiedLabel}</span>
+			<span class="ft-copybtn__ghost" aria-hidden="true">{errorLabel}</span>
+			{#if leaving !== null}
+				<span class="ft-copybtn__leave" aria-hidden="true">{leaving}</span>
+			{/if}
+			{#key currentLabel}
+				<span class="ft-copybtn__live" data-swapped={swapped ? "" : undefined}>{currentLabel}</span>
+			{/key}
+		</span>
+	{/if}
 </Button>
 
 <style>
+	.ft-copybtn__label {
+		display: inline-grid;
+		text-align: start;
+	}
+
+	.ft-copybtn__label > * {
+		grid-area: 1 / 1;
+		white-space: nowrap;
+	}
+
+	.ft-copybtn__ghost {
+		visibility: hidden;
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.ft-copybtn__leave {
+		pointer-events: none;
+	}
+
+	/* transform / opacity only ever run under `no-preference`; under reduce the
+	   text simply snaps and the script never renders the outgoing layer. */
+	@media (prefers-reduced-motion: no-preference) {
+		.ft-copybtn__leave {
+			animation: ft-copybtn-out 80ms var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
+		}
+
+		.ft-copybtn__live[data-swapped] {
+			animation: ft-copybtn-in 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms
+				backwards;
+		}
+	}
+
+	@keyframes ft-copybtn-out {
+		to {
+			opacity: 0;
+			transform: translateY(-2px);
+		}
+	}
+
+	@keyframes ft-copybtn-in {
+		from {
+			opacity: 0;
+			transform: translateY(2px);
+		}
+	}
+
 	/*
 	 * `--ft-status-done` / `--ft-status-error` are the family's actual
 	 * "operation landed" and "operation failed" vocabulary — the same tokens
