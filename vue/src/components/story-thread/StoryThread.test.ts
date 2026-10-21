@@ -69,6 +69,17 @@ describe("StoryThread", () => {
 		expect(two.getAttribute("style")).toContain("top: 40%");
 	});
 
+	it("keeps the managed node attributes over colliding ones", () => {
+		const { container } = render(StoryNode, {
+			props: { id: "real" },
+			attrs: { "data-story-node": "fake", "aria-hidden": "false", class: "extra" },
+		});
+		const node = container.querySelector<HTMLElement>(".st-node")!;
+		expect(node.dataset.storyNode).toBe("real");
+		expect(node.getAttribute("aria-hidden")).toBe("true");
+		expect(node.classList.contains("extra")).toBe(true);
+	});
+
 	it("is silent by default", () => {
 		const play = vi.spyOn(sound, "play");
 		story({ layout: "vertical" });

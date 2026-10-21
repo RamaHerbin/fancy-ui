@@ -8,13 +8,20 @@ export interface StoryNodeProps {
 </script>
 
 <script setup lang="ts">
-defineOptions({ name: "StoryNode" });
+// Forwarded attributes go first so the managed ones below always win.
+defineOptions({ name: "StoryNode", inheritAttrs: false });
 
 withDefaults(defineProps<StoryNodeProps>(), { variant: "dot" });
 </script>
 
 <template>
-	<span class="st-node" :data-story-node="id" :data-variant="variant" aria-hidden="true"></span>
+	<span
+		v-bind="$attrs"
+		class="st-node"
+		:data-story-node="id"
+		:data-variant="variant"
+		aria-hidden="true"
+	></span>
 </template>
 
 <style scoped>

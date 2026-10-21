@@ -83,6 +83,32 @@ export const STORY_THREAD_HORIZONTAL_QUERY = "(min-width: 900px) and (min-height
 const SVG_NS = "http://www.w3.org/2000/svg";
 /** Elements a mouse drag never starts from. */
 const NO_DRAG = "a, button, input, textarea, select, label, [contenteditable], [data-no-drag]";
+/** Elements that keep the arrow keys for themselves (text fields and composite widgets). */
+const OWNS_ARROWS = [
+	"input",
+	"textarea",
+	"select",
+	"[contenteditable]",
+	"button",
+	"a[href]",
+	"[tabindex]",
+	...[
+		"tab",
+		"menuitem",
+		"menuitemcheckbox",
+		"menuitemradio",
+		"radio",
+		"option",
+		"slider",
+		"spinbutton",
+		"scrollbar",
+		"gridcell",
+		"treeitem",
+		"listbox",
+		"combobox",
+		"textbox",
+	].map((role) => `[role="${role}"]`),
+].join(", ");
 /** Spacing, px of path length, between the samples that map axis → length. */
 const SAMPLE_STEP = 6;
 
@@ -289,6 +315,8 @@ export function createStoryThread(
 	let nodes: Record<string, HTMLElement> = {};
 	let points: Record<string, StoryThreadPoint> = {};
 	let drawn: DrawnSegment[] = [];
+	/** Points of the nodes the resolved segments run through: the only ones that can be reached. */
+	let threaded: Record<string, StoryThreadPoint> = {};
 	let reached = new Set<string>();
 	let primed = false;
 	let frame = 0;
@@ -436,7 +464,17 @@ export function createStoryThread(
 				drawn: -1,
 			};
 		});
+		threaded = {};
+		for (const seg of drawn) {
+			for (const id of seg.ids) {
+				const pt = points[id];
+				if (pt) threaded[id] = pt;
+			}
+		}
 		pan = -1;
+		// New geometry is a new baseline: whatever the tip covers now is marked
+		// without being reported, so a re-measure never reads as the reader moving.
+		primed = false;
 		paint();
 	}
 
@@ -481,7 +519,7 @@ export function createStoryThread(
 			}
 		}
 
-		const next = reachedIds(points, tip, axis);
+		const next = reachedIds(threaded, tip, axis);
 		for (const [id, node] of Object.entries(nodes)) {
 			const was = reached.has(id);
 			const now = next.has(id);
@@ -545,8 +583,9 @@ export function createStoryThread(
 	function onKeyDown(e: KeyboardEvent): void {
 		if (axis !== "x" || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
 		if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-		const t = e.target as Element | null;
-		if (t?.closest?.("input, textarea, select, [contenteditable]")) return;
+		if (e.defaultPrevented) return;
+		const owner = (e.target as Element | null)?.closest?.(OWNS_ARROWS);
+		if (owner && owner !== root && owner !== viewport && owner !== track) return;
 		e.preventDefault();
 		scrollBy(keyStep(viewW, e.key === "ArrowRight" ? 1 : -1), true);
 	}
@@ -581,17 +620,24 @@ export function createStoryThread(
 	const resize = typeof ResizeObserver === "function" ? new ResizeObserver(scheduleMeasure) : null;
 	resize?.observe(track);
 	if (scroller) resize?.observe(scroller);
-	// Content changes re-measure; the <svg> this module redraws does not.
+	// Content changes re-measure; the <svg> this module redraws does not. A
+	// node's class or style moving it counts too, but only on the nodes
+	// themselves: the track's own transform and the rest of the content's
+	// styling change far too often to re-measure on.
+	const moves = (r: MutationRecord) =>
+		r.type !== "attributes" ||
+		r.attributeName === "data-story-node" ||
+		(r.target as Element).hasAttribute?.("data-story-node");
 	const mutations =
 		typeof MutationObserver === "function"
 			? new MutationObserver((records) => {
-					if (records.some((r) => !svg.contains(r.target))) scheduleMeasure();
+					if (records.some((r) => !svg.contains(r.target) && moves(r))) scheduleMeasure();
 				})
 			: null;
 	mutations?.observe(track, {
 		childList: true,
 		subtree: true,
-		attributeFilter: ["data-story-node"],
+		attributeFilter: ["data-story-node", "class", "style"],
 	});
 	void root.ownerDocument.fonts?.ready?.then(scheduleMeasure);
 

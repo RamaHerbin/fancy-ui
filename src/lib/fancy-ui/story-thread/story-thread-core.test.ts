@@ -131,7 +131,7 @@ describe("createStoryThread", () => {
 		} as DOMRect;
 	}
 
-	function mount(ys: Record<string, number>) {
+	function mount(ys: Record<string, number>, xs: Record<string, number> = {}) {
 		const root = document.createElement("div");
 		const viewport = document.createElement("div");
 		const track = document.createElement("div");
@@ -140,7 +140,7 @@ describe("createStoryThread", () => {
 		for (const id of Object.keys(ys)) {
 			const node = document.createElement("span");
 			node.dataset.storyNode = id;
-			node.getBoundingClientRect = () => rect(50, ys[id] - scroll);
+			node.getBoundingClientRect = () => rect(xs[id] ?? 50, ys[id] - scroll);
 			track.appendChild(node);
 		}
 		track.getBoundingClientRect = () => rect(0, -scroll, 400, 2000);
@@ -235,5 +235,84 @@ describe("createStoryThread", () => {
 		flush();
 		expect(svg.querySelectorAll(".st-bright")).toHaveLength(2);
 		expect(svg.querySelector(".st-bright")!.hasAttribute("stroke-dasharray")).toBe(false);
+	});
+	it("re-measures when a node's class or style moves it", async () => {
+		const ys = { a: 100, b: 300 };
+		const { root, viewport, track, svg } = mount(ys);
+		createStoryThread(root, viewport, track, svg, { layout: "vertical" });
+		const before = svg.querySelector(".st-ghost")!.getAttribute("d");
+		ys.b = 700;
+		track.querySelector<HTMLElement>('[data-story-node="b"]')!.style.top = "70%";
+		await Promise.resolve();
+		flush();
+		const after = svg.querySelector(".st-ghost")!.getAttribute("d");
+		expect(after).not.toBe(before);
+		expect(after).toContain("700");
+	});
+
+	it("only reaches the nodes the segments run through", () => {
+		const { root, viewport, track, svg } = mount({ a: 100, b: 600, c: 700 });
+		const onReach = vi.fn();
+		createStoryThread(root, viewport, track, svg, {
+			layout: "vertical",
+			lead: 0.5,
+			segments: [{ nodes: ["a", "c"] }],
+			onReach,
+		});
+		scroll = 400; // tip = 800: past b and c
+		window.dispatchEvent(new Event("scroll"));
+		flush();
+		expect(onReach.mock.calls.map((c) => c[0])).toEqual(["c"]);
+		const b = track.querySelector('[data-story-node="b"]')!;
+		expect(b.hasAttribute("data-reached")).toBe(false);
+	});
+
+	it("leaves arrow keys to nested interactive widgets", () => {
+		const { root, viewport, track, svg } = mount({ a: 100, b: 300 });
+		const scrollBy = vi.spyOn(window, "scrollBy").mockImplementation(() => {});
+		createStoryThread(root, viewport, track, svg, { layout: "horizontal" });
+		const tab = document.createElement("button");
+		tab.setAttribute("role", "tab");
+		track.appendChild(tab);
+		const press = (target: Element) => {
+			const e = new KeyboardEvent("keydown", {
+				key: "ArrowRight",
+				bubbles: true,
+				cancelable: true,
+			});
+			target.dispatchEvent(e);
+			return e;
+		};
+		expect(press(tab).defaultPrevented).toBe(false);
+		const handled = new KeyboardEvent("keydown", {
+			key: "ArrowRight",
+			bubbles: true,
+			cancelable: true,
+		});
+		handled.preventDefault();
+		track.dispatchEvent(handled);
+		expect(scrollBy).not.toHaveBeenCalled();
+		expect(press(root).defaultPrevented).toBe(true);
+		expect(scrollBy).toHaveBeenCalledTimes(1);
+	});
+
+	it("re-baselines reached nodes silently after a re-measure", () => {
+		// Vertically (tip 400) only `a` is reached; sideways (tip 512) `b` is too.
+		const { root, viewport, track, svg } = mount({ a: 100, b: 600 }, { a: 50, b: 300 });
+		Object.defineProperty(track, "offsetWidth", { value: 3000, configurable: true });
+		Object.defineProperty(window, "innerWidth", { value: 1024, configurable: true });
+		const onReach = vi.fn();
+		const core = createStoryThread(root, viewport, track, svg, {
+			layout: "vertical",
+			lead: 0.5,
+			onReach,
+		});
+		const b = track.querySelector('[data-story-node="b"]')!;
+		expect(b.hasAttribute("data-reached")).toBe(false);
+		core.update({ layout: "horizontal" });
+		flush();
+		expect(root.dataset.layout).toBe("horizontal");
+		expect(b.hasAttribute("data-reached")).toBe(true);
+		expect(onReach).not.toHaveBeenCalled();
 	});
 });
