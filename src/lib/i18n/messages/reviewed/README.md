@@ -8,7 +8,7 @@ This folder records which translations a native reviewer has read.
 - `glossary.md` is the agreed rendering of the recurring terms, per locale.
 
 A locale without a manifest is a draft: `src/lib/i18n/catalog-quality.test.ts` only
-warns about it (today `ar`, `fa` and `hi`). As soon as the manifest exists the locale is
+warns about it (every locale not yet in `REVIEWED_LOCALES`). As soon as the manifest exists the locale is
 reviewed and strict, and the test also fails on the style checks (untranslated,
 punctuation, script hygiene, length). The reviewed locales are pinned in
 `REVIEWED_LOCALES` in the test, so a manifest cannot be deleted silently; the pull

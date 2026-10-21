@@ -85,9 +85,9 @@ Never build a sentence from fragments and never call `.replace("{count}", …)` 
 ### Adding or changing a UI string
 
 1. Add the key to `en.ts` with a `/** @context … */` comment above it saying where the text appears and what its variables are. Translators work from that comment, not from the code.
-2. Add the key to every other catalog (`pnpm check` fails on a missing, extra or typo'd key through `satisfies Catalog`). A translation you cannot write yourself goes in as the English text and is marked for review by the quality test.
+2. Add the key to every other catalog (`pnpm check` fails on a missing, extra or typo'd key through `satisfies Catalog`). A translation you cannot write yourself must still be a real translation in every strict locale (see "Strict locales" below): the English text there fails the `untranslated` check, and a key without a current manifest entry fails the manifest check. Ask the locale's reviewer to supply the text on your branch. Only a locale that is not strict yet (still a machine draft) may carry the English text as a placeholder, and the quality test only warns about it.
 3. Run `node scripts/i18n-context.mjs` to refresh `messages/context.json` (English, context, length budget and where the key renders), then `pnpm check:i18n` and `pnpm test`.
-4. If you change the English of an existing key, say so in the PR: the reviewers' manifests hash the English, so the key shows up as stale for every locale until it is re-read.
+4. If you change the English of an existing key, or add one, every strict locale needs a re-review before the pull request can merge: see "When the English changes".
 
 Do not add a key nothing reads. The quality test fails on dead keys; a key that is registered ahead of the component that will use it is listed in `deadKeys.pendingConsumers` in `messages/quality-allowlist.json` until that component lands.
 
@@ -99,7 +99,22 @@ Do not add a key nothing reads. The quality test fails on dead keys; a key that 
 
 ### Registers and glossary
 
-Each locale has one register, applied consistently: `fr` vous, `de` du, `es` tú, `it` tu, `pt` você, `pl` and `cs` neutral (no direct address where avoidable), `ja` です/ます, `ko` 합니다, `zh-Hans` 你, `tr` siz, `id` Anda, `hi` आप, `ar` and `fa` formal. Terminology follows `src/lib/i18n/messages/reviewed/glossary.md`; the words in the `jobs.*` labels and the `category.*` labels must stay in the same family.
+Each locale has one register, applied consistently:
+
+| Locale           | Register                                   |
+| ---------------- | ------------------------------------------ |
+| `fr`, `tr`       | formal vous / siz                          |
+| `de`, `it`, `es` | informal du / tu / tú                      |
+| `pt`             | você                                       |
+| `pl`, `cs`       | neutral, no direct address where avoidable |
+| `ja`             | です/ます                                  |
+| `ko`             | 합니다                                     |
+| `zh-Hans`        | 你                                         |
+| `id`             | Anda                                       |
+| `hi`             | आप                                         |
+| `ar`, `fa`       | formal                                     |
+
+Terminology follows `src/lib/i18n/messages/reviewed/glossary.md`; the words in the `jobs.*` labels and the `category.*` labels must stay in the same family.
 
 ### Script and typography rules
 
@@ -130,15 +145,21 @@ From then on the locale is strict: the quality test fails on a missing, stale or
 I18N_STRICT=fr pnpm vitest run src/lib/i18n/catalog-quality.test.ts -t "catalog fr"
 ```
 
-**Strict locales.** `cs`, `de`, `es`, `fr`, `id`, `it`, `ja`, `ko`, `pl`, `pt`, `tr` and `zh-Hans` are reviewed: their manifests are pinned in `REVIEWED_LOCALES` in `catalog-quality.test.ts`, so deleting one fails the gate even though `manifestMode` is `"warn"`. `ar`, `fa` and `hi` are still machine drafts (no manifest yet) and only warn. When their reviews land, add the code to `REVIEWED_LOCALES` in the same pull request; once all fifteen are pinned, set `"manifestMode": "fail"` in `messages/quality-allowlist.json`.
+**Strict locales.** The locales that have been reviewed are listed in `REVIEWED_LOCALES` in `src/lib/i18n/catalog-quality.test.ts`; that list is the single source of truth, so this page does not repeat it. Their manifests are pinned there: deleting one fails the gate even though `manifestMode` is `"warn"`. A locale not in the list is still a machine draft (no manifest, draft header kept) and only warns. When a review lands, the same pull request adds the code to `REVIEWED_LOCALES`; once every locale in `locales.ts` is listed, set `"manifestMode": "fail"` in `messages/quality-allowlist.json`.
 
-**When the English changes.** Editing the English of a key, or adding a key, makes it stale in every reviewed locale. The pull request that changes English does not rewrite the other manifests; it says so, and the gate then names the keys. To find them for one locale:
+**When the English changes.** Editing the English of a key, or adding a key, makes it stale (or unreviewed) in every strict locale, and CI runs `pnpm test`, so such a pull request is red until every strict locale has been re-reviewed. It cannot merge on its own. To get it green, the same branch must contain, for each strict locale:
+
+1. the new or corrected translation in `messages/<code>.ts`;
+2. the refreshed `messages/reviewed/<code>.json`, written by `node scripts/i18n-manifest.mjs <code>` only after a reviewer has read the listed keys;
+3. the refreshed `messages/context.json` (`node scripts/i18n-context.mjs`).
+
+The author of the English change asks each locale's reviewer to push step 1 and 2 to the branch (or opens the review as a stacked branch merged into it) before requesting merge. If a reviewer is unavailable, the repository owner decides whether to wait or to merge with a known red window; do not work around the gate by deleting a manifest, removing a code from `REVIEWED_LOCALES`, or adding an allowlist entry. To find the keys for one locale:
 
 ```bash
 node scripts/i18n-manifest.mjs <code> --check   # lists "not reviewed" and "English changed" keys
 ```
 
-A reviewer re-reads exactly those keys against the new English and `messages/context.json`, fixes the translation, then reruns `node scripts/i18n-manifest.mjs <code>`, which prints the keys it is re-marking so they can be checked once more. For a plural message, every English variant counts as one group: editing `.one` also marks `.other` (and the other categories) stale. Refresh `messages/context.json` with `node scripts/i18n-context.mjs` whenever an English message or its `@context` comment changes.
+The reviewer re-reads exactly those keys against the new English and `messages/context.json`, fixes the translation, then reruns `node scripts/i18n-manifest.mjs <code>`, which prints the keys it is re-marking so they can be checked once more. For a plural message, every English variant counts as one group: editing `.one` also marks `.other` (and the other categories) stale.
 
 ### Adding a locale
 
@@ -155,9 +176,7 @@ Translate the docs chrome, not the library's own content. These stay English on 
 - recipe content (titles, steps, pitfalls and code), while the recipe page headings come from the catalog;
 - the page `<title>` of component and recipe pages.
 
-What follows explains why and where the line sits.
-
-Component names, and the registry descriptions in `src/lib/fancy-ui/registry.ts` (including `categoryLabels` and `categoryDescriptions`): they are the machine-facing source feeding `/llms.txt` and the Component Copilot. Docs UI must not render them as display text; use the translated `category.*` keys (via `tCategory()`). Component example titles and descriptions, the changelog, recipe bodies and the page `<title>` of component and recipe pages are English on purpose, so the search-result headline matches English queries. Everything else visible in the docs chrome is a message: the quality test scans `src/lib/components/docs/**` and `src/routes/docs/**` for literal English text, `aria-label`, `title` and `placeholder`, and fails on it unless the entry is listed with a reason in `quality-allowlist.json`. Any Latin word of three or more letters counts, lower case or Capitalised (`Previous`, `Copy`, `Browse Components`); only brand names, acronyms and code identifiers (`FancyUI`, `CLI`, `FluidCursor`) are exempt.
+Everything else visible in the docs chrome is a message: the quality test scans `src/lib/components/docs/**` and `src/routes/docs/**` for literal English text, `aria-label`, `title` and `placeholder`, and fails on it unless the entry is listed with a reason in `quality-allowlist.json`. Any Latin word of three or more letters counts, lower case or Capitalised (`Previous`, `Copy`, `Browse Components`); only brand names, acronyms and code identifiers (`FancyUI`, `CLI`, `FluidCursor`) are exempt.
 
 ## Storybook
 
