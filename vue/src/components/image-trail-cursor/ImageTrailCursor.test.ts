@@ -64,7 +64,7 @@ describe("ImageTrailCursor", () => {
 	 */
 	it("sets touch-action: pan-y on the container", async () => {
 		const html = await renderToString(createSSRApp(ImageTrailCursor));
-		expect(html).toContain("touch-action:pan-y");
+		expect(html).toContain("touch-action:pan-y pinch-zoom");
 	});
 
 	it("uses responsive image classes (mobile-first + sm breakpoint)", () => {

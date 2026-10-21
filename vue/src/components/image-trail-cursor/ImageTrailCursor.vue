@@ -112,7 +112,7 @@ watch(
 		:class="
 			cn('relative z-[100] h-full w-full overflow-visible rounded-lg bg-transparent', className)
 		"
-		:style="{ touchAction: 'pan-y' }"
+		:style="{ touchAction: 'pan-y pinch-zoom' }"
 	>
 		<!--
 			Keyed on `variant + i` like the source's each block: switching variant

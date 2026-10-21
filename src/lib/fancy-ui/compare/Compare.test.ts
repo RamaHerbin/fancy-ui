@@ -165,5 +165,6 @@ describe("Compare touch", () => {
 		const { container } = render(Compare);
 		const slider = container.querySelector('[role="slider"]') as HTMLElement;
 		expect(slider.className).toContain("touch-pan-y");
+		expect(slider.className).toContain("touch-pinch-zoom");
 	});
 });

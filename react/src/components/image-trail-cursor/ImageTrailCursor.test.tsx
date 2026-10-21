@@ -82,7 +82,7 @@ describe("ImageTrailCursor", () => {
 	// server markup below is what they receive.
 	it("sets touch-action: pan-y on the container", () => {
 		const html = renderToStaticMarkup(<ImageTrailCursor />);
-		expect(html).toContain('style="touch-action:pan-y"');
+		expect(html).toContain('style="touch-action:pan-y pinch-zoom"');
 	});
 
 	it("uses responsive image classes (mobile-first + sm breakpoint)", () => {

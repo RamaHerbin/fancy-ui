@@ -42,6 +42,7 @@ describe("TextRevealCard", () => {
 		const { container } = render(TextRevealCard);
 		const card = container.firstElementChild as HTMLElement;
 		expect(card.className).toContain("touch-pan-y");
+		expect(card.className).toContain("touch-pinch-zoom");
 		const ev = new Event("touchmove", { bubbles: true, cancelable: true });
 		Object.assign(ev, { touches: [{ clientX: 10, clientY: 10 }] });
 		card.dispatchEvent(ev);
