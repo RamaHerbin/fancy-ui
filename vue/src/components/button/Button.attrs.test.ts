@@ -1,4 +1,5 @@
 import { render, cleanup, fireEvent } from "@testing-library/vue";
+import { defineComponent, h, nextTick, ref } from "vue";
 import { afterEach, beforeAll, describe, it, expect, vi } from "vitest";
 import Button from "./Button.vue";
 
@@ -109,5 +110,18 @@ describe("Button native attributes", () => {
 	it("keeps the button type authoritative", () => {
 		const { container } = mount(Button, { props: { type: "submit" }, attrs: { type: "reset" } });
 		expect(root(container).getAttribute("type")).toBe("submit");
+	});
+
+	it("picks up an attribute the parent adds after mount, even while inert", async () => {
+		const extra = ref(false);
+		const Host = defineComponent({
+			render: () =>
+				h(Button, { disabled: true, ...(extra.value ? { "data-x": "1" } : {}) }, () => "Go"),
+		});
+		const { container } = render(Host);
+		expect(root(container).hasAttribute("data-x")).toBe(false);
+		extra.value = true;
+		await nextTick();
+		expect(root(container).getAttribute("data-x")).toBe("1");
 	});
 });

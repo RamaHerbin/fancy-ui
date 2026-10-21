@@ -286,12 +286,6 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **Bare `<Select>` shows the first option** (native uncontrolled behavior).
   The Svelte one renders blank, because `$bindable("")` matches no option —
   that quirk was not imported.
-- **`Button`, `IconButton` and `CopyButton` forward native attributes.** Rest
-  props (`id`, `aria-*`, `data-*`, `onFocus`, ...) are spread onto the rendered
-  `<button>`, or the `<a>` once `href` is set, ahead of the attributes the
-  component manages: `disabled`, `loading`, the inert-link `tabIndex` and
-  `aria-disabled`, and the button `type` always win. `onClick` runs after the
-  guard (and, on `CopyButton`, right after the copy starts), exactly once.
 - **`RainbowButton` accepts no extra DOM props** (`onClick` included) — the
   Svelte source reads only its declared props and spreads nothing, and its own
   README example inherits that bug. Ported as-is per the fidelity law; fix it

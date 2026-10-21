@@ -78,11 +78,16 @@ const {
 // modified forms (`@click.once`, `.capture`, `.passive`) compile to
 // `onClickOnce` / `onClickCapture` / `onClickPassive` and would bind straight
 // to the element past that guard, so they are dropped while the button is inert.
+//
+// A plain function called from the template, never a `computed`: the
+// `useAttrs()` proxy only tracks on a property GET, so a computed built while
+// `attrs` was empty would never see an attribute the parent adds later. A
+// parent-driven attrs change always re-renders this component.
 const attrs = useAttrs();
-const forwarded = computed(() => {
+function forwarded() {
 	if (!(disabled || loading)) return attrs;
 	return Object.fromEntries(Object.entries(attrs).filter(([key]) => !/^onClick/.test(key)));
-});
+}
 type AriaFlag = boolean | "true" | "false" | undefined;
 
 defineSlots<{
@@ -231,7 +236,7 @@ function handleClick(event: MouseEvent) {
 	<a
 		v-if="href"
 		ref="el"
-		v-bind="forwarded"
+		v-bind="forwarded()"
 		:class="classes"
 		:href="anchorInert ? undefined : href"
 		:target="anchorInert ? undefined : target"
@@ -272,7 +277,7 @@ function handleClick(event: MouseEvent) {
 	<button
 		v-else
 		ref="el"
-		v-bind="forwarded"
+		v-bind="forwarded()"
 		:class="classes"
 		:type="type"
 		:disabled="disabled"
