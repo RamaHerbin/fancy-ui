@@ -257,6 +257,7 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 		return (
 			<Button
 				{...(restProps as Partial<ButtonProps>)}
+				type="button"
 				ref={ref}
 				variant={variant}
 				size={size}

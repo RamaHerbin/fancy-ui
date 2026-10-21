@@ -244,6 +244,7 @@ watch(
 	<Button
 		ref="btn"
 		v-bind="attrs"
+		type="button"
 		:variant="variant"
 		:size="size"
 		:disabled="disabled"

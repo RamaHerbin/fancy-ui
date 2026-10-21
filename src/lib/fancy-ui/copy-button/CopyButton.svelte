@@ -239,6 +239,7 @@
 <Button
 	bind:ref
 	{...restProps as Record<string, unknown>}
+	type="button"
 	{variant}
 	{size}
 	{disabled}

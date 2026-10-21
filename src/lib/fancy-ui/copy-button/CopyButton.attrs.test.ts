@@ -58,4 +58,20 @@ describe("CopyButton native attributes", () => {
 		await fireEvent.click(button(container));
 		expect(onclick).not.toHaveBeenCalled();
 	});
+
+	it("stays type=button inside a form when type=submit is spread", async () => {
+		stubClipboard(vi.fn().mockResolvedValue(undefined));
+		const form = document.body.appendChild(document.createElement("form"));
+		const onSubmit = vi.fn((event: Event) => event.preventDefault());
+		form.addEventListener("submit", onSubmit);
+		render(CopyButton, {
+			target: form,
+			props: { value: "x", ...({ type: "submit" } as Record<string, unknown>) },
+		});
+		const el = button(form);
+		expect(el.type).toBe("button");
+		await fireEvent.click(el);
+		expect(onSubmit).not.toHaveBeenCalled();
+		form.remove();
+	});
 });
