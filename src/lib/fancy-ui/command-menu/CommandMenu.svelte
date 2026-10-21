@@ -27,6 +27,11 @@
 		filter?: (item: CommandItem, query: string) => boolean;
 		/** Additional CSS classes for the panel. */
 		class?: string;
+		/**
+		 * The panel's `id`. A trigger the caller renders outside the component
+		 * points its `aria-controls` at it while the panel is open.
+		 */
+		id?: string;
 		/** Bindable reference to the panel element. */
 		ref?: HTMLDivElement | null;
 		/** Rendered before each row's label, given that row's item. Treated as decorative — see the README. */
@@ -66,6 +71,7 @@
 		label = "Command menu",
 		filter,
 		class: className,
+		id,
 		ref = $bindable(null),
 		icon,
 		empty,
@@ -436,6 +442,7 @@
 	-->
 	<div
 		bind:this={ref}
+		{id}
 		role="dialog"
 		aria-modal="true"
 		aria-label={label}

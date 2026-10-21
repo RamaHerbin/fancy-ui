@@ -177,6 +177,11 @@ describe("CommandMenu", () => {
 		expect(el?.getAttribute("aria-label")).toBe("Command menu");
 	});
 
+	it("puts the id prop on the panel, for a trigger's aria-controls", () => {
+		render(<CommandMenu items={ITEMS} open id="settings-panel" />);
+		expect(panel()!.id).toBe("settings-panel");
+	});
+
 	it("honours a custom label as the accessible name of both the dialog and the input", () => {
 		render(<CommandMenu items={ITEMS} open label="Search everything" />);
 

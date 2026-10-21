@@ -20,6 +20,11 @@ export interface DrawerProps {
 	dismissible?: boolean;
 	/** Whether dragging the handle down past the threshold closes the drawer. */
 	swipeToClose?: boolean;
+	/**
+	 * The panel's `id`. A trigger the caller renders outside the component
+	 * points its `aria-controls` at it while the panel is open.
+	 */
+	id?: string;
 	/** Additional CSS classes merged onto the panel. */
 	class?: HTMLAttributes["class"];
 	/**
@@ -368,6 +373,7 @@ const panelClasses = computed(() =>
 				:ref="panelRef"
 				:class="panelClasses"
 				role="dialog"
+				:id="props.id"
 				aria-modal="true"
 				:aria-labelledby="titleId"
 				:aria-label="titleId ? undefined : props.ariaLabel"

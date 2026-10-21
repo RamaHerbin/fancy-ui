@@ -172,15 +172,20 @@ test.describe("Overlays keyboard and focus contract", () => {
 		expect(await scrollLocked(page)).toBe(false);
 	});
 
-	test("Sheet: keyboard open, trap, Escape, focus return, scroll lock, outside click", async ({
+	test("Sheet: keyboard open, trap, Escape, focus return, scroll lock, outside click, trigger ARIA", async ({
 		page,
 	}) => {
 		await openDocs(page, "sheet");
 		const trigger = stage(page).getByRole("button", { name: "Open settings" });
+		await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+		await expect(trigger).toHaveAttribute("aria-expanded", "false");
+		await expect(trigger).not.toHaveAttribute("aria-controls");
 		await trigger.focus();
 		await page.keyboard.press("Enter");
 		const sheet = page.getByRole("dialog", { name: "Settings" });
 		await expect(sheet).toBeVisible();
+		await expect(trigger).toHaveAttribute("aria-expanded", "true");
+		expect(await sheet.getAttribute("id")).toBe(await trigger.getAttribute("aria-controls"));
 		expect(await focusInside(sheet)).toBe(true);
 		expect(await scrollLocked(page)).toBe(true);
 		await expectTabStaysInside(page, sheet, 5);
@@ -189,6 +194,8 @@ test.describe("Overlays keyboard and focus contract", () => {
 		await page.keyboard.press("Escape");
 		await expect(sheet).toBeHidden();
 		await expect(trigger).toBeFocused();
+		await expect(trigger).toHaveAttribute("aria-expanded", "false");
+		await expect(trigger).not.toHaveAttribute("aria-controls");
 		expect(await scrollLocked(page)).toBe(false);
 
 		await page.keyboard.press(" ");
@@ -202,15 +209,20 @@ test.describe("Overlays keyboard and focus contract", () => {
 		expect(await scrollLocked(page)).toBe(false);
 	});
 
-	test("Drawer: keyboard open, trap, Escape, focus return, scroll lock, outside click", async ({
+	test("Drawer: keyboard open, trap, Escape, focus return, scroll lock, outside click, trigger ARIA", async ({
 		page,
 	}) => {
 		await openDocs(page, "drawer");
 		const trigger = stage(page).getByRole("button", { name: "Open filters" });
+		await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+		await expect(trigger).toHaveAttribute("aria-expanded", "false");
+		await expect(trigger).not.toHaveAttribute("aria-controls");
 		await trigger.focus();
 		await page.keyboard.press("Enter");
 		const drawer = page.getByRole("dialog", { name: "Filters" });
 		await expect(drawer).toBeVisible();
+		await expect(trigger).toHaveAttribute("aria-expanded", "true");
+		expect(await drawer.getAttribute("id")).toBe(await trigger.getAttribute("aria-controls"));
 		expect(await focusInside(drawer)).toBe(true);
 		expect(await scrollLocked(page)).toBe(true);
 		await expectTabStaysInside(page, drawer, 4);
@@ -219,6 +231,8 @@ test.describe("Overlays keyboard and focus contract", () => {
 		await page.keyboard.press("Escape");
 		await expect(drawer).toBeHidden();
 		await expect(trigger).toBeFocused();
+		await expect(trigger).toHaveAttribute("aria-expanded", "false");
+		await expect(trigger).not.toHaveAttribute("aria-controls");
 		expect(await scrollLocked(page)).toBe(false);
 
 		await page.keyboard.press(" ");
@@ -304,15 +318,20 @@ test.describe("Overlays keyboard and focus contract", () => {
 		await expect(trigger).toBeFocused();
 	});
 
-	test("CommandMenu: keyboard open, search input focused, trap, Escape, focus return, scroll lock", async ({
+	test("CommandMenu: keyboard open, search input focused, trap, Escape, focus return, scroll lock, trigger ARIA", async ({
 		page,
 	}) => {
 		await openDocs(page, "command-menu");
 		const trigger = stage(page).getByRole("button", { name: "Open command menu" });
+		await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+		await expect(trigger).toHaveAttribute("aria-expanded", "false");
+		await expect(trigger).not.toHaveAttribute("aria-controls");
 		await trigger.focus();
 		await page.keyboard.press("Enter");
 		const dialog = page.getByRole("dialog");
 		await expect(dialog).toBeVisible();
+		await expect(trigger).toHaveAttribute("aria-expanded", "true");
+		expect(await dialog.getAttribute("id")).toBe(await trigger.getAttribute("aria-controls"));
 		await expect(dialog.getByRole("combobox")).toBeFocused();
 		expect(await scrollLocked(page)).toBe(true);
 		await expectTabStaysInside(page, dialog, 3);
@@ -321,6 +340,8 @@ test.describe("Overlays keyboard and focus contract", () => {
 		await page.keyboard.press("Escape");
 		await expect(dialog).toBeHidden();
 		await expect(trigger).toBeFocused();
+		await expect(trigger).toHaveAttribute("aria-expanded", "false");
+		await expect(trigger).not.toHaveAttribute("aria-controls");
 		expect(await scrollLocked(page)).toBe(false);
 
 		await page.keyboard.press(" ");

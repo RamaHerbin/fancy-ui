@@ -25,6 +25,11 @@ export interface SheetProps {
 	dismissible?: boolean;
 	/** Panel width (left/right sides) or height (top/bottom sides). */
 	size?: SheetSize;
+	/**
+	 * The panel's `id`. A trigger the caller renders outside the component
+	 * points its `aria-controls` at it while the panel is open.
+	 */
+	id?: string;
 	/** Additional CSS classes merged onto the panel. */
 	class?: HTMLAttributes["class"];
 	/**
@@ -62,6 +67,7 @@ const {
 	ariaLabel,
 	dismissible = true,
 	size = "md",
+	id,
 	class: className,
 	sound = false,
 } = defineProps<SheetProps>();
@@ -286,6 +292,7 @@ const panelClasses = computed(() =>
 				:ref="panelRef"
 				:class="panelClasses"
 				role="dialog"
+				:id="id"
 				aria-modal="true"
 				:aria-labelledby="titleId"
 				:aria-label="titleId ? undefined : ariaLabel"

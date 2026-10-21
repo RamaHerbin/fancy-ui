@@ -53,6 +53,11 @@ export interface CommandMenuProps {
 	label?: string;
 	/** Matches an item against the current query. Default: case- and diacritic-insensitive substring match on `label` plus `keywords`. */
 	filter?: (item: CommandItem, query: string) => boolean;
+	/**
+	 * The panel's `id`. A trigger the caller renders outside the component
+	 * points its `aria-controls` at it while the panel is open.
+	 */
+	id?: string;
 	/** Additional CSS classes for the panel. */
 	className?: string;
 	/** Rendered before each row's label, given that row's item. Treated as decorative — see the README. */
@@ -153,6 +158,7 @@ export const CommandMenu = forwardRef<HTMLDivElement, CommandMenuProps>(function
 		emptyMessage = "No results",
 		label = "Command menu",
 		filter,
+		id,
 		className,
 		icon,
 		empty,
@@ -536,6 +542,7 @@ export const CommandMenu = forwardRef<HTMLDivElement, CommandMenuProps>(function
 					*/}
 					<div
 						ref={panelRef}
+						id={id}
 						role="dialog"
 						aria-modal="true"
 						aria-label={label}

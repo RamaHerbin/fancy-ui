@@ -136,7 +136,10 @@
 		outsideClick: ctx.dismissible,
 		exclude: () => [ctx.triggerRef],
 		active: () => ctx.open,
-		keepFocus: true,
+		// Never modal: keep focus only through the press that dismisses (focus is
+		// back on the trigger). A non-dismissible popover leaves outside presses
+		// alone, so the page keeps text selection and blur while it holds focus.
+		keepFocus: ctx.dismissible,
 	}}
 	transition:anchored={{ side: resolvedSide, entering: ctx.open }}
 	data-state="open"

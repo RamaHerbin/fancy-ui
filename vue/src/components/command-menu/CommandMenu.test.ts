@@ -158,6 +158,12 @@ describe("CommandMenu", () => {
 		expect(el?.getAttribute("aria-label")).toBe("Command menu");
 	});
 
+	it("puts the id prop on the panel, for a trigger's aria-controls", async () => {
+		render(CommandMenu, { props: { items: ITEMS, open: true, id: "settings-panel" } });
+		await nextTick();
+		expect(panel()!.id).toBe("settings-panel");
+	});
+
 	it("honours a custom label as the accessible name of both the dialog and the input", async () => {
 		render(CommandMenu, { props: { items: ITEMS, open: true, label: "Search everything" } });
 		await nextTick();
@@ -641,9 +647,7 @@ describe("CommandMenu", () => {
 		await nextTick();
 
 		expect(input()!.value).toBe("");
-		await waitFor(() =>
-			expect(input()!.getAttribute("aria-activedescendant")).toBe(rows()[0]!.id)
-		);
+		await waitFor(() => expect(input()!.getAttribute("aria-activedescendant")).toBe(rows()[0]!.id));
 	});
 
 	it("round-trips through v-model:open", async () => {
@@ -751,9 +755,7 @@ describe("CommandMenu", () => {
 			// two composed and the panel drifted in from half its own width
 			// to the left. A `transform` that is scale and nothing else
 			// composes after `translate` and leaves the centring alone.
-			expect(inFrames.some((frame) => String(frame.transform).includes("translate"))).toBe(
-				false
-			);
+			expect(inFrames.some((frame) => String(frame.transform).includes("translate"))).toBe(false);
 
 			pressEscape();
 			await settleLegs();
@@ -763,9 +765,7 @@ describe("CommandMenu", () => {
 			// Half the depth of the entrance: leaving is a smaller gesture
 			// than arriving.
 			expect(outFrames.at(-1)).toEqual({ opacity: "0", transform: "scale(0.96)" });
-			expect(outFrames.some((frame) => String(frame.transform).includes("translate"))).toBe(
-				false
-			);
+			expect(outFrames.some((frame) => String(frame.transform).includes("translate"))).toBe(false);
 		});
 
 		it("fades the scrim on opacity alone, on the panel's own clock", async () => {

@@ -48,7 +48,10 @@ export interface DismissableCoreOptions {
 	 *
 	 * With `outsideClick: false` it also keeps focus that is inside the layer
 	 * through an outside press that does not dismiss, so a modal that ignores
-	 * such presses does not lose focus to `<body>`.
+	 * such presses does not lose focus to `<body>`. That case cancels every
+	 * outside mousedown while the layer holds focus, so only a modal layer may
+	 * combine the two: a non-modal one that ignores outside presses (a
+	 * non-dismissible popover) leaves `keepFocus` off and the page untouched.
 	 */
 	keepFocus?: boolean;
 }

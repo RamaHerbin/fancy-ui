@@ -26,6 +26,11 @@ export interface CommandMenuProps {
 	label?: string;
 	/** Matches an item against the current query. Default: case- and diacritic-insensitive substring match on `label` plus `keywords`. */
 	filter?: (item: CommandItem, query: string) => boolean;
+	/**
+	 * The panel's `id`. A trigger the caller renders outside the component
+	 * points its `aria-controls` at it while the panel is open.
+	 */
+	id?: string;
 	/** Additional CSS classes for the panel. */
 	class?: HTMLAttributes["class"];
 	/**
@@ -64,6 +69,7 @@ const {
 	emptyMessage = "No results",
 	label = "Command menu",
 	filter,
+	id,
 	class: className,
 	sound = false,
 } = defineProps<CommandMenuProps>();
@@ -487,6 +493,7 @@ const classes = computed(() =>
 			<div
 				:ref="panelRef"
 				role="dialog"
+				:id="id"
 				aria-modal="true"
 				:aria-label="label"
 				tabindex="-1"
@@ -599,10 +606,7 @@ const classes = computed(() =>
 											condenses to a real space — which would land inside the
 											rendered label.
 										-->
-										<template
-											v-for="range in [getMatchRange(item.label, query)]"
-											:key="item.id"
-										>
+										<template v-for="range in [getMatchRange(item.label, query)]" :key="item.id">
 											<template v-if="range"
 												>{{ item.label.slice(0, range.start)
 												}}<mark>{{ item.label.slice(range.start, range.end) }}</mark
