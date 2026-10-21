@@ -138,6 +138,18 @@ describe("componentMarkdown per framework", () => {
 		expect(md).not.toContain("```svelte");
 	});
 
+	it("states the Vue class, attribute and ref rules the package actually follows", () => {
+		const md = componentMarkdown(getComponent("rainbow-button")!, "vue");
+		const guide = generateLlmsTxt();
+		for (const text of [md, guide]) {
+			expect(text).not.toContain("falls through to the root");
+			expect(text).toContain("`inheritAttrs: false`");
+			expect(text).toContain("where the Svelte component applies it");
+			expect(text).toContain("except `ref`");
+			expect(text).toContain("defineExpose({ ref })");
+		}
+	});
+
 	it("falls back to the import line and a note, never another framework's code", () => {
 		const c = getComponent("compare")!;
 		for (const fw of ["react", "vue"] as const) {

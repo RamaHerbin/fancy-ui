@@ -306,9 +306,14 @@ import { RainbowButton } from "fancy-ui-vue";
 \`\`\`
 
 Props keep their Svelte names. Snippet props become named slots (the default
-snippet is the default slot); every bindable prop is a \`v-model:<name>\`;
-\`class\` falls through to the root element. Per-component divergences are
-listed in the package README:
+snippet is the default slot); every bindable prop is a \`v-model:<name>\`
+(except \`ref\`, exposed via \`defineExpose({ ref })\`: put a template ref on
+the component and read \`.ref\`). Every component sets \`inheritAttrs: false\`:
+\`class\` is a declared prop, merged where the Svelte component applies it
+(not always the root element), and only on components whose props table lists
+it. Other attributes do not fall through; they reach the DOM only on the
+components the package README lists as forwarding native attributes.
+Per-component divergences are listed in the package README:
 ${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api
 Package is ESM only, with four entry points: \`fancy-ui-vue\`,
 \`fancy-ui-vue/cameleon\`, \`fancy-ui-vue/styles.css\`, \`fancy-ui-vue/tailwind.css\`.
@@ -531,7 +536,7 @@ const FRAMEWORK_DOCS: Record<DocsFramework, FrameworkDocs> = {
 			`Full guide: ${SITE_URL}/llms.txt`,
 		],
 		source: (slug) => `${GITHUB_URL}/tree/main/vue/src/components/${slug}`,
-		mapping: `Props keep the names below; snippets become named slots (the default snippet is the default slot), every bindable prop is a \`v-model:<name>\`, and \`class\` falls through to the root element. Divergences: ${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api`,
+		mapping: `Props keep the names below; snippets become named slots (the default snippet is the default slot), every bindable prop is a \`v-model:<name>\` (except \`ref\`, exposed via \`defineExpose({ ref })\`: put a template ref on the component and read \`.ref\`). Every component sets \`inheritAttrs: false\`: \`class\` is a declared prop, merged where the Svelte component applies it (not always the root element), and only when the props table below lists it; other attributes do not fall through unless the package README lists the component as forwarding native attributes. Divergences: ${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api`,
 		slotsHeading: "Slots",
 		slotsColumn: "Slot",
 	},
