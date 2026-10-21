@@ -1270,8 +1270,7 @@
 		"divergences": [
 			"`fire()` reaches consumers through the ref channel, not a component instance. Svelte declares `export function fire(opts)` (callable via `bind:this`); React has no instance, so `Confetti` is a `forwardRef<ConfettiHandle, ConfettiProps>` whose ref carries `{ fire }` rather than the DOM node. This is the one forwardRef in the port not backed by a `ref = $bindable` declaration (PORTING.md C-4); the alternative was deleting a public method. `ConfettiHandle` is exported from `Confetti.tsx` but deliberately NOT from `index.ts`, since the mandated export list is exactly Confetti/ConfettiButton + Props types.",
 			"Context key stays private. Svelte publishes on the string key `\"ConfettiContext\"`; React uses `ConfettiReactContext` (via `createInternalContext`) in `context.ts`, not re-exported from `index.ts` — the Svelte `index.ts` exports only the two components, so the key has no public identity on either side. Consumers outside a `Confetti` still get the graceful `undefined` fallback (`useOptional()`), matching `getContext` returning undefined.",
-			"`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved.",
-			"No behavioural divergence in `ConfettiButton`: no className, no rest-prop spread, no `type` attribute — the Svelte source declares only `options`, `children` and `sound` on a bare `<button>`."
+			"`Confetti` gains one extra file over the Svelte tree (`context.ts`), mirroring the `button-group` precedent; one file per Svelte file is otherwise preserved."
 		],
 		"lastFailure": null,
 		"minors": [

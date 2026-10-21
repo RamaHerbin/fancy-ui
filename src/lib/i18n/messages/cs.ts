@@ -78,13 +78,14 @@ export default {
 	// Components gallery
 	"gallery.title": "Komponenty",
 	"gallery.subtitle":
-		"{count} krásně animovaných komponent pro Svelte 5. Procházejte, vyhledávejte a najděte, co potřebujete.",
+		"{count} krásně animovaných komponent pro Svelte 5, React, Vue. Procházejte, vyhledávejte a najděte, co potřebujete.",
 	"gallery.intro":
-		"Každá komponenta je nativně postavená pro Svelte 5 s runes, nastylovaná pomocí Tailwind CSS v4, otypovaná v TypeScriptu a přichází s živým náhledem a příklady ke zkopírování. Balíček nainstalujete jednou a kód je váš.",
+		"Komponenty jsou dostupné pro Svelte 5, React a Vue, ostylované pomocí Tailwind CSS v4 a otypované v TypeScriptu. Každá stránka má živý náhled a příklady pro Svelte ke zkopírování, a kde je to k dispozici, i použití pro React a Vue. Balíček nainstalujete jednou a kód je váš.",
 	"gallery.filterPlaceholder": "Filtrovat komponenty...",
 	"gallery.all": "Vše",
 	"gallery.noMatch": "Vašemu hledání neodpovídají žádné komponenty.",
-	"gallery.meta": "{components} komponent · {categories} kategorií · Svelte 5 · TypeScript",
+	"gallery.meta":
+		"{components} komponent · {categories} kategorií · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results": "Výsledků: {count}",
 	"gallery.resultOne": "1 výsledek",
 	"gallery.clearFilters": "Zrušit filtry",
@@ -228,7 +229,7 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Předpoklady",
 	"install.prerequisites.body":
-		"FancyUI cílí na aktuální toolchain Svelte. Před instalací zkontrolujte tyto tři body.",
+		"FancyUI cílí na aktuální nástroje. Před instalací zkontrolujte tyto tři věci.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
@@ -240,7 +241,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Vyžadováno verzemi SvelteKit a Vite, se kterými je FancyUI sestavováno.",
+		"Vyžadují aktuální build nástroje, proti kterým se FancyUI testuje.",
 	"install.steps.heading": "Instalace",
 	"install.steps.body":
 		"Zvolte správce balíčků, zapojte stylesheet a pak vykreslete svou první komponentu.",
@@ -256,9 +257,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI staví na Tailwind CSS v4, který se konfiguruje v CSS místo v JavaScriptovém konfiguračním souboru. Pokud už Tailwind ve vašem projektu funguje, není potřeba nic dalšího nastavovat.",
 	"install.tailwind.order":
-		"Na pořadí importů záleží: nejdřív Tailwind, pak FancyUI, aby se vrstvy a vlastní proměnné FancyUI vyhodnotily nad výchozími hodnotami.",
+		"Pořadí importů je důležité: nejprve Tailwind, potom FancyUI. Import FancyUI umístěte před vlastní @custom-variant dark, jinak ten z FancyUI nahradí váš.",
 	"install.tailwind.note":
-		"Stylesheet nese design tokeny, které čte každá komponenta: barvy, poloměry a časování animací. Bez něj se komponenty vykreslí bez stylů.",
+		"Vstupní bod poskytuje výchozí barevné tokeny (background, primary, border a další) a tmavou variantu. Vaše vlastní bloky :root a .dark je přepíšou: znovu definujte CSS proměnné a vaše hodnoty zvítězí.",
 	"install.usage.heading": "Použití",
 	"install.usage.body":
 		"Každá komponenta je pojmenovaný export z kořene balíčku, takže si nemusíte pamatovat importní cesty jednotlivých komponent.",
@@ -290,7 +291,7 @@ export default {
 	"theming.lead":
 		"Každá komponenta FancyUI čte své barvy, poloměry a časování z vlastních CSS proměnných v barevném prostoru OKLCh — přepište jeden token a celá knihovna se přizpůsobí.",
 	"theming.pill.oklch": "Barevný prostor OKLCh",
-	"theming.pill.shadcn": "Kompatibilní se shadcn-svelte",
+	"theming.pill.shadcn": "Standardní názvy tokenů",
 	"theming.pill.dark": "Tmavý režim",
 	"theming.pill.tokens": "Design tokeny",
 	"theming.generator.body":
@@ -303,10 +304,10 @@ export default {
 	"theming.colors.body":
 		"Všechny barvy používají barevný prostor OKLCh pro percepčně jednotné gradienty:",
 	"theming.colors.note":
-		"Názvy tokenů odpovídají konvencím shadcn-svelte, takže existující shadcn motiv funguje beze změny.",
+		"Názvy tokenů odpovídají běžně používané sémantické konvenci (background, foreground, primary, …), takže existující motiv se stejnými názvy proměnných funguje beze změny.",
 	"theming.dark.heading": "Tmavý režim",
 	"theming.dark.body":
-		"Tmavý režim se aktivuje třídou .dark na rodičovském prvku. FancyUI přepíše každý token:",
+		"Tmavý režim ve výchozím stavu sleduje nastavení operačního systému. Přidejte třídu .dark na <html> nebo na libovolného předka pro vynucení tmavého režimu, nebo .light pro vynucení světlého; utility dark: i každý token ji následují. Chcete-li upravit tmavé hodnoty, přepište je v .dark:",
 	"theming.motion.heading": "Tokeny animace",
 	"theming.motion.body": "Řiďte časování animací globálně:",
 	"theming.easing.heading": "Funkce plynulosti",
@@ -344,4 +345,27 @@ export default {
 	"retro.explorer": "Průzkumník",
 	"retro.start": "Start",
 	"retro.tagline": "Animované komponenty pro Svelte 5 — připravené ke zkopírování.",
+	"comp.snippetSvelteOnly":
+		"Úplný příklad pro tento framework zatím není napsán; zatím ho má jen verze pro Svelte.",
+	"comp.copyMarkdownSvelte": "Kopírovat jako Markdown (Svelte)",
+	"comp.markdownSvelteOnly": "Export do Markdownu popisuje pouze verzi pro Svelte.",
+	"comp.apiNoticeReact":
+		"Tato API reference používá názvy ze Svelte. V Reactu se class mění na className, obslužné funkce on* se píší v camelCase (onclick se mění na onClick) a snippety se stávají props typu ReactNode nebo renderovacími funkcemi.",
+	"comp.apiNoticeVue":
+		"Tato API reference používá názvy ze Svelte. Ve Vue se snippety stávají sloty a svázatelné props se stávají v-model:název.",
+	"comp.apiNoticeLink": "Rozdíly oproti API Svelte",
+	"install.lead.react":
+		"Přidejte FancyUI do projektu React ve třech krocích: nainstalujte balíček, importujte stylesheet, vykreslete komponentu.",
+	"install.lead.vue":
+		"Přidejte FancyUI do projektu Vue ve třech krocích: nainstalujte balíček, importujte stylesheet, vykreslete komponentu.",
+	"install.pill.react": "React 18+",
+	"install.pill.vue": "Vue 3.5+",
+	"install.prerequisites.card1.title.react": "React",
+	"install.prerequisites.card1.version.react": "18 / 19",
+	"install.prerequisites.card1.desc.react":
+		"Podporuje React 18 a 19. Komponenty se dodávají jako klientské moduly, takže je Server Components mohou importovat přímo.",
+	"install.prerequisites.card1.title.vue": "Vue",
+	"install.prerequisites.card1.version.vue": "3.5+",
+	"install.prerequisites.card1.desc.vue":
+		"Komponenty jsou jednosouborové komponenty Vue 3.5, proto je vyžadováno Vue 3.5.2 nebo novější.",
 } satisfies Catalog;

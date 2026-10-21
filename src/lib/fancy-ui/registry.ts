@@ -902,7 +902,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "RainbowButton",
 		slug: "rainbow-button",
 		description:
-			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo",
+			"Animated button with a rainbow gradient border; on hover or focus a rainbow beam rides around the border with a soft halo. Other native attributes are forwarded to the rendered element",
 		category: "buttons",
 		group: "fancy",
 		status: "done",
@@ -927,6 +927,12 @@ export const registry: Record<string, ComponentMeta> = {
 				name: "disabled",
 				type: "boolean",
 				description: "Disables the button and suppresses the press cue",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description:
+					"Called once per activation, after the optional sound cue; never while disabled.",
 			},
 		],
 		slots: [{ name: "children", description: "Button label content" }],
@@ -1910,6 +1916,13 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 		props: [
+			{
+				name: "hdr",
+				type: "boolean",
+				default: "true",
+				description:
+					"On a display that reports HDR, adds the light above SDR white in a WebGPU layer with extended tone mapping: the hottest tiles peak around 1000 nits and the halo gets a hot core. Elsewhere nothing starts and the mosaic is unchanged",
+			},
 			{ name: "tileSize", type: "number", default: "18", description: "Tile edge in CSS px" },
 			{ name: "gap", type: "number", default: "2", description: "Gap between tiles in CSS px" },
 			{

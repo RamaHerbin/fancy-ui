@@ -86,4 +86,17 @@ describe("ComponentPreview", () => {
 		expect(screen.queryByRole("button", { name: "Code" })).toBeNull();
 		expect(pane(container, "preview")).not.toHaveAttribute("hidden");
 	});
+
+	// Regression: switching framework blanks `code` while the Code tab was open, leaving an
+	// empty pane selected and the example invisible.
+	it("falls back to the preview when the code goes away under an open Code tab", async () => {
+		const { container, rerender } = renderPreview();
+		await fireEvent.click(screen.getByRole("button", { name: "Code" }));
+		expect(pane(container, "preview")).toHaveAttribute("hidden");
+
+		await rerender({ code: "" });
+		expect(pane(container, "code")).toBeNull();
+		expect(pane(container, "preview")).not.toHaveAttribute("hidden");
+		expect(screen.getByTestId("live")).toBeInTheDocument();
+	});
 });
