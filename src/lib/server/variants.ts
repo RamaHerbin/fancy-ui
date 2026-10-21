@@ -104,7 +104,9 @@ export function variantFor(slug: string, framework: Framework): FrameworkVariant
 	const exports = namesFor(framework, slug);
 	const docsUrl = `/docs/components/${slug}`;
 	const sourceUrl =
-		framework === "svelte" ? `${pkg.source}/${slug}` : `${pkg.source}/src/components/${slug}`;
+		framework === "svelte"
+			? `${pkg.source}/${slug}`
+			: `${pkg.source}/src/${slug === "sound" ? "sound" : `components/${slug}`}`;
 	if (exports.length === 0) {
 		return {
 			framework,

@@ -44,6 +44,15 @@
 	onMount(() => (mounted = true));
 	const framework = $derived(mounted ? frameworkState.framework : "svelte");
 	const variant = $derived(data.variants.find((v) => v.framework === framework) ?? null);
+	// The install block's copy tab, per framework: only where that stack's
+	// registry ships the item, importing from where the copy lands.
+	const installVariants = $derived(
+		data.variants.map((v) => ({
+			...v,
+			copyLine: data.copySource[v.framework]?.command ?? null,
+			copyImportLine: data.copySource[v.framework]?.importLine ?? null,
+		}))
+	);
 
 	// React and Vue show their own compiled example, or the import line plus a
 	// note when none exists; never another framework's code.
@@ -212,6 +221,22 @@
 		href={markdownPath}
 		title="{component.name} (Markdown)"
 	/>
+	{#if data.markdown.react}
+		<link
+			rel="alternate"
+			type="text/markdown"
+			href={data.markdown.react}
+			title="{component.name} for React (Markdown)"
+		/>
+	{/if}
+	{#if data.markdown.vue}
+		<link
+			rel="alternate"
+			type="text/markdown"
+			href={data.markdown.vue}
+			title="{component.name} for Vue (Markdown)"
+		/>
+	{/if}
 </svelte:head>
 
 <Seo
@@ -367,7 +392,7 @@
 		<h2 class="text-foreground mb-4 text-xl font-semibold" id="installation">
 			{t("comp.installation")}
 		</h2>
-		<InstallBlock componentImport={"{ " + importList + " }"} variants={data.variants} />
+		<InstallBlock componentImport={"{ " + importList + " }"} variants={installVariants} />
 	</section>
 
 	<!-- ═══ USAGE ═══ -->

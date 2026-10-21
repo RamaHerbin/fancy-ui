@@ -13,13 +13,18 @@ const svelteModules = import.meta.glob("../fancy-ui/*/index.ts", { eager: true }
 	Record<string, unknown>
 >;
 
-const reactBarrels = import.meta.glob("/react/src/components/*/index.ts", {
-	query: "?raw",
-	import: "default",
-	eager: true,
-}) as Record<string, string>;
+// The sound module sits outside `components/` in the React and Vue packages but
+// is a docs page of its own (slug "sound"), like `fancy-ui/sound` in Svelte.
+const reactBarrels = import.meta.glob(
+	["/react/src/components/*/index.ts", "/react/src/sound/index.ts"],
+	{
+		query: "?raw",
+		import: "default",
+		eager: true,
+	}
+) as Record<string, string>;
 
-const vueBarrels = import.meta.glob("/vue/src/components/*/index.ts", {
+const vueBarrels = import.meta.glob(["/vue/src/components/*/index.ts", "/vue/src/sound/index.ts"], {
 	query: "?raw",
 	import: "default",
 	eager: true,
