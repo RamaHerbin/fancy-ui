@@ -57,6 +57,13 @@ export interface BuildInput {
 	meta: Record<string, ComponentMetaInput>;
 	siteUrl: string;
 	/**
+	 * package name → range the package is built against. When given, every
+	 * dependency and devDependency is written `name@range` so the consumer's
+	 * CLI installs the version the sources were written for, not the latest.
+	 * A name with no entry stays bare.
+	 */
+	versions?: Readonly<Record<string, string>>;
+	/**
 	 * React only: names of server modules (relative to react/src, .js extension
 	 * as in client-boundary). Empty by default: every module is a client module.
 	 */
