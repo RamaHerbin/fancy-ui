@@ -31,3 +31,115 @@
 @import "./skins/retro-os/sidebar.css";
 @import "./skins/retro-os/content.css";
 @import "./skins/retro-os/preview-taskbar.css";
+
+/* ---- Chrome: skip link + compact contents ----------------------------------- */
+/* The skip link is the first focusable element of every docs page. Off-screen
+   until it takes focus, then a solid chip in the active skin's own tokens. */
+.docs-skip-link {
+	position: fixed;
+	inset-block-start: 8px;
+	inset-inline-start: 8px;
+	z-index: 100;
+	padding: 8px 14px;
+	border: 2px solid var(--foreground);
+	border-radius: 6px;
+	background: var(--background);
+	color: var(--foreground);
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none;
+	transform: translateY(-200%);
+}
+.docs-skip-link:focus-visible {
+	transform: none;
+}
+.docs-skin[data-skin="brutal"] .docs-skip-link {
+	border-radius: 0;
+	border-color: var(--skin-line, var(--foreground));
+	background: var(--skin-accent, var(--background));
+	color: var(--skin-ink, var(--foreground));
+	box-shadow: 3px 3px 0 var(--skin-line, var(--foreground));
+	font-family: var(--skin-font-mono, inherit);
+	text-transform: uppercase;
+}
+.docs-skin[data-skin="retro-os"] .docs-skip-link {
+	border-radius: 0;
+	border: 2px solid var(--skin-line, var(--foreground));
+	background: var(--skin-paper, var(--background));
+	color: var(--skin-ink, var(--foreground));
+	font-family: var(--skin-font-pixel, inherit);
+	font-size: 12px;
+}
+
+.docs-toc-compact-summary {
+	list-style-position: inside;
+}
+.docs-skin[data-skin="brutal"] .docs-toc-compact {
+	border-radius: 0;
+	border-color: var(--skin-line, var(--border));
+	background: var(--skin-paper, transparent);
+	box-shadow: 3px 3px 0 var(--skin-line, transparent);
+}
+.docs-skin[data-skin="brutal"] .docs-toc-compact-summary {
+	font-family: var(--skin-font-mono, inherit);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	font-size: 12px;
+}
+.docs-skin[data-skin="retro-os"] .docs-toc-compact {
+	border-radius: 0;
+	border: 2px solid var(--skin-line, var(--border));
+	background: var(--skin-paper, transparent);
+	font-family: var(--skin-font-mono, inherit);
+}
+.docs-skin[data-skin="retro-os"] .docs-toc-compact-summary {
+	font-family: var(--skin-font-pixel, inherit);
+	font-size: 12px;
+}
+
+/* ---- Chrome: header brand marks ---------------------------------------------- */
+/* Retro: the menubar wordmark is a link now; keep it reading as the old label. */
+.docs-skin[data-skin="retro-os"] a.retro-brand {
+	color: inherit;
+	text-decoration: none;
+}
+/* Brutal: below lg the skin used to draw a decorative "FU" ink tile with
+   header::before. The logo link is that tile now, so there is one mark. */
+@media (max-width: 1023.98px) {
+	.docs-skin[data-skin="brutal"] header::before {
+		content: none;
+		display: none;
+	}
+	.docs-skin[data-skin="brutal"] header a[data-docs-logo] {
+		order: 0;
+		width: 28px;
+		height: 28px;
+		flex: none;
+		box-sizing: border-box;
+		align-items: center;
+		justify-content: center;
+		border-radius: 7px;
+		background: var(--skin-ink);
+		color: var(--skin-paper);
+		font-family: var(--skin-font-mono);
+		font-size: 10px;
+		font-weight: 700;
+		text-decoration: none;
+	}
+	.docs-skin[data-skin="brutal"] header a[data-docs-logo] > * {
+		display: none;
+	}
+	.docs-skin[data-skin="brutal"] header a[data-docs-logo]::after {
+		content: "FU";
+	}
+}
+/* Retro phones: hamburger, logo, crumb and the four controls share one row;
+   tighten the menubar gaps so the last control is not clipped by the frame. */
+@media (max-width: 639.98px) {
+	.docs-skin[data-skin="retro-os"] header {
+		gap: 8px;
+	}
+	.docs-skin[data-skin="retro-os"] header nav {
+		margin-inline-start: 0;
+	}
+}

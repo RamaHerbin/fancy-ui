@@ -20,6 +20,12 @@
 		if (to?.url) followUrl(to.url);
 	});
 
+	// A bare hash jump would also move the URL; focus the landmark directly.
+	function skipToMain(event: MouseEvent) {
+		event.preventDefault();
+		document.getElementById("main")?.focus();
+	}
+
 	let sidebarOpen = $state(false);
 	let searchOpen = $state(false);
 
@@ -42,7 +48,8 @@
 	<div class="docs-shell mx-auto max-w-7xl px-4 py-8 lg:px-8">
 		<div class="docs-content-row flex gap-10">
 			<!-- Main content -->
-			<main class="min-w-0 flex-1" data-doc-content>
+			<main id="main" tabindex="-1" class="min-w-0 flex-1 outline-none" data-doc-content>
+				<TableOfContents compact />
 				{@render children()}
 			</main>
 
@@ -84,6 +91,7 @@
 {/snippet}
 
 <FancyProvider skin={activeSkin} class="docs-skin min-h-svh">
+	<a href="#main" class="docs-skip-link" onclick={skipToMain}>{t("a11y.skipToContent")}</a>
 	{#if isRetro}
 		<!-- Retro OS: desk + window frame; menubar spans the frame, the explorer
 		     sidebar joins the body grid, and the taskbar sits in-flow at the
