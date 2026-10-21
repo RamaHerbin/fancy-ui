@@ -61,6 +61,9 @@ export default {
 	"table.slot": "اسلات",
 	"table.event": "رویداد",
 	"table.payload": "داده",
+	"table.portName": "نام در {framework}",
+	"table.portNameUnknown":
+		"از قواعد نام‌گذاری قابل استنتاج نیست؛ تفاوت‌ها با رابط برنامه‌نویسی Svelte را ببینید.",
 	"comp.events": "رویدادها",
 	"comp.copyMarkdown": "کپی به‌صورت Markdown",
 

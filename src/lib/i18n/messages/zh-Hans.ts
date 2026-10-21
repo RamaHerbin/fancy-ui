@@ -55,6 +55,8 @@ export default {
 	"table.slot": "插槽",
 	"table.event": "事件",
 	"table.payload": "数据",
+	"table.portName": "{framework} 中的名称",
+	"table.portNameUnknown": "无法按命名规则推导；请参阅与 Svelte API 的差异。",
 	"comp.events": "事件",
 	"comp.copyMarkdown": "复制为 Markdown",
 

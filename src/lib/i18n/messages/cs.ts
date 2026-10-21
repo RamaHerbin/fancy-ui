@@ -61,6 +61,8 @@ export default {
 	"table.slot": "Slot",
 	"table.event": "Událost",
 	"table.payload": "Data",
+	"table.portName": "Název v {framework}",
+	"table.portNameUnknown": "Nelze odvodit z pravidel pojmenování; viz rozdíly oproti API Svelte.",
 	"comp.events": "Události",
 	"comp.copyMarkdown": "Kopírovat jako Markdown",
 

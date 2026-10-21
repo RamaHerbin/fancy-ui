@@ -61,6 +61,9 @@ export default {
 	"table.slot": "الفتحة",
 	"table.event": "الحدث",
 	"table.payload": "البيانات",
+	"table.portName": "الاسم في {framework}",
+	"table.portNameUnknown":
+		"لا يمكن استنتاجه من قواعد التسمية؛ راجع الاختلافات عن واجهة Svelte البرمجية.",
 	"comp.events": "الأحداث",
 	"comp.copyMarkdown": "نسخ بصيغة Markdown",
 

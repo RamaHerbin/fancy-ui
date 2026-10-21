@@ -61,6 +61,9 @@ export default {
 	"table.slot": "Slot",
 	"table.event": "Evento",
 	"table.payload": "Datos",
+	"table.portName": "Nombre en {framework}",
+	"table.portNameUnknown":
+		"No se deduce de las reglas de nombres; consulta las diferencias con la API de Svelte.",
 	"comp.events": "Eventos",
 	"comp.copyMarkdown": "Copiar como Markdown",
 

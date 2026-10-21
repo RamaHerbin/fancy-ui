@@ -61,6 +61,8 @@ export default {
 	"table.slot": "슬롯",
 	"table.event": "이벤트",
 	"table.payload": "페이로드",
+	"table.portName": "{framework}에서의 이름",
+	"table.portNameUnknown": "이름 규칙으로 도출할 수 없습니다. Svelte API와의 차이를 참고하세요.",
 	"comp.events": "이벤트",
 	"comp.copyMarkdown": "Markdown으로 복사",
 

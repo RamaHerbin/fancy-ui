@@ -61,6 +61,9 @@ export default {
 	"table.slot": "Slot",
 	"table.event": "Olay",
 	"table.payload": "Veri",
+	"table.portName": "{framework} adı",
+	"table.portNameUnknown":
+		"Adlandırma kurallarından çıkarılamıyor; Svelte API’sinden farklara bakın.",
 	"comp.events": "Olaylar",
 	"comp.copyMarkdown": "Markdown olarak kopyala",
 
