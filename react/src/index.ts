@@ -74,6 +74,7 @@ export * from "./components/flip-card/index.js";
 export * from "./components/flip-words/index.js";
 export * from "./components/fluid-cursor/index.js";
 export * from "./components/focus/index.js";
+export * from "./components/follow-button/index.js";
 export * from "./components/form-field/index.js";
 export * from "./components/frosted-glass/index.js";
 export * from "./components/glare-card/index.js";

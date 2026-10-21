@@ -2162,6 +2162,38 @@
 		"lastFailure": null
 	},
 	{
+		"slug": "follow-button",
+		"sveltePath": "src/lib/fancy-ui/follow-button",
+		"reactPath": "react/src/components/follow-button",
+		"status": "ported",
+		"wave": "B2",
+		"tier": 3,
+		"group": "composite",
+		"model": "sonnet",
+		"effort": "high",
+		"complexity": "composite",
+		"deps": {
+			"internals": ["use-live-ref", "ssr", "follow-core"],
+			"motion": [],
+			"sound": true,
+			"components": ["button", "status-morph"]
+		},
+		"browserAPIs": ["matchMedia"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["FollowButton"],
+		"loc": 330,
+		"testFiles": ["FollowButton.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [],
+		"lastFailure": null,
+		"minors": []
+	},
+	{
 		"slug": "form-field",
 		"sveltePath": "src/lib/fancy-ui/form-field",
 		"reactPath": "react/src/components/form-field",

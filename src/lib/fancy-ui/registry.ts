@@ -5806,6 +5806,112 @@ export const registry: Record<string, ComponentMeta> = {
 		slots: [{ name: "children", description: "Overrides the default icon + label content" }],
 	},
 
+	"follow-button": {
+		name: "FollowButton",
+		slug: "follow-button",
+		description:
+			"A follow toggle that shows the result at once, then commits when the server agrees or rolls back and says so, with the width held steady across every label",
+		category: "actions",
+		group: "core",
+		status: "done",
+		dependencies: ["button", "status-morph"],
+		tags: ["follow", "subscribe", "toggle", "async", "optimistic", "button"],
+		props: [
+			{
+				name: "following",
+				type: "boolean",
+				default: "false",
+				description:
+					"Whether the viewer follows (bindable). The committed value is written back when onToggle resolves, never before; a write from the parent while an attempt is pending wins and drops that attempt",
+			},
+			{
+				name: "onToggle",
+				type: "(next: boolean) => void | Promise<unknown>",
+				description:
+					"Called with the value the click asks for. Return nothing to commit at once, or a promise: resolve commits, reject (or throw) rolls back, shows the error and announces it. Clicking again retries",
+			},
+			{
+				name: "onFollowingChange",
+				type: "(following: boolean) => void",
+				description:
+					"Called with the committed value, once per successful attempt; not called for a rolled-back or superseded one",
+			},
+			{
+				name: "label",
+				type: "string",
+				description:
+					'Stable accessible name, e.g. "Follow Rama"; it never changes with the visible text. Defaults to the idle label',
+			},
+			{
+				name: "labels",
+				type: "{ follow?: string; following?: string; unfollow?: string }",
+				default: '{ follow: "Follow", following: "Following", unfollow: "Unfollow" }',
+				description:
+					"Visible text per state. The unfollow text is previewed on hover or keyboard focus of a fine pointer, never on touch",
+			},
+			{
+				name: "errorLabel",
+				type: "string",
+				default: '"Try again"',
+				description: "Visible text and assertive announcement after a failed attempt",
+			},
+			{
+				name: "resetMs",
+				type: "number",
+				default: "2000",
+				description: "How long the error state holds before reverting, in milliseconds",
+			},
+			{
+				name: "variant",
+				type: "ButtonVariant",
+				description:
+					'Button variant. Left unset, the idle state is "primary" and the following state "outline"',
+			},
+			{
+				name: "size",
+				type: "ButtonSize",
+				default: '"md"',
+				description: "Passed straight through to the underlying Button",
+			},
+			{
+				name: "disabled",
+				type: "boolean",
+				default: "false",
+				description: "Disables the button and blocks the toggle",
+			},
+			{
+				name: "iconOnly",
+				type: "boolean",
+				default: "false",
+				description: "Drops the visible text, keeping the accessible name",
+			},
+			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description:
+					"Click handler, called right after the toggle starts; never called while disabled or pending",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes",
+			},
+			{
+				name: "ref",
+				type: "HTMLButtonElement | HTMLAnchorElement | null",
+				default: "null",
+				description: "Bindable element reference, matching Button's own ref type",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays toggle-on or toggle-off on a committed change and error on a failed one, with the error vibration, once the user has enabled sound",
+			},
+		],
+	},
+
 	// =========================================================================
 	// Core — forms
 	// =========================================================================

@@ -768,6 +768,19 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			description: "One item unavailable; the keyboard model skips it.",
 		},
 	],
+	"follow-button": [
+		{
+			name: "BasicUsage",
+			title: "Basic Usage",
+			description: "A bindable toggle that commits at once when nothing needs to be awaited.",
+		},
+		{
+			name: "AsyncServer",
+			title: "Async Server",
+			description:
+				"A fake 800 ms server and a switch that makes the next request fail: watch the optimistic flip, the rollback, and the retry.",
+		},
+	],
 	"copy-button": [
 		{
 			name: "BasicUsage",

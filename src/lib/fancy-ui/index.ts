@@ -107,6 +107,7 @@ export * from "./link/index.js";
 export * from "./toggle/index.js";
 export * from "./toggle-group/index.js";
 export * from "./copy-button/index.js";
+export * from "./follow-button/index.js";
 
 // Core — forms
 export * from "./label/index.js";

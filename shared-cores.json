@@ -1051,5 +1051,15 @@
 			"react": "react/src/components/accordion/accordion-core.ts",
 			"vue": "vue/src/components/accordion/accordion-core.ts"
 		}
+	},
+	{
+		"id": "follow-button/follow-core.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/follow-button/follow-core.ts",
+			"react": "react/src/components/follow-button/follow-core.ts",
+			"vue": "vue/src/components/follow-button/follow-core.ts"
+		}
 	}
 ]

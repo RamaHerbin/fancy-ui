@@ -1,0 +1,101 @@
+/*
+ * Label cell. Four `aria-hidden` ghosts (follow, following, unfollow, error)
+ * share one grid cell with the live span, so the cell is as wide as the widest
+ * label and the button never changes width when the text swaps. Pure CSS,
+ * nothing measured.
+ */
+.ft-follow__label {
+	display: inline-grid;
+	text-align: start;
+}
+
+.ft-follow__label > * {
+	grid-area: 1 / 1;
+	white-space: nowrap;
+}
+
+.ft-follow__ghost {
+	visibility: hidden;
+	pointer-events: none;
+	user-select: none;
+}
+
+.ft-follow__leave {
+	pointer-events: none;
+}
+
+.ft-follow__live {
+	display: inline-grid;
+	text-align: start;
+}
+
+.ft-follow__live > * {
+	grid-area: 1 / 1;
+}
+
+.ft-follow__preview {
+	visibility: hidden;
+}
+
+/*
+ * The unfollow preview: a fine pointer over the button, or keyboard focus on
+ * it. A touch screen has no hover, so the preview never shows there and the
+ * control never carries an affordance only a mouse can reach. Instant, not
+ * animated: it is a state read-out, not motion.
+ */
+@media (hover: hover) and (pointer: fine) {
+	.ft-follow:is(:hover, :focus-visible) .ft-follow__live[data-preview] > .ft-follow__rest {
+		visibility: hidden;
+	}
+
+	.ft-follow:is(:hover, :focus-visible) .ft-follow__live[data-preview] > .ft-follow__preview {
+		visibility: visible;
+	}
+}
+
+/* transform / opacity only ever run under `no-preference`; under reduce the
+   text snaps and the component never renders the outgoing layer. */
+@media (prefers-reduced-motion: no-preference) {
+	.ft-follow__leave {
+		animation: ft-follow-out 80ms var(--ft-ease-in, cubic-bezier(0.7, 0, 0.84, 0)) forwards;
+	}
+
+	.ft-follow__live[data-swapped] {
+		animation: ft-follow-in 160ms var(--ft-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) 80ms backwards;
+	}
+}
+
+@keyframes ft-follow-out {
+	to {
+		opacity: 0;
+		transform: translateY(-2px);
+	}
+}
+
+@keyframes ft-follow-in {
+	from {
+		opacity: 0;
+		transform: translateY(2px);
+	}
+}
+
+/*
+ * The failure skin reads the family's `--ft-status-error` vocabulary with the
+ * same fallback pair the toast surface uses, so a failed follow next to a
+ * failed toast is one red even in a theme that declares neither. Unlayered
+ * author CSS beats Tailwind's utilities layer, so neither variant's hover
+ * colours bleed back over it.
+ */
+.ft-follow--failed {
+	border-color: color-mix(
+		in oklab,
+		var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216))) 35%,
+		transparent
+	);
+	background-color: color-mix(
+		in oklab,
+		var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216))) 10%,
+		transparent
+	);
+	color: var(--ft-status-error, light-dark(oklch(0.577 0.245 27.325), oklch(0.704 0.191 22.216)));
+}

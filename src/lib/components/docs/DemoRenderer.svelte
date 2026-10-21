@@ -176,6 +176,10 @@
 		// Core / actions. A propless SoundToggle is one mute icon; the page's
 		// BasicUsage is the Sound Lab, which is the honest preview.
 		"sound",
+		// Core / actions. A propless FollowButton never leaves its idle state in a
+		// way worth showing; BasicUsage binds the value, AsyncServer carries the
+		// fake server that makes the pending and error states reachable.
+		"follow-button",
 	]);
 </script>
 
