@@ -148,8 +148,6 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		onFocus,
 		onBlur,
 		onKeyDown,
-		// An `<input>` is a void element: a stray `children` must not reach it.
-		children: _children,
 		...restProps
 	},
 	forwardedRef
@@ -424,11 +422,17 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		className
 	);
 
+	// `children` is omitted from the public props, but a caller outside the types
+	// can still pass one — an `<input>` is a void element, so it must not reach it.
+	const { children: _children, ...inputProps } = restProps as typeof restProps & {
+		children?: unknown;
+	};
+
 	return (
 		<>
 			<div className="ft-combobox-wrapper relative">
 				<input
-					{...restProps}
+					{...inputProps}
 					ref={inputRef}
 					type="text"
 					role="combobox"

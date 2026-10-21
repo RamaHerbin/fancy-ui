@@ -90,8 +90,6 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 		onFocus,
 		onBlur,
 		onKeyDown,
-		// An `<input>` is a void element: a stray `children` must not reach it.
-		children: _children,
 		...restProps
 	},
 	forwardedRef
@@ -307,11 +305,17 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 		className
 	);
 
+	// `children` is omitted from the public props, but a caller outside the types
+	// can still pass one — an `<input>` is a void element, so it must not reach it.
+	const { children: _children, ...inputProps } = restProps as typeof restProps & {
+		children?: unknown;
+	};
+
 	return (
 		<AUTOCOMPLETE_KEY.Provider value={context}>
 			<div className="ft-autocomplete-wrapper relative">
 				<input
-					{...restProps}
+					{...inputProps}
 					ref={inputRef}
 					type="text"
 					role="combobox"
