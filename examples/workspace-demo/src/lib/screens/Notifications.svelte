@@ -80,7 +80,8 @@
 	const pending = new Set<string>();
 
 	// A bulk button that has nothing left to act on unmounts while it holds
-	// focus: hand focus to the next sensible control once the DOM caught up.
+	// focus, and so does the toast's Undo: hand focus on deliberately, to the
+	// first selector that exists, else #main, once the DOM caught up.
 	let root = $state<HTMLElement>();
 	async function focusAfterUpdate(...selectors: string[]) {
 		await tick();
@@ -100,7 +101,7 @@
 
 	// After a bulk action, focus goes to the list: never to the other bulk
 	// button, where a second Enter would act on everything again.
-	const AFTER_BULK = ["[data-notification-list]", "[data-bulk] button"];
+	const AFTER_BULK = ["[data-notification-list]"];
 
 	function markAllRead() {
 		const ids = unread.map((item) => item.id);
@@ -115,7 +116,7 @@
 				pending.delete(toastId);
 				setLocal(ids.filter(isRead), false);
 				keepOnlyReadHidden();
-				void focusAfterUpdate('[data-bulk="read"] button');
+				void focusAfterUpdate('[data-bulk="read"] button', ...AFTER_BULK);
 			},
 			onCommit: () => {
 				pending.delete(toastId);
@@ -144,12 +145,12 @@
 		hidden = [...hidden, ...ids];
 		void focusAfterUpdate(...AFTER_BULK);
 		const toastId = undoable({
-			title: clearedLabel(ids.length),
+			title: clearedLabel(),
 			undoLabel: text.undo,
 			onUndo: () => {
 				pending.delete(toastId);
 				hidden = hidden.filter((id) => !ids.includes(id));
-				void focusAfterUpdate('[data-bulk="clear"] button');
+				void focusAfterUpdate('[data-bulk="clear"] button', ...AFTER_BULK);
 			},
 			onCommit: () => {
 				pending.delete(toastId);

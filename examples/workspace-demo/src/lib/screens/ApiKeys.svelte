@@ -68,9 +68,12 @@
 	let root = $state<HTMLElement>();
 	// Moves focus once the DOM has caught up with a state change, so removing
 	// the element that held it never drops the user on <body>.
-	async function focusAfterUpdate(selector: string) {
+	async function focusAfterUpdate(...selectors: string[]) {
 		await tick();
-		root?.querySelector<HTMLElement>(selector)?.focus();
+		for (const selector of selectors) {
+			const target = root?.querySelector<HTMLElement>(selector);
+			if (target) return target.focus();
+		}
 	}
 	const rowButton = (id: string) => `[data-key-id="${id}"] button`;
 
@@ -166,7 +169,7 @@
 		// way of making a key when none is left.
 		const next = before[index + 1] ?? before[index - 1];
 		void focusAfterUpdate(
-			next ? rowButton(next.id) : "[data-empty-state] button, [data-create-key] button"
+			...(next ? [rowButton(next.id)] : ["[data-empty-state] button", "[data-create-key] button"])
 		);
 	}
 

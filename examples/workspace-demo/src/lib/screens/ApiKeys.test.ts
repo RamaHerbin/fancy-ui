@@ -222,6 +222,30 @@ describe("ApiKeys screen undo window", () => {
 		await waitFor(() => expect(screen.queryByRole("button", { name: "Undo" })).toBeNull());
 	});
 
+	it("closing the toast with its own dismiss button after hovering it commits the revoke", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		const api = makeApi();
+		mount(api);
+		await waitForState("api-keys", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Revoke Production deploys" }));
+		const undo = await screen.findByRole("button", { name: "Undo" });
+		const panel = toastOf(undo);
+		await fireEvent.pointerEnter(panel);
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS * 2);
+		expect(await api.listApiKeys()).toHaveLength(3);
+		const dismiss = panel.querySelector<HTMLElement>('button[aria-label="Dismiss"]');
+		expect(dismiss).not.toBeNull();
+		await fireEvent.click(dismiss!);
+		await waitFor(async () =>
+			expect((await api.listApiKeys()).map((k) => k.name)).not.toContain("Production deploys")
+		);
+		expect(await api.listApiKeys()).toHaveLength(2);
+		// Nothing is left to commit a second time.
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS * 2);
+		expect(await api.listApiKeys()).toHaveLength(2);
+		await waitFor(() => expect(screen.queryByRole("button", { name: "Undo" })).toBeNull());
+	});
+
 	it("Undo closes its own toast", async () => {
 		mount(makeApi());
 		await waitForState("api-keys", "ready");
@@ -269,11 +293,18 @@ describe("ApiKeys screen focus", () => {
 		expect(focusedName()).not.toBe(gone);
 	});
 
-	it("moves focus to the first-key action when the last row leaves", async () => {
-		mount(makeApi({ scenario: "empty" }));
-		await waitForState("api-keys", "empty");
-		await fireEvent.click(screen.getByRole("button", { name: "Create your first key" }));
-		await waitFor(() => expect(screen.getByRole("textbox", { name: "Key name" })).toHaveFocus());
+	it("moves focus to Create key when the last row leaves", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		mount(makeApi());
+		await waitForState("api-keys", "ready");
+		for (const row of screen.getAllByRole("listitem")) {
+			await fireEvent.click(row.querySelector("button") as HTMLElement);
+		}
+		await vi.advanceTimersByTimeAsync(0);
+		await waitFor(() => expect(screen.queryAllByRole("listitem")).toHaveLength(0));
+		const empty = screenRoot("api-keys").querySelector("[data-empty-state]") as HTMLElement;
+		await waitFor(() => expect(document.activeElement).toBe(empty.querySelector("button")));
+		expect(document.activeElement).toHaveTextContent("Create your first key");
 	});
 
 	it("puts focus back on the row when Undo restores it", async () => {

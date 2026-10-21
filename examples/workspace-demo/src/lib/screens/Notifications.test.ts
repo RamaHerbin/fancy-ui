@@ -146,7 +146,7 @@ describe("Notifications screen grouped undo", () => {
 		await waitForState("notifications", "ready");
 		await fireEvent.click(screen.getByRole("button", { name: "Clear read" }));
 		expect(screen.getAllByRole("listitem")).toHaveLength(3);
-		await expectToast("Cleared 3 notifications");
+		await expectToast("Cleared read notifications");
 		await fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
 		expect(screen.getAllByRole("listitem")).toHaveLength(6);
 		expect(await api.listNotifications()).toHaveLength(6);
@@ -257,6 +257,53 @@ describe("Notifications screen grouped undo", () => {
 		await fireEvent.click(clear);
 		const list = screen.getByRole("list", { name: "Notifications" });
 		await waitFor(() => expect(document.activeElement).toBe(list));
+	});
+
+	it("Undo of mark all read hands focus to Mark all as read again", async () => {
+		mount(makeApi());
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		const undo = await screen.findByRole("button", { name: "Undo" });
+		undo.focus();
+		await fireEvent.click(undo);
+		await waitFor(() =>
+			expect(document.activeElement).toBe(screen.getByRole("button", { name: "Mark all as read" }))
+		);
+	});
+
+	it("Undo of mark all read with nothing left to mark lands on the list, not <body>", async () => {
+		mount(makeApi());
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		const undo = await screen.findByRole("button", { name: "Undo" });
+		// Every one of the batch is flipped back by hand, then Undo.
+		for (const b of screen.getAllByRole("button", { name: /^Mark as unread/ })) {
+			await fireEvent.click(b);
+		}
+		undo.focus();
+		await fireEvent.click(undo);
+		await waitFor(() => expect(document.activeElement).not.toBe(document.body));
+	});
+
+	it("Undo of clear read hands focus to Clear read again", async () => {
+		mount(makeApi());
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Clear read" }));
+		const undo = await screen.findByRole("button", { name: "Undo" });
+		undo.focus();
+		await fireEvent.click(undo);
+		await waitFor(() =>
+			expect(document.activeElement).toBe(screen.getByRole("button", { name: "Clear read" }))
+		);
+	});
+
+	it("the clear toast promises no count that an overlapping undo can break", async () => {
+		mount(makeApi());
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		await fireEvent.click(screen.getByRole("button", { name: "Clear read" }));
+		await expectToast("Cleared read notifications");
+		expect(screen.queryByText("Cleared 6 notifications")).toBeNull();
 	});
 
 	it("leaving the screen commits what is pending", async () => {

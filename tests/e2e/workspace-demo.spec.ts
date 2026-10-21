@@ -361,7 +361,7 @@ test.describe("workspace demo undo windows", () => {
 
 		await root.getByRole("button", { name: "Clear read" }).click();
 		await expect(rows).toHaveCount(3);
-		const cleared = page.locator(".ft-toast", { hasText: "Cleared 3 notifications" });
+		const cleared = page.locator(".ft-toast", { hasText: "Cleared read notifications" });
 		await expect(cleared).toBeVisible();
 		await expect(cleared).toBeHidden({ timeout: UNDO_WINDOW_MS + 2_000 });
 
@@ -398,7 +398,7 @@ test.describe("workspace demo overlapping undos", () => {
 		await expect(rows).toHaveCount(3);
 		await expect(root.getByText("3 unread")).toBeVisible();
 
-		const cleared = page.locator(".ft-toast", { hasText: "Cleared 6 notifications" });
+		const cleared = page.locator(".ft-toast", { hasText: "Cleared read notifications" });
 		await expect(cleared).toBeHidden({ timeout: UNDO_WINDOW_MS + 2_000 });
 		await expect(rows).toHaveCount(3);
 

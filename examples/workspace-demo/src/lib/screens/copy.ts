@@ -103,6 +103,8 @@ export function markedReadLabel(count: number): string {
 }
 
 /** Title of the grouped undo after "Clear read". */
-export function clearedLabel(count: number): string {
-	return `Cleared ${count} ${plural(count, "notification", "notifications")}`;
+// No count: an overlapping Undo of "Mark all as read" can shrink the batch
+// that is actually archived once the window closes.
+export function clearedLabel(): string {
+	return "Cleared read notifications";
 }
