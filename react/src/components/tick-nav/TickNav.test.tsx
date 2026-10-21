@@ -150,6 +150,32 @@ describe("TickNav", () => {
 			expect(play.mock.calls.map((c) => c[0])).toEqual(["hover", "hover"]);
 		});
 
+		it("strums: every line the pointer crosses plucks and sounds, rows and ticks alike", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container } = render(<TickNav items={items} sound minorTicks={2} />);
+			const list = container.querySelector("ul")!;
+			list.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+			// Lay the lines out 10 px apart, top to bottom, in document order.
+			const paths = container.querySelectorAll<SVGPathElement>(".tn-path, .tn-tick-path");
+			paths.forEach((path, i) => {
+				path.getBoundingClientRect = () => ({ top: i * 10, height: 0 }) as DOMRect;
+			});
+			const move = (y: number) => {
+				const event = new Event("pointermove", { bubbles: true });
+				Object.assign(event, { pointerType: "mouse", clientX: 0, clientY: y });
+				act(() => {
+					list.dispatchEvent(event);
+				});
+			};
+			move(-5); // first move only measures
+			move(25); // crosses lines at 0, 10, 20: Alpha, two ticks
+			expect(play.mock.calls.map((c) => c[0])).toEqual(["hover", "tick", "tick"]);
+			expect(paths[1]!.getAttribute("d")).not.toBeNull();
+			play.mockClear();
+			move(31); // crosses Beta's line at 30
+			expect(play.mock.calls.map((c) => c[0])).toEqual(["hover"]);
+		});
+
 		it("stays silent without the sound prop, and on activation", () => {
 			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
 			const { container } = render(<TickNav items={items} />);

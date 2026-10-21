@@ -29,8 +29,9 @@ export interface TickNavProps {
 	/** Accessible name of the `<nav>` landmark. */
 	ariaLabel?: string;
 	/**
-	 * Plays the `hover` cue each time a mouse or pen enters a row. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays a cue each time a mouse or pen plucks a line: `hover` for an
+	 * item's line, a softer `tick` for a ruler tick. Off by default; only
+	 * audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 	/** Additional CSS classes on the `<nav>`. */
@@ -83,9 +84,13 @@ export function TickNav({
 			reach,
 			current: currentIndex,
 			reducedMotion: reduced,
-			onActiveChange(index, pointer) {
+			onActiveChange(index) {
 				setActive(index);
-				if (index >= 0 && pointer && live.current.sound) soundFx.play("hover");
+			},
+			onPluck(kind) {
+				if (!live.current.sound) return;
+				if (kind === "row") soundFx.play("hover");
+				else soundFx.play("tick", { volume: 0.6 });
 			},
 		});
 		coreRef.current = instance;
@@ -168,7 +173,11 @@ export function TickNav({
 							{ticks > 0 && i < items.length - 1 ? (
 								<span className="tn-ticks" aria-hidden="true">
 									{Array.from({ length: ticks }, (_, k) => (
-										<span key={k} className="tn-tick" />
+										<span key={k} className="tn-tick">
+											<svg viewBox="0 0 54 8" preserveAspectRatio="none">
+												<path className="tn-tick-path" d={TICK_NAV_FLAT_PATH} />
+											</svg>
+										</span>
 									))}
 								</span>
 							) : null}

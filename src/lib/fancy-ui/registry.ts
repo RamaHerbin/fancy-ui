@@ -8100,7 +8100,7 @@ export const registry: Record<string, ComponentMeta> = {
 		name: "TickNav",
 		slug: "tick-nav",
 		description:
-			"A navigation list on a ruler of tick marks: hovering a row plucks its line like a string, neighbouring lines and ticks stretch and light up on springs, and an optional preview card follows the pointer.",
+			"A navigation list on a ruler of tick marks: every line the pointer crosses plucks like a string, neighbouring lines and ticks stretch and light up on springs, and an optional preview card follows the pointer.",
 		category: "navigation",
 		group: "fancy",
 		status: "done",
@@ -8152,7 +8152,7 @@ export const registry: Record<string, ComponentMeta> = {
 				type: "boolean",
 				default: "false",
 				description:
-					"Plays hover each time a mouse or pen enters a row, once the user has enabled sound",
+					"Plays a cue for every line a mouse or pen plucks (hover for an item, a softer tick for a ruler tick), once the user has enabled sound",
 			},
 			{
 				name: "class",

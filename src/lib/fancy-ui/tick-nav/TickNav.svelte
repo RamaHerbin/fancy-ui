@@ -21,8 +21,9 @@
 		/** Accessible name of the `<nav>` landmark. */
 		ariaLabel?: string;
 		/**
-		 * Plays the `hover` cue each time a mouse or pen enters a row. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays a cue each time a mouse or pen plucks a line: `hover` for an
+		 * item's line, a softer `tick` for a ruler tick. Off by default; only
+		 * audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 		/** Additional CSS classes on the `<nav>`. */
@@ -71,9 +72,13 @@
 		if (!root || !list) return;
 		const instance = createTickNavCore(root, list, {
 			...untrack(() => ({ reach, current: currentIndex, reducedMotion: reduced.current })),
-			onActiveChange(index, pointer) {
+			onActiveChange(index) {
 				active = index;
-				if (index >= 0 && pointer && sound) soundFx.play("hover");
+			},
+			onPluck(kind) {
+				if (!sound) return;
+				if (kind === "row") soundFx.play("hover");
+				else soundFx.play("tick", { volume: 0.6 });
 			},
 		});
 		core = instance;
@@ -150,7 +155,11 @@
 				{#if ticks > 0 && i < items.length - 1}
 					<span class="tn-ticks" aria-hidden="true">
 						{#each { length: ticks } as _, k (k)}
-							<span class="tn-tick"></span>
+							<span class="tn-tick">
+								<svg viewBox="0 0 54 8" preserveAspectRatio="none">
+									<path class="tn-tick-path" d={TICK_NAV_FLAT_PATH} />
+								</svg>
+							</span>
 						{/each}
 					</span>
 				{/if}
@@ -278,14 +287,31 @@
 	}
 
 	.tn-tick {
+		position: relative;
 		display: block;
 		height: 1px;
 		width: calc(24px + 16px * var(--tn-tick-near, 0));
-		background: color-mix(
+	}
+
+	.tn-tick svg {
+		position: absolute;
+		left: 0;
+		top: 50%;
+		width: 100%;
+		height: 0.5rem;
+		overflow: visible;
+		transform: translateY(-50%);
+	}
+
+	.tn-tick-path {
+		fill: none;
+		stroke: color-mix(
 			in oklab,
 			var(--tn-accent) calc(var(--tn-tick-near, 0) * 60%),
 			var(--tn-border)
 		);
+		stroke-width: 1;
+		stroke-linecap: round;
 	}
 
 	.tn-preview {

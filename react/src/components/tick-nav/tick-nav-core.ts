@@ -7,8 +7,9 @@
  * - a width spring per row (resting length → hover length),
  * - a proximity spring per row and per tick group, fed by a smoothstep of the
  *   distance, in rows, to the hovered row,
- * - a one-shot "pluck" on hover: a wave packet that runs along the row's line
- *   and leaves it flat again,
+ * - a one-shot "pluck": a wave packet that runs along a line and leaves it
+ *   flat again. Every line plucks — rows and ticks alike — the moment the
+ *   pointer crosses it, so a sweep strums the ruler like strings,
  * - the preview card's position (it follows the pointer) and its fade-in.
  *
  * All output goes to CSS custom properties and to the pluck path's `d`, never
@@ -19,6 +20,7 @@
  *   li.tn-item                     one per item, in order
  *     .tn-path                     the row's <path> (pluck target)
  *     .tn-ticks                    optional tick group after the row
+ *       .tn-tick-path              one <path> per tick (pluck target)
  * and, inside `root`, an optional `.tn-preview` that reads `--tn-px`,
  * `--tn-py` and `--tn-po`.
  *
@@ -43,6 +45,12 @@ export interface TickNavCoreOptions {
 	 * when nothing is hovered. `pointer` is true for a mouse or pen.
 	 */
 	onActiveChange?: (index: number, pointer: boolean) => void;
+	/**
+	 * Called each time a mouse or pen plucks a line: `kind` says whether it is
+	 * an item's line or a tick, `row` is the item it belongs to (a tick belongs
+	 * to the item above it). The place to play a sound.
+	 */
+	onPluck?: (kind: "row" | "tick", row: number) => void;
 }
 
 export interface TickNavCore {
@@ -63,6 +71,9 @@ export const TICK_NAV_DEFAULTS = Object.freeze({
 export const TICK_NAV_FLAT_PATH = "M0 4L54 4";
 
 const PLUCK_MS = 500;
+/** A row entered without crossing its line still plucks, unless it just did. */
+const REPLUCK_MS = 120;
+const RESTRIKE_MS = 60;
 const PREVIEW_OFFSET = 14;
 
 interface SpringConfig {
@@ -112,27 +123,39 @@ function smoothstep(x: number): number {
 /**
  * The pluck at progress `p` (0..1, already eased): a packet centred on
  * `54 * p`, 20 units wide, whose amplitude fades by 30% over the run.
+ * `amplitude` scales the swing (ticks swing less than rows).
  */
-export function pluckPath(p: number): string {
+export function pluckPath(p: number, amplitude = 1): string {
 	const head = 54 * p;
 	const fade = Math.max(0, 1 - (head / 54) * 0.3);
 	let d = "";
 	for (let x = 0; x <= 54; x += 1) {
 		const envelope = Math.max(0, 1 - Math.abs(head - x) / 20);
-		const y = 4 + 3.5 * Math.sin((x - 0.5 * head) * 0.8) * envelope * fade;
+		const y = 4 + 3.5 * amplitude * Math.sin((x - 0.5 * head) * 0.8) * envelope * fade;
 		d += `${x === 0 ? "M" : "L"}${x} ${y.toFixed(2)}`;
 	}
 	return d;
 }
 
+interface Line {
+	path: SVGPathElement;
+	kind: "row" | "tick";
+	row: number;
+	/** Centre, list-local px; read once per pointer visit. */
+	y: number;
+	pluckStart: number | null;
+	lastPluck: number;
+}
+
 interface Row {
 	el: HTMLElement;
-	path: SVGPathElement | null;
+	line: Line | null;
 	length: Spring;
 	near: Spring;
 	tickNear: Spring;
-	pluckStart: number | null;
 }
+
+const TICK_AMPLITUDE = 0.7;
 
 export function createTickNavCore(
 	root: HTMLElement,
@@ -150,7 +173,9 @@ export function createTickNavCore(
 	};
 
 	let rows: Row[] = [];
+	let lines: Line[] = [];
 	let hovered = -1;
+	let lastY: number | null = null;
 	const preview = spring(0);
 	let frame = 0;
 	let lastT = 0;
@@ -158,18 +183,41 @@ export function createTickNavCore(
 
 	function readRows(): void {
 		const previous = rows;
+		lines = [];
 		rows = Array.from(list.querySelectorAll<HTMLElement>(":scope > .tn-item")).map((el, i) => {
 			const old = previous[i];
 			const rest = i === options.current ? options.activeLength : options.restLength;
+			const path = el.querySelector<SVGPathElement>(".tn-path");
+			const line: Line | null = path
+				? { path, kind: "row", row: i, y: 0, pluckStart: null, lastPluck: -Infinity }
+				: null;
+			if (line) lines.push(line);
+			el.querySelectorAll<SVGPathElement>(".tn-tick-path").forEach((tick) => {
+				lines.push({
+					path: tick,
+					kind: "tick",
+					row: i,
+					y: 0,
+					pluckStart: null,
+					lastPluck: -Infinity,
+				});
+			});
 			return {
 				el,
-				path: el.querySelector<SVGPathElement>(".tn-path"),
+				line,
 				length: old?.length ?? spring(rest),
 				near: old?.near ?? spring(0),
 				tickNear: old?.tickNear ?? spring(0),
-				pluckStart: null,
 			};
 		});
+	}
+
+	function measureLines(): void {
+		const top = list.getBoundingClientRect().top;
+		for (const line of lines) {
+			const box = line.path.getBoundingClientRect();
+			line.y = box.top + box.height / 2 - top;
+		}
 	}
 
 	function retarget(): void {
@@ -220,15 +268,17 @@ export function createTickNavCore(
 			if (stepSpring(row.length, LENGTH_SPRING, dt, 0.05)) moving = true;
 			if (stepSpring(row.near, PROXIMITY_SPRING, dt, 0.001)) moving = true;
 			if (stepSpring(row.tickNear, PROXIMITY_SPRING, dt, 0.001)) moving = true;
-			if (row.pluckStart !== null && row.path) {
-				const p = Math.min((t - row.pluckStart) / PLUCK_MS, 1);
-				if (p < 1) {
-					row.path.setAttribute("d", pluckPath(1 - Math.pow(1 - p, 3)));
-					moving = true;
-				} else {
-					row.path.setAttribute("d", TICK_NAV_FLAT_PATH);
-					row.pluckStart = null;
-				}
+		}
+		for (const line of lines) {
+			if (line.pluckStart === null) continue;
+			const p = Math.min((t - line.pluckStart) / PLUCK_MS, 1);
+			if (p < 1) {
+				const amplitude = line.kind === "tick" ? TICK_AMPLITUDE : 1;
+				line.path.setAttribute("d", pluckPath(1 - Math.pow(1 - p, 3), amplitude));
+				moving = true;
+			} else {
+				line.path.setAttribute("d", TICK_NAV_FLAT_PATH);
+				line.pluckStart = null;
 			}
 		}
 		if (stepSpring(preview, PREVIEW_SPRING, dt, 0.001)) moving = true;
@@ -246,20 +296,32 @@ export function createTickNavCore(
 		if (!frame) frame = requestAnimationFrame(step);
 	}
 
-	function stopPluck(row: Row | undefined): void {
-		if (!row) return;
-		row.pluckStart = null;
-		row.path?.setAttribute("d", TICK_NAV_FLAT_PATH);
+	function stopPluck(line: Line): void {
+		line.pluckStart = null;
+		line.path.setAttribute("d", TICK_NAV_FLAT_PATH);
 	}
 
-	function setHovered(index: number, pointer: boolean): void {
-		if (index === hovered) return;
-		stopPluck(rows[hovered]);
-		hovered = index;
-		const row = rows[index];
-		if (row && !options.reducedMotion && row.path) {
-			row.pluckStart = performance.now();
+	/** Restarts the line's pluck (a new strike interrupts a running one). */
+	function pluck(line: Line, pointer: boolean, now: number): void {
+		line.lastPluck = now;
+		if (!options.reducedMotion) {
+			line.pluckStart = now;
+			kick();
 		}
+		if (pointer && !isDisabled(line.row)) options.onPluck?.(line.kind, line.row);
+	}
+
+	/**
+	 * `pluckRow`: a keyboard focus, or a pointer arriving from outside the list,
+	 * crosses no line, so the row plucks on entry. Otherwise the crossing does it
+	 * (the hit area is entered a few px before the line is reached).
+	 */
+	function setHovered(index: number, pointer: boolean, pluckRow = !pointer): void {
+		if (index === hovered) return;
+		hovered = index;
+		const line = rows[index]?.line;
+		const now = performance.now();
+		if (line && pluckRow && now - line.lastPluck > REPLUCK_MS) pluck(line, pointer, now);
 		retarget();
 		kick();
 		options.onActiveChange?.(index, pointer);
@@ -283,11 +345,37 @@ export function createTickNavCore(
 		if (!link) return;
 		const index = rowIndexOf(link);
 		if (index < 0 || isDisabled(index)) return;
-		setHovered(index, true);
+		setHovered(index, true, lastY === null);
+	}
+
+	// Every line whose centre lies between the previous and the current pointer
+	// position was crossed: pluck each one, in crossing order.
+	function strum(event: PointerEvent): void {
+		const y = event.clientY - list.getBoundingClientRect().top;
+		if (lastY === null) {
+			measureLines();
+			lastY = y;
+			return;
+		}
+		const from = lastY;
+		lastY = y;
+		if (from === y) return;
+		const down = y > from;
+		const lo = Math.min(from, y);
+		const hi = Math.max(from, y);
+		const crossed = lines.filter((line) => line.y > lo && line.y <= hi);
+		crossed.sort((a, b) => (down ? a.y - b.y : b.y - a.y));
+		const now = performance.now();
+		for (const line of crossed) {
+			// The same line struck twice within a frame or two is one strike.
+			if (now - line.lastPluck < RESTRIKE_MS) continue;
+			pluck(line, true, now);
+		}
 	}
 
 	function onPointerMove(event: PointerEvent): void {
 		if (event.pointerType === "touch") return;
+		if (list.contains(event.target as Node)) strum(event);
 		const box = root.getBoundingClientRect();
 		root.style.setProperty(
 			"--tn-px",
@@ -298,6 +386,7 @@ export function createTickNavCore(
 
 	function onPointerLeave(event: PointerEvent): void {
 		if (event.pointerType === "touch") return;
+		lastY = null;
 		setHovered(-1, false);
 	}
 
@@ -337,13 +426,14 @@ export function createTickNavCore(
 			const reducedBefore = options.reducedMotion;
 			Object.assign(options, next);
 			if (options.reducedMotion && !reducedBefore) {
-				for (const row of rows) stopPluck(row);
+				for (const line of lines) stopPluck(line);
 			}
 			retarget();
 			kick();
 		},
 		refresh() {
 			readRows();
+			lastY = null;
 			if (hovered >= rows.length) hovered = -1;
 			retarget();
 			kick();

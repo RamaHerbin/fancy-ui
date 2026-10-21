@@ -27,8 +27,12 @@ pointer.
   over `reach` rows. Tick groups sit half a row below their item and have their
   own proximity spring. Lines gain 16 px at full proximity, ticks go from 24 to
   40 px and up to 60% accent.
-- **Pluck.** Entering a row starts a 500 ms wave packet (ease-out cubic) that
-  runs along the line and leaves it flat; leaving the row stops it.
+- **Pluck.** Every line, rows and ticks alike, plucks the moment the pointer
+  crosses it: a 500 ms wave packet (ease-out cubic) runs along it and leaves
+  it flat. Crossings are found between consecutive pointer positions, so a
+  fast sweep plucks every line it passed, in order, like a strum. Ticks swing
+  at 70%. Keyboard focus, or a pointer entering the list from the side, plucks
+  the row it lands on.
 - **No per-frame framework state.** Output is CSS variables (`--tn-len`,
   `--tn-near`, `--tn-tick-near` per row; `--tn-px`, `--tn-py`, `--tn-po` on the
   root) plus the pluck path's `d`. The rAF loop sleeps once every spring has
@@ -42,7 +46,8 @@ pointer.
 - **Accessibility.** A `<nav>` landmark (`ariaLabel`) with real links or
   buttons; `aria-current="page"` on the current row; lines, ticks and the card
   are `aria-hidden`.
-- **Sound.** With `sound`, `hover` plays each time a mouse or pen enters a row.
+- **Sound.** With `sound`, every pluck from a mouse or pen plays a cue: `hover`
+  for an item's line, `tick` at 60% for a ruler tick.
 
 ## Theming
 
