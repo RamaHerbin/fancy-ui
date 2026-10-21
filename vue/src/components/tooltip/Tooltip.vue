@@ -34,17 +34,13 @@ function isFocusable(el: HTMLElement): boolean {
 	return tabindex !== null && tabindex !== "-1";
 }
 
-// `import.meta.env.DEV`, read through a local shape: the package's tsconfig
-// does not carry the bundler's ambient `ImportMeta` augmentation, and the
-// optional chain also covers a plain-Node import where `env` is absent. The
-// source gates the same warning on `import.meta.env.DEV` directly.
-const DEV = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
 </script>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
+import { isDev as DEV } from "../../internals/env.js";
 import Portal from "../../internals/Portal.vue";
 import { useFancyId } from "../../internals/use-id.js";
 import { useAnchorPosition } from "../../internals/use-anchor-position.js";

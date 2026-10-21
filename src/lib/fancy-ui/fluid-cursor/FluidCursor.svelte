@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import { isDev } from "../_internals/env.js";
 	import { onMount, untrack } from "svelte";
 	import {
 		createFluidCursor,
@@ -94,7 +95,7 @@
 				ditherPixelSize,
 				ditherLevels,
 				onReady,
-				dev: import.meta.env.DEV,
+				dev: isDev,
 			}
 		);
 		return () => {

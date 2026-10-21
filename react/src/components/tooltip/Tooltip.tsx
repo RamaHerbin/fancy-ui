@@ -16,7 +16,7 @@ import { anchored, originFor } from "../../internals/motion/anchored.js";
 import { runTransition } from "../../internals/motion/animate.js";
 import type { TransitionRun } from "../../internals/motion/animate.js";
 
-// The source gates its focusable-trigger warning on `import.meta.env.DEV`,
+// The source gates its focusable-trigger warning on the bundler dev flag,
 // which needs Vite's client types this package does not load.
 // `process.env.NODE_ENV` is the equivalent signal every React consumer's
 // bundler already replaces. Declared locally so the d.ts build needs no

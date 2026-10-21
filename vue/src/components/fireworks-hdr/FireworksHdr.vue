@@ -58,6 +58,7 @@ export interface FireworksHdrProps {
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef, watchEffect } from "vue";
 import { cn } from "../../utils.js";
+import { isDev as DEV } from "../../internals/env.js";
 import { useReducedMotion } from "../../internals/motion/use-media-query.js";
 import { EXPOSURE_AMBIENT } from "./fireworks-shared.js";
 import { createFireworksHdr, type FireworksHdrEngine } from "./fireworks-hdr-core.js";
@@ -81,10 +82,6 @@ const {
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>("canvas");
 
-// `import.meta.env.DEV`, read through a local shape: the package's tsconfig
-// does not carry the bundler's ambient `ImportMeta` augmentation, and the
-// optional chain also covers a plain-Node import where `env` is absent.
-const DEV = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
 
 // The wrapper owns the media query; the engine only sees the answer. The
 // composable starts the query in its own `onMounted`, registered before the
