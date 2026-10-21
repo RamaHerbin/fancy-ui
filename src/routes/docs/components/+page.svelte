@@ -2,13 +2,7 @@
 	import { onMount } from "svelte";
 	import { replaceState } from "$app/navigation";
 	import { page } from "$app/state";
-	import {
-		categories,
-		getComponentsGroupedByCategory,
-		getAllComponents,
-		getStats,
-		matchesQuery,
-	} from "$lib/fancy-ui/registry.js";
+	import { categories, getListedComponents, matchesQuery } from "$lib/fancy-ui/registry.js";
 	import ComponentCard from "$lib/components/docs/ComponentCard.svelte";
 	import JobsBrowse from "$lib/components/docs/JobsBrowse.svelte";
 	import Seo from "$lib/components/Seo.svelte";
@@ -16,13 +10,16 @@
 	import { SITE_DESCRIPTION, SITE_URL } from "$lib/site.js";
 	import { t, tCategory, docTitle } from "$lib/stores";
 	import type { MessageKey } from "$lib/i18n/messages/en.js";
-	import type { ComponentCategory } from "$lib/types.js";
+	import type { ComponentCategory, ComponentMeta } from "$lib/types.js";
 
 	type Group = "all" | "core" | "fancy";
 
-	const grouped = getComponentsGroupedByCategory();
-	const allComponents = getAllComponents();
-	const stats = getStats();
+	// Deprecated aliases are not part of the gallery.
+	const allComponents = getListedComponents();
+	const grouped = Object.fromEntries(
+		categories.map((c) => [c, allComponents.filter((comp) => comp.category === c)])
+	) as Record<ComponentCategory, ComponentMeta[]>;
+	const stats = { done: allComponents.filter((c) => c.status === "done").length };
 
 	// Only categories that actually contain components (empty Core categories
 	// exist in the union until their phase lands).

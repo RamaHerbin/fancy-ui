@@ -1,5 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { hasSoundProp, registry } from "./registry.js";
+import { getAllComponents, getListedComponents, hasSoundProp, registry } from "./registry.js";
+
+describe("getListedComponents", () => {
+	it("returns every registry entry that is not deprecated", () => {
+		expect(getListedComponents().length).toBe(
+			getAllComponents().filter((c) => !c.deprecated).length
+		);
+	});
+
+	it("excludes a deprecated entry and keeps the rest", () => {
+		registry["zz-stub-deprecated"] = {
+			name: "StubDeprecated",
+			slug: "zz-stub-deprecated",
+			description: "stub",
+			category: "buttons",
+			group: "core",
+			status: "done",
+			deprecated: true,
+		};
+		try {
+			const slugs = getListedComponents().map((c) => c.slug);
+			expect(slugs).not.toContain("zz-stub-deprecated");
+			expect(slugs).toContain("button");
+		} finally {
+			delete registry["zz-stub-deprecated"];
+		}
+	});
+});
 
 describe("hasSoundProp", () => {
 	it("is true for a component whose props table documents `sound`", () => {

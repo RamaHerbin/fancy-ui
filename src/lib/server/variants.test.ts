@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getAllComponents } from "$lib/fancy-ui/registry.js";
 import { copySourceFor } from "./copy-availability.js";
 import { copyCommandFor } from "./registry/constants.js";
+import { sourceTreeUrl } from "$lib/site.js";
 import { frameworksFor, variantFor, variantsFor, variantsForAll } from "./variants.js";
 
 describe("framework variants", () => {
@@ -65,6 +66,13 @@ describe("framework variants", () => {
 		expect(vue.copyImportLine).toMatch(/ from "@\/components\/ui\/fancy\/sound";$/);
 		expect(react.sourceUrl).toMatch(/\/react\/src\/sound$/);
 		expect(vue.sourceUrl).toMatch(/\/vue\/src\/sound$/);
+	});
+
+	it("links every framework's source on the develop branch", () => {
+		const [svelte, react, vue] = variantsFor("pulse-beam");
+		expect(svelte.sourceUrl).toBe(sourceTreeUrl("src/lib/fancy-ui/pulse-beam"));
+		expect(react.sourceUrl).toMatch(/\/tree\/develop\/react\/src\/.*pulse-beam$/);
+		expect(vue.sourceUrl).toMatch(/\/tree\/develop\/vue\/src\/.*pulse-beam$/);
 	});
 
 	it("installs Vue like the other two now that the package is on npm", () => {
