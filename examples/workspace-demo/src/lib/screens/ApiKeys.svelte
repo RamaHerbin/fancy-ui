@@ -1,10 +1,12 @@
 <script lang="ts" module>
+	import { UNDO_WINDOW_MS as WINDOW } from "./undo.js";
+
 	/** How long a revoked key can still be brought back, in milliseconds. */
-	export const UNDO_WINDOW_MS = 6000;
+	export const UNDO_WINDOW_MS = WINDOW;
 </script>
 
 <script lang="ts">
-	import { onDestroy, onMount, tick } from "svelte";
+	import { onDestroy, tick } from "svelte";
 	import {
 		Button,
 		Checkbox,
@@ -32,6 +34,7 @@
 	import { copy } from "./copy.js";
 	import { formatDate, formatRelative } from "./format.js";
 	import { createLoader } from "./load.svelte.js";
+	import { undoable } from "./undo.js";
 
 	let { api = sharedApi }: { api?: WorkspaceApi } = $props();
 	const text = copy.apiKeys;
@@ -122,89 +125,22 @@
 	}
 
 	// Revoking is optimistic and reversible for a few seconds: the row leaves
-	// at once, the call is only made when the window closes without an Undo.
-	// The window is ours, not the toast's: the toast stays until we close it,
-	// and the countdown stops while the pointer or focus is on that toast, so
-	// nobody loses the chance to press Undo to the clock.
-	interface Pending {
-		key: ApiKey;
-		toastId: string;
-		timer: ReturnType<typeof setTimeout> | undefined;
-		remaining: number;
-		startedAt: number | null;
-		hovering: boolean;
-		focused: boolean;
-	}
-	const pending = new Map<string, Pending>();
+	// at once, and the call is only made once the undo toast closes without
+	// an Undo (see ./undo.ts). The countdown is the toast's own, so it stops
+	// while the pointer or focus is on the toast and nobody loses the chance
+	// to press Undo to the clock.
+	const pending = new Map<string, string>();
+	let leaving = false;
 
-	function arm(entry: Pending) {
-		entry.startedAt = Date.now();
-		entry.timer = setTimeout(() => void commit(entry.key, true), entry.remaining);
-	}
-
-	function hold(entry: Pending) {
-		if (entry.startedAt === null) return;
-		clearTimeout(entry.timer);
-		entry.remaining -= Date.now() - entry.startedAt;
-		entry.startedAt = null;
-	}
-
-	function sync(entry: Pending) {
-		if (entry.hovering || entry.focused) hold(entry);
-		else if (entry.startedAt === null) arm(entry);
-	}
-
-	// Which pending revoke a toast belongs to, read from the toast's own text.
-	function entryOf(target: EventTarget | null): Pending | undefined {
-		const toastEl = target instanceof Element ? target.closest(".ft-toast") : null;
-		if (!toastEl) return undefined;
-		let found: Pending | undefined;
-		for (const entry of pending.values()) {
-			if (!toastEl.textContent?.includes(`${text.revoked} ${entry.key.name}`)) continue;
-			if (!found || entry.key.name.length > found.key.name.length) found = entry;
-		}
-		return found;
-	}
-
-	function track(flag: "hovering" | "focused", on: boolean) {
-		return (event: Event) => {
-			const entry = entryOf(event.target);
-			if (!entry) return;
-			const to = (event as PointerEvent | FocusEvent).relatedTarget;
-			// Moving between two parts of the same toast is not leaving it.
-			if (!on && to instanceof Node && (event.target as Element).closest(".ft-toast")?.contains(to))
-				return;
-			entry[flag] = on;
-			sync(entry);
-		};
-	}
-
-	onMount(() => {
-		const handlers: [string, (event: Event) => void][] = [
-			["pointerover", track("hovering", true)],
-			["pointerout", track("hovering", false)],
-			["focusin", track("focused", true)],
-			["focusout", track("focused", false)],
-		];
-		for (const [type, handler] of handlers) document.addEventListener(type, handler);
-		return () => {
-			for (const [type, handler] of handlers) document.removeEventListener(type, handler);
-		};
-	});
-
-	async function commit(key: ApiKey, notify: boolean) {
-		const entry = pending.get(key.id);
-		if (entry) {
-			clearTimeout(entry.timer);
-			dismissToast(entry.toastId);
-			pending.delete(key.id);
-		}
+	async function commit(key: ApiKey) {
+		pending.delete(key.id);
 		try {
 			await api.revokeApiKey(key.id);
 		} catch (error) {
 			if (error instanceof ApiError && error.code === "not_found") return;
 			removed = removed.filter((id) => id !== key.id);
-			if (notify) {
+			// Off screen there is nobody to tell and no row to put back.
+			if (!leaving) {
 				toast({
 					title: `${text.revokeFailed} ${key.name}`,
 					description: text.revokeFailedBody,
@@ -218,23 +154,14 @@
 		const before = keys;
 		const index = before.findIndex((k) => k.id === key.id);
 		removed = [...removed, key.id];
-		const toastId = toast({
+		const toastId = undoable({
 			title: `${text.revoked} ${key.name}`,
 			description: text.revokedBody,
-			duration: Infinity,
-			action: { label: text.undo, onClick: () => undo(key.id) },
+			undoLabel: text.undo,
+			onUndo: () => undo(key.id),
+			onCommit: () => void commit(key),
 		});
-		const entry: Pending = {
-			key,
-			toastId,
-			timer: undefined,
-			remaining: UNDO_WINDOW_MS,
-			startedAt: null,
-			hovering: false,
-			focused: false,
-		};
-		pending.set(key.id, entry);
-		arm(entry);
+		pending.set(key.id, toastId);
 		// The row that held focus is gone: hand it to its neighbour, or to the
 		// way of making a key when none is left.
 		const next = before[index + 1] ?? before[index - 1];
@@ -244,18 +171,16 @@
 	}
 
 	function undo(id: string) {
-		const entry = pending.get(id);
-		if (!entry) return;
-		clearTimeout(entry.timer);
-		pending.delete(id);
-		dismissToast(entry.toastId);
+		if (!pending.delete(id)) return;
 		removed = removed.filter((removedId) => removedId !== id);
 		void focusAfterUpdate(rowButton(id));
 	}
 
-	// Leaving the screen is not an undo: what was revoked stays revoked.
+	// Leaving the screen is not an undo: closing its toasts commits what was
+	// revoked here.
 	onDestroy(() => {
-		for (const entry of [...pending.values()]) void commit(entry.key, false);
+		leaving = true;
+		for (const toastId of [...pending.values()]) dismissToast(toastId);
 	});
 </script>
 

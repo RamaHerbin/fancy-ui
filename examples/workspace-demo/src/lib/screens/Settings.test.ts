@@ -1,7 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ScreenHarness from "$lib/test/ScreenHarness.svelte";
-import { expectToast, makeApi, screenRoot, waitForState } from "$lib/test/screen-kit.js";
+import {
+	expectToast,
+	makeApi,
+	makeGatedApi,
+	morphState,
+	screenRoot,
+	waitForState,
+} from "$lib/test/screen-kit.js";
 import { clearToasts } from "$lib/test/toast-tracker.js";
 import Settings from "./Settings.svelte";
 
@@ -100,5 +107,51 @@ describe("Settings screen editing", () => {
 		expect(screen.getByRole("textbox", { name: "Workspace name" })).toHaveValue("Orbit");
 		api.configure({ failure: "never" });
 		expect((await api.getSettings()).workspaceName).toBe("Orbit Atelier");
+	});
+});
+
+describe("Settings screen save and publish", () => {
+	it("shows the save in flight on the button and confirms only once it resolved", async () => {
+		const gated = makeGatedApi();
+		mount(gated.api);
+		await waitForState("settings", "ready");
+		await fireEvent.input(screen.getByRole("textbox", { name: "Workspace name" }), {
+			target: { value: "Orbit" },
+		});
+		const save = screen.getByRole("button", { name: "Save settings" });
+		expect(morphState(save)).toBe("idle");
+
+		gated.hold();
+		await fireEvent.click(save);
+		await waitFor(() => expect(morphState(save)).toBe("loading"));
+		expect(save).toHaveAttribute("aria-busy", "true");
+		// Pressing again while the first save is in flight sends nothing more.
+		await fireEvent.click(save);
+		expect(screen.queryByText("Settings saved")).toBeNull();
+
+		gated.release();
+		await waitFor(() => expect(morphState(save)).toBe("success"));
+		await expectToast("Settings saved");
+		expect((await gated.api.getSettings()).workspaceName).toBe("Orbit");
+	});
+
+	it("a failed save marks the button, keeps the edits and offers Retry in the toast", async () => {
+		const api = makeApi();
+		mount(api);
+		await waitForState("settings", "ready");
+		await fireEvent.input(screen.getByRole("textbox", { name: "Workspace name" }), {
+			target: { value: "Orbit" },
+		});
+		api.configure({ failure: "once" });
+		const save = screen.getByRole("button", { name: "Save settings" });
+		await fireEvent.click(save);
+		await expectToast("Couldn’t save your settings");
+		await waitFor(() => expect(morphState(save)).toBe("error"));
+
+		await fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+		await waitFor(() => expect(morphState(save)).toBe("success"));
+		await waitFor(() => expect(screen.queryByRole("button", { name: "Retry" })).toBeNull());
+		api.configure({ failure: "never" });
+		expect((await api.getSettings()).workspaceName).toBe("Orbit");
 	});
 });

@@ -16,6 +16,9 @@ export const copy = {
 		saved: "Profile saved",
 		saveFailed: "Couldn’t save your profile",
 		saveFailedBody: "Your edits are still in the form. Try again.",
+		// Announced by the save button's status mark. A failure is announced by
+		// its toast, so the mark stays quiet then.
+		status: { loading: "Saving your profile", success: "Profile saved", error: "" },
 		emptyTitle: "Finish your profile",
 		emptyBody:
 			"Add a handle, a short bio and where you are so teammates know who they are talking to.",
@@ -42,6 +45,7 @@ export const copy = {
 		saved: "Settings saved",
 		saveFailed: "Couldn’t save your settings",
 		saveFailedBody: "Your edits are still on screen. Try again.",
+		status: { loading: "Saving your settings", success: "Settings saved", error: "" },
 		emptyTitle: "Set up your workspace",
 		emptyBody: "Name it and pick your defaults. You can change everything later.",
 		emptyAction: "Start with the basics",
@@ -74,11 +78,12 @@ export const copy = {
 	notifications: {
 		unread: "Unread",
 		allCaughtUp: "All caught up",
+		listLabel: "Notifications",
 		markAllRead: "Mark all as read",
+		clearRead: "Clear read",
 		markRead: "Mark as read",
 		markUnread: "Mark as unread",
 		undo: "Undo",
-		markedAllRead: "Marked as read",
 		updateFailed: "Couldn’t update your notifications",
 		updateFailedBody: "Nothing changed. Try again.",
 		emptyTitle: "No notifications yet",
@@ -88,4 +93,16 @@ export const copy = {
 
 export function unreadLabel(count: number): string {
 	return `${count} unread`;
+}
+
+const plural = (count: number, one: string, many: string) => (count === 1 ? one : many);
+
+/** Title of the grouped undo after "Mark all as read". */
+export function markedReadLabel(count: number): string {
+	return `Marked ${count} ${plural(count, "notification", "notifications")} as read`;
+}
+
+/** Title of the grouped undo after "Clear read". */
+export function clearedLabel(count: number): string {
+	return `Cleared ${count} ${plural(count, "notification", "notifications")}`;
 }

@@ -1,6 +1,17 @@
 <script lang="ts">
-	import { tick } from "svelte";
-	import { Button, FormField, Input, Select, Skeleton, Textarea, toast } from "fancy-ui-svelte";
+	import { onDestroy, tick } from "svelte";
+	import {
+		Button,
+		FormField,
+		Input,
+		Select,
+		Skeleton,
+		StatusMorph,
+		Textarea,
+		dismissToast,
+		toast,
+		type StatusMorphProps,
+	} from "fancy-ui-svelte";
 	import { ApiError, api as sharedApi, type Profile, type WorkspaceApi } from "$lib/data/api.js";
 	import { strings } from "$lib/strings.js";
 	import Avatar from "$lib/local/Avatar.svelte";
@@ -12,6 +23,8 @@
 	import { copy } from "./copy.js";
 	import { formatDate } from "./format.js";
 	import { createLoader } from "./load.svelte.js";
+
+	type SaveStatus = NonNullable<StatusMorphProps["state"]>;
 
 	let { api = sharedApi }: { api?: WorkspaceApi } = $props();
 	const text = copy.profile;
@@ -74,27 +87,53 @@
 		loader.state.status === "ready" || loader.state.status === "empty" ? loader.state.data : null
 	);
 
-	async function save(event: SubmitEvent) {
-		event.preventDefault();
+	// Save and publish: the button carries the request's state (a ring while it
+	// runs, a check only once the service answered, a cross when it did not),
+	// and a failure offers Retry from its toast.
+	let status = $state<SaveStatus>("idle");
+	let failureToast: string | undefined;
+
+	function closeFailure() {
+		if (failureToast) dismissToast(failureToast);
+		failureToast = undefined;
+	}
+
+	async function save(event?: SubmitEvent) {
+		event?.preventDefault();
 		if (saving || !dirty) return;
 		saving = true;
+		status = "loading";
 		fieldErrors = {};
+		closeFailure();
 		try {
 			const saved = await api.updateProfile({ ...form });
 			loadedFor = saved;
 			load(saved);
 			loader.set(saved);
-			toast({ title: text.saved, variant: "success" });
+			// The check on the button, announced as "Profile saved", is the
+			// confirmation: a toast on top would say it twice.
+			status = "success";
 		} catch (error) {
 			if (error instanceof ApiError && error.code === "invalid" && error.field) {
+				// Not a failed save: the answer is next to the field.
+				status = "idle";
 				fieldErrors = { [error.field]: error.message };
 			} else {
-				toast({ title: text.saveFailed, description: text.saveFailedBody, variant: "error" });
+				status = "error";
+				failureToast = toast({
+					title: text.saveFailed,
+					description: text.saveFailedBody,
+					variant: "error",
+					action: { label: strings.actions.retry, onClick: () => void save() },
+				});
 			}
 		} finally {
 			saving = false;
 		}
 	}
+
+	// Taking the screen away also takes its Retry away.
+	onDestroy(closeFailure);
 </script>
 
 <div
@@ -174,7 +213,12 @@
 							</FormField>
 						</div>
 						<div class="flex justify-end">
-							<Button type="submit" loading={saving} disabled={!dirty}>{text.save}</Button>
+							<Button type="submit" aria-busy={saving} disabled={!dirty && status !== "success"}>
+								{text.save}
+								{#snippet iconEnd()}
+									<StatusMorph bind:state={status} labels={text.status} />
+								{/snippet}
+							</Button>
 						</div>
 					</form>
 				</Card>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick } from "svelte";
+	import { onDestroy, tick } from "svelte";
 	import {
 		Accordion,
 		AccordionContent,
@@ -10,8 +10,11 @@
 		Input,
 		Select,
 		Skeleton,
+		StatusMorph,
 		Switch,
+		dismissToast,
 		toast,
+		type StatusMorphProps,
 	} from "fancy-ui-svelte";
 	import { api as sharedApi, type Settings, type WorkspaceApi } from "$lib/data/api.js";
 	import { strings } from "$lib/strings.js";
@@ -92,23 +95,44 @@
 		},
 	};
 
-	async function save(event: SubmitEvent) {
-		event.preventDefault();
+	// Save and publish, as on the profile: the button carries the request's
+	// state, success only once the service answered, Retry from the failure
+	// toast.
+	let status = $state<NonNullable<StatusMorphProps["state"]>>("idle");
+	let failureToast: string | undefined;
+
+	function closeFailure() {
+		if (failureToast) dismissToast(failureToast);
+		failureToast = undefined;
+	}
+
+	async function save(event?: SubmitEvent) {
+		event?.preventDefault();
 		if (saving || !dirty || !form) return;
 		saving = true;
+		status = "loading";
+		closeFailure();
 		try {
 			const saved = await api.saveSettings({ ...form });
 			loadedFor = saved;
 			form = { ...saved };
 			baseline = { ...saved };
 			loader.set(saved);
-			toast({ title: text.saved, variant: "success" });
+			status = "success";
 		} catch {
-			toast({ title: text.saveFailed, description: text.saveFailedBody, variant: "error" });
+			status = "error";
+			failureToast = toast({
+				title: text.saveFailed,
+				description: text.saveFailedBody,
+				variant: "error",
+				action: { label: strings.actions.retry, onClick: () => void save() },
+			});
 		} finally {
 			saving = false;
 		}
 	}
+
+	onDestroy(closeFailure);
 </script>
 
 <div
@@ -202,7 +226,12 @@
 			</Accordion>
 
 			<div class="flex justify-end">
-				<Button type="submit" loading={saving} disabled={!dirty}>{text.save}</Button>
+				<Button type="submit" aria-busy={saving} disabled={!dirty && status !== "success"}>
+					{text.save}
+					{#snippet iconEnd()}
+						<StatusMorph bind:state={status} labels={text.status} />
+					{/snippet}
+				</Button>
 			</div>
 		</form>
 	{/if}

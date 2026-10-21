@@ -2,9 +2,9 @@
 
 A small account-settings app built only with `fancy-ui-svelte`: profile, settings, API keys and notifications. It is a consumer of the package, not part of the docs site: it imports `fancy-ui-svelte` and `fancy-ui-svelte/tailwind.css` (any other subpath must be one the package's `exports` map declares, such as `cameleon`), never the library's source, `_internals` or the docs site's components. `src/imports.test.ts` fails on anything else.
 
-Started from `develop` at `17b783152cc3de03a5bb3fd852c3cb4961a2b0e1`.
+Started from `develop` at `17b783152cc3de03a5bb3fd852c3cb4961a2b0e1`, with the screens (`86eeebe4`) and the toast close reasons, progress bar and recipes (`eab29366`) merged on top.
 
-**Status: shell and data contract only.** This stage ships the shell, the routes, the in-memory API and its tests. Each route still renders a placeholder outline of its sections; the screens themselves, with their loading, empty, error and ready states, are planned for the next stages, which build them against the contract below and then compose them into these routes. The screen map and journeys describe that target.
+**Status: composed.** Every route renders its screen, each screen has its loading, empty, error and ready states, Profile and Settings save through the save-and-publish pattern, and API keys and Notifications undo through one shared undo pattern. The journeys below are what `tests/e2e/workspace-demo.spec.ts` walks through.
 
 ## Running it
 
@@ -15,7 +15,7 @@ pnpm install
 pnpm package                                  # builds fancy-ui-svelte into dist/
 pnpm -C examples/workspace-demo dev           # http://localhost:5295
 pnpm -C examples/workspace-demo check         # svelte-check
-pnpm -C examples/workspace-demo test          # unit tests (data layer, import boundary, switch timing)
+pnpm -C examples/workspace-demo test          # unit tests (data layer, screens, undo, routes, import boundary)
 pnpm -C examples/workspace-demo build         # static site in examples/workspace-demo/build
 pnpm exec playwright test -c examples/workspace-demo/playwright.config.ts   # browser spec, on the preview at 5295
 ```
@@ -40,12 +40,19 @@ The shell around them:
 - **Theme**: the toggle puts `dark` or `light` on `<html>` and remembers it in `localStorage`; an inline script in `app.html` applies it before the first paint. With nothing stored, the system preference decides.
 - A skip link, one `main` landmark per page, a document title per screen (`Profile · Workspace demo`), and a toaster mounted once in the layout.
 
-Journeys the screens are to show once composed (planned; the switches below already drive the API):
+## Journeys
 
-1. **First launch**: `?scenario=empty`. A profile with only a name and email, no keys, no notifications. Each screen shows its empty state with the one action that fills it.
-2. **Loading**: every call waits a seeded delay; screens show skeletons shaped like their content. `?latency=slow` makes it obvious.
-3. **Error and retry**: `?fail=once` fails the first call of each operation, so the error state appears and "Try again" succeeds. `?fail=always` keeps the error state.
-4. **Mobile**: the same journeys at 360 px, navigation through the sheet.
+Each one is a URL; the switches are described below.
+
+1. **First launch**: `/profile?scenario=empty`. A profile with only a name and email, no keys, no notifications. Each screen shows its empty state with the one action that fills it ("Add details" opens the form and puts focus in it).
+2. **Loading**: every call waits a seeded delay; screens show skeletons shaped like their content and mark themselves `aria-busy`. `?latency=slow` makes it obvious.
+3. **Error and retry**: `?fail=once` fails the first call of each operation, so the error state appears (an alert) and "Try again" succeeds. `?fail=always` keeps the error state.
+4. **Save and publish** (Profile, Settings): `/settings?fail=once&latency=fast`. Press "Try again", change a field, save. The save button carries the request: a ring while it runs, a check only once the service has answered, a cross when it has not. The first save fails here, so a toast says so, keeps the edits on screen and offers Retry; Retry saves, and the check appears. A field the service refuses (an empty name) is not a failed save: the message sits under the field and there is no Retry.
+5. **Undo** (API keys, Notifications): `/api-keys`. Revoke a key: the row leaves at once and a toast counts down six seconds with a draining bar. Nothing is sent yet. Undo puts the row back (and focus on it). Pointer or focus on the toast pauses the countdown, and leaving resumes it with the time it had left. When the toast closes for any other reason (it runs out, it is dismissed, newer toasts push it out of the stack, or you leave the screen) the revoke is sent. Two quick revokes are two independent undos. On `/notifications`, "Mark all as read" and "Clear read" are grouped: the whole batch changes at once, with one toast to undo it. A notification marked unread again during the window keeps that choice.
+6. **Keyboard**: the skip link moves focus to the main content; the Settings sections are a disclosure group (Arrow keys between headers, Enter or Space to open); switches toggle with Space; a revoked row hands focus to its neighbour; Tab reaches the undo toast, which holds the countdown while it has focus.
+7. **Reduced motion**: the undo bar stays full and still, sections open without a height transition, toasts appear without sliding.
+8. **Mobile**: the same journeys at 360 px, navigation through the sheet, toasts inside the viewport, nothing scrolling sideways in any state.
+9. **Light and dark**: the theme toggle in the top bar, or the system preference.
 
 ## Simulation switches
 
@@ -83,9 +90,9 @@ Rules the screens can rely on:
 - A failed write changes nothing. A successful one is visible to the next read.
 - Every result is a copy, and inputs are copied too, so passing reactive component state is safe.
 - `settle(request, isEmpty)` folds a call into a `LoadState` (`loading` is the screen's own initial value, then `empty`, `error` or `ready`).
-- Undo follows one pattern: remove or change optimistically in the screen, show a toast with an Undo action, and call the API (`revokeApiKey`, `setNotificationsRead`, `archiveNotifications`) only once the toast closes without an undo.
+- Undo follows one pattern (`src/lib/screens/undo.ts`): remove or change optimistically in the screen, show a toast with an Undo action (`duration: 6000`, `progress: true`), and call the API (`revokeApiKey`, `setNotificationsRead`, `archiveNotifications`) from the toast's `onClose` for any reason but `"action"`.
 
-Interface copy lives in `src/lib/strings.ts`; mock content is data and stays in English.
+Interface copy lives in `src/lib/strings.ts` (the shell) and `src/lib/screens/copy.ts` (the screens); mock content is data and stays in English.
 
 ## Layout of the app
 
@@ -94,7 +101,10 @@ src/
   app.html, app.css          theme script, Tailwind and the package's tailwind.css
   routes/                    shell layout, one route per screen, / redirect
   routes/layout.test.ts      the switches reach a screen's first call
-  lib/shell/                 navigation, theme toggle, screen header, placeholder outline
+  routes/routes.test.ts      each route is its screen, on the shared API
+  lib/shell/                 navigation, theme toggle, screen header
+  lib/screens/               the four screens, their copy, the loader and the undo pattern
+  lib/local/                 avatar, badge, card, empty and error states local to the app
   lib/data/                  mock data, API, their tests
   lib/test/                  test doubles: the layout around a probe screen
   lib/strings.ts             interface copy

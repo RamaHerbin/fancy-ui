@@ -57,6 +57,10 @@ export const strings = {
 	units: {
 		unread: "unread",
 	},
+	actions: {
+		undo: "Undo",
+		retry: "Retry",
+	},
 } as const;
 
 export function documentTitle(screen: ScreenId): string {

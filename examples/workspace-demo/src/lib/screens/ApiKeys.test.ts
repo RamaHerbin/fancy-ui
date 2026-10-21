@@ -1,7 +1,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { toast } from "fancy-ui-svelte";
 import ScreenHarness from "$lib/test/ScreenHarness.svelte";
-import { expectToast, makeApi, screenRoot, waitForState } from "$lib/test/screen-kit.js";
+import { expectToast, makeApi, screenRoot, toastOf, waitForState } from "$lib/test/screen-kit.js";
 import { clearToasts } from "$lib/test/toast-tracker.js";
 import ApiKeys, { UNDO_WINDOW_MS } from "./ApiKeys.svelte";
 
@@ -17,7 +18,6 @@ afterEach(() => {
 
 const mount = (api: ReturnType<typeof makeApi>) => render(ScreenHarness, { screen: ApiKeys, api });
 
-const toastOf = (button: HTMLElement) => button.closest<HTMLElement>(".ft-toast") as HTMLElement;
 const focusedName = () =>
 	(document.activeElement as HTMLElement | null)?.getAttribute("aria-label");
 
@@ -148,14 +148,62 @@ describe("ApiKeys screen undo window", () => {
 		await fireEvent.click(screen.getByRole("button", { name: "Revoke Production deploys" }));
 		const undo = await screen.findByRole("button", { name: "Undo" });
 		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS - 100);
-		await fireEvent.pointerOver(toastOf(undo));
+		await fireEvent.pointerEnter(toastOf(undo));
 		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS * 2);
 		expect(await api.listApiKeys()).toHaveLength(3);
-		await fireEvent.pointerOut(toastOf(undo));
+		await fireEvent.pointerLeave(toastOf(undo));
 		await fireEvent.click(undo);
 		expect(screen.getAllByRole("listitem")).toHaveLength(3);
 		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS * 2);
 		expect(await api.listApiKeys()).toHaveLength(3);
+	});
+
+	it("is the toast's own countdown: a draining bar, paused while hovered", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		mount(makeApi());
+		await waitForState("api-keys", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Revoke Production deploys" }));
+		const panel = toastOf(await screen.findByRole("button", { name: "Undo" }));
+		const bar = panel.querySelector<HTMLElement>(".ft-toast-progress");
+		expect(bar).not.toBeNull();
+		expect(bar?.style.getPropertyValue("--toast-duration")).toBe(`${UNDO_WINDOW_MS}ms`);
+		expect(bar?.dataset.paused).toBe("false");
+		await fireEvent.pointerEnter(panel);
+		expect(bar?.dataset.paused).toBe("true");
+		await fireEvent.pointerLeave(panel);
+		expect(bar?.dataset.paused).toBe("false");
+	});
+
+	it("hovered at 5.9 s then left, the window still has its last 0.1 s", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: false });
+		const api = makeApi();
+		mount(api);
+		await vi.waitFor(() => expect(screenRoot("api-keys").dataset.state).toBe("ready"));
+		await fireEvent.click(screen.getByRole("button", { name: "Revoke Production deploys" }));
+		const undo = screen.getByRole("button", { name: "Undo" });
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS - 100);
+		await fireEvent.pointerEnter(toastOf(undo));
+		await vi.advanceTimersByTimeAsync(2000);
+		await fireEvent.pointerLeave(toastOf(undo));
+		await vi.advanceTimersByTimeAsync(60);
+		expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
+		await fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS * 2);
+		expect(await api.listApiKeys()).toHaveLength(3);
+	});
+
+	it("a revoke pushed out of a full toast stack is committed, not lost", async () => {
+		const api = makeApi();
+		mount(api);
+		await waitForState("api-keys", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Revoke Production deploys" }));
+		await screen.findByRole("button", { name: "Undo" });
+		for (let i = 0; i < 4; i++) toast({ title: `Other news ${i}` });
+		await waitFor(() => expect(screen.queryByRole("button", { name: "Undo" })).toBeNull());
+		await waitFor(async () =>
+			expect((await api.listApiKeys()).map((key) => key.name)).not.toContain("Production deploys")
+		);
+		expect(screen.getAllByRole("listitem")).toHaveLength(2);
 	});
 
 	it("keeps the window open while focus is on the toast, then commits and clears it", async () => {

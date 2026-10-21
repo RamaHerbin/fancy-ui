@@ -1,7 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ScreenHarness from "$lib/test/ScreenHarness.svelte";
-import { expectToast, makeApi, screenRoot, waitForState } from "$lib/test/screen-kit.js";
+import {
+	expectToast,
+	makeApi,
+	makeGatedApi,
+	morphState,
+	screenRoot,
+	waitForState,
+} from "$lib/test/screen-kit.js";
 import { clearToasts } from "$lib/test/toast-tracker.js";
 import Profile from "./Profile.svelte";
 
@@ -104,5 +111,65 @@ describe("Profile screen editing", () => {
 		await expectToast("Couldn’t save your profile");
 		expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Maya O.");
 		expect(screenRoot("profile").dataset.state).toBe("ready");
+	});
+});
+
+describe("Profile screen save and publish", () => {
+	it("shows the save in flight on the button and confirms only once it resolved", async () => {
+		const gated = makeGatedApi();
+		mount(gated.api);
+		await waitForState("profile", "ready");
+		await fireEvent.input(screen.getByRole("textbox", { name: "Name" }), {
+			target: { value: "Maya O." },
+		});
+		const save = screen.getByRole("button", { name: "Save changes" });
+		expect(morphState(save)).toBe("idle");
+
+		gated.hold();
+		await fireEvent.click(save);
+		await waitFor(() => expect(morphState(save)).toBe("loading"));
+		expect(save).toHaveAttribute("aria-busy", "true");
+		expect(screen.queryByText("Profile saved")).toBeNull();
+
+		gated.release();
+		await waitFor(() => expect(morphState(save)).toBe("success"));
+		await expectToast("Profile saved");
+		expect((await gated.api.getProfile()).name).toBe("Maya O.");
+	});
+
+	it("a failed save marks the button, keeps the edits and offers Retry in the toast", async () => {
+		const api = makeApi();
+		mount(api);
+		await waitForState("profile", "ready");
+		await fireEvent.input(screen.getByRole("textbox", { name: "Name" }), {
+			target: { value: "Maya O." },
+		});
+		api.configure({ failure: "once" });
+		const save = screen.getByRole("button", { name: "Save changes" });
+		await fireEvent.click(save);
+		await expectToast("Couldn’t save your profile");
+		await waitFor(() => expect(morphState(save)).toBe("error"));
+		expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("Maya O.");
+
+		await fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+		await waitFor(() => expect(morphState(save)).toBe("success"));
+		await waitFor(() => expect(screen.queryByRole("button", { name: "Retry" })).toBeNull());
+		api.configure({ failure: "never" });
+		expect((await api.getProfile()).name).toBe("Maya O.");
+	});
+
+	it("a refused field is not a failed save: no Retry, the message sits by the field", async () => {
+		mount(makeApi());
+		await waitForState("profile", "ready");
+		await fireEvent.input(screen.getByRole("textbox", { name: "Name" }), {
+			target: { value: " " },
+		});
+		const save = screen.getByRole("button", { name: "Save changes" });
+		await fireEvent.click(save);
+		await waitFor(() =>
+			expect(screen.getByRole("textbox", { name: "Name" })).toHaveAttribute("aria-invalid", "true")
+		);
+		expect(morphState(save)).toBe("idle");
+		expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
 	});
 });

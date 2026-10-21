@@ -1,8 +1,9 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ScreenHarness from "$lib/test/ScreenHarness.svelte";
-import { expectToast, makeApi, screenRoot, waitForState } from "$lib/test/screen-kit.js";
+import { expectToast, makeApi, screenRoot, toastOf, waitForState } from "$lib/test/screen-kit.js";
 import { clearToasts } from "$lib/test/toast-tracker.js";
+import { UNDO_WINDOW_MS } from "./undo.js";
 import Notifications from "./Notifications.svelte";
 
 vi.mock("fancy-ui-svelte", async (original) =>
@@ -12,6 +13,7 @@ vi.mock("fancy-ui-svelte", async (original) =>
 afterEach(() => {
 	cleanup();
 	clearToasts();
+	vi.useRealTimers();
 });
 
 const mount = (api: ReturnType<typeof makeApi>) =>
@@ -72,7 +74,6 @@ describe("Notifications screen reading", () => {
 		await waitForState("notifications", "ready");
 		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
 		await expectToast("All caught up");
-		expect(await unread(api)).toBe(0);
 
 		await fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
 		await expectToast("3 unread");
@@ -80,12 +81,109 @@ describe("Notifications screen reading", () => {
 	});
 
 	it("leaves the list as it was and says so when the call fails", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
 		const api = makeApi();
 		mount(api);
 		await waitForState("notifications", "ready");
 		api.configure({ failure: "always" });
 		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS + 100);
 		await expectToast("Couldn’t update your notifications");
 		expect(screen.getByText("3 unread")).toBeInTheDocument();
+	});
+});
+
+describe("Notifications screen grouped undo", () => {
+	it("mark all read is optimistic: nothing is sent until the undo window closes", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		const api = makeApi();
+		mount(api);
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		expect(screen.getByText("All caught up")).toBeInTheDocument();
+		expect(await unread(api)).toBe(3);
+		const panel = toastOf(await screen.findByRole("button", { name: "Undo" }));
+		expect(panel.querySelector(".ft-toast-progress")).not.toBeNull();
+
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS + 100);
+		expect(await unread(api)).toBe(0);
+		await waitFor(() => expect(screen.queryByRole("button", { name: "Undo" })).toBeNull());
+	});
+
+	it("Undo restores the batch and never calls the service", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		const api = makeApi();
+		const spy = vi.spyOn(api, "setNotificationsRead");
+		mount(api);
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		await fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
+		expect(screen.getByText("3 unread")).toBeInTheDocument();
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS * 2);
+		expect(spy).not.toHaveBeenCalled();
+		expect(await unread(api)).toBe(3);
+	});
+
+	it("one marked unread again during the window stays unread after the batch commits", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		const api = makeApi();
+		mount(api);
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		await fireEvent.click(
+			screen.getByRole("button", { name: "Mark as unread: Theo mentioned you in Onboarding copy" })
+		);
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS + 100);
+		const theo = (await api.listNotifications()).find((n) => n.title.startsWith("Theo mentioned"));
+		expect(theo?.read).toBe(false);
+		expect(await unread(api)).toBe(1);
+		expect(screen.getByText("1 unread")).toBeInTheDocument();
+	});
+
+	it("clear read removes the read ones with one undo", async () => {
+		const api = makeApi();
+		mount(api);
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Clear read" }));
+		expect(screen.getAllByRole("listitem")).toHaveLength(3);
+		await expectToast("Cleared 3 notifications");
+		await fireEvent.click(await screen.findByRole("button", { name: "Undo" }));
+		expect(screen.getAllByRole("listitem")).toHaveLength(6);
+		expect(await api.listNotifications()).toHaveLength(6);
+	});
+
+	it("clear read is committed once the window closes", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		const api = makeApi();
+		mount(api);
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Clear read" }));
+		expect(await api.listNotifications()).toHaveLength(6);
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS + 100);
+		expect(await api.listNotifications()).toHaveLength(3);
+		expect(screen.queryByRole("button", { name: "Clear read" })).toBeNull();
+	});
+
+	it("a refused clear brings the notifications back and says so", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		const api = makeApi();
+		mount(api);
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Clear read" }));
+		api.configure({ failure: "always" });
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS + 100);
+		await expectToast("Couldn’t update your notifications");
+		expect(screen.getAllByRole("listitem")).toHaveLength(6);
+	});
+
+	it("leaving the screen commits what is pending", async () => {
+		const api = makeApi();
+		const view = mount(api);
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		await screen.findByRole("button", { name: "Undo" });
+		await view.rerender({ shown: false });
+		await waitFor(() => expect(screen.queryByRole("button", { name: "Undo" })).toBeNull());
+		await waitFor(async () => expect(await unread(api)).toBe(0));
 	});
 });
