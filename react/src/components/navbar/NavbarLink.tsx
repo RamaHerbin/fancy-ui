@@ -1,10 +1,13 @@
 import { forwardRef } from "react";
-import type { MouseEvent, ReactNode } from "react";
+import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import "./navbar-link.css";
 
-export interface NavbarLinkProps {
+export interface NavbarLinkProps extends Omit<
+	AnchorHTMLAttributes<HTMLAnchorElement>,
+	"className" | "href" | "children" | "onClick"
+> {
 	/** Destination URL. */
 	href: string;
 	/**
@@ -42,7 +45,17 @@ export interface NavbarLinkProps {
  */
 export const NavbarLink = forwardRef<HTMLAnchorElement, NavbarLinkProps>(
 	(
-		{ href, current = false, external = false, disabled = false, onClick, children, className, sound = false },
+		{
+			href,
+			current = false,
+			external = false,
+			disabled = false,
+			onClick,
+			children,
+			className,
+			sound = false,
+			...rest
+		},
 		ref
 	) => {
 		const playCue = useSoundCue(sound);
@@ -70,13 +83,14 @@ export const NavbarLink = forwardRef<HTMLAnchorElement, NavbarLinkProps>(
 
 		return (
 			<a
+				{...rest}
 				ref={ref}
 				href={disabled ? undefined : href}
-				target={external ? "_blank" : undefined}
-				rel={external ? "noopener noreferrer" : undefined}
-				aria-current={current ? "page" : undefined}
-				aria-disabled={disabled ? "true" : undefined}
-				tabIndex={disabled ? -1 : undefined}
+				target={external ? "_blank" : rest.target}
+				rel={external ? "noopener noreferrer" : rest.rel}
+				aria-current={current ? "page" : rest["aria-current"]}
+				aria-disabled={disabled ? "true" : rest["aria-disabled"]}
+				tabIndex={disabled ? -1 : rest.tabIndex}
 				className={classes}
 				onClick={handleClick}
 			>

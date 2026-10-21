@@ -31,8 +31,10 @@ Every component folder gets a matching export block in `react/src/index.ts`.
   (use `forwardRef`, not React-19-only ref-as-prop — the package supports 18).
   A component whose Svelte side exposes no ref gets none here either: the
   Svelte API surface is the contract, per-component.
-- Rest props spread onto the root element. Polymorphic components (RainbowButton
-  renders `<a>` when `href` is set) keep the same branch logic.
+- Rest props spread onto the component's primary native element (see "Native
+  attributes" below), which is the root only when the root is that element.
+  Polymorphic components (RainbowButton renders `<a>` when `href` is set) keep
+  the same branch logic.
 - `Snippet` props become `ReactNode` props; the default `children` snippet is
   React `children`.
 - Prop contracts are `interface`, never a `type` alias — including when the
@@ -44,6 +46,32 @@ Every component folder gets a matching export block in `react/src/index.ts`.
   `useState` initializer. Where the Svelte source randomises, take a seed
   prop and use a deterministic PRNG, and record it as a divergence in the
   README.
+
+## Native attributes
+
+Components that render a native element let consumers pass what they would put
+on it: `id`, `name`, `aria-*`, `data-*`, `autocomplete`, `onBlur`, `onKeyDown`.
+The Svelte package is the reference; open it first and this port follows.
+
+- **Target.** The rest spread lands on the primary native element: the
+  `<button>` / `<a>` of a button, the `<input>` / `<textarea>` of a field, the
+  focusable trigger of a choice control. `className` keeps its current target.
+- **Order.** Spread first, then everything the component needs for
+  correctness (`role`, computed `aria-*`, inert `tabIndex`, fixed `type`, id
+  links, controlled `value`), so consumers can add but not break. Where a
+  consumer value is legitimate and unmanaged, fall back to it
+  (`tabIndex={inert ? -1 : rest.tabIndex}`); never overwrite it with `undefined`.
+- **Handlers.** When the component handles the same event, pull `onClick` /
+  `onBlur` out of rest, run the internal logic, then call the consumer's once
+  with the same event. A guarded activation (disabled, loading, readonly)
+  calls neither.
+- **Descriptions.** A consumer `aria-describedby` is merged (space-joined) with
+  the component's own description or error id, not replaced.
+- **Types.** Extend `Omit<ComponentPropsWithoutRef<"el">, keyof Own>` with the
+  component's own props; intersect the sets FIRST when it is polymorphic.
+- **Tests.** Per component: `id`, `aria-describedby` and `data-testid` reach the
+  element, an unhandled listener fires once, a handled one fires once after the
+  internal logic, and invariants survive a consumer override.
 
 ## Rune → hook mapping
 

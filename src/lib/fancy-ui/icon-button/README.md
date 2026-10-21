@@ -173,6 +173,8 @@ A square or circular icon-only button, built on top of Button. `label` is requir
 | `ref`      | `HTMLButtonElement \| HTMLAnchorElement \| null`                                | `null`      | Bindable element reference                                                                                          |
 | `sound`    | `boolean`                                                                       | `false`     | Plays the `hover` cue when a mouse or pen enters and the `press` cue on activation, once the user has enabled sound |
 
+Every other attribute and listener (`id`, `aria-*`, `data-*`, `onfocus`, ...) is forwarded through `Button` to the rendered `<button>`, or to the `<a>` once `href` is set, with the same precedence rules as `Button`.
+
 ## Theming
 
 IconButton forwards `variant` straight to Button, so it follows the same tokens: `primary` / `secondary` / `outline` / `destructive` read the theme's own semantic colors, and `accent` reads the shared `--ft-accent` / `--ft-accent-foreground` custom properties (see the Button README for how to retint it). The focus ring and loading spinner are Button's own — nothing about them is reimplemented here.
