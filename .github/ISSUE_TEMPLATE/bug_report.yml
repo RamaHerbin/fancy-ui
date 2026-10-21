@@ -1,0 +1,92 @@
+name: Bug report
+description: Something is not working as expected
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. For questions and ideas, use [Discussions](https://github.com/RamaHerbin/fancy-ui/discussions) instead.
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      description: Which component is affected?
+      placeholder: BorderBeam, FluidCursor, Marquee
+    validations:
+      required: true
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      description: Which edition are you using?
+      options:
+        - Svelte
+        - React
+        - Vue
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The docs page where you saw the problem, if any.
+      placeholder: https://
+  - type: input
+    id: svelte-package
+    attributes:
+      label: Svelte package and version
+      description: Fill this in if you use the Svelte edition.
+      placeholder: fancy-ui-svelte x.y.z
+  - type: input
+    id: react-package
+    attributes:
+      label: React package and version
+      description: Fill this in if you use the React edition.
+      placeholder: fancy-ui-react x.y.z
+  - type: input
+    id: vue-package
+    attributes:
+      label: Vue package and version
+      description: Fill this in if you use the Vue edition.
+      placeholder: fancy-ui-vue x.y.z
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and operating system
+      placeholder: Browser name and version, operating system
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+  - type: input
+    id: reproduction
+    attributes:
+      label: Reproduction link
+      description: A minimal online sandbox or a repository that shows the problem.
+      placeholder: https://
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, error messages or logs.
