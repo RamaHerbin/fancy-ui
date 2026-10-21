@@ -1,6 +1,5 @@
 <script lang="ts">
-	// The documented subpath, outside SvelteKit. Built only with CONSUMER_CAMELEON=1
-	// (see vite.config.js and scripts/consumers/svelte-vite.sh).
+	// The documented subpath, in a plain Vite app: no SvelteKit module involved.
 	import { brutalSkin, Button, FancyProvider } from "fancy-ui-svelte/cameleon";
 </script>
 

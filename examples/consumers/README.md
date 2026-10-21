@@ -79,17 +79,14 @@ CONSUMER_APP_DIR=<scratch>/app CONSUMER_PORT=4391 \
 
 The smoke then fails in `expectPrimaryBackground`: `var(--primary)` resolves to `rgba(0, 0, 0, 0)` because the token is never defined. A build that drops the package's Tailwind entry is caught even though it compiles.
 
-## Known gap: Cameleon outside SvelteKit
+## Svelte apps: what they add
 
-`svelte-vite` also mounts `FancyProvider` from `fancy-ui-svelte/cameleon` with a skin. The section is swapped in at build time by an alias in `vite.config.js`, only when `CONSUMER_CAMELEON=1`, so the rest of the page builds and renders without it.
+`sveltekit` and `svelte-vite` run the shared assertions above plus the ones in `svelte-helpers.ts`:
 
-Today that build fails: `FancyProvider` imports `$app/environment`, a module only SvelteKit provides, and Rollup cannot resolve it in a plain Vite app. `scripts/consumers/svelte-vite.sh` therefore:
-
-1. builds with `CONSUMER_CAMELEON=1` first;
-2. if that fails, checks that the log names `$app/environment` (any other failure fails the run), then builds without the section;
-3. passes the outcome to the smoke as `CONSUMER_CAMELEON_BUILD` (`ok` or `needs-sveltekit`).
-
-The test `Cameleon FancyProvider mounts outside SvelteKit` is marked `test.fixme` unless the build succeeded, so the suite stays green and the report shows the gap as skipped. The fix is on branch `fix/cameleon-without-sveltekit`. Once it lands, the Cameleon build succeeds, the script serves that build, and the test runs for real; it has been checked to pass against a `FancyProvider` without the `$app/environment` import.
+- **Dark theme**: a toggle adds `.dark` to a wrapper element (no OS preference involved) and a `Button`'s background must follow the flipped `--primary`, then return when the class is removed.
+- **Events**: the consumer's `onclick` on `Button` and `onOpenChange` on `Dialog` run, with the `true` then `false` the component reports when opened with Enter and closed with Escape.
+- **Install snippets**: the stylesheet, first-component, usage and types snippets from `src/lib/docs/install-snippets.ts` live in each app (`src/app.css`, `src/snippets/`) and render in the page. `src/lib/docs/consumer-snippets.test.ts` fails when they drift from the docs.
+- **Cameleon** (`svelte-vite` only): `FancyProvider` from `fancy-ui-svelte/cameleon` with a skin builds and mounts in a plain Vite app, so a build failure is a defect, not a known gap.
 
 ## Adding a consumer
 
