@@ -1,6 +1,11 @@
 import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { tick } from "svelte";
+import { setFramework } from "$lib/stores/framework.svelte.js";
 import PropsPlaygroundHarness from "./PropsPlaygroundHarness.test.svelte";
+import ToastPlayground from "./docs/examples/toast/Playground.svelte";
+import DialogPlayground from "./docs/examples/dialog/Playground.svelte";
+import SelectPlayground from "./docs/examples/select/Playground.svelte";
 
 vi.mock("shiki", () => ({
 	createHighlighter: async () => ({ codeToHtml: () => "", loadLanguage: async () => {} }),

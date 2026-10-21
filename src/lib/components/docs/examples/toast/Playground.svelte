@@ -2,7 +2,7 @@
 	import { Toaster, toast } from "$lib/fancy-ui/toast";
 	import { Button } from "$lib/fancy-ui/button";
 	import PropsPlayground from "$lib/components/PropsPlayground.svelte";
-	import type { Framework } from "$lib/inspiration/types.js";
+	import { toastCode } from "./code.js";
 
 	type Variant = "success" | "error" | "info" | "loading";
 	type Position =
@@ -12,31 +12,6 @@
 		| "bottom-left"
 		| "bottom-center"
 		| "bottom-right";
-
-	const str = (value: unknown) => JSON.stringify(String(value));
-
-	/** A toast is a function call plus one Toaster, so the code is not a single tag. */
-	function codeFor(values: Record<string, string | number | boolean>, framework: Framework) {
-		const mount =
-			values.position === "bottom-right"
-				? "<Toaster />"
-				: `<Toaster position=${str(values.position)} />`;
-		const call = `toast({
-	title: ${str(values.title)},
-	description: ${str(values.description)},
-	variant: ${str(values.variant)},
-})`;
-		if (framework === "react") {
-			return `${mount}
-<Button onClick={() => ${call}}>Show toast</Button>`;
-		}
-		if (framework === "vue") {
-			return `${mount}
-<Button :onclick="() => ${call}">Show toast</Button>`;
-		}
-		return `${mount}
-<Button onclick={() => ${call}}>Show toast</Button>`;
-	}
 </script>
 
 <PropsPlayground
@@ -51,7 +26,7 @@
 		"Mount `<Toaster />` once near the app root; `toast()` can then be called from anywhere.",
 		"A `loading` toast stays until it is dismissed.",
 	]}
-	{codeFor}
+	codeFor={toastCode}
 	controls={[
 		{ key: "title", type: "text", label: "Title", maxLength: 60 },
 		{ key: "description", type: "text", label: "Description", maxLength: 120 },

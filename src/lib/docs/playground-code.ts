@@ -51,8 +51,11 @@ const MAX_LINE = 80;
 
 function escapeText(text: string, framework: Framework): string {
 	const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-	if (framework === "vue") return escaped;
-	return escaped.replace(/[{}]/g, (brace) => `{"${brace}"}`);
+	// Vue evaluates `{{ }}` in text; a literal pair is written as an expression.
+	if (framework === "vue") return escaped.replace(/\{\{/g, "{{ '{{' }}");
+	// JSX rejects a bare `>` in text; Svelte only needs its braces protected.
+	const safe = framework === "react" ? escaped.replace(/>/g, "&gt;") : escaped;
+	return safe.replace(/[{}]/g, (brace) => `{"${brace}"}`);
 }
 
 function needsExpression(text: string, framework: Framework): boolean {
@@ -60,7 +63,18 @@ function needsExpression(text: string, framework: Framework): boolean {
 	return framework === "svelte" && /[{}]/.test(text);
 }
 
-function attribute(name: string, value: PlaygroundScalar, framework: Framework): string {
+/**
+ * A string as a JavaScript expression inside a double-quoted Vue attribute:
+ * single-quoted, with anything the attribute would read as markup written as
+ * an entity.
+ */
+export function vueAttributeString(value: string): string {
+	const body = value.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, "\\n");
+	return `'${body}'`.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+/** One attribute as the framework writes it, quoting the value when it needs it. */
+export function attribute(name: string, value: PlaygroundScalar, framework: Framework): string {
 	if (typeof value === "boolean") {
 		if (value) return name;
 		return framework === "vue" ? `:${name}="false"` : `${name}={false}`;
@@ -69,11 +83,7 @@ function attribute(name: string, value: PlaygroundScalar, framework: Framework):
 		return framework === "vue" ? `:${name}="${value}"` : `${name}={${value}}`;
 	}
 	if (!needsExpression(value, framework)) return `${name}="${value}"`;
-	if (framework === "vue") {
-		const simple = !/['\\\n]/.test(value);
-		const expression = simple ? `'${value}'` : JSON.stringify(value);
-		return `:${name}="${expression.replace(/"/g, "&quot;")}"`;
-	}
+	if (framework === "vue") return `:${name}="${vueAttributeString(value)}"`;
 	return `${name}={${JSON.stringify(value)}}`;
 }
 
