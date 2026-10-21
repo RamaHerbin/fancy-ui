@@ -1,0 +1,21 @@
+{
+	"name": "fancy-ui-vue-consumer-nuxt",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"build": "nuxt build",
+		"preview": "nuxt preview",
+		"postinstall": "nuxt prepare"
+	},
+	"dependencies": {
+		"fancy-ui-vue": "file:../../../.consumer-tarballs/fancy-ui-vue.tgz",
+		"nuxt": "^4.5.0",
+		"vue": "^3.5.2"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.1.17",
+		"tailwindcss": "^4.1.17",
+		"typescript": "^5.9.3"
+	}
+}
