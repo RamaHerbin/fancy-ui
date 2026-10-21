@@ -1,7 +1,7 @@
 <script lang="ts" module>
-	import type { FullAutoFill } from "svelte/elements";
+	import type { FullAutoFill, HTMLTextareaAttributes } from "svelte/elements";
 
-	export interface TextareaProps {
+	export interface TextareaOwnProps {
 		/** Current value; bindable. */
 		value?: string;
 		/** Called with the new value on every input event. */
@@ -37,11 +37,19 @@
 		/** Element reference. */
 		ref?: HTMLTextAreaElement | null;
 	}
+
+	/**
+	 * Own props plus every native `<textarea>` attribute and listener; the rest
+	 * go to the inner `<textarea>`.
+	 */
+	export type TextareaProps = TextareaOwnProps &
+		Omit<HTMLTextareaAttributes, keyof TextareaOwnProps>;
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { mergeIds } from "../_internals/merge-ids.js";
 
 	let {
 		value = $bindable(""),
@@ -61,6 +69,11 @@
 		autoResize = false,
 		class: className,
 		ref = $bindable(null),
+		oninput,
+		"aria-describedby": consumerDescribedBy,
+		"aria-label": consumerAriaLabel,
+		"aria-invalid": consumerAriaInvalid,
+		...rest
 	}: TextareaProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -86,7 +99,7 @@
 	// visible counter span below *is* the description target, so there is no
 	// separate hidden node to keep in sync with it.
 	const describedBy = $derived(
-		[field?.describedBy, showCount ? countId : undefined].filter(Boolean).join(" ") || undefined
+		mergeIds(field?.describedBy, consumerDescribedBy, showCount ? countId : undefined)
 	);
 
 	const classes = $derived(
@@ -158,6 +171,7 @@
 		value = next;
 		onValueChange?.(next);
 		if (autoResize) grow();
+		oninput?.(event);
 	}
 
 	// Growth also has to answer to writes that never pass through
@@ -173,6 +187,7 @@
 
 <div class="ft-textarea-wrapper flex w-full flex-col gap-1.5">
 	<textarea
+		{...rest}
 		bind:this={ref}
 		id={effectiveId}
 		{placeholder}
@@ -183,9 +198,9 @@
 		disabled={effectiveDisabled}
 		{readonly}
 		required={effectiveRequired}
-		aria-invalid={effectiveInvalid ? "true" : undefined}
+		aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
 		aria-describedby={describedBy}
-		aria-label={label}
+		aria-label={label ?? consumerAriaLabel}
 		class={classes}
 		{value}
 		oninput={handleInput}

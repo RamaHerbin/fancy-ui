@@ -1,7 +1,7 @@
 <script lang="ts" module>
-	import type { FullAutoFill } from "svelte/elements";
+	import type { FullAutoFill, HTMLInputAttributes } from "svelte/elements";
 
-	export interface InputProps {
+	export interface InputOwnProps {
 		/** Current value; bindable. */
 		value?: string;
 		/** Called with the new value on every input event. */
@@ -31,11 +31,18 @@
 		/** Element reference. */
 		ref?: HTMLInputElement | null;
 	}
+
+	/**
+	 * Own props plus every native `<input>` attribute and listener; the rest go
+	 * to the inner `<input>`.
+	 */
+	export type InputProps = InputOwnProps & Omit<HTMLInputAttributes, keyof InputOwnProps>;
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { getField } from "../_internals/field.svelte.js";
+	import { mergeIds } from "../_internals/merge-ids.js";
 
 	let {
 		value = $bindable(""),
@@ -52,6 +59,11 @@
 		label,
 		class: className,
 		ref = $bindable(null),
+		oninput,
+		"aria-describedby": consumerDescribedBy,
+		"aria-label": consumerAriaLabel,
+		"aria-invalid": consumerAriaInvalid,
+		...rest
 	}: InputProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -63,6 +75,10 @@
 	const effectiveDisabled = $derived(field?.disabled ?? disabled);
 	const effectiveRequired = $derived(field?.required ?? required);
 	const effectiveInvalid = $derived(field?.invalid ?? invalid);
+
+	// A consumer's own description id rides along with the FormField's, never
+	// replacing it.
+	const describedBy = $derived(mergeIds(field?.describedBy, consumerDescribedBy));
 
 	const classes = $derived(
 		cn(
@@ -84,10 +100,12 @@
 		const next = event.currentTarget.value;
 		value = next;
 		onValueChange?.(next);
+		oninput?.(event);
 	}
 </script>
 
 <input
+	{...rest}
 	bind:this={ref}
 	{type}
 	{placeholder}
@@ -98,9 +116,9 @@
 	disabled={effectiveDisabled}
 	{readonly}
 	required={effectiveRequired}
-	aria-invalid={effectiveInvalid ? "true" : undefined}
-	aria-describedby={field?.describedBy}
-	aria-label={label}
+	aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
+	aria-describedby={describedBy}
+	aria-label={label ?? consumerAriaLabel}
 	class={classes}
 	oninput={handleInput}
 />
