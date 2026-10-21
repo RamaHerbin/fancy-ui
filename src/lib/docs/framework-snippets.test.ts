@@ -11,6 +11,8 @@ const PRIORITY = [
 	"border-beam",
 	"fluid-cursor",
 	"image-trail-cursor",
+	"liquid-glass",
+	"thinking-indicator",
 ];
 
 describe("framework snippets", () => {
