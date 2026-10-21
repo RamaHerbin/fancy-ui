@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
 	import type { ButtonVariant, ButtonSize } from "./types.js";
 
 	export interface ButtonProps {
@@ -45,6 +46,14 @@
 		 */
 		sound?: boolean;
 	}
+
+	/**
+	 * `ButtonProps` plus every native attribute and listener of the `<button>` /
+	 * `<a>` it renders (`id`, `aria-*`, `data-*`, `onfocus`, ...). Own props win.
+	 */
+	export type ButtonAttributes = ButtonProps &
+		Omit<HTMLButtonAttributes, keyof ButtonProps> &
+		Omit<HTMLAnchorAttributes, keyof ButtonProps>;
 </script>
 
 <script lang="ts">
@@ -73,7 +82,8 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
-	}: ButtonProps = $props();
+		...restProps
+	}: ButtonAttributes = $props();
 
 	const SIZE_CLASSES: Record<ButtonSize, string> = {
 		sm: "rounded-[6px] px-[12px] py-[5px] text-[12px]",
@@ -175,23 +185,24 @@
 			return;
 		}
 		if (sound) soundFx.play("press");
-		onclick?.(event);
+		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 	}
 </script>
 
 {#if href}
 	<a
 		bind:this={ref}
+		{...restProps as HTMLAnchorAttributes}
 		use:soundFeedback={hoverFeedback}
 		class={classes}
 		href={anchorInert ? undefined : href}
 		target={anchorInert ? undefined : target}
 		rel={resolvedRel}
-		aria-label={label}
-		data-disabled={disabled ? "true" : undefined}
-		aria-disabled={anchorInert ? "true" : undefined}
-		aria-busy={loading ? "true" : undefined}
-		tabindex={anchorInert ? -1 : undefined}
+		aria-label={label ?? restProps["aria-label"]}
+		data-disabled={disabled ? "true" : restProps["data-disabled"]}
+		aria-disabled={anchorInert ? "true" : restProps["aria-disabled"]}
+		aria-busy={loading ? "true" : restProps["aria-busy"]}
+		tabindex={anchorInert ? -1 : restProps.tabindex}
 		onclick={handleClick}
 	>
 		<!--
@@ -226,12 +237,13 @@
 {:else}
 	<button
 		bind:this={ref}
+		{...restProps as HTMLButtonAttributes}
 		use:soundFeedback={hoverFeedback}
 		class={classes}
 		{type}
 		{disabled}
-		aria-label={label}
-		aria-busy={loading ? "true" : undefined}
+		aria-label={label ?? restProps["aria-label"]}
+		aria-busy={loading ? "true" : restProps["aria-busy"]}
 		onclick={handleClick}
 	>
 		<!--
