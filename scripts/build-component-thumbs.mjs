@@ -7,9 +7,9 @@
  * capture of the component's own doc-page preview stage (the element marked
  * `data-thumb-stage` in src/routes/docs/components/[slug]/+page.svelte), so
  * the gallery shows what the component actually looks like rather than a
- * placeholder. The stage is forced to a 16:10 box before capture so every
- * card shares one aspect ratio; the demo stays centered by the stage's own
- * flex layout and anything taller is clipped by its overflow-hidden.
+ * placeholder. The stage is floored at a 16:10 box before capture so every
+ * card shares one aspect ratio; its height is not forced, so collapsing
+ * demos stay visible, and anything taller than the frame is clipped.
  *
  * Unlike scripts/build-og-images.mjs this needs the docs site running, since
  * the demos are live Svelte components. Point it at a dev or preview server:
@@ -25,8 +25,10 @@
  *
  * Animations read the clock, so captures are not byte-stable across runs;
  * regenerate only the slugs that changed with --only. Slugs that cannot be
- * captured (or are listed as `skip` in THUMB_HINTS) are left out of the
- * manifest and ComponentCard renders its generated fallback tile instead.
+ * captured (or are listed as `skip` in scripts/lib/thumb-hints.mjs) get an
+ * explicit `false` in the manifest and ComponentCard renders its generated
+ * fallback tile instead. A near-uniform capture fails the slug rather than
+ * writing a blank WebP.
  *
  * The manifest src/lib/components/docs/thumbs.json lists every slug that has
  * both theme files, so a card never requests an image that does not exist.
@@ -36,6 +38,8 @@ import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { THUMB_HINTS } from "./lib/thumb-hints.mjs";
+import { isNearUniform } from "./lib/thumb-uniformity.mjs";
 import { applyPointerHint, encodeWebp, newCaptureContext } from "./lib/stage-capture.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -52,33 +56,6 @@ const MAX_BYTES = 45 * 1024;
 const QUALITY_LADDER = [0.78, 0.7, 0.6, 0.5];
 const DEFAULT_DELAY = 1600;
 const CONCURRENCY = 4;
-
-/**
- * Per-slug capture tweaks for demos that need a nudge to look like themselves.
- *   delay  -- ms to wait after mount (entrance animations, streaming text)
- *   hover  -- [x, y] as fractions of the stage; the pointer rests there
- *   sweep  -- drag the pointer across the stage right before the capture
- *   stage  -- which [data-thumb-stage] to capture (0 = hero, 1+ = examples),
- *             for bare effects whose hero preview has nothing to decorate
- *   skip   -- leave the slug to the fallback tile
- */
-const THUMB_HINTS = {
-	"image-trail-cursor": { sweep: true },
-	"smooth-cursor": { hover: [0.5, 0.5] },
-	"direction-aware-hover": { hover: [0.5, 0.5] },
-	"card-spotlight": { hover: [0.4, 0.4] },
-	"glare-card": { hover: [0.35, 0.35] },
-	// WebGL / pointer-physics demos that render nothing legible headless.
-	"displacement-text": { skip: true },
-	"fluid-cursor": { skip: true },
-	ripple: { skip: true },
-	"border-beam": { stage: 1 },
-	"glowing-effect": { stage: 1, hover: [0.4, 0.45] },
-	"bg-stars": { stage: 1 },
-	marquee: { stage: 1 },
-	"text-generate-effect": { delay: 3000 },
-	"number-ticker": { delay: 2500 },
-};
 
 function parseArgs(argv) {
 	const args = { base: "http://localhost:4173", only: null, themes: THEMES };
@@ -115,16 +92,25 @@ async function capture(page, encoder, base, slug) {
 	const stage = page.locator("[data-thumb-stage]").nth(hint.stage ?? 0);
 	await stage.waitFor({ state: "visible", timeout: 20_000 });
 
-	// Force the stage to 16:10 so every card shares one frame.
-	await stage.evaluate((el, w) => {
-		// A narrower stage than the doc page's keeps the demo large relative to
-		// the frame once the card shrinks it to ~300px.
-		el.style.width = `${w}px`;
-		el.style.minHeight = "0";
-		el.style.height = `${Math.round((w * 10) / 16)}px`;
-		el.style.marginInline = "auto";
-		el.scrollIntoView({ block: "center" });
-	}, STAGE_WIDTH);
+	// Frame the stage at the card's 16:10 ratio without forcing its height: the
+	// stage keeps its own height (so a collapsed accordion or a growing panel
+	// stays visible) and is only floored at the frame height. A stage taller
+	// than the frame is clipped to it.
+	await stage.evaluate(
+		(el, { w, h }) => {
+			// A narrower stage than the doc page's keeps the demo large relative to
+			// the frame once the card shrinks it to ~300px.
+			el.style.width = `${w}px`;
+			el.style.minHeight = `${h}px`;
+			el.style.marginInline = "auto";
+			el.scrollIntoView({ block: "center" });
+			if (el.getBoundingClientRect().height > h + 1) {
+				el.style.height = `${h}px`;
+				el.style.overflow = "hidden";
+			}
+		},
+		{ w: STAGE_WIDTH, h: Math.round((STAGE_WIDTH * 10) / 16) }
+	);
 	await page.mouse.move(0, 0);
 	await page.waitForTimeout(hint.delay ?? DEFAULT_DELAY);
 
@@ -160,12 +146,36 @@ async function capture(page, encoder, base, slug) {
 	await applyPointerHint(page, stage, hint);
 
 	const png = await stage.screenshot({ type: "png", animations: "allow" });
+	if (await looksBlank(encoder, png)) {
+		throw new Error("near-uniform capture (nothing rendered)");
+	}
 	return encodeWebp(encoder, png, {
 		width: OUT_WIDTH,
 		height: OUT_HEIGHT,
 		maxBytes: MAX_BYTES,
 		qualityLadder: QUALITY_LADDER,
 	});
+}
+
+/** Downsample the PNG in the encoder page and test it for a blank frame. */
+async function looksBlank(encoderPage, png) {
+	const W = 160;
+	const H = 100;
+	const pixels = await encoderPage.evaluate(
+		async ({ b64, W, H }) => {
+			const img = new Image();
+			img.src = `data:image/png;base64,${b64}`;
+			await img.decode();
+			const canvas = document.createElement("canvas");
+			canvas.width = W;
+			canvas.height = H;
+			const ctx = canvas.getContext("2d", { willReadFrequently: true });
+			ctx.drawImage(img, 0, 0, W, H);
+			return Array.from(ctx.getImageData(0, 0, W, H).data);
+		},
+		{ b64: png.toString("base64"), W, H }
+	);
+	return isNearUniform(Uint8ClampedArray.from(pixels), W, H);
 }
 
 function formatBytes(n) {
@@ -190,7 +200,7 @@ async function main() {
 	const targets = slugs.filter(
 		(slug) => !THUMB_HINTS[slug]?.skip && (!args.only || args.only.has(slug))
 	);
-	if (targets.length === 0) throw new Error("nothing to capture");
+	if (targets.length === 0) console.log("nothing to capture; refreshing the manifest only");
 
 	// Fail fast if the server is not up rather than timing out 146 times.
 	try {
@@ -240,16 +250,19 @@ async function main() {
 	}
 
 	// The manifest reflects what is on disk, so a partial --only run keeps
-	// every earlier capture listed.
+	// every earlier capture listed. Every registry slug gets an explicit entry:
+	// true when both theme files exist, false for deliberate skips and for
+	// slugs without a capture (the gallery then renders its fallback tile).
 	const manifest = {};
 	for (const slug of slugs) {
-		if (THEMES.every((t) => existsSync(join(outRoot, t, `${slug}.webp`)))) manifest[slug] = true;
+		manifest[slug] =
+			!THUMB_HINTS[slug]?.skip && THEMES.every((t) => existsSync(join(outRoot, t, `${slug}.webp`)));
 	}
 	writeFileSync(manifestPath, `${JSON.stringify(manifest, null, "\t")}\n`);
 
 	const total = THEMES.reduce((sum, t) => sum + dirBytes(join(outRoot, t)), 0);
 	console.log(
-		`thumbs: ${Object.keys(manifest).length}/${slugs.length} slugs in manifest, ${formatBytes(total)} on disk`
+		`thumbs: ${Object.values(manifest).filter(Boolean).length}/${slugs.length} slugs captured, ${formatBytes(total)} on disk`
 	);
 	if (failures.length) {
 		console.error(`\n${failures.length} capture(s) failed:\n  ${failures.join("\n  ")}`);
