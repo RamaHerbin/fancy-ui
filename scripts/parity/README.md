@@ -86,7 +86,7 @@ A hint can also declare `states`: the component photographed open, with keyboard
 - Steps (`click`, `hover`, `focus`, `press`, `type`, `wait`, `clipboard`) find their target by accessible role and exact name, or by `css`, inside the stage box (`"in": "page"` for a panel portalled out of it). Every wait runs on the frozen clock.
 - After the steps the state settles: the clock moves until no finite animation is left running, so `moments` (default `[0]`) count from a still frame on every stage.
 - `expect` is checked before every shot: `visible` (default), `focusVisible`, `overflow`, `inStage`.
-- `variant: "long"` renders `<slug>--long` instead of the base demo: `examples/parity-react/src/scenarios/<slug>--long.tsx`, `examples/parity-vue/src/scenarios/<slug>--long.vue` and `src/routes/_parity/[slug]/variants/<slug>--long.svelte` (`?variant=long` on every stage).
+- `variant: "<variant>"` (`action`, `long`, ...) renders `<slug>--<variant>` instead of the base demo: `examples/parity-react/src/scenarios/<slug>--<variant>.tsx`, `examples/parity-vue/src/scenarios/<slug>--<variant>.vue` and `src/routes/_parity/[slug]/variants/<slug>--<variant>.svelte` (`?variant=<variant>` on every stage).
 
 Shots are `shots/<fw>/<slug>/<theme>-<t>@<state>.png`. `--states all|none|<names>` picks them (default `all`; names are `open`, `focus`, `long`, `idle`, `copied`, `failed`, `action`).
 

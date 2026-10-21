@@ -26,9 +26,10 @@ async function setDark(page: Page, dark: boolean) {
 	await page.evaluate((d) => document.documentElement.classList.toggle("dark", d), dark);
 }
 
-// WCAG contrast ratio of an element's text colour over its own background
-// (composited on white when the background is translucent). The colours are
-// resolved through a canvas, so any CSS colour syntax reads back as sRGB.
+// WCAG contrast ratio of an element's text colour over its EFFECTIVE
+// background: the element's own and its ancestors' backgrounds composited
+// bottom-up on white. The colours are resolved through a canvas, so any CSS
+// colour syntax reads back as sRGB.
 function contrastOf(el: Element): number {
 	const ctx = document.createElement("canvas").getContext("2d")!;
 	const rgba = (css: string): [number, number, number, number] => {
@@ -46,10 +47,15 @@ function contrastOf(el: Element): number {
 		};
 		return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 	};
-	const style = getComputedStyle(el);
-	const [br, bg, bb, ba] = rgba(style.backgroundColor);
-	const back = [br, bg, bb].map((c) => c * ba + 255 * (1 - ba));
-	const [fr, fg, fb, fa] = rgba(style.color);
+	const layers: [number, number, number, number][] = [];
+	for (let n: Element | null = el; n; n = n.parentElement) {
+		layers.push(rgba(getComputedStyle(n).backgroundColor));
+	}
+	let back = [255, 255, 255];
+	for (const [r, g, b, a] of layers.reverse()) {
+		back = [r, g, b].map((c, i) => c * a + back[i] * (1 - a));
+	}
+	const [fr, fg, fb, fa] = rgba(getComputedStyle(el).color);
 	const front = [fr, fg, fb].map((c, i) => c * fa + back[i] * (1 - fa));
 	const [hi, lo] = [lum(front), lum(back)].sort((x, y) => y - x);
 	return (hi + 0.05) / (lo + 0.05);
@@ -132,43 +138,64 @@ test.describe("Toast usage", () => {
 		await expect(undo).toBeHidden();
 	});
 
-	test("light and dark: the toast text keeps a readable contrast against its panel", async ({
+	test("light and dark: every text-bearing part of the toast keeps a readable contrast", async ({
 		page,
 	}) => {
 		await openStage(page, "toast", "&variant=action");
 		await page.getByRole("button", { name: "Show toast" }).click();
 		const panel = page.locator("[data-variant][data-state='open']").first();
 		await expect(panel).toBeVisible();
+		// [part, locator, minimum ratio]: text is 4.5:1, the dismiss glyph (an
+		// icon with an accessible name) is a graphical object at 3:1.
+		const parts = [
+			["title", panel.locator("span.font-medium").first(), 4.5],
+			["description", panel.locator("span.text-muted-foreground").first(), 4.5],
+			["action button", panel.locator(".ft-toast-action"), 4.5],
+			["dismiss glyph", panel.getByRole("button", { name: "Dismiss" }), 3],
+		] as const;
 		for (const dark of [false, true]) {
 			await setDark(page, dark);
-			const ratio = await panel.evaluate(contrastOf);
-			expect(ratio, `dark=${dark}: contrast ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+			for (const [name, loc, min] of parts) {
+				await expect(loc, `${name} is present`).toHaveCount(1);
+				const ratio = await loc.evaluate(contrastOf);
+				expect(
+					ratio,
+					`dark=${dark} ${name}: contrast ${ratio.toFixed(2)}:1`
+				).toBeGreaterThanOrEqual(min);
+			}
 		}
 	});
 
 	test("reduced motion: the toast enters with no running animation, unlike full motion", async ({
 		page,
 	}) => {
-		const running = () =>
-			page.evaluate(
-				() =>
-					document
-						.getAnimations()
-						.filter((a) => a.playState === "running" && Number(a.effect?.getTiming().duration) > 0)
-						.length
-			);
-		const show = async () => {
+		// The click and the first sample happen in the same task, one frame apart,
+		// so a slow runner cannot let the entrance finish before the probe looks.
+		const showAndSample = async () => {
 			await openStage(page, "toast", "&variant=action");
-			await page.getByRole("button", { name: "Show toast" }).click();
+			const count = await page.getByRole("button", { name: "Show toast" }).evaluate(
+				(el) =>
+					new Promise<number>((resolve) => {
+						(el as HTMLElement).click();
+						requestAnimationFrame(() =>
+							resolve(
+								document
+									.getAnimations()
+									.filter(
+										(a) => a.playState === "running" && Number(a.effect?.getTiming().duration) > 0
+									).length
+							)
+						);
+					})
+			);
 			await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+			return count;
 		};
 		// Control: with full motion the entrance is animated, so the probe can see it.
 		await page.emulateMedia({ reducedMotion: "no-preference" });
-		await show();
-		const full = await running();
+		const full = await showAndSample();
 		await page.emulateMedia({ reducedMotion: "reduce" });
-		await show();
-		const reduced = await running();
+		const reduced = await showAndSample();
 		expect(full, "the probe sees no entrance animation under full motion").toBeGreaterThan(0);
 		expect(reduced, "animations still running under reduce").toBe(0);
 		const panel = page.locator("[data-variant][data-state='open']").first();
