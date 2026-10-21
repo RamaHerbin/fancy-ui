@@ -1,0 +1,15 @@
+{
+	"states": {
+		"open": {
+			"steps": [{ "click": { "role": "button", "name": "Can I return an item?" } }],
+			"expect": [
+				{ "role": "button", "name": "Can I return an item?" },
+				{ "role": "region", "name": "Can I return an item?" }
+			]
+		},
+		"focus": {
+			"steps": [{ "focus": { "role": "button", "name": "How long does shipping take?" } }],
+			"expect": [{ "role": "button", "name": "How long does shipping take?", "focusVisible": true }]
+		}
+	}
+}
