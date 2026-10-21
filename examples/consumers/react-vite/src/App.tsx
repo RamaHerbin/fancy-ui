@@ -49,6 +49,7 @@ export function App() {
 			>
 				<p>Body</p>
 			</Dialog>
+			<p data-testid="dialog-state">dialog: {open ? "open" : "closed"}</p>
 
 			<div className="relative overflow-hidden rounded-xl border p-6" data-testid="beam-card">
 				<p>Light effect</p>
