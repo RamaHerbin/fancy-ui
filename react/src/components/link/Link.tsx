@@ -101,13 +101,13 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 
 	return (
 		<a
+			{...rest}
 			ref={ref}
 			href={href}
 			target={computedTarget}
 			rel={computedRel}
 			className={classes}
 			onClick={handleClick}
-			{...rest}
 		>
 			{children}
 			{external && (
