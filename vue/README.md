@@ -87,6 +87,8 @@ import { RainbowButton, BorderBeam } from "fancy-ui-vue";
 
 Props keep their Svelte names; snippets become named slots and every bindable prop is a `v-model:<name>`. Every deliberate difference is listed under [Divergences](#divergences-from-the-svelte-api).
 
+Importing one component from the package root costs the same as importing its own file: the rest tree-shakes away, so there are no per-component subpaths. The four entry points are listed under [Package shape](#package-shape).
+
 **Or browse and copy a component:**
 
 1. Find the component you need in the [live demo](https://fancy-ui.rama.app)

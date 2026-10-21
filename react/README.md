@@ -89,6 +89,8 @@ export function Hero() {
 
 Props keep their Svelte names; `class` becomes `className` and snippets become `ReactNode` (render functions when the snippet takes arguments). Every deliberate difference is listed under [Divergences](#divergences-from-the-svelte-api).
 
+Importing one component from the package root costs the same as importing its own file: the rest tree-shakes away, so there are no per-component subpaths. The four entry points are listed under [Package shape](#package-shape).
+
 **Or copy the source into your project:** see [Copy the source](#copy-the-source-into-your-project) below.
 
 **Or clone the full demo locally:**
