@@ -3,10 +3,13 @@ import {
 	type AnchorHTMLAttributes,
 	type ButtonHTMLAttributes,
 	type MouseEvent,
+	type Ref,
 	type ReactNode,
 } from "react";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import type { ButtonVariant, ButtonSize } from "./types.js";
 import "./button.css";
 
@@ -49,8 +52,8 @@ export interface ButtonProps extends Omit<
 	/** Additional CSS classes. */
 	className?: string;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 }
@@ -141,6 +144,14 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 		// can't drift out of sync with each other.
 		const anchorInert = disabled || loading;
 
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled: anchorInert,
+		});
+		const composedRef = useComposedRefs(ref as Ref<HTMLElement>, soundRef);
+
 		// The single guard both branches funnel through. A native `disabled` button
 		// already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 		// an anchor, which has no disabled state at all) walks straight past that —
@@ -165,7 +176,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 		if (href) {
 			return (
 				<a
-					ref={ref as React.Ref<HTMLAnchorElement>}
+					ref={composedRef as Ref<HTMLAnchorElement>}
 					className={classes}
 					href={anchorInert ? undefined : href}
 					target={anchorInert ? undefined : target}
@@ -185,7 +196,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 
 		return (
 			<button
-				ref={ref as React.Ref<HTMLButtonElement>}
+				ref={composedRef as Ref<HTMLButtonElement>}
 				className={classes}
 				type={type}
 				disabled={disabled}
