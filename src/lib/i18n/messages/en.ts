@@ -120,6 +120,7 @@ export const en = {
 		"Not derivable by the naming rules; see the differences from the Svelte API.",
 	"comp.events": "Events",
 	"comp.copyMarkdown": "Copy as Markdown",
+	/** @context One-line note under a component's description listing the frameworks it ships for. {editions} is an already localized conjunction list of framework names, e.g. "Svelte 5, React and Vue 3"; keep the names untranslated. */
 	"comp.editions": "Available for {editions}.",
 
 	// Copy buttons

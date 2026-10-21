@@ -1,4 +1,3 @@
-// German (de) — machine-translated draft. TODO: native review.
 import type { Catalog } from "./en.js";
 
 export default {
@@ -14,30 +13,30 @@ export default {
 	// Getting-started page titles
 	"page.introduction": "Einführung",
 	"page.installation": "Installation",
-	"page.theming": "Themes",
+	"page.theming": "Theme-Anpassung",
 	"page.themeGenerator": "Theme-Generator",
 	"page.changelog": "Änderungsprotokoll",
 
 	// Header
-	"header.search": "Suchen...",
+	"header.search": "Suchen …",
 	"a11y.github": "GitHub",
-	"a11y.changeTheme": "Theme ändern",
-	"a11y.changeLanguage": "Sprache ändern",
+	"a11y.changeTheme": "Theme wechseln",
+	"a11y.changeLanguage": "Sprache wechseln",
 	"theme.heading": "Theme",
 	"theme.system": "System",
 	"language.heading": "Sprache",
 
 	// Command search
-	"search.placeholder": "Komponenten und Seiten durchsuchen...",
+	"search.placeholder": "Komponenten und Seiten durchsuchen …",
 	"search.noResults": "Keine Ergebnisse gefunden",
 	"search.esc": "ESC",
-	"search.tryInstead": "Probiere stattdessen eine dieser Suchen:",
-	"jobs.heading": "Nach Bedarf stöbern",
+	"search.tryInstead": "Probier es stattdessen hiermit:",
+	"jobs.heading": "Nach Anwendungsfall stöbern",
 	"jobs.feedback": "Feedback geben",
-	"jobs.input": "Eingabe erfassen",
+	"jobs.input": "Eingaben erfassen",
 	"jobs.attention": "Aufmerksamkeit lenken",
 	"jobs.navigate": "Navigieren",
-	"jobs.progress": "Fortschritt zeigen",
+	"jobs.progress": "Fortschritt anzeigen",
 	"jobs.surprise": "Überraschen",
 
 	// Component page
@@ -45,11 +44,11 @@ export default {
 	"comp.code": "Code",
 	"comp.installation": "Installation",
 	"install.framework": "Framework",
-	"install.sourceOnly": "Noch nicht auf npm — diese Portierung liegt im Repository.",
+	"install.sourceOnly": "Noch nicht auf npm – diese Portierung gibt es bisher nur im Repository.",
 	"install.unavailable": "Für dieses Framework gibt es noch keine Portierung dieser Komponente.",
-	"install.copySource": "Quelle kopieren",
+	"install.copySource": "Quellcode kopieren",
 	"install.copySourceNote":
-		"Kopiert den Komponentenquellcode in dein Projekt; der Code gehört dir.",
+		"Kopiert den Quellcode der Komponente in dein Projekt; der Code gehört dann dir.",
 	"comp.usage": "Verwendung",
 	"comp.props": "Props",
 	"comp.slots": "Slots",
@@ -65,15 +64,15 @@ export default {
 	// Tables
 	"table.prop": "Prop",
 	"table.type": "Typ",
-	"table.default": "Standard",
+	"table.default": "Standardwert",
 	"table.description": "Beschreibung",
 	"table.slot": "Slot",
-	"table.event": "Event",
-	"table.payload": "Daten",
-	"table.portName": "Name in {framework}",
+	"table.event": "Ereignis",
+	"table.payload": "Nutzdaten",
+	"table.portName": "Bezeichnung in {framework}",
 	"table.portNameUnknown":
-		"Nicht aus den Benennungsregeln ableitbar; siehe die Unterschiede zur Svelte-API.",
-	"comp.events": "Events",
+		"Lässt sich nicht aus den Benennungsregeln ableiten; siehe die Unterschiede zur Svelte-API.",
+	"comp.events": "Ereignisse",
 	"comp.copyMarkdown": "Als Markdown kopieren",
 	"comp.editions": "Verfügbar für {editions}.",
 
@@ -87,12 +86,12 @@ export default {
 	// Components gallery
 	"gallery.title": "Komponenten",
 	"gallery.subtitle":
-		"{count} wunderschön animierte Komponenten für Svelte 5, React, Vue. Durchstöbere, suche und finde, was du brauchst.",
+		"{count} wunderschön animierte Komponenten für Svelte 5, React und Vue. Stöbere, suche und finde, was du brauchst.",
 	"gallery.intro":
-		"Die Komponenten gibt es für Svelte 5, React und Vue, mit Tailwind CSS v4 gestylt und mit TypeScript typisiert. Jede Seite hat eine Live-Vorschau und Svelte-Beispiele zum Kopieren, dazu React- und Vue-Nutzung, wo vorhanden. Installiere das Paket einmal und der Code gehört dir.",
-	"gallery.filterPlaceholder": "Komponenten filtern...",
+		"Die Komponenten gibt es für Svelte 5, React und Vue, gestylt mit Tailwind CSS v4 und typisiert mit TypeScript. Jede Seite bietet eine Live-Vorschau und Svelte-Beispiele zum Kopieren, dazu die Verwendung in React und Vue, wo verfügbar. Installiere das Paket einmal, und der Code gehört dir.",
+	"gallery.filterPlaceholder": "Komponenten filtern …",
 	"gallery.all": "Alle",
-	"gallery.noMatch": "Keine Komponenten entsprechen deiner Suche.",
+	"gallery.noMatch": "Keine Komponente passt zu deiner Suche.",
 	"gallery.meta":
 		"{components} Komponenten · {categories} Kategorien · Svelte 5 · React · Vue · TypeScript",
 	"gallery.results.one": "{count} Ergebnis",
@@ -106,24 +105,25 @@ export default {
 	"gallery.desc.cards": "Karten und Container, die auf den Mauszeiger reagieren",
 	"gallery.desc.backgrounds": "Animierte und dekorative Hintergründe",
 	"gallery.desc.text": "Textanimationen und typografische Effekte",
-	"gallery.desc.layout": "Layout-Primitive und strukturelle Komponenten",
-	"gallery.desc.feedback": "Tooltips, Toasts, Loader und weiteres Feedback",
+	"gallery.desc.layout": "Layout-Grundbausteine und strukturelle Komponenten",
+	"gallery.desc.feedback": "Tooltips, Toasts, Ladeanzeigen und weiteres Feedback",
 	"gallery.desc.data-display": "Listen, Zeitleisten und Datensammlungen",
 	"gallery.desc.navigation": "Menüs, Tabs, Links und Orientierungshilfen",
-	"gallery.desc.media": "Anzeige von Bildern, Videos und Medien",
+	"gallery.desc.media": "Bilder, Videos und weitere Medien",
 	"gallery.desc.effects": "Visuelle Effekte und dekorative Bewegung",
-	"gallery.desc.ai-chat": "Nachrichten, Eingabefelder, Threads und Streaming-Text",
-	"gallery.desc.ai-agents": "Reasoning, Tool-Nutzung, Pläne und Human-in-the-Loop-Karten",
-	"gallery.desc.actions": "Buttons, Schalter und weitere Aktions-Primitive",
-	"gallery.desc.forms": "Eingaben und Primitive zur Erfassung von Nutzereingaben",
+	"gallery.desc.ai-chat": "Nachrichten, Eingabefelder, Threads und gestreamter Text",
+	"gallery.desc.ai-agents":
+		"Denkschritte, Werkzeugnutzung, Pläne und Karten für menschliche Freigaben",
+	"gallery.desc.actions": "Buttons, Schalter und weitere Grundbausteine für Aktionen",
+	"gallery.desc.forms": "Eingabefelder und Grundbausteine zum Erfassen von Nutzereingaben",
 	"gallery.desc.overlays": "Dialoge, Popovers, Menüs und Sheets",
 	"gallery.desc.display": "Badges, Avatare und Statusanzeigen",
 
 	// Theme-generator page
 	"tg.metaDescription":
-		"Passe FancyUIs OKLCh-Design-Tokens live an und kopiere das CSS in deine App.",
+		"Passe die OKLCh-Design-Tokens von FancyUI live an und kopiere das CSS in deine App.",
 	"tg.intro":
-		"Passe FancyUIs Design-Tokens an und beobachte, wie die Komponenten in Echtzeit reagieren. Wenn es passt, kopiere das generierte CSS in das Stylesheet deiner App (z. B. src/app.css). Farben verwenden den OKLCh-Farbraum; die Regenbogen-Palette verwendet HSL. Die vollständige Token-Referenz findest du unter <link>Themes</link>.",
+		"Passe die Design-Tokens von FancyUI an und sieh zu, wie die Komponenten in Echtzeit reagieren. Wenn alles passt, kopiere das generierte CSS in das Stylesheet deiner App (z. B. src/app.css). Farben verwenden den OKLCh-Farbraum, die Regenbogenpalette verwendet HSL. Die vollständige Token-Referenz findest du unter <link>Theme-Anpassung</link>.",
 	"tg.presets": "Voreinstellungen",
 	"tg.base": "Basis",
 	"tg.light": "Hell",
@@ -135,13 +135,13 @@ export default {
 	"tg.hue": "Farbton",
 	"tg.radius": "Radius",
 	"tg.motion": "Bewegung",
-	"tg.rainbowPalette": "Regenbogen-Palette",
+	"tg.rainbowPalette": "Regenbogenpalette",
 	"tg.livePreview": "Live-Vorschau",
 	"tg.cardSurface": "Kartenoberfläche",
 	"tg.cardSurfaceDesc": "Verwendet --card, --foreground, --border und --radius.",
 	"tg.primaryAction": "Primäraktion",
 	"tg.accentBadge": "Akzent-Badge",
-	"tg.beamDesc": "Beam-Farben folgen {primary} → {accent}.",
+	"tg.beamDesc": "Die Farben des Strahls folgen {primary} → {accent}.",
 	"tg.generatedCss": "Generiertes CSS",
 	"tg.copyCss": "CSS kopieren",
 	"tg.copied": "Kopiert",
@@ -160,17 +160,16 @@ export default {
 	"category.ai-chat": "KI-Chat",
 	"category.ai-agents": "KI-Agenten",
 
-	// Introduction (redesigned page)
+	// Introduction page
 	"intro.title": "Einführung",
-	"intro.pill.animation": "Animation zuerst",
-	"intro.pill.copyPaste": "Copy-and-paste-freundlich",
+	"intro.pill.animation": "Animation im Mittelpunkt",
+	"intro.pill.copyPaste": "Einfach zu kopieren",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Philosophie",
-	"intro.philosophy.card2.title": "Animation zuerst",
-	"intro.philosophy.card2.desc":
-		"Jede Komponente wird mit ausgefeilten Animationen sofort einsatzbereit geliefert.",
-	"intro.philosophy.card3.title": "Copy-and-paste-freundlich",
+	"intro.philosophy.card2.title": "Animation im Mittelpunkt",
+	"intro.philosophy.card2.desc": "Jede Komponente bringt ausgefeilte Animationen direkt mit.",
+	"intro.philosophy.card3.title": "Einfach zu kopieren",
 	"intro.philosophy.card3.desc": "Als Paket verwenden oder den Quellcode direkt kopieren.",
 	"intro.philosophy.card4.title": "Tailwind CSS 4",
 	"intro.philosophy.card4.desc": "Gestaltet mit Utility-Klassen und CSS-Custom-Properties.",
@@ -181,27 +180,27 @@ export default {
 	"intro.quickStart.step1.desc": "Füge FancyUI zu deinem Projekt hinzu.",
 	"intro.quickStart.step2.title": "Importieren",
 	"intro.quickStart.step3.title": "Verwenden",
-	"intro.whatsIncluded.heading": "Was enthalten ist",
-	"intro.whatsIncluded.body.one": "{count} Komponenten in {categories} Kategorien:",
+	"intro.whatsIncluded.heading": "Lieferumfang",
+	"intro.whatsIncluded.body.one": "{count} Komponente in {categories} Kategorien:",
 	"intro.whatsIncluded.body.other": "{count} Komponenten in {categories} Kategorien:",
 	"intro.category.buttons": "Buttons",
 	"intro.category.cards": "Karten",
 	"intro.category.effects": "Effekte",
-	"intro.stats.buttons": "Rainbow, Ripple, Shimmer und Co. Buttons, die zum Klicken einladen.",
+	"intro.stats.buttons": "Rainbow, Ripple, Shimmer und Co. Buttons, die geklickt werden wollen.",
 	"intro.stats.cards":
-		"Karussells, Bento-Raster, 3D-Effekte. Inhalte präsentieren, ohne zu langweilen.",
+		"Karussells, Bento-Raster, 3D-Kippeffekte. So präsentierst du Inhalte, ohne jemanden zu langweilen.",
 	"intro.stats.effects":
 		"Cursor, Spuren, animierte Texte. Die kleinen Details, die den Unterschied machen.",
-	"sidebar.starTitle": "Stern auf GitHub",
-	"sidebar.starBody": "Wenn dir FancyUI gefällt, gib einen Stern!",
+	"sidebar.starTitle": "Auf GitHub einen Stern geben",
+	"sidebar.starBody": "Wenn dir FancyUI gefällt, gib dem Projekt einen Stern!",
 	"rail.nextPage": "Nächste Seite",
 	"intro.nextSteps.heading": "Nächste Schritte",
 	"intro.nextSteps.installation": "Installation",
-	"intro.nextSteps.theming": "Themes",
-	"intro.nextSteps.components": "Komponenten durchsuchen",
+	"intro.nextSteps.theming": "Theme-Anpassung",
+	"intro.nextSteps.components": "Komponenten entdecken",
 	"intro.cta.title": "Neu bei FancyUI?",
 	"intro.cta.body":
-		"Schau dir den <b>Theme-Generator</b> an, um Farben anzupassen und zu sehen, wie Komponenten in Echtzeit reagieren.",
+		"Schau dir den <b>Theme-Generator</b> an, um Farben anzupassen und zu sehen, wie die Komponenten in Echtzeit reagieren.",
 	"intro.cta.button": "Theme-Generator ausprobieren",
 
 	// Core components workspace (sidebar groups, categories, status)
@@ -213,7 +212,7 @@ export default {
 	"category.display": "Anzeige",
 	"status.inProgress": "In Arbeit",
 
-	// Installation (redesigned page)
+	// Installation page
 	"install.metaTitle": "Installation",
 	"install.title": "Installation",
 	"install.lead":
@@ -224,11 +223,11 @@ export default {
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Voraussetzungen",
 	"install.prerequisites.body":
-		"FancyUI zielt auf aktuelle Toolchains. Prüfe diese drei Punkte vor der Installation.",
+		"FancyUI setzt auf aktuelle Toolchains. Prüfe vor der Installation diese drei Punkte.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
-		"Die Komponenten sind mit Runes geschrieben, daher ist Svelte 5 erforderlich. Svelte-4-Projekte kompilieren sie nicht.",
+		"Die Komponenten sind mit Runes geschrieben, daher ist Svelte 5 erforderlich. In Svelte-4-Projekten lassen sie sich nicht kompilieren.",
 	"install.prerequisites.card2.title": "Tailwind CSS",
 	"install.prerequisites.card2.version": "v4",
 	"install.prerequisites.card2.desc":
@@ -236,7 +235,7 @@ export default {
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
-		"Wird von den aktuellen Build-Werkzeugen benötigt, gegen die FancyUI getestet wird.",
+		"Wird von den aktuellen Build-Werkzeugen benötigt, mit denen FancyUI getestet wird.",
 	"install.steps.heading": "Installieren",
 	"install.steps.body":
 		"Wähle deinen Paketmanager, binde das Stylesheet ein und rendere dann deine erste Komponente.",
@@ -247,92 +246,93 @@ export default {
 	"install.step2.desc": "Füge das FancyUI-Stylesheet direkt nach deinem Tailwind-Import hinzu.",
 	"install.step2.caption": "In deinem globalen Stylesheet, üblicherweise src/app.css.",
 	"install.step3.title": "Komponente rendern",
-	"install.step3.desc": "Importiere aus dem Paket-Root und füge sie in dein Markup ein.",
-	"install.tailwind.heading": "Tailwind-CSS-Setup",
+	"install.step3.desc": "Importiere sie aus dem Paket-Root und setze sie in dein Markup ein.",
+	"install.tailwind.heading": "Einrichtung von Tailwind CSS",
 	"install.tailwind.body":
-		"FancyUI baut auf Tailwind CSS v4 auf, das in CSS statt in einer JavaScript-Konfigurationsdatei konfiguriert wird. Wenn Tailwind in deinem Projekt bereits funktioniert, gibt es nichts weiter einzurichten.",
+		"FancyUI baut auf Tailwind CSS v4 auf, das direkt in CSS konfiguriert wird statt in einer JavaScript-Konfigurationsdatei. Wenn Tailwind in deinem Projekt bereits funktioniert, musst du nichts weiter einrichten.",
 	"install.tailwind.order":
-		"Die Import-Reihenfolge ist wichtig: zuerst Tailwind, dann FancyUI. Setze den FancyUI-Import vor dein eigenes @custom-variant dark, sonst ersetzt das von FancyUI deines.",
+		"Die Importreihenfolge ist wichtig: zuerst Tailwind, dann FancyUI. Setze den FancyUI-Import vor dein eigenes @custom-variant dark, sonst ersetzt die Variante von FancyUI deine.",
 	"install.tailwind.note":
-		"Der Einstiegspunkt liefert Standard-Farb-Tokens (background, primary, border und weitere) sowie eine Dark-Variante. Deine eigenen :root- und .dark-Blöcke überschreiben sie: Definiere die CSS-Variablen neu, und deine Werte gelten.",
+		"Der Einstiegspunkt liefert Standard-Farbtokens (background, primary, border und weitere) sowie eine dark-Variante. Deine eigenen :root- und .dark-Blöcke überschreiben sie: Definiere die CSS-Variablen neu, und deine Werte setzen sich durch.",
 	"install.usage.heading": "Verwendung",
 	"install.usage.body":
-		"Jede Komponente ist ein benannter Export des Paket-Roots, es gibt also keine Importpfade pro Komponente zu merken.",
+		"Jede Komponente ist ein benannter Export des Paket-Roots, du musst dir also keine Importpfade pro Komponente merken.",
 	"install.usage.note":
-		"Die Seite jeder Komponente listet ihre Props, Live-Beispiele und Hinweise zur Barrierefreiheit auf.",
+		"Auf der Seite jeder Komponente findest du ihre Props, Live-Beispiele und Hinweise zur Barrierefreiheit.",
 	"install.typescript.heading": "TypeScript",
 	"install.typescript.body":
 		"Die Prop-Typen werden neben jeder Komponente exportiert, sodass du Wrapper und gemeinsame Presets typisieren kannst.",
 	"install.typescript.note":
-		"Die Typen sind im Paket enthalten. Es gibt kein separates Typen-Paket zu installieren.",
+		"Die Typen sind im Paket enthalten. Ein separates Typen-Paket musst du nicht installieren.",
 	"install.peerDeps.heading": "Peer-Dependencies",
 	"install.peerDeps.body": "FancyUI erwartet, dass diese bereits in deinem Projekt vorhanden sind:",
 	"install.peerDeps.colPackage": "Paket",
 	"install.peerDeps.colVersion": "Version",
 	"install.peerDeps.bundled":
-		"Einige Komponenten benötigen zusätzliche Laufzeit-Bibliotheken. Diese werden mit dem Paket ausgeliefert, es gibt also nichts weiter zu installieren:",
-	"install.peerDeps.bundledNote": "Sie werden nur von den Komponenten geladen, die sie verwenden.",
+		"Einige Komponenten benötigen zusätzliche Laufzeitbibliotheken. Diese sind im Paket enthalten, du musst also nichts weiter installieren:",
+	"install.peerDeps.bundledNote":
+		"Sie werden nur von den Komponenten eingebunden, die sie verwenden.",
 	"install.nextSteps.heading": "Nächste Schritte",
-	"install.nextSteps.components.title": "Komponenten durchsuchen",
+	"install.nextSteps.components.title": "Komponenten entdecken",
 	"install.nextSteps.components.desc":
-		"{count} Komponenten mit Live-Vorschauen, Props und Copy-and-paste-Beispielen.",
-	"install.nextSteps.theming.title": "Themes",
+		"{count} Komponenten mit Live-Vorschauen, Props und Beispielen zum Kopieren.",
+	"install.nextSteps.theming.title": "Theme-Anpassung",
 	"install.nextSteps.theming.desc":
-		"Überschreibe die Design-Tokens, damit jede Komponente im hellen und dunklen Modus zu deiner Marke passt.",
+		"Überschreibe die Design-Tokens, damit jede Komponente im hellen und im dunklen Modus zu deiner Marke passt.",
 
 	// Theming page
-	"theming.metaTitle": "Themes",
-	"theming.title": "Themes",
+	"theming.metaTitle": "Theme-Anpassung",
+	"theming.title": "Theme-Anpassung",
 	"theming.lead":
-		"Jede FancyUI-Komponente liest ihre Farben, Radien und Timings aus CSS-Custom-Properties im OKLCh-Farbraum — überschreibe einen Token, und die ganze Bibliothek zieht mit.",
+		"Jede FancyUI-Komponente liest ihre Farben, Radien und Animationszeiten aus CSS-Custom-Properties im OKLCh-Farbraum – überschreibe ein Token, und die ganze Bibliothek zieht mit.",
 	"theming.pill.oklch": "OKLCh-Farbraum",
-	"theming.pill.shadcn": "Standardisierte Token-Namen",
+	"theming.pill.shadcn": "Gängige Token-Namen",
 	"theming.pill.dark": "Dunkler Modus",
 	"theming.pill.tokens": "Design-Tokens",
 	"theming.generator.body":
 		"Lieber visuell abstimmen? Der Theme-Generator passt diese Tokens mit Live-Reglern an und liefert dir das CSS.",
 	"theming.generator.cta": "Theme-Generator öffnen",
-	"theming.cssSetup.heading": "CSS-Setup",
+	"theming.cssSetup.heading": "CSS einrichten",
 	"theming.cssSetup.body":
-		"Importiere das FancyUI-Stylesheet in das globale Stylesheet deiner App, üblicherweise src/app.css:",
+		"Importiere das FancyUI-Stylesheet in das globale CSS deiner App, üblicherweise src/app.css:",
 	"theming.colors.heading": "Farbsystem",
 	"theming.colors.body":
 		"Alle Farben nutzen den OKLCh-Farbraum für wahrnehmungsgleichmäßige Verläufe:",
 	"theming.colors.note":
-		"Die Token-Namen folgen der gängigen semantischen Konvention (background, foreground, primary, …), sodass ein bestehendes Theme mit denselben Variablennamen unverändert übernommen wird.",
+		"Die Token-Namen folgen der verbreiteten semantischen Konvention (background, foreground, primary, …), sodass ein bestehendes Theme mit denselben Variablennamen ohne Änderungen passt.",
 	"theming.dark.heading": "Dunkler Modus",
 	"theming.dark.body":
-		"Der dunkle Modus folgt standardmäßig der Systemeinstellung. Setze die Klasse .dark auf <html> oder einen beliebigen Vorfahren, um Dunkel zu erzwingen, oder .light, um Hell zu erzwingen; die dark:-Utilities und jeder Token folgen. Um die dunklen Werte anzupassen, überschreibe sie unter .dark:",
+		"Der dunkle Modus folgt standardmäßig der Einstellung des Betriebssystems. Setze die Klasse .dark auf <html> oder ein beliebiges übergeordnetes Element, um den dunklen Modus zu erzwingen, oder .light für den hellen; die dark:-Utilities und alle Tokens ziehen mit. Um die dunklen Werte anzupassen, überschreibe sie unter .dark:",
 	"theming.motion.heading": "Animations-Tokens",
-	"theming.motion.body": "Steuere das Animations-Timing global:",
+	"theming.motion.body": "Steuere die Animationszeiten global:",
 	"theming.easing.heading": "Easing-Funktionen",
 	"theming.easing.body":
-		"Auch Easing-Kurven sind Tokens – gemeinsam genutzt von jedem Komponenten-Übergang:",
-	"theming.rainbow.heading": "Regenbogen-Verläufe",
+		"Auch Easing-Kurven sind Tokens, die alle Komponentenübergänge gemeinsam nutzen:",
+	"theming.rainbow.heading": "Regenbogenverläufe",
 	"theming.rainbow.body":
 		"Verwendet von RainbowButton, GradientButton und weiteren Verlaufseffekten:",
 	"theming.customizing.heading": "Anpassen",
 	"theming.customizing.body":
-		"Überschreibe einen beliebigen Token in deinem eigenen CSS, um das Aussehen zu ändern:",
+		"Überschreibe ein beliebiges Token in deinem eigenen CSS, um das Aussehen zu ändern:",
 	"theming.customizing.note":
-		"Tokens kaskadieren: Überschreibe sie global in :root, oder grenze sie auf ein Wrapper-Element ein, um nur einen Bereich zu gestalten.",
+		"Tokens kaskadieren: Überschreibe sie global in :root oder beschränke sie auf ein Wrapper-Element, um nur einen einzelnen Bereich zu gestalten.",
 	"theming.nextSteps.heading": "Nächste Schritte",
 	"theming.nextSteps.generator.title": "Theme-Generator",
 	"theming.nextSteps.generator.desc":
-		"Stelle jeden Token mit Live-Reglern ein und kopiere das fertige CSS.",
-	"theming.nextSteps.components.title": "Komponenten durchsuchen",
+		"Stelle jedes Token mit Live-Reglern ein und kopiere das fertige CSS.",
+	"theming.nextSteps.components.title": "Komponenten entdecken",
 	"theming.nextSteps.components.desc":
-		"Sieh die Tokens in der gesamten Komponenten-Galerie in Aktion.",
+		"Sieh dir die Tokens in der gesamten Komponentengalerie in Aktion an.",
 
 	// Changelog page
 	"changelog.metaTitle": "Änderungsprotokoll",
 	"changelog.title": "Änderungsprotokoll",
-	"changelog.lead": "Jedes FancyUI-Release und was sich darin geändert hat, neueste zuerst.",
-	"changelog.latest": "Neueste",
+	"changelog.lead": "Jedes FancyUI-Release und was sich darin geändert hat, das neueste zuerst.",
+	"changelog.latest": "Aktuell",
 	"changelog.major": "Größere Änderungen",
 	"changelog.minor": "Kleinere Änderungen",
 	"changelog.patch": "Patch-Änderungen",
-	// Cameleon docs skins
+	// Docs skins
 	"skin.heading": "Skin",
 	"skin.standard": "Standard",
 	"skin.brutal": "Brutal",
@@ -342,7 +342,7 @@ export default {
 	"a11y.sound": "Ton",
 	"retro.explorer": "Explorer",
 	"retro.start": "Start",
-	"retro.tagline": "Animierte Komponenten für Svelte 5 — zum Kopieren und Einfügen.",
+	"retro.tagline": "Animierte Komponenten für Svelte 5 – zum Kopieren und Einfügen.",
 	"comp.snippetSvelteOnly":
 		"Ein vollständiges Beispiel für dieses Framework gibt es noch nicht; vorerst hat nur die Svelte-Version eines.",
 	"comp.copyMarkdownSvelte": "Als Markdown kopieren (Svelte)",
@@ -365,17 +365,17 @@ export default {
 	"install.prerequisites.card1.title.vue": "Vue",
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
-		"Die Komponenten sind Vue-3.5-Single-File-Components, daher wird Vue 3.5.2 oder neuer benötigt.",
+		"Die Komponenten sind Single-File-Components für Vue 3.5, daher ist Vue 3.5.2 oder neuer erforderlich.",
 
-	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
-	"intro.pill.frameworks": "Svelte 5, React, Vue",
-	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	// Framework-neutral Introduction and Installation copy
+	"intro.pill.frameworks": "Svelte 5, React und Vue",
+	"intro.philosophy.card1.title": "Svelte, React und Vue",
 	"intro.philosophy.card1.desc":
-		"Nativ für jedes Framework geschrieben: Runes in Svelte, Hooks in React, die Composition API in Vue.",
+		"Für jedes Framework nativ geschrieben: Runes in Svelte, Hooks in React, die Composition API in Vue.",
 	"intro.quickStart.step3.desc": "Füge sie in deine Komponenten ein.",
-	"install.peerDeps.optional": "optional",
+	"install.peerDeps.optional": "nicht erforderlich",
 
-	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	// Chrome, contribution, status, recipes, errors, SEO
 	"a11y.skipToContent": "Zum Inhalt springen",
 	"a11y.docsBreadcrumb": "Brotkrümelnavigation der Dokumentation",
 	"a11y.prevNext": "Vorherige und nächste Seite",
@@ -388,11 +388,11 @@ export default {
 	"footer.discussions": "Diskussionen",
 	"footer.security": "Sicherheit",
 	"footer.conduct": "Verhaltenskodex",
-	"footer.changelog": "Changelog",
+	"footer.changelog": "Änderungsprotokoll",
 	"footer.versions": "Versionen",
 	"footer.install": "Installation",
 	"footer.license": "MIT-Lizenz",
-	"comp.editPage": "Seite bearbeiten",
+	"comp.editPage": "Diese Seite bearbeiten",
 	"comp.reportIssue": "Problem melden",
 	"comp.issueTitle": "[docs] {name}",
 	"intro.lead":
@@ -411,18 +411,18 @@ export default {
 	"comp.inspiredByNoLink": "Inspiriert von {name}",
 	"recipes.title": "Rezepte",
 	"recipes.lead":
-		"Schritt-für-Schritt-Kompositionen, die mehrere Komponenten zu einer fertigen Oberfläche verbinden.",
+		"Schritt-für-Schritt-Anleitungen, die mehrere Komponenten zu einer fertigen Oberfläche kombinieren.",
 	"recipes.components": "Komponenten: {count}",
 	"error.notFoundTitle": "Seite nicht gefunden",
 	"error.genericTitle": "Etwas ist schiefgelaufen",
 	"error.notFoundBody": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
 	"error.genericBody":
-		"Es ist ein unerwarteter Fehler aufgetreten. Versuche es erneut oder gehe zurück zur Dokumentation.",
+		"Es ist ein unerwarteter Fehler aufgetreten. Versuche es erneut oder kehre zur Dokumentation zurück.",
 	"error.unauthorizedTitle": "Anmeldung erforderlich",
 	"error.unauthorizedBody": "Du musst angemeldet sein, um diese Seite zu nutzen.",
 	"error.home": "Zur Startseite",
-	"error.browse": "Komponenten durchsuchen",
-	"error.search": "Die Dokumentation durchsuchen",
+	"error.browse": "Komponenten entdecken",
+	"error.search": "Dokumentation durchsuchen",
 	"error.report": "Defekten Link melden",
 	"comp.previewFailed": "Diese Vorschau konnte nicht geladen werden.",
 	"demo.noPreview": "Für diese Komponente gibt es noch keine Vorschau.",
@@ -433,7 +433,7 @@ export default {
 	"seo.installation":
 		"Installiere FancyUI für Svelte 5, React oder Vue: Paket hinzufügen, Stylesheet importieren und die erste Komponente rendern.",
 	"seo.theming":
-		"Passe FancyUI mit Design-Tokens an: OKLCh-Farben, Radius, Bewegung und Dark Mode für Svelte 5, React und Vue.",
+		"Passe FancyUI mit Design-Tokens an: OKLCh-Farben, Radius, Bewegung und dunkler Modus, für Svelte 5, React und Vue.",
 	"seo.themeGenerator":
 		"Stimme die OKLCh-Design-Tokens von FancyUI live ab und kopiere das erzeugte CSS in deine App.",
 	"seo.changelog": "Versionshinweise zu den FancyUI-Paketen für Svelte 5, React und Vue.",
