@@ -61,12 +61,12 @@ test.describe("Home", () => {
 		).toHaveAttribute("aria-checked", "true");
 
 		await install.getByRole("radiogroup").getByRole("radio", { name: "Vue" }).click();
-		await expect(line).toContainText("coming to npm");
-		await expect(line.getByRole("link", { name: /source on GitHub/ })).toBeVisible();
+		// The Vue package is on npm, so its line is an install command too.
+		await expect(line).toContainText("pnpm add fancy-ui-vue");
 
 		await page.reload();
 		await hydrated(page);
-		await expect(line).toContainText("coming to npm");
+		await expect(line).toContainText("pnpm add fancy-ui-vue");
 	});
 
 	test("the motion toggle pauses the page", async ({ page }) => {
