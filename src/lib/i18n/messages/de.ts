@@ -39,8 +39,9 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Noch nicht auf npm — diese Portierung liegt im Repository.",
 	"install.unavailable": "Für dieses Framework gibt es noch keine Portierung dieser Komponente.",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "Quelle kopieren",
+	"install.copySourceNote":
+		"Kopiert den Komponentenquellcode in dein Projekt; der Code gehört dir.",
 	"comp.usage": "Verwendung",
 	"comp.props": "Props",
 	"comp.slots": "Slots",
