@@ -689,6 +689,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Disabled State",
 			description: "Disabled on the button vs. the anchor — two different mechanisms.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"icon-button": [
 		{ name: "BasicUsage", title: "Basic Usage" },
@@ -788,6 +789,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Variants",
 			description: "Four Button variants used as the idle skin.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 
 	label: [
@@ -970,6 +972,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "With Popover",
 			description: "A popover opened inside the dialog — Escape closes one layer at a time.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	"alert-dialog": [
 		{
@@ -1070,6 +1073,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Persistent",
 			description: "duration: Infinity — dismissed only by the user, never automatically.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 
 	select: [
@@ -1093,6 +1097,7 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "Placement",
 			description: "The panel anchored on all four sides of the trigger.",
 		},
+		{ name: "Playground", title: "Interactive Playground" },
 	],
 	combobox: [
 		{
