@@ -17,11 +17,12 @@
  *    `I18N_STRICT` (comma list, or `all`). Unreviewed locales get a one-line
  *    warning, and `I18N_STRICT=<code>` turns the list into failures so the
  *    reviewer can work through it.
- *  - Review manifest: warns while `messages/reviewed/<code>.json` is absent;
- *    once it exists it fails when incomplete or stale, and while the catalog
- *    still carries the "machine-translated draft" header. Set
- *    `manifestMode` to "fail" in quality-allowlist.json to make an absent
- *    manifest fail too.
+ *  - Review manifest: for a locale in `REVIEWED_LOCALES` (the ratchet below) a
+ *    missing manifest fails. Any other locale warns while
+ *    `messages/reviewed/<code>.json` is absent; once it exists it fails when
+ *    incomplete or stale, and while the catalog still carries the
+ *    "machine-translated draft" header. Set `manifestMode` to "fail" in
+ *    quality-allowlist.json to make every absent manifest fail.
  */
 
 import { readFileSync } from "node:fs";
@@ -43,6 +44,27 @@ const enEntries = P.parseCatalog("en").entries as {
 const en = P.entriesToMap(enEntries) as Q.Dict;
 const bases = Q.pluralBases(en);
 const codes = (P.listCatalogFiles() as string[]).filter((c) => c !== "en");
+
+/**
+ * Locales whose catalog a native reviewer has signed off. A manifest that goes
+ * missing for one of them fails the gate even while `manifestMode` is "warn".
+ * Add a locale here in the pull request that lands its manifest; `ar`, `fa`
+ * and `hi` are still drafts and warn until theirs lands.
+ */
+const REVIEWED_LOCALES = [
+	"cs",
+	"de",
+	"es",
+	"fr",
+	"id",
+	"it",
+	"ja",
+	"ko",
+	"pl",
+	"pt",
+	"tr",
+	"zh-Hans",
+];
 
 const strictEnv = (process.env.I18N_STRICT ?? "")
 	.split(",")
@@ -576,6 +598,15 @@ describe("catalog sources", () => {
 	});
 });
 
+describe("review ratchet", () => {
+	it("pins only real locales, and every pinned locale still has its manifest", () => {
+		for (const code of REVIEWED_LOCALES) {
+			expect(codes, `${code} is pinned but has no catalog`).toContain(code);
+			expect(P.readManifest(code), `${code} lost its review manifest`).not.toBeNull();
+		}
+	});
+});
+
 describe.each(codes)("catalog %s", (code) => {
 	const parsed = P.parseCatalog(code) as {
 		header: string;
@@ -583,7 +614,8 @@ describe.each(codes)("catalog %s", (code) => {
 	};
 	const cat = P.entriesToMap(parsed.entries) as Q.Dict;
 	const manifest = P.readManifest(code) as Record<string, string> | null;
-	const reviewed = manifest !== null || forcedStrict(code);
+	const pinned = REVIEWED_LOCALES.includes(code);
+	const reviewed = manifest !== null || pinned || forcedStrict(code);
 
 	it("has the English keys and the plural categories CLDR requires", () => {
 		const nonPluralEn = Object.keys(en).filter((k) => !Q.splitPlural(k, bases));
@@ -624,6 +656,7 @@ describe.each(codes)("catalog %s", (code) => {
 	it("has a complete, current review manifest", () => {
 		const expected = P.expectedManifest(code, enEntries, parsed.entries) as Record<string, string>;
 		const result = Q.checkManifest(code, manifest, expected, P.hasDraftHeader(parsed.header));
+		if (pinned) expect(result.absent, `${code} lost its review manifest`).toBe(false);
 		if (result.absent && allow.manifestMode !== "fail") {
 			noManifest.push(code);
 			return;

@@ -8,8 +8,11 @@ This folder records which translations a native reviewer has read.
 - `glossary.md` is the agreed rendering of the recurring terms, per locale.
 
 A locale without a manifest is a draft: `src/lib/i18n/catalog-quality.test.ts` only
-warns about it. As soon as the manifest exists the locale is reviewed, and the test
-fails when:
+warns about it (every locale not yet in `REVIEWED_LOCALES`). As soon as the manifest exists the locale is
+reviewed and strict, and the test also fails on the style checks (untranslated,
+punctuation, script hygiene, length). The reviewed locales are pinned in
+`REVIEWED_LOCALES` in the test, so a manifest cannot be deleted silently; the pull
+request that lands a new manifest adds its code there. The manifest check fails when:
 
 - a key of the catalog is missing from the manifest (added, never read),
 - the English of a key changed after the review (the stored hash no longer matches),
@@ -64,6 +67,7 @@ case in `cs` (`v <link>Vzhled</link>`, needs the locative) and `pl` (`w
 ## When the English changes
 
 Changing the English text of a key makes it stale in every locale's manifest, which is
-the intent: each reviewer re-reads that key. After the catalogs are updated, the
-reviewer reruns `node scripts/i18n-manifest.mjs <code>`; the script rewrites the hashes
+the intent: each reviewer re-reads that key. `node scripts/i18n-manifest.mjs <code> --check`
+lists the keys that are "not reviewed" or whose "English changed". After the catalogs are
+updated, the reviewer reruns `node scripts/i18n-manifest.mjs <code>`; the script rewrites the hashes
 for the whole catalog, so re-read the keys listed by the failing test before running it.
