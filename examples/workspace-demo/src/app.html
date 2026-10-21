@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="A small workspace app built with fancy-ui-svelte." />
+		<script>
+			// Applied before the first paint so a stored dark theme never flashes light.
+			// The library reads a `dark` or `light` class on <html> (see its README).
+			(function () {
+				var stored = null;
+				try {
+					stored = localStorage.getItem("workspace-demo:theme");
+				} catch (error) {}
+				var dark =
+					stored === "dark" ||
+					(stored !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+				document.documentElement.classList.add(dark ? "dark" : "light");
+			})();
+		</script>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
