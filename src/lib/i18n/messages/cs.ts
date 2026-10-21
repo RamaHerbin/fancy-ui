@@ -256,9 +256,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI staví na Tailwind CSS v4, který se konfiguruje v CSS místo v JavaScriptovém konfiguračním souboru. Pokud už Tailwind ve vašem projektu funguje, není potřeba nic dalšího nastavovat.",
 	"install.tailwind.order":
-		"Na pořadí importů záleží: nejdřív Tailwind, pak FancyUI, aby se vrstvy a vlastní proměnné FancyUI vyhodnotily nad výchozími hodnotami.",
+		"Pořadí importů je důležité: nejprve Tailwind, potom FancyUI. Import FancyUI umístěte před vlastní @custom-variant dark, jinak ten z FancyUI nahradí váš.",
 	"install.tailwind.note":
-		"Stylesheet nese design tokeny, které čte každá komponenta: barvy, poloměry a časování animací. Bez něj se komponenty vykreslí bez stylů.",
+		"Vstupní bod poskytuje výchozí barevné tokeny (background, primary, border a další) a tmavou variantu. Vaše vlastní bloky :root a .dark je přepíšou: znovu definujte CSS proměnné a vaše hodnoty zvítězí.",
 	"install.usage.heading": "Použití",
 	"install.usage.body":
 		"Každá komponenta je pojmenovaný export z kořene balíčku, takže si nemusíte pamatovat importní cesty jednotlivých komponent.",
@@ -290,7 +290,7 @@ export default {
 	"theming.lead":
 		"Každá komponenta FancyUI čte své barvy, poloměry a časování z vlastních CSS proměnných v barevném prostoru OKLCh — přepište jeden token a celá knihovna se přizpůsobí.",
 	"theming.pill.oklch": "Barevný prostor OKLCh",
-	"theming.pill.shadcn": "Kompatibilní se shadcn-svelte",
+	"theming.pill.shadcn": "Standardní názvy tokenů",
 	"theming.pill.dark": "Tmavý režim",
 	"theming.pill.tokens": "Design tokeny",
 	"theming.generator.body":
@@ -303,10 +303,10 @@ export default {
 	"theming.colors.body":
 		"Všechny barvy používají barevný prostor OKLCh pro percepčně jednotné gradienty:",
 	"theming.colors.note":
-		"Názvy tokenů odpovídají konvencím shadcn-svelte, takže existující shadcn motiv funguje beze změny.",
+		"Názvy tokenů odpovídají běžně používané sémantické konvenci (background, foreground, primary, …), takže existující motiv se stejnými názvy proměnných funguje beze změny.",
 	"theming.dark.heading": "Tmavý režim",
 	"theming.dark.body":
-		"Tmavý režim se aktivuje třídou .dark na rodičovském prvku. FancyUI přepíše každý token:",
+		"Tmavý režim ve výchozím stavu sleduje nastavení operačního systému. Přidejte třídu .dark na <html> nebo na libovolného předka pro vynucení tmavého režimu, nebo .light pro vynucení světlého; utility dark: i každý token ji následují. Chcete-li upravit tmavé hodnoty, přepište je v .dark:",
 	"theming.motion.heading": "Tokeny animace",
 	"theming.motion.body": "Řiďte časování animací globálně:",
 	"theming.easing.heading": "Funkce plynulosti",

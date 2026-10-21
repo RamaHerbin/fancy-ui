@@ -259,9 +259,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI は Tailwind CSS v4 上に構築されており、JavaScript の設定ファイルではなく CSS で設定します。プロジェクトで Tailwind がすでに動作していれば、追加の設定は不要です。",
 	"install.tailwind.order":
-		"インポートの順序が重要です: Tailwind を先に、FancyUI を後にすることで、FancyUI のレイヤーとカスタムプロパティがデフォルトの上に解決されます。",
+		"インポートの順序は重要です。先に Tailwind、次に FancyUI をインポートしてください。FancyUI のインポートは独自の @custom-variant dark より前に置いてください。そうしないと FancyUI のものがあなたの定義を置き換えます。",
 	"install.tailwind.note":
-		"このスタイルシートには、すべてのコンポーネントが参照するデザイントークン（色、角丸、アニメーションのタイミング）が含まれています。これがないと、コンポーネントはスタイルなしで表示されます。",
+		"このエントリは、既定のカラートークン（background、primary、border など）とダークバリアントを提供します。独自の :root と .dark ブロックがそれらを上書きします。CSS 変数を再定義すれば、あなたの値が優先されます。",
 	"install.usage.heading": "使い方",
 	"install.usage.body":
 		"すべてのコンポーネントはパッケージルートの名前付きエクスポートなので、コンポーネントごとのインポートパスを覚える必要はありません。",
@@ -294,7 +294,7 @@ export default {
 	"theming.lead":
 		"すべての FancyUI コンポーネントは、OKLCh カラースペースの CSS カスタムプロパティから色、角丸、タイミングを読み取ります。トークンを上書きすれば、ライブラリ全体がそれに従います。",
 	"theming.pill.oklch": "OKLCh カラースペース",
-	"theming.pill.shadcn": "shadcn-svelte 互換",
+	"theming.pill.shadcn": "標準的なトークン名",
 	"theming.pill.dark": "ダークモード",
 	"theming.pill.tokens": "デザイントークン",
 	"theming.generator.body":
@@ -307,10 +307,10 @@ export default {
 	"theming.colors.body":
 		"すべての色は、知覚的に均一なグラデーションのために OKLCh カラースペースを使用します:",
 	"theming.colors.note":
-		"トークン名は shadcn-svelte の規則に従っているため、既存の shadcn テーマもそのまま使えます。",
+		"トークン名は広く使われているセマンティックな規則（background、foreground、primary など）に従っているため、同じ変数名を持つ既存のテーマもそのまま使えます。",
 	"theming.dark.heading": "ダークモード",
 	"theming.dark.body":
-		"ダークモードは、親要素に付けた .dark クラスで有効になります。FancyUI はすべてのトークンを上書きします:",
+		"ダークモードは既定でOSの設定に従います。<html> または任意の祖先要素に .dark クラスを付けるとダークに固定され、.light を付けるとライトに固定されます。dark: ユーティリティとすべてのトークンがそれに従います。ダークの値をカスタマイズするには、.dark の下で上書きします：",
 	"theming.motion.heading": "アニメーショントークン",
 	"theming.motion.body": "アニメーションのタイミングをグローバルに制御します:",
 	"theming.easing.heading": "イージング関数",

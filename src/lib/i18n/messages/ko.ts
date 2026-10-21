@@ -255,9 +255,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI는 Tailwind CSS v4 기반으로 제작되었으며, v4는 JavaScript 설정 파일 대신 CSS에서 설정합니다. 프로젝트에서 Tailwind가 이미 동작한다면 추가로 설정할 것은 없습니다.",
 	"install.tailwind.order":
-		"가져오기 순서가 중요합니다: Tailwind를 먼저, FancyUI를 나중에 가져와야 FancyUI의 레이어와 사용자 정의 속성이 기본값 위에서 해석됩니다.",
+		"임포트 순서가 중요합니다. Tailwind를 먼저, FancyUI를 그다음에 가져오세요. FancyUI 임포트는 직접 작성한 @custom-variant dark보다 앞에 두어야 합니다. 그렇지 않으면 FancyUI의 정의가 사용자의 정의를 대체합니다.",
 	"install.tailwind.note":
-		"이 스타일시트에는 모든 컴포넌트가 읽는 디자인 토큰(색상, 반경, 애니메이션 타이밍)이 담겨 있습니다. 없으면 컴포넌트가 스타일 없이 렌더링됩니다.",
+		"이 엔트리는 기본 색상 토큰(background, primary, border 등)과 다크 변형을 제공합니다. 직접 작성한 :root와 .dark 블록이 이를 덮어씁니다. CSS 변수를 다시 정의하면 사용자의 값이 우선합니다.",
 	"install.usage.heading": "사용법",
 	"install.usage.body":
 		"모든 컴포넌트는 패키지 루트의 이름 있는 내보내기이므로, 컴포넌트별 가져오기 경로를 기억할 필요가 없습니다.",
@@ -289,7 +289,7 @@ export default {
 	"theming.lead":
 		"모든 FancyUI 컴포넌트는 OKLCh 색 공간의 CSS 사용자 정의 속성에서 색상, 반경, 타이밍을 읽어옵니다. 토큰을 재정의하면 라이브러리 전체가 그에 따라 바뀝니다.",
 	"theming.pill.oklch": "OKLCh 색 공간",
-	"theming.pill.shadcn": "shadcn-svelte 호환",
+	"theming.pill.shadcn": "표준 토큰 이름",
 	"theming.pill.dark": "다크 모드",
 	"theming.pill.tokens": "디자인 토큰",
 	"theming.generator.body":
@@ -301,10 +301,10 @@ export default {
 	"theming.colors.body":
 		"모든 색상은 시각적으로 균일한 그레이디언트를 위해 OKLCh 색 공간을 사용합니다:",
 	"theming.colors.note":
-		"토큰 이름은 shadcn-svelte 규칙을 따르므로, 기존 shadcn 테마를 그대로 적용할 수 있습니다.",
+		"토큰 이름은 널리 쓰이는 시맨틱 규칙(background, foreground, primary 등)을 따르므로, 같은 변수 이름을 쓰는 기존 테마를 그대로 적용할 수 있습니다.",
 	"theming.dark.heading": "다크 모드",
 	"theming.dark.body":
-		"다크 모드는 상위 요소에 붙은 .dark 클래스로 활성화됩니다. FancyUI는 모든 토큰을 재정의합니다:",
+		"다크 모드는 기본적으로 운영체제 설정을 따릅니다. <html> 또는 임의의 상위 요소에 .dark 클래스를 지정하면 다크로 고정되고, .light를 지정하면 라이트로 고정되며, dark: 유틸리티와 모든 토큰이 이를 따릅니다. 다크 값을 사용자 지정하려면 .dark 아래에서 덮어쓰세요:",
 	"theming.motion.heading": "애니메이션 토큰",
 	"theming.motion.body": "애니메이션 타이밍을 전역으로 제어하세요:",
 	"theming.easing.heading": "이징 함수",

@@ -259,9 +259,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI, JavaScript yapılandırma dosyası yerine CSS içinde yapılandırılan Tailwind CSS v4 üzerine inşa edilmiştir. Tailwind projenizde zaten çalışıyorsa yapılandırılacak başka bir şey yoktur.",
 	"install.tailwind.order":
-		"İçe aktarma sırası önemlidir: önce Tailwind, sonra FancyUI; böylece FancyUI'nin katmanları ve özel özellikleri varsayılanların üzerinde çözümlenir.",
+		"İçe aktarma sırası önemlidir: önce Tailwind, sonra FancyUI. FancyUI içe aktarmasını kendi @custom-variant dark tanımınızdan önce yerleştirin; aksi halde FancyUI'ınki sizinkinin yerini alır.",
 	"install.tailwind.note":
-		"Stil dosyası, her bileşenin okuduğu tasarım belirteçlerini taşır: renkler, köşe yarıçapları ve animasyon zamanlamaları. O olmadan bileşenler stilsiz görünür.",
+		"Giriş dosyası varsayılan renk belirteçlerini (background, primary, border ve diğerleri) ve bir koyu varyant sağlar. Kendi :root ve .dark bloklarınız bunları geçersiz kılar: CSS değişkenlerini yeniden tanımlayın, sizin değerleriniz geçerli olur.",
 	"install.usage.heading": "Kullanım",
 	"install.usage.body":
 		"Her bileşen paket kökünün adlandırılmış bir dışa aktarımıdır, bu yüzden ezberlenecek bileşen başına içe aktarma yolu yoktur.",
@@ -292,7 +292,7 @@ export default {
 	"theming.lead":
 		"Her FancyUI bileşeni, renklerini, köşe yarıçaplarını ve zamanlamalarını OKLCh renk uzayındaki CSS özel özelliklerinden okur — bir belirteci geçersiz kılın, tüm kitaplık buna uyum sağlar.",
 	"theming.pill.oklch": "OKLCh renk uzayı",
-	"theming.pill.shadcn": "shadcn-svelte uyumlu",
+	"theming.pill.shadcn": "Standart belirteç adları",
 	"theming.pill.dark": "Karanlık mod",
 	"theming.pill.tokens": "Tasarım belirteçleri",
 	"theming.generator.body":
@@ -305,10 +305,10 @@ export default {
 	"theming.colors.body":
 		"Tüm renkler, algısal olarak tutarlı gradyanlar için OKLCh renk uzayını kullanır:",
 	"theming.colors.note":
-		"Belirteç adları shadcn-svelte kurallarını izler, bu nedenle mevcut bir shadcn teması değişiklik yapılmadan kullanılabilir.",
+		"Belirteç adları yaygın olarak kullanılan anlamsal kuralı izler (background, foreground, primary, …), bu nedenle aynı değişken adlarına sahip mevcut bir tema değişiklik yapılmadan kullanılabilir.",
 	"theming.dark.heading": "Karanlık mod",
 	"theming.dark.body":
-		"Karanlık mod, bir üst elementteki .dark sınıfıyla etkinleştirilir. FancyUI her belirteci geçersiz kılar:",
+		"Karanlık mod varsayılan olarak işletim sistemi tercihini izler. Karanlığı zorlamak için .dark sınıfını <html> üzerine veya herhangi bir üst öğeye, aydınlığı zorlamak için .light sınıfını ekleyin; dark: yardımcıları ve her belirteç buna uyar. Karanlık değerleri özelleştirmek için bunları .dark altında geçersiz kılın:",
 	"theming.motion.heading": "Animasyon belirteçleri",
 	"theming.motion.body": "Animasyon zamanlamasını genel olarak kontrol edin:",
 	"theming.easing.heading": "Easing fonksiyonları",

@@ -254,9 +254,9 @@ export default {
 	"install.tailwind.body":
 		"بُنيت FancyUI على Tailwind CSS v4 الذي يُهيّأ عبر CSS بدلاً من ملف إعدادات JavaScript. إذا كان Tailwind يعمل بالفعل في مشروعك، فلا حاجة إلى أي إعداد إضافي.",
 	"install.tailwind.order":
-		"ترتيب الاستيراد مهم: Tailwind أولاً ثم FancyUI، حتى تُحلّ طبقات FancyUI وخصائصه المخصّصة فوق القيم الافتراضية.",
+		"ترتيب الاستيراد مهم: Tailwind أولاً ثم FancyUI. ضع استيراد FancyUI قبل @custom-variant dark الخاص بك، وإلا فسيحل متغير FancyUI محل متغيرك.",
 	"install.tailwind.note":
-		"يحمل ملف الأنماط رموز التصميم التي يقرأها كل مكوّن: الألوان والزوايا الدائرية وتوقيتات الحركة. من دونه تظهر المكوّنات بلا تنسيق.",
+		"توفّر نقطة الدخول رموز ألوان افتراضية (background وprimary وborder وغيرها) ونسخة للوضع الداكن. كتل :root و.dark الخاصة بك تتجاوزها: أعد تعريف متغيرات CSS وستسري قيمك.",
 	"install.usage.heading": "الاستخدام",
 	"install.usage.body":
 		"كل مكوّن هو تصدير مُسمّى من جذر الحزمة، فلا حاجة إلى تذكّر مسارات استيراد لكل مكوّن على حدة.",
@@ -286,7 +286,7 @@ export default {
 	"theming.lead":
 		"كل مكوّن في FancyUI يقرأ ألوانه وزواياه الدائرية وتوقيتاته من خصائص CSS مخصّصة ضمن فضاء الألوان OKLCh — تجاوز رمزاً واحداً فتتبعه المكتبة كاملةً.",
 	"theming.pill.oklch": "فضاء الألوان OKLCh",
-	"theming.pill.shadcn": "متوافق مع shadcn-svelte",
+	"theming.pill.shadcn": "أسماء رموز قياسية",
 	"theming.pill.dark": "الوضع الداكن",
 	"theming.pill.tokens": "رموز التصميم",
 	"theming.generator.body":
@@ -299,10 +299,10 @@ export default {
 	"theming.colors.body":
 		"تستخدم جميع الألوان فضاء الألوان OKLCh للحصول على تدرّجات متجانسة إدراكياً:",
 	"theming.colors.note":
-		"تتّبع أسماء الرموز اتفاقيات shadcn-svelte، لذا يعمل أي سِمة shadcn موجودة مسبقاً دون أي تعديل.",
+		"تتّبع أسماء الرموز الاتفاقية الدلالية الشائعة الاستخدام (background وforeground وprimary وغيرها)، لذا يعمل أي سِمة موجودة مسبقاً تستخدم أسماء المتغيّرات نفسها دون أي تعديل.",
 	"theming.dark.heading": "الوضع الداكن",
 	"theming.dark.body":
-		"يُفعَّل الوضع الداكن عبر صنف .dark على عنصر أب. تُعيد FancyUI تعريف كل رمز:",
+		"يتبع الوضع الداكن تفضيل نظام التشغيل افتراضياً. ضع الفئة .dark على <html> أو على أي عنصر سلف لفرض الداكن، أو .light لفرض الفاتح؛ وتتبعها أدوات dark: وكل رمز. لتخصيص القيم الداكنة، تجاوزها ضمن .dark:",
 	"theming.motion.heading": "رموز الحركة",
 	"theming.motion.body": "تحكّم في توقيت الحركة عالمياً:",
 	"theming.easing.heading": "دوال التسهيل",

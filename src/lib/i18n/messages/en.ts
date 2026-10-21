@@ -270,9 +270,9 @@ export const en = {
 	"install.tailwind.body":
 		"FancyUI is built on Tailwind CSS v4, which is configured in CSS instead of a JavaScript config file. If Tailwind already works in your project, there is nothing else to configure.",
 	"install.tailwind.order":
-		"Import order matters: Tailwind first, FancyUI second, so FancyUI's layers and custom properties resolve on top of the defaults.",
+		"Import order matters: Tailwind first, FancyUI second. Place the FancyUI import before your own @custom-variant dark, otherwise FancyUI's replaces yours.",
 	"install.tailwind.note":
-		"The stylesheet carries the design tokens every component reads: colors, radii and animation timings. Without it, components render unstyled.",
+		"The entry provides default colour tokens (background, primary, border and the rest) and a dark variant. Your own :root and .dark blocks override them: redefine the CSS variables and your values win.",
 	"install.usage.heading": "Usage",
 	"install.usage.body":
 		"Every component is a named export of the package root, so there are no per-component import paths to remember.",
@@ -304,7 +304,7 @@ export const en = {
 	"theming.lead":
 		"Every FancyUI component reads its colors, radii and timings from CSS custom properties in the OKLCh color space — override a token and the whole library follows.",
 	"theming.pill.oklch": "OKLCh color space",
-	"theming.pill.shadcn": "shadcn-svelte compatible",
+	"theming.pill.shadcn": "Standard token names",
 	"theming.pill.dark": "Dark mode",
 	"theming.pill.tokens": "Design tokens",
 	"theming.generator.body":
@@ -316,10 +316,10 @@ export const en = {
 	"theming.colors.heading": "Color system",
 	"theming.colors.body": "All colors use the OKLCh color space for perceptually uniform gradients:",
 	"theming.colors.note":
-		"Token names follow shadcn-svelte conventions, so an existing shadcn theme drops in unchanged.",
+		"Token names follow the widely used semantic convention (background, foreground, primary, …), so an existing theme with the same variable names drops in unchanged.",
 	"theming.dark.heading": "Dark mode",
 	"theming.dark.body":
-		"Dark mode is activated by the .dark class on a parent element. FancyUI overrides every token:",
+		"Dark mode follows the operating-system preference by default. Put the .dark class on <html> or any ancestor to force dark, or .light to force light; the dark: utilities and every token follow. To customise the dark values, override them under .dark:",
 	"theming.motion.heading": "Animation tokens",
 	"theming.motion.body": "Control animation timing globally:",
 	"theming.easing.heading": "Easing functions",

@@ -261,9 +261,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI está construido sobre Tailwind CSS v4, que se configura en CSS en lugar de en un archivo de configuración de JavaScript. Si Tailwind ya funciona en tu proyecto, no hay nada más que configurar.",
 	"install.tailwind.order":
-		"El orden de los imports importa: primero Tailwind, después FancyUI, para que las capas y las propiedades personalizadas de FancyUI se resuelvan sobre los valores predeterminados.",
+		"El orden de importación importa: primero Tailwind, después FancyUI. Coloca la importación de FancyUI antes de tu propio @custom-variant dark; de lo contrario, el de FancyUI sustituye al tuyo.",
 	"install.tailwind.note":
-		"La hoja de estilos incluye los tokens de diseño que lee cada componente: colores, radios y tiempos de animación. Sin ella, los componentes se muestran sin estilo.",
+		"El punto de entrada aporta tokens de color por defecto (background, primary, border y el resto) y una variante oscura. Tus propios bloques :root y .dark los sustituyen: redefine las variables CSS y tus valores prevalecen.",
 	"install.usage.heading": "Uso",
 	"install.usage.body":
 		"Cada componente es un export con nombre de la raíz del paquete, así que no hay rutas de import por componente que recordar.",
@@ -295,7 +295,7 @@ export default {
 	"theming.lead":
 		"Cada componente de FancyUI lee sus colores, radios y tiempos desde propiedades personalizadas de CSS en el espacio de color OKLCh — redefine un token y toda la biblioteca lo sigue.",
 	"theming.pill.oklch": "Espacio de color OKLCh",
-	"theming.pill.shadcn": "Compatible con shadcn-svelte",
+	"theming.pill.shadcn": "Nombres de tokens estándar",
 	"theming.pill.dark": "Modo oscuro",
 	"theming.pill.tokens": "Tokens de diseño",
 	"theming.generator.body":
@@ -308,10 +308,10 @@ export default {
 	"theming.colors.body":
 		"Todos los colores usan el espacio de color OKLCh para obtener degradados perceptualmente uniformes:",
 	"theming.colors.note":
-		"Los nombres de los tokens siguen las convenciones de shadcn-svelte, así que un tema de shadcn ya existente funciona sin cambios.",
+		"Los nombres de los tokens siguen la convención semántica habitual (background, foreground, primary, …), así que un tema ya existente con los mismos nombres de variables funciona sin cambios.",
 	"theming.dark.heading": "Modo oscuro",
 	"theming.dark.body":
-		"El modo oscuro se activa con la clase .dark en un elemento superior. FancyUI redefine cada token:",
+		"El modo oscuro sigue por defecto la preferencia del sistema operativo. Pon la clase .dark en <html> o en cualquier ancestro para forzar el oscuro, o .light para forzar el claro; las utilidades dark: y cada token lo siguen. Para personalizar los valores oscuros, sobrescríbelos bajo .dark:",
 	"theming.motion.heading": "Tokens de animación",
 	"theming.motion.body": "Controla el tiempo de las animaciones de forma global:",
 	"theming.easing.heading": "Funciones de easing",
