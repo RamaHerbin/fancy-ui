@@ -59,6 +59,7 @@
 		resolveCssColor,
 		startTickNavHdr,
 		tickNavLights,
+		watchTickNavAccent,
 		TICK_NAV_HDR_PAD,
 	} from "./tick-nav-hdr.js";
 
@@ -116,9 +117,12 @@
 		core?.update({ reach, current: currentIndex, reducedMotion: reduced.current });
 	});
 
-	// Rows were added, removed or reordered: the core re-reads them after the DOM update.
+	// Rows were added, removed or reordered, or their tick and beam paths
+	// changed: the core re-reads them after the DOM update.
 	$effect(() => {
 		void items.map((item) => item.id).join("\u0000");
+		void ticks;
+		void variant;
 		core?.refresh();
 	});
 
@@ -136,8 +140,13 @@
 				light.destroy();
 				return;
 			}
-			const accent = resolveCssColor(getComputedStyle(canvas).color);
-			if (accent) light.setAccent(accent);
+			// Follows the theme: a new accent repaints the light at once.
+			const unwatch = watchTickNavAccent(canvas, (css) => {
+				const accent = resolveCssColor(css);
+				if (!accent) return;
+				light.setAccent(accent);
+				instance.measure();
+			});
 			const size = () =>
 				light.resize(
 					host.offsetWidth + TICK_NAV_HDR_PAD * 2,
@@ -152,6 +161,7 @@
 			instance.update({ onFrame: (lines) => light.render(tickNavLights(lines)) });
 			hdrOn = true;
 			stop = () => {
+				unwatch();
 				ro.disconnect();
 				instance.update({ onFrame: undefined });
 				light.destroy();

@@ -2,6 +2,7 @@ import { render, cleanup, fireEvent } from "@testing-library/svelte";
 import { createRawSnippet, tick } from "svelte";
 import { afterEach, describe, it, expect, vi } from "vitest";
 import TickNav from "./TickNav.svelte";
+import { watchTickNavAccent } from "./tick-nav-hdr.js";
 import type { TickNavItem } from "./types.js";
 import { sound } from "../sound/sound.svelte.js";
 
@@ -138,6 +139,41 @@ describe("TickNav", () => {
 		expect(container.querySelector("li[data-active]")).toBeNull();
 	});
 
+	it("clears the lit row when the pointer moves straight onto a disabled row", async () => {
+		const preview = createRawSnippet((item: () => TickNavItem) => ({
+			render: () => `<span class="pv">${item().label}</span>`,
+		}));
+		const { container } = render(TickNav, { props: { items, preview } });
+		const links = container.querySelectorAll(".tn-link");
+		over(links[2]);
+		await tick();
+		expect(container.querySelectorAll("li")[2].hasAttribute("data-active")).toBe(true);
+		over(links[3]);
+		await tick();
+		expect(container.querySelector("li[data-active]")).toBeNull();
+		expect(container.querySelector(".tn-preview")).toBeNull();
+	});
+
+	it("returns to the keyboard-focused row when the pointer leaves the list", async () => {
+		// jsdom has no :focus-visible; treat programmatic focus as keyboard focus.
+		const matches = Element.prototype.matches;
+		vi.spyOn(Element.prototype, "matches").mockImplementation(function (this: Element, sel) {
+			return sel === ":focus-visible" ? this === document.activeElement : matches.call(this, sel);
+		});
+		const { container } = render(TickNav, { props: { items } });
+		const links = container.querySelectorAll<HTMLElement>(".tn-link");
+		links[1].focus();
+		await tick();
+		expect(container.querySelectorAll("li")[1].hasAttribute("data-active")).toBe(true);
+		over(links[0]);
+		await tick();
+		expect(container.querySelectorAll("li")[0].hasAttribute("data-active")).toBe(true);
+		leave(container.querySelector("ul")!);
+		await tick();
+		expect(container.querySelectorAll("li")[1].hasAttribute("data-active")).toBe(true);
+		expect(container.querySelectorAll("li[data-active]")).toHaveLength(1);
+	});
+
 	describe("sound", () => {
 		it("plays hover once per row a mouse enters, never for a disabled row", async () => {
 			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
@@ -175,6 +211,29 @@ describe("TickNav", () => {
 			expect(play.mock.calls.map((c) => c[0])).toEqual(["hover"]);
 		});
 
+		it("strums the new ticks after minorTicks changes", async () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container, rerender } = render(TickNav, {
+				props: { items, sound: true, minorTicks: 1 },
+			});
+			await rerender({ items, sound: true, minorTicks: 3 });
+			await tick();
+			const list = container.querySelector("ul")!;
+			list.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+			const paths = container.querySelectorAll<SVGPathElement>(".tn-path, .tn-tick-path");
+			paths.forEach((path, i) => {
+				path.getBoundingClientRect = () => ({ top: i * 10, height: 0 }) as DOMRect;
+			});
+			const move = (y: number) => {
+				const event = new Event("pointermove", { bubbles: true });
+				Object.assign(event, { pointerType: "mouse", clientX: 0, clientY: y });
+				list.dispatchEvent(event);
+			};
+			move(-5);
+			move(35); // Alpha's line, then all three ticks below it
+			expect(play.mock.calls.map((c) => c[0])).toEqual(["hover", "tick", "tick", "tick"]);
+		});
+
 		it("stays silent without the sound prop, and on activation", async () => {
 			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
 			const { container } = render(TickNav, { props: { items } });
@@ -194,6 +253,29 @@ describe("TickNav", () => {
 		const { container: plain } = render(TickNav, { props: { items } });
 		expect(plain.querySelector("nav")!.hasAttribute("data-variant")).toBe(false);
 		expect(plain.querySelectorAll(".tn-beam")).toHaveLength(0);
+	});
+
+	it("re-reads the HDR accent when the page theme changes", async () => {
+		const style = document.createElement("style");
+		style.textContent =
+			".accent-probe { color: rgb(1, 2, 3); } .dark .accent-probe { color: rgb(4, 5, 6); }";
+		document.head.append(style);
+		const probe = document.createElement("span");
+		probe.className = "accent-probe";
+		document.body.append(probe);
+		const seen: string[] = [];
+		const stop = watchTickNavAccent(probe, (css) => seen.push(css));
+		document.documentElement.classList.add("dark");
+		await Promise.resolve();
+		document.documentElement.setAttribute("style", "--unrelated: 1");
+		await Promise.resolve();
+		stop();
+		document.documentElement.classList.remove("dark");
+		await Promise.resolve();
+		expect(seen).toEqual(["rgb(1, 2, 3)", "rgb(4, 5, 6)"]);
+		document.documentElement.removeAttribute("style");
+		probe.remove();
+		style.remove();
 	});
 
 	it("merges the class prop", () => {

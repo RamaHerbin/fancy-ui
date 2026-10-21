@@ -194,8 +194,8 @@
 	filter: drop-shadow(0 0 2px var(--tn-accent)) drop-shadow(0 0 8px var(--tn-accent));
 }
 
-/* `data-plucking` is set by the core, so Svelte cannot see it: :global. */
-svg:global([data-plucking]) .tn-beam {
+/* `data-plucking` is set by the core on the line's <svg>. */
+svg[data-plucking] .tn-beam {
 	/* Fades out over the last third of the run as the wave dies down. */
 	opacity: calc(min(1, (1 - var(--tn-p, 0)) * 3));
 }

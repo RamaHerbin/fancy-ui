@@ -449,15 +449,48 @@ export function createTickNavCore(
 		return rows[index]?.el.hasAttribute("data-disabled") ?? false;
 	}
 
+	/** The row holding visible keyboard focus, or -1. */
+	function focusedIndex(): number {
+		const el = list.ownerDocument.activeElement;
+		if (!el || !list.contains(el) || !el.matches(":focus-visible")) return -1;
+		const index = rowIndexOf(el);
+		return isDisabled(index) ? -1 : index;
+	}
+
+	/** Anchors the card beside a row, for when there is no pointer to follow. */
+	function anchorTo(index: number): void {
+		const row = rows[index];
+		if (!row) return;
+		const box = root.getBoundingClientRect();
+		const rowBox = row.el.getBoundingClientRect();
+		root.style.setProperty("--tn-px", `${(rowBox.right - box.left + PREVIEW_OFFSET).toFixed(1)}px`);
+		root.style.setProperty("--tn-py", `${(rowBox.top - box.top + PREVIEW_OFFSET).toFixed(1)}px`);
+	}
+
+	/**
+	 * The pointer no longer designates a row: hand the active row back to the
+	 * keyboard-focused one if there is one, otherwise clear it. No pluck.
+	 */
+	function releasePointer(): void {
+		const focused = focusedIndex();
+		if (focused >= 0) anchorTo(focused);
+		setHovered(focused, false, false);
+	}
+
 	// Hover is per row (the link's hit area), like `mouseenter`: entering a row
-	// activates it, leaving the list clears it. Moving between rows never
+	// activates it, leaving the list releases it. Moving between rows never
 	// passes through "nothing hovered", so the card does not flicker.
 	function onPointerOver(event: PointerEvent): void {
 		if (event.pointerType === "touch") return;
 		const link = event.target instanceof Element ? event.target.closest(".tn-link") : null;
 		if (!link) return;
 		const index = rowIndexOf(link);
-		if (index < 0 || isDisabled(index)) return;
+		if (index < 0) return;
+		// A disabled row never activates, and must not leave the previous row lit.
+		if (isDisabled(index)) {
+			if (hovered >= 0) releasePointer();
+			return;
+		}
 		setHovered(index, true, lastY === null);
 	}
 
@@ -500,20 +533,16 @@ export function createTickNavCore(
 	function onPointerLeave(event: PointerEvent): void {
 		if (event.pointerType === "touch") return;
 		lastY = null;
-		setHovered(-1, false);
+		releasePointer();
 	}
 
 	function onFocusIn(event: FocusEvent): void {
 		const el = event.target as Element | null;
 		if (!el || !(el as HTMLElement).matches?.(":focus-visible")) return;
 		const index = rowIndexOf(el);
-		const row = rows[index];
-		if (!row) return;
+		if (!rows[index]) return;
 		// Anchor the card beside the focused row, since there is no pointer.
-		const box = root.getBoundingClientRect();
-		const rowBox = row.el.getBoundingClientRect();
-		root.style.setProperty("--tn-px", `${(rowBox.right - box.left + PREVIEW_OFFSET).toFixed(1)}px`);
-		root.style.setProperty("--tn-py", `${(rowBox.top - box.top + PREVIEW_OFFSET).toFixed(1)}px`);
+		anchorTo(index);
 		setHovered(index, false);
 	}
 

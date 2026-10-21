@@ -305,6 +305,36 @@ export function tickNavLights(lines: TickNavLineState[]): TickNavLight[] {
 	return out;
 }
 
+/**
+ * Calls `onChange` with `el`'s computed `color` now, then again whenever it
+ * may have changed with the page's theme: a `class`, `style` or `data-theme`
+ * change on `<html>` or `<body>`, or a flip of the colour-scheme preference.
+ * Unchanged values are not reported. Returns a function that stops watching.
+ */
+export function watchTickNavAccent(el: Element, onChange: (css: string) => void): () => void {
+	const view = el.ownerDocument.defaultView;
+	if (!view) return () => {};
+	let last = "";
+	const read = () => {
+		const css = view.getComputedStyle(el).color;
+		if (css === last) return;
+		last = css;
+		onChange(css);
+	};
+	read();
+	const doc = el.ownerDocument;
+	const observer = new view.MutationObserver(read);
+	const watched = { attributes: true, attributeFilter: ["class", "style", "data-theme"] };
+	observer.observe(doc.documentElement, watched);
+	if (doc.body) observer.observe(doc.body, watched);
+	const scheme = view.matchMedia?.("(prefers-color-scheme: dark)");
+	scheme?.addEventListener?.("change", read);
+	return () => {
+		observer.disconnect();
+		scheme?.removeEventListener?.("change", read);
+	};
+}
+
 /** Resolves any CSS colour the browser understands to 8-bit sRGB. */
 export function resolveCssColor(css: string): [number, number, number] | null {
 	if (typeof document === "undefined") return null;

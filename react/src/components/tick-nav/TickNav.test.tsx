@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TickNav } from "./TickNav.js";
@@ -138,6 +139,43 @@ describe("TickNav", () => {
 		expect(container.querySelector("li[data-active]")).toBeNull();
 	});
 
+	it("clears the lit row when the pointer moves straight onto a disabled row", () => {
+		const { container } = render(
+			<TickNav items={items} preview={(item) => <span className="pv">{item.label}</span>} />
+		);
+		const links = container.querySelectorAll(".tn-link");
+		over(links[2]!);
+		expect(container.querySelectorAll("li")[2]!.hasAttribute("data-active")).toBe(true);
+		over(links[3]!);
+		expect(container.querySelector("li[data-active]")).toBeNull();
+		expect(container.querySelector(".tn-preview")).toBeNull();
+	});
+
+	it("returns to the keyboard-focused row when the pointer leaves the list", () => {
+		// jsdom has no :focus-visible; treat programmatic focus as keyboard focus.
+		const matches = Element.prototype.matches;
+		vi.spyOn(Element.prototype, "matches").mockImplementation(function (this: Element, sel) {
+			return sel === ":focus-visible" ? this === document.activeElement : matches.call(this, sel);
+		});
+		const { container } = render(<TickNav items={items} />);
+		const links = container.querySelectorAll<HTMLElement>(".tn-link");
+		act(() => {
+			links[1]!.focus();
+		});
+		expect(container.querySelectorAll("li")[1]!.hasAttribute("data-active")).toBe(true);
+		over(links[0]!);
+		expect(container.querySelectorAll("li")[0]!.hasAttribute("data-active")).toBe(true);
+		leave(container.querySelector("ul")!);
+		expect(container.querySelectorAll("li")[1]!.hasAttribute("data-active")).toBe(true);
+		expect(container.querySelectorAll("li[data-active]")).toHaveLength(1);
+	});
+
+	it("shows the beam of a plucking line with a plain selector (no scoped-CSS syntax)", () => {
+		const css = readFileSync("src/components/tick-nav/tick-nav.css", "utf8");
+		expect(css).toMatch(/svg\[data-plucking\] \.tn-beam/);
+		expect(css).not.toContain(":global(");
+	});
+
 	describe("sound", () => {
 		it("plays hover once per row a mouse enters, never for a disabled row", () => {
 			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
@@ -174,6 +212,28 @@ describe("TickNav", () => {
 			play.mockClear();
 			move(31); // crosses Beta's line at 30
 			expect(play.mock.calls.map((c) => c[0])).toEqual(["hover"]);
+		});
+
+		it("strums the new ticks after minorTicks changes", () => {
+			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
+			const { container, rerender } = render(<TickNav items={items} sound minorTicks={1} />);
+			rerender(<TickNav items={items} sound minorTicks={3} />);
+			const list = container.querySelector("ul")!;
+			list.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+			const paths = container.querySelectorAll<SVGPathElement>(".tn-path, .tn-tick-path");
+			paths.forEach((path, i) => {
+				path.getBoundingClientRect = () => ({ top: i * 10, height: 0 }) as DOMRect;
+			});
+			const move = (y: number) => {
+				const event = new Event("pointermove", { bubbles: true });
+				Object.assign(event, { pointerType: "mouse", clientX: 0, clientY: y });
+				act(() => {
+					list.dispatchEvent(event);
+				});
+			};
+			move(-5);
+			move(35); // Alpha's line, then all three ticks below it
+			expect(play.mock.calls.map((c) => c[0])).toEqual(["hover", "tick", "tick", "tick"]);
 		});
 
 		it("stays silent without the sound prop, and on activation", () => {

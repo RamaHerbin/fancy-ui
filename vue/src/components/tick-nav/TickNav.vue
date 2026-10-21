@@ -55,6 +55,7 @@ import {
 	resolveCssColor,
 	startTickNavHdr,
 	tickNavLights,
+	watchTickNavAccent,
 	TICK_NAV_HDR_PAD,
 } from "./tick-nav-hdr.js";
 
@@ -129,9 +130,10 @@ watch(
 	{ flush: "post" }
 );
 
-// Rows were added, removed or reordered: the core re-reads them after the DOM update.
+// Rows were added, removed or reordered, or their tick and beam paths
+// changed: the core re-reads them after the DOM update.
 watch(
-	() => props.items.map((item) => item.id).join("\u0000"),
+	[() => props.items.map((item) => item.id).join("\u0000"), ticks, () => props.variant],
 	() => core.value?.refresh(),
 	{ flush: "post" }
 );
@@ -149,8 +151,13 @@ watch(
 				light.destroy();
 				return;
 			}
-			const accent = resolveCssColor(getComputedStyle(canvas).color);
-			if (accent) light.setAccent(accent);
+			// Follows the theme: a new accent repaints the light at once.
+			const unwatch = watchTickNavAccent(canvas, (css) => {
+				const accent = resolveCssColor(css);
+				if (!accent) return;
+				light.setAccent(accent);
+				instance.measure();
+			});
 			const size = () =>
 				light.resize(
 					host.offsetWidth + TICK_NAV_HDR_PAD * 2,
@@ -165,6 +172,7 @@ watch(
 			instance.update({ onFrame: (lines) => light.render(tickNavLights(lines)) });
 			hdrOn.value = true;
 			stop = () => {
+				unwatch();
 				ro.disconnect();
 				instance.update({ onFrame: undefined });
 				light.destroy();
@@ -475,8 +483,8 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 	filter: drop-shadow(0 0 2px var(--tn-accent)) drop-shadow(0 0 8px var(--tn-accent));
 }
 
-/* `data-plucking` is set by the core, so Svelte cannot see it: :global. */
-svg:global([data-plucking]) .tn-beam {
+/* `data-plucking` is set by the core on the line's <svg>. */
+svg[data-plucking] .tn-beam {
 	/* Fades out over the last third of the run as the wave dies down. */
 	opacity: calc(min(1, (1 - var(--tn-p, 0)) * 3));
 }
