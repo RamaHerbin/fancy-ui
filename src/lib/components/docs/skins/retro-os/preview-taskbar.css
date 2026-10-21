@@ -907,3 +907,82 @@
 	margin-left: 0;
 	margin-right: -2px;
 }
+
+/* ---- Start menu (easter egg) ------------------------------------------------
+   The taskbar stays position: static, so the popup anchors to its own wrapper
+   and opens upward from the Start button. Logical inset keeps it on the Start
+   side in RTL; the hard shadow is mirrored with the other RTL rules' pattern. */
+.docs-skin[data-skin="retro-os"] .retro-start-wrap {
+	position: relative;
+	flex: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-start-pop:focus {
+	outline: none;
+}
+.docs-skin[data-skin="retro-os"] .retro-start-pop {
+	position: absolute;
+	inset-inline-start: 0;
+	bottom: calc(100% + 8px);
+	z-index: 30;
+	width: max-content;
+	max-width: calc(100vw - 32px);
+}
+.docs-skin[data-skin="retro-os"] .retro-start-menu {
+	display: flex;
+	flex-direction: column;
+	min-width: 200px;
+	padding: 4px;
+	border: 2px solid var(--skin-line);
+	background: var(--skin-card);
+	box-shadow: 3px 3px 0 var(--skin-line);
+	font-family: var(--skin-font-pixel);
+}
+.docs-skin[data-skin="retro-os"] .retro-start-menu [role="menuitem"] {
+	display: block;
+	width: 100%;
+	padding: 9px 12px;
+	border: 0;
+	background: transparent;
+	color: var(--skin-ink);
+	font: inherit;
+	font-size: 11px;
+	font-weight: 700;
+	text-align: start;
+	cursor: pointer;
+}
+.docs-skin[data-skin="retro-os"] .retro-start-menu [role="menuitem"]:hover,
+.docs-skin[data-skin="retro-os"] .retro-start-menu [role="menuitem"]:focus-visible,
+.docs-skin[data-skin="retro-os"] .retro-start-menu [role="menuitem"]:focus {
+	background: #ecd77f;
+	outline: 2px solid var(--skin-line);
+	outline-offset: -2px;
+}
+.docs-skin[data-skin="retro-os"] .retro-start-sep {
+	margin: 4px 6px;
+	border-top: 2px solid var(--skin-line);
+}
+.docs-skin[data-skin="retro-os"] .retro-about {
+	width: min(300px, calc(100vw - 32px));
+	font-family: var(--skin-font-mono);
+	font-size: 12px;
+	color: var(--skin-ink);
+}
+.docs-skin[data-skin="retro-os"] .retro-about-body {
+	display: grid;
+	gap: 8px;
+	padding: 6px 4px 2px;
+}
+.docs-skin[data-skin="retro-os"] .retro-about-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 700;
+}
+.docs-skin[data-skin="retro-os"] .retro-about-actions {
+	display: flex;
+	justify-content: flex-end;
+	padding-top: 4px;
+}
+:where([dir="rtl"]) .docs-skin[data-skin="retro-os"] .retro-start-menu {
+	box-shadow: -3px 3px 0 var(--skin-line);
+}

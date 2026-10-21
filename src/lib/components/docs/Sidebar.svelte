@@ -86,6 +86,7 @@
 				<a
 					href="/"
 					data-docs-brand
+					data-egg="logo"
 					class="docs-brand"
 					aria-label={t("nav.backToSite")}
 					onclick={onclose}
@@ -103,6 +104,7 @@
 					<a
 						href="/"
 						data-docs-brand
+						data-egg="logo"
 						aria-label={t("nav.backToSite")}
 						class="flex items-center gap-2 text-lg font-semibold tracking-tight"
 						onclick={onclose}

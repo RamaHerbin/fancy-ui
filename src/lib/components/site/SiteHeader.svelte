@@ -56,7 +56,7 @@
 </script>
 
 <header class="sh {className}">
-	<a href="/" class="brand">
+	<a href="/" class="brand" data-egg="logo">
 		<Logo size={18} />
 		FancyUI
 	</a>

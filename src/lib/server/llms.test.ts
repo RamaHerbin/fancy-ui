@@ -66,6 +66,7 @@ describe("llms.txt", () => {
 	it("points to the full reference, the JSON registry and the React package", () => {
 		expect(txt).toContain("/llms-full.txt");
 		expect(txt).toContain("/registry.json");
+		expect(txt).toContain("/humans.txt");
 		expect(txt).toContain("fancy-ui-react");
 	});
 });

@@ -1,0 +1,36 @@
+     .
+   --*--
+     '
+
+/* TEAM */
+
+	Maker: Rama Herbin
+	Site: fancy-ui.rama.app
+	From: France
+
+/* THANKS */
+
+	Everyone who opened an issue or a pull request
+	The people who made the motion, sound and typography ideas this library builds on
+
+/* SITE */
+
+	Last update: 2026-10
+	Standards: HTML5, CSS, Svelte 5, TypeScript
+	Components: Svelte, React, Vue
+	Doctype: HTML5
+	IDE: whatever runs a terminal
+
+/* SECRETS */
+
+	You read to the end. A few doors are hidden in the docs site:
+
+	- Up up down down, you know the rest.
+	- Say the word that rains.
+	- The spark in the corner counts to seven.
+	- Talk to the console: fancy.help()
+	- Get lost, and let the site teleport you.
+	- A retro desktop hides its exit under Start.
+	- Hum to the sound switch.
+
+	fancy.eggs() keeps score.

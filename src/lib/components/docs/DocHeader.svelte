@@ -92,7 +92,7 @@
 
 	<!-- Retro OS brand (menubar) -->
 	{#if isRetro}
-		<a href="/" class="retro-brand" aria-label={t("nav.backToSite")}>
+		<a href="/" class="retro-brand" data-egg="logo" aria-label={t("nav.backToSite")}>
 			<span class="retro-pixel-logo" aria-hidden="true">
 				<span></span><span></span><span></span><span></span>
 			</span>

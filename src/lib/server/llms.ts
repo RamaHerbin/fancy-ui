@@ -435,6 +435,7 @@ export function generateLlmsTxt(): string {
 		`- [Changelog](${SITE_URL}/docs/getting-started/changelog): release notes`,
 		`- [React package README](${GITHUB_URL}/tree/main/react): React setup and divergences`,
 		`- [Vue package README](${GITHUB_URL}/tree/main/vue): Vue setup and divergences`,
+		`- [humans.txt](${SITE_URL}/humans.txt): the people behind the library, and a few secrets for agents that read to the end`,
 		""
 	);
 
