@@ -86,6 +86,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 			"aria-label": consumerAriaLabel,
 			"aria-invalid": consumerAriaInvalid,
 			readOnly: readOnlyAttr,
+			// An `<input>` is a void element: a stray `children` must not reach it.
+			children: _children,
 			...rest
 		},
 		ref
