@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Performance protocol for the three packages. See scripts/perf/README.md.
 //
-//   node scripts/perf/measure.mjs <section> [--out DIR] [--reps N] [--port N] [--only svelte|react|vue] [--component NAME] [--cycles N]
+//   node scripts/perf/measure.mjs <section> [--out DIR] [--reps N] [--port N] [--only svelte|react|vue] [--component NAME] [--cycles N] [--wait-quiet on|off]
 //
 // Sections, in the order `all` runs them:
 //   sizes      JS/CSS weight of each consumer app built from the packed tarball
@@ -36,8 +36,9 @@ import {
 	median,
 	parseKeptScratch,
 	backfillMark,
-	groupLoad,
-	loadVerdict,
+	groupVerdict,
+	QUIET_LOAD_PER_CORE,
+	waitForQuiet,
 	proposeBudget,
 	runRows,
 	stampRun,
@@ -109,6 +110,44 @@ function runInfo() {
 		},
 	};
 }
+
+/**
+ * Wait for a quiet machine before a group is measured (after its harness is
+ * built, so the tool's own build is not what it waits on). On by default for
+ * `effects` and `lifecycle`; `--wait-quiet off` (or `--no-wait-quiet`) skips
+ * it, `--wait-quiet on` turns it on for any other section. On timeout it
+ * proceeds and the group is labelled loaded. Returns the outcome, or
+ * undefined when the wait is off.
+ */
+async function quietGate(sectionName) {
+	const flag = opt("wait-quiet", "");
+	const enabled = args.includes("--no-wait-quiet")
+		? false
+		: flag
+			? flag !== "off"
+			: sectionName === "effects" || sectionName === "lifecycle";
+	if (!enabled) return undefined;
+	const result = await waitForQuiet({
+		loadavg: os.loadavg,
+		cores: os.cpus().length,
+		threshold: Number(opt("quiet-threshold", QUIET_LOAD_PER_CORE)),
+		timeoutMs: Number(opt("quiet-timeout-min", 10)) * 60 * 1000,
+		sleep,
+		log: (line) => console.log(`  ${line}`),
+	});
+	console.log(
+		result.quiet
+			? `  quiet after ${(result.waitedMs / 1000).toFixed(0)} s (1-minute load ${result.load1.toFixed(2)})`
+			: `  still loaded after ${(result.waitedMs / 1000).toFixed(0)} s (1-minute load ${result.load1.toFixed(2)}): measuring anyway, labelled loaded`
+	);
+	return result;
+}
+
+/** The run record of a group, with the outcome of its quiet wait when there was one. */
+const runWithWait = (quietWait) => ({
+	...runInfo(),
+	...(quietWait ? { quietWait } : {}),
+});
 
 // Backfill: give stored sections that predate the run record one, without
 // touching a record that is already there.
@@ -474,6 +513,7 @@ async function runEffects() {
 		if (ONLY && fw !== ONLY) continue;
 		console.log(`\n=== effects: ${fw} ===`);
 		await withHarness(fw, port, async ({ browser, url, version }) => {
+			const quietWait = await quietGate("effects");
 			const rows = [];
 			for (const name of ["none", ...COMPONENT_NAMES].filter(
 				(n) => !COMPONENT || n === COMPONENT
@@ -529,7 +569,7 @@ async function runEffects() {
 				await browser.stopTracing();
 				await context.close();
 			}
-			out.push({ framework: fw, chromium: version, run: runInfo(), rows });
+			out.push({ framework: fw, chromium: version, run: runWithWait(quietWait), rows });
 		});
 		port += 1;
 	}
@@ -543,6 +583,7 @@ async function runLifecycle() {
 		if (ONLY && fw !== ONLY) continue;
 		console.log(`\n=== lifecycle: ${fw} ===`);
 		await withHarness(fw, port, async ({ browser, url, version }) => {
+			const quietWait = await quietGate("lifecycle");
 			const rows = [];
 			for (const name of COMPONENT_NAMES.filter((n) => !COMPONENT || n === COMPONENT)) {
 				const { context, page, cdp, errors } = await openPage(browser, url);
@@ -630,7 +671,7 @@ async function runLifecycle() {
 				);
 				await context.close();
 			}
-			out.push({ framework: fw, chromium: version, run: runInfo(), rows });
+			out.push({ framework: fw, chromium: version, run: runWithWait(quietWait), rows });
 		});
 		port += 1;
 	}
@@ -674,10 +715,17 @@ function runReport() {
 		"",
 		markdownTable(["key", "value"], environment({ sizes, imports, effects, lifecycle: life })),
 		"",
-		'Each section is stored with the library commit it measured, the commit of the tool that measured it and the load average when it ended. A section counts as quiet when the worst of its 1-, 5- and 15-minute loads is below half the core count; the others are labelled loaded and their timing numbers are indicative only. A record filled in after the measurement (`stamp`) is marked "(backfilled)" on everything it supplies: machine, os, node, package versions, library commit and tool commit.',
+		'Each section is stored with the library commit it measured, the commit of the tool that measured it and the load average when it ended. A section counts as quiet when the worse of its 1- and 5-minute loads is below half the core count (the 15-minute window includes the builds of the tool itself and is stored but not used); a section whose wait for a quiet machine timed out is labelled loaded whatever its load at the end; the others are labelled loaded and their timing numbers are indicative only. The "wait for quiet" column is how the pre-measurement wait of a section ended (1-minute load per core under 0.5 before the group starts); the load at the end includes the work of the tool itself (the browser, the builds), so a group can start quiet and still end labelled loaded. A record filled in after the measurement (`stamp`) is marked "(backfilled)" on everything it supplies: machine, os, node, package versions, library commit and tool commit.',
 		"",
 		markdownTable(
-			["section", "library commit", "tool commit", "load at end (1/5/15 min)", "state"],
+			[
+				"section",
+				"library commit",
+				"tool commit",
+				"load at end (1/5/15 min)",
+				"state",
+				"wait for quiet",
+			],
 			runRows({ sizes, imports, effects, lifecycle: life })
 		),
 		""
@@ -818,7 +866,7 @@ function runReport() {
 
 	md.push(`## 4. Mount/unmount and simultaneous instances`, "");
 	for (const g of life) {
-		const tenProvisional = loadVerdict(groupLoad(g), g.run?.cores) !== "quiet";
+		const tenProvisional = groupVerdict(g) !== "quiet";
 		md.push(
 			`### ${g.framework}: ${g.rows[0].cycles} mount/unmount cycles, then 10 instances at once`,
 			""
@@ -923,7 +971,7 @@ function runReport() {
 		const worst = Math.max(
 			...g.rows.filter((r) => r.name !== "none").map((r) => r.idle.cpuMsPerSec)
 		);
-		const provisional = loadVerdict(groupLoad(g), g.run?.cores) !== "quiet";
+		const provisional = groupVerdict(g) !== "quiet";
 		budgetRows.push([
 			`${g.framework} idle CPU, worst effect`,
 			`${f1(worst)} ms/s`,

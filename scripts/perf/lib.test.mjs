@@ -28,6 +28,7 @@ import {
 	stampRun,
 	backfillMark,
 	groupLoad,
+	waitForQuiet,
 } from "./lib.mjs";
 
 test("compressedSizes reports raw, gzip and brotli bytes", () => {
@@ -197,11 +198,106 @@ test("loadVerdict calls a machine quiet only below half a core of load per core"
 	assert.equal(loadVerdict(1, undefined), "unrecorded");
 });
 
-test("loadVerdict takes the worst of the 1-, 5- and 15-minute loads", () => {
+test("loadVerdict takes the worst of the 1- and 5-minute loads", () => {
 	assert.equal(loadVerdict([6.8, 8.2, 14.3], 14), "loaded");
 	assert.equal(loadVerdict([2, 3, 4], 14), "quiet");
-	assert.equal(loadVerdict([1, 1, 9], 14), "loaded");
 	assert.equal(loadVerdict([], 14), "unrecorded");
+});
+
+test("loadVerdict ignores the 15-minute load, which includes the tool's own builds", () => {
+	assert.equal(loadVerdict([1, 1, 9], 14), "quiet");
+	assert.equal(loadVerdict([2, 3, 25], 14), "quiet");
+	assert.equal(loadVerdict([1, 7, 1], 14), "loaded");
+	assert.equal(loadVerdict([7, 1, 1], 14), "loaded");
+	assert.equal(loadVerdict([1, Number.NaN, 1], 14), "unrecorded");
+});
+
+/** A fake clock plus a fake loadavg that reads from a script, one reading per poll. */
+function fakeEnv(readings) {
+	let t = 0;
+	let i = 0;
+	const polls = [];
+	return {
+		polls,
+		get clock() {
+			return t;
+		},
+		opts: {
+			cores: 10,
+			loadavg: () => {
+				const r = readings[Math.min(i, readings.length - 1)];
+				i += 1;
+				polls.push(r);
+				return r;
+			},
+			sleep: async (ms) => {
+				t += ms;
+			},
+			now: () => t,
+		},
+	};
+}
+
+test("waitForQuiet returns at once when the 1-minute load per core is already under the threshold", async () => {
+	const env = fakeEnv([[4.9, 9, 9]]);
+	const r = await waitForQuiet(env.opts);
+	assert.deepEqual(r, { quiet: true, waitedMs: 0, load1: 4.9, polls: 1 });
+	assert.equal(env.clock, 0);
+});
+
+test("waitForQuiet polls until the load drops, and reports how long it waited", async () => {
+	const env = fakeEnv([
+		[8, 8, 8],
+		[6, 8, 8],
+		[5, 7, 8],
+		[3, 6, 8],
+	]);
+	const r = await waitForQuiet({ ...env.opts, pollMs: 1000 });
+	assert.deepEqual(r, { quiet: true, waitedMs: 3000, load1: 3, polls: 4 });
+});
+
+test("waitForQuiet gives up at the timeout and says it was not quiet", async () => {
+	const env = fakeEnv([[9, 9, 9]]);
+	const r = await waitForQuiet({ ...env.opts, pollMs: 1000, timeoutMs: 5000 });
+	assert.equal(r.quiet, false);
+	assert.equal(r.waitedMs, 5000);
+	assert.equal(r.load1, 9);
+});
+
+test("waitForQuiet uses the 1-minute load only, against the given threshold", async () => {
+	const env = fakeEnv([[2, 50, 50]]);
+	assert.equal((await waitForQuiet({ ...env.opts, threshold: 0.3 })).quiet, true);
+	const env2 = fakeEnv([[3, 0, 0]]);
+	assert.equal((await waitForQuiet({ ...env2.opts, threshold: 0.3, timeoutMs: 0 })).quiet, false);
+});
+
+test("runRows labels a section loaded when its quiet wait timed out, whatever the load at its end", () => {
+	const base = {
+		measuredCommit: "lib1",
+		toolCommit: "tool1",
+		cores: 14,
+		loadAvgAtEnd: [1, 1, 1],
+	};
+	const rows = runRows({
+		effects: [
+			{
+				framework: "svelte",
+				rows: [],
+				run: { ...base, quietWait: { quiet: true, waitedMs: 5000, load1: 4.2 } },
+			},
+			{
+				framework: "react",
+				rows: [],
+				run: { ...base, quietWait: { quiet: false, waitedMs: 600000, load1: 9 } },
+			},
+		],
+		lifecycle: [],
+	});
+	const byName = Object.fromEntries(rows.map((r) => [r[0], r]));
+	assert.equal(byName["effects (svelte)"][4], "quiet");
+	assert.equal(byName["effects (react)"][4], "loaded");
+	assert.equal(byName["effects (svelte)"][5], "quiet after 5 s, 1-minute load 4.2");
+	assert.equal(byName["effects (react)"][5], "timed out after 600 s, 1-minute load 9.0");
 });
 
 test("backfillMark and groupLoad", () => {
@@ -253,7 +349,7 @@ test("runRows prints each section's own commits and load, and labels the loaded 
 		lifecycle: [{ framework: "svelte", run: run([2.5, 3.4, 4.1]) }],
 	});
 	const byName = Object.fromEntries(rows.map((r) => [r[0], r]));
-	assert.deepEqual(byName.sizes.slice(1), ["lib1", "tool1", "2.0 / 3.0 / 4.0", "quiet"]);
+	assert.deepEqual(byName.sizes.slice(1), ["lib1", "tool1", "2.0 / 3.0 / 4.0", "quiet", "not run"]);
 	assert.equal(byName["effects (svelte)"][3], "8.2 / 16.6 / 25.4");
 	assert.equal(byName["effects (svelte)"][4], "loaded");
 	assert.equal(byName["effects (react)"][4], "loaded");
