@@ -62,12 +62,12 @@ export const PixelLoader = forwardRef<HTMLDivElement, PixelLoaderProps>(
 
     return (
       <div
+        {...rest}
         ref={ref}
         role="status"
         aria-live="polite"
         className={cn("inline-grid", className)}
         style={rootStyle}
-        {...rest}
       >
         <span className="sr-only">{label}</span>
         {delays.map((delay, i) => (

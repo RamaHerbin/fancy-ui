@@ -2,6 +2,8 @@
 
 A small square grid of pixels whose opacity pulses in a diagonal scanning wave — the loading state to show while a model is working and has no token to display yet.
 
+Native attributes and listeners go to the root `<div>`. `role="status"` and `aria-live` stay managed by the component; a consumer `style` is appended after the component's own and wins.
+
 ## Usage
 
 ```svelte

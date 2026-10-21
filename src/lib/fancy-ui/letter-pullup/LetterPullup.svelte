@@ -1,11 +1,13 @@
 <script lang="ts" module>
+	import type { HTMLAttributes } from "svelte/elements";
+
 	/**
 	 * LetterPullup - Staggered letter pull-up animation
 	 *
 	 * Each letter of the provided text pulls up from below with a staggered delay,
 	 * creating a wave-like entrance effect. Pure CSS animation.
 	 */
-	export interface LetterPullupProps {
+	export interface LetterPullupOwn {
 		/** Text to animate (each character gets its own animation) */
 		words: string;
 		/** Delay between each letter animation (seconds) */
@@ -13,17 +15,20 @@
 		/** Additional CSS classes */
 		class?: string;
 	}
+
+	export type LetterPullupProps = LetterPullupOwn &
+		Omit<HTMLAttributes<HTMLDivElement>, keyof LetterPullupOwn>;
 </script>
 
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 
-	let { words, delay = 0.05, class: className }: LetterPullupProps = $props();
+	let { words, delay = 0.05, class: className, ...restProps }: LetterPullupProps = $props();
 
 	let letters = $derived(words.split(""));
 </script>
 
-<div class="letter-pullup flex justify-center">
+<div {...restProps} class="letter-pullup flex justify-center">
 	{#each letters as letter, index (index)}
 		<span
 			class={cn(

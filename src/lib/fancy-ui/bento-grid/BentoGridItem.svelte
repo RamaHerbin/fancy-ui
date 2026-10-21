@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 	import BentoFrame from "./BentoFrame.svelte";
 
-	interface Props {
+	interface Own {
 		class?: string;
 		header?: Snippet;
 		icon?: Snippet;
@@ -10,10 +11,13 @@
 		description?: Snippet;
 	}
 
-	let { class: className = "", header, icon, title, description }: Props = $props();
+	type Props = Own & Omit<HTMLAttributes<HTMLDivElement>, keyof Own>;
+
+	let { class: className = "", header, icon, title, description, ...restProps }: Props = $props();
 </script>
 
 <BentoFrame
+	{...restProps}
 	class={["group/bento row-span-1", className].join(" ")}
 	panelClass="justify-between gap-4 p-4"
 >

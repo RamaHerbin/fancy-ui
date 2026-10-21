@@ -17,11 +17,15 @@ export interface BentoFrameProps {
 </script>
 
 <script setup lang="ts">
+import { useAttrs } from "vue";
+
 import { cn } from "../../utils.js";
 
 defineOptions({ name: "BentoFrame", inheritAttrs: false });
 
 const { class: className = "", panelClass = "" } = defineProps<BentoFrameProps>();
+
+const attrs = useAttrs();
 
 defineSlots<{
 	default?: () => unknown;
@@ -29,7 +33,7 @@ defineSlots<{
 </script>
 
 <template>
-	<div :class="cn('bento-tile relative flex rounded-2xl p-1.5', className)">
+	<div v-bind="attrs" :class="cn('bento-tile relative flex rounded-2xl p-1.5', className)">
 		<div
 			:class="
 				cn(

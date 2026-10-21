@@ -11,6 +11,8 @@ export interface BentoGridCardProps {
 </script>
 
 <script setup lang="ts">
+import { useAttrs } from "vue";
+
 import BentoFrame from "./BentoFrame.vue";
 
 defineOptions({ name: "BentoGridCard", inheritAttrs: false });
@@ -23,6 +25,8 @@ const {
 	class: className = "",
 } = defineProps<BentoGridCardProps>();
 
+const attrs = useAttrs();
+
 defineSlots<{
 	icon?: () => unknown;
 	background?: () => unknown;
@@ -30,7 +34,7 @@ defineSlots<{
 </script>
 
 <template>
-	<BentoFrame :class="['group col-span-3', className]" panel-class="justify-end">
+	<BentoFrame v-bind="attrs" :class="['group col-span-3', className]" panel-class="justify-end">
 		<!-- Not aria-hidden and not inert: the slot can hold real, interactive content, as it always could. -->
 		<div v-if="$slots.background" class="absolute inset-0 -z-10 overflow-hidden">
 			<slot name="background" />
