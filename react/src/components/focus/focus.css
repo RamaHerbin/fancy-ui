@@ -16,13 +16,23 @@
 	font-size: 3rem;
 	font-weight: 900;
 	cursor: pointer;
-	transition:
-		filter 0.3s ease,
-		color 0.3s ease;
+	transition: color 0.3s ease;
 }
 
 .focus-container .focus-word.active {
 	filter: blur(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.focus-container .focus-word {
+		transition:
+			filter var(--focus-duration, 0.3s) ease,
+			color 0.3s ease;
+	}
+
+	.focus-container .focus-frame {
+		transition: all var(--focus-duration, 0.5s) ease;
+	}
 }
 
 .focus-container .focus-frame {

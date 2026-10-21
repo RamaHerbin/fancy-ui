@@ -45,7 +45,7 @@ export function CardItem({
 	return createElement(
 		as,
 		{
-			className: cn("w-fit transition duration-500 ease-in-out", className),
+			className: cn("w-fit motion-safe:transition motion-safe:duration-500 ease-in-out", className),
 			style: { transform },
 		},
 		children

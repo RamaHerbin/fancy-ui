@@ -105,12 +105,12 @@ export function Focus({
 					className={cn(
 						"focus-word",
 						manualMode && "manual",
-						index === currentIndex && !manualMode && "active",
+						index === currentIndex && !manualMode && "active"
 					)}
 					style={
 						{
 							filter: index === currentIndex ? "blur(0px)" : `blur(${blurAmount}px)`,
-							transition: `filter ${animationDuration}s ease`,
+							"--focus-duration": `${animationDuration}s`,
 							"--border-color": borderColor,
 						} as CSSProperties
 					}
@@ -129,7 +129,7 @@ export function Focus({
 						width: `${focusRect.width}px`,
 						height: `${focusRect.height}px`,
 						opacity: currentIndex >= 0 ? 1 : 0,
-						transition: `all ${animationDuration}s ease`,
+						"--focus-duration": `${animationDuration}s`,
 						"--border-color": borderColor,
 					} as CSSProperties
 				}
