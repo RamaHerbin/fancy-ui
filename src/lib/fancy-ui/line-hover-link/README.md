@@ -15,15 +15,18 @@ An anchor with a pure-CSS underline hover effect, selectable from 12 variants. N
 
 ## Props
 
-| Prop         | Type               | Default   | Description                                                          |
-| ------------ | ------------------ | --------- | -------------------------------------------------------------------- |
-| `variant`    | `LineHoverVariant` | `"slide"` | The animation variant                                                |
-| `href`       | `string`           | `"#"`     | Link href                                                            |
-| `target`     | `string`           | —         | Link target                                                          |
-| `rel`        | `string`           | —         | Link rel                                                             |
-| `aria-label` | `string`           | —         | Accessible label                                                     |
-| `class`      | `string`           | `""`      | Additional CSS classes                                               |
-| `sound`      | `boolean`          | `false`   | Plays the `press` cue on activation, once the user has enabled sound |
+| Prop         | Type                          | Default   | Description                                                          |
+| ------------ | ----------------------------- | --------- | -------------------------------------------------------------------- |
+| `variant`    | `LineHoverVariant`            | `"slide"` | The animation variant                                                |
+| `href`       | `string`                      | `"#"`     | Link href                                                            |
+| `target`     | `string`                      | —         | Link target                                                          |
+| `rel`        | `string`                      | —         | Link rel                                                             |
+| `aria-label` | `string`                      | —         | Accessible label                                                     |
+| `onclick`    | `(event: MouseEvent) => void` | —         | Native click handler, called after the press cue                     |
+| `class`      | `string`                      | `""`      | Additional CSS classes                                               |
+| `sound`      | `boolean`                     | `false`   | Plays the `press` cue on activation, once the user has enabled sound |
+
+Any other native anchor attribute or listener (`id`, `download`, `aria-*`, `data-*`, `onkeydown`, ...) goes to the inner `<a>`.
 
 Children (slot content) are the link's visible text/label.
 
