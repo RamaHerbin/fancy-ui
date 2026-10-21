@@ -2,9 +2,19 @@
 	import { t } from "$lib/stores";
 	import { parseChangelog } from "./changelog-data.js";
 
-	let { raw }: { raw: string } = $props();
+	import type { ChangelogPackage } from "./changelog-packages.js";
 
-	const versions = $derived(parseChangelog(raw));
+	/** Pass `packages` for a tabbed view (one changelog per package), or `raw` for one file. */
+	let { raw, packages }: { raw?: string; packages?: ChangelogPackage[] } = $props();
+
+	let activeId = $state<string | undefined>(undefined);
+	const tabs = $derived(packages && packages.length > 1 ? packages : null);
+	const active = $derived(packages?.find((p) => p.id === activeId) ?? packages?.[0] ?? undefined);
+	const versions = $derived(
+		active
+			? parseChangelog(active.raw, active.id === packages?.[0]?.id ? "" : active.id)
+			: parseChangelog(raw ?? "")
+	);
 
 	const kindKeys = {
 		"Major Changes": "changelog.major",
@@ -21,6 +31,20 @@
 <div class="changelog">
 	<h1>{t("changelog.title")}</h1>
 	<p class="lead">{t("changelog.lead")}</p>
+
+	{#if tabs}
+		<div class="tabs" role="tablist" aria-label={t("changelog.title")}>
+			{#each tabs as p (p.id)}
+				<button
+					type="button"
+					role="tab"
+					class="tab"
+					aria-selected={p.id === active?.id}
+					onclick={() => (activeId = p.id)}>{p.name}</button
+				>
+			{/each}
+		</div>
+	{/if}
 
 	{#each versions as v, i (v.anchor)}
 		<section class="release">
@@ -62,6 +86,36 @@
 		max-width: 640px;
 		color: var(--muted-foreground);
 		margin: 0 0 40px;
+	}
+
+	.tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin: 0 0 32px;
+	}
+
+	.changelog .tab {
+		border: 1px solid var(--border);
+		background: transparent;
+		color: var(--muted-foreground);
+		border-radius: 999px;
+		padding: 6px 14px;
+		font: inherit;
+		font-size: 13.5px;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.changelog .tab[aria-selected="true"] {
+		background: var(--muted);
+		color: var(--foreground);
+		border-color: color-mix(in oklch, var(--foreground) 30%, var(--border));
+	}
+
+	.changelog .tab:focus-visible {
+		outline: 2px solid var(--ring, var(--primary));
+		outline-offset: 2px;
 	}
 
 	.release + .release {
