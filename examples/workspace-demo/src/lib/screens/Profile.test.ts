@@ -80,10 +80,16 @@ describe("Profile screen editing", () => {
 		expect((await api.getProfile()).name).toBe("Maya O.");
 	});
 
-	it("keeps Save disabled until something changed", async () => {
-		mount(makeApi());
+	it("keeps Save unavailable until something changed, without taking it out of the tab order", async () => {
+		const api = makeApi();
+		const update = vi.spyOn(api, "updateProfile");
+		mount(api);
 		await waitForState("profile", "ready");
-		expect(screen.getByRole("button", { name: "Save changes" })).toBeDisabled();
+		const save = screen.getByRole("button", { name: "Save changes" });
+		expect(save).toHaveAttribute("aria-disabled", "true");
+		expect(save).not.toHaveAttribute("disabled");
+		await fireEvent.click(save);
+		expect(update).not.toHaveBeenCalled();
 	});
 
 	it("explains a refused name next to the field and changes nothing", async () => {

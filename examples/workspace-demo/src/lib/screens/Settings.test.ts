@@ -82,7 +82,11 @@ describe("Settings screen editing", () => {
 		const api = makeApi();
 		mount(api);
 		await waitForState("settings", "ready");
-		expect(screen.getByRole("button", { name: "Save settings" })).toBeDisabled();
+		// Unavailable while there is nothing to save, but still focusable, so a
+		// keyboard user who just saved keeps their place when it goes back to rest.
+		const idleSave = screen.getByRole("button", { name: "Save settings" });
+		expect(idleSave).toHaveAttribute("aria-disabled", "true");
+		expect(idleSave).not.toHaveAttribute("disabled");
 
 		await fireEvent.click(screen.getByRole("button", { name: "Notifications" }));
 		const mentions = screen.getByRole("switch", { name: "Mentions by email" });
@@ -113,6 +117,7 @@ describe("Settings screen editing", () => {
 describe("Settings screen save and publish", () => {
 	it("shows the save in flight on the button and confirms only once it resolved", async () => {
 		const gated = makeGatedApi();
+		const saveSpy = vi.spyOn(gated.api, "saveSettings");
 		mount(gated.api);
 		await waitForState("settings", "ready");
 		await fireEvent.input(screen.getByRole("textbox", { name: "Workspace name" }), {
@@ -128,10 +133,12 @@ describe("Settings screen save and publish", () => {
 		// Pressing again while the first save is in flight sends nothing more.
 		await fireEvent.click(save);
 		expect(screen.queryByText("Settings saved")).toBeNull();
+		expect(saveSpy).toHaveBeenCalledTimes(1);
 
 		gated.release();
 		await waitFor(() => expect(morphState(save)).toBe("success"));
 		await expectToast("Settings saved");
+		expect(saveSpy).toHaveBeenCalledTimes(1);
 		expect((await gated.api.getSettings()).workspaceName).toBe("Orbit");
 	});
 

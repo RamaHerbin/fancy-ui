@@ -374,6 +374,56 @@ test.describe("workspace demo undo windows", () => {
 	});
 });
 
+test.describe("workspace demo overlapping undos", () => {
+	test("undoing mark all read after clear read keeps the unread ones, and only the read ones are archived", async ({
+		page,
+	}) => {
+		test.slow();
+		const errors = watchErrors(page);
+		await open(page, "/notifications?latency=none");
+		const root = screenOf(page, "notifications");
+		const rows = root.getByRole("list", { name: "Notifications" }).getByRole("listitem");
+		await expect(rows).toHaveCount(6);
+
+		await root.getByRole("button", { name: "Mark all as read" }).click();
+		await root.getByRole("button", { name: "Clear read" }).click();
+		await expect(
+			root.getByRole("heading", { level: 2, name: "No notifications yet" })
+		).toBeVisible();
+
+		await page
+			.locator(".ft-toast", { hasText: "Marked 3 notifications as read" })
+			.getByRole("button", { name: "Undo" })
+			.click();
+		await expect(rows).toHaveCount(3);
+		await expect(root.getByText("3 unread")).toBeVisible();
+
+		const cleared = page.locator(".ft-toast", { hasText: "Cleared 6 notifications" });
+		await expect(cleared).toBeHidden({ timeout: UNDO_WINDOW_MS + 2_000 });
+		await expect(rows).toHaveCount(3);
+
+		// From the service: the three that were unread are still there, unread.
+		await goVia(page, "Profile");
+		await goVia(page, "Notifications");
+		await expect(rows).toHaveCount(3);
+		await expect(root.getByText("3 unread")).toBeVisible();
+		expect(errors).toEqual([]);
+	});
+
+	test("Enter twice after mark all read never clears anything", async ({ page }) => {
+		await open(page, "/notifications?latency=none");
+		const root = screenOf(page, "notifications");
+		const list = root.getByRole("list", { name: "Notifications" });
+		const markAll = root.getByRole("button", { name: "Mark all as read" });
+		await tabTo(page, markAll);
+		await page.keyboard.press("Enter");
+		await expect(list).toBeFocused();
+		await page.keyboard.press("Enter");
+		await expect(list.getByRole("listitem")).toHaveCount(6);
+		await expect(page.locator(".ft-toast", { hasText: "Cleared" })).toHaveCount(0);
+	});
+});
+
 test.describe("workspace demo keyboard path", () => {
 	test("skip link, disclosure sections, a switch and save, all from the keyboard", async ({
 		page,
@@ -403,7 +453,13 @@ test.describe("workspace demo keyboard path", () => {
 		const save = root.getByRole("button", { name: "Save settings" });
 		await tabTo(page, save);
 		await page.keyboard.press("Enter");
-		await expect(save.locator(".ft-statusmorph")).toHaveAttribute("data-state", "success");
+		const mark = save.locator(".ft-statusmorph");
+		await expect(mark).toHaveAttribute("data-state", "success");
+		// Once the check goes back to rest there is nothing left to save, and
+		// the button says so without dropping the keyboard user's place.
+		await expect(mark).toHaveAttribute("data-state", "idle", { timeout: 5_000 });
+		await expect(save).toHaveAttribute("aria-disabled", "true");
+		await expect(save).toBeFocused();
 	});
 
 	test("revoke and undo from the keyboard, the window held while the toast has focus", async ({
@@ -427,9 +483,32 @@ test.describe("workspace demo keyboard path", () => {
 	});
 });
 
+/**
+ * Records the duration of every animation started on a toast panel, from
+ * before the page's own scripts run: an entrance that slides shows up here.
+ */
+async function recordToastAnimations(page: Page) {
+	await page.addInitScript(() => {
+		const seen: number[] = [];
+		(window as unknown as { __toastAnimations: number[] }).__toastAnimations = seen;
+		const original = Element.prototype.animate;
+		Element.prototype.animate = function (keyframes, options) {
+			if (this.classList.contains("ft-toast")) {
+				seen.push(typeof options === "number" ? options : Number(options?.duration ?? 0));
+			}
+			return original.call(this, keyframes, options);
+		};
+	});
+	return () =>
+		page.evaluate(() => (window as unknown as { __toastAnimations: number[] }).__toastAnimations);
+}
+
 test.describe("workspace demo under reduced motion", () => {
-	test("the undo bar holds still and sections open without a transition", async ({ page }) => {
+	test("the undo bar holds still, toasts appear in place and sections open without a transition", async ({
+		page,
+	}) => {
 		await page.emulateMedia({ reducedMotion: "reduce" });
+		const toastAnimations = await recordToastAnimations(page);
 		await open(page, "/api-keys?latency=none");
 		expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(
 			true
@@ -438,6 +517,8 @@ test.describe("workspace demo under reduced motion", () => {
 		const bar = page.locator(".ft-toast-progress");
 		await expect(bar).toBeVisible();
 		expect(await bar.evaluate((el) => getComputedStyle(el).animationName)).toBe("none");
+		// The toast itself appears in place: no entrance with any length.
+		expect((await toastAnimations()).filter((ms) => ms > 0)).toEqual([]);
 
 		await goVia(page, "Settings");
 		const section = page.locator(".ft-collapsible-content").first();
@@ -447,13 +528,18 @@ test.describe("workspace demo under reduced motion", () => {
 });
 
 test.describe("workspace demo with motion allowed", () => {
-	test("the undo bar drains and sections animate their height", async ({ page }) => {
+	test("the undo bar drains, toasts slide in and sections animate their height", async ({
+		page,
+	}) => {
 		await page.emulateMedia({ reducedMotion: "no-preference" });
+		const toastAnimations = await recordToastAnimations(page);
 		await open(page, "/api-keys?latency=none");
 		await page.getByRole("button", { name: "Revoke Production deploys" }).click();
 		const bar = page.locator(".ft-toast-progress");
 		await expect(bar).toBeVisible();
 		expect(await bar.evaluate((el) => getComputedStyle(el).animationName)).not.toBe("none");
+		// The control for the reduced-motion check: here the toast slides in.
+		expect((await toastAnimations()).some((ms) => ms > 0)).toBe(true);
 
 		await goVia(page, "Settings");
 		const section = page.locator(".ft-collapsible-content").first();

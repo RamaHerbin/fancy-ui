@@ -91,11 +91,22 @@
 		document.getElementById("main")?.focus();
 	}
 
+	// Only read notifications can be cleared. One that is unread again (its
+	// mark-read was undone, or it was flipped back) leaves any pending clear:
+	// it shows again now and is never archived when that clear commits.
+	function keepOnlyReadHidden() {
+		hidden = hidden.filter(isRead);
+	}
+
+	// After a bulk action, focus goes to the list: never to the other bulk
+	// button, where a second Enter would act on everything again.
+	const AFTER_BULK = ["[data-notification-list]", "[data-bulk] button"];
+
 	function markAllRead() {
 		const ids = unread.map((item) => item.id);
 		if (ids.length === 0) return;
 		setLocal(ids, true);
-		void focusAfterUpdate('[data-bulk="clear"] button', "li button");
+		void focusAfterUpdate(...AFTER_BULK);
 		const toastId = undoable({
 			title: markedReadLabel(ids.length),
 			undoLabel: text.undo,
@@ -103,6 +114,7 @@
 			onUndo: () => {
 				pending.delete(toastId);
 				setLocal(ids.filter(isRead), false);
+				keepOnlyReadHidden();
 				void focusAfterUpdate('[data-bulk="read"] button');
 			},
 			onCommit: () => {
@@ -121,6 +133,7 @@
 			await api.setNotificationsRead(still, true);
 		} catch {
 			setLocal(still, false);
+			keepOnlyReadHidden();
 			failed();
 		}
 	}
@@ -129,7 +142,7 @@
 		const ids = readOnes.map((item) => item.id);
 		if (ids.length === 0) return;
 		hidden = [...hidden, ...ids];
-		void focusAfterUpdate("[data-bulk] button", "li button");
+		void focusAfterUpdate(...AFTER_BULK);
 		const toastId = undoable({
 			title: clearedLabel(ids.length),
 			undoLabel: text.undo,
@@ -147,13 +160,17 @@
 	}
 
 	async function commitClear(ids: string[]) {
+		// The same rule as commitRead: what is no longer read stays.
+		const still = ids.filter(isRead);
+		hidden = hidden.filter((id) => !ids.includes(id) || still.includes(id));
+		if (still.length === 0) return;
 		try {
-			await api.archiveNotifications(ids);
-			items = items.filter((item) => !ids.includes(item.id));
+			await api.archiveNotifications(still);
+			items = items.filter((item) => !still.includes(item.id));
 		} catch {
 			failed();
 		} finally {
-			hidden = hidden.filter((id) => !ids.includes(id));
+			hidden = hidden.filter((id) => !still.includes(id));
 		}
 	}
 
@@ -222,9 +239,12 @@
 				</div>
 			</div>
 
+			<!-- Focusable from script only: where focus lands after a bulk action. -->
 			<ul
 				aria-label={text.listLabel}
-				class="border-border bg-card divide-border divide-y rounded-xl border"
+				tabindex="-1"
+				data-notification-list
+				class="border-border bg-card divide-border focus-visible:ring-ring/50 divide-y rounded-xl border outline-none focus-visible:ring-[3px]"
 			>
 				{#each visible as item (item.id)}
 					<li class="flex flex-wrap items-start gap-3 p-4 sm:flex-nowrap" data-read={item.read}>

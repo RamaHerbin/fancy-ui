@@ -176,6 +176,89 @@ describe("Notifications screen grouped undo", () => {
 		expect(screen.getAllByRole("listitem")).toHaveLength(6);
 	});
 
+	it("undoing mark all read after clear read brings the unread ones back and never archives them", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		const api = makeApi();
+		const archive = vi.spyOn(api, "archiveNotifications");
+		mount(api);
+		await waitForState("notifications", "ready");
+		const before = await api.listNotifications();
+		const wereUnread = before.filter((n) => !n.read).map((n) => n.id);
+
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		await fireEvent.click(screen.getByRole("button", { name: "Clear read" }));
+		// Everything was read, so everything is cleared from the screen.
+		await screen.findByRole("heading", { name: "No notifications yet" });
+
+		const undos = await screen.findAllByRole("button", { name: "Undo" });
+		const markedUndo = undos.find((button) =>
+			toastOf(button).textContent?.includes("Marked 3 notifications as read")
+		);
+		expect(markedUndo).toBeDefined();
+		await fireEvent.click(markedUndo!);
+
+		// The three that were unread are back on screen, unread.
+		await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(3));
+		expect(screen.getByText("3 unread")).toBeInTheDocument();
+
+		// The clear window closes: only the three that were read before are archived.
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS + 100);
+		await waitFor(() => expect(archive).toHaveBeenCalledTimes(1));
+		const archived = archive.mock.calls[0][0];
+		expect(archived).toHaveLength(3);
+		for (const id of wereUnread) expect(archived).not.toContain(id);
+
+		const after = await api.listNotifications();
+		expect(after.map((n) => n.id).sort()).toEqual([...wereUnread].sort());
+		expect(after.every((n) => !n.read)).toBe(true);
+		expect(screen.getAllByRole("listitem")).toHaveLength(3);
+	});
+
+	it("a notification marked unread while hidden by a pending clear is not archived", async () => {
+		// The same rule from the commit side: whatever is no longer read when
+		// the clear window closes stays out of the archive call.
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		const api = makeApi();
+		const archive = vi.spyOn(api, "archiveNotifications");
+		mount(api);
+		await waitForState("notifications", "ready");
+		await fireEvent.click(screen.getByRole("button", { name: "Mark all as read" }));
+		await fireEvent.click(screen.getByRole("button", { name: "Clear read" }));
+		const markedUndo = (await screen.findAllByRole("button", { name: "Undo" })).find((button) =>
+			toastOf(button).textContent?.includes("Marked 3 notifications as read")
+		);
+		await fireEvent.click(markedUndo!);
+		// Let both windows close; the mark-read one already ended with its Undo.
+		await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS * 2);
+		await waitFor(() => expect(archive).toHaveBeenCalled());
+		const archivedIds = archive.mock.calls.flatMap((call) => call[0]);
+		const remaining = await api.listNotifications();
+		for (const n of remaining) expect(archivedIds).not.toContain(n.id);
+		expect(remaining).toHaveLength(3);
+	});
+
+	it("after mark all read, focus lands on the list, never on Clear read", async () => {
+		mount(makeApi());
+		await waitForState("notifications", "ready");
+		const markAll = screen.getByRole("button", { name: "Mark all as read" });
+		markAll.focus();
+		await fireEvent.click(markAll);
+		const list = screen.getByRole("list", { name: "Notifications" });
+		await waitFor(() => expect(document.activeElement).toBe(list));
+		// A second Enter on the focused element must not be destructive.
+		expect(document.activeElement?.closest("[data-bulk]")).toBeNull();
+	});
+
+	it("after clear read, focus lands on the list rather than on the other bulk action", async () => {
+		mount(makeApi());
+		await waitForState("notifications", "ready");
+		const clear = screen.getByRole("button", { name: "Clear read" });
+		clear.focus();
+		await fireEvent.click(clear);
+		const list = screen.getByRole("list", { name: "Notifications" });
+		await waitFor(() => expect(document.activeElement).toBe(list));
+	});
+
 	it("leaving the screen commits what is pending", async () => {
 		const api = makeApi();
 		const view = mount(api);

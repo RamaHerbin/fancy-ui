@@ -99,6 +99,11 @@
 	// state, success only once the service answered, Retry from the failure
 	// toast.
 	let status = $state<NonNullable<StatusMorphProps["state"]>>("idle");
+	// Nothing to save: announced and dimmed as unavailable, but never the
+	// native `disabled`, which would drop the focus of someone who just saved
+	// from the keyboard when the check goes back to rest. `save()` refuses a
+	// clean form either way.
+	const nothingToSave = $derived(!dirty && status !== "success");
 	let failureToast: string | undefined;
 
 	function closeFailure() {
@@ -226,7 +231,12 @@
 			</Accordion>
 
 			<div class="flex justify-end">
-				<Button type="submit" aria-busy={saving} disabled={!dirty && status !== "success"}>
+				<Button
+					type="submit"
+					aria-busy={saving}
+					aria-disabled={nothingToSave ? "true" : undefined}
+					data-disabled={nothingToSave ? "true" : undefined}
+				>
 					{text.save}
 					{#snippet iconEnd()}
 						<StatusMorph bind:state={status} labels={text.status} />
