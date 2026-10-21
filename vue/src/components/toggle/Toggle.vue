@@ -22,6 +22,16 @@ export interface ToggleProps {
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Form field name. When set, a hidden input named `name` is rendered inside
+	 * the button and submits `value` (default `"on"`) while pressed, nothing
+	 * while off or disabled, like a checkbox. The button is `type="button"` and never submits.
+	 */
+	name?: string;
+	/** Value submitted under `name` while pressed. Defaults to `"on"`. */
+	value?: string;
+	/** `id` of the `<form>` the hidden input belongs to, when not nested in it. */
+	form?: string;
 	/** Called after the component's own handling, never while disabled. */
 	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
@@ -104,6 +114,18 @@ function toggle(event: MouseEvent) {
 		:disabled="disabled"
 	>
 		<slot />
+		<!--
+			Inside the button so the component keeps a single element root (v-show,
+			transitions and `$el` keep working); a hidden input is not interactive
+			content, and it still joins the form.
+		-->
+		<input
+			v-if="name && pressed && !disabled"
+			type="hidden"
+			:name="name"
+			:value="value ?? 'on'"
+			:form="form"
+		/>
 	</button>
 </template>
 

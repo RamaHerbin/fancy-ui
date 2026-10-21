@@ -27,6 +27,20 @@ type BaseProps = {
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Form field name. When set, a hidden input named `name` is rendered inside
+	 * the button and submits `value` (default `"on"`) while pressed, nothing
+	 * while off or disabled, like a checkbox. The button is `type="button"` and
+	 * never submits.
+	 */
+	name?: string;
+	/**
+	 * Value submitted under `name` while pressed. Defaults to `"on"`. Keeps the
+	 * native button `value` type, so a number is still accepted.
+	 */
+	value?: ButtonHTMLAttributes<HTMLButtonElement>["value"];
+	/** `id` of the `<form>` the hidden input belongs to, when not nested in it. */
+	form?: string;
 };
 
 export interface ToggleProps
@@ -51,6 +65,9 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 			className,
 			onClick,
 			sound = false,
+			name,
+			value,
+			form,
 			...rest
 		},
 		ref
@@ -103,6 +120,11 @@ export const Toggle = forwardRef<HTMLButtonElement, ToggleProps>(
 				onClick={toggle}
 			>
 				{children}
+				{/* Inside the button so the component keeps one root element; a hidden
+				    input is not interactive content, and it still joins the form. */}
+				{name && pressed && !disabled ? (
+					<input type="hidden" name={name} value={value ?? "on"} form={form} />
+				) : null}
 			</button>
 		);
 	}

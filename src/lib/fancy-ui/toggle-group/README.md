@@ -131,6 +131,8 @@ handling, and not at all while the item is disabled.
 | `class`         | `string`                              | —              | Additional CSS classes                                           |
 | `ref`           | `HTMLDivElement \| null`              | `null`         | Bindable element reference                                       |
 | `sound`         | `boolean`                             | `false`        | Plays toggle-on/off or select on a change, once sound is enabled |
+| `name`          | `string`                              | —              | Form field name; one hidden input per selected value             |
+| `form`          | `string`                              | —              | `id` of the form the hidden inputs belong to                     |
 
 ### ToggleGroupItem
 

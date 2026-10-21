@@ -29,9 +29,20 @@
 		 * default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
+		/**
+		 * Form field name. When set, a hidden input named `name` is rendered inside
+		 * the button and submits `value` (default `"on"`) while pressed, nothing
+		 * while off or disabled, like a checkbox. The button is `type="button"`
+		 * and never submits.
+		 */
+		name?: string;
+		/** Value submitted under `name` while pressed. Defaults to `"on"`. */
+		value?: string;
+		/** `id` of the `<form>` the hidden input belongs to, when not nested in it. */
+		form?: string;
 	}
 
-	/** Native `<button>` attributes and listeners are forwarded to the toggle; `aria-pressed`, `disabled` and `type` stay the component's. */
+	/** Other native `<button>` attributes and listeners are forwarded to the toggle; `aria-pressed`, `disabled` and `type` stay the component's, and `name`, `value` and `form` feed the hidden form input instead of the button. */
 	export type ToggleProps = ToggleOwnProps & Omit<HTMLButtonAttributes, keyof ToggleOwnProps>;
 </script>
 
@@ -51,6 +62,9 @@
 		ref = $bindable(null),
 		sound = false,
 		onclick,
+		name = undefined,
+		value = undefined,
+		form = undefined,
 		...rest
 	}: ToggleProps = $props();
 
@@ -103,6 +117,15 @@
 	onclick={toggle}
 >
 	{@render children?.()}
+	<!--
+		Inside the button, not beside it: the component keeps a single root
+		element (so directives, transitions and `ref` land on the button), and a
+		hidden input is not interactive content, so the nesting is valid. A
+		descendant of a form owner still joins the form's data set.
+	-->
+	{#if name && pressed && !disabled}
+		<input type="hidden" {name} value={value ?? "on"} {form} />
+	{/if}
 </button>
 
 <style>

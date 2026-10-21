@@ -281,11 +281,10 @@ describe("Button", () => {
 		expect(onclick).not.toHaveBeenCalled();
 	});
 
-	it("makes a loading anchor inert: strips href, marks it aria-disabled, and drops it from the tab order", () => {
-		// This is the regression case for the anchor-branch loading bug: href and
-		// target drive real browser behaviour — middle-click, "open link in new
-		// tab" from the context menu — that never reaches `onclick` at all, so
-		// `disabled ? undefined : href` alone left a loading link fully navigable.
+	it("keeps a loading anchor in the tab order and blocks its activation: href stays, aria-disabled/aria-busy are set, click and middle-click are prevented", () => {
+		// A busy control is not an unavailable one: the link keeps its href and
+		// its tab stop so keyboard focus survives the request, and activation is
+		// blocked in the handlers instead.
 		const onclick = vi.fn();
 		const { container } = render(Button, {
 			props: { href: "https://example.com", loading: true, onclick },
@@ -293,13 +292,18 @@ describe("Button", () => {
 		});
 		const el = root(container);
 
-		expect(el.getAttribute("href")).toBeNull();
+		expect(el.getAttribute("href")).toBe("https://example.com");
 		expect(el.getAttribute("target")).toBeNull();
 		expect(el.getAttribute("aria-disabled")).toBe("true");
-		expect(el.getAttribute("tabindex")).toBe("-1");
+		expect(el.hasAttribute("tabindex")).toBe(false);
 		expect(el.getAttribute("aria-busy")).toBe("true");
 
-		el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+		el.dispatchEvent(click);
+		expect(click.defaultPrevented).toBe(true);
+		const aux = new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 });
+		el.dispatchEvent(aux);
+		expect(aux.defaultPrevented).toBe(true);
 		expect(onclick).not.toHaveBeenCalled();
 	});
 

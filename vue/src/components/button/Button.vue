@@ -86,8 +86,18 @@ const {
 // parent-driven attrs change always re-renders this component.
 const attrs = useAttrs();
 function forwarded() {
-	if (!(disabled || loading)) return attrs;
-	return Object.fromEntries(Object.entries(attrs).filter(([key]) => !/^onClick/.test(key)));
+	const blocked = disabled || loading;
+	if (!blocked && !href) return attrs;
+	// On the link branch `auxclick` runs once through `handleAuxClick` (internal
+	// guard first, then the consumer's listener); its modified forms are dropped
+	// while the link is blocked, like the click ones.
+	return Object.fromEntries(
+		Object.entries(attrs).filter(
+			([key]) =>
+				!(blocked && /^onClick/.test(key)) &&
+				!(href && (/^onAuxclick$/i.test(key) || (blocked && /^onAuxclick/i.test(key))))
+		)
+	);
 }
 type AriaFlag = boolean | "true" | "false" | undefined;
 
@@ -137,7 +147,7 @@ const classes = computed(() =>
 		// `data-disabled` covers the anchor branch, which has no native `:disabled`
 		// pseudo-class to hang the same dimmed treatment off. It tracks `disabled`
 		// alone, never `loading` — `aria-disabled` also goes true while loading (see
-		// `anchorInert` below), but the mockup's loading swatch is explicitly not
+		// `anchorBlocked` below), but the mockup's loading swatch is explicitly not
 		// dimmed, so the visual hook and the a11y attribute must stay two different
 		// things even though they overlap when `disabled` is set.
 		"disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
@@ -160,22 +170,21 @@ const resolvedRel = computed(() => {
 	return [...tokens].join(" ");
 });
 
-// An <a> has no native `disabled` state, and `href`/`target` drive browser
-// behaviour that never reaches `handleClick` at all — middle-click firing
-// `auxclick`, "open link in new tab" from the context menu, a screen reader's
-// own link-activation gesture. `loading` has to block activation exactly like
-// `disabled` does, so on this branch that can only be done by stripping the
-// attributes that make those paths possible, not by adding another JS guard:
-// there is no event to guard on until after the browser has already acted on
-// `href`. Kept as one flag so `href`, `target`, `aria-disabled` and `tabindex`
-// can't drift out of sync with each other.
-const anchorInert = computed(() => disabled || loading);
+// An <a> has no native `disabled` state. `disabled` strips `href`/`target`
+// and leaves the tab order (nothing to activate, nothing to read). `loading`
+// is different: the control is busy, not unavailable, so it keeps its `href`
+// and its tab stop — focus must not vanish under a keyboard user mid-request —
+// and activation is blocked in the handlers instead (`click` for keyboard and
+// primary pointer, `auxclick` for middle-click). `aria-busy` + `aria-disabled`
+// tell assistive tech why nothing happens.
+const anchorInert = computed(() => disabled);
+const anchorBlocked = computed(() => disabled || loading);
 
 // Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
 // off (and never the default click → press, which `handleClick` already plays).
 useSoundFeedback(el, () => ({
 	on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
-	disabled: anchorInert.value,
+	disabled: anchorBlocked.value,
 }));
 
 // The one duration the lead slot's cross-fade runs on: `DURATIONS.micro`, the
@@ -230,6 +239,14 @@ function leadCancelled(node: Element) {
 // already refuses real pointer/keyboard input, but a synthetic `.click()` (or
 // an anchor, which has no disabled state at all) walks straight past that —
 // this is what actually keeps the callback from firing.
+function handleAuxClick(event: MouseEvent) {
+	if (disabled || loading) {
+		event.preventDefault();
+		return;
+	}
+	callListener((attrs.onAuxclick ?? attrs.onAuxClick) as never, event);
+}
+
 function handleClick(event: MouseEvent) {
 	if (disabled || loading) {
 		event.preventDefault();
@@ -251,10 +268,11 @@ function handleClick(event: MouseEvent) {
 		:rel="resolvedRel"
 		:aria-label="label ?? (attrs['aria-label'] as string | undefined)"
 		:data-disabled="disabled ? 'true' : (attrs['data-disabled'] as string | undefined)"
-		:aria-disabled="anchorInert ? 'true' : (attrs['aria-disabled'] as AriaFlag)"
+		:aria-disabled="anchorBlocked ? 'true' : (attrs['aria-disabled'] as AriaFlag)"
 		:aria-busy="loading ? 'true' : (attrs['aria-busy'] as AriaFlag)"
 		:tabindex="anchorInert ? -1 : (attrs.tabindex as number | string | undefined)"
 		@click="handleClick"
+		@auxclick="handleAuxClick"
 	>
 		<!--
 			The lead slot. Both branches of this component render it identically —
