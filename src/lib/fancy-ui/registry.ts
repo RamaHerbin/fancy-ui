@@ -8325,6 +8325,97 @@ export const registry: Record<string, ComponentMeta> = {
 			},
 		],
 	},
+	"story-thread": {
+		name: "StoryThread",
+		slug: "story-thread",
+		description:
+			"A narrative thread for scroll stories: the page pans sideways through your sections while a dotted line draws itself from node to node, a glowing head rides its tip, nodes light up as it reaches them, and segments can fork and meet again.",
+		category: "navigation",
+		group: "fancy",
+		status: "done",
+		tags: [
+			"story",
+			"storytelling",
+			"scrollytelling",
+			"path",
+			"thread",
+			"timeline",
+			"horizontal scroll",
+			"svg",
+			"narrative",
+		],
+		props: [
+			{
+				name: "layout",
+				type: '"auto" | "horizontal" | "vertical"',
+				default: '"auto"',
+				description:
+					"`horizontal` pins a full-height viewport and pans the content sideways as the page scrolls; `vertical` keeps a plain stack with the thread running down it. `auto` is horizontal from 900 × 520 px up.",
+			},
+			{
+				name: "segments",
+				type: "StoryThreadSegment[]",
+				default: "[]",
+				description:
+					"Segments as `{ nodes: string[], color? }`, each through a list of StoryNode ids. Empty draws one segment through every node in document order. Segments that leave the same node draw a fork whose branches advance together.",
+			},
+			{
+				name: "lead",
+				type: "number",
+				default: "0.7",
+				description:
+					"Where the tip of the thread sits in the viewport, 0..1 along the reading axis.",
+			},
+			{
+				name: "tension",
+				type: "number",
+				default: "0.55",
+				description: "Curve tension between nodes: 0 draws straight lines, 1 long flat tangents.",
+			},
+			{
+				name: "dash",
+				type: '"dotted" | "dashed" | "solid"',
+				default: '"dotted"',
+				description: "Stroke pattern of the thread.",
+			},
+			{
+				name: "head",
+				type: "boolean",
+				default: "true",
+				description: "Draws a glowing dot at the tip of every segment while it is drawing.",
+			},
+			{
+				name: "sound",
+				type: "boolean",
+				default: "false",
+				description:
+					"Plays a soft `tick` each time the thread reaches a node going forward. Only audible once the user has enabled sound.",
+			},
+			{
+				name: "onReach",
+				type: "(id: string) => void",
+				description: "Called with a node's id each time the thread reaches it going forward.",
+			},
+			{
+				name: "ariaLabel",
+				type: "string",
+				default: '"Story"',
+				description: "Accessible name of the region.",
+			},
+			{
+				name: "class",
+				type: "string",
+				description: "Additional CSS classes on the root.",
+			},
+		],
+		slots: [
+			{
+				name: "children",
+				description:
+					"The story: sections holding `<StoryNode id>` anchors (`variant` `dot` or `ring`). Size the sections yourself; in the horizontal layout they sit side by side at full height.",
+			},
+		],
+	},
 	sidebar: {
 		name: "Sidebar",
 		slug: "sidebar",

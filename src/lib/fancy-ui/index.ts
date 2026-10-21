@@ -144,6 +144,7 @@ export * from "./time-picker/index.js";
 export * from "./navbar/index.js";
 export * from "./sidebar/index.js";
 export * from "./tick-nav/index.js";
+export * from "./story-thread/index.js";
 export * from "./tabs/index.js";
 export * from "./accordion/index.js";
 export * from "./collapsible/index.js";
