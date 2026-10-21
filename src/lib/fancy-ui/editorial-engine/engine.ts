@@ -708,7 +708,7 @@ export function createEditorialEngine(
 	// vertical component and cancel the pointer stream. Claim the gesture only
 	// when it starts on an orb, so page scrolling still works everywhere else.
 	function onTouchStart(event: TouchEvent): void {
-		const touch = event.touches[0];
+		const touch = event.changedTouches[0];
 		if (touch === undefined || !event.cancelable) return;
 		const point = stagePoint(touch);
 		const isNarrow = stageW < NARROW_BREAKPOINT;

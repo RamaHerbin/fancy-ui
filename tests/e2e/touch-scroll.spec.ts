@@ -1,4 +1,4 @@
-import { test, expect, devices, type Page } from "@playwright/test";
+import { test, expect, devices, type Locator, type Page } from "@playwright/test";
 
 // Pointer effects must never trap the page scroll on a phone. The swipe goes
 // through CDP so the browser itself applies touch-action to the gesture.
@@ -18,6 +18,46 @@ async function swipeUp(page: Page, x: number, y: number, distance: number) {
 	});
 }
 
+// On a cold dev server the docs page arrives long before its client modules
+// have been compiled, so the demo is attached and laid out while hydration and
+// the web fonts are still in flight. A fixed sleep then measures a box that
+// moves (or a component without its listeners) and swipes from a stale point.
+// Wait for the actual signals instead: every module fetched, fonts loaded, and
+// the element's box unchanged across two animation frames.
+async function settled(page: Page, el?: Locator) {
+	await page.waitForLoadState("networkidle");
+	await page.evaluate(async () => {
+		await document.fonts.ready;
+	});
+	if (!el) return;
+	await expect(el).toBeVisible({ timeout: 60_000 });
+	await expect
+		.poll(
+			() =>
+				el.evaluate(
+					(node) =>
+						new Promise<boolean>((resolve) => {
+							const a = node.getBoundingClientRect();
+							requestAnimationFrame(() =>
+								requestAnimationFrame(() => {
+									const b = node.getBoundingClientRect();
+									resolve(
+										a.width > 0 &&
+											a.height > 0 &&
+											a.x === b.x &&
+											a.y === b.y &&
+											a.width === b.width &&
+											a.height === b.height
+									);
+								})
+							);
+						})
+				),
+			{ message: "the component's box settles", timeout: 30_000 }
+		)
+		.toBe(true);
+}
+
 const targets: Record<string, string> = {
 	"image-trail-cursor": ":has(> .content__img)",
 	compare: '[role="slider"]',
@@ -28,19 +68,23 @@ for (const [slug, selector] of Object.entries(targets)) {
 		await page.goto(`/docs/components/${slug}`, { waitUntil: "domcontentloaded" });
 		const el = page.locator(selector).first();
 		await el.waitFor({ state: "attached", timeout: 60_000 });
-		// Let hydration settle so the component's own listeners are live.
-		await page.waitForTimeout(2500);
+		await settled(page, el);
 		// Both demos are in-flow, so bring them into view first.
 		await el.scrollIntoViewIfNeeded();
-		const box = (await el.boundingBox()) ?? { x: 0, y: 400, width: 390, height: 0 };
+		await settled(page, el);
+		const box = await el.boundingBox();
+		expect(box, "the component has a layout box").not.toBeNull();
+		if (!box) return;
 		const before = await page.evaluate(() => window.scrollY);
 		const x = Math.min(Math.max(box.x + box.width / 2, 20), 370);
 		const y = Math.min(Math.max(box.y + box.height / 2, 450), 600);
-		// The swipe must start on the component, or the test proves nothing.
+		// The swipe must start on the component, or the test proves nothing: the
+		// hit element is the target itself or one of its descendants, never an
+		// ancestor that merely encloses it.
 		const startsOnTarget = await el.evaluate(
 			(node, p) => {
 				const hit = document.elementFromPoint(p.x, p.y);
-				return hit !== null && (node.contains(hit) || hit.contains(node));
+				return hit !== null && node.contains(hit);
 			},
 			{ x, y }
 		);
@@ -55,8 +99,9 @@ test("compare: the handle still drags horizontally", async ({ page }) => {
 	await page.goto("/docs/components/compare", { waitUntil: "domcontentloaded" });
 	const slider = page.locator('[role="slider"]').first();
 	await slider.waitFor({ state: "attached", timeout: 60_000 });
-	await page.waitForTimeout(2500);
+	await settled(page, slider);
 	await slider.scrollIntoViewIfNeeded();
+	await settled(page, slider);
 	const box = (await slider.boundingBox())!;
 	const before = Number(await slider.getAttribute("aria-valuenow"));
 	const y = box.y + box.height / 2;
@@ -80,7 +125,7 @@ test("compare: the handle still drags horizontally", async ({ page }) => {
 test("fluid-cursor: smoke, a vertical swipe still scrolls the page", async ({ page }) => {
 	await page.goto("/docs/components/fluid-cursor", { waitUntil: "domcontentloaded" });
 	await page.locator("canvas").first().waitFor({ state: "attached", timeout: 60_000 });
-	await page.waitForTimeout(2500);
+	await settled(page);
 	const before = await page.evaluate(() => window.scrollY);
 	await swipeUp(page, 195, 500, 420);
 	await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 100);
@@ -100,7 +145,9 @@ test("editorial-engine: an orb still drags with a vertical component, page stays
 		undefined,
 		{ timeout: 60_000 }
 	);
+	await settled(page, stage);
 	await stage.scrollIntoViewIfNeeded();
+	await settled(page, stage);
 	// Pick an orb whose centre is inside the viewport.
 	const orb = await page.evaluate(() => {
 		for (const el of document.querySelectorAll<HTMLElement>(".ee-orb")) {
