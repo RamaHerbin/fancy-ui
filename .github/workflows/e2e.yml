@@ -51,7 +51,6 @@ jobs:
 
       # playwright.config.ts starts `pnpm dev --port 5174 --mode test` and, under CI,
       # never reuses a server that is already running.
-      # tests/e2e/seo.spec.ts joins this list when the pull request that adds it (#391) lands.
       - name: Run the stable specs
         run: >-
           pnpm exec playwright test
@@ -65,6 +64,7 @@ jobs:
           tests/e2e/docs-chrome.spec.ts
           tests/e2e/error-pages.spec.ts
           tests/e2e/routing.spec.ts
+          tests/e2e/seo.spec.ts
 
       - name: Upload the HTML report
         if: failure()
