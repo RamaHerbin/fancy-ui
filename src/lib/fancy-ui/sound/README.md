@@ -50,8 +50,9 @@ switches itself on for them:
   (rate limit, voice cap, sound off) stay dropped, so there is never a
   backlog of silenced cues firing at once.
 - **Every cue is rate-limited per cue, independent of the action layer's own
-  guards.** `hover` is capped at 60ms, `tick`/`select` at 40ms, everything
-  else at 15ms — see `SOUND_MIN_INTERVAL_MS`. A hover storm from a fast mouse
+  guards.** `hover` is capped at 30ms, `select` at 40ms, everything else
+  (`tick` included) at 15ms — see `SOUND_MIN_INTERVAL_MS`. The palette's
+  taps last 10–20ms, so these caps let a sweep stay audibly continuous. A hover storm from a fast mouse
   sweep, or key autorepeat landing on `select`, thins itself out instead of
   turning into a buzz.
 - **`play()` is a no-op — never a throw — while off, unsupported, or before

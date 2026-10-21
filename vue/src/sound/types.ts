@@ -142,8 +142,8 @@ export type SoundEngineState = "idle" | "ready" | "suspended" | "unsupported" | 
 
 /** Default same-cue minimum interval, ms. Engine-enforced, independent of the action's own guards. */
 export const SOUND_MIN_INTERVAL_MS: Readonly<Record<SoundCue, number>> = Object.freeze({
-	hover: 60,
-	tick: 40,
+	hover: 30,
+	tick: 15,
 	select: 40,
 	press: 15,
 	"toggle-on": 15,

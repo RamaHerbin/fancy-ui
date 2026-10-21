@@ -195,7 +195,7 @@ describe("enable → unlock → play", () => {
 });
 
 describe("rate limiting", () => {
-	it("drops a second hover inside the 60 ms window and lets the next one through", async () => {
+	it("drops a second hover inside the 30 ms window and lets the next one through", async () => {
 		const context = await enableAndUnlock();
 		nowMs += 1_000;
 
@@ -203,11 +203,11 @@ describe("rate limiting", () => {
 		const afterFirst = context.created.oscillators.length;
 		expect(afterFirst).toBeGreaterThan(0);
 
-		nowMs += 30;
+		nowMs += 20;
 		sound.play("hover");
 		expect(context.created.oscillators.length).toBe(afterFirst);
 
-		nowMs += 40; // 70 ms since the first hover
+		nowMs += 15; // 35 ms since the first hover
 		sound.play("hover");
 		expect(context.created.oscillators.length).toBeGreaterThan(afterFirst);
 	});
@@ -223,21 +223,21 @@ describe("rate limiting", () => {
 		expect(context.created.oscillators.length).toBeGreaterThan(afterHover);
 	});
 
-	it("absorbs a burst of ticks down to the 40 ms grid", async () => {
+	it("absorbs a burst of ticks down to the 15 ms grid", async () => {
 		const context = await enableAndUnlock();
 		nowMs += 1_000;
 		const before = context.created.gains.length;
 
-		// 20 ticks, 10 ms apart: 200 ms of wall clock, 40 ms minimum interval.
+		// 20 ticks, 5 ms apart: 100 ms of wall clock, 15 ms minimum interval.
 		let scheduled = 0;
 		for (let i = 0; i < 20; i++) {
 			const gains = context.created.gains.length;
 			sound.play("tick");
 			if (context.created.gains.length > gains) scheduled++;
-			nowMs += 10;
+			nowMs += 5;
 		}
 		expect(scheduled).toBeGreaterThan(0);
-		expect(scheduled).toBeLessThanOrEqual(6);
+		expect(scheduled).toBeLessThanOrEqual(7);
 		expect(context.created.gains.length).toBeGreaterThan(before);
 	});
 });
