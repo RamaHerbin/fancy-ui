@@ -124,7 +124,7 @@
 
 			<ul class="border-border bg-card divide-border divide-y rounded-xl border">
 				{#each items as item (item.id)}
-					<li class="flex items-start gap-3 p-4" data-read={item.read}>
+					<li class="flex flex-wrap items-start gap-3 p-4 sm:flex-nowrap" data-read={item.read}>
 						<Avatar initials={item.actor?.initials ?? "•"} class="mt-0.5" />
 						<div class="min-w-0 flex-1">
 							<div class="flex flex-wrap items-center gap-2">
@@ -139,7 +139,7 @@
 						<Button
 							variant="ghost"
 							size="sm"
-							class="shrink-0"
+							class="ml-12 shrink-0 sm:ml-0"
 							disabled={busy}
 							aria-label="{item.read ? text.markUnread : text.markRead}: {item.title}"
 							onclick={() => setRead([item.id], !item.read)}
