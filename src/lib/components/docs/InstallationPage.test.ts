@@ -1,5 +1,7 @@
 import { render, screen, cleanup } from "@testing-library/svelte";
 import { afterEach, describe, it, expect } from "vitest";
+import { tick } from "svelte";
+import { setFramework } from "$lib/stores/framework.svelte.js";
 import InstallationPage from "./InstallationPage.svelte";
 
 describe("InstallationPage", () => {
@@ -39,6 +41,40 @@ describe("InstallationPage", () => {
 		);
 		expect(chips).toContain("svelte");
 		expect(chips).toContain("tailwindcss");
+	});
+
+	describe("selected framework", () => {
+		afterEach(() => setFramework("svelte"));
+
+		it("switches the snippets and peer table to React", async () => {
+			setFramework("react");
+			const { container } = render(InstallationPage);
+			await tick();
+			expect(container.textContent).toContain('@import "fancy-ui-react/tailwind.css"');
+			expect(container.textContent).toContain('import "fancy-ui-react/styles.css"');
+			expect(container.textContent).not.toContain("fancy-ui-svelte/tailwind.css");
+			const chips = Array.from(container.querySelectorAll(".peer-table code.chip")).map(
+				(chip) => chip.textContent
+			);
+			expect(chips).toContain("react");
+			expect(chips).toContain("react-dom");
+			expect(chips).not.toContain("svelte");
+			// Same seven headings whatever the framework.
+			expect(document.querySelector("h2#peer-dependencies")).toBeInTheDocument();
+		});
+
+		it("switches the snippets and peer table to Vue", async () => {
+			setFramework("vue");
+			const { container } = render(InstallationPage);
+			await tick();
+			expect(container.textContent).toContain('@import "fancy-ui-vue/styles.css"');
+			expect(container.textContent).toContain("<template>");
+			const chips = Array.from(container.querySelectorAll(".peer-table code.chip")).map(
+				(chip) => chip.textContent
+			);
+			expect(chips).toContain("vue");
+			expect(chips).not.toContain("svelte");
+		});
 	});
 
 	it("renders the three install steps in order", () => {

@@ -1,0 +1,14 @@
+{
+	// Type-checks the snippets the docs site prints for this package. They
+	// import the package by name, exactly as a consumer would; `paths` points
+	// that name at the source barrel so no build is needed. Not part of the
+	// build config and not in `files`, so none of it ships.
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": { "fancy-ui-vue": ["./src/index.ts"] }
+	},
+	// Without strict templates a wrong prop or v-model name still type-checks.
+	"vueCompilerOptions": { "strictTemplates": true },
+	"include": ["docs-examples/**/*.vue"]
+}

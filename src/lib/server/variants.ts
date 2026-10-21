@@ -6,8 +6,11 @@
  * Everything is derived at build time from the registry and the three
  * packages' barrels (see barrels.ts), then baked into the prerendered pages'
  * data. The barrels never reach the client. No per-component code sample is
- * kept here on purpose: the docs examples are Svelte, and a React or Vue
- * variant must never show another framework's code.
+ * kept here on purpose: the Svelte examples are the live docs demos, and a
+ * React or Vue variant must never show another framework's code. The React
+ * and Vue usage snippets are compiled files under `react/docs-examples` and
+ * `vue/docs-examples` (see `$lib/docs/framework-snippets.ts`); a component
+ * without one shows its import line and a note, never Svelte code.
  */
 
 import { getComponent } from "$lib/fancy-ui/registry.js";

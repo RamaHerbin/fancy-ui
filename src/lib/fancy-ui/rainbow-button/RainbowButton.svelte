@@ -34,11 +34,15 @@
 		class: className,
 		speed = 2,
 		href = undefined,
+		target = undefined,
+		style: styleProp = undefined,
 		type = "button",
 		disabled,
 		ref = $bindable(null),
 		children,
+		onclick,
 		sound = false,
+		...restProps
 	}: RainbowButtonProps = $props();
 
 	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
@@ -48,15 +52,19 @@
 		disabled: !!disabled,
 	});
 
-	const speedStyle = $derived(`--rainbow-speed: ${speed}s`);
+	const speedStyle = $derived(`--rainbow-speed: ${speed}s${styleProp ? `; ${styleProp}` : ""}`);
 
-	// No `...restProps` spread exists on this component (see Implementation
-	// notes in the README), so there is no consumer `onclick` to forward — the
-	// handler only ever plays the cue, and is bound identically on both the
-	// anchor and button render branches.
-	function handleClick() {
-		if (disabled) return;
+	// The single guard both branches funnel through. A native `disabled` button
+	// already refuses real input, but a synthetic `.click()` (or an anchor, which
+	// has no disabled state at all) walks straight past that, so a disabled
+	// click is cancelled here and never reaches the consumer or the sound cue.
+	function handleClick(event: MouseEvent) {
+		if (disabled) {
+			event.preventDefault();
+			return;
+		}
 		if (sound) soundFx.play("press");
+		onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 	}
 
 	const baseClasses = $derived(
@@ -80,10 +88,12 @@
 		use:soundFeedback={hoverFeedback}
 		class={baseClasses}
 		style={speedStyle}
-		{href}
-		aria-disabled={disabled}
-		role={disabled ? "link" : undefined}
-		tabindex={disabled ? -1 : undefined}
+		{...restProps as HTMLAnchorAttributes}
+		href={disabled ? undefined : href}
+		target={disabled ? undefined : target}
+		aria-disabled={disabled ? "true" : restProps["aria-disabled"]}
+		role={disabled ? "link" : restProps.role}
+		tabindex={disabled ? -1 : restProps.tabindex}
 		onclick={handleClick}
 	>
 		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>
@@ -97,6 +107,7 @@
 		class={baseClasses}
 		style={speedStyle}
 		{type}
+		{...restProps as HTMLButtonAttributes}
 		{disabled}
 		onclick={handleClick}
 	>

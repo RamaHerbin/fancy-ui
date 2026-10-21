@@ -4,7 +4,11 @@
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
 	import { COMPONENT_COUNT } from "$lib/site.js";
 	import { copyCommandFor } from "$lib/copy-source.js";
-	import type { ComponentProps } from "svelte";
+	import { INSTALL_SNIPPETS } from "$lib/docs/install-snippets.js";
+	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import type { Framework } from "$lib/inspiration/types.js";
+	import type { MessageKey } from "$lib/i18n/messages/en.js";
+	import { onMount, type ComponentProps } from "svelte";
 
 	// The same three packages the docs component pages switch between.
 	const installVariants: NonNullable<ComponentProps<typeof InstallBlock>["variants"]> = [
@@ -37,37 +41,50 @@
 		},
 	];
 
-	const stylesheetSnippet = `@import "tailwindcss";
-@import "fancy-ui-svelte/tailwind.css";`;
+	// Like the component pages, read the framework after mount so the
+	// prerendered markup (Svelte) matches the first client render.
+	const frameworkState = createFrameworkState();
+	let mounted = $state(false);
+	onMount(() => (mounted = true));
+	const framework = $derived<Framework>(mounted ? frameworkState.framework : "svelte");
+	const snippets = $derived(INSTALL_SNIPPETS[framework]);
 
-	const firstComponentSnippet = `<script lang="ts">
-	import { RainbowButton } from 'fancy-ui-svelte';
-<\/script>
-
-<RainbowButton>Click me</RainbowButton>`;
-
-	const usageSnippet = `<script lang="ts">
-	import { BorderBeam, RainbowButton } from 'fancy-ui-svelte';
-<\/script>
-
-<div class="relative overflow-hidden rounded-xl border p-8">
-	<RainbowButton>Click me</RainbowButton>
-	<BorderBeam colorFrom="#9E7AFF" colorTo="#FE8BBB" />
-</div>`;
-
-	const typesSnippet = `import { type BorderBeamProps } from 'fancy-ui-svelte';
-
-const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
+	// The few headline strings that name the framework.
+	const copy = $derived(
+		(
+			{
+				svelte: {
+					lead: "install.lead",
+					pill: "install.pill.svelte",
+					title: "install.prerequisites.card1.title",
+					version: "install.prerequisites.card1.version",
+					desc: "install.prerequisites.card1.desc",
+				},
+				react: {
+					lead: "install.lead.react",
+					pill: "install.pill.react",
+					title: "install.prerequisites.card1.title.react",
+					version: "install.prerequisites.card1.version.react",
+					desc: "install.prerequisites.card1.desc.react",
+				},
+				vue: {
+					lead: "install.lead.vue",
+					pill: "install.pill.vue",
+					title: "install.prerequisites.card1.title.vue",
+					version: "install.prerequisites.card1.version.vue",
+					desc: "install.prerequisites.card1.desc.vue",
+				},
+			} satisfies Record<Framework, Record<string, MessageKey>>
+		)[framework]
+	);
 </script>
 
 <div class="install">
 	<h1>{t("install.title")}</h1>
-	<p class="lead">{t("install.lead")}</p>
+	<p class="lead">{t(copy.lead)}</p>
 
 	<div class="pills">
-		<span class="pill"
-			><span class="dot d1" aria-hidden="true"></span>{t("install.pill.svelte")}</span
-		>
+		<span class="pill"><span class="dot d1" aria-hidden="true"></span>{t(copy.pill)}</span>
 		<span class="pill"
 			><span class="dot d2" aria-hidden="true"></span>{t("install.pill.tailwind")}</span
 		>
@@ -84,10 +101,10 @@ const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
 		<div class="cards">
 			<div class="card">
 				<div class="card-head">
-					<span class="card-title">{t("install.prerequisites.card1.title")}</span>
-					<code class="chip">{t("install.prerequisites.card1.version")}</code>
+					<span class="card-title">{t(copy.title)}</span>
+					<code class="chip">{t(copy.version)}</code>
 				</div>
-				<p class="card-desc">{t("install.prerequisites.card1.desc")}</p>
+				<p class="card-desc">{t(copy.desc)}</p>
 			</div>
 			<div class="card">
 				<div class="card-head">
@@ -123,7 +140,7 @@ const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
 				<div class="step-body">
 					<span class="step-title">{t("install.step2.title")}</span>
 					<p class="step-desc">{t("install.step2.desc")}</p>
-					<CodeBlock lang="css" code={stylesheetSnippet} />
+					<CodeBlock lang="css" code={snippets.stylesheet} />
 					<p class="caption">{t("install.step2.caption")}</p>
 				</div>
 			</li>
@@ -132,7 +149,7 @@ const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
 				<div class="step-body">
 					<span class="step-title">{t("install.step3.title")}</span>
 					<p class="step-desc">{t("install.step3.desc")}</p>
-					<CodeBlock lang="svelte" code={firstComponentSnippet} />
+					<CodeBlock lang={snippets.lang} code={snippets.firstComponent} />
 				</div>
 			</li>
 		</ol>
@@ -151,14 +168,14 @@ const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
 	<section class="sec">
 		<h2 id="usage">{t("install.usage.heading")}</h2>
 		<p class="sec-body">{t("install.usage.body")}</p>
-		<CodeBlock lang="svelte" code={usageSnippet} />
+		<CodeBlock lang={snippets.lang} code={snippets.usage} />
 		<p class="caption">{t("install.usage.note")}</p>
 	</section>
 
 	<section class="sec">
 		<h2 id="typescript">{t("install.typescript.heading")}</h2>
 		<p class="sec-body">{t("install.typescript.body")}</p>
-		<CodeBlock lang="ts" code={typesSnippet} />
+		<CodeBlock lang={snippets.typesLang} code={snippets.types} />
 		<p class="caption">{t("install.typescript.note")}</p>
 	</section>
 
@@ -174,12 +191,13 @@ const beam: BorderBeamProps = { colorFrom: "#9E7AFF", colorTo: "#FE8BBB" };`;
 					</tr>
 				</thead>
 				<tbody>
-					<tr><td><code class="chip">svelte</code></td><td><code class="chip">^5.0.0</code></td></tr
-					>
-					<tr
-						><td><code class="chip">tailwindcss</code></td><td><code class="chip">^4.0.0</code></td
-						></tr
-					>
+					{#each snippets.peers as peer (peer.name)}
+						<tr
+							><td><code class="chip">{peer.name}</code></td><td
+								><code class="chip">{peer.range}</code></td
+							></tr
+						>
+					{/each}
 				</tbody>
 			</table>
 		</div>

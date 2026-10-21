@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { HTMLAttributes } from "vue";
+import type { HTMLAttributes, StyleValue } from "vue";
 
 export interface RainbowButtonProps {
 	/** Animation speed in seconds */
@@ -8,6 +8,8 @@ export interface RainbowButtonProps {
 	class?: HTMLAttributes["class"];
 	/** Render as anchor element */
 	href?: string;
+	/** Anchor `target` (dropped while a link is disabled) */
+	target?: string;
 	/** Native button type (ignored when `href` is set) */
 	type?: "button" | "submit" | "reset";
 	/** Disables the button / marks the link aria-disabled */
@@ -17,11 +19,16 @@ export interface RainbowButtonProps {
 	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * Click handler. Declared as a prop so it runs after the disabled guard and
+	 * the cue, exactly once, and is never forwarded through `attrs` as well.
+	 */
+	onClick?: (event: MouseEvent) => void;
 }
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/index.js";
 import { useSoundFeedback } from "../../sound/use-sound-feedback.js";
@@ -30,16 +37,37 @@ defineOptions({ name: "RainbowButton", inheritAttrs: false });
 
 // `disabled: undefined` is load-bearing, not noise: a `boolean` prop compiles
 // to `type: Boolean`, and Vue casts an ABSENT boolean prop to `false` unless
-// the prop declares a default. Without it, `:aria-disabled="disabled"` below
+// the prop declares a default. Without it, a boolean `disabled` bound straight to `aria-disabled` below
 // would write `aria-disabled="false"` on every enabled anchor, where the
 // Svelte source emits no attribute at all.
 const props = withDefaults(defineProps<RainbowButtonProps>(), {
 	speed: 2,
 	href: undefined,
+	target: undefined,
 	type: "button",
 	disabled: undefined,
 	sound: false,
+	onClick: undefined,
 });
+
+// Every other attribute and listener lands on the rendered element. `onClick`
+// is a declared prop, so it never appears here (no double call).
+const attrs = useAttrs();
+// Attributes spread onto the element. `style` is excluded and merged after the
+// component's own custom property so a consumer `--rainbow-speed` wins, as it
+// does in the other ports. While disabled, every `onClick*` key is dropped:
+// modified listeners (`@click.once`, `.capture`, `.passive`) compile to
+// `onClickOnce` / `onClickCapture` / `onClickPassive` and would otherwise bind
+// straight to the element and run past the disabled guard.
+// A plain function called from the template, not a `computed`: the attrs proxy
+// has no `ownKeys` trap, so a computed spreading it would only track the keys
+// present at its first run. Called during render, it re-runs on every update.
+function forwardedAttrs() {
+	const { style: _style, ...rest } = attrs;
+	if (!props.disabled) return rest;
+	return Object.fromEntries(Object.entries(rest).filter(([key]) => !/^onClick/.test(key)));
+}
+type AriaDisabled = boolean | "true" | "false" | undefined;
 
 defineSlots<{ default?: () => unknown }>();
 
@@ -57,21 +85,17 @@ useSoundFeedback(el, () => ({
 
 const speedStyle = computed(() => ({ "--rainbow-speed": `${props.speed}s` }));
 
-// No attrs fallthrough exists on this component (see the Svelte source's
-// Implementation notes: there is no `...restProps` spread), so there is no
-// consumer `onclick` to forward — the handler only ever plays the cue, and is
-// bound identically on both the anchor and button render branches.
-//
-// Upstream fix: an anchor has no native `disabled`, and `aria-disabled` /
-// `tabindex="-1"` do not stop a pointer click from following `href`, so the
-// disabled path cancels the default navigation (the Svelte source only
-// returns early).
+// The single guard both branches funnel through. An anchor has no native
+// `disabled`, and `aria-disabled` / `tabindex="-1"` do not stop a pointer click
+// from following `href`, so a disabled click is cancelled here and never
+// reaches the consumer or the sound cue.
 function handleClick(event: MouseEvent) {
 	if (props.disabled) {
 		event.preventDefault();
 		return;
 	}
 	playCue("press");
+	props.onClick?.(event);
 }
 
 const baseClasses = computed(() =>
@@ -93,12 +117,14 @@ const baseClasses = computed(() =>
 	<a
 		v-if="href"
 		ref="el"
+		v-bind="forwardedAttrs()"
 		:class="baseClasses"
-		:style="speedStyle"
-		:href="href"
-		:aria-disabled="disabled"
-		:role="disabled ? 'link' : undefined"
-		:tabindex="disabled ? -1 : undefined"
+		:style="[speedStyle, attrs.style as StyleValue]"
+		:href="disabled ? undefined : href"
+		:target="disabled ? undefined : target"
+		:aria-disabled="disabled ? 'true' : (attrs['aria-disabled'] as AriaDisabled)"
+		:role="disabled ? 'link' : (attrs.role as string | undefined)"
+		:tabindex="disabled ? -1 : (attrs.tabindex as number | string | undefined)"
 		@click="handleClick"
 	>
 		<span class="rainbow-button__glow" aria-hidden="true"><span></span></span>
@@ -108,8 +134,9 @@ const baseClasses = computed(() =>
 	<button
 		v-else
 		ref="el"
+		v-bind="forwardedAttrs()"
 		:class="baseClasses"
-		:style="speedStyle"
+		:style="[speedStyle, attrs.style as StyleValue]"
 		:type="type"
 		:disabled="disabled"
 		@click="handleClick"

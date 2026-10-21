@@ -373,4 +373,18 @@ describe("MosaicGlow", () => {
 		ro.trigger();
 		expect(canvas.width).toBe(before * 2);
 	});
+
+	it("renders a second canvas for the HDR light layer, and none with hdr off", () => {
+		withCanvas();
+		const on = render(MosaicGlow);
+		expect(getHost(on.container).querySelectorAll("canvas")).toHaveLength(2);
+		const layer = getHost(on.container).querySelector("canvas.mosaic-glow__hdr");
+		expect(layer?.getAttribute("aria-hidden")).toBe("true");
+		// jsdom has no WebGPU: the layer never starts.
+		expect(getHost(on.container).hasAttribute("data-hdr")).toBe(false);
+		cleanup();
+		const off = render(MosaicGlow, { props: { hdr: false } });
+		expect(getHost(off.container).querySelectorAll("canvas")).toHaveLength(1);
+		expect(getHost(off.container).querySelector(".mosaic-glow__hdr")).toBeNull();
+	});
 });

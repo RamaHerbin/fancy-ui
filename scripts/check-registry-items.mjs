@@ -110,7 +110,7 @@ const STACKS = {
 		urlPath: "/r/svelte",
 		expectedCount: 149,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
-		expectedFiles: 458,
+		expectedFiles: 459,
 		targetPrefix: "fancy/",
 		pathPrefix: "src/lib/fancy-ui/",
 		excluded: [...EXCLUDED, /\.test\.(ts|svelte)$/, /Harness/, /(^|\/)_template\//],
