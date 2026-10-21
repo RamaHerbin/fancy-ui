@@ -390,9 +390,9 @@
 		"attempts": 1,
 		"divergences": [
 			"BentoGridItemProps uses Omit<HTMLAttributes<HTMLDivElement>, 'title'> to avoid a TS conflict between the DOM 'title' attribute and the Svelte 'title' snippet prop (same intersection pattern PORTING.md prescribes for RainbowButton).",
-			"BentoGridItemProps and BentoGridCardProps extend HTMLAttributes<HTMLDivElement>, so they accept every div attribute — including a `children` the components render fixed JSX in place of and therefore silently drop; the Svelte parts declare a closed prop list.",
+			"BentoGridItemProps and BentoGridCardProps extend HTMLAttributes<HTMLDivElement>, so they accept every div attribute — including a `children` the components render fixed JSX in place of and therefore silently drop. The Svelte parts forward native attributes to the same tile root but type `children` out (it is not a prop there).",
 			"BentoFrame's compiler-scoped `.bento-panel`, `.bento-glow` and `.bento-edge` rules are anchored as descendants of `.bento-tile` in bento-frame.css (port-added anchor, since plain CSS is global); cascade outcomes match the Svelte source, including the reduced-motion glow fade.",
-			"BentoGrid spreads rest props onto the grid root like the rest of the React port; a consumer `style` is merged with the `accent` prop, with `--bento-accent` from `accent` taking precedence as the Svelte `style:` directive does, and a consumer `onFocus` is chained after the focus-reveal handler.",
+			"BentoGrid spreads rest props onto the grid root, as the Svelte and Vue components do; a consumer `style` is merged with the `accent` prop, with `--bento-accent` from `accent` taking precedence, and a consumer `onFocus` is chained after the focus-reveal handler. The reveal `data-state` is managed by the component and cannot be overridden while revealing; with `reveal` off, a consumer `data-state` is passed through.",
 			"The focus-in reveal uses React's `onFocus`, which React delivers as a bubbling focusin, in place of the Svelte `onfocusin` attribute."
 		],
 		"lastFailure": null
@@ -542,7 +542,9 @@
 		"testFiles": ["Book.test.ts"],
 		"svelteFiles": 4,
 		"attempts": 1,
-		"divergences": [],
+		"divergences": [
+			"Book, BookHeader, BookTitle and BookDescription spread rest onto their own element (div, div, h1, p); the Svelte and Vue parts forward native attributes to the same elements."
+		],
 		"lastFailure": null
 	},
 	{
@@ -609,7 +611,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"Rest props: React BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div; the Svelte BoxRevealProps declares only color/duration/delay/class and spreads nothing, so the React component accepts id/onClick/data-* attributes the Svelte one silently drops. Kept per PORTING.md's general 'rest props spread onto the root element' rule, recorded here because it is consumer-visible."
+			"Rest props: BoxRevealProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, as the Svelte and Vue components do."
 		],
 		"lastFailure": null
 	},
@@ -1345,7 +1347,7 @@
 		"svelteFiles": 1,
 		"attempts": 2,
 		"divergences": [
-			"ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> and spreads rest onto the root, so id/onClick/data-*/aria-* reach the element where the Svelte component drops them; the inherited `children` is type-accepted and dropped, since the component renders its own."
+			"ContainerTextFlipProps extends HTMLAttributes<HTMLParagraphElement> and spreads rest onto the root `<p>`, like the Svelte and Vue components; the inherited `children` is type-accepted and dropped."
 		],
 		"lastFailure": null
 	},
@@ -2622,6 +2624,7 @@
 			"`bind:value` becomes the standard React controlled/uncontrolled split: `value` + `onValueChange` when controlled, new `defaultValue` prop (default \"\") for the uncontrolled initial value — a `value` prop passed alone now pins the input instead of seeding it.",
 			"`bind:ref` becomes `forwardRef`, pointing at the native `<input>`.",
 			"`class` becomes `className`; the `autocomplete` prop is typed as React's `HTMLInputAutoCompleteAttribute` instead of Svelte's `FullAutoFill` (same DOM token set).",
+			"Input, Textarea, PasswordInput, SearchInput and NumberInput forward native attributes to the inner <input>/<textarea>; React onChange from rest runs after internal handling and onValueChange; readOnly/autoComplete/maxLength are accepted next to the lowercase props.",
 			"The Svelte `oninput` handler becomes React `onChange` (fires per keystroke, identical observable behaviour); while disabled, a synthetic input event additionally has the DOM value restored to the model value, mirroring the Checkbox port's guard."
 		],
 		"lastFailure": null,
@@ -2769,7 +2772,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"LetterPullupProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, so id/style/onClick/role/aria-*/data-* reach the element; the Svelte component's surface is exactly {words, delay, class} and it spreads nothing."
+			"LetterPullupProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root div, like the Svelte and Vue components (`class` still styles each letter)."
 		],
 		"lastFailure": null
 	},
@@ -2801,9 +2804,7 @@
 		"testFiles": ["LineHoverLink.test.ts"],
 		"svelteFiles": 1,
 		"attempts": 1,
-		"divergences": [
-			"Props extend AnchorHTMLAttributes minus className and spread ...rest onto the `<a>`, per PORTING.md's rest-props-spread rule; the Svelte side exposed a fixed prop list and spread nothing."
-		],
+		"divergences": [],
 		"lastFailure": null
 	},
 	{
@@ -2902,8 +2903,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"Native click handler is `onClick` (React convention/rest-props spread) rather than Svelte's `onclick` prop name.",
-			"Props extend AnchorHTMLAttributes (minus className) and spread ...rest onto the <a>, per PORTING.md's rest-props-spread rule; Svelte side only exposed a fixed prop list plus onclick.",
+			"Link, LineHoverLink, NavbarLink, NavigationMenuLink and InlineCitation forward native attributes and listeners to their anchor in Svelte, React and Vue.",
 			"The new-tab announcement and the safe-`rel` tokens are gated on the RESOLVED target, not on the bare `external` flag, so an `external` link whose `target` is overridden to `_self`/`_parent`/`_top` stays silent and keeps the caller's own `rel`; the Svelte source announces a new tab whenever `external` is set."
 		],
 		"lastFailure": null
@@ -3323,7 +3323,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"NeonBorderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so id/role/onClick/data-* reach the element; the Svelte component declares a closed six-prop list and spreads nothing."
+			"NeonBorderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, like the Svelte and Vue components. A consumer `style` is merged; the component's own `--neon-*` custom properties win over a consumer declaration of the same property."
 		],
 		"lastFailure": null,
 		"minors": []
@@ -3398,7 +3398,8 @@
 		"divergences": [
 			"`bind:value` becomes the standard controlled/uncontrolled split: controlled via `value` + `onValueChange` when the `value` prop is passed (`null` counts as a value meaning empty), uncontrolled via `defaultValue` (default `null`) otherwise — matching the convention Input established.",
 			"`bind:ref` becomes `forwardRef`, pointing at the native `<input>`.",
-			"`class` becomes `className`."
+			"`class` becomes `className`.",
+			"Input, Textarea, PasswordInput, SearchInput and NumberInput forward native attributes to the inner <input>/<textarea>; React onChange from rest runs after internal handling and onValueChange; readOnly/autoComplete/maxLength are accepted next to the lowercase props."
 		],
 		"lastFailure": null,
 		"minors": [
@@ -3568,7 +3569,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"PixelLoaderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, so a consumer's `style` can override the component's own `--ft-pixel-*` custom properties; the Svelte component accepts exactly nine props and spreads nothing."
+			"PixelLoaderProps extends HTMLAttributes<HTMLDivElement> and spreads rest onto the root, like the Svelte and Vue components. `role=\"status\"` and `aria-live` stay managed. A consumer `style` is merged after the component's own, so it can override the `--ft-pixel-*` custom properties."
 		],
 		"lastFailure": null
 	},
@@ -4328,6 +4329,7 @@
 		"attempts": 1,
 		"divergences": [
 			"value is not a true two-way bindable prop (React has no bind:); mirrors the Input.tsx pattern instead — value prop seeds internal state, resynced on prop identity change, corrected via onValueChange. Observable behavior is unchanged.",
+			"Slider: React's `onChange` (the native input event, forwarded after the internal update) fires on every input event, the React idiom. Svelte's `onchange` and Vue's `@change` fire once per committed value. Use `onValueChange` for the per-input value in all three.",
 			"SliderHarness.tsx and SliderFieldHarness.tsx replace the .test.svelte harnesses (React components instead of Svelte rigs); not exported from index.ts, matching the Svelte originals' non-export."
 		],
 		"lastFailure": null
@@ -4871,7 +4873,7 @@
 		"attempts": 1,
 		"divergences": [
 			"No consumer-visible divergence: header snippet becomes ReactNode; ref becomes forwardRef per PORTING.md; autoscroll uses react/src/internals/use-autoscroll.js's useAutoscroll(node, options) hook (already implemented for this repo) instead of the Svelte `use:autoscroll` action, targeting the log div via useElementRef.",
-			"TerminalBlockProps extends HTMLAttributes<HTMLDivElement> minus className and spreads ...rest onto the root div; the Svelte source declares a closed prop list and forwards nothing."
+			"TerminalBlockProps extends HTMLAttributes<HTMLDivElement> minus className and spreads ...rest onto the root div; the Svelte and Vue components forward native attributes to the same outer element, not to the inner log region."
 		],
 		"lastFailure": null
 	},
@@ -5579,7 +5581,7 @@
 		"svelteFiles": 1,
 		"attempts": 1,
 		"divergences": [
-			"TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, so a consumer can pass id/onClick/data-* or override role/aria-live/style; the Svelte component declares a fixed prop list and spreads nothing."
+			"TypingIndicatorProps extends HTMLAttributes<HTMLDivElement> and spreads ...rest onto the root div, like the Svelte and Vue components. `role=\"status\"` and `aria-live=\"polite\"` are no longer overridable, and the component's own `--ft-typing-*` styles win over a consumer `style`."
 		],
 		"lastFailure": null
 	},

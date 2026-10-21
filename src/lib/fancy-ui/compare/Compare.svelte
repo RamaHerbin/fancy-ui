@@ -341,7 +341,7 @@
 
 <div
 	bind:this={sliderRef}
-	class={cn("compare h-[400px] w-[400px] overflow-hidden", className)}
+	class={cn("compare h-[400px] w-[400px] touch-pan-y touch-pinch-zoom overflow-hidden", className)}
 	style:position="relative"
 	style:cursor={slideMode === "drag" ? (isDragging ? "grabbing" : "grab") : "col-resize"}
 	style:--cmp-c1={palette[0]}

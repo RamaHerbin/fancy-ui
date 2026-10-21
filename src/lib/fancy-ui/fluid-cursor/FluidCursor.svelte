@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
-	import { onMount, untrack } from "svelte";
+	import { untrack } from "svelte";
+	import { isDev } from "../_internals/env.js";
+	import { createReducedMotion } from "../_internals/motion/media-query.svelte.js";
 	import {
 		createFluidCursor,
 		type FluidCursorEngine,
@@ -55,47 +57,62 @@
 		onReady,
 	}: Props = $props();
 
-	let canvasRef: HTMLCanvasElement;
+	let canvasRef: HTMLCanvasElement | undefined = $state();
 	/** Plain closure state on purpose: nothing rendered depends on the engine. */
 	let engine: FluidCursorEngine | null = null;
 
-	onMount(() => {
-		if (!canvasRef) return;
-		engine = createFluidCursor(
-			{ canvas: canvasRef },
-			{
-				simResolution,
-				dyeResolution,
-				captureResolution,
-				densityDissipation,
-				velocityDissipation,
-				pressure,
-				pressureIterations,
-				curl,
-				splatRadius,
-				splatForce,
-				shading,
-				colorUpdateSpeed,
-				backColor,
-				transparent,
-				fluidColor,
-				fluidColors,
-				colorIntensity,
-				autoSplat,
-				autoSplatInterval,
-				interactive,
-				pauseWhenHidden,
-				splatOnMount,
-				allowMultiple,
-				contained,
-				hdr,
-				hdrBoost,
-				dither,
-				ditherPixelSize,
-				ditherLevels,
-				onReady,
-				dev: import.meta.env.DEV,
-			}
+	// `prefers-reduced-motion: reduce` means no simulation at all: no engine,
+	// so no rAF loop, no pointer listeners and no GPU context. The layer stays
+	// as an empty, pointer-transparent canvas. A live change of the
+	// preference stops or starts the simulation without a remount.
+	const reducedMotion = createReducedMotion();
+	$effect(() => reducedMotion.start());
+
+	// Re-runs only when the preference or the canvas element changes: every
+	// prop is read untracked, so a mount-only prop change never restarts it.
+	// The canvas is keyed on the preference below, so each start gets a fresh
+	// element (a destroyed engine has lost its context, which the same element
+	// cannot hand out again) and a stop leaves a blank one, not a frozen frame.
+	$effect(() => {
+		const canvas = canvasRef;
+		if (!canvas || reducedMotion.current) return;
+		engine = untrack(() =>
+			createFluidCursor(
+				{ canvas },
+				{
+					simResolution,
+					dyeResolution,
+					captureResolution,
+					densityDissipation,
+					velocityDissipation,
+					pressure,
+					pressureIterations,
+					curl,
+					splatRadius,
+					splatForce,
+					shading,
+					colorUpdateSpeed,
+					backColor,
+					transparent,
+					fluidColor,
+					fluidColors,
+					colorIntensity,
+					autoSplat,
+					autoSplatInterval,
+					interactive,
+					pauseWhenHidden,
+					splatOnMount,
+					allowMultiple,
+					contained,
+					hdr,
+					hdrBoost,
+					dither,
+					ditherPixelSize,
+					ditherLevels,
+					onReady,
+					dev: isDev,
+				}
+			)
 		);
 		return () => {
 			engine?.destroy();
@@ -104,8 +121,8 @@
 	});
 
 	// The running engine re-reads these six, exactly as the prop getters it
-	// replaced did. The first run only records dependencies; onMount owns the
-	// initial values.
+	// replaced did. The first run only records dependencies; the engine effect
+	// owns the initial values.
 	let liveInit = false;
 	$effect(() => {
 		const next = { fluidColor, fluidColors, contained, interactive, allowMultiple, onReady };
@@ -125,8 +142,10 @@
 		className
 	)}
 >
-	<canvas
-		bind:this={canvasRef}
-		class={contained ? "block h-full w-full" : "block h-screen w-screen"}
-	></canvas>
+	{#key reducedMotion.current}
+		<canvas
+			bind:this={canvasRef}
+			class={contained ? "block h-full w-full" : "block h-screen w-screen"}
+		></canvas>
+	{/key}
 </div>

@@ -1,5 +1,13 @@
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import type { ChangeEvent, KeyboardEvent } from "react";
+import {
+	forwardRef,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, FocusEvent, KeyboardEvent } from "react";
 
 import { cn } from "../../utils.js";
 import { useConstant } from "../../internals/dom/ssr.js";
@@ -19,7 +27,26 @@ import "./combobox.css";
 
 export type { ComboboxOption };
 
-export interface ComboboxProps {
+/**
+ * Every other native `<input>` attribute and listener (`aria-*`, `data-*`,
+ * `autoComplete`, `inputMode`, `form`, `onFocus`, `onBlur`, `onKeyDown`,
+ * `onChange`, ...) is forwarded to the text input. The managed ARIA (`role`,
+ * `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-haspopup`,
+ * `aria-autocomplete`, `aria-invalid`) stays the component's own.
+ */
+export interface ComboboxProps extends Omit<
+	ComponentPropsWithoutRef<"input">,
+	| "className"
+	| "id"
+	| "name"
+	| "value"
+	| "disabled"
+	| "required"
+	| "placeholder"
+	| "type"
+	| "role"
+	| "children"
+> {
 	/** The closed set of selectable options. A value outside this list is never valid. */
 	options: ComboboxOption[];
 	/**
@@ -98,9 +125,8 @@ const activeIndexServerSnapshot = () => -1;
  * The input element arrives through the ref channel rather than a `ref` prop,
  * per PORTING.md — the Svelte source declares `ref = $bindable(null)`.
  *
- * Rest props are not spread: the source reads only these props off `$props()`
- * and has no `...restProps`, so the port carries no wider attribute surface
- * than the component it mirrors.
+ * Rest props are spread onto the `<input>` BEFORE the invariants, as the source
+ * spreads `...restProps` there.
  */
 export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Combobox(
 	{
@@ -118,6 +144,11 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		emptyMessage = "No results",
 		className,
 		sound = false,
+		onChange,
+		onFocus,
+		onBlur,
+		onKeyDown,
+		...restProps
 	},
 	forwardedRef
 ) {
@@ -359,6 +390,29 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 	const resultsMessage =
 		filteredOptions.length === 1 ? "1 result" : `${filteredOptions.length} results`;
 
+	// Internal handling first, the consumer's listener once after it, with the
+	// same event — even when the internal handler called `preventDefault`.
+	function onChangeEvent(event: ChangeEvent<HTMLInputElement>) {
+		handleInput(event);
+		onChange?.(event);
+	}
+	function onFocusEvent(event: FocusEvent<HTMLInputElement>) {
+		handleFocus();
+		onFocus?.(event);
+	}
+	function onBlurEvent(event: FocusEvent<HTMLInputElement>) {
+		handleBlur();
+		onBlur?.(event);
+	}
+	function onKeyDownEvent(event: KeyboardEvent<HTMLInputElement>) {
+		handleKeydown(event);
+		onKeyDown?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy =
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined;
+
 	const classes = cn(
 		"ft-combobox w-full rounded-[8px] border border-input bg-background px-[12px] py-[9px] text-[13px] text-foreground transition-colors",
 		"placeholder:text-muted-foreground",
@@ -368,10 +422,17 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 		className
 	);
 
+	// `children` is omitted from the public props, but a caller outside the types
+	// can still pass one — an `<input>` is a void element, so it must not reach it.
+	const { children: _children, ...inputProps } = restProps as typeof restProps & {
+		children?: unknown;
+	};
+
 	return (
 		<>
 			<div className="ft-combobox-wrapper relative">
 				<input
+					{...inputProps}
 					ref={inputRef}
 					type="text"
 					role="combobox"
@@ -380,19 +441,19 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 					value={query}
 					disabled={effectiveDisabled}
 					required={effectiveRequired}
-					aria-invalid={effectiveInvalid ? "true" : undefined}
-					aria-describedby={field?.describedBy}
-					aria-label={field?.labelId ? undefined : label}
+					aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+					aria-describedby={describedBy}
+					aria-label={field?.labelId ? undefined : (label ?? restProps["aria-label"])}
 					aria-expanded={open}
 					aria-haspopup="listbox"
 					aria-autocomplete="list"
 					aria-controls={open ? panelId : undefined}
 					aria-activedescendant={open && activeIndex >= 0 ? optionId(activeIndex) : undefined}
 					className={classes}
-					onChange={handleInput}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					onKeyDown={handleKeydown}
+					onChange={onChangeEvent}
+					onFocus={onFocusEvent}
+					onBlur={onBlurEvent}
+					onKeyDown={onKeyDownEvent}
 				/>
 
 				{/*
@@ -411,7 +472,13 @@ export const Combobox = forwardRef<HTMLInputElement, ComboboxProps>(function Com
 					source emits.
 				*/}
 				{name ? (
-					<input type="hidden" name={name} value={value} disabled={effectiveDisabled} />
+					<input
+						type="hidden"
+						name={name}
+						value={value}
+						form={restProps.form}
+						disabled={effectiveDisabled}
+					/>
 				) : null}
 
 				{/*

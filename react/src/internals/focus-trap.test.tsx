@@ -256,6 +256,74 @@ describe("attachFocusTrap", () => {
 	});
 });
 
+describe("attachFocusTrap — radio groups are one Tab stop", () => {
+	afterEach(() => {
+		document.body.innerHTML = "";
+	});
+
+	function setup(checked: "first" | "second" | "none") {
+		const root = document.createElement("div");
+		root.innerHTML = `
+			<div id="trap">
+				<button id="close">Close</button>
+				<input type="radio" name="sort" id="r1" ${checked === "first" ? "checked" : ""} />
+				<input type="radio" name="sort" id="r2" ${checked === "second" ? "checked" : ""} />
+			</div>
+		`;
+		document.body.appendChild(root);
+		return root.querySelector<HTMLElement>("#trap")!;
+	}
+
+	// The browser treats a named radio group as ONE Tab stop: Tab from the
+	// checked radio leaves the group — and the panel — in a single step, so
+	// the trap has to see the group as its boundary, not the last radio.
+	it("wraps Tab from the checked radio when the group is the last stop", () => {
+		const trap = attachFocusTrap(setup("first"));
+		document.getElementById("r1")!.focus();
+
+		const event = pressTab();
+
+		expect(event.defaultPrevented).toBe(true);
+		expect(document.activeElement?.id).toBe("close");
+		trap.destroy();
+	});
+
+	it("treats any radio of the last group as the boundary when none is checked", () => {
+		const trap = attachFocusTrap(setup("none"));
+		document.getElementById("r2")!.focus();
+
+		const event = pressTab();
+
+		expect(event.defaultPrevented).toBe(true);
+		expect(document.activeElement?.id).toBe("close");
+		trap.destroy();
+	});
+
+	it("Shift+Tab from the first stop lands on the group's checked radio", () => {
+		const trap = attachFocusTrap(setup("second"));
+		expect(document.activeElement?.id).toBe("close");
+
+		const event = pressTab({ shiftKey: true });
+
+		expect(event.defaultPrevented).toBe(true);
+		expect(document.activeElement?.id).toBe("r2");
+		trap.destroy();
+	});
+
+	// Shift+Tab into a group with nothing checked lands on its LAST radio in
+	// the browser, so a backwards wrap onto that group has to as well.
+	it("Shift+Tab wrapping onto an unchecked group lands on its last radio", () => {
+		const trap = attachFocusTrap(setup("none"));
+		expect(document.activeElement?.id).toBe("close");
+
+		const event = pressTab({ shiftKey: true });
+
+		expect(event.defaultPrevented).toBe(true);
+		expect(document.activeElement?.id).toBe("r2");
+		trap.destroy();
+	});
+});
+
 describe("attachFocusTrap — visibility and empty containers", () => {
 	let container: HTMLElement;
 

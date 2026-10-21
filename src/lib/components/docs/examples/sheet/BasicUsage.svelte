@@ -4,13 +4,28 @@
 	import { Switch } from "$lib/fancy-ui/switch";
 
 	let open = $state(false);
+	const uid = $props.id();
+	const panelId = `${uid}-panel`;
 	let notifications = $state(true);
 	let compactMode = $state(false);
 </script>
 
-<Button onclick={() => (open = true)}>Open settings</Button>
+<Button
+	onclick={() => (open = true)}
+	aria-haspopup="dialog"
+	aria-expanded={open}
+	aria-controls={open ? panelId : undefined}
+>
+	Open settings
+</Button>
 
-<Sheet sound bind:open title="Settings" description="Update your workspace preferences.">
+<Sheet
+	sound
+	bind:open
+	id={panelId}
+	title="Settings"
+	description="Update your workspace preferences."
+>
 	<div class="flex items-center justify-between">
 		<span class="text-muted-foreground text-[13px]">Notifications</span>
 		<Switch sound bind:checked={notifications} label="Notifications" />

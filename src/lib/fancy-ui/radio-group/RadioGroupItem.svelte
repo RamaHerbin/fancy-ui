@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLInputAttributes } from "svelte/elements";
 
-	export interface RadioGroupItemProps {
+	interface BaseProps {
 		/** This item's value — what the group's `value` becomes when it is picked. */
 		value: string;
 		/** Disables just this item, independent of the group's own `disabled`. */
@@ -15,6 +16,9 @@
 		/** Element reference to the native `<input>`. */
 		ref?: HTMLInputElement | null;
 	}
+
+	export type RadioGroupItemProps = BaseProps &
+		Omit<HTMLInputAttributes, keyof BaseProps | "type" | "checked" | "role">;
 </script>
 
 <script lang="ts">
@@ -29,6 +33,8 @@
 		children,
 		class: className,
 		ref = $bindable(null),
+		onchange,
+		...rest
 	}: RadioGroupItemProps = $props();
 
 	// Undefined outside a RadioGroup: the item then has no selection or
@@ -50,9 +56,10 @@
 	// synthetic `change` fired straight at the element — as a test does, and
 	// as some assistive tech does — walks straight past it, so the handler
 	// repeats the guard itself.
-	function handleChange() {
+	function handleChange(event: Event & { currentTarget: HTMLInputElement }) {
 		if (isDisabled) return;
 		group?.select(value);
+		onchange?.(event);
 	}
 
 	const labelClasses = $derived(
@@ -80,14 +87,15 @@
 
 <label class={labelClasses}>
 	<input
+		{...rest}
 		bind:this={ref}
 		type="radio"
 		class={controlClasses}
 		{value}
 		checked={isChecked}
 		disabled={isDisabled}
-		required={group?.required}
-		name={group?.name}
+		required={group?.required || rest.required}
+		name={group?.name ?? rest.name}
 		onchange={handleChange}
 	/>
 	{#if children}

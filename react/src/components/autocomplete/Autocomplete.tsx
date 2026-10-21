@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, KeyboardEvent } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, FocusEvent, KeyboardEvent } from "react";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -12,7 +12,28 @@ import { AUTOCOMPLETE_KEY, type AutocompleteContext } from "./types.js";
 import { AutocompletePanel } from "./AutocompletePanel.js";
 import "./autocomplete.css";
 
-export interface AutocompleteProps {
+/**
+ * Every other native `<input>` attribute and listener (`aria-*`, `data-*`,
+ * `autoComplete`, `inputMode`, `form`, `onFocus`, `onBlur`, `onKeyDown`,
+ * `onChange`, ...) is forwarded to the text input. The managed ARIA (`role`,
+ * `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-haspopup`,
+ * `aria-autocomplete`, `aria-invalid`) stays the component's own.
+ */
+export interface AutocompleteProps extends Omit<
+	ComponentPropsWithoutRef<"input">,
+	| "className"
+	| "id"
+	| "name"
+	| "value"
+	| "disabled"
+	| "required"
+	| "placeholder"
+	| "type"
+	| "role"
+	| "children"
+	| "onSelect"
+	| "minLength"
+> {
 	/** Candidate strings offered as the user types. Advisory only — any text is a valid value, matched or not. */
 	suggestions: string[];
 	/** The free-text value. */
@@ -65,6 +86,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 		maxSuggestions = 8,
 		className,
 		sound = false,
+		onChange,
+		onFocus,
+		onBlur,
+		onKeyDown,
+		...restProps
 	},
 	forwardedRef
 ) {
@@ -119,10 +145,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 		[suggestions, minLength, maxSuggestions]
 	);
 
-	const filteredSuggestions = useMemo(
-		() => computeSuggestions(value),
-		[computeSuggestions, value]
-	);
+	const filteredSuggestions = useMemo(() => computeSuggestions(value), [computeSuggestions, value]);
 
 	const listbox = useListbox({ count: filteredSuggestions.length, loop: true });
 
@@ -232,15 +255,46 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 			select: commit,
 			close,
 		}),
-		[open, panelId, inputNode, filteredSuggestions, value, listbox.activeIndex, optionId, commit, close]
+		[
+			open,
+			panelId,
+			inputNode,
+			filteredSuggestions,
+			value,
+			listbox.activeIndex,
+			optionId,
+			commit,
+			close,
+		]
 	);
 
 	// A count, not the contents — see the panel's own note on why the list
 	// itself is never read out loud.
 	const resultsMessage =
-		filteredSuggestions.length === 1
-			? "1 suggestion"
-			: `${filteredSuggestions.length} suggestions`;
+		filteredSuggestions.length === 1 ? "1 suggestion" : `${filteredSuggestions.length} suggestions`;
+
+	// Internal handling first, the consumer's listener once after it, with the
+	// same event — even when the internal handler called `preventDefault`.
+	function onChangeEvent(event: ChangeEvent<HTMLInputElement>) {
+		handleInput(event);
+		onChange?.(event);
+	}
+	function onFocusEvent(event: FocusEvent<HTMLInputElement>) {
+		handleFocus();
+		onFocus?.(event);
+	}
+	function onBlurEvent(event: FocusEvent<HTMLInputElement>) {
+		handleBlur();
+		onBlur?.(event);
+	}
+	function onKeyDownEvent(event: KeyboardEvent<HTMLInputElement>) {
+		handleKeydown(event);
+		onKeyDown?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy =
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined;
 
 	const classes = cn(
 		"ft-autocomplete w-full rounded-[8px] border border-input bg-background px-[12px] py-[9px] text-[13px] text-foreground transition-colors",
@@ -251,10 +305,17 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 		className
 	);
 
+	// `children` is omitted from the public props, but a caller outside the types
+	// can still pass one — an `<input>` is a void element, so it must not reach it.
+	const { children: _children, ...inputProps } = restProps as typeof restProps & {
+		children?: unknown;
+	};
+
 	return (
 		<AUTOCOMPLETE_KEY.Provider value={context}>
 			<div className="ft-autocomplete-wrapper relative">
 				<input
+					{...inputProps}
 					ref={inputRef}
 					type="text"
 					role="combobox"
@@ -264,9 +325,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 					value={value}
 					disabled={effectiveDisabled}
 					required={effectiveRequired}
-					aria-invalid={effectiveInvalid ? "true" : undefined}
-					aria-describedby={field?.describedBy}
-					aria-label={field?.labelId ? undefined : label}
+					aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+					aria-describedby={describedBy}
+					aria-label={field?.labelId ? undefined : (label ?? restProps["aria-label"])}
 					aria-expanded={open}
 					aria-haspopup="listbox"
 					aria-autocomplete="list"
@@ -275,10 +336,10 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(func
 						open && listbox.activeIndex >= 0 ? optionId(listbox.activeIndex) : undefined
 					}
 					className={classes}
-					onChange={handleInput}
-					onFocus={handleFocus}
-					onBlur={handleBlur}
-					onKeyDown={handleKeydown}
+					onChange={onChangeEvent}
+					onFocus={onFocusEvent}
+					onBlur={onBlurEvent}
+					onKeyDown={onKeyDownEvent}
 				/>
 
 				{/* Always mounted, whether or not the panel is open — see Combobox's

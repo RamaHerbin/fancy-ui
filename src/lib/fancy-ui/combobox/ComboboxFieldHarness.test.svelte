@@ -27,6 +27,7 @@
 		disabled?: boolean;
 		required?: boolean;
 		invalid?: boolean;
+		[key: string]: unknown;
 	}
 
 	let {
@@ -36,6 +37,7 @@
 		disabled = false,
 		required = false,
 		invalid = false,
+		...rest
 	}: Props = $props();
 
 	// Getters, not the object itself: setContext runs once at mount, so a
@@ -66,4 +68,4 @@
 <!-- Own props default to disagreeing with a "everything true" context (the
      existing test), but are overridable so a test can also disagree the
      other way — own true, context false. -->
-<Combobox {options} {id} {invalid} {required} {disabled} />
+<Combobox {options} {id} {invalid} {required} {disabled} {...rest} />

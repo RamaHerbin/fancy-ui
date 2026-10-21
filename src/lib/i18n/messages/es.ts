@@ -39,8 +39,9 @@ export default {
 	"install.framework": "Framework",
 	"install.sourceOnly": "Aún no está en npm: esta versión vive en el repositorio.",
 	"install.unavailable": "Todavía no hay una versión de este componente para este framework.",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "Copiar código",
+	"install.copySourceNote":
+		"Copia el código fuente del componente en tu proyecto; el código es tuyo.",
 	"comp.usage": "Uso",
 	"comp.props": "Props",
 	"comp.slots": "Slots",
@@ -61,6 +62,9 @@ export default {
 	"table.slot": "Slot",
 	"table.event": "Evento",
 	"table.payload": "Datos",
+	"table.portName": "Nombre en {framework}",
+	"table.portNameUnknown":
+		"No se deduce de las reglas de nombres; consulta las diferencias con la API de Svelte.",
 	"comp.events": "Eventos",
 	"comp.copyMarkdown": "Copiar como Markdown",
 

@@ -133,6 +133,15 @@ export const NavigationMenu = forwardRef<HTMLElement, NavigationMenuProps>(funct
 		return Array.from(listEl.querySelectorAll<HTMLElement>("[data-ft-nav-trigger]"));
 	}, [listEl]);
 
+	// The roving order: triggers a keyboard can actually land on. A consumer
+	// can forward the native `disabled` attribute to a trigger, and a disabled
+	// button cannot take focus, so it never holds the tab stop and arrows skip
+	// it.
+	const navigableTriggers = useCallback(
+		(): HTMLElement[] => triggerButtons().filter((el) => !(el as HTMLButtonElement).disabled),
+		[triggerButtons]
+	);
+
 	const getTriggerElement = useCallback(
 		(itemValue: string): HTMLElement | null => {
 			return triggerButtons().find((el) => el.dataset.value === itemValue) ?? null;
@@ -277,7 +286,7 @@ export const NavigationMenu = forwardRef<HTMLElement, NavigationMenuProps>(funct
 	}
 
 	function move(from: string, delta: number) {
-		const buttons = triggerButtons();
+		const buttons = navigableTriggers();
 		if (buttons.length === 0) return;
 		const fromIndex = buttons.findIndex((el) => el.dataset.value === from);
 		const base = fromIndex === -1 ? 0 : fromIndex;
@@ -286,7 +295,7 @@ export const NavigationMenu = forwardRef<HTMLElement, NavigationMenuProps>(funct
 	}
 
 	function moveToEdge(edge: "first" | "last") {
-		const buttons = triggerButtons();
+		const buttons = navigableTriggers();
 		if (buttons.length === 0) return;
 		goTo(edge === "first" ? buttons[0]! : buttons[buttons.length - 1]!);
 	}
@@ -305,7 +314,7 @@ export const NavigationMenu = forwardRef<HTMLElement, NavigationMenuProps>(funct
 		// fallback: a trigger that mounts later but renders first on screen
 		// still becomes the first tab stop. A read, never a write — the render
 		// stays pure, exactly as the source's getter is.
-		focusedValue = triggerButtons()[0]?.dataset.value ?? registeredOrder[0]!;
+		focusedValue = navigableTriggers()[0]?.dataset.value ?? registeredOrder[0]!;
 	}
 
 	// Rebuilt on every render rather than memoised, and that rebuild is what

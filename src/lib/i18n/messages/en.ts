@@ -74,6 +74,9 @@ export const en = {
 	"table.slot": "Slot",
 	"table.event": "Event",
 	"table.payload": "Payload",
+	"table.portName": "Name in {framework}",
+	"table.portNameUnknown":
+		"Not derivable by the naming rules; see the differences from the Svelte API.",
 	"comp.events": "Events",
 	"comp.copyMarkdown": "Copy as Markdown",
 

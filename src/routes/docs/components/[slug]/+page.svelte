@@ -22,6 +22,8 @@
 	import { toConsumerImports } from "$lib/docs/code.js";
 	import { getUsageSnippet } from "$lib/docs/framework-snippets.js";
 	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import { portEventName, portSlotName } from "$lib/docs/port-names.js";
+	import PortName from "$lib/components/docs/PortName.svelte";
 	import { onMount } from "svelte";
 	import type { PageData } from "./$types";
 
@@ -55,6 +57,12 @@
 	);
 	let path = $derived(`/docs/components/${component.slug}`);
 	let markdownPath = $derived(`${path}.md`);
+	// The export link carries the framework so it can serve that edition. Until
+	// the Markdown route reads the parameter, every edition is the Svelte one and
+	// the button keeps saying so (flip this once the route is framework-aware).
+	const MARKDOWN_FOLLOWS_FRAMEWORK = false;
+	let markdownHref = $derived(`${markdownPath}?framework=${framework}`);
+	let markdownSvelteOnly = $derived(framework !== "svelte" && !MARKDOWN_FOLLOWS_FRAMEWORK);
 	let pageUrl = $derived(`${SITE_URL}${path}`);
 	let ogImage = $derived(`/og/${component.slug}.jpg`);
 
@@ -174,7 +182,7 @@
 
 	let markdownCopied = $state(false);
 	async function copyMarkdown() {
-		const res = await fetch(markdownPath);
+		const res = await fetch(markdownHref);
 		if (!res.ok) return;
 		await navigator.clipboard.writeText(await res.text());
 		markdownCopied = true;
@@ -255,7 +263,7 @@
 			<button
 				type="button"
 				onclick={copyMarkdown}
-				title={framework === "svelte" ? undefined : t("comp.markdownSvelteOnly")}
+				title={markdownSvelteOnly ? t("comp.markdownSvelteOnly") : undefined}
 				data-markdown-copy
 				class="retro-btn border-border text-muted-foreground hover:text-foreground hover:bg-accent inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-medium transition-colors"
 			>
@@ -273,18 +281,19 @@
 				>
 				{markdownCopied
 					? t("action.copied")
-					: framework === "svelte"
-						? t("comp.copyMarkdown")
-						: t("comp.copyMarkdownSvelte")}
+					: markdownSvelteOnly
+						? t("comp.copyMarkdownSvelte")
+						: t("comp.copyMarkdown")}
 			</button>
 			<a
-				href={markdownPath}
-				title={framework === "svelte" ? undefined : t("comp.markdownSvelteOnly")}
-				aria-label={framework === "svelte"
-					? undefined
-					: `.md (Svelte). ${t("comp.markdownSvelteOnly")}`}
+				href={markdownHref}
+				data-markdown-link
+				title={markdownSvelteOnly ? t("comp.markdownSvelteOnly") : undefined}
+				aria-label={markdownSvelteOnly
+					? `.md (Svelte). ${t("comp.markdownSvelteOnly")}`
+					: undefined}
 				class="text-muted-foreground hover:text-foreground font-mono underline-offset-2 hover:underline"
-				>.md{framework === "svelte" ? "" : " (Svelte)"}</a
+				>.md{markdownSvelteOnly ? " (Svelte)" : ""}</a
 			>
 		</div>
 	</div>
@@ -390,7 +399,7 @@
 		<section class="mb-10">
 			<h2 class="text-foreground mb-4 text-xl font-semibold" id="props">{t("comp.props")}</h2>
 			<div class="retro-props border-border overflow-hidden rounded-lg border">
-				<PropsTable props={component.props} />
+				<PropsTable props={component.props} {framework} ports={data.ports} />
 			</div>
 		</section>
 	{/if}
@@ -416,6 +425,11 @@
 									>
 										{slot.name}
 									</code>
+									<PortName
+										{framework}
+										name={slot.name}
+										port={framework === "svelte" ? slot.name : portSlotName(slot.name, framework)}
+									/>
 								</td>
 								<td class="text-muted-foreground px-4 py-3 text-xs">{slot.description}</td>
 							</tr>
@@ -448,6 +462,13 @@
 									>
 										{event.name}
 									</code>
+									<PortName
+										{framework}
+										name={event.name}
+										port={framework === "svelte"
+											? event.name
+											: portEventName(event.name, framework, data.ports)}
+									/>
 								</td>
 								<td class="px-4 py-3"><code class="font-mono text-xs">{event.detail}</code></td>
 								<td class="text-muted-foreground px-4 py-3 text-xs">{event.description}</td>

@@ -24,6 +24,8 @@
 
 	let { config, children }: Props = $props();
 
+	// The site config is published to context once per provider instance.
+	// svelte-ignore state_referenced_locally
 	setSiteConfig(config);
 </script>
 

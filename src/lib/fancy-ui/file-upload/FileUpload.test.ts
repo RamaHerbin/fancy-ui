@@ -116,6 +116,13 @@ function holdExits() {
 	};
 }
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
 describe("FileUpload", () => {
 	afterEach(() => {
 		cleanup();
@@ -245,7 +252,9 @@ describe("FileUpload", () => {
 		const zone = dropzone(container);
 		const live = container.querySelector('[aria-live="polite"]') as HTMLElement;
 
-		await fireEvent.drop(zone, { dataTransfer: { files: [makeFile("notes.txt", 100, "text/plain")] } });
+		await fireEvent.drop(zone, {
+			dataTransfer: { files: [makeFile("notes.txt", 100, "text/plain")] },
+		});
 		expect(live.textContent).toMatch(/notes\.txt/);
 
 		// A regression assigns the identical string back to the same $state,
@@ -256,7 +265,9 @@ describe("FileUpload", () => {
 		const observer = new MutationObserver(() => seen.push(live.textContent ?? ""));
 		observer.observe(live, { characterData: true, childList: true, subtree: true });
 
-		await fireEvent.drop(zone, { dataTransfer: { files: [makeFile("notes.txt", 100, "text/plain")] } });
+		await fireEvent.drop(zone, {
+			dataTransfer: { files: [makeFile("notes.txt", 100, "text/plain")] },
+		});
 		await tick();
 		await tick();
 		observer.disconnect();
@@ -691,6 +702,120 @@ describe("FileUpload", () => {
 			await fireEvent.click(removeButtons(container)[0]);
 
 			expect(play).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards id, aria-describedby and data-* to the file input", () => {
+			const { container } = render(FileUpload, {
+				props: {
+					id: "doc",
+					hint: "PDF only",
+					"aria-describedby": "mine",
+					"data-testid": "up",
+				} as never,
+			});
+			const el = fileInput(container);
+			expect(el.id).toBe("doc");
+			expect(el.getAttribute("data-testid")).toBe("up");
+			expect(el.getAttribute("aria-describedby")).toBe("mine doc-hint");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(FieldHarness, {
+				props: {
+					context: {
+						controlId: "ctx-id",
+						describedBy: "ctx-help",
+						invalid: false,
+						valid: true,
+						required: false,
+						disabled: false,
+					},
+					attrs: { "aria-describedby": "mine" },
+				},
+			});
+			expect(fileInput(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer onblur, onfocus and onkeydown exactly once", async () => {
+			const onblur = vi.fn();
+			const onfocus = vi.fn();
+			const onkeydown = vi.fn();
+			const { container } = render(FileUpload, { props: { onblur, onfocus, onkeydown } as never });
+			const el = fileInput(container);
+			await fireEvent.focus(el);
+			await fireEvent.keyDown(el, { key: "Enter" });
+			await fireEvent.blur(el);
+			expect(onfocus).toHaveBeenCalledTimes(1);
+			expect(onkeydown).toHaveBeenCalledTimes(1);
+			expect(onblur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs a consumer onchange once, after the internal file handling", async () => {
+			const order: string[] = [];
+			const onchange = vi.fn(() => order.push("consumer"));
+			const onFilesChange = vi.fn(() => order.push("internal"));
+			const { container } = render(FileUpload, { props: { onFilesChange, onchange } as never });
+			const el = fileInput(container);
+			Object.defineProperty(el, "files", { value: [makeFile("a.txt")], configurable: true });
+			await fireEvent.change(el);
+			expect(onchange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer"]);
+		});
+
+		it("shows a consumer onchange the live FileList, before the input is cleared", async () => {
+			let seen = -1;
+			const onchange = vi.fn((event: Event) => {
+				seen = (event.currentTarget as HTMLInputElement).files?.length ?? 0;
+			});
+			const { container } = render(FileUpload, { props: { onchange } as never });
+			const el = fileInput(container);
+			let cleared = false;
+			Object.defineProperty(el, "files", {
+				get: () => (cleared ? [] : [makeFile("a.txt")]),
+				configurable: true,
+			});
+			Object.defineProperty(el, "value", {
+				get: () => "",
+				set: (v: string) => {
+					if (v === "") cleared = true;
+				},
+				configurable: true,
+			});
+			await fireEvent.change(el);
+			expect(seen).toBe(1);
+			expect(cleared).toBe(true);
+		});
+
+		it("does not call a consumer onchange when disabled", async () => {
+			const onchange = vi.fn();
+			const { container } = render(FileUpload, { props: { disabled: true, onchange } as never });
+			await fireEvent.change(fileInput(container));
+			expect(onchange).not.toHaveBeenCalled();
+		});
+
+		it("does not let a consumer override the input type or the invalid state", () => {
+			const { container } = render(FileUpload, {
+				props: { invalid: true, type: "text", "aria-invalid": "false" } as never,
+			});
+			const el = fileInput(container);
+			expect(el.type).toBe("file");
+			expect(el.getAttribute("aria-invalid")).toBe("true");
+		});
+
+		it("forwards name, accept, required and form to the input so it joins a form", () => {
+			const form = formOf("fu-form");
+			const { container } = render(FileUpload, {
+				props: { name: "attachment", accept: "image/*", required: true, form: "fu-form" } as never,
+			});
+			const el = fileInput(container);
+			expect(el.form).toBe(form);
+			expect(el.name).toBe("attachment");
+			expect(el.accept).toBe("image/*");
+			expect(el.required).toBe(true);
+			expect(form.checkValidity()).toBe(false);
+			form.remove();
 		});
 	});
 });

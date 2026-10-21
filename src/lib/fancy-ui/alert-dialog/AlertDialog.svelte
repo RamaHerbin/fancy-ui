@@ -106,6 +106,24 @@
 	const uid = $props.id();
 	const titleId = $derived(title ? `${uid}-title` : undefined);
 	const descriptionId = $derived(description ? `${uid}-description` : undefined);
+
+	// Same disclosure wiring as Dialog.svelte's: the state goes on the real
+	// button inside the semantics-free wrapper, `aria-controls` only while
+	// the panel exists.
+	const panelId = `${uid}-panel`;
+	$effect(() => {
+		const el = triggerRef?.firstElementChild;
+		if (!el) return;
+		el.setAttribute("aria-haspopup", "dialog");
+		el.setAttribute("aria-expanded", String(open));
+		if (open) el.setAttribute("aria-controls", panelId);
+		else el.removeAttribute("aria-controls");
+		return () => {
+			el.removeAttribute("aria-haspopup");
+			el.removeAttribute("aria-expanded");
+			el.removeAttribute("aria-controls");
+		};
+	});
 </script>
 
 {#if trigger}
@@ -144,6 +162,7 @@
 
 <DialogSurface
 	{open}
+	id={panelId}
 	role="alertdialog"
 	{titleId}
 	{descriptionId}

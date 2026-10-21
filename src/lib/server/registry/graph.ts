@@ -49,6 +49,18 @@ export function npmDependencies(code: string, isFramework: (spec: string) => boo
 	return [...out].sort();
 }
 
+/**
+ * The packages named by `/// <reference types="x" />` directives: type-only
+ * dependencies no import statement mentions. Unique, sorted.
+ */
+export function referencedTypePackages(code: string): string[] {
+	const out = new Set<string>();
+	for (const m of code.matchAll(/^[\t ]*\/\/\/\s*<reference\s+types="([^"]+)"\s*\/>/gm)) {
+		out.add(m[1]);
+	}
+	return [...out].sort();
+}
+
 /** `fromPath`'s directory joined with `spec`; `null` when it climbs above the root. */
 export function joinRelative(fromPath: string, spec: string): string | null {
 	const segments = fromPath.split("/").slice(0, -1);

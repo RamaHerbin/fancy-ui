@@ -50,8 +50,8 @@
 	}: Props = $props();
 
 	let cardEl: HTMLDivElement;
-	let dialogEl: HTMLDivElement;
-	let closeBtn: HTMLButtonElement;
+	let dialogEl: HTMLDivElement | undefined = $state();
+	let closeBtn: HTMLButtonElement | undefined = $state();
 	let rect = $state<{ top: number; left: number; width: number; height: number } | null>(null);
 	let overlayVisible = $state(false);
 	let fullyExpanded = $state(false);

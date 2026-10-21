@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from "react";
 
 import { cn } from "../../utils.js";
 import { COMPOSER_CONTEXT_KEY } from "./types.js";
@@ -7,7 +7,7 @@ import { COMPOSER_CONTEXT_KEY } from "./types.js";
 /**
  * Props for ComposerSubmit
  */
-export interface ComposerSubmitProps {
+interface ComposerSubmitOwnProps {
 	/** Accessible name while the composer is idle. */
 	label?: string;
 	/** Accessible name while a response is streaming. */
@@ -18,12 +18,23 @@ export interface ComposerSubmitProps {
 	className?: string;
 }
 
+/**
+ * Native `<button>` attributes and listeners are forwarded to the button; the managed
+ * ARIA, state and structural attributes stay the component's.
+ */
+export interface ComposerSubmitProps
+	extends
+		Omit<ComponentPropsWithoutRef<"button">, keyof ComposerSubmitOwnProps>,
+		ComposerSubmitOwnProps {}
+
 /** The send button, which becomes a stop button for as long as a response is arriving. */
 export function ComposerSubmit({
 	label = "Send",
 	stopLabel = "Stop",
 	children,
 	className,
+	onClick,
+	...rest
 }: ComposerSubmitProps) {
 	// Undefined when the button is used outside a Composer: it then renders as a
 	// permanently disabled button rather than throwing.
@@ -47,6 +58,7 @@ export function ComposerSubmit({
 
 	return (
 		<button
+			{...rest}
 			type={streaming ? "button" : "submit"}
 			className={cn(
 				"ft-composer-submit bg-foreground text-background hover:bg-foreground/90 focus-visible:ring-ring inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-40",
@@ -55,7 +67,11 @@ export function ComposerSubmit({
 			disabled={isDisabled}
 			aria-label={name}
 			title={name}
-			onClick={streaming ? () => composer?.stop() : undefined}
+			onClick={(event: MouseEvent<HTMLButtonElement>) => {
+				if (isDisabled) return;
+				if (streaming) composer?.stop();
+				onClick?.(event);
+			}}
 		>
 			{children ??
 				(streaming ? (

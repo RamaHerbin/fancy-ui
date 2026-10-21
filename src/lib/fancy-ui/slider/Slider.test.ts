@@ -9,6 +9,13 @@ function slider(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input[type=range]") as HTMLInputElement;
 }
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
 describe("Slider", () => {
 	afterEach(cleanup);
 
@@ -255,6 +262,105 @@ describe("Slider", () => {
 			await fireEvent.input(el, { target: { value: "30" } });
 
 			expect(play).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards id, aria-describedby and data-* to the range input", () => {
+			const { container } = render(Slider, {
+				props: { id: "vol", "aria-describedby": "hint", "data-testid": "vol" } as never,
+			});
+			const el = slider(container);
+			expect(el.id).toBe("vol");
+			expect(el.getAttribute("aria-describedby")).toBe("hint");
+			expect(el.getAttribute("data-testid")).toBe("vol");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(FieldHarness, {
+				props: {
+					context: {
+						controlId: "ctx-id",
+						describedBy: "ctx-help",
+						invalid: false,
+						valid: true,
+						required: false,
+						disabled: false,
+					},
+					attrs: { "aria-describedby": "mine" },
+				},
+			});
+			expect(slider(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer onblur, onfocus and onkeydown exactly once", async () => {
+			const onblur = vi.fn();
+			const onfocus = vi.fn();
+			const onkeydown = vi.fn();
+			const { container } = render(Slider, { props: { onblur, onfocus, onkeydown } as never });
+			const el = slider(container);
+			await fireEvent.focus(el);
+			await fireEvent.keyDown(el, { key: "ArrowRight" });
+			await fireEvent.blur(el);
+			expect(onfocus).toHaveBeenCalledTimes(1);
+			expect(onkeydown).toHaveBeenCalledTimes(1);
+			expect(onblur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs consumer oninput and onchange once, after the internal handling", async () => {
+			const order: string[] = [];
+			const oninput = vi.fn(() => order.push("consumer-input"));
+			const onchange = vi.fn(() => order.push("consumer-change"));
+			const onValueChange = vi.fn(() => order.push("internal"));
+			const { container } = render(Slider, {
+				props: { onValueChange, oninput, onchange } as never,
+			});
+			const el = slider(container);
+			await fireEvent.input(el, { target: { value: "40" } });
+			await fireEvent.change(el);
+			expect(oninput).toHaveBeenCalledTimes(1);
+			expect(onchange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer-input", "consumer-change"]);
+		});
+
+		it("does not call consumer oninput or onchange when disabled", async () => {
+			const oninput = vi.fn();
+			const onchange = vi.fn();
+			const { container } = render(Slider, {
+				props: { disabled: true, oninput, onchange } as never,
+			});
+			const el = slider(container);
+			await fireEvent.input(el, { target: { value: "40" } });
+			await fireEvent.change(el);
+			expect(oninput).not.toHaveBeenCalled();
+			expect(onchange).not.toHaveBeenCalled();
+		});
+
+		it("does not let a consumer override managed attributes", () => {
+			const { container } = render(Slider, {
+				props: {
+					value: 30,
+					min: 0,
+					max: 100,
+					"aria-valuenow": "99",
+					"aria-valuemax": "5",
+					type: "text",
+				} as never,
+			});
+			const el = slider(container);
+			expect(el.type).toBe("range");
+			expect(el.getAttribute("aria-valuenow")).toBe("30");
+			expect(el.getAttribute("aria-valuemax")).toBe("100");
+		});
+
+		it("takes part in a form: name and the form attribute reach the input", () => {
+			const form = formOf("sl-form");
+			const { container } = render(Slider, {
+				props: { value: 30, name: "volume", form: "sl-form" } as never,
+			});
+			expect(slider(container).form).toBe(form);
+			expect(new FormData(form).get("volume")).toBe("30");
+			form.remove();
 		});
 	});
 });

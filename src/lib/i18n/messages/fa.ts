@@ -39,8 +39,8 @@ export default {
 	"install.framework": "فریم‌ورک",
 	"install.sourceOnly": "هنوز روی npm نیست — این نسخه در مخزن قرار دارد.",
 	"install.unavailable": "هنوز نسخه‌ای از این کامپوننت برای این فریم‌ورک وجود ندارد.",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "کپی منبع",
+	"install.copySourceNote": "کد کامپوننت را در پروژه‌ی خود کپی می‌کند؛ کد مال شما است.",
 	"comp.usage": "نحوه استفاده",
 	"comp.props": "پراپ‌ها",
 	"comp.slots": "اسلات‌ها",
@@ -61,6 +61,9 @@ export default {
 	"table.slot": "اسلات",
 	"table.event": "رویداد",
 	"table.payload": "داده",
+	"table.portName": "نام در {framework}",
+	"table.portNameUnknown":
+		"از قواعد نام‌گذاری قابل استنتاج نیست؛ تفاوت‌ها با رابط برنامه‌نویسی Svelte را ببینید.",
 	"comp.events": "رویدادها",
 	"comp.copyMarkdown": "کپی به‌صورت Markdown",
 

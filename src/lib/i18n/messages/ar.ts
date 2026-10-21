@@ -39,8 +39,8 @@ export default {
 	"install.framework": "إطار العمل",
 	"install.sourceOnly": "غير متاح على npm بعد — هذا الإصدار موجود في المستودع.",
 	"install.unavailable": "لا يوجد بعد إصدار من هذا المكوّن لإطار العمل هذا.",
-	"install.copySource": "Copy source",
-	"install.copySourceNote": "Copies the component source into your project; you own the code.",
+	"install.copySource": "نسخ المصدر",
+	"install.copySourceNote": "ينسخ مصدر المكوّن إلى مشروعك؛ الشيفرة ملكك.",
 	"comp.usage": "الاستخدام",
 	"comp.props": "الخصائص",
 	"comp.slots": "الفتحات",
@@ -61,6 +61,9 @@ export default {
 	"table.slot": "الفتحة",
 	"table.event": "الحدث",
 	"table.payload": "البيانات",
+	"table.portName": "الاسم في {framework}",
+	"table.portNameUnknown":
+		"لا يمكن استنتاجه من قواعد التسمية؛ راجع الاختلافات عن واجهة Svelte البرمجية.",
 	"comp.events": "الأحداث",
 	"comp.copyMarkdown": "نسخ بصيغة Markdown",
 

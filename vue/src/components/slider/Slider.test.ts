@@ -54,6 +54,22 @@ const ValueHarness = defineComponent({
 	},
 });
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
+const FWD_CONTEXT: FieldContext = {
+	controlId: "ctx-id",
+	describedBy: "ctx-help",
+	invalid: false,
+	valid: true,
+	required: false,
+	disabled: false,
+};
+
 describe("Slider", () => {
 	afterEach(cleanup);
 
@@ -306,6 +322,103 @@ describe("Slider", () => {
 			await fireEvent.input(el, { target: { value: "30" } });
 
 			expect(play).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards id, aria-describedby and data-* to the range input", () => {
+			const { container } = render(Slider, {
+				props: { id: "vol" },
+				attrs: { "aria-describedby": "hint", "data-testid": "vol" },
+			});
+			const el = slider(container);
+			expect(el.id).toBe("vol");
+			expect(el.getAttribute("aria-describedby")).toBe("hint");
+			expect(el.getAttribute("data-testid")).toBe("vol");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(Slider, {
+				attrs: { "aria-describedby": "mine" },
+				global: { provide: { [FIELD_KEY as symbol]: FWD_CONTEXT } },
+			});
+			expect(slider(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer @blur, @focus and @keydown exactly once", async () => {
+			const onBlur = vi.fn();
+			const onFocus = vi.fn();
+			const onKeydown = vi.fn();
+			const { container } = render(Slider, { attrs: { onBlur, onFocus, onKeydown } });
+			const el = slider(container);
+			await fireEvent.focus(el);
+			await fireEvent.keyDown(el, { key: "ArrowRight" });
+			await fireEvent.blur(el);
+			expect(onFocus).toHaveBeenCalledTimes(1);
+			expect(onKeydown).toHaveBeenCalledTimes(1);
+			expect(onBlur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs consumer @input and @change once, after the internal handling", async () => {
+			const order: string[] = [];
+			const onInput = vi.fn(() => order.push("consumer-input"));
+			const onChange = vi.fn(() => order.push("consumer-change"));
+			const onValueChange = vi.fn(() => order.push("internal"));
+			const { container } = render(Slider, {
+				props: { onValueChange },
+				attrs: { onInput, onChange },
+			});
+			const el = slider(container);
+			await fireEvent.input(el, { target: { value: "40" } });
+			await fireEvent.change(el);
+			expect(onInput).toHaveBeenCalledTimes(1);
+			expect(onChange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer-input", "consumer-change"]);
+		});
+
+		it("does not call consumer @input or @change when disabled", async () => {
+			const onInput = vi.fn();
+			const onChange = vi.fn();
+			const { container } = render(Slider, {
+				props: { disabled: true },
+				attrs: { onInput, onChange },
+			});
+			const el = slider(container);
+			await fireEvent.input(el, { target: { value: "40" } });
+			await fireEvent.change(el);
+			expect(onInput).not.toHaveBeenCalled();
+			expect(onChange).not.toHaveBeenCalled();
+		});
+
+		it("does not let a consumer override managed attributes", () => {
+			const { container } = render(Slider, {
+				props: { value: 30, min: 0, max: 100 },
+				attrs: { "aria-valuenow": "99", "aria-valuemax": "5", type: "text" },
+			});
+			const el = slider(container);
+			expect(el.type).toBe("range");
+			expect(el.getAttribute("aria-valuenow")).toBe("30");
+			expect(el.getAttribute("aria-valuemax")).toBe("100");
+		});
+
+		it("takes part in a form: name and the form attribute reach the input", () => {
+			const form = formOf("sl-form");
+			const { container } = render(Slider, {
+				props: { value: 30, name: "volume" },
+				attrs: { form: "sl-form" },
+			});
+			expect(slider(container).form).toBe(form);
+			expect(new FormData(form).get("volume")).toBe("30");
+			form.remove();
+		});
+
+		it("picks up an attribute added after the first render", async () => {
+			const { container, rerender } = render(Slider, { props: {} });
+			expect(slider(container).hasAttribute("data-late")).toBe(false);
+			expect(slider(container).getAttribute("aria-describedby")).toBeNull();
+			await rerender({ "data-late": "yes", "aria-describedby": "late-id" });
+			expect(slider(container).getAttribute("data-late")).toBe("yes");
+			expect(slider(container).getAttribute("aria-describedby")).toBe("late-id");
 		});
 	});
 });

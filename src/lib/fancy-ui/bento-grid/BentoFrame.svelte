@@ -7,9 +7,10 @@
 	 * bottom-edge light line).
 	 */
 	import type { Snippet } from "svelte";
+	import type { HTMLAttributes } from "svelte/elements";
 	import { cn } from "$lib/utils.js";
 
-	interface Props {
+	interface Own {
 		/** Classes for the outer frame (the grid item itself). */
 		class?: string;
 		/** Classes for the inner panel. */
@@ -17,10 +18,12 @@
 		children?: Snippet;
 	}
 
-	let { class: className = "", panelClass = "", children }: Props = $props();
+	type Props = Own & Omit<HTMLAttributes<HTMLDivElement>, keyof Own>;
+
+	let { class: className = "", panelClass = "", children, ...restProps }: Props = $props();
 </script>
 
-<div class={cn("bento-tile relative flex rounded-2xl p-1.5", className)}>
+<div {...restProps} class={cn("bento-tile relative flex rounded-2xl p-1.5", className)}>
 	<div
 		class={cn(
 			"bento-panel relative isolate flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[10px]",

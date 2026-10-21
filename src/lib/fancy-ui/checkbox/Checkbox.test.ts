@@ -18,6 +18,13 @@ function wrapper(container: HTMLElement): HTMLLabelElement {
 	return container.querySelector("label") as HTMLLabelElement;
 }
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
 describe("Checkbox", () => {
 	afterEach(cleanup);
 
@@ -527,6 +534,97 @@ describe("Checkbox", () => {
 			const el = checkbox(container);
 
 			expect(el.hasAttribute("sound")).toBe(false);
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards id, aria-describedby and data-* to the native input", () => {
+			const { container } = render(Checkbox, {
+				props: { label: "Agree", "aria-describedby": "hint", "data-testid": "box" } as never,
+			});
+			const el = checkbox(container);
+			expect(el.getAttribute("data-testid")).toBe("box");
+			expect(el.getAttribute("aria-describedby")).toBe("hint");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(FieldHarness, {
+				props: {
+					context: {
+						controlId: "ctx-id",
+						describedBy: "ctx-help",
+						invalid: false,
+						valid: true,
+						required: false,
+						disabled: false,
+					},
+					attrs: { "aria-describedby": "mine" },
+				},
+			});
+			expect(checkbox(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer onblur, onfocus and onkeydown exactly once", async () => {
+			const onblur = vi.fn();
+			const onfocus = vi.fn();
+			const onkeydown = vi.fn();
+			const { container } = render(Checkbox, {
+				props: { label: "Agree", onblur, onfocus, onkeydown } as never,
+			});
+			const el = checkbox(container);
+			await fireEvent.focus(el);
+			await fireEvent.keyDown(el, { key: "a" });
+			await fireEvent.blur(el);
+			expect(onfocus).toHaveBeenCalledTimes(1);
+			expect(onkeydown).toHaveBeenCalledTimes(1);
+			expect(onblur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs a consumer onchange once, after the internal toggle", async () => {
+			const order: string[] = [];
+			const onchange = vi.fn((event: Event) => {
+				order.push(`consumer:${(event.currentTarget as HTMLInputElement).checked}`);
+			});
+			const onCheckedChange = vi.fn(() => order.push("internal"));
+			const { container } = render(Checkbox, {
+				props: { label: "Agree", onchange, onCheckedChange } as never,
+			});
+			await fireEvent.click(checkbox(container));
+			expect(onchange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer:true"]);
+		});
+
+		it("does not let a consumer override managed state attributes", () => {
+			const { container } = render(Checkbox, {
+				props: {
+					checked: true,
+					label: "Agree",
+					"aria-checked": "false",
+					role: "switch",
+					type: "text",
+				} as never,
+			});
+			const el = checkbox(container);
+			expect(el.getAttribute("aria-checked")).toBe("true");
+			expect(el.type).toBe("checkbox");
+			// role is not managed on a checkbox, so a consumer value passes through.
+			expect(el.getAttribute("role")).toBe("switch");
+		});
+
+		it("takes part in a form: name, value and the form attribute reach the input", () => {
+			const form = formOf("cb-form");
+			const { container } = render(Checkbox, {
+				props: {
+					checked: true,
+					name: "agree",
+					value: "yes",
+					form: "cb-form",
+					label: "Agree",
+				} as never,
+			});
+			expect(checkbox(container).form).toBe(form);
+			expect(new FormData(form).get("agree")).toBe("yes");
+			form.remove();
 		});
 	});
 });

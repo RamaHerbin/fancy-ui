@@ -67,6 +67,8 @@ The Svelte package is the reference; open it first and this port follows.
   calls neither.
 - **Descriptions.** A consumer `aria-describedby` is merged (space-joined) with
   the component's own description or error id, not replaced.
+- **Combobox and Autocomplete.** React `onChange` is the composed counterpart
+  of Svelte's `oninput`: it runs after the internal handling.
 - **Types.** Extend `Omit<ComponentPropsWithoutRef<"el">, keyof Own>` with the
   component's own props; intersect the sets FIRST when it is polymorphic.
 - **Tests.** Per component: `id`, `aria-describedby` and `data-testid` reach the

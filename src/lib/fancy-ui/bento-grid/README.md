@@ -2,6 +2,8 @@
 
 Bento-style grid of framed tiles for features, dashboards and content cards.
 
+Native attributes and listeners go to the root element of each part: the grid `<div>` for `BentoGrid` (the reveal `data-state` stays managed by the component), the tile `<div>` for `BentoGridItem` and `BentoGridCard`.
+
 ## The look
 
 Every tile is a nested double frame: an outer hairline frame (`#0f0f10` in dark, `#f6f6f7` in light) holding an inner panel with its own hairline and a soft top light. Shadows stay ambient. On hover (or when focus lands inside), an accent glow with a white-hot core rises from the bottom of the panel, the bottom edge lights up, the content lifts 6px, the icon's inset tile brightens, and a card's CTA slides in from the left.

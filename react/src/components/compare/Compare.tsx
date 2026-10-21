@@ -426,7 +426,10 @@ export function Compare({
 	return (
 		<div
 			ref={sliderRef}
-			className={cn("compare h-[400px] w-[400px] overflow-hidden", className)}
+			className={cn(
+				"compare h-[400px] w-[400px] touch-pan-y touch-pinch-zoom overflow-hidden",
+				className
+			)}
 			style={rootStyle}
 			data-active={isInteracting || isDragging ? "" : undefined}
 			onMouseMove={handleMouseMove}

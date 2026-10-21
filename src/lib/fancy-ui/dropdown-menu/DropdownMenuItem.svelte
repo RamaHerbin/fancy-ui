@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 
-	export interface DropdownMenuItemProps {
+	export interface DropdownMenuItemOwnProps {
 		/** Called when the item is selected, by click or (in a real browser) by Enter/Space while it holds focus. */
 		onSelect?: () => void;
 		/** Disables the item: skipped by keyboard navigation and typeahead, inert to click. */
@@ -19,6 +20,10 @@
 		/** Additional CSS classes. */
 		class?: string;
 	}
+
+	/** Native `<button>` attributes and listeners are forwarded to the item; `role`, `tabindex`, `disabled` and `data-variant` stay the component's. */
+	export type DropdownMenuItemProps = DropdownMenuItemOwnProps &
+		Omit<HTMLButtonAttributes, keyof DropdownMenuItemOwnProps>;
 </script>
 
 <script lang="ts">
@@ -36,6 +41,9 @@
 		icon,
 		children,
 		class: className,
+		onclick,
+		onmouseenter,
+		...rest
 	}: DropdownMenuItemProps = $props();
 
 	// `DropdownMenuContent`/`DropdownMenuSubContent` (or `ContextMenu`'s
@@ -71,7 +79,9 @@
 	// `fireEvent.click` in a test — and, per the brief, any synthetic click —
 	// walks straight past it, so the handler guards again rather than
 	// trusting the attribute alone.
-	function handleClick(): void {
+	function handleClick(
+		event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	): void {
 		if (disabled) return;
 		if (ctx.sound) soundFx.play("select");
 		// Mouse hover already syncs the menu core's tracked focus position
@@ -90,6 +100,7 @@
 		// the menu on top of it must never also play `close`, or one item
 		// activation would yield two cues instead of one.
 		if (closeOnSelect) ctx.closeAll({ silent: true });
+		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
 	// Real DOM focus IS the highlight in a `role="menu"` built on
@@ -98,9 +109,12 @@
 	// here, not the mousedown-steals-focus bug the brief warns about. There
 	// is nothing to cancel: this is the behaviour a mouse user needs to stay
 	// in sync with a keyboard user's own arrow-key highlight.
-	function handleMouseEnter(): void {
+	function handleMouseEnter(
+		event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }
+	): void {
 		if (disabled || !itemRef) return;
 		ctx.focus.focusItem(itemRef);
+		(onmouseenter as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
 	// No font-size here: it inherits from whichever panel renders this item
@@ -122,6 +136,7 @@
 </script>
 
 <button
+	{...rest}
 	bind:this={itemRef}
 	type="button"
 	role="menuitem"

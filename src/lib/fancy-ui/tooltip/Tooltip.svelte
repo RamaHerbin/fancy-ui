@@ -34,6 +34,7 @@
 <script lang="ts">
 	import { onDestroy, untrack } from "svelte";
 	import { cn } from "$lib/utils.js";
+	import { isDev } from "../_internals/env.js";
 	import { anchorPosition } from "../_internals/anchor-position.js";
 	import { anchored, originFor } from "../_internals/motion/anchored.js";
 	import { portal } from "../_internals/portal.js";
@@ -249,7 +250,7 @@
 		triggerEl = el;
 		if (!el) return;
 
-		if (import.meta.env.DEV && !isFocusable(el)) {
+		if (isDev && !isFocusable(el)) {
 			console.warn(
 				"[Tooltip] The first element rendered by `children` is not focusable, so this tooltip is unreachable by keyboard even though it will still open on hover. Render a real interactive element (a <button>, <a href>, or similar) as the first thing inside `children`."
 			);

@@ -1,7 +1,23 @@
 import { describe, it, expect } from "vitest";
 import { getUsageSnippet, snippetSlugs } from "./framework-snippets.js";
 
-const PRIORITY = ["button", "input", "select", "dialog", "rainbow-button"];
+const PRIORITY = [
+	"button",
+	"input",
+	"select",
+	"dialog",
+	"rainbow-button",
+	"gradient-button",
+	"border-beam",
+	"fluid-cursor",
+	"image-trail-cursor",
+	"liquid-glass",
+	"thinking-indicator",
+	"glow-border",
+	"reveal",
+	"composer",
+	"chat-panel",
+];
 
 describe("framework snippets", () => {
 	it("has a React and a Vue snippet for every priority component", () => {

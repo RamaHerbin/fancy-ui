@@ -1,7 +1,17 @@
 <script lang="ts" module>
+	import type { HTMLButtonAttributes } from "svelte/elements";
 	import type { WeekStartsOn } from "../_internals/calendar-core.js";
 
-	export interface DatePickerProps {
+	/**
+	 * Every other native `<button>` attribute and listener (`aria-*`, `data-*`,
+	 * `onfocus`, `onblur`, `onkeydown`, `form`, ...) is forwarded to the trigger
+	 * button. The managed ARIA (`role`, `aria-expanded`, `aria-controls`,
+	 * `aria-haspopup`, `aria-invalid`, `aria-required`) stays the component's own.
+	 */
+	export interface DatePickerProps extends Omit<
+		HTMLButtonAttributes,
+		"class" | "id" | "name" | "value" | "disabled" | "type" | "role" | "children"
+	> {
 		/** The selected date, or `null` for none; bindable. Always a local-midnight `Date` — see the README. */
 		value?: Date | null;
 		/** Called with the new value whenever a day is picked. */
@@ -88,6 +98,8 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		onclick,
+		...restProps
 	}: DatePickerProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -281,6 +293,19 @@
 		event.preventDefault();
 	}
 
+	// Internal handling first, the consumer's listener once after it. A disabled
+	// control runs neither (a disabled <button> would not fire them anyway).
+	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (effectiveDisabled) return;
+		toggle();
+		onclick?.(event);
+	}
+
+	// A consumer `aria-describedby` is merged with the FormField's, never replaces it.
+	const describedBy = $derived(
+		[field?.describedBy, restProps["aria-describedby"]].filter(Boolean).join(" ") || undefined
+	);
+
 	const classes = $derived(
 		cn(
 			"ft-date-picker-trigger flex w-full items-center justify-between gap-2 rounded-[8px] border border-input bg-background px-[12px] py-[9px] text-left text-[13px] text-foreground transition-colors",
@@ -293,6 +318,7 @@
 </script>
 
 <button
+	{...restProps}
 	bind:this={ref}
 	type="button"
 	role="combobox"
@@ -303,11 +329,11 @@
 	aria-haspopup="grid"
 	aria-expanded={open}
 	aria-controls={open ? panelId : undefined}
-	aria-required={effectiveRequired ? "true" : undefined}
-	aria-invalid={effectiveInvalid ? "true" : undefined}
-	aria-describedby={field?.describedBy}
-	aria-label={label}
-	onclick={toggle}
+	aria-required={effectiveRequired ? "true" : restProps["aria-required"]}
+	aria-invalid={effectiveInvalid ? "true" : restProps["aria-invalid"]}
+	aria-describedby={describedBy}
+	aria-label={label ?? restProps["aria-label"]}
+	onclick={handleClick}
 >
 	<span class={triggerLabel ? undefined : "text-muted-foreground"}>
 		{triggerLabel ?? placeholder}
@@ -325,6 +351,7 @@
 		type="hidden"
 		{name}
 		value={value ? formatISODate(value) : ""}
+		form={restProps.form}
 		disabled={effectiveDisabled}
 	/>
 {/if}

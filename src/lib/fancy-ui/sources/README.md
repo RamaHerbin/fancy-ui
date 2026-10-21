@@ -68,6 +68,13 @@ The card has no context dependency at all, so it works anywhere a single citatio
 
 It is the only part that behaves this way. The trigger and the list also survive being rendered outside a root — the pill reads `0 sources` and does nothing, the list renders empty and stays open — but there is no reason to do that on purpose.
 
+## Native attributes
+
+`SourcesTrigger` forwards native `<button>` attributes and listeners (`id`,
+`data-*`, `aria-describedby`, `onfocus`, ...) to its button. `type`,
+`aria-expanded` and `aria-controls` stay the component's, and `onclick` runs
+once after the list has toggled.
+
 ## Props
 
 ### Sources
