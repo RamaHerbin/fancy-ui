@@ -959,6 +959,16 @@
 		}
 	},
 	{
+		"id": "tick-nav/tick-nav-hdr.ts",
+		"kind": "engine-core",
+		"shared": true,
+		"paths": {
+			"svelte": "src/lib/fancy-ui/tick-nav/tick-nav-hdr.ts",
+			"react": "react/src/components/tick-nav/tick-nav-hdr.ts",
+			"vue": "vue/src/components/tick-nav/tick-nav-hdr.ts"
+		}
+	},
+	{
 		"id": "fluid-cursor/fluid-cursor-core.ts",
 		"kind": "engine-core",
 		"shared": true,

@@ -1207,17 +1207,21 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 		},
 	],
 	"tick-nav": [
-		{ name: "BasicUsage", title: "Basic Usage" },
+		{
+			name: "BasicUsage",
+			title: "Neon",
+			description:
+				"Glowing lines and a beam of light riding every pluck. On an HDR display the light runs brighter than white.",
+		},
 		{
 			name: "WithPreview",
 			title: "With Preview",
-			description: "A card beside the hovered row, gliding from one row to the next.",
+			description: "A card that follows the pointer while a row is hovered.",
 		},
 		{
-			name: "Neon",
-			title: "Neon",
-			description:
-				"Glowing lines, a beam of light riding every pluck, and a breathing current line.",
+			name: "Classic",
+			title: "Classic",
+			description: "The plain ruler: no glow, accent lines only.",
 		},
 	],
 	sidebar: [

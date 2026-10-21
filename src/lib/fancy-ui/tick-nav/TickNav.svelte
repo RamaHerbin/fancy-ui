@@ -24,6 +24,13 @@
 		 * current line breathes. Made for dark surfaces.
 		 */
 		variant?: "default" | "neon";
+		/**
+		 * Neon only: on a display that reports HDR, draw the light in a WebGPU
+		 * canvas with extended tone mapping, so the tubes run brighter than SDR
+		 * white and the beam peaks around 1000 nits. Elsewhere the CSS glow
+		 * stays on its own.
+		 */
+		hdr?: boolean;
 		/** Accessible name of the `<nav>` landmark. */
 		ariaLabel?: string;
 		/**
@@ -48,6 +55,12 @@
 		TICK_NAV_FLAT_PATH,
 		type TickNavCore,
 	} from "./tick-nav-core.js";
+	import {
+		resolveCssColor,
+		startTickNavHdr,
+		tickNavLights,
+		TICK_NAV_HDR_PAD,
+	} from "./tick-nav-hdr.js";
 
 	let {
 		items,
@@ -57,6 +70,7 @@
 		reach = TICK_NAV_DEFAULTS.reach,
 		minorTicks = 2,
 		variant = "default",
+		hdr = true,
 		ariaLabel = "Navigation",
 		sound = false,
 		class: className,
@@ -67,6 +81,8 @@
 	/** Row under the pointer or keyboard focus; -1 when none. */
 	let active = $state(-1);
 	let core: TickNavCore | null = $state(null);
+	let hdrCanvas: HTMLCanvasElement | undefined = $state();
+	let hdrOn = $state(false);
 
 	const reduced = createReducedMotion();
 	$effect(() => reduced.start());
@@ -106,6 +122,48 @@
 		core?.refresh();
 	});
 
+	// HDR light: async WebGPU start; resolves to null off HDR displays.
+	$effect(() => {
+		const canvas = hdrCanvas;
+		const instance = core;
+		if (!canvas || !instance || !root) return;
+		const host = root;
+		let cancelled = false;
+		let stop: (() => void) | null = null;
+		void startTickNavHdr(canvas).then((light) => {
+			if (!light) return;
+			if (cancelled) {
+				light.destroy();
+				return;
+			}
+			const accent = resolveCssColor(getComputedStyle(canvas).color);
+			if (accent) light.setAccent(accent);
+			const size = () =>
+				light.resize(
+					host.offsetWidth + TICK_NAV_HDR_PAD * 2,
+					host.offsetHeight + TICK_NAV_HDR_PAD * 2
+				);
+			size();
+			const ro = new ResizeObserver(() => {
+				size();
+				instance.measure();
+			});
+			ro.observe(host);
+			instance.update({ onFrame: (lines) => light.render(tickNavLights(lines)) });
+			hdrOn = true;
+			stop = () => {
+				ro.disconnect();
+				instance.update({ onFrame: undefined });
+				light.destroy();
+				hdrOn = false;
+			};
+		});
+		return () => {
+			cancelled = true;
+			stop?.();
+		};
+	});
+
 	function activate(item: TickNavItem, event: MouseEvent): void {
 		if (item.disabled) {
 			event.preventDefault();
@@ -122,7 +180,11 @@
 	aria-label={ariaLabel}
 	class={cn("tn-root", className)}
 	data-variant={variant === "neon" ? "neon" : undefined}
+	data-hdr={hdrOn ? "" : undefined}
 >
+	{#if variant === "neon" && hdr}
+		<canvas bind:this={hdrCanvas} class="tn-hdr" aria-hidden="true"></canvas>
+	{/if}
 	<ul bind:this={list} class="tn-list">
 		{#each items as item, i (item.id)}
 			{@const isCurrent = item.id === value}
@@ -433,6 +495,19 @@
 		box-shadow:
 			0 0 0 1px color-mix(in oklab, var(--tn-accent) 20%, transparent),
 			0 0 24px -4px color-mix(in oklab, var(--tn-accent) 60%, transparent);
+	}
+
+	/* The HDR light layer: brighter-than-white glow, drawn over the lines.
+	   Its `color` is only read to resolve the accent for the shader. */
+	.tn-hdr {
+		position: absolute;
+		top: -24px;
+		left: -24px;
+		width: calc(100% + 48px);
+		height: calc(100% + 48px);
+		z-index: 1;
+		pointer-events: none;
+		color: var(--tn-accent);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

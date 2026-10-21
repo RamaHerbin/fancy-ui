@@ -54,14 +54,41 @@ export interface TickNavCoreOptions {
 	 * to the item above it). The place to play a sound.
 	 */
 	onPluck?: (kind: "row" | "tick", row: number) => void;
+	/**
+	 * Called after every painted frame with each line's state, for a renderer
+	 * that draws extra light on top (the HDR layer). Positions are CSS px
+	 * relative to `root`.
+	 */
+	onFrame?: (lines: TickNavLineState[]) => void;
+}
+
+export interface TickNavLineState {
+	kind: "row" | "tick";
+	row: number;
+	/** Left end and vertical centre of the line, relative to `root`. */
+	x: number;
+	y: number;
+	/** Current drawn length, px. */
+	length: number;
+	/** Proximity 0..1. */
+	near: number;
+	/** Eased progress of a running pluck's wave head, or null. */
+	progress: number | null;
+	current: boolean;
 }
 
 export interface TickNavCore {
 	update(options: Partial<TickNavCoreOptions>): void;
 	/** Re-reads the rows after the item list changed. */
 	refresh(): void;
+	/** Re-measures line positions after a layout change (resize). */
+	measure(): void;
 	destroy(): void;
 }
+
+/** Tick lengths; the component's CSS uses the same numbers. */
+export const TICK_NAV_TICK_REST = 24;
+export const TICK_NAV_TICK_GROW = 16;
 
 export const TICK_NAV_DEFAULTS = Object.freeze({
 	reach: 4,
@@ -148,6 +175,10 @@ interface Line {
 	row: number;
 	/** Centre, list-local px; read once per pointer visit. */
 	y: number;
+	/** Left end and centre relative to `root`, for `onFrame`. */
+	rootX: number;
+	rootY: number;
+	progress: number | null;
 	pluckStart: number | null;
 	lastPluck: number;
 }
@@ -188,15 +219,18 @@ export function createTickNavCore(
 
 	function readRows(): void {
 		const previous = rows;
+		// Keep each surviving line's state (a running pluck above all): a refresh
+		// mid-pluck must not orphan a wave on its path.
+		const known = new Map(lines.map((line) => [line.path, line]));
 		lines = [];
 		rows = Array.from(list.querySelectorAll<HTMLElement>(":scope > .tn-item")).map((el, i) => {
 			const old = previous[i];
 			const rest = i === options.current ? options.activeLength : options.restLength;
 			const path = el.querySelector<SVGPathElement>(".tn-path");
-			const line: Line | null = path ? makeLine(path, "row", i) : null;
+			const line: Line | null = path ? reuse(known, path, "row", i) : null;
 			if (line) lines.push(line);
 			el.querySelectorAll<SVGPathElement>(".tn-tick-path").forEach((tick) => {
-				lines.push(makeLine(tick, "tick", i));
+				lines.push(reuse(known, tick, "tick", i));
 			});
 			return {
 				el,
@@ -208,6 +242,20 @@ export function createTickNavCore(
 		});
 	}
 
+	function reuse(
+		known: Map<SVGPathElement, Line>,
+		path: SVGPathElement,
+		kind: "row" | "tick",
+		row: number
+	): Line {
+		const line = known.get(path);
+		if (!line) return makeLine(path, kind, row);
+		line.kind = kind;
+		line.row = row;
+		line.beam = line.svg?.querySelector<SVGPathElement>(".tn-beam") ?? null;
+		return line;
+	}
+
 	function makeLine(path: SVGPathElement, kind: "row" | "tick", row: number): Line {
 		const svg = path.ownerSVGElement;
 		return {
@@ -217,12 +265,16 @@ export function createTickNavCore(
 			kind,
 			row,
 			y: 0,
+			rootX: 0,
+			rootY: 0,
+			progress: null,
 			pluckStart: null,
 			lastPluck: -Infinity,
 		};
 	}
 
 	function setShape(line: Line, d: string, progress: number | null): void {
+		line.progress = progress;
 		line.path.setAttribute("d", d);
 		line.beam?.setAttribute("d", d);
 		if (!line.svg) return;
@@ -237,9 +289,13 @@ export function createTickNavCore(
 
 	function measureLines(): void {
 		const top = list.getBoundingClientRect().top;
+		const rootBox = root.getBoundingClientRect();
 		for (const line of lines) {
 			const box = line.path.getBoundingClientRect();
-			line.y = box.top + box.height / 2 - top;
+			const centre = box.top + box.height / 2;
+			line.y = centre - top;
+			line.rootX = (line.svg ?? line.path).getBoundingClientRect().left - rootBox.left;
+			line.rootY = centre - rootBox.top;
 		}
 	}
 
@@ -268,6 +324,36 @@ export function createTickNavCore(
 			row.el.style.setProperty("--tn-tick-near", row.tickNear.x.toFixed(4));
 		}
 		root.style.setProperty("--tn-po", preview.x.toFixed(4));
+		if (options.onFrame) {
+			// An extra renderer must never stop the motion: drop it on failure.
+			try {
+				options.onFrame(frameState());
+			} catch (error) {
+				options.onFrame = undefined;
+				console.warn("[TickNav] light layer disabled:", error);
+			}
+		}
+	}
+
+	function frameState(): TickNavLineState[] {
+		return lines.map((line) => {
+			const row = rows[line.row];
+			const near = line.kind === "row" ? (row?.near.x ?? 0) : (row?.tickNear.x ?? 0);
+			const length =
+				line.kind === "row"
+					? (row?.length.x ?? 0) + options.proximityLength * near
+					: TICK_NAV_TICK_REST + TICK_NAV_TICK_GROW * near;
+			return {
+				kind: line.kind,
+				row: line.row,
+				x: line.rootX,
+				y: line.rootY,
+				length,
+				near,
+				progress: line.progress,
+				current: line.kind === "row" && line.row === options.current,
+			};
+		});
 	}
 
 	function snapAll(): void {
@@ -281,9 +367,12 @@ export function createTickNavCore(
 		preview.v = 0;
 	}
 
-	function step(t: number): void {
+	function step(): void {
 		frame = 0;
 		if (destroyed) return;
+		// One clock for springs and plucks: pluck start times come from
+		// performance.now(), which can run ahead of the rAF timestamp.
+		const t = performance.now();
 		const dt = lastT ? Math.min(1 / 30, (t - lastT) / 1000) : 1 / 60;
 		lastT = t;
 		let moving = false;
@@ -435,6 +524,7 @@ export function createTickNavCore(
 	}
 
 	readRows();
+	measureLines();
 	retarget();
 	snapAll();
 	paint();
@@ -457,11 +547,17 @@ export function createTickNavCore(
 		},
 		refresh() {
 			readRows();
+			measureLines();
 			lastY = null;
 			if (hovered >= rows.length) hovered = -1;
 			retarget();
 			kick();
 			paint();
+		},
+		measure() {
+			// Width changes as lines grow; the strum's last position stays valid.
+			measureLines();
+			if (options.onFrame) paint();
 		},
 		destroy() {
 			destroyed = true;

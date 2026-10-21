@@ -2,21 +2,21 @@
 	import { TickNav, type TickNavItem } from "$lib/fancy-ui/tick-nav";
 
 	const items: TickNavItem[] = [
-		{ id: "overview", label: "00 Overview" },
-		{ id: "install", label: "01 Installation" },
-		{ id: "theming", label: "02 Theming" },
-		{ id: "motion", label: "03 Motion" },
-		{ id: "sound", label: "04 Sound", badge: "New" },
-		{ id: "a11y", label: "05 Accessibility" },
-		{ id: "ssr", label: "06 Server rendering" },
-		{ id: "registry", label: "07 Copy into your project" },
-		{ id: "llms", label: "08 LLM docs" },
-		{ id: "changelog", label: "09 Changelog" },
+		{ id: "signal", label: "01 Signal" },
+		{ id: "noise", label: "02 Noise" },
+		{ id: "pulse", label: "03 Pulse" },
+		{ id: "drift", label: "04 Drift", badge: "New" },
+		{ id: "echo", label: "05 Echo" },
+		{ id: "static", label: "06 Static" },
+		{ id: "carrier", label: "07 Carrier" },
 	];
 
-	let value = $state("overview");
+	let value = $state("pulse");
 </script>
 
-<div class="flex w-full justify-center py-8 text-[15px] tracking-tight">
-	<TickNav {items} bind:value ariaLabel="Guide" sound />
+<div
+	class="flex w-full justify-center rounded-xl bg-[#07060b] py-10 text-[15px] tracking-tight text-white"
+	style="--ft-accent: oklch(0.72 0.19 300)"
+>
+	<TickNav {items} bind:value variant="neon" ariaLabel="Channels" sound />
 </div>
