@@ -12,7 +12,7 @@ default.
 
 ```svelte
 <script lang="ts">
-	import { Presence } from "$lib/fancy-ui/presence";
+	import { Presence } from "fancy-ui-svelte";
 	let open = $state(false);
 </script>
 

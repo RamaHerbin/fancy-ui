@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
 	testDir: './tests/e2e',
+	// The preview-health sweep builds the site and has its own config
+	// (playwright.preview-health.config.ts).
+	testIgnore: /preview-health\.spec\.ts$/,
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,

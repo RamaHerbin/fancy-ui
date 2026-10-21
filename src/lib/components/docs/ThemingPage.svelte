@@ -1,9 +1,18 @@
 <script lang="ts">
 	import { t } from "$lib/stores";
 	import CodeBlock from "$lib/components/docs/CodeBlock.svelte";
+	import { INSTALL_SNIPPETS } from "$lib/docs/install-snippets.js";
+	import { createFrameworkState } from "$lib/stores/framework.svelte.js";
+	import { onMount } from "svelte";
 
-	const cssSetupSnippet = `@import "tailwindcss";
-@import "fancy-ui-svelte/tailwind.css";`;
+	// Read the framework after mount so the prerendered markup (Svelte) matches
+	// the first client render, like the component and installation pages.
+	const frameworkState = createFrameworkState();
+	let mounted = $state(false);
+	onMount(() => (mounted = true));
+	const cssSetupSnippet = $derived(
+		INSTALL_SNIPPETS[mounted ? frameworkState.framework : "svelte"].stylesheet
+	);
 
 	const colorsSnippet = `:root {
   --background: oklch(1 0 0);
@@ -89,6 +98,7 @@
 	<section class="sec">
 		<h2 id="css-setup">{t("theming.cssSetup.heading")}</h2>
 		<p class="sec-body">{t("theming.cssSetup.body")}</p>
+		<p class="sec-body">{t("theming.cssPerFramework")}</p>
 		<CodeBlock lang="css" code={cssSetupSnippet} />
 	</section>
 

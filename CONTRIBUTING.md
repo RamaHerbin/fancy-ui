@@ -2,6 +2,8 @@
 
 Thanks for your interest in contributing! This guide covers everything you need to get started.
 
+Questions, ideas and show-and-tell belong in [GitHub Discussions](https://github.com/RamaHerbin/fancy-ui/discussions); bugs and concrete feature requests go through the [issue forms](https://github.com/RamaHerbin/fancy-ui/issues/new/choose). The getting-started and component docs pages carry an "Edit this page" and a "Report an issue" link (the `PageActions` component, `src/lib/components/docs/PageActions.svelte`): the first opens the page source on `develop` in the GitHub editor, the second opens a bug report with the page name, the page URL and your selected framework filled in. By taking part you agree to the [Code of Conduct](./CODE_OF_CONDUCT.md); security problems follow [SECURITY.md](./SECURITY.md), never a public issue.
+
 ## Getting started
 
 ```bash
@@ -140,7 +142,7 @@ Rules: use **real props only** (check the component's exported `Props` type); de
 2. Keep commits focused — one logical change per commit with a clear message.
 3. **Add a changeset** (see below) — CI will block merging without one.
 4. Include a link to the live demo page in the PR description.
-5. Fill out the pull request template checklist.
+5. Fill out the pull request template checklist (tests, the three ports, a changeset, and no third-party product names).
 
 Once your PR is merged into `develop`, see the [Release process](#release-process) section for what happens next.
 

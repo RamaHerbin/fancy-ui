@@ -12,8 +12,8 @@ Inspired by the "magnetic button" pattern seen across modern marketing sites.
 
 ```svelte
 <script lang="ts">
-	import { Magnetic } from "$lib/fancy-ui/magnetic";
-	import { Button } from "$lib/fancy-ui/button";
+	import { Magnetic } from "fancy-ui-svelte";
+	import { Button } from "fancy-ui-svelte";
 </script>
 
 <Magnetic>

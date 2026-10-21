@@ -214,4 +214,20 @@ describe("FallingStarsBg", () => {
 		expect(same).toEqual(first);
 		expect(other).not.toEqual(first);
 	});
+
+	it("defaults the colour to currentColor: stars take the inherited text colour", () => {
+		const recorder = installCanvasRecorder();
+		render(
+			<div style={{ color: "rgb(1, 2, 3)" }}>
+				<FallingStarsBg count={1} />
+			</div>
+		);
+		recorder.drawFrame();
+
+		const strokes = recorder.calls.filter((call) => call.startsWith("stroke("));
+		expect(strokes[0]).toContain("rgba(1, 2, 3, 0.08)");
+		expect(recorder.calls).toContain("fill(rgba(1, 2, 3, 1))");
+
+		recorder.restore();
+	});
 });

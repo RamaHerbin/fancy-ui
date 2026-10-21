@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from "vue";
 
 export interface FallingStarsBgProps {
-	/** Star color as hex string */
+	/** Star color: a hex string, or `currentColor` (default) to follow the text colour */
 	color?: string;
 	/** Number of stars */
 	count?: number;
@@ -18,7 +18,11 @@ import { createFallingStars, type FallingStarsEngine } from "./bg-falling-stars-
 
 defineOptions({ name: "FallingStarsBg", inheritAttrs: false });
 
-const { color = "#FFF", count = 200, class: className } = defineProps<FallingStarsBgProps>();
+const {
+	color = "currentColor",
+	count = 200,
+	class: className,
+} = defineProps<FallingStarsBgProps>();
 
 const canvasRef = useTemplateRef<HTMLCanvasElement>("canvas");
 let engine: FallingStarsEngine | null = null;

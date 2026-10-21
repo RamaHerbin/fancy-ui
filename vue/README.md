@@ -10,7 +10,7 @@ Animated UI components for **Vue 3.5+**, styled with Tailwind CSS v4 &mdash; the
 ![Vue](https://img.shields.io/badge/Vue-3.5+-42B883?logo=vuedotjs&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Components](https://img.shields.io/badge/Components-145-8B5CF6)
+![Components](https://img.shields.io/badge/Components-151-8B5CF6)
 ![MIT License](https://img.shields.io/badge/License-MIT-green)
 
 <p align="center">
