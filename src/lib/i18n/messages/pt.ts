@@ -261,9 +261,9 @@ export default {
 	"install.tailwind.body":
 		"O FancyUI é construído sobre o Tailwind CSS v4, que é configurado em CSS em vez de um arquivo de configuração JavaScript. Se o Tailwind já funciona no seu projeto, não há mais nada a configurar.",
 	"install.tailwind.order":
-		"A ordem das importações importa: primeiro o Tailwind, depois o FancyUI, para que os tokens e a variante escura do FancyUI sejam registados dentro das camadas do Tailwind.",
+		"A ordem das importações importa: primeiro o Tailwind, depois o FancyUI. Coloque a importação do FancyUI antes do seu próprio @custom-variant dark; caso contrário, o do FancyUI substitui o seu.",
 	"install.tailwind.note":
-		"O ponto de entrada fornece tokens de cor predefinidos (background, primary, border e os restantes) e uma variante escura. Os seus próprios blocos :root e .dark substituem-nos: redefina as variáveis CSS e os seus valores prevalecem.",
+		"O ponto de entrada fornece tokens de cor padrão (background, primary, border e os demais) e uma variante escura. Seus próprios blocos :root e .dark os substituem: redefina as variáveis CSS e seus valores prevalecem.",
 	"install.usage.heading": "Uso",
 	"install.usage.body":
 		"Cada componente é um export nomeado da raiz do pacote, então não há caminhos de import por componente para memorizar.",
@@ -311,7 +311,7 @@ export default {
 		"Os nomes dos tokens seguem as convenções do shadcn-svelte, então um tema shadcn existente funciona sem alterações.",
 	"theming.dark.heading": "Modo escuro",
 	"theming.dark.body":
-		"O modo escuro segue por predefinição a preferência do sistema operativo. Coloque a classe .dark em <html> ou em qualquer ascendente para forçar o escuro, ou .light para forçar o claro. Os utilitários dark: e todos os tokens acompanham:",
+		"O modo escuro segue por padrão a preferência do sistema operacional. Coloque a classe .dark em <html> ou em qualquer ancestral para forçar o escuro, ou .light para forçar o claro; os utilitários dark: e todos os tokens acompanham. Para personalizar os valores escuros, sobrescreva-os em .dark:",
 	"theming.motion.heading": "Tokens de animação",
 	"theming.motion.body": "Controle os tempos de animação globalmente:",
 	"theming.easing.heading": "Funções de easing",

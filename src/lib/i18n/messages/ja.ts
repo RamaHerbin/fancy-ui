@@ -259,9 +259,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI は Tailwind CSS v4 上に構築されており、JavaScript の設定ファイルではなく CSS で設定します。プロジェクトで Tailwind がすでに動作していれば、追加の設定は不要です。",
 	"install.tailwind.order":
-		"インポートの順序は重要です。先に Tailwind、次に FancyUI をインポートすると、FancyUI のトークンとダークバリアントが Tailwind のレイヤー内に登録されます。",
+		"インポートの順序は重要です。先に Tailwind、次に FancyUI をインポートしてください。FancyUI のインポートは独自の @custom-variant dark より前に置いてください。そうしないと FancyUI のものがあなたの定義を置き換えます。",
 	"install.tailwind.note":
-		"このエントリは、既定のカラートークン(background、primary、border など)とダークバリアントを提供します。独自の :root と .dark ブロックがそれらを上書きします。CSS 変数を再定義すれば、あなたの値が優先されます。",
+		"このエントリは、既定のカラートークン（background、primary、border など）とダークバリアントを提供します。独自の :root と .dark ブロックがそれらを上書きします。CSS 変数を再定義すれば、あなたの値が優先されます。",
 	"install.usage.heading": "使い方",
 	"install.usage.body":
 		"すべてのコンポーネントはパッケージルートの名前付きエクスポートなので、コンポーネントごとのインポートパスを覚える必要はありません。",
@@ -310,7 +310,7 @@ export default {
 		"トークン名は shadcn-svelte の規則に従っているため、既存の shadcn テーマもそのまま使えます。",
 	"theming.dark.heading": "ダークモード",
 	"theming.dark.body":
-		"ダークモードは既定でOSの設定に従います。<html> または任意の祖先要素に .dark クラスを付けるとダークに固定され、.light を付けるとライトに固定されます。dark: ユーティリティとすべてのトークンがそれに従います:",
+		"ダークモードは既定でOSの設定に従います。<html> または任意の祖先要素に .dark クラスを付けるとダークに固定され、.light を付けるとライトに固定されます。dark: ユーティリティとすべてのトークンがそれに従います。ダークの値をカスタマイズするには、.dark の下で上書きします：",
 	"theming.motion.heading": "アニメーショントークン",
 	"theming.motion.body": "アニメーションのタイミングをグローバルに制御します:",
 	"theming.easing.heading": "イージング関数",

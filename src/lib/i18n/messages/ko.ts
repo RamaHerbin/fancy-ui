@@ -255,7 +255,7 @@ export default {
 	"install.tailwind.body":
 		"FancyUI는 Tailwind CSS v4 기반으로 제작되었으며, v4는 JavaScript 설정 파일 대신 CSS에서 설정합니다. 프로젝트에서 Tailwind가 이미 동작한다면 추가로 설정할 것은 없습니다.",
 	"install.tailwind.order":
-		"임포트 순서가 중요합니다. Tailwind를 먼저, FancyUI를 그다음에 가져와야 FancyUI의 토큰과 다크 변형이 Tailwind의 레이어 안에 등록됩니다.",
+		"임포트 순서가 중요합니다. Tailwind를 먼저, FancyUI를 그다음에 가져오세요. FancyUI 임포트는 직접 작성한 @custom-variant dark보다 앞에 두어야 합니다. 그렇지 않으면 FancyUI의 정의가 사용자의 정의를 대체합니다.",
 	"install.tailwind.note":
 		"이 엔트리는 기본 색상 토큰(background, primary, border 등)과 다크 변형을 제공합니다. 직접 작성한 :root와 .dark 블록이 이를 덮어씁니다. CSS 변수를 다시 정의하면 사용자의 값이 우선합니다.",
 	"install.usage.heading": "사용법",
@@ -304,7 +304,7 @@ export default {
 		"토큰 이름은 shadcn-svelte 규칙을 따르므로, 기존 shadcn 테마를 그대로 적용할 수 있습니다.",
 	"theming.dark.heading": "다크 모드",
 	"theming.dark.body":
-		"다크 모드는 기본적으로 운영체제 설정을 따릅니다. <html> 또는 임의의 상위 요소에 .dark 클래스를 지정하면 다크로 고정되고, .light를 지정하면 라이트로 고정됩니다. dark: 유틸리티와 모든 토큰이 이를 따릅니다:",
+		"다크 모드는 기본적으로 운영체제 설정을 따릅니다. <html> 또는 임의의 상위 요소에 .dark 클래스를 지정하면 다크로 고정되고, .light를 지정하면 라이트로 고정되며, dark: 유틸리티와 모든 토큰이 이를 따릅니다. 다크 값을 사용자 지정하려면 .dark 아래에서 덮어쓰세요:",
 	"theming.motion.heading": "애니메이션 토큰",
 	"theming.motion.body": "애니메이션 타이밍을 전역으로 제어하세요:",
 	"theming.easing.heading": "이징 함수",

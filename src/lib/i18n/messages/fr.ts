@@ -262,7 +262,7 @@ export default {
 	"install.tailwind.body":
 		"FancyUI est construit sur Tailwind CSS v4, qui se configure en CSS plutôt que dans un fichier de configuration JavaScript. Si Tailwind fonctionne déjà dans votre projet, il n'y a rien d'autre à configurer.",
 	"install.tailwind.order":
-		"L'ordre des imports compte : Tailwind d'abord, FancyUI ensuite, afin que les jetons et la variante sombre de FancyUI soient enregistrés dans les couches de Tailwind.",
+		"L'ordre des imports compte : Tailwind d'abord, FancyUI ensuite. Placez l'import de FancyUI avant votre propre @custom-variant dark, sinon celui de FancyUI remplace le vôtre.",
 	"install.tailwind.note":
 		"Le point d'entrée fournit des jetons de couleur par défaut (background, primary, border et les autres) et une variante sombre. Vos propres blocs :root et .dark les remplacent : redéfinissez les variables CSS et vos valeurs l'emportent.",
 	"install.usage.heading": "Utilisation",
@@ -313,7 +313,7 @@ export default {
 		"Les noms de jetons suivent les conventions de shadcn-svelte, si bien qu'un thème shadcn existant s'intègre sans modification.",
 	"theming.dark.heading": "Mode sombre",
 	"theming.dark.body":
-		"Le mode sombre suit par défaut la préférence du système. Placez la classe .dark sur <html> ou sur n'importe quel ancêtre pour forcer le sombre, ou .light pour forcer le clair. Les utilitaires dark: et chaque jeton suivent :",
+		"Le mode sombre suit par défaut la préférence du système. Placez la classe .dark sur <html> ou sur n'importe quel ancêtre pour forcer le sombre, ou .light pour forcer le clair ; les utilitaires dark: et chaque jeton suivent. Pour personnaliser les valeurs sombres, redéfinissez-les sous .dark :",
 	"theming.motion.heading": "Jetons d'animation",
 	"theming.motion.body": "Contrôlez la durée des animations de façon globale :",
 	"theming.easing.heading": "Fonctions d'accélération",

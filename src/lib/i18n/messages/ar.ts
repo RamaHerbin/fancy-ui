@@ -254,7 +254,7 @@ export default {
 	"install.tailwind.body":
 		"بُنيت FancyUI على Tailwind CSS v4 الذي يُهيّأ عبر CSS بدلاً من ملف إعدادات JavaScript. إذا كان Tailwind يعمل بالفعل في مشروعك، فلا حاجة إلى أي إعداد إضافي.",
 	"install.tailwind.order":
-		"ترتيب الاستيراد مهم: Tailwind أولاً ثم FancyUI، حتى تُسجَّل رموز FancyUI ونسخة الوضع الداكن داخل طبقات Tailwind.",
+		"ترتيب الاستيراد مهم: Tailwind أولاً ثم FancyUI. ضع استيراد FancyUI قبل @custom-variant dark الخاص بك، وإلا فسيحل متغير FancyUI محل متغيرك.",
 	"install.tailwind.note":
 		"توفّر نقطة الدخول رموز ألوان افتراضية (background وprimary وborder وغيرها) ونسخة للوضع الداكن. كتل :root و.dark الخاصة بك تتجاوزها: أعد تعريف متغيرات CSS وستسري قيمك.",
 	"install.usage.heading": "الاستخدام",
@@ -302,7 +302,7 @@ export default {
 		"تتّبع أسماء الرموز اتفاقيات shadcn-svelte، لذا يعمل أي سِمة shadcn موجودة مسبقاً دون أي تعديل.",
 	"theming.dark.heading": "الوضع الداكن",
 	"theming.dark.body":
-		"يتبع الوضع الداكن تفضيل نظام التشغيل افتراضياً. ضع الفئة .dark على <html> أو على أي عنصر سلف لفرض الداكن، أو .light لفرض الفاتح. وتتبعها أدوات dark: وكل رمز:",
+		"يتبع الوضع الداكن تفضيل نظام التشغيل افتراضياً. ضع الفئة .dark على <html> أو على أي عنصر سلف لفرض الداكن، أو .light لفرض الفاتح؛ وتتبعها أدوات dark: وكل رمز. لتخصيص القيم الداكنة، تجاوزها ضمن .dark:",
 	"theming.motion.heading": "رموز الحركة",
 	"theming.motion.body": "تحكّم في توقيت الحركة عالمياً:",
 	"theming.easing.heading": "دوال التسهيل",

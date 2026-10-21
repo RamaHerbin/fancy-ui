@@ -259,9 +259,9 @@ export default {
 	"install.tailwind.body":
 		"FancyUI, JavaScript yapılandırma dosyası yerine CSS içinde yapılandırılan Tailwind CSS v4 üzerine inşa edilmiştir. Tailwind projenizde zaten çalışıyorsa yapılandırılacak başka bir şey yoktur.",
 	"install.tailwind.order":
-		"İçe aktarma sırası önemlidir: önce Tailwind, sonra FancyUI; böylece FancyUI'ın token'ları ve koyu varyantı Tailwind'in katmanları içinde kaydedilir.",
+		"İçe aktarma sırası önemlidir: önce Tailwind, sonra FancyUI. FancyUI içe aktarmasını kendi @custom-variant dark tanımınızdan önce yerleştirin; aksi halde FancyUI'ınki sizinkinin yerini alır.",
 	"install.tailwind.note":
-		"Giriş dosyası varsayılan renk token'larını (background, primary, border ve diğerleri) ve bir koyu varyant sağlar. Kendi :root ve .dark bloklarınız bunları geçersiz kılar: CSS değişkenlerini yeniden tanımlayın, sizin değerleriniz geçerli olur.",
+		"Giriş dosyası varsayılan renk belirteçlerini (background, primary, border ve diğerleri) ve bir koyu varyant sağlar. Kendi :root ve .dark bloklarınız bunları geçersiz kılar: CSS değişkenlerini yeniden tanımlayın, sizin değerleriniz geçerli olur.",
 	"install.usage.heading": "Kullanım",
 	"install.usage.body":
 		"Her bileşen paket kökünün adlandırılmış bir dışa aktarımıdır, bu yüzden ezberlenecek bileşen başına içe aktarma yolu yoktur.",
@@ -308,7 +308,7 @@ export default {
 		"Belirteç adları shadcn-svelte kurallarını izler, bu nedenle mevcut bir shadcn teması değişiklik yapılmadan kullanılabilir.",
 	"theming.dark.heading": "Karanlık mod",
 	"theming.dark.body":
-		"Koyu mod varsayılan olarak işletim sistemi tercihini izler. Koyuyu zorlamak için .dark sınıfını <html> üzerine veya herhangi bir üst öğeye, açığı zorlamak için .light sınıfını ekleyin. dark: yardımcıları ve her token buna uyar:",
+		"Karanlık mod varsayılan olarak işletim sistemi tercihini izler. Karanlığı zorlamak için .dark sınıfını <html> üzerine veya herhangi bir üst öğeye, aydınlığı zorlamak için .light sınıfını ekleyin; dark: yardımcıları ve her belirteç buna uyar. Karanlık değerleri özelleştirmek için bunları .dark altında geçersiz kılın:",
 	"theming.motion.heading": "Animasyon belirteçleri",
 	"theming.motion.body": "Animasyon zamanlamasını genel olarak kontrol edin:",
 	"theming.easing.heading": "Easing fonksiyonları",

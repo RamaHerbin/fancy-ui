@@ -72,7 +72,13 @@ This single import tells Tailwind v4 to scan the library's components so all uti
 
 `tailwind.css` also declares the 18 semantic colours the components spend (`background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring` and their `-foreground` pairs). None of them exist in Tailwind's default palette, and Tailwind v4 emits no rule for an undeclared colour name, so without them `bg-primary` and friends compile to nothing. They are wired with `@theme inline`, so utilities resolve the variables at use time: an app that already defines these tokens keeps its own colours. The defaults ship in `@layer base`, which an unlayered `:root` or `.dark` block in your app overrides whatever the import order.
 
-Dark mode follows the operating-system preference out of the box. To control it yourself, put `dark` or `light` on `<html>` (or any ancestor); both the `dark:` utilities and the components' `light-dark()` colours follow the class. An app that declares its own `@custom-variant dark` after the import keeps its own definition.
+If your own tokens live inside `@layer base`, keep that block after the import so it wins over the defaults.
+
+Dark mode follows the operating-system preference out of the box. To control it yourself, put `dark` or `light` on `<html>` (or any ancestor); both the `dark:` utilities and the components' `light-dark()` colours follow the class. The entry defines the `.light` class too (it forces light), so an app that already uses `.light` for something else should know.
+
+The entry sets `:root { color-scheme: light dark }`, which is what lets `light-dark()` colours, scrollbars and form controls follow the OS. An app that switches theme only with a `.dark` class would therefore see dark branches on a light page on a dark-OS machine. Either put `light` on `<html>` in light mode, or declare, unlayered in your own CSS, both `:root { color-scheme: light }` and `.dark { color-scheme: dark }` (both declarations are needed).
+
+Place the `fancy-ui-svelte/tailwind.css` import before your own `@custom-variant dark`; otherwise the entry's definition replaces yours.
 
 Then import any component:
 

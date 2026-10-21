@@ -260,7 +260,7 @@ export default {
 	"install.tailwind.body":
 		"FancyUI jest zbudowany na Tailwind CSS v4, który konfiguruje się w CSS zamiast w pliku konfiguracyjnym JavaScript. Jeśli Tailwind już działa w Twoim projekcie, nie ma nic więcej do skonfigurowania.",
 	"install.tailwind.order":
-		"Kolejność importów ma znaczenie: najpierw Tailwind, potem FancyUI, aby tokeny i wariant ciemny FancyUI zostały zarejestrowane wewnątrz warstw Tailwinda.",
+		"Kolejność importów ma znaczenie: najpierw Tailwind, potem FancyUI. Umieść import FancyUI przed własnym @custom-variant dark, w przeciwnym razie wariant FancyUI zastąpi Twój.",
 	"install.tailwind.note":
 		"Punkt wejścia dostarcza domyślne tokeny kolorów (background, primary, border i pozostałe) oraz wariant ciemny. Twoje własne bloki :root i .dark je nadpisują: zdefiniuj zmienne CSS na nowo, a Twoje wartości wygrają.",
 	"install.usage.heading": "Użycie",
@@ -310,7 +310,7 @@ export default {
 		"Nazwy tokenów są zgodne z konwencjami shadcn-svelte, więc istniejący motyw shadcn działa bez zmian.",
 	"theming.dark.heading": "Tryb ciemny",
 	"theming.dark.body":
-		"Tryb ciemny domyślnie podąża za ustawieniem systemu operacyjnego. Dodaj klasę .dark do <html> lub dowolnego przodka, aby wymusić ciemny, albo .light, aby wymusić jasny. Narzędzia dark: i każdy token za nią podążają:",
+		"Tryb ciemny domyślnie podąża za ustawieniem systemu operacyjnego. Dodaj klasę .dark do <html> lub dowolnego przodka, aby wymusić ciemny, albo .light, aby wymusić jasny; narzędzia dark: i każdy token za nią podążają. Aby dostosować ciemne wartości, nadpisz je w .dark:",
 	"theming.motion.heading": "Tokeny animacji",
 	"theming.motion.body": "Kontroluj czasy animacji globalnie:",
 	"theming.easing.heading": "Funkcje easing",

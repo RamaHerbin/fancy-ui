@@ -46,9 +46,8 @@
  * undeclared colour name — so without this block `border-border` and friends
  * are inert: a Dialog gets no border, a Combobox popover no background.
  *
- * The list below is the full token set the components use, kept in sync
- * with the utilities the components use — every one of the 18 names is spent by
- * at least one component.
+ * The list below is the full token set the components use: every one of the
+ * 18 names is spent by at least one component.
  *
  * `@theme inline` on purpose: each utility resolves `var(--primary)` at USE
  * time rather than baking a value in, so an app that already defines the

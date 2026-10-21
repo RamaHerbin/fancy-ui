@@ -270,7 +270,7 @@ export const en = {
 	"install.tailwind.body":
 		"FancyUI is built on Tailwind CSS v4, which is configured in CSS instead of a JavaScript config file. If Tailwind already works in your project, there is nothing else to configure.",
 	"install.tailwind.order":
-		"Import order matters: Tailwind first, FancyUI second, so FancyUI's tokens and dark variant are registered inside Tailwind's layers.",
+		"Import order matters: Tailwind first, FancyUI second. Place the FancyUI import before your own @custom-variant dark, otherwise FancyUI's replaces yours.",
 	"install.tailwind.note":
 		"The entry provides default colour tokens (background, primary, border and the rest) and a dark variant. Your own :root and .dark blocks override them: redefine the CSS variables and your values win.",
 	"install.usage.heading": "Usage",
@@ -319,7 +319,7 @@ export const en = {
 		"Token names follow shadcn-svelte conventions, so an existing shadcn theme drops in unchanged.",
 	"theming.dark.heading": "Dark mode",
 	"theming.dark.body":
-		"Dark mode follows the operating-system preference by default. Put the .dark class on <html> or any ancestor to force dark, or .light to force light. The dark: utilities and every token follow:",
+		"Dark mode follows the operating-system preference by default. Put the .dark class on <html> or any ancestor to force dark, or .light to force light; the dark: utilities and every token follow. To customise the dark values, override them under .dark:",
 	"theming.motion.heading": "Animation tokens",
 	"theming.motion.body": "Control animation timing globally:",
 	"theming.easing.heading": "Easing functions",

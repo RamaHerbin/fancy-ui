@@ -6,6 +6,7 @@
  * default tokens are defined. Tailwind v4 emits nothing for an undeclared
  * colour name, so a missing token mapping is silent without this check.
  */
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
@@ -15,12 +16,34 @@ import { compile } from "tailwindcss";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 
-const ENTRIES = ["src/lib/fancy-ui/tailwind.css", "react/tailwind.css", "vue/tailwind.css"];
+// Entries can be passed as arguments (used to prove the check fails on a bare stub).
+const ENTRIES = process.argv.slice(2).length
+	? process.argv.slice(2)
+	: ["src/lib/fancy-ui/tailwind.css", "react/tailwind.css", "vue/tailwind.css"];
+const COLOURS = [
+	"background",
+	"foreground",
+	"card",
+	"card-foreground",
+	"popover",
+	"popover-foreground",
+	"primary",
+	"primary-foreground",
+	"secondary",
+	"secondary-foreground",
+	"muted",
+	"muted-foreground",
+	"accent",
+	"accent-foreground",
+	"destructive",
+	"border",
+	"input",
+	"ring",
+];
 const CANDIDATES = [
-	"bg-primary",
+	...COLOURS.map((name) => `bg-${name}`),
 	"text-primary-foreground",
 	"border-border",
-	"bg-popover",
 	"dark:bg-primary",
 ];
 
@@ -39,7 +62,7 @@ async function buildCss(entry) {
 	const abs = resolve(root, entry);
 	const source = `@import "tailwindcss";\n@import ${JSON.stringify(abs)};`;
 	const compiler = await compile(source, { base: root, loadStylesheet });
-	return compiler.build(CANDIDATES);
+	return { css: compiler.build(CANDIDATES), sources: compiler.sources };
 }
 
 function selectorFor(candidate) {
@@ -51,9 +74,20 @@ let failed = false;
 for (const entry of ENTRIES) {
 	const problems = [];
 	try {
-		const css = await buildCss(entry);
+		const { css, sources } = await buildCss(entry);
 		for (const c of CANDIDATES) {
 			if (!css.includes(selectorFor(c))) problems.push(`no rule for \`${c}\``);
+		}
+		// The entry's custom `dark` variant must be compiled in, not Tailwind's built-in one.
+		if (!css.includes(":where(.dark, .dark *)"))
+			problems.push("the custom dark variant is not compiled");
+		for (const source of sources) {
+			if (source.negated || existsSync(source.base)) continue;
+			if (!entry.startsWith("src/") && source.base.endsWith("/dist")) {
+				console.log(`note ${entry}: ${source.base} is missing (package not built), skipped`);
+				continue;
+			}
+			problems.push(`@source base does not exist on disk: ${source.base}`);
 		}
 		if (!/--primary:/.test(css)) problems.push("`--primary:` is not defined");
 	} catch (error) {
