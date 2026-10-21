@@ -62,6 +62,10 @@ Inside a `FormField`, drop the `label`/`id` — the surrounding field supplies
 | `ref`           | `HTMLInputElement \| null` | `null`  | Bindable reference to the underlying `<input type="range">`         |
 | `sound`         | `boolean`                  | `false` | Plays the `tick` cue on a committed value change, once sound is on  |
 
+## Native attributes
+
+Any other attribute or listener (`aria-*`, `data-*`, `form`, `onfocus`, `onblur`, `onkeydown`, …) is forwarded to the `<input type="range">`, the element that takes focus and carries the form value. `class` still lands on the outer wrapper. `type`, `value`, `min`, `max`, `step`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax` and the FormField-managed `id`, `disabled` and `aria-invalid` stay authoritative, and a consumer `aria-describedby` is merged with the FormField one. Consumer `oninput` and `onchange` run once, after the internal handling; a disabled slider calls neither.
+
 ## Theming
 
 The fill gradient's two stops have no semantic tokens, so they are declared

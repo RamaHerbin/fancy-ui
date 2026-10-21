@@ -13,13 +13,14 @@
 
 	interface Props {
 		context: FieldContext;
+		attrs?: Record<string, unknown>;
 	}
 
-	let { context }: Props = $props();
+	let { context, attrs = {} }: Props = $props();
 
 	setContext(FIELD_KEY, context);
 </script>
 
 <!-- Deliberately passed an own id that disagrees with the context, so a test
      can prove the context wins rather than merely matching by coincidence. -->
-<Slider id="own-id" disabled={false} />
+<Slider id="own-id" disabled={false} {...attrs} />

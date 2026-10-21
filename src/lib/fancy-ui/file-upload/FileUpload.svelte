@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import type { HTMLInputAttributes } from "svelte/elements";
 	/** One file FileUpload is tracking — selected, uploading, or settled. */
 	export interface UploadFile {
 		/** Stable id for this row. Used as the {#each} key — never the array index, since rows are removed from the middle. */
@@ -13,7 +14,7 @@
 		error?: string;
 	}
 
-	export interface FileUploadProps {
+	interface BaseProps {
 		/** Selected files; bindable. */
 		files?: UploadFile[];
 		/** Called with the new list on every change — a selection, a drop, or a removal. */
@@ -50,6 +51,9 @@
 		 */
 		sound?: boolean;
 	}
+
+	export type FileUploadProps = BaseProps &
+		Omit<HTMLInputAttributes, keyof BaseProps | "type" | "value" | "role">;
 </script>
 
 <script lang="ts">
@@ -78,6 +82,11 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		onchange,
+		"aria-label": ariaLabel,
+		"aria-describedby": ariaDescribedby,
+		"aria-invalid": ariaInvalid,
+		...rest
 	}: FileUploadProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -99,7 +108,8 @@
 
 	const hintId = $derived(`${effectiveId}-hint`);
 	const describedBy = $derived(
-		[field?.describedBy, hint ? hintId : undefined].filter(Boolean).join(" ") || undefined
+		[field?.describedBy, ariaDescribedby, hint ? hintId : undefined].filter(Boolean).join(" ") ||
+			undefined
 	);
 
 	// Counts enter/leave pairs instead of toggling a boolean on either one.
@@ -255,6 +265,7 @@
 		// otherwise the browser sees an unchanged selection and stays silent.
 		event.currentTarget.value = "";
 		addFiles(picked);
+		onchange?.(event);
 	}
 
 	function handleDragEnter(event: DragEvent) {
@@ -357,6 +368,7 @@
 		ondrop={handleDrop}
 	>
 		<input
+			{...rest}
 			bind:this={ref}
 			type="file"
 			id={effectiveId}
@@ -365,9 +377,9 @@
 			{multiple}
 			disabled={effectiveDisabled}
 			required={effectiveRequired}
-			aria-invalid={effectiveInvalid ? "true" : undefined}
+			aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
 			aria-describedby={describedBy}
-			aria-label={label}
+			aria-label={label ?? ariaLabel}
 			class="ft-file-upload-input sr-only"
 			onchange={handleInputChange}
 		/>

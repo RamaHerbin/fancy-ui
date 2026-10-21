@@ -81,6 +81,22 @@ const VetoHarness = defineComponent({
 	},
 });
 
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
+const FWD_CONTEXT: FieldContext = {
+	controlId: "ctx-id",
+	describedBy: "ctx-help",
+	invalid: false,
+	valid: true,
+	required: false,
+	disabled: false,
+};
+
 describe("Switch", () => {
 	afterEach(cleanup);
 
@@ -494,6 +510,90 @@ describe("Switch", () => {
 			const el = toggle(container);
 
 			expect(el.hasAttribute("sound")).toBe(false);
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards aria-describedby and data-* to the native input", () => {
+			const { container } = render(Switch, {
+				props: { label: "Agree" },
+				attrs: { "aria-describedby": "hint", "data-testid": "box" },
+			});
+			const el = toggle(container);
+			expect(el.getAttribute("data-testid")).toBe("box");
+			expect(el.getAttribute("aria-describedby")).toBe("hint");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(Switch, {
+				props: { label: "Agree" },
+				attrs: { "aria-describedby": "mine" },
+				global: { provide: { [FIELD_KEY as symbol]: FWD_CONTEXT } },
+			});
+			expect(toggle(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer @blur, @focus and @keydown exactly once", async () => {
+			const onBlur = vi.fn();
+			const onFocus = vi.fn();
+			const onKeydown = vi.fn();
+			const { container } = render(Switch, {
+				props: { label: "Agree" },
+				attrs: { onBlur, onFocus, onKeydown },
+			});
+			const el = toggle(container);
+			await fireEvent.focus(el);
+			await fireEvent.keyDown(el, { key: "a" });
+			await fireEvent.blur(el);
+			expect(onFocus).toHaveBeenCalledTimes(1);
+			expect(onKeydown).toHaveBeenCalledTimes(1);
+			expect(onBlur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs a consumer @change once, after the internal toggle", async () => {
+			const order: string[] = [];
+			const onChange = vi.fn((event: Event) => {
+				order.push(`consumer:${(event.currentTarget as HTMLInputElement).checked}`);
+			});
+			const onCheckedChange = vi.fn(() => order.push("internal"));
+			const { container } = render(Switch, {
+				props: { label: "Agree", onCheckedChange },
+				attrs: { onChange },
+			});
+			await fireEvent.click(toggle(container));
+			expect(onChange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer:true"]);
+		});
+
+		it("does not let a consumer override managed state attributes", () => {
+			const { container } = render(Switch, {
+				props: { label: "Agree" },
+				attrs: { "aria-checked": "true", type: "text", role: "button" },
+			});
+			const el = toggle(container);
+			expect(el.getAttribute("aria-checked")).toBe("false");
+			expect(el.type).toBe("checkbox");
+			expect(el.getAttribute("role")).toBe("switch");
+		});
+
+		it("takes part in a form: name, value and the form attribute reach the input", () => {
+			const form = formOf("sw-form");
+			const { container } = render(Switch, {
+				props: { checked: true, name: "agree", value: "yes", label: "Agree" },
+				attrs: { form: "sw-form" },
+			});
+			expect(toggle(container).form).toBe(form);
+			expect(new FormData(form).get("agree")).toBe("yes");
+			form.remove();
+		});
+
+		it("picks up an attribute added after the first render", async () => {
+			const { container, rerender } = render(Switch, { props: { label: "Agree" } });
+			expect(toggle(container).hasAttribute("data-late")).toBe(false);
+			expect(toggle(container).getAttribute("aria-describedby")).toBeNull();
+			await rerender({ "data-late": "yes", "aria-describedby": "late-id" });
+			expect(toggle(container).getAttribute("data-late")).toBe("yes");
+			expect(toggle(container).getAttribute("aria-describedby")).toBe("late-id");
 		});
 	});
 });

@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useFancyId } from "../../internals/use-id.js";
@@ -9,7 +9,7 @@ import type { RadioGroupContext } from "./types.js";
 
 export type RadioGroupOrientation = "horizontal" | "vertical";
 
-export interface RadioGroupProps {
+interface RadioGroupOwnProps {
 	/**
 	 * The selected value. `""` means nothing is selected. Controlled when
 	 * supplied: pair it with `onValueChange`, the React counterpart of the
@@ -52,6 +52,11 @@ export interface RadioGroupProps {
 	sound?: boolean;
 }
 
+export interface RadioGroupProps
+	extends
+		Omit<ComponentPropsWithoutRef<"div">, keyof RadioGroupOwnProps | "role">,
+		RadioGroupOwnProps {}
+
 /**
  * A set of `RadioGroupItem`s sharing one selection and one native radio
  * `name`.
@@ -76,6 +81,13 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function R
 		children,
 		className,
 		sound = false,
+		id,
+		"aria-label": ariaLabel,
+		"aria-labelledby": ariaLabelledby,
+		"aria-describedby": ariaDescribedby,
+		"aria-invalid": ariaInvalid,
+		"aria-required": ariaRequired,
+		...rest
 	},
 	ref
 ) {
@@ -165,16 +177,19 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function R
 				when there is no `labelId` to point at, never both at once.
 			*/}
 			<div
+				{...rest}
 				ref={ref}
-				id={field?.controlId}
+				id={field?.controlId ?? id}
 				className={classes}
 				role="radiogroup"
 				data-orientation={orientation}
-				aria-label={field?.labelId ? undefined : label}
-				aria-labelledby={field?.labelId}
-				aria-describedby={field?.describedBy}
-				aria-invalid={effectiveInvalid ? "true" : undefined}
-				aria-required={effectiveRequired ? "true" : undefined}
+				aria-label={field?.labelId ? undefined : (label ?? ariaLabel)}
+				aria-labelledby={field?.labelId ?? ariaLabelledby}
+				aria-describedby={
+					[field?.describedBy, ariaDescribedby].filter(Boolean).join(" ") || undefined
+				}
+				aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
+				aria-required={effectiveRequired ? "true" : ariaRequired}
 			>
 				{children}
 			</div>

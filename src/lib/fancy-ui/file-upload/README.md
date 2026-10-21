@@ -120,6 +120,10 @@ interface UploadFile {
 }
 ```
 
+## Native attributes
+
+Any other attribute or listener (`aria-*`, `data-*`, `form`, `onfocus`, `onblur`, `onkeydown`, …) is forwarded to the `<input type="file">` behind the drop zone, the element that takes focus; with `name`, `accept` and `required` it also joins a surrounding `<form>`. `class` still lands on the root. `type` and the FormField-managed `id`, `disabled`, `required` and `aria-invalid` stay authoritative, and a consumer `aria-describedby` is merged with the FormField one and the hint. A consumer `onchange` runs once, after the internal handling. The drop zone itself is not an attribute target. The Svelte and Vue pickers clear the input after each pick so the same file can be picked again, so a native form submission does not carry the files; read `files` instead.
+
 ## Theming
 
 The accent has no semantic token in the app's theme layer, so it falls back

@@ -5,10 +5,28 @@ import { Slider } from "./Slider.js";
 import { SliderHarness } from "./SliderHarness.js";
 import { SliderFieldHarness } from "./SliderFieldHarness.js";
 import { resetSoundForTests, sound } from "../../sound/sound.js";
+import { FieldProvider } from "../../internals/field.js";
+import type { FieldContext } from "../../internals/field.js";
 
 function slider(container: HTMLElement): HTMLInputElement {
 	return container.querySelector("input[type=range]") as HTMLInputElement;
 }
+
+function formOf(id: string) {
+	const form = document.createElement("form");
+	form.id = id;
+	document.body.appendChild(form);
+	return form;
+}
+
+const FWD_CONTEXT: FieldContext = {
+	controlId: "ctx-id",
+	describedBy: "ctx-help",
+	invalid: false,
+	valid: true,
+	required: false,
+	disabled: false,
+};
 
 describe("Slider", () => {
 	afterEach(cleanup);
@@ -274,6 +292,88 @@ describe("Slider", () => {
 			fireEvent.input(el, { target: { value: "30" } });
 
 			expect(play).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("native attribute forwarding", () => {
+		it("forwards id, aria-describedby and data-* to the range input", () => {
+			const { container } = render(<Slider id="vol" aria-describedby="hint" data-testid="vol" />);
+			const el = slider(container);
+			expect(el.id).toBe("vol");
+			expect(el.getAttribute("aria-describedby")).toBe("hint");
+			expect(el.getAttribute("data-testid")).toBe("vol");
+		});
+
+		it("merges a consumer aria-describedby with the FormField one", () => {
+			const { container } = render(
+				<FieldProvider value={FWD_CONTEXT}>
+					<Slider aria-describedby="mine" />
+				</FieldProvider>
+			);
+			expect(slider(container).getAttribute("aria-describedby")).toBe("ctx-help mine");
+		});
+
+		it("fires a consumer onBlur, onFocus and onKeyDown exactly once", () => {
+			const onBlur = vi.fn();
+			const onFocus = vi.fn();
+			const onKeyDown = vi.fn();
+			const { container } = render(
+				<Slider onBlur={onBlur} onFocus={onFocus} onKeyDown={onKeyDown} />
+			);
+			const el = slider(container);
+			fireEvent.focus(el);
+			fireEvent.keyDown(el, { key: "ArrowRight" });
+			fireEvent.blur(el);
+			expect(onFocus).toHaveBeenCalledTimes(1);
+			expect(onKeyDown).toHaveBeenCalledTimes(1);
+			expect(onBlur).toHaveBeenCalledTimes(1);
+		});
+
+		it("runs a consumer onChange once, after the internal handling", () => {
+			const order: string[] = [];
+			const onChange = vi.fn(() => order.push("consumer"));
+			const onValueChange = vi.fn(() => order.push("internal"));
+			const { container } = render(<Slider onValueChange={onValueChange} onChange={onChange} />);
+			fireEvent.change(slider(container), { target: { value: "40" } });
+			expect(onChange).toHaveBeenCalledTimes(1);
+			expect(order).toEqual(["internal", "consumer"]);
+		});
+
+		it("does not call a consumer onChange when disabled", () => {
+			const onChange = vi.fn();
+			const { container } = render(<Slider disabled onChange={onChange} />);
+			fireEvent.change(slider(container), { target: { value: "40" } });
+			expect(onChange).not.toHaveBeenCalled();
+		});
+
+		it("does not let a consumer override managed attributes", () => {
+			const { container } = render(
+				<Slider
+					value={30}
+					min={0}
+					max={100}
+					aria-valuenow={99}
+					aria-valuemax={5}
+					{...({ type: "text" } as object)}
+				/>
+			);
+			const el = slider(container);
+			expect(el.type).toBe("range");
+			expect(el.getAttribute("aria-valuenow")).toBe("30");
+			expect(el.getAttribute("aria-valuemax")).toBe("100");
+		});
+
+		it("takes part in a form: name and the form attribute reach the input", () => {
+			const form = formOf("sl-form");
+			const { container } = render(<Slider value={30} name="volume" form="sl-form" />);
+			expect(slider(container).form).toBe(form);
+			expect(new FormData(form).get("volume")).toBe("30");
+			form.remove();
+		});
+
+		it("ignores stray children instead of passing them to the void input", () => {
+			const { container } = render(<Slider>{"x"}</Slider>);
+			expect(slider(container).childNodes.length).toBe(0);
 		});
 	});
 });

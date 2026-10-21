@@ -8,19 +8,29 @@ export interface RadioGroupItemProps {
 	disabled?: boolean;
 	/** Visible label text, rendered next to the control. Falls back to the default slot, then to `value`. */
 	label?: string;
+	/** A consumer `@change`, run once after the group selection. */
+	onChange?: (event: Event) => void;
 	/** Additional CSS classes, merged onto the wrapping `<label>`. */
 	class?: HTMLAttributes["class"];
 }
 </script>
 
 <script setup lang="ts">
-import { computed, inject, useTemplateRef } from "vue";
+import { computed, inject, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { RADIO_GROUP_KEY } from "./types.js";
 
 defineOptions({ name: "RadioGroupItem", inheritAttrs: false });
 
-const { value, disabled = false, label, class: className } = defineProps<RadioGroupItemProps>();
+const {
+	value,
+	disabled = false,
+	label,
+	onChange,
+	class: className,
+} = defineProps<RadioGroupItemProps>();
+
+const attrs = useAttrs() as Record<string, string | undefined>;
 
 defineSlots<{
 	/** Visible label content, in place of `label`/`value`. */
@@ -49,9 +59,32 @@ const isChecked = computed(() => group?.isSelected(value) ?? false);
 // synthetic `change` fired straight at the element — as a test does, and
 // as some assistive tech does — walks straight past it, so the handler
 // repeats the guard itself.
-function handleChange() {
+/**
+ * A consumer listener rides a declared camelCase prop (not the fall-through
+ * attrs) so a guarded activation can skip it; Vue hands several `@event`
+ * bindings over as an array.
+ */
+function callListener(listener: unknown, ...args: unknown[]) {
+	if (Array.isArray(listener)) {
+		for (const fn of listener) if (typeof fn === "function") fn(...args);
+	} else if (typeof listener === "function") {
+		listener(...args);
+	}
+}
+
+// A bare `required` arrives as an empty string; only an explicit false opts out.
+// A plain function, re-run by every render: `attrs` is not reactive, so a computed
+// would never see a `required` added after the first run.
+function isRequired(): boolean {
+	return (
+		!!group?.required || (attrs.required !== undefined && (attrs.required as unknown) !== false)
+	);
+}
+
+function handleChange(event: Event) {
 	if (isDisabled.value) return;
 	group?.select(value);
+	callListener(onChange, event);
 }
 
 const labelClasses = computed(() =>
@@ -80,14 +113,15 @@ const controlClasses = computed(() =>
 <template>
 	<label :class="labelClasses">
 		<input
+			v-bind="attrs"
 			ref="el"
 			type="radio"
 			:class="controlClasses"
 			:value="value"
 			:checked="isChecked"
 			:disabled="isDisabled"
-			:required="group?.required"
-			:name="group?.name"
+			:required="isRequired()"
+			:name="group?.name ?? attrs.name"
 			@change="handleChange"
 		/>
 		<slot>{{ label ?? value }}</slot>

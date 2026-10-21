@@ -13,13 +13,14 @@
 
 	interface Props {
 		context: FieldContext;
+		attrs?: Record<string, unknown>;
 	}
 
-	let { context }: Props = $props();
+	let { context, attrs = {} }: Props = $props();
 
 	setContext(FIELD_KEY, context);
 </script>
 
 <!-- Deliberately passed own props that disagree with the context, so a test
      can prove the context wins rather than merely matching by coincidence. -->
-<Switch id="own-id" required={false} disabled={false} label="Notifications" />
+<Switch id="own-id" required={false} disabled={false} label="Notifications" {...attrs} />

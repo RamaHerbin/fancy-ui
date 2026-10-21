@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
@@ -8,7 +8,7 @@ import { useLiveRef } from "../../internals/dom/use-live-ref.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import "./slider.css";
 
-export interface SliderProps {
+interface SliderOwnProps {
 	/** Current value; seeds internal state and resyncs whenever the prop changes. */
 	value?: number;
 	/** Called with the new value on every input event. */
@@ -40,6 +40,11 @@ export interface SliderProps {
 	sound?: boolean;
 }
 
+export interface SliderProps
+	extends
+		Omit<ComponentPropsWithoutRef<"input">, keyof SliderOwnProps | "type" | "role">,
+		SliderOwnProps {}
+
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 	(
 		{
@@ -56,6 +61,13 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 			showBounds = false,
 			className,
 			sound = false,
+			onChange,
+			"aria-label": ariaLabel,
+			"aria-describedby": ariaDescribedby,
+			"aria-invalid": ariaInvalid,
+			// An `<input>` is a void element: a stray `children` must not reach it.
+			children: _children,
+			...rest
 		},
 		ref
 	) => {
@@ -140,6 +152,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 			const next = Number(event.currentTarget.value);
 			setValue(next);
 			onValueChange?.(next);
+			onChange?.(event);
 		}
 
 		// React's `onChange` prop on a controlled range input is wired to the
@@ -179,6 +192,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 						</span>
 					)}
 					<input
+						{...rest}
 						ref={composedRef}
 						type="range"
 						className="ft-slider h-1 w-full cursor-pointer appearance-none bg-transparent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -189,12 +203,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 						step={step}
 						value={clampedValue}
 						disabled={effectiveDisabled}
-						aria-describedby={field?.describedBy}
-						aria-invalid={effectiveInvalid ? "true" : undefined}
+						aria-describedby={
+							[field?.describedBy, ariaDescribedby].filter(Boolean).join(" ") || undefined
+						}
+						aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
 						aria-valuemin={min}
 						aria-valuemax={max}
 						aria-valuenow={clampedValue}
-						aria-label={label}
+						aria-label={label ?? ariaLabel}
 						style={{ "--ft-slider-fill": `${fraction * 100}%` } as React.CSSProperties}
 						onChange={handleInput}
 					/>
@@ -202,7 +218,10 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 				{showBounds && (
 					// Decorative echo of min/max; the authoritative values live on the
 					// input's own min/max/aria-valuemin/aria-valuemax attributes.
-					<div className="text-muted-foreground flex justify-between text-[11px]" aria-hidden="true">
+					<div
+						className="text-muted-foreground flex justify-between text-[11px]"
+						aria-hidden="true"
+					>
 						<span>{min}</span>
 						<span>{max}</span>
 					</div>

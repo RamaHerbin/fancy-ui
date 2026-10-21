@@ -1,5 +1,5 @@
 import { forwardRef, useState } from "react";
-import type { ChangeEvent, ReactNode } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useSoundCue } from "../../sound/use-sound.js";
@@ -7,7 +7,7 @@ import "./switch.css";
 
 export type SwitchSize = "sm" | "md" | "lg";
 
-export interface SwitchProps {
+interface SwitchOwnProps {
 	/**
 	 * Whether the switch is on. Controlled when supplied: pair it with
 	 * `onCheckedChange`, the React counterpart of the Svelte source's
@@ -52,6 +52,11 @@ export interface SwitchProps {
 	sound?: boolean;
 }
 
+export interface SwitchProps
+	extends
+		Omit<ComponentPropsWithoutRef<"input">, keyof SwitchOwnProps | "type" | "role">,
+		SwitchOwnProps {}
+
 /**
  * A native `<input type="checkbox">` with `role="switch"` — the input IS the
  * track, restyled rather than replaced, with the knob drawn as a pseudo-element
@@ -76,6 +81,11 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
 			size = "md",
 			className,
 			sound = false,
+			onChange,
+			"aria-label": ariaLabel,
+			"aria-describedby": ariaDescribedby,
+			"aria-invalid": ariaInvalid,
+			...rest
 		},
 		forwardedRef
 	) => {
@@ -117,6 +127,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
 			if (!isControlled) setUncontrolledChecked(next);
 			playCue(next ? "toggle-on" : "toggle-off");
 			onCheckedChange?.(next);
+			onChange?.(event);
 		}
 
 		const wrapperClasses = cn(
@@ -128,6 +139,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
 		return (
 			<label className={wrapperClasses}>
 				<input
+					{...rest}
 					ref={forwardedRef}
 					type="checkbox"
 					role="switch"
@@ -140,9 +152,11 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
 					disabled={effectiveDisabled}
 					required={effectiveRequired}
 					aria-checked={checked}
-					aria-invalid={effectiveInvalid ? "true" : undefined}
-					aria-describedby={field?.describedBy}
-					aria-label={label}
+					aria-invalid={effectiveInvalid ? "true" : ariaInvalid}
+					aria-describedby={
+						[field?.describedBy, ariaDescribedby].filter(Boolean).join(" ") || undefined
+					}
+					aria-label={label ?? ariaLabel}
 					onChange={handleChange}
 				/>
 				{children}
