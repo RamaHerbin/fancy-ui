@@ -4,12 +4,12 @@ Button with a hover animation. A small dot beside the label opens into a circle 
 
 ## Props
 
-| Prop       | Type      | Default    | Description                                                          |
-| ---------- | --------- | ---------- | -------------------------------------------------------------------- |
-| `text`     | `string`  | `"Button"` | Button label text                                                    |
-| `class`    | `string`  | `""`       | Additional CSS classes                                               |
-| `children` | Snippet   | -          | Optional content (overrides `text`)                                  |
-| `sound`    | `boolean` | `false`    | Plays the `press` cue on activation, once the user has enabled sound |
+| Prop       | Type      | Default    | Description                                                                                                         |
+| ---------- | --------- | ---------- | ------------------------------------------------------------------------------------------------------------------- |
+| `text`     | `string`  | `"Button"` | Button label text                                                                                                   |
+| `class`    | `string`  | `""`       | Additional CSS classes                                                                                              |
+| `children` | Snippet   | -          | Optional content (overrides `text`)                                                                                 |
+| `sound`    | `boolean` | `false`    | Plays the `hover` cue when a mouse or pen enters and the `press` cue on activation, once the user has enabled sound |
 
 Also accepts all standard `<button>` attributes via `...restProps`.
 
