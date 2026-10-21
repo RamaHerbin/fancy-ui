@@ -85,3 +85,36 @@ describe("NavigationMenuTrigger forwards native attributes", () => {
 		expect(first().getAttribute("tabindex")).toBe("0");
 	});
 });
+
+describe("NavigationMenuTrigger with a forwarded disabled", () => {
+	const second = () => document.querySelector('[data-value="company"]') as HTMLButtonElement;
+
+	it("hands the tab stop to the first enabled trigger", () => {
+		render(<Rig attrs={{ disabled: true }} />);
+		expect(first().disabled).toBe(true);
+		expect(first().getAttribute("tabindex")).toBe("-1");
+		expect(second().getAttribute("tabindex")).toBe("0");
+	});
+
+	it("is skipped by arrow navigation", () => {
+		render(<Rig attrs={{ disabled: true }} />);
+		second().focus();
+		fireEvent.keyDown(second(), { key: "ArrowRight" });
+		expect(document.activeElement).toBe(second());
+		expect(second().getAttribute("tabindex")).toBe("0");
+		fireEvent.keyDown(second(), { key: "Home" });
+		expect(first().getAttribute("tabindex")).toBe("-1");
+		expect(second().getAttribute("tabindex")).toBe("0");
+	});
+
+	it("does not open or call consumer listeners", () => {
+		const onClick = vi.fn();
+		const onKeyDown = vi.fn();
+		render(<Rig attrs={{ disabled: true, onClick, onKeyDown }} />);
+		fireEvent.click(first());
+		fireEvent.keyDown(first(), { key: "ArrowDown" });
+		expect(first().getAttribute("aria-expanded")).toBe("false");
+		expect(onClick).not.toHaveBeenCalled();
+		expect(onKeyDown).not.toHaveBeenCalled();
+	});
+});

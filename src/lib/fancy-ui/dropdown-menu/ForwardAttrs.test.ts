@@ -143,6 +143,20 @@ describe("DropdownMenuSubTrigger forwards native attributes", () => {
 		expect(subTrigger().getAttribute("aria-expanded")).toBe("true");
 	});
 
+	it("calls no consumer mouse listener while disabled, mouseleave included", async () => {
+		const onmouseenter = vi.fn();
+		const onmouseleave = vi.fn();
+		render(Harness, {
+			open: true,
+			subTriggerAttrs: { disabled: true, onmouseenter, onmouseleave },
+		});
+		await fireEvent.mouseEnter(subTrigger());
+		await fireEvent.mouseLeave(subTrigger());
+		expect(onmouseenter).not.toHaveBeenCalled();
+		expect(onmouseleave).not.toHaveBeenCalled();
+		expect(subTrigger().getAttribute("aria-expanded")).toBe("false");
+	});
+
 	it("keeps role, tabindex, aria-haspopup and aria-expanded authoritative", () => {
 		render(Harness, {
 			open: true,

@@ -115,6 +115,9 @@ export function DropdownMenuSubTrigger({
 	function handleMouseLeave(event: MouseEvent<HTMLButtonElement>): void {
 		clearOpenIntent();
 		sub.scheduleClose();
+		// The internal cleanup above still runs while disabled (the row can turn
+		// disabled while hovered); only the consumer listener is guarded.
+		if (disabled) return;
 		onMouseLeave?.(event);
 	}
 

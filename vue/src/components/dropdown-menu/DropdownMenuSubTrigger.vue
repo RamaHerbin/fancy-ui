@@ -122,6 +122,9 @@ function handleMouseEnter(event: MouseEvent): void {
 function handleMouseLeave(event: MouseEvent): void {
 	clearOpenIntent();
 	sub.scheduleClose();
+	// The internal cleanup above still runs while disabled (the row can turn
+	// disabled while hovered); only the consumer listener is guarded.
+	if (disabled) return;
 	callListener(onMouseleave, event);
 }
 

@@ -11,7 +11,7 @@
 		ref?: HTMLButtonElement | null;
 	}
 
-	/** Native `<button>` attributes and listeners are forwarded to the trigger; `id`, `aria-expanded`, `aria-controls` and `tabindex` stay the component's. */
+	/** Native `<button>` attributes and listeners are forwarded to the trigger; `id`, `aria-expanded`, `aria-controls` and `tabindex` stay the component's. A forwarded `disabled` leaves the roving order and makes the trigger inert. */
 	export type NavigationMenuTriggerProps = NavigationMenuTriggerOwnProps &
 		Omit<HTMLButtonAttributes, keyof NavigationMenuTriggerOwnProps>;
 </script>
@@ -39,7 +39,14 @@
 	const isOpen = $derived(root.value === item.value);
 	const tabIndexAttr = $derived(root.focusedValue === item.value ? 0 : -1);
 
+	// A forwarded native `disabled` keeps the trigger out of the roving order
+	// (a disabled button cannot take focus, so it must never hold the tab
+	// stop) and makes it inert: none of its handlers open, move or call the
+	// consumer's listener.
+	const disabled = $derived(Boolean(rest.disabled));
+
 	$effect(() => {
+		if (disabled) return;
 		return root.registerTrigger(item.value);
 	});
 
@@ -48,6 +55,7 @@
 	// protect against the way there is for a pointer merely passing over the
 	// row.
 	function handleClick(event: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement }) {
+		if (disabled) return;
 		handleClickCore();
 		(onclick as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
@@ -66,6 +74,7 @@
 	function handlePointerEnter(
 		event: PointerEvent & { currentTarget: EventTarget & HTMLButtonElement }
 	) {
+		if (disabled) return;
 		handlePointerEnterCore();
 		(onpointerenter as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
@@ -77,7 +86,10 @@
 	function handlePointerLeave(
 		event: PointerEvent & { currentTarget: EventTarget & HTMLButtonElement }
 	) {
+		// Leaving still schedules the close (the trigger can turn disabled while
+		// its panel is open); only the consumer listener is guarded.
 		handlePointerLeaveCore();
+		if (disabled) return;
 		(onpointerleave as ((e: typeof event) => void) | null | undefined)?.(event);
 	}
 
@@ -95,6 +107,7 @@
 	function handleKeydown(
 		event: KeyboardEvent & { currentTarget: EventTarget & HTMLButtonElement }
 	) {
+		if (disabled) return;
 		handleKeydownCore(event);
 		(onkeydown as ((e: typeof event) => void) | null | undefined)?.(event);
 	}

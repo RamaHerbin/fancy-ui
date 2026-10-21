@@ -1,15 +1,31 @@
 <script lang="ts">
 import type { HTMLAttributes } from "vue";
 
+/**
+ * Native `<button>` attributes and listeners are forwarded to the trigger; the managed
+ * ARIA, state and structural attributes stay the component's. A forwarded `disabled`
+ * leaves the roving order and makes the trigger inert.
+ */
 export interface NavigationMenuTriggerProps {
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
+	/** Native `disabled`: leaves the roving order, never opens, calls no listener below. */
+	disabled?: boolean;
+	/** Called after the component's own handling, never while disabled. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onPointerenter?: ((event: PointerEvent) => void) | ((event: PointerEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onPointerleave?: ((event: PointerEvent) => void) | ((event: PointerEvent) => void)[];
+	/** Called after the component's own handling, never while disabled. */
+	onKeydown?: ((event: KeyboardEvent) => void) | ((event: KeyboardEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, useAttrs, useTemplateRef, watch } from "vue";
 
+import { callListener } from "../../internals/call-listener.js";
 import { cn } from "../../utils.js";
 import { NAVIGATION_MENU_KEY, NAVIGATION_MENU_ITEM_KEY } from "./types.js";
 
@@ -17,7 +33,14 @@ defineOptions({ name: "NavigationMenuTrigger", inheritAttrs: false });
 
 const attrs = useAttrs();
 
-const { class: className } = defineProps<NavigationMenuTriggerProps>();
+const {
+	class: className,
+	disabled = false,
+	onClick,
+	onPointerenter,
+	onPointerleave,
+	onKeydown,
+} = defineProps<NavigationMenuTriggerProps>();
 
 defineSlots<{
 	/** The trigger's label. */
@@ -35,7 +58,12 @@ const tabIndexAttr = computed(() => (root.focusedValue === item.value ? 0 : -1))
 
 let releaseRegistration: (() => void) | null = null;
 
+// A forwarded native `disabled` keeps the trigger out of the roving order (a
+// disabled button cannot take focus, so it must never hold the tab stop) and
+// makes it inert: none of its handlers open, move or call the consumer's
+// listener.
 function joinTriggerOrder() {
+	if (disabled) return;
 	releaseRegistration = root.registerTrigger(item.value);
 }
 
@@ -60,8 +88,11 @@ onBeforeUnmount(leaveTriggerOrder);
 // effect's cleanup-then-body does. Not `immediate` — the first registration is
 // `onMounted`'s above — and `post` so it lands in the flush a Svelte effect
 // would.
+//
+// Turning `disabled` on or off mid-session leaves or rejoins the order the
+// same way.
 watch(
-	() => item.value,
+	() => [item.value, disabled] as const,
 	() => {
 		leaveTriggerOrder();
 		joinTriggerOrder();
@@ -72,7 +103,8 @@ watch(
 // Click is immediate, no hover-intent delay — an explicit click is already the
 // user's decision, there is no "did they mean it" travel to protect against
 // the way there is for a pointer merely passing over the row.
-function handleClick() {
+function handleClick(event: MouseEvent) {
+	if (disabled) return;
 	root.toggle(item.value);
 	root.focus(item.value);
 	// Deliberate, not incidental, the same reasoning as ToggleGroupItem: a
@@ -81,14 +113,21 @@ function handleClick() {
 	// clicking a trigger would open its panel but leave the roving tab stop —
 	// and DOM focus — wherever it last was.
 	el.value?.focus();
+	callListener(onClick, event);
 }
 
-function handlePointerEnter() {
+function handlePointerEnter(event: PointerEvent) {
+	if (disabled) return;
 	root.scheduleOpen(item.value);
+	callListener(onPointerenter, event);
 }
 
-function handlePointerLeave() {
+function handlePointerLeave(event: PointerEvent) {
 	root.scheduleClose();
+	// Leaving still schedules the close (the trigger can turn disabled while
+	// its panel is open); only the consumer listener is guarded.
+	if (disabled) return;
+	callListener(onPointerleave, event);
 }
 
 // There is deliberately no `focus` handler opening the panel here. A keyboard
@@ -99,6 +138,12 @@ function handlePointerLeave() {
 // programmatic refocus would reopen it immediately — the pointer-and-keyboard
 // fight the panel's own test file pins down.
 function handleKeydown(event: KeyboardEvent) {
+	if (disabled) return;
+	handleKeydownCore(event);
+	callListener(onKeydown, event);
+}
+
+function handleKeydownCore(event: KeyboardEvent) {
 	switch (event.key) {
 		case "Enter":
 		case " ":
@@ -153,6 +198,7 @@ const classes = computed(() =>
 		:aria-expanded="isOpen"
 		:aria-controls="isOpen ? item.contentId : undefined"
 		:tabindex="tabIndexAttr"
+		:disabled="disabled"
 	>
 		<slot />
 		<span class="ft-navigation-menu-caret" aria-hidden="true">▾</span>

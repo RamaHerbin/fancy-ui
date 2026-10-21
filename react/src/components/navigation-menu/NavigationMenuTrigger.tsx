@@ -21,7 +21,8 @@ interface NavigationMenuTriggerOwnProps {
 
 /**
  * Native `<button>` attributes and listeners are forwarded to the trigger; the managed
- * ARIA, state and structural attributes stay the component's.
+ * ARIA, state and structural attributes stay the component's. A forwarded `disabled`
+ * leaves the roving order and makes the trigger inert.
  */
 export interface NavigationMenuTriggerProps
 	extends
@@ -48,14 +49,24 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 		const isOpen = root.value === item.value;
 		const tabIndexAttr = root.focusedValue === item.value ? 0 : -1;
 
+		// A forwarded native `disabled` keeps the trigger out of the roving
+		// order (a disabled button cannot take focus, so it must never hold the
+		// tab stop) and makes it inert: none of its handlers open, move or call
+		// the consumer's listener.
+		const disabled = Boolean(rest.disabled);
+
 		const { registerTrigger } = root;
-		useEffect(() => registerTrigger(item.value), [registerTrigger, item.value]);
+		useEffect(() => {
+			if (disabled) return;
+			return registerTrigger(item.value);
+		}, [registerTrigger, item.value, disabled]);
 
 		// Click is immediate, no hover-intent delay — an explicit click is
 		// already the user's decision, there is no "did they mean it" travel to
 		// protect against the way there is for a pointer merely passing over
 		// the row.
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
+			if (disabled) return;
 			root.toggle(item.value);
 			root.focus(item.value);
 			// Deliberate, not incidental, the same reasoning as ToggleGroupItem:
@@ -68,12 +79,16 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 		}
 
 		function handlePointerEnter(event: PointerEvent<HTMLButtonElement>) {
+			if (disabled) return;
 			root.scheduleOpen(item.value);
 			onPointerEnter?.(event);
 		}
 
 		function handlePointerLeave(event: PointerEvent<HTMLButtonElement>) {
 			root.scheduleClose();
+			// Leaving still schedules the close (the trigger can turn disabled
+			// while its panel is open); only the consumer listener is guarded.
+			if (disabled) return;
 			onPointerLeave?.(event);
 		}
 
@@ -86,6 +101,7 @@ export const NavigationMenuTrigger = forwardRef<HTMLButtonElement, NavigationMen
 		// immediately — the pointer-and-keyboard fight the panel's own test
 		// file pins down.
 		function handleKeydown(event: KeyboardEvent<HTMLButtonElement>) {
+			if (disabled) return;
 			handleNavigationKey(event);
 			onKeyDown?.(event);
 		}
