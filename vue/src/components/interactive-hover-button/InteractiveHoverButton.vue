@@ -13,11 +13,15 @@ export interface InteractiveHoverButtonProps {
 	sound?: boolean;
 	/** Native disabled state — read by the click handler to gate the cue. */
 	disabled?: ButtonHTMLAttributes["disabled"];
-	onclick?: (event: MouseEvent) => void;
+	/** Click handler, called after the sound cue. `@click` reaches it. */
+	onClick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
+	onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => void)[];
 }
 </script>
 
 <script setup lang="ts">
+import { callListener } from "../../internals/call-listener.js";
 import { useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/index.js";
@@ -46,7 +50,7 @@ useSoundFeedback(el, () => ({
 
 function handleClick(event: MouseEvent) {
 	if (!props.disabled) playCue("press");
-	props.onclick?.(event);
+	callListener(props.onClick ?? props.onclick, event);
 }
 </script>
 

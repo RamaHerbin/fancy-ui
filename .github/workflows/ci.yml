@@ -51,6 +51,8 @@ jobs:
       - run: pnpm check:props
       # The framework-free engines the three packages share must stay byte-identical.
       - run: pnpm check:cores
+      # Each package's Tailwind entry compiles to real colour rules and default tokens.
+      - run: pnpm check:tailwind
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
