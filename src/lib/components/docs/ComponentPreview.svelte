@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import CodeBlock from "./CodeBlock.svelte";
+	import { t } from "$lib/stores";
 	import { SoundToggle } from "$lib/fancy-ui/sound/index.js";
 
 	interface Props {
@@ -39,7 +40,7 @@
 						? 'border-foreground text-foreground border-b-2'
 						: 'text-muted-foreground hover:text-foreground'}"
 				>
-					Preview
+					{t("comp.preview")}
 				</button>
 				{#if code}
 					<button
@@ -48,7 +49,7 @@
 							? 'border-foreground text-foreground border-b-2'
 							: 'text-muted-foreground hover:text-foreground'}"
 					>
-						Code
+						{t("comp.code")}
 					</button>
 				{/if}
 			</div>

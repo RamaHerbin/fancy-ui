@@ -1,12 +1,13 @@
 <script lang="ts">
 	import InstallationPage from "$lib/components/docs/InstallationPage.svelte";
 	import Seo from "$lib/components/Seo.svelte";
+	import { tc } from "$lib/components/docs/chrome-i18n.js";
 	import { t, docTitle } from "$lib/stores";
 </script>
 
 <Seo
 	title={docTitle(t("install.metaTitle"))}
-	description="Install FancyUI in a Svelte 5, React or Vue project: add the package, wire up the Tailwind CSS v4 stylesheet, and import your first component."
+	description={tc("seo.installation")}
 	path="/docs/getting-started/installation"
 />
 
