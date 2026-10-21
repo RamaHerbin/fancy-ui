@@ -75,4 +75,17 @@ describe("Toggle form contract", () => {
 		expect(button.hasAttribute("required")).toBe(true);
 		expect(button.getAttribute("aria-invalid")).toBe("true");
 	});
+
+	it("keeps the button as the only element in the form and nests the hidden input in it", () => {
+		const { form, button, hidden } = setup({ name: "bold", pressed: true });
+		expect(form.children.length).toBe(1);
+		expect(form.firstElementChild).toBe(button);
+		expect(button.contains(hidden())).toBe(true);
+		expect(new FormData(form).get("bold")).toBe("on");
+	});
+
+	it("still accepts a numeric value, as the native button type does", () => {
+		const { form } = setup({ name: "level", value: 3, pressed: true });
+		expect(new FormData(form).get("level")).toBe("3");
+	});
 });

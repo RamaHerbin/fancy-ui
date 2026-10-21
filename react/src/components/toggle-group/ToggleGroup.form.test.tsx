@@ -75,4 +75,20 @@ describe("ToggleGroup form contract", () => {
 		expect(input.form).toBe(target);
 		target.remove();
 	});
+
+	it("still submits a selected item that is disabled on its own: only a disabled group submits nothing", () => {
+		const { container } = render(
+			<form>
+				<ToggleGroup label="Group" name="fmt" type="multiple" value={["left", "right"]}>
+					<ToggleGroupItem value="left" disabled>
+						Left
+					</ToggleGroupItem>
+					<ToggleGroupItem value="center">Center</ToggleGroupItem>
+					<ToggleGroupItem value="right">Right</ToggleGroupItem>
+				</ToggleGroup>
+			</form>
+		);
+		const form = container.querySelector("form") as HTMLFormElement;
+		expect(new FormData(form).getAll("fmt")).toEqual(["left", "right"]);
+	});
 });

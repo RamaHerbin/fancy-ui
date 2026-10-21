@@ -104,4 +104,32 @@ describe("ToggleGroup form contract", () => {
 		const input = container.querySelector('input[type="hidden"]') as HTMLInputElement;
 		expect(input.form).toBe(target);
 	});
+
+	it("still submits a selected item that is disabled on its own: only a disabled group submits nothing", () => {
+		const Own = defineComponent({
+			setup() {
+				return () =>
+					h("form", [
+						h(
+							ToggleGroup as never,
+							{ label: "Group", name: "fmt", type: "multiple", value: ["left", "right"] },
+							{
+								default: () => [
+									h(
+										ToggleGroupItem as never,
+										{ value: "left", disabled: true },
+										{ default: () => "left" }
+									),
+									h(ToggleGroupItem as never, { value: "center" }, { default: () => "center" }),
+									h(ToggleGroupItem as never, { value: "right" }, { default: () => "right" }),
+								],
+							}
+						),
+					]);
+			},
+		});
+		const { container } = render(Own);
+		const form = container.querySelector("form") as HTMLFormElement;
+		expect(new FormData(form).getAll("fmt")).toEqual(["left", "right"]);
+	});
 });

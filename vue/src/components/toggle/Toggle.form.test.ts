@@ -79,4 +79,18 @@ describe("Toggle form contract", () => {
 		expect(button.hasAttribute("required")).toBe(true);
 		expect(button.getAttribute("aria-invalid")).toBe("true");
 	});
+
+	it("keeps a single element root, with or without a name, and nests the hidden input in the button", () => {
+		const off = setup({ props: { pressed: false } });
+		// No comment node beside the button: the root is the button itself, so
+		// v-show, transitions and $el keep working on the component.
+		expect(off.form.childNodes.length).toBe(1);
+		expect(off.form.firstChild).toBe(off.button);
+		cleanup();
+		document.body.innerHTML = "";
+		const on = setup({ props: { name: "bold", pressed: true } });
+		expect(on.form.childNodes.length).toBe(1);
+		expect(on.button.contains(on.hidden())).toBe(true);
+		expect(new FormData(on.form).get("bold")).toBe("on");
+	});
 });
