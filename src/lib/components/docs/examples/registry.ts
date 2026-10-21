@@ -1213,6 +1213,12 @@ export const examplesRegistry: Record<string, ExampleMeta[]> = {
 			title: "With Preview",
 			description: "A card beside the hovered row, gliding from one row to the next.",
 		},
+		{
+			name: "Neon",
+			title: "Neon",
+			description:
+				"Glowing lines, a beam of light riding every pluck, and a breathing current line.",
+		},
 	],
 	sidebar: [
 		{ name: "BasicUsage", title: "Basic Usage" },

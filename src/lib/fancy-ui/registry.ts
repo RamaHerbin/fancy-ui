@@ -8142,6 +8142,13 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Ruler ticks drawn between two rows.",
 			},
 			{
+				name: "variant",
+				type: '"default" | "neon"',
+				default: '"default"',
+				description:
+					"Neon turns the lines into glowing tubes: proximity raises the glow, a beam of light rides every pluck, labels glow on hover, and the current line breathes. Made for dark surfaces.",
+			},
+			{
 				name: "ariaLabel",
 				type: "string",
 				default: '"Navigation"',

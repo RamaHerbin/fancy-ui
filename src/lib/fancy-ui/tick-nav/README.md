@@ -46,6 +46,14 @@ pointer.
 - **Accessibility.** A `<nav>` landmark (`ariaLabel`) with real links or
   buttons; `aria-current="page"` on the current row; lines, ticks and the card
   are `aria-hidden`.
+- **Neon variant.** `variant="neon"` adds a `.tn-beam` path to every line.
+  The core gives it the line's `d` during a pluck and flags the `<svg>` with
+  `data-plucking` and `--tn-p` (eased progress of the wave's head); CSS turns
+  that into a short near-white dash riding the head (`pathLength="100"`,
+  `stroke-dashoffset` from `--tn-p`), fading over the last third. Lines glow
+  with stacked `drop-shadow`s scaled by proximity, labels get a text glow on
+  hover, and the current line breathes. Built for dark surfaces; the Svelte
+  selector on `data-plucking` is `:global` because only the core sets it.
 - **Sound.** With `sound`, every pluck from a mouse or pen plays a cue: `hover`
   for an item's line, `tick` at 60% for a ruler tick.
 

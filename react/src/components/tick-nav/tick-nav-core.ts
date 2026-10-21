@@ -21,6 +21,9 @@
  *     .tn-path                     the row's <path> (pluck target)
  *     .tn-ticks                    optional tick group after the row
  *       .tn-tick-path              one <path> per tick (pluck target)
+ * A line's <svg> may also hold a `.tn-beam` path: it gets the same `d` as the
+ * line during a pluck, and the <svg> gets `data-plucking` plus `--tn-p`, the
+ * eased progress 0..1 of the wave's head, so CSS can ride a highlight on it.
  * and, inside `root`, an optional `.tn-preview` that reads `--tn-px`,
  * `--tn-py` and `--tn-po`.
  *
@@ -139,6 +142,8 @@ export function pluckPath(p: number, amplitude = 1): string {
 
 interface Line {
 	path: SVGPathElement;
+	beam: SVGPathElement | null;
+	svg: SVGSVGElement | null;
 	kind: "row" | "tick";
 	row: number;
 	/** Centre, list-local px; read once per pointer visit. */
@@ -188,19 +193,10 @@ export function createTickNavCore(
 			const old = previous[i];
 			const rest = i === options.current ? options.activeLength : options.restLength;
 			const path = el.querySelector<SVGPathElement>(".tn-path");
-			const line: Line | null = path
-				? { path, kind: "row", row: i, y: 0, pluckStart: null, lastPluck: -Infinity }
-				: null;
+			const line: Line | null = path ? makeLine(path, "row", i) : null;
 			if (line) lines.push(line);
 			el.querySelectorAll<SVGPathElement>(".tn-tick-path").forEach((tick) => {
-				lines.push({
-					path: tick,
-					kind: "tick",
-					row: i,
-					y: 0,
-					pluckStart: null,
-					lastPluck: -Infinity,
-				});
+				lines.push(makeLine(tick, "tick", i));
 			});
 			return {
 				el,
@@ -210,6 +206,33 @@ export function createTickNavCore(
 				tickNear: old?.tickNear ?? spring(0),
 			};
 		});
+	}
+
+	function makeLine(path: SVGPathElement, kind: "row" | "tick", row: number): Line {
+		const svg = path.ownerSVGElement;
+		return {
+			path,
+			beam: svg?.querySelector<SVGPathElement>(".tn-beam") ?? null,
+			svg,
+			kind,
+			row,
+			y: 0,
+			pluckStart: null,
+			lastPluck: -Infinity,
+		};
+	}
+
+	function setShape(line: Line, d: string, progress: number | null): void {
+		line.path.setAttribute("d", d);
+		line.beam?.setAttribute("d", d);
+		if (!line.svg) return;
+		if (progress === null) {
+			line.svg.removeAttribute("data-plucking");
+			line.svg.style.removeProperty("--tn-p");
+		} else {
+			line.svg.setAttribute("data-plucking", "");
+			line.svg.style.setProperty("--tn-p", progress.toFixed(4));
+		}
 	}
 
 	function measureLines(): void {
@@ -274,10 +297,11 @@ export function createTickNavCore(
 			const p = Math.min((t - line.pluckStart) / PLUCK_MS, 1);
 			if (p < 1) {
 				const amplitude = line.kind === "tick" ? TICK_AMPLITUDE : 1;
-				line.path.setAttribute("d", pluckPath(1 - Math.pow(1 - p, 3), amplitude));
+				const eased = 1 - Math.pow(1 - p, 3);
+				setShape(line, pluckPath(eased, amplitude), eased);
 				moving = true;
 			} else {
-				line.path.setAttribute("d", TICK_NAV_FLAT_PATH);
+				setShape(line, TICK_NAV_FLAT_PATH, null);
 				line.pluckStart = null;
 			}
 		}
@@ -298,7 +322,7 @@ export function createTickNavCore(
 
 	function stopPluck(line: Line): void {
 		line.pluckStart = null;
-		line.path.setAttribute("d", TICK_NAV_FLAT_PATH);
+		setShape(line, TICK_NAV_FLAT_PATH, null);
 	}
 
 	/** Restarts the line's pluck (a new strike interrupts a running one). */

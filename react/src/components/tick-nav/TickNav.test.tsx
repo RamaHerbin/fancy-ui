@@ -185,6 +185,18 @@ describe("TickNav", () => {
 		});
 	});
 
+	it("adds a beam to every line only in the neon variant", () => {
+		const { container } = render(<TickNav items={items} variant="neon" />);
+		const nav = container.querySelector("nav")!;
+		expect(nav.getAttribute("data-variant")).toBe("neon");
+		const lines = container.querySelectorAll(".tn-path, .tn-tick-path").length;
+		expect(container.querySelectorAll(".tn-beam")).toHaveLength(lines);
+		cleanup();
+		const { container: plain } = render(<TickNav items={items} />);
+		expect(plain.querySelector("nav")!.hasAttribute("data-variant")).toBe(false);
+		expect(plain.querySelectorAll(".tn-beam")).toHaveLength(0);
+	});
+
 	it("merges the className prop", () => {
 		const { container } = render(<TickNav items={items} className="mt-4" />);
 		const nav = container.querySelector("nav")!;

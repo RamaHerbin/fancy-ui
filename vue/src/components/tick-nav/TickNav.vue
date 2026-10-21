@@ -14,6 +14,12 @@ export interface TickNavProps {
 	reach?: number;
 	/** Ruler ticks drawn between two rows. */
 	minorTicks?: number;
+	/**
+	 * `"neon"` turns the lines into glowing tubes: proximity raises the glow,
+	 * a hot beam of light rides every pluck, labels glow on hover, and the
+	 * current line breathes. Made for dark surfaces.
+	 */
+	variant?: "default" | "neon";
 	/** Accessible name of the `<nav>` landmark. */
 	ariaLabel?: string;
 	/**
@@ -44,6 +50,7 @@ defineOptions({ name: "TickNav", inheritAttrs: false });
 const props = withDefaults(defineProps<TickNavProps>(), {
 	reach: TICK_NAV_DEFAULTS.reach,
 	minorTicks: 2,
+	variant: "default",
 	ariaLabel: "Navigation",
 	sound: false,
 });
@@ -125,7 +132,12 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 </script>
 
 <template>
-	<nav ref="root" :aria-label="ariaLabel" :class="cn('tn-root', props.class)">
+	<nav
+		ref="root"
+		:aria-label="ariaLabel"
+		:class="cn('tn-root', props.class)"
+		:data-variant="variant === 'neon' ? 'neon' : undefined"
+	>
 		<ul ref="list" class="tn-list">
 			<li
 				v-for="(item, i) in items"
@@ -144,6 +156,12 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 				>
 					<svg class="tn-bar" viewBox="0 0 54 8" preserveAspectRatio="none" aria-hidden="true">
 						<path class="tn-path" :d="TICK_NAV_FLAT_PATH" />
+						<path
+							v-if="variant === 'neon'"
+							class="tn-beam"
+							:d="TICK_NAV_FLAT_PATH"
+							pathLength="100"
+						/>
 					</svg>
 					<span class="tn-label">
 						{{ item.label }}
@@ -160,6 +178,12 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 				>
 					<svg class="tn-bar" viewBox="0 0 54 8" preserveAspectRatio="none" aria-hidden="true">
 						<path class="tn-path" :d="TICK_NAV_FLAT_PATH" />
+						<path
+							v-if="variant === 'neon'"
+							class="tn-beam"
+							:d="TICK_NAV_FLAT_PATH"
+							pathLength="100"
+						/>
 					</svg>
 					<span class="tn-label">
 						{{ item.label }}
@@ -170,6 +194,12 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 					<span v-for="(_, k) in ticks" :key="k" class="tn-tick">
 						<svg viewBox="0 0 54 8" preserveAspectRatio="none">
 							<path class="tn-tick-path" :d="TICK_NAV_FLAT_PATH" />
+							<path
+								v-if="variant === 'neon'"
+								class="tn-beam"
+								:d="TICK_NAV_FLAT_PATH"
+								pathLength="100"
+							/>
 						</svg>
 					</span>
 				</span>
@@ -339,5 +369,92 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 	pointer-events: none;
 	opacity: var(--tn-po, 0);
 	transform: translate(var(--tn-px, 0), var(--tn-py, 0));
+}
+/* ------------------------------------------------------------------ neon */
+
+.tn-root[data-variant="neon"] {
+	--tn-border: color-mix(in oklab, var(--tn-accent) 22%, transparent);
+	/* The hot core of a lit tube: the accent pushed toward white. */
+	--tn-hot: color-mix(in oklab, var(--tn-accent) 55%, white);
+}
+
+.tn-root[data-variant="neon"] .tn-bar,
+.tn-root[data-variant="neon"] .tn-tick svg {
+	filter: drop-shadow(0 0 calc(1px + var(--tn-near, 0) * 3px) var(--tn-accent))
+		drop-shadow(0 0 calc(var(--tn-near, 0) * 12px) var(--tn-accent));
+}
+
+.tn-root[data-variant="neon"] .tn-tick svg {
+	filter: drop-shadow(0 0 calc(0.5px + var(--tn-tick-near, 0) * 5px) var(--tn-accent));
+}
+
+.tn-root[data-variant="neon"] .tn-path {
+	stroke: color-mix(in oklab, var(--tn-hot) calc(var(--tn-near, 0) * 100%), var(--tn-border));
+}
+
+.tn-root[data-variant="neon"] .tn-tick-path {
+	stroke: color-mix(in oklab, var(--tn-hot) calc(var(--tn-tick-near, 0) * 70%), var(--tn-border));
+}
+
+/* The beam: a short, near-white dash centred on the wave's head, with a
+	   wide halo. Invisible at rest; the core flags a plucking line. */
+.tn-beam {
+	fill: none;
+	stroke: color-mix(in oklab, white 75%, var(--tn-accent));
+	stroke-width: 2.25;
+	stroke-linecap: round;
+	stroke-dasharray: 16 200;
+	stroke-dashoffset: calc(8 - var(--tn-p, 0) * 100);
+	opacity: 0;
+	filter: drop-shadow(0 0 2px var(--tn-accent)) drop-shadow(0 0 8px var(--tn-accent));
+}
+
+/* `data-plucking` is set by the core at runtime. */
+svg[data-plucking] .tn-beam {
+	/* Fades out over the last third of the run as the wave dies down. */
+	opacity: calc(min(1, (1 - var(--tn-p, 0)) * 3));
+}
+
+.tn-tick .tn-beam {
+	stroke-width: 1.5;
+}
+
+.tn-root[data-variant="neon"] .tn-item[data-current] .tn-path {
+	stroke: var(--tn-hot);
+}
+
+.tn-root[data-variant="neon"] .tn-item[data-current] .tn-bar {
+	animation: tn-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes tn-breathe {
+	0%,
+	100% {
+		filter: drop-shadow(0 0 2px var(--tn-accent)) drop-shadow(0 0 6px var(--tn-accent));
+	}
+	50% {
+		filter: drop-shadow(0 0 3px var(--tn-accent)) drop-shadow(0 0 12px var(--tn-accent));
+	}
+}
+
+.tn-root[data-variant="neon"] .tn-item[data-active] .tn-label,
+.tn-root[data-variant="neon"] .tn-item[data-current] .tn-label {
+	color: var(--tn-hot);
+	text-shadow:
+		0 0 6px color-mix(in oklab, var(--tn-accent) 70%, transparent),
+		0 0 16px color-mix(in oklab, var(--tn-accent) 45%, transparent);
+}
+
+.tn-root[data-variant="neon"] .tn-preview {
+	border-color: color-mix(in oklab, var(--tn-accent) 45%, transparent);
+	box-shadow:
+		0 0 0 1px color-mix(in oklab, var(--tn-accent) 20%, transparent),
+		0 0 24px -4px color-mix(in oklab, var(--tn-accent) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tn-root[data-variant="neon"] .tn-item[data-current] .tn-bar {
+		animation: none;
+	}
 }
 </style>

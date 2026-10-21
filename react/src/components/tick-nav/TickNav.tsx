@@ -34,6 +34,12 @@ export interface TickNavProps {
 	 * audible once the user has enabled sound.
 	 */
 	sound?: boolean;
+	/**
+	 * `"neon"` turns the lines into glowing tubes: proximity raises the glow,
+	 * a hot beam of light rides every pluck, labels glow on hover, and the
+	 * current line breathes. Made for dark surfaces.
+	 */
+	variant?: "default" | "neon";
 	/** Additional CSS classes on the `<nav>`. */
 	className?: string;
 }
@@ -52,6 +58,7 @@ export function TickNav({
 	minorTicks = 2,
 	ariaLabel = "Navigation",
 	sound = false,
+	variant = "default",
 	className,
 }: TickNavProps) {
 	// `value` mirrors the Svelte side's `$bindable()`: the prop seeds internal
@@ -122,7 +129,12 @@ export function TickNav({
 	}
 
 	return (
-		<nav ref={rootRef} aria-label={ariaLabel} className={cn("tn-root", className)}>
+		<nav
+			ref={rootRef}
+			aria-label={ariaLabel}
+			className={cn("tn-root", className)}
+			data-variant={variant === "neon" ? "neon" : undefined}
+		>
 			<ul ref={listRef} className="tn-list">
 				{items.map((item, i) => {
 					const isCurrent = item.id === value;
@@ -135,6 +147,9 @@ export function TickNav({
 								aria-hidden="true"
 							>
 								<path className="tn-path" d={TICK_NAV_FLAT_PATH} />
+								{variant === "neon" ? (
+									<path className="tn-beam" d={TICK_NAV_FLAT_PATH} pathLength={100} />
+								) : null}
 							</svg>
 							<span className="tn-label">
 								{item.label}
@@ -176,6 +191,9 @@ export function TickNav({
 										<span key={k} className="tn-tick">
 											<svg viewBox="0 0 54 8" preserveAspectRatio="none">
 												<path className="tn-tick-path" d={TICK_NAV_FLAT_PATH} />
+												{variant === "neon" ? (
+													<path className="tn-beam" d={TICK_NAV_FLAT_PATH} pathLength={100} />
+												) : null}
 											</svg>
 										</span>
 									))}
