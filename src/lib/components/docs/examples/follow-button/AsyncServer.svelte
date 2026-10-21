@@ -9,11 +9,12 @@
 	// is refused (and the switch turns itself off), so the rollback and the retry
 	// can both be watched.
 	async function onToggle(_next: boolean) {
+		// Read and consume the flag when the request STARTS: a request sent under
+		// "Fail next request" fails even if the switch is turned off meanwhile.
+		const refuse = failNext;
+		failNext = false;
 		await new Promise((resolve) => setTimeout(resolve, 800));
-		if (failNext) {
-			failNext = false;
-			throw new Error("The server said no");
-		}
+		if (refuse) throw new Error("The server said no");
 	}
 </script>
 

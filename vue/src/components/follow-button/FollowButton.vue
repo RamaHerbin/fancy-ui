@@ -159,9 +159,19 @@ const shown = computed(() => shownFollowing(core.value));
 const currentLabel = computed(() => visibleLabel(core.value, resolvedLabels.value, errorLabel));
 const showsPreview = computed(() => core.value.phase === "idle" && core.value.following);
 const failed = computed(() => core.value.phase === "error");
-const classes = computed(() =>
-	cn("ft-follow", failed.value && "ft-follow--failed border", className)
-);
+// With no explicit variant the button flips primary <-> outline, and the
+// outline has a 1px border: reserve it (transparent) in the primary state so
+// the box is identical across idle, following, pending and error.
+const classes = computed(() => {
+	const reserveBorder = variant === undefined;
+	return cn(
+		"ft-follow",
+		(failed.value || reserveBorder) && "border",
+		reserveBorder && !shown.value && !failed.value && "border-transparent",
+		failed.value && "ft-follow--failed",
+		className
+	);
+});
 
 // The accessible name never follows the visible text: a name that changes next
 // to `aria-pressed` would announce the state twice. A plain function, read from

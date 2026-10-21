@@ -248,8 +248,6 @@ async function main() {
 	);
 
 	const work = realpathSync(mkdtempSync(join(tmpdir(), "fancy-ui-consumer-docs-examples-react.")));
-	if ((work + sep).startsWith(realpathSync(root) + sep))
-		fail(`scratch dir ${work} is inside the repo`);
 	const app = join(work, "app");
 	const cleanup = () => {
 		if (opts.keep) console.log(`docs-examples-react: --keep, scratch kept at ${work}`);
@@ -257,6 +255,9 @@ async function main() {
 	};
 
 	try {
+		// Inside the try so the folder is removed when the guard trips.
+		if ((work + sep).startsWith(realpathSync(root) + sep))
+			fail(`scratch dir ${work} is inside the repo`);
 		const tarball = obtainTarball(opts, work);
 
 		// The consumer app, minus build output, specs and runner configs.

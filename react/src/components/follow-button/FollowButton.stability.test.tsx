@@ -118,4 +118,38 @@ describe("FollowButton width stability and text swap", () => {
 		expect(text(container)).toBe("Subscribe");
 		expect(ghosts(container)[0]?.textContent).toBe("Subscribe");
 	});
+
+	it("keeps the same border box across idle, pending, following and error", async () => {
+		// The default variant flips primary <-> outline; the outline carries a 1px
+		// border, so the primary state must reserve it (transparent) or the button
+		// grows by 2px on follow.
+		let settle!: (ok: boolean) => void;
+		const onToggle = vi.fn(
+			() =>
+				new Promise<void>((res, rej) => {
+					settle = (ok) => (ok ? res() : rej(new Error("no")));
+				})
+		);
+		const { container } = render(<FollowButton onToggle={onToggle} resetMs={5000} />);
+		const classes = () => button(container).className.split(/\s+/);
+		const reserved = () => {
+			const c = classes();
+			return (
+				c.includes("border") && (c.includes("border-transparent") || c.includes("border-border"))
+			);
+		};
+		expect(reserved()).toBe(true); // idle, not following
+		await click(button(container));
+		expect(button(container).dataset.state).toBe("pending");
+		expect(reserved()).toBe(true);
+		await act(async () => settle(true));
+		await flush();
+		expect(button(container).getAttribute("aria-pressed")).toBe("true");
+		expect(reserved()).toBe(true); // following (outline)
+		await click(button(container));
+		await act(async () => settle(false));
+		await flush();
+		expect(button(container).dataset.state).toBe("error");
+		expect(classes()).toContain("border");
+	});
 });

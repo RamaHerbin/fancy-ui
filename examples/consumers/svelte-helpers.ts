@@ -8,6 +8,23 @@ const background = (page: Page, selector: string) =>
 		.evaluate((el) => getComputedStyle(el).backgroundColor);
 
 /**
+ * `var(--primary)` resolved to a colour inside `rootSelector` (the wrapper that
+ * carries `.dark`), as the browser computes it there.
+ */
+const primaryToken = (page: Page, rootSelector: string) =>
+	page
+		.locator(rootSelector)
+		.first()
+		.evaluate((host) => {
+			const probe = document.createElement("div");
+			probe.style.backgroundColor = "var(--primary)";
+			host.appendChild(probe);
+			const value = getComputedStyle(probe).backgroundColor;
+			probe.remove();
+			return value;
+		});
+
+/**
  * Dark mode through a `.dark` ancestor, the way a consumer toggles it: the
  * toggle adds the class to a wrapper (not <html>, not the OS preference), and
  * a library Button's background must follow the flipped `--primary` token,
@@ -21,15 +38,20 @@ export async function expectDarkAncestorTheme(
 	const root = page.locator(opts.root);
 	await expect(root).not.toHaveClass(/\bdark\b/);
 	const light = await background(page, opts.button);
-	expect(light).not.toBe("rgba(0, 0, 0, 0)");
+	const lightToken = await primaryToken(page, opts.root);
+	expect(lightToken).not.toBe("rgba(0, 0, 0, 0)");
+	expect(light).toBe(lightToken);
 
 	await page.locator(opts.toggle).click();
 	await expect(root).toHaveClass(/\bdark\b/);
-	await expect.poll(() => background(page, opts.button)).not.toBe(light);
+	const darkToken = await primaryToken(page, opts.root);
+	expect(darkToken).not.toBe(lightToken);
+	// Buttons transition their colours: wait for the computed value to settle.
+	await expect.poll(() => background(page, opts.button)).toBe(darkToken);
 
 	await page.locator(opts.toggle).click();
 	await expect(root).not.toHaveClass(/\bdark\b/);
-	await expect.poll(() => background(page, opts.button)).toBe(light);
+	await expect.poll(() => background(page, opts.button)).toBe(lightToken);
 }
 
 /** The consumer's own handler ran through the library Button's `onclick`. */
@@ -64,7 +86,19 @@ export async function expectInstallSnippets(page: Page) {
 	await expect(first.getByRole("button", { name: "Click me" })).toBeVisible();
 	const usage = page.getByTestId("snippet-usage");
 	await expect(usage.getByRole("button", { name: "Click me" })).toBeVisible();
-	const head = usage.locator(".border-beam .bb-head");
+	// The snippet's own comet head, not any other BorderBeam on the page.
+	const head = usage.locator(".border-beam .bb-head").first();
 	await expect(head).toBeAttached();
-	expect(await head.evaluate((el) => getComputedStyle(el).position)).toBe("absolute");
+	const css = await head.evaluate((el) => {
+		const cs = getComputedStyle(el);
+		return {
+			position: cs.position,
+			name: cs.animationName,
+			maxDuration: Math.max(...cs.animationDuration.split(",").map((d) => parseFloat(d))),
+		};
+	});
+	expect(css.position).toBe("absolute");
+	expect(css.name).not.toBe("none");
+	expect(css.name).not.toBe("");
+	expect(css.maxDuration).toBeGreaterThan(0);
 }

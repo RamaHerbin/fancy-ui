@@ -9,3 +9,6 @@ consumer_copy
 consumer_install fancy-ui-vue
 (cd "$APP" && npm run build)
 consumer_smoke
+
+# The docs snippets, type-checked and mounted against the same tarball.
+node "$ROOT/scripts/consumers/docs-examples-vue.mjs" --tarball "$TARBALL"

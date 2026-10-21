@@ -27,24 +27,30 @@ for (const { name } of examples) {
 
 test("dialog example opens from its trigger and closes with Escape", async ({ page }) => {
 	test.skip(!examples.some((e) => e.name === "dialog"), "dialog example not in this run");
+	const errors = collectErrors(page);
 	await page.goto("/?example=dialog");
 	await page.getByRole("button", { name: "Invite member" }).click();
 	await expect(page.getByRole("dialog")).toBeVisible();
 	await page.keyboard.press("Escape");
 	await expect(page.getByRole("dialog")).toBeHidden();
+	expect(errors).toEqual([]);
 });
 
 test("button example runs its handler", async ({ page }) => {
 	test.skip(!examples.some((e) => e.name === "button"), "button example not in this run");
+	const errors = collectErrors(page);
 	await page.goto("/?example=button");
 	await page.getByRole("button", { name: /Clicked 0 times/ }).click();
 	await expect(page.getByRole("button", { name: "Clicked 1 time" })).toBeVisible();
+	expect(errors).toEqual([]);
 });
 
 test("input example takes typed text", async ({ page }) => {
 	test.skip(!examples.some((e) => e.name === "input"), "input example not in this run");
+	const errors = collectErrors(page);
 	await page.goto("/?example=input");
 	const field = page.getByLabel("Email");
 	await field.fill("a@b.co");
 	await expect(field).toHaveValue("a@b.co");
+	expect(errors).toEqual([]);
 });

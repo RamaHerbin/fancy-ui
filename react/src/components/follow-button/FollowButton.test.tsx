@@ -285,6 +285,30 @@ describe("FollowButton", () => {
 			expect(onFollowingChange).not.toHaveBeenCalled();
 		});
 
+		it("lets the parent win when it starts passing `following={false}` while pending", async () => {
+			const d = deferred();
+			const onToggle = vi.fn(() => d.promise);
+			const onFollowingChange = vi.fn();
+			const { container, rerender } = render(
+				<FollowButton onToggle={onToggle} onFollowingChange={onFollowingChange} />
+			);
+			await click(button(container));
+			await flush();
+			expect(button(container).getAttribute("data-state")).toBe("pending");
+
+			// Same committed value (false), but the button is now controlled.
+			rerender(
+				<FollowButton following={false} onToggle={onToggle} onFollowingChange={onFollowingChange} />
+			);
+			await flush();
+			expect(button(container).getAttribute("data-state")).toBe("idle");
+
+			d.resolve();
+			await flush();
+			expect(onFollowingChange).not.toHaveBeenCalled();
+			expect(button(container).getAttribute("aria-pressed")).toBe("false");
+		});
+
 		it("follows a controlled parent through the whole cycle", async () => {
 			const d = deferred();
 			const onToggle = vi.fn(() => d.promise);

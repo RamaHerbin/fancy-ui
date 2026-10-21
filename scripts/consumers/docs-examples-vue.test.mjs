@@ -60,6 +60,36 @@ test("a failing run still removes its scratch folder", () => {
 	}
 });
 
+test("the inside-the-repo guard removes the scratch folder it just created", () => {
+	// TMPDIR points inside the checkout: the guard must trip AND leave nothing
+	// behind (an untracked folder in the working tree).
+	const repo = join(dirname(fileURLToPath(import.meta.url)), "../..");
+	const tmp = mkdtempSync(join(tmpdir(), "docs-examples-guard-"));
+	const source = join(tmp, "snippets");
+	mkdirSync(source);
+	writeFileSync(join(source, "one.vue"), "<template><p>hi</p></template>\n");
+	const insideRepo = mkdtempSync(join(repo, "node_modules", ".docs-examples-guard-"));
+	try {
+		for (const script of ["docs-examples-vue.mjs", "docs-examples-react.mjs"]) {
+			const args =
+				script === "docs-examples-vue.mjs"
+					? ["--source", source, "--tarball", join(tmp, "missing.tgz")]
+					: ["--tarball", join(tmp, "missing.tgz")];
+			const r = spawnSync(
+				process.execPath,
+				[join(dirname(fileURLToPath(import.meta.url)), script), ...args],
+				{ env: { ...process.env, TMPDIR: insideRepo, KEEP_CONSUMER: "" }, encoding: "utf8" }
+			);
+			assert.notEqual(r.status, 0, `${script} must fail`);
+			assert.match(`${r.stdout}${r.stderr}`, /inside the repo/, `${script}: the guard tripped`);
+			assert.deepEqual(readdirSync(insideRepo), [], `${script} left a folder behind`);
+		}
+	} finally {
+		rmSync(insideRepo, { recursive: true, force: true });
+		rmSync(tmp, { recursive: true, force: true });
+	}
+});
+
 test("exampleName gives a flat, selector-safe id", () => {
 	assert.equal(exampleName("_install/first-component.vue"), "install-first-component");
 	assert.equal(exampleName("glow-border.vue"), "glow-border");
