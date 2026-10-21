@@ -386,4 +386,71 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"Die Komponenten sind Vue-3.5-Single-File-Components, daher wird Vue 3.5.2 oder neuer benötigt.",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "Zum Inhalt springen",
+	"a11y.docsBreadcrumb": "Brotkrümelnavigation der Dokumentation",
+	"a11y.prevNext": "Vorherige und nächste Seite",
+	"a11y.search": "Suchen",
+	"search.a11y.close": "Suche schließen",
+	"nav.backToSite": "Zurück zur FancyUI-Startseite",
+	"nav.recipes": "Rezepte",
+	"toc.show": "Inhaltsverzeichnis anzeigen",
+	"footer.docs": "Doku",
+	"footer.contribute": "Mitwirken",
+	"footer.issues": "Issues",
+	"footer.discussions": "Diskussionen",
+	"footer.security": "Sicherheit",
+	"footer.conduct": "Verhaltenskodex",
+	"footer.changelog": "Changelog",
+	"footer.versions": "Versionen",
+	"footer.install": "Installation",
+	"footer.license": "MIT-Lizenz",
+	"comp.editPage": "Seite bearbeiten",
+	"comp.reportIssue": "Problem melden",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"ist eine Sammlung von {count} animierten, interaktiven UI-Komponenten für Svelte 5, React und Vue, die auf denselben Design-Tokens aufbauen.",
+	"intro.importHint":
+		"Importiere die Komponenten, die du brauchst. Der Importpfad richtet sich nach deinem Framework.",
+	"install.kitOptional":
+		"SvelteKit ist optional: FancyUI funktioniert in jedem Svelte-5-Projekt, das mit Vite gebaut wird.",
+	"theming.cssPerFramework":
+		"Importiere das Stylesheet für dein Framework: Jedes Paket bringt sein eigenes mit.",
+	"status.planned": "Geplant",
+	"status.deprecated": "Veraltet",
+	"comp.sinceVersion": "Neu in v{version}",
+	"comp.deprecatedNotice":
+		"Diese Komponente ist veraltet und kann in einer zukünftigen Version entfernt werden.",
+	"comp.inspiredByNoLink": "Inspiriert von {name}",
+	"recipes.title": "Rezepte",
+	"recipes.lead":
+		"Schritt-für-Schritt-Kompositionen, die mehrere Komponenten zu einer fertigen Oberfläche verbinden.",
+	"recipes.components": "Komponenten: {count}",
+	"error.notFoundTitle": "Seite nicht gefunden",
+	"error.genericTitle": "Etwas ist schiefgelaufen",
+	"error.notFoundBody": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
+	"error.genericBody":
+		"Es ist ein unerwarteter Fehler aufgetreten. Versuche es erneut oder gehe zurück zur Dokumentation.",
+	"error.unauthorizedTitle": "Anmeldung erforderlich",
+	"error.unauthorizedBody": "Du musst angemeldet sein, um diese Seite zu nutzen.",
+	"error.home": "Zur Startseite",
+	"error.browse": "Komponenten durchsuchen",
+	"error.search": "Die Dokumentation durchsuchen",
+	"error.report": "Defekten Link melden",
+	"comp.previewFailed": "Diese Vorschau konnte nicht geladen werden.",
+	"demo.noPreview": "Für diese Komponente gibt es noch keine Vorschau.",
+	"demo.notFound": "Komponente nicht gefunden.",
+	"recipes.steps": "Schritte",
+	"recipes.pitfalls": "Stolperfallen",
+	"recipes.componentsUsed": "Verwendete Komponenten",
+	"seo.introduction":
+		"FancyUI ist eine Bibliothek animierter, interaktiver UI-Komponenten für Svelte 5, React und Vue. Erfahre, was enthalten ist und wie du loslegst.",
+	"seo.installation":
+		"Installiere FancyUI für Svelte 5, React oder Vue: Paket hinzufügen, Stylesheet importieren und die erste Komponente rendern.",
+	"seo.theming":
+		"Passe FancyUI mit Design-Tokens an: OKLCh-Farben, Radius, Bewegung und Dark Mode für Svelte 5, React und Vue.",
+	"seo.themeGenerator":
+		"Stimme die OKLCh-Design-Tokens von FancyUI live ab und kopiere das erzeugte CSS in deine App.",
+	"seo.changelog": "Versionshinweise zu den FancyUI-Paketen für Svelte 5, React und Vue.",
 } satisfies Catalog;

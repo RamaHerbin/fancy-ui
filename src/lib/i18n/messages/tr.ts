@@ -385,4 +385,70 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"Bileşenler Vue 3.5 tek dosyalı bileşenleridir, bu nedenle Vue 3.5.2 veya üzeri gerekir.",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "İçeriğe geç",
+	"a11y.docsBreadcrumb": "Dokümantasyon gezinti yolu",
+	"a11y.prevNext": "Önceki ve sonraki sayfa",
+	"a11y.search": "Ara",
+	"search.a11y.close": "Aramayı kapat",
+	"nav.backToSite": "FancyUI ana sayfasına dön",
+	"nav.recipes": "Tarifler",
+	"toc.show": "İçindekileri göster",
+	"footer.docs": "Dokümantasyon",
+	"footer.contribute": "Katkıda bulunun",
+	"footer.issues": "Issues",
+	"footer.discussions": "Tartışmalar",
+	"footer.security": "Güvenlik",
+	"footer.conduct": "Davranış kuralları",
+	"footer.changelog": "Değişiklik günlüğü",
+	"footer.versions": "Sürümler",
+	"footer.install": "Kurulum",
+	"footer.license": "MIT Lisansı",
+	"comp.editPage": "Bu sayfayı düzenleyin",
+	"comp.reportIssue": "Sorun bildirin",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"Svelte 5, React ve Vue için aynı tasarım belirteçleri üzerine kurulu, {count} animasyonlu ve etkileşimli arayüz bileşeninden oluşan bir koleksiyondur.",
+	"intro.importHint":
+		"İhtiyacınız olan bileşenleri içe aktarın. İçe aktarma yolu kullandığınız framework'e bağlıdır.",
+	"install.kitOptional":
+		"SvelteKit isteğe bağlıdır: FancyUI, Vite ile derlenen her Svelte 5 projesinde çalışır.",
+	"theming.cssPerFramework":
+		"Framework'ünüze uygun stil dosyasını içe aktarın: her paket kendi stil dosyasıyla gelir.",
+	"status.planned": "Planlandı",
+	"status.deprecated": "Kullanımdan kaldırıldı",
+	"comp.sinceVersion": "v{version} ile geldi",
+	"comp.deprecatedNotice":
+		"Bu bileşen kullanımdan kaldırılmıştır ve gelecekteki bir sürümde kaldırılabilir.",
+	"comp.inspiredByNoLink": "{name}'den ilham alınmıştır",
+	"recipes.title": "Tarifler",
+	"recipes.lead":
+		"Birden fazla bileşeni tamamlanmış bir arayüzde birleştiren adım adım kompozisyonlar.",
+	"recipes.components": "Bileşenler: {count}",
+	"error.notFoundTitle": "Sayfa bulunamadı",
+	"error.genericTitle": "Bir şeyler ters gitti",
+	"error.notFoundBody": "Aradığınız sayfa mevcut değil veya taşınmış.",
+	"error.genericBody": "Beklenmeyen bir hata oluştu. Yeniden deneyin veya dokümantasyona dönün.",
+	"error.unauthorizedTitle": "Oturum açmanız gerekiyor",
+	"error.unauthorizedBody": "Bu sayfayı kullanmak için oturum açmış olmanız gerekir.",
+	"error.home": "Ana sayfaya dön",
+	"error.browse": "Bileşenlere göz atın",
+	"error.search": "Dokümantasyonda arayın",
+	"error.report": "Bozuk bağlantıyı bildirin",
+	"comp.previewFailed": "Bu önizleme yüklenemedi.",
+	"demo.noPreview": "Bu bileşen için henüz önizleme yok.",
+	"demo.notFound": "Bileşen bulunamadı.",
+	"recipes.steps": "Adımlar",
+	"recipes.pitfalls": "Sık yapılan hatalar",
+	"recipes.componentsUsed": "Kullanılan bileşenler",
+	"seo.introduction":
+		"FancyUI, Svelte 5, React ve Vue için animasyonlu ve etkileşimli arayüz bileşenleri kütüphanesidir. İçeriğini ve nasıl başlayacağınızı öğrenin.",
+	"seo.installation":
+		"FancyUI'ı Svelte 5, React veya Vue için kurun: paketi ekleyin, stil dosyasını içe aktarın ve ilk bileşeninizi oluşturun.",
+	"seo.theming":
+		"FancyUI'ı tasarım belirteçleriyle özelleştirin: OKLCh renkler, yarıçap, hareket ve karanlık mod; Svelte 5, React ve Vue için.",
+	"seo.themeGenerator":
+		"FancyUI'ın OKLCh tasarım belirteçlerini canlı olarak ayarlayın ve oluşturulan CSS'i uygulamanıza kopyalayın.",
+	"seo.changelog": "Svelte 5, React ve Vue için FancyUI paketlerinin sürüm notları.",
 } satisfies Catalog;
