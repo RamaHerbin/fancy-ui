@@ -1,3 +1,4 @@
+import { getAllRecipes } from "$lib/docs/recipes/registry.js";
 import { getAllComponents } from "$lib/fancy-ui/registry.js";
 import { publishedSlugs } from "$lib/inspiration/catalog.js";
 import { SITE_URL } from "$lib/site.js";
@@ -14,6 +15,7 @@ export const prerender = true;
 const STATIC_PATHS = [
 	"/",
 	"/docs/components",
+	"/docs/recipes",
 	"/inspiration",
 	"/docs/getting-started/introduction",
 	"/docs/getting-started/installation",
@@ -28,7 +30,11 @@ const STATIC_PATHS = [
 export const GET: RequestHandler = () => {
 	const paths = [
 		...STATIC_PATHS,
-		...getAllComponents().map(({ slug }) => `/docs/components/${slug}`),
+		// Deprecated components keep their page but leave the sitemap.
+		...getAllComponents()
+			.filter(({ deprecated }) => !deprecated)
+			.map(({ slug }) => `/docs/components/${slug}`),
+		...getAllRecipes().map(({ slug }) => `/docs/recipes/${slug}`),
 		// Only published references: drafts and archived entries never get a URL.
 		...publishedSlugs().map((slug) => `/inspiration/${slug}`),
 	];

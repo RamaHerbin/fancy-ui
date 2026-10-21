@@ -2,5 +2,5 @@ import { redirect } from "@sveltejs/kit";
 import type { PageLoad } from "./$types";
 
 export const load: PageLoad = ({ params }) => {
-	redirect(301, `/docs/components/${params.slug}`);
+	redirect(308, `/docs/components/${params.slug}`);
 };
