@@ -191,6 +191,12 @@ function creditUrls() {
 	return urls;
 }
 
+/** `name@range` → `name` (a scope's leading "@" is not a range separator). */
+function packageName(entry) {
+	const at = entry.indexOf("@", 1);
+	return at === -1 ? entry : entry.slice(0, at);
+}
+
 function packageDependencies(stack) {
 	const pkg = JSON.parse(read(join(repoRoot, ...stack.packageJson)));
 	return new Set(Object.keys(pkg.dependencies ?? {}));
@@ -449,12 +455,14 @@ export function findProblems(snap) {
 			if (re.test(text)) problems.push(`${where}: product name matching ${re.source}`);
 		}
 
-		for (const dep of item.dependencies ?? []) {
+		for (const entry of item.dependencies ?? []) {
+			const dep = packageName(entry);
 			if (!snap.deps.has(dep)) {
 				problems.push(`${where}: dependency ${dep} is not a ${pkgLabel} dependency`);
 			}
 		}
-		for (const dep of item.devDependencies ?? []) {
+		for (const entry of item.devDependencies ?? []) {
+			const dep = packageName(entry);
 			if (!snap.allDeps.has(dep)) {
 				problems.push(`${where}: devDependency ${dep} is not in ${pkgLabel}`);
 			}
