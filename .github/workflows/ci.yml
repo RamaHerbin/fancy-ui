@@ -64,10 +64,10 @@ jobs:
       - run: pnpm package
       # No raw bundler environment read survives into the packaged output: a
       # consumer's bundler may not define it, and the read then throws or
-      # leaves a branch live. The directory is named so a missing build fails
-      # here instead of the script finding nothing to check.
+      # leaves a branch live. The package is named and --require-built is set so
+      # a missing build fails here instead of the script finding nothing to check.
       - name: No raw environment read in dist
-        run: test -d dist/fancy-ui && node scripts/check-dist-env.mjs dist
+        run: node scripts/check-dist-env.mjs --require-built .
 
       # The published tarball is an allow-list (`files` in package.json) with
       # negated patterns for test rigs, the scaffold template and the per-folder
@@ -128,7 +128,7 @@ jobs:
       - run: pnpm --filter fancy-ui-react exec publint
       # Same check as the `check` job's, on this package's build.
       - name: No raw environment read in react/dist
-        run: test -d react/dist && node scripts/check-dist-env.mjs react/dist
+        run: node scripts/check-dist-env.mjs --require-built react
 
       - name: Pack dry-run — allow-list sanity
         working-directory: react
@@ -309,7 +309,7 @@ jobs:
       - run: pnpm --filter fancy-ui-vue exec publint
       # Same check as the `check` job's, on this package's build.
       - name: No raw environment read in vue/dist
-        run: test -d vue/dist && node scripts/check-dist-env.mjs vue/dist
+        run: node scripts/check-dist-env.mjs --require-built vue
 
       - name: Pack dry-run — allow-list sanity
         working-directory: vue
