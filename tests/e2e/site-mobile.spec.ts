@@ -23,6 +23,16 @@ async function expectNoOverflow(page: Page, width: number) {
 	expect(m.maxRight).toBeLessThanOrEqual(width);
 }
 
+// Web fonts swap in after first paint and can widen a line, and hydration can
+// add controls: measure only once both have settled.
+async function settle(page: Page) {
+	await page.waitForLoadState("networkidle");
+	await page.evaluate(() => document.fonts.ready);
+	await page.evaluate(
+		() => new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
+	);
+}
+
 async function metrics(page: Page) {
 	return page.evaluate(() => {
 		const header = document.querySelector("header");
@@ -47,7 +57,7 @@ test.describe("phone width (390 px)", () => {
 	for (const path of PAGES) {
 		test(`${path} does not scroll horizontally`, async ({ page }) => {
 			await page.goto(path);
-			await page.waitForLoadState("networkidle");
+			await settle(page);
 			await expectNoOverflow(page, 390);
 		});
 	}
@@ -59,7 +69,7 @@ test.describe("desktop width (1280 px)", () => {
 	for (const path of PAGES) {
 		test(`${path} does not scroll horizontally`, async ({ page }) => {
 			await page.goto(path);
-			await page.waitForLoadState("networkidle");
+			await settle(page);
 			await expectNoOverflow(page, 1280);
 		});
 	}
