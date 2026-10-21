@@ -1,4 +1,4 @@
-// Portuguese (pt) — machine-translated draft. TODO: native review.
+// Portuguese, Brazil (pt).
 import type { Catalog } from "./en.js";
 
 export default {
@@ -14,9 +14,9 @@ export default {
 	// Getting-started page titles
 	"page.introduction": "Introdução",
 	"page.installation": "Instalação",
-	"page.theming": "Personalização de tema",
-	"page.themeGenerator": "Gerador de tema",
-	"page.changelog": "Registro de alterações",
+	"page.theming": "Temas",
+	"page.themeGenerator": "Gerador de temas",
+	"page.changelog": "Notas de versão",
 
 	// Header
 	"header.search": "Pesquisar...",
@@ -32,10 +32,10 @@ export default {
 	"search.noResults": "Nenhum resultado encontrado",
 	"search.esc": "ESC",
 	"search.tryInstead": "Experimente uma destas pesquisas:",
-	"jobs.heading": "Explore pelo que você precisa",
+	"jobs.heading": "Explore por necessidade",
 	"jobs.feedback": "Dar feedback",
-	"jobs.input": "Coletar uma entrada",
-	"jobs.attention": "Guiar a atenção",
+	"jobs.input": "Coletar entradas",
+	"jobs.attention": "Direcionar a atenção",
 	"jobs.navigate": "Navegar",
 	"jobs.progress": "Mostrar o progresso",
 	"jobs.surprise": "Surpreender",
@@ -45,11 +45,11 @@ export default {
 	"comp.code": "Código",
 	"comp.installation": "Instalação",
 	"install.framework": "Framework",
-	"install.sourceOnly": "Ainda não está no npm — esta versão está no repositório.",
+	"install.sourceOnly": "Ainda não está no npm — esta versão fica no repositório.",
 	"install.unavailable": "Ainda não há versão deste componente para este framework.",
-	"install.copySource": "Copiar código-fonte",
+	"install.copySource": "Copiar o código-fonte",
 	"install.copySourceNote":
-		"Copia o código-fonte do componente para seu projeto; você é dono do código.",
+		"Copia o código-fonte do componente para o seu projeto; o código passa a ser seu.",
 	"comp.usage": "Uso",
 	"comp.props": "Propriedades",
 	"comp.slots": "Slots",
@@ -72,7 +72,7 @@ export default {
 	"table.payload": "Dados",
 	"table.portName": "Nome em {framework}",
 	"table.portNameUnknown":
-		"Não dá para deduzir pelas regras de nomes; veja as diferenças em relação à API do Svelte.",
+		"Não pode ser deduzido pelas regras de nomenclatura; veja as diferenças em relação à API do Svelte.",
 	"comp.events": "Eventos",
 	"comp.copyMarkdown": "Copiar como Markdown",
 
@@ -86,9 +86,9 @@ export default {
 	// Components gallery
 	"gallery.title": "Componentes",
 	"gallery.subtitle":
-		"{count} componentes lindamente animados para o Svelte 5, React e Vue. Navegue, pesquise e encontre o que precisa.",
+		"{count} componentes com belas animações para Svelte 5, React e Vue. Navegue, pesquise e encontre o que você precisa.",
 	"gallery.intro":
-		"Os componentes estão disponíveis para Svelte 5, React e Vue, estilizados com Tailwind CSS v4 e tipados com TypeScript. Cada página tem pré-visualização ao vivo e exemplos Svelte para copiar e colar, com o uso em React e Vue quando disponível. Instale o pacote uma vez e o código é seu.",
+		"Os componentes estão disponíveis para Svelte 5, React e Vue, estilizados com Tailwind CSS v4 e tipados com TypeScript. Cada página tem uma pré-visualização ao vivo e exemplos em Svelte para copiar e colar, além do uso em React e Vue quando disponível. Instale o pacote uma vez e o código é seu.",
 	"gallery.filterPlaceholder": "Filtrar componentes...",
 	"gallery.all": "Todos",
 	"gallery.noMatch": "Nenhum componente corresponde à sua pesquisa.",
@@ -102,29 +102,30 @@ export default {
 	"gallery.groupLabel": "Grupo de componentes",
 	"gallery.categoryLabel": "Categorias",
 	"gallery.desc.buttons":
-		"Botões interativos com movimento rico ao passar o cursor e ao pressionar",
+		"Botões interativos com animações ricas ao passar o cursor e ao pressionar",
 	"gallery.desc.cards": "Cartões e contêineres que reagem ao ponteiro",
 	"gallery.desc.backgrounds": "Fundos animados e decorativos",
 	"gallery.desc.text": "Animações de texto e efeitos tipográficos",
 	"gallery.desc.layout": "Primitivas de layout e componentes estruturais",
-	"gallery.desc.feedback": "Tooltips, toasts, loaders e outros feedbacks",
+	"gallery.desc.feedback":
+		"Tooltips, toasts, indicadores de carregamento e outros tipos de feedback",
 	"gallery.desc.data-display": "Listas, linhas do tempo e coleções de dados",
-	"gallery.desc.navigation": "Menus, abas, links e orientação",
-	"gallery.desc.media": "Exibição de imagens, vídeo e mídia",
+	"gallery.desc.navigation": "Menus, abas, links e elementos de orientação",
+	"gallery.desc.media": "Exibição de imagens, vídeos e mídia",
 	"gallery.desc.effects": "Efeitos visuais e movimento decorativo",
 	"gallery.desc.ai-chat": "Mensagens, campos de composição, conversas e texto em streaming",
 	"gallery.desc.ai-agents":
-		"Raciocínio, uso de ferramentas, planos e cartões com humano no circuito",
+		"Raciocínio, uso de ferramentas, planos e cartões de intervenção humana",
 	"gallery.desc.actions": "Botões, interruptores e outras primitivas de ação",
-	"gallery.desc.forms": "Campos e primitivas para capturar a entrada do usuário",
+	"gallery.desc.forms": "Campos e primitivas para coletar a entrada do usuário",
 	"gallery.desc.overlays": "Diálogos, popovers, menus e painéis",
 	"gallery.desc.display": "Selos, avatares e exibição de status",
 
 	// Theme-generator page
 	"tg.metaDescription":
-		"Ajuste os tokens de design OKLCh do FancyUI ao vivo e copie o CSS para a sua aplicação.",
+		"Ajuste ao vivo os tokens de design OKLCh do FancyUI e copie o CSS para a sua aplicação.",
 	"tg.intro":
-		"Ajuste os tokens de design do FancyUI e veja os componentes reagirem em tempo real. Quando estiver do seu agrado, copie o CSS gerado para a folha de estilos da sua aplicação (por exemplo, src/app.css). As cores usam o espaço de cores OKLCh; a paleta arco-íris usa HSL. Para a referência completa dos tokens, consulte <link>Personalização de tema</link>.",
+		"Ajuste os tokens de design do FancyUI e veja os componentes reagirem em tempo real. Quando estiver do seu agrado, copie o CSS gerado para a folha de estilos da sua aplicação (por exemplo, src/app.css). As cores usam o espaço de cores OKLCh; a paleta arco-íris usa HSL. Para a referência completa dos tokens, consulte a página <link>Temas</link>.",
 	"tg.presets": "Predefinições",
 	"tg.base": "Base",
 	"tg.light": "Claro",
@@ -161,50 +162,50 @@ export default {
 	"category.ai-chat": "Chat com IA",
 	"category.ai-agents": "Agentes de IA",
 
-	// Introduction (redesigned page)
+	// Introduction page
 	"intro.title": "Introdução",
 	"intro.metaTitle": "Introdução",
-	"intro.pill.animation": "Animação em primeiro lugar",
+	"intro.pill.animation": "Foco em animação",
 	"intro.pill.copyPaste": "Fácil de copiar e colar",
 	"intro.pill.tailwind": "Tailwind CSS 4",
 	"intro.pill.typescript": "TypeScript",
 	"intro.philosophy.heading": "Filosofia",
-	"intro.philosophy.card2.title": "Animação em primeiro lugar",
+	"intro.philosophy.card2.title": "Foco em animação",
 	"intro.philosophy.card2.desc": "Cada componente já vem com animações refinadas prontas para uso.",
 	"intro.philosophy.card3.title": "Fácil de copiar e colar",
 	"intro.philosophy.card3.desc": "Use como pacote ou copie o código-fonte diretamente.",
 	"intro.philosophy.card4.title": "Tailwind CSS 4",
 	"intro.philosophy.card4.desc":
-		"Estilizado com classes utilitárias e propriedades CSS personalizadas.",
+		"Estilizado com classes utilitárias e propriedades personalizadas do CSS.",
 	"intro.philosophy.card5.title": "TypeScript",
-	"intro.philosophy.card5.desc": "Segurança de tipos completa com interfaces de props exportadas.",
+	"intro.philosophy.card5.desc": "Tipagem completa com interfaces de propriedades exportadas.",
 	"intro.quickStart.heading": "Início rápido",
 	"intro.quickStart.step1.title": "Instalar",
 	"intro.quickStart.step1.desc": "Adicione o FancyUI ao seu projeto.",
 	"intro.quickStart.step2.title": "Importar",
 	"intro.quickStart.step3.title": "Usar",
 	"intro.whatsIncluded.heading": "O que está incluído",
-	"intro.whatsIncluded.body.one": "{count} componentes em {categories} categorias:",
+	"intro.whatsIncluded.body.one": "{count} componente em {categories} categorias:",
 	"intro.whatsIncluded.body.other": "{count} componentes em {categories} categorias:",
 	"intro.category.buttons": "Botões",
 	"intro.category.cards": "Cartões",
 	"intro.category.effects": "Efeitos",
 	"intro.stats.buttons": "Rainbow, Ripple, Shimmer e companhia. Botões que dão vontade de clicar.",
 	"intro.stats.cards":
-		"Carrosséis, grades bento, efeitos 3D. Formas de apresentar conteúdo sem entediar.",
+		"Carrosséis, grades bento, inclinação 3D. Jeitos de apresentar conteúdo sem entediar ninguém.",
 	"intro.stats.effects":
 		"Cursores, rastros, textos animados. Os pequenos toques que fazem a diferença.",
-	"sidebar.starTitle": "Estrela no GitHub",
+	"sidebar.starTitle": "Dê uma estrela no GitHub",
 	"sidebar.starBody": "Se você gosta do FancyUI, deixe uma estrela!",
 	"rail.nextPage": "Próxima página",
 	"intro.nextSteps.heading": "Próximos passos",
 	"intro.nextSteps.installation": "Instalação",
-	"intro.nextSteps.theming": "Personalização de tema",
+	"intro.nextSteps.theming": "Temas",
 	"intro.nextSteps.components": "Explorar componentes",
-	"intro.cta.title": "Novo no FancyUI?",
+	"intro.cta.title": "Primeira vez no FancyUI?",
 	"intro.cta.body":
-		"Confira o <b>Gerador de tema</b> para personalizar as cores e ver os componentes reagirem em tempo real.",
-	"intro.cta.button": "Experimentar o Gerador de tema",
+		"Confira o <b>Gerador de temas</b> para personalizar as cores e ver os componentes reagirem em tempo real.",
+	"intro.cta.button": "Experimentar o Gerador de temas",
 
 	// Core components workspace (sidebar groups, categories, status)
 	"group.core": "Core",
@@ -213,58 +214,59 @@ export default {
 	"category.forms": "Formulários",
 	"category.overlays": "Sobreposições",
 	"category.display": "Exibição",
-	"status.inProgress": "Em construção",
+	"status.inProgress": "Em desenvolvimento",
 
-	// Installation (redesigned page)
+	// Installation page
 	"install.metaTitle": "Instalação",
 	"install.title": "Instalação",
 	"install.lead":
-		"Adicione o FancyUI a um projeto SvelteKit em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
+		"Adicione o FancyUI a um projeto SvelteKit em três passos: instale o pacote, importe a folha de estilos e renderize um componente.",
 	"install.pill.svelte": "Svelte 5",
 	"install.pill.tailwind": "Tailwind CSS 4",
 	"install.pill.node": "Node.js 20.19+",
 	"install.pill.typescript": "TypeScript",
 	"install.prerequisites.heading": "Pré-requisitos",
 	"install.prerequisites.body":
-		"O FancyUI mira as ferramentas atuais. Confira estes três itens antes de instalar.",
+		"O FancyUI é feito para as ferramentas atuais. Confira estes três itens antes de instalar.",
 	"install.prerequisites.card1.title": "SvelteKit",
 	"install.prerequisites.card1.version": "Svelte 5",
 	"install.prerequisites.card1.desc":
-		"Os componentes são escritos com runes, portanto o Svelte 5 é obrigatório. Projetos em Svelte 4 não vão compilá-los.",
+		"Os componentes são escritos com runes, portanto o Svelte 5 é obrigatório. Projetos em Svelte 4 não conseguem compilá-los.",
 	"install.prerequisites.card2.title": "Tailwind CSS",
 	"install.prerequisites.card2.version": "v4",
 	"install.prerequisites.card2.desc":
-		"A estilização depende das classes utilitárias do Tailwind v4 e de propriedades CSS personalizadas.",
+		"A estilização depende das classes utilitárias do Tailwind v4 e de propriedades personalizadas do CSS.",
 	"install.prerequisites.card3.title": "Node.js",
 	"install.prerequisites.card3.version": "20.19+",
 	"install.prerequisites.card3.desc":
 		"Exigido pelas ferramentas de build atuais com as quais o FancyUI é testado.",
 	"install.steps.heading": "Instalação",
 	"install.steps.body":
-		"Escolha seu gerenciador de pacotes, conecte a folha de estilos e depois renderize seu primeiro componente.",
+		"Escolha seu gerenciador de pacotes, configure a folha de estilos e depois renderize seu primeiro componente.",
 	"install.step1.title": "Instale o pacote",
 	"install.step1.desc":
 		"Um único pacote para todos os componentes. Troque de aba para copiar o comando do seu gerenciador de pacotes.",
 	"install.step2.title": "Importe a folha de estilos",
-	"install.step2.desc": "Adicione a folha de estilos do FancyUI logo após o import do Tailwind.",
+	"install.step2.desc":
+		"Adicione a folha de estilos do FancyUI logo depois da importação do Tailwind.",
 	"install.step2.caption": "Na sua folha de estilos global, geralmente src/app.css.",
 	"install.step3.title": "Renderize um componente",
-	"install.step3.desc": "Importe da raiz do pacote e insira-o no seu markup.",
+	"install.step3.desc": "Importe-o da raiz do pacote e coloque-o na sua marcação.",
 	"install.tailwind.heading": "Configuração do Tailwind CSS",
 	"install.tailwind.body":
 		"O FancyUI é construído sobre o Tailwind CSS v4, que é configurado em CSS em vez de um arquivo de configuração JavaScript. Se o Tailwind já funciona no seu projeto, não há mais nada a configurar.",
 	"install.tailwind.order":
 		"A ordem das importações importa: primeiro o Tailwind, depois o FancyUI. Coloque a importação do FancyUI antes do seu próprio @custom-variant dark; caso contrário, o do FancyUI substitui o seu.",
 	"install.tailwind.note":
-		"O ponto de entrada fornece tokens de cor padrão (background, primary, border e os demais) e uma variante escura. Seus próprios blocos :root e .dark os substituem: redefina as variáveis CSS e seus valores prevalecem.",
+		"O ponto de entrada fornece tokens de cor padrão (background, primary, border e os demais) e uma variante escura. Seus próprios blocos :root e .dark os sobrescrevem: redefina as variáveis CSS e seus valores prevalecem.",
 	"install.usage.heading": "Uso",
 	"install.usage.body":
-		"Cada componente é um export nomeado da raiz do pacote, então não há caminhos de import por componente para memorizar.",
+		"Cada componente é uma exportação nomeada da raiz do pacote, então não há caminhos de importação por componente para memorizar.",
 	"install.usage.note":
 		"A página de cada componente lista suas propriedades, exemplos ao vivo e notas de acessibilidade.",
 	"install.typescript.heading": "TypeScript",
 	"install.typescript.body":
-		"Os tipos das propriedades são exportados junto de cada componente, então você pode tipar wrappers e presets compartilhados.",
+		"Os tipos das propriedades são exportados junto com cada componente, para que você possa tipar componentes wrapper e predefinições compartilhadas.",
 	"install.typescript.note":
 		"Os tipos vêm dentro do pacote. Não há um pacote de tipos separado para instalar.",
 	"install.peerDeps.heading": "Dependências peer",
@@ -277,23 +279,23 @@ export default {
 	"install.nextSteps.heading": "Próximos passos",
 	"install.nextSteps.components.title": "Explorar componentes",
 	"install.nextSteps.components.desc":
-		"{count} componentes com prévias ao vivo, propriedades e exemplos de copiar e colar.",
-	"install.nextSteps.theming.title": "Personalização de tema",
+		"{count} componentes com pré-visualizações ao vivo, propriedades e exemplos para copiar e colar.",
+	"install.nextSteps.theming.title": "Temas",
 	"install.nextSteps.theming.desc":
-		"Substitua os design tokens para que cada componente combine com a sua marca nos modos claro e escuro.",
+		"Sobrescreva os tokens de design para que cada componente combine com a sua marca nos modos claro e escuro.",
 
 	// Theming page
-	"theming.metaTitle": "Personalização de tema",
-	"theming.title": "Personalização de tema",
+	"theming.metaTitle": "Temas",
+	"theming.title": "Temas",
 	"theming.lead":
-		"Cada componente do FancyUI lê suas cores, raios e tempos a partir de propriedades personalizadas do CSS no espaço de cores OKLCh — substitua um token e toda a biblioteca acompanha.",
+		"Cada componente do FancyUI lê suas cores, raios e tempos a partir de propriedades personalizadas do CSS no espaço de cores OKLCh — sobrescreva um token e toda a biblioteca acompanha.",
 	"theming.pill.oklch": "Espaço de cores OKLCh",
 	"theming.pill.shadcn": "Nomes de tokens padronizados",
 	"theming.pill.dark": "Modo escuro",
 	"theming.pill.tokens": "Tokens de design",
 	"theming.generator.body":
-		"Prefere ajustar visualmente? O Gerador de tema ajusta esses tokens com controles deslizantes ao vivo e entrega o CSS pronto.",
-	"theming.generator.cta": "Abrir o Gerador de tema",
+		"Prefere ajustar visualmente? O Gerador de temas ajusta esses tokens com controles deslizantes ao vivo e entrega o CSS pronto.",
+	"theming.generator.cta": "Abrir o Gerador de temas",
 	"theming.cssSetup.heading": "Configuração do CSS",
 	"theming.cssSetup.body":
 		"Importe a folha de estilos do FancyUI no CSS global da sua aplicação, geralmente src/app.css:",
@@ -304,58 +306,59 @@ export default {
 		"Os nomes dos tokens seguem a convenção semântica amplamente usada (background, foreground, primary, …), então um tema existente com os mesmos nomes de variáveis funciona sem alterações.",
 	"theming.dark.heading": "Modo escuro",
 	"theming.dark.body":
-		"O modo escuro segue por padrão a preferência do sistema operacional. Coloque a classe .dark em <html> ou em qualquer ancestral para forçar o escuro, ou .light para forçar o claro; os utilitários dark: e todos os tokens acompanham. Para personalizar os valores escuros, sobrescreva-os em .dark:",
+		"O modo escuro segue por padrão a preferência do sistema operacional. Coloque a classe .dark em <html> ou em qualquer ancestral para forçar o modo escuro, ou .light para forçar o claro; as classes utilitárias dark: e todos os tokens acompanham. Para personalizar os valores do modo escuro, sobrescreva-os em .dark:",
 	"theming.motion.heading": "Tokens de animação",
 	"theming.motion.body": "Controle os tempos de animação globalmente:",
 	"theming.easing.heading": "Funções de easing",
 	"theming.easing.body":
 		"As curvas de easing também são tokens, compartilhadas por todas as transições de componentes:",
 	"theming.rainbow.heading": "Gradientes arco-íris",
-	"theming.rainbow.body": "Usado por RainbowButton, GradientButton e outros efeitos de gradiente:",
+	"theming.rainbow.body": "Usados por RainbowButton, GradientButton e outros efeitos de gradiente:",
 	"theming.customizing.heading": "Personalização",
-	"theming.customizing.body": "Substitua qualquer token no seu próprio CSS para mudar a aparência:",
+	"theming.customizing.body":
+		"Sobrescreva qualquer token no seu próprio CSS para mudar a aparência:",
 	"theming.customizing.note":
-		"Os tokens seguem cascata: substitua-os globalmente em :root, ou limite-os a um elemento wrapper para personalizar apenas uma seção.",
+		"Os tokens funcionam em cascata: sobrescreva-os globalmente em :root ou restrinja-os a um elemento wrapper para aplicar um tema a uma única seção.",
 	"theming.nextSteps.heading": "Próximos passos",
-	"theming.nextSteps.generator.title": "Gerador de tema",
+	"theming.nextSteps.generator.title": "Gerador de temas",
 	"theming.nextSteps.generator.desc":
 		"Ajuste cada token com controles deslizantes ao vivo e copie o CSS finalizado.",
 	"theming.nextSteps.components.title": "Explorar componentes",
 	"theming.nextSteps.components.desc": "Veja os tokens em ação em toda a galeria de componentes.",
 
 	// Changelog page
-	"changelog.metaTitle": "Registro de alterações",
-	"changelog.title": "Registro de alterações",
+	"changelog.metaTitle": "Notas de versão",
+	"changelog.title": "Notas de versão",
 	"changelog.lead":
 		"Todos os lançamentos do FancyUI e o que mudou em cada um, do mais recente para o mais antigo.",
 	"changelog.latest": "Mais recente",
-	"changelog.major": "Alterações principais",
-	"changelog.minor": "Alterações secundárias",
+	"changelog.major": "Alterações maiores",
+	"changelog.minor": "Alterações menores",
 	"changelog.patch": "Correções",
-	// Cameleon docs skins
+	// Docs skins
 	"skin.heading": "Skin",
 	"skin.standard": "Padrão",
 	"skin.brutal": "Brutal",
 	"skin.retroOs": "Retro OS",
 	"skin.beta": "Beta",
-	"a11y.changeSkin": "Mudar de skin",
+	"a11y.changeSkin": "Alterar skin",
 	"a11y.sound": "Som",
 	"retro.explorer": "Explorador",
 	"retro.start": "Iniciar",
 	"retro.tagline": "Componentes animados para Svelte 5 — prontos para copiar e colar.",
 	"comp.snippetSvelteOnly":
-		"Ainda não há um exemplo completo para este framework; por enquanto só a versão Svelte tem um.",
+		"Ainda não há um exemplo completo para este framework; por enquanto, só a versão Svelte tem um.",
 	"comp.copyMarkdownSvelte": "Copiar como Markdown (Svelte)",
 	"comp.markdownSvelteOnly": "A exportação em Markdown descreve apenas a versão Svelte.",
 	"comp.apiNoticeReact":
-		"Esta referência de API usa os nomes do Svelte. No React, class vira className, os manipuladores on* são escritos em camelCase (onclick vira onClick) e os snippets viram props ReactNode ou funções de renderização.",
+		"Esta referência de API usa os nomes do Svelte. No React, class vira className, os manipuladores on* são escritos em camelCase (onclick vira onClick) e os snippets viram propriedades ReactNode ou funções de renderização.",
 	"comp.apiNoticeVue":
-		"Esta referência de API usa os nomes do Svelte. No Vue, os snippets viram slots e as props vinculáveis viram v-model:nome.",
+		"Esta referência de API usa os nomes do Svelte. No Vue, os snippets viram slots e as propriedades vinculáveis viram v-model:name.",
 	"comp.apiNoticeLink": "Diferenças em relação à API do Svelte",
 	"install.lead.react":
-		"Adicione o FancyUI a um projeto React em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
+		"Adicione o FancyUI a um projeto React em três passos: instale o pacote, importe a folha de estilos e renderize um componente.",
 	"install.lead.vue":
-		"Adicione o FancyUI a um projeto Vue em três passos: instale o pacote, importe a folha de estilos, renderize um componente.",
+		"Adicione o FancyUI a um projeto Vue em três passos: instale o pacote, importe a folha de estilos e renderize um componente.",
 	"install.pill.react": "React 18+",
 	"install.pill.vue": "Vue 3.5+",
 	"install.prerequisites.card1.title.react": "React",
@@ -367,28 +370,28 @@ export default {
 	"install.prerequisites.card1.desc.vue":
 		"Os componentes são componentes de arquivo único do Vue 3.5, portanto é necessário o Vue 3.5.2 ou posterior.",
 
-	// Docs audit: framework-neutral Introduction and Installation copy (native translations, pending review)
-	"intro.pill.frameworks": "Svelte 5, React, Vue",
-	"intro.philosophy.card1.title": "Svelte, React & Vue",
+	// Framework-neutral Introduction and Installation copy
+	"intro.pill.frameworks": "Svelte 5, React e Vue",
+	"intro.philosophy.card1.title": "Svelte, React e Vue",
 	"intro.philosophy.card1.desc":
-		"Escrito de forma nativa para cada framework: runes no Svelte, hooks no React, a Composition API no Vue.",
-	"intro.quickStart.step3.desc": "Insira-o nos seus componentes.",
+		"Escritos nativamente para cada framework: runes no Svelte, hooks no React e a Composition API no Vue.",
+	"intro.quickStart.step3.desc": "Coloque-o nos seus componentes.",
 	"install.peerDeps.optional": "opcional",
 
-	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	// Chrome, contribution, status, recipes, errors, SEO
 	"a11y.skipToContent": "Ir para o conteúdo",
 	"a11y.docsBreadcrumb": "Trilha de navegação da documentação",
-	"a11y.prevNext": "Páginas anterior e seguinte",
+	"a11y.prevNext": "Página anterior e próxima",
 	"a11y.search": "Pesquisar",
 	"search.a11y.close": "Fechar a pesquisa",
-	"nav.backToSite": "Voltar à página inicial do FancyUI",
+	"nav.backToSite": "Voltar ao início do FancyUI",
 	"nav.recipes": "Receitas",
 	"footer.contribute": "Contribuir",
 	"footer.issues": "Issues",
 	"footer.discussions": "Discussões",
 	"footer.security": "Segurança",
 	"footer.conduct": "Código de conduta",
-	"footer.changelog": "Changelog",
+	"footer.changelog": "Notas de versão",
 	"footer.versions": "Versões",
 	"footer.install": "Instalação",
 	"footer.license": "Licença MIT",
@@ -396,7 +399,7 @@ export default {
 	"comp.reportIssue": "Relatar um problema",
 	"comp.issueTitle": "[docs] {name}",
 	"intro.lead":
-		"é uma coleção de <grad>{count}</grad> componentes de interface animados e interativos para Svelte 5, React e Vue, construídos sobre os mesmos design tokens.",
+		"é uma coleção de <grad>{count}</grad> componentes de interface animados e interativos para Svelte 5, React e Vue, construídos sobre os mesmos tokens de design.",
 	"intro.importHint":
 		"Importe os componentes de que você precisa. O caminho de importação depende do seu framework.",
 	"install.kitOptional":
@@ -417,22 +420,22 @@ export default {
 	"error.notFoundBody": "A página que você procura não existe ou foi movida.",
 	"error.genericBody": "Ocorreu um erro inesperado. Tente novamente ou volte à documentação.",
 	"error.unauthorizedTitle": "Login necessário",
-	"error.unauthorizedBody": "Você precisa estar conectado para usar esta página.",
+	"error.unauthorizedBody": "Você precisa entrar na sua conta para usar esta página.",
 	"error.home": "Voltar ao início",
 	"error.browse": "Explorar componentes",
 	"error.search": "Pesquisar na documentação",
 	"error.report": "Relatar um link quebrado",
-	"comp.previewFailed": "Não foi possível carregar esta prévia.",
-	"demo.noPreview": "Ainda não há prévia para este componente.",
+	"comp.previewFailed": "Não foi possível carregar esta pré-visualização.",
+	"demo.noPreview": "Ainda não há pré-visualização para este componente.",
 	"demo.notFound": "Componente não encontrado.",
 	"recipes.steps": "Passos",
-	"recipes.pitfalls": "Armadilhas comuns",
+	"recipes.pitfalls": "Erros comuns",
 	"recipes.componentsUsed": "Componentes usados",
 	"seo.installation":
 		"Instale o FancyUI para Svelte 5, React ou Vue: adicione o pacote, importe a folha de estilos e renderize seu primeiro componente.",
 	"seo.theming":
-		"Personalize o FancyUI com design tokens: cores OKLCh, raio, movimento e modo escuro, para Svelte 5, React e Vue.",
+		"Personalize o FancyUI com tokens de design: cores OKLCh, raio, movimento e modo escuro, para Svelte 5, React e Vue.",
 	"seo.themeGenerator":
-		"Ajuste ao vivo os design tokens OKLCh do FancyUI e copie o CSS gerado para o seu app.",
+		"Ajuste ao vivo os tokens de design OKLCh do FancyUI e copie o CSS gerado para a sua aplicação.",
 	"seo.changelog": "Notas de versão dos pacotes do FancyUI para Svelte 5, React e Vue.",
 } satisfies Catalog;
