@@ -85,7 +85,7 @@ The smoke then fails in `expectPrimaryBackground`: `var(--primary)` resolves to 
 
 - **Dark theme**: a toggle adds `.dark` to a wrapper element (no OS preference involved) and a `Button`'s background must follow the flipped `--primary`, then return when the class is removed.
 - **Events**: the consumer's `onclick` on `Button` and `onOpenChange` on `Dialog` run, with the `true` then `false` the component reports when opened with Enter and closed with Escape.
-- **Install snippets**: the stylesheet, first-component, usage and types snippets from `src/lib/docs/install-snippets.ts` live in each app (`src/app.css`, `src/snippets/`) and render in the page. `src/lib/docs/consumer-snippets.test.ts` fails when they drift from the docs.
+- **Install snippets**: the stylesheet, first-component and usage snippets from `src/lib/docs/install-snippets.ts` live in each app (`src/app.css`, `src/snippets/`) and render in the page. The types snippet (`src/snippets/types.ts`) renders nothing, so the `sveltekit` app type-checks it with strict `svelte-check` before building: a removed `BorderBeamProps` export or a wrong prop name fails the run. `src/lib/docs/consumer-snippets.test.ts` fails when they drift from the docs.
 - **Cameleon** (`svelte-vite` only): `FancyProvider` from `fancy-ui-svelte/cameleon` with a skin builds and mounts in a plain Vite app, so a build failure is a defect, not a known gap.
 
 ## Adding a consumer
