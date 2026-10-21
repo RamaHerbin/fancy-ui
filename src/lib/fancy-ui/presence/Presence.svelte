@@ -111,16 +111,24 @@
 		);
 	}
 
-	function handleIntroStart() {
+	// Each handler runs the component's own logic first, then forwards the
+	// SAME event to the consumer's `on{intro,outro}{start,end}` handler, read
+	// from `restProps` (the spread precedes the handlers below, so without
+	// this forwarding they would be silently overridden).
+	type Forwarded = ((event: Event) => void) | null | undefined;
+
+	function handleIntroStart(event: Event) {
 		state = "opening";
+		(restProps.onintrostart as Forwarded)?.(event);
 	}
 
-	function handleIntroEnd() {
+	function handleIntroEnd(event: Event) {
 		state = "open";
 		onEnterEnd?.();
+		(restProps.onintroend as Forwarded)?.(event);
 	}
 
-	function handleOutroStart() {
+	function handleOutroStart(event: Event) {
 		state = "closing";
 		// Svelte sets `element.inert = true` itself, synchronously, immediately
 		// before dispatching this very event (verified in transitions.js) —
@@ -130,9 +138,10 @@
 		// guaranteed to run after Svelte's own assignment and before the exit
 		// paints a frame.
 		if (!inert && ref) ref.inert = false;
+		(restProps.onoutrostart as Forwarded)?.(event);
 	}
 
-	function handleOutroEnd() {
+	function handleOutroEnd(event: Event) {
 		// Restores the same honest default `state` starts at (line above) —
 		// without this, a completed close leaves `state` sitting at "closing"
 		// (nothing else ever resets it), so the NEXT `open = true` would
@@ -142,6 +151,7 @@
 		// wrong value sitting in `state` between closes.
 		state = "open";
 		onExitEnd?.();
+		(restProps.onoutroend as Forwarded)?.(event);
 	}
 </script>
 

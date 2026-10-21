@@ -17,7 +17,7 @@ Canvas wrapper that creates a confetti instance.
 
 ### ConfettiButton
 
-Button that fires confetti from its position.
+Button that fires confetti from its position. `type` defaults to `"button"` (it never submits a surrounding form; pass `type="submit"` to opt in). `class` and native button attributes are forwarded, and a consumer `onclick` runs once per click, after the burst. A native `disabled` button fires neither.
 
 | Prop      | Type              | Default | Description                                                                          |
 | --------- | ----------------- | ------- | ------------------------------------------------------------------------------------ |

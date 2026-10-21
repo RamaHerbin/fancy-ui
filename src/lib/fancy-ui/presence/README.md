@@ -96,6 +96,10 @@ stylesheet to override; use the props.
   `open = false`, not in `onExitEnd`. `onExitEnd` is also not guaranteed if
   the component is destroyed mid-exit (an ancestor unmounting, say) — it only
   fires when Svelte's own outro completes normally.
+- The raw `onintrostart`/`onintroend`/`onoutrostart`/`onoutroend` handlers are
+  accepted too (they come with the div attributes). They are chained, not
+  overridden: Presence runs its own logic first, then calls yours with the
+  same event, once.
 - No intro plays on hydration or first mount — a local `transition:` never
   plays on its own block's initial render, and Svelte's `hydrate()`
   additionally defaults to skipping the intro outright. A
