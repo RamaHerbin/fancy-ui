@@ -22,6 +22,8 @@
 	let { controls, initialValues, preview }: Props = $props();
 
 	let panelOpen = $state(false);
+	// Seed only: the playground owns `values` after mount and `reset()` re-reads the prop.
+	// svelte-ignore state_referenced_locally
 	let values = $state<PlaygroundValues>({ ...initialValues });
 
 	let customizeButtonRef: HTMLButtonElement | undefined = $state();

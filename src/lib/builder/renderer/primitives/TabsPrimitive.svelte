@@ -17,6 +17,8 @@
 	let { defaultTab = "", class: className = "", children }: Props = $props();
 
 	let tabs = $state<TabInfo[]>([]);
+	// `defaultTab` only seeds the uncontrolled active tab.
+	// svelte-ignore state_referenced_locally
 	let activeTab = $state(defaultTab);
 
 	function registerTab(info: TabInfo) {
