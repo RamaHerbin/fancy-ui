@@ -1,13 +1,31 @@
 <script lang="ts">
-	import { BorderBeam, Button, Dialog, FluidCursor, Input, RainbowButton, Select } from "fancy-ui-svelte";
+	import { onMount } from "svelte";
+	import {
+		BorderBeam,
+		Button,
+		Dialog,
+		FluidCursor,
+		Input,
+		RainbowButton,
+		Select,
+	} from "fancy-ui-svelte";
 
 	let clicks = $state(0);
 	let dialogOpen = $state(false);
 	let fruit = $state("");
 	let name = $state("");
+	// Set once Svelte has hydrated the server markup: the smoke waits for it
+	// before clicking, so a click can never land on a not-yet-interactive button.
+	let hydrated = $state(false);
+	onMount(() => {
+		hydrated = true;
+	});
 </script>
 
-<main class="mx-auto flex max-w-xl flex-col gap-6 bg-background p-8 text-foreground">
+<main
+	class="bg-background text-foreground mx-auto flex max-w-xl flex-col gap-6 p-8"
+	data-hydrated={hydrated ? "true" : undefined}
+>
 	<h1 class="text-2xl font-semibold">fancy-ui-svelte consumer</h1>
 
 	<div class="flex flex-wrap items-center gap-3">

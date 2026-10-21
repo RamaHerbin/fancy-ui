@@ -26,18 +26,13 @@ const frameworks = [
 		<h1 class="text-2xl font-semibold">fancy-ui-vue consumer</h1>
 
 		<div class="flex flex-wrap items-center gap-3">
-			<Button>Primary button</Button>
+			<Button data-testid="button">Primary button</Button>
 			<RainbowButton data-testid="rainbow" @click="clicks += 1">Rainbow</RainbowButton>
-			<span data-testid="clicks">Rainbow clicked {{ clicks }} times</span>
+			<span data-testid="clicks">clicks: {{ clicks }}</span>
 		</div>
 
 		<Input v-model:value="name" label="Name" placeholder="Your name" />
-		<Select
-			v-model:value="framework"
-			:options="frameworks"
-			label="Framework"
-			class="w-[220px]"
-		/>
+		<Select v-model:value="framework" :options="frameworks" label="Framework" class="w-[220px]" />
 
 		<Dialog
 			v-model:open="open"

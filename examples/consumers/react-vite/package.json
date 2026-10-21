@@ -9,7 +9,7 @@
 		"preview": "vite preview --port 4311 --strictPort"
 	},
 	"dependencies": {
-		"fancy-ui-react": "file:../../../.consumers/fancy-ui-react.tgz",
+		"fancy-ui-react": "file:.tarball/fancy-ui-react.tgz",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0"
 	},

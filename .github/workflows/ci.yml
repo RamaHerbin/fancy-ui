@@ -404,3 +404,59 @@ jobs:
             exit 1
           fi
           echo "✅ Changeset file present."
+
+  consumers:
+    name: Consumers
+    # Every package installed from its packed tarball into the apps under
+    # examples/consumers, each copied outside the checkout so nothing can
+    # resolve from the monorepo's node_modules: SvelteKit and Svelte + Vite for
+    # fancy-ui-svelte, React + Vite and Next for fancy-ui-react, Vue + Vite and
+    # Nuxt for fancy-ui-vue. Builds, then a Playwright smoke per app. Runs once
+    # the package jobs are green, so a failure here is about the published
+    # shape (exports, files, declared dependencies, Tailwind entry), not the
+    # source. See examples/consumers/README.md.
+    #
+    # Same duplicate-run guard as `check` — see the comment there.
+    if: |
+      (github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.head_ref == 'changeset-release/main') ||
+      (github.event_name == 'pull_request')
+    needs: [check, react, vue]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The smokes use the repo's @playwright/test; cache its Chromium by version.
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - run: pnpm consumers

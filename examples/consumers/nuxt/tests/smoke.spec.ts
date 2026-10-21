@@ -1,41 +1,38 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import {
+	collectErrors,
+	expectBorderBeamRunning,
+	expectGpuCanvas,
+	expectKeyboardDialog,
+	expectPrimaryBackground,
+	waitForHydration,
+} from "../../smoke-helpers";
 
-test("loads, hydrates, styles and opens a dialog from the packed tarball", async ({ page }) => {
-	const errors: string[] = [];
-	page.on("console", (m) => {
-		if (m.type() === "error") errors.push(m.text());
-	});
-	page.on("pageerror", (e) => errors.push(String(e)));
+// fancy-ui-vue installed from the packed tarball, in a Nuxt (server-rendered) app built outside the repo.
+test("loads clean, hydrates, styles resolve, effects run, dialog is keyboard-operable", async ({
+	page,
+}) => {
+	const errors = collectErrors(page);
 
 	await page.goto("/");
-	await expect(page.getByTestId("clicks")).toHaveText("clicks: 0");
+	// Server-rendered: wait until the framework has hydrated before clicking.
+	await waitForHydration(page);
 
-	// Hydration: the consumer's handler runs on the library's button.
+	// Interactive: the consumer's own handler runs through the library button.
+	await expect(page.getByTestId("clicks")).toHaveText("clicks: 0");
 	await page.getByTestId("rainbow").click();
 	await expect(page.getByTestId("clicks")).toHaveText("clicks: 1");
 
-	// bg-primary exists in the generated CSS and resolves to the token.
-	const { bg, token } = await page.getByRole("button", { name: "Plain button" }).evaluate((el) => {
-		const probe = document.createElement("div");
-		probe.style.backgroundColor = getComputedStyle(document.documentElement)
-			.getPropertyValue("--primary")
-			.trim();
-		document.body.appendChild(probe);
-		const token = getComputedStyle(probe).backgroundColor;
-		probe.remove();
-		return { bg: getComputedStyle(el).backgroundColor, token };
-	});
-	expect(token).not.toBe("rgba(0, 0, 0, 0)");
-	expect(bg).not.toBe("rgba(0, 0, 0, 0)");
-	expect(bg).toBe(token);
+	// bg-primary is generated in the consumer's CSS from the packed output.
+	await expectPrimaryBackground(page, '[data-testid="button"]');
 
-	// Dialog: open and close from the keyboard.
-	await page.getByRole("button", { name: "Open dialog" }).focus();
-	await page.keyboard.press("Enter");
-	const dialog = page.getByRole("dialog");
-	await expect(dialog).toBeVisible();
-	await page.keyboard.press("Escape");
-	await expect(dialog).toBeHidden();
+	// The light effect's markup and stylesheet both arrived, and it animates.
+	await expectBorderBeamRunning(page);
+
+	// The GPU effect bound a WebGL/WebGPU context.
+	await expectGpuCanvas(page, "fluid");
+
+	await expectKeyboardDialog(page, "Open dialog");
 
 	expect(errors).toEqual([]);
 });

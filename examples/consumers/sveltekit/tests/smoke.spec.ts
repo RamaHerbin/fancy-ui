@@ -1,42 +1,38 @@
 import { expect, test } from "@playwright/test";
+import {
+	collectErrors,
+	expectBorderBeamRunning,
+	expectGpuCanvas,
+	expectKeyboardDialog,
+	expectPrimaryBackground,
+	waitForHydration,
+} from "../../smoke-helpers";
 
-test("loads and hydrates without console errors", async ({ page }) => {
-	const errors: string[] = [];
-	page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
-	page.on("pageerror", (e) => errors.push(String(e)));
+// fancy-ui-svelte installed from the packed tarball, in a SvelteKit (server-rendered) app built outside the repo.
+test("loads clean, hydrates, styles resolve, effects run, dialog is keyboard-operable", async ({
+	page,
+}) => {
+	const errors = collectErrors(page);
 
 	await page.goto("/");
-	await page.waitForLoadState("networkidle");
+	// Server-rendered: wait until the framework has hydrated before clicking.
+	await waitForHydration(page);
 
-	// Hydration: the consumer's own handler runs on a library component.
+	// Interactive: the consumer's own handler runs through the library button.
+	await expect(page.getByTestId("clicks")).toHaveText("clicks: 0");
 	await page.getByTestId("rainbow").click();
 	await expect(page.getByTestId("clicks")).toHaveText("clicks: 1");
 
+	// bg-primary is generated in the consumer's CSS from the packed output.
+	await expectPrimaryBackground(page, '[data-testid="button"]');
+
+	// The light effect's markup and stylesheet both arrived, and it animates.
+	await expectBorderBeamRunning(page);
+
+	// The GPU effect bound a WebGL/WebGPU context.
+	await expectGpuCanvas(page, "fluid");
+
+	await expectKeyboardDialog(page, "Open dialog");
+
 	expect(errors).toEqual([]);
-});
-
-test("bg-primary exists: Button background equals the --primary token", async ({ page }) => {
-	await page.goto("/");
-	const { bg, token } = await page.evaluate(() => {
-		const btn = document.querySelector<HTMLElement>('[data-testid="button"]')!;
-		const probe = document.createElement("div");
-		probe.style.backgroundColor = "var(--primary)";
-		document.body.append(probe);
-		const token = getComputedStyle(probe).backgroundColor;
-		probe.remove();
-		return { bg: getComputedStyle(btn).backgroundColor, token };
-	});
-	expect(bg).not.toBe("rgba(0, 0, 0, 0)");
-	expect(bg).toBe(token);
-});
-
-test("Dialog opens and closes from the keyboard", async ({ page }) => {
-	await page.goto("/");
-	await page.waitForLoadState("networkidle");
-	await page.locator('[data-testid="open-dialog"]').focus();
-	await page.keyboard.press("Enter");
-	const dialog = page.getByRole("dialog");
-	await expect(dialog).toBeVisible();
-	await page.keyboard.press("Escape");
-	await expect(dialog).toBeHidden();
 });

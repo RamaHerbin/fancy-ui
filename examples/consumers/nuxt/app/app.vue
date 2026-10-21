@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import {
 	Button,
 	Input,
@@ -14,6 +14,12 @@ const clicks = ref(0);
 const name = ref("");
 const fruit = ref("");
 const open = ref(false);
+// Set once Vue has hydrated the server markup: the smoke waits for it before
+// clicking, so a click can never land on a not-yet-interactive button.
+const hydrated = ref(false);
+onMounted(() => {
+	hydrated.value = true;
+});
 const options = [
 	{ value: "apple", label: "Apple" },
 	{ value: "pear", label: "Pear" },
@@ -21,10 +27,13 @@ const options = [
 </script>
 
 <template>
-	<main class="mx-auto flex max-w-xl flex-col gap-6 p-8">
+	<main
+		class="mx-auto flex max-w-xl flex-col gap-6 p-8"
+		:data-hydrated="hydrated ? 'true' : undefined"
+	>
 		<h1 class="text-2xl font-semibold">fancy-ui-vue consumer</h1>
 
-		<Button>Plain button</Button>
+		<Button data-testid="button">Plain button</Button>
 
 		<Input v-model:value="name" placeholder="Your name" label="Name" />
 
@@ -38,7 +47,7 @@ const options = [
 			<BorderBeam />
 		</div>
 
-		<div class="relative h-48 overflow-hidden rounded-xl border">
+		<div class="relative h-48 overflow-hidden rounded-xl border" data-testid="fluid">
 			<FluidCursor contained />
 		</div>
 

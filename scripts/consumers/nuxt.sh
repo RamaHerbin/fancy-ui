@@ -1,25 +1,11 @@
 #!/usr/bin/env bash
-# Builds fancy-ui-vue, packs it, installs the tarball into an outsider Nuxt app
-# (npm, outside the pnpm workspace), builds it and runs the Playwright smoke.
-set -euo pipefail
+# fancy-ui-vue in a Nuxt app (server render + hydration), installed from the
+# packed tarball in a copy outside the repo. See examples/consumers/README.md.
+source "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-APP="$ROOT/examples/consumers/nuxt"
-SCRATCH="${CONSUMER_SCRATCH:-$(mktemp -d "${TMPDIR:-/tmp}/fancy-ui-consumer-XXXXXX")}"
-
-cp "$APP/package.json" "$SCRATCH/package.json.orig"
-trap 'cp "$SCRATCH/package.json.orig" "$APP/package.json"' EXIT
-
-cd "$ROOT"
-pnpm --filter fancy-ui-vue run build
-(cd vue && pnpm pack --pack-destination "$SCRATCH")
-TARBALL="$(ls "$SCRATCH"/fancy-ui-vue-*.tgz | head -1)"
-echo "tarball: $TARBALL"
-
-cd "$APP"
-rm -rf node_modules package-lock.json .nuxt .output
-npm pkg set "dependencies.fancy-ui-vue=file:$TARBALL"
-npm install --no-audit --no-fund
-npm run build
-cd "$ROOT"
-pnpm exec playwright test -c "$APP/playwright.config.ts"
+consumer_init nuxt
+consumer_pack fancy-ui-vue vue pnpm --filter fancy-ui-vue run build
+consumer_copy
+consumer_install fancy-ui-vue
+(cd "$APP" && npm run build)
+consumer_smoke

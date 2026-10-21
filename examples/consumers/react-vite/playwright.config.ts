@@ -1,22 +1,5 @@
-import { defineConfig, devices } from "@playwright/test";
+import { consumerConfig, vitePreview } from "../playwright.shared";
 
-export default defineConfig({
-	testDir: "./tests",
-	reporter: "list",
-	use: { baseURL: "http://localhost:4311" },
-	projects: [
-		{
-			name: "chromium",
-			// Software GL so the GPU effect can create a WebGL context headless.
-			use: {
-				...devices["Desktop Chrome"],
-				launchOptions: { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] },
-			},
-		},
-	],
-	webServer: {
-		command: "npm run preview",
-		port: 4311,
-		reuseExistingServer: false,
-	},
-});
+// See ../playwright.shared.ts: the app under test is the scratch copy built by
+// scripts/consumers/react-vite.sh, outside the repo.
+export default consumerConfig(vitePreview);

@@ -1,46 +1,35 @@
 import { expect, test } from "@playwright/test";
+import {
+	collectErrors,
+	expectBorderBeamRunning,
+	expectGpuCanvas,
+	expectKeyboardDialog,
+	expectPrimaryBackground,
+} from "../../smoke-helpers";
 
-test("loads clean, hydrates, styles and dialog work from the packed tarball", async ({ page }) => {
-	const errors: string[] = [];
-	page.on("console", (m) => {
-		if (m.type() === "error") errors.push(m.text());
-	});
-	page.on("pageerror", (e) => errors.push(String(e)));
+// fancy-ui-vue installed from the packed tarball, in a Vue + Vite app built outside the repo.
+test("loads clean, mounts, styles resolve, effects run, dialog is keyboard-operable", async ({
+	page,
+}) => {
+	const errors = collectErrors(page);
 
 	await page.goto("/");
-	await expect(page.getByRole("heading", { name: "fancy-ui-vue consumer" })).toBeVisible();
 
-	// Interactive: the consumer's handler ran.
+	// Interactive: the consumer's own handler runs through the library button.
+	await expect(page.getByTestId("clicks")).toHaveText("clicks: 0");
 	await page.getByTestId("rainbow").click();
-	await expect(page.getByTestId("clicks")).toHaveText("Rainbow clicked 1 times");
+	await expect(page.getByTestId("clicks")).toHaveText("clicks: 1");
 
-	// bg-primary exists: the Button's background is the --primary token.
-	const { bg, primary } = await page.getByRole("button", { name: "Primary button" }).evaluate((el) => {
-		const probe = document.createElement("div");
-		probe.style.backgroundColor = "var(--primary)";
-		document.body.appendChild(probe);
-		const primary = getComputedStyle(probe).backgroundColor;
-		probe.remove();
-		return { bg: getComputedStyle(el).backgroundColor, primary };
-	});
-	expect(primary).not.toBe("rgba(0, 0, 0, 0)");
-	expect(bg).toBe(primary);
+	// bg-primary is generated in the consumer's CSS from the packed output.
+	await expectPrimaryBackground(page, '[data-testid="button"]');
 
-	// A GPU effect mounted AND bound a GPU context. The canvas is always in the
-	// template, so counting it proves nothing; instead ask for a 2d context: it
-	// returns null only when another context type (webgl/webgpu) already owns it.
-	const canvas = page.getByTestId("fluid").locator("canvas");
-	await expect(canvas).toHaveCount(1);
-	await expect.poll(() => canvas.evaluate((c) => (c as HTMLCanvasElement).getContext("2d") === null)).toBe(true);
+	// The light effect's markup and stylesheet both arrived, and it animates.
+	await expectBorderBeamRunning(page);
 
-	// Dialog: keyboard open, Escape close.
-	const trigger = page.getByRole("button", { name: "Open dialog" });
-	await trigger.focus();
-	await page.keyboard.press("Enter");
-	const dialog = page.getByRole("dialog");
-	await expect(dialog).toBeVisible();
-	await page.keyboard.press("Escape");
-	await expect(dialog).toBeHidden();
+	// The GPU effect bound a WebGL/WebGPU context.
+	await expectGpuCanvas(page, "fluid");
+
+	await expectKeyboardDialog(page, "Open dialog");
 
 	expect(errors).toEqual([]);
 });

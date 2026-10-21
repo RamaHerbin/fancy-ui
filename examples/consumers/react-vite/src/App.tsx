@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { BorderBeam, Button, Dialog, FluidCursor, Input, RainbowButton, Select } from "fancy-ui-react";
+import {
+	BorderBeam,
+	Button,
+	Dialog,
+	FluidCursor,
+	Input,
+	RainbowButton,
+	Select,
+} from "fancy-ui-react";
 
 export function App() {
 	const [clicks, setClicks] = useState(0);
@@ -33,7 +41,12 @@ export function App() {
 			<Button data-testid="open-dialog" onClick={() => setOpen(true)}>
 				Open dialog
 			</Button>
-			<Dialog open={open} onOpenChange={setOpen} title="Hello" description="A dialog from the packed tarball.">
+			<Dialog
+				open={open}
+				onOpenChange={setOpen}
+				title="Hello"
+				description="A dialog from the packed tarball."
+			>
 				<p>Body</p>
 			</Dialog>
 
@@ -42,7 +55,7 @@ export function App() {
 				<BorderBeam />
 			</div>
 
-			<div className="relative h-48 overflow-hidden rounded-xl border" data-testid="fluid-card">
+			<div className="relative h-48 overflow-hidden rounded-xl border" data-testid="fluid">
 				<FluidCursor contained />
 			</div>
 		</main>

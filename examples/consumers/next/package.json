@@ -9,7 +9,7 @@
 		"start": "next start"
 	},
 	"dependencies": {
-		"fancy-ui-react": "file:./.tarball/fancy-ui-react.tgz",
+		"fancy-ui-react": "file:.tarball/fancy-ui-react.tgz",
 		"next": "^15.3.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0"

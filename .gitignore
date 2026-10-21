@@ -62,6 +62,3 @@ vite.config.ts.timestamp-*
 
 *storybook.log
 storybook-static
-
-# Packed tarballs for the outsider consumer apps
-/.consumers

@@ -1,113 +1,97 @@
 # Consumer apps
 
-Minimal apps that use a published-shaped build of a fancy-ui package the way an outsider does: from a packed tarball, outside the pnpm workspace, with no monorepo alias and no docs-site CSS. The build runs in a copy placed outside the repo tree, so module resolution cannot fall back to the monorepo's `node_modules`. They catch what the in-repo apps cannot: a dependency the package imports but does not declare, a missing file in the `files` list, a broken `exports` entry, a Tailwind utility that is not generated downstream.
+Six minimal apps that install a fancy-ui package the way someone outside the repo does: from the packed tarball, with `npm install`, with nothing but the setup the package README documents. They test the published artifact, not the monorepo source, and catch what the in-repo examples cannot:
 
-None of them is listed in `pnpm-workspace.yaml`, and each installs with `npm install`.
+- a dependency the package imports but does not declare,
+- a file missing from the `files` allow-list, or a broken `exports` entry,
+- a Tailwind utility (`bg-primary`, …) that is not generated in the consumer's own CSS build,
+- a component that only works with the docs site's CSS, aliases or framework.
 
-## sveltekit
+None of them is a workspace member (`pnpm-workspace.yaml` globs `examples/*`, not `examples/consumers/*`), and the repo never installs them.
+
+| App           | Package           | Framework                                            |
+| ------------- | ----------------- | ---------------------------------------------------- |
+| `sveltekit`   | `fancy-ui-svelte` | SvelteKit, server-rendered then hydrated             |
+| `svelte-vite` | `fancy-ui-svelte` | Svelte 5 + Vite, no SvelteKit                        |
+| `react-vite`  | `fancy-ui-react`  | React 19 + Vite, strict `tsc`, `skipLibCheck: false` |
+| `next`        | `fancy-ui-react`  | Next.js App Router, server-rendered then hydrated    |
+| `vue-vite`    | `fancy-ui-vue`    | Vue 3 + Vite                                         |
+| `nuxt`        | `fancy-ui-vue`    | Nuxt, server-rendered then hydrated                  |
+
+## Running them
 
 ```bash
-scripts/consumers/sveltekit.sh
+pnpm consumers                   # all six, one after the other, then a summary table
+pnpm consumers next nuxt         # only these
+scripts/consumers/next.sh        # one app, directly
+KEEP_CONSUMER=1 scripts/consumers/next.sh   # keep the scratch copy for debugging
 ```
 
-The script builds the package (`pnpm package`), runs `pnpm pack` into a scratch folder, copies the app (without its tests) and the tarball into that scratch folder, points the app's `fancy-ui-svelte` dependency at it with a `file:` path, runs `npm install` and `npm run build` inside the copy, then runs the Playwright smoke from the repo (Chromium, the repo's `@playwright/test`, config inside the app folder, preview server started in the copy).
+`pnpm consumers` (`scripts/consumers/run-all.mjs`) runs every `scripts/consumers/<name>.sh` and exits non-zero if any of them fails. It builds and packs each package once per run and shares the tarball between the two apps that use it. CI runs it in the **Consumers** job, after the three package jobs.
 
-The app's CSS is exactly the two imports the README documents:
+Prerequisites: the repo installed (`pnpm install`), Playwright's Chromium (`pnpm exec playwright install chromium`), network access for `npm install`, and `rsync`.
+
+## What each script does
+
+Every `scripts/consumers/<name>.sh` sources `scripts/consumers/_lib.sh` and runs the same steps:
+
+1. **Build and pack the package** (`pnpm package` for Svelte, `pnpm --filter fancy-ui-react|fancy-ui-vue run build` for the others), then `pnpm pack` into an empty folder. The script checks it holds exactly one tarball, so an old tarball from an earlier run can never be picked up.
+2. **Copy the app outside the repo**, into a `mktemp -d` folder under `$TMPDIR`. Inside the repo, a dependency missing from the app's own `node_modules` would silently resolve from the monorepo's `node_modules` (Node and Vite walk up parent folders), and the tarball's declared dependencies would go untested. The script refuses to run if the scratch folder ends up inside the repo. Build output, tests and the Playwright config are not copied.
+3. **Install the tarball** by rewriting the copy's dependency to `file:<tarball>`, then `npm install` and check the package landed in the copy's `node_modules`. The `file:.tarball/<package>.tgz` value committed in each `package.json` is a placeholder; the repo copy is never modified.
+4. **Build** with the app's own `npm run build`.
+5. **Run the Playwright smoke**: the runner, the config and the specs stay in the repo (`@playwright/test` is not a dependency of any app), and the server runs from the scratch copy on a free port (`CONSUMER_APP_DIR`, `CONSUMER_PORT`, see `playwright.shared.ts`). Chromium runs with software GL so the WebGL effect can start headless.
+
+The scratch folder is deleted on exit, pass or fail, unless `KEEP_CONSUMER=1` is set; its path is printed either way.
+
+## What the smoke proves
+
+Each app mounts `Button`, `Input`, `Select`, `Dialog`, `RainbowButton`, `BorderBeam` and a contained `FluidCursor`, with its CSS limited to what the package README documents:
 
 ```css
 @import "tailwindcss";
-@import "fancy-ui-svelte/tailwind.css";
+@import "fancy-ui-<svelte|react|vue>/tailwind.css";
 ```
 
-It mounts `Button`, `Input`, `Select`, `Dialog`, `RainbowButton`, `BorderBeam` and a contained `FluidCursor`. The smoke proves:
+plus `fancy-ui-react/styles.css` (imported from the entry) or `fancy-ui-vue/styles.css` for the React and Vue apps. The shared assertions live in `smoke-helpers.ts`:
 
-- the page loads with no console error and no uncaught exception, including the WebGL effect (headless Chromium runs on software GL);
-- it hydrates: clicking `RainbowButton` runs the consumer's own `onclick`, observed in the DOM;
-- a `Button` has a non-transparent background equal to the `--primary` token, so `bg-primary` is generated from the packed output;
-- `Dialog` opens from a focused trigger with Enter and closes with Escape.
+- **No errors**: no console error and no uncaught exception for the whole run, the WebGL effect included.
+- **Interactive**: clicking `RainbowButton` runs the consumer's own handler, observed in the DOM. The three server-rendered apps (`sveltekit`, `next`, `nuxt`) set `data-hydrated="true"` from their mount hook and the smoke waits for it before clicking, so a click cannot land on server markup that is not interactive yet.
+- **Tailwind output**: a `Button`'s computed background equals what `var(--primary)` resolves to, and neither is transparent, so `bg-primary` and the tokens exist in the consumer's build.
+- **BorderBeam**: the `.border-beam` root renders its `.bb-head` element, the component's stylesheet applies to it (`position: absolute`), it runs a CSS animation with a non-zero duration, and the root carries `--border-beam-duration`. Counting child elements alone would pass with the stylesheet missing.
+- **GPU effect**: `FluidCursor`'s canvas refuses a `2d` context, which happens only when WebGL or WebGPU already owns it. The canvas element is always rendered, so its presence alone proves nothing.
+- **Dialog**: opens from a focused trigger with Enter and closes with Escape.
 
-## vue-vite
+`react-vite` also type-checks the app with strict `tsc` and `skipLibCheck: false`, so every declaration file the package publishes is compiled.
 
-Run it with `scripts/consumers/vue-vite.sh`. The script:
+### Negative control
 
-1. builds `fancy-ui-vue` and runs `pnpm pack` into `examples/consumers/vue-vite/.tarball/`,
-2. points the app's `fancy-ui-vue` dependency at that tarball (`file:` path computed by the script, so CI can regenerate it),
-3. copies the app (without `node_modules`, `dist`, `.tarball`) to a `mktemp -d` directory outside the repo, installs with `npm install` there and builds with Vite,
-4. runs the Playwright smoke in `tests/smoke.spec.ts` with the runner installed at the repo root, serving the scratch build (`CONSUMER_APP_DIR`).
-
-The CSS is exactly the three imports the package README documents: `tailwindcss`, `fancy-ui-vue/tailwind.css`, `fancy-ui-vue/styles.css`.
-
-The app mounts `Button`, `Input`, `Select`, `Dialog`, `RainbowButton`, `BorderBeam` (light effect) and a contained `FluidCursor` (GPU effect). The smoke proves:
-
-- the page loads with no console error and no uncaught exception,
-- it is interactive: clicking `RainbowButton` runs the consumer's own `@click` handler (asserted through DOM text),
-- `bg-primary` exists in the consumer's build: a `Button`'s computed background-color equals the `--primary` token and is not transparent,
-- the GPU effect binds a GPU context: its canvas refuses a `2d` context because WebGL/WebGPU already owns it (the canvas element alone is always rendered, so it proves nothing),
-- `Dialog` opens from the keyboard (Enter on the trigger) and closes with Escape.
-
-## react-vite
-
-Run it: `bash scripts/consumers/react-vite.sh`. The script builds
-`fancy-ui-react`, runs `pnpm pack` into `.consumers/` (git-ignored), points the
-app's `file:` dependency at that tarball, runs `npm install`, builds the app and
-runs the Playwright smoke (the repo's `@playwright/test`, Chromium, software GL
-so the GPU effect can start headless).
-
-What it proves, from the published shape of the package only:
-
-- The README setup is sufficient: `@import "tailwindcss"` plus
-  `@import "fancy-ui-react/tailwind.css"` in CSS, and
-  `import "fancy-ui-react/styles.css"` in the entry.
-- The `exports` map, types and `dist` resolve in a Vite build with strict
-  TypeScript and `skipLibCheck: false`.
-- Button, Input, Select, Dialog, RainbowButton, BorderBeam and a contained
-  FluidCursor mount with no console error or page error.
-- Hydration works: a click on RainbowButton runs the consumer's own handler.
-- `bg-primary` exists in the consumer's CSS: a Button's computed background
-  equals the `--primary` token and is not transparent.
-- Dialog opens and closes from the keyboard (Enter on the trigger, Escape).
-
-## next
-
-`scripts/consumers/next.sh` builds `fancy-ui-react`, runs `pnpm pack`, copies the tarball to
-`examples/consumers/next/.tarball/`, installs with `npm install`, builds the Next app and runs a
-Playwright smoke test (Chromium).
+The `bg-primary` assertion has been checked against a broken setup, once, by hand (not committed, since it is meant to fail):
 
 ```bash
-scripts/consumers/next.sh              # full run
-scripts/consumers/next.sh --skip-build # reuse an existing react/dist
+KEEP_CONSUMER=1 scripts/consumers/next.sh       # passes, prints the scratch path
+cd <scratch>/app
+# remove `@import "fancy-ui-react/tailwind.css";` from app/globals.css
+npm run build                                    # the build still succeeds
+cd <repo>
+CONSUMER_APP_DIR=<scratch>/app CONSUMER_PORT=4391 \
+  pnpm exec playwright test -c examples/consumers/next/playwright.config.ts
 ```
 
-The app's CSS holds exactly the imports the package README documents (`tailwindcss` and
-`fancy-ui-react/tailwind.css`), and the layout imports `fancy-ui-react/styles.css`. It mounts
-`Button`, `Input`, `Select`, `Dialog`, `RainbowButton`, `BorderBeam` and a contained `FluidCursor`.
+The smoke then fails in `expectPrimaryBackground`: `var(--primary)` resolves to `rgba(0, 0, 0, 0)` because the token is never defined. A build that drops the package's Tailwind entry is caught even though it compiles.
 
-What the smoke proves:
+## Known gap: Cameleon outside SvelteKit
 
-- the page loads with no console error and no uncaught exception;
-- hydration works: a click on `RainbowButton` runs the consumer's handler (read back from the DOM);
-- `bg-primary` exists: a `Button` paints the same colour as the `--primary` token, not transparent;
-- `Dialog` opens with Enter on its trigger and closes with Escape;
-- the light effect (`BorderBeam`) and the GPU effect (`FluidCursor`, which renders a canvas) mount.
+`svelte-vite` also mounts `FancyProvider` from `fancy-ui-svelte/cameleon` with a skin. The section is swapped in at build time by an alias in `vite.config.js`, only when `CONSUMER_CAMELEON=1`, so the rest of the page builds and renders without it.
 
-The consumer is deliberately absent from `pnpm-workspace.yaml`.
+Today that build fails: `FancyProvider` imports `$app/environment`, a module only SvelteKit provides, and Rollup cannot resolve it in a plain Vite app. `scripts/consumers/svelte-vite.sh` therefore:
 
-## nuxt
+1. builds with `CONSUMER_CAMELEON=1` first;
+2. if that fails, checks that the log names `$app/environment` (any other failure fails the run), then builds without the section;
+3. passes the outcome to the smoke as `CONSUMER_CAMELEON_BUILD` (`ok` or `needs-sveltekit`).
 
-`scripts/consumers/nuxt.sh` builds `fancy-ui-vue`, runs `pnpm pack` into a
-scratch folder, points the app's `fancy-ui-vue` dependency at that tarball
-(the committed `package.json` is restored afterwards), installs with npm,
-builds the Nuxt app and runs the Playwright smoke test in Chromium.
+The test `Cameleon FancyProvider mounts outside SvelteKit` is marked `test.fixme` unless the build succeeded, so the suite stays green and the report shows the gap as skipped. The fix is on branch `fix/cameleon-without-sveltekit`. Once it lands, the Cameleon build succeeds, the script serves that build, and the test runs for real; it has been checked to pass against a `FancyProvider` without the `$app/environment` import.
 
-The app's CSS is exactly the three imports the package README documents:
-`tailwindcss`, `fancy-ui-vue/tailwind.css` and `fancy-ui-vue/styles.css`. It
-mounts `Button`, `Input`, `Select`, `Dialog`, `RainbowButton`, `BorderBeam`
-and a contained `FluidCursor`.
+## Adding a consumer
 
-The smoke test proves that:
-
-- the page loads with no console or page errors (the GPU effect included);
-- it hydrates: a click on `RainbowButton` runs the consumer's own handler;
-- `bg-primary` exists in the generated CSS: a `Button`'s computed background
-  equals the `--primary` token and is not transparent;
-- `Dialog` opens and closes from the keyboard (Enter, then Escape).
+1. Create `examples/consumers/<name>/` with its own `package.json` (the package dependency set to `file:.tarball/<package>.tgz`), the documented CSS setup, a `tests/smoke.spec.ts` built on `smoke-helpers.ts`, and a `playwright.config.ts` built on `playwright.shared.ts`.
+2. Add `scripts/consumers/<name>.sh` following an existing one. `run-all.mjs` picks up every `.sh` in that folder whose name does not start with `_`.

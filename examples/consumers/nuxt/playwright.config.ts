@@ -1,29 +1,8 @@
-import { defineConfig, devices } from "@playwright/test";
+import { consumerConfig } from "../playwright.shared";
 
-const PORT = Number(process.env.CONSUMER_PORT ?? 4321);
-
-export default defineConfig({
-	testDir: "./tests",
-	retries: 0,
-	reporter: "list",
-	use: { baseURL: `http://localhost:${PORT}` },
-	projects: [
-		{
-			name: "chromium",
-			use: {
-				...devices["Desktop Chrome"],
-				// Software GL so the GPU effect can create a context on a headless runner.
-				launchOptions: {
-					args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
-				},
-			},
-		},
-	],
-	webServer: {
-		command: "node .output/server/index.mjs",
-		url: `http://localhost:${PORT}`,
-		env: { PORT: String(PORT), HOST: "127.0.0.1" },
-		reuseExistingServer: false,
-		timeout: 60_000,
-	},
-});
+// See ../playwright.shared.ts: the app under test is the scratch copy built by
+// scripts/consumers/nuxt.sh, outside the repo, on a free port.
+export default consumerConfig((port) => ({
+	command: "node .output/server/index.mjs",
+	env: { PORT: String(port), HOST: "127.0.0.1" },
+}));

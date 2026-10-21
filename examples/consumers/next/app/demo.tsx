@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	BorderBeam,
 	Button,
@@ -22,9 +22,13 @@ export function Demo() {
 	const [open, setOpen] = useState(false);
 	const [framework, setFramework] = useState("react");
 	const [name, setName] = useState("");
+	// Set once React has hydrated the server markup: the smoke waits for it
+	// before clicking, so a click can never land on a not-yet-interactive button.
+	const [hydrated, setHydrated] = useState(false);
+	useEffect(() => setHydrated(true), []);
 
 	return (
-		<div className="flex flex-col gap-6">
+		<div className="flex flex-col gap-6" data-hydrated={hydrated ? "true" : undefined}>
 			<section className="flex flex-wrap items-center gap-3">
 				<Button data-testid="button">Primary button</Button>
 				<RainbowButton data-testid="rainbow" onClick={() => setClicks((n) => n + 1)}>
@@ -34,12 +38,7 @@ export function Demo() {
 			</section>
 
 			<section className="flex flex-wrap items-center gap-3">
-				<Input
-					aria-label="Name"
-					placeholder="Your name"
-					value={name}
-					onValueChange={setName}
-				/>
+				<Input aria-label="Name" placeholder="Your name" value={name} onValueChange={setName} />
 				<Select
 					options={frameworks}
 					value={framework}

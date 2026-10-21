@@ -9,7 +9,7 @@
 		"postinstall": "nuxt prepare"
 	},
 	"dependencies": {
-		"fancy-ui-vue": "file:../../../.consumer-tarballs/fancy-ui-vue.tgz",
+		"fancy-ui-vue": "file:.tarball/fancy-ui-vue.tgz",
 		"nuxt": "^4.5.0",
 		"vue": "^3.5.2"
 	},
