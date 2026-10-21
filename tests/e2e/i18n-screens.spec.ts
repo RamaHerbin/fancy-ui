@@ -191,7 +191,7 @@ async function probe(page: Page, width: number, labels: string): Promise<Probe> 
 				(el.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
 
 			// Clipped labels
-			const clips = [];
+			const clips: Array<{ kind: "clip"; path: string; text: string; detail: string }> = [];
 			for (const el of document.querySelectorAll<HTMLElement>(labels)) {
 				if (el.closest(excluded)) continue;
 				const rect = el.getBoundingClientRect();
@@ -229,7 +229,13 @@ async function probe(page: Page, width: number, labels: string): Promise<Probe> 
 			}
 
 			// Elements past either edge, outside fixed layers and scroll containers
-			const overflow = [];
+			const overflow: Array<{
+				el: Element;
+				kind: "overflow";
+				path: string;
+				text: string;
+				detail: string;
+			}> = [];
 			const contained = (el: Element) => {
 				for (let a: Element | null = el; a && a !== document.documentElement; a = a.parentElement) {
 					const cs = getComputedStyle(a);
@@ -254,7 +260,7 @@ async function probe(page: Page, width: number, labels: string): Promise<Probe> 
 			}
 
 			// Digits: ASCII counts and native (Persian / Arabic-Indic) digits
-			const asciiCounts = [];
+			const asciiCounts: Array<{ kind: "digits"; path: string; text: string; detail: string }> = [];
 			let nativeDigits = 0;
 			const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
 			for (let n = walker.nextNode(); n; n = walker.nextNode()) {
