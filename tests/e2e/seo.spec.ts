@@ -79,6 +79,11 @@ test.describe("indexing", () => {
 		await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 	});
 
+	test("/skins sends the noindex header before any script runs", async ({ request }) => {
+		const response = await request.get("/skins");
+		expect(response.headers()["x-robots-tag"]).toBe("noindex, nofollow");
+	});
+
 	test("a component page stays indexable", async ({ page }) => {
 		await page.goto("/docs/components/button");
 		await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
