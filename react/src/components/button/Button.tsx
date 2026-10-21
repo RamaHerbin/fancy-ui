@@ -167,7 +167,19 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 
 		const content = (
 			<>
-				{loading ? <span className="ft-btn-spinner" aria-hidden="true"></span> : iconStart}
+				{/* The lead slot: one fixed cell for the spinner or iconStart, so a
+				    loading swap never moves the label and an icon centres exactly as
+				    in the Svelte and Vue buttons. aria-hidden only while loading:
+				    the caller's own icon keeps whatever treatment they gave it. */}
+				{loading || (iconStart != null && iconStart !== false) ? (
+					<span className="ft-btn-lead" aria-hidden={loading ? "true" : undefined}>
+						{loading ? (
+							<span className="ft-btn-spinner"></span>
+						) : (
+							<span className="ft-btn-lead-icon">{iconStart}</span>
+						)}
+					</span>
+				) : null}
 				{children}
 				{iconEnd}
 			</>

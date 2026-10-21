@@ -86,6 +86,30 @@
 }
 
 /*
+ * The lead slot: one fixed cell the spinner and `iconStart` share, sized
+ * exactly like the spinner it holds (`calc(1em + 1px)`, read from the
+ * button's own font-size, so it follows the size variant for free).
+ */
+.ft-btn-lead {
+	display: grid;
+	place-items: center;
+	flex: none;
+	width: calc(1em + 1px);
+	height: calc(1em + 1px);
+}
+
+.ft-btn-lead > .ft-btn-spinner,
+.ft-btn-lead > .ft-btn-lead-icon {
+	grid-area: 1 / 1;
+}
+
+.ft-btn-lead-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/*
  * `1em` reads the button's own font-size, so the ring scales with the size
  * variant instead of needing one fixed diameter per size — at `md` (13px
  * type) that resolves to the mockup's 14px exactly.

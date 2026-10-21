@@ -13,7 +13,10 @@ import { createRoot } from "react-dom/client";
 const scenarios = import.meta.glob<{ default: ComponentType }>("./scenarios/*.tsx");
 
 const params = new URLSearchParams(location.search);
-const slug = params.get("slug") ?? "";
+// ?variant=<name> renders scenarios/<slug>--<name> instead, for an
+// interaction state that needs other content (scripts/parity/states.mjs).
+const variant = params.get("variant");
+const slug = (params.get("slug") ?? "") + (variant ? `--${variant}` : "");
 document.documentElement.classList.toggle("dark", params.get("theme") === "dark");
 
 function Stage({ Scenario }: { Scenario: ComponentType | null }) {

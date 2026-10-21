@@ -452,6 +452,29 @@ describe("attachAnchorPosition — onPlacement", () => {
 		handle.destroy();
 	});
 
+	// A portalled panel with no width of its own is a block until the first
+	// `update()` makes it fixed: measured before that, it is as wide as the
+	// body, centres to a negative x, clamps to 0 and stays pinned to the left
+	// edge of the viewport (the tooltip on every stage of the parity bench).
+	it("measures the node as a fixed box, not as a block stretched across the page", () => {
+		const anchorEl = document.createElement("button");
+		const node = document.createElement("div");
+		document.body.append(anchorEl, node);
+		anchorEl.getBoundingClientRect = () => rect({ x: 482, y: 332, width: 36, height: 36 });
+		Object.defineProperty(node, "offsetWidth", {
+			configurable: true,
+			get: () => (node.style.position === "fixed" ? 105 : 1024),
+		});
+		Object.defineProperty(node, "offsetHeight", { configurable: true, value: 26 });
+
+		const handle = attachAnchorPosition(node, { anchor: () => anchorEl, side: "top", offset: 6 });
+
+		// 482 + 18 - 52.5, above the trigger.
+		expect(node.style.left).toBe("447.5px");
+		expect(node.style.top).toBe("300px");
+		handle.destroy();
+	});
+
 	it("strips the position it wrote when destroyed under a still-mounted node", () => {
 		const { anchorEl, node } = setup(
 			{ x: 100, y: 100, width: 50, height: 20 },

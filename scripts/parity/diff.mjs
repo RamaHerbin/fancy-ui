@@ -13,7 +13,9 @@
  *   <out>/scores.json      { [slug]: { [theme]: { [t]: { react, vue } } }, worst: { react, vue } }
  *   <out>/triptych/<slug>-<theme>-<t>[-hover].png
  *                          [Svelte | React | Vue | heatmap of the larger delta], 8 px gutters
- * and prints the table worst first. A missing port scores null.
+ * and prints the table worst first. A missing port scores null, except for
+ * an interaction-state shot (<theme>-<t>@<state>.png, see states.mjs): one
+ * that any framework has and another lacks fails the run, naming it.
  *
  * --compare-runs diffs two capture runs of the same stages file by file (a
  * determinism check: two runs should score ~0). --self-check proves the
@@ -30,6 +32,7 @@ import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { findStateGaps } from "./states.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..", "..");
@@ -262,6 +265,14 @@ async function scoreRun(args) {
 	const svelteDir = join(shotsDir, "svelte");
 	const shots = listPngs(svelteDir).filter((p) => !args.only || args.only.has(dirname(p)));
 	if (shots.length === 0) throw new Error(`no Svelte shots under ${svelteDir}`);
+	const stateGaps = findStateGaps(
+		Object.fromEntries(
+			["svelte", ...PORTS].map((fw) => [
+				fw,
+				listPngs(join(shotsDir, fw)).filter((p) => !args.only || args.only.has(dirname(p))),
+			])
+		)
+	);
 	const tripDir = join(args.out, "triptych");
 	if (args.triptych) mkdirSync(tripDir, { recursive: true });
 
@@ -330,6 +341,10 @@ async function scoreRun(args) {
 		);
 	}
 	console.log(`\nscores -> ${scoresPath}${args.triptych ? `\ntriptychs -> ${tripDir}` : ""}`);
+	if (stateGaps.length) {
+		console.error(`\n${stateGaps.length} state shot(s) missing:\n  ${stateGaps.join("\n  ")}`);
+		process.exitCode = 1;
+	}
 }
 
 async function compareRuns(args) {

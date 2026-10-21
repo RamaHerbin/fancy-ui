@@ -1,0 +1,16 @@
+{
+	"states": {
+		"open": {
+			"steps": [{ "click": { "role": "textbox", "name": "Email" } }, { "type": "ada@example.com" }],
+			"expect": [{ "role": "textbox", "name": "Email" }]
+		},
+		"focus": {
+			"steps": [{ "focus": { "role": "textbox", "name": "Email" } }],
+			"expect": [{ "role": "textbox", "name": "Email", "focusVisible": true }]
+		},
+		"long": {
+			"variant": "long",
+			"expect": [{ "role": "textbox", "name": "Email", "overflow": true }]
+		}
+	}
+}
