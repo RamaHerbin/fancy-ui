@@ -9,7 +9,8 @@
  * - /docs/components/<slug>.md       one component as Markdown (Svelte), with every docs example
  * - /docs/components/react/<slug>.md the same page for the React package
  * - /docs/components/vue/<slug>.md   the same page for the Vue package
- * - /registry.json                   the same facts as JSON, for tools
+ * - /registry.json                   the same facts as JSON, for tools (v2: keyed by framework,
+ *                                    with each framework's Markdown page and copy source)
  *
  * Nothing here is written by hand per component: descriptions and props come
  * from `registry.ts`, examples from `components/docs/examples` (Svelte) and
@@ -26,6 +27,7 @@ import type { Framework } from "$lib/inspiration/types.js";
 import { SITE_URL, GITHUB_URL } from "$lib/site.js";
 import type { ComponentMeta } from "$lib/types.js";
 import {
+	portFolderOf,
 	svelteExportsBySlug,
 	reactExportsBySlug,
 	vueExportsBySlug,
@@ -35,6 +37,17 @@ import {
 } from "./barrels.js";
 import { REGISTRY_BASE, copyCommandFor } from "./registry/constants.js";
 import { REGISTRY_BASE_SVELTE, REGISTRY_BASE_VUE } from "$lib/copy-source.js";
+import {
+	portEventName,
+	portPropName,
+	portSlotName,
+	type PortOptions,
+} from "$lib/docs/port-names.js";
+import { FRAMEWORKS } from "$lib/inspiration/types.js";
+import { copySourcesFor } from "./copy-availability.js";
+import { portCallbacksFor } from "./port-callbacks.js";
+import { variantFor, type Availability } from "./variants.js";
+import { vueModelsFor } from "./vue-models.js";
 
 export type DocsFramework = Framework;
 
@@ -264,11 +277,14 @@ import "fancy-ui-react/styles.css";
 import { RainbowButton } from "fancy-ui-react";
 \`\`\`
 
-Props keep their Svelte names exactly, callbacks included (\`onpercentagechange\`
-stays \`onpercentagechange\`). Two mechanical renames: \`class\` becomes
-\`className\`, and snippet props become \`ReactNode\` props (render functions when
-the snippet takes arguments); the default snippet is \`children\`. Per-component
-divergences are listed in the package README:
+Props keep their Svelte names, with three mechanical renames: \`class\` becomes
+\`className\`; snippet props become \`ReactNode\` props (render functions when the
+snippet takes arguments), the default snippet being \`children\`; and a callback
+takes the name the React port declares, which is the camel-cased handler for a
+DOM event (\`onclick\` becomes \`onClick\`) and the Svelte name otherwise
+(\`onpercentagechange\` stays \`onpercentagechange\`). Each component's React
+Markdown page prints the exact names. Per-component divergences are listed in
+the package README:
 ${GITHUB_URL}/tree/main/react#divergences-from-the-svelte-api
 Package is ESM only, with four entry points: \`fancy-ui-react\`,
 \`fancy-ui-react/cameleon\`, \`fancy-ui-react/styles.css\`, \`fancy-ui-react/tailwind.css\`.
@@ -306,14 +322,18 @@ import { RainbowButton } from "fancy-ui-vue";
 \`\`\`
 
 Props keep their Svelte names. Snippet props become named slots (the default
-snippet is the default slot); every bindable prop is a \`v-model:<name>\`
-(except \`ref\`, exposed via \`defineExpose({ ref })\`: put a template ref on
-the component and read \`.ref\`). Every component sets \`inheritAttrs: false\`:
+snippet is the default slot); a bindable prop the Vue port declares as a model
+is a \`v-model:<name>\` (except \`ref\`, exposed via \`defineExpose({ ref })\`: put
+a template ref on the component and read \`.ref\`); some bindables are plain
+props in Vue. Every component sets \`inheritAttrs: false\`:
 \`class\` is a declared prop, merged where the Svelte component applies it
 (not always the root element), and only on components whose props table lists
 it. Other attributes do not fall through; they reach the DOM only on the
 components the package README lists as forwarding native attributes.
-Per-component divergences are listed in the package README:
+Callbacks are bound as listeners: a callback the Vue port declares in camel
+case (\`onPercentageChange\`) is \`@percentage-change\`, a DOM event keeps its
+name (\`onclick\` is \`@click\`). Each component's Vue Markdown page prints the
+exact names. Per-component divergences are listed in the package README:
 ${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api
 Package is ESM only, with four entry points: \`fancy-ui-vue\`,
 \`fancy-ui-vue/cameleon\`, \`fancy-ui-vue/styles.css\`, \`fancy-ui-vue/tailwind.css\`.
@@ -331,9 +351,19 @@ of component auto-import: \`components: { dirs: [{ path: "~/components", ignore:
 function header(componentCount: number): string {
 	return `# fancy-ui-svelte
 
-> ${componentCount} animated UI components for Svelte 5 + Tailwind CSS v4: buttons, cards, text effects, backgrounds, cursors, and layout primitives. MIT licensed. Install with \`npm install fancy-ui-svelte\`, import from \`'fancy-ui-svelte'\`. A React edition ships as \`fancy-ui-react\`.
+> ${componentCount} animated UI components for Svelte 5 + Tailwind CSS v4: buttons, cards, text effects, backgrounds, cursors, and layout primitives. MIT licensed. Install with \`npm install fancy-ui-svelte\`, import from \`'fancy-ui-svelte'\`. The same components ship for React as \`fancy-ui-react\` and for Vue as \`fancy-ui-vue\`, and every package can also be copied into a project as source.
 
 Docs: ${SITE_URL}/docs — Source: ${GITHUB_URL}`;
+}
+
+/**
+ * The "Recipes" section of llms.txt, between the component index and the full
+ * reference: one link per composed recipe, each line as Markdown, ending with
+ * a blank line. Empty until the recipes registry exists; the section is not
+ * printed at all while it is.
+ */
+export function recipesSection(): string[] {
+	return [];
 }
 
 /**
@@ -368,6 +398,8 @@ export function generateLlmsTxt(): string {
 		lines.push("");
 	}
 
+	lines.push(...recipesSection());
+
 	lines.push(
 		"## Full reference",
 		"",
@@ -375,7 +407,7 @@ export function generateLlmsTxt(): string {
 		"",
 		"## Optional",
 		"",
-		`- [registry.json](${SITE_URL}/registry.json): every component as JSON (import names, props, snippets, events, links)`,
+		`- [registry.json](${SITE_URL}/registry.json): every component as JSON, per framework: import names, Markdown page, copy-source item and availability, plus props, snippets and events`,
 		`- [Changelog](${SITE_URL}/docs/getting-started/changelog): release notes`,
 		`- [React package README](${GITHUB_URL}/tree/main/react): React setup and divergences`,
 		`- [Vue package README](${GITHUB_URL}/tree/main/vue): Vue setup and divergences`,
@@ -396,9 +428,14 @@ function propsSection(component: ComponentMeta): string[] {
 	return lines;
 }
 
-function reactLine(component: ComponentMeta): string[] {
-	const names = reactImportNames(component);
-	return names ? ["", `React: \`import { ${names.join(", ")} } from 'fancy-ui-react';\``] : [];
+/** The React and Vue import lines of a ported component. */
+function portLines(component: ComponentMeta): string[] {
+	const react = reactImportNames(component);
+	const vue = vueImportNames(component);
+	return [
+		...(react ? ["", `React: \`import { ${react.join(", ")} } from 'fancy-ui-react';\``] : []),
+		...(vue ? ["", `Vue: \`import { ${vue.join(", ")} } from 'fancy-ui-vue';\``] : []),
+	];
 }
 
 function typesLine(component: ComponentMeta, framework: DocsFramework): string[] {
@@ -432,7 +469,7 @@ export function generateLlmsFullTxt(): string {
 				`\`\`\``
 			);
 			lines.push(...typesLine(c, "svelte"));
-			lines.push(...reactLine(c));
+			lines.push(...portLines(c));
 			lines.push(...propsSection(c));
 			if (c.slots?.length) {
 				lines.push("", "Snippets:", "");
@@ -454,6 +491,15 @@ export function generateLlmsFullTxt(): string {
 	}
 
 	return lines.join("\n");
+}
+
+/**
+ * A Svelte action row (`use:soundFeedback`) is a hook in React and a
+ * composable in Vue, both named `useSoundFeedback`; null for any other row.
+ */
+function actionHook(name: string): string | null {
+	const action = /^use:([a-z]\w*)$/.exec(name)?.[1];
+	return action ? `use${action[0].toUpperCase()}${action.slice(1)}` : null;
 }
 
 /** Escape a value for a Markdown table cell. */
@@ -511,8 +557,8 @@ const FRAMEWORK_DOCS: Record<DocsFramework, FrameworkDocs> = {
 			"",
 			`and import the component styles once in the app entry: \`import "fancy-ui-react/styles.css";\`. Full guide: ${SITE_URL}/llms.txt`,
 		],
-		source: (slug) => `${GITHUB_URL}/tree/main/react/src/components/${slug}`,
-		mapping: `Props keep the names below; \`class\` becomes \`className\`, snippets become \`ReactNode\` props (render functions when they take arguments) and the default snippet is \`children\`. Divergences: ${GITHUB_URL}/tree/main/react#divergences-from-the-svelte-api`,
+		source: (slug) => `${GITHUB_URL}/tree/main/react/src/${portFolderOf("react", slug)}`,
+		mapping: `The names below are the ones to write in React; when one differs from the Svelte name, the Svelte name follows in parentheses. \`class\` becomes \`className\`, a callback takes the name the React port declares (\`onclick\` becomes \`onClick\`), snippets become \`ReactNode\` props (render functions when they take arguments) and the default snippet is \`children\`. Divergences: ${GITHUB_URL}/tree/main/react#divergences-from-the-svelte-api`,
 		slotsHeading: "Node props",
 		slotsColumn: "Prop",
 	},
@@ -535,8 +581,8 @@ const FRAMEWORK_DOCS: Record<DocsFramework, FrameworkDocs> = {
 			"",
 			`Full guide: ${SITE_URL}/llms.txt`,
 		],
-		source: (slug) => `${GITHUB_URL}/tree/main/vue/src/components/${slug}`,
-		mapping: `Props keep the names below; snippets become named slots (the default snippet is the default slot), every bindable prop is a \`v-model:<name>\` (except \`ref\`, exposed via \`defineExpose({ ref })\`: put a template ref on the component and read \`.ref\`). Every component sets \`inheritAttrs: false\`: \`class\` is a declared prop, merged where the Svelte component applies it (not always the root element), and only when the props table below lists it; other attributes do not fall through unless the package README lists the component as forwarding native attributes. Divergences: ${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api`,
+		source: (slug) => `${GITHUB_URL}/tree/main/vue/src/${portFolderOf("vue", slug)}`,
+		mapping: `The names below are the ones to write in a Vue template; when one differs from the Svelte name, the Svelte name follows in parentheses. Snippets become named slots (\`#default\` is the default snippet), a prop the Vue port declares as a model is a \`v-model:<name>\` (except \`ref\`, exposed via \`defineExpose({ ref })\`: put a template ref on the component and read \`.ref\`) and callbacks are listeners (\`onclick\` is \`@click\`). Every component sets \`inheritAttrs: false\`: \`class\` is a declared prop, merged where the Svelte component applies it (not always the root element), and only when the props table below lists it; other attributes do not fall through unless the package README lists the component as forwarding native attributes. Divergences: ${GITHUB_URL}/tree/main/vue#divergences-from-the-svelte-api`,
 		slotsHeading: "Slots",
 		slotsColumn: "Slot",
 	},
@@ -581,11 +627,25 @@ export function componentMarkdown(c: ComponentMeta, framework: DocsFramework = "
 		if (react) {
 			lines.push(
 				"",
-				`React: \`import { ${react.join(", ")} } from 'fancy-ui-react';\` (same prop names; \`class\` becomes \`className\`, snippets become \`ReactNode\`).`
+				`React: \`import { ${react.join(", ")} } from 'fancy-ui-react';\` (\`class\` becomes \`className\`, snippets become \`ReactNode\`, DOM callbacks are camel-cased; exact names on ${markdownUrl(c, "react")}).`
 			);
 		}
 	}
 	if (fw.mapping) lines.push("", fw.mapping);
+
+	// React and Vue tables print the name each port really takes (see port-names.ts).
+	const port = framework === "svelte" ? null : framework;
+	const options: PortOptions = port
+		? {
+				reactCallbacks: portCallbacksFor("react", c.slug, c.name),
+				vueCallbacks: portCallbacksFor("vue", c.slug, c.name),
+				vueModels: vueModelsFor(c.slug, c.name),
+			}
+		: {};
+	const label = (svelteName: string, portName: string | null) =>
+		portName && portName !== svelteName
+			? `\`${portName}\` (Svelte \`${svelteName}\`)`
+			: `\`${svelteName}\``;
 
 	if (c.props?.length) {
 		lines.push(
@@ -596,7 +656,11 @@ export function componentMarkdown(c: ComponentMeta, framework: DocsFramework = "
 			"| --- | --- | --- | --- |"
 		);
 		for (const p of c.props) {
-			const name = p.required ? `\`${p.name}\` (required)` : `\`${p.name}\``;
+			const named = label(
+				p.name,
+				port ? (actionHook(p.name) ?? portPropName(p, port, options)) : null
+			);
+			const name = p.required ? `${named} (required)` : named;
 			const def = p.default !== undefined ? `\`${cell(p.default)}\`` : "—";
 			lines.push(`| ${name} | \`${cell(p.type)}\` | ${def} | ${cell(p.description)} |`);
 		}
@@ -609,12 +673,17 @@ export function componentMarkdown(c: ComponentMeta, framework: DocsFramework = "
 			`| ${fw.slotsColumn} | Description |`,
 			"| --- | --- |"
 		);
-		for (const s of c.slots) lines.push(`| \`${s.name}\` | ${cell(s.description)} |`);
+		for (const s of c.slots) {
+			const named = label(s.name, port ? portSlotName(s.name, port) : null);
+			lines.push(`| ${named} | ${cell(s.description)} |`);
+		}
 	}
 	if (c.events?.length) {
 		lines.push("", "## Events", "", "| Event | Payload | Description |", "| --- | --- | --- |");
-		for (const e of c.events)
-			lines.push(`| \`${e.name}\` | \`${cell(e.detail)}\` | ${cell(e.description)} |`);
+		for (const e of c.events) {
+			const named = label(e.name, port ? portEventName(e.name, port, options) : null);
+			lines.push(`| ${named} | \`${cell(e.detail)}\` | ${cell(e.description)} |`);
+		}
 	}
 
 	if (framework === "svelte") {
@@ -642,6 +711,18 @@ export function componentMarkdown(c: ComponentMeta, framework: DocsFramework = "
 	return lines.join("\n");
 }
 
+/** One value per framework, in canonical order (svelte, react, vue). */
+export type PerFramework<T> = Record<DocsFramework, T>;
+
+export interface RegistryPackage {
+	/** The npm package. */
+	name: string;
+	/** The one-line install. */
+	install: string;
+	/** The copy-into-your-project registry index of that framework. */
+	registry: string;
+}
+
 export interface RegistryEntry {
 	name: string;
 	slug: string;
@@ -650,30 +731,58 @@ export interface RegistryEntry {
 	group: string;
 	tags: string[];
 	dependencies: string[];
-	import: { package: "fancy-ui-svelte"; names: string[] };
-	react: { package: "fancy-ui-react"; names: string[] } | null;
-	vue: { package: "fancy-ui-vue"; names: string[] } | null;
+	/** The names to import from each package, or null when that framework has no port. */
+	imports: PerFramework<{ package: string; names: string[] } | null>;
+	/** The component's Markdown page per framework, or null when that framework has no port. */
+	docs: PerFramework<string | null>;
+	/** The copy-into-your-project registry item per framework, or null when that registry ships none. */
+	copySource: PerFramework<string | null>;
+	/** Whether each package can be installed for this component today. */
+	availability: PerFramework<Availability>;
+	/** The HTML docs page (all three frameworks). */
+	url: string;
 	props: NonNullable<ComponentMeta["props"]>;
 	snippets: NonNullable<ComponentMeta["slots"]>;
 	events: NonNullable<ComponentMeta["events"]>;
+	/** Titles of the Svelte docs examples (on the Svelte Markdown page). */
 	examples: string[];
-	docs: string;
-	markdown: string;
+}
+
+export interface RegistryJson {
+	name: "fancy-ui";
+	/** Shape version: 2 groups every per-package fact by framework. */
+	version: 2;
+	homepage: string;
+	llms: string;
+	packages: PerFramework<RegistryPackage>;
+	count: number;
+	components: RegistryEntry[];
+}
+
+const PACKAGE_NAMES: PerFramework<string> = {
+	svelte: FRAMEWORK_DOCS.svelte.package,
+	react: FRAMEWORK_DOCS.react.package,
+	vue: FRAMEWORK_DOCS.vue.package,
+};
+
+const COPY_INDEXES: PerFramework<string> = {
+	svelte: `${REGISTRY_BASE_SVELTE}/registry.json`,
+	react: `${REGISTRY_BASE}/registry.json`,
+	vue: `${REGISTRY_BASE_VUE}/registry.json`,
+};
+
+function perFramework<T>(value: (framework: DocsFramework) => T): PerFramework<T> {
+	return Object.fromEntries(FRAMEWORKS.map((fw) => [fw, value(fw)])) as PerFramework<T>;
 }
 
 /**
- * Every component as JSON, served at /registry.json
+ * Every component as JSON, served at /registry.json. Version 2 describes the
+ * project rather than one package: each per-package fact (imports, Markdown
+ * page, copy source, availability) is keyed by framework.
  */
-export function generateRegistryJson(): {
-	name: string;
-	homepage: string;
-	llms: string;
-	count: number;
-	components: RegistryEntry[];
-} {
-	const components = [...byCategory(doneComponents()).values()].flat().map((c) => {
-		const react = reactImportNames(c);
-		const vue = vueImportNames(c);
+export function generateRegistryJson(): RegistryJson {
+	const components = [...byCategory(doneComponents()).values()].flat().map((c): RegistryEntry => {
+		const copy = copySourcesFor(c.slug);
 		return {
 			name: c.name,
 			slug: c.slug,
@@ -682,21 +791,30 @@ export function generateRegistryJson(): {
 			group: c.group,
 			tags: c.tags ?? [],
 			dependencies: c.dependencies ?? [],
-			import: { package: "fancy-ui-svelte" as const, names: importNames(c) },
-			react: react ? { package: "fancy-ui-react" as const, names: react } : null,
-			vue: vue ? { package: "fancy-ui-vue" as const, names: vue } : null,
+			imports: perFramework((fw) => {
+				const names = importNamesFor(c, fw);
+				return names ? { package: PACKAGE_NAMES[fw], names } : null;
+			}),
+			docs: perFramework((fw) => (importNamesFor(c, fw) ? markdownUrl(c, fw) : null)),
+			copySource: perFramework((fw) => copy[fw]?.url ?? null),
+			availability: perFramework((fw) => variantFor(c.slug, fw).availability),
+			url: docsUrl(c),
 			props: c.props ?? [],
 			snippets: c.slots ?? [],
 			events: c.events ?? [],
 			examples: exampleSources(c.slug).map((e) => e.title),
-			docs: docsUrl(c),
-			markdown: markdownUrl(c),
 		};
 	});
 	return {
-		name: "fancy-ui-svelte",
+		name: "fancy-ui",
+		version: 2,
 		homepage: SITE_URL,
 		llms: `${SITE_URL}/llms.txt`,
+		packages: perFramework((fw) => ({
+			name: PACKAGE_NAMES[fw],
+			install: `npm install ${PACKAGE_NAMES[fw]}`,
+			registry: COPY_INDEXES[fw],
+		})),
 		count: components.length,
 		components,
 	};

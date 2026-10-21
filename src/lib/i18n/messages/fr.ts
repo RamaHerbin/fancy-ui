@@ -1,4 +1,4 @@
-// French (fr) — machine-translated draft. TODO: native review.
+// French (fr).
 import type { Catalog } from "./en.js";
 
 export default {
