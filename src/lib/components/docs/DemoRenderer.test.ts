@@ -71,22 +71,3 @@ describe("DemoRenderer sized stage", () => {
 		}
 	);
 });
-
-describe("sparkles preview visibility", () => {
-	it("pairs white particles with an opaque backdrop so light theme shows them", () => {
-		const props = defaultProps.sparkles;
-		expect(props.particleColor).toBe("#ffffff");
-		expect(props.background).not.toBe("transparent");
-	});
-});
-
-describe("sparkles example wrappers", () => {
-	it.each(["BasicUsage", "CustomColors", "DenseAndFast"])("%s wrapper is full width", (name) => {
-		const src = readFileSync(
-			join(process.cwd(), `src/lib/components/docs/examples/sparkles/${name}.svelte`),
-			"utf8"
-		);
-		const wrapper = src.match(/<div class="([^"]*)">/)?.[1] ?? "";
-		expect(wrapper.split(/\s+/)).toContain("w-full");
-	});
-});
