@@ -1,7 +1,8 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLAnchorAttributes } from "svelte/elements";
 
-	export interface LinkProps {
+	type BaseProps = {
 		/** Destination URL */
 		href: string;
 		/** Visual weight: `default` reads as inline copy, `muted` recedes into supporting text */
@@ -30,7 +31,10 @@
 		 * default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
-	}
+	};
+
+	/** Native anchor attributes (`id`, `download`, `aria-*`, `data-*`, `onkeydown`, ...) land on the `<a>`. */
+	export type LinkProps = BaseProps & Omit<HTMLAnchorAttributes, keyof BaseProps>;
 </script>
 
 <script lang="ts">
@@ -49,6 +53,7 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		...restProps
 	}: LinkProps = $props();
 
 	// `external` only *defaults* the tab target — a caller who passes both
@@ -99,6 +104,7 @@
 </script>
 
 <a
+	{...restProps}
 	bind:this={ref}
 	{href}
 	target={computedTarget}

@@ -1,5 +1,11 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type {
+	AnchorHTMLAttributes,
+	ButtonHTMLAttributes,
+	FocusEvent,
+	MouseEvent,
+	ReactNode,
+} from "react";
 import { cn } from "../../utils.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import { useElementRef } from "../../internals/dom/use-element-ref.js";
@@ -16,7 +22,10 @@ import "./inline-citation.css";
 /**
  * Props for InlineCitation
  */
-export interface InlineCitationProps {
+export interface InlineCitationProps extends Omit<
+	AnchorHTMLAttributes<HTMLElement>,
+	"className" | "href" | "children"
+> {
 	/** The document being cited. Its title, domain and snippet fill the preview. */
 	source: SourceData;
 	/** The reference number shown in the marker, e.g. `3` renders `[3]` */
@@ -58,7 +67,20 @@ const CLOSE_GRACE_MS = 250;
  * InlineCitation
  */
 export const InlineCitation = forwardRef<HTMLElement, InlineCitationProps>(function InlineCitation(
-	{ source, index, href, preview, onOpen, className },
+	{
+		source,
+		index,
+		href,
+		preview,
+		onOpen,
+		className,
+		onMouseEnter,
+		onMouseLeave,
+		onFocus,
+		onBlur,
+		onClick,
+		...rest
+	},
 	forwardedRef
 ) {
 	const uid = useFancyId();
@@ -190,7 +212,32 @@ export const InlineCitation = forwardRef<HTMLElement, InlineCitationProps>(funct
 	// The marker's text is a bare number; on its own it names nothing, so the
 	// title rides along as the accessible name and the card stays supplementary.
 	const markerLabel = `Source ${index}: ${source.title}`;
-	const describedBy = open ? previewId : undefined;
+	// A consumer's own description is kept next to the card's id, never replaced by it.
+	const describedBy =
+		[rest["aria-describedby"], open ? previewId : undefined].filter(Boolean).join(" ") || undefined;
+
+	// The component's own logic runs first, then the consumer's listener, once,
+	// with the same event.
+	const handleMouseEnter = (event: MouseEvent<HTMLElement>) => {
+		scheduleShow();
+		onMouseEnter?.(event);
+	};
+	const handleMouseLeave = (event: MouseEvent<HTMLElement>) => {
+		scheduleHide();
+		onMouseLeave?.(event);
+	};
+	const handleFocus = (event: FocusEvent<HTMLElement>) => {
+		show();
+		onFocus?.(event);
+	};
+	const handleBlur = (event: FocusEvent<HTMLElement>) => {
+		hide();
+		onBlur?.(event);
+	};
+	const handleButtonClick = (event: MouseEvent<HTMLElement>) => {
+		show();
+		onClick?.(event);
+	};
 
 	/*
 	 * The marker and the card sit in one fragment with nothing between them. JSX
@@ -203,6 +250,7 @@ export const InlineCitation = forwardRef<HTMLElement, InlineCitationProps>(funct
 		<>
 			{isLink ? (
 				<a
+					{...rest}
 					ref={composedMarkerRef}
 					href={resolvedHref}
 					target="_blank"
@@ -210,25 +258,27 @@ export const InlineCitation = forwardRef<HTMLElement, InlineCitationProps>(funct
 					className={markerClass}
 					aria-label={markerLabel}
 					aria-describedby={describedBy}
-					onMouseEnter={scheduleShow}
-					onMouseLeave={scheduleHide}
-					onFocus={show}
-					onBlur={hide}
+					onMouseEnter={handleMouseEnter}
+					onMouseLeave={handleMouseLeave}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
+					onClick={onClick}
 				>
 					[{index}]
 				</a>
 			) : (
 				<button
+					{...(rest as ButtonHTMLAttributes<HTMLButtonElement>)}
 					ref={composedMarkerRef}
 					type="button"
 					className={markerClass}
 					aria-label={markerLabel}
 					aria-describedby={describedBy}
-					onMouseEnter={scheduleShow}
-					onMouseLeave={scheduleHide}
-					onFocus={show}
-					onBlur={hide}
-					onClick={show}
+					onMouseEnter={handleMouseEnter}
+					onMouseLeave={handleMouseLeave}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
+					onClick={handleButtonClick}
 				>
 					[{index}]
 				</button>
