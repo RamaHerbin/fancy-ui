@@ -95,7 +95,11 @@
 		revealing && "bento-reveal",
 		className
 	)}
-	data-state={revealing ? (shown ? "shown" : "armed") : undefined}
+	data-state={revealing
+		? shown
+			? "shown"
+			: "armed"
+		: (restProps as Record<string, string | undefined>)["data-state"]}
 	style:--bento-accent={accent}
 	onfocusin={(event) => {
 		shown = true;

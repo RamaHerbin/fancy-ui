@@ -113,10 +113,12 @@ watch(
 				className
 			)
 		"
-		:style="accentStyle"
 		@focusin="shown = true"
 		v-bind="attrs"
-		:data-state="revealing ? (shown ? 'shown' : 'armed') : undefined"
+		:style="accentStyle"
+		:data-state="
+			revealing ? (shown ? 'shown' : 'armed') : (attrs['data-state'] as string | undefined)
+		"
 	>
 		<slot v-if="$slots.default" />
 	</div>

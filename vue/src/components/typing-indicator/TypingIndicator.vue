@@ -60,7 +60,7 @@ const dotStyles = computed(() =>
 		v-bind="attrs"
 		ref="el"
 		:class="cn('inline-flex items-center', className)"
-		:style="[attrs.style as string | undefined, rootStyle]"
+		:style="rootStyle"
 		role="status"
 		aria-live="polite"
 	>

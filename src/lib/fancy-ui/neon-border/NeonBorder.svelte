@@ -29,7 +29,7 @@
 	}
 
 	export type NeonBorderProps = NeonBorderOwn &
-		Omit<HTMLAttributes<HTMLDivElement>, keyof NeonBorderOwn | "style">;
+		Omit<HTMLAttributes<HTMLDivElement>, keyof NeonBorderOwn>;
 
 	export type NeonAnimationType = NonNullable<NeonBorderProps["animationType"]>;
 
@@ -77,6 +77,7 @@
 		duration = 6,
 		class: className,
 		children,
+		style,
 		...restProps
 	}: NeonBorderProps = $props();
 
@@ -96,6 +97,7 @@
 
 	const styleVars = $derived(
 		[
+			...(style ? [String(style)] : []),
 			`--neon-duration: ${duration}s`,
 			`--neon-color1: ${color1}`,
 			`--neon-color2: ${color2}`,

@@ -75,12 +75,12 @@ const rootStyle = computed(() =>
 
 <template>
 	<div
+		:style="rootStyle"
 		v-bind="attrs"
 		ref="ref"
 		role="status"
 		aria-live="polite"
 		:class="cn('inline-grid', className)"
-		:style="[rootStyle, attrs.style as string | undefined]"
 	>
 		<span class="sr-only">{{ label }}</span>
 		<span

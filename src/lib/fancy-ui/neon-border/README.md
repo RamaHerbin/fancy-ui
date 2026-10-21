@@ -2,7 +2,7 @@
 
 A two-colour neon tube around its content. A faint tube runs all the way round; two beams, one per colour, chase each other along it from opposite sides. Each beam has a white-hot core and a coloured glow that spills both inside and outside the edge. The tube flickers once as it ignites, then the glow hums with a slow breathing.
 
-Native attributes and listeners go to the root `<div>`. `style` is not forwarded: the component owns the `--neon-*` custom properties.
+Native attributes and listeners go to the root `<div>`. A consumer `style` is merged; the component's own `--neon-*` custom properties win over a consumer declaration of the same property.
 
 ## Props
 

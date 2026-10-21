@@ -126,10 +126,10 @@ function toRows(src: string, styled: boolean): AnsiSegment[][] {
  * and an undefined colour would still write `style=""` on the server.
  */
 function segmentAttrs(segment: AnsiSegment): Record<string, unknown> {
-	const attrs: Record<string, unknown> = {};
-	if (segment.bold) attrs.class = "ft-bold";
-	if (segment.fg !== null) attrs.style = { color: colour(segment.fg) };
-	return attrs;
+	const out: Record<string, unknown> = {};
+	if (segment.bold) out.class = "ft-bold";
+	if (segment.fg !== null) out.style = { color: colour(segment.fg) };
+	return out;
 }
 
 function colour(fg: string | null): string | undefined {
