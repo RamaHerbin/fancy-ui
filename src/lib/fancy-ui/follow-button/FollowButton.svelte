@@ -126,7 +126,19 @@
 	const showsPreview = $derived(core.phase === "idle" && core.following);
 	const failed = $derived(core.phase === "error");
 
-	const classes = $derived(cn("ft-follow", failed && "ft-follow--failed border", className));
+	// With no explicit variant the button flips primary <-> outline, and the
+	// outline has a 1px border: reserve it (transparent) in the primary state
+	// so the box is identical across idle, following, pending and error.
+	const reserveBorder = $derived(variant === undefined);
+	const classes = $derived(
+		cn(
+			"ft-follow",
+			(failed || reserveBorder) && "border",
+			reserveBorder && !shown && !failed && "border-transparent",
+			failed && "ft-follow--failed",
+			className
+		)
+	);
 
 	// The error window. Armed per failure and keyed on the ticket, so a retry or
 	// a parent write that lands first is never cleared by a stale timer. 0 means

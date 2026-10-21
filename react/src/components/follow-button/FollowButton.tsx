@@ -168,7 +168,14 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 		const [seenProp, setSeenProp] = useState(followingProp);
 		if (followingProp !== seenProp) {
 			setSeenProp(followingProp);
-			if (followingProp !== undefined && followingProp !== core.following) {
+			// Also on the switch to controlled (undefined -> defined) with the SAME
+			// value: a pending attempt must be dropped then too, or it would later
+			// report a change the parent never asked for. `adopt` is a no-op for an
+			// idle button that already holds the value.
+			if (
+				followingProp !== undefined &&
+				(seenProp === undefined || followingProp !== core.following)
+			) {
 				setCore(adopt(core, followingProp));
 			}
 		}
@@ -207,7 +214,17 @@ export const FollowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Fo
 		const showsPreview = view.phase === "idle" && view.following;
 		const failed = view.phase === "error";
 
-		const classes = cn("ft-follow", failed && "ft-follow--failed border", className);
+		// With no explicit variant the button flips primary <-> outline, and the
+		// outline has a 1px border: reserve it (transparent) in the primary state
+		// so the box is identical across idle, following, pending and error.
+		const reserveBorder = variant === undefined;
+		const classes = cn(
+			"ft-follow",
+			(failed || reserveBorder) && "border",
+			reserveBorder && !shown && !failed && "border-transparent",
+			failed && "ft-follow--failed",
+			className
+		);
 
 		// The error window. Armed per failure and keyed on the ticket, so a retry
 		// or a parent write that lands first is never cleared by a stale timer. 0

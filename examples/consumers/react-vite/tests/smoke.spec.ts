@@ -48,7 +48,7 @@ test("the .dark class re-themes the tokens and the button", async ({ page }) => 
 	const read = () =>
 		page.getByTestId("button").evaluate((el) => {
 			const probe = document.createElement("div");
-			probe.style.backgroundColor = "var(--background)";
+			probe.style.backgroundColor = "var(--primary)";
 			document.body.appendChild(probe);
 			const background = getComputedStyle(probe).backgroundColor;
 			probe.remove();
@@ -56,9 +56,15 @@ test("the .dark class re-themes the tokens and the button", async ({ page }) => 
 		});
 	const light = await read();
 	await page.evaluate(() => document.documentElement.classList.add("dark"));
+	// Buttons transition their colours: wait for the computed value to settle.
+	await expect
+		.poll(async () => {
+			const s = await read();
+			return s.button === s.background;
+		}, "the Button follows the dark --primary token")
+		.toBe(true);
 	const dark = await read();
 	expect(light.background).not.toBe("rgba(0, 0, 0, 0)");
+	expect(light.button).toBe(light.background);
 	expect(dark.background).not.toBe(light.background);
-	expect(dark.button).not.toBe(light.button);
-	expect(dark.button).not.toBe("rgba(0, 0, 0, 0)");
 });

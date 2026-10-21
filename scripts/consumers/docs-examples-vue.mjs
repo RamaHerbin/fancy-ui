@@ -120,9 +120,11 @@ async function main() {
 	if (!examples.length) fail(`no .vue snippets under ${source}`);
 
 	const work = realpathSync(mkdtempSync(join(tmpdir(), "fancy-ui-docs-examples-vue.")));
-	if (work.startsWith(ROOT + sep)) fail(`scratch dir ${work} is inside the repo`);
 	console.log(`docs-examples-vue: ${examples.length} snippets, scratch ${work}`);
 	try {
+		// Inside the try so the folder is removed when the guard trips.
+		if ((work + sep).startsWith(`${realpathSync(ROOT)}${sep}`))
+			fail(`scratch dir ${work} is inside the repo`);
 		const tarball = pack(work);
 		const app = join(work, "app");
 		cpSync(join(here, "docs-examples-vue/app"), app, { recursive: true });
