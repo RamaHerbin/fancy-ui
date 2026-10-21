@@ -17,7 +17,9 @@ export interface LinkProps {
 	 * required whenever `target` opens a new browsing context — any value other than
 	 * `_self`, `_parent`, or `_top` (case-insensitively), not just `_blank` */
 	rel?: string;
-	/** Native click handler */
+	/** Click handler, called after the sound cue. `@click` reaches it. */
+	onClick?: (event: MouseEvent) => void;
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
 	onclick?: (event: MouseEvent) => void;
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
@@ -43,6 +45,7 @@ const {
 	underline = "hover",
 	target,
 	rel,
+	onClick,
 	onclick,
 	class: className,
 	sound = false,
@@ -96,7 +99,7 @@ const classes = computed(() =>
 // `preventDefault` — navigation is untouched, this only rides alongside it.
 function handleClick(event: MouseEvent) {
 	if (sound) soundFx.play("press");
-	onclick?.(event);
+	(onClick ?? onclick)?.(event);
 }
 </script>
 

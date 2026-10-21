@@ -38,8 +38,12 @@ export interface PulseBeamProps {
 	/** Override the preset saturation filter */
 	saturation?: number;
 	/** Called once the fade-in has completed */
+	onFadeIn?: () => void;
+	/** @deprecated Use `@fade-in` / `onFadeIn`. Only called when `onFadeIn` is absent. */
 	onfadein?: () => void;
 	/** Called once the fade-out has completed and the loop has stopped */
+	onFadeOut?: () => void;
+	/** @deprecated Use `@fade-out` / `onFadeOut`. Only called when `onFadeOut` is absent. */
 	onfadeout?: () => void;
 }
 </script>
@@ -73,7 +77,9 @@ const {
 	hueShift = true,
 	brightness,
 	saturation,
+	onFadeIn,
 	onfadein,
+	onFadeOut,
 	onfadeout,
 } = defineProps<PulseBeamProps>();
 
@@ -125,9 +131,9 @@ function settle(kind: "in" | "out") {
 	clearTimeout(fadeTimer);
 	if (kind === "out") {
 		phase.value = "idle";
-		onfadeout?.();
+		(onFadeOut ?? onfadeout)?.();
 	} else {
-		onfadein?.();
+		(onFadeIn ?? onfadein)?.();
 	}
 }
 

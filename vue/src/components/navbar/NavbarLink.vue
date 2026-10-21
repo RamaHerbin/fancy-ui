@@ -17,7 +17,9 @@ export interface NavbarLinkProps {
 	external?: boolean;
 	/** Strips the link out of the click and keyboard-activation paths. */
 	disabled?: boolean;
-	/** Native click handler. Never called while `disabled`. */
+	/** Click handler. Never called while `disabled`. `@click` reaches it. */
+	onClick?: (event: MouseEvent) => void;
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
 	onclick?: (event: MouseEvent) => void;
 	/** Additional CSS classes */
 	class?: HTMLAttributes["class"];
@@ -41,6 +43,7 @@ const {
 	current = false,
 	external = false,
 	disabled = false,
+	onClick,
 	onclick,
 	class: className,
 	sound = false,
@@ -77,7 +80,7 @@ function handleClick(event: MouseEvent) {
 		return;
 	}
 	if (!current) playCue("select");
-	onclick?.(event);
+	(onClick ?? onclick)?.(event);
 }
 </script>
 

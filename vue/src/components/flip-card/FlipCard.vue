@@ -15,6 +15,8 @@ export interface FlipCardProps {
 	/** Whether the back is showing. Bindable (`v-model:flipped`). */
 	flipped?: boolean;
 	/** Called with the new state after every flip, however it happened. */
+	onFlip?: (flipped: boolean) => void;
+	/** @deprecated Use `@flip` / `onFlip`. Only called when `onFlip` is absent. */
 	onflip?: (flipped: boolean) => void;
 	/** Length of one flip in milliseconds */
 	duration?: number;
@@ -64,6 +66,7 @@ defineOptions({ name: "FlipCard", inheritAttrs: false });
 const {
 	rotate = "y",
 	trigger = "hover",
+	onFlip,
 	onflip,
 	duration = 700,
 	glare = true,
@@ -94,7 +97,7 @@ function turn(direction: 1 | -1) {
 	angle.value += 180 * direction;
 	const next = showsBack(angle.value);
 	flipped.value = next;
-	onflip?.(next);
+	(onFlip ?? onflip)?.(next);
 	lift();
 }
 
@@ -131,7 +134,7 @@ watch(
 	(want) => {
 		if (want !== showsBack(angle.value)) {
 			angle.value += 180;
-			onflip?.(want);
+			(onFlip ?? onflip)?.(want);
 			lift();
 		}
 	},

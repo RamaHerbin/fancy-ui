@@ -27,7 +27,9 @@ export interface ButtonProps {
 	fullWidth?: boolean;
 	/** Accessible name for a button whose content is icon-only. */
 	label?: string;
-	/** Fires on activation. Never called while `disabled` or `loading`. */
+	/** Fires on activation. Never called while `disabled` or `loading`. `@click` reaches it. */
+	onClick?: (event: MouseEvent) => void;
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
 	onclick?: (event: MouseEvent) => void;
 	/** Additional CSS classes. */
 	class?: HTMLAttributes["class"];
@@ -62,6 +64,7 @@ const {
 	rel = undefined,
 	fullWidth = false,
 	label = undefined,
+	onClick,
 	onclick,
 	class: className,
 	sound = false,
@@ -205,7 +208,7 @@ function handleClick(event: MouseEvent) {
 		return;
 	}
 	if (sound) soundFx.play("press");
-	onclick?.(event);
+	(onClick ?? onclick)?.(event);
 }
 </script>
 

@@ -7,7 +7,9 @@ import type { HTMLAttributes } from "vue";
 export interface ChatMessageActionProps {
 	/** Accessible name and tooltip. Required — the icon alone names nothing. */
 	label: string;
-	/** Called on click, before any confirmation label swaps in. */
+	/** Called on click, before any confirmation label swaps in. `@click` reaches it. */
+	onClick?: (event: MouseEvent) => void;
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
 	onclick?: (event: MouseEvent) => void;
 	/** Pressed state for a toggle. Omit entirely for a plain button. */
 	active?: boolean;
@@ -30,7 +32,7 @@ defineOptions({ name: "ChatMessageAction", inheritAttrs: false });
 // declared Boolean prop to `false`, which would put `aria-pressed="false"` on
 // every plain button. An explicit default keeps the three states the source
 // has — absent, false, true.
-const { label, onclick, active = undefined, confirmLabel, class: className } =
+const { label, onClick, onclick, active = undefined, confirmLabel, class: className } =
 	defineProps<ChatMessageActionProps>();
 
 defineSlots<{
@@ -65,7 +67,7 @@ function handleClick(event: MouseEvent) {
 	// Press, never toggle-on/off: `active` is fully controlled by the caller,
 	// so the post-click state is unknowable here.
 	playCue("press");
-	onclick?.(event);
+	(onClick ?? onclick)?.(event);
 	if (!confirmLabel) return;
 	confirmed.value = true;
 	// A second click restarts the window rather than inheriting the old deadline.

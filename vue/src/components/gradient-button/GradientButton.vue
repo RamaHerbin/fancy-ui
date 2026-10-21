@@ -23,7 +23,9 @@ export interface GradientButtonProps {
 	sound?: boolean;
 	/** Native `disabled`, read to guard the sound cue. */
 	disabled?: boolean;
-	/** Native click handler, kept as a prop and re-dispatched after the cue. */
+	/** Click handler, called after the sound cue. `@click` reaches it. */
+	onClick?: (event: MouseEvent) => void;
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
 	onclick?: (event: MouseEvent) => void;
 }
 
@@ -61,6 +63,7 @@ const {
 	borderRadius = 12,
 	blur = 4,
 	bgColor = "#161616",
+	onClick,
 	onclick,
 	sound = false,
 	disabled = false,
@@ -82,7 +85,7 @@ const styleVars = computed<HTMLAttributes["style"]>(() => ({
 
 function handleClick(event: MouseEvent) {
 	if (sound && !disabled) soundFx.play("press");
-	onclick?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
+	(onClick ?? onclick)?.(event as MouseEvent & { currentTarget: EventTarget & HTMLButtonElement });
 }
 
 // `v-bind="attrs"` stays AFTER `:style` on purpose: the Svelte source binds

@@ -13,6 +13,9 @@ export interface InteractiveHoverButtonProps {
 	sound?: boolean;
 	/** Native disabled state — read by the click handler to gate the cue. */
 	disabled?: ButtonHTMLAttributes["disabled"];
+	/** Click handler, called after the sound cue. `@click` reaches it. */
+	onClick?: (event: MouseEvent) => void;
+	/** @deprecated Use `@click` / `onClick`. Only called when `onClick` is absent. */
 	onclick?: (event: MouseEvent) => void;
 }
 </script>
@@ -37,7 +40,7 @@ const playCue = useSoundCue(() => props.sound);
 
 function handleClick(event: MouseEvent) {
 	if (!props.disabled) playCue("press");
-	props.onclick?.(event);
+	(props.onClick ?? props.onclick)?.(event);
 }
 </script>
 

@@ -60,8 +60,12 @@ export interface DatamoshTransitionProps {
 	/** Current phase (read-only, `v-model:phase`) */
 	phase?: DatamoshTransitionPhase;
 	/** Called once the page is fully covered */
+	onCovered?: () => void;
+	/** @deprecated Use `@covered` / `onCovered`. Only called when `onCovered` is absent. */
 	oncovered?: () => void;
 	/** Called once the page is fully revealed */
+	onRevealed?: () => void;
+	/** @deprecated Use `@revealed` / `onRevealed`. Only called when `onRevealed` is absent. */
 	onrevealed?: () => void;
 }
 </script>
@@ -124,7 +128,9 @@ const {
 	speed = 1,
 	contained = false,
 	zIndex = 9999,
+	onCovered,
 	oncovered,
+	onRevealed,
 	onrevealed,
 } = defineProps<DatamoshTransitionProps>();
 
@@ -212,8 +218,8 @@ function finish(dir: Direction) {
 		draw();
 	}
 	settlePending();
-	if (dir === "cover") oncovered?.();
-	else onrevealed?.();
+	if (dir === "cover") (onCovered ?? oncovered)?.();
+	else (onRevealed ?? onrevealed)?.();
 }
 
 function run(dir: Direction): Promise<void> {

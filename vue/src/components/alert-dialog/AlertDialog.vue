@@ -189,8 +189,8 @@ const descriptionId = computed(() => (description ? `${uid}-description` : undef
 				play exactly one cue, this component's own, not that plus a Button
 				`press`.
 			-->
-			<Button variant="outline" size="sm" :onclick="handleCancel">{{ cancelLabel }}</Button>
-			<Button variant="destructive" size="sm" :onclick="handleConfirm">{{ confirmLabel }}</Button>
+			<Button variant="outline" size="sm" @click="handleCancel">{{ cancelLabel }}</Button>
+			<Button variant="destructive" size="sm" @click="handleConfirm">{{ confirmLabel }}</Button>
 		</div>
 	</DialogSurface>
 </template>
