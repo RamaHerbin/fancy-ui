@@ -7,9 +7,14 @@
  *      `<pkg>/docs-examples/`, then runs `tsc --noEmit` / `vue-tsc --noEmit`
  *      (strict templates for Vue) with the package name mapped to dist. A wrong
  *      prop, event, v-model or slot name fails here.
- *   2. Mount. Loads every example through a throwaway Vite server into jsdom,
- *      mounts it, clicks its first button, and fails on any console error,
- *      framework warning or uncaught exception.
+ *   2. Mount. Writes a one-page consumer app (package stylesheet + Tailwind entry,
+ *      package name resolved to dist), serves it with Vite on a private port
+ *      (5342, DOCS_EXAMPLES_PORT overrides) and drives every example in Chromium
+ *      through scripts/docs-examples/mount.spec.ts, which reuses `collectErrors`
+ *      from examples/consumers/smoke-helpers.ts. Overlays (popover, sheet,
+ *      alert dialog, menus, combobox) are opened and must become visible; any
+ *      console error, framework warning or uncaught exception fails. Nothing is
+ *      stubbed and no GPU message is ignored.
  *
  * A failure means the example is wrong, or the port is. Fix the example first;
  * if the example matches the Svelte behaviour and the port still refuses it,
@@ -22,9 +27,8 @@
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
@@ -57,198 +61,139 @@ const exportNameOf = (fw, slug) => {
 
 // ---------------------------------------------------------------- mount mode
 
-async function mountAll(fw) {
-	const requireFromPackage = createRequire(join(fw.dir, "package.json"));
-	const { JSDOM } = requireFromPackage("jsdom");
-	const dom = new JSDOM("<!doctype html><html><body></body></html>", {
-		pretendToBeVisual: true,
-		url: "http://localhost/",
-	});
-	installBrowserGlobals(dom.window);
+/**
+ * Writes a one-page consumer app into the scratch folder: it loads the package's
+ * own stylesheet (`styles.css`) and Tailwind entry (`tailwind.css`) exactly as
+ * the README tells a consumer to, and renders the example named by `?slug=`.
+ * Resolution goes through the package name mapped to dist, never the sources.
+ */
+function writeConsumerApp(fw, name) {
+	const app = join(scratchOf(fw), "app");
+	mkdirSync(app, { recursive: true });
+	const loaders = slugsOf(fw)
+		.map(
+			(slug) =>
+				`\t${JSON.stringify(slug)}: () => import(${JSON.stringify(join(fw.dir, "docs-examples", slug + fw.ext))}),`
+		)
+		.join("\n");
+	const entry = name === "react" ? "main.tsx" : "main.ts";
 
-	const errors = [];
-	const originalError = console.error;
-	// jsdom has no GPU: a GPU effect reporting that it cannot get a context is the
-	// environment talking, not the example.
-	const GPU_UNAVAILABLE = /WebGL|WebGPU/i;
-	console.error = (...parts) => {
-		const line = parts.map(String).join(" ");
-		if (!GPU_UNAVAILABLE.test(line)) errors.push(line);
-	};
-	process.on("uncaughtException", (error) => errors.push(`uncaught: ${error?.stack ?? error}`));
-	process.on("unhandledRejection", (error) => errors.push(`unhandled rejection: ${error}`));
-
-	const { createServer } = requireFromPackage("vite");
-	const plugins = [];
-	if (fw === FRAMEWORKS.vue) {
-		const vue = requireFromPackage("@vitejs/plugin-vue").default;
-		// ssrLoadModule hands the SFC plugin `ssr: true`, which compiles templates to
-		// string-pushing render functions. The point here is a client mount in jsdom,
-		// so every hook is told it is not a server build.
-		const plugin = vue();
-		for (const hook of ["load", "transform", "resolveId"]) {
-			const original = plugin[hook];
-			if (!original) continue;
-			const call = typeof original === "function" ? original : original.handler;
-			const wrapped = function (first, second, options) {
-				return call.call(this, first, second, { ...options, ssr: false });
-			};
-			plugin[hook] = typeof original === "function" ? wrapped : { ...original, handler: wrapped };
-		}
-		plugins.push(plugin);
-	}
-	const server = await createServer({
-		root: fw.dir,
-		configFile: false,
-		logLevel: "error",
-		appType: "custom",
-		server: { middlewareMode: true, hmr: false, ws: false },
-		optimizeDeps: { noDiscovery: true, include: [] },
-		resolve: { alias: { [fw.pkg]: join(fw.dir, "dist", "index.js") } },
-		esbuild: { jsx: "automatic" },
-		plugins,
-	});
-
-	const failures = [];
-	try {
-		for (const slug of slugsOf(fw)) {
-			errors.length = 0;
-			const container = dom.window.document.createElement("div");
-			dom.window.document.body.appendChild(container);
-			try {
-				const mod = await server.ssrLoadModule(join(fw.dir, "docs-examples", slug + fw.ext));
-				const unmount =
-					fw === FRAMEWORKS.react
-						? await mountReact(requireFromPackage, mod[exportNameOf(fw, slug)], container, errors)
-						: await mountVue(requireFromPackage, mod.default, container, errors);
-
-				if (container.innerHTML.trim() === "") errors.push("rendered nothing");
-				const button = container.querySelector("button");
-				if (button) {
-					button.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-					await settle();
-				}
-				if (dom.window.document.body.innerHTML.trim() === "") errors.push("body emptied");
-				unmount();
-			} catch (error) {
-				errors.push(`threw: ${error?.stack ?? error}`);
-			}
-			container.remove();
-			if (errors.length > 0) failures.push({ slug, errors: [...errors] });
-			else console.log(`  mounted ${fw.pkg} ${slug}`);
-		}
-	} finally {
-		await server.close();
-		console.error = originalError;
-	}
-
-	if (failures.length > 0) {
-		for (const { slug, errors: list } of failures) {
-			console.error(`\n${fw.pkg} docs-examples/${slug}${fw.ext} failed to mount:`);
-			for (const line of list) console.error("  - " + line.split("\n").slice(0, 6).join("\n    "));
-		}
-		console.error(`\n${failures.length} ${fw.pkg} example(s) failed to mount`);
-		process.exit(1);
-	}
-}
-
-const settle = () => new Promise((done) => setTimeout(done, 40));
-
-async function mountReact(requireFromPackage, Example, container, errors) {
-	const React = await import(pathToFileURL(requireFromPackage.resolve("react")).href);
-	const { createRoot } = await import(
-		pathToFileURL(requireFromPackage.resolve("react-dom/client")).href
+	writeFileSync(
+		join(app, "index.html"),
+		`<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><title>docs-examples</title></head><body style="padding:48px"><div id="root"></div><script type="module" src="./${entry}"></script></body></html>\n`
 	);
-	const { flushSync } = await import(pathToFileURL(requireFromPackage.resolve("react-dom")).href);
-	if (typeof Example !== "function") throw new Error("example export is not a component");
-	const root = createRoot(container, { onUncaughtError: (e) => errors.push(`uncaught: ${e}`) });
-	flushSync(() => root.render(React.createElement(Example)));
-	await settle();
-	return () => flushSync(() => root.unmount());
+	writeFileSync(
+		join(app, "app.css"),
+		`@import "tailwindcss";\n@import "${fw.pkg}/tailwind.css";\n@source ${JSON.stringify(join(fw.dir, "docs-examples"))};\n`
+	);
+
+	const head = `// Generated by scripts/check-docs-examples.mjs. Do not edit.
+import "${fw.pkg}/styles.css";
+import "./app.css";
+
+const loaders: Record<string, () => Promise<any>> = {
+${loaders}
+};
+const slug = new URLSearchParams(location.search).get("slug") ?? "";
+const root = document.getElementById("root")!;
+const ready = () => document.body.setAttribute("data-example-ready", "");
+const load = loaders[slug];
+if (!load) throw new Error("no docs example named " + slug);
+const mod = await load();
+`;
+	if (name === "react") {
+		writeFileSync(
+			join(app, entry),
+			`${head}import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+
+const Example = Object.values(mod).find((value) => typeof value === "function") as () => any;
+createRoot(root).render(
+	<StrictMode>
+		<Example />
+	</StrictMode>
+);
+requestAnimationFrame(() => requestAnimationFrame(ready));
+`
+		);
+	} else {
+		writeFileSync(
+			join(app, entry),
+			`${head}import { createApp } from "vue";
+
+const app = createApp(mod.default);
+// Vue reports warnings through console.warn; surface them as errors.
+app.config.warnHandler = (message) => console.error("[vue warn] " + message);
+app.mount(root);
+requestAnimationFrame(() => requestAnimationFrame(ready));
+`
+		);
+	}
+
+	const plugin =
+		name === "react"
+			? `import react from "@vitejs/plugin-react";\nconst framework = react();`
+			: `import vue from "@vitejs/plugin-vue";\nconst framework = vue();`;
+	writeFileSync(
+		join(app, "vite.config.mjs"),
+		`// Generated by scripts/check-docs-examples.mjs. Do not edit.
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+${plugin}
+
+export default defineConfig({
+	root: ${JSON.stringify(app)},
+	configFile: false,
+	plugins: [framework, tailwindcss()],
+	resolve: {
+		alias: [
+			{ find: "${fw.pkg}/styles.css", replacement: ${JSON.stringify(join(fw.dir, "dist", "styles.css"))} },
+			{ find: "${fw.pkg}/tailwind.css", replacement: ${JSON.stringify(join(fw.dir, "tailwind.css"))} },
+			{ find: /^${fw.pkg}$/, replacement: ${JSON.stringify(join(fw.dir, "dist", "index.js"))} },
+		],
+		dedupe: ["react", "react-dom", "vue"],
+	},
+	optimizeDeps: { include: ${JSON.stringify(name === "react" ? ["react", "react-dom/client", "react/jsx-runtime", "react/jsx-dev-runtime"] : ["vue"])} },
+	server: { fs: { strict: false }, hmr: false },
+	build: { target: "esnext" },
+});
+`
+	);
+	return app;
 }
 
-async function mountVue(requireFromPackage, Example, container, errors) {
-	const { createApp } = await import(pathToFileURL(requireFromPackage.resolve("vue")).href);
-	const app = createApp(Example);
-	app.config.errorHandler = (error) => errors.push(`vue error: ${error?.stack ?? error}`);
-	app.config.warnHandler = (message) => errors.push(`vue warn: ${message}`);
-	app.mount(container);
-	await settle();
-	return () => app.unmount();
-}
-
-/** The browser APIs jsdom lacks and the library's surfaces touch while mounting. */
-function installBrowserGlobals(window) {
-	for (const key of Object.getOwnPropertyNames(window)) {
-		if (key in globalThis) continue;
-		Object.defineProperty(globalThis, key, {
-			configurable: true,
-			get: () => window[key],
-			set: (value) => Object.defineProperty(globalThis, key, { value, writable: true }),
-		});
-	}
-	Object.defineProperty(globalThis, "window", { value: window, configurable: true });
-	Object.defineProperty(globalThis, "document", { value: window.document, configurable: true });
-	Object.defineProperty(globalThis, "navigator", { value: window.navigator, configurable: true });
-	globalThis.IS_REACT_ACT_ENVIRONMENT = false;
-
-	window.matchMedia ??= (query) => ({
-		matches: false,
-		media: query,
-		onchange: null,
-		addEventListener() {},
-		removeEventListener() {},
-		addListener() {},
-		removeListener() {},
-		dispatchEvent: () => false,
-	});
-	class Observer {
-		observe() {}
-		unobserve() {}
-		disconnect() {}
-		takeRecords() {
-			return [];
-		}
-	}
-	for (const name of ["ResizeObserver", "IntersectionObserver"]) {
-		window[name] ??= Observer;
-		globalThis[name] ??= Observer;
-	}
-	window.Element.prototype.animate ??= function animate() {
-		const animation = {
-			playState: "finished",
-			currentTime: 0,
-			effect: null,
-			onfinish: null,
-			oncancel: null,
-			cancelled: false,
-			cancel() {
-				this.cancelled = true;
+/**
+ * Drives the examples in Chromium through the spec in scripts/docs-examples,
+ * which reuses `collectErrors` from the consumer smoke helpers. The private
+ * port defaults to 5342; DOCS_EXAMPLES_PORT overrides it.
+ */
+function mountAll(fw, name) {
+	const app = writeConsumerApp(fw, name);
+	const run = spawnSync(
+		"pnpm",
+		[
+			"exec",
+			"playwright",
+			"test",
+			"--config",
+			join(repoRoot, "scripts", "docs-examples", "playwright.config.ts"),
+		],
+		{
+			cwd: repoRoot,
+			stdio: "inherit",
+			env: {
+				...process.env,
+				DOCS_EXAMPLES_APP_DIR: app,
+				DOCS_EXAMPLES_CWD: fw.dir,
+				DOCS_EXAMPLES_SLUGS: slugsOf(fw).join(","),
+				DOCS_EXAMPLES_PORT: process.env.DOCS_EXAMPLES_PORT ?? "5342",
 			},
-			finish() {},
-			pause() {},
-			play() {},
-			reverse() {},
-			commitStyles() {},
-			addEventListener() {},
-			removeEventListener() {},
-			finished: Promise.resolve(),
-		};
-		queueMicrotask(() => {
-			if (!animation.cancelled) animation.onfinish?.();
-		});
-		return animation;
-	};
-	window.Element.prototype.scrollIntoView ??= () => {};
-	window.HTMLElement.prototype.scrollTo ??= () => {};
-	window.HTMLElement.prototype.showPopover ??= () => {};
-	window.HTMLElement.prototype.hidePopover ??= () => {};
-	window.scrollTo = () => {};
-	window.HTMLCanvasElement.prototype.getContext = () => null;
-	Object.defineProperty(window.navigator, "clipboard", {
-		value: { writeText: async () => {} },
-		configurable: true,
-	});
+		}
+	);
+	if (run.status !== 0) {
+		console.error(`\n${fw.pkg}: docs examples failed in the browser mount`);
+		process.exit(run.status ?? 1);
+	}
 }
 
 // ------------------------------------------------------------------ type mode
@@ -357,11 +302,6 @@ function typeCheck(fw) {
 
 // ----------------------------------------------------------------------- main
 
-if (option("mount")) {
-	await mountAll(FRAMEWORKS[option("mount")]);
-	process.exit(0);
-}
-
 const only = option("only");
 const targets = Object.entries(FRAMEWORKS).filter(([name]) => !only || name === only);
 if (targets.length === 0) {
@@ -373,11 +313,7 @@ for (const [name, fw] of targets) {
 	ensureDist(name, fw);
 	if (!flag("mount-only")) typeCheck(fw);
 	if (!flag("types-only")) {
-		const mount = spawnSync(process.execPath, [fileURLToPath(import.meta.url), "--mount", name], {
-			cwd: repoRoot,
-			stdio: "inherit",
-		});
-		if (mount.status !== 0) process.exit(mount.status ?? 1);
+		mountAll(fw, name);
 	}
 }
 console.log("docs-examples: every example type-checks against dist and mounts");

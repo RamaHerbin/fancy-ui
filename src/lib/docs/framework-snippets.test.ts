@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getUsageSnippet, snippetSlugs } from "./framework-snippets.js";
+import { registry } from "../fancy-ui/registry.js";
 
 const PRIORITY = [
 	"button",
@@ -52,6 +53,18 @@ describe("framework snippets", () => {
 		for (const framework of ["react", "vue"] as const) {
 			for (const slug of FORMS_AND_OVERLAYS) expect(snippetSlugs(framework)).toContain(slug);
 		}
+	});
+
+	it("only has snippets named after a real component slug, and the same set in both packages", () => {
+		for (const framework of ["react", "vue"] as const) {
+			for (const slug of snippetSlugs(framework)) {
+				expect(
+					registry[slug],
+					`${framework} docs-examples/${slug} is not a component slug`
+				).toBeDefined();
+			}
+		}
+		expect([...snippetSlugs("react")].sort()).toEqual([...snippetSlugs("vue")].sort());
 	});
 
 	it("serves React as tsx importing the React package only", () => {
