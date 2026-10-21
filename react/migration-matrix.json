@@ -5167,12 +5167,12 @@
 		"effort": "medium",
 		"complexity": "raf-field",
 		"deps": {
-			"internals": ["media-query", "use-element-ref", "use-live-ref"],
+			"internals": ["media-query", "use-element-ref", "use-live-ref", "tick-nav-core"],
 			"motion": [],
 			"sound": true,
 			"components": []
 		},
-		"browserAPIs": ["requestAnimationFrame", "ResizeObserver", "matchMedia"],
+		"browserAPIs": ["requestAnimationFrame", "matchMedia"],
 		"runtimeDeps": [],
 		"setContext": false,
 		"hasStyleBlock": true,
@@ -5187,7 +5187,7 @@
 			"`value` is no longer `bind:value`: it is the controlled/uncontrolled pair `value?: string` + `onValueChange` (already a Svelte prop). The component keeps its own copy and re-syncs it in the render path when the prop changes, the same shape as Slider.",
 			"`preview` is a render prop `(item: TickNavItem) => ReactNode` instead of a `Snippet<[TickNavItem]>`.",
 			"`class` → `className` (PORTING.md).",
-			"The pointer and focus handlers are native listeners on the `<ul>`, attached in an effect, rather than React props: React's `onPointerLeave` is synthesised from `pointerout`, so a plain `pointerleave` would never reach it. The per-frame field state lives in that effect's closure and never in React state."
+			"All motion, pointer listeners and the per-frame CSS variables live in the shared `tick-nav-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect, forwards `reach`, the current index and reduced motion through `update()`, and keeps the hovered row index in React state (it changes per row, not per frame)."
 		],
 		"lastFailure": null
 	},

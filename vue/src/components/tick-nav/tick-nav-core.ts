@@ -305,10 +305,11 @@ export function createTickNavCore(
 		const el = event.target as Element | null;
 		if (!el || !(el as HTMLElement).matches?.(":focus-visible")) return;
 		const index = rowIndexOf(el);
-		if (index < 0) return;
+		const row = rows[index];
+		if (!row) return;
 		// Anchor the card beside the focused row, since there is no pointer.
 		const box = root.getBoundingClientRect();
-		const rowBox = rows[index].el.getBoundingClientRect();
+		const rowBox = row.el.getBoundingClientRect();
 		root.style.setProperty("--tn-px", `${(rowBox.right - box.left + PREVIEW_OFFSET).toFixed(1)}px`);
 		root.style.setProperty("--tn-py", `${(rowBox.top - box.top + PREVIEW_OFFSET).toFixed(1)}px`);
 		setHovered(index, false);

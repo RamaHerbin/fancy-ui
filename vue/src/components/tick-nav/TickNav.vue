@@ -10,17 +10,14 @@ export interface TickNavProps {
 	 * The current id is the `value` model (`v-model:value`).
 	 */
 	onValueChange?: (id: string) => void;
-	/** How many rows away from the pointer the bars still react. */
+	/** Rows over which the neighbours of the hovered row still react. */
 	reach?: number;
-	/** Extra length, in px, a bar gains right under the pointer. Labels slide by the same amount. */
-	maxExtend?: number;
-	/** Short ruler ticks drawn between two rows. */
+	/** Ruler ticks drawn between two rows. */
 	minorTicks?: number;
 	/** Accessible name of the `<nav>` landmark. */
 	ariaLabel?: string;
 	/**
-	 * Plays the `tick` cue each time a mouse or pen moves onto a new row and
-	 * `select` when an item that is not already current is activated. Off by
+	 * Plays the `hover` cue each time a mouse or pen enters a row. Off by
 	 * default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
@@ -30,17 +27,22 @@ export interface TickNavProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
-import { useMediaQuery, useReducedMotion } from "../../internals/motion/use-media-query.js";
+import { useReducedMotion } from "../../internals/motion/use-media-query.js";
+import {
+	createTickNavCore,
+	TICK_NAV_DEFAULTS,
+	TICK_NAV_FLAT_PATH,
+	type TickNavCore,
+} from "./tick-nav-core.js";
 
 defineOptions({ name: "TickNav", inheritAttrs: false });
 
 const props = withDefaults(defineProps<TickNavProps>(), {
-	reach: 3,
-	maxExtend: 32,
-	minorTicks: 3,
+	reach: TICK_NAV_DEFAULTS.reach,
+	minorTicks: 2,
 	ariaLabel: "Navigation",
 	sound: false,
 });
@@ -50,188 +52,61 @@ const value = defineModel<string>("value");
 
 defineSlots<{
 	/**
-	 * Content of the floating card shown beside the row under the pointer (or
-	 * keyboard focus). Leave it out and no card is rendered.
+	 * Content of the card that follows the pointer while a row is hovered (or
+	 * sits beside a keyboard-focused row). Leave it out and no card is rendered.
 	 */
 	preview?(p: { item: TickNavItem }): unknown;
 }>();
 
+const root = useTemplateRef<HTMLElement>("root");
 const list = useTemplateRef<HTMLUListElement>("list");
 /** Row under the pointer or keyboard focus; -1 when none. */
 const active = ref(-1);
-/** Centre of the active row, in list-local px, for the preview card. */
-const activeY = ref(0);
+let core: TickNavCore | null = null;
 
 const reduced = useReducedMotion();
-// `any-hover: none` only when NO attached device can hover (see Dock): a
-// hybrid with a mouse still gets the effect; touch is filtered by pointerType.
-const coarse = useMediaQuery("(any-hover: none)");
 
 const ticks = computed(() => Math.max(0, Math.round(props.minorTicks)));
+const currentIndex = computed(() => props.items.findIndex((item) => item.id === value.value));
 const activeItem = computed(() => (active.value >= 0 ? props.items[active.value] : undefined));
 
-// ---------------------------------------------------------------------------
-// Proximity field. Per-row extension 0..1 is eased toward its target in a
-// rAF loop and written straight to `--tn-e` / `--tn-e-next` on each <li>,
-// never through reactive state: a reactive write per row per frame would
-// re-render the whole list 60 times a second for what is purely a style.
-// ---------------------------------------------------------------------------
-let centers: number[] = [];
-let rowHeight = 0;
-let current: number[] = [];
-let target: number[] = [];
-let pointerY: number | null = null;
-let inside = false;
-let frame = 0;
-let lastT = 0;
-
-function rows(): HTMLLIElement[] {
-	return list.value ? Array.from(list.value.querySelectorAll<HTMLLIElement>(":scope > li")) : [];
-}
-
-function measure(): void {
-	const els = rows();
-	centers = els.map((el) => el.offsetTop + el.offsetHeight / 2);
-	rowHeight = els[0]?.offsetHeight ?? 0;
-	if (current.length !== els.length) {
-		current = els.map((_, i) => current[i] ?? 0);
-		target = els.map((_, i) => target[i] ?? 0);
-	}
-}
-
-function smoothstep(x: number): number {
-	const t = Math.min(1, Math.max(0, x));
-	return t * t * (3 - 2 * t);
-}
-
-function retarget(): void {
-	const span = Math.max(1, props.reach) * rowHeight;
-	for (let i = 0; i < centers.length; i++) {
-		target[i] =
-			pointerY === null || span === 0
-				? 0
-				: smoothstep(1 - Math.abs(pointerY - (centers[i] ?? 0)) / span);
-	}
-}
-
-function paint(): void {
-	const els = rows();
-	for (let i = 0; i < els.length; i++) {
-		const e = current[i] ?? 0;
-		const next = current[i + 1] ?? e;
-		els[i]?.style.setProperty("--tn-e", e.toFixed(4));
-		els[i]?.style.setProperty("--tn-e-next", next.toFixed(4));
-	}
-}
-
-function step(t: number): void {
-	const dt = lastT ? Math.min(64, t - lastT) : 16;
-	lastT = t;
-	let moving = false;
-	for (let i = 0; i < current.length; i++) {
-		const goal = target[i] ?? 0;
-		const from = current[i] ?? 0;
-		// Rise quickly toward the pointer, relax slowly behind it: the bars
-		// leave a fading trail where the pointer has just been.
-		const tau = goal > from ? 70 : 260;
-		const next = reduced.value ? goal : goal + (from - goal) * Math.exp(-dt / tau);
-		current[i] = Math.abs(next - goal) < 0.002 ? goal : next;
-		if (current[i] !== goal) moving = true;
-	}
-	paint();
-	frame = moving ? requestAnimationFrame(step) : 0;
-	if (!moving) lastT = 0;
-}
-
-function kick(): void {
-	retarget();
-	if (!frame) frame = requestAnimationFrame(step);
-}
-
-onBeforeUnmount(() => {
-	if (frame) cancelAnimationFrame(frame);
-	frame = 0;
+onMounted(() => {
+	if (!root.value || !list.value) return;
+	core = createTickNavCore(root.value, list.value, {
+		reach: props.reach,
+		current: currentIndex.value,
+		reducedMotion: reduced.value,
+		onActiveChange(index, pointer) {
+			active.value = index;
+			if (index >= 0 && pointer && props.sound) soundFx.play("hover");
+		},
+	});
 });
 
-// Re-measure when rows are added/removed or resized; repaint so a restored
-// list does not keep stale extensions.
+onBeforeUnmount(() => {
+	core?.destroy();
+	core = null;
+	active.value = -1;
+});
+
 watch(
-	[() => props.items.length, list],
-	([, el], _old, onCleanup) => {
-		if (!el) return;
-		measure();
-		paint();
-		const ro = new ResizeObserver(() => {
-			measure();
-			retarget();
-			paint();
+	[() => props.reach, currentIndex, reduced],
+	() => {
+		core?.update({
+			reach: props.reach,
+			current: currentIndex.value,
+			reducedMotion: reduced.value,
 		});
-		ro.observe(el);
-		onCleanup(() => ro.disconnect());
 	},
 	{ flush: "post" }
 );
 
-function indexAt(y: number): number {
-	const half = rowHeight / 2;
-	for (let i = 0; i < centers.length; i++) {
-		if (Math.abs(y - (centers[i] ?? 0)) <= half) return i;
-	}
-	return -1;
-}
-
-function setActive(i: number, fromPointer: boolean): void {
-	if (i === active.value) return;
-	active.value = i;
-	if (i >= 0) activeY.value = centers[i] ?? 0;
-	if (i >= 0 && fromPointer && props.sound && !props.items[i]?.disabled) soundFx.play("tick");
-}
-
-function onPointerMove(event: PointerEvent): void {
-	if (event.pointerType === "touch" || !event.isPrimary || !list.value) return;
-	// Re-measure once per visit: cheap, and catches layout shifts (fonts,
-	// a parent that scrolled or reflowed) that never resized the list itself.
-	if (!inside) {
-		measure();
-		inside = true;
-	}
-	const y = event.clientY - list.value.getBoundingClientRect().top;
-	setActive(indexAt(y), true);
-	if (coarse.value) return;
-	pointerY = y;
-	kick();
-}
-
-function onPointerLeave(event: PointerEvent): void {
-	if (event.pointerType === "touch") return;
-	inside = false;
-	pointerY = null;
-	setActive(-1, false);
-	kick();
-}
-
-// Keyboard focus drives the same field, so the effect is not mouse-only.
-function onFocusIn(event: FocusEvent): void {
-	const el = event.target as HTMLElement | null;
-	const li = el?.closest("li");
-	if (!li || !list.value || li.parentElement !== list.value) return;
-	if (!el?.matches(":focus-visible")) return;
-	measure();
-	const i = rows().indexOf(li as HTMLLIElement);
-	setActive(i, false);
-	pointerY = centers[i] ?? null;
-	kick();
-}
-
-function onFocusOut(event: FocusEvent): void {
-	const next = event.relatedTarget as Node | null;
-	if (next && list.value?.contains(next)) return;
-	if (pointerY !== null && active.value >= 0) {
-		pointerY = null;
-		setActive(-1, false);
-		kick();
-	}
-}
+// Rows were added, removed or reordered: the core re-reads them after the DOM update.
+watch(
+	() => props.items.map((item) => item.id).join("\u0000"),
+	() => core?.refresh(),
+	{ flush: "post" }
+);
 
 function activate(item: TickNavItem, event: MouseEvent): void {
 	if (item.disabled) {
@@ -239,52 +114,22 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 		return;
 	}
 	if (item.id === value.value) return;
-	if (props.sound) soundFx.play("select");
 	value.value = item.id;
 	props.onValueChange?.(item.id);
 }
 </script>
 
 <template>
-	<nav
-		:aria-label="ariaLabel"
-		:class="cn('tn-root relative', props.class)"
-		:style="{ '--tn-max': `${maxExtend}px` }"
-		:data-reduced="reduced ? '' : undefined"
-	>
-		<ul
-			ref="list"
-			class="tn-list"
-			@pointermove="onPointerMove"
-			@pointerleave="onPointerLeave"
-			@focusin="onFocusIn"
-			@focusout="onFocusOut"
-		>
+	<nav ref="root" :aria-label="ariaLabel" :class="cn('tn-root', props.class)">
+		<ul ref="list" class="tn-list">
 			<li
 				v-for="(item, i) in items"
 				:key="item.id"
-				class="tn-row"
+				class="tn-item"
 				:data-current="item.id === value ? '' : undefined"
 				:data-active="i === active ? '' : undefined"
 				:data-disabled="item.disabled ? '' : undefined"
 			>
-				<span class="tn-rail" aria-hidden="true">
-					<span class="tn-bar">
-						<svg class="tn-wave" preserveAspectRatio="none" viewBox="0 0 64 8">
-							<path
-								d="M0 4 Q2 0 4 4 T8 4 T12 4 T16 4 T20 4 T24 4 T28 4 T32 4 T36 4 T40 4 T44 4 T48 4 T52 4 T56 4 T60 4 T64 4 T68 4 T72 4"
-							/>
-						</svg>
-					</span>
-					<template v-if="i < items.length - 1">
-						<span
-							v-for="(_, k) in ticks"
-							:key="k"
-							class="tn-minor"
-							:style="{ '--tn-f': (k + 1) / (ticks + 1) }"
-						></span>
-					</template>
-				</span>
 				<a
 					v-if="item.href && !item.disabled"
 					class="tn-link"
@@ -292,8 +137,13 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 					:aria-current="item.id === value ? 'page' : undefined"
 					@click="activate(item, $event)"
 				>
-					<span class="tn-label">{{ item.label }}</span>
-					<span v-if="item.badge" class="tn-badge">{{ item.badge }}</span>
+					<svg class="tn-bar" viewBox="0 0 54 8" preserveAspectRatio="none" aria-hidden="true">
+						<path class="tn-path" :d="TICK_NAV_FLAT_PATH" />
+					</svg>
+					<span class="tn-label">
+						{{ item.label }}
+						<span v-if="item.badge" class="tn-badge">{{ item.badge }}</span>
+					</span>
 				</a>
 				<button
 					v-else
@@ -303,20 +153,22 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 					:aria-current="item.id === value ? 'page' : undefined"
 					@click="activate(item, $event)"
 				>
-					<span class="tn-label">{{ item.label }}</span>
-					<span v-if="item.badge" class="tn-badge">{{ item.badge }}</span>
+					<svg class="tn-bar" viewBox="0 0 54 8" preserveAspectRatio="none" aria-hidden="true">
+						<path class="tn-path" :d="TICK_NAV_FLAT_PATH" />
+					</svg>
+					<span class="tn-label">
+						{{ item.label }}
+						<span v-if="item.badge" class="tn-badge">{{ item.badge }}</span>
+					</span>
 				</button>
+				<span v-if="ticks > 0 && i < items.length - 1" class="tn-ticks" aria-hidden="true">
+					<span v-for="(_, k) in ticks" :key="k" class="tn-tick"></span>
+				</span>
 			</li>
 		</ul>
 
-		<div
-			v-if="$slots.preview"
-			class="tn-preview"
-			aria-hidden="true"
-			:data-open="activeItem ? '' : undefined"
-			:style="{ '--tn-py': `${activeY}px` }"
-		>
-			<slot v-if="activeItem" name="preview" :item="activeItem" />
+		<div v-if="$slots.preview && activeItem" class="tn-preview" aria-hidden="true">
+			<slot name="preview" :item="activeItem" />
 		</div>
 	</nav>
 </template>
@@ -327,191 +179,139 @@ function activate(item: TickNavItem, event: MouseEvent): void {
 		--ft-accent,
 		light-dark(oklch(0.5432 0.2528 300.22), oklch(0.604 0.2606 301.75))
 	);
-	--tn-muted: color-mix(in oklab, currentColor 28%, transparent);
-	--tn-row-h: 2.25rem;
-	--tn-bar-w: 1.75rem;
-	--tn-gap: 0.75rem;
-	--tn-minor-w: 0.875rem;
-	--tn-current-w: 3.25rem;
-	color: inherit;
+	--tn-border: color-mix(in oklab, currentColor 16%, transparent);
+	--tn-row-gap: 0.5rem;
+	position: relative;
 }
 
-.tn-list {
-	position: relative;
+.tn-list,
+.tn-item {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tn-row-gap);
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
 
-.tn-row {
-	--tn-e: 0;
-	--tn-e-next: 0;
+/* A row is one pixel tall, like the ruler line it sits on; the ::after
+	   below gives it a comfortable hit area that overlaps the ticks around it. */
+.tn-link {
 	position: relative;
 	display: flex;
 	align-items: center;
-	height: var(--tn-row-h);
-}
-
-.tn-rail {
-	position: absolute;
-	inset-block: 0;
-	left: 0;
-	width: calc(var(--tn-current-w) + var(--tn-max));
-	pointer-events: none;
-}
-
-.tn-bar,
-.tn-minor {
-	position: absolute;
-	left: 0;
+	gap: 0.75rem;
 	height: 1px;
-	border-radius: 1px;
-}
-
-.tn-bar {
-	top: 50%;
-	width: calc(var(--tn-bar-w) + var(--tn-e) * var(--tn-max));
-	background: color-mix(in oklab, var(--tn-accent) calc(var(--tn-e) * 100%), var(--tn-muted));
-	transition: background-color 0.2s;
-}
-
-.tn-row[data-current] .tn-bar {
-	width: calc(var(--tn-current-w) + var(--tn-e) * var(--tn-max));
-	background: var(--tn-accent);
-}
-
-/* The active row's bar turns into a moving sine. The flat bar fades out
-	   under it, so the swap reads as the line starting to vibrate. */
-.tn-wave {
-	position: absolute;
-	left: 0;
-	top: -4px;
-	width: 100%;
-	height: 9px;
-	overflow: hidden;
-	opacity: 0;
-	fill: none;
-	stroke: var(--tn-accent);
-	stroke-width: 1.25;
-	vector-effect: non-scaling-stroke;
-	transition: opacity 0.15s;
-}
-
-.tn-wave path {
-	stroke-dasharray: 4 0;
-}
-
-.tn-row[data-active] .tn-bar {
-	background: transparent;
-}
-
-.tn-row[data-active] .tn-wave {
-	opacity: 1;
-}
-
-.tn-row[data-active] .tn-wave path {
-	animation: tn-wave 0.6s linear infinite;
-}
-
-@keyframes tn-wave {
-	to {
-		transform: translateX(-8px);
-	}
-}
-
-.tn-minor {
-	top: calc(50% + var(--tn-f) * var(--tn-row-h));
-	--tn-m: calc(var(--tn-e) * (1 - var(--tn-f)) + var(--tn-e-next) * var(--tn-f));
-	width: calc(var(--tn-minor-w) + var(--tn-m) * var(--tn-max) * 0.6);
-	background: color-mix(
-		in oklab,
-		var(--tn-accent) calc(var(--tn-m) * 80%),
-		color-mix(in oklab, var(--tn-muted) 60%, transparent)
-	);
-}
-
-.tn-link {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-	gap: 0.5rem;
-	height: 100%;
-	/* The label rides the tip of its bar: same gap whatever the bar's length. */
-	margin-left: calc(var(--tn-bar-w) + var(--tn-gap) - 0.5rem);
-	padding: 0 0.5rem;
+	margin: 0;
+	padding: 0;
 	border: 0;
 	background: none;
 	font: inherit;
-	color: color-mix(in oklab, currentColor 62%, transparent);
-	text-decoration: none;
+	color: inherit;
 	text-align: left;
+	text-decoration: none;
 	cursor: pointer;
-	transform: translateX(calc(var(--tn-e) * var(--tn-max)));
-	transition:
-		color 0.2s,
-		margin-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 	outline: none;
 }
 
-.tn-row[data-active] .tn-link {
-	color: inherit;
+.tn-link::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 50%;
+	width: 100%;
+	height: 1.75rem;
+	transform: translateY(-50%);
 }
 
-.tn-row[data-current] .tn-link {
-	margin-left: calc(var(--tn-current-w) + var(--tn-gap) - 0.5rem);
+.tn-bar {
+	flex-shrink: 0;
+	width: var(--tn-len, 32px);
+	height: 0.5rem;
+	overflow: visible;
+}
+
+.tn-path {
+	fill: none;
+	stroke: color-mix(in oklab, var(--tn-accent) calc(var(--tn-near, 0) * 100%), var(--tn-border));
+	stroke-width: 1.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.tn-item[data-current] .tn-path {
+	stroke: var(--tn-accent);
+}
+
+.tn-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	white-space: nowrap;
+	opacity: 0.4;
+	transition:
+		color 150ms ease,
+		opacity 150ms ease;
+}
+
+.tn-item[data-active] .tn-label,
+.tn-item[data-current] .tn-label {
 	color: var(--tn-accent);
+	opacity: 1;
+}
+
+.tn-item[data-disabled] .tn-link {
+	cursor: not-allowed;
+}
+
+.tn-item[data-disabled] .tn-label {
+	opacity: 0.2;
 }
 
 .tn-link:focus-visible .tn-label {
 	outline: 2px solid var(--tn-accent);
-	outline-offset: 3px;
+	outline-offset: 4px;
 	border-radius: 2px;
 }
 
-.tn-row[data-disabled] .tn-link {
-	cursor: not-allowed;
-	opacity: 0.45;
-}
-
-.tn-label {
-	white-space: nowrap;
-}
-
 .tn-badge {
-	font-size: 0.7em;
-	opacity: 0.6;
+	font-size: 0.625rem;
+	opacity: 0.7;
+}
+
+.tn-ticks {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tn-row-gap);
+}
+
+.tn-tick {
+	display: block;
+	height: 1px;
+	width: calc(24px + 16px * var(--tn-tick-near, 0));
+	background: color-mix(
+		in oklab,
+		var(--tn-accent) calc(var(--tn-tick-near, 0) * 60%),
+		var(--tn-border)
+	);
 }
 
 .tn-preview {
 	position: absolute;
 	top: 0;
-	left: calc(100% + var(--tn-max) + 0.75rem);
-	z-index: 10;
+	left: 0;
+	z-index: 20;
+	width: 13rem;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	border: 1px solid color-mix(in oklab, currentColor 10%, transparent);
+	border-radius: 0.75rem;
+	background: var(--tn-preview-bg, Canvas);
+	box-shadow:
+		0 10px 15px -3px rgb(0 0 0 / 0.1),
+		0 4px 6px -4px rgb(0 0 0 / 0.1);
 	pointer-events: none;
-	opacity: 0;
-	transform: translateY(calc(var(--tn-py) - 50%)) scale(0.97);
-	transform-origin: left center;
-	transition:
-		transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-		opacity 0.16s ease;
-}
-
-.tn-preview[data-open] {
-	opacity: 1;
-	transform: translateY(calc(var(--tn-py) - 50%)) scale(1);
-}
-
-.tn-root[data-reduced] .tn-preview,
-.tn-root[data-reduced] .tn-wave {
-	transition: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.tn-row[data-active] .tn-wave path {
-		animation: none;
-	}
-	.tn-preview {
-		transition: opacity 0.16s ease;
-	}
+	opacity: var(--tn-po, 0);
+	transform: translate(var(--tn-px, 0), var(--tn-py, 0));
 }
 </style>

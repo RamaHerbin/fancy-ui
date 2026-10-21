@@ -462,7 +462,7 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **tick-nav**: `value` is no longer `bind:value`: it is the controlled/uncontrolled pair `value?: string` + `onValueChange` (already a Svelte prop). The component keeps its own copy and re-syncs it in the render path when the prop changes, the same shape as Slider.
 - **tick-nav**: `preview` is a render prop `(item: TickNavItem) => ReactNode` instead of a `Snippet<[TickNavItem]>`.
 - **tick-nav**: `class` → `className` (PORTING.md).
-- **tick-nav**: The pointer and focus handlers are native listeners on the `<ul>`, attached in an effect, rather than React props: React's `onPointerLeave` is synthesised from `pointerout`, so a plain `pointerleave` would never reach it. The per-frame field state lives in that effect's closure and never in React state.
+- **tick-nav**: All motion, pointer listeners and the per-frame CSS variables live in the shared `tick-nav-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect, forwards `reach`, the current index and reduced motion through `update()`, and keeps the hovered row index in React state (it changes per row, not per frame).
 - **timeline**: `class` prop becomes `className` (standard port convention)
 - **timeline**: `content` snippet becomes a `content?: (item: TimelineItem) => ReactNode` render prop
 - **timeline**: The Svelte `<style>` block ships as the colocated `timeline.css`. Every selector is anchored under the source's own root class `.tl-root`, so no anchor class was added, and `:global(.dark) .tl-root` becomes `.dark .tl-root`. The custom property names, the `tl-ignite` keyframes, the `prefers-reduced-motion` block and the reduced-motion trail are all copied verbatim.

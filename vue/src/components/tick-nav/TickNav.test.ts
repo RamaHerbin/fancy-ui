@@ -5,7 +5,17 @@ import TickNav from "./TickNav.vue";
 import type { TickNavItem } from "./types.js";
 import { sound } from "../../sound/sound.js";
 
-const ROW = 36;
+function over(el: Element, pointerType = "mouse") {
+	const event = new Event("pointerover", { bubbles: true });
+	Object.assign(event, { pointerType });
+	el.dispatchEvent(event);
+}
+
+function leave(list: Element) {
+	const event = new Event("pointerleave");
+	Object.assign(event, { pointerType: "mouse" });
+	list.dispatchEvent(event);
+}
 
 const items: TickNavItem[] = [
 	{ id: "a", label: "Alpha" },
@@ -13,29 +23,6 @@ const items: TickNavItem[] = [
 	{ id: "c", label: "Gamma", href: "/gamma" },
 	{ id: "d", label: "Delta", disabled: true },
 ];
-
-/** jsdom has no layout: give each row a real height and position. */
-function layout(container: Element): HTMLUListElement {
-	const list = container.querySelector("ul") as HTMLUListElement;
-	list.querySelectorAll("li").forEach((li, i) => {
-		Object.defineProperty(li, "offsetTop", { configurable: true, value: i * ROW });
-		Object.defineProperty(li, "offsetHeight", { configurable: true, value: ROW });
-	});
-	list.getBoundingClientRect = () => ({ top: 0, left: 0 }) as DOMRect;
-	return list;
-}
-
-function move(list: HTMLElement, y: number, pointerType = "mouse") {
-	const event = new Event("pointermove", { bubbles: true });
-	Object.assign(event, { clientY: y, pointerType, isPrimary: true });
-	list.dispatchEvent(event);
-}
-
-function leave(list: HTMLElement) {
-	const event = new Event("pointerleave");
-	Object.assign(event, { pointerType: "mouse" });
-	list.dispatchEvent(event);
-}
 
 describe("TickNav", () => {
 	afterEach(() => {
@@ -64,9 +51,9 @@ describe("TickNav", () => {
 		expect(current[0]!.textContent).toContain("Beta");
 	});
 
-	it("keeps the rail out of the accessibility tree", () => {
+	it("keeps the lines and ticks out of the accessibility tree", () => {
 		const { container } = render(TickNav, { props: { items } });
-		container.querySelectorAll(".tn-rail").forEach((rail) => {
+		container.querySelectorAll(".tn-bar, .tn-ticks").forEach((rail) => {
 			expect(rail.getAttribute("aria-hidden")).toBe("true");
 		});
 	});
@@ -74,8 +61,8 @@ describe("TickNav", () => {
 	it("draws minor ticks between rows, none after the last", () => {
 		const { container } = render(TickNav, { props: { items, minorTicks: 2 } });
 		const rows = container.querySelectorAll("li");
-		expect(rows[0]!.querySelectorAll(".tn-minor")).toHaveLength(2);
-		expect(rows[3]!.querySelectorAll(".tn-minor")).toHaveLength(0);
+		expect(rows[0]!.querySelectorAll(".tn-tick")).toHaveLength(2);
+		expect(rows[3]!.querySelectorAll(".tn-tick")).toHaveLength(0);
 	});
 
 	it("activates an item and reports the change once", async () => {
@@ -103,7 +90,7 @@ describe("TickNav", () => {
 		expect(container.querySelector(".tn-preview")).toBeNull();
 	});
 
-	it("shows the preview for the row under the pointer, and hides it on leave", async () => {
+	it("shows the preview while a row is hovered, and hides it on leave", async () => {
 		const { container } = render(TickNav, {
 			props: { items },
 			slots: {
@@ -111,57 +98,66 @@ describe("TickNav", () => {
 					'<template #preview="{ item }"><span class="pv">{{ item.label }}</span></template>',
 			},
 		});
-		const list = layout(container);
-		const card = container.querySelector(".tn-preview") as HTMLElement;
-		expect(card.hasAttribute("data-open")).toBe(false);
+		const links = container.querySelectorAll(".tn-link");
+		expect(container.querySelector(".tn-preview")).toBeNull();
 
-		move(list, ROW * 1.5);
+		over(links[1]!);
 		await nextTick();
-		expect(card.hasAttribute("data-open")).toBe(true);
-		expect(card.textContent).toContain("Beta");
+		expect(container.querySelector(".tn-preview")?.textContent).toContain("Beta");
 		expect(container.querySelectorAll("li")[1]!.hasAttribute("data-active")).toBe(true);
 
-		leave(list);
+		over(links[0]!);
 		await nextTick();
-		expect(card.hasAttribute("data-open")).toBe(false);
+		expect(container.querySelectorAll("li")[0]!.hasAttribute("data-active")).toBe(true);
+		expect(container.querySelectorAll("li[data-active]")).toHaveLength(1);
+
+		leave(container.querySelector("ul")!);
+		await nextTick();
+		expect(container.querySelector(".tn-preview")).toBeNull();
+		expect(container.querySelector("li[data-active]")).toBeNull();
 	});
 
-	it("ignores touch pointers", async () => {
+	it("drives the proximity field through CSS variables", async () => {
 		const { container } = render(TickNav, { props: { items } });
-		const list = layout(container);
-		move(list, ROW * 0.5, "touch");
+		const rows = container.querySelectorAll("li");
+		expect(rows[0]!.style.getPropertyValue("--tn-len")).toBe("32.00px");
+		over(container.querySelectorAll(".tn-link")[0]!);
+		await new Promise((r) => setTimeout(r, 120));
+		expect(parseFloat(rows[0]!.style.getPropertyValue("--tn-len"))).toBeGreaterThan(32);
+		expect(parseFloat(rows[0]!.style.getPropertyValue("--tn-near"))).toBeGreaterThan(0);
+	});
+
+	it("gives the current row the long line from the first frame", () => {
+		const { container } = render(TickNav, { props: { items, value: "b" } });
+		expect(container.querySelectorAll("li")[1]!.style.getPropertyValue("--tn-len")).toBe("55.00px");
+	});
+
+	it("ignores touch pointers and disabled rows", async () => {
+		const { container } = render(TickNav, { props: { items } });
+		const links = container.querySelectorAll(".tn-link");
+		over(links[0]!, "touch");
+		over(links[3]!);
 		await nextTick();
 		expect(container.querySelector("li[data-active]")).toBeNull();
 	});
 
 	describe("sound", () => {
-		it("plays tick once per new row under a mouse, never for a disabled row", async () => {
+		it("plays hover once per row a mouse enters, never for a disabled row", async () => {
 			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
 			const { container } = render(TickNav, { props: { items, sound: true } });
-			const list = layout(container);
-			move(list, ROW * 0.5);
-			move(list, ROW * 0.6);
-			move(list, ROW * 1.5);
-			move(list, ROW * 3.5);
+			const links = container.querySelectorAll(".tn-link");
+			over(links[0]!);
+			over(links[0]!.querySelector(".tn-label")!);
+			over(links[1]!);
+			over(links[3]!);
 			await nextTick();
-			expect(play.mock.calls.map((c) => c[0])).toEqual(["tick", "tick"]);
+			expect(play.mock.calls.map((c) => c[0]!)).toEqual(["hover", "hover"]);
 		});
 
-		it("plays select only for an item that is not already current", async () => {
-			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
-			const { container } = render(TickNav, { props: { items, value: "a", sound: true } });
-			const buttons = container.querySelectorAll("button");
-			await fireEvent.click(buttons[0]!);
-			expect(play).not.toHaveBeenCalled();
-			await fireEvent.click(buttons[1]!);
-			expect(play).toHaveBeenCalledWith("select");
-		});
-
-		it("stays silent without the sound prop", async () => {
+		it("stays silent without the sound prop, and on activation", async () => {
 			const play = vi.spyOn(sound, "play").mockImplementation(() => {});
 			const { container } = render(TickNav, { props: { items } });
-			const list = layout(container);
-			move(list, ROW * 0.5);
+			over(container.querySelectorAll(".tn-link")[0]!);
 			await fireEvent.click(container.querySelectorAll("button")[1]!);
 			expect(play).not.toHaveBeenCalled();
 		});

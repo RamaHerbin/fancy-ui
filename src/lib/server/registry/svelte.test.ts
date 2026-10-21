@@ -243,9 +243,9 @@ describe("buildRegistry with the svelte stack on the real src/lib/fancy-ui tree"
 		).toEqual(["internals", "internals-motion", "sound"]);
 	});
 
-	// Observed on 2026-10-21: 456 shipped files. The gate pins the exact number.
-	it("ships 456 files, every one registry:ui under fancy/<rel>", () => {
-		expect(all).toHaveLength(456);
+	// Observed on 2026-10-21: 457 shipped files. The gate pins the exact number.
+	it("ships 457 files, every one registry:ui under fancy/<rel>", () => {
+		expect(all).toHaveLength(457);
 		for (const f of all) {
 			expect(f.type).toBe("registry:ui");
 			expect(f.path.startsWith("src/lib/fancy-ui/"), f.path).toBe(true);
