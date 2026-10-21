@@ -165,18 +165,22 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 		if (href) {
 			return (
 				<a
+					{...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
 					ref={ref as React.Ref<HTMLAnchorElement>}
 					className={classes}
 					href={anchorInert ? undefined : href}
 					target={anchorInert ? undefined : target}
 					rel={resolvedRel}
-					aria-label={label}
-					data-disabled={disabled ? "true" : undefined}
-					aria-disabled={anchorInert ? "true" : undefined}
-					aria-busy={loading ? "true" : undefined}
-					tabIndex={anchorInert ? -1 : undefined}
+					aria-label={label ?? restProps["aria-label"]}
+					data-disabled={
+						disabled
+							? "true"
+							: ((restProps as Record<string, unknown>)["data-disabled"] as string | undefined)
+					}
+					aria-disabled={anchorInert ? "true" : restProps["aria-disabled"]}
+					aria-busy={loading ? "true" : restProps["aria-busy"]}
+					tabIndex={anchorInert ? -1 : restProps.tabIndex}
 					onClick={handleClick}
-					{...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
 				>
 					{content}
 				</a>
@@ -185,14 +189,14 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 
 		return (
 			<button
+				{...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
 				ref={ref as React.Ref<HTMLButtonElement>}
 				className={classes}
 				type={type}
 				disabled={disabled}
-				aria-label={label}
-				aria-busy={loading ? "true" : undefined}
+				aria-label={label ?? restProps["aria-label"]}
+				aria-busy={loading ? "true" : restProps["aria-busy"]}
 				onClick={handleClick}
-				{...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
 			>
 				{content}
 			</button>

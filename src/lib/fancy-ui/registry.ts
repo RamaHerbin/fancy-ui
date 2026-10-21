@@ -5760,6 +5760,11 @@ export const registry: Record<string, ComponentMeta> = {
 				description: "Called with the value and whether the write actually succeeded",
 			},
 			{
+				name: "onclick",
+				type: "(event: MouseEvent) => void",
+				description: "Click handler, called after the copy settles; never called while disabled",
+			},
+			{
 				name: "class",
 				type: "string",
 				description: "Additional CSS classes",

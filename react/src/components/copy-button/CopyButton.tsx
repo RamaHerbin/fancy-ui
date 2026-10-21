@@ -1,14 +1,26 @@
-import { forwardRef, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import {
+	forwardRef,
+	useEffect,
+	useRef,
+	useState,
+	type ButtonHTMLAttributes,
+	type CSSProperties,
+	type MouseEvent,
+	type ReactNode,
+} from "react";
 import { cn } from "../../utils.js";
 import { useConstant } from "../../internals/dom/ssr.js";
 import { useCopy } from "../../internals/use-copy.js";
 import { sound as soundFx } from "../../sound/sound.js";
-import { Button } from "../button/Button.js";
+import { Button, type ButtonProps } from "../button/Button.js";
 import type { ButtonVariant, ButtonSize } from "../button/types.js";
 import { StatusMorph, type StatusMorphState } from "../status-morph/StatusMorph.js";
 import "./copy-button.css";
 
-export interface CopyButtonProps {
+export interface CopyButtonProps extends Omit<
+	ButtonHTMLAttributes<HTMLButtonElement>,
+	"onClick" | "onCopy" | "className" | "type" | "children" | "value" | "disabled"
+> {
 	/** The text written to the clipboard on activation */
 	value: string;
 	/** Idle label */
@@ -36,6 +48,8 @@ export interface CopyButtonProps {
 	 * so the button keeps an accessible name.
 	 */
 	children?: ReactNode;
+	/** Fires on activation, after the copy settles. Never called while `disabled`. */
+	onClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
 	/** Additional CSS classes */
 	className?: string;
 	/**
@@ -112,6 +126,8 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 			children,
 			className,
 			sound = false,
+			onClick,
+			...restProps
 		},
 		ref
 	) {
@@ -166,7 +182,7 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 			className
 		);
 
-		async function handleClick() {
+		async function handleClick(event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) {
 			// This click is the only user gesture in the interaction, and the
 			// outcome cue below plays after an await: on a reload with sound
 			// already enabled no AudioContext exists yet, and by then the
@@ -196,6 +212,7 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 				if (sound) soundFx.play(ok ? "copy" : "error");
 			}
 			onCopy?.(value, ok);
+			onClick?.(event);
 		}
 
 		// StatusMorph's `resetAfter` is what normally walks `morphState` back to
@@ -237,6 +254,7 @@ export const CopyButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Copy
 
 		return (
 			<Button
+				{...(restProps as Partial<ButtonProps>)}
 				ref={ref}
 				variant={variant}
 				size={size}

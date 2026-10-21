@@ -49,7 +49,7 @@ export interface IconButtonProps {
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { Button } from "../button/index.js";
 
@@ -71,6 +71,11 @@ const {
 	class: className,
 	sound = false,
 } = defineProps<IconButtonProps>();
+
+// Native attributes and listeners ride through to Button, which lands them on
+// its `<button>` / `<a>`. `onClick` stays a declared prop so Button's guard
+// runs it exactly once.
+const attrs = useAttrs();
 
 defineSlots<{
 	/** The icon, rendered centred with no label alongside it. */
@@ -115,6 +120,7 @@ const classes = computed(() =>
 <template>
 	<Button
 		ref="btn"
+		v-bind="attrs"
 		:variant="variant"
 		:size="size"
 		:type="type"

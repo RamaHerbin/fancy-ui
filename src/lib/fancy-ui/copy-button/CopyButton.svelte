@@ -1,5 +1,6 @@
 <script lang="ts" module>
 	import type { Snippet } from "svelte";
+	import type { HTMLButtonAttributes } from "svelte/elements";
 	import type { ButtonVariant, ButtonSize } from "../button/types.js";
 
 	export interface CopyButtonProps {
@@ -39,7 +40,16 @@
 		 * default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
+		/** Fires on activation, after the copy settles. Never called while `disabled`. */
+		onclick?: (event: MouseEvent) => void;
 	}
+
+	/**
+	 * `CopyButtonProps` plus every native attribute and listener of the
+	 * `<button>` it renders. Own props win.
+	 */
+	export type CopyButtonAttributes = CopyButtonProps &
+		Omit<HTMLButtonAttributes, keyof CopyButtonProps | "type">;
 </script>
 
 <script lang="ts">
@@ -66,7 +76,9 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
-	}: CopyButtonProps = $props();
+		onclick,
+		...restProps
+	}: CopyButtonAttributes = $props();
 
 	// Read once, on purpose: `createCopy` takes its reset delay as a constructor
 	// argument, not a reactive input, so `resetMs` is not meant to be retuned
@@ -118,7 +130,7 @@
 		)
 	);
 
-	async function handleClick() {
+	async function handleClick(event: MouseEvent) {
 		// This click is the only user gesture in the interaction, and the outcome
 		// cue below plays after an await: on a reload with sound already enabled
 		// no AudioContext exists yet, and by then the transient activation may be
@@ -146,6 +158,7 @@
 			if (sound) soundFx.play(ok ? "copy" : "error");
 		}
 		onCopy?.(value, ok);
+		onclick?.(event);
 	}
 
 	// StatusMorph's `resetAfter` is what normally walks `morphState` back to
@@ -222,6 +235,7 @@
 
 <Button
 	bind:ref
+	{...restProps as Record<string, unknown>}
 	{variant}
 	{size}
 	{disabled}

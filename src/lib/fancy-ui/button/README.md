@@ -71,6 +71,8 @@ The library's foundational push-button: six variants, three sizes, a loading sta
 | `ref`       | `HTMLButtonElement \| HTMLAnchorElement \| null`                                | `null`      | Bindable element reference                                                     |
 | `sound`     | `boolean`                                                                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound           |
 
+Every other attribute and listener (`id`, `aria-*`, `data-*`, `onfocus`, ...) is forwarded to the rendered `<button>`, or to the `<a>` once `href` is set. They are spread first: `disabled`, `loading`, the inert-link `tabindex` / `aria-disabled` and the button `type` always win, and `onclick` stays behind the activation guard.
+
 ## Theming
 
 Five of the six variants read the theme's own `primary` / `secondary` / `border` / `accent` / `destructive` tokens, so they follow whatever palette the page already declares. `accent` is the exception: the brand purple has no semantic Tailwind token, so it is a scoped CSS custom property with a `light-dark()` fallback instead:

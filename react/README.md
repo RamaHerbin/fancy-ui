@@ -286,6 +286,12 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **Bare `<Select>` shows the first option** (native uncontrolled behavior).
   The Svelte one renders blank, because `$bindable("")` matches no option —
   that quirk was not imported.
+- **`Button`, `IconButton` and `CopyButton` forward native attributes.** Rest
+  props (`id`, `aria-*`, `data-*`, `onFocus`, ...) are spread onto the rendered
+  `<button>`, or the `<a>` once `href` is set, ahead of the attributes the
+  component manages: `disabled`, `loading`, the inert-link `tabIndex` and
+  `aria-disabled`, and the button `type` always win. `onClick` runs after the
+  guard (and, on `CopyButton`, after the copy settles), exactly once.
 - **`RainbowButton` accepts no extra DOM props** (`onClick` included) — the
   Svelte source reads only its declared props and spreads nothing, and its own
   README example inherits that bug. Ported as-is per the fidelity law; fix it
@@ -535,7 +541,6 @@ Deliberate, small, and documented — everything else is a faithful transpose:
 - **context-menu**: ContextMenuRootContext.close() is typed with the shared MenuCloseOptions ({ returnFocus?, silent? }) instead of the Svelte side's narrower { returnFocus?: boolean }. `silent` is ignored (this family plays no sound), so behaviour is identical; the widening is what lets MenuContext.closeAll forward its options object unchanged, exactly as the Svelte source does at runtime.
 - **context-menu**: ContextMenuTrigger is forwardRef<HTMLDivElement> and ContextMenuContent forwardRef<HTMLDivElement> (both Svelte sides declare `ref = $bindable(null)`); ContextMenu itself takes no ref, as in the source. Neither trigger nor content spreads rest props — the Svelte sources declare none.
 - **context-menu**: Post-open focus is moved in a passive effect where the source moves it in a `tick()` microtask, so the panel paints one frame before the focus ring lands on the first or last item; the anchored entrance is still animating at that point.
-- **copy-button**: No rest-prop spread, deliberately: the Svelte `CopyButtonProps` interface declares an explicit prop list with no `...restProps`, so the React `CopyButtonProps` is a standalone interface rather than one extending `ButtonHTMLAttributes`. Fidelity to the Svelte API surface, but a departure from PORTING.md's general "rest props spread onto the root element" default — worth a line in react/README.md.
 - **copy-button**: StatusMorph's inline `style` string becomes a module-scope `CSSProperties` object (React accepts no style strings). The serialized attribute is equivalent — `width: 1rem; height: 1rem; font-size: calc(1rem - 1px); --ft-statusmorph-error: var(--ft-status-error, light-dark(...))` — and both assertions on that attribute pass unchanged.
 - **copy-button**: The Svelte `<style>` block's two `:global()` wrappers are dropped in copy-button.css: plain CSS is already global, and both selectors (`.ft-copybtn--copied`, `.ft-copybtn--failed`) are root-class modifiers, so no port-added anchor class was needed.
 - **copy-button**: `bind:state={morphState}` on StatusMorph becomes `state={morphState}` + `onStateChange={setMorphState}` — the two-way-binding stand-in the already-ported StatusMorph declares. Behaviour is identical: the morph's own `resetAfter` timer still writes "idle" back into CopyButton's state.

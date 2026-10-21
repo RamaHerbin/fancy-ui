@@ -43,7 +43,7 @@ export interface ButtonProps {
 
 <script setup lang="ts">
 import { callListener } from "../../internals/call-listener.js";
-import { computed, useTemplateRef } from "vue";
+import { computed, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { sound as soundFx } from "../../sound/sound.js";
 import { prefersReducedMotion } from "../../internals/motion/anchored.js";
@@ -70,6 +70,20 @@ const {
 	class: className,
 	sound = false,
 } = defineProps<ButtonProps>();
+
+// Every attribute and listener that is not a declared prop lands on the
+// rendered `<button>` / `<a>`, spread BEFORE the attributes this component
+// manages so a consumer can add to them but never break them. `onClick` is a
+// declared prop, so it runs once through the guard in `handleClick`; the
+// modified forms (`@click.once`, `.capture`, `.passive`) compile to
+// `onClickOnce` / `onClickCapture` / `onClickPassive` and would bind straight
+// to the element past that guard, so they are dropped while the button is inert.
+const attrs = useAttrs();
+const forwarded = computed(() => {
+	if (!(disabled || loading)) return attrs;
+	return Object.fromEntries(Object.entries(attrs).filter(([key]) => !/^onClick/.test(key)));
+});
+type AriaFlag = boolean | "true" | "false" | undefined;
 
 defineSlots<{
 	/** The button's label / content. */
@@ -217,15 +231,16 @@ function handleClick(event: MouseEvent) {
 	<a
 		v-if="href"
 		ref="el"
+		v-bind="forwarded"
 		:class="classes"
 		:href="anchorInert ? undefined : href"
 		:target="anchorInert ? undefined : target"
 		:rel="resolvedRel"
-		:aria-label="label"
-		:data-disabled="disabled ? 'true' : undefined"
-		:aria-disabled="anchorInert ? 'true' : undefined"
-		:aria-busy="loading ? 'true' : undefined"
-		:tabindex="anchorInert ? -1 : undefined"
+		:aria-label="label ?? (attrs['aria-label'] as string | undefined)"
+		:data-disabled="disabled ? 'true' : (attrs['data-disabled'] as string | undefined)"
+		:aria-disabled="anchorInert ? 'true' : (attrs['aria-disabled'] as AriaFlag)"
+		:aria-busy="loading ? 'true' : (attrs['aria-busy'] as AriaFlag)"
+		:tabindex="anchorInert ? -1 : (attrs.tabindex as number | string | undefined)"
 		@click="handleClick"
 	>
 		<!--
@@ -257,11 +272,12 @@ function handleClick(event: MouseEvent) {
 	<button
 		v-else
 		ref="el"
+		v-bind="forwarded"
 		:class="classes"
 		:type="type"
 		:disabled="disabled"
-		:aria-label="label"
-		:aria-busy="loading ? 'true' : undefined"
+		:aria-label="label ?? (attrs['aria-label'] as string | undefined)"
+		:aria-busy="loading ? 'true' : (attrs['aria-busy'] as AriaFlag)"
 		@click="handleClick"
 	>
 		<!--
@@ -324,8 +340,7 @@ function handleClick(event: MouseEvent) {
 	   tokens.EASINGS.inout — the reversible-state pair. It runs the colour
 	   channel, and the release half of the press: letting go settles, it
 	   does not snap back. */
-	--ft-btn-motion: var(--ft-duration-fast, 150ms)
-		var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
+	--ft-btn-motion: var(--ft-duration-fast, 150ms) var(--ft-ease-inout, cubic-bezier(0.4, 0, 0.2, 1));
 	/* The down-stroke only. 150ms = tokens.DURATIONS.fast,
 	   cubic-bezier(0.16, 1, 0.3, 1) = tokens.EASINGS.out — the arrival
 	   curve, which spends most of the scale in the first frames. Same clock
