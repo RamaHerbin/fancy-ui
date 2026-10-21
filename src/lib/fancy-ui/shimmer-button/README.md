@@ -9,18 +9,18 @@ A pill button with a satin sheen. Every cycle, a soft band of light crosses the 
 
 ## Props
 
-| Prop              | Type                  | Default              | Description                                                          |
-| ----------------- | --------------------- | -------------------- | -------------------------------------------------------------------- |
-| `shimmerColor`    | `string`              | `"#ffffff"`          | Colour of the sheen                                                  |
-| `shimmerSize`     | `string`              | `"0.05em"`           | Thickness of the rim the sheen glints on                             |
-| `borderRadius`    | `string`              | `"100px"`            | Button border radius                                                 |
-| `shimmerDuration` | `string`              | `"3s"`               | Duration of one sheen cycle: the sweep, then a pause                 |
-| `background`      | `string`              | `"rgba(0, 0, 0, 1)"` | Button background colour                                             |
-| `class`           | `string`              | —                    | Additional CSS classes                                               |
-| `children`        | `Snippet`             | —                    | Button content                                                       |
-| `onclick`         | `MouseEventHandler`   | —                    | Click handler, called after the sound cue                            |
-| `onpointermove`   | `PointerEventHandler` | —                    | Pointer-move handler, called after the hover highlight is updated    |
-| `sound`           | `boolean`             | `false`              | Plays the `press` cue on activation, once the user has enabled sound |
+| Prop              | Type                  | Default              | Description                                                                                                         |
+| ----------------- | --------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `shimmerColor`    | `string`              | `"#ffffff"`          | Colour of the sheen                                                                                                 |
+| `shimmerSize`     | `string`              | `"0.05em"`           | Thickness of the rim the sheen glints on                                                                            |
+| `borderRadius`    | `string`              | `"100px"`            | Button border radius                                                                                                |
+| `shimmerDuration` | `string`              | `"3s"`               | Duration of one sheen cycle: the sweep, then a pause                                                                |
+| `background`      | `string`              | `"rgba(0, 0, 0, 1)"` | Button background colour                                                                                            |
+| `class`           | `string`              | —                    | Additional CSS classes                                                                                              |
+| `children`        | `Snippet`             | —                    | Button content                                                                                                      |
+| `onclick`         | `MouseEventHandler`   | —                    | Click handler, called after the sound cue                                                                           |
+| `onpointermove`   | `PointerEventHandler` | —                    | Pointer-move handler, called after the hover highlight is updated                                                   |
+| `sound`           | `boolean`             | `false`              | Plays the `hover` cue when a mouse or pen enters and the `press` cue on activation, once the user has enabled sound |
 
 `ShimmerButtonProps` also extends `HTMLButtonAttributes` (minus the props above), and any attributes not explicitly listed (e.g. `type`, `disabled`, `aria-*`, `data-*`) are spread onto the rendered `<button>` via `...restProps`.
 

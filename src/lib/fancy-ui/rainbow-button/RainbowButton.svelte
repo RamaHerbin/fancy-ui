@@ -14,8 +14,8 @@
 		/** Element reference */
 		ref?: HTMLButtonElement | HTMLAnchorElement | null;
 		/**
-		 * Plays the matching interface cue through the sound controller. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 	};
@@ -28,6 +28,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { soundFeedback } from "../sound/sound-feedback.js";
 
 	let {
 		class: className,
@@ -43,6 +44,13 @@
 		sound = false,
 		...restProps
 	}: RainbowButtonProps = $props();
+
+	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+	// off (and never the default click → press, which `handleClick` already plays).
+	const hoverFeedback = $derived({
+		on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+		disabled: !!disabled,
+	});
 
 	const speedStyle = $derived(`--rainbow-speed: ${speed}s${styleProp ? `; ${styleProp}` : ""}`);
 
@@ -77,6 +85,7 @@
 {#if href}
 	<a
 		bind:this={ref}
+		use:soundFeedback={hoverFeedback}
 		class={baseClasses}
 		style={speedStyle}
 		{...restProps as HTMLAnchorAttributes}
@@ -94,6 +103,7 @@
 {:else}
 	<button
 		bind:this={ref}
+		use:soundFeedback={hoverFeedback}
 		class={baseClasses}
 		style={speedStyle}
 		{type}

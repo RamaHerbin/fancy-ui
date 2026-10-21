@@ -36,8 +36,8 @@
  *   - `dependencies` names a package the stack's package.json does not
  *     depend on (`react/package.json` / the root `package.json` /
  *     `vue/package.json`);
- *   - the item count is not the stack's (React 151 = 145 components + 6
- *     shared modules; Svelte 148 = 145 components + 3 shared modules; Vue 150
+ *   - the item count is not the stack's (React 152 = 146 components + 6
+ *     shared modules; Svelte 149 = 146 components + 3 shared modules; Vue 151
  *     = 145 components + 5 shared modules), or (Svelte, Vue) the total file
  *     count drifts from the pinned one.
  *
@@ -78,8 +78,8 @@ const BRAND_WORDS = [
 /** Files that belong to the package's own test rig, never to an item. */
 const EXCLUDED = [/\.test\.tsx?$/, /Harness\.tsx$/, /(^|\/)README\.md$/, /web-audio-mock/];
 
-/** Vue files over all 150 items; the generator's real-tree test reports the same. */
-const VUE_EXPECTED_FILES = 481;
+/** Vue files over all 151 items; the generator's real-tree test reports the same. */
+const VUE_EXPECTED_FILES = 486;
 
 /** The one placeholder Svelte items may import: the consumer's `cn` module. */
 const SVELTE_UTILS_SPECIFIER = "$UTILS$.js";
@@ -93,7 +93,7 @@ const STACKS = {
 		id: "react",
 		dir: PAGES_R,
 		urlPath: "/r",
-		expectedCount: 151,
+		expectedCount: 152,
 		targetPrefix: "@ui/fancy/",
 		pathPrefix: "react/src/",
 		excluded: EXCLUDED,
@@ -108,9 +108,9 @@ const STACKS = {
 		id: "svelte",
 		dir: join(PAGES_R, "svelte"),
 		urlPath: "/r/svelte",
-		expectedCount: 148,
+		expectedCount: 149,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
-		expectedFiles: 453,
+		expectedFiles: 458,
 		targetPrefix: "fancy/",
 		pathPrefix: "src/lib/fancy-ui/",
 		excluded: [...EXCLUDED, /\.test\.(ts|svelte)$/, /Harness/, /(^|\/)_template\//],
@@ -127,7 +127,7 @@ const STACKS = {
 		id: "vue",
 		dir: join(PAGES_R, "vue"),
 		urlPath: "/r/vue",
-		expectedCount: 150,
+		expectedCount: 151,
 		/** Files over all items, pinned so a stray helper or a lost file shows up. */
 		expectedFiles: VUE_EXPECTED_FILES,
 		/** No `target`: the Vue CLI places a file from its `path` (see the header). */

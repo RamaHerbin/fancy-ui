@@ -50,8 +50,9 @@ switches itself on for them:
   (rate limit, voice cap, sound off) stay dropped, so there is never a
   backlog of silenced cues firing at once.
 - **Every cue is rate-limited per cue, independent of the action layer's own
-  guards.** `hover` is capped at 60ms, `tick`/`select` at 40ms, everything
-  else at 15ms — see `SOUND_MIN_INTERVAL_MS`. A hover storm from a fast mouse
+  guards.** `hover` is capped at 30ms, `select` at 40ms, everything else
+  (`tick` included) at 15ms — see `SOUND_MIN_INTERVAL_MS`. The palette's
+  taps last 10–20ms, so these caps let a sweep stay audibly continuous. A hover storm from a fast mouse
   sweep, or key autorepeat landing on `select`, thins itself out instead of
   turning into a buzz.
 - **`play()` is a no-op — never a throw — while off, unsupported, or before
@@ -186,9 +187,10 @@ For markup that doesn't have a `sound` prop of its own, bind cues directly:
   `preventDefault`/`stopPropagation` — it only ever listens.
 - `disabled`, `aria-disabled="true"` and `data-disabled="true"` all silence
   every cue for that element, the same guard `sound`-prop components use.
-- Hover is opt-in because a hover cue is a choice for dense pointer UI, not
-  something every button should inherit — and because `<Button sound>` plays
-  `press` only, so the two doors to "sound on a button" behave the same.
+- Hover is opt-in here because a hover cue is a choice for dense pointer UI,
+  not something every element should inherit. Button-family components with a
+  `sound` prop make that choice for you: they play `hover` when a mouse or pen
+  enters (through this same gated binding) and `press` on activation.
 - Hover cues (`pointerenter`/`mouseenter`) additionally stay silent for
   untrusted events (unless `allowUntrusted` is set — useful in tests), for
   any pointer that is not a mouse or pen (a touch tap fires `pointerenter`
@@ -217,8 +219,8 @@ call site:
 
 | Component                                                                         | Cue(s)                                                                                                                     |
 | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `Button`                                                                          | `press` on activation                                                                                                      |
-| `IconButton`                                                                      | `press` on activation                                                                                                      |
+| `Button`                                                                          | `hover` when a mouse or pen enters, `press` on activation                                                                  |
+| `IconButton`                                                                      | `hover` when a mouse or pen enters, `press` on activation                                                                  |
 | `Link`                                                                            | `press` on activation                                                                                                      |
 | `Toggle`                                                                          | `toggle-on` / `toggle-off` on activation                                                                                   |
 | `ToggleGroup`                                                                     | `toggle-on`/`toggle-off` (multiple) or `select` (single)                                                                   |
@@ -254,12 +256,12 @@ call site:
 | `AppleCardCarousel`                                                               | `open` on expand, `close` on dismiss                                                                                       |
 | `AnimatedTestimonials`                                                            | `select` on Previous/Next                                                                                                  |
 | `LineHoverLink`                                                                   | `press` on activation                                                                                                      |
-| `RainbowButton`                                                                   | `press` on activation (button or anchor)                                                                                   |
-| `RippleButton`                                                                    | `press` on activation                                                                                                      |
-| `ShimmerButton`                                                                   | `press` on activation                                                                                                      |
-| `GradientButton`                                                                  | `press` on activation                                                                                                      |
-| `InteractiveHoverButton`                                                          | `press` on activation (never on hover)                                                                                     |
-| `ConfettiButton`                                                                  | `press` on activation (never `success`)                                                                                    |
+| `RainbowButton`                                                                   | `hover` when a mouse or pen enters, `press` on activation (button or anchor)                                               |
+| `RippleButton`                                                                    | `hover` when a mouse or pen enters, `press` on activation                                                                  |
+| `ShimmerButton`                                                                   | `hover` when a mouse or pen enters, `press` on activation                                                                  |
+| `GradientButton`                                                                  | `hover` when a mouse or pen enters, `press` on activation                                                                  |
+| `InteractiveHoverButton`                                                          | `hover` when a mouse or pen enters, `press` on activation                                                                  |
+| `ConfettiButton`                                                                  | `hover` when a mouse or pen enters, `press` on activation (never `success`)                                                |
 | `ReasoningPanel`                                                                  | `open`/`close` on toggle                                                                                                   |
 | `ChatMessage`                                                                     | `press` on an action, `select` on a branch step                                                                            |
 | `PromptSuggestions`                                                               | `select` on a pill pick                                                                                                    |

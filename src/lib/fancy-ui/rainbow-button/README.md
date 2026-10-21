@@ -17,17 +17,17 @@ A button (or anchor, when `href` is set) with an animated rainbow gradient borde
 
 ## Props
 
-| Prop       | Type                                                        | Default    | Description                                                          |
-| ---------- | ----------------------------------------------------------- | ---------- | -------------------------------------------------------------------- |
-| `speed`    | `number`                                                    | `2`        | Animation speed in seconds (lower = faster)                          |
-| `href`     | `string`                                                    | —          | Renders an `<a>` instead of a `<button>` when set                    |
-| `type`     | `"button" \| "submit" \| "reset"`                           | `"button"` | Native `<button>` `type` attribute (ignored when `href` is set)      |
-| `disabled` | `boolean`                                                   | —          | Disables the button / marks the link `aria-disabled`                 |
-| `ref`      | `HTMLButtonElement \| HTMLAnchorElement \| null` (bindable) | `null`     | Bound reference to the rendered element                              |
-| `class`    | `string`                                                    | —          | Additional CSS classes                                               |
-| `children` | `Snippet`                                                   | —          | Button label content                                                 |
-| `onclick`  | `(event: MouseEvent) => void`                               | —          | Click handler, called once per activation (never while `disabled`)   |
-| `sound`    | `boolean`                                                   | `false`    | Plays the `press` cue on activation, once the user has enabled sound |
+| Prop       | Type                                                        | Default    | Description                                                                                                         |
+| ---------- | ----------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------- |
+| `speed`    | `number`                                                    | `2`        | Animation speed in seconds (lower = faster)                                                                         |
+| `href`     | `string`                                                    | —          | Renders an `<a>` instead of a `<button>` when set                                                                   |
+| `type`     | `"button" \| "submit" \| "reset"`                           | `"button"` | Native `<button>` `type` attribute (ignored when `href` is set)                                                     |
+| `disabled` | `boolean`                                                   | —          | Disables the button / marks the link `aria-disabled`                                                                |
+| `ref`      | `HTMLButtonElement \| HTMLAnchorElement \| null` (bindable) | `null`     | Bound reference to the rendered element                                                                             |
+| `class`    | `string`                                                    | —          | Additional CSS classes                                                                                              |
+| `children` | `Snippet`                                                   | —          | Button label content                                                                                                |
+| `onclick`  | `(event: MouseEvent) => void`                               | —          | Click handler, called once per activation (never while `disabled`)                                                  |
+| `sound`    | `boolean`                                                   | `false`    | Plays the `hover` cue when a mouse or pen enters and the `press` cue on activation, once the user has enabled sound |
 
 Any other native attribute (`aria-label`, `id`, `data-*`, `target`, …) is forwarded to the rendered `<a>` or `<button>`. A consumer `style` is appended after the component's own `--rainbow-speed`.
 

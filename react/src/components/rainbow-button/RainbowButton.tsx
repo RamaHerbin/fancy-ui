@@ -9,6 +9,8 @@ import type {
 } from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import "./rainbow-button.css";
 
 type BaseProps = {
@@ -23,8 +25,8 @@ type BaseProps = {
 	/** Click handler, called once per activation and never while `disabled` */
 	onClick?: (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 };
@@ -62,6 +64,14 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 		const speedStyle = { "--rainbow-speed": `${speed}s`, ...style } as CSSProperties;
 		const playCue = useSoundCue(sound);
 
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled,
+		});
+		const composedRef = useComposedRefs(ref, soundRef);
+
 		// The single guard both branches funnel through. A native `disabled`
 		// button already refuses real input, but a synthetic click (or an anchor,
 		// which has no disabled state at all) walks straight past that, so a
@@ -91,7 +101,7 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 		if (href) {
 			return (
 				<a
-					ref={ref as Ref<HTMLAnchorElement>}
+					ref={composedRef as Ref<HTMLAnchorElement>}
 					{...(restProps as AnchorHTMLAttributes<HTMLAnchorElement>)}
 					className={baseClasses}
 					style={speedStyle}
@@ -113,7 +123,7 @@ export const RainbowButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 
 		return (
 			<button
-				ref={ref as Ref<HTMLButtonElement>}
+				ref={composedRef as Ref<HTMLButtonElement>}
 				{...(restProps as ButtonHTMLAttributes<HTMLButtonElement>)}
 				className={baseClasses}
 				style={speedStyle}
