@@ -38,12 +38,10 @@ export function App() {
 				]}
 			/>
 
-			<Button data-testid="open-dialog" onClick={() => setOpen(true)}>
-				Open dialog
-			</Button>
 			<Dialog
 				open={open}
 				onOpenChange={setOpen}
+				trigger={<Button data-testid="open-dialog">Open dialog</Button>}
 				title="Hello"
 				description="A dialog from the packed tarball."
 			>

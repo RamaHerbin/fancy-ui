@@ -92,9 +92,12 @@ function parseArgs(argv) {
 	return opts;
 }
 
+class Failure extends Error {}
+
+// Throws so that main()'s finally block can clean the scratch folder up;
+// the entry point turns it into a non-zero exit code afterwards.
 function fail(message) {
-	console.error(`docs-examples-react: ${message}`);
-	process.exit(1);
+	throw new Failure(message);
 }
 
 function sh(cmd, args, options = {}) {
@@ -318,5 +321,10 @@ async function main() {
 
 // Importable for tests (collectExamples, harnessSource) without running.
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-	main().catch((e) => fail(String(e?.stack ?? e)));
+	main().catch((e) => {
+		console.error(
+			`docs-examples-react: ${e instanceof Failure ? e.message : String(e?.stack ?? e)}`
+		);
+		process.exitCode = 1;
+	});
 }

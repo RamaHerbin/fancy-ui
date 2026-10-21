@@ -20,7 +20,9 @@ test("server markup is deterministic: two requests return the same HTML", async 
 	expect(second).toBe(first);
 });
 
-test("hydrates with no warning, effects run, events reach handlers", async ({ page }) => {
+test("hydrates without a console or page error, effects run, events reach handlers", async ({
+	page,
+}) => {
 	const errors = collectErrors(page);
 	await page.goto("/server");
 	await waitForHydration(page);
