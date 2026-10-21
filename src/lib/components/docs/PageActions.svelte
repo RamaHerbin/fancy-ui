@@ -6,7 +6,7 @@
 	 */
 	import { page } from "$app/stores";
 	import { t, createFrameworkState } from "$lib/stores";
-	import { editUrl, newIssueUrl, sourceTreeUrl } from "$lib/site.js";
+	import { SITE_URL, editUrl, newIssueUrl, sourceTreeUrl } from "$lib/site.js";
 
 	interface Props {
 		/** Repository path of the page source; null hides the edit link. */
@@ -23,31 +23,36 @@
 	const editHref = $derived(
 		sourcePath ? (isFile ? editUrl(sourcePath) : sourceTreeUrl(sourcePath)) : null
 	);
-	const issueHref = $derived(
-		newIssueUrl({
+	/** Issue forms are filled by field id, so the params carry the form's ids. */
+	const FRAMEWORK_LABELS: Record<string, string> = { svelte: "Svelte", react: "React", vue: "Vue" };
+	const issueHref = $derived.by(() => {
+		const base = newIssueUrl({
 			template: "bug_report.yml",
 			title: t("comp.issueTitle").replace("{name}", name),
-			body: `Page: ${$page.url.href}\nFramework: ${frameworkState.framework}`,
-		})
-	);
+		});
+		const params = new URLSearchParams();
+		params.set("component", name);
+		params.set("page", `${SITE_URL}${$page.url.pathname}`);
+		const label = FRAMEWORK_LABELS[frameworkState.framework];
+		if (label) params.set("framework", label);
+		return `${base}&${params.toString()}`;
+	});
 </script>
 
 <div class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
 	{#if editHref}
 		<a
 			href={editHref}
-			target="_blank"
 			rel="noopener noreferrer"
-			class="hover:text-foreground underline underline-offset-4 transition-colors"
+			class="page-action hover:text-foreground underline underline-offset-4 transition-colors"
 		>
 			{t("comp.editPage")}
 		</a>
 	{/if}
 	<a
 		href={issueHref}
-		target="_blank"
 		rel="noopener noreferrer"
-		class="hover:text-foreground underline underline-offset-4 transition-colors"
+		class="page-action hover:text-foreground underline underline-offset-4 transition-colors"
 	>
 		{t("comp.reportIssue")}
 	</a>

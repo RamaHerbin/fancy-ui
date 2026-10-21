@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing! This guide covers everything you need to get started.
 
-Questions, ideas and show-and-tell belong in [GitHub Discussions](https://github.com/RamaHerbin/fancy-ui/discussions); bugs and concrete feature requests go through the [issue forms](https://github.com/RamaHerbin/fancy-ui/issues/new/choose). Every docs page carries an "Edit this page" and a "Report an issue" link (the `PageActions` component, `src/lib/components/docs/PageActions.svelte`): the first opens the page source on `develop` in the GitHub editor, the second opens a bug report pre-filled with the page URL and your selected framework. By taking part you agree to the [Code of Conduct](./CODE_OF_CONDUCT.md); security problems follow [SECURITY.md](./SECURITY.md), never a public issue.
+Questions, ideas and show-and-tell belong in [GitHub Discussions](https://github.com/RamaHerbin/fancy-ui/discussions); bugs and concrete feature requests go through the [issue forms](https://github.com/RamaHerbin/fancy-ui/issues/new/choose). The getting-started and component docs pages carry an "Edit this page" and a "Report an issue" link (the `PageActions` component, `src/lib/components/docs/PageActions.svelte`): the first opens the page source on `develop` in the GitHub editor, the second opens a bug report with the page name, the page URL and your selected framework filled in. By taking part you agree to the [Code of Conduct](./CODE_OF_CONDUCT.md); security problems follow [SECURITY.md](./SECURITY.md), never a public issue.
 
 ## Getting started
 

@@ -37,7 +37,7 @@ describe("PageActions", () => {
 		);
 	});
 
-	it("pre-fills the bug report with template, title, page URL and framework", () => {
+	it("pre-fills the bug form by field id (component, page, framework)", () => {
 		const { getByText } = render(PageActions, {
 			sourcePath: "src/lib/components/docs/InstallationPage.svelte",
 			name: "Installation",
@@ -47,10 +47,20 @@ describe("PageActions", () => {
 		expect(url.pathname).toBe("/RamaHerbin/fancy-ui/issues/new");
 		expect(url.searchParams.get("template")).toBe("bug_report.yml");
 		expect(url.searchParams.get("title")).toBe("[docs] Installation");
-		const framework = createFrameworkState().framework;
-		expect(url.searchParams.get("body")).toBe(
-			`Page: http://localhost/docs/getting-started/installation\nFramework: ${framework}`
+		expect(url.searchParams.get("component")).toBe("Installation");
+		expect(url.searchParams.get("page")).toBe(
+			"https://fancy-ui.rama.app/docs/getting-started/installation"
 		);
+		const label = { svelte: "Svelte", react: "React", vue: "Vue" }[
+			createFrameworkState().framework
+		];
+		expect(url.searchParams.get("framework")).toBe(label);
+		expect(url.searchParams.has("body")).toBe(false);
+	});
+
+	it("does not open links in a new tab", () => {
+		const { container } = render(PageActions, { sourcePath: "a/b.ts", name: "X" });
+		for (const a of container.querySelectorAll("a")) expect(a.hasAttribute("target")).toBe(false);
 	});
 
 	it("localizes the labels", () => {

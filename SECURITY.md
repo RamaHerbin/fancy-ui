@@ -24,10 +24,12 @@ This policy covers:
 - The docs site (fancy-ui.rama.app).
 
 The docs site has no user accounts and stores no user data, with one
-exception: the theme builder signs you in through an OAuth provider and keeps
-a session cookie. It stores nothing else about you, no profile and no other
-account data. Reports about that sign-in flow, the cookie, the site's build
-pipeline, its dependencies or its client-side code are welcome.
+exception: the site builder (`/builder`). When sign-in is configured, the
+builder signs you in through an OAuth provider and keeps two httpOnly cookies:
+a signed session cookie that holds your username, and a cookie that holds the
+provider access token. The token cookie is signed, not encrypted. Nothing else
+about you is stored. Reports about that sign-in flow, the cookies, the site's
+build pipeline, its dependencies or its client-side code are welcome.
 
 ## Reporting a Vulnerability
 

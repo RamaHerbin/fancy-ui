@@ -69,14 +69,14 @@
 		font-weight: 600;
 	}
 
-	.doc-prose :global(a) {
+	.doc-prose :global(a:not(.page-action)) {
 		color: var(--foreground);
 		text-decoration: underline;
 		text-underline-offset: 4px;
 		transition: opacity 0.15s;
 	}
 
-	.doc-prose :global(a:hover) {
+	.doc-prose :global(a:not(.page-action):hover) {
 		opacity: 0.7;
 	}
 

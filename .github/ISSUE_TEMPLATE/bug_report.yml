@@ -27,28 +27,34 @@ body:
     validations:
       required: true
   - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The docs page where you saw the problem, if any.
+      placeholder: https://
+  - type: input
     id: svelte-package
     attributes:
       label: Svelte package and version
       description: Fill this in if you use the Svelte edition.
-      placeholder: fancy-ui-svelte 0.15.0
+      placeholder: fancy-ui-svelte x.y.z
   - type: input
     id: react-package
     attributes:
       label: React package and version
       description: Fill this in if you use the React edition.
-      placeholder: fancy-ui-react 0.2.0
+      placeholder: fancy-ui-react x.y.z
   - type: input
     id: vue-package
     attributes:
       label: Vue package and version
       description: Fill this in if you use the Vue edition.
-      placeholder: fancy-ui-vue 0.1.0
+      placeholder: fancy-ui-vue x.y.z
   - type: input
     id: environment
     attributes:
       label: Browser and operating system
-      placeholder: Firefox 130 on Windows 11
+      placeholder: Browser name and version, operating system
     validations:
       required: true
   - type: textarea
