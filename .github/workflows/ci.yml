@@ -34,9 +34,12 @@ jobs:
           # For pull_request_target, check out the actual head commit (not base)
           ref: ${{ github.event.pull_request.head.sha }}
 
+      # Same pnpm major as release.yml, which needs 11 to publish through npm
+      # trusted publishing: the install and the scripts CI checks are then the
+      # ones the release job runs. Every job in this file and e2e.yml uses it.
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -59,6 +62,12 @@ jobs:
       # The prerendered source registries (React /r/*.json, Svelte /r/svelte/*.json, Vue /r/vue/*.json): closed imports, no test files, no product names.
       - run: pnpm check:registry-items
       - run: pnpm package
+      # No raw bundler environment read survives into the packaged output: a
+      # consumer's bundler may not define it, and the read then throws or
+      # leaves a branch live. The directory is named so a missing build fails
+      # here instead of the script finding nothing to check.
+      - name: No raw environment read in dist
+        run: test -d dist/fancy-ui && node scripts/check-dist-env.mjs dist
 
       # The published tarball is an allow-list (`files` in package.json) with
       # negated patterns for test rigs, the scaffold template and the per-folder
@@ -95,7 +104,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -117,6 +126,9 @@ jobs:
       # missing artifact a failure rather than a silent half-check.
       - run: pnpm --filter fancy-ui-react exec node scripts/check-matrix.mjs --require-dist
       - run: pnpm --filter fancy-ui-react exec publint
+      # Same check as the `check` job's, on this package's build.
+      - name: No raw environment read in react/dist
+        run: test -d react/dist && node scripts/check-dist-env.mjs react/dist
 
       - name: Pack dry-run — allow-list sanity
         working-directory: react
@@ -213,7 +225,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -280,7 +292,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -295,6 +307,9 @@ jobs:
       - run: pnpm --filter fancy-ui-vue run test:scripts
       - run: pnpm --filter fancy-ui-vue exec node scripts/check-matrix.mjs --require-dist
       - run: pnpm --filter fancy-ui-vue exec publint
+      # Same check as the `check` job's, on this package's build.
+      - name: No raw environment read in vue/dist
+        run: test -d vue/dist && node scripts/check-dist-env.mjs vue/dist
 
       - name: Pack dry-run — allow-list sanity
         working-directory: vue
@@ -348,7 +363,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -424,6 +439,9 @@ jobs:
       (github.event_name == 'pull_request')
     needs: [check, react, vue]
     runs-on: ubuntu-latest
+    # About 14 minutes on a loaded laptop for all six apps (Next and Nuxt are
+    # most of it); the cap stops a hung server from holding a runner for hours.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -431,7 +449,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -440,7 +458,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # The smokes use the repo's @playwright/test; cache its Chromium by version.
+      # The smokes use the repo's @playwright/test; cache its Chromium by
+      # version, under the same key as e2e.yml so both share one entry.
       - name: Read the Playwright version
         id: playwright
         run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
@@ -449,7 +468,16 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      # The apps install with npm, outside the pnpm store setup-node caches.
+      # They carry no lockfile, so this only saves downloads: npm still
+      # resolves every range against the registry on each run.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: consumers-npm-${{ runner.os }}-${{ hashFiles('examples/consumers/*/package.json') }}
+          restore-keys: consumers-npm-${{ runner.os }}-
 
       - name: Install Chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
