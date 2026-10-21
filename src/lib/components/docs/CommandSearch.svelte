@@ -3,6 +3,8 @@
 	import { getAllComponents } from "$lib/fancy-ui/registry.js";
 	import { NO_RESULT_SUGGESTIONS, rankComponents } from "$lib/docs/search-rank.js";
 	import { t, tCategory } from "$lib/stores";
+	import { en } from "$lib/i18n/messages/en.js";
+	import { tc } from "./chrome-i18n.js";
 
 	interface Props {
 		open?: boolean;
@@ -35,8 +37,23 @@
 		{ nameKey: "page.changelog", slug: "changelog", href: "/docs/getting-started/changelog" },
 	] as const;
 
+	// Each suggested query keeps its English search term (the registry index is English) but is
+	// labelled with the translated job or category name.
+	const suggestionLabelKey = {
+		button: "category.buttons",
+		scroll: "jobs.navigate",
+		glow: "jobs.attention",
+	} as const;
+
+	const fold = (s: string) =>
+		s
+			.toLowerCase()
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "");
+
 	let results = $derived.by(() => {
 		const q = query.trim().toLowerCase();
+		const fq = fold(q);
 		const gsCategory = t("nav.gettingStarted");
 		const pageResult = (p: (typeof gettingStartedPages)[number]) => ({
 			name: t(p.nameKey),
@@ -61,10 +78,25 @@
 		}
 
 		const pages = gettingStartedPages
-			.filter((p) => t(p.nameKey).toLowerCase().includes(q) || p.slug.includes(q))
+			.filter(
+				(p) =>
+					fold(t(p.nameKey)).includes(fq) ||
+					fold(en[p.nameKey]).includes(fq) ||
+					p.slug.includes(q)
+			)
 			.map(pageResult);
 
-		const components = rankComponents(q)
+		// Registry search is English; also admit components whose translated or English category
+		// label matches, so a query like "bouton" finds the Buttons category.
+		const ranked = rankComponents(q);
+		const seen = new Set(ranked.map((c) => c.slug));
+		const byCategory = getAllComponents().filter(
+			(c) =>
+				!seen.has(c.slug) &&
+				(fold(tCategory(c.category)).includes(fq) || fold(en[`category.${c.category}`]).includes(fq))
+		);
+
+		const components = [...ranked, ...byCategory]
 			.slice(0, 10)
 			.map((c) => ({
 				name: c.name,
@@ -133,7 +165,7 @@
 				open = false;
 				onclose?.();
 			}}
-			aria-label="Close search"
+			aria-label={tc("search.a11y.close")}
 		></button>
 	</div>
 
@@ -187,7 +219,7 @@
 										inputEl?.focus();
 									}}
 								>
-									{suggestion}
+									{t(suggestionLabelKey[suggestion])}
 								</button>
 							{/each}
 						</div>
