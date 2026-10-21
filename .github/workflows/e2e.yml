@@ -60,6 +60,11 @@ jobs:
           tests/e2e/landing-footer.spec.ts
           tests/e2e/overlays-keyboard.spec.ts
           tests/e2e/touch-scroll.spec.ts
+          tests/e2e/site-mobile.spec.ts
+          tests/e2e/docs-chrome.spec.ts
+          tests/e2e/error-pages.spec.ts
+          tests/e2e/routing.spec.ts
+          tests/e2e/seo.spec.ts
 
       - name: Upload the HTML report
         if: failure()

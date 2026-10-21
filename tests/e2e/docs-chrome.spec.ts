@@ -87,3 +87,62 @@ test.describe("docs chrome", () => {
 		await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
 	});
 });
+
+test.describe("docs footer", () => {
+	test.beforeEach(async ({ page }) => {
+		// The framework choice is read from storage after mount: start from none.
+		await page.addInitScript(() => localStorage.removeItem("fancy-ui-framework"));
+	});
+
+	test("shows one version chip per package, each linked to the changelog", async ({ page }) => {
+		await page.goto("/docs/components/button");
+		const footer = page.locator("footer.docs-footer");
+		await footer.scrollIntoViewIfNeeded();
+		const chips = footer.locator("a.docs-footer-chip");
+		await expect(chips).toHaveCount(3);
+		for (const [i, name] of ["fancy-ui-svelte", "fancy-ui-react", "fancy-ui-vue"].entries()) {
+			const chip = chips.nth(i);
+			await expect(chip).toContainText(name);
+			await expect(chip).toContainText(/\d+\.\d+\.\d+/);
+			await expect(chip).toHaveAttribute(
+				"href",
+				/^\/docs\/getting-started\/changelog#.*v\d+-\d+-\d+$/
+			);
+		}
+	});
+
+	test("links to contribute and issues outside the site, and to the in-site changelog", async ({
+		page,
+	}) => {
+		await page.goto("/docs/getting-started/installation");
+		const footer = page.locator("footer.docs-footer");
+		const contribute = footer.getByRole("link", { name: "Contribute" });
+		await expect(contribute).toHaveAttribute("href", /\/blob\/.+\/CONTRIBUTING\.md$/);
+		await expect(contribute).toHaveAttribute("target", "_blank");
+		await expect(footer.getByRole("link", { name: "Issues", exact: true })).toHaveAttribute(
+			"href",
+			/\/issues$/
+		);
+		await expect(footer.getByRole("link", { name: "Changelog" })).toHaveAttribute(
+			"href",
+			"/docs/getting-started/changelog"
+		);
+	});
+
+	test("the install line follows the selected framework", async ({ page }) => {
+		await page.goto("/docs/components/button");
+		const line = page.locator("[data-docs-footer-install]");
+		await expect(line).toContainText("pnpm add fancy-ui-svelte");
+		await page.goto("/docs/components/button?framework=react");
+		await expect(line).toContainText("pnpm add fancy-ui-react");
+		await page.goto("/docs/components/button?framework=vue");
+		await expect(line).toContainText("pnpm add fancy-ui-vue");
+	});
+
+	test("the footer sits on pages of every docs section", async ({ page }) => {
+		for (const path of ["/docs/components", "/docs/recipes", "/docs/getting-started/theming"]) {
+			await page.goto(path);
+			await expect(page.locator("footer.docs-footer"), path).toHaveCount(1);
+		}
+	});
+});
