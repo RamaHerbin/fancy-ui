@@ -47,7 +47,7 @@ export interface SearchInputProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, useAttrs, useTemplateRef } from "vue";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { preset } from "../../internals/motion/transitions.js";
@@ -113,6 +113,25 @@ const effectiveId = computed(() => field?.controlId ?? id);
 const effectiveDisabled = computed(() => field?.disabled ?? disabled);
 const effectiveRequired = computed(() => field?.required ?? required);
 const effectiveInvalid = computed(() => field?.invalid ?? invalid);
+
+// Native attributes and listeners a consumer passes ride in `attrs` and land on
+// the inner element: `v-bind="attrs"` sits after the component's own listeners
+// (so internal handlers run first) and before its invariants (so a consumer
+// can add attributes but never break them).
+const attrs = useAttrs();
+const ariaLabelResolved = computed(() => {
+	const own = label;
+	return own ?? (attrs["aria-label"] as string | undefined);
+});
+const ariaInvalidResolved = computed(() =>
+	effectiveInvalid.value
+		? "true"
+		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined)
+);
+const consumerDescribedBy = computed(() => attrs["aria-describedby"] as string | undefined);
+const describedBy = computed(
+	() => [field?.describedBy, consumerDescribedBy.value].filter(Boolean).join(" ") || undefined
+);
 
 // Whether the clear affordance — the button and Escape's clear-on-press —
 // is available at all right now. Kept as one computed so the button's
@@ -242,6 +261,9 @@ function onClearEnter(el: Element, done: () => void) {
 		</span>
 		<input
 			ref="inputEl"
+			@input="handleInput"
+			@keydown="handleKeydown"
+			v-bind="attrs"
 			type="search"
 			:placeholder="placeholder"
 			:name="name"
@@ -250,12 +272,10 @@ function onClearEnter(el: Element, done: () => void) {
 			:disabled="effectiveDisabled"
 			:readonly="readonly"
 			:required="effectiveRequired"
-			:aria-invalid="effectiveInvalid ? 'true' : undefined"
-			:aria-describedby="field?.describedBy"
-			:aria-label="label"
+			:aria-invalid="ariaInvalidResolved"
+			:aria-describedby="describedBy"
+			:aria-label="ariaLabelResolved"
 			class="ft-search-input-field text-foreground placeholder:text-muted-foreground min-w-0 flex-1 border-0 bg-transparent p-0 outline-none disabled:cursor-not-allowed"
-			@input="handleInput"
-			@keydown="handleKeydown"
 		/>
 		<Transition :css="false" @enter="onClearEnter">
 			<button

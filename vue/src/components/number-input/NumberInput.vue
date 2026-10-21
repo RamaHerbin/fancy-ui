@@ -37,7 +37,7 @@ export interface NumberInputProps {
 </script>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, ref, useAttrs, useTemplateRef, watch } from "vue";
 
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
@@ -80,6 +80,25 @@ const effectiveId = computed(() => field?.controlId ?? id);
 const effectiveDisabled = computed(() => field?.disabled ?? disabled);
 const effectiveRequired = computed(() => field?.required ?? required);
 const effectiveInvalid = computed(() => field?.invalid ?? invalid);
+
+// Native attributes and listeners a consumer passes ride in `attrs` and land on
+// the inner element: `v-bind="attrs"` sits after the component's own listeners
+// (so internal handlers run first) and before its invariants (so a consumer
+// can add attributes but never break them).
+const attrs = useAttrs();
+const ariaLabelResolved = computed(() => {
+	const own = label;
+	return own ?? (attrs["aria-label"] as string | undefined);
+});
+const ariaInvalidResolved = computed(() =>
+	effectiveInvalid.value
+		? "true"
+		: (attrs["aria-invalid"] as "true" | "false" | "grammar" | "spelling" | undefined)
+);
+const consumerDescribedBy = computed(() => attrs["aria-describedby"] as string | undefined);
+const describedBy = computed(
+	() => [field?.describedBy, consumerDescribedBy.value].filter(Boolean).join(" ") || undefined
+);
 
 // `type="number"`'s own value-sanitization silently reports "" for ANY
 // syntactically incomplete number — "9.", "-", "1e" all read back as the
@@ -343,8 +362,13 @@ const classes = computed(() =>
 		</button>
 		<input
 			ref="inputEl"
+			@input="handleInput"
+			@keydown="handleKeydown"
+			@focus="handleFocus"
+			@blur="handleBlur"
+			v-bind="attrs"
 			type="text"
-			inputmode="decimal"
+			:inputmode="(attrs.inputmode as 'numeric' | 'text' | 'decimal' | undefined) ?? 'decimal'"
 			class="ft-number-input-field text-foreground w-full min-w-[3ch] border-0 bg-transparent px-[18px] py-[9px] text-center font-mono text-[13px] focus-visible:outline-none disabled:cursor-not-allowed"
 			:id="effectiveId"
 			:name="name"
@@ -352,13 +376,9 @@ const classes = computed(() =>
 			:disabled="effectiveDisabled"
 			:readonly="readonly"
 			:required="effectiveRequired"
-			:aria-invalid="effectiveInvalid ? 'true' : undefined"
-			:aria-describedby="field?.describedBy"
-			:aria-label="label"
-			@input="handleInput"
-			@keydown="handleKeydown"
-			@focus="handleFocus"
-			@blur="handleBlur"
+			:aria-invalid="ariaInvalidResolved"
+			:aria-describedby="describedBy"
+			:aria-label="ariaLabelResolved"
 		/>
 		<button
 			type="button"

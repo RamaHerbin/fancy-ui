@@ -78,6 +78,26 @@ All of `disabled`, `required` and `invalid`, plus the element's `id`, are
 overridden by a surrounding `FormField`'s own context — see Implementation
 Notes.
 
+## Native attributes
+
+Anything Input does not declare as its own prop is forwarded to the inner `<input>`: `id`,
+`data-*`, `aria-*`, `title`, `name, form, required, autocomplete, inputmode, pattern, min, max, step, maxlength` and the listeners `oninput`,
+`onchange`, `onfocus`, `onblur` and `onkeydown`. `class` keeps its current target.
+
+- Listeners the component handles itself run once after its own logic, with the
+  same event; a guarded (disabled) field calls neither.
+- `aria-describedby` from the consumer is merged with the component's own description
+  id (space-joined), never replaced. A consumer `aria-label` is used when no `label`
+  prop is given; `aria-invalid` from the consumer shows through only while the field
+  is not invalid.
+- Inside a `FormField` the field's `controlId` is the element's id and the label's
+  `for` follows it; set `id` on the `FormField` to choose it.
+- Forms: form libraries that register fields through spread props (`name`, a change
+  handler, a blur handler and a ref) work as is. In React, `onChange` from the spread
+  is called after the component's own change handling and `onValueChange`, and the
+  forwarded ref points at the native element; leave `value` unset to keep the field
+  uncontrolled and let the library read the element.
+
 ## Theming
 
 The focus ring color has no semantic token in the app's theme layer, so it

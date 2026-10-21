@@ -1,5 +1,7 @@
 <script lang="ts" module>
-	export interface SearchInputProps {
+	import type { HTMLInputAttributes } from "svelte/elements";
+
+	export interface SearchInputOwnProps {
 		/** Current value; bindable. */
 		value?: string;
 		/** Called with the new value on every input event. */
@@ -44,6 +46,13 @@
 		 */
 		sound?: boolean;
 	}
+
+	/**
+	 * Own props plus every native `<input>` attribute and listener; the rest go
+	 * to the inner `<input>`, not the wrapper.
+	 */
+	export type SearchInputProps = SearchInputOwnProps &
+		Omit<HTMLInputAttributes, keyof SearchInputOwnProps | "type">;
 </script>
 
 <script lang="ts">
@@ -90,6 +99,12 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		oninput,
+		onkeydown,
+		"aria-describedby": consumerDescribedBy,
+		"aria-label": consumerAriaLabel,
+		"aria-invalid": consumerAriaInvalid,
+		...rest
 	}: SearchInputProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -125,6 +140,10 @@
 		return () => clearDebounce();
 	});
 
+	const describedBy = $derived(
+		[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined
+	);
+
 	const classes = $derived(
 		cn(
 			"ft-search-input flex w-full items-center gap-2 rounded-full border border-input bg-background px-[14px] py-[9px] text-[13px] transition-colors",
@@ -152,11 +171,16 @@
 				onSearch?.(next);
 			}, debounceMs);
 		}
+		oninput?.(event);
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
+	function handleKeydown(event: KeyboardEvent & { currentTarget: HTMLInputElement }) {
 		if (effectiveDisabled) return;
+		handleOwnKey(event);
+		onkeydown?.(event);
+	}
 
+	function handleOwnKey(event: KeyboardEvent) {
 		if (event.key === "Enter") {
 			// Enter always wins over a debounce still in flight — without this,
 			// a settle firing moments later would report the same value onSearch
@@ -216,6 +240,7 @@
 		{@render searchIcon()}
 	</span>
 	<input
+		{...rest}
 		bind:this={ref}
 		type="search"
 		{placeholder}
@@ -225,9 +250,9 @@
 		disabled={effectiveDisabled}
 		{readonly}
 		required={effectiveRequired}
-		aria-invalid={effectiveInvalid ? "true" : undefined}
-		aria-describedby={field?.describedBy}
-		aria-label={label}
+		aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
+		aria-describedby={describedBy}
+		aria-label={label ?? consumerAriaLabel}
 		class="ft-search-input-field text-foreground placeholder:text-muted-foreground min-w-0 flex-1 border-0 bg-transparent p-0 outline-none disabled:cursor-not-allowed"
 		oninput={handleInput}
 		onkeydown={handleKeydown}

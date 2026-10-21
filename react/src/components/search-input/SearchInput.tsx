@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import type { ChangeEvent, KeyboardEvent } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, KeyboardEvent } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
@@ -11,7 +11,7 @@ import type { TransitionRun } from "../../internals/motion/animate.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import "./search-input.css";
 
-export interface SearchInputProps {
+export interface SearchInputOwnProps {
 	/**
 	 * Current value. Controlled when supplied: pair it with `onValueChange`,
 	 * the React counterpart of the Svelte source's `bind:value`.
@@ -59,6 +59,15 @@ export interface SearchInputProps {
 	 */
 	sound?: boolean;
 }
+
+/**
+ * Own props plus every native `<input>` attribute and listener; the rest are
+ * spread onto the inner `<input>` (see the component README for the rules).
+ */
+export interface SearchInputProps
+	extends
+		Omit<ComponentPropsWithoutRef<"input">, keyof SearchInputOwnProps | "type">,
+		SearchInputOwnProps {}
 
 // The clear button appears mid-interaction, the instant the field stops
 // being empty — a 150ms grow-and-fade is what stops it materialising as a
@@ -119,6 +128,13 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 			clearable = true,
 			className,
 			sound = false,
+			onKeyDown,
+			onChange,
+			"aria-describedby": consumerDescribedBy,
+			"aria-label": consumerAriaLabel,
+			"aria-invalid": consumerAriaInvalid,
+			readOnly: readOnlyAttr,
+			...rest
 		},
 		forwardedRef
 	) => {
@@ -209,6 +225,9 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 			introRun.current = run;
 		}, []);
 
+		const describedBy =
+			[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined;
+
 		const classes = cn(
 			"ft-search-input flex w-full items-center gap-2 rounded-full border border-input bg-background px-[14px] py-[9px] text-[13px] transition-colors",
 			effectiveDisabled && "cursor-not-allowed opacity-50",
@@ -234,11 +253,16 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 					onSearch?.(next);
 				}, debounceMs);
 			}
+			onChange?.(event);
 		}
 
 		function handleKeydown(event: KeyboardEvent<HTMLInputElement>) {
 			if (effectiveDisabled) return;
+			handleOwnKey(event);
+			onKeyDown?.(event);
+		}
 
+		function handleOwnKey(event: KeyboardEvent<HTMLInputElement>) {
 			if (event.key === "Enter") {
 				// Enter always wins over a debounce still in flight — without this,
 				// a settle firing moments later would report the same value onSearch
@@ -282,6 +306,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 					{searchIcon}
 				</span>
 				<input
+					{...rest}
 					ref={composedRef}
 					type="search"
 					placeholder={placeholder}
@@ -289,11 +314,11 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
 					id={effectiveId}
 					value={value}
 					disabled={effectiveDisabled}
-					readOnly={readonly}
+					readOnly={readonly || readOnlyAttr}
 					required={effectiveRequired}
-					aria-invalid={effectiveInvalid ? "true" : undefined}
-					aria-describedby={field?.describedBy}
-					aria-label={label}
+					aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
+					aria-describedby={describedBy}
+					aria-label={label ?? consumerAriaLabel}
 					className="ft-search-input-field text-foreground placeholder:text-muted-foreground min-w-0 flex-1 border-0 bg-transparent p-0 outline-none disabled:cursor-not-allowed"
 					onChange={handleInput}
 					onKeyDown={handleKeydown}

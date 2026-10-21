@@ -1,10 +1,10 @@
 import { forwardRef, useState } from "react";
-import type { ChangeEvent, HTMLInputAutoCompleteAttribute } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, HTMLInputAutoCompleteAttribute } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import "./input.css";
 
-export interface InputProps {
+export interface InputOwnProps {
 	/**
 	 * Current value. Controlled when supplied: pair it with `onValueChange`,
 	 * the React counterpart of the Svelte source's `bind:value`.
@@ -39,6 +39,13 @@ export interface InputProps {
 }
 
 /**
+ * Own props plus every native `<input>` attribute and listener; the rest are
+ * spread onto the inner `<input>` (see the component README for the rules).
+ */
+export interface InputProps
+	extends Omit<ComponentPropsWithoutRef<"input">, keyof InputOwnProps>, InputOwnProps {}
+
+/**
  * A styled native `<input>` with full FormField integration.
  *
  * The element reference arrives through the ref channel (the Svelte source
@@ -61,6 +68,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 			autocomplete,
 			label,
 			className,
+			autoComplete: autoCompleteAttr,
+			onChange,
+			"aria-describedby": consumerDescribedBy,
+			"aria-label": consumerAriaLabel,
+			"aria-invalid": consumerAriaInvalid,
+			readOnly: readOnlyAttr,
+			...rest
 		},
 		ref
 	) => {
@@ -80,6 +94,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 		const effectiveDisabled = field?.disabled ?? disabled;
 		const effectiveRequired = field?.required ?? required;
 		const effectiveInvalid = field?.invalid ?? invalid;
+
+		// A consumer's own description id rides along with the FormField's, never
+		// replacing it.
+		const describedBy =
+			[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined;
 
 		const classes = cn(
 			"ft-input w-full rounded-[8px] border border-input bg-background px-[12px] py-[9px] text-[13px] text-foreground transition-colors",
@@ -104,23 +123,25 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 			const next = event.currentTarget.value;
 			if (!isControlled) setUncontrolledValue(next);
 			onValueChange?.(next);
+			onChange?.(event);
 		}
 
 		return (
 			<input
+				{...rest}
 				ref={ref}
 				type={type}
 				placeholder={placeholder}
 				name={name}
-				autoComplete={autocomplete}
+				autoComplete={autocomplete ?? autoCompleteAttr}
 				id={effectiveId}
 				value={value}
 				disabled={effectiveDisabled}
-				readOnly={readonly}
+				readOnly={readonly || readOnlyAttr}
 				required={effectiveRequired}
-				aria-invalid={effectiveInvalid ? "true" : undefined}
-				aria-describedby={field?.describedBy}
-				aria-label={label}
+				aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
+				aria-describedby={describedBy}
+				aria-label={label ?? consumerAriaLabel}
 				className={classes}
 				onChange={handleInput}
 			/>

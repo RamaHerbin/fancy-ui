@@ -1,4 +1,6 @@
 <script lang="ts" module>
+	import type { HTMLInputAttributes } from "svelte/elements";
+
 	/** Result of scoring a password's strength. */
 	export interface PasswordStrengthResult {
 		/** 0 = very weak, 4 = strongest. The bars fill left to right by this count. */
@@ -7,7 +9,7 @@
 		label: string;
 	}
 
-	export interface PasswordInputProps {
+	export interface PasswordInputOwnProps {
 		/** Current value; bindable. */
 		value?: string;
 		/** Called with the new value on every input event. */
@@ -46,6 +48,13 @@
 		 */
 		sound?: boolean;
 	}
+
+	/**
+	 * Own props plus every native `<input>` attribute and listener; the rest go
+	 * to the inner `<input>`, not the wrapper.
+	 */
+	export type PasswordInputProps = PasswordInputOwnProps &
+		Omit<HTMLInputAttributes, keyof PasswordInputOwnProps | "type">;
 </script>
 
 <script lang="ts">
@@ -94,6 +103,11 @@
 		class: className,
 		ref = $bindable(null),
 		sound = false,
+		oninput,
+		"aria-describedby": consumerDescribedBy,
+		"aria-label": consumerAriaLabel,
+		"aria-invalid": consumerAriaInvalid,
+		...rest
 	}: PasswordInputProps = $props();
 
 	// Undefined outside a FormField — every derived below then falls back to
@@ -158,7 +172,9 @@
 	// that does treat aria-describedby text as live content still would not
 	// hear it churn on every character.
 	const describedBy = $derived(
-		[field?.describedBy, result ? strengthId : undefined].filter(Boolean).join(" ") || undefined
+		[field?.describedBy, consumerDescribedBy, result ? strengthId : undefined]
+			.filter(Boolean)
+			.join(" ") || undefined
 	);
 
 	const tierClass = $derived.by(() => {
@@ -186,6 +202,7 @@
 		const next = event.currentTarget.value;
 		value = next;
 		onValueChange?.(next);
+		oninput?.(event);
 	}
 
 	// Swapping `type` between "password" and "text" resets selection in some
@@ -261,6 +278,7 @@
 <div class="ft-password-input-wrapper flex w-full flex-col gap-1.5">
 	<div class={wrapperClasses}>
 		<input
+			{...rest}
 			bind:this={ref}
 			{type}
 			{placeholder}
@@ -271,9 +289,9 @@
 			disabled={effectiveDisabled}
 			{readonly}
 			required={effectiveRequired}
-			aria-invalid={effectiveInvalid ? "true" : undefined}
+			aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
 			aria-describedby={describedBy}
-			aria-label={label}
+			aria-label={label ?? consumerAriaLabel}
 			class="ft-password-input-field text-foreground placeholder:text-muted-foreground min-w-0 flex-1 border-0 bg-transparent p-0 outline-none disabled:cursor-not-allowed"
 			oninput={handleInput}
 		/>

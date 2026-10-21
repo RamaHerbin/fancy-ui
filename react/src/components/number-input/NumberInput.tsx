@@ -1,12 +1,12 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
-import type { ChangeEvent, FocusEvent, KeyboardEvent } from "react";
+import type { ChangeEvent, ComponentPropsWithoutRef, FocusEvent, KeyboardEvent } from "react";
 import { cn } from "../../utils.js";
 import { useField } from "../../internals/field.js";
 import { DURATIONS } from "../../internals/motion/tokens.js";
 import { useSoundCue } from "../../sound/use-sound.js";
 import "./number-input.css";
 
-export interface NumberInputProps {
+export interface NumberInputOwnProps {
 	/**
 	 * Current value; `null` when the field is empty. Controlled when supplied:
 	 * pair it with `onValueChange`, the React counterpart of the Svelte
@@ -46,6 +46,18 @@ export interface NumberInputProps {
 	sound?: boolean;
 }
 
+/**
+ * Own props plus every native `<input>` attribute and listener; the rest are
+ * spread onto the inner `<input>` (see the component README for the rules).
+ */
+export interface NumberInputProps
+	extends
+		Omit<
+			ComponentPropsWithoutRef<"input">,
+			keyof NumberInputOwnProps | "type" | "value" | "defaultValue"
+		>,
+		NumberInputOwnProps {}
+
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 	(
 		{
@@ -64,6 +76,16 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 			label,
 			className,
 			sound = false,
+			inputMode = "decimal",
+			onKeyDown,
+			onFocus,
+			onBlur,
+			onChange,
+			"aria-describedby": consumerDescribedBy,
+			"aria-label": consumerAriaLabel,
+			"aria-invalid": consumerAriaInvalid,
+			readOnly: readOnlyAttr,
+			...rest
 		},
 		ref
 	) => {
@@ -120,6 +142,8 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 		const effectiveDisabled = field?.disabled ?? disabled;
 		const effectiveRequired = field?.required ?? required;
 		const effectiveInvalid = field?.invalid ?? invalid;
+		const describedBy =
+			[field?.describedBy, consumerDescribedBy].filter(Boolean).join(" ") || undefined;
 
 		const playCue = useSoundCue(sound);
 
@@ -238,7 +262,11 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 		// routed through the same `nextStepValue` the buttons use rather than a
 		// second copy of the rounding/clamping logic.
 		function handleKeydown(event: KeyboardEvent<HTMLInputElement>) {
-			if (effectiveDisabled || readonly) return;
+			if (!effectiveDisabled && !(readonly || readOnlyAttr)) handleOwnKey(event);
+			onKeyDown?.(event);
+		}
+
+		function handleOwnKey(event: KeyboardEvent<HTMLInputElement>) {
 			if (event.key === "ArrowUp") {
 				event.preventDefault();
 				if (incrementDisabled) return;
@@ -251,8 +279,12 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 		}
 
 		function handleInput(event: ChangeEvent<HTMLInputElement>) {
-			if (effectiveDisabled || readonly) return;
-			const raw = event.currentTarget.value;
+			if (effectiveDisabled || readonly || readOnlyAttr) return;
+			applyTyped(event.currentTarget.value);
+			onChange?.(event);
+		}
+
+		function applyTyped(raw: string) {
 			setRawText(raw);
 
 			if (raw === "") {
@@ -273,15 +305,16 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 			onValueChange?.(parsed);
 		}
 
-		function handleFocus(_event: FocusEvent<HTMLInputElement>) {
+		function handleFocus(event: FocusEvent<HTMLInputElement>) {
 			isFocused.current = true;
+			onFocus?.(event);
 		}
 
 		// Clamping happens here, not per keystroke — that would make typing "50"
 		// past a lower max impossible to type through — and this is also where
 		// the display is canonicalised: a trailing "." or a lone "-" that never
 		// resolved into a full number is dropped once typing is done.
-		function handleBlur(_event: FocusEvent<HTMLInputElement>) {
+		function handleBlur(event: FocusEvent<HTMLInputElement>) {
 			isFocused.current = false;
 			let settled = value;
 			if (settled !== null) {
@@ -293,6 +326,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 				}
 			}
 			setRawText(settled === null ? "" : String(settled));
+			onBlur?.(event);
 		}
 
 		return (
@@ -321,19 +355,20 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
 					−
 				</button>
 				<input
+					{...rest}
 					ref={ref}
 					type="text"
-					inputMode="decimal"
+					inputMode={inputMode}
 					className="ft-number-input-field text-foreground w-full min-w-[3ch] border-0 bg-transparent px-[18px] py-[9px] text-center font-mono text-[13px] focus-visible:outline-none disabled:cursor-not-allowed"
 					id={effectiveId}
 					name={name}
 					value={rawText}
 					disabled={effectiveDisabled}
-					readOnly={readonly}
+					readOnly={readonly || readOnlyAttr}
 					required={effectiveRequired}
-					aria-invalid={effectiveInvalid ? "true" : undefined}
-					aria-describedby={field?.describedBy}
-					aria-label={label}
+					aria-invalid={effectiveInvalid ? "true" : consumerAriaInvalid}
+					aria-describedby={describedBy}
+					aria-label={label ?? consumerAriaLabel}
 					onChange={handleInput}
 					onKeyDown={handleKeydown}
 					onFocus={handleFocus}
