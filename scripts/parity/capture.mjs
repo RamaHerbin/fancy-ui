@@ -14,11 +14,12 @@
  *        [--fw svelte,react,vue] [--theme light,dark] [--moments 0,600,1500]
  *        [--base-svelte http://localhost:5291] [--base-react http://localhost:5292]
  *        [--base-vue http://localhost:5293] [--out .parity] [--concurrency 4]
- *        [--reduced-motion no-preference|reduce]
+ *        [--reduced-motion no-preference|reduce] [--states all|none|open,focus,long]
  *
  * Output (git-ignored):
  *   <out>/shots/<fw>/<slug>/<theme>-<t>.png        rest pass
  *   <out>/shots/<fw>/<slug>/<theme>-<t>-hover.png  pointer pass (slugs with a hover/sweep/click hint)
+ *   <out>/shots/<fw>/<slug>/<theme>-<t>@<state>.png  interaction states (hints "states", see states.mjs)
  *   <out>/capture-log.json                         per item: ok | missing | skipped | error + console errors
  *
  * Determinism. Every item gets its own browser context (the Playwright clock
@@ -47,13 +48,26 @@
  * with its 350 ms rest after a hover spent on the fake clock; moments of the
  * pointer pass count from the end of the gesture.
  *
- * A failing item is recorded in the log and the run goes on.
+ * A failing item is recorded in the log and the run goes on. Interaction
+ * states (open, focus, long content; scripts/parity/states.mjs) are stricter:
+ * a missing scenario, an unreachable stage, a state that is never reached or a
+ * shot that is not written is an error naming <slug>@<state>, and the run
+ * exits non-zero.
  */
 
 import { chromium } from "@playwright/test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+	checkExpect,
+	entryStatusForState,
+	settle,
+	planStateItems,
+	runSteps,
+	stateShotName,
+	STATE_NAMES,
+} from "./states.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..", "..");
@@ -85,6 +99,7 @@ function parseArgs(argv) {
 		out: join(repoRoot, ".parity"),
 		concurrency: 4,
 		reducedMotion: "no-preference",
+		states: "all",
 	};
 	const list = (value) =>
 		value
@@ -108,12 +123,17 @@ function parseArgs(argv) {
 		else if (flag === "--out") args.out = resolve(value);
 		else if (flag === "--concurrency") args.concurrency = Math.max(1, Number(value) || 1);
 		else if (flag === "--reduced-motion") args.reducedMotion = value;
+		else if (flag === "--states")
+			args.states = value === "all" || value === "none" ? value : list(value);
 		else throw new Error(`unknown flag ${flag}`);
 		i++;
 	}
 	if (!args.all && !args.only) throw new Error("pass --all or --only slug-a,slug-b");
 	for (const fw of args.fws) if (!FRAMEWORKS.includes(fw)) throw new Error(`unknown --fw ${fw}`);
 	for (const t of args.themes) if (!THEMES.includes(t)) throw new Error(`unknown --theme ${t}`);
+	if (Array.isArray(args.states))
+		for (const s of args.states)
+			if (!STATE_NAMES.includes(s)) throw new Error(`unknown --states ${s}`);
 	if (args.moments.some((t) => !Number.isFinite(t) || t < 0)) throw new Error("bad --moments");
 	return args;
 }
@@ -139,11 +159,12 @@ function readHint(slug) {
 	return JSON.parse(readFileSync(file, "utf8"));
 }
 
-function stageUrl(base, fw, slug, theme) {
+function stageUrl(base, fw, slug, theme, variant) {
 	const q = encodeURIComponent;
+	const v = variant ? `&variant=${q(variant)}` : "";
 	return fw === "svelte"
-		? `${base}/_parity/${q(slug)}?theme=${theme}`
-		: `${base}/?slug=${q(slug)}&theme=${theme}`;
+		? `${base}/_parity/${q(slug)}?theme=${theme}${v}`
+		: `${base}/?slug=${q(slug)}&theme=${theme}${v}`;
 }
 
 /**
@@ -229,6 +250,18 @@ function startAnimationSync(period) {
 		}
 	};
 	window.__paritySync = sync;
+	// Finite animations not yet run to their end (states.mjs settles on 0).
+	window.__parityPending = () => {
+		sync();
+		return document
+			.getAnimations()
+			.filter(
+				(anim) =>
+					!finished.has(anim) &&
+					anim.playbackRate > 0 &&
+					Number.isFinite(anim.effect?.getComputedTiming().endTime ?? Infinity)
+			).length;
+	};
 	sync();
 	setInterval(sync, period);
 }
@@ -263,8 +296,11 @@ async function waitForStage(page, fw) {
 			page,
 			() => {
 				const el = document.querySelector("[data-parity-stage]");
+				// A ?variant= scenario renders nothing until its module lands.
 				return (
-					Boolean(el) && !el.querySelector(":scope > .h-64 > .animate-spin.border-t-transparent")
+					Boolean(el) &&
+					el.childElementCount > 0 &&
+					!el.querySelector(":scope > .h-64 > .animate-spin.border-t-transparent")
 				);
 			},
 			"the demo to load"
@@ -302,7 +338,7 @@ async function applyHint(page, stage, hint) {
 }
 
 async function captureItem(browser, args, item) {
-	const { fw, slug, theme, pointer, moments, hint } = item;
+	const { fw, slug, theme, pointer, moments, hint, state, spec } = item;
 	const context = await browser.newContext({
 		viewport: VIEWPORT,
 		deviceScaleFactor: 1,
@@ -325,7 +361,7 @@ async function captureItem(browser, args, item) {
 		await page.clock.pauseAt(FIXED_DATE);
 		await page.mouse.move(0, 0);
 
-		const res = await page.goto(stageUrl(args.base[fw], fw, slug, theme), {
+		const res = await page.goto(stageUrl(args.base[fw], fw, slug, theme, spec?.variant), {
 			waitUntil: "load",
 			timeout: 60_000,
 		});
@@ -335,6 +371,10 @@ async function captureItem(browser, args, item) {
 
 		await page.evaluate(startAnimationSync, SYNC_MS);
 		if (pointer) await applyHint(page, stage, hint);
+		if (state) {
+			await runSteps(page, stage, slug, state, spec.steps);
+			await settle(page, slug, state);
+		}
 
 		const dir = join(args.out, "shots", fw, slug);
 		mkdirSync(dir, { recursive: true });
@@ -345,7 +385,11 @@ async function captureItem(browser, args, item) {
 			elapsed = Math.max(elapsed, t);
 			// Pick up anything started since the last tick (a hover transition).
 			await page.evaluate(() => window.__paritySync());
-			const name = `${theme}-${t}${pointer ? "-hover" : ""}.png`;
+			// A state that was left (a panel closed, focus lost) fails the item.
+			if (state) await checkExpect(page, stage, slug, state, spec.expect);
+			const name = state
+				? stateShotName(theme, t, state)
+				: `${theme}-${t}${pointer ? "-hover" : ""}.png`;
 			await stage.screenshot({
 				path: join(dir, name),
 				type: "png",
@@ -379,10 +423,15 @@ async function main() {
 
 	// A framework whose server is down is reported once, not 300 times.
 	const fws = [];
+	const down = [];
 	for (const fw of args.fws) {
 		if (await reachable(args.base[fw])) fws.push(fw);
-		else console.error(`${fw} stage not reachable at ${args.base[fw]} -- skipped`);
+		else {
+			down.push(fw);
+			console.error(`${fw} stage not reachable at ${args.base[fw]} -- skipped`);
+		}
 	}
+	const stateErrors = [];
 
 	const items = [];
 	const log = {};
@@ -400,18 +449,44 @@ async function main() {
 				if (pointerPass) items.push({ fw, slug, theme, pointer: true, moments, hint });
 			}
 		}
+		if (args.states === "none") continue;
+		// States are planned against every requested framework, so a stage that
+		// is down fails them instead of thinning the comparison.
+		const plan = planStateItems({
+			slug,
+			hint,
+			fws: args.fws,
+			themes: args.themes,
+			wanted: args.states,
+		});
+		stateErrors.push(...plan.errors);
+		for (const item of plan.items) {
+			if (down.includes(item.fw)) {
+				const id = `${item.fw}/${slug}/${item.theme}@${item.state}`;
+				log[id] = {
+					fw: item.fw,
+					slug,
+					theme: item.theme,
+					state: item.state,
+					status: "error",
+					error: `${slug}@${item.state}: ${item.fw} stage not reachable`,
+				};
+			} else items.push({ ...item, pointer: false, hint });
+		}
 	}
+	if (stateErrors.length) throw new Error(`bad state hints:\n  ${stateErrors.join("\n  ")}`);
 	if (items.length === 0) throw new Error("nothing to capture");
 
 	mkdirSync(args.out, { recursive: true });
 	const browser = await chromium.launch({ args: LAUNCH_ARGS });
 	const counts = { ok: 0, missing: 0, error: 0 };
+	for (const e of Object.values(log)) if (e.status === "error") counts.error++;
 	let done = 0;
 	try {
 		const queue = [...items];
 		const worker = async () => {
 			for (let item = queue.shift(); item; item = queue.shift()) {
-				const id = `${item.fw}/${item.slug}/${item.theme}${item.pointer ? "-hover" : ""}`;
+				const id = `${item.fw}/${item.slug}/${item.theme}${item.pointer ? "-hover" : ""}${item.state ? `@${item.state}` : ""}`;
 				const started = Date.now();
 				let entry;
 				// A first visit can make the Vite dev server optimise a new
@@ -421,16 +496,26 @@ async function main() {
 						entry = await captureItem(browser, args, item);
 						break;
 					} catch (err) {
-						entry = { status: "error", error: err.message.split("\n")[0], consoleErrors: [] };
+						const message = err.message.split("\n")[0];
+						entry = {
+							status: "error",
+							error:
+								item.state && !message.startsWith(`${item.slug}@`)
+									? `${item.slug}@${item.state}: ${message}`
+									: message,
+							consoleErrors: [],
+						};
 						if (!/context was destroyed|navigat/i.test(err.message)) break;
 					}
 				}
+				if (item.state) entry = entryStatusForState(entry, item.slug, item.state);
 				counts[entry.status]++;
 				log[id] = {
 					fw: item.fw,
 					slug: item.slug,
 					theme: item.theme,
 					pointer: item.pointer,
+					...(item.state ? { state: item.state } : {}),
 					...entry,
 					ms: Date.now() - started,
 				};

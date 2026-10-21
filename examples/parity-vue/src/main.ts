@@ -12,7 +12,10 @@ import Stage from "./Stage.vue";
 const scenarios = import.meta.glob<{ default: Component }>("./scenarios/*.vue");
 
 const params = new URLSearchParams(location.search);
-const slug = params.get("slug") ?? "";
+// ?variant=<name> renders scenarios/<slug>--<name> instead, for an
+// interaction state that needs other content (scripts/parity/states.mjs).
+const variant = params.get("variant");
+const slug = (params.get("slug") ?? "") + (variant ? `--${variant}` : "");
 document.documentElement.classList.toggle("dark", params.get("theme") === "dark");
 
 async function mount() {

@@ -434,4 +434,51 @@ describe("Button", () => {
 			expect(root(container).hasAttribute("sound")).toBe(false);
 		});
 	});
+
+	// The Svelte and Vue buttons hold the leading icon in one fixed
+	// calc(1em + 1px) cell, the size of the spinner that replaces it. Without
+	// that cell the icon sat a pixel off centre in every IconButton (the
+	// parity bench's tooltip trigger), and a loading swap moved the label.
+	describe("lead slot", () => {
+		it("wraps iconStart in the shared lead cell, exposed to assistive tech", () => {
+			const { container } = render(
+				<Button iconStart={<span className="my-icon-start">+</span>}>Save</Button>
+			);
+			const lead = container.querySelector(".ft-btn-lead");
+
+			expect(lead).toBeTruthy();
+			expect(lead?.querySelector(":scope > .ft-btn-lead-icon > .my-icon-start")).toBeTruthy();
+			expect(lead?.hasAttribute("aria-hidden")).toBe(false);
+		});
+
+		it("renders no lead cell at all when there is neither a spinner nor an iconStart", () => {
+			const { container } = render(<Button>Save</Button>);
+			expect(container.querySelector(".ft-btn-lead")).toBeNull();
+		});
+
+		it("keeps aria-busy on the control and aria-hidden on the cell, never the other way round", () => {
+			const { container } = render(
+				<Button loading iconStart={<span className="my-icon-start">+</span>}>
+					Save
+				</Button>
+			);
+			const el = root(container);
+			const lead = container.querySelector(".ft-btn-lead")!;
+
+			expect(el.getAttribute("aria-busy")).toBe("true");
+			expect(el.hasAttribute("aria-hidden")).toBe(false);
+			expect(lead.getAttribute("aria-hidden")).toBe("true");
+			expect(lead.querySelector(":scope > .ft-btn-spinner")).toBeTruthy();
+		});
+
+		it("renders the same lead cell on the anchor branch", () => {
+			const { container } = render(
+				<Button href="https://example.com" iconStart={<span className="my-icon-start">+</span>}>
+					Save
+				</Button>
+			);
+			expect(root(container).tagName).toBe("A");
+			expect(container.querySelector(".ft-btn-lead .my-icon-start")).toBeTruthy();
+		});
+	});
 });

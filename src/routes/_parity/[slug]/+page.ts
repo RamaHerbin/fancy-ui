@@ -18,5 +18,12 @@ export const load: PageLoad = ({ params, url }) => {
 	// started with `--mode test` drops; Vite's own flag still says "serve".
 	const component = dev || import.meta.env.DEV ? getComponent(params.slug) : undefined;
 	if (!component) error(404, "Not found");
-	return { slug: component.slug, theme: url.searchParams.get("theme") === "dark" ? "dark" : "light" };
+	return {
+		slug: component.slug,
+		theme: url.searchParams.get("theme") === "dark" ? "dark" : "light",
+		// ?variant=<name> renders variants/<slug>--<name>.svelte instead of the
+		// docs demo, for an interaction state that needs other content
+		// (scripts/parity/states.mjs).
+		variant: url.searchParams.get("variant"),
+	};
 };

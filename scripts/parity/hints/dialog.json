@@ -1,1 +1,19 @@
-{ "hover": [0.5, 0.5], "click": [0.5, 0.5] }
+{
+	"hover": [0.5, 0.5],
+	"click": [0.5, 0.5],
+	"states": {
+		"open": {
+			"steps": [{ "click": { "role": "button", "name": "Invite member" } }],
+			"expect": [{ "role": "dialog", "name": "Invite a member", "in": "page" }]
+		},
+		"focus": {
+			"steps": [{ "focus": { "role": "button", "name": "Invite member" } }],
+			"expect": [{ "role": "button", "name": "Invite member", "focusVisible": true }]
+		},
+		"long": {
+			"variant": "long",
+			"steps": [{ "click": { "role": "button", "name": "Invite member" } }],
+			"expect": [{ "role": "dialog", "in": "page", "overflow": true }]
+		}
+	}
+}
