@@ -19,15 +19,26 @@
 	const SELECTOR =
 		"[data-doc-content] h2:not([data-toc-ignore]), [data-doc-content] h3:not([data-toc-ignore])";
 
+	let scannedKey = "";
+
+	function headingId(el: HTMLElement) {
+		return el.id || el.textContent?.toLowerCase().replace(/\s+/g, "-") || "";
+	}
+
+	function currentKey() {
+		return Array.from(document.querySelectorAll<HTMLElement>(SELECTOR), headingId).join("\n");
+	}
+
 	function scan() {
 		observer?.disconnect();
 		const elements = document.querySelectorAll<HTMLElement>(SELECTOR);
 
 		headings = Array.from(elements).map((el) => ({
-			id: el.id || el.textContent?.toLowerCase().replace(/\s+/g, "-") || "",
+			id: headingId(el),
 			text: el.textContent || "",
 			level: parseInt(el.tagName[1]),
 		}));
+		scannedKey = headings.map((h) => h.id).join("\n");
 
 		// Ensure IDs exist
 		elements.forEach((el, i) => {
@@ -72,7 +83,11 @@
 			if (root && typeof MutationObserver !== "undefined") {
 				mutations = new MutationObserver(() => {
 					clearTimeout(rescan);
-					rescan = setTimeout(scan, 50);
+					// Demo content churns the subtree all the time: only a different
+					// set of headings is worth recreating the observers.
+					rescan = setTimeout(() => {
+						if (currentKey() !== scannedKey) scan();
+					}, 50);
 				});
 				mutations.observe(root, { childList: true, subtree: true });
 			}
