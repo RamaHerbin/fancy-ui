@@ -19,7 +19,11 @@
 		children,
 	}: Props = $props();
 
+	// Hidden-spotlight offset seeds the pointer position; pointer events own it afterwards.
+	// svelte-ignore state_referenced_locally
 	let mouseX = $state(-gradientSize * 10);
+	// Hidden-spotlight offset seeds the pointer position; pointer events own it afterwards.
+	// svelte-ignore state_referenced_locally
 	let mouseY = $state(-gradientSize * 10);
 
 	function handleMouseMove(e: MouseEvent) {
@@ -38,6 +42,9 @@
 		`radial-gradient(circle at ${mouseX}px ${mouseY}px, ${gradientColor} 0%, rgba(0, 0, 0, 0) 70%)`
 	);
 </script>
+
+<!-- Pointer-only spotlight effect; the content stays fully usable without it. -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 
 <div
 	class={cn(

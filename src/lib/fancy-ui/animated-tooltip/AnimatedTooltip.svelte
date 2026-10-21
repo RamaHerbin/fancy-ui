@@ -279,6 +279,7 @@
 		mask:
 			linear-gradient(#000 0 0) content-box exclude,
 			linear-gradient(#000 0 0);
+		mask-composite: exclude;
 		opacity: 0.35;
 		transition: opacity 300ms var(--_at-ease-inout);
 	}

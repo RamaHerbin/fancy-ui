@@ -5,6 +5,8 @@
 
 	let { data } = $props();
 
+	// Editable draft seeded once from the loaded config.
+	// svelte-ignore state_referenced_locally
 	const initialConfig = data.config;
 	let config = $state<SiteConfig>({
 		...structuredClone(initialConfig),

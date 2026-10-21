@@ -19,6 +19,8 @@
 
 	let { context, sound = false, attrs = {} }: Props = $props();
 
+	// Test rig: the field context is published once and tests never swap it.
+	// svelte-ignore state_referenced_locally
 	setContext(FIELD_KEY, context);
 </script>
 
