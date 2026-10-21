@@ -1,21 +1,39 @@
 import { test, expect, devices, type Locator, type Page } from "@playwright/test";
 
-// Pointer effects must never trap the page scroll on a phone. The swipe goes
-// through CDP so the browser itself applies touch-action to the gesture.
+// Pointer effects must never trap the page scroll on a phone. The swipe is a
+// real touch sequence sent through CDP, so the browser itself applies
+// touch-action to the gesture.
 const { defaultBrowserType: _browser, ...iphone } = devices["iPhone 13"];
 test.use({ ...iphone });
 test.setTimeout(90_000);
 
+// Input.dispatchTouchEvent rather than Input.synthesizeScrollGesture: on the
+// Linux build of Chromium that runs in CI the synthesized gesture is accepted
+// and then does nothing (scrollY stays put, even on a plain page with nothing
+// to trap it), while an explicit start / many moves / end sequence scrolls on
+// both platforms. The moves are small and spaced by a frame so the gesture
+// recogniser sees a drag with velocity instead of a single jump.
 async function swipeUp(page: Page, x: number, y: number, distance: number) {
 	const cdp = await page.context().newCDPSession(page);
-	await cdp.send("Input.synthesizeScrollGesture", {
-		x,
-		y,
-		xDistance: 0,
-		yDistance: -distance,
-		gestureSourceType: "touch",
-		speed: 800,
-	});
+	const steps = 30;
+	const touch = (dy: number) => [{ x, y: y - dy }];
+	await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: touch(0) });
+	for (let i = 1; i <= steps; i++) {
+		await cdp.send("Input.dispatchTouchEvent", {
+			type: "touchMove",
+			touchPoints: touch((distance * i) / steps),
+		});
+		await page.waitForTimeout(16);
+	}
+	await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+}
+
+// The swipe proves nothing on a page that cannot scroll.
+async function expectScrollable(page: Page) {
+	const room = await page.evaluate(
+		() => document.documentElement.scrollHeight - window.innerHeight - window.scrollY
+	);
+	expect(room, "the document has room to scroll").toBeGreaterThan(200);
 }
 
 // On a cold dev server the docs page probably arrives long before its client
@@ -76,6 +94,7 @@ for (const [slug, selector] of Object.entries(targets)) {
 		const box = await el.boundingBox();
 		expect(box, "the component has a layout box").not.toBeNull();
 		if (!box) return;
+		await expectScrollable(page);
 		const before = await page.evaluate(() => window.scrollY);
 		const x = Math.min(Math.max(box.x + box.width / 2, 20), 370);
 		const y = Math.min(Math.max(box.y + box.height / 2, 450), 600);
@@ -90,7 +109,7 @@ for (const [slug, selector] of Object.entries(targets)) {
 			{ x, y }
 		);
 		expect(startsOnTarget, "swipe start point lands on the component").toBe(true);
-		// A long swipe: the emulated finger covers about half its distance in scroll.
+		// A long swipe: the finger covers only part of its distance in scroll.
 		await swipeUp(page, x, y, 420);
 		await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 100);
 	});
@@ -127,6 +146,7 @@ test("fluid-cursor: smoke, a vertical swipe still scrolls the page", async ({ pa
 	await page.goto("/docs/components/fluid-cursor", { waitUntil: "domcontentloaded" });
 	await page.locator("canvas").first().waitFor({ state: "attached", timeout: 60_000 });
 	await settled(page);
+	await expectScrollable(page);
 	const before = await page.evaluate(() => window.scrollY);
 	await swipeUp(page, 195, 500, 420);
 	await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 100);

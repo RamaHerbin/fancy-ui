@@ -18,6 +18,8 @@ const PRIORITY = [
 	"reveal",
 	"composer",
 	"chat-panel",
+	"accordion",
+	"collapsible",
 ];
 
 const FORMS_AND_OVERLAYS = [

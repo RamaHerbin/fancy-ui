@@ -25,7 +25,7 @@ function button(container: Element): HTMLButtonElement {
  * announcement.
  */
 function visibleLabel(container: Element): HTMLElement {
-	return button(container).lastElementChild as HTMLElement;
+	return button(container).querySelector(".ft-copybtn__live") as HTMLElement;
 }
 
 /**
