@@ -34,5 +34,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	return resolve(event);
+	const response = await resolve(event);
+
+	// /skins renders client-side only (ssr = false), so the served HTML carries
+	// no robots meta; the header is the only signal crawlers see before hydration.
+	if (pathname === "/skins" || pathname.startsWith("/skins/")) {
+		response.headers.set("X-Robots-Tag", "noindex, nofollow");
+	}
+
+	return response;
 };
