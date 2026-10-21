@@ -18,9 +18,9 @@ describe("DemoRenderer theme-aware defaults", () => {
 
 	afterEach(cleanup);
 
-	it("previews sparkles with currentColor particles on a transparent background", () => {
+	it("previews sparkles with currentColor particles on a dark backdrop", () => {
 		expect(defaultProps.sparkles?.particleColor).toBe("currentColor");
-		expect(defaultProps.sparkles?.background).toBe("transparent");
+		expect(defaultProps.sparkles?.background).toBe("#0b1020");
 	});
 
 	it("renders the glow-border hero with a visible child, not an empty frame", async () => {
