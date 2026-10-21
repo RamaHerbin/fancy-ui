@@ -11,18 +11,18 @@ A dark button with a beam of light travelling around its border. The beam is a s
 
 ## Props
 
-| Prop           | Type                | Default                                                              | Description                                                          |
-| -------------- | ------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `colors`       | `string[]`          | `["#34d399", "#22d3ee", "#6366f1", "#d946ef", "#f43f5e", "#f59e0b"]` | Colours of the beam, spread along its arc                            |
-| `duration`     | `number`            | `3000`                                                               | Time for the beam to travel once around the button, in milliseconds  |
-| `borderWidth`  | `number`            | `1.5`                                                                | Width of the lit border in pixels                                    |
-| `borderRadius` | `number`            | `12`                                                                 | Border radius in pixels                                              |
-| `blur`         | `number`            | `4`                                                                  | Softness of the glow the beam casts inside the button, in pixels     |
-| `bgColor`      | `string`            | `"#161616"`                                                          | Background colour of the button face                                 |
-| `class`        | `string`            | —                                                                    | Additional CSS classes                                               |
-| `children`     | `Snippet`           | —                                                                    | Button content                                                       |
-| `onclick`      | `MouseEventHandler` | —                                                                    | Click handler, called after the sound cue                            |
-| `sound`        | `boolean`           | `false`                                                              | Plays the `press` cue on activation, once the user has enabled sound |
+| Prop           | Type                | Default                                                              | Description                                                                                                         |
+| -------------- | ------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `colors`       | `string[]`          | `["#34d399", "#22d3ee", "#6366f1", "#d946ef", "#f43f5e", "#f59e0b"]` | Colours of the beam, spread along its arc                                                                           |
+| `duration`     | `number`            | `3000`                                                               | Time for the beam to travel once around the button, in milliseconds                                                 |
+| `borderWidth`  | `number`            | `1.5`                                                                | Width of the lit border in pixels                                                                                   |
+| `borderRadius` | `number`            | `12`                                                                 | Border radius in pixels                                                                                             |
+| `blur`         | `number`            | `4`                                                                  | Softness of the glow the beam casts inside the button, in pixels                                                    |
+| `bgColor`      | `string`            | `"#161616"`                                                          | Background colour of the button face                                                                                |
+| `class`        | `string`            | —                                                                    | Additional CSS classes                                                                                              |
+| `children`     | `Snippet`           | —                                                                    | Button content                                                                                                      |
+| `onclick`      | `MouseEventHandler` | —                                                                    | Click handler, called after the sound cue                                                                           |
+| `sound`        | `boolean`           | `false`                                                              | Plays the `hover` cue when a mouse or pen enters and the `press` cue on activation, once the user has enabled sound |
 
 `GradientButtonProps` also extends `HTMLButtonAttributes` (minus the props above), and any attributes not explicitly listed (e.g. `type`, `disabled`, `aria-*`, `data-*`) are spread onto the rendered `<button>` via `...restProps`.
 

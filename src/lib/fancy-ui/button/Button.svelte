@@ -41,8 +41,8 @@
 		/** Element reference. */
 		ref?: HTMLButtonElement | HTMLAnchorElement | null;
 		/**
-		 * Plays the matching interface cue through the sound controller. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 	}
@@ -60,6 +60,7 @@
 	import { fade } from "svelte/transition";
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { soundFeedback } from "../sound/sound-feedback.js";
 	import { prefersReducedMotion } from "../_internals/motion/anchored.js";
 	import { DURATIONS } from "../_internals/motion/tokens.js";
 
@@ -152,6 +153,13 @@
 	// can't drift out of sync with each other.
 	const anchorInert = $derived(disabled || loading);
 
+	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+	// off (and never the default click → press, which `handleClick` already plays).
+	const hoverFeedback = $derived({
+		on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+		disabled: disabled || loading,
+	});
+
 	// The one duration the lead slot's cross-fade runs on: `DURATIONS.micro`, the
 	// glyph-scale rung, collapsed to 0 when the user has asked for less motion —
 	// at 0 Svelte skips `element.animate()` entirely and the swap is synchronous,
@@ -185,6 +193,7 @@
 	<a
 		bind:this={ref}
 		{...restProps as HTMLAnchorAttributes}
+		use:soundFeedback={hoverFeedback}
 		class={classes}
 		href={anchorInert ? undefined : href}
 		target={anchorInert ? undefined : target}
@@ -229,6 +238,7 @@
 	<button
 		bind:this={ref}
 		{...restProps as HTMLButtonAttributes}
+		use:soundFeedback={hoverFeedback}
 		class={classes}
 		{type}
 		{disabled}

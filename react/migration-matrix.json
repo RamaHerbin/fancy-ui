@@ -5155,6 +5155,42 @@
 		]
 	},
 	{
+		"slug": "tick-nav",
+		"sveltePath": "src/lib/fancy-ui/tick-nav",
+		"reactPath": "react/src/components/tick-nav",
+		"status": "ported",
+		"wave": "B",
+		"tier": 2,
+		"group": "trivial",
+		"model": "sonnet",
+		"effort": "medium",
+		"complexity": "raf-field",
+		"deps": {
+			"internals": ["media-query", "use-element-ref", "use-live-ref", "tick-nav-core"],
+			"motion": [],
+			"sound": true,
+			"components": []
+		},
+		"browserAPIs": ["requestAnimationFrame", "matchMedia"],
+		"runtimeDeps": [],
+		"setContext": false,
+		"hasStyleBlock": true,
+		"usesTransition": false,
+		"ssrRisk": "none",
+		"exports": ["TickNav"],
+		"loc": 330,
+		"testFiles": ["TickNav.test.ts"],
+		"svelteFiles": 1,
+		"attempts": 1,
+		"divergences": [
+			"`value` is no longer `bind:value`: it is the controlled/uncontrolled pair `value?: string` + `onValueChange` (already a Svelte prop). The component keeps its own copy and re-syncs it in the render path when the prop changes, the same shape as Slider.",
+			"`preview` is a render prop `(item: TickNavItem) => ReactNode` instead of a `Snippet<[TickNavItem]>`.",
+			"`class` → `className` (PORTING.md).",
+			"All motion, pointer listeners and the per-frame CSS variables live in the shared `tick-nav-core.ts`, byte-identical to the Svelte copy; the component only creates it in an effect, forwards `reach`, the current index and reduced motion through `update()`, and keeps the hovered row index in React state (it changes per row, not per frame)."
+		],
+		"lastFailure": null
+	},
+	{
 		"slug": "time-picker",
 		"sveltePath": "src/lib/fancy-ui/time-picker",
 		"reactPath": "react/src/components/time-picker",

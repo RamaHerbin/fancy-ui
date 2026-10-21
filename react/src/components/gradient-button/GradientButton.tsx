@@ -2,6 +2,8 @@ import { forwardRef } from "react";
 import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, ReactNode } from "react";
 import { cn } from "../../utils.js";
 import { useSoundCue } from "../../sound/use-sound.js";
+import { useSoundFeedback } from "../../sound/sound-feedback.js";
+import { useComposedRefs } from "../../internals/dom/use-composed-refs.js";
 import "./gradient-button.css";
 
 type BaseProps = {
@@ -22,8 +24,8 @@ type BaseProps = {
 	/** Button content */
 	children?: ReactNode;
 	/**
-	 * Plays the matching interface cue through the sound controller. Off by
-	 * default; only audible once the user has enabled sound.
+	 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+	 * click. Off by default; only audible once the user has enabled sound.
 	 */
 	sound?: boolean;
 };
@@ -70,6 +72,14 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 	) => {
 		const playCue = useSoundCue(sound);
 
+		// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+		// off (and never the default click → press, which `handleClick` already plays).
+		const soundRef = useSoundFeedback({
+			on: sound ? { pointerenter: "hover" } : {},
+			disabled: restProps.disabled,
+		});
+		const composedRef = useComposedRefs(ref, soundRef);
+
 		function handleClick(event: MouseEvent<HTMLButtonElement>) {
 			if (!restProps.disabled) playCue("press");
 			onClick?.(event);
@@ -87,7 +97,7 @@ export const GradientButton = forwardRef<HTMLButtonElement, GradientButtonProps>
 
 		return (
 			<button
-				ref={ref}
+				ref={composedRef}
 				className={cn(
 					"gradient-button relative flex min-h-10 min-w-28 cursor-pointer items-center justify-center overflow-hidden text-white",
 					className

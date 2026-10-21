@@ -18,13 +18,13 @@ A button that answers every click with a ripple of light from the exact click po
 
 ## Props
 
-| Prop          | Type      | Default     | Description                                                          |
-| ------------- | --------- | ----------- | -------------------------------------------------------------------- |
-| `rippleColor` | `string`  | `"#60a5fa"` | Colour of the ripple: its glow, its rings and the border tint        |
-| `duration`    | `number`  | `900`       | Animation duration in milliseconds                                   |
-| `class`       | `string`  | —           | Additional CSS classes                                               |
-| `children`    | `Snippet` | —           | Button content                                                       |
-| `sound`       | `boolean` | `false`     | Plays the `press` cue on activation, once the user has enabled sound |
+| Prop          | Type      | Default     | Description                                                                                                         |
+| ------------- | --------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| `rippleColor` | `string`  | `"#60a5fa"` | Colour of the ripple: its glow, its rings and the border tint                                                       |
+| `duration`    | `number`  | `900`       | Animation duration in milliseconds                                                                                  |
+| `class`       | `string`  | —           | Additional CSS classes                                                                                              |
+| `children`    | `Snippet` | —           | Button content                                                                                                      |
+| `sound`       | `boolean` | `false`     | Plays the `hover` cue when a mouse or pen enters and the `press` cue on activation, once the user has enabled sound |
 
 `RippleButtonProps` also extends `HTMLButtonAttributes` (minus `class`), and any attributes not explicitly listed above (e.g. `type`, `aria-*`, `data-*`) are spread onto the rendered `<button>` via `...restProps`.
 

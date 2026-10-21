@@ -155,23 +155,23 @@ A square or circular icon-only button, built on top of Button. `label` is requir
 
 ## Props
 
-| Prop       | Type                                                                            | Default     | Description                                                              |
-| ---------- | ------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------ |
-| `label`    | `string`                                                                        | —           | **Required.** Accessible name — there is no visible text to fall back on |
-| `variant`  | `"primary" \| "secondary" \| "outline" \| "ghost" \| "accent" \| "destructive"` | `"outline"` | Visual treatment, forwarded to the underlying Button                     |
-| `size`     | `"sm" \| "md" \| "lg"`                                                          | `"md"`      | Square footprint (30 / 36 / 42px) and resting radius                     |
-| `shape`    | `"square" \| "circle"`                                                          | `"square"`  | Square keeps the size's own radius; circle rounds it fully               |
-| `type`     | `"button" \| "submit" \| "reset"`                                               | `"button"`  | Native `type`; ignored once `href` renders an anchor instead             |
-| `disabled` | `boolean`                                                                       | `false`     | Greys the control out and blocks activation                              |
-| `loading`  | `boolean`                                                                       | `false`     | Spinner in place of the icon, `aria-busy`, blocks activation             |
-| `href`     | `string`                                                                        | —           | Renders an `<a>` instead of a `<button>` when set                        |
-| `target`   | `string`                                                                        | —           | Anchor `target`. `"_blank"` forces a safe `rel`                          |
-| `rel`      | `string`                                                                        | —           | Anchor `rel`, widened rather than replaced when `target="_blank"`        |
-| `onclick`  | `(event: MouseEvent) => void`                                                   | —           | Fires on activation; never called while `disabled` or `loading`          |
-| `children` | `Snippet`                                                                       | —           | The icon, rendered centred                                               |
-| `class`    | `string`                                                                        | —           | Additional CSS classes                                                   |
-| `ref`      | `HTMLButtonElement \| HTMLAnchorElement \| null`                                | `null`      | Bindable element reference                                               |
-| `sound`    | `boolean`                                                                       | `false`     | Plays the `press` cue on activation, once the user has enabled sound     |
+| Prop       | Type                                                                            | Default     | Description                                                                                                         |
+| ---------- | ------------------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| `label`    | `string`                                                                        | —           | **Required.** Accessible name — there is no visible text to fall back on                                            |
+| `variant`  | `"primary" \| "secondary" \| "outline" \| "ghost" \| "accent" \| "destructive"` | `"outline"` | Visual treatment, forwarded to the underlying Button                                                                |
+| `size`     | `"sm" \| "md" \| "lg"`                                                          | `"md"`      | Square footprint (30 / 36 / 42px) and resting radius                                                                |
+| `shape`    | `"square" \| "circle"`                                                          | `"square"`  | Square keeps the size's own radius; circle rounds it fully                                                          |
+| `type`     | `"button" \| "submit" \| "reset"`                                               | `"button"`  | Native `type`; ignored once `href` renders an anchor instead                                                        |
+| `disabled` | `boolean`                                                                       | `false`     | Greys the control out and blocks activation                                                                         |
+| `loading`  | `boolean`                                                                       | `false`     | Spinner in place of the icon, `aria-busy`, blocks activation                                                        |
+| `href`     | `string`                                                                        | —           | Renders an `<a>` instead of a `<button>` when set                                                                   |
+| `target`   | `string`                                                                        | —           | Anchor `target`. `"_blank"` forces a safe `rel`                                                                     |
+| `rel`      | `string`                                                                        | —           | Anchor `rel`, widened rather than replaced when `target="_blank"`                                                   |
+| `onclick`  | `(event: MouseEvent) => void`                                                   | —           | Fires on activation; never called while `disabled` or `loading`                                                     |
+| `children` | `Snippet`                                                                       | —           | The icon, rendered centred                                                                                          |
+| `class`    | `string`                                                                        | —           | Additional CSS classes                                                                                              |
+| `ref`      | `HTMLButtonElement \| HTMLAnchorElement \| null`                                | `null`      | Bindable element reference                                                                                          |
+| `sound`    | `boolean`                                                                       | `false`     | Plays the `hover` cue when a mouse or pen enters and the `press` cue on activation, once the user has enabled sound |
 
 Every other attribute and listener (`id`, `aria-*`, `data-*`, `onfocus`, ...) is forwarded through `Button` to the rendered `<button>`, or to the `<a>` once `href` is set, with the same precedence rules as `Button`.
 

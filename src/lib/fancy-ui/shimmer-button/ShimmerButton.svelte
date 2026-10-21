@@ -18,8 +18,8 @@
 		/** Button content */
 		children?: Snippet;
 		/**
-		 * Plays the matching interface cue through the sound controller. Off by
-		 * default; only audible once the user has enabled sound.
+		 * Plays the `hover` cue on mouse/pen pointer enter and the `press` cue on
+		 * click. Off by default; only audible once the user has enabled sound.
 		 */
 		sound?: boolean;
 	};
@@ -30,6 +30,7 @@
 <script lang="ts">
 	import { cn } from "$lib/utils.js";
 	import { sound as soundFx } from "../sound/sound.svelte.js";
+	import { soundFeedback } from "../sound/sound-feedback.js";
 
 	let {
 		class: className,
@@ -44,6 +45,13 @@
 		sound = false,
 		...restProps
 	}: ShimmerButtonProps = $props();
+
+	// Hover cue for mouse/pen pointers only. `on: {}` binds nothing when sound is
+	// off (and never the default click → press, which `handleClick` already plays).
+	const hoverFeedback = $derived({
+		on: sound ? { pointerenter: "hover" as const } : ({} as Record<string, never>),
+		disabled: !!restProps.disabled,
+	});
 
 	const styleVars = $derived(
 		`--shimmer-color: ${shimmerColor}; --radius: ${borderRadius}; --speed: ${shimmerDuration}; --cut: ${shimmerSize}; --bg: ${background}`
@@ -65,6 +73,7 @@
 </script>
 
 <button
+	use:soundFeedback={hoverFeedback}
 	class={cn(
 		"shimmer-button group relative isolate flex cursor-pointer items-center justify-center overflow-hidden [border-radius:var(--radius)] px-6 py-3 whitespace-nowrap text-white/90",
 		"transform-gpu transition-[transform,color] duration-300 ease-out hover:text-white active:scale-[0.98]",
