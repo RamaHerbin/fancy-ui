@@ -134,8 +134,8 @@ export function docTitle(pageTitle: string): string {
 
 /**
  * Singular noun a component page's <title> uses to describe its category, e.g.
- * "RainbowButton — Svelte button component". Keyed by `ComponentCategory`; a
- * category without an entry falls back to its own name.
+ * "RainbowButton — button component for Svelte, React and Vue". Keyed by
+ * `ComponentCategory`; a category without an entry falls back to its own name.
  */
 const categoryTerms: Record<string, string> = {
 	buttons: "button",
@@ -151,15 +151,22 @@ const categoryTerms: Record<string, string> = {
 };
 
 /**
- * Compose a component page's <title>: "<Name> — Svelte <term> component | FancyUI".
+ * Compose a component page's <title>:
+ * "<Name> — <term> component for Svelte, React and Vue | FancyUI".
  *
  * Deliberately NOT locale-reactive. The title is the search-result headline, and
- * the query it has to match ("svelte button component") is English regardless of
- * which locale the reader happens to have selected.
+ * the query it has to match ("react button component") is English regardless of
+ * which locale the reader happens to have selected. The optional `framework` is
+ * accepted for call sites that have one but does not change the title: the page
+ * is prerendered once and serves all three frameworks.
  */
-export function componentDocTitle(name: string, category: string): string {
+export function componentDocTitle(
+	name: string,
+	category: string,
+	_framework?: "svelte" | "react" | "vue"
+): string {
 	const term = categoryTerms[category] ?? category;
-	return `${name} — Svelte ${term} component | FancyUI`;
+	return `${name} — ${term} component for Svelte, React and Vue | FancyUI`;
 }
 
 /** Reactive accessor for components (locale + dir + translator + list). */

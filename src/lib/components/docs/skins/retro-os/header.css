@@ -35,10 +35,9 @@
 .docs-skin[data-skin="retro-os"] header.border-b {
 	border-bottom-width: 3px;
 }
-/* The reference gives `flex:1` to the breadcrumb bar and lets the controls sit
-   at their intrinsic width; the repo does the opposite, so the roles are swapped
-   here. The 14px gutter is the menubar's own gap. */
-.docs-skin[data-skin="retro-os"] header > .flex-1 {
+/* The breadcrumb bar grows and shrinks (`header nav` below); the controls keep
+   their intrinsic width. The 14px gutter is the menubar's own gap. */
+.docs-skin[data-skin="retro-os"] header > [data-docs-controls] {
 	flex: none;
 	gap: 14px;
 }

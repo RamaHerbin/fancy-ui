@@ -96,6 +96,7 @@
 		"test:watch": "vitest",
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "playwright test --ui",
+		"test:preview-health": "playwright test -c playwright.preview-health.config.ts --project gpu --project gpu-light-rm",
 		"consumers": "node scripts/consumers/run-all.mjs",
 		"changeset": "changeset",
 		"version": "changeset version",

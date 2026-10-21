@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Sources } from "$lib/fancy-ui/sources";
-	import type { SourceData } from "$lib/fancy-ui/_internals/ai-types.js";
+	import type { SourceData } from "$lib/fancy-ui";
 
 	const answer =
 		"Readers rarely click a citation — they look at it. So the pill has to carry enough signal on its own to say where an answer came from, and open into something scannable for the one time in ten that looking is not enough.";

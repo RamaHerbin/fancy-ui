@@ -1,5 +1,6 @@
 import { render, screen, cleanup } from "@testing-library/svelte";
 import { afterEach, describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
 import { tick } from "svelte";
 import { setFramework } from "$lib/stores/framework.svelte.js";
 import InstallationPage from "./InstallationPage.svelte";
@@ -75,6 +76,62 @@ describe("InstallationPage", () => {
 			expect(chips).toContain("vue");
 			expect(chips).not.toContain("svelte");
 		});
+	});
+
+	it("lists peer ranges equal to each package.json, with Kit flagged optional", async () => {
+		for (const [framework, dir] of [
+			["svelte", "."],
+			["react", "react"],
+			["vue", "vue"],
+		] as const) {
+			setFramework(framework);
+			const { container, unmount } = render(InstallationPage);
+			await tick();
+			const pkg = JSON.parse(readFileSync(`${dir}/package.json`, "utf8"));
+			const rows = Array.from(container.querySelectorAll(".peer-table tbody tr")).map((tr) =>
+				Array.from(tr.querySelectorAll("code.chip")).map((c) => c.textContent)
+			);
+			expect(rows.length).toBeGreaterThan(0);
+			for (const [name, range] of rows) {
+				expect(pkg.peerDependencies[name!]).toBe(range);
+			}
+			// Every peer the package marks optional is flagged, and only those.
+			const flagged = Array.from(
+				container.querySelectorAll(".peer-table tbody tr[data-optional] td:first-child code.chip")
+			).map((c) => c.textContent);
+			const declaredOptional = Object.entries(pkg.peerDependenciesMeta ?? {})
+				.filter(([, meta]) => (meta as { optional?: boolean }).optional)
+				.map(([name]) => name);
+			expect(flagged.sort()).toEqual(declaredOptional.sort());
+			if (framework === "svelte") {
+				expect(flagged).toContain("@sveltejs/kit");
+				expect(container.textContent).toContain(">=2.0.0");
+				expect(container.textContent).toContain("SvelteKit is optional");
+			} else {
+				expect(container.textContent).not.toContain("@sveltejs/kit");
+				expect(container.textContent).not.toContain("SvelteKit");
+			}
+			unmount();
+		}
+		setFramework("svelte");
+	});
+
+	it("pins Svelte to ^5.20.0 in the Svelte peer table", () => {
+		const { container } = render(InstallationPage);
+		expect(container.querySelector(".peer-table")!.textContent).toContain("^5.20.0");
+	});
+
+	it("keeps the prerequisites card neutral about SvelteKit", () => {
+		const { container } = render(InstallationPage);
+		expect(container.querySelector(".cards .card")!.textContent).not.toContain("SvelteKit");
+	});
+
+	it("renders no literal fancy-ui-svelte when React is selected", async () => {
+		setFramework("react");
+		const { container } = render(InstallationPage);
+		await tick();
+		expect(container.textContent).not.toContain("fancy-ui-svelte");
+		setFramework("svelte");
 	});
 
 	it("renders the three install steps in order", () => {

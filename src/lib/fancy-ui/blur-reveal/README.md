@@ -34,7 +34,7 @@ A scroll-triggered reveal animation that transitions children from blurred and o
 
 ```svelte
 <script>
-	import { BlurReveal } from "$lib/fancy-ui/blur-reveal";
+	import { BlurReveal } from "fancy-ui-svelte";
 </script>
 
 <BlurReveal>

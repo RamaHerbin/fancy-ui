@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ContextRing } from "$lib/fancy-ui/context-ring";
-	import type { TokenUsageData } from "$lib/fancy-ui/_internals/ai-types.js";
+	import type { TokenUsageData } from "$lib/fancy-ui";
 
 	// Nothing is on a timer here: every ring is a fixed reading and the popover
 	// only moves when you move it, so there is no rig to hold still for reduced

@@ -33,10 +33,12 @@
  */
 
 import { chromium } from "@playwright/test";
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadRegistry } from "./lib/load-registry.mjs";
 import { applyPointerHint, encodeWebp, newCaptureContext } from "./lib/stage-capture.mjs";
+import { THUMB_HINTS } from "./lib/thumb-hints.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");
@@ -53,32 +55,8 @@ const QUALITY_LADDER = [0.78, 0.7, 0.6, 0.5];
 const DEFAULT_DELAY = 1600;
 const CONCURRENCY = 4;
 
-/**
- * Per-slug capture tweaks for demos that need a nudge to look like themselves.
- *   delay  -- ms to wait after mount (entrance animations, streaming text)
- *   hover  -- [x, y] as fractions of the stage; the pointer rests there
- *   sweep  -- drag the pointer across the stage right before the capture
- *   stage  -- which [data-thumb-stage] to capture (0 = hero, 1+ = examples),
- *             for bare effects whose hero preview has nothing to decorate
- *   skip   -- leave the slug to the fallback tile
- */
-const THUMB_HINTS = {
-	"image-trail-cursor": { sweep: true },
-	"smooth-cursor": { hover: [0.5, 0.5] },
-	"direction-aware-hover": { hover: [0.5, 0.5] },
-	"card-spotlight": { hover: [0.4, 0.4] },
-	"glare-card": { hover: [0.35, 0.35] },
-	// WebGL / pointer-physics demos that render nothing legible headless.
-	"displacement-text": { skip: true },
-	"fluid-cursor": { skip: true },
-	ripple: { skip: true },
-	"border-beam": { stage: 1 },
-	"glowing-effect": { stage: 1, hover: [0.4, 0.45] },
-	"bg-stars": { stage: 1 },
-	marquee: { stage: 1 },
-	"text-generate-effect": { delay: 3000 },
-	"number-ticker": { delay: 2500 },
-};
+// Per-slug capture tweaks (delay, hover, sweep, stage, skip) live in
+// scripts/lib/thumb-hints.mjs, shared with the preview-health sweep.
 
 function parseArgs(argv) {
 	const args = { base: "http://localhost:4173", only: null, themes: THEMES };
@@ -92,20 +70,6 @@ function parseArgs(argv) {
 		i++;
 	}
 	return args;
-}
-
-async function loadRegistry() {
-	const registryPath = join(repoRoot, "src", "lib", "fancy-ui", "registry.ts");
-	try {
-		const { transformWithEsbuild } = await import("vite");
-		const source = readFileSync(registryPath, "utf8");
-		const { code } = await transformWithEsbuild(source, registryPath, { loader: "ts" });
-		return await import(
-			`data:text/javascript;base64,${Buffer.from(code, "utf8").toString("base64")}`
-		);
-	} catch (err) {
-		throw new Error(`could not load registry.ts (${err.message})`);
-	}
 }
 
 async function capture(page, encoder, base, slug) {

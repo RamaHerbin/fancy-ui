@@ -30,7 +30,7 @@
 		SourceData,
 		TokenUsageData,
 		ToolCallData,
-	} from "$lib/fancy-ui/_internals/ai-types.js";
+	} from "$lib/fancy-ui";
 
 	// =========================================================================
 	// The script
