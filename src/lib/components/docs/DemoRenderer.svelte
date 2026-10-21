@@ -22,7 +22,14 @@
 		"container-text-flip": { words: ["better", "faster", "stronger", "beautiful"] },
 		"displacement-text": { text: "Hover Me" },
 		"flickering-grid": { color: "#6366f1", maxOpacity: 0.2, squareSize: 4, gridGap: 6 },
-		sparkles: { background: "transparent", particleColor: "currentColor", particleDensity: 160 },
+		// currentColor particles follow the text colour, so pair the opaque dark backdrop with text-white:
+		// otherwise they are invisible on a white page.
+		sparkles: {
+			background: "#0b1020",
+			particleColor: "currentColor",
+			particleDensity: 160,
+			class: "text-white",
+		},
 		"matrix-rain": { color: "#00ff00" },
 		ripple: {},
 		meteors: { count: 15 },
@@ -43,18 +50,12 @@
 		skeleton: { variant: "text", lines: 3, class: "w-72 text-base" },
 	};
 
-	// Stage around every directly rendered component. The preview frame centres its
-	// content with `flex items-center justify-center`, so the stage must not change how a
-	// component is laid out: by default it is `display: contents` and the library root
-	// stays a direct flex item of the frame, exactly as before.
-	//
-	// Roots that are `size-full` over an absolutely positioned layer (Sparkles,
-	// StarsBackground) collapse to 0 when no ancestor has a definite height. Those slugs
-	// get a real stage instead: a 300px by full-width box that also centres its content,
-	// so library roots stay unchanged in the three ports. i18n-free: classes only.
-	export const CONTENTS_STAGE = "contents";
+	// Sized stage for the few roots that are `size-full` over an absolutely positioned
+	// layer (Sparkles, StarsBackground): they collapse to 0 when no ancestor has a definite
+	// height, so they get a 300px by full-width box that also centres its content. Every
+	// other slug renders unwrapped: the thumbnail fit-to-frame step measures the frame's
+	// single child, and a box-less wrapper would measure 0 by 0 and be skipped.
 	export const SIZED_STAGE = "relative flex h-[300px] w-full items-center justify-center";
-	export const DEFAULT_STAGE = CONTENTS_STAGE;
 
 	// Per-slug override of the stage classes. Add a slug here when its root has no
 	// intrinsic size of its own.
@@ -432,81 +433,86 @@
 	{@const Comp = getComponent()}
 	{@const props = defaultProps[slug] || {}}
 	{#if Comp}
+		{#snippet demo()}
+			<!-- Simple or needs-props: render with defaults -->
+			{#if slug === "rainbow-button"}
+				<Comp {...props}>Rainbow Button</Comp>
+			{:else if slug === "shimmer-button"}
+				<Comp {...props}>Shimmer Button</Comp>
+			{:else if slug === "ripple-button"}
+				<Comp {...props}>Ripple Button</Comp>
+			{:else if slug === "gradient-button"}
+				<Comp {...props}>Gradient Button</Comp>
+			{:else if slug === "button"}
+				<Comp {...props}>Button</Comp>
+			{:else if slug === "toggle"}
+				<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
+			{:else if slug === "label"}
+				<Comp {...props}>Email address</Comp>
+			{:else if slug === "confetti"}
+				<Comp {...props}
+					><button class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
+						>Click for Confetti</button
+					></Comp
+				>
+			{:else if slug === "box-reveal"}
+				<Comp color="var(--primary)" duration={0.5}>
+					<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
+				</Comp>
+			{:else if slug === "blur-reveal"}
+				<Comp>
+					<h2 class="text-foreground text-2xl font-bold">Blur Reveal Effect</h2>
+					<p class="text-muted-foreground">Content fades in from blur as you scroll.</p>
+				</Comp>
+			{:else if slug === "card-spotlight"}
+				<Comp class="h-64 w-80" gradientColor={isRetro ? "rgba(236,215,127,0.5)" : "#262626"}>
+					<div class="relative z-20 p-6">
+						<h3 class="text-foreground text-lg font-bold">Card Spotlight</h3>
+						<p class="text-muted-foreground mt-2 text-sm">
+							Mouse-following radial gradient effect.
+						</p>
+					</div>
+				</Comp>
+			{:else if slug === "glare-card"}
+				<Comp>
+					<div class="flex h-full items-center justify-center p-6">
+						<p class="text-foreground text-lg font-bold">Glare Card</p>
+					</div>
+				</Comp>
+			{:else if slug === "neon-border"}
+				<Comp {...props}>
+					<div class="rounded-xl p-8 text-center">
+						<p class="text-foreground font-semibold">Neon Border</p>
+					</div>
+				</Comp>
+			{:else if slug === "line-hover-link"}
+				<div class="flex flex-col gap-4">
+					<Comp href="#" variant="slide">Slide</Comp>
+					<Comp href="#" variant="grow">Grow</Comp>
+					<Comp href="#" variant="sweep">Sweep</Comp>
+				</div>
+			{:else if slug === "glow-border"}
+				<div
+					class="bg-background relative flex h-40 w-64 items-center justify-center rounded-xl p-6"
+				>
+					<p data-glow-border-demo class="text-muted-foreground text-center">{glowBorderLabel}</p>
+					<Comp {...props} />
+				</div>
+			{:else}
+				<!-- Default: render with props, no children -->
+				<Comp {...props} />
+			{/if}
+		{/snippet}
+		<!-- Keyed so a new slug gets a fresh boundary instead of inheriting a failed one. -->
 		{#key slug}
 			<PreviewBoundary source={slug}>
-				<div data-demo-stage class={previewBox[slug] ?? DEFAULT_STAGE}>
-					<!-- Simple or needs-props: render with defaults -->
-					{#if slug === "rainbow-button"}
-						<Comp {...props}>Rainbow Button</Comp>
-					{:else if slug === "shimmer-button"}
-						<Comp {...props}>Shimmer Button</Comp>
-					{:else if slug === "ripple-button"}
-						<Comp {...props}>Ripple Button</Comp>
-					{:else if slug === "gradient-button"}
-						<Comp {...props}>Gradient Button</Comp>
-					{:else if slug === "button"}
-						<Comp {...props}>Button</Comp>
-					{:else if slug === "toggle"}
-						<Comp {...props} label="Bold"><span class="font-bold">B</span></Comp>
-					{:else if slug === "label"}
-						<Comp {...props}>Email address</Comp>
-					{:else if slug === "confetti"}
-						<Comp {...props}
-							><button
-								class="bg-foreground text-background rounded-md px-4 py-2 text-sm font-medium"
-								>Click for Confetti</button
-							></Comp
-						>
-					{:else if slug === "box-reveal"}
-						<Comp color="var(--primary)" duration={0.5}>
-							<h2 class="text-foreground text-2xl font-bold">Box Reveal</h2>
-						</Comp>
-					{:else if slug === "blur-reveal"}
-						<Comp>
-							<h2 class="text-foreground text-2xl font-bold">Blur Reveal Effect</h2>
-							<p class="text-muted-foreground">Content fades in from blur as you scroll.</p>
-						</Comp>
-					{:else if slug === "card-spotlight"}
-						<Comp class="h-64 w-80" gradientColor={isRetro ? "rgba(236,215,127,0.5)" : "#262626"}>
-							<div class="relative z-20 p-6">
-								<h3 class="text-foreground text-lg font-bold">Card Spotlight</h3>
-								<p class="text-muted-foreground mt-2 text-sm">
-									Mouse-following radial gradient effect.
-								</p>
-							</div>
-						</Comp>
-					{:else if slug === "glare-card"}
-						<Comp>
-							<div class="flex h-full items-center justify-center p-6">
-								<p class="text-foreground text-lg font-bold">Glare Card</p>
-							</div>
-						</Comp>
-					{:else if slug === "neon-border"}
-						<Comp {...props}>
-							<div class="rounded-xl p-8 text-center">
-								<p class="text-foreground font-semibold">Neon Border</p>
-							</div>
-						</Comp>
-					{:else if slug === "line-hover-link"}
-						<div class="flex flex-col gap-4">
-							<Comp href="#" variant="slide">Slide</Comp>
-							<Comp href="#" variant="grow">Grow</Comp>
-							<Comp href="#" variant="sweep">Sweep</Comp>
-						</div>
-					{:else if slug === "glow-border"}
-						<div
-							class="bg-background relative flex h-40 w-64 items-center justify-center rounded-xl p-6"
-						>
-							<p data-glow-border-demo class="text-muted-foreground text-center">
-								{glowBorderLabel}
-							</p>
-							<Comp {...props} />
-						</div>
-					{:else}
-						<!-- Default: render with props, no children -->
-						<Comp {...props} />
-					{/if}
-				</div>
+				{#if previewBox[slug]}
+					<div data-demo-stage class={previewBox[slug]}>
+						{@render demo()}
+					</div>
+				{:else}
+					{@render demo()}
+				{/if}
 			</PreviewBoundary>
 		{/key}
 	{:else}

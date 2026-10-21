@@ -8,6 +8,7 @@
 	// `MessageKey` went with develop's `tCategory`, which now owns category labels.
 	import { t, tCategory, createSkinState } from "$lib/stores";
 	import { GITHUB_URL, PACKAGE_VERSION } from "$lib/site.js";
+	import { DOCS_SECTION_LINKS } from "$lib/components/docs/docs-nav.js";
 	import Logo from "$lib/components/Logo.svelte";
 
 	const skinState = createSkinState();
@@ -45,6 +46,12 @@
 	function isActive(href: string): boolean {
 		return $page.url.pathname === href;
 	}
+
+	/** Section index rows stay highlighted on their child pages. */
+	function isSectionActive(href: string): boolean {
+		const path = $page.url.pathname;
+		return path === href || path.startsWith(href + "/");
+	}
 </script>
 
 <!-- Mobile overlay -->
@@ -76,7 +83,13 @@
 				<!-- Brutal brand block: ink tile carrying the mark + stacked mono
 				     sub-line. The halo is off here: the tile is only 34px, so the
 				     glow would spill past its edges instead of reading as light. -->
-				<a href="/docs" class="docs-brand" onclick={onclose}>
+				<a
+					href="/"
+					data-docs-brand
+					class="docs-brand"
+					aria-label={t("nav.backToSite")}
+					onclick={onclose}
+				>
 					<span class="docs-brand-logo" aria-hidden="true"><Logo size={20} glow={false} /></span>
 					<span class="docs-brand-text">
 						<span class="docs-brand-name">FancyUI</span>
@@ -88,7 +101,9 @@
 					class="border-sidebar-border flex h-14 shrink-0 items-center justify-between border-b px-4"
 				>
 					<a
-						href="/docs"
+						href="/"
+						data-docs-brand
+						aria-label={t("nav.backToSite")}
 						class="flex items-center gap-2 text-lg font-semibold tracking-tight"
 						onclick={onclose}
 					>
@@ -129,6 +144,23 @@
 							</li>
 						{/each}
 					</ul>
+				</div>
+
+				<!-- Recipes -->
+				<div class="docs-nav-components mb-2">
+					{#each DOCS_SECTION_LINKS as link}
+						<a
+							href={link.href}
+							onclick={onclose}
+							class="block rounded-md px-2 py-1.5 text-xs font-semibold tracking-wider uppercase transition-colors {isSectionActive(
+								link.href
+							)
+								? 'text-sidebar-accent-foreground'
+								: 'text-sidebar-foreground/50 hover:text-sidebar-foreground/70'}"
+						>
+							{t(link.key)}
+						</a>
+					{/each}
 				</div>
 
 				<!-- Components link -->

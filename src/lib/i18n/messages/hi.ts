@@ -378,4 +378,68 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"कॉम्पोनेंट Vue 3.5 के सिंगल-फ़ाइल कॉम्पोनेंट हैं, इसलिए Vue 3.5.2 या उससे नया संस्करण ज़रूरी है।",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "सामग्री पर जाएँ",
+	"a11y.docsBreadcrumb": "दस्तावेज़ीकरण ब्रेडक्रंब",
+	"a11y.prevNext": "पिछला और अगला पृष्ठ",
+	"a11y.search": "खोजें",
+	"search.a11y.close": "खोज बंद करें",
+	"nav.backToSite": "FancyUI होम पर वापस जाएँ",
+	"nav.recipes": "रेसिपी",
+	"toc.show": "विषय-सूची दिखाएँ",
+	"footer.docs": "दस्तावेज़",
+	"footer.contribute": "योगदान करें",
+	"footer.issues": "Issues",
+	"footer.discussions": "चर्चाएँ",
+	"footer.security": "सुरक्षा",
+	"footer.conduct": "आचार संहिता",
+	"footer.changelog": "चेंजलॉग",
+	"footer.versions": "संस्करण",
+	"footer.install": "इंस्टॉल करें",
+	"footer.license": "MIT लाइसेंस",
+	"comp.editPage": "इस पृष्ठ को संपादित करें",
+	"comp.reportIssue": "समस्या की रिपोर्ट करें",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"Svelte 5, React और Vue के लिए {count} एनिमेटेड, इंटरैक्टिव UI कंपोनेंट्स का संग्रह है, जो एक ही डिज़ाइन टोकन पर बने हैं।",
+	"intro.importHint":
+		"आपको जो कंपोनेंट चाहिए उन्हें इम्पोर्ट करें। इम्पोर्ट पाथ आपके फ़्रेमवर्क पर निर्भर करता है।",
+	"install.kitOptional":
+		"SvelteKit वैकल्पिक है: FancyUI Vite से बने किसी भी Svelte 5 प्रोजेक्ट में काम करता है।",
+	"theming.cssPerFramework":
+		"अपने फ़्रेमवर्क की स्टाइलशीट इम्पोर्ट करें: हर पैकेज अपनी स्टाइलशीट के साथ आता है।",
+	"status.planned": "नियोजित",
+	"status.deprecated": "अप्रचलित",
+	"comp.sinceVersion": "v{version} में नया",
+	"comp.deprecatedNotice": "यह कंपोनेंट अप्रचलित है और भविष्य के रिलीज़ में हटाया जा सकता है।",
+	"comp.inspiredByNoLink": "{name} से प्रेरित",
+	"recipes.title": "रेसिपी",
+	"recipes.lead": "चरण-दर-चरण संयोजन, जो कई कंपोनेंट्स को मिलाकर पूरा इंटरफ़ेस बनाते हैं।",
+	"recipes.components": "कंपोनेंट्स: {count}",
+	"error.notFoundTitle": "पृष्ठ नहीं मिला",
+	"error.genericTitle": "कुछ गड़बड़ हो गई",
+	"error.notFoundBody": "आप जो पृष्ठ खोज रहे हैं वह मौजूद नहीं है या हटा दिया गया है।",
+	"error.genericBody": "एक अनपेक्षित त्रुटि हुई। फिर से कोशिश करें, या दस्तावेज़ पर वापस जाएँ।",
+	"error.unauthorizedTitle": "साइन इन आवश्यक है",
+	"error.unauthorizedBody": "इस पृष्ठ का उपयोग करने के लिए आपको साइन इन करना होगा।",
+	"error.home": "होम पर वापस जाएँ",
+	"error.browse": "कंपोनेंट्स ब्राउज़ करें",
+	"error.search": "दस्तावेज़ में खोजें",
+	"error.report": "टूटे लिंक की रिपोर्ट करें",
+	"comp.previewFailed": "यह पूर्वावलोकन लोड नहीं हो सका।",
+	"demo.noPreview": "इस कंपोनेंट के लिए अभी कोई पूर्वावलोकन उपलब्ध नहीं है।",
+	"demo.notFound": "कंपोनेंट नहीं मिला।",
+	"recipes.steps": "चरण",
+	"recipes.pitfalls": "आम गलतियाँ",
+	"recipes.componentsUsed": "उपयोग किए गए कंपोनेंट्स",
+	"seo.introduction":
+		"FancyUI, Svelte 5, React और Vue के लिए एनिमेटेड, इंटरैक्टिव UI कंपोनेंट्स की लाइब्रेरी है। जानें इसमें क्या है और शुरुआत कैसे करें।",
+	"seo.installation":
+		"Svelte 5, React या Vue के लिए FancyUI इंस्टॉल करें: पैकेज जोड़ें, स्टाइलशीट इम्पोर्ट करें और अपना पहला कंपोनेंट रेंडर करें।",
+	"seo.theming":
+		"डिज़ाइन टोकन से FancyUI को कस्टमाइज़ करें: OKLCh रंग, रेडियस, मोशन और डार्क मोड, Svelte 5, React और Vue के लिए।",
+	"seo.themeGenerator":
+		"FancyUI के OKLCh डिज़ाइन टोकन को लाइव ट्यून करें और जेनरेट किया गया CSS अपने ऐप में कॉपी करें।",
+	"seo.changelog": "Svelte 5, React और Vue के लिए FancyUI पैकेजों के रिलीज़ नोट्स।",
 } satisfies Catalog;

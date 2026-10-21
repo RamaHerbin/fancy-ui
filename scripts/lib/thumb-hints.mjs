@@ -35,7 +35,6 @@ export const THUMB_HINTS = {
 	"bg-falling-stars": { stage: 1 },
 	"border-beam": { stage: 1 },
 	"glowing-effect": { stage: 1, hover: [0.4, 0.45] },
-	"bg-stars": { stage: 1 },
 	marquee: { stage: 1 },
 	"text-generate-effect": { delay: 3000 },
 	"number-ticker": { delay: 2500 },

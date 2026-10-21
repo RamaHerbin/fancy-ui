@@ -29,7 +29,7 @@
 }
 
 /* The right-hand control group is the reference's `flex:1` spacer + 10px gap. */
-.docs-skin[data-skin="brutal"] header > .flex-1 {
+.docs-skin[data-skin="brutal"] header > [data-docs-controls] {
 	gap: 10px;
 }
 

@@ -36,20 +36,13 @@
  */
 
 import { chromium } from "@playwright/test";
-import {
-	existsSync,
-	mkdirSync,
-	readdirSync,
-	statSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readdirSync, statSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadRegistry } from "./lib/load-registry.mjs";
-import { isNearUniform } from "./lib/thumb-uniformity.mjs";
 import { applyPointerHint, encodeWebp, newCaptureContext } from "./lib/stage-capture.mjs";
 import { THUMB_HINTS } from "./lib/thumb-hints.mjs";
+import { isNearUniform } from "./lib/thumb-uniformity.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..");

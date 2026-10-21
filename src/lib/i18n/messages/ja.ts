@@ -384,4 +384,71 @@ export default {
 	"install.prerequisites.card1.version.vue": "3.5+",
 	"install.prerequisites.card1.desc.vue":
 		"コンポーネントは Vue 3.5 のシングルファイルコンポーネントのため、Vue 3.5.2 以降が必要です。",
+
+	// Docs audit: chrome, contribution, status, recipes, errors, SEO (native translations, pending review)
+	"a11y.skipToContent": "コンテンツへスキップ",
+	"a11y.docsBreadcrumb": "ドキュメントのパンくずリスト",
+	"a11y.prevNext": "前後のページ",
+	"a11y.search": "検索",
+	"search.a11y.close": "検索を閉じる",
+	"nav.backToSite": "FancyUIのホームに戻る",
+	"nav.recipes": "レシピ",
+	"toc.show": "目次を表示",
+	"footer.docs": "ドキュメント",
+	"footer.contribute": "コントリビュート",
+	"footer.issues": "Issues",
+	"footer.discussions": "ディスカッション",
+	"footer.security": "セキュリティ",
+	"footer.conduct": "行動規範",
+	"footer.changelog": "変更履歴",
+	"footer.versions": "バージョン",
+	"footer.install": "インストール",
+	"footer.license": "MITライセンス",
+	"comp.editPage": "このページを編集",
+	"comp.reportIssue": "問題を報告",
+	"comp.issueTitle": "[docs] {name}",
+	"intro.leadNeutral":
+		"は、Svelte 5、React、Vue向けの{count}個のアニメーション付きインタラクティブUIコンポーネントを集めたコレクションです。すべて同じデザイントークンで作られています。",
+	"intro.importHint":
+		"必要なコンポーネントをインポートします。インポートパスはお使いのフレームワークによって異なります。",
+	"install.kitOptional":
+		"SvelteKitは任意です。FancyUIは、Viteでビルドする任意のSvelte 5プロジェクトで動作します。",
+	"theming.cssPerFramework":
+		"お使いのフレームワーク用のスタイルシートをインポートします。各パッケージにそれぞれ付属しています。",
+	"status.planned": "予定",
+	"status.deprecated": "非推奨",
+	"comp.sinceVersion": "v{version}の新機能",
+	"comp.deprecatedNotice":
+		"このコンポーネントは非推奨で、今後のリリースで削除される可能性があります。",
+	"comp.inspiredByNoLink": "{name}にインスパイアされています",
+	"recipes.title": "レシピ",
+	"recipes.lead":
+		"複数のコンポーネントを組み合わせて完成したインターフェースにする、ステップごとの構成例です。",
+	"recipes.components": "コンポーネント：{count}",
+	"error.notFoundTitle": "ページが見つかりません",
+	"error.genericTitle": "問題が発生しました",
+	"error.notFoundBody": "お探しのページは存在しないか、移動されました。",
+	"error.genericBody":
+		"予期しないエラーが発生しました。もう一度お試しいただくか、ドキュメントに戻ってください。",
+	"error.unauthorizedTitle": "サインインが必要です",
+	"error.unauthorizedBody": "このページを利用するにはサインインが必要です。",
+	"error.home": "ホームに戻る",
+	"error.browse": "コンポーネントを見る",
+	"error.search": "ドキュメントを検索",
+	"error.report": "リンク切れを報告",
+	"comp.previewFailed": "このプレビューを読み込めませんでした。",
+	"demo.noPreview": "このコンポーネントのプレビューはまだありません。",
+	"demo.notFound": "コンポーネントが見つかりません。",
+	"recipes.steps": "手順",
+	"recipes.pitfalls": "よくある落とし穴",
+	"recipes.componentsUsed": "使用しているコンポーネント",
+	"seo.introduction":
+		"FancyUIは、Svelte 5、React、Vue向けのアニメーション付きインタラクティブUIコンポーネントのライブラリです。内容と始め方をご紹介します。",
+	"seo.installation":
+		"Svelte 5、React、Vue向けにFancyUIをインストールします。パッケージを追加し、スタイルシートをインポートして、最初のコンポーネントを表示しましょう。",
+	"seo.theming":
+		"デザイントークンでFancyUIをカスタマイズします。OKLChカラー、角丸、モーション、ダークモードに対応しています（Svelte 5、React、Vue）。",
+	"seo.themeGenerator":
+		"FancyUIのOKLChデザイントークンをリアルタイムに調整し、生成されたCSSをアプリにコピーします。",
+	"seo.changelog": "Svelte 5、React、Vue向けFancyUIパッケージのリリースノートです。",
 } satisfies Catalog;
